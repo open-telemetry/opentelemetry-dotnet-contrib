@@ -78,7 +78,7 @@ namespace OpenTelemetry.Exporter.Stackdriver
         /// <inheritdoc/>
         public override async Task<ExportResult> ExportAsync(IEnumerable<SpanData> spanDataList, CancellationToken cancellationToken)
         {
-            var traceWriter = TraceServiceClient.Create(settings: this.traceServiceSettings);
+            var traceWriter = new TraceServiceClientBuilder{Settings = this.traceServiceSettings}.Build();
 
             var batchSpansRequest = new BatchWriteSpansRequest
             {
