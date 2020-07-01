@@ -43,7 +43,7 @@ namespace OpenTelemetry.Exporter.Stackdriver.Implementation
                 EndTime = Timestamp.FromDateTime(activity.StartTimeUtc.Add(activity.Duration)),
                 ChildSpanCount = null,
             };
-            if (!activity.ParentSpanId.Equals(ActivitySpanId.CreateFromBytes(new byte[0])))
+            if (activity.ParentSpanId != null)
             {
                 var parentSpanId = activity.ParentSpanId.ToHexString();
                 if (!string.IsNullOrEmpty(parentSpanId))
@@ -68,7 +68,8 @@ namespace OpenTelemetry.Exporter.Stackdriver.Implementation
                 {
                     AttributeMap =
                     {
-                        activity.Tags.ToDictionary(t => t.Key, t => t.Value.ToAttributeValue()),
+                        activity.Tags.Where(t => t.Key != null && t.Value != null)
+                            .ToDictionary(t => t.Key, t => t.Value.ToAttributeValue()),
                     }
                 };
             }
@@ -97,9 +98,8 @@ namespace OpenTelemetry.Exporter.Stackdriver.Implementation
                 {
                     AttributeMap =
                     {
-                        link.Attributes.ToDictionary(
-                         att => att.Key,
-                         att => att.Value.ToAttributeValue()),
+                        link.Attributes.Where(t => t.Key != null && t.Value != null)
+                            .ToDictionary(att => att.Key, att => att.Value.ToAttributeValue()),
                     },
                 };
             }
@@ -117,7 +117,8 @@ namespace OpenTelemetry.Exporter.Stackdriver.Implementation
                     {
                         AttributeMap =
                         {
-                            ev.Attributes.ToDictionary(att => att.Key, att => att.Value.ToAttributeValue()),
+                            ev.Attributes.Where(t => t.Key != null && t.Value != null)
+                                .ToDictionary(att => att.Key, att => att.Value.ToAttributeValue()),
                         },
                     },
                 },
