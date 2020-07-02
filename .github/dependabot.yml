@@ -7,3 +7,6 @@ updates:
     # Check the nuget registry for updates every day (weekdays)
     schedule:
       interval: "daily"
+    allowed_updates:
+      - match:
+          dependency_name: "OpenTelemetry"
