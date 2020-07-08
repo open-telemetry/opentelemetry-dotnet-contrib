@@ -11,7 +11,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{2097345F-4
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.Stackdriver.Tests", "test\OpenTelemetry.Exporter.Stackdriver.Tests\OpenTelemetry.Exporter.Stackdriver.Tests.csproj", "{39EF6946-9909-498D-9181-479DEF6CB4B7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Instrumentation.Azure", "src\OpenTelemetry.Instrumentation.Azure\OpenTelemetry.Instrumentation.Azure.csproj", "{0E862C3A-89B1-4C3D-A2D5-579E38439C92}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Azure", "src\OpenTelemetry.Instrumentation.Azure\OpenTelemetry.Instrumentation.Azure.csproj", "{0E862C3A-89B1-4C3D-A2D5-579E38439C92}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{07AA0F83-22F6-4B8C-921D-029D3384CB17}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
+		NuGet.config = NuGet.config
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
