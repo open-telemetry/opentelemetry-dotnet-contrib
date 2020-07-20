@@ -13,8 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-using OpenTelemetry.Instrumentation.Azure.Implementation;
 using System;
+using OpenTelemetry.Instrumentation.Azure.Implementation;
 
 namespace OpenTelemetry.Instrumentation.Azure
 {

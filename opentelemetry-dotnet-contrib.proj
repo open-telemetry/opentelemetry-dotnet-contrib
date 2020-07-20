@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.4" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <ItemGroup>
+    <SolutionProjects Include="**\*.csproj" />
+    
+    <PackProjects Include="src\**\*.csproj" />
+  </ItemGroup>
+
+  <Target Name="Build">
+    <MSBuild Projects="@(SolutionProjects)" Targets="Restore;Build" ContinueOnError="ErrorAndStop" />
+  </Target>
+
+  <Target Name="Pack">
+    <MSBuild Projects="@(PackProjects)" Targets="Pack" ContinueOnError="ErrorAndStop" />
+  </Target>
+
+</Project>

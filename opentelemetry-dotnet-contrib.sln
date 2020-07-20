@@ -18,7 +18,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 		Directory.Build.props = Directory.Build.props
 		Directory.Build.targets = Directory.Build.targets
 		NuGet.config = NuGet.config
-		OpenTelemetryContrib.proj = OpenTelemetryContrib.proj
+		opentelemetry-dotnet-contrib.proj = opentelemetry-dotnet-contrib.proj
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{1A06E14B-DD2F-4536-9D2E-F708C0C43555}"
@@ -36,6 +36,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{824BD1DE
 	ProjectSection(SolutionItems) = preProject
 		build\Common.prod.props = build\Common.prod.props
 		build\Common.test.props = build\Common.test.props
+		build\OpenTelemetryContrib.prod.ruleset = build\OpenTelemetryContrib.prod.ruleset
+		build\OpenTelemetryContrib.test.ruleset = build\OpenTelemetryContrib.test.ruleset
+		build\stylecop.json = build\stylecop.json
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{0112BD4F-B7A6-4E43-AB23-B6E961E27A49}"
