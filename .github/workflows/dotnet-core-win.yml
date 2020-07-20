@@ -1,6 +1,8 @@
 name: .NET Windows
 
 on:
+  push:
+    branches: [ master ]
   pull_request:
     branches: [ master ]
 
