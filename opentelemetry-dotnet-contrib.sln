@@ -25,7 +25,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{1A06
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{43CAFE52-F329-4431-87DA-7FEE1454D9A9}"
 	ProjectSection(SolutionItems) = preProject
-		.github\workflows\docfx.yml = .github\workflows\docfx.yml
 		.github\workflows\dotnet-core-cov.yml = .github\workflows\dotnet-core-cov.yml
 		.github\workflows\dotnet-core-linux.yml = .github\workflows\dotnet-core-linux.yml
 		.github\workflows\dotnet-core-win.yml = .github\workflows\dotnet-core-win.yml
@@ -37,7 +36,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{824BD1DE
 	ProjectSection(SolutionItems) = preProject
 		build\Common.prod.props = build\Common.prod.props
 		build\Common.test.props = build\Common.test.props
-		build\docfx.cmd = build\docfx.cmd
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{0112BD4F-B7A6-4E43-AB23-B6E961E27A49}"
