@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <ItemGroup>
+    <PackageReference Include="MinVer" Version="2.3.0" Condition="'$(IntegrationBuild)' != 'true'">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <Target Name="AssemblyVersionTarget" AfterTargets="MinVer" Condition="'$(Configuration)'=='Release' and '$(MinVerVersion)'!=''">
+    <PropertyGroup>
+      <RevisionNumber>$(MinVerVersion.Split(`.`)[3])</RevisionNumber>
+      <AssemblyVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(RevisionNumber)</AssemblyVersion>
+    </PropertyGroup>
+  </Target>
+
+  <PropertyGroup>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/open-telemetry/opentelemetry-dotnet-contrib</RepositoryUrl>
+    <PackageProjectUrl>https://OpenTelemetry.io</PackageProjectUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <Authors>OpenTelemetry authors</Authors>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+  </PropertyGroup>
+
+  <PropertyGroup Label="SourceLink">
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(Deterministic)'=='true'">
+    <SourceRoot Include="$(MSBuildThisFileDirectory)/"/>
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(Deterministic)'=='true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" Condition="'$(SkipAnalysis)'!='true'">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>
