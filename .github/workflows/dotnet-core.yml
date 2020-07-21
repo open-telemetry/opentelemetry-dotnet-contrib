@@ -47,7 +47,7 @@ jobs:
 
     - name: dotnet pack
       if: ${{ matrix.os == 'windows-latest' }}
-      run: dotnet pack --configuration Release --no-build
+      run: dotnet pack opentelemetry-dotnet-contrib.proj --configuration Release --no-build
 
     - name: Publish Artifacts
       if: ${{ matrix.os == 'windows-latest' }}

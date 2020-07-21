@@ -32,7 +32,7 @@ namespace OpenTelemetry.Instrumentation.Azure.Implementation
         private readonly PropertyFetcher linksPropertyFetcher = new PropertyFetcher("Links");
 
         public AzureSdkDiagnosticListener(string sourceName)
-            : base(sourceName, null)
+            : base(sourceName)
         {
         }
 
