@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        version: [net46,netcoreapp3.1]
+        version: [net46,netcoreapp2.1,netcoreapp3.1]
 
     steps:
     - uses: actions/checkout@v2
