@@ -15,6 +15,7 @@
 // </copyright>
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -23,14 +24,14 @@ using Google.Api.Gax.Grpc;
 using Google.Cloud.Trace.V2;
 using Grpc.Core;
 using OpenTelemetry.Exporter.Stackdriver.Implementation;
-using OpenTelemetry.Trace.Export;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Exporter.Stackdriver
 {
     /// <summary>
     /// Exports a group of spans to Stackdriver.
     /// </summary>
-    public class StackdriverTraceExporter : SpanExporter
+    public class StackdriverTraceExporter : ActivityExporter
     {
         private static readonly string StackdriverExportVersion;
         private static readonly string OpenTelemetryExporterVersion;
@@ -76,14 +77,14 @@ namespace OpenTelemetry.Exporter.Stackdriver
         }
 
         /// <inheritdoc/>
-        public override async Task<ExportResult> ExportAsync(IEnumerable<SpanData> spanDataList, CancellationToken cancellationToken)
+        public override async Task<ExportResult> ExportAsync(IEnumerable<Activity> batchActivity, CancellationToken cancellationToken)
         {
             var traceWriter = TraceServiceClient.Create(settings: this.traceServiceSettings);
 
             var batchSpansRequest = new BatchWriteSpansRequest
             {
                 ProjectName = this.googleCloudProjectId,
-                Spans = { spanDataList.Select(s => s.ToSpan(this.googleCloudProjectId.ProjectId)) },
+                Spans = { batchActivity.Select(s => s.ToSpan(this.googleCloudProjectId.ProjectId)) },
             };
 
             // avoid cancelling here: this is no return point: if we reached this point

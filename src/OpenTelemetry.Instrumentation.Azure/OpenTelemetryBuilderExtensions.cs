@@ -30,8 +30,8 @@ namespace OpenTelemetry.Trace.Configuration
         /// </summary>
         /// <param name="builder"><see cref="OpenTelemetryBuilder"/> being configured.</param>
         /// <returns>The instance of <see cref="OpenTelemetryBuilder"/> to chain the calls.</returns>
-        public static OpenTelemetryBuilder AddAzureClientsDependencyInstrumentation(
-            this OpenTelemetryBuilder builder)
+        public static TracerProviderBuilder AddAzureClientsInstrumentation(
+            this TracerProviderBuilder builder)
         {
             if (builder == null)
             {
