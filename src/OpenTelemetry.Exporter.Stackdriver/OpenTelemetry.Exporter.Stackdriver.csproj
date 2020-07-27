@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Google.Cloud.Monitoring.V3" Version="1.1.0-beta02" />
     <PackageReference Include="Google.Cloud.Trace.V2" Version="1.0.0-beta02" />
-    <PackageReference Include="OpenTelemetry" Version="0.4.0-beta.3" />
+    <PackageReference Include="OpenTelemetry" Version="0.4.0-beta.2" />
   </ItemGroup>
 
 </Project>
