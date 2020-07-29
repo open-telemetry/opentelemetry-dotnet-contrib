@@ -124,5 +124,31 @@ namespace OpenTelemetry.Exporter.Stackdriver.Implementation
                 },
             };
         }
+
+        public static Google.Cloud.Trace.V2.AttributeValue ToAttributeValue(this object av)
+        {
+            switch (av)
+            {
+                case string s:
+                    return new Google.Cloud.Trace.V2.AttributeValue()
+                    {
+                        StringValue = new TruncatableString() { Value = s },
+                    };
+                case bool b:
+                    return new Google.Cloud.Trace.V2.AttributeValue() { BoolValue = b };
+                case long l:
+                    return new Google.Cloud.Trace.V2.AttributeValue() { IntValue = l };
+                case double d:
+                    return new Google.Cloud.Trace.V2.AttributeValue()
+                    {
+                        StringValue = new TruncatableString() { Value = d.ToString() },
+                    };
+                default:
+                    return new Google.Cloud.Trace.V2.AttributeValue()
+                    {
+                        StringValue = new TruncatableString() { Value = av.ToString() },
+                    };
+            }
+        }
     }
 }
