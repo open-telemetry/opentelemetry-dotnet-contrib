@@ -14,14 +14,15 @@
 // limitations under the License.
 // </copyright>
 
-using System.Linq;
 using System.Diagnostics;
+using System.Linq;
 using Google.Cloud.Trace.V2;
 using Google.Protobuf.WellKnownTypes;
 
 namespace OpenTelemetry.Exporter.Stackdriver.Implementation
 {
-    internal static class ActivityExtensions {
+    internal static class ActivityExtensions
+    {
         /// <summary>
         /// Translating an Activity to Stackdriver's Span format.
         /// According to <see href="https://cloud.google.com/trace/docs/reference/v2/rpc/google.devtools.cloudtrace.v2"/> specifications.
@@ -70,7 +71,7 @@ namespace OpenTelemetry.Exporter.Stackdriver.Implementation
                     {
                         activity.Tags.Where(t => t.Key != null && t.Value != null)
                             .ToDictionary(t => t.Key, t => t.Value.ToAttributeValue()),
-                    }
+                    },
                 };
             }
 
@@ -79,9 +80,10 @@ namespace OpenTelemetry.Exporter.Stackdriver.Implementation
             {
                 span.TimeEvents = new Google.Cloud.Trace.V2.Span.Types.TimeEvents
                 {
-                    TimeEvent = { activity.Events.Select(e => e.toEvent()) },
+                    TimeEvent = { activity.Events.Select(e => e.ToEvent()) },
                 };
             }
+
             // TODO: Attributes
             return span;
         }
@@ -107,12 +109,14 @@ namespace OpenTelemetry.Exporter.Stackdriver.Implementation
             return ret;
         }
 
-        public static Google.Cloud.Trace.V2.Span.Types.TimeEvent toEvent(this ActivityEvent ev)
+        public static Google.Cloud.Trace.V2.Span.Types.TimeEvent ToEvent(this ActivityEvent ev)
         {
-            return new Google.Cloud.Trace.V2.Span.Types.TimeEvent{
+            return new Google.Cloud.Trace.V2.Span.Types.TimeEvent
+            {
                 Time = Timestamp.FromDateTimeOffset(ev.Timestamp),
-                Annotation = new Google.Cloud.Trace.V2.Span.Types.TimeEvent.Types.Annotation{
-                    Description = new TruncatableString{ Value = ev.Name },
+                Annotation = new Google.Cloud.Trace.V2.Span.Types.TimeEvent.Types.Annotation
+                {
+                    Description = new TruncatableString { Value = ev.Name },
                     Attributes = new Google.Cloud.Trace.V2.Span.Types.Attributes
                     {
                         AttributeMap =
