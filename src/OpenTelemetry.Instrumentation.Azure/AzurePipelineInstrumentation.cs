@@ -25,7 +25,7 @@ namespace OpenTelemetry.Instrumentation.Azure
     /// There were no unit tests covering this feature, so
     /// cannot validate after Span is replaced with Activity.
     /// </summary>
-    public class AzurePipelineInstrumentation : IDisposable
+    internal class AzurePipelineInstrumentation : IDisposable
     {
         private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
 
