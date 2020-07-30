@@ -38,7 +38,7 @@ namespace OpenTelemetry.Exporter.Stackdriver.Implementation
         };
 
         /// <summary>
-        /// Translating <see cref="SpanData"/> to Stackdriver's Span
+        /// Translating <see cref="Activity"/> to Stackdriver's Span
         /// According to <see href="https://cloud.google.com/trace/docs/reference/v2/rpc/google.devtools.cloudtrace.v2"/> specifications.
         /// </summary>
         /// <param name="activity">Activity in OpenTelemetry format.</param>
