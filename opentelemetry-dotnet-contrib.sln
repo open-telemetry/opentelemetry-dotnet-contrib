@@ -22,6 +22,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{1A06E14B-DD2F-4536-9D2E-F708C0C43555}"
+	ProjectSection(SolutionItems) = preProject
+		.github\codecov.yml = .github\codecov.yml
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{43CAFE52-F329-4431-87DA-7FEE1454D9A9}"
 	ProjectSection(SolutionItems) = preProject
@@ -29,15 +32,20 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\dotnet-core-linux.yml = .github\workflows\dotnet-core-linux.yml
 		.github\workflows\dotnet-core-win.yml = .github\workflows\dotnet-core-win.yml
 		.github\workflows\dotnet-core.yml = .github\workflows\dotnet-core.yml
-		.github\workflows\spellcheck.yml = .github\workflows\spellcheck.yml
+		.github\workflows\markdownlint.yml = .github\workflows\markdownlint.yml
+		.github\workflows\sanitycheck.yml = .github\workflows\sanitycheck.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}"
 	ProjectSection(SolutionItems) = preProject
 		build\Common.prod.props = build\Common.prod.props
 		build\Common.test.props = build\Common.test.props
+		build\debug.snk = build\debug.snk
+		build\docfx.cmd = build\docfx.cmd
+		build\opentelemetry-icon-color.png = build\opentelemetry-icon-color.png
 		build\OpenTelemetryContrib.prod.ruleset = build\OpenTelemetryContrib.prod.ruleset
 		build\OpenTelemetryContrib.test.ruleset = build\OpenTelemetryContrib.test.ruleset
+		build\sanitycheck.py = build\sanitycheck.py
 		build\stylecop.json = build\stylecop.json
 	EndProjectSection
 EndProject

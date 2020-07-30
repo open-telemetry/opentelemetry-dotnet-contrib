@@ -3,7 +3,7 @@
 
   <ItemGroup>
     <SolutionProjects Include="**\*.csproj" />
-    
+
     <PackProjects Include="src\**\*.csproj" />
   </ItemGroup>
 
