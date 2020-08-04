@@ -1,4 +1,4 @@
-﻿// <copyright file="AzureClientsInstrumentation.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="EntityFrameworkInstrumentation.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,35 +13,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-using System;
-using OpenTelemetry.Instrumentation.Azure.Implementation;
 
-namespace OpenTelemetry.Instrumentation.Azure
+using System;
+using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
+
+namespace OpenTelemetry.Instrumentation.EntityFrameworkCore
 {
-    /// <summary>
-    /// AzureClients instrumentation.
-    /// TODO: Azure specific listeners would be moved out of this repo.
-    /// I believe this was initially put here for quick validation.
-    /// There were no unit tests covering this feature, so
-    /// cannot validate after Span is replaced with Activity.
-    /// </summary>
-    internal class AzureClientsInstrumentation : IDisposable
+    internal class EntityFrameworkInstrumentation : IDisposable
     {
         private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AzureClientsInstrumentation"/> class.
-        /// </summary>
-        public AzureClientsInstrumentation()
+        public EntityFrameworkInstrumentation(EntityFrameworkInstrumentationOptions options = null)
         {
             this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(
-                name => new AzureSdkDiagnosticListener(name),
-                listener => listener.Name.StartsWith("Azure."),
-                null);
+               name => new EntityFrameworkDiagnosticListener(name, options),
+               listener => listener.Name == EntityFrameworkDiagnosticListener.DiagnosticSourceName,
+               null);
             this.diagnosticSourceSubscriber.Subscribe();
         }
 
-        /// <inheritdoc/>
         public void Dispose()
         {
             this.diagnosticSourceSubscriber?.Dispose();

@@ -15,13 +15,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentati
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{07AA0F83-22F6-4B8C-921D-029D3384CB17}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		Directory.Build.props = Directory.Build.props
 		Directory.Build.targets = Directory.Build.targets
 		NuGet.config = NuGet.config
 		opentelemetry-dotnet-contrib.proj = opentelemetry-dotnet-contrib.proj
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{1A06E14B-DD2F-4536-9D2E-F708C0C43555}"
+	ProjectSection(SolutionItems) = preProject
+		.github\codecov.yml = .github\codecov.yml
+		CODEOWNERS = CODEOWNERS
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{43CAFE52-F329-4431-87DA-7FEE1454D9A9}"
 	ProjectSection(SolutionItems) = preProject
@@ -29,15 +35,20 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\dotnet-core-linux.yml = .github\workflows\dotnet-core-linux.yml
 		.github\workflows\dotnet-core-win.yml = .github\workflows\dotnet-core-win.yml
 		.github\workflows\dotnet-core.yml = .github\workflows\dotnet-core.yml
-		.github\workflows\spellcheck.yml = .github\workflows\spellcheck.yml
+		.github\workflows\markdownlint.yml = .github\workflows\markdownlint.yml
+		.github\workflows\sanitycheck.yml = .github\workflows\sanitycheck.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}"
 	ProjectSection(SolutionItems) = preProject
 		build\Common.prod.props = build\Common.prod.props
 		build\Common.test.props = build\Common.test.props
+		build\debug.snk = build\debug.snk
+		build\docfx.cmd = build\docfx.cmd
+		build\opentelemetry-icon-color.png = build\opentelemetry-icon-color.png
 		build\OpenTelemetryContrib.prod.ruleset = build\OpenTelemetryContrib.prod.ruleset
 		build\OpenTelemetryContrib.test.ruleset = build\OpenTelemetryContrib.test.ruleset
+		build\sanitycheck.py = build\sanitycheck.py
 		build\stylecop.json = build\stylecop.json
 	EndProjectSection
 EndProject
@@ -52,6 +63,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{E0F52FDB-2
 		test\Directory.Build.props = test\Directory.Build.props
 		test\Directory.Build.targets = test\Directory.Build.targets
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Instrumentation.EntityFrameworkCore", "src\OpenTelemetry.Instrumentation.EntityFrameworkCore\OpenTelemetry.Instrumentation.EntityFrameworkCore.csproj", "{0737A380-BBE9-47D5-9480-44752B68D0CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests", "test\OpenTelemetry.Instrumentation.EntityFrameworkCoreT\OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests.csproj", "{C337AC6A-B3DA-4AF0-AA2B-998D7F0EE3F0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -99,6 +114,30 @@ Global
 		{0E862C3A-89B1-4C3D-A2D5-579E38439C92}.Release|x64.Build.0 = Release|Any CPU
 		{0E862C3A-89B1-4C3D-A2D5-579E38439C92}.Release|x86.ActiveCfg = Release|Any CPU
 		{0E862C3A-89B1-4C3D-A2D5-579E38439C92}.Release|x86.Build.0 = Release|Any CPU
+		{0737A380-BBE9-47D5-9480-44752B68D0CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0737A380-BBE9-47D5-9480-44752B68D0CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0737A380-BBE9-47D5-9480-44752B68D0CA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0737A380-BBE9-47D5-9480-44752B68D0CA}.Debug|x64.Build.0 = Debug|Any CPU
+		{0737A380-BBE9-47D5-9480-44752B68D0CA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0737A380-BBE9-47D5-9480-44752B68D0CA}.Debug|x86.Build.0 = Debug|Any CPU
+		{0737A380-BBE9-47D5-9480-44752B68D0CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0737A380-BBE9-47D5-9480-44752B68D0CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0737A380-BBE9-47D5-9480-44752B68D0CA}.Release|x64.ActiveCfg = Release|Any CPU
+		{0737A380-BBE9-47D5-9480-44752B68D0CA}.Release|x64.Build.0 = Release|Any CPU
+		{0737A380-BBE9-47D5-9480-44752B68D0CA}.Release|x86.ActiveCfg = Release|Any CPU
+		{0737A380-BBE9-47D5-9480-44752B68D0CA}.Release|x86.Build.0 = Release|Any CPU
+		{C337AC6A-B3DA-4AF0-AA2B-998D7F0EE3F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C337AC6A-B3DA-4AF0-AA2B-998D7F0EE3F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C337AC6A-B3DA-4AF0-AA2B-998D7F0EE3F0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C337AC6A-B3DA-4AF0-AA2B-998D7F0EE3F0}.Debug|x64.Build.0 = Debug|Any CPU
+		{C337AC6A-B3DA-4AF0-AA2B-998D7F0EE3F0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C337AC6A-B3DA-4AF0-AA2B-998D7F0EE3F0}.Debug|x86.Build.0 = Debug|Any CPU
+		{C337AC6A-B3DA-4AF0-AA2B-998D7F0EE3F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C337AC6A-B3DA-4AF0-AA2B-998D7F0EE3F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C337AC6A-B3DA-4AF0-AA2B-998D7F0EE3F0}.Release|x64.ActiveCfg = Release|Any CPU
+		{C337AC6A-B3DA-4AF0-AA2B-998D7F0EE3F0}.Release|x64.Build.0 = Release|Any CPU
+		{C337AC6A-B3DA-4AF0-AA2B-998D7F0EE3F0}.Release|x86.ActiveCfg = Release|Any CPU
+		{C337AC6A-B3DA-4AF0-AA2B-998D7F0EE3F0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -110,6 +149,8 @@ Global
 		{43CAFE52-F329-4431-87DA-7FEE1454D9A9} = {1A06E14B-DD2F-4536-9D2E-F708C0C43555}
 		{0112BD4F-B7A6-4E43-AB23-B6E961E27A49} = {824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}
 		{E0F52FDB-23D1-4927-BAB8-332655DD7A0B} = {824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}
+		{0737A380-BBE9-47D5-9480-44752B68D0CA} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{C337AC6A-B3DA-4AF0-AA2B-998D7F0EE3F0} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}

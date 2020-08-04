@@ -1,15 +1,5 @@
-#####################################################
-#
-# List of approvers for OpenTelemetry .NET SDK
-#
-#####################################################
-#
-# Learn about membership in OpenTelemetry community:
-#  https://github.com/open-telemetry/community/blob/master/community-membership.md
-# 
-#
-# Learn about CODEOWNERS file format: 
-#  https://help.github.com/en/articles/about-code-owners
-#
+# Code owners file.
+# This file controls who is tagged for review for any given pull request.
 
-* @SergeyKanzhelev @lmolkova @discostu105 @bruno-garcia @MikeGoldsmith @cijothomas
+# For anything not explicitly taken by someone else:
+* @open-telemetry/dotnet-approvers
