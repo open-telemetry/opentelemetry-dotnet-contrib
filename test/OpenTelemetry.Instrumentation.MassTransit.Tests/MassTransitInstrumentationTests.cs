@@ -49,9 +49,9 @@ namespace OpenTelemetry.Instrumentation.MassTransit.Tests
                         Text = "Hello, world!",
                     });
 
-                    Assert.True(harness.Consumed.Select<TestMessage>().Any());
-                    Assert.True(consumerHarness.Consumed.Select<TestMessage>().Any());
-                    Assert.True(handlerHarness.Consumed.Select().Any());
+                    Assert.True(await harness.Consumed.SelectAsync<TestMessage>().Any());
+                    Assert.True(await consumerHarness.Consumed.SelectAsync<TestMessage>().Any());
+                    Assert.True(await handlerHarness.Consumed.SelectAsync().Any());
                 }
                 finally
                 {
@@ -110,9 +110,9 @@ namespace OpenTelemetry.Instrumentation.MassTransit.Tests
                         Text = "Hello, world!",
                     });
 
-                    Assert.True(harness.Consumed.Select<TestMessage>().Any());
-                    Assert.True(consumerHarness.Consumed.Select<TestMessage>().Any());
-                    Assert.True(handlerHarness.Consumed.Select().Any());
+                    Assert.True(await harness.Consumed.SelectAsync<TestMessage>().Any());
+                    Assert.True(await consumerHarness.Consumed.SelectAsync<TestMessage>().Any());
+                    Assert.True(await handlerHarness.Consumed.SelectAsync().Any());
                 }
                 finally
                 {
