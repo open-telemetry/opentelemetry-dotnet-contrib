@@ -1,4 +1,4 @@
-﻿// <copyright file="SpanExtensions.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="ActivityExtensions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,15 +15,15 @@
 // </copyright>
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Google.Cloud.Trace.V2;
 using Google.Protobuf.WellKnownTypes;
 using OpenTelemetry.Trace;
-using OpenTelemetry.Trace.Export;
 
 namespace OpenTelemetry.Exporter.Stackdriver.Implementation
 {
-    internal static class SpanExtensions
+    internal static class ActivityExtensions
     {
         private static Dictionary<string, string> labelsToReplace = new Dictionary<string, string>
         {
@@ -38,29 +38,29 @@ namespace OpenTelemetry.Exporter.Stackdriver.Implementation
         };
 
         /// <summary>
-        /// Translating <see cref="SpanData"/> to Stackdriver's Span
+        /// Translating <see cref="Activity"/> to Stackdriver's Span
         /// According to <see href="https://cloud.google.com/trace/docs/reference/v2/rpc/google.devtools.cloudtrace.v2"/> specifications.
         /// </summary>
-        /// <param name="spanData">Span in OpenTelemetry format.</param>
+        /// <param name="activity">Activity in OpenTelemetry format.</param>
         /// <param name="projectId">Google Cloud Platform Project Id.</param>
         /// <returns><see cref="TelemetrySpan"/>.</returns>
-        public static Google.Cloud.Trace.V2.Span ToSpan(this SpanData spanData, string projectId)
+        public static Span ToSpan(this Activity activity, string projectId)
         {
-            var spanId = spanData.Context.SpanId.ToHexString();
+            var spanId = activity.Context.SpanId.ToHexString();
 
             // Base span settings
-            var span = new Google.Cloud.Trace.V2.Span
+            var span = new Span
             {
-                SpanName = new SpanName(projectId, spanData.Context.TraceId.ToHexString(), spanId),
+                SpanName = new SpanName(projectId, activity.Context.TraceId.ToHexString(), spanId),
                 SpanId = spanId,
-                DisplayName = new TruncatableString { Value = spanData.Name },
-                StartTime = spanData.StartTimestamp.ToTimestamp(),
-                EndTime = spanData.EndTimestamp.ToTimestamp(),
+                DisplayName = new TruncatableString { Value = activity.DisplayName },
+                StartTime = activity.StartTimeUtc.ToTimestamp(),
+                EndTime = activity.StartTimeUtc.Add(activity.Duration).ToTimestamp(),
                 ChildSpanCount = null,
             };
-            if (spanData.ParentSpanId != null)
+            if (activity.ParentSpanId != null)
             {
-                var parentSpanId = spanData.ParentSpanId.ToHexString();
+                var parentSpanId = activity.ParentSpanId.ToHexString();
                 if (!string.IsNullOrEmpty(parentSpanId))
                 {
                     span.ParentSpanId = parentSpanId;
@@ -68,22 +68,22 @@ namespace OpenTelemetry.Exporter.Stackdriver.Implementation
             }
 
             // Span Links
-            if (spanData.Links != null)
+            if (activity.Links != null)
             {
-                span.Links = new Google.Cloud.Trace.V2.Span.Types.Links
+                span.Links = new Span.Types.Links
                 {
-                    Link = { spanData.Links.Select(l => l.ToLink()) },
+                    Link = { activity.Links.Select(l => l.ToLink()) },
                 };
             }
 
             // Span Attributes
-            if (spanData.Attributes != null)
+            if (activity.Tags != null)
             {
-                span.Attributes = new Google.Cloud.Trace.V2.Span.Types.Attributes
+                span.Attributes = new Span.Types.Attributes
                 {
                     AttributeMap =
                     {
-                        spanData.Attributes?.ToDictionary(
+                        activity.Tags?.ToDictionary(
                                         s => s.Key,
                                         s => s.Value?.ToAttributeValue()),
                     },
@@ -104,15 +104,17 @@ namespace OpenTelemetry.Exporter.Stackdriver.Implementation
             return span;
         }
 
-        public static Google.Cloud.Trace.V2.Span.Types.Link ToLink(this Link link)
+        public static Span.Types.Link ToLink(this ActivityLink link)
         {
-            var ret = new Google.Cloud.Trace.V2.Span.Types.Link();
-            ret.SpanId = link.Context.SpanId.ToHexString();
-            ret.TraceId = link.Context.TraceId.ToHexString();
+            var ret = new Span.Types.Link
+            {
+                SpanId = link.Context.SpanId.ToHexString(),
+                TraceId = link.Context.TraceId.ToHexString(),
+            };
 
             if (link.Attributes != null)
             {
-                ret.Attributes = new Google.Cloud.Trace.V2.Span.Types.Attributes
+                ret.Attributes = new Span.Types.Attributes
                 {
                     AttributeMap =
                     {
@@ -126,26 +128,26 @@ namespace OpenTelemetry.Exporter.Stackdriver.Implementation
             return ret;
         }
 
-        public static Google.Cloud.Trace.V2.AttributeValue ToAttributeValue(this object av)
+        public static AttributeValue ToAttributeValue(this object av)
         {
             switch (av)
             {
                 case string s:
-                    return new Google.Cloud.Trace.V2.AttributeValue()
+                    return new AttributeValue()
                     {
                         StringValue = new TruncatableString() { Value = s },
                     };
                 case bool b:
-                    return new Google.Cloud.Trace.V2.AttributeValue() { BoolValue = b };
+                    return new AttributeValue() { BoolValue = b };
                 case long l:
-                    return new Google.Cloud.Trace.V2.AttributeValue() { IntValue = l };
+                    return new AttributeValue() { IntValue = l };
                 case double d:
-                    return new Google.Cloud.Trace.V2.AttributeValue()
+                    return new AttributeValue()
                     {
                         StringValue = new TruncatableString() { Value = d.ToString() },
                     };
                 default:
-                    return new Google.Cloud.Trace.V2.AttributeValue()
+                    return new AttributeValue()
                     {
                         StringValue = new TruncatableString() { Value = av.ToString() },
                     };

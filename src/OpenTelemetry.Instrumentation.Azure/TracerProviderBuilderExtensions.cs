@@ -1,4 +1,4 @@
-﻿// <copyright file="OpenTelemetryBuilderExtensions.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="TracerProviderBuilderExtensions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,30 +16,29 @@
 
 using System;
 using OpenTelemetry.Instrumentation.Azure;
-using OpenTelemetry.Instrumentation.Azure.Implementation;
 
-namespace OpenTelemetry.Trace.Configuration
+namespace OpenTelemetry.Trace
 {
     /// <summary>
     /// Extension methods to simplify registering of dependency instrumentation.
     /// </summary>
-    public static class OpenTelemetryBuilderExtensions
+    public static class TracerProviderBuilderExtensions
     {
         /// <summary>
-        /// Enables instrumentation for Azure clients.
+        /// Enables Azure Instrumentation.
         /// </summary>
-        /// <param name="builder"><see cref="OpenTelemetryBuilder"/> being configured.</param>
-        /// <returns>The instance of <see cref="OpenTelemetryBuilder"/> to chain the calls.</returns>
-        public static OpenTelemetryBuilder AddAzureClientsDependencyInstrumentation(
-            this OpenTelemetryBuilder builder)
+        /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+        /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+        public static TracerProviderBuilder AddAzureInstrumentation(
+            this TracerProviderBuilder builder)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            builder.AddActivitySource(AzureSdkDiagnosticListener.ActivitySourceName);
             builder.AddInstrumentation((activitySource) => new AzureClientsInstrumentation());
+            builder.AddInstrumentation((activitySource) => new AzurePipelineInstrumentation());
             return builder;
         }
     }
