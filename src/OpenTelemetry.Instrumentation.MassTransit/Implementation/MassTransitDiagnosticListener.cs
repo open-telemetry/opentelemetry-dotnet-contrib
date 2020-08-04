@@ -35,7 +35,7 @@ namespace OpenTelemetry.Instrumentation.MassTransit.Implementation
 
         public override void OnStartActivity(Activity activity, object payload)
         {
-            if (!this.options.TracedOperations.Contains(activity.OperationName))
+            if (this.options.TracedOperations != null && !this.options.TracedOperations.Contains(activity.OperationName))
             {
                 return;
             }
@@ -48,7 +48,7 @@ namespace OpenTelemetry.Instrumentation.MassTransit.Implementation
 
         public override void OnStopActivity(Activity activity, object payload)
         {
-            if (!this.options.TracedOperations.Contains(activity.OperationName))
+            if (this.options.TracedOperations != null && !this.options.TracedOperations.Contains(activity.OperationName))
             {
                 return;
             }
