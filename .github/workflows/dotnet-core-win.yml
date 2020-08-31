@@ -12,15 +12,10 @@ jobs:
 
     strategy:
       matrix:
-        version: [net46,netcoreapp2.1,netcoreapp3.1]
+        version: [net461,netcoreapp2.1,netcoreapp3.1]
 
     steps:
     - uses: actions/checkout@v2
-
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 3.1.x
         
     - name: Install dependencies
       run: dotnet restore
