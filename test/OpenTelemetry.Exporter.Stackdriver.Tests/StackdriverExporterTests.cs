@@ -18,8 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -76,7 +74,7 @@ namespace OpenTelemetry.Exporter.Stackdriver.Tests
             var openTelemetrySdk = Sdk.CreateTracerProviderBuilder()
                 .AddSource(ActivitySourceName)
                 .AddProcessor(testActivityProcessor)
-                .UseStackdriverExporter(string.Empty).Build();
+                .UseStackdriverExporter("test").Build();
 
             var source = new ActivitySource(ActivitySourceName);
             var activity = source.StartActivity("Test Activity");

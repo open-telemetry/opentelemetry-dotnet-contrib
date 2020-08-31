@@ -76,7 +76,10 @@ namespace OpenTelemetry.Exporter.Stackdriver
         /// <inheritdoc/>
         public override ExportResult Export(in Batch<Activity> batchActivity)
         {
-            var traceWriter = TraceServiceClient.Create(settings: this.traceServiceSettings);
+            var traceWriter = new TraceServiceClientBuilder
+            {
+                Settings = this.traceServiceSettings,
+            }.Build();
 
             var batchSpansRequest = new BatchWriteSpansRequest
             {
