@@ -14,12 +14,9 @@
 // limitations under the License.
 // </copyright>
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using Google.Api.Gax.Grpc;
 using Google.Cloud.Trace.V2;
 using Grpc.Core;
@@ -77,28 +74,26 @@ namespace OpenTelemetry.Exporter.Stackdriver
         }
 
         /// <inheritdoc/>
-        public override async Task<ExportResult> ExportAsync(IEnumerable<Activity> batchActivity, CancellationToken cancellationToken)
+        public override ExportResult Export(in Batch<Activity> batchActivity)
         {
             var traceWriter = TraceServiceClient.Create(settings: this.traceServiceSettings);
 
             var batchSpansRequest = new BatchWriteSpansRequest
             {
                 ProjectName = this.googleCloudProjectId,
-                Spans = { batchActivity.Select(s => s.ToSpan(this.googleCloudProjectId.ProjectId)) },
             };
+
+            foreach (var activity in batchActivity)
+            {
+                batchSpansRequest.Spans.Add(activity.ToSpan(this.googleCloudProjectId.ProjectId));
+            }
 
             // avoid cancelling here: this is no return point: if we reached this point
             // and cancellation is requested, it's better if we try to finish sending spans rather than drop it
-            await traceWriter.BatchWriteSpansAsync(batchSpansRequest).ConfigureAwait(false);
+            traceWriter.BatchWriteSpans(batchSpansRequest);
 
             // TODO failures
             return ExportResult.Success;
-        }
-
-        /// <inheritdoc/>
-        public override Task ShutdownAsync(CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
         }
 
         /// <summary>

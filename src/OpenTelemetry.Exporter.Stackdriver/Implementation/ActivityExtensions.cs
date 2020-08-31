@@ -112,15 +112,15 @@ namespace OpenTelemetry.Exporter.Stackdriver.Implementation
                 TraceId = link.Context.TraceId.ToHexString(),
             };
 
-            if (link.Attributes != null)
+            if (link.Tags != null)
             {
                 ret.Attributes = new Span.Types.Attributes
                 {
                     AttributeMap =
                     {
-                        link.Attributes.ToDictionary(
-                         att => att.Key,
-                         att => att.Value.ToAttributeValue()),
+                        link.Tags.ToDictionary(
+                            att => att.Key,
+                            att => att.Value.ToAttributeValue()),
                     },
                 };
             }

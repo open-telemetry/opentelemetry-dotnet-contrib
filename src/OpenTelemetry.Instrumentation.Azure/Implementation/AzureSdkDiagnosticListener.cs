@@ -90,7 +90,7 @@ namespace OpenTelemetry.Instrumentation.Azure.Implementation
 
             // Ignore the activity and create a new one using ActivitySource.
             // The new one will have Sampling decision made using extracted Links as well.
-            AzureSDKActivitySource.StartActivity(operationName, activityKind, activity.Id, activity.Tags, links);
+            AzureSDKActivitySource.StartActivity(operationName, activityKind, activity.Id, activity.TagObjects, links);
         }
 
         public override void OnStopActivity(Activity current, object valueValue)

@@ -29,24 +29,19 @@ namespace OpenTelemetry.Trace
         /// </summary>
         /// <param name="builder"><see cref="TracerProviderBuilder"/> builder to use.</param>
         /// <param name="projectId">Project ID to send telemetry to.</param>
-        /// <param name="processorConfigure">Activity processor configuration.</param>
         /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
         public static TracerProviderBuilder UseStackdriverExporter(
             this TracerProviderBuilder builder,
-            string projectId,
-            Action<ActivityProcessorPipelineBuilder> processorConfigure = null)
+            string projectId)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder.AddProcessorPipeline(pipeline =>
-            {
-                var activityExporter = new StackdriverTraceExporter(projectId);
-                processorConfigure?.Invoke(pipeline);
-                pipeline.SetExporter(activityExporter);
-            });
+            var activityExporter = new StackdriverTraceExporter(projectId);
+
+            return builder.AddProcessor(new BatchExportActivityProcessor(activityExporter));
         }
     }
 }

@@ -49,11 +49,9 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests
         public void EntityFrameworkContextEventsInstrumentedTest()
         {
             var activityProcessor = new Mock<ActivityProcessor>();
-            using var shutdownSignal = Sdk.CreateTracerProvider(b =>
-            {
-                b.AddProcessorPipeline(c => c.AddProcessor(ap => activityProcessor.Object));
-                b.AddEntityFrameworkCoreInstrumentation();
-            });
+            using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
+                .AddProcessor(activityProcessor.Object)
+                .AddEntityFrameworkCoreInstrumentation().Build();
 
             using (var context = new ItemsContext(this.contextOptions))
             {
@@ -76,11 +74,10 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests
         public void EntityFrameworkContextExceptionEventsInstrumentedTest()
         {
             var activityProcessor = new Mock<ActivityProcessor>();
-            using var shutdownSignal = Sdk.CreateTracerProvider(b =>
-            {
-                b.AddProcessorPipeline(c => c.AddProcessor(ap => activityProcessor.Object));
-                b.AddEntityFrameworkCoreInstrumentation();
-            });
+            using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
+                .AddProcessor(activityProcessor.Object)
+                .AddEntityFrameworkCoreInstrumentation()
+                .Build();
 
             using (var context = new ItemsContext(this.contextOptions))
             {
