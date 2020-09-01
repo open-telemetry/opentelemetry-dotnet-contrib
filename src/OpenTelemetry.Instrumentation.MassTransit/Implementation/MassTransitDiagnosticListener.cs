@@ -1,4 +1,4 @@
-// <copyright file="MassTransitDiagnosticListener.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="MassTransitDiagnosticListener.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,10 +40,9 @@ namespace OpenTelemetry.Instrumentation.MassTransit.Implementation
                 return;
             }
 
-            activity.SetKind(this.GetActivityKind(activity));
             activity.DisplayName = this.GetDisplayName(activity);
 
-            this.activitySource.Start(activity);
+            this.activitySource.Start(activity, this.GetActivityKind(activity));
         }
 
         public override void OnStopActivity(Activity activity, object payload)
@@ -58,36 +57,26 @@ namespace OpenTelemetry.Instrumentation.MassTransit.Implementation
 
         private string GetDisplayName(Activity activity)
         {
-            switch (activity.OperationName)
+            return activity.OperationName switch
             {
-                case OperationName.Transport.Send:
-                    return DisplayNameHelper.GetSendOperationDisplayName(this.GetTag(activity.Tags, TagName.PeerAddress));
-                case OperationName.Transport.Receive:
-                    return DisplayNameHelper.GetReceiveOperationDisplayName(this.GetTag(activity.Tags, TagName.PeerAddress));
-                case OperationName.Consumer.Consume:
-                    return DisplayNameHelper.GetConsumeOperationDisplayName(this.GetTag(activity.Tags, TagName.ConsumerType));
-                case OperationName.Consumer.Handle:
-                    return DisplayNameHelper.GetHandleOperationDisplayName(this.GetTag(activity.Tags, TagName.PeerAddress));
-                default:
-                    return activity.DisplayName;
-            }
+                OperationName.Transport.Send => DisplayNameHelper.GetSendOperationDisplayName(this.GetTag(activity.Tags, TagName.PeerAddress)),
+                OperationName.Transport.Receive => DisplayNameHelper.GetReceiveOperationDisplayName(this.GetTag(activity.Tags, TagName.PeerAddress)),
+                OperationName.Consumer.Consume => DisplayNameHelper.GetConsumeOperationDisplayName(this.GetTag(activity.Tags, TagName.ConsumerType)),
+                OperationName.Consumer.Handle => DisplayNameHelper.GetHandleOperationDisplayName(this.GetTag(activity.Tags, TagName.PeerAddress)),
+                _ => activity.DisplayName,
+            };
         }
 
         private ActivityKind GetActivityKind(Activity activity)
         {
-            switch (activity.OperationName)
+            return activity.OperationName switch
             {
-                case OperationName.Transport.Send:
-                    return ActivityKind.Client;
-                case OperationName.Transport.Receive:
-                    return ActivityKind.Internal;
-                case OperationName.Consumer.Consume:
-                    return ActivityKind.Consumer;
-                case OperationName.Consumer.Handle:
-                    return ActivityKind.Consumer;
-                default:
-                    return activity.Kind;
-            }
+                OperationName.Transport.Send => ActivityKind.Client,
+                OperationName.Transport.Receive => ActivityKind.Internal,
+                OperationName.Consumer.Consume => ActivityKind.Consumer,
+                OperationName.Consumer.Handle => ActivityKind.Consumer,
+                _ => activity.Kind,
+            };
         }
 
         private string GetTag(IEnumerable<KeyValuePair<string, string>> tags, string tagName)

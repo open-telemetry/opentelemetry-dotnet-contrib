@@ -1,4 +1,4 @@
-// <copyright file="MassTransitInstrumentationTests.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="MassTransitInstrumentationTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using MassTransit.Testing;
 using Moq;
-using OpenTelemetry.Instrumentation.MassTransit.Implementation;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -32,11 +31,10 @@ namespace OpenTelemetry.Instrumentation.MassTransit.Tests
         public async Task MassTransitInstrumentationConsumerAndHandlerTest()
         {
             var activityProcessor = new Mock<ActivityProcessor>();
-            using (Sdk.CreateTracerProvider(b =>
-            {
-                b.AddProcessorPipeline(c => c.AddProcessor(ap => activityProcessor.Object));
-                b.AddMassTransitInstrumentation();
-            }))
+            using (Sdk.CreateTracerProviderBuilder()
+                .AddProcessor(activityProcessor.Object)
+                .AddMassTransitInstrumentation()
+                .Build())
             {
                 var harness = new InMemoryTestHarness();
                 var consumerHarness = harness.Consumer<TestConsumer>();
@@ -59,7 +57,7 @@ namespace OpenTelemetry.Instrumentation.MassTransit.Tests
                 }
             }
 
-            Assert.Equal(8, activityProcessor.Invocations.Count);
+            Assert.Equal(10, activityProcessor.Invocations.Count);
 
             var sends = this.GetActivitiesFromInvocationsByOperationName(activityProcessor.Invocations, OperationName.Transport.Send);
             var receives = this.GetActivitiesFromInvocationsByOperationName(activityProcessor.Invocations, OperationName.Transport.Receive);
@@ -90,14 +88,19 @@ namespace OpenTelemetry.Instrumentation.MassTransit.Tests
         [Fact]
         public async Task MassTransitInstrumentationTestOptions()
         {
+            using Activity activity = new Activity("Parent");
+            activity.SetParentId(
+                ActivityTraceId.CreateRandom(),
+                ActivitySpanId.CreateRandom(),
+                ActivityTraceFlags.Recorded);
+            activity.Start();
+
             var activityProcessor = new Mock<ActivityProcessor>();
-            using (Sdk.CreateTracerProvider(b =>
-            {
-                b.AddProcessorPipeline(c => c.AddProcessor(ap => activityProcessor.Object));
-                b.AddMassTransitInstrumentation(
-                    opts =>
-                        opts.TracedOperations = new HashSet<string>(new[] { OperationName.Consumer.Consume }));
-            }))
+            using (Sdk.CreateTracerProviderBuilder()
+                .AddProcessor(activityProcessor.Object)
+                .AddMassTransitInstrumentation(o =>
+                    o.TracedOperations = new HashSet<string>(new[] { OperationName.Consumer.Consume }))
+                .Build())
             {
                 var harness = new InMemoryTestHarness();
                 var consumerHarness = harness.Consumer<TestConsumer>();
@@ -120,9 +123,10 @@ namespace OpenTelemetry.Instrumentation.MassTransit.Tests
                 }
             }
 
-            Assert.Equal(2, activityProcessor.Invocations.Count);
+            Assert.Equal(4, activityProcessor.Invocations.Count);
 
-            var consumes = this.GetActivitiesFromInvocationsByOperationName(activityProcessor.Invocations, "MassTransit.Consumer.Consume");
+            var consumes = this.GetActivitiesFromInvocationsByOperationName(activityProcessor.Invocations, OperationName.Consumer.Consume);
+
             Assert.Equal(2, consumes.Count());
         }
 
