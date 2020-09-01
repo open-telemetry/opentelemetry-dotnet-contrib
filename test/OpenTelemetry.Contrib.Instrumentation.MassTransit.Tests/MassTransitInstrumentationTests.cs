@@ -76,12 +76,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
 
             foreach (var activity in consumes)
             {
-                Assert.Equal("CONSUME OpenTelemetry.Instrumentation.MassTransit.Tests.TestConsumer", activity.DisplayName);
+                Assert.Equal("CONSUME OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer", activity.DisplayName);
             }
 
             foreach (var activity in handles)
             {
-                Assert.Equal("HANDLE TestMessage/OpenTelemetry.Instrumentation.MassTransit.Tests", activity.DisplayName);
+                Assert.Equal("HANDLE TestMessage/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests", activity.DisplayName);
             }
         }
 
