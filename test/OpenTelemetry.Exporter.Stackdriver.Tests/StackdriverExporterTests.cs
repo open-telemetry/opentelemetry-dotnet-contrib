@@ -18,8 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -73,11 +71,10 @@ namespace OpenTelemetry.Exporter.Stackdriver.Tests
                     endCalled = true;
                 };
 
-            var openTelemetrySdk = Sdk.CreateTracerProvider(b => b
-                            .AddActivitySource(ActivitySourceName)
-                            .UseStackdriverExporter(
-                                string.Empty,
-                                processorConfigure: p => p.AddProcessor((next) => testActivityProcessor)));
+            var openTelemetrySdk = Sdk.CreateTracerProviderBuilder()
+                .AddSource(ActivitySourceName)
+                .AddProcessor(testActivityProcessor)
+                .UseStackdriverExporter("test").Build();
 
             var source = new ActivitySource(ActivitySourceName);
             var activity = source.StartActivity("Test Activity");
@@ -124,14 +121,14 @@ namespace OpenTelemetry.Exporter.Stackdriver.Tests
                 new ActivityEvent(
                     "Event1",
                     eventTimestamp,
-                    new Dictionary<string, object>
+                    new ActivityTagsCollection
                     {
                         { "key", "value" },
                     }),
                 new ActivityEvent(
                     "Event2",
                     eventTimestamp,
-                    new Dictionary<string, object>
+                    new ActivityTagsCollection
                     {
                         { "key", "value" },
                     }),
@@ -142,7 +139,7 @@ namespace OpenTelemetry.Exporter.Stackdriver.Tests
             var activitySource = new ActivitySource(nameof(CreateTestActivity));
 
             var tags = setAttributes ?
-                    attributes.Select(kvp => new KeyValuePair<string, string>(kvp.Key, kvp.Value.ToString()))
+                    attributes.Select(kvp => new KeyValuePair<string, object>(kvp.Key, kvp.Value.ToString()))
                     : null;
             var links = addLinks ?
                     new[]
