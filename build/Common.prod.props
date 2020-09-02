@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
+  <Import Project=".\Common.props" />
 
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
@@ -7,7 +7,7 @@
     <DefineConstants>$(DefineConstants);SIGNED</DefineConstants>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/open-telemetry/opentelemetry-dotnet-contrib</RepositoryUrl>
@@ -22,17 +22,14 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!--<MinVerVerbosity>detailed</MinVerVerbosity>-->
   </PropertyGroup>
-  
+
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)opentelemetry-icon-color.png" Pack="true" PackagePath="\"/>
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)/stylecop.json" />
 
-    <PackageReference Include="MinVer" Version="2.3.0" Condition="'$(IntegrationBuild)' != 'true'">
+    <PackageReference Include="MinVer" Version="$(MinVerPkgVer)" Condition="'$(IntegrationBuild)' != 'true'">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" Condition="'$(SkipAnalysis)'!='true'">
-      <PrivateAssets>All</PrivateAssets>
     </PackageReference>
   </ItemGroup>
 
@@ -51,11 +48,6 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <DebugType>full</DebugType>
-    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Deterministic)'=='true'">
