@@ -1,4 +1,4 @@
-name: .NET Linux
+name: Linux
 
 on:
   pull_request:

@@ -1,16 +1,17 @@
-name: .NET
+name: Pack
 
 on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'     
+        required: true
+        default: 'warning'
+  schedule:
+    - cron: '0 0 * * *' # once in a day at 00:00
   push:
-    branches: [ master ]
     tags:
-    - '*'
-    paths-ignore:
-    - '**.md'
-  pull_request:
-    branches: [ master ]
-    paths-ignore:
-    - '**.md'
+      - '*' # trigger when we create a tag       
 
 jobs:
   build-test-pack:
@@ -18,7 +19,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        os: [windows-latest]
 
     steps:
     - uses: actions/checkout@v2
@@ -31,15 +32,10 @@ jobs:
     - name: dotnet build
       run: dotnet build --configuration Release --no-restore -p:Deterministic=true
 
-    - name: dotnet test
-      run: dotnet test -p:CollectCoverage=false --configuration Release --no-build --logger:"console;verbosity=detailed"
-
     - name: dotnet pack
-      if: ${{ matrix.os == 'windows-latest' }}
-      run: dotnet pack opentelemetry-dotnet-contrib.proj --configuration Release --no-build
+      run: dotnet pack OpenTelemetry.proj --configuration Release --no-build
 
     - name: Publish Artifacts
-      if: ${{ matrix.os == 'windows-latest' }}
       uses: actions/upload-artifact@v2
       with:
         name: ${{ matrix.os }}-packages
