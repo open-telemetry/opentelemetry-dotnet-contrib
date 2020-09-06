@@ -17,4 +17,4 @@ guidelines](./CONTRIBUTING.md)
 
 This repository is maintained by [.NET SDK maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-maintainers) team and [.NET SDK approvers](https://github.com/orgs/open-telemetry/teams/dotnet-approvers) can help with reviews and code approval. However, as individual components are developed by numerous contributors, approvers and maintainers are not expected to directly contribute to every component.
 
-This repository is great for community supported components. Vendor specific code that deliver a higher supportability guarantees needs to be placed in vendor's repository. Packages in vendor repositories would be prefixed with the vendor name to signify the difference from community-supported components. 
+This repository is great for community supported components. Vendor specific code that deliver a higher supportability guarantees needs to be placed in vendor's repository. Packages in vendor repositories would be prefixed with the vendor name to signify the difference from community-supported components.
