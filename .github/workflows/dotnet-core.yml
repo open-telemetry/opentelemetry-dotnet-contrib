@@ -40,6 +40,7 @@ jobs:
       with:
         name: ${{ matrix.os }}-packages
         path: '**/bin/**/*.*nupkg'
+
     - name: Publish MyGet
       run: |
         nuget setApiKey ${{ secrets.MYGET_TOKEN }} -Source https://www.myget.org/F/opentelemetry-contrib/api/v2/package
