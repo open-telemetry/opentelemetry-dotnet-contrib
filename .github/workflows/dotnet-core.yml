@@ -33,7 +33,7 @@ jobs:
       run: dotnet build --configuration Release --no-restore -p:Deterministic=true
 
     - name: dotnet pack
-      run: dotnet pack OpenTelemetry.proj --configuration Release --no-build
+      run: dotnet pack opentelemetry-dotnet-contrib.proj --configuration Release --no-build
 
     - name: Publish Artifacts
       uses: actions/upload-artifact@v2
