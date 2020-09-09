@@ -5,8 +5,4 @@
     <Description>OpenTelemetry instrumentation for Azure dependencies.</Description>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="Implementation\" />
-  </ItemGroup>
-
 </Project>
