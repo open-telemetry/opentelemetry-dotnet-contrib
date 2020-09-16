@@ -1,12 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>Unit test project for OpenTelemetry Elasticsearch instrumentation</Description>
+    <Description>Unit test project for OpenTelemetry Elasticsearch client instrumentation</Description>
     <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Protobuf Include="Proto\greet.proto" GrpcServices="Client;Server" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
@@ -18,10 +14,11 @@
     </PackageReference>
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
 
-    <PackageReference Include="Elasticsearch.Net.VirtualizedCluster" Version="7.9.0" />
+    <PackageReference Include="NEST" Version="7.9.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\OpenTelemetry.Instrumentation.Elasticsearch\OpenTelemetry.Instrumentation.Elasticsearch.csproj" />
+    <ProjectReference Include="..\..\src\OpenTelemetry.Contrib.Instrumentation.Elasticsearch\OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.csproj" />
   </ItemGroup>
+
 </Project>

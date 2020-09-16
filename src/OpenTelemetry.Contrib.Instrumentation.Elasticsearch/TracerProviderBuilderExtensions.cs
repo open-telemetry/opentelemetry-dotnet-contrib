@@ -1,4 +1,4 @@
-﻿// <copyright file="OpenTelemetryBuilderExtensions.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="TracerProviderBuilderExtensions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,29 +15,34 @@
 // </copyright>
 
 using System;
-using OpenTelemetry.Instrumentation.Elasticsearch;
+using OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient;
 
 namespace OpenTelemetry.Trace
 {
     /// <summary>
     /// Extension methods to simplify registering of dependency instrumentation.
     /// </summary>
-    public static class OpenTelemetryBuilderExtensions
+    public static class TracerProviderBuilderExtensions
     {
         /// <summary>
-        /// Enables Elasticsearch Client Instrumentation.
+        /// Enables Elasticsearch client Instrumentation.
         /// </summary>
         /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+        /// <param name="configure">Elasticsearch client configuration options.</param>
         /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
         public static TracerProviderBuilder AddElasticsearchClientInstrumentation(
-            this TracerProviderBuilder builder)
+            this TracerProviderBuilder builder,
+            Action<ElasticsearchClientInstrumentationOptions> configure = null)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            builder.AddInstrumentation((activitySource) => new ElasticsearchClientInstrumentation(activitySource));
+            var elasticsearchClientOptions = new ElasticsearchClientInstrumentationOptions();
+            configure?.Invoke(elasticsearchClientOptions);
+
+            builder.AddInstrumentation((activitySource) => new ElasticsearchClientInstrumentation(activitySource, elasticsearchClientOptions));
             return builder;
         }
     }

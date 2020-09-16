@@ -16,7 +16,7 @@
 
 using System.Diagnostics.Tracing;
 
-namespace OpenTelemetry.Instrumentation.Elasticsearch.Implementation
+namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementation
 {
     /// <summary>
     /// EventSource events emitted from the project.

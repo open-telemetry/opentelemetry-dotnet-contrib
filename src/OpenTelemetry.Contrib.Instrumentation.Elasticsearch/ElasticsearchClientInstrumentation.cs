@@ -14,13 +14,14 @@
 // limitations under the License.
 // </copyright>
 using System;
-using OpenTelemetry.Instrumentation.Elasticsearch.Implementation;
+using OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementation;
+using OpenTelemetry.Instrumentation;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Instrumentation.Elasticsearch
+namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient
 {
     /// <summary>
-    /// ElasticsearchClient instrumentation.
+    /// Elasticsearch client instrumentation.
     /// </summary>
     internal class ElasticsearchClientInstrumentation : IDisposable
     {
@@ -30,14 +31,15 @@ namespace OpenTelemetry.Instrumentation.Elasticsearch
         /// Initializes a new instance of the <see cref="ElasticsearchClientInstrumentation"/> class.
         /// </summary>
         /// <param name="activitySource">ActivitySource adapter instance.</param>
-        public ElasticsearchClientInstrumentation(ActivitySourceAdapter activitySource)
+        /// <param name="options">Configuration options for Elasticsearch client instrumentation.</param>
+        public ElasticsearchClientInstrumentation(ActivitySourceAdapter activitySource, ElasticsearchClientInstrumentationOptions options)
         {
             if (activitySource == null)
             {
                 throw new ArgumentNullException(nameof(activitySource));
             }
 
-            this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(new ElasticsearchRequestPipelineDiagnosticListener(activitySource), null);
+            this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(new ElasticsearchRequestPipelineDiagnosticListener(activitySource, options), null);
             this.diagnosticSourceSubscriber.Subscribe();
         }
 
