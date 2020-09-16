@@ -44,16 +44,16 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementati
         internal static readonly ActivitySource SqlClientActivitySource = new ActivitySource(ActivitySourceName, Version.ToString());
 #pragma warning restore SA1202 // Elements should be ordered by access
 
-        private readonly PropertyFetcher commandFetcher = new PropertyFetcher("Command");
-        private readonly PropertyFetcher connectionFetcher = new PropertyFetcher("Connection");
-        private readonly PropertyFetcher dbContextFetcher = new PropertyFetcher("Context");
-        private readonly PropertyFetcher dbContextDatabaseFetcher = new PropertyFetcher("Database");
-        private readonly PropertyFetcher providerNameFetcher = new PropertyFetcher("ProviderName");
-        private readonly PropertyFetcher dataSourceFetcher = new PropertyFetcher("DataSource");
-        private readonly PropertyFetcher databaseFetcher = new PropertyFetcher("Database");
-        private readonly PropertyFetcher commandTypeFetcher = new PropertyFetcher("CommandType");
-        private readonly PropertyFetcher commandTextFetcher = new PropertyFetcher("CommandText");
-        private readonly PropertyFetcher exceptionFetcher = new PropertyFetcher("Exception");
+        private readonly PropertyFetcher<object> commandFetcher = new PropertyFetcher<object>("Command");
+        private readonly PropertyFetcher<object> connectionFetcher = new PropertyFetcher<object>("Connection");
+        private readonly PropertyFetcher<object> dbContextFetcher = new PropertyFetcher<object>("Context");
+        private readonly PropertyFetcher<object> dbContextDatabaseFetcher = new PropertyFetcher<object>("Database");
+        private readonly PropertyFetcher<string> providerNameFetcher = new PropertyFetcher<string>("ProviderName");
+        private readonly PropertyFetcher<object> dataSourceFetcher = new PropertyFetcher<object>("DataSource");
+        private readonly PropertyFetcher<object> databaseFetcher = new PropertyFetcher<object>("Database");
+        private readonly PropertyFetcher<CommandType> commandTypeFetcher = new PropertyFetcher<CommandType>("CommandType");
+        private readonly PropertyFetcher<string> commandTextFetcher = new PropertyFetcher<string>("CommandText");
+        private readonly PropertyFetcher<Exception> exceptionFetcher = new PropertyFetcher<Exception>("Exception");
 
         private readonly EntityFrameworkInstrumentationOptions options;
 
@@ -89,13 +89,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementati
                         var connection = this.connectionFetcher.Fetch(command);
                         var database = (string)this.databaseFetcher.Fetch(connection);
 
-                        activity.DisplayName = (string)database;
+                        activity.DisplayName = database;
 
                         if (activity.IsAllDataRequested)
                         {
                             var dbContext = this.dbContextFetcher.Fetch(payload);
                             var dbContextDatabase = this.dbContextDatabaseFetcher.Fetch(dbContext);
-                            var providerName = (string)this.providerNameFetcher.Fetch(dbContextDatabase);
+                            var providerName = this.providerNameFetcher.Fetch(dbContextDatabase);
 
                             switch (providerName)
                             {
@@ -161,7 +161,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementati
                                         activity.AddTag(SpanAttributeConstants.DatabaseStatementTypeKey, nameof(CommandType.StoredProcedure));
                                         if (this.options.SetStoredProcedureCommandName)
                                         {
-                                            activity.AddTag(AttributeDbStatement, (string)commandText);
+                                            activity.AddTag(AttributeDbStatement, commandText);
                                         }
 
                                         break;
@@ -170,7 +170,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementati
                                         activity.AddTag(SpanAttributeConstants.DatabaseStatementTypeKey, nameof(CommandType.Text));
                                         if (this.options.SetTextCommandContent)
                                         {
-                                            activity.AddTag(AttributeDbStatement, (string)commandText);
+                                            activity.AddTag(AttributeDbStatement, commandText);
                                         }
 
                                         break;

@@ -31,7 +31,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Azure.Implementation
         private static readonly ActivitySource AzureSDKActivitySource = new ActivitySource(ActivitySourceName, Version.ToString());
 
         // all fetchers must not be reused between DiagnosticSources.
-        private readonly PropertyFetcher linksPropertyFetcher = new PropertyFetcher("Links");
+        private readonly PropertyFetcher<IEnumerable<Activity>> linksPropertyFetcher = new PropertyFetcher<IEnumerable<Activity>>("Links");
 
         public AzureSdkDiagnosticListener(string sourceName)
             : base(sourceName)
