@@ -309,8 +309,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
       ]
     }
   }
-}",
-                debugInfo);
+}".Replace("\r\n", "\n"),
+                debugInfo.Replace("\r\n", "\n"));
 
             Assert.Equal(Status.Ok, searchActivity.GetStatus());
             Assert.Equal(expectedResource, searchActivity.GetResource());
