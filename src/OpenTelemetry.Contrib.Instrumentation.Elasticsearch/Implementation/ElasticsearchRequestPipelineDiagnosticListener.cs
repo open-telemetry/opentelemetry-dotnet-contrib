@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -30,15 +31,17 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
     internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
     {
         private static readonly Regex ParseRequest = new Regex(@"\n# Request:\r?\n(\{.*)\n# Response", RegexOptions.Compiled | RegexOptions.Singleline);
+        private static readonly ConcurrentDictionary<object, string> MethodNameCache = new ConcurrentDictionary<object, string>();
 
         private readonly ActivitySourceAdapter activitySource;
         private readonly ElasticsearchClientInstrumentationOptions options;
         private readonly PropertyFetcher<Uri> uriFetcher = new PropertyFetcher<Uri>("Uri");
         private readonly PropertyFetcher<object> methodFetcher = new PropertyFetcher<object>("Method");
-        private readonly PropertyFetcher<bool> successFetcher = new PropertyFetcher<bool>("SuccessOrKnownError");
         private readonly PropertyFetcher<string> debugInformationFetcher = new PropertyFetcher<string>("DebugInformation");
         private readonly PropertyFetcher<int?> httpStatusFetcher = new PropertyFetcher<int?>("HttpStatusCode");
         private readonly PropertyFetcher<Exception> orginalExceptionFetcher = new PropertyFetcher<Exception>("OriginalException");
+        private readonly PropertyFetcher<object> failureReasonFetcher = new PropertyFetcher<object>("FailureReason");
+        private readonly PropertyFetcher<byte[]> responseBodyFetcher = new PropertyFetcher<byte[]>("ResponseBodyInBytes");
 
         public ElasticsearchRequestPipelineDiagnosticListener(ActivitySourceAdapter activitySource, ElasticsearchClientInstrumentationOptions options)
             : base("Elasticsearch.Net.RequestPipeline")
@@ -62,17 +65,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
                 return;
             }
 
-            var method = this.methodFetcher.Fetch(payload)?.ToString();
-            activity.SetTag(Constants.AttributeDbSystem, "elasticsearch");
-
-            if (activity.OperationName == "Ping")
-            {
-                activity.DisplayName = $"Elasticsearch: Ping";
-            }
-            else
-            {
-                activity.DisplayName = $"Elasticsearch: {method} {uri.AbsolutePath}";
-            }
+            var method = this.methodFetcher.Fetch(payload);
+            activity.DisplayName = this.GetDisplayName(activity, method);
 
             this.activitySource.Start(activity, ActivityKind.Client);
 
@@ -81,42 +75,47 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
                 SuppressInstrumentationScope.Enter();
             }
 
-            if (activity.IsAllDataRequested)
+            if (!activity.IsAllDataRequested)
             {
-                var elasticType = uri.Segments.FirstOrDefault(s => !s.Equals("/") && !s.StartsWith("_"));
-                if (elasticType != null && elasticType.EndsWith("/"))
-                {
-                    elasticType = elasticType.Substring(0, elasticType.Length - 1);
-                }
-
-                activity.SetTag(Constants.AttributeDbName, elasticType);
-
-                var uriHostNameType = Uri.CheckHostName(uri.Host);
-                if (uriHostNameType == UriHostNameType.IPv4 || uriHostNameType == UriHostNameType.IPv6)
-                {
-                    activity.SetTag(Constants.AttributeNetPeerIp, uri.Host);
-                }
-                else
-                {
-                    activity.SetTag(Constants.AttributeNetPeerName, uri.Host);
-                }
-
-                if (uri.Port > 0)
-                {
-                    activity.SetTag(Constants.AttributeNetPeerPort, uri.Port);
-                }
-
-                activity.SetTag(Constants.AttributeDbUrl,  uri.OriginalString);
-                activity.SetTag(Constants.AttributeDbMethod, method);
+                return;
             }
+
+            var elasticType = this.GetElasticType(uri);
+            activity.DisplayName = this.GetDisplayName(activity, method, elasticType);
+            activity.SetTag(Constants.AttributeDbSystem, "elasticsearch");
+
+            if (elasticType != null)
+            {
+                activity.SetTag(Constants.AttributeDbName, elasticType);
+            }
+
+            var uriHostNameType = Uri.CheckHostName(uri.Host);
+            if (uriHostNameType == UriHostNameType.IPv4 || uriHostNameType == UriHostNameType.IPv6)
+            {
+                activity.SetTag(Constants.AttributeNetPeerIp, uri.Host);
+            }
+            else
+            {
+                activity.SetTag(Constants.AttributeNetPeerName, uri.Host);
+            }
+
+            if (uri.Port > 0)
+            {
+                activity.SetTag(Constants.AttributeNetPeerPort, uri.Port);
+            }
+
+            if (method != null)
+            {
+                activity.SetTag(Constants.AttributeDbMethod, method.ToString());
+            }
+
+            activity.SetTag(Constants.AttributeDbUrl,  uri.OriginalString);
         }
 
         public override void OnStopActivity(Activity activity, object payload)
         {
             if (activity.IsAllDataRequested)
             {
-                // TODO: Seems like we should be using this value
-                var success = this.successFetcher.Fetch(payload);
                 var statusCode = this.httpStatusFetcher.Fetch(payload);
 
                 if (!statusCode.HasValue)
@@ -151,6 +150,19 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
                 {
                     activity.SetCustomProperty(Constants.ExceptionCustomPropertyName, originalException);
 
+                    var failureReason = this.failureReasonFetcher.Fetch(originalException);
+                    if (failureReason != null)
+                    {
+                        activity.SetStatus(Status.Unknown.WithDescription($"{failureReason} {originalException.Message}"));
+                    }
+
+                    var responseBody = this.responseBodyFetcher.Fetch(payload);
+                    if (responseBody != null && responseBody.Length > 0)
+                    {
+                        var response = Encoding.UTF8.GetString(responseBody);
+                        activity.SetStatus(Status.Unknown.WithDescription($"{failureReason} {originalException.Message}\r\n{response}"));
+                    }
+
                     if (originalException is HttpRequestException)
                     {
                         if (originalException.InnerException is SocketException exception)
@@ -174,6 +186,58 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
             this.activitySource.Stop(activity);
         }
 
+        private string GetDisplayName(Activity activity, object method, string elasticType = null)
+        {
+            switch (activity.OperationName)
+            {
+                case "Ping":
+                    return "Elasticsearch Ping";
+                case "CallElasticsearch" when method != null:
+                {
+                    var methodName = MethodNameCache.GetOrAdd(method, $"Elasticsearch {method}");
+                    if (elasticType == null)
+                    {
+                        return methodName;
+                    }
+
+                    return $"{methodName} {elasticType}";
+                }
+
+                default:
+                    return "Elasticsearch";
+            }
+        }
+
+        private string GetElasticType(Uri uri)
+        {
+            // first segment is always /
+            if (uri.Segments.Length < 2)
+            {
+                return null;
+            }
+
+            // operations starting with _ are not indices (_cat, _search, etc)
+            if (uri.Segments[1].StartsWith("_"))
+            {
+                return null;
+            }
+
+            var elasticType = Uri.UnescapeDataString(uri.Segments[1]);
+
+            // multiple indices used, return null to avoid high cardinality
+            if (elasticType.Contains(','))
+            {
+                return null;
+            }
+
+            if (elasticType.EndsWith("/"))
+            {
+                elasticType = elasticType.Substring(0, elasticType.Length - 1);
+            }
+
+            return elasticType;
+        }
+
         private string ParseAndFormatRequest(Activity activity, string debugInformation)
         {
             if (!this.options.ParseAndFormatRequest)
@@ -181,11 +245,17 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
                 return debugInformation;
             }
 
+            string method = activity.GetTagValue(Constants.AttributeDbMethod).ToString();
+            string url = activity.GetTagValue(Constants.AttributeDbUrl).ToString();
+
+            if (method == "GET")
+            {
+                return $"GET {url}";
+            }
+
             var request = ParseRequest.Match(debugInformation);
             if (request.Success)
             {
-                string method = activity.GetTagValue(Constants.AttributeDbMethod).ToString();
-                string url = activity.GetTagValue(Constants.AttributeDbUrl).ToString();
                 string body = request.Groups[1].Value.Trim();
 
                 var doc = JsonDocument.Parse(body);
