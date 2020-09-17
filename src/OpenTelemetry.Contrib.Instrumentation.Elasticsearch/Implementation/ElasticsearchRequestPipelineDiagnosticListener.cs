@@ -39,7 +39,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
         private readonly PropertyFetcher<object> methodFetcher = new PropertyFetcher<object>("Method");
         private readonly PropertyFetcher<string> debugInformationFetcher = new PropertyFetcher<string>("DebugInformation");
         private readonly PropertyFetcher<int?> httpStatusFetcher = new PropertyFetcher<int?>("HttpStatusCode");
-        private readonly PropertyFetcher<Exception> orginalExceptionFetcher = new PropertyFetcher<Exception>("OriginalException");
+        private readonly PropertyFetcher<Exception> originalExceptionFetcher = new PropertyFetcher<Exception>("OriginalException");
         private readonly PropertyFetcher<object> failureReasonFetcher = new PropertyFetcher<object>("FailureReason");
         private readonly PropertyFetcher<byte[]> responseBodyFetcher = new PropertyFetcher<byte[]>("ResponseBodyInBytes");
 
@@ -109,7 +109,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
                 activity.SetTag(Constants.AttributeDbMethod, method.ToString());
             }
 
-            activity.SetTag(Constants.AttributeDbUrl,  uri.OriginalString);
+            activity.SetTag(Constants.AttributeDbUrl, uri.OriginalString);
         }
 
         public override void OnStopActivity(Activity activity, object payload)
@@ -145,7 +145,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
                     activity.SetTag(Constants.AttributeDbStatement, this.ParseAndFormatRequest(activity, debugInformation));
                 }
 
-                var originalException = this.orginalExceptionFetcher.Fetch(payload);
+                var originalException = this.originalExceptionFetcher.Fetch(payload);
                 if (originalException != null)
                 {
                     activity.SetCustomProperty(Constants.ExceptionCustomPropertyName, originalException);
@@ -193,15 +193,15 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
                 case "Ping":
                     return "Elasticsearch Ping";
                 case "CallElasticsearch" when method != null:
-                {
-                    var methodName = MethodNameCache.GetOrAdd(method, $"Elasticsearch {method}");
-                    if (elasticType == null)
                     {
-                        return methodName;
-                    }
+                        var methodName = MethodNameCache.GetOrAdd(method, $"Elasticsearch {method}");
+                        if (elasticType == null)
+                        {
+                            return methodName;
+                        }
 
-                    return $"{methodName} {elasticType}";
-                }
+                        return $"{methodName} {elasticType}";
+                    }
 
                 default:
                     return "Elasticsearch";
