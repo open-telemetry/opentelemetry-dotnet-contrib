@@ -80,13 +80,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
                 return;
             }
 
-            var elasticType = this.GetElasticType(uri);
-            activity.DisplayName = this.GetDisplayName(activity, method, elasticType);
+            var elasticIndex = this.GetElasticIndex(uri);
+            activity.DisplayName = this.GetDisplayName(activity, method, elasticIndex);
             activity.SetTag(Constants.AttributeDbSystem, "elasticsearch");
 
-            if (elasticType != null)
+            if (elasticIndex != null)
             {
-                activity.SetTag(Constants.AttributeDbName, elasticType);
+                activity.SetTag(Constants.AttributeDbName, elasticIndex);
             }
 
             var uriHostNameType = Uri.CheckHostName(uri.Host);
@@ -208,7 +208,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
             }
         }
 
-        private string GetElasticType(Uri uri)
+        private string GetElasticIndex(Uri uri)
         {
             // first segment is always /
             if (uri.Segments.Length < 2)
