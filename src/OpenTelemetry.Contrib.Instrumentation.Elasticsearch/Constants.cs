@@ -18,11 +18,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient
 {
     internal class Constants
     {
-        public static readonly string ExceptionCustomPropertyName = "OTel.Elasticsearch.Exception";
-        public static readonly string AttributeDbSystem = "db.system";
-        public static readonly string AttributeDbName = "db.name";
-        public static readonly string AttributeNetPeerName = "net.peer.name";
-        public static readonly string AttributeNetPeerPort = "net.peer.port";
-        public static readonly string AttributeDbStatement = "db.statement";
+        public const string ExceptionCustomPropertyName = "OTel.Elasticsearch.Exception";
+        public const string AttributeDbSystem = "db.system";
+        public const string AttributeDbName = "db.name";
+        public const string AttributeNetPeerIp = "net.peer.ip";
+        public const string AttributeNetPeerName = "net.peer.name";
+        public const string AttributeNetPeerPort = "net.peer.port";
+        public const string AttributeDbMethod = "db.method";
+        public const string AttributeDbUrl = "db.url";
+        public const string AttributeDbStatement = "db.statement";
     }
 }

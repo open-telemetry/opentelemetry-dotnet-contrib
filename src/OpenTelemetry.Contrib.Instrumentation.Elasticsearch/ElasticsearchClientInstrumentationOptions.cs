@@ -25,5 +25,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient
         /// Gets or sets a value indicating whether down stream instrumentation is suppressed (disabled).
         /// </summary>
         public bool SuppressDownstreamInstrumentation { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the JSON request body should be parsed out of the request debug information and formatted as indented JSON.
+        /// </summary>
+        public bool ParseAndFormatRequest { get; set; } = false;
     }
 }

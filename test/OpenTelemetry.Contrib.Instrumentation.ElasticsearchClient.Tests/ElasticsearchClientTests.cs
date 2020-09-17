@@ -45,12 +45,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
 
             using (Sdk.CreateTracerProviderBuilder()
                 .SetSampler(new AlwaysOnSampler())
-                .AddElasticsearchClientInstrumentation()
+                .AddElasticsearchClientInstrumentation(o => o.ParseAndFormatRequest = true)
                 .SetResource(expectedResource)
                 .AddProcessor(processor.Object)
                 .Build())
             {
-                var searchResponse = await client.SearchAsync<Customer>();
+                var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
                 Assert.NotNull(searchResponse);
                 Assert.True(searchResponse.ApiCall.Success);
                 Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
@@ -71,7 +71,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
             Assert.NotEqual(parent.SpanId, searchActivity.Context.SpanId);
             Assert.NotEqual(default, searchActivity.Context.SpanId);
 
-            Assert.Equal($"Elasticsearch POST customer", searchActivity.DisplayName);
+            Assert.Equal($"Elasticsearch: POST /customer/_search", searchActivity.DisplayName);
 
             Assert.Equal("localhost", searchActivity.GetTagValue(Constants.AttributeNetPeerName));
             Assert.Equal(9200, searchActivity.GetTagValue(Constants.AttributeNetPeerPort));
@@ -80,7 +80,24 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
             Assert.Equal("customer", searchActivity.GetTagValue(Constants.AttributeDbName));
             var debugInfo = (string)searchActivity.GetTagValue(Constants.AttributeDbStatement);
             Assert.NotEmpty(debugInfo);
-            Assert.Contains("# Request:", debugInfo);
+            Assert.Equal(
+                @"POST http://localhost:9200/customer/_search?typed_keys=true
+{
+  ""query"": {
+    ""bool"": {
+      ""must"": [
+        {
+          ""term"": {
+            ""id"": {
+              ""value"": ""123""
+            }
+          }
+        }
+      ]
+    }
+  }
+}",
+                debugInfo);
 
             Assert.Equal(Status.Ok, searchActivity.GetStatus());
             Assert.Equal(expectedResource, searchActivity.GetResource());
