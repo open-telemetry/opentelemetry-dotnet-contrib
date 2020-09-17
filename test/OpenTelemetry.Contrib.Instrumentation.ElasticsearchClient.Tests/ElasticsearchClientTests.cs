@@ -41,7 +41,113 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
 
             var parent = new Activity("parent").Start();
 
-            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer").DisableDirectStreaming());
+            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
+
+            using (Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new AlwaysOnSampler())
+                .AddElasticsearchClientInstrumentation()
+                .SetResource(expectedResource)
+                .AddProcessor(processor.Object)
+                .Build())
+            {
+                var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+                Assert.NotNull(searchResponse);
+                Assert.True(searchResponse.ApiCall.Success);
+                Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
+
+                var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+                Assert.Empty(failed);
+            }
+
+            // OnStart, OnEnd, OnShutdown, Dispose
+            Assert.Equal(4, processor.Invocations.Count);
+            var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
+            Assert.Single(activities);
+
+            var searchActivity = activities[0];
+
+            Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
+            Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
+            Assert.NotEqual(parent.SpanId, searchActivity.Context.SpanId);
+            Assert.NotEqual(default, searchActivity.Context.SpanId);
+
+            Assert.Equal($"Elasticsearch: POST /customer/_search", searchActivity.DisplayName);
+
+            Assert.Equal("localhost", searchActivity.GetTagValue(Constants.AttributeNetPeerName));
+            Assert.Equal(9200, searchActivity.GetTagValue(Constants.AttributeNetPeerPort));
+
+            Assert.Equal("elasticsearch", searchActivity.GetTagValue(Constants.AttributeDbSystem));
+            Assert.Equal("customer", searchActivity.GetTagValue(Constants.AttributeDbName));
+            var debugInfo = (string)searchActivity.GetTagValue(Constants.AttributeDbStatement);
+            Assert.NotEmpty(debugInfo);
+            Assert.Contains("Successful (200) low level call", debugInfo);
+
+            Assert.Equal(Status.Ok, searchActivity.GetStatus());
+            Assert.Equal(expectedResource, searchActivity.GetResource());
+        }
+
+        [Fact]
+        public async Task CanCaptureSearchCallWithDebugMode()
+        {
+            var expectedResource = Resources.Resources.CreateServiceResource("test-service");
+            var processor = new Mock<ActivityProcessor>();
+
+            var parent = new Activity("parent").Start();
+
+            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer").EnableDebugMode());
+
+            using (Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new AlwaysOnSampler())
+                .AddElasticsearchClientInstrumentation()
+                .SetResource(expectedResource)
+                .AddProcessor(processor.Object)
+                .Build())
+            {
+                var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+                Assert.NotNull(searchResponse);
+                Assert.True(searchResponse.ApiCall.Success);
+                Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
+
+                var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+                Assert.Empty(failed);
+            }
+
+            // OnStart, OnEnd, OnShutdown, Dispose
+            Assert.Equal(4, processor.Invocations.Count);
+            var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
+            Assert.Single(activities);
+
+            var searchActivity = activities[0];
+
+            Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
+            Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
+            Assert.NotEqual(parent.SpanId, searchActivity.Context.SpanId);
+            Assert.NotEqual(default, searchActivity.Context.SpanId);
+
+            Assert.Equal($"Elasticsearch: POST /customer/_search", searchActivity.DisplayName);
+
+            Assert.Equal("localhost", searchActivity.GetTagValue(Constants.AttributeNetPeerName));
+            Assert.Equal(9200, searchActivity.GetTagValue(Constants.AttributeNetPeerPort));
+
+            Assert.Equal("elasticsearch", searchActivity.GetTagValue(Constants.AttributeDbSystem));
+            Assert.Equal("customer", searchActivity.GetTagValue(Constants.AttributeDbName));
+            var debugInfo = (string)searchActivity.GetTagValue(Constants.AttributeDbStatement);
+            Assert.NotEmpty(debugInfo);
+            Assert.Contains("Successful (200) low level call", debugInfo);
+
+            Assert.Equal(Status.Ok, searchActivity.GetStatus());
+            Assert.Equal(expectedResource, searchActivity.GetResource());
+        }
+
+        [Fact]
+        public async Task CanCaptureSearchCallWithParseAndFormatRequestOption()
+        {
+            var expectedResource = Resources.Resources.CreateServiceResource("test-service");
+            var processor = new Mock<ActivityProcessor>();
+
+            var parent = new Activity("parent").Start();
+
+            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer").EnableDebugMode());
 
             using (Sdk.CreateTracerProviderBuilder()
                 .SetSampler(new AlwaysOnSampler())
@@ -81,7 +187,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
             var debugInfo = (string)searchActivity.GetTagValue(Constants.AttributeDbStatement);
             Assert.NotEmpty(debugInfo);
             Assert.Equal(
-                @"POST http://localhost:9200/customer/_search?typed_keys=true
+                @"POST http://localhost:9200/customer/_search?pretty=true&error_trace=true&typed_keys=true
 {
   ""query"": {
     ""bool"": {
@@ -98,6 +204,59 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
   }
 }",
                 debugInfo);
+
+            Assert.Equal(Status.Ok, searchActivity.GetStatus());
+            Assert.Equal(expectedResource, searchActivity.GetResource());
+        }
+
+        [Fact]
+        public async Task CanCaptureSearchCallWithoutDebugMode()
+        {
+            var expectedResource = Resources.Resources.CreateServiceResource("test-service");
+            var processor = new Mock<ActivityProcessor>();
+
+            var parent = new Activity("parent").Start();
+
+            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
+
+            using (Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new AlwaysOnSampler())
+                .AddElasticsearchClientInstrumentation(o => o.ParseAndFormatRequest = true)
+                .SetResource(expectedResource)
+                .AddProcessor(processor.Object)
+                .Build())
+            {
+                var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+                Assert.NotNull(searchResponse);
+                Assert.True(searchResponse.ApiCall.Success);
+                Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
+
+                var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+                Assert.Empty(failed);
+            }
+
+            // OnStart, OnEnd, OnShutdown, Dispose
+            Assert.Equal(4, processor.Invocations.Count);
+            var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
+            Assert.Single(activities);
+
+            var searchActivity = activities[0];
+
+            Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
+            Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
+            Assert.NotEqual(parent.SpanId, searchActivity.Context.SpanId);
+            Assert.NotEqual(default, searchActivity.Context.SpanId);
+
+            Assert.Equal($"Elasticsearch: POST /customer/_search", searchActivity.DisplayName);
+
+            Assert.Equal("localhost", searchActivity.GetTagValue(Constants.AttributeNetPeerName));
+            Assert.Equal(9200, searchActivity.GetTagValue(Constants.AttributeNetPeerPort));
+
+            Assert.Equal("elasticsearch", searchActivity.GetTagValue(Constants.AttributeDbSystem));
+            Assert.Equal("customer", searchActivity.GetTagValue(Constants.AttributeDbName));
+            var debugInfo = (string)searchActivity.GetTagValue(Constants.AttributeDbStatement);
+            Assert.NotEmpty(debugInfo);
+            Assert.DoesNotContain("123", debugInfo);
 
             Assert.Equal(Status.Ok, searchActivity.GetStatus());
             Assert.Equal(expectedResource, searchActivity.GetResource());

@@ -1,6 +1,6 @@
 # Elasticsearch Client Instrumentation for OpenTelemetry .NET
 
-Automatically instruments events emitted by the Elasticsearch.Net client library.
+Automatically instruments events emitted by the NEST/Elasticsearch.Net client library.
 
 ## Installation
 
@@ -27,4 +27,5 @@ services.AddOpenTelemetryTracing(x =>
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
 * [Elasticsearch](https://www.elastic.co/)
-* [Elasticsearch.Net Client](https://www.elastic.co/guide/en/elasticsearch/client/net-api/current/)
+* [NEST Client](https://www.nuget.org/packages/NEST/)
+* [Elasticsearch.Net Client](https://www.nuget.org/packages/Elasticsearch.Net/)

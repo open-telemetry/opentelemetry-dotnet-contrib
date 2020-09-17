@@ -29,7 +29,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
 {
     internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
     {
-        private static readonly Regex ParseRequest = new Regex(@"\n# Request:\r?\n(.*)\n# Response", RegexOptions.Compiled | RegexOptions.Singleline);
+        private static readonly Regex ParseRequest = new Regex(@"\n# Request:\r?\n(\{.*)\n# Response", RegexOptions.Compiled | RegexOptions.Singleline);
 
         private readonly ActivitySourceAdapter activitySource;
         private readonly ElasticsearchClientInstrumentationOptions options;
@@ -63,6 +63,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
             }
 
             var method = this.methodFetcher.Fetch(payload)?.ToString();
+            activity.SetTag(Constants.AttributeDbSystem, "elasticsearch");
 
             if (activity.OperationName == "Ping")
             {
@@ -82,15 +83,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
 
             if (activity.IsAllDataRequested)
             {
-                activity.AddTag(Constants.AttributeDbSystem, "elasticsearch");
-
                 var elasticType = uri.Segments.FirstOrDefault(s => !s.Equals("/") && !s.StartsWith("_"));
                 if (elasticType != null && elasticType.EndsWith("/"))
                 {
                     elasticType = elasticType.Substring(0, elasticType.Length - 1);
                 }
 
-                activity.AddTag(Constants.AttributeDbName, elasticType);
+                activity.SetTag(Constants.AttributeDbName, elasticType);
 
                 var uriHostNameType = Uri.CheckHostName(uri.Host);
                 if (uriHostNameType == UriHostNameType.IPv4 || uriHostNameType == UriHostNameType.IPv6)

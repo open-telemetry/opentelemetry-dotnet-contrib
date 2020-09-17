@@ -22,7 +22,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient
     public class ElasticsearchClientInstrumentationOptions
     {
         /// <summary>
-        /// Gets or sets a value indicating whether down stream instrumentation is suppressed (disabled).
+        /// Gets or sets a value indicating whether down stream instrumentation (HttpClient) is suppressed (disabled).
         /// </summary>
         public bool SuppressDownstreamInstrumentation { get; set; } = true;
 
