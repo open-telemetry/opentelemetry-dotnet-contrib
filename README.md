@@ -6,10 +6,10 @@ Status](https://action-badges.now.sh/open-telemetry/opentelemetry-dotnet-contrib
 
 This repository contains set of components extending functionality of the
 OpenTelemetry SDK. Instrumentation libraries, exporters, and other components
-can find its home here.
+can find their home here.
 
-Packages in this repository has a prefix `OpenTelemetry.Contrib` to highlight
-the difference from the packages produced by the primary .NET SDK repository.
+Packages in this repository are prefixed with `OpenTelemetry.Contrib` to highlight
+that they are different from the packages produced by the primary .NET SDK repository.
 
 ## Contributing
 
