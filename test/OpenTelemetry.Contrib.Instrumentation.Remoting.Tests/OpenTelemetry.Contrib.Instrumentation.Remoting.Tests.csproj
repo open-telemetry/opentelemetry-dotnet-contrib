@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>Unit test project for OpenTelemetry .NET Remoting instrumentation</Description>
-    <TargetFrameworks>net452;net46</TargetFrameworks>
+    <TargetFrameworks>net452</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

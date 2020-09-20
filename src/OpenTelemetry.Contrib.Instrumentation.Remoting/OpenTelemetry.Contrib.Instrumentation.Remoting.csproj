@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net452;net46</TargetFrameworks>
+    <TargetFrameworks>net452</TargetFrameworks>
     <Description>.NET Remoting instrumentation for OpenTelemetry.NET</Description>
     <PackageTags>$(PackageTags);distributed-tracing;Remoting</PackageTags>
   </PropertyGroup>
