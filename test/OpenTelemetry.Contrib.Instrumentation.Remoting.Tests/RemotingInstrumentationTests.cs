@@ -53,7 +53,18 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Tests
                 // When using multiple AppDomains in a single process, the remote object must either be in a separate assembly,
                 // or the currently executing assembly must be loaded into another domain with shadow copy = true,
                 // otherwise IDynamicMessageSink is not called.
-                domainSetup.ShadowCopyFiles = "true";
+
+                // NOTE: some interesting dependencies on the specifics of the xUnit runners below.
+
+                // For ReSharper's runner, this makes the IDynamicMessageSync fire:
+                // domainSetup.ShadowCopyFiles = "true";
+
+                // But for xUnit command line and Visual Studio built-in, this is required instead:
+                domainSetup.ShadowCopyDirectories = "true";
+
+                // Both of these AppDomain set up issues can probably be avoided by putting RemoteObject into
+                // a completely separate assembly.
+
                 var ad = AppDomain.CreateDomain("other-domain", null, domainSetup);
 
                 var remoteObjectTypeName = typeof(RemoteObject).FullName;
