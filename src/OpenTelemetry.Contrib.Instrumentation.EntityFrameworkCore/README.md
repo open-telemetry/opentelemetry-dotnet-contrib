@@ -1,4 +1,4 @@
-# OpenTelemetry.Instrumentation.EntityFrameworkCore
+# EntityFrameworkCore Instrumentation for OpenTelemetry.Contrib .NET
 
 Automatically instruments the outgoing database requests from
 [Microsoft.EntityFrameworkCore](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore).
@@ -6,7 +6,7 @@ Automatically instruments the outgoing database requests from
 ## Installation
 
 ```shell
-dotnet add package OpenTelemetry.Instrumentation.EntityFrameworkCore
+dotnet add package OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore
 ```
 
 ## References

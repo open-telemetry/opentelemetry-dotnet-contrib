@@ -18,6 +18,12 @@ constructor for specifying path to the service account credential. See
    ProjectId
 5. See [sample][stackdriver-sample] for example use.
 
+## Installation
+
+```shell
+dotnet add package OpenTelemetry.Contrib.Instrumentation.Stackdriver
+```
+
 ## Traces
 
 ```csharp

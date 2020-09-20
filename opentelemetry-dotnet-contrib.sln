@@ -75,6 +75,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests", "test\OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests\OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.csproj", "{1F4B5983-EA2E-4DAC-8E02-20C0CDA9FA93}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient", "src\OpenTelemetry.Contrib.Instrumentation.Elasticsearch\OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.csproj", "{5F10395B-DF38-438A-B5DB-5F6449184F67}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests", "test\OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests\OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests.csproj", "{BC839E07-108A-4184-B1F9-EF28A1E81088}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Contrib.Instrumentation.Remoting.Tests", "test\OpenTelemetry.Contrib.Instrumentation.Remoting.Tests\OpenTelemetry.Contrib.Instrumentation.Remoting.Tests.csproj", "{694306EA-79DD-42EB-B9C8-7403CDDECDB2}"
 EndProject
 Global
@@ -115,10 +119,21 @@ Global
 		{1F4B5983-EA2E-4DAC-8E02-20C0CDA9FA93}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F4B5983-EA2E-4DAC-8E02-20C0CDA9FA93}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F4B5983-EA2E-4DAC-8E02-20C0CDA9FA93}.Release|Any CPU.Build.0 = Release|Any CPU
+<<<<<<< HEAD
 		{694306EA-79DD-42EB-B9C8-7403CDDECDB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{694306EA-79DD-42EB-B9C8-7403CDDECDB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{694306EA-79DD-42EB-B9C8-7403CDDECDB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{694306EA-79DD-42EB-B9C8-7403CDDECDB2}.Release|Any CPU.Build.0 = Release|Any CPU
+=======
+		{5F10395B-DF38-438A-B5DB-5F6449184F67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F10395B-DF38-438A-B5DB-5F6449184F67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F10395B-DF38-438A-B5DB-5F6449184F67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F10395B-DF38-438A-B5DB-5F6449184F67}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC839E07-108A-4184-B1F9-EF28A1E81088}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC839E07-108A-4184-B1F9-EF28A1E81088}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC839E07-108A-4184-B1F9-EF28A1E81088}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC839E07-108A-4184-B1F9-EF28A1E81088}.Release|Any CPU.Build.0 = Release|Any CPU
+>>>>>>> origin/master
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -135,7 +150,12 @@ Global
 		{11839CC5-F02B-4812-969A-52CDF5FE9394} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{F9C28A7B-96DD-4039-8552-CAA5D983F69A} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{1F4B5983-EA2E-4DAC-8E02-20C0CDA9FA93} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+<<<<<<< HEAD
 		{694306EA-79DD-42EB-B9C8-7403CDDECDB2} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+=======
+		{5F10395B-DF38-438A-B5DB-5F6449184F67} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{BC839E07-108A-4184-B1F9-EF28A1E81088} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+>>>>>>> origin/master
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}

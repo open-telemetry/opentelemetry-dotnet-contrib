@@ -1,4 +1,4 @@
-# MassTransit Instrumentation for OpenTelemetry .NET
+# MassTransit Instrumentation for OpenTelemetry.Contrib .NET
 
 Automatically instruments
 [DiagnosticSource](https://masstransit-project.com/advanced/monitoring/diagnostic-source.html)
@@ -7,7 +7,7 @@ events emitted by [MassTransit](https://masstransit-project.com/) library.
 ## Installation
 
 ```shell
-dotnet add package OpenTelemetry.Instrumentation.MassTransit
+dotnet add package OpenTelemetry.Contrib.Instrumentation.MassTransit
 ```
 
 ## Configuration
