@@ -28,7 +28,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
 {
     /// <summary>
     /// A dynamic remoting sink that intercepts all calls leaving or entering an AppDomain, see
-    /// <see cref="TracerProviderBuilderExtensions.AddRemotingInstrumentation"/> RegisterDynamicProperty
+    /// <see cref="RemotingInstrumentation"/> constructor: RegisterDynamicProperty
     /// code.
     /// </summary>
     /// <remarks>
@@ -44,7 +44,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
 
         // Uri like "tcp://localhost:1234/HelloServer.rem"
         // TODO: semantic conventions don't have an attribute for a full uri of an RPC endpoint, but seems useful?
-        internal const string AttributeRpcRemotingUri = "rpc.dotnet_remoting.uri";
+        internal const string AttributeRpcRemotingUri = "rpc.netframework_remoting.uri";
 
         internal const string AttributeExceptionType = "exception.type";
         internal const string AttributeExceptionMessage = "exception.message";
@@ -75,8 +75,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
                     return;
                 }
             }
-            catch
+            catch (Exception e)
             {
+                RemotingInstrumentationEventSource.Log.MessageFilterException(e);
                 return;
             }
 
@@ -140,14 +141,16 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
                     return;
                 }
             }
-            catch
+            catch (Exception e)
             {
+                RemotingInstrumentationEventSource.Log.MessageFilterException(e);
                 return;
             }
 
             var act = Activity.Current;
             if (act == null)
             {
+                RemotingInstrumentationEventSource.Log.NullActivity(nameof(TelemetryDynamicSink), nameof(this.ProcessMessageFinish));
                 return;
             }
 
@@ -173,6 +176,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
                 }
 
                 act.Stop();
+            }
+            else
+            {
+                RemotingInstrumentationEventSource.Log.InvalidCurrentActivity(
+                    nameof(TelemetryDynamicSink),
+                    nameof(this.ProcessMessageFinish),
+                    $"{ActivityInName} or {ActivityOutName}",
+                    act.OperationName);
             }
         }
 
