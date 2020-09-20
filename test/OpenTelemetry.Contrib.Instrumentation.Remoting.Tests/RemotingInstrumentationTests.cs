@@ -54,16 +54,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Tests
                 // or the currently executing assembly must be loaded into another domain with shadow copy = true,
                 // otherwise IDynamicMessageSink is not called.
 
-                // NOTE: some interesting dependencies on the specifics of the xUnit runners below.
-
-                // For ReSharper's runner, this makes the IDynamicMessageSync fire:
-                // domainSetup.ShadowCopyFiles = "true";
-
-                // But for xUnit command line and Visual Studio built-in, this is required instead:
-                domainSetup.ShadowCopyDirectories = "true";
-
-                // Both of these AppDomain set up issues can probably be avoided by putting RemoteObject into
-                // a completely separate assembly.
+                // This also requires RunSettings.RunConfiguration.DisableAppDomain = true,
+                // which is set in the "test.runsettings" file in this project.
+                domainSetup.ShadowCopyFiles = "true";
 
                 var ad = AppDomain.CreateDomain("other-domain", null, domainSetup);
 
