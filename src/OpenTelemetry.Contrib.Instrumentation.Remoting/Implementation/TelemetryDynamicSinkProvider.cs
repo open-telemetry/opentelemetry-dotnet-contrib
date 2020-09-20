@@ -15,6 +15,7 @@
 // </copyright>
 
 using System.Runtime.Remoting.Contexts;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
 {
@@ -24,8 +25,17 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
     /// </summary>
     internal class TelemetryDynamicSinkProvider : IDynamicProperty, IContributeDynamicSink
     {
+        internal const string DynamicPropertyName = "TelemetryDynamicSinkProvider";
+
+        private readonly RemotingInstrumentationOptions options;
+
+        public TelemetryDynamicSinkProvider(RemotingInstrumentationOptions options)
+        {
+            this.options = options;
+        }
+
         /// <inheritdoc />
-        public string Name => "TelemetryDynamicSinkProvider";
+        public string Name => DynamicPropertyName;
 
         /// <summary>
         /// Creates and returns a <see cref="TelemetryDynamicSink"/> to be used for instrumentation.
@@ -33,7 +43,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
         /// <returns>A new instance of <see cref="TelemetryDynamicSink"/>.</returns>
         public IDynamicMessageSink GetDynamicSink()
         {
-            return new TelemetryDynamicSink();
+            return new TelemetryDynamicSink(this.options);
         }
     }
 }

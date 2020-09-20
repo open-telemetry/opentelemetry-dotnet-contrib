@@ -17,8 +17,6 @@
 using System;
 using OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation;
 
-using RemotingContext = System.Runtime.Remoting.Contexts.Context;
-
 namespace OpenTelemetry.Trace
 {
     /// <summary>
@@ -30,8 +28,11 @@ namespace OpenTelemetry.Trace
         /// Enables .NET Remoting instrumentation.
         /// </summary>
         /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+        /// <param name="configureRemotingInstrumentationOptions">Instrumentation options.</param>
         /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-        public static TracerProviderBuilder AddRemotingInstrumentation(this TracerProviderBuilder builder)
+        public static TracerProviderBuilder AddRemotingInstrumentation(
+            this TracerProviderBuilder builder,
+            Action<RemotingInstrumentationOptions> configureRemotingInstrumentationOptions = null)
         {
             if (builder == null)
             {
@@ -40,13 +41,10 @@ namespace OpenTelemetry.Trace
 
             builder.AddSource(TelemetryDynamicSink.ActivitySourceName);
 
-            // See https://docs.microsoft.com/en-us/dotnet/api/system.runtime.remoting.contexts.context.registerdynamicproperty?view=netframework-4.8
-            // This will register our dynamic sink to listen to all calls leaving or entering
-            // current AppDomain.
-            RemotingContext.RegisterDynamicProperty(
-                new TelemetryDynamicSinkProvider(),
-                null,
-                RemotingContext.DefaultContext);
+            var remotingOptions = new RemotingInstrumentationOptions();
+            configureRemotingInstrumentationOptions?.Invoke(remotingOptions);
+
+            builder.AddInstrumentation(activitySource => new RemotingInstrumentation(remotingOptions));
 
             return builder;
         }

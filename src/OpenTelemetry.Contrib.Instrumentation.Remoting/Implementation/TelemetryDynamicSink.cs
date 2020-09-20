@@ -15,6 +15,7 @@
 // </copyright>
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -37,18 +38,48 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
     /// </remarks>
     internal class TelemetryDynamicSink : IDynamicMessageSink
     {
+        internal const string AttributeRpcSystem = "rpc.system";
+        internal const string AttributeRpcService = "rpc.service";
+        internal const string AttributeRpcMethod = "rpc.method";
+
+        // Uri like "tcp://localhost:1234/HelloServer.rem"
+        // TODO: semantic conventions don't have an attribute for a full uri of an RPC endpoint, but seems useful?
+        internal const string AttributeRpcRemotingUri = "rpc.dotnet_remoting.uri";
+
+        internal const string AttributeExceptionType = "exception.type";
+        internal const string AttributeExceptionMessage = "exception.message";
+        internal const string AttributeExceptionStackTrace = "exception.stacktrace";
+
         internal const string ActivitySourceName = "OpenTelemetry.Remoting";
         private const string ActivityOutName = ActivitySourceName + ".RequestOut";
         private const string ActivityInName = ActivitySourceName + ".RequestIn";
 
-        // TODO: make configurable?
-        private static readonly IPropagator Propagator = new TextMapPropagator();
-
         private static readonly Version Version = typeof(TelemetryDynamicSink).Assembly.GetName().Version;
         private static readonly ActivitySource RemotingActivitySource = new ActivitySource(ActivitySourceName, Version.ToString());
 
+        private static readonly ConcurrentDictionary<string, string> ServiceNameCache = new ConcurrentDictionary<string, string>();
+
+        private readonly RemotingInstrumentationOptions options;
+
+        public TelemetryDynamicSink(RemotingInstrumentationOptions options)
+        {
+            this.options = options;
+        }
+
         public void ProcessMessageStart(IMessage reqMsg, bool bCliSide, bool bAsync)
         {
+            try
+            {
+                if (this.options.Filter?.Invoke(reqMsg) == false)
+                {
+                    return;
+                }
+            }
+            catch
+            {
+                return;
+            }
+
             // Are we executing on client?
             if (bCliSide)
             {
@@ -56,41 +87,40 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
                 var act = RemotingActivitySource.StartActivity(ActivityOutName, ActivityKind.Client);
                 if (act != null)
                 {
-                    act.SetTag("uri", reqMsg.Properties["__Uri"]);
-
-                    // TODO: other useful tags (method name? parameters?)
+                    SetStartingActivityAttributes(act, reqMsg);
 
                     var callContext = (LogicalCallContext)reqMsg.Properties["__CallContext"];
 
-                    Propagator.Inject(new PropagationContext(act.Context, Baggage.Current), callContext, InjectActivityProperties);
+                    this.options.Propagator.Inject(new PropagationContext(act.Context, Baggage.Current), callContext, InjectActivityProperties);
                 }
             }
             else
             {
                 // We are on server, need to start new or attach to an existing incoming activity.
 
+                var callContext = (LogicalCallContext)reqMsg.Properties["__CallContext"];
+                var activityParentContext = this.options.Propagator.Extract(default, callContext, ExtractActivityProperties);
+
+                Activity ourActivity;
+
                 // Do we already have an incoming activity?
                 // Existing activity might be started by an instrumentation layer higher up the
                 // stack. E.g. if we are using http as a transport for remoting, and we have
                 // instrumented incoming http request, then that instrumentation happens before
                 // our "ProcessMessageStart" and we just need to attach to that existing activity.
-                var act = Activity.Current;
-                if (act != null)
+                var outerActivity = Activity.Current;
+                if (outerActivity != null)
                 {
-                    RemotingActivitySource.StartActivity(ActivityInName, ActivityKind.Server);
-
-                    // TODO: "merge" things that have been passed via __CallContext, add useful remoting tags
+                    ourActivity = RemotingActivitySource.StartActivity(ActivityInName, ActivityKind.Server);
                 }
                 else
                 {
                     // We don't have an existing incoming activity. Start a brand new one ourselves.
 
-                    var callContext = (LogicalCallContext)reqMsg.Properties["__CallContext"];
-
-                    var activityParentContext = Propagator.Extract(default, callContext, ExtractActivityProperties);
-
-                    RemotingActivitySource.StartActivity(ActivityInName, ActivityKind.Server, activityParentContext.ActivityContext);
+                    ourActivity = RemotingActivitySource.StartActivity(ActivityInName, ActivityKind.Server, activityParentContext.ActivityContext);
                 }
+
+                SetStartingActivityAttributes(ourActivity, reqMsg);
             }
         }
 
@@ -103,9 +133,78 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
             // 2) On the client, when the server call returns
             //    => Current activity should be the "ActivityOut", we need to stop it as well
 
-            // TODO: is this wrong? Don't just stop _any_ current activity, check if it is either of the above explicitly?
+            try
+            {
+                if (this.options.Filter?.Invoke(replyMsg) == false)
+                {
+                    return;
+                }
+            }
+            catch
+            {
+                return;
+            }
+
             var act = Activity.Current;
-            act?.Stop();
+            if (act == null)
+            {
+                return;
+            }
+
+            bool validClientActivity = bCliSide && act.OperationName == ActivityOutName;
+            bool validServerActivity = !bCliSide && act.OperationName == ActivityInName;
+            if (validClientActivity || validServerActivity)
+            {
+                if (replyMsg is IMethodReturnMessage returnMsg)
+                {
+                    if (returnMsg.Exception == null)
+                    {
+                        act.SetStatus(Status.Ok);
+                    }
+                    else
+                    {
+                        act.SetStatus(Status.Unknown);
+
+                        var e = returnMsg.Exception;
+                        act.SetTag(AttributeExceptionType, e.GetType().FullName);
+                        act.SetTag(AttributeExceptionMessage, e.Message);
+                        act.SetTag(AttributeExceptionStackTrace, e.ToString());
+                    }
+                }
+
+                act.Stop();
+            }
+        }
+
+        private static void SetStartingActivityAttributes(Activity activity, IMessage msg)
+        {
+            if (activity != null && activity.IsAllDataRequested)
+            {
+                string serviceName = GetServiceName((string)msg.Properties["__TypeName"]);
+                string methodName = (string)msg.Properties["__MethodName"];
+                activity.DisplayName = $"{serviceName}/{methodName}";
+                activity.SetTag(AttributeRpcSystem, "netframework_remoting");
+                activity.SetTag(AttributeRpcService, serviceName);
+                activity.SetTag(AttributeRpcMethod, methodName);
+
+                var uriString = (string)msg.Properties["__Uri"];
+                activity.SetTag(AttributeRpcRemotingUri, uriString);
+            }
+        }
+
+        private static string GetServiceName(string typeName)
+        {
+            // typeName will be a full .NET type name as a string "SharedLib.IHelloServer, SharedLib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+            return ServiceNameCache.GetOrAdd(typeName, s =>
+                {
+                    int pos = s.IndexOf(",", StringComparison.OrdinalIgnoreCase);
+                    if (pos >= 0)
+                    {
+                        return s.Substring(0, pos);
+                    }
+
+                    return s;
+                });
         }
 
         private static void InjectActivityProperties(LogicalCallContext ctx, string key, string value)
