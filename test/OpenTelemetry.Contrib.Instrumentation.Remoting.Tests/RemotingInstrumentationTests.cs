@@ -50,9 +50,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Tests
             {
                 var domainSetup = AppDomain.CurrentDomain.SetupInformation;
 
-                // When using multiple AppDomains in a single process, the remote object must either be in a separate assembly,
-                // or the currently executing assembly must be loaded into another domain with shadow copy = true,
-                // otherwise IDynamicMessageSink is not called.
+                // When using multiple AppDomains in a single process, the currently executing assembly (which contains the test remote object)
+                // must be loaded into another domain with shadow copy = true, otherwise IDynamicMessageSink is not called.
 
                 // This also requires RunSettings.RunConfiguration.DisableAppDomain = true,
                 // which is set in the "test.runsettings" file in this project.
