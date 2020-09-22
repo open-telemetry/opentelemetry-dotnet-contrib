@@ -93,6 +93,16 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Tests
             }
         }
 
+        [Fact]
+        public void RemotingInstrumentation_RegisterDynamicProperty_OnlyOnce()
+        {
+            // This will register the dynamic property on the current context
+            using var i1 = new RemotingInstrumentation(null);
+
+            // Make sure the second call succeeds as well and won't try to re-register the property
+            using var i2 = new RemotingInstrumentation(null);
+        }
+
         private static string GetTag(Activity act, string key)
         {
             foreach (var tag in act.Tags)

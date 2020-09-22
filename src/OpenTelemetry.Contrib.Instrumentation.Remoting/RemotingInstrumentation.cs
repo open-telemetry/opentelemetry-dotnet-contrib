@@ -22,24 +22,46 @@ namespace OpenTelemetry.Trace
 {
     internal class RemotingInstrumentation : IDisposable
     {
+        private static readonly object LockObj = new object();
+        private static int regCount;
+
         public RemotingInstrumentation(RemotingInstrumentationOptions options)
         {
-            // See https://docs.microsoft.com/en-us/dotnet/api/system.runtime.remoting.contexts.context.registerdynamicproperty?view=netframework-4.8
-            // This will register our dynamic sink to listen to all calls leaving or entering
-            // current AppDomain.
-            RemotingContext.RegisterDynamicProperty(
-                new TelemetryDynamicSinkProvider(options),
-                null,
-                RemotingContext.DefaultContext);
+            // Just in case we are called multiple times, make sure we register
+            // the dynamic sink only once per AppDomain
+            lock (LockObj)
+            {
+                if (regCount == 0)
+                {
+                    // See https://docs.microsoft.com/en-us/dotnet/api/system.runtime.remoting.contexts.context.registerdynamicproperty?view=netframework-4.8
+                    // This will register our dynamic sink to listen to all calls leaving or entering
+                    // current AppDomain.
+                    RemotingContext.RegisterDynamicProperty(
+                        new TelemetryDynamicSinkProvider(options),
+                        null,
+                        RemotingContext.DefaultContext);
+                }
+
+                regCount++;
+            }
         }
 
         public void Dispose()
         {
-            // Un-register ourselves on dispose.
-            RemotingContext.UnregisterDynamicProperty(
-                TelemetryDynamicSinkProvider.DynamicPropertyName,
-                null,
-                RemotingContext.DefaultContext);
+            // If there were multiple registration attempts, assume that each
+            // of those registrations will also try to un-register.
+            lock (LockObj)
+            {
+                regCount--;
+                if (regCount == 0)
+                {
+                    // When the last registration disposes, remove the property.
+                    RemotingContext.UnregisterDynamicProperty(
+                        TelemetryDynamicSinkProvider.DynamicPropertyName,
+                        null,
+                        RemotingContext.DefaultContext);
+                }
+            }
         }
     }
 }
