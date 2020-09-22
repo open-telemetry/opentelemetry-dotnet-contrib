@@ -16,6 +16,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using Moq;
 using OpenTelemetry.Trace;
@@ -84,9 +85,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Tests
             else
             {
                 Assert.Equal("Unknown", GetTag(activity, SpanAttributeConstants.StatusCodeKey));
-                Assert.Equal("System.Exception", GetTag(activity, "exception.type"));
-                Assert.Equal(exceptionMessage, GetTag(activity, "exception.message"));
-                Assert.Contains("DoStuff(String exceptionMessage)", GetTag(activity, "exception.stacktrace"));
+
+                var eventList = activity.Events.ToList();
+                Assert.Single(eventList);
+
+                Assert.Equal("exception", eventList[0].Name);
             }
         }
 

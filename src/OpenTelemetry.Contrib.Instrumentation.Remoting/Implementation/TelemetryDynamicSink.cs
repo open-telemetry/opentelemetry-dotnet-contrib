@@ -46,10 +46,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
         // TODO: semantic conventions don't have an attribute for a full uri of an RPC endpoint, but seems useful?
         internal const string AttributeRpcRemotingUri = "rpc.netframework_remoting.uri";
 
-        internal const string AttributeExceptionType = "exception.type";
-        internal const string AttributeExceptionMessage = "exception.message";
-        internal const string AttributeExceptionStackTrace = "exception.stacktrace";
-
         internal const string ActivitySourceName = "OpenTelemetry.Remoting";
         private const string ActivityOutName = ActivitySourceName + ".RequestOut";
         private const string ActivityInName = ActivitySourceName + ".RequestIn";
@@ -167,11 +163,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
                     else
                     {
                         act.SetStatus(Status.Unknown);
-
-                        var e = returnMsg.Exception;
-                        act.SetTag(AttributeExceptionType, e.GetType().FullName);
-                        act.SetTag(AttributeExceptionMessage, e.Message);
-                        act.SetTag(AttributeExceptionStackTrace, e.ToString());
+                        act.RecordException(returnMsg.Exception);
                     }
                 }
 
