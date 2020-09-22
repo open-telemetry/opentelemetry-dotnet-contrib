@@ -49,18 +49,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Tests
                 .Build())
             {
                 var domainSetup = AppDomain.CurrentDomain.SetupInformation;
-
-                // When using multiple AppDomains in a single process, the currently executing assembly (which contains the test remote object)
-                // must be loaded into another domain with shadow copy = true, otherwise IDynamicMessageSink is not called.
-
-                // This also requires RunSettings.RunConfiguration.DisableAppDomain = true,
-                // which is set in the "test.runsettings" file in this project.
-                domainSetup.ShadowCopyFiles = "true";
-
                 var ad = AppDomain.CreateDomain("other-domain", null, domainSetup);
 
                 var remoteObjectTypeName = typeof(RemoteObject).FullName;
                 Assert.NotNull(remoteObjectTypeName);
+
                 var obj = (RemoteObject)ad.CreateInstanceAndUnwrap(
                     typeof(RemoteObject).Assembly.FullName,
                     remoteObjectTypeName);
@@ -110,7 +103,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Tests
             return null;
         }
 
-        private class RemoteObject : MarshalByRefObject
+        private class RemoteObject : ContextBoundObject
         {
             public void DoStuff(string exceptionMessage = null)
             {
