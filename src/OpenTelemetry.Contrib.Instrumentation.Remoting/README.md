@@ -1,11 +1,11 @@
 # .NET Remoting Instrumentation for OpenTelemetry.Contrib .NET
 
-This is an instrumentation library, which instruments [.NET Remoting](https://docs.microsoft.com/en-us/previous-versions/dotnet/netframework-3.0/72x4h507(v=vs.85))
+This is an instrumentation library, which instruments [.NET Remoting](https://docs.microsoft.com/previous-versions/dotnet/netframework-3.0/72x4h507(v=vs.85))
 and collects telemetry about incoming and outgoing requests on client
 and server objects.
 
-.NET Remoting is a [legacy technology](https://docs.microsoft.com/en-us/previous-versions/dotnet/netframework-3.0/kwdt6w2k(v=vs.85))
-that shouldn't be used for new .NET applications and [doesn't exist](https://docs.microsoft.com/en-us/dotnet/core/porting/net-framework-tech-unavailable#remoting)
+.NET Remoting is a [legacy technology](https://docs.microsoft.com/previous-versions/dotnet/netframework-3.0/kwdt6w2k(v=vs.85))
+that shouldn't be used for new .NET applications and [doesn't exist](https://docs.microsoft.com/dotnet/core/porting/net-framework-tech-unavailable#remoting)
 in .NET Core at all. However, if you do have a legacy application you are
 looking to instrument, consider using this package.
 
@@ -79,7 +79,7 @@ namespace ServerAspNet
 }
 ```
 
-Additionally, when using [http channel](https://docs.microsoft.com/en-us/dotnet/api/system.runtime.remoting.channels.http.httpchannel?view=netframework-4.8)
+Additionally, when using [http channel](https://docs.microsoft.com/dotnet/api/system.runtime.remoting.channels.http.httpchannel?view=netframework-4.8)
 for remoting, consider registering [OpenTelemetry.Instrumentation.Http](https://github.com/open-telemetry/opentelemetry-dotnet/tree/master/src/OpenTelemetry.Instrumentation.Http)
 on the client and [OpenTelemetry.Instrumentation.AspNet](https://github.com/open-telemetry/opentelemetry-dotnet/tree/master/src/OpenTelemetry.Instrumentation.AspNet)
 on the server.
@@ -106,19 +106,19 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .Build()
 ```
 
-The `Filter` takes an [`IMessage`](https://docs.microsoft.com/en-us/dotnet/api/system.runtime.remoting.messaging.imessage?view=netframework-4.8)
+The `Filter` takes an [`IMessage`](https://docs.microsoft.com/dotnet/api/system.runtime.remoting.messaging.imessage?view=netframework-4.8)
 and returns true or false. You can inspect the message to decide if you
 want to instrument it or not.
 
 ## Implementation Details
 
-The instrumentation is implemented via custom [`IDynamicMessageSink`](https://docs.microsoft.com/en-us/dotnet/api/system.runtime.remoting.contexts.idynamicmessagesink?view=netframework-4.8),
+The instrumentation is implemented via custom [`IDynamicMessageSink`](https://docs.microsoft.com/dotnet/api/system.runtime.remoting.contexts.idynamicmessagesink?view=netframework-4.8),
 that is registered on the current `AppDomain` when you call
 `AddRemotingInstrumentation` and unregistered when the constructed
 `TracerProvider` is disposed.
 
 ## References
 
-* [.NET Remoting Overview](https://docs.microsoft.com/en-us/previous-versions/dotnet/articles/ms973857(v=msdn.10))
-* [Remoting Sinks and Dynamic Sinks](https://docs.microsoft.com/en-us/previous-versions/dotnet/netframework-1.1/xec2wbt4(v=vs.71))
+* [.NET Remoting Overview](https://docs.microsoft.com/previous-versions/dotnet/articles/ms973857(v=msdn.10))
+* [Remoting Sinks and Dynamic Sinks](https://docs.microsoft.com/previous-versions/dotnet/netframework-1.1/xec2wbt4(v=vs.71))
 * [OpenTelemetry Project](https://opentelemetry.io/)
