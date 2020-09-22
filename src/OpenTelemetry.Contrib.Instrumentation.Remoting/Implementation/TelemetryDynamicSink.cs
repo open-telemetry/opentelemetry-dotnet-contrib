@@ -84,7 +84,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
                 var act = RemotingActivitySource.StartActivity(ActivityOutName, ActivityKind.Client);
                 if (act != null)
                 {
-                    SetStartingActivityAttributes(act, reqMsg);
+                    if (act.IsAllDataRequested && reqMsg is IMethodMessage methodMsg)
+                    {
+                        SetStartingActivityAttributes(act, methodMsg);
+                    }
 
                     var callContext = (LogicalCallContext)reqMsg.Properties["__CallContext"];
 
@@ -105,8 +108,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
                 // stack. E.g. if we are using http as a transport for remoting, and we have
                 // instrumented incoming http request, then that instrumentation happens before
                 // our "ProcessMessageStart" and we just need to attach to that existing activity.
-                var outerActivity = Activity.Current;
-                if (outerActivity != null)
+                var parentActivity = Activity.Current;
+                if (parentActivity != null)
                 {
                     ourActivity = RemotingActivitySource.StartActivity(ActivityInName, ActivityKind.Server);
                 }
@@ -117,7 +120,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
                     ourActivity = RemotingActivitySource.StartActivity(ActivityInName, ActivityKind.Server, activityParentContext.ActivityContext);
                 }
 
-                SetStartingActivityAttributes(ourActivity, reqMsg);
+                if (ourActivity != null && ourActivity.IsAllDataRequested && reqMsg is IMethodMessage methodMsg)
+                {
+                    SetStartingActivityAttributes(ourActivity, methodMsg);
+                }
             }
         }
 
@@ -179,20 +185,17 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
             }
         }
 
-        private static void SetStartingActivityAttributes(Activity activity, IMessage msg)
+        private static void SetStartingActivityAttributes(Activity activity, IMethodMessage msg)
         {
-            if (activity != null && activity.IsAllDataRequested)
-            {
-                string serviceName = GetServiceName((string)msg.Properties["__TypeName"]);
-                string methodName = (string)msg.Properties["__MethodName"];
-                activity.DisplayName = $"{serviceName}/{methodName}";
-                activity.SetTag(AttributeRpcSystem, "netframework_remoting");
-                activity.SetTag(AttributeRpcService, serviceName);
-                activity.SetTag(AttributeRpcMethod, methodName);
+            string serviceName = GetServiceName(msg.TypeName);
+            string methodName = msg.MethodName;
+            activity.DisplayName = $"{serviceName}/{methodName}";
+            activity.SetTag(AttributeRpcSystem, "netframework_remoting");
+            activity.SetTag(AttributeRpcService, serviceName);
+            activity.SetTag(AttributeRpcMethod, methodName);
 
-                var uriString = (string)msg.Properties["__Uri"];
-                activity.SetTag(AttributeRpcRemotingUri, uriString);
-            }
+            var uriString = msg.Uri;
+            activity.SetTag(AttributeRpcRemotingUri, uriString);
         }
 
         private static string GetServiceName(string typeName)
