@@ -28,7 +28,7 @@ namespace OpenTelemetry.Instrumentation
     public class MultiTypePropertyFetcher<T>
     {
         private readonly string propertyName;
-        private ConcurrentDictionary<Type, PropertyFetch> innerFetcher = new ConcurrentDictionary<Type, PropertyFetch>();
+        private readonly ConcurrentDictionary<Type, PropertyFetch> innerFetcher = new ConcurrentDictionary<Type, PropertyFetch>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MultiTypePropertyFetcher{T}"/> class.
@@ -48,11 +48,12 @@ namespace OpenTelemetry.Instrumentation
         {
             if (obj == null)
             {
-                return default(T);
+                return default;
             }
 
             var type = obj.GetType().GetTypeInfo();
-            var fetcher = this.innerFetcher.GetOrAdd(type, t =>
+            PropertyFetch fetcher = null;
+            if (!this.innerFetcher.TryGetValue(type, out fetcher))
             {
                 var property = type.DeclaredProperties.FirstOrDefault(p => string.Equals(p.Name, this.propertyName, StringComparison.InvariantCultureIgnoreCase));
                 if (property == null)
@@ -60,8 +61,15 @@ namespace OpenTelemetry.Instrumentation
                     property = type.GetProperty(this.propertyName, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
                 }
 
-                return PropertyFetch.FetcherForProperty(property);
-            });
+                fetcher = PropertyFetch.FetcherForProperty(property);
+
+                this.innerFetcher.TryAdd(type, fetcher);
+            }
+
+            if (fetcher == null)
+            {
+                return default;
+            }
 
             return fetcher.Fetch(obj);
         }
