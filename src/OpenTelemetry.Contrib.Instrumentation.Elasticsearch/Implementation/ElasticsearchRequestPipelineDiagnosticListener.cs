@@ -1,4 +1,4 @@
-﻿// <copyright file="ElasticsearchRequestPipelineDiagnosticListener.cs" company="OpenTelemetry Authors">
+// <copyright file="ElasticsearchRequestPipelineDiagnosticListener.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -134,6 +134,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
                 {
                     activity.SetStatus(Status.Unauthenticated);
                 }
+                else if (statusCode == 400)
+                {
+                    activity.SetStatus(Status.AlreadyExists);
+                }
                 else
                 {
                     activity.SetStatus(Status.Unknown);
@@ -256,9 +260,18 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
             var request = ParseRequest.Match(debugInformation);
             if (request.Success)
             {
-                string body = request.Groups[1].Value.Trim();
+                string body = request.Groups[1]?.Value?.Trim();
+                if (body == null)
+                {
+                    return debugInformation;
+                }
 
-                var doc = JsonDocument.Parse(body);
+                var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(body));
+                if (!JsonDocument.TryParseValue(ref reader, out var doc))
+                {
+                    return debugInformation;
+                }
+
                 using (var stream = new MemoryStream())
                 {
                     var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
