@@ -32,8 +32,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
     /// code.
     /// </summary>
     /// <remarks>
-    /// See https://docs.microsoft.com/en-us/previous-versions/dotnet/netframework-4.0/tdzwhfy3(v=vs.100) for
-    /// information about remoting sinks and https://docs.microsoft.com/en-us/dotnet/api/system.runtime.remoting.contexts.context.registerdynamicproperty?view=netframework-4.8
+    /// See https://docs.microsoft.com/previous-versions/dotnet/netframework-4.0/tdzwhfy3(v=vs.100) for
+    /// information about remoting sinks and https://docs.microsoft.com/dotnet/api/system.runtime.remoting.contexts.context.registerdynamicproperty
     /// for RegisterDynamicProperty behavior.
     /// </remarks>
     internal class TelemetryDynamicSink : IDynamicMessageSink

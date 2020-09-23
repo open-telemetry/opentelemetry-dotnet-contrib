@@ -33,7 +33,7 @@ namespace OpenTelemetry.Trace
             {
                 if (regCount == 0)
                 {
-                    // See https://docs.microsoft.com/en-us/dotnet/api/system.runtime.remoting.contexts.context.registerdynamicproperty?view=netframework-4.8
+                    // See https://docs.microsoft.com/dotnet/api/system.runtime.remoting.contexts.context.registerdynamicproperty
                     // This will register our dynamic sink to listen to all calls leaving or entering
                     // current AppDomain.
                     RemotingContext.RegisterDynamicProperty(
