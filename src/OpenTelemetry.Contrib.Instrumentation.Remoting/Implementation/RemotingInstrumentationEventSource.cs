@@ -53,5 +53,20 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
         {
             this.WriteEvent(3, sinkName, methodName, expectedActivity, actualActivity);
         }
+
+        [NonEvent]
+        public void DynamicSinkException(Exception ex)
+        {
+            if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
+            {
+                this.DynamicSinkException(ex.ToString());
+            }
+        }
+
+        [Event(4, Message = "DynamicSink message processor threw an exception. Remoting activity will not be recorded. Exception {0}.", Level = EventLevel.Error)]
+        public void DynamicSinkException(string exception)
+        {
+            this.WriteEvent(4, exception);
+        }
     }
 }

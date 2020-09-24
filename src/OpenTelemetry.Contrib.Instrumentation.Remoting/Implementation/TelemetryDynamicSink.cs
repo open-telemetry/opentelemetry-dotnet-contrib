@@ -77,53 +77,60 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
                 return;
             }
 
-            // Are we executing on client?
-            if (bCliSide)
+            try
             {
-                // Start new outgoing activity
-                var act = RemotingActivitySource.StartActivity(ActivityOutName, ActivityKind.Client);
-                if (act != null)
+                // Are we executing on client?
+                if (bCliSide)
                 {
-                    if (act.IsAllDataRequested && reqMsg is IMethodMessage methodMsg)
+                    // Start new outgoing activity
+                    var act = RemotingActivitySource.StartActivity(ActivityOutName, ActivityKind.Client);
+                    if (act != null)
                     {
-                        SetStartingActivityAttributes(act, methodMsg);
+                        if (act.IsAllDataRequested && reqMsg is IMethodMessage methodMsg)
+                        {
+                            SetStartingActivityAttributes(act, methodMsg);
+                        }
+
+                        var callContext = (LogicalCallContext)reqMsg.Properties["__CallContext"];
+
+                        this.options.Propagator.Inject(new PropagationContext(act.Context, Baggage.Current), callContext, InjectActivityProperties);
                     }
-
-                    var callContext = (LogicalCallContext)reqMsg.Properties["__CallContext"];
-
-                    this.options.Propagator.Inject(new PropagationContext(act.Context, Baggage.Current), callContext, InjectActivityProperties);
-                }
-            }
-            else
-            {
-                // We are on server, need to start new or attach to an existing incoming activity.
-
-                var callContext = (LogicalCallContext)reqMsg.Properties["__CallContext"];
-                var activityParentContext = this.options.Propagator.Extract(default, callContext, ExtractActivityProperties);
-
-                Activity ourActivity;
-
-                // Do we already have an incoming activity?
-                // Existing activity might be started by an instrumentation layer higher up the
-                // stack. E.g. if we are using http as a transport for remoting, and we have
-                // instrumented incoming http request, then that instrumentation happens before
-                // our "ProcessMessageStart" and we just need to attach to that existing activity.
-                var parentActivity = Activity.Current;
-                if (parentActivity != null)
-                {
-                    ourActivity = RemotingActivitySource.StartActivity(ActivityInName, ActivityKind.Server);
                 }
                 else
                 {
-                    // We don't have an existing incoming activity. Start a brand new one ourselves.
+                    // We are on server, need to start new or attach to an existing incoming activity.
 
-                    ourActivity = RemotingActivitySource.StartActivity(ActivityInName, ActivityKind.Server, activityParentContext.ActivityContext);
-                }
+                    var callContext = (LogicalCallContext)reqMsg.Properties["__CallContext"];
+                    var activityParentContext = this.options.Propagator.Extract(default, callContext, ExtractActivityProperties);
 
-                if (ourActivity != null && ourActivity.IsAllDataRequested && reqMsg is IMethodMessage methodMsg)
-                {
-                    SetStartingActivityAttributes(ourActivity, methodMsg);
+                    Activity ourActivity;
+
+                    // Do we already have an incoming activity?
+                    // Existing activity might be started by an instrumentation layer higher up the
+                    // stack. E.g. if we are using http as a transport for remoting, and we have
+                    // instrumented incoming http request, then that instrumentation happens before
+                    // our "ProcessMessageStart" and we just need to attach to that existing activity.
+                    var parentActivity = Activity.Current;
+                    if (parentActivity != null)
+                    {
+                        ourActivity = RemotingActivitySource.StartActivity(ActivityInName, ActivityKind.Server);
+                    }
+                    else
+                    {
+                        // We don't have an existing incoming activity. Start a brand new one ourselves.
+
+                        ourActivity = RemotingActivitySource.StartActivity(ActivityInName, ActivityKind.Server, activityParentContext.ActivityContext);
+                    }
+
+                    if (ourActivity != null && ourActivity.IsAllDataRequested && reqMsg is IMethodMessage methodMsg)
+                    {
+                        SetStartingActivityAttributes(ourActivity, methodMsg);
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                RemotingInstrumentationEventSource.Log.DynamicSinkException(e);
             }
         }
 
@@ -149,39 +156,46 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
                 return;
             }
 
-            var act = Activity.Current;
-            if (act == null)
+            try
             {
-                RemotingInstrumentationEventSource.Log.NullActivity(nameof(TelemetryDynamicSink), nameof(this.ProcessMessageFinish));
-                return;
-            }
-
-            bool validClientActivity = bCliSide && act.OperationName == ActivityOutName;
-            bool validServerActivity = !bCliSide && act.OperationName == ActivityInName;
-            if (validClientActivity || validServerActivity)
-            {
-                if (replyMsg is IMethodReturnMessage returnMsg)
+                var act = Activity.Current;
+                if (act == null)
                 {
-                    if (returnMsg.Exception == null)
-                    {
-                        act.SetStatus(Status.Ok);
-                    }
-                    else
-                    {
-                        act.SetStatus(Status.Unknown);
-                        act.RecordException(returnMsg.Exception);
-                    }
+                    RemotingInstrumentationEventSource.Log.NullActivity(nameof(TelemetryDynamicSink), nameof(this.ProcessMessageFinish));
+                    return;
                 }
 
-                act.Stop();
+                bool validClientActivity = bCliSide && act.OperationName == ActivityOutName;
+                bool validServerActivity = !bCliSide && act.OperationName == ActivityInName;
+                if (validClientActivity || validServerActivity)
+                {
+                    if (replyMsg is IMethodReturnMessage returnMsg)
+                    {
+                        if (returnMsg.Exception == null)
+                        {
+                            act.SetStatus(Status.Ok);
+                        }
+                        else
+                        {
+                            act.SetStatus(Status.Unknown);
+                            act.RecordException(returnMsg.Exception);
+                        }
+                    }
+
+                    act.Stop();
+                }
+                else
+                {
+                    RemotingInstrumentationEventSource.Log.InvalidCurrentActivity(
+                        nameof(TelemetryDynamicSink),
+                        nameof(this.ProcessMessageFinish),
+                        $"{ActivityInName} or {ActivityOutName}",
+                        act.OperationName);
+                }
             }
-            else
+            catch (Exception e)
             {
-                RemotingInstrumentationEventSource.Log.InvalidCurrentActivity(
-                    nameof(TelemetryDynamicSink),
-                    nameof(this.ProcessMessageFinish),
-                    $"{ActivityInName} or {ActivityOutName}",
-                    act.OperationName);
+                RemotingInstrumentationEventSource.Log.DynamicSinkException(e);
             }
         }
 
