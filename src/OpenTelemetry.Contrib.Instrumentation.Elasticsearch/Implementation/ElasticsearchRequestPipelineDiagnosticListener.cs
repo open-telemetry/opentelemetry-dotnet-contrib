@@ -35,13 +35,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
 
         private readonly ActivitySourceAdapter activitySource;
         private readonly ElasticsearchClientInstrumentationOptions options;
-        private readonly PropertyFetcher<Uri> uriFetcher = new PropertyFetcher<Uri>("Uri");
-        private readonly PropertyFetcher<object> methodFetcher = new PropertyFetcher<object>("Method");
-        private readonly PropertyFetcher<string> debugInformationFetcher = new PropertyFetcher<string>("DebugInformation");
-        private readonly PropertyFetcher<int?> httpStatusFetcher = new PropertyFetcher<int?>("HttpStatusCode");
-        private readonly PropertyFetcher<Exception> originalExceptionFetcher = new PropertyFetcher<Exception>("OriginalException");
-        private readonly PropertyFetcher<object> failureReasonFetcher = new PropertyFetcher<object>("FailureReason");
-        private readonly PropertyFetcher<byte[]> responseBodyFetcher = new PropertyFetcher<byte[]>("ResponseBodyInBytes");
+        private readonly MultiTypePropertyFetcher<Uri> uriFetcher = new MultiTypePropertyFetcher<Uri>("Uri");
+        private readonly MultiTypePropertyFetcher<object> methodFetcher = new MultiTypePropertyFetcher<object>("Method");
+        private readonly MultiTypePropertyFetcher<string> debugInformationFetcher = new MultiTypePropertyFetcher<string>("DebugInformation");
+        private readonly MultiTypePropertyFetcher<int?> httpStatusFetcher = new MultiTypePropertyFetcher<int?>("HttpStatusCode");
+        private readonly MultiTypePropertyFetcher<Exception> originalExceptionFetcher = new MultiTypePropertyFetcher<Exception>("OriginalException");
+        private readonly MultiTypePropertyFetcher<object> failureReasonFetcher = new MultiTypePropertyFetcher<object>("FailureReason");
+        private readonly MultiTypePropertyFetcher<byte[]> responseBodyFetcher = new MultiTypePropertyFetcher<byte[]>("ResponseBodyInBytes");
 
         public ElasticsearchRequestPipelineDiagnosticListener(ActivitySourceAdapter activitySource, ElasticsearchClientInstrumentationOptions options)
             : base("Elasticsearch.Net.RequestPipeline")
@@ -133,6 +133,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
                 else if (statusCode == 401)
                 {
                     activity.SetStatus(Status.Unauthenticated);
+                }
+                else if (statusCode == 400)
+                {
+                    activity.SetStatus(Status.AlreadyExists);
                 }
                 else
                 {
@@ -256,9 +260,18 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
             var request = ParseRequest.Match(debugInformation);
             if (request.Success)
             {
-                string body = request.Groups[1].Value.Trim();
+                string body = request.Groups[1]?.Value?.Trim();
+                if (body == null)
+                {
+                    return debugInformation;
+                }
 
-                var doc = JsonDocument.Parse(body);
+                var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(body));
+                if (!JsonDocument.TryParseValue(ref reader, out var doc))
+                {
+                    return debugInformation;
+                }
+
                 using (var stream = new MemoryStream())
                 {
                     var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
