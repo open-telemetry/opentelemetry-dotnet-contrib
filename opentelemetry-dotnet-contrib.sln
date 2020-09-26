@@ -77,6 +77,18 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Tests", "test\OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCoreTests\OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Tests.csproj", "{899E506C-8525-4471-8C6D-5A9FA6B8517B}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.Wcf", "src\OpenTelemetry.Contrib.Instrumentation.Wcf\OpenTelemetry.Contrib.Instrumentation.Wcf.csproj", "{CAD5C27A-D359-4086-9C4F-02204C084A8E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "wcf", "wcf", "{73474960-8F91-4EE5-8E3E-F7E7ADA99238}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Wcf.Client", "examples\wcf\client\Examples.Wcf.Client.csproj", "{351C01F2-9664-48AC-9E1B-69AB42907392}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Wcf.Server", "examples\wcf\server\Examples.Wcf.Server.csproj", "{DAFE7886-DD52-4C96-BFF0-9744E7F9B45F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Wcf.Shared", "examples\wcf\shared\Examples.Wcf.Shared.csproj", "{21716C26-3B2A-4208-BDFB-8E58E2AF49EA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -119,6 +131,22 @@ Global
 		{899E506C-8525-4471-8C6D-5A9FA6B8517B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{899E506C-8525-4471-8C6D-5A9FA6B8517B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{899E506C-8525-4471-8C6D-5A9FA6B8517B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAD5C27A-D359-4086-9C4F-02204C084A8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAD5C27A-D359-4086-9C4F-02204C084A8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAD5C27A-D359-4086-9C4F-02204C084A8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAD5C27A-D359-4086-9C4F-02204C084A8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{351C01F2-9664-48AC-9E1B-69AB42907392}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{351C01F2-9664-48AC-9E1B-69AB42907392}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{351C01F2-9664-48AC-9E1B-69AB42907392}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{351C01F2-9664-48AC-9E1B-69AB42907392}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DAFE7886-DD52-4C96-BFF0-9744E7F9B45F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAFE7886-DD52-4C96-BFF0-9744E7F9B45F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAFE7886-DD52-4C96-BFF0-9744E7F9B45F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAFE7886-DD52-4C96-BFF0-9744E7F9B45F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21716C26-3B2A-4208-BDFB-8E58E2AF49EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21716C26-3B2A-4208-BDFB-8E58E2AF49EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21716C26-3B2A-4208-BDFB-8E58E2AF49EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21716C26-3B2A-4208-BDFB-8E58E2AF49EA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -136,6 +164,11 @@ Global
 		{5F10395B-DF38-438A-B5DB-5F6449184F67} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{BC839E07-108A-4184-B1F9-EF28A1E81088} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{899E506C-8525-4471-8C6D-5A9FA6B8517B} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{CAD5C27A-D359-4086-9C4F-02204C084A8E} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{73474960-8F91-4EE5-8E3E-F7E7ADA99238} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
+		{351C01F2-9664-48AC-9E1B-69AB42907392} = {73474960-8F91-4EE5-8E3E-F7E7ADA99238}
+		{DAFE7886-DD52-4C96-BFF0-9744E7F9B45F} = {73474960-8F91-4EE5-8E3E-F7E7ADA99238}
+		{21716C26-3B2A-4208-BDFB-8E58E2AF49EA} = {73474960-8F91-4EE5-8E3E-F7E7ADA99238}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
