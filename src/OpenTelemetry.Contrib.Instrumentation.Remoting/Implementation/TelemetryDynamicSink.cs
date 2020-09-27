@@ -145,23 +145,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
 
             try
             {
-                if (this.options.Filter?.Invoke(replyMsg) == false)
-                {
-                    return;
-                }
-            }
-            catch (Exception e)
-            {
-                RemotingInstrumentationEventSource.Log.MessageFilterException(e);
-                return;
-            }
-
-            try
-            {
                 var act = Activity.Current;
                 if (act == null)
                 {
-                    RemotingInstrumentationEventSource.Log.NullActivity(nameof(TelemetryDynamicSink), nameof(this.ProcessMessageFinish));
                     return;
                 }
 
@@ -183,14 +169,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
                     }
 
                     act.Stop();
-                }
-                else
-                {
-                    RemotingInstrumentationEventSource.Log.InvalidCurrentActivity(
-                        nameof(TelemetryDynamicSink),
-                        nameof(this.ProcessMessageFinish),
-                        $"{ActivityInName} or {ActivityOutName}",
-                        act.OperationName);
                 }
             }
             catch (Exception e)

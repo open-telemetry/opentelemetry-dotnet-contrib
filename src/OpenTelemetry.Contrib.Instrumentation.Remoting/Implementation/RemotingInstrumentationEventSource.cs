@@ -39,21 +39,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
             this.WriteEvent(1, exception);
         }
 
-        [Event(2, Message = "Incoming activity was not available for sink '{0}' in method '{1}'. Remoting activity will not be recorded.", Level = EventLevel.Warning)]
-        public void NullActivity(string sinkName, string methodName)
-        {
-            this.WriteEvent(2, sinkName, methodName);
-        }
-
-        [Event(
-            3,
-            Message = "Invalid current activity for sink '{0}' in method '{1}'. Expected '{2}' but got '{3}'. Remoting activity will not be recorded. Current activity will not be stopped.",
-            Level = EventLevel.Warning)]
-        public void InvalidCurrentActivity(string sinkName, string methodName, string expectedActivity, string actualActivity)
-        {
-            this.WriteEvent(3, sinkName, methodName, expectedActivity, actualActivity);
-        }
-
         [NonEvent]
         public void DynamicSinkException(Exception ex)
         {
@@ -63,10 +48,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
             }
         }
 
-        [Event(4, Message = "DynamicSink message processor threw an exception. Remoting activity will not be recorded. Exception {0}.", Level = EventLevel.Error)]
+        [Event(2, Message = "DynamicSink message processor threw an exception. Remoting activity will not be recorded. Exception {0}.", Level = EventLevel.Error)]
         public void DynamicSinkException(string exception)
         {
-            this.WriteEvent(4, exception);
+            this.WriteEvent(2, exception);
         }
     }
 }
