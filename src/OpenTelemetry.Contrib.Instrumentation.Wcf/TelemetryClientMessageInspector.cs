@@ -14,11 +14,13 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Diagnostics;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Dispatcher;
 using OpenTelemetry.Context.Propagation;
+using OpenTelemetry.Contrib.Instrumentation.Wcf.Implementation;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Contrib.Instrumentation.Wcf
@@ -35,14 +37,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
             {
                 if (WcfInstrumentationActivitySource.Options == null || WcfInstrumentationActivitySource.Options.OutgoingRequestFilter?.Invoke(request) == false)
                 {
-                    // AspNetInstrumentationEventSource.Log.RequestIsFilteredOut(activity.OperationName);
+                    WcfInstrumentationEventSource.Log.RequestIsFilteredOut(request.Headers.Action);
                     return null;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                /*(Exception ex)*/
-                // AspNetInstrumentationEventSource.Log.RequestFilterException(ex);
+                WcfInstrumentationEventSource.Log.RequestFilterException(ex);
                 return null;
             }
 
