@@ -9,6 +9,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkPkgVer)" />
     <PackageReference Include="xunit" Version="$(XUnitPkgVer)" />
+    <PackageReference Include="AWSSDK.Core" Version="3.5.1.24" />
+    <PackageReference Include="AWSSDK.S3" Version="3.5.2.1" />
+    <PackageReference Include="AWSSDK.SQS" Version="3.5.0.26" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.5.1.2" />
+    <PackageReference Include="Moq" Version="4.14.6" />
     <PackageReference Condition="$([MSBuild]::IsOsPlatform('Windows'))" Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>

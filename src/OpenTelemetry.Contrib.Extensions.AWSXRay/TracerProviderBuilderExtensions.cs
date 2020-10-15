@@ -16,6 +16,7 @@
 
 using System;
 using OpenTelemetry.Contrib.Extensions.AWSXRay;
+using Opentelemetry.Contrib.Extensions.AWSXRay.Instrumentation;
 
 namespace OpenTelemetry.Trace
 {
@@ -37,6 +38,24 @@ namespace OpenTelemetry.Trace
             }
 
             AWSXRayIdGenerator.ReplaceTraceId();
+            return builder;
+        }
+
+        /// <summary>
+        /// Enables AWS Instrumentation.
+        /// </summary>
+        /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+        /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+        public static TracerProviderBuilder AddAWSInstrumentation(
+            this TracerProviderBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            new AWSClientsInstrumentation();
+            builder.AddSource("Amazon.AWS.AWSClientInstrumentation");
             return builder;
         }
     }
