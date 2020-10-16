@@ -126,7 +126,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Tests
             }
             else
             {
-                Assert.Equal(Status.Error.ToString(), activity.Tags.FirstOrDefault(t => t.Key == SpanAttributeConstants.StatusCodeKey).Value);
+                Assert.Equal(Status.Error.Description, activity.Tags.FirstOrDefault(t => t.Key == SpanAttributeConstants.StatusCodeKey).Value);
                 Assert.Contains(activity.Tags, t => t.Key == SpanAttributeConstants.StatusDescriptionKey);
             }
         }
