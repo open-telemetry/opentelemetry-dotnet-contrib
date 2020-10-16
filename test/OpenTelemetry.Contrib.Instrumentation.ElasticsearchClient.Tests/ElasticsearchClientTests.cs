@@ -83,7 +83,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
             Assert.NotEmpty(debugInfo);
             Assert.Contains("Successful (200) low level call", debugInfo);
 
-            Assert.Equal(Status.Ok, searchActivity.GetStatus());
+            Assert.Equal(Status.Unset, searchActivity.GetStatus());
             Assert.Equal(expectedResource, searchActivity.GetResource());
         }
 
@@ -189,7 +189,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
             Assert.NotEmpty(debugInfo);
             Assert.Contains("Successful (200) low level call", debugInfo);
 
-            Assert.Equal(Status.Ok, searchActivity.GetStatus());
+            Assert.Equal(Status.Unset, searchActivity.GetStatus());
             Assert.Equal(expectedResource, searchActivity.GetResource());
         }
 
@@ -242,7 +242,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
             Assert.NotEmpty(debugInfo);
             Assert.Contains("Successful (200) low level call", debugInfo);
 
-            Assert.Equal(Status.Ok, searchActivity.GetStatus());
+            Assert.Equal(Status.Unset, searchActivity.GetStatus());
             Assert.Equal(expectedResource, searchActivity.GetResource());
         }
 
@@ -312,7 +312,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
 }".Replace("\r\n", "\n"),
                 debugInfo.Replace("\r\n", "\n"));
 
-            Assert.Equal(Status.Ok, searchActivity.GetStatus());
+            Assert.Equal(Status.Unset, searchActivity.GetStatus());
             Assert.Equal(expectedResource, searchActivity.GetResource());
         }
 
@@ -365,7 +365,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
             Assert.NotEmpty(debugInfo);
             Assert.DoesNotContain("123", debugInfo);
 
-            Assert.Equal(Status.Ok, searchActivity.GetStatus());
+            Assert.Equal(Status.Unset, searchActivity.GetStatus());
             Assert.Equal(expectedResource, searchActivity.GetResource());
         }
 
@@ -418,7 +418,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
             Assert.NotEmpty(debugInfo);
             Assert.Contains("Successful (200) low level call", debugInfo);
 
-            Assert.Equal(Status.Ok, searchActivity.GetStatus());
+            Assert.Equal(Status.Unset, searchActivity.GetStatus());
             Assert.Equal(expectedResource, searchActivity.GetResource());
         }
 
@@ -526,7 +526,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
             Assert.NotEmpty(debugInfo);
             Assert.Contains("Successful (200) low level call", debugInfo);
 
-            Assert.Equal(Status.Ok, searchActivity.GetStatus());
+            Assert.Equal(Status.Unset, searchActivity.GetStatus());
             Assert.Equal(expectedResource, searchActivity.GetResource());
         }
     }
