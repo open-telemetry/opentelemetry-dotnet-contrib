@@ -30,7 +30,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
         [Fact]
         public async Task MassTransitInstrumentationConsumerAndHandlerTest()
         {
-            var activityProcessor = new Mock<ActivityProcessor>();
+            var activityProcessor = new Mock<BaseProcessor<Activity>>();
             using (Sdk.CreateTracerProviderBuilder()
                 .AddProcessor(activityProcessor.Object)
                 .AddMassTransitInstrumentation()
@@ -95,7 +95,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                 ActivityTraceFlags.Recorded);
             activity.Start();
 
-            var activityProcessor = new Mock<ActivityProcessor>();
+            var activityProcessor = new Mock<BaseProcessor<Activity>>();
             using (Sdk.CreateTracerProviderBuilder()
                 .AddProcessor(activityProcessor.Object)
                 .AddMassTransitInstrumentation(o =>

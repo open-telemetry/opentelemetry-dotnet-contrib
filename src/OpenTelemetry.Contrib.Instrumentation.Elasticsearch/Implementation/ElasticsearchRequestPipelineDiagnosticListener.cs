@@ -118,30 +118,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
             {
                 var statusCode = this.httpStatusFetcher.Fetch(payload);
 
-                if (!statusCode.HasValue)
+                var status = Status.Error;
+
+                if (statusCode >= 100 && statusCode <= 399)
                 {
-                    activity.SetStatus(Status.Unknown);
+                    status = Status.Unset;
                 }
-                else if (statusCode >= 200 && statusCode < 300)
-                {
-                    activity.SetStatus(Status.Ok);
-                }
-                else if (statusCode == 404)
-                {
-                    activity.SetStatus(Status.NotFound);
-                }
-                else if (statusCode == 401)
-                {
-                    activity.SetStatus(Status.Unauthenticated);
-                }
-                else if (statusCode == 400)
-                {
-                    activity.SetStatus(Status.AlreadyExists);
-                }
-                else
-                {
-                    activity.SetStatus(Status.Unknown);
-                }
+
+                activity.SetStatus(status);
 
                 var debugInformation = this.debugInformationFetcher.Fetch(payload);
                 if (debugInformation != null)
@@ -157,14 +141,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
                     var failureReason = this.failureReasonFetcher.Fetch(originalException);
                     if (failureReason != null)
                     {
-                        activity.SetStatus(Status.Unknown.WithDescription($"{failureReason} {originalException.Message}"));
+                        activity.SetStatus(Status.Error.WithDescription($"{failureReason} {originalException.Message}"));
                     }
 
                     var responseBody = this.responseBodyFetcher.Fetch(payload);
                     if (responseBody != null && responseBody.Length > 0)
                     {
                         var response = Encoding.UTF8.GetString(responseBody);
-                        activity.SetStatus(Status.Unknown.WithDescription($"{failureReason} {originalException.Message}\r\n{response}"));
+                        activity.SetStatus(Status.Error.WithDescription($"{failureReason} {originalException.Message}\r\n{response}"));
                     }
 
                     if (originalException is HttpRequestException)
@@ -174,14 +158,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
                             switch (exception.SocketErrorCode)
                             {
                                 case SocketError.HostNotFound:
-                                    activity.SetStatus(Status.InvalidArgument.WithDescription(originalException.Message));
+                                    activity.SetStatus(Status.Error.WithDescription(originalException.Message));
                                     return;
                             }
                         }
 
                         if (originalException.InnerException != null)
                         {
-                            activity.SetStatus(Status.Unknown.WithDescription(originalException.Message));
+                            activity.SetStatus(Status.Error.WithDescription(originalException.Message));
                         }
                     }
                 }
