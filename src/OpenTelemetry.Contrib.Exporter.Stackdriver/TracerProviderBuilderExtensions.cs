@@ -15,6 +15,7 @@
 // </copyright>
 
 using System;
+using System.Diagnostics;
 using OpenTelemetry.Contrib.Exporter.Stackdriver;
 
 namespace OpenTelemetry.Trace
@@ -41,7 +42,7 @@ namespace OpenTelemetry.Trace
 
             var activityExporter = new StackdriverTraceExporter(projectId);
 
-            return builder.AddProcessor(new BatchExportActivityProcessor(activityExporter));
+            return builder.AddProcessor(new BatchExportProcessor<Activity>(activityExporter));
         }
     }
 }

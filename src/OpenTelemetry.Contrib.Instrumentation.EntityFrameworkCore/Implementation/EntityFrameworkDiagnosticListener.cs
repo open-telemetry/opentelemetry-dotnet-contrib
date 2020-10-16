@@ -232,7 +232,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementati
                             {
                                 if (this.exceptionFetcher.Fetch(payload) is Exception exception)
                                 {
-                                    activity.SetStatus(Status.Unknown.WithDescription(exception.Message));
+                                    activity.SetStatus(Status.Error.WithDescription(exception.Message));
                                 }
                                 else
                                 {
