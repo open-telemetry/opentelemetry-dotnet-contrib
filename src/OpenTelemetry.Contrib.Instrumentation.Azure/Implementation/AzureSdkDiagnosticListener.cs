@@ -102,7 +102,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Azure.Implementation
 
         public override void OnException(Activity activity, object valueValue)
         {
-            activity.SetStatus(Status.Error);
+            activity.SetStatus(Status.Error.WithDescription(valueValue?.ToString()));
         }
 
         private string GetOperationName(Activity activity)
