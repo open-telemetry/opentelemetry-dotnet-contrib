@@ -102,9 +102,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Azure.Implementation
 
         public override void OnException(Activity activity, object valueValue)
         {
-            Status status = Status.Unknown;
-            activity.AddTag(SpanAttributeConstants.StatusCodeKey, SpanHelper.GetCachedCanonicalCodeString(status.CanonicalCode));
-            activity.AddTag(SpanAttributeConstants.StatusDescriptionKey, valueValue?.ToString());
+            activity.SetStatus(Status.Error.WithDescription(valueValue?.ToString()));
         }
 
         private string GetOperationName(Activity activity)

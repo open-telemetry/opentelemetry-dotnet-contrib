@@ -15,34 +15,29 @@
 // </copyright>
 
 using System;
-using System.Diagnostics;
-using OpenTelemetry.Contrib.Exporter.Stackdriver;
+using OpenTelemetry.Contrib.Extensions.AWSXRay;
 
 namespace OpenTelemetry.Trace
 {
     /// <summary>
-    /// Extension methods to simplify registering a Stackdriver exporter.
+    /// Extension method to generate AWS X-Ray compatible trace id and replace the trace id of root activity.
     /// </summary>
     public static class TracerProviderBuilderExtensions
     {
         /// <summary>
-        /// Registers a Stackdriver exporter that will receive <see cref="System.Diagnostics.Activity"/> instances.
+        /// Replace the trace id of root activity.
         /// </summary>
-        /// <param name="builder"><see cref="TracerProviderBuilder"/> builder to use.</param>
-        /// <param name="projectId">Project ID to send telemetry to.</param>
-        /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-        public static TracerProviderBuilder UseStackdriverExporter(
-            this TracerProviderBuilder builder,
-            string projectId)
+        /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+        /// <returns>The instance of <see cref="TracerProviderBuilder"/>.</returns>
+        public static TracerProviderBuilder AddXRayActivityTraceIdGenerator(this TracerProviderBuilder builder)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            var activityExporter = new StackdriverTraceExporter(projectId);
-
-            return builder.AddProcessor(new BatchExportProcessor<Activity>(activityExporter));
+            AWSXRayIdGenerator.ReplaceTraceId();
+            return builder;
         }
     }
 }

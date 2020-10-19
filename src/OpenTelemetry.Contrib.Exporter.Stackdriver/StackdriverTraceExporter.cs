@@ -28,7 +28,7 @@ namespace OpenTelemetry.Contrib.Exporter.Stackdriver
     /// <summary>
     /// Exports a group of spans to Stackdriver.
     /// </summary>
-    public class StackdriverTraceExporter : ActivityExporter
+    public class StackdriverTraceExporter : BaseExporter<Activity>
     {
         private static readonly string StackdriverExportVersion;
         private static readonly string OpenTelemetryExporterVersion;
