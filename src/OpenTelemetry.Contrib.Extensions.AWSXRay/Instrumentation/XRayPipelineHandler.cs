@@ -63,7 +63,6 @@ namespace Opentelemetry.Contrib.Extensions.AWSXRay.Instrumentation
             }
             catch (Exception ex)
             {
-                // Process error here
                 if (activity != null)
                 {
                     this.ProcessException(activity, ex);
@@ -71,7 +70,6 @@ namespace Opentelemetry.Contrib.Extensions.AWSXRay.Instrumentation
             }
             finally
             {
-                // Process end request here
                 if (activity != null)
                 {
                     this.ProcessEndRequest(executionContext, activity);
@@ -90,7 +88,6 @@ namespace Opentelemetry.Contrib.Extensions.AWSXRay.Instrumentation
             }
             catch (Exception ex)
             {
-                // Process error here
                 if (activity != null)
                 {
                     this.ProcessException(activity, ex);
@@ -98,7 +95,6 @@ namespace Opentelemetry.Contrib.Extensions.AWSXRay.Instrumentation
             }
             finally
             {
-                // Process end request here
                 if (activity != null)
                 {
                     this.ProcessEndRequest(executionContext, activity);
@@ -115,8 +111,13 @@ namespace Opentelemetry.Contrib.Extensions.AWSXRay.Instrumentation
             var requestContext = executionContext.RequestContext;
             var service = this.GetAWSServiceName(requestContext);
             var operation = this.GetAWSOperationName(requestContext);
-            bool listeners = AWSSDKActivitySource.HasListeners();
+
             activity = AWSSDKActivitySource.StartActivity(service + "." + operation, ActivityKind.Client);
+
+            if (activity == null)
+            {
+                return null;
+            }
 
             activity.AddTag("aws.service", service);
             activity.AddTag("aws.operation", operation);
@@ -141,12 +142,26 @@ namespace Opentelemetry.Contrib.Extensions.AWSXRay.Instrumentation
 
             activity.AddTag("aws.requestId", this.FetchRequestId(requestContext, responseContext));
 
+            var httpResponse = responseContext.HttpResponse;
+            if (httpResponse != null)
+            {
+                this.AddStatusCodeToActivity(activity, (int)httpResponse.StatusCode);
+                activity.SetTag("http.response_content_length", httpResponse.ContentLength);
+            }
+
             activity.Stop();
         }
 
         private void ProcessException(Activity activity, Exception ex)
         {
             activity.RecordException(ex);
+
+            activity.SetStatus(Status.Error.WithDescription(ex.Message));
+
+            if (ex is AmazonServiceException amazonServiceException)
+            {
+                this.AddStatusCodeToActivity(activity, (int)amazonServiceException.StatusCode);
+            }
         }
 
         private string GetAWSServiceName(IRequestContext requestContext)
@@ -180,6 +195,12 @@ namespace Opentelemetry.Contrib.Extensions.AWSXRay.Instrumentation
                     }
                 }
             }
+        }
+
+        private void AddStatusCodeToActivity(Activity activity, int status_code)
+        {
+            // TODO: Convert to use semantic conventions but the SemanticConventions class is internal
+            activity.SetTag("http.status_code", status_code);
         }
 
         private string FetchRequestId(IRequestContext requestContext, IResponseContext responseContext)
