@@ -33,6 +33,7 @@ namespace Opentelemetry.Contrib.Extensions.AWSXRay.Instrumentation
     internal class XRayPipelineHandler : PipelineHandler
     {
         internal const string ActivitySourceName = "Amazon.AWS.AWSClientInstrumentation";
+        private const string AWSRequestIdSemanticConvention = "aws.requestId";
 
         private static readonly AWSXRayPropagator AwsPropagator = new AWSXRayPropagator();
         private static readonly Action<IDictionary<string, string>, string, string> Setter = (carrier, name, value) =>
@@ -140,7 +141,10 @@ namespace Opentelemetry.Contrib.Extensions.AWSXRay.Instrumentation
             var responseContext = executionContext.ResponseContext;
             var requestContext = executionContext.RequestContext;
 
-            activity.AddTag("aws.requestId", this.FetchRequestId(requestContext, responseContext));
+            if (activity.GetTagValue(AWSRequestIdSemanticConvention) == null)
+            {
+                activity.AddTag(AWSRequestIdSemanticConvention, this.FetchRequestId(requestContext, responseContext));
+            }
 
             var httpResponse = responseContext.HttpResponse;
             if (httpResponse != null)
@@ -161,6 +165,7 @@ namespace Opentelemetry.Contrib.Extensions.AWSXRay.Instrumentation
             if (ex is AmazonServiceException amazonServiceException)
             {
                 this.AddStatusCodeToActivity(activity, (int)amazonServiceException.StatusCode);
+                activity.AddTag(AWSRequestIdSemanticConvention, amazonServiceException.RequestId);
             }
         }
 

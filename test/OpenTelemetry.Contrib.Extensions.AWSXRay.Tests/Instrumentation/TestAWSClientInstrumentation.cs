@@ -14,101 +14,104 @@
 // limitations under the License.
 // </copyright>
 
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
-using Amazon.S3;
-using Amazon.S3.Model;
+using Amazon.Runtime;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using Moq;
 using OpenTelemetry.Trace;
 using Xunit;
-using Status = OpenTelemetry.Trace.Status;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
 {
     public class TestAWSClientInstrumentation
     {
         [Fact]
-        public void TestS3()
+        public void TestDDBScanSuccessful()
         {
-            var processor = new Mock<ActivityProcessor>();
+            var processor = new Mock<BaseProcessor<Activity>>();
 
             var parent = new Activity("parent").Start();
 
             using (Sdk.CreateTracerProviderBuilder()
                 .SetSampler(new AlwaysOnSampler())
+                .AddXRayActivityTraceIdGenerator()
                 .AddAWSInstrumentation()
                 .AddProcessor(processor.Object)
                 .Build())
             {
-                var s3 = new AmazonS3Client();
-#if NET452
-                ListObjectsV2Request req = new ListObjectsV2Request
-                {
-                    BucketName = "srprash-test-bucket",
-                    MaxKeys = 10,
-                };
-                var res = s3.ListObjectsV2(req);
-#else
-                s3.ListBucketsAsync().Wait();
-#endif
-            }
-
-            var curr_activity = Activity.Current;
-
-            var invocation_count = processor.Invocations.Count;
-            var activity_0 = processor.Invocations[0].Arguments;
-            var activity_1 = processor.Invocations[1].Arguments;
-            var activity_2 = processor.Invocations[2].Arguments;
-        }
-
-        [Fact]
-        public void TestDDB()
-        {
-            var processor = new Mock<ActivityProcessor>();
-
-            var parent = new Activity("parent").Start();
-
-            using (Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new AlwaysOnSampler())
-                .AddAWSInstrumentation()
-                .AddProcessor(processor.Object)
-                .Build())
-            {
-                var ddb = new AmazonDynamoDBClient();
+                var ddb = new AmazonDynamoDBClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+                string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+                CustomResponses.SetResponse(ddb, null, requestId, true);
                 var scan_request = new ScanRequest();
 
-                // scan_request.TableName = "SampleProduct";
-                scan_request.TableName = "FakeTable";
+                scan_request.TableName = "SampleProduct";
                 scan_request.AttributesToGet = new List<string>() { "Id", "Name" };
-#if NET452
-                // ddb.ListTables();
-
-                ScanResponse resp = ddb.Scan(scan_request);
-#else
-                // ddb.ListTablesAsync();
 
                 ddb.ScanAsync(scan_request);
-#endif
 
-                var curr_activity = Activity.Current;
-                var activity_0 = processor.Invocations[0].Arguments;
+                var count = processor.Invocations.Count;
+                Assert.Equal(2, count);
+
+                Activity awssdk_activity = (Activity)processor.Invocations[0].Arguments[0];
+
+                this.ValidateAWSActivity(awssdk_activity, parent);
+                this.ValidateDynamoActivityTags(awssdk_activity);
+
+                Assert.Equal(requestId, awssdk_activity.GetTagValue("aws.requestId"));
             }
         }
 
         [Fact]
-        public void TestSQS()
+        public void TestDDBScanUnsuccessful()
         {
-            var processor = new Mock<ActivityProcessor>();
+            var processor = new Mock<BaseProcessor<Activity>>();
+
+            var parent = new Activity("parent").Start();
+
+            using (Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new AlwaysOnSampler())
+                .AddXRayActivityTraceIdGenerator()
+                .AddAWSInstrumentation()
+                .AddProcessor(processor.Object)
+                .Build())
+            {
+                var ddb = new AmazonDynamoDBClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+                string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+                AmazonServiceException amazonServiceException = new AmazonServiceException();
+                amazonServiceException.StatusCode = System.Net.HttpStatusCode.NotFound;
+                amazonServiceException.RequestId = requestId;
+                CustomResponses.SetResponse(ddb, (request) => { throw amazonServiceException; });
+                var scan_request = new ScanRequest();
+
+                scan_request.TableName = "SampleProduct";
+                scan_request.AttributesToGet = new List<string>() { "Id", "Name" };
+
+                ddb.ScanAsync(scan_request);
+
+                var count = processor.Invocations.Count;
+                Assert.Equal(2, count);
+
+                Activity awssdk_activity = (Activity)processor.Invocations[0].Arguments[0];
+
+                this.ValidateAWSActivity(awssdk_activity, parent);
+                this.ValidateDynamoActivityTags(awssdk_activity);
+
+                Assert.Equal(requestId, awssdk_activity.GetTagValue("aws.requestId"));
+                Assert.Equal(Status.Error.WithDescription("Exception of type 'Amazon.Runtime.AmazonServiceException' was thrown."), awssdk_activity.GetStatus());
+                Assert.Equal("exception", awssdk_activity.Events.First().Name);
+            }
+        }
+
+        [Fact]
+        public void TestSQSSendMessageSuccessful()
+        {
+            var processor = new Mock<BaseProcessor<Activity>>();
 
             var parent = new Activity("parent").Start();
 
@@ -119,19 +122,45 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
                 .AddProcessor(processor.Object)
                 .Build())
             {
-                var sqs = new AmazonSQSClient();
+                var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+                string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+                CustomResponses.SetResponse(sqs, null, requestId, true);
                 var send_msg_req = new SendMessageRequest();
-                send_msg_req.QueueUrl = "https://sqs.us-west-2.amazonaws.com/702258172533/traceLinkingQueue";
+                send_msg_req.QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue";
                 send_msg_req.MessageBody = "Hello from OT";
-#if NET452
-                sqs.SendMessage(send_msg_req);
-#else
                 sqs.SendMessageAsync(send_msg_req);
-#endif
 
-                var curr_activity = Activity.Current;
-                var activity_0 = processor.Invocations[0].Arguments;
+                var count = processor.Invocations.Count;
+                Assert.Equal(2, count);
+                Activity awssdk_activity = (Activity)processor.Invocations[0].Arguments[0];
+
+                this.ValidateAWSActivity(awssdk_activity, parent);
+                this.ValidateSqsActivityTags(awssdk_activity);
             }
+        }
+
+        private void ValidateAWSActivity(Activity aws_activity, Activity parent)
+        {
+            Assert.Equal(parent.SpanId, aws_activity.ParentSpanId);
+            Assert.Equal(ActivityKind.Client, aws_activity.Kind);
+        }
+
+        private void ValidateDynamoActivityTags(Activity ddb_activity)
+        {
+            Assert.Equal("DynamoDBv2.Scan", ddb_activity.DisplayName);
+            Assert.Equal("DynamoDBv2", ddb_activity.GetTagValue("aws.service"));
+            Assert.Equal("Scan", ddb_activity.GetTagValue("aws.operation"));
+            Assert.Equal("us-east-1", ddb_activity.GetTagValue("aws.region"));
+            Assert.Equal("SampleProduct", ddb_activity.GetTagValue("aws.table_name"));
+        }
+
+        private void ValidateSqsActivityTags(Activity sqs_activity)
+        {
+            Assert.Equal("SQS.SendMessage", sqs_activity.DisplayName);
+            Assert.Equal("SQS", sqs_activity.GetTagValue("aws.service"));
+            Assert.Equal("SendMessage", sqs_activity.GetTagValue("aws.operation"));
+            Assert.Equal("us-east-1", sqs_activity.GetTagValue("aws.region"));
+            Assert.Equal("https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue", sqs_activity.GetTagValue("aws.queue_url"));
         }
     }
 }
