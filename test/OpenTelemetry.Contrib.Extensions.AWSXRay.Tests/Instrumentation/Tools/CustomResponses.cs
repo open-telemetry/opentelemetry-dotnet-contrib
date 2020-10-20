@@ -16,17 +16,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
-using Amazon.Runtime.Internal.Transform;
 using Amazon.Util;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
 {
-    public static class CustomResponses
+    internal static class CustomResponses
     {
         public static void SetResponse(AmazonServiceClient client, string content, string requestId, bool isOK)
         {

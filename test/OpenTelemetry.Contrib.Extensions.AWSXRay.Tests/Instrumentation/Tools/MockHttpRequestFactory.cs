@@ -20,7 +20,7 @@ using Amazon.Runtime;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
 {
-    public class MockHttpRequestFactory : IHttpRequestFactory<HttpContent>
+    internal class MockHttpRequestFactory : IHttpRequestFactory<HttpContent>
     {
         public Action GetResponseAction { get; set; }
 

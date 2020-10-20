@@ -28,7 +28,7 @@ using Amazon.Runtime.Internal.Transform;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
 {
-    public class MockHttpRequest : IHttpRequest<HttpContent>
+    internal class MockHttpRequest : IHttpRequest<HttpContent>
     {
         public MockHttpRequest(Uri requestUri, Action action, Func<MockHttpRequest, HttpResponseMessage> responseCreator = null)
         {

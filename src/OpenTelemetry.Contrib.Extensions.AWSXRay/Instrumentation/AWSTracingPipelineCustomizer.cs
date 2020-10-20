@@ -1,4 +1,4 @@
-﻿// <copyright file="AWSSDKHandler.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="AWSTracingPipelineCustomizer.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,31 +15,29 @@
 // </copyright>
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-
+using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 
 namespace Opentelemetry.Contrib.Extensions.AWSXRay.Instrumentation
 {
-    internal class AWSSDKHandler
+    internal class AWSTracingPipelineCustomizer : IRuntimePipelineCustomizer
     {
-        private static XRayPipelineCustomizer customizer;
-
-        public static void RegisterXRayForAllServices()
+        public string UniqueName
         {
-            customizer = GetCustomizer();
+            get
+            {
+                return "AWS Tracing Registration Customization";
+            }
         }
 
-        private static XRayPipelineCustomizer GetCustomizer()
+        public void Customize(Type serviceClientType, RuntimePipeline pipeline)
         {
-            if (customizer == null)
+            if (serviceClientType.BaseType != typeof(AmazonServiceClient))
             {
-                customizer = new XRayPipelineCustomizer();
-                RuntimePipelineCustomizerRegistry.Instance.Register(customizer);
+                return;
             }
 
-            return customizer;
+            pipeline.AddHandlerAfter<EndpointResolver>(new AWSTracingPipelineHandler());
         }
     }
 }

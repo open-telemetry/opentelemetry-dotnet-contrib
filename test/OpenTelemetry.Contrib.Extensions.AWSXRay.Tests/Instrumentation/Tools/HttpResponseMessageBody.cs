@@ -15,16 +15,14 @@
 // </copyright>
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Amazon.Runtime.Internal.Transform;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
 {
-    public class HttpResponseMessageBody : IHttpResponseBody
+    internal class HttpResponseMessageBody : IHttpResponseBody
     {
         private HttpClient httpClient;
         private HttpResponseMessage response;

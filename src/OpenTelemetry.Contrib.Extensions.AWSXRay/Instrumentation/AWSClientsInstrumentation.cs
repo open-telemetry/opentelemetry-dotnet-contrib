@@ -14,9 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Amazon.Runtime.Internal;
 
 namespace Opentelemetry.Contrib.Extensions.AWSXRay.Instrumentation
 {
@@ -24,8 +22,12 @@ namespace Opentelemetry.Contrib.Extensions.AWSXRay.Instrumentation
     {
         public AWSClientsInstrumentation()
         {
-            // call RegisterXRayForAllServices here
-            AWSSDKHandler.RegisterXRayForAllServices();
+            RegisterTracingForAllServices();
+        }
+
+        private static void RegisterTracingForAllServices()
+        {
+            RuntimePipelineCustomizerRegistry.Instance.Register(new AWSTracingPipelineCustomizer());
         }
     }
 }

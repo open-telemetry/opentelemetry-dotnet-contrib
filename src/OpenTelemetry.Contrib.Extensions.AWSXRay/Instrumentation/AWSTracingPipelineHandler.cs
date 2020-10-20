@@ -1,4 +1,4 @@
-﻿// <copyright file="XRayPipelineHandler.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="AWSTracingPipelineHandler.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@ using OpenTelemetry.Trace;
 
 namespace Opentelemetry.Contrib.Extensions.AWSXRay.Instrumentation
 {
-    internal class XRayPipelineHandler : PipelineHandler
+    internal class AWSTracingPipelineHandler : PipelineHandler
     {
         internal const string ActivitySourceName = "Amazon.AWS.AWSClientInstrumentation";
 

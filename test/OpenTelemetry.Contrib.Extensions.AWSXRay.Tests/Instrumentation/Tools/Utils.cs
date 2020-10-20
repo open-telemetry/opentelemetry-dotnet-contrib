@@ -19,11 +19,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
 {
-    public static class Utils
+    internal static class Utils
     {
         public static Stream CreateStreamFromString(string s)
         {

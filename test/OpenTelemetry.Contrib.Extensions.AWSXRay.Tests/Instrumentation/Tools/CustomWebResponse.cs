@@ -24,7 +24,7 @@ using Amazon.Runtime.Internal.Transform;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
 {
-    public class CustomWebResponse : IWebResponseData
+    internal class CustomWebResponse : IWebResponseData
     {
         private HttpResponseMessageBody response;
         private string[] headerNames;

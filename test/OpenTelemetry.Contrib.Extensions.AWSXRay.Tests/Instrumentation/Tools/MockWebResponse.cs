@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -24,7 +23,7 @@ using System.Reflection;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
 {
-    public class MockWebResponse
+    internal class MockWebResponse
     {
         public static HttpResponseMessage CreateFromResource(string resourceName)
         {
