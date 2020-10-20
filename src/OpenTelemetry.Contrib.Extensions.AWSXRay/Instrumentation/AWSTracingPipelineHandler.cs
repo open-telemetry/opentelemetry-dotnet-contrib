@@ -20,13 +20,11 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
-using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Contrib.Extensions.AWSXRay.Instrumentation;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
 using OpenTelemetry.Trace;
 
-namespace Opentelemetry.Contrib.Extensions.AWSXRay.Instrumentation
+namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Instrumentation
 {
     internal class AWSTracingPipelineHandler : PipelineHandler
     {
