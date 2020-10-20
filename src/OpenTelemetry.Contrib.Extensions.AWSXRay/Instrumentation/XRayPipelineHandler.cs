@@ -15,16 +15,14 @@
 // </copyright>
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics;
-using System.Text;
 using System.Threading.Tasks;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
+using OpenTelemetry.Contrib.Extensions.AWSXRay.Instrumentation;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
 using OpenTelemetry.Trace;
 
@@ -33,7 +31,6 @@ namespace Opentelemetry.Contrib.Extensions.AWSXRay.Instrumentation
     internal class XRayPipelineHandler : PipelineHandler
     {
         internal const string ActivitySourceName = "Amazon.AWS.AWSClientInstrumentation";
-        private const string AWSRequestIdSemanticConvention = "aws.requestId";
 
         private static readonly AWSXRayPropagator AwsPropagator = new AWSXRayPropagator();
         private static readonly Action<IDictionary<string, string>, string, string> Setter = (carrier, name, value) =>
@@ -49,8 +46,8 @@ namespace Opentelemetry.Contrib.Extensions.AWSXRay.Instrumentation
 
         private static readonly Dictionary<string, string> ParameterAttributeMap = new Dictionary<string, string>()
         {
-            { "TableName", "aws.table_name" },
-            { "QueueUrl", "aws.queue_url" },
+            { "TableName", AWSSemanticConventions.AttributeAWSDynamoTableName },
+            { "QueueUrl", AWSSemanticConventions.AttributeAWSSQSQueueUrl },
         };
 
         private static readonly ActivitySource AWSSDKActivitySource = new ActivitySource(ActivitySourceName);
@@ -120,13 +117,13 @@ namespace Opentelemetry.Contrib.Extensions.AWSXRay.Instrumentation
                 return null;
             }
 
-            activity.AddTag("aws.service", service);
-            activity.AddTag("aws.operation", operation);
+            activity.AddTag(AWSSemanticConventions.AttributeAWSServiceName, service);
+            activity.AddTag(AWSSemanticConventions.AttributeAWSOperationName, operation);
 
             var client = executionContext.RequestContext.ClientConfig;
             if (client != null)
             {
-                activity.AddTag("aws.region", client.RegionEndpoint?.SystemName);
+                activity.AddTag(AWSSemanticConventions.AttributeAWSRegion, client.RegionEndpoint?.SystemName);
             }
 
             this.AddRequestSpecificInformation(activity, requestContext, service);
@@ -141,16 +138,16 @@ namespace Opentelemetry.Contrib.Extensions.AWSXRay.Instrumentation
             var responseContext = executionContext.ResponseContext;
             var requestContext = executionContext.RequestContext;
 
-            if (activity.GetTagValue(AWSRequestIdSemanticConvention) == null)
+            if (activity.GetTagValue(AWSSemanticConventions.AttributeAWSRequestId) == null)
             {
-                activity.AddTag(AWSRequestIdSemanticConvention, this.FetchRequestId(requestContext, responseContext));
+                activity.AddTag(AWSSemanticConventions.AttributeAWSRequestId, this.FetchRequestId(requestContext, responseContext));
             }
 
             var httpResponse = responseContext.HttpResponse;
             if (httpResponse != null)
             {
                 this.AddStatusCodeToActivity(activity, (int)httpResponse.StatusCode);
-                activity.SetTag("http.response_content_length", httpResponse.ContentLength);
+                activity.SetTag(AWSSemanticConventions.AttributeHttpResponseContentLength, httpResponse.ContentLength);
             }
 
             activity.Stop();
@@ -165,7 +162,7 @@ namespace Opentelemetry.Contrib.Extensions.AWSXRay.Instrumentation
             if (ex is AmazonServiceException amazonServiceException)
             {
                 this.AddStatusCodeToActivity(activity, (int)amazonServiceException.StatusCode);
-                activity.AddTag(AWSRequestIdSemanticConvention, amazonServiceException.RequestId);
+                activity.AddTag(AWSSemanticConventions.AttributeAWSRequestId, amazonServiceException.RequestId);
             }
         }
 
@@ -205,7 +202,7 @@ namespace Opentelemetry.Contrib.Extensions.AWSXRay.Instrumentation
         private void AddStatusCodeToActivity(Activity activity, int status_code)
         {
             // TODO: Convert to use semantic conventions but the SemanticConventions class is internal
-            activity.SetTag("http.status_code", status_code);
+            activity.SetTag(AWSSemanticConventions.AttributeHttpStatusCode, status_code);
         }
 
         private string FetchRequestId(IRequestContext requestContext, IResponseContext responseContext)
