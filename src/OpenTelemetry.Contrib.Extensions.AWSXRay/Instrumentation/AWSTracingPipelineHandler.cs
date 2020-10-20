@@ -63,6 +63,8 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Instrumentation
                 {
                     this.ProcessException(activity, ex);
                 }
+
+                throw;
             }
             finally
             {
@@ -88,6 +90,8 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Instrumentation
                 {
                     this.ProcessException(activity, ex);
                 }
+
+                throw;
             }
             finally
             {
@@ -115,13 +119,13 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Instrumentation
                 return null;
             }
 
-            activity.AddTag(AWSSemanticConventions.AttributeAWSServiceName, service);
-            activity.AddTag(AWSSemanticConventions.AttributeAWSOperationName, operation);
+            activity.SetTag(AWSSemanticConventions.AttributeAWSServiceName, service);
+            activity.SetTag(AWSSemanticConventions.AttributeAWSOperationName, operation);
 
             var client = executionContext.RequestContext.ClientConfig;
             if (client != null)
             {
-                activity.AddTag(AWSSemanticConventions.AttributeAWSRegion, client.RegionEndpoint?.SystemName);
+                activity.SetTag(AWSSemanticConventions.AttributeAWSRegion, client.RegionEndpoint?.SystemName);
             }
 
             this.AddRequestSpecificInformation(activity, requestContext, service);
@@ -138,7 +142,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Instrumentation
 
             if (activity.GetTagValue(AWSSemanticConventions.AttributeAWSRequestId) == null)
             {
-                activity.AddTag(AWSSemanticConventions.AttributeAWSRequestId, this.FetchRequestId(requestContext, responseContext));
+                activity.SetTag(AWSSemanticConventions.AttributeAWSRequestId, this.FetchRequestId(requestContext, responseContext));
             }
 
             var httpResponse = responseContext.HttpResponse;
@@ -160,7 +164,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Instrumentation
             if (ex is AmazonServiceException amazonServiceException)
             {
                 this.AddStatusCodeToActivity(activity, (int)amazonServiceException.StatusCode);
-                activity.AddTag(AWSSemanticConventions.AttributeAWSRequestId, amazonServiceException.RequestId);
+                activity.SetTag(AWSSemanticConventions.AttributeAWSRequestId, amazonServiceException.RequestId);
             }
         }
 
@@ -191,7 +195,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Instrumentation
                 {
                     if (ParameterAttributeMap.TryGetValue(parameter, out string attribute))
                     {
-                        activity.AddTag(attribute, property.GetValue(request));
+                        activity.SetTag(attribute, property.GetValue(request));
                     }
                 }
             }
@@ -199,7 +203,6 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Instrumentation
 
         private void AddStatusCodeToActivity(Activity activity, int status_code)
         {
-            // TODO: Convert to use semantic conventions but the SemanticConventions class is internal
             activity.SetTag(AWSSemanticConventions.AttributeHttpStatusCode, status_code);
         }
 
