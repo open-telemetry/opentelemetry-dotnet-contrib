@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -25,6 +26,56 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
 {
     internal class MockWebResponse
     {
+#if NET452
+        public static HttpWebResponse CreateFromResource(string resourceName)
+        {
+            var rawResponse = Utils.GetResourceText(resourceName);
+            var response = ParseRawReponse(rawResponse);
+            var statusCode = ParseStatusCode(response.StatusLine);
+            return Create(statusCode, response.Headers, response.Body);
+        }
+
+        public static HttpWebResponse Create(HttpStatusCode statusCode, IDictionary<string, string> headers, string body = null)
+        {
+            var type = typeof(HttpWebResponse);
+            var assembly = Assembly.GetAssembly(type);
+            var obj = assembly.CreateInstance("System.Net.HttpWebResponse");
+
+            var webHeaders = new WebHeaderCollection();
+            if (headers != null)
+            {
+                foreach (var header in headers)
+                {
+                    webHeaders.Add(header.Key, header.Value);
+                }
+            }
+
+            Stream responseBodyStream = null;
+            body = body ?? string.Empty;
+            responseBodyStream = Utils.CreateStreamFromString(body);
+
+            var statusFieldInfo = type.GetField(
+                "m_StatusCode",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            var headersFieldInfo = type.GetField(
+                "m_HttpResponseHeaders",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            var streamFieldInfo = type.GetField(
+                "m_ConnectStream",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            var contentLengthFieldInfo = type.GetField(
+                "m_ContentLength",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+
+            statusFieldInfo.SetValue(obj, statusCode);
+            headersFieldInfo.SetValue(obj, webHeaders);
+            streamFieldInfo.SetValue(obj, responseBodyStream);
+            contentLengthFieldInfo.SetValue(obj, responseBodyStream.Length);
+
+            return obj as HttpWebResponse;
+        }
+
+#else
         public static HttpResponseMessage CreateFromResource(string resourceName)
         {
             var rawResponse = Utils.GetResourceText(resourceName);
@@ -58,6 +109,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
             return httpResponseMessage;
         }
 
+#endif
         public static HttpResponse ParseRawReponse(string rawResponse)
         {
             var response = new HttpResponse();

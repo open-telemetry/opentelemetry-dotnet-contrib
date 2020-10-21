@@ -15,11 +15,33 @@
 // </copyright>
 
 using System;
+using System.IO;
+using System.Net;
 using System.Net.Http;
 using Amazon.Runtime;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
 {
+#if NET452
+    internal class MockHttpRequestFactory : IHttpRequestFactory<Stream>
+    {
+        public Action GetResponseAction { get; set; }
+
+        public Func<MockHttpRequest, HttpWebResponse> ResponseCreator { get; set; }
+
+        public MockHttpRequest LastCreatedRequest { get; private set; }
+
+        public IHttpRequest<Stream> CreateHttpRequest(Uri requestUri)
+        {
+            this.LastCreatedRequest = new MockHttpRequest(requestUri, this.GetResponseAction, this.ResponseCreator);
+            return this.LastCreatedRequest;
+        }
+
+        public void Dispose()
+        {
+        }
+    }
+#else
     internal class MockHttpRequestFactory : IHttpRequestFactory<HttpContent>
     {
         public Action GetResponseAction { get; set; }
@@ -38,4 +60,5 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
         {
         }
     }
+#endif
 }

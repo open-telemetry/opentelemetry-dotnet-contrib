@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Unit test project for AWS X-Ray for OpenTelemetry</Description>
     <TargetFrameworks>netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
-    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net452</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,6 +22,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\OpenTelemetry.Contrib.Extensions.AWSXRay\OpenTelemetry.Contrib.Extensions.AWSXRay.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net452'">
+    <Compile Remove="Instrumentation\Tools\CustomWebResponse.cs" />
+    <Compile Remove="Instrumentation\Tools\HttpResponseMessageBody.cs" />
+    <Reference Include="System.Net.Http" />
   </ItemGroup>
 
 </Project>
