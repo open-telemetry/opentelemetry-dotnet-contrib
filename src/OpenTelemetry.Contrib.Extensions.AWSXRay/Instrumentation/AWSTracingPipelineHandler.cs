@@ -20,6 +20,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
+using Amazon.Util;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
 using OpenTelemetry.Trace;
@@ -121,11 +122,11 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Instrumentation
 
             activity.SetTag(AWSSemanticConventions.AttributeAWSServiceName, service);
             activity.SetTag(AWSSemanticConventions.AttributeAWSOperationName, operation);
-
             var client = executionContext.RequestContext.ClientConfig;
             if (client != null)
             {
-                activity.SetTag(AWSSemanticConventions.AttributeAWSRegion, client.RegionEndpoint?.SystemName);
+                var region = client.RegionEndpoint?.SystemName;
+                activity.SetTag(AWSSemanticConventions.AttributeAWSRegion, region ?? AWSSDKUtils.DetermineRegion(client.ServiceURL));
             }
 
             this.AddRequestSpecificInformation(activity, requestContext, service);
