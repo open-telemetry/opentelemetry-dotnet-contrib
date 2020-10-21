@@ -1,6 +1,6 @@
-﻿# AWS Client instrumentation for OpenTelemetry .Net
+# AWS Client instrumentation for OpenTelemetry .Net
 
-Automatically instruments requests made by AWS SDK clients to donwstream AWS services
+Automatically instruments requests made by AWS SDK clients to downstream AWS services
 
 ## Installation
 
