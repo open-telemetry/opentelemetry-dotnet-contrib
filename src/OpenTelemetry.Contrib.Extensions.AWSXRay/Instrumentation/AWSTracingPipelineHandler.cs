@@ -152,7 +152,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Instrumentation
 
                 var status = activity.GetStatus();
 
-                if (status.Equals(Status.Error) && statusCode >= 100 && statusCode <= 399)
+                if (!status.Equals(Status.Error) && statusCode >= 100 && statusCode <= 399)
                 {
                     activity.SetStatus(Status.Unset);
                 }

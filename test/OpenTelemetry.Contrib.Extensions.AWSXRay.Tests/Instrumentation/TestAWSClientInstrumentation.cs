@@ -63,6 +63,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
                 this.ValidateAWSActivity(awssdk_activity, parent);
                 this.ValidateDynamoActivityTags(awssdk_activity);
 
+                Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
                 Assert.Equal(requestId, awssdk_activity.GetTagValue("aws.requestId"));
             }
         }
@@ -124,7 +125,9 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
             {
                 var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
                 string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
-                CustomResponses.SetResponse(sqs, null, requestId, true);
+                string dummyResponse = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                    "<ReceiveMessageResponse>SomeDummyResponse</ReceiveMessageResponse>";
+                CustomResponses.SetResponse(sqs, dummyResponse, requestId, true);
                 var send_msg_req = new SendMessageRequest();
                 send_msg_req.QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue";
                 send_msg_req.MessageBody = "Hello from OT";
@@ -136,6 +139,9 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
 
                 this.ValidateAWSActivity(awssdk_activity, parent);
                 this.ValidateSqsActivityTags(awssdk_activity);
+
+                Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+                Assert.Equal(requestId, awssdk_activity.GetTagValue("aws.requestId"));
             }
         }
 
