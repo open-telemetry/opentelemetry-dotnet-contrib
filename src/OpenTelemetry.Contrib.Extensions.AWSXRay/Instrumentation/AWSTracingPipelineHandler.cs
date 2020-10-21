@@ -148,7 +148,16 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Instrumentation
             var httpResponse = responseContext.HttpResponse;
             if (httpResponse != null)
             {
-                this.AddStatusCodeToActivity(activity, (int)httpResponse.StatusCode);
+                int statusCode = (int)httpResponse.StatusCode;
+
+                var status = activity.GetStatus();
+
+                if (status.Equals(Status.Error) && statusCode >= 100 && statusCode <= 399)
+                {
+                    activity.SetStatus(Status.Unset);
+                }
+
+                this.AddStatusCodeToActivity(activity, statusCode);
                 activity.SetTag(AWSSemanticConventions.AttributeHttpResponseContentLength, httpResponse.ContentLength);
             }
 
