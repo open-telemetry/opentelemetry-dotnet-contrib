@@ -31,7 +31,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Tests
         [InlineData(false, "Exception message")]
         public void CrossDomainMessageTest(bool success, string exceptionMessage)
         {
-            var activityProcessor = new Mock<ActivityProcessor>();
+            var activityProcessor = new Mock<BaseProcessor<Activity>>();
             using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .AddProcessor(activityProcessor.Object)
                 .AddRemotingInstrumentation(options =>
@@ -74,17 +74,19 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Tests
             Assert.Equal(4, activityProcessor.Invocations.Count); // OnStart/OnEnd/OnShutdown/Dispose called.
             var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
 
-            Assert.Equal("netframework_remoting", GetTag(activity, "rpc.system"));
-            Assert.Equal("OpenTelemetry.Contrib.Instrumentation.Remoting.Tests.RemotingInstrumentationTests+RemoteObject", GetTag(activity, "rpc.service"));
-            Assert.Equal("DoStuff", GetTag(activity, "rpc.method"));
+            Assert.Equal("netframework_remoting", activity.GetTagValue("rpc.system"));
+            Assert.Equal(
+                "OpenTelemetry.Contrib.Instrumentation.Remoting.Tests.RemotingInstrumentationTests+RemoteObject",
+                activity.GetTagValue("rpc.service"));
+            Assert.Equal("DoStuff", activity.GetTagValue("rpc.method"));
 
             if (success)
             {
-                Assert.Equal("Ok", GetTag(activity, SpanAttributeConstants.StatusCodeKey));
+                Assert.Equal((int)StatusCode.Unset, activity.GetTagValue(SpanAttributeConstants.StatusCodeKey));
             }
             else
             {
-                Assert.Equal("Unknown", GetTag(activity, SpanAttributeConstants.StatusCodeKey));
+                Assert.Equal((int)StatusCode.Error, activity.GetTagValue(SpanAttributeConstants.StatusCodeKey));
 
                 var eventList = activity.Events.ToList();
                 Assert.Single(eventList);
@@ -101,19 +103,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Tests
 
             // Make sure the second call succeeds as well and won't try to re-register the property
             using var i2 = new RemotingInstrumentation(null);
-        }
-
-        private static string GetTag(Activity act, string key)
-        {
-            foreach (var tag in act.Tags)
-            {
-                if (tag.Key == key)
-                {
-                    return tag.Value;
-                }
-            }
-
-            return null;
         }
 
         private class RemoteObject : ContextBoundObject

@@ -159,11 +159,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
                     {
                         if (returnMsg.Exception == null)
                         {
-                            act.SetStatus(Status.Ok);
+                            // Default to "Unset" status as per spec:
+                            // https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/trace/api.md#status
+                            act.SetStatus(Status.Unset);
                         }
                         else
                         {
-                            act.SetStatus(Status.Unknown);
+                            act.SetStatus(Status.Error);
                             act.RecordException(returnMsg.Exception);
                         }
                     }
