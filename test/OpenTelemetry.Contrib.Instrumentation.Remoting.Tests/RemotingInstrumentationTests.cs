@@ -74,6 +74,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Tests
             Assert.Equal(4, activityProcessor.Invocations.Count); // OnStart/OnEnd/OnShutdown/Dispose called.
             var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
 
+            Assert.Equal(ActivityKind.Client, activity.Kind);
             Assert.Equal("netframework_remoting", activity.GetTagValue("rpc.system"));
             Assert.Equal(
                 "OpenTelemetry.Contrib.Instrumentation.Remoting.Tests.RemotingInstrumentationTests+RemoteObject",
