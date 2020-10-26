@@ -37,8 +37,8 @@ namespace OpenTelemetry.Trace
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            builder.AddInstrumentation((activitySource) => new AzureClientsInstrumentation());
-            builder.AddInstrumentation((activitySource) => new AzurePipelineInstrumentation());
+            builder.AddInstrumentation((activitySource) => new AzureClientsInstrumentation(activitySource));
+            builder.AddInstrumentation((activitySource) => new AzurePipelineInstrumentation(activitySource));
             return builder;
         }
     }

@@ -17,6 +17,7 @@
 using System;
 using OpenTelemetry.Contrib.Instrumentation.Azure.Implementation;
 using OpenTelemetry.Instrumentation;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Contrib.Instrumentation.Azure
 {
@@ -34,9 +35,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.Azure
         /// <summary>
         /// Initializes a new instance of the <see cref="AzurePipelineInstrumentation"/> class.
         /// </summary>
-        public AzurePipelineInstrumentation()
+        /// <param name="activitySource">
+        /// ActivitySource adapter instance.
+        /// </param>
+        public AzurePipelineInstrumentation(ActivitySourceAdapter activitySource)
         {
-            this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(new AzureSdkDiagnosticListener("Azure.Pipeline"), null);
+            this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(new AzureSdkDiagnosticListener("Azure.Pipeline", activitySource), null);
             this.diagnosticSourceSubscriber.Subscribe();
         }
 

@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using OpenTelemetry.Instrumentation;
 using OpenTelemetry.Trace;
 
@@ -28,14 +27,15 @@ namespace OpenTelemetry.Contrib.Instrumentation.Azure.Implementation
         internal const string ActivitySourceName = "AzureSDK";
         internal const string ActivityName = ActivitySourceName + ".HttpRequestOut";
         private static readonly Version Version = typeof(AzureSdkDiagnosticListener).Assembly.GetName().Version;
-        private static readonly ActivitySource AzureSDKActivitySource = new ActivitySource(ActivitySourceName, Version.ToString());
+        private readonly ActivitySourceAdapter activitySource;
 
         // all fetchers must not be reused between DiagnosticSources.
         private readonly PropertyFetcher<IEnumerable<Activity>> linksPropertyFetcher = new PropertyFetcher<IEnumerable<Activity>>("Links");
 
-        public AzureSdkDiagnosticListener(string sourceName)
+        public AzureSdkDiagnosticListener(string sourceName, ActivitySourceAdapter activitySource)
             : base(sourceName)
         {
+            this.activitySource = activitySource;
         }
 
         public void OnCompleted()
@@ -46,7 +46,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Azure.Implementation
         {
         }
 
-        public override void OnStartActivity(Activity activity, object valueValue)
+        public override void OnStartActivity(Activity activity, object payload)
         {
             string operationName = null;
             var activityKind = ActivityKind.Internal;
@@ -74,35 +74,18 @@ namespace OpenTelemetry.Contrib.Instrumentation.Azure.Implementation
                 operationName = this.GetOperationName(activity);
             }
 
-            List<ActivityLink> links = null;
-            if (this.linksPropertyFetcher.Fetch(valueValue) is IEnumerable<Activity> activityLinks)
-            {
-                if (activityLinks.Any())
-                {
-                    links = new List<ActivityLink>();
-                    foreach (var link in activityLinks)
-                    {
-                        if (link != null)
-                        {
-                            links.Add(new ActivityLink(new ActivityContext(link.TraceId, link.ParentSpanId, link.ActivityTraceFlags)));
-                        }
-                    }
-                }
-            }
-
-            // Ignore the activity and create a new one using ActivitySource.
-            // The new one will have Sampling decision made using extracted Links as well.
-            AzureSDKActivitySource.StartActivity(operationName, activityKind, activity.Id, activity.TagObjects, links);
+            activity.DisplayName = operationName;
+            this.activitySource.Start(activity, activityKind);
         }
 
-        public override void OnStopActivity(Activity current, object valueValue)
+        public override void OnStopActivity(Activity activity, object payload)
         {
-            // nothing to be done.
+            this.activitySource.Stop(activity);
         }
 
-        public override void OnException(Activity activity, object valueValue)
+        public override void OnException(Activity activity, object payload)
         {
-            activity.SetStatus(Status.Error.WithDescription(valueValue?.ToString()));
+            activity.SetStatus(Status.Error.WithDescription(payload?.ToString()));
         }
 
         private string GetOperationName(Activity activity)
