@@ -18,10 +18,10 @@ using var openTelemetry = Sdk.CreateTracerProviderBuilder()
     .Build();
 ```
 
-## WCF Client Configuration
+## WCF Client Configuration (.NET Framework)
 
-Add the `IClientMessageInspector` instrumentation as a behavior extension on the
-clients you want to instrument:
+Add the `IClientMessageInspector` instrumentation via a behavior extension on
+the clients you want to instrument:
 
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
@@ -53,11 +53,26 @@ clients you want to instrument:
 </configuration>
 ```
 
-Example project available in [examples/wcf/server](../../examples/wcf/client/Program.cs) folder.
+Example project available in
+[examples/wcf/client-netframework](../../examples/wcf/client-netframework/Program.cs)
+folder.
 
-## WCF Server Configuration
+## WCF Client Configuration (.NET Core)
 
-Add the `IDispatchMessageInspector` instrumentation as a behavior extension on
+Add the `IClientMessageInspector` instrumentation as an endpoint behavior on the
+clients you want to instrument:
+
+```csharp
+StatusServiceClient client = new StatusServiceClient(binding, remoteAddress);
+client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
+```
+
+Example project available in
+[examples/wcf/client-core](../../examples/wcf/client-core/Program.cs) folder.
+
+## WCF Server Configuration (.NET Framework)
+
+Add the `IDispatchMessageInspector` instrumentation via a behavior extension on
 the services you want to instrument:
 
 ```xml
@@ -97,7 +112,9 @@ the services you want to instrument:
 </configuration>
 ```
 
-Example project available in [examples/wcf/server](../../examples/wcf/server/Program.cs) folder.
+Example project available in
+[examples/wcf/server-netframework](../../examples/wcf/server-netframework/Program.cs)
+folder.
 
 ## References
 

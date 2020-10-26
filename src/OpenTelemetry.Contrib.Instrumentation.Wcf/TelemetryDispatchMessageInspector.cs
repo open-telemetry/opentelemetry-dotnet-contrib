@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+#if NETFRAMEWORK
 using System;
 using System.Diagnostics;
 using System.ServiceModel;
@@ -96,3 +97,4 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
         }
     }
 }
+#endif

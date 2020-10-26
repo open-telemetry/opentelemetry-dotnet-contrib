@@ -20,13 +20,36 @@ using System.ServiceModel.Dispatcher;
 
 namespace OpenTelemetry.Contrib.Instrumentation.Wcf
 {
+#if NETFRAMEWORK
     /// <summary>
     /// An <see cref="IEndpointBehavior"/> implementation whichs add the <see
     /// cref="TelemetryClientMessageInspector"/> to client endpoints and the
     /// <see cref="TelemetryDispatchMessageInspector"/> to service endpoints.
     /// </summary>
+#else
+    /// <summary>
+    /// An <see cref="IEndpointBehavior"/> implementation whichs add the <see
+    /// cref="TelemetryClientMessageInspector"/> to client endpoints.
+    /// </summary>
+#endif
     public class TelemetryEndpointBehavior : IEndpointBehavior
     {
+        private readonly TelemetryClientMessageInspector telemetryClientMessageInspector;
+#if NETFRAMEWORK
+        private readonly TelemetryDispatchMessageInspector telemetryDispatchMessageInspector;
+#endif
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TelemetryEndpointBehavior"/> class.
+        /// </summary>
+        public TelemetryEndpointBehavior()
+        {
+            this.telemetryClientMessageInspector = new TelemetryClientMessageInspector();
+#if NETFRAMEWORK
+            this.telemetryDispatchMessageInspector = new TelemetryDispatchMessageInspector();
+#endif
+        }
+
         /// <inheritdoc/>
         public void AddBindingParameters(ServiceEndpoint endpoint, BindingParameterCollection bindingParameters)
         {
@@ -35,13 +58,19 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
         /// <inheritdoc/>
         public void ApplyClientBehavior(ServiceEndpoint endpoint, ClientRuntime clientRuntime)
         {
-            clientRuntime.MessageInspectors.Add(new TelemetryClientMessageInspector());
+#if NETFRAMEWORK
+            clientRuntime.MessageInspectors.Add(this.telemetryClientMessageInspector);
+#else
+            clientRuntime.ClientMessageInspectors.Add(this.telemetryClientMessageInspector);
+#endif
         }
 
         /// <inheritdoc/>
         public void ApplyDispatchBehavior(ServiceEndpoint endpoint, EndpointDispatcher endpointDispatcher)
         {
-            endpointDispatcher.DispatchRuntime.MessageInspectors.Add(new TelemetryDispatchMessageInspector());
+#if NETFRAMEWORK
+            endpointDispatcher.DispatchRuntime.MessageInspectors.Add(this.telemetryDispatchMessageInspector);
+#endif
         }
 
         /// <inheritdoc/>

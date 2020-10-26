@@ -30,7 +30,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
         public const string IncomingRequestActivityName = ActivitySourceName + ".IncomingRequest";
         public const string OutgoingRequestActivityName = ActivitySourceName + ".OutgoingRequest";
 
-        private static readonly Version Version = typeof(TelemetryDispatchMessageInspector).Assembly.GetName().Version;
+        private static readonly Version Version = typeof(WcfInstrumentationActivitySource).Assembly.GetName().Version;
 
         public static ActivitySource ActivitySource { get; } = new ActivitySource(ActivitySourceName, Version.ToString());
 
