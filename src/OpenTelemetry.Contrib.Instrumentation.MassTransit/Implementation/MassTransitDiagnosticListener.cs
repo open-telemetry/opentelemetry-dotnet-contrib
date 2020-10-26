@@ -90,24 +90,15 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
         {
             if (activity.OperationName == OperationName.Transport.Send)
             {
-                activity.DisplayName = DisplayNameHelper.GetSendOperationDisplayName(this.GetTag(activity.Tags, TagName.PeerAddress));
-
                 this.ProcessHostInfo(activity);
 
                 this.RenameTag(activity, TagName.MessageId, SemanticConventions.AttributeMessagingMessageId);
                 this.RenameTag(activity, TagName.ConversationId, SemanticConventions.AttributeMessagingConversationId);
 
-                activity.SetTag(TagName.SpanKind, null);
-                activity.SetTag(TagName.PeerAddress, null);
-                activity.SetTag(TagName.PeerHost, null);
-                activity.SetTag(TagName.PeerService, null);
-
                 activity.SetTag(TagName.SourceAddress, null);
             }
             else if (activity.OperationName == OperationName.Transport.Receive)
             {
-                activity.DisplayName = DisplayNameHelper.GetReceiveOperationDisplayName(this.GetTag(activity.Tags, TagName.PeerAddress));
-
                 this.ProcessHostInfo(activity);
 
                 this.RenameTag(activity, TagName.MessageId, SemanticConventions.AttributeMessagingMessageId);
@@ -115,15 +106,22 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
 
                 activity.SetTag(TagName.MessageId, null);
 
-                activity.SetTag(TagName.SpanKind, null);
-                activity.SetTag(TagName.PeerAddress, null);
-                activity.SetTag(TagName.PeerHost, null);
-                activity.SetTag(TagName.PeerService, null);
-
                 activity.SetTag(TagName.MessageTypes, null);
                 activity.SetTag(TagName.SourceAddress, null);
                 activity.SetTag(TagName.SourceHostMachine, null);
             }
+            else if (activity.OperationName == OperationName.Consumer.Consume)
+            {
+                this.RenameTag(activity, TagName.ConsumerType, SemanticConventions.AttributeMessagingMassTransitConsumerType);
+            }
+            else if (activity.OperationName == OperationName.Consumer.Handle)
+            {
+            }
+
+            activity.SetTag(TagName.SpanKind, null);
+            activity.SetTag(TagName.PeerService, null);
+            activity.SetTag(TagName.PeerAddress, null);
+            activity.SetTag(TagName.PeerHost, null);
         }
 
         private void ProcessHostInfo(Activity activity)

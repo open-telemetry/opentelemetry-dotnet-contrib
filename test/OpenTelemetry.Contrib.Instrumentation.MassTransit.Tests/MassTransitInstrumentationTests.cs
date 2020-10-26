@@ -171,10 +171,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                 Assert.NotNull(expectedMessageContext);
                 Assert.Equal("CONSUME OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer", actualActivity.DisplayName);
                 Assert.Equal(ActivityKind.Consumer, actualActivity.Kind);
-                Assert.Equal("OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer", actualActivity.GetTagValue(TagName.ConsumerType).ToString());
-                Assert.Equal("TestMessage/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests", actualActivity.GetTagValue(TagName.PeerAddress).ToString());
-                Assert.NotNull(actualActivity.GetTagValue(TagName.PeerHost).ToString());
-                Assert.Equal("Consumer", actualActivity.GetTagValue(TagName.PeerService).ToString());
+                Assert.Equal("OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer", actualActivity.GetTagValue(SemanticConventions.AttributeMessagingMassTransitConsumerType)?.ToString());
+
+                Assert.Null(actualActivity.GetTagValue(TagName.SpanKind));
+                Assert.Null(actualActivity.GetTagValue(TagName.PeerService));
+
+                Assert.Null(actualActivity.GetTagValue(TagName.PeerAddress));
+                Assert.Null(actualActivity.GetTagValue(TagName.PeerHost));
             }
         }
 
@@ -211,9 +214,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                 Assert.NotNull(expectedMessageContext);
                 Assert.Equal("HANDLE TestMessage/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests", actualActivity.DisplayName);
                 Assert.Equal(ActivityKind.Consumer, actualActivity.Kind);
-                Assert.Equal("TestMessage/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests", actualActivity.GetTagValue(TagName.PeerAddress).ToString());
-                Assert.NotNull(actualActivity.GetTagValue(TagName.PeerHost).ToString());
-                Assert.Equal("Handler", actualActivity.GetTagValue(TagName.PeerService).ToString());
+
+                Assert.Null(actualActivity.GetTagValue(TagName.SpanKind));
+                Assert.Null(actualActivity.GetTagValue(TagName.PeerService));
+
+                Assert.Null(actualActivity.GetTagValue(TagName.PeerAddress));
+                Assert.Null(actualActivity.GetTagValue(TagName.PeerHost));
             }
         }
 

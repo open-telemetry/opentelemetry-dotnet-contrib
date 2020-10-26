@@ -41,5 +41,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
 
         public const string AttributeMessagingMassTransitInitiatorId = "messaging.masstransit.initiator_id";
         public const string AttributeMessagingMassTransitCorrelationId = "messaging.masstransit.correlation_id";
+        public const string AttributeMessagingMassTransitConsumerType = "messaging.masstransit.consumer_type";
     }
 }
