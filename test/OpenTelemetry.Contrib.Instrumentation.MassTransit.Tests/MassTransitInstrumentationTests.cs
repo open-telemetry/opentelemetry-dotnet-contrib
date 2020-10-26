@@ -60,7 +60,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                 Assert.NotNull(actualActivity);
                 Assert.NotNull(expectedMessageContext);
                 Assert.Equal("SEND /input_queue", actualActivity.DisplayName);
-                Assert.Equal(SpanKind.Producer.ToString().ToLowerInvariant(), actualActivity.GetTagValue(TagName.SpanKind).ToString());
+                Assert.Equal(ActivityKind.Client, actualActivity.Kind);
                 Assert.Equal(expectedMessageContext.MessageId.ToString(), actualActivity.GetTagValue(TagName.MessageId).ToString());
                 Assert.Equal(expectedMessageContext.ConversationId.ToString(), actualActivity.GetTagValue(TagName.ConversationId).ToString());
                 Assert.Equal(expectedMessageContext.DestinationAddress.ToString(), actualActivity.GetTagValue(TagName.DestinationAddress).ToString());
@@ -103,7 +103,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                 Assert.NotNull(actualActivity);
                 Assert.NotNull(expectedMessageContext);
                 Assert.Equal("RECV /input_queue", actualActivity.DisplayName);
-                Assert.Equal(SpanKind.Consumer.ToString().ToLowerInvariant(), actualActivity.GetTagValue(TagName.SpanKind).ToString());
+                Assert.Equal(ActivityKind.Internal, actualActivity.Kind);
                 Assert.Equal(expectedMessageContext.MessageId.ToString(), actualActivity.GetTagValue(TagName.MessageId).ToString());
                 Assert.Equal(expectedMessageContext.ConversationId.ToString(), actualActivity.GetTagValue(TagName.ConversationId).ToString());
                 Assert.Equal(expectedMessageContext.DestinationAddress.ToString(), actualActivity.GetTagValue(TagName.InputAddress).ToString());
@@ -149,7 +149,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                 Assert.NotNull(actualActivity);
                 Assert.NotNull(expectedMessageContext);
                 Assert.Equal("CONSUME OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer", actualActivity.DisplayName);
-                Assert.Equal(SpanKind.Consumer.ToString().ToLowerInvariant(), actualActivity.GetTagValue(TagName.SpanKind).ToString());
+                Assert.Equal(ActivityKind.Consumer, actualActivity.Kind);
                 Assert.Equal("OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer", actualActivity.GetTagValue(TagName.ConsumerType).ToString());
                 Assert.Equal("TestMessage/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests", actualActivity.GetTagValue(TagName.PeerAddress).ToString());
                 Assert.NotNull(actualActivity.GetTagValue(TagName.PeerHost).ToString());
@@ -189,7 +189,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                 Assert.NotNull(actualActivity);
                 Assert.NotNull(expectedMessageContext);
                 Assert.Equal("HANDLE TestMessage/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests", actualActivity.DisplayName);
-                Assert.Equal(SpanKind.Consumer.ToString().ToLowerInvariant(), actualActivity.GetTagValue(TagName.SpanKind).ToString());
+                Assert.Equal(ActivityKind.Consumer, actualActivity.Kind);
                 Assert.Equal("TestMessage/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests", actualActivity.GetTagValue(TagName.PeerAddress).ToString());
                 Assert.NotNull(actualActivity.GetTagValue(TagName.PeerHost).ToString());
                 Assert.Equal("Handler", actualActivity.GetTagValue(TagName.PeerService).ToString());
