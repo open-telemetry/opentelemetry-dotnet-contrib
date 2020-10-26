@@ -59,15 +59,26 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
 
                 Assert.NotNull(actualActivity);
                 Assert.NotNull(expectedMessageContext);
+
                 Assert.Equal("SEND /input_queue", actualActivity.DisplayName);
                 Assert.Equal(ActivityKind.Producer, actualActivity.Kind);
-                Assert.Equal(expectedMessageContext.MessageId.ToString(), actualActivity.GetTagValue(TagName.MessageId).ToString());
-                Assert.Equal(expectedMessageContext.ConversationId.ToString(), actualActivity.GetTagValue(TagName.ConversationId).ToString());
-                Assert.Equal(expectedMessageContext.DestinationAddress.ToString(), actualActivity.GetTagValue(TagName.DestinationAddress).ToString());
-                Assert.Equal(expectedMessageContext.SourceAddress.ToString(), actualActivity.GetTagValue(TagName.SourceAddress).ToString());
-                Assert.Equal("/input_queue", actualActivity.GetTagValue(TagName.PeerAddress).ToString());
-                Assert.Equal("localhost", actualActivity.GetTagValue(TagName.PeerHost).ToString());
-                Assert.Equal("Send", actualActivity.GetTagValue(TagName.PeerService).ToString());
+                Assert.Equal("loopback", actualActivity.GetTagValue(SemanticConventions.AttributeMessagingSystem)?.ToString());
+
+                Assert.Equal(expectedMessageContext.MessageId.ToString(), actualActivity.GetTagValue(SemanticConventions.AttributeMessagingMessageId)?.ToString());
+                Assert.Equal(expectedMessageContext.ConversationId.ToString(), actualActivity.GetTagValue(SemanticConventions.AttributeMessagingConversationId)?.ToString());
+                Assert.Equal(expectedMessageContext.DestinationAddress.AbsolutePath, actualActivity.GetTagValue(SemanticConventions.AttributeMessagingDestination)?.ToString());
+                Assert.Equal(expectedMessageContext.DestinationAddress.Host, actualActivity.GetTagValue(SemanticConventions.AttributeNetPeerName)?.ToString());
+
+                Assert.Null(actualActivity.GetTagValue(TagName.MessageId));
+                Assert.Null(actualActivity.GetTagValue(TagName.ConversationId));
+                Assert.Null(actualActivity.GetTagValue(TagName.DestinationAddress));
+
+                Assert.Null(actualActivity.GetTagValue(TagName.SpanKind));
+                Assert.Null(actualActivity.GetTagValue(TagName.PeerService));
+
+                Assert.Null(actualActivity.GetTagValue(TagName.PeerAddress));
+                Assert.Null(actualActivity.GetTagValue(TagName.PeerHost));
+                Assert.Null(actualActivity.GetTagValue(TagName.SourceAddress));
             }
         }
 
@@ -102,18 +113,28 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
 
                 Assert.NotNull(actualActivity);
                 Assert.NotNull(expectedMessageContext);
+
                 Assert.Equal("RECV /input_queue", actualActivity.DisplayName);
                 Assert.Equal(ActivityKind.Consumer, actualActivity.Kind);
-                Assert.Equal(expectedMessageContext.MessageId.ToString(), actualActivity.GetTagValue(TagName.MessageId).ToString());
-                Assert.Equal(expectedMessageContext.ConversationId.ToString(), actualActivity.GetTagValue(TagName.ConversationId).ToString());
-                Assert.Equal(expectedMessageContext.DestinationAddress.ToString(), actualActivity.GetTagValue(TagName.InputAddress).ToString());
-                Assert.Equal(expectedMessageContext.DestinationAddress.ToString(), actualActivity.GetTagValue(TagName.DestinationAddress).ToString());
-                Assert.Equal(expectedMessageContext.SourceAddress.ToString(), actualActivity.GetTagValue(TagName.SourceAddress).ToString());
-                Assert.NotNull(actualActivity.GetTagValue("source-host-machine").ToString());
-                Assert.NotNull(actualActivity.GetTagValue(TagName.MessageTypes).ToString());
-                Assert.Equal("/input_queue", actualActivity.GetTagValue(TagName.PeerAddress).ToString());
-                Assert.Equal("localhost", actualActivity.GetTagValue(TagName.PeerHost).ToString());
-                Assert.Equal("Receive", actualActivity.GetTagValue(TagName.PeerService).ToString());
+                Assert.Equal("loopback", actualActivity.GetTagValue(SemanticConventions.AttributeMessagingSystem)?.ToString());
+
+                Assert.Equal(expectedMessageContext.MessageId.ToString(), actualActivity.GetTagValue(SemanticConventions.AttributeMessagingMessageId)?.ToString());
+                Assert.Equal(expectedMessageContext.ConversationId.ToString(), actualActivity.GetTagValue(SemanticConventions.AttributeMessagingConversationId)?.ToString());
+                Assert.Equal(expectedMessageContext.DestinationAddress.AbsolutePath, actualActivity.GetTagValue(SemanticConventions.AttributeMessagingDestination)?.ToString());
+                Assert.Equal(expectedMessageContext.DestinationAddress.Host, actualActivity.GetTagValue(SemanticConventions.AttributeNetPeerName)?.ToString());
+
+                Assert.Null(actualActivity.GetTagValue(TagName.MessageId));
+                Assert.Null(actualActivity.GetTagValue(TagName.ConversationId));
+                Assert.Null(actualActivity.GetTagValue(TagName.DestinationAddress));
+
+                Assert.Null(actualActivity.GetTagValue(TagName.SpanKind));
+                Assert.Null(actualActivity.GetTagValue(TagName.PeerService));
+
+                Assert.Null(actualActivity.GetTagValue(TagName.PeerAddress));
+                Assert.Null(actualActivity.GetTagValue(TagName.PeerHost));
+                Assert.Null(actualActivity.GetTagValue(TagName.MessageTypes));
+                Assert.Null(actualActivity.GetTagValue(TagName.SourceAddress));
+                Assert.Null(actualActivity.GetTagValue(TagName.SourceHostMachine));
             }
         }
 

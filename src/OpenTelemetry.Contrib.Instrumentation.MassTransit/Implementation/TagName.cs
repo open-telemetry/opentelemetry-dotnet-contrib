@@ -23,6 +23,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
         public const string PeerAddress = "peer.address";
         public const string PeerHost = "peer.host";
         public const string PeerService = "peer.service";
+        public const string SourceHostMachine = "source-host-machine";
 
         public const string MessageId = "message-id";
         public const string ConversationId = "conversation-id";
