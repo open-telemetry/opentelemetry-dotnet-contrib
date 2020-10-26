@@ -60,7 +60,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                 Assert.NotNull(actualActivity);
                 Assert.NotNull(expectedMessageContext);
                 Assert.Equal("SEND /input_queue", actualActivity.DisplayName);
-                Assert.Equal(ActivityKind.Client, actualActivity.Kind);
+                Assert.Equal(ActivityKind.Producer, actualActivity.Kind);
                 Assert.Equal(expectedMessageContext.MessageId.ToString(), actualActivity.GetTagValue(TagName.MessageId).ToString());
                 Assert.Equal(expectedMessageContext.ConversationId.ToString(), actualActivity.GetTagValue(TagName.ConversationId).ToString());
                 Assert.Equal(expectedMessageContext.DestinationAddress.ToString(), actualActivity.GetTagValue(TagName.DestinationAddress).ToString());
@@ -103,7 +103,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                 Assert.NotNull(actualActivity);
                 Assert.NotNull(expectedMessageContext);
                 Assert.Equal("RECV /input_queue", actualActivity.DisplayName);
-                Assert.Equal(ActivityKind.Internal, actualActivity.Kind);
+                Assert.Equal(ActivityKind.Consumer, actualActivity.Kind);
                 Assert.Equal(expectedMessageContext.MessageId.ToString(), actualActivity.GetTagValue(TagName.MessageId).ToString());
                 Assert.Equal(expectedMessageContext.ConversationId.ToString(), actualActivity.GetTagValue(TagName.ConversationId).ToString());
                 Assert.Equal(expectedMessageContext.DestinationAddress.ToString(), actualActivity.GetTagValue(TagName.InputAddress).ToString());
