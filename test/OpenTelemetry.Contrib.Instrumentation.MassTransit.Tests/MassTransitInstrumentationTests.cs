@@ -28,7 +28,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
     public class MassTransitInstrumentationTests
     {
         [Fact]
-        public async Task MassTransitInstrumentationConsumerAndHandlerTest()
+        public async Task ShouldMapMassTransitTagsForPublishMessageToOpenTelemetrySpecification()
         {
             var activityProcessor = new Mock<BaseProcessor<Activity>>();
             using (Sdk.CreateTracerProviderBuilder()
@@ -42,10 +42,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                 await harness.Start();
                 try
                 {
-                    await harness.InputQueueSendEndpoint.Send<TestMessage>(new
-                    {
-                        Text = "Hello, world!",
-                    });
+                    await harness.InputQueueSendEndpoint.Send<TestMessage>(new { Text = "Hello, world!" });
 
                     Assert.True(await harness.Consumed.SelectAsync<TestMessage>().Any());
                     Assert.True(await consumerHarness.Consumed.SelectAsync<TestMessage>().Any());
@@ -55,33 +52,146 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                 {
                     await harness.Stop();
                 }
+
+                var expectedMessageContext = harness.Sent.Select<TestMessage>().FirstOrDefault()?.Context;
+                var actualActivity = this.GetActivitiesFromInvocationsByOperationName(activityProcessor.Invocations, OperationName.Transport.Send).LastOrDefault();
+
+                Assert.NotNull(actualActivity);
+                Assert.NotNull(expectedMessageContext);
+                Assert.Equal("SEND /input_queue", actualActivity.DisplayName);
+                Assert.Equal(SpanKind.Producer.ToString().ToLowerInvariant(), actualActivity.GetTagValue("span.kind").ToString());
+                Assert.Equal(expectedMessageContext.MessageId.ToString(), actualActivity.GetTagValue("message-id").ToString());
+                Assert.Equal(expectedMessageContext.ConversationId.ToString(), actualActivity.GetTagValue("conversation-id").ToString());
+                Assert.Equal(expectedMessageContext.DestinationAddress.ToString(), actualActivity.GetTagValue("destination-address").ToString());
+                Assert.Equal(expectedMessageContext.SourceAddress.ToString(), actualActivity.GetTagValue("source-address").ToString());
+                Assert.Equal("/input_queue", actualActivity.GetTagValue("peer.address").ToString());
+                Assert.Equal("localhost", actualActivity.GetTagValue("peer.host").ToString());
+                Assert.Equal("Send", actualActivity.GetTagValue("peer.service").ToString());
             }
+        }
 
-            Assert.Equal(10, activityProcessor.Invocations.Count);
-
-            var sends = this.GetActivitiesFromInvocationsByOperationName(activityProcessor.Invocations, OperationName.Transport.Send);
-            var receives = this.GetActivitiesFromInvocationsByOperationName(activityProcessor.Invocations, OperationName.Transport.Receive);
-            var consumes = this.GetActivitiesFromInvocationsByOperationName(activityProcessor.Invocations, OperationName.Consumer.Consume);
-            var handles = this.GetActivitiesFromInvocationsByOperationName(activityProcessor.Invocations, OperationName.Consumer.Handle);
-
-            foreach (var activity in sends)
+        [Fact]
+        public async Task ShouldMapMassTransitTagsForReceiveMessageToOpenTelemetrySpecification()
+        {
+            var activityProcessor = new Mock<BaseProcessor<Activity>>();
+            using (Sdk.CreateTracerProviderBuilder()
+                .AddProcessor(activityProcessor.Object)
+                .AddMassTransitInstrumentation()
+                .Build())
             {
-                Assert.Equal("SEND /input_queue", activity.DisplayName);
+                var harness = new InMemoryTestHarness();
+                var consumerHarness = harness.Consumer<TestConsumer>();
+                var handlerHarness = harness.Handler<TestMessage>();
+                await harness.Start();
+                try
+                {
+                    await harness.InputQueueSendEndpoint.Send<TestMessage>(new { Text = "Hello, world!" });
+
+                    Assert.True(await harness.Consumed.SelectAsync<TestMessage>().Any());
+                    Assert.True(await consumerHarness.Consumed.SelectAsync<TestMessage>().Any());
+                    Assert.True(await handlerHarness.Consumed.SelectAsync().Any());
+                }
+                finally
+                {
+                    await harness.Stop();
+                }
+
+                var expectedMessageContext = harness.Sent.Select<TestMessage>().FirstOrDefault()?.Context;
+                var actualActivity = this.GetActivitiesFromInvocationsByOperationName(activityProcessor.Invocations, OperationName.Transport.Receive).LastOrDefault();
+
+                Assert.NotNull(actualActivity);
+                Assert.NotNull(expectedMessageContext);
+                Assert.Equal("RECV /input_queue", actualActivity.DisplayName);
+                Assert.Equal(SpanKind.Consumer.ToString().ToLowerInvariant(), actualActivity.GetTagValue("span.kind").ToString());
+                Assert.Equal(expectedMessageContext.MessageId.ToString(), actualActivity.GetTagValue("message-id").ToString());
+                Assert.Equal(expectedMessageContext.ConversationId.ToString(), actualActivity.GetTagValue("conversation-id").ToString());
+                Assert.Equal(expectedMessageContext.DestinationAddress.ToString(), actualActivity.GetTagValue("input-address").ToString());
+                Assert.Equal(expectedMessageContext.DestinationAddress.ToString(), actualActivity.GetTagValue("destination-address").ToString());
+                Assert.Equal(expectedMessageContext.SourceAddress.ToString(), actualActivity.GetTagValue("source-address").ToString());
+                Assert.NotNull(actualActivity.GetTagValue("source-host-machine").ToString());
+                Assert.NotNull(actualActivity.GetTagValue("message-types").ToString());
+                Assert.Equal("/input_queue", actualActivity.GetTagValue("peer.address").ToString());
+                Assert.Equal("localhost", actualActivity.GetTagValue("peer.host").ToString());
+                Assert.Equal("Receive", actualActivity.GetTagValue("peer.service").ToString());
             }
+        }
 
-            foreach (var activity in receives)
+        [Fact]
+        public async Task ShouldMapMassTransitTagsForConsumeMessageToOpenTelemetrySpecification()
+        {
+            var activityProcessor = new Mock<BaseProcessor<Activity>>();
+            using (Sdk.CreateTracerProviderBuilder()
+                .AddProcessor(activityProcessor.Object)
+                .AddMassTransitInstrumentation()
+                .Build())
             {
-                Assert.Equal("RECV /input_queue", activity.DisplayName);
+                var harness = new InMemoryTestHarness();
+                var consumerHarness = harness.Consumer<TestConsumer>();
+                var handlerHarness = harness.Handler<TestMessage>();
+                await harness.Start();
+                try
+                {
+                    await harness.InputQueueSendEndpoint.Send<TestMessage>(new { Text = "Hello, world!" });
+
+                    Assert.True(await harness.Consumed.SelectAsync<TestMessage>().Any());
+                    Assert.True(await consumerHarness.Consumed.SelectAsync<TestMessage>().Any());
+                    Assert.True(await handlerHarness.Consumed.SelectAsync().Any());
+                }
+                finally
+                {
+                    await harness.Stop();
+                }
+
+                var expectedMessageContext = harness.Sent.Select<TestMessage>().FirstOrDefault()?.Context;
+                var actualActivity = this.GetActivitiesFromInvocationsByOperationName(activityProcessor.Invocations, OperationName.Consumer.Consume).LastOrDefault();
+
+                Assert.NotNull(actualActivity);
+                Assert.NotNull(expectedMessageContext);
+                Assert.Equal("CONSUME OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer", actualActivity.DisplayName);
+                Assert.Equal(SpanKind.Consumer.ToString().ToLowerInvariant(), actualActivity.GetTagValue("span.kind").ToString());
+                Assert.Equal("OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer", actualActivity.GetTagValue("consumer-type").ToString());
+                Assert.Equal("TestMessage/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests", actualActivity.GetTagValue("peer.address").ToString());
+                Assert.NotNull(actualActivity.GetTagValue("peer.host").ToString());
+                Assert.Equal("Consumer", actualActivity.GetTagValue("peer.service").ToString());
             }
+        }
 
-            foreach (var activity in consumes)
+        [Fact]
+        public async Task ShouldMapMassTransitTagsForHandleMessageToOpenTelemetrySpecification()
+        {
+            var activityProcessor = new Mock<BaseProcessor<Activity>>();
+            using (Sdk.CreateTracerProviderBuilder()
+                .AddProcessor(activityProcessor.Object)
+                .AddMassTransitInstrumentation()
+                .Build())
             {
-                Assert.Equal("CONSUME OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer", activity.DisplayName);
-            }
+                var harness = new InMemoryTestHarness();
+                var consumerHarness = harness.Consumer<TestConsumer>();
+                var handlerHarness = harness.Handler<TestMessage>();
+                await harness.Start();
+                try
+                {
+                    await harness.InputQueueSendEndpoint.Send<TestMessage>(new { Text = "Hello, world!" });
 
-            foreach (var activity in handles)
-            {
-                Assert.Equal("HANDLE TestMessage/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests", activity.DisplayName);
+                    Assert.True(await harness.Consumed.SelectAsync<TestMessage>().Any());
+                    Assert.True(await consumerHarness.Consumed.SelectAsync<TestMessage>().Any());
+                    Assert.True(await handlerHarness.Consumed.SelectAsync().Any());
+                }
+                finally
+                {
+                    await harness.Stop();
+                }
+
+                var expectedMessageContext = harness.Sent.Select<TestMessage>().FirstOrDefault()?.Context;
+                var actualActivity = this.GetActivitiesFromInvocationsByOperationName(activityProcessor.Invocations, OperationName.Consumer.Handle).LastOrDefault();
+
+                Assert.NotNull(actualActivity);
+                Assert.NotNull(expectedMessageContext);
+                Assert.Equal("HANDLE TestMessage/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests", actualActivity.DisplayName);
+                Assert.Equal(SpanKind.Consumer.ToString().ToLowerInvariant(), actualActivity.GetTagValue("span.kind").ToString());
+                Assert.Equal("TestMessage/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests", actualActivity.GetTagValue("peer.address").ToString());
+                Assert.NotNull(actualActivity.GetTagValue("peer.host").ToString());
+                Assert.Equal("Handler", actualActivity.GetTagValue("peer.service").ToString());
             }
         }
 
