@@ -22,7 +22,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using OpenTelemetry;
 using OpenTelemetry.Contrib.Instrumentation.Wcf;
-using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 namespace Examples.Wcf.Client
@@ -39,8 +38,7 @@ namespace Examples.Wcf.Client
             using var openTelemetry = Sdk.CreateTracerProviderBuilder()
                 .AddWcfInstrumentation()
                 .AddHttpClientInstrumentation() // <- Added to test suppression of http spans.
-                .AddJaegerExporter()
-                .SetResource(Resources.CreateServiceResource("Wcf-Client-Core"))
+                .AddZipkinExporter(o => o.ServiceName = "Wcf-Client-Core")
                 .Build();
 
             await CallService(

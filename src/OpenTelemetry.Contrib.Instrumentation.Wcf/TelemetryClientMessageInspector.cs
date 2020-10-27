@@ -58,7 +58,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
                     SuppressInstrumentationScope.Enter();
                 }
 
-                activity.DisplayName = request.Headers.Action;
+                string action = request.Headers.Action;
+                activity.DisplayName = action;
 
                 WcfInstrumentationActivitySource.Options.Propagator.Inject(
                     new PropagationContext(activity.Context, Baggage.Current),
@@ -67,9 +68,16 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
 
                 if (activity.IsAllDataRequested)
                 {
+                    int lastIndex = action.LastIndexOf('/');
+
+                    activity.SetTag("rpc.system", "wcf");
+                    activity.SetTag("rpc.service", action.Substring(0, lastIndex));
+                    activity.SetTag("rpc.method", action.Substring(lastIndex + 1));
+                    activity.SetTag("net.peer.name", channel.RemoteAddress.Uri.Host);
+                    activity.SetTag("net.peer.port", channel.RemoteAddress.Uri.Port);
+
                     activity.SetTag("soap.version", request.Version.ToString());
-                    activity.SetTag("wcf.channel.scheme", $"{channel.RemoteAddress.Uri.Scheme}");
-                    activity.SetTag("wcf.channel.host", $"{channel.RemoteAddress.Uri.Host}:{channel.RemoteAddress.Uri.Port}");
+                    activity.SetTag("wcf.channel.scheme", channel.RemoteAddress.Uri.Scheme);
                     activity.SetTag("wcf.channel.path", channel.RemoteAddress.Uri.LocalPath);
                 }
             }

@@ -11,7 +11,7 @@
     <PackageReference Include="System.ServiceModel.NetTcp" Version="4.7.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.9" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.1.9" />
-    <PackageReference Include="OpenTelemetry.Exporter.Jaeger" Version="$(OpenTelemetryPkgVer)" />
+    <PackageReference Include="OpenTelemetry.Exporter.Zipkin" Version="$(OpenTelemetryPkgVer)" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="$(OpenTelemetryPkgVer)" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="$(OpenTelemetryPkgVer)" />
   </ItemGroup>
