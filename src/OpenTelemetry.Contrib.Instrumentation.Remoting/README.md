@@ -21,7 +21,10 @@ To enable .NET remoting instrumentation, call `AddRemotingInstrumentaion()` on
 the `TracerProviderBuilder` during the application startup in both client and
 server code.
 
-For example, in a client console app:
+The following example demonstrates adding .NET remoting instrumentation to a
+client console application. This example also sets up the OpenTelemetry Console
+exporter, which requires adding the package [`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/master/src/OpenTelemetry.Exporter.Console/README.md)
+to the project.
 
 ```csharp
 using OpenTelemetry;
@@ -33,7 +36,7 @@ namespace ExampleClient
     {
         static void Main(string[] args)
         {
-            Sdk.CreateTracerProviderBuilder()
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .AddRemotingInstrumentation()
                 .AddConsoleExporter()
                 .Build();
@@ -43,7 +46,11 @@ namespace ExampleClient
 ```
 
 When hosting server objects in IIS, adding instrumentation should typically
-be done in `Global.asax.cs`:
+be done in `Global.asax.cs` like in the below example.
+
+This example also sets up the OpenTelemetry Jaeger exporter, which requires
+adding the package [`OpenTelemetry.Exporter.Jaeger`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/master/src/OpenTelemetry.Exporter.Jaeger/README.md)
+to the project.
 
 ```csharp
 using System;
@@ -80,8 +87,8 @@ namespace ServerAspNet
 ```
 
 Additionally, when using [http channel](https://docs.microsoft.com/dotnet/api/system.runtime.remoting.channels.http.httpchannel?view=netframework-4.8)
-for remoting, consider registering [OpenTelemetry.Instrumentation.Http](https://github.com/open-telemetry/opentelemetry-dotnet/tree/master/src/OpenTelemetry.Instrumentation.Http)
-on the client and [OpenTelemetry.Instrumentation.AspNet](https://github.com/open-telemetry/opentelemetry-dotnet/tree/master/src/OpenTelemetry.Instrumentation.AspNet)
+for remoting, consider registering [`OpenTelemetry.Instrumentation.Http`](https://github.com/open-telemetry/opentelemetry-dotnet/tree/master/src/OpenTelemetry.Instrumentation.Http)
+on the client and [`OpenTelemetry.Instrumentation.AspNet`](https://github.com/open-telemetry/opentelemetry-dotnet/tree/master/src/OpenTelemetry.Instrumentation.AspNet)
 on the server.
 
 ## Filtering
