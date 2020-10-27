@@ -60,7 +60,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                 Assert.NotNull(actualActivity);
                 Assert.NotNull(expectedMessageContext);
 
-                Assert.Equal("SEND /input_queue", actualActivity.DisplayName);
+                Assert.Equal("/input_queue send", actualActivity.DisplayName);
                 Assert.Equal(ActivityKind.Producer, actualActivity.Kind);
                 Assert.Equal("loopback", actualActivity.GetTagValue(SemanticConventions.AttributeMessagingSystem)?.ToString());
 
@@ -114,7 +114,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                 Assert.NotNull(actualActivity);
                 Assert.NotNull(expectedMessageContext);
 
-                Assert.Equal("RECV /input_queue", actualActivity.DisplayName);
+                Assert.Equal("/input_queue consume", actualActivity.DisplayName);
                 Assert.Equal(ActivityKind.Consumer, actualActivity.Kind);
                 Assert.Equal("loopback", actualActivity.GetTagValue(SemanticConventions.AttributeMessagingSystem)?.ToString());
 
@@ -169,7 +169,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
 
                 Assert.NotNull(actualActivity);
                 Assert.NotNull(expectedMessageContext);
-                Assert.Equal("CONSUME OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer", actualActivity.DisplayName);
+                Assert.Equal("OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer process", actualActivity.DisplayName);
                 Assert.Equal(ActivityKind.Consumer, actualActivity.Kind);
                 Assert.Equal("OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer", actualActivity.GetTagValue(SemanticConventions.AttributeMessagingMassTransitConsumerType)?.ToString());
 
@@ -212,7 +212,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
 
                 Assert.NotNull(actualActivity);
                 Assert.NotNull(expectedMessageContext);
-                Assert.Equal("HANDLE TestMessage/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests", actualActivity.DisplayName);
+                Assert.Equal("TestMessage/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests consume", actualActivity.DisplayName);
                 Assert.Equal(ActivityKind.Consumer, actualActivity.Kind);
 
                 Assert.Null(actualActivity.GetTagValue(TagName.SpanKind));
