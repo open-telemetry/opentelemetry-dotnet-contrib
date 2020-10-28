@@ -43,6 +43,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
 
         private static string ConvertConsumeOperationToDisplayName(string consumerType) => $"{consumerType} process";
 
-        private static string ConvertHandleOperationToDisplayName(string peerAddress) => $"{peerAddress} consume";
+        private static string ConvertHandleOperationToDisplayName(string peerAddress) => $"{peerAddress} process";
     }
 }

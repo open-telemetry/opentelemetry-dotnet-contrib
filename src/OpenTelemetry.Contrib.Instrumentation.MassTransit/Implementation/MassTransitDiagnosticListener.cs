@@ -80,8 +80,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
             {
                 OperationName.Transport.Send => ActivityKind.Producer,
                 OperationName.Transport.Receive => ActivityKind.Consumer,
-                OperationName.Consumer.Consume => ActivityKind.Consumer,
-                OperationName.Consumer.Handle => ActivityKind.Consumer,
+                OperationName.Consumer.Consume => ActivityKind.Internal,
+                OperationName.Consumer.Handle => ActivityKind.Internal,
                 _ => activity.Kind,
             };
         }
