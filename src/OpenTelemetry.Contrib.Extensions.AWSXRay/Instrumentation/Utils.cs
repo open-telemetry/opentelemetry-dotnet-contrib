@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Instrumentation
+namespace OpenTelemetry.Contrib.Instrumentation.AWS
 {
     internal class Utils
     {

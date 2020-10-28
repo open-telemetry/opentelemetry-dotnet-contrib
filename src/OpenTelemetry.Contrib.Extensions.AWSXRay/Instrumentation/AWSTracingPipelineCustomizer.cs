@@ -18,7 +18,7 @@ using System;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Instrumentation
+namespace OpenTelemetry.Contrib.Instrumentation.AWS
 {
     internal class AWSTracingPipelineCustomizer : IRuntimePipelineCustomizer
     {

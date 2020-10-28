@@ -16,7 +16,7 @@
 
 using System;
 using OpenTelemetry.Contrib.Extensions.AWSXRay;
-using OpenTelemetry.Contrib.Extensions.AWSXRay.Instrumentation;
+using OpenTelemetry.Contrib.Instrumentation.AWS;
 
 namespace OpenTelemetry.Trace
 {

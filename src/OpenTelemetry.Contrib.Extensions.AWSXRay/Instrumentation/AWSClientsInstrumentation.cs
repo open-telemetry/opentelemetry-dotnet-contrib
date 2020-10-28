@@ -16,7 +16,7 @@
 
 using Amazon.Runtime.Internal;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Instrumentation
+namespace OpenTelemetry.Contrib.Instrumentation.AWS
 {
     internal class AWSClientsInstrumentation
     {
