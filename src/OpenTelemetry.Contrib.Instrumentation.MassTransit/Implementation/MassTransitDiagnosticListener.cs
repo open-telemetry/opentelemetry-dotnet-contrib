@@ -95,6 +95,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
                 this.RenameTag(activity, TagName.MessageId, SemanticConventions.AttributeMessagingMessageId);
                 this.RenameTag(activity, TagName.ConversationId, SemanticConventions.AttributeMessagingConversationId);
                 this.RenameTag(activity, TagName.InitiatorId, SemanticConventions.AttributeMessagingMassTransitInitiatorId);
+                this.RenameTag(activity, TagName.CorrelationId, SemanticConventions.AttributeMessagingMassTransitCorrelationId);
 
                 activity.SetTag(TagName.SourceAddress, null);
             }
@@ -105,6 +106,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
                 this.RenameTag(activity, TagName.MessageId, SemanticConventions.AttributeMessagingMessageId);
                 this.RenameTag(activity, TagName.ConversationId, SemanticConventions.AttributeMessagingConversationId);
                 this.RenameTag(activity, TagName.InitiatorId, SemanticConventions.AttributeMessagingMassTransitInitiatorId);
+                this.RenameTag(activity, TagName.CorrelationId, SemanticConventions.AttributeMessagingMassTransitCorrelationId);
 
                 activity.SetTag(TagName.MessageId, null);
 
