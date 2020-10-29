@@ -22,6 +22,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS
 {
     internal class AWSTracingPipelineCustomizer : IRuntimePipelineCustomizer
     {
+        private readonly AWSClientInstrumentationOptions options;
+
+        public AWSTracingPipelineCustomizer(AWSClientInstrumentationOptions options)
+        {
+            this.options = options;
+        }
+
         public string UniqueName
         {
             get
@@ -37,7 +44,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS
                 return;
             }
 
-            pipeline.AddHandlerAfter<EndpointResolver>(new AWSTracingPipelineHandler());
+            pipeline.AddHandlerAfter<EndpointResolver>(new AWSTracingPipelineHandler(this.options));
         }
     }
 }

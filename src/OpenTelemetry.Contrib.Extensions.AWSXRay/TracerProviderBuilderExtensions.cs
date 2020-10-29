@@ -45,16 +45,21 @@ namespace OpenTelemetry.Trace
         /// Enables AWS Instrumentation.
         /// </summary>
         /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+        /// <param name="configure">AWS client configuration options.</param>
         /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
         public static TracerProviderBuilder AddAWSInstrumentation(
-            this TracerProviderBuilder builder)
+            this TracerProviderBuilder builder,
+            Action<AWSClientInstrumentationOptions> configure = null)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            new AWSClientsInstrumentation();
+            var awsClientOptions = new AWSClientInstrumentationOptions();
+            configure?.Invoke(awsClientOptions);
+
+            new AWSClientsInstrumentation(awsClientOptions);
             builder.AddSource("Amazon.AWS.AWSClientInstrumentation");
             return builder;
         }

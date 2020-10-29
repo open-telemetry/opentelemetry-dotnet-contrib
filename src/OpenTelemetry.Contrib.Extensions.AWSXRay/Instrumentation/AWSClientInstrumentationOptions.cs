@@ -1,4 +1,4 @@
-﻿// <copyright file="AWSClientsInstrumentation.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="AWSClientInstrumentationOptions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,15 +14,16 @@
 // limitations under the License.
 // </copyright>
 
-using Amazon.Runtime.Internal;
-
 namespace OpenTelemetry.Contrib.Instrumentation.AWS
 {
-    internal class AWSClientsInstrumentation
+    /// <summary>
+    /// Options for AWS client instrumentation.
+    /// </summary>
+    public class AWSClientInstrumentationOptions
     {
-        public AWSClientsInstrumentation(AWSClientInstrumentationOptions options)
-        {
-            RuntimePipelineCustomizerRegistry.Instance.Register(new AWSTracingPipelineCustomizer(options));
-        }
+        /// <summary>
+        /// Gets or sets a value indicating whether downstream Http instrumentation is suppressed.
+        /// </summary>
+        public bool SuppressDownstreamInstrumentation { get; set; } = true;
     }
 }

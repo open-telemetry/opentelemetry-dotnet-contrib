@@ -51,6 +51,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS
 
         private static readonly ActivitySource AWSSDKActivitySource = new ActivitySource(ActivitySourceName);
 
+        private readonly AWSClientInstrumentationOptions options;
+
+        public AWSTracingPipelineHandler(AWSClientInstrumentationOptions options)
+        {
+            this.options = options;
+        }
+
         public override void InvokeSync(IExecutionContext executionContext)
         {
             var activity = this.ProcessBeginRequest(executionContext);
@@ -118,6 +125,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS
             if (activity == null)
             {
                 return null;
+            }
+
+            if (this.options.SuppressDownstreamInstrumentation)
+            {
+                SuppressInstrumentationScope.Enter();
             }
 
             activity.SetTag(AWSSemanticConventions.AttributeAWSServiceName, service);
