@@ -132,16 +132,19 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS
                 SuppressInstrumentationScope.Enter();
             }
 
-            activity.SetTag(AWSSemanticConventions.AttributeAWSServiceName, service);
-            activity.SetTag(AWSSemanticConventions.AttributeAWSOperationName, operation);
-            var client = executionContext.RequestContext.ClientConfig;
-            if (client != null)
+            if (activity.IsAllDataRequested)
             {
-                var region = client.RegionEndpoint?.SystemName;
-                activity.SetTag(AWSSemanticConventions.AttributeAWSRegion, region ?? AWSSDKUtils.DetermineRegion(client.ServiceURL));
-            }
+                activity.SetTag(AWSSemanticConventions.AttributeAWSServiceName, service);
+                activity.SetTag(AWSSemanticConventions.AttributeAWSOperationName, operation);
+                var client = executionContext.RequestContext.ClientConfig;
+                if (client != null)
+                {
+                    var region = client.RegionEndpoint?.SystemName;
+                    activity.SetTag(AWSSemanticConventions.AttributeAWSRegion, region ?? AWSSDKUtils.DetermineRegion(client.ServiceURL));
+                }
 
-            this.AddRequestSpecificInformation(activity, requestContext, service);
+                this.AddRequestSpecificInformation(activity, requestContext, service);
+            }
 
             AwsPropagator.Inject(new PropagationContext(activity.Context, Baggage.Current), requestContext.Request.Headers, Setter);
 
@@ -153,25 +156,28 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS
             var responseContext = executionContext.ResponseContext;
             var requestContext = executionContext.RequestContext;
 
-            if (activity.GetTagValue(AWSSemanticConventions.AttributeAWSRequestId) == null)
+            if (activity.IsAllDataRequested)
             {
-                activity.SetTag(AWSSemanticConventions.AttributeAWSRequestId, this.FetchRequestId(requestContext, responseContext));
-            }
-
-            var httpResponse = responseContext.HttpResponse;
-            if (httpResponse != null)
-            {
-                int statusCode = (int)httpResponse.StatusCode;
-
-                var status = activity.GetStatus();
-
-                if (!status.Equals(Status.Error) && statusCode >= 100 && statusCode <= 399)
+                if (activity.GetTagValue(AWSSemanticConventions.AttributeAWSRequestId) == null)
                 {
-                    activity.SetStatus(Status.Unset);
+                    activity.SetTag(AWSSemanticConventions.AttributeAWSRequestId, this.FetchRequestId(requestContext, responseContext));
                 }
 
-                this.AddStatusCodeToActivity(activity, statusCode);
-                activity.SetTag(AWSSemanticConventions.AttributeHttpResponseContentLength, httpResponse.ContentLength);
+                var httpResponse = responseContext.HttpResponse;
+                if (httpResponse != null)
+                {
+                    int statusCode = (int)httpResponse.StatusCode;
+
+                    var status = activity.GetStatus();
+
+                    if (!status.Equals(Status.Error) && statusCode >= 100 && statusCode <= 399)
+                    {
+                        activity.SetStatus(Status.Unset);
+                    }
+
+                    this.AddStatusCodeToActivity(activity, statusCode);
+                    activity.SetTag(AWSSemanticConventions.AttributeHttpResponseContentLength, httpResponse.ContentLength);
+                }
             }
 
             activity.Stop();
@@ -179,14 +185,17 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS
 
         private void ProcessException(Activity activity, Exception ex)
         {
-            activity.RecordException(ex);
-
-            activity.SetStatus(Status.Error.WithDescription(ex.Message));
-
-            if (ex is AmazonServiceException amazonServiceException)
+            if (activity.IsAllDataRequested)
             {
-                this.AddStatusCodeToActivity(activity, (int)amazonServiceException.StatusCode);
-                activity.SetTag(AWSSemanticConventions.AttributeAWSRequestId, amazonServiceException.RequestId);
+                activity.RecordException(ex);
+
+                activity.SetStatus(Status.Error.WithDescription(ex.Message));
+
+                if (ex is AmazonServiceException amazonServiceException)
+                {
+                    this.AddStatusCodeToActivity(activity, (int)amazonServiceException.StatusCode);
+                    activity.SetTag(AWSSemanticConventions.AttributeAWSRequestId, amazonServiceException.RequestId);
+                }
             }
         }
 
