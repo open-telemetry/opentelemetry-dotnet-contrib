@@ -164,10 +164,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
                     }
                     else
                     {
-                         // Got here if we don't have a valid Remoting context. This is possible if the client
-                         // didn't have Remoting instrumentation and so didn't initialize the "__CallContext".
-                         // We still have a parent activity from another instrumentation, so we keep it as
-                         // Current (better than creating a new "root" Remoting activity).
+                        // Got here if we don't have a valid Remoting context. This is possible if the client
+                        // didn't have Remoting instrumentation and so didn't initialize the "__CallContext".
+                        // We still have a parent activity from another instrumentation, so we keep it as
+                        // Current (better than creating a new "root" Remoting activity).
                     }
 
                     if (ourActivity != null && ourActivity.IsAllDataRequested && reqMsg is IMethodMessage methodMsg)
