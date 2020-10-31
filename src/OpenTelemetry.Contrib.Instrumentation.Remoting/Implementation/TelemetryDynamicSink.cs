@@ -84,6 +84,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
                 // Are we executing on client?
                 if (bCliSide)
                 {
+                    // The context to inject will either be from the Remoting activity that we will start,
+                    // or, if the Remoting activity doesn't get sampled, could also be taken from Activity.Current,
+                    // if it is available.
+                    ActivityContext contextToInject = default;
+
                     // Start new outgoing activity
                     var act = RemotingActivitySource.StartActivity(ActivityOutName, ActivityKind.Client);
                     if (act != null)
@@ -93,10 +98,16 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
                             SetStartingActivityAttributes(act, methodMsg);
                         }
 
-                        var callContext = (LogicalCallContext)reqMsg.Properties["__CallContext"];
-
-                        this.options.Propagator.Inject(new PropagationContext(act.Context, Baggage.Current), callContext, InjectActivityProperties);
+                        contextToInject = act.Context;
                     }
+                    else if (Activity.Current != null)
+                    {
+                        contextToInject = Activity.Current.Context;
+                    }
+
+                    var callContext = (LogicalCallContext)reqMsg.Properties["__CallContext"];
+
+                    this.options.Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), callContext, InjectActivityProperties);
                 }
                 else
                 {
