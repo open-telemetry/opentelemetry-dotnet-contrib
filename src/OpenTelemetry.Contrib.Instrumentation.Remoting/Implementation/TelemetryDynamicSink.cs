@@ -50,6 +50,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
         private const string ActivityOutName = ActivitySourceName + ".RequestOut";
         private const string ActivityInName = ActivitySourceName + ".RequestIn";
 
+        private const string SavedAspnetActivityPropertyName = ActivitySourceName + ".SavedAspnetActivity";
+
         private static readonly Version Version = typeof(TelemetryDynamicSink).Assembly.GetName().Version;
         private static readonly ActivitySource RemotingActivitySource = new ActivitySource(ActivitySourceName, Version.ToString());
 
@@ -103,23 +105,58 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
                     var callContext = (LogicalCallContext)reqMsg.Properties["__CallContext"];
                     var activityParentContext = this.options.Propagator.Extract(default, callContext, ExtractActivityProperties);
 
-                    Activity ourActivity;
+                    Activity ourActivity = null;
 
                     // Do we already have an incoming activity?
                     // Existing activity might be started by an instrumentation layer higher up the
                     // stack. E.g. if we are using http as a transport for remoting, and we have
                     // instrumented incoming http request, then that instrumentation happens before
-                    // our "ProcessMessageStart" and we just need to attach to that existing activity.
+                    // our "ProcessMessageStart".
                     var parentActivity = Activity.Current;
-                    if (parentActivity != null)
+
+                    if (parentActivity == null)
                     {
+                        // We don't have an existing incoming activity. Start a brand new one ourselves using the extracted context.
+
+                        ourActivity = RemotingActivitySource.StartActivity(ActivityInName, ActivityKind.Server, activityParentContext.ActivityContext);
+                    }
+                    else if (parentActivity.TraceId == activityParentContext.ActivityContext.TraceId)
+                    {
+                        // Existing parent activity belongs to the same trace as our remoting context.
+                        // This likely means that we are using http as a transport for Remoting and have
+                        // instrumented both the client and the server with http instrumentation, resulting
+                        // in a call stack like below:
+
+                        // |-------------Client--------------|--------------------------Server----------------------------|
+                        // | RemotingClient -> HttpClient -> | -> ASP.NET Instrumentation -> RemotingServer (this method) |
+
+                        // The context was propagated between HttpClient and ASP.NET Instrumentation.
+                        // We let this context take over and simply create our Remoting activity as a child of the ASP.NET one.
+
                         ourActivity = RemotingActivitySource.StartActivity(ActivityInName, ActivityKind.Server);
+                    }
+                    else if (activityParentContext.ActivityContext.IsValid())
+                    {
+                        // We have a valid Remoting context but the existing parent activity has started a different
+                        // trace. This could happen in the instrumentation chain set up like below:
+
+                        // |------Client-------|--------------------------Server----------------------------|
+                        // | RemotingClient -> | -> ASP.NET Instrumentation -> RemotingServer (this method) |
+
+                        // In this scenario ASP.NET Instrumentation was unable to extract the "correct" context.
+                        // We will create our Remoting activity as a "sibling" of the ASP.NET one to maintain
+                        // the context. ASP.NET activity is saved as a custom property so that we can restore it later
+                        // (see ProcessMessageFinish) to give ASP.NET Instrumentation a chance to stop it.
+
+                        ourActivity = RemotingActivitySource.StartActivity(ActivityInName, ActivityKind.Server, activityParentContext.ActivityContext);
+                        ourActivity.SetCustomProperty(SavedAspnetActivityPropertyName, parentActivity);
                     }
                     else
                     {
-                        // We don't have an existing incoming activity. Start a brand new one ourselves.
-
-                        ourActivity = RemotingActivitySource.StartActivity(ActivityInName, ActivityKind.Server, activityParentContext.ActivityContext);
+                         // Got here if we don't have a valid Remoting context. This is possible if the client
+                         // didn't have Remoting instrumentation and so didn't initialize the "__CallContext".
+                         // We still have a parent activity from another instrumentation, so we keep it as
+                         // Current (better than creating a new "root" Remoting activity).
                     }
 
                     if (ourActivity != null && ourActivity.IsAllDataRequested && reqMsg is IMethodMessage methodMsg)
@@ -171,6 +208,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
                     }
 
                     act.Stop();
+
+                    // Did ProcessMessageStart discard activity created by the ASP.NET Instrumentation?
+                    // If yes, we need to restore it here, so that it can be stopped by the instrumentation later.
+                    if (validServerActivity && act.GetCustomProperty(SavedAspnetActivityPropertyName) is Activity otherActivity)
+                    {
+                        Activity.Current = otherActivity;
+                    }
                 }
             }
             catch (Exception e)
