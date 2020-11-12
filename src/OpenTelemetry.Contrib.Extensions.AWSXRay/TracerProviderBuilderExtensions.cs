@@ -29,7 +29,7 @@ namespace OpenTelemetry.Trace
         /// </summary>
         /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
         /// <returns>The instance of <see cref="TracerProviderBuilder"/>.</returns>
-        public static TracerProviderBuilder AddXRayActivityTraceIdGenerator(this TracerProviderBuilder builder)
+        public static TracerProviderBuilder AddXRayTraceId(this TracerProviderBuilder builder)
         {
             if (builder == null)
             {
@@ -37,6 +37,24 @@ namespace OpenTelemetry.Trace
             }
 
             AWSXRayIdGenerator.ReplaceTraceId();
+            return builder;
+        }
+
+        /// <summary>
+        /// 1. Replace the trace id of root activity.
+        /// 2. Update the sampling decision for root activity when it's created through ActivitySource.StartActivity().
+        /// </summary>
+        /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+        /// <param name="sampler"><see cref="Sampler"/> being used.</param>
+        /// <returns>The instance of <see cref="TracerProviderBuilder"/>.</returns>
+        public static TracerProviderBuilder AddXRayTraceIdWithSampler(this TracerProviderBuilder builder, Sampler sampler)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            AWSXRayIdGenerator.ReplaceTraceId(sampler);
             return builder;
         }
     }
