@@ -15,14 +15,13 @@
 // </copyright>
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using Google.Api.Gax.Grpc;
 using Google.Cloud.Trace.V2;
 using Grpc.Core;
 using OpenTelemetry.Contrib.Exporter.Stackdriver.Implementation;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Contrib.Exporter.Stackdriver
 {
@@ -36,8 +35,7 @@ namespace OpenTelemetry.Contrib.Exporter.Stackdriver
 
         private readonly Google.Api.Gax.ResourceNames.ProjectName googleCloudProjectId;
         private readonly TraceServiceSettings traceServiceSettings;
-
-        private readonly TraceServiceClient traceServiceClient = null;
+        private readonly TraceServiceClient traceServiceClient;
 
         static StackdriverTraceExporter()
         {
@@ -81,6 +79,7 @@ namespace OpenTelemetry.Contrib.Exporter.Stackdriver
         /// </summary>
         /// <param name="projectId">Project ID to send telemetry to.</param>
         /// <param name="traceServiceClient">TraceServiceClient instance to use.</param>
+        [ExcludeFromCodeCoverage]
         internal StackdriverTraceExporter(string projectId, TraceServiceClient traceServiceClient)
             : this(projectId)
         {

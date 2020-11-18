@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using Google.Api.Gax.Grpc;
 using Google.Cloud.Trace.V2;
 using Grpc.Core;
@@ -91,7 +90,7 @@ namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Tests
         }
 
         [Fact]
-        public void StackdriverExporter_TraceClientThrows_ShouldSucceed()
+        public void StackdriverExporter_TraceClientThrows_ExportResultFailure()
         {
             Exception exception = null;
             ExportResult result = ExportResult.Success;
@@ -125,6 +124,43 @@ namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Tests
 
             Assert.Null(exception);
             Assert.StrictEqual(ExportResult.Failure, result);
+            traceClientMock.VerifyAll();
+        }
+
+        [Fact]
+        public void StackdriverExporter_TraceClientDoesNotTrow_ExportResultSuccess()
+        {
+            Exception exception = null;
+            ExportResult result = ExportResult.Failure;
+            const string ActivitySourceName = "stackdriver.test";
+            var source = new ActivitySource(ActivitySourceName);
+            var traceClientMock = new Mock<TraceServiceClient>(MockBehavior.Strict);
+            traceClientMock.Setup(x =>
+                    x.BatchWriteSpans(It.IsAny<BatchWriteSpansRequest>(), It.IsAny<CallSettings>()))
+                .Verifiable($"{nameof(TraceServiceClient.BatchWriteSpans)} was never called");
+            var activityExporter = new StackdriverTraceExporter("test", traceClientMock.Object);
+            var testExporter = new TestExporter<Activity>(RunTest);
+
+            var processor = new BatchExportProcessor<Activity>(testExporter);
+
+            for (int i = 0; i < 10; i++)
+            {
+                using Activity activity = source.StartActivity("Test Activity");
+                processor.OnEnd(activity);
+            }
+
+            processor.Shutdown();
+
+            void RunTest(Batch<Activity> batch)
+            {
+                exception = Record.Exception(() =>
+                {
+                    result = activityExporter.Export(batch);
+                });
+            }
+
+            Assert.Null(exception);
+            Assert.StrictEqual(ExportResult.Success, result);
             traceClientMock.VerifyAll();
         }
 
