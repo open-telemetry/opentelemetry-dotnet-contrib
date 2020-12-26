@@ -31,7 +31,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
         internal static readonly string ActivitySourceName = AssemblyName.Name;
         internal static readonly Version Version = AssemblyName.Version;
         internal static readonly ActivitySource ActivitySource = new ActivitySource(ActivitySourceName, Version.ToString());
-        private const string ActivityNameByOtel = "ActivityCreatedByOtelMassTransit";
         private readonly MassTransitInstrumentationOptions options;
 
         public MassTransitDiagnosticListener(MassTransitInstrumentationOptions options)
@@ -78,7 +77,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
 
         public override void OnStopActivity(Activity activity, object payload)
         {
-            if (this.options.TracedOperations != null && !this.options.TracedOperations.Any(q => activity.OperationName.Contains(q)))
+            if (this.options.TracedOperations != null && !this.options.TracedOperations.Contains(activity.OperationName))
             {
                 return;
             }
