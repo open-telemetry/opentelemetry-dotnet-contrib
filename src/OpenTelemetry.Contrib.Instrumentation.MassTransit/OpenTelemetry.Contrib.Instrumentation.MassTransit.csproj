@@ -14,7 +14,7 @@
     <Compile Include="$(RepoRoot)\src\Shared\InstrumentationEventSource.cs" Link="Includes\InstrumentationEventSource.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\ListenerHandler.cs" Link="Includes\ListenerHandler.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SuppressInstrumentationScopeLocal.cs" Link="Includes\SuppressInstrumentationScopeLocal.cs" />
-    
+
     <PackageReference Include="OpenTelemetry" Version="1.0.0-rc1.1" />
   </ItemGroup>
 
