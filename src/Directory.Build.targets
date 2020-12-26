@@ -6,7 +6,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryPkgVer)" />
+    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryPkgVer)" Condition="$(MSBuildProjectName) != 'OpenTelemetry.Contrib.Instrumentation.MassTransit' AND $(MSBuildProjectName) != 'OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests'" />
   </ItemGroup>
 
   <PropertyGroup>

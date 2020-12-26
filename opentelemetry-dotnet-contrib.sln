@@ -81,6 +81,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Exten
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Extensions.AWSXRay.Tests", "test\OpenTelemetry.Contrib.Extensions.AWSXRay.Tests\OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.csproj", "{9CE513AC-CFC5-4DD1-9F16-8719EDCE9BF9}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{6F387903-D402-4F6E-9363-0DBD85AF1A0E}"
+	ProjectSection(SolutionItems) = preProject
+		src\Shared\ActivityExtensions.cs = src\Shared\ActivityExtensions.cs
+		src\Shared\DiagnosticSourceListener.cs = src\Shared\DiagnosticSourceListener.cs
+		src\Shared\DiagnosticSourceSubscriber.cs = src\Shared\DiagnosticSourceSubscriber.cs
+		src\Shared\ExceptionExtensions.cs = src\Shared\ExceptionExtensions.cs
+		src\Shared\InstrumentationEventSource.cs = src\Shared\InstrumentationEventSource.cs
+		src\Shared\ListenerHandler.cs = src\Shared\ListenerHandler.cs
+		src\Shared\SuppressInstrumentationScopeLocal.cs = src\Shared\SuppressInstrumentationScopeLocal.cs
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -150,6 +161,7 @@ Global
 		{899E506C-8525-4471-8C6D-5A9FA6B8517B} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{D8C9AD2A-5C6A-46F5-A216-3D67E6C0FA94} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{9CE513AC-CFC5-4DD1-9F16-8719EDCE9BF9} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{6F387903-D402-4F6E-9363-0DBD85AF1A0E} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}

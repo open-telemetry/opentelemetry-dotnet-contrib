@@ -18,20 +18,25 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using OpenTelemetry.Instrumentation;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
 {
     internal class MassTransitDiagnosticListener : ListenerHandler
     {
-        private readonly ActivitySourceAdapter activitySource;
+        internal static readonly AssemblyName AssemblyName = typeof(MassTransitDiagnosticListener).Assembly.GetName();
+        internal static readonly string ActivitySourceName = AssemblyName.Name;
+        internal static readonly Version Version = AssemblyName.Version;
+        internal static readonly ActivitySource ActivitySource = new ActivitySource(ActivitySourceName, Version.ToString());
+        private const string ActivityNameByOtel = "ActivityCreatedByOtelMassTransit";
         private readonly MassTransitInstrumentationOptions options;
 
-        public MassTransitDiagnosticListener(ActivitySourceAdapter activitySource, MassTransitInstrumentationOptions options)
+        public MassTransitDiagnosticListener(MassTransitInstrumentationOptions options)
             : base("MassTransit")
         {
-            this.activitySource = activitySource;
             this.options = options;
         }
 
@@ -42,14 +47,38 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
                 return;
             }
 
-            activity.DisplayName = this.GetDisplayName(activity);
+            string displayName = this.GetDisplayName(activity);
+            ActivityContext activityContext = default;
+            Activity originalActivityCurrent = Activity.Current;
+            if (activity.ParentSpanId == default)
+            {
+                Activity.Current = null;
+            }
+            else
+            {
+                activityContext = new ActivityContext(activity.TraceId, activity.ParentSpanId, activity.ActivityTraceFlags, activity.TraceStateString, true);
+            }
 
-            this.activitySource.Start(activity, this.GetActivityKind(activity));
+            activity = ActivitySource.StartActivity(activity.OperationName, this.GetActivityKind(originalActivityCurrent), activityContext);
+
+            if (activity == null)
+            {
+                Activity.Current = originalActivityCurrent;
+            }
+            else
+            {
+                foreach (var tag in originalActivityCurrent.TagObjects)
+                {
+                    activity.SetTag(tag.Key, tag.Value);
+                }
+            }
+
+            activity.DisplayName = displayName;
         }
 
         public override void OnStopActivity(Activity activity, object payload)
         {
-            if (this.options.TracedOperations != null && !this.options.TracedOperations.Contains(activity.OperationName))
+            if (this.options.TracedOperations != null && !this.options.TracedOperations.Any(q => activity.OperationName.Contains(q)))
             {
                 return;
             }
@@ -59,7 +88,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
                 this.TransformMassTransitTags(activity);
             }
 
-            this.activitySource.Stop(activity);
+            activity.Stop();
         }
 
         private string GetDisplayName(Activity activity)

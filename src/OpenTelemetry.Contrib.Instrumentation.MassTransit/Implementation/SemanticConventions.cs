@@ -16,7 +16,7 @@
 
 namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
 {
-    internal class SemanticConventions
+    internal static class SemanticConventions
     {
         public const string AttributeNetTransport = "net.transport";
         public const string AttributeNetPeerIp = "net.peer.ip";

@@ -16,6 +16,7 @@
 
 using System;
 using OpenTelemetry.Contrib.Instrumentation.MassTransit;
+using OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation;
 
 namespace OpenTelemetry.Trace
 {
@@ -42,7 +43,10 @@ namespace OpenTelemetry.Trace
             var options = new MassTransitInstrumentationOptions();
             configureMassTransitInstrumentationOptions?.Invoke(options);
 
-            return builder.AddInstrumentation(activitySource => new MassTransitInstrumentation(activitySource, options));
+            builder.AddSource(MassTransitDiagnosticListener.ActivitySourceName);
+            builder.AddInstrumentation(() => new MassTransitInstrumentation(options));
+
+            return builder;
         }
     }
 }

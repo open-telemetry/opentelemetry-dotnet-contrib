@@ -21,6 +21,7 @@ using System.Threading.Tasks;
 using MassTransit.Testing;
 using Moq;
 using OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -261,7 +262,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                 }
             }
 
-            Assert.Equal(4, activityProcessor.Invocations.Count);
+            Assert.Equal(5, activityProcessor.Invocations.Count);
 
             var consumes = this.GetActivitiesFromInvocationsByOperationName(activityProcessor.Invocations, OperationName.Consumer.Consume);
 
@@ -274,7 +275,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                 invocations
                     .Where(i =>
                         i.Arguments.OfType<Activity>()
-                            .Any(a => a.OperationName == operationName))
+                            .Any(a => a.OperationName.Contains(operationName)))
                     .Select(i => i.Arguments.OfType<Activity>().Single());
         }
     }
