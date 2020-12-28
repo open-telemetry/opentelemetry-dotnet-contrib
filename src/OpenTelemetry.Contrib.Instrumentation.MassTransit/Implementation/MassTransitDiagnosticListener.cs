@@ -41,14 +41,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
 
         public override void OnStartActivity(Activity activity, object payload)
         {
-            if (this.options.TracedOperations != null && !this.options.TracedOperations.Contains(activity.OperationName))
+            if (this.options.TracedOperations?.Contains(activity.OperationName) == false)
             {
                 return;
             }
 
             string displayName = this.GetDisplayName(activity);
             ActivityContext activityContext = default;
-            Activity originalActivityCurrent = Activity.Current;
+            Activity originalActivityCurrent = activity;
             if (activity.ParentSpanId == default)
             {
                 Activity.Current = null;
@@ -63,10 +63,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
             if (activity == null)
             {
                 Activity.Current = originalActivityCurrent;
+                activity = originalActivityCurrent;
             }
             else
             {
-                foreach (var tag in originalActivityCurrent.TagObjects)
+                foreach (var tag in originalActivityCurrent?.TagObjects)
                 {
                     activity.SetTag(tag.Key, tag.Value);
                 }
@@ -77,7 +78,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
 
         public override void OnStopActivity(Activity activity, object payload)
         {
-            if (this.options.TracedOperations != null && !this.options.TracedOperations.Contains(activity.OperationName))
+            if (this.options.TracedOperations?.Contains(activity.OperationName) == false)
             {
                 return;
             }
