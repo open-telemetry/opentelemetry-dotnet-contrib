@@ -9,9 +9,6 @@ on:
   schedule:
     - cron: '0 0 * * *' # once in a day at 00:00  
   workflow_dispatch:
-  pull_request:
-    branches:
-      - master
 
 jobs:
   analyze:
