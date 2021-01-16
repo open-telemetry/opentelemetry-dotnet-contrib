@@ -186,9 +186,7 @@ var currentActivity = Activity.Current;
 currentActivity.SetTag("key", "val");
 ```
 
-#### Note
-
-* When using AWS X-Ray as your tracing backend, you can control whether
+When using AWS X-Ray as your tracing backend, you can control whether
 attributes are uploaded as annotations or metadata by configuring the
 AWS OTel Collector's indexed keys.
 By default, all attributes will be metadata.
