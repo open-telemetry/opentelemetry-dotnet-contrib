@@ -10,7 +10,7 @@ In order to instrument your .Net application for tracing, start by downloading t
 dotnet add package OpenTelemetry
 ```
 
-By default, the OpenTelemetry SDK generates traces with W3C random ID which X-Ray backend doesn’t support yet. You need to install the `OpenTelemetry.Contrib.Extensions.AWSXRay` to be able to use the `AWSXRayIdGenerator` which generates X-Ray compatible trace IDs. If you plan to call an AWS service or another application instrumented with AWS X-Ray SDK, you’ll need to use the `AWSXRayPropagator` as well.
+By default, the OpenTelemetry SDK generates traces with W3C random ID which X-Ray backend doesn't support yet. You need to install the `OpenTelemetry.Contrib.Extensions.AWSXRay` to be able to use the `AWSXRayIdGenerator` which generates X-Ray compatible trace IDs. If you plan to call an AWS service or another application instrumented with AWS X-Ray SDK, you'll need to use the `AWSXRayPropagator` as well.
 
 ```
 dotnet add package OpenTelemetry.Contrib.Extensions.AWSXRay
@@ -18,7 +18,7 @@ dotnet add package OpenTelemetry.Contrib.Extensions.AWSXRay
 
 ### Note
 
-* You’ll also need to have the [AWS Distro for OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/master/exporter/awsxrayexporter) running to export traces to X-Ray.
+* You'll also need to have the [AWS Distro for OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/master/exporter/awsxrayexporter) running to export traces to X-Ray.
 
 ### Instrumenting .Net applications
 
@@ -31,7 +31,7 @@ dotnet add package OpenTelemetry.Instrumentation.AspNetCore
 dotnet add package OpenTelemetry.Exporter.OpenTelemetryProtocol
 ```
 
-Next, in your application’s **Startup.cs** add the instrumentation and the OTLP exporter as services in the `ConfigureServices` method. Make sure to call `AddXRayTraceId()` in the **beginning** when building `TracerProviderBuilder`. If you want to trace AWS services, make sure to configure `AWSXRayPropagator`.
+Next, in your application's **Startup.cs** add the instrumentation and the OTLP exporter as services in the `ConfigureServices` method. Make sure to call `AddXRayTraceId()` in the **beginning** when building `TracerProviderBuilder`. If you want to trace AWS services, make sure to configure `AWSXRayPropagator`.
 
 ```
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
@@ -43,7 +43,7 @@ public void ConfigureServices(IServiceCollection services)
         .AddXRayTraceId() // for generating AWS X-Ray compliant trace IDs
         .AddAspNetCoreInstrumentation()
         .AddOtlpExporter());
-    Sdk.SetDefaultTextMapPropagator(new AWSXRayPropagator()); // configure AWSXRayPropagator()            
+    Sdk.SetDefaultTextMapPropagator(new AWSXRayPropagator()); // configure AWSXRayPropagator
 }
 ```
 
@@ -88,9 +88,9 @@ public class WebApiApplication : HttpApplication
             .AddAspNetInstrumentation()
             .AddOtlpExporter()
             .Build();
-        Sdk.SetDefaultTextMapPropagator(new AWSXRayPropagator()); // configure AWSXRayPropagator()            
+        Sdk.SetDefaultTextMapPropagator(new AWSXRayPropagator()); // configure AWSXRayPropagator
     }
-    
+
     protected void Application_End()
     {
         this.tracerProvider?.Dispose();
@@ -100,7 +100,7 @@ public class WebApiApplication : HttpApplication
 
 #### Console
 
-Make sure to call `AddXRayTraceIdWithSampler()` in the **beginning** when building `TracerProviderBuilder`. You’ll need to pass the sampler you’re using in your application. If you’re using the default sampler, just pass `new ParentBasedSampler(new AlwaysOnSampler())`. If you want to trace AWS services, make sure to configure `AWSXRayPropagator`.
+Make sure to call `AddXRayTraceIdWithSampler()` in the **beginning** when building `TracerProviderBuilder`. You'll need to pass the sampler you're using in your application. If you're using the default sampler, just pass `new ParentBasedSampler(new AlwaysOnSampler())`. If you want to trace AWS services, make sure to configure `AWSXRayPropagator`.
 
 ```
 using OpenTelemetry;
@@ -111,14 +111,14 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .AddXRayTraceIdWithSampler(your_sampler) // for generating AWS X-Ray compliant trace IDs
                 .AddOtlpExporter()
                 .Build();
-Sdk.SetDefaultTextMapPropagator(new AWSXRayPropagator()); // configure AWSXRayPropagator()
+Sdk.SetDefaultTextMapPropagator(new AWSXRayPropagator()); // configure AWSXRayPropagator
 ```
 
 ### Instrumenting AWS SDK
 
-For tracing downstream call to AWS services from your .Net application, you will need three components: the `AWSXRayIdGenerator`, the `AWSXRayPropagator`, and the AWS client instrumentation. 
+For tracing downstream call to AWS services from your .Net application, you will need three components: the `AWSXRayIdGenerator`, the `AWSXRayPropagator`, and the AWS client instrumentation.
 
- Download the OpenTelemetry.Contrib.Instrumentation.AWS package:
+ Download the `OpenTelemetry.Contrib.Extensions.AWSXRay` package:
 
 ```
 dotnet add package OpenTelemetry.Contrib.Extensions.AWSXRay
@@ -138,8 +138,8 @@ public void ConfigureServices(IServiceCollection services)
         .AddXRayTraceId() // for generating AWS X-Ray compliant trace IDs
         .AddAWSInstrumentation() // for tracing calls to AWS services via AWS SDK for .Net
         .AddAspNetCoreInstrumentation()
-        .AddOtlpExporter());   
-    Sdk.SetDefaultTextMapPropagator(new AWSXRayPropagator()); // configure AWSXRayPropagator()            
+        .AddOtlpExporter());
+    Sdk.SetDefaultTextMapPropagator(new AWSXRayPropagator()); // configure AWSXRayPropagator
 }
 ```
 
@@ -153,7 +153,7 @@ currentActivity.SetTag("key", "val");
 ```
 
 #### Note:
-* When using AWS X-Ray as your tracing backend, you can control whether attributes are uploaded as annotations or metadata by configuring the AWS OTel Collector’s indexed [keys](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/master/exporter/awsxrayexporter#exporter-configuration). By default, all attributes will be metadata.
+* When using AWS X-Ray as your tracing backend, you can control whether attributes are uploaded as annotations or metadata by configuring the AWS OTel Collector's indexed [keys](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/master/exporter/awsxrayexporter#exporter-configuration). By default, all attributes will be metadata.
 
 ## References
 
