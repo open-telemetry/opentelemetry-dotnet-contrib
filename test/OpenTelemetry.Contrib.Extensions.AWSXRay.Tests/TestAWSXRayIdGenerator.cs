@@ -19,7 +19,7 @@ using System.Diagnostics;
 using OpenTelemetry.Trace;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSRay.Tests
+namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
 {
     public class TestAWSXRayIdGenerator
     {
@@ -31,7 +31,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSRay.Tests
             var originalParentSpanId = activity.ParentSpanId;
             var originalTraceFlag = activity.ActivityTraceFlags;
 
-            using (Sdk.CreateTracerProviderBuilder().AddXRayActivityTraceIdGenerator().Build())
+            using (Sdk.CreateTracerProviderBuilder().AddXRayTraceId().Build())
             {
                 activity.Start();
 
@@ -43,14 +43,14 @@ namespace OpenTelemetry.Contrib.Extensions.AWSRay.Tests
         }
 
         [Fact]
-        public void TestGenerateTraceIdForNonRootNodeSampled()
+        public void TestGenerateTraceIdForNonRootNode()
         {
             var activity = new Activity("Test");
             var traceId = ActivityTraceId.CreateFromString("12345678901234567890123456789012".AsSpan());
             var parentId = ActivitySpanId.CreateFromString("1234567890123456".AsSpan());
             activity.SetParentId(traceId, parentId, ActivityTraceFlags.Recorded);
 
-            using (Sdk.CreateTracerProviderBuilder().AddXRayActivityTraceIdGenerator().Build())
+            using (Sdk.CreateTracerProviderBuilder().AddXRayTraceId().Build())
             {
                 activity.Start();
 
@@ -68,13 +68,51 @@ namespace OpenTelemetry.Contrib.Extensions.AWSRay.Tests
             var parentId = ActivitySpanId.CreateFromString("1234567890123456".AsSpan());
             activity.SetParentId(traceId, parentId, ActivityTraceFlags.None);
 
-            using (Sdk.CreateTracerProviderBuilder().AddXRayActivityTraceIdGenerator().Build())
+            using (Sdk.CreateTracerProviderBuilder().AddXRayTraceId().Build())
             {
                 activity.Start();
 
                 Assert.Equal("12345678901234567890123456789012", activity.TraceId.ToHexString());
                 Assert.Equal("1234567890123456", activity.ParentSpanId.ToHexString());
                 Assert.Equal(ActivityTraceFlags.None, activity.ActivityTraceFlags);
+            }
+        }
+
+        [Fact]
+        public void TestGenerateTraceIdForRootNodeUsingActivitySourceWithTraceIdBasedSamplerOn()
+        {
+            using (Sdk.CreateTracerProviderBuilder()
+                .AddXRayTraceIdWithSampler(new TraceIdRatioBasedSampler(1.0))
+                .AddSource("TestTraceIdBasedSamplerOn")
+                .SetSampler(new TraceIdRatioBasedSampler(1.0))
+                .Build())
+            {
+                using (var activitySource = new ActivitySource("TestTraceIdBasedSamplerOn"))
+                {
+                    using (var activity = activitySource.StartActivity("RootActivity", ActivityKind.Internal))
+                    {
+                        Assert.True(activity.ActivityTraceFlags == ActivityTraceFlags.Recorded);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestGenerateTraceIdForRootNodeUsingActivitySourceWithTraceIdBasedSamplerOff()
+        {
+            using (Sdk.CreateTracerProviderBuilder()
+                .AddXRayTraceIdWithSampler(new TraceIdRatioBasedSampler(0.0))
+                .AddSource("TestTraceIdBasedSamplerOff")
+                .SetSampler(new TraceIdRatioBasedSampler(0.0))
+                .Build())
+            {
+                using (var activitySource = new ActivitySource("TestTraceIdBasedSamplerOff"))
+                {
+                    using (var activity = activitySource.StartActivity("RootActivity", ActivityKind.Internal))
+                    {
+                        Assert.True(activity.ActivityTraceFlags == ActivityTraceFlags.None);
+                    }
+                }
             }
         }
     }
