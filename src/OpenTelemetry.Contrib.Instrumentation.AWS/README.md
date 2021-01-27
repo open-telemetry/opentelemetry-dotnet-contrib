@@ -1,4 +1,4 @@
-﻿# AWS SDK client instrumentation for OpenTelemetry
+# AWS SDK client instrumentation for OpenTelemetry
 
 Download the `OpenTelemetry.Contrib.Instrumentation.AWS` package:
 
