@@ -25,7 +25,7 @@ using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWS
+namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation
 {
     internal class AWSTracingPipelineHandler : PipelineHandler
     {

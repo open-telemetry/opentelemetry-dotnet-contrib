@@ -16,7 +16,7 @@
 
 using Amazon.Runtime.Internal;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWS
+namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation
 {
     internal class AWSClientsInstrumentation
     {

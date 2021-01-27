@@ -16,6 +16,7 @@
 
 using System;
 using OpenTelemetry.Contrib.Instrumentation.AWS;
+using OpenTelemetry.Contrib.Instrumentation.AWS.Implementation;
 
 namespace OpenTelemetry.Trace
 {

@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWS
+namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation
 {
     internal static class AWSSemanticConventions
     {
