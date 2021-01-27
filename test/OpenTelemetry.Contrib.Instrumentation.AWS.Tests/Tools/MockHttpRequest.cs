@@ -26,7 +26,7 @@ using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 using Amazon.Runtime.Internal.Transform;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
+namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
 {
 #if NET452
     internal class MockHttpRequest : IHttpRequest<Stream>

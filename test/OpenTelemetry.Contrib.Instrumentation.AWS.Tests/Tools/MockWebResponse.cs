@@ -22,7 +22,7 @@ using System.Net;
 using System.Net.Http;
 using System.Reflection;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
+namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
 {
     internal class MockWebResponse
     {

@@ -27,7 +27,7 @@ using Moq;
 using OpenTelemetry.Trace;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
+namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
 {
     public class TestAWSClientInstrumentation
     {

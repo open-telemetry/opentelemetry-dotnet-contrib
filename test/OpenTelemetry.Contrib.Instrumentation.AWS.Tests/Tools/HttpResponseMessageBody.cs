@@ -20,7 +20,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Amazon.Runtime.Internal.Transform;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
+namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
 {
     internal class HttpResponseMessageBody : IHttpResponseBody
     {

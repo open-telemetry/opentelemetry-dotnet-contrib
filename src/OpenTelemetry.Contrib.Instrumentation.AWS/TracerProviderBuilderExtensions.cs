@@ -15,28 +15,35 @@
 // </copyright>
 
 using System;
-using OpenTelemetry.Contrib.Extensions.AWSXRay;
+using OpenTelemetry.Contrib.Instrumentation.AWS;
 
 namespace OpenTelemetry.Trace
 {
     /// <summary>
-    /// Extension method to generate AWS X-Ray compatible trace id and replace the trace id of root activity.
+    /// Extension methods to simplify registering of dependency instrumentation.
     /// </summary>
     public static class TracerProviderBuilderExtensions
     {
         /// <summary>
-        /// Replace the trace id of root activity.
+        /// Enables AWS Instrumentation.
         /// </summary>
         /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-        /// <returns>The instance of <see cref="TracerProviderBuilder"/>.</returns>
-        public static TracerProviderBuilder AddXRayActivityTraceIdGenerator(this TracerProviderBuilder builder)
+        /// <param name="configure">AWS client configuration options.</param>
+        /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+        public static TracerProviderBuilder AddAWSInstrumentation(
+            this TracerProviderBuilder builder,
+            Action<AWSClientInstrumentationOptions> configure = null)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            AWSXRayIdGenerator.ReplaceTraceId();
+            var awsClientOptions = new AWSClientInstrumentationOptions();
+            configure?.Invoke(awsClientOptions);
+
+            new AWSClientsInstrumentation(awsClientOptions);
+            builder.AddSource("Amazon.AWS.AWSClientInstrumentation");
             return builder;
         }
     }

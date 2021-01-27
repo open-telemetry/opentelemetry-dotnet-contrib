@@ -20,7 +20,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
+namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
 {
     internal static class Utils
     {

@@ -20,7 +20,7 @@ using System.Net;
 using System.Net.Http;
 using Amazon.Runtime;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
+namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
 {
 #if NET452
     internal class MockHttpRequestFactory : IHttpRequestFactory<Stream>

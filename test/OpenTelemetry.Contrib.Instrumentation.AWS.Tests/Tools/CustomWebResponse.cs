@@ -22,7 +22,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using Amazon.Runtime.Internal.Transform;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
+namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
 {
     internal class CustomWebResponse : IWebResponseData
     {
