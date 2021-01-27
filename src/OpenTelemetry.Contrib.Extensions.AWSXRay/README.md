@@ -140,42 +140,6 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 Sdk.SetDefaultTextMapPropagator(new AWSXRayPropagator());
 ```
 
-### Instrumenting AWS SDK
-
-For tracing downstream call to AWS services from your .Net application,
-you will need three components: the `AWSXRayIdGenerator`,
-the `AWSXRayPropagator`, and the AWS client instrumentation.
-
-Download the `OpenTelemetry.Contrib.Extensions.AWSXRay` package:
-
-```shell
-dotnet add package OpenTelemetry.Contrib.Extensions.AWSXRay
-```
-
-Add the `AWSXRayIdGenerator`, `AWSXRayPropagator` and `AWSInstrumentation`
-to your application. The below example is for an ASP.Net Core application.
-
-```csharp
-using OpenTelemetry;
-using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
-using OpenTelemetry.Trace;
-
-public void ConfigureServices(IServiceCollection services)
-{
-    services.AddControllers();
-    services.AddOpenTelemetryTracing((builder) => builder
-        // for generating AWS X-Ray compliant trace IDs
-        .AddXRayTraceId()
-        // for tracing calls to AWS services via AWS SDK for .Net
-        .AddAWSInstrumentation()
-        .AddAspNetCoreInstrumentation()
-        .AddOtlpExporter());
-
-    // configure AWSXRayPropagator
-    Sdk.SetDefaultTextMapPropagator(new AWSXRayPropagator());
-}
-```
-
 ### Adding Custom Attributes
 
 You can add custom attributes to an `Activity` by calling
