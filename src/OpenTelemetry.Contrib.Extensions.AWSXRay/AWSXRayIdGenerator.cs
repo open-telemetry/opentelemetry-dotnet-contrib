@@ -19,6 +19,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay
 {
@@ -47,7 +48,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay
             return new Random(seed);
         });
 
-        internal static void ReplaceTraceId()
+        internal static void ReplaceTraceId(Sampler sampler = null)
         {
             var awsXRayActivityListener = new ActivityListener
             {
@@ -57,7 +58,15 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay
                     {
                         var awsXRayTraceId = GenerateAWSXRayCompatiableTraceId();
 
+                        // TODO: Apply API to directly modify trace id once .NET runtime publicizes it.
                         activity.SetParentId(awsXRayTraceId, default, activity.ActivityTraceFlags);
+
+                        // When not using instrumented library and creating root activity using ActivitySource.StartActivity(),
+                        // need to update the sampling decision as sampler may be trace id dependent.
+                        if (sampler != null)
+                        {
+                            UpdateSamplingDecision(activity, sampler);
+                        }
                     }
                 },
 
@@ -76,6 +85,25 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay
             var newTraceId = string.Concat(epoch.ToString("x", CultureInfo.InvariantCulture), randomNumber);
 
             return ActivityTraceId.CreateFromString(newTraceId.AsSpan());
+        }
+
+        internal static void UpdateSamplingDecision(Activity activity, Sampler sampler)
+        {
+            if (!(sampler is AlwaysOnSampler) && !(sampler is AlwaysOffSampler))
+            {
+                ActivitySamplingResult result = !Sdk.SuppressInstrumentation ? ComputeRootActivitySamplingResult(activity, sampler) : ActivitySamplingResult.None;
+
+                activity.ActivityTraceFlags = ActivityTraceFlags.None;
+
+                // Following the same behavior when .NET runtime sets the trace flag for a newly created root activity.
+                // See: https://github.com/dotnet/runtime/blob/master/src/libraries/System.Diagnostics.DiagnosticSource/src/System/Diagnostics/Activity.cs#L1022-L1027
+                activity.IsAllDataRequested = result == ActivitySamplingResult.AllData || result == ActivitySamplingResult.AllDataAndRecorded;
+
+                if (result == ActivitySamplingResult.AllDataAndRecorded)
+                {
+                    activity.ActivityTraceFlags |= ActivityTraceFlags.Recorded;
+                }
+            }
         }
 
         /// <summary>
@@ -130,6 +158,43 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay
         private static int Next(int maxValue)
         {
             return Local.Value.Next(maxValue);
+        }
+
+        private static ActivitySamplingResult ComputeRootActivitySamplingResult(
+            Activity activity,
+            Sampler sampler)
+        {
+            // Parent context is default for root activity
+            var samplingParameters = new SamplingParameters(
+                default,
+                activity.TraceId,
+                activity.DisplayName,
+                activity.Kind,
+                activity.TagObjects,
+                activity.Links);
+
+            var shouldSample = sampler.ShouldSample(samplingParameters);
+
+            var activitySamplingResult = shouldSample.Decision switch
+            {
+                SamplingDecision.RecordAndSample => ActivitySamplingResult.AllDataAndRecorded,
+                SamplingDecision.RecordOnly => ActivitySamplingResult.AllData,
+                _ => ActivitySamplingResult.PropagationData
+            };
+
+            if (activitySamplingResult != ActivitySamplingResult.PropagationData)
+            {
+                // Update sampling attributes as we need to update the sampling decision
+                foreach (var att in shouldSample.Attributes)
+                {
+                    activity.SetTag(att.Key, att.Value);
+                }
+
+                return activitySamplingResult;
+            }
+
+            // Return PropagationData for root activity in this case.
+            return ActivitySamplingResult.PropagationData;
         }
     }
 }

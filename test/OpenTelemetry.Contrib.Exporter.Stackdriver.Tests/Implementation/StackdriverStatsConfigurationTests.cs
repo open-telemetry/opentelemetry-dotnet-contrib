@@ -37,7 +37,7 @@ namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Tests
         }
 
         [Fact]
-        public void StatsConfiguration_ByDeafult_ProjectIdIsGoogleCloudProjectId()
+        public void StatsConfiguration_ByDefault_ProjectIdIsGoogleCloudProjectId()
         {
             Assert.NotNull(StackdriverStatsConfiguration.Default);
             Assert.Equal(GoogleCloudResourceUtils.GetProjectId(), StackdriverStatsConfiguration.Default.ProjectId);

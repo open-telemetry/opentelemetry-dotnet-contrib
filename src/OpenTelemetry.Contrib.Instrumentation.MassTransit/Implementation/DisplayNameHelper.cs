@@ -37,12 +37,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
         public static string GetHandleOperationDisplayName(string peerAddress) =>
             HandleOperationDisplayNameCache.GetOrAdd(peerAddress, ConvertHandleOperationToDisplayName);
 
-        private static string ConvertSendOperationToDisplayName(string peerAddress) => $"SEND {peerAddress}";
+        private static string ConvertSendOperationToDisplayName(string peerAddress) => $"{peerAddress} send";
 
-        private static string ConvertReceiveOperationToDisplayName(string peerAddress) => $"RECV {peerAddress}";
+        private static string ConvertReceiveOperationToDisplayName(string peerAddress) => $"{peerAddress} consume";
 
-        private static string ConvertConsumeOperationToDisplayName(string consumerType) => $"CONSUME {consumerType}";
+        private static string ConvertConsumeOperationToDisplayName(string consumerType) => $"{consumerType} process";
 
-        private static string ConvertHandleOperationToDisplayName(string peerAddress) => $"HANDLE {peerAddress}";
+        private static string ConvertHandleOperationToDisplayName(string peerAddress) => $"{peerAddress} process";
     }
 }
