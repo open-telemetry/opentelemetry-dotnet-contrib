@@ -40,7 +40,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
 
             using (Sdk.CreateTracerProviderBuilder()
                 .SetSampler(new AlwaysOnSampler())
-                .AddXRayActivityTraceIdGenerator()
+                .AddXRayTraceId()
                 .AddAWSInstrumentation()
                 .AddProcessor(processor.Object)
                 .Build())
@@ -79,7 +79,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
 
             using (Sdk.CreateTracerProviderBuilder()
                 .SetSampler(new AlwaysOnSampler())
-                .AddXRayActivityTraceIdGenerator()
+                .AddXRayTraceId()
                 .AddAWSInstrumentation()
                 .AddProcessor(processor.Object)
                 .Build())
@@ -128,7 +128,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
             var parent = new Activity("parent").Start();
 
             using (Sdk.CreateTracerProviderBuilder()
-                .AddXRayActivityTraceIdGenerator()
+                .AddXRayTraceId()
                 .SetSampler(new AlwaysOnSampler())
                 .AddAWSInstrumentation()
                 .AddProcessor(processor.Object)
