@@ -14,10 +14,26 @@
 // limitations under the License.
 // </copyright>
 
+using System.Collections.Generic;
+using System.Diagnostics;
+
 namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation
 {
     internal class Utils
     {
+        internal static object GetTagValue(Activity activity, string tagName)
+        {
+            foreach (KeyValuePair<string, string> tag in activity.Tags)
+            {
+                if (tag.Key.Equals(tagName))
+                {
+                    return tag.Value;
+                }
+            }
+
+            return null;
+        }
+
         internal static string RemoveSuffix(string originalString, string suffix)
         {
             if (originalString.EndsWith(suffix))

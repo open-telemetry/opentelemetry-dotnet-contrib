@@ -158,7 +158,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation
 
             if (activity.IsAllDataRequested)
             {
-                if (activity.GetTagValue(AWSSemanticConventions.AttributeAWSRequestId) == null)
+                if (Utils.GetTagValue(activity, AWSSemanticConventions.AttributeAWSRequestId) == null)
                 {
                     activity.SetTag(AWSSemanticConventions.AttributeAWSRequestId, this.FetchRequestId(requestContext, responseContext));
                 }

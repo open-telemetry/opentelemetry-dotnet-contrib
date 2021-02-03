@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -66,6 +67,19 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
                     yield return resource;
                 }
             }
+        }
+
+        public static object GetTagValue(Activity activity, string tagName)
+        {
+            foreach (KeyValuePair<string, string> tag in activity.Tags)
+            {
+                if (tag.Key.Equals(tagName))
+                {
+                    return tag.Value;
+                }
+            }
+
+            return null;
         }
     }
 }
