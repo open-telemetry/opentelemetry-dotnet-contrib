@@ -6,7 +6,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryPkgVer)" />
   </ItemGroup>
 
   <PropertyGroup>
