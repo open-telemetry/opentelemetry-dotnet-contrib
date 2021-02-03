@@ -28,7 +28,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Trace
     /// <summary>
     /// Propagator for AWS X-Ray. See https://docs.aws.amazon.com/xray/latest/devguide/xray-concepts.html#xray-concepts-tracingheader.
     /// </summary>
-    public class AWSXRayPropagator : IPropagator
+    public class AWSXRayPropagator : TextMapPropagator
     {
         private const string AWSXRayTraceHeaderKey = "X-Amzn-Trace-Id";
         private const char KeyValueDelimiter = '=';
@@ -51,10 +51,10 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Trace
         private const char NotSampledValue = '0';
 
         /// <inheritdoc/>
-        public ISet<string> Fields => new HashSet<string>() { AWSXRayTraceHeaderKey };
+        public override ISet<string> Fields => new HashSet<string>() { AWSXRayTraceHeaderKey };
 
         /// <inheritdoc/>
-        public PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>> getter)
+        public override PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>> getter)
         {
             if (context.ActivityContext.IsValid())
             {
@@ -100,7 +100,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Trace
         }
 
         /// <inheritdoc/>
-        public void Inject<T>(PropagationContext context, T carrier, Action<T, string, string> setter)
+        public override void Inject<T>(PropagationContext context, T carrier, Action<T, string, string> setter)
         {
             if (context.ActivityContext.TraceId == default || context.ActivityContext.SpanId == default)
             {
