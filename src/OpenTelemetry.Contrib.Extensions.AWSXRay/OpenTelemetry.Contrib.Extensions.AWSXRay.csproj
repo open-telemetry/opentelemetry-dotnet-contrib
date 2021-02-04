@@ -4,7 +4,22 @@
     <TargetFrameworks>net452;netstandard2.0</TargetFrameworks>
     <Description>OpenTelemetry extensions for AWS X-Ray.</Description>
   </PropertyGroup>
+  
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="1.0.0-rc2" />
   </ItemGroup>
+  
+  <PropertyGroup>
+    <MinVerTagPrefix>Extensions.AWSXRay-</MinVerTagPrefix>
+  </PropertyGroup>
+    
+  <Target Name="AssemblyVersionTarget" AfterTargets="MinVer" Condition="'$(MinVerVersion)'!=''">
+    <PropertyGroup>
+      <RevisionNumber>0</RevisionNumber>
+      <RevisionNumber Condition="$(MinVerVersion.Split(`.`).Length) == 4">$(MinVerVersion.Split(`.`)[3])</RevisionNumber>
+      <AssemblyVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(RevisionNumber)</AssemblyVersion>
+      <Version>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(RevisionNumber)</Version>
+      <FileVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(RevisionNumber)</FileVersion>
+    </PropertyGroup>
+  </Target>
 </Project>
