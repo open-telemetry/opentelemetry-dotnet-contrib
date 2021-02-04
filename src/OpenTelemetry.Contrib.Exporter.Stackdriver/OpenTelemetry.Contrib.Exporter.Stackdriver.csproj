@@ -10,5 +10,8 @@
     <PackageReference Include="Google.Cloud.Trace.V2" Version="2.0.0" />
     <PackageReference Include="OpenTelemetry" Version="0.7.0-beta.1" />
   </ItemGroup>
-
+    
+  <PropertyGroup>
+    <MinVerTagPrefix>Exporter.Stackdriver-</MinVerTagPrefix>
+  </PropertyGroup>
 </Project>
