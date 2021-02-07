@@ -58,9 +58,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
                 ddb.ScanAsync(scan_request);
 #endif
                 var count = processor.Invocations.Count;
-                Assert.Equal(2, count);
 
-                Activity awssdk_activity = (Activity)processor.Invocations[0].Arguments[0];
+                Assert.Equal(3, count);
+
+                Activity awssdk_activity = (Activity)processor.Invocations[2].Arguments[0];
 
                 this.ValidateAWSActivity(awssdk_activity, parent);
                 this.ValidateDynamoActivityTags(awssdk_activity);
@@ -106,9 +107,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
                 catch (AmazonServiceException)
                 {
                     var count = processor.Invocations.Count;
-                    Assert.Equal(2, count);
+                    Assert.Equal(3, count);
 
-                    Activity awssdk_activity = (Activity)processor.Invocations[0].Arguments[0];
+                    Activity awssdk_activity = (Activity)processor.Invocations[2].Arguments[0];
 
                     this.ValidateAWSActivity(awssdk_activity, parent);
                     this.ValidateDynamoActivityTags(awssdk_activity);
@@ -149,8 +150,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
 #endif
 
                 var count = processor.Invocations.Count;
-                Assert.Equal(2, count);
-                Activity awssdk_activity = (Activity)processor.Invocations[0].Arguments[0];
+                Assert.Equal(3, count);
+                Activity awssdk_activity = (Activity)processor.Invocations[2].Arguments[0];
 
                 this.ValidateAWSActivity(awssdk_activity, parent);
                 this.ValidateSqsActivityTags(awssdk_activity);

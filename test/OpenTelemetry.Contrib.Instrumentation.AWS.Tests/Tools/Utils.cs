@@ -71,15 +71,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
 
         public static object GetTagValue(Activity activity, string tagName)
         {
-            foreach (KeyValuePair<string, string> tag in activity.Tags)
-            {
-                if (tag.Key.Equals(tagName))
-                {
-                    return tag.Value;
-                }
-            }
-
-            return null;
+            return OpenTelemetry.Contrib.Instrumentation.AWS.Implementation.Utils.GetTagValue(activity, tagName);
         }
     }
 }
