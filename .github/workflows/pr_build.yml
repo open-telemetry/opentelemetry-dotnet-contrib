@@ -1,4 +1,4 @@
-name: Windows
+name: PR build and test
 
 on:
   pull_request:
@@ -8,20 +8,25 @@ on:
 
 jobs:
   build-test:
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false  # ensures the entire test matrix is run, even if one permutation fails
       matrix:
+        os: [windows-latest,ubuntu-latest]
         version: [net461,netcoreapp2.1,netcoreapp3.1]
+        exclude:
+          - os: ubuntu-latest
+            version: net461
 
     steps:
     - uses: actions/checkout@v2
-        
+
     - name: Install dependencies
       run: dotnet restore
 
     - name: Build
       run: dotnet build --configuration Release --no-restore
 
-    - name: Test ${{ matrix.version }}
-      run: dotnet test **\bin\**\${{ matrix.version }}\*Tests.dll
+    - name: Test
+      run: dotnet test **/bin/**/${{ matrix.version }}/*.Tests.dll
