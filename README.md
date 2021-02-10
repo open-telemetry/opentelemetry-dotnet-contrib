@@ -26,7 +26,29 @@ help with reviews and code approval. However, as individual components are
 developed by numerous contributors, approvers and maintainers are not expected
 to directly contribute to every component.
 
-This repository is great for community supported components. Vendor specific
-code that requires a higher supportability guarantees needs to be placed in
-vendor's repository. Packages in vendor repositories would be prefixed with the
-vendor name to signify the difference from community-supported components.
+Approvers
+([@open-telemetry/dotnet-approvers](https://github.com/orgs/open-telemetry/teams/dotnet-approvers)):
+
+* [Bruno Garcia](https://github.com/bruno-garcia), Sentry
+* [Eddy Nakamura](https://github.com/eddynaka), Microsoft
+* [Paulo Janotti](https://github.com/pjanotti), Splunk
+* [Reiley Yang](https://github.com/reyang), Microsoft
+
+*Find more about the approver role in [community
+repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#approver).*
+
+Maintainers
+([@open-telemetry/dotnet-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-maintainers)):
+
+* [Alan West](https://github.com/alanwest), New Relic
+* [Cijo Thomas](https://github.com/cijothomas), Microsoft
+* [Mike Goldsmith](https://github.com/MikeGoldsmith), Honeycomb
+* [Mikel Blanchard](https://github.com/CodeBlanch), CoStar Group
+* [Sergey Kanzhelev](https://github.com/SergeyKanzhelev), Google
+
+*Find more about the maintainer role in [community
+repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#maintainer).*
+
+## Thanks to all the people who have contributed
+
+[![contributors](https://contributors-img.web.app/image?repo=open-telemetry/opentelemetry-dotnet-contrib)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/graphs/contributors)
