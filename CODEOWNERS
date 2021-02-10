@@ -2,19 +2,16 @@
 # This file controls who is tagged for review for any given pull request.
 
 # For anything not explicitly taken by someone else:
-* @open-telemetry/dotnet-approvers
+* @open-telemetry/dotnet-contrib-approvers
 
-src/OpenTelemetry.Contrib.Exporter.Stackdriver/                             @open-telemetry/dotnet-approvers
-test/OpenTelemetry.Contrib.Exporter.Stackdriver.Tests/                      @open-telemetry/dotnet-approvers
+src/OpenTelemetry.Contrib.Exporter.Stackdriver/                             @open-telemetry/dotnet-contrib-approvers
+src/OpenTelemetry.Contrib.Extensions.AWSXRay/                               @open-telemetry/dotnet-contrib-approvers @srprash @lupengamzn
+src/OpenTelemetry.Contrib.Instrumentation.Elasticsearch/                    @open-telemetry/dotnet-contrib-approvers
+src/OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore/              @open-telemetry/dotnet-contrib-approvers
+src/OpenTelemetry.Contrib.Instrumentation.MassTransit/                      @open-telemetry/dotnet-contrib-approvers
 
-src/OpenTelemetry.Contrib.Extensions.AWSXRay/                               @open-telemetry/dotnet-approvers @srprash @lupengamzn
-test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/                        @open-telemetry/dotnet-approvers @srprash @lupengamzn
-
-src/OpenTelemetry.Contrib.Instrumentation.Elasticsearch/                    @open-telemetry/dotnet-approvers
-test/OpenTelemetry.Contrib.Instrumentation.Elasticsearch.Tests/             @open-telemetry/dotnet-approvers
-
-src/OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore/              @open-telemetry/dotnet-approvers
-test/OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCoreTests/        @open-telemetry/dotnet-approvers
-
-src/OpenTelemetry.Contrib.Instrumentation.MassTransit/                      @open-telemetry/dotnet-approvers
-test/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests/               @open-telemetry/dotnet-approvers
+test/OpenTelemetry.Contrib.Exporter.Stackdriver.Tests/                      @open-telemetry/dotnet-contrib-approvers
+test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/                        @open-telemetry/dotnet-contrib-approvers @srprash @lupengamzn
+test/OpenTelemetry.Contrib.Instrumentation.Elasticsearch.Tests/             @open-telemetry/dotnet-contrib-approvers
+test/OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCoreTests/        @open-telemetry/dotnet-contrib-approvers
+test/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests/               @open-telemetry/dotnet-contrib-approvers
