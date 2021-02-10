@@ -144,15 +144,22 @@ build. Breaking the rules will result in a build failure.
 ## Contributing a new project
 
 This repo is a great place to contribute a new instrumentation, exporter or
-any kind of extension. Although the projects within this repo share some
+any kind of extension. Please refer to
+[this page](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/docs/trace/extending-the-sdk/README.md#extending-the-opentelemetry-net-sdk)
+for help writing your component.
+Although the projects within this repo share some
 properties and configurations, they are built and released independently.
 So if you are creating a new project within `/src` and corresponding test
 project within `/test`, here are a few things you should do to ensure that
 your project is automatically built and shipped through CI.
 
-* Include [`OpenTelemetry`](https://www.nuget.org/packages/OpenTelemetry)
-package in your project. You can choose the version that you want to depend on.
- Usually it is a good idea to use the latest version. Example:
+* Based on what your project is, you may need to depend on the
+[OpenTelemetry SDK](https://www.nuget.org/packages/OpenTelemetry)
+or the
+[OpenTelemetry API](https://www.nuget.org/packages/OpenTelemetry.Api)
+Include the necessary package in your project.
+You can choose the version that you want to depend on.
+Usually it is a good idea to use the latest version. Example:
 
   ```xml
   <ItemGroup>
