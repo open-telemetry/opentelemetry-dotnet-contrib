@@ -180,10 +180,9 @@ main branch. The workflow file should be named as `package-Foo.Bar.yml` and
 to be placed in the `.github/workflows/` folder.
 
   You can copy one of the
-  [exsiting workflow files](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml)
+  [existing workflow files](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml)
   and replace the
   [`tags`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml#L12)
   value to "Foo.Bar-*" and
   [`PROJECT`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml#L18)
   value to "OpenTelemetry.Contrib.Foo.Bar".
-  
