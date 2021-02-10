@@ -151,22 +151,48 @@ These files are used to configure the _StyleCop.Analyzers_ which runs during
 build. Breaking the rules will result in a build failure.
 
 ## Contributing a new project
-This repo is a great place to contribute a new instrumentation, exporter or any kind of extension. Although the projects within this repo share some properties and configurations, they are built and released independently. So if you are creating a new project within `/src` and corresponding test project within `/test`, here are a few things you should do to ensure that your project is automatically built and shipped through CI.
 
-- Include [`OpenTelemetry`](https://www.nuget.org/packages/OpenTelemetry) package in your project. You can choose the version that you want to depend on. Usually it is a good idea to use the latest version. Example:
+This repo is a great place to contribute a new instrumentation, exporter or
+any kind of extension. Although the projects within this repo share some
+properties and configurations, they are built and released independently.
+So if you are creating a new project within `/src` and corresponding test
+project within `/test`, here are a few things you should do to ensure that
+your project is automatically built and shipped through CI.
+
+* Include [`OpenTelemetry`](https://www.nuget.org/packages/OpenTelemetry)
+package in your project. You can choose the version that you want to depend on.
+ Usually it is a good idea to use the latest version. Example:
+
   ```xml
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="1.0.0-rc4" />
   </ItemGroup>
   ```
 
-- The assembly and nuget versioning is managed through [MinVer](https://github.com/adamralph/minver) for all the projects in the repo. MinVer will assign the version to your project based on the tag prefix specified by you. To ensure your project is versioned appropriately, specify a `<MinVerTagPrefix>` property in your project file. If your project is named as "OpenTelemetry.Contrib.Foo.Bar", the MinVerTagPrefix must be "Foo.Bar-". Example:
+* The assembly and nuget versioning is managed through
+[MinVer](https://github.com/adamralph/minver) for all the projects in the
+repo. MinVer will assign the version to your project based on the tag prefix
+specified by you. To ensure your project is versioned appropriately, specify
+a `<MinVerTagPrefix>` property in your project file. If your project is named
+as "OpenTelemetry.Contrib.Foo.Bar", the MinVerTagPrefix must be "Foo.Bar-".
+Example:
+
   ```xml
   <PropertyGroup>
     <MinVerTagPrefix>Foo.Bar-</MinVerTagPrefix>
   </PropertyGroup>
   ```
 
-- To build and release your project as nuget, you must provide a GitHub workflow to be triggered when a tag with prefix "Foo.Bar-" is pushed to the main branch. The workflow file should be named as `package-Foo.Bar.yml` and to be placed in the `.github/workflows/` folder.
+* To build and release your project as nuget, you must provide a GitHub
+workflow to be triggered when a tag with prefix "Foo.Bar-" is pushed to the
+main branch. The workflow file should be named as `package-Foo.Bar.yml` and
+to be placed in the `.github/workflows/` folder.
 
-  You can copy one of the [exsiting workflow files](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml) and replace the [`tags`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml#L12) value to "Foo.Bar-*" and [`PROJECT`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml#L18) value to "OpenTelemetry.Contrib.Foo.Bar". 
+  You can copy one of the
+  [exsiting workflow files](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml)
+  and replace the
+  [`tags`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml#L12)
+  value to "Foo.Bar-*" and
+  [`PROJECT`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml#L18)
+  value to "OpenTelemetry.Contrib.Foo.Bar".
+  
