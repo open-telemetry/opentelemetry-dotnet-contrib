@@ -49,6 +49,15 @@ Maintainers
 *Find more about the maintainer role in [community
 repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#maintainer).*
 
+Even though, anybody can contribute, there are benefits of being a member of our
+community. See to the [community membership
+document](https://github.com/open-telemetry/community/blob/master/community-membership.md)
+on how to become a
+[**Member**](https://github.com/open-telemetry/community/blob/master/community-membership.md#member),
+[**Approver**](https://github.com/open-telemetry/community/blob/master/community-membership.md#approver)
+and
+[**Maintainer**](https://github.com/open-telemetry/community/blob/master/community-membership.md#maintainer).
+
 ## Thanks to all the people who have contributed
 
 [![contributors](https://contributors-img.web.app/image?repo=open-telemetry/opentelemetry-dotnet-contrib)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/graphs/contributors)
