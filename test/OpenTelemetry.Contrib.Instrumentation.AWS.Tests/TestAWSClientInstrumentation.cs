@@ -17,6 +17,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
@@ -55,7 +56,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
 #if NET452
                 ddb.Scan(scan_request);
 #else
-                ddb.ScanAsync(scan_request);
+                ddb.ScanAsync(scan_request).Wait();
 #endif
                 var count = processor.Invocations.Count;
 
@@ -72,7 +73,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
         }
 
         [Fact]
+#if NET452
         public void TestDDBScanUnsuccessful()
+#else
+        public async Task TestDDBScanUnsuccessful()
+#endif
         {
             var processor = new Mock<BaseProcessor<Activity>>();
 
@@ -101,7 +106,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
 #if NET452
                     ddb.Scan(scan_request);
 #else
-                    ddb.ScanAsync(scan_request);
+                    await ddb.ScanAsync(scan_request);
 #endif
                 }
                 catch (AmazonServiceException)
@@ -146,7 +151,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
 #if NET452
                 sqs.SendMessage(send_msg_req);
 #else
-                sqs.SendMessageAsync(send_msg_req);
+                sqs.SendMessageAsync(send_msg_req).Wait();
 #endif
 
                 var count = processor.Invocations.Count;
