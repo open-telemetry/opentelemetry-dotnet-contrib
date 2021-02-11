@@ -47,7 +47,13 @@ the clients you want to instrument:
       </netTcpBinding>
     </bindings>
     <client>
-      <endpoint address="net.tcp://localhost:9090/Telemetry" binding="netTcpBinding" bindingConfiguration="netTCPConfig" behaviorConfiguration="telemetry" contract="Examples.Wcf.IStatusServiceContract" name="StatusService_Tcp" />
+      <endpoint 
+        address="net.tcp://localhost:9090/Telemetry"
+        binding="netTcpBinding"
+        bindingConfiguration="netTCPConfig"
+        behaviorConfiguration="telemetry"
+        contract="Examples.Wcf.IStatusServiceContract"
+        name="StatusService_Tcp" />
     </client>
   </system.serviceModel>
 </configuration>
@@ -81,7 +87,9 @@ the services you want to instrument:
   <system.serviceModel>
     <extensions>
       <behaviorExtensions>
-        <add name="telemetryExtension" type="OpenTelemetry.Contrib.Instrumentation.Wcf.TelemetryBehaviourExtensionElement, OpenTelemetry.Contrib.Instrumentation.Wcf"   />
+        <add 
+            name="telemetryExtension"
+            type="OpenTelemetry.Contrib.Instrumentation.Wcf.TelemetryBehaviourExtensionElement, OpenTelemetry.Contrib.Instrumentation.Wcf" />
       </behaviorExtensions>
     </extensions>
     <behaviors>
@@ -100,7 +108,11 @@ the services you want to instrument:
     </bindings>
     <services>
       <service name="Examples.Wcf.Server.StatusService">
-        <endpoint binding="netTcpBinding" bindingConfiguration="netTCPConfig" behaviorConfiguration="telemetry" contract="Examples.Wcf.IStatusServiceContract" />
+        <endpoint 
+            binding="netTcpBinding"
+            bindingConfiguration="netTCPConfig"
+            behaviorConfiguration="telemetry"
+            contract="Examples.Wcf.IStatusServiceContract" />
         <host>
           <baseAddresses>
             <add baseAddress="net.tcp://localhost:9090/Telemetry" />
