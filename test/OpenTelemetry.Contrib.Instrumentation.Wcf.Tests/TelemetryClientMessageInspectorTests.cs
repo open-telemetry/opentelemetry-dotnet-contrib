@@ -187,19 +187,26 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                 if (!suppressDownstreamInstrumentation)
                 {
                     Assert.NotEmpty(stoppedActivities);
-                    Assert.Equal(2, stoppedActivities.Count);
-
-                    Assert.Equal("OpenTelemetry.HttpWebRequest.HttpRequestOut", stoppedActivities[0].OperationName);
-                    Assert.Equal(WcfInstrumentationActivitySource.OutgoingRequestActivityName, stoppedActivities[1].OperationName);
+                    if (filter)
+                    {
+                        Assert.Single(stoppedActivities);
+                        Assert.Equal("OpenTelemetry.HttpWebRequest.HttpRequestOut", stoppedActivities[0].OperationName);
+                    }
+                    else
+                    {
+                        Assert.Equal(2, stoppedActivities.Count);
+                        Assert.Equal("OpenTelemetry.HttpWebRequest.HttpRequestOut", stoppedActivities[0].OperationName);
+                        Assert.Equal(WcfInstrumentationActivitySource.OutgoingRequestActivityName, stoppedActivities[1].OperationName);
+                    }
                 }
                 else
                 {
-                    Assert.NotEmpty(stoppedActivities);
-                    Assert.Single(stoppedActivities);
-
-                    Activity activity = stoppedActivities[0];
                     if (!filter)
                     {
+                        Assert.NotEmpty(stoppedActivities);
+                        Assert.Single(stoppedActivities);
+
+                        Activity activity = stoppedActivities[0];
                         Assert.Equal(WcfInstrumentationActivitySource.OutgoingRequestActivityName, activity.OperationName);
                         Assert.Equal("wcf", activity.TagObjects.FirstOrDefault(t => t.Key == "rpc.system").Value);
                         Assert.Equal("http://opentelemetry.io/Service", activity.TagObjects.FirstOrDefault(t => t.Key == "rpc.service").Value);
@@ -212,8 +219,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                     }
                     else
                     {
-                        // Note: If WCF outgoing request is filtered out, the outgoing Http span is created.
-                        Assert.Equal("OpenTelemetry.HttpWebRequest.HttpRequestOut", activity.OperationName);
+                        Assert.Empty(stoppedActivities);
                     }
                 }
             }

@@ -38,26 +38,29 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
                 if (WcfInstrumentationActivitySource.Options == null || WcfInstrumentationActivitySource.Options.OutgoingRequestFilter?.Invoke(request) == false)
                 {
                     WcfInstrumentationEventSource.Log.RequestIsFilteredOut(request.Headers.Action);
-                    return null;
+                    return new State
+                    {
+                        SuppressionScope = this.SuppressDownstreamInstrumentation(),
+                    };
                 }
             }
             catch (Exception ex)
             {
                 WcfInstrumentationEventSource.Log.RequestFilterException(ex);
-                return null;
+                return new State
+                {
+                    SuppressionScope = this.SuppressDownstreamInstrumentation(),
+                };
             }
 
             Activity activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
                 WcfInstrumentationActivitySource.OutgoingRequestActivityName,
                 ActivityKind.Client);
 
+            IDisposable suppressionScope = this.SuppressDownstreamInstrumentation();
+
             if (activity != null)
             {
-                if (WcfInstrumentationActivitySource.Options.SuppressDownstreamInstrumentation)
-                {
-                    SuppressInstrumentationScope.Enter();
-                }
-
                 string action = request.Headers.Action;
                 activity.DisplayName = action;
 
@@ -82,13 +85,19 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
                 }
             }
 
-            return activity;
+            return new State
+            {
+                SuppressionScope = suppressionScope,
+                Activity = activity,
+            };
         }
 
         /// <inheritdoc/>
         public void AfterReceiveReply(ref Message reply, object correlationState)
         {
-            Activity activity = (Activity)correlationState;
+            State state = (State)correlationState;
+
+            Activity activity = state.Activity;
             if (activity != null)
             {
                 if (activity.IsAllDataRequested)
@@ -103,6 +112,21 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
 
                 activity.Stop();
             }
+
+            state.SuppressionScope?.Dispose();
+        }
+
+        private IDisposable SuppressDownstreamInstrumentation()
+        {
+            return WcfInstrumentationActivitySource.Options?.SuppressDownstreamInstrumentation ?? false
+                ? SuppressInstrumentationScope.Begin()
+                : null;
+        }
+
+        private class State
+        {
+            public IDisposable SuppressionScope;
+            public Activity Activity;
         }
     }
 }
