@@ -48,7 +48,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Tests
         [Fact]
         public void EntityFrameworkContextEventsInstrumentedTest()
         {
-            var activityProcessor = new Mock<ActivityProcessor>();
+            var activityProcessor = new Mock<BaseProcessor<Activity>>();
             using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
                 .AddProcessor(activityProcessor.Object)
                 .AddEntityFrameworkCoreInstrumentation().Build();
@@ -73,7 +73,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Tests
         [Fact]
         public void EntityFrameworkContextExceptionEventsInstrumentedTest()
         {
-            var activityProcessor = new Mock<ActivityProcessor>();
+            var activityProcessor = new Mock<BaseProcessor<Activity>>();
             using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
                 .AddProcessor(activityProcessor.Object)
                 .AddEntityFrameworkCoreInstrumentation()
@@ -122,11 +122,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Tests
 
             if (!isError)
             {
-                Assert.Equal("Ok", activity.Tags.FirstOrDefault(t => t.Key == SpanAttributeConstants.StatusCodeKey).Value);
+                Assert.Null(activity.Tags.FirstOrDefault(t => t.Key == SpanAttributeConstants.StatusCodeKey).Value);
             }
             else
             {
-                Assert.Equal("Unknown", activity.Tags.FirstOrDefault(t => t.Key == SpanAttributeConstants.StatusCodeKey).Value);
+                Assert.Equal(Status.Error.Description, activity.Tags.FirstOrDefault(t => t.Key == SpanAttributeConstants.StatusCodeKey).Value);
                 Assert.Contains(activity.Tags, t => t.Key == SpanAttributeConstants.StatusDescriptionKey);
             }
         }

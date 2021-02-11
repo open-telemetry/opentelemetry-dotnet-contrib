@@ -20,7 +20,7 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Tests
 {
-    public class TestActivityProcessor : ActivityProcessor, IDisposable
+    public class TestActivityProcessor : BaseProcessor<Activity>, IDisposable
     {
         public Action<Activity> StartAction;
         public Action<Activity> EndAction;
@@ -51,10 +51,11 @@ namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Tests
             this.EndAction?.Invoke(activity);
         }
 
-        protected override void OnShutdown(int timeoutMilliseconds)
+        protected override bool OnShutdown(int timeoutMilliseconds)
         {
             this.ShutdownCalled = true;
             base.OnShutdown(timeoutMilliseconds);
+            return true;
         }
 
         protected override bool OnForceFlush(int timeoutMilliseconds)

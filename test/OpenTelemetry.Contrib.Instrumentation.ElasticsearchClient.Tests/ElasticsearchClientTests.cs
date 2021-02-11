@@ -38,7 +38,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
         public async Task CanCaptureGetById()
         {
             var expectedResource = Resources.Resources.CreateServiceResource("test-service");
-            var processor = new Mock<ActivityProcessor>();
+            var processor = new Mock<BaseProcessor<Activity>>();
 
             var parent = new Activity("parent").Start();
 
@@ -83,7 +83,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
             Assert.NotEmpty(debugInfo);
             Assert.Contains("Successful (200) low level call", debugInfo);
 
-            Assert.Equal(Status.Ok, searchActivity.GetStatus());
+            Assert.Equal(Status.Unset, searchActivity.GetStatus());
             Assert.Equal(expectedResource, searchActivity.GetResource());
         }
 
@@ -91,7 +91,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
         public async Task CanCaptureGetByIdNotFound()
         {
             var expectedResource = Resources.Resources.CreateServiceResource("test-service");
-            var processor = new Mock<ActivityProcessor>();
+            var processor = new Mock<BaseProcessor<Activity>>();
 
             var parent = new Activity("parent").Start();
 
@@ -136,7 +136,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
             Assert.NotEmpty(debugInfo);
             Assert.Contains("Successful (404) low level call", debugInfo);
 
-            Assert.Equal(Status.NotFound, searchActivity.GetStatus());
+            Assert.Equal(Status.Error, searchActivity.GetStatus());
             Assert.Equal(expectedResource, searchActivity.GetResource());
         }
 
@@ -144,7 +144,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
         public async Task CanCaptureSearchCall()
         {
             var expectedResource = Resources.Resources.CreateServiceResource("test-service");
-            var processor = new Mock<ActivityProcessor>();
+            var processor = new Mock<BaseProcessor<Activity>>();
 
             var parent = new Activity("parent").Start();
 
@@ -189,7 +189,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
             Assert.NotEmpty(debugInfo);
             Assert.Contains("Successful (200) low level call", debugInfo);
 
-            Assert.Equal(Status.Ok, searchActivity.GetStatus());
+            Assert.Equal(Status.Unset, searchActivity.GetStatus());
             Assert.Equal(expectedResource, searchActivity.GetResource());
         }
 
@@ -197,7 +197,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
         public async Task CanCaptureSearchCallWithDebugMode()
         {
             var expectedResource = Resources.Resources.CreateServiceResource("test-service");
-            var processor = new Mock<ActivityProcessor>();
+            var processor = new Mock<BaseProcessor<Activity>>();
 
             var parent = new Activity("parent").Start();
 
@@ -242,7 +242,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
             Assert.NotEmpty(debugInfo);
             Assert.Contains("Successful (200) low level call", debugInfo);
 
-            Assert.Equal(Status.Ok, searchActivity.GetStatus());
+            Assert.Equal(Status.Unset, searchActivity.GetStatus());
             Assert.Equal(expectedResource, searchActivity.GetResource());
         }
 
@@ -250,7 +250,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
         public async Task CanCaptureSearchCallWithParseAndFormatRequestOption()
         {
             var expectedResource = Resources.Resources.CreateServiceResource("test-service");
-            var processor = new Mock<ActivityProcessor>();
+            var processor = new Mock<BaseProcessor<Activity>>();
 
             var parent = new Activity("parent").Start();
 
@@ -312,7 +312,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
 }".Replace("\r\n", "\n"),
                 debugInfo.Replace("\r\n", "\n"));
 
-            Assert.Equal(Status.Ok, searchActivity.GetStatus());
+            Assert.Equal(Status.Unset, searchActivity.GetStatus());
             Assert.Equal(expectedResource, searchActivity.GetResource());
         }
 
@@ -320,7 +320,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
         public async Task CanCaptureSearchCallWithoutDebugMode()
         {
             var expectedResource = Resources.Resources.CreateServiceResource("test-service");
-            var processor = new Mock<ActivityProcessor>();
+            var processor = new Mock<BaseProcessor<Activity>>();
 
             var parent = new Activity("parent").Start();
 
@@ -365,7 +365,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
             Assert.NotEmpty(debugInfo);
             Assert.DoesNotContain("123", debugInfo);
 
-            Assert.Equal(Status.Ok, searchActivity.GetStatus());
+            Assert.Equal(Status.Unset, searchActivity.GetStatus());
             Assert.Equal(expectedResource, searchActivity.GetResource());
         }
 
@@ -373,7 +373,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
         public async Task CanCaptureMultipleIndiceSearchCall()
         {
             var expectedResource = Resources.Resources.CreateServiceResource("test-service");
-            var processor = new Mock<ActivityProcessor>();
+            var processor = new Mock<BaseProcessor<Activity>>();
 
             var parent = new Activity("parent").Start();
 
@@ -418,7 +418,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
             Assert.NotEmpty(debugInfo);
             Assert.Contains("Successful (200) low level call", debugInfo);
 
-            Assert.Equal(Status.Ok, searchActivity.GetStatus());
+            Assert.Equal(Status.Unset, searchActivity.GetStatus());
             Assert.Equal(expectedResource, searchActivity.GetResource());
         }
 
@@ -426,7 +426,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
         public async Task CanCaptureElasticsearchClientException()
         {
             var expectedResource = Resources.Resources.CreateServiceResource("test-service");
-            var processor = new Mock<ActivityProcessor>();
+            var processor = new Mock<BaseProcessor<Activity>>();
 
             var parent = new Activity("parent").Start();
 
@@ -473,7 +473,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
             Assert.Contains("Unsuccessful (500) low level call", debugInfo);
 
             var status = searchActivity.GetStatus();
-            Assert.Equal(Status.Unknown.CanonicalCode, status.CanonicalCode);
+            Assert.Equal(Status.Error.StatusCode, status.StatusCode);
             Assert.Equal(expectedResource, searchActivity.GetResource());
         }
 
@@ -481,7 +481,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
         public async Task CanCaptureCatRequest()
         {
             var expectedResource = Resources.Resources.CreateServiceResource("test-service");
-            var processor = new Mock<ActivityProcessor>();
+            var processor = new Mock<BaseProcessor<Activity>>();
 
             var parent = new Activity("parent").Start();
 
@@ -526,7 +526,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
             Assert.NotEmpty(debugInfo);
             Assert.Contains("Successful (200) low level call", debugInfo);
 
-            Assert.Equal(Status.Ok, searchActivity.GetStatus());
+            Assert.Equal(Status.Unset, searchActivity.GetStatus());
             Assert.Equal(expectedResource, searchActivity.GetResource());
         }
     }
