@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.0.0-rc2" />
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="1.0.1" />
   </ItemGroup>
 
   <ItemGroup>

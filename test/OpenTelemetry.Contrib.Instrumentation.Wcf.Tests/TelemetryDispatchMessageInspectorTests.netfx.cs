@@ -108,7 +108,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                     new ServiceRequest
                     {
                         Payload = "Hello Open Telemetry!",
-                    });
+                    }).ConfigureAwait(false);
             }
             finally
             {
@@ -121,6 +121,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                     client.Close();
                 }
 
+                tracerProvider?.Shutdown();
                 tracerProvider?.Dispose();
 
                 WcfInstrumentationActivitySource.Options = null;

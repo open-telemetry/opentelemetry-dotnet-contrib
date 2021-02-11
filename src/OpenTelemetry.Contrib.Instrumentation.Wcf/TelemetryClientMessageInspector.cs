@@ -97,6 +97,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
         {
             State state = (State)correlationState;
 
+            state.SuppressionScope?.Dispose();
+
             Activity activity = state.Activity;
             if (activity != null)
             {
@@ -112,8 +114,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
 
                 activity.Stop();
             }
-
-            state.SuppressionScope?.Dispose();
         }
 
         private IDisposable SuppressDownstreamInstrumentation()

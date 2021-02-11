@@ -127,20 +127,19 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
         [InlineData(false)]
         public async Task OutgoingRequestInstrumentationTest(bool instrument, bool filter = false, bool suppressDownstreamInstrumentation = true)
         {
+#if NETFRAMEWORK
+            const string OutgoingHttpOperationName = "OpenTelemetry.HttpWebRequest.HttpRequestOut";
+#else
+            const string OutgoingHttpOperationName = "System.Net.Http.HttpRequestOut";
+#endif
             List<Activity> stoppedActivities = new List<Activity>();
 
-            using ActivityListener activityListener = new ActivityListener
-            {
-                ShouldListenTo = activitySource => true,
-                ActivityStopped = activity => stoppedActivities.Add(activity),
-            };
+            var builder = Sdk.CreateTracerProviderBuilder()
+                .AddInMemoryExporter(stoppedActivities);
 
-            ActivitySource.AddActivityListener(activityListener);
-
-            TracerProvider tracerProvider = null;
             if (instrument)
             {
-                tracerProvider = Sdk.CreateTracerProviderBuilder()
+                builder
                     .AddWcfInstrumentation(options =>
                     {
                         options.OutgoingRequestFilter = (Message m) =>
@@ -149,9 +148,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                         };
                         options.SuppressDownstreamInstrumentation = suppressDownstreamInstrumentation;
                     })
-                    .AddHttpClientInstrumentation() // <- Added to test SuppressDownstreamInstrumentation.
-                    .Build();
+                    .AddHttpClientInstrumentation(); // <- Added to test SuppressDownstreamInstrumentation.
             }
+
+            TracerProvider tracerProvider = builder.Build();
 
             ServiceClient client = new ServiceClient(
                 new BasicHttpBinding(BasicHttpSecurityMode.None),
@@ -164,7 +164,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                     new ServiceRequest
                     {
                         Payload = "Hello Open Telemetry!",
-                    });
+                    }).ConfigureAwait(false);
             }
             finally
             {
@@ -177,7 +177,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                     client.Close();
                 }
 
-                tracerProvider?.Dispose();
+                tracerProvider.Shutdown();
+                tracerProvider.Dispose();
 
                 WcfInstrumentationActivitySource.Options = null;
             }
@@ -190,12 +191,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                     if (filter)
                     {
                         Assert.Single(stoppedActivities);
-                        Assert.Equal("OpenTelemetry.HttpWebRequest.HttpRequestOut", stoppedActivities[0].OperationName);
+                        Assert.Equal(OutgoingHttpOperationName, stoppedActivities[0].OperationName);
                     }
                     else
                     {
                         Assert.Equal(2, stoppedActivities.Count);
-                        Assert.Equal("OpenTelemetry.HttpWebRequest.HttpRequestOut", stoppedActivities[0].OperationName);
+                        Assert.Equal(OutgoingHttpOperationName, stoppedActivities[0].OperationName);
                         Assert.Equal(WcfInstrumentationActivitySource.OutgoingRequestActivityName, stoppedActivities[1].OperationName);
                     }
                 }
