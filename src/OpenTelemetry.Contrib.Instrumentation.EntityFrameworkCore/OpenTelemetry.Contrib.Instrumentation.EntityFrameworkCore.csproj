@@ -1,13 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <Description>Microsoft.EntityFrameworkCore instrumentation for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);distributed-tracing</PackageTags>
+    <MinVerTagPrefix>Instrumentation.EntityFrameworkCore-</MinVerTagPrefix>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="0.7.0-beta.1" />
   </ItemGroup>
-
 </Project>
