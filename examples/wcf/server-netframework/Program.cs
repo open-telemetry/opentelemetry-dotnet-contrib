@@ -29,7 +29,6 @@ namespace Examples.Wcf.Server
             using var openTelemetry = Sdk.CreateTracerProviderBuilder()
                 .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Wcf-Server"))
                 .AddWcfInstrumentation()
-                .AddAspNetInstrumentation() // <- Added to test suppression of http spans.
                 .AddZipkinExporter()
                 .Build();
 

@@ -56,11 +56,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
 
             if (activity != null)
             {
-                if (WcfInstrumentationActivitySource.Options.SuppressDownstreamInstrumentation)
-                {
-                    SuppressInstrumentationScope.Enter();
-                }
-
                 string action = request.Headers.Action;
                 activity.DisplayName = action;
 
