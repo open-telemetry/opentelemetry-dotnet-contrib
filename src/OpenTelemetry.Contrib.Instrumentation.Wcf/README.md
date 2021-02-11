@@ -23,6 +23,7 @@ using var openTelemetry = Sdk.CreateTracerProviderBuilder()
 Add the `IClientMessageInspector` instrumentation via a behavior extension on
 the clients you want to instrument:
 
+<!-- markdownlint-disable MD013 -->
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
 <configuration>
@@ -47,17 +48,12 @@ the clients you want to instrument:
       </netTcpBinding>
     </bindings>
     <client>
-      <endpoint 
-        address="net.tcp://localhost:9090/Telemetry"
-        binding="netTcpBinding"
-        bindingConfiguration="netTCPConfig"
-        behaviorConfiguration="telemetry"
-        contract="Examples.Wcf.IStatusServiceContract"
-        name="StatusService_Tcp" />
+      <endpoint address="net.tcp://localhost:9090/Telemetry" binding="netTcpBinding" bindingConfiguration="netTCPConfig" behaviorConfiguration="telemetry" contract="Examples.Wcf.IStatusServiceContract" name="StatusService_Tcp" />
     </client>
   </system.serviceModel>
 </configuration>
 ```
+<!-- markdownlint-enable MD013 -->
 
 Example project available in
 [examples/wcf/client-netframework](../../examples/wcf/client-netframework/Program.cs)
@@ -81,15 +77,14 @@ Example project available in
 Add the `IDispatchMessageInspector` instrumentation via a behavior extension on
 the services you want to instrument:
 
+<!-- markdownlint-disable MD013 -->
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
 <configuration>
   <system.serviceModel>
     <extensions>
       <behaviorExtensions>
-        <add 
-            name="telemetryExtension"
-            type="OpenTelemetry.Contrib.Instrumentation.Wcf.TelemetryBehaviourExtensionElement, OpenTelemetry.Contrib.Instrumentation.Wcf" />
+        <add name="telemetryExtension" type="OpenTelemetry.Contrib.Instrumentation.Wcf.TelemetryBehaviourExtensionElement, OpenTelemetry.Contrib.Instrumentation.Wcf" />
       </behaviorExtensions>
     </extensions>
     <behaviors>
@@ -108,11 +103,7 @@ the services you want to instrument:
     </bindings>
     <services>
       <service name="Examples.Wcf.Server.StatusService">
-        <endpoint 
-            binding="netTcpBinding"
-            bindingConfiguration="netTCPConfig"
-            behaviorConfiguration="telemetry"
-            contract="Examples.Wcf.IStatusServiceContract" />
+        <endpoint binding="netTcpBinding" bindingConfiguration="netTCPConfig" behaviorConfiguration="telemetry" contract="Examples.Wcf.IStatusServiceContract" />
         <host>
           <baseAddresses>
             <add baseAddress="net.tcp://localhost:9090/Telemetry" />
@@ -123,6 +114,7 @@ the services you want to instrument:
   </system.serviceModel>
 </configuration>
 ```
+<!-- markdownlint-enable MD013 -->
 
 Example project available in
 [examples/wcf/server-netframework](../../examples/wcf/server-netframework/Program.cs)
