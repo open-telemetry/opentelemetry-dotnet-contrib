@@ -26,6 +26,7 @@ using Xunit;
 
 namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
 {
+    [Collection("WCF")]
     public class TelemetryDispatchMessageInspectorTests : IDisposable
     {
         private readonly Uri serviceBaseUri;
@@ -65,7 +66,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
 
         public void Dispose()
         {
-            this.serviceHost.Close();
+            this.serviceHost?.Close();
         }
 
         [Theory]
