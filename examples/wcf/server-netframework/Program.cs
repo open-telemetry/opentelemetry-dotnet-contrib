@@ -17,6 +17,7 @@
 using System;
 using System.ServiceModel;
 using OpenTelemetry;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 namespace Examples.Wcf.Server
@@ -26,9 +27,10 @@ namespace Examples.Wcf.Server
         public static void Main()
         {
             using var openTelemetry = Sdk.CreateTracerProviderBuilder()
+                .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Wcf-Server"))
                 .AddWcfInstrumentation()
                 .AddAspNetInstrumentation() // <- Added to test suppression of http spans.
-                .AddZipkinExporter(o => o.ServiceName = "Wcf-Server")
+                .AddZipkinExporter()
                 .Build();
 
             ServiceHost serviceHost = new ServiceHost(typeof(StatusService));

@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry.Exporter.Zipkin" Version="$(OpenTelemetryPkgVer)" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.AspNet" Version="$(OpenTelemetryPkgVer)" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="$(OpenTelemetryPkgVer)" />
+    <PackageReference Include="OpenTelemetry.Exporter.Zipkin" Version="1.0.1" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNet" Version="1.0.0-rc2" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.0.0-rc2" />
   </ItemGroup>
 
   <ItemGroup>

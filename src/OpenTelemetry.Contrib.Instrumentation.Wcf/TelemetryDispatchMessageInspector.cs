@@ -96,7 +96,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
             {
                 if (activity.IsAllDataRequested)
                 {
-                    activity.SetStatus(!reply.IsFault ? Status.Ok : Status.Unknown);
+                    if (reply.IsFault)
+                    {
+                        activity.SetStatus(Status.Error);
+                    }
+
                     activity.SetTag("soap.reply_action", reply.Headers.Action);
                 }
 
