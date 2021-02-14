@@ -125,7 +125,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
         [InlineData(true, true)]
         [InlineData(true, false, false)]
         [InlineData(false)]
-        public async Task OutgoingRequestInstrumentationTest(bool instrument, bool filter = false, bool suppressDownstreamInstrumentation = true)
+        [InlineData(true, false, true, true)]
+        public async Task OutgoingRequestInstrumentationTest(
+            bool instrument,
+            bool filter = false,
+            bool suppressDownstreamInstrumentation = true,
+            bool includeVersion = false)
         {
 #if NETFRAMEWORK
             const string OutgoingHttpOperationName = "OpenTelemetry.HttpWebRequest.HttpRequestOut";
@@ -147,6 +152,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                             return !filter;
                         };
                         options.SuppressDownstreamInstrumentation = suppressDownstreamInstrumentation;
+                        options.SetSoapVersion = includeVersion;
                     })
                     .AddHttpClientInstrumentation(); // <- Added to test SuppressDownstreamInstrumentation.
             }
@@ -209,14 +215,17 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
 
                         Activity activity = stoppedActivities[0];
                         Assert.Equal(WcfInstrumentationActivitySource.OutgoingRequestActivityName, activity.OperationName);
-                        Assert.Equal("wcf", activity.TagObjects.FirstOrDefault(t => t.Key == "rpc.system").Value);
-                        Assert.Equal("http://opentelemetry.io/Service", activity.TagObjects.FirstOrDefault(t => t.Key == "rpc.service").Value);
-                        Assert.Equal("Execute", activity.TagObjects.FirstOrDefault(t => t.Key == "rpc.method").Value);
-                        Assert.Equal(this.serviceBaseUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == "net.peer.name").Value);
-                        Assert.Equal(this.serviceBaseUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == "net.peer.port").Value);
-                        Assert.Equal("Soap11 (http://schemas.xmlsoap.org/soap/envelope/) AddressingNone (http://schemas.microsoft.com/ws/2005/05/addressing/none)", activity.TagObjects.FirstOrDefault(t => t.Key == "soap.version").Value);
-                        Assert.Equal("http", activity.TagObjects.FirstOrDefault(t => t.Key == "wcf.channel.scheme").Value);
-                        Assert.Equal("/Service", activity.TagObjects.FirstOrDefault(t => t.Key == "wcf.channel.path").Value);
+                        Assert.Equal(WcfInstrumentationConstants.WcfSystemValue, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcSystemTag).Value);
+                        Assert.Equal("http://opentelemetry.io/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcServiceTag).Value);
+                        Assert.Equal("Execute", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcMethodTag).Value);
+                        Assert.Equal(this.serviceBaseUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.NetPeerNameTag).Value);
+                        Assert.Equal(this.serviceBaseUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.NetPeerPortTag).Value);
+                        Assert.Equal("http", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelSchemeTag).Value);
+                        Assert.Equal("/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelPathTag).Value);
+                        if (includeVersion)
+                        {
+                            Assert.Equal("Soap11 (http://schemas.xmlsoap.org/soap/envelope/) AddressingNone (http://schemas.microsoft.com/ws/2005/05/addressing/none)", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapVersionTag).Value);
+                        }
                     }
                     else
                     {

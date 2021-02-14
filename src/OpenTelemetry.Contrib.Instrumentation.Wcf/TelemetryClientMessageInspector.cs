@@ -73,15 +73,19 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
                 {
                     int lastIndex = action.LastIndexOf('/');
 
-                    activity.SetTag("rpc.system", "wcf");
-                    activity.SetTag("rpc.service", action.Substring(0, lastIndex));
-                    activity.SetTag("rpc.method", action.Substring(lastIndex + 1));
-                    activity.SetTag("net.peer.name", channel.RemoteAddress.Uri.Host);
-                    activity.SetTag("net.peer.port", channel.RemoteAddress.Uri.Port);
+                    activity.SetTag(WcfInstrumentationConstants.RpcSystemTag, WcfInstrumentationConstants.WcfSystemValue);
+                    activity.SetTag(WcfInstrumentationConstants.RpcServiceTag, action.Substring(0, lastIndex));
+                    activity.SetTag(WcfInstrumentationConstants.RpcMethodTag, action.Substring(lastIndex + 1));
+                    activity.SetTag(WcfInstrumentationConstants.NetPeerNameTag, channel.RemoteAddress.Uri.Host);
+                    activity.SetTag(WcfInstrumentationConstants.NetPeerPortTag, channel.RemoteAddress.Uri.Port);
 
-                    activity.SetTag("soap.version", request.Version.ToString());
-                    activity.SetTag("wcf.channel.scheme", channel.RemoteAddress.Uri.Scheme);
-                    activity.SetTag("wcf.channel.path", channel.RemoteAddress.Uri.LocalPath);
+                    if (WcfInstrumentationActivitySource.Options.SetSoapVersion)
+                    {
+                        activity.SetTag(WcfInstrumentationConstants.SoapVersionTag, request.Version.ToString());
+                    }
+
+                    activity.SetTag(WcfInstrumentationConstants.WcfChannelSchemeTag, channel.RemoteAddress.Uri.Scheme);
+                    activity.SetTag(WcfInstrumentationConstants.WcfChannelPathTag, channel.RemoteAddress.Uri.LocalPath);
                 }
             }
 
@@ -109,7 +113,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
                         activity.SetStatus(Status.Error);
                     }
 
-                    activity.SetTag("soap.reply_action", reply.Headers.Action);
+                    activity.SetTag(WcfInstrumentationConstants.SoapReplyActionTag, reply.Headers.Action);
                 }
 
                 activity.Stop();

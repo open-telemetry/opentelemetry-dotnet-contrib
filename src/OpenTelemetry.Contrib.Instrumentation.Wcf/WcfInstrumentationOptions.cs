@@ -54,5 +54,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
         /// Gets or sets a value indicating whether down stream instrumentation (HttpClient) is suppressed (disabled).
         /// </summary>
         public bool SuppressDownstreamInstrumentation { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not the SOAP version should be added as the <see cref="WcfInstrumentationConstants.SoapVersionTag"/> tag. Default value: False.
+        /// </summary>
+        public bool SetSoapVersion { get; set; }
     }
 }

@@ -23,36 +23,49 @@ using System.ServiceModel.Channels;
 using System.Threading.Tasks;
 using OpenTelemetry.Trace;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
 {
     [Collection("WCF")]
     public class TelemetryDispatchMessageInspectorTests : IDisposable
     {
+        private readonly ITestOutputHelper output;
         private readonly Uri serviceBaseUri;
         private readonly ServiceHost serviceHost;
 
-        public TelemetryDispatchMessageInspectorTests()
+        public TelemetryDispatchMessageInspectorTests(ITestOutputHelper outputHelper)
         {
+            this.output = outputHelper;
+
             Random random = new Random();
             var retryCount = 5;
             while (retryCount > 0)
             {
                 try
                 {
-                    this.serviceBaseUri = new Uri($"http://localhost:{random.Next(2000, 5000)}/");
+                    this.serviceBaseUri = new Uri($"net.tcp://localhost:{random.Next(2000, 5000)}/");
                     this.serviceHost = new ServiceHost(new Service(), this.serviceBaseUri);
                     var endpoint = this.serviceHost.AddServiceEndpoint(
                         typeof(IServiceContract),
-                        new BasicHttpBinding(BasicHttpSecurityMode.None),
+                        new NetTcpBinding(),
                         "/Service");
                     endpoint.Behaviors.Add(new TelemetryEndpointBehavior());
                     this.serviceHost.Open();
                     break;
                 }
-                catch
+                catch (Exception ex)
                 {
-                    this.serviceHost.Close();
+                    this.output.WriteLine(ex.ToString());
+                    if (this.serviceHost.State == CommunicationState.Faulted)
+                    {
+                        this.serviceHost.Abort();
+                    }
+                    else
+                    {
+                        this.serviceHost.Close();
+                    }
+
                     this.serviceHost = null;
                     retryCount--;
                 }
@@ -73,7 +86,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
         [InlineData(true, false)]
         [InlineData(true, true)]
         [InlineData(false)]
-        public async Task IncomingRequestInstrumentationTest(bool instrument, bool filter = false)
+        [InlineData(true, false, true)]
+        public async Task IncomingRequestInstrumentationTest(
+            bool instrument,
+            bool filter = false,
+            bool includeVersion = false)
         {
             List<Activity> stoppedActivities = new List<Activity>();
 
@@ -95,12 +112,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                         {
                             return !filter;
                         };
+                        options.SetSoapVersion = includeVersion;
                     })
                     .Build();
             }
 
             ServiceClient client = new ServiceClient(
-                new BasicHttpBinding(BasicHttpSecurityMode.None),
+                new NetTcpBinding(),
                 new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
             try
             {
@@ -134,15 +152,18 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
 
                 Activity activity = stoppedActivities[0];
                 Assert.Equal(WcfInstrumentationActivitySource.IncomingRequestActivityName, activity.OperationName);
-                Assert.Equal("wcf", activity.TagObjects.FirstOrDefault(t => t.Key == "rpc.system").Value);
-                Assert.Equal("http://opentelemetry.io/Service", activity.TagObjects.FirstOrDefault(t => t.Key == "rpc.service").Value);
-                Assert.Equal("Execute", activity.TagObjects.FirstOrDefault(t => t.Key == "rpc.method").Value);
-                Assert.Equal(this.serviceBaseUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == "net.host.name").Value);
-                Assert.Equal(this.serviceBaseUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == "net.host.port").Value);
-                Assert.Equal("Soap11 (http://schemas.xmlsoap.org/soap/envelope/) AddressingNone (http://schemas.microsoft.com/ws/2005/05/addressing/none)", activity.TagObjects.FirstOrDefault(t => t.Key == "soap.version").Value);
-                Assert.Equal("http", activity.TagObjects.FirstOrDefault(t => t.Key == "wcf.channel.scheme").Value);
-                Assert.Equal("/Service", activity.TagObjects.FirstOrDefault(t => t.Key == "wcf.channel.path").Value);
-                Assert.Equal("http://opentelemetry.io/Service/ExecuteResponse", activity.TagObjects.FirstOrDefault(t => t.Key == "soap.reply_action").Value);
+                Assert.Equal(WcfInstrumentationConstants.WcfSystemValue, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcSystemTag).Value);
+                Assert.Equal("http://opentelemetry.io/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcServiceTag).Value);
+                Assert.Equal("Execute", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcMethodTag).Value);
+                Assert.Equal(this.serviceBaseUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.NetHostNameTag).Value);
+                Assert.Equal(this.serviceBaseUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.NetHostPortTag).Value);
+                Assert.Equal("net.tcp", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelSchemeTag).Value);
+                Assert.Equal("/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelPathTag).Value);
+                Assert.Equal("http://opentelemetry.io/Service/ExecuteResponse", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapReplyActionTag).Value);
+                if (includeVersion)
+                {
+                    Assert.Equal("Soap12 (http://www.w3.org/2003/05/soap-envelope) Addressing10 (http://www.w3.org/2005/08/addressing)", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapVersionTag).Value);
+                }
             }
             else
             {
