@@ -36,6 +36,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation
 
         internal static string RemoveSuffix(string originalString, string suffix)
         {
+            if (string.IsNullOrEmpty(originalString))
+            {
+                return string.Empty;
+            }
+
             if (originalString.EndsWith(suffix))
             {
                 return originalString.Substring(0, originalString.Length - suffix.Length);
@@ -59,6 +64,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation
 
         private static string RemovePrefix(string originalString, string prefix)
         {
+            if (string.IsNullOrEmpty(originalString))
+            {
+                return string.Empty;
+            }
+
             if (originalString.StartsWith(prefix))
             {
                 return originalString.Substring(prefix.Length);
