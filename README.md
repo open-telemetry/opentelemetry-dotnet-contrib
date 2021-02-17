@@ -18,16 +18,16 @@ guidelines](./CONTRIBUTING.md)
 
 ## Support
 
-This repository is maintained by [.NET SDK
-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-maintainers)
-team and [.NET SDK
-approvers](https://github.com/orgs/open-telemetry/teams/dotnet-approvers) can
-help with reviews and code approval. However, as individual components are
-developed by numerous contributors, approvers and maintainers are not expected
-to directly contribute to every component.
+This repository is maintained by [.NET Contrib
+maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers)
+team and [.NET Contrib
+approvers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-approvers)
+who can help with reviews and code approval. However, as individual components
+are developed by numerous contributors, approvers and maintainers are not
+expected to directly contribute to every component.
 
 Approvers
-([@open-telemetry/dotnet-approvers](https://github.com/orgs/open-telemetry/teams/dotnet-approvers)):
+([@open-telemetry/dotnet-contrib-approvers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-approvers)):
 
 * [Bruno Garcia](https://github.com/bruno-garcia), Sentry
 * [Eddy Nakamura](https://github.com/eddynaka), Microsoft
@@ -38,7 +38,7 @@ Approvers
 repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#approver).*
 
 Maintainers
-([@open-telemetry/dotnet-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-maintainers)):
+([@open-telemetry/dotnet-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers)):
 
 * [Alan West](https://github.com/alanwest), New Relic
 * [Cijo Thomas](https://github.com/cijothomas), Microsoft
