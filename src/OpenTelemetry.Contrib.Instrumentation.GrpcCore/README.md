@@ -4,7 +4,8 @@ Adds OpenTelemetry instrumentation for gRPC Core based client calls and service 
 
 gRPC Core is the predecessor to ASP.NET Core gRPC. See <https://github.com/grpc/grpc/tree/master/src/csharp>
 
-Each inbound or outbound gRPC call will generate a Span which follows the semantic RPC specification outlined here <https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/rpc.md>
+Each inbound or outbound gRPC call will generate a Span which follows the  
+semantic RPC specification outlined here <https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/rpc.md>
 
 ## Installation
 
@@ -26,7 +27,8 @@ services.AddOpenTelemetryTracing(x =>
 });
 ```
 
-Once configured, the OpenTelemetry SDK will listen for the activities created by the client and server interceptors.
+Once configured, the OpenTelemetry SDK will listen for the activities created by  
+the client and server interceptors.
 
 Create a client interceptor:
 
