@@ -38,7 +38,7 @@ Approvers
 repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#approver).*
 
 Maintainers
-([@open-telemetry/dotnet-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers)):
+([@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers)):
 
 * [Alan West](https://github.com/alanwest), New Relic
 * [Cijo Thomas](https://github.com/cijothomas), Microsoft
