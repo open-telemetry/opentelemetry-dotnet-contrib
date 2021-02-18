@@ -1,6 +1,6 @@
 # gRPC Core Client and Server Interceptors for OpenTelemetry .NET
 
-Adds OpenTelemetry instrumentation for gRPC Core based client calls and service calls.
+Adds OpenTelemetry instrumentation for gRPC Core based client and service calls.
 
 gRPC Core is the predecessor to ASP.NET Core gRPC. See <https://github.com/grpc/grpc/tree/master/src/csharp>
 
