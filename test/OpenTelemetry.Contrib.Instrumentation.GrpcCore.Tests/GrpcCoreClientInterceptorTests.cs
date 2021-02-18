@@ -22,6 +22,7 @@ using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using OpenTelemetry.Context.Propagation;
 
 namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
 {
@@ -369,6 +370,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         {
             var interceptorOptions = new ClientTracingInterceptorOptions
             {
+                Propagator = new TraceContextPropagator(),
                 RecordMessageEvents = true,
             };
 
@@ -419,7 +421,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
             using var activityListener = new InterceptorActivityListener();
             var client = FoobarService.ConstructRpcClient(
                 serverUriString ?? foobarUri,
-                new ClientTracingInterceptor(new ClientTracingInterceptorOptions()),
+                new ClientTracingInterceptor(new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator() }),
                 new List<Metadata.Entry>
                 {
                     new Metadata.Entry(FoobarService.RequestHeaderFailWithStatusCode, statusCode.ToString()),
@@ -451,7 +453,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         private void TestActivityIsCancelledWhenHandlerDisposed(Action<Foobar.FoobarClient> clientRequestAction)
         {
             using var activityListener = new InterceptorActivityListener();
-            var client = FoobarService.ConstructRpcClient(foobarUri, new ClientTracingInterceptor(new ClientTracingInterceptorOptions()));
+            var client = FoobarService.ConstructRpcClient(foobarUri, new ClientTracingInterceptor(new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator() }));
             clientRequestAction(client);
 
             var activity = activityListener.Activity;

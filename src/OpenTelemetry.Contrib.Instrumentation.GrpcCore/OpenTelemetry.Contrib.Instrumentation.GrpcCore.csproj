@@ -8,6 +8,6 @@
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="[3.6.1,4.0)" />
     <PackageReference Include="Grpc" Version="[2.23.0,3.0)" />
-    <PackageReference Include="OpenTelemetry" Version="1.0.1" />
+    <PackageReference Include="OpenTelemetry.Api" Version="1.0.1" />
   </ItemGroup>
 </Project>

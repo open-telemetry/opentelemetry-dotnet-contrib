@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using OpenTelemetry.Context.Propagation;
 
 namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
 {
@@ -116,7 +117,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         private async Task TestHandlerSuccess(Func<Foobar.FoobarClient, Task> clientRequestFunc)
         {
             // starts the server with the server interceptor
-            var interceptorOptions = new ServerTracingInterceptorOptions { RecordMessageEvents = true };
+            var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), RecordMessageEvents = true };
             using var server = FoobarService.Start(new ServerTracingInterceptor(interceptorOptions));
 
             // No parent Activity, no context from header
@@ -156,7 +157,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         private async Task TestHandlerFailure(Func<Foobar.FoobarClient, Task> clientRequestFunc)
         {
             // starts the server with the server interceptor
-            var interceptorOptions = new ServerTracingInterceptorOptions();
+            var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator() };
             using var server = FoobarService.Start(new ServerTracingInterceptor(interceptorOptions));
 
             using var activityListener = new InterceptorActivityListener();

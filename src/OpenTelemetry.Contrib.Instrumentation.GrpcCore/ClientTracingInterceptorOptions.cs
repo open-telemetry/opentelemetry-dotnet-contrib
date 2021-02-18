@@ -31,11 +31,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore
     public class ClientTracingInterceptorOptions
     {
         /// <summary>
-        /// The default propagator.
-        /// </summary>
-        private static readonly TextMapPropagator DefaultPropagator = new TraceContextPropagator();
-
-        /// <summary>
         /// Gets or sets a value indicating whether gets a flag indicating whether or not to record individual message events.
         /// </summary>
         public bool RecordMessageEvents { get; set; } = false;
@@ -43,6 +38,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore
         /// <summary>
         /// Gets or sets the propagator.
         /// </summary>
-        public TextMapPropagator Propagator { get; set; } = DefaultPropagator;
+        public TextMapPropagator Propagator { get; set; } = Propagators.DefaultTextMapPropagator;
     }
 }
