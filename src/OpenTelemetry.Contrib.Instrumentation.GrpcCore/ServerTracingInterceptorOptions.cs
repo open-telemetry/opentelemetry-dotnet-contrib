@@ -24,13 +24,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore
     public class ServerTracingInterceptorOptions
     {
         /// <summary>
-        /// Gets or sets a value indicating whether gets a flag indicating whether or not to record individual message events.
+        /// Gets or sets a value indicating whether or not to record individual message events.
         /// </summary>
         public bool RecordMessageEvents { get; set; } = false;
 
         /// <summary>
-        /// Gets or sets the propagator.
+        /// Gets the propagator.
         /// </summary>
-        public TextMapPropagator Propagator { get; set; } = Propagators.DefaultTextMapPropagator;
+        public TextMapPropagator Propagator { get; internal set; } = Propagators.DefaultTextMapPropagator;
     }
 }
