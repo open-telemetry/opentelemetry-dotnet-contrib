@@ -180,9 +180,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore
                 rpcMethod = parts[1];
             }
 
-            this.activity.AddTag(SemanticConventions.AttributeRpcSystem, "grpc");
-            this.activity.AddTag(SemanticConventions.AttributeRpcService, rpcService);
-            this.activity.AddTag(SemanticConventions.AttributeRpcMethod, rpcMethod);
+            this.activity.SetTag(SemanticConventions.AttributeRpcSystem, "grpc");
+            this.activity.SetTag(SemanticConventions.AttributeRpcService, rpcService);
+            this.activity.SetTag(SemanticConventions.AttributeRpcMethod, rpcMethod);
         }
 
         /// <summary>
@@ -194,7 +194,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore
         {
             if (Interlocked.CompareExchange(ref this.complete, 1, 0) == 0)
             {
-                this.activity.AddTag(SemanticConventions.AttributeRpcGrpcStatusCode, statusCode);
+                this.activity.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, statusCode);
                 if (statusDescription != null)
                 {
                     this.activity.SetStatus(OpenTelemetry.Trace.Status.Error.WithDescription(statusDescription));

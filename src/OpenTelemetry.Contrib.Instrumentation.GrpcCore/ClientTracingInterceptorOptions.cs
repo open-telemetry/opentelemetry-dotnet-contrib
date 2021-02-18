@@ -19,25 +19,18 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore
     using OpenTelemetry.Context.Propagation;
 
     /// <summary>
-    /// A delegate for setting a Activity tag.
-    /// </summary>
-    /// <param name="tagName">Name of the tag.</param>
-    /// <param name="tagValue">The tag value.</param>
-    public delegate void SpanAttributeSetter(string tagName, object tagValue);
-
-    /// <summary>
     /// Options for the ClientTracingInterceptor.
     /// </summary>
     public class ClientTracingInterceptorOptions
     {
         /// <summary>
-        /// Gets or sets a value indicating whether gets a flag indicating whether or not to record individual message events.
+        /// Gets or sets a value indicating whether or not to record individual message events.
         /// </summary>
         public bool RecordMessageEvents { get; set; } = false;
 
         /// <summary>
-        /// Gets or sets the propagator.
+        /// Gets the propagator.
         /// </summary>
-        public TextMapPropagator Propagator { get; set; } = Propagators.DefaultTextMapPropagator;
+        public TextMapPropagator Propagator { get; internal set; } = Propagators.DefaultTextMapPropagator;
     }
 }
