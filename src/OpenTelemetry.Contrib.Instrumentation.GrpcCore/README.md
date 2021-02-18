@@ -7,7 +7,7 @@ gRPC Core is the predecessor to ASP.NET Core gRPC. See <https://github.com/grpc/
 For ASP.NET Core gRPC instrumentation see <https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Instrumentation.GrpcNetClient/README.md>
 
 Each inbound or outbound gRPC call will generate a Span which follows the
-semantic RPC specification outlined here <https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/rpc.md>
+semantic RPC specification <https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/rpc.md>
 
 ## Installation
 
