@@ -44,6 +44,7 @@ Maintainers
 * [Cijo Thomas](https://github.com/cijothomas), Microsoft
 * [Mike Goldsmith](https://github.com/MikeGoldsmith), Honeycomb
 * [Mikel Blanchard](https://github.com/CodeBlanch), CoStar Group
+* [Prashant Srivastava](https://github.com/srprash), AWS
 * [Sergey Kanzhelev](https://github.com/SergeyKanzhelev), Google
 
 *Find more about the maintainer role in [community
