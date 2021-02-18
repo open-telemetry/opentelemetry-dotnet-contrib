@@ -75,27 +75,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore
         protected string FullServiceName { get; }
 
         /// <summary>
-        /// Builds a Dispose action for the RPC.
-        /// </summary>
-        /// <param name="disposable">The RPC to Dispose.</param>
-        /// <param name="rpcScope">The RPC scope.</param>
-        /// <returns>An action.</returns>
-        public static Action RpcDisposeAction(IDisposable disposable, IDisposable rpcScope)
-        {
-            return () =>
-            {
-                try
-                {
-                    disposable.Dispose();
-                }
-                finally
-                {
-                    rpcScope.Dispose();
-                }
-            };
-        }
-
-        /// <summary>
         /// Records a request message.
         /// </summary>
         /// <param name="request">The request.</param>
