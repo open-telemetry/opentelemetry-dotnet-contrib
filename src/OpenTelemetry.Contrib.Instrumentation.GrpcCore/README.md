@@ -27,8 +27,8 @@ services.AddOpenTelemetryTracing(x =>
 });
 ```
 
-Once configured, the OpenTelemetry SDK will listen for the activities created by  
-the client and server interceptors.
+Once configured, the OpenTelemetry SDK will listen for the activities created  
+by the client and server interceptors.
 
 Create a client interceptor:
 
