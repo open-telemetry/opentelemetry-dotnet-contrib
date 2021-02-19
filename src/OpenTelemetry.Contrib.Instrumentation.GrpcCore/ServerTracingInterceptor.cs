@@ -195,10 +195,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore
                     if (propagationContext.ActivityContext.IsValid())
                     {
                         currentContext = propagationContext.ActivityContext;
-                        if (propagationContext.Baggage != default)
-                        {
-                            Baggage.Current = propagationContext.Baggage;
-                        }
+                    }
+
+                    if (propagationContext.Baggage != default)
+                    {
+                        Baggage.Current = propagationContext.Baggage;
                     }
                 }
 
