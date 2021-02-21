@@ -26,7 +26,19 @@ namespace Examples.Wcf.Client
         {
         }
 
-        public Task<StatusResponse> Ping(StatusRequest request)
-            => this.Channel.Ping(request);
+        public Task<StatusResponse> PingAsync(StatusRequest request)
+            => this.Channel.PingAsync(request);
+
+        public Task OpenAsync()
+        {
+            ICommunicationObject communicationObject = this;
+            return Task.Factory.FromAsync(communicationObject.BeginOpen, communicationObject.EndOpen, null);
+        }
+
+        public Task CloseAsync()
+        {
+            ICommunicationObject communicationObject = this;
+            return Task.Factory.FromAsync(communicationObject.BeginClose, communicationObject.EndClose, null);
+        }
     }
 }

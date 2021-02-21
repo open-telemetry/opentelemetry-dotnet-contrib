@@ -42,12 +42,15 @@ namespace Examples.Wcf.Client
 
         private static async Task CallService(string name)
         {
+            // Note: Best practice is to re-use your client/channel instances.
+            // This code is not meant to illustrate best practices, only the
+            // instrumentation.
             StatusServiceClient client = new StatusServiceClient(name);
             try
             {
-                client.Open();
+                await client.OpenAsync().ConfigureAwait(false);
 
-                var response = await client.Ping(
+                var response = await client.PingAsync(
                     new StatusRequest
                     {
                         Status = Guid.NewGuid().ToString("N"),
@@ -57,13 +60,19 @@ namespace Examples.Wcf.Client
             }
             finally
             {
-                if (client.State == CommunicationState.Faulted)
+                try
                 {
-                    client.Abort();
+                    if (client.State == CommunicationState.Faulted)
+                    {
+                        client.Abort();
+                    }
+                    else
+                    {
+                        await client.CloseAsync().ConfigureAwait(false);
+                    }
                 }
-                else
+                catch
                 {
-                    client.Close();
                 }
             }
         }

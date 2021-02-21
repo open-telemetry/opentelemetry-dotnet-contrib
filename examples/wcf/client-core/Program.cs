@@ -62,7 +62,9 @@ namespace Examples.Wcf.Client
             client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
             try
             {
-                var response = await client.Ping(
+                await client.OpenAsync().ConfigureAwait(false);
+
+                var response = await client.PingAsync(
                     new StatusRequest
                     {
                         Status = Guid.NewGuid().ToString("N"),
@@ -72,13 +74,19 @@ namespace Examples.Wcf.Client
             }
             finally
             {
-                if (client.State == CommunicationState.Faulted)
+                try
                 {
-                    client.Abort();
+                    if (client.State == CommunicationState.Faulted)
+                    {
+                        client.Abort();
+                    }
+                    else
+                    {
+                        await client.CloseAsync().ConfigureAwait(false);
+                    }
                 }
-                else
+                catch
                 {
-                    client.Close();
                 }
             }
         }

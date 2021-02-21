@@ -23,6 +23,6 @@ namespace Examples.Wcf
     public interface IStatusServiceContract
     {
         [OperationContract]
-        Task<StatusResponse> Ping(StatusRequest request);
+        Task<StatusResponse> PingAsync(StatusRequest request);
     }
 }

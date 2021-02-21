@@ -28,7 +28,7 @@ namespace Examples.Wcf.Server
         Name = "StatusService")]
     public class StatusService : IStatusServiceContract
     {
-        public Task<StatusResponse> Ping(StatusRequest request)
+        public Task<StatusResponse> PingAsync(StatusRequest request)
         {
             return Task.FromResult(
                 new StatusResponse
