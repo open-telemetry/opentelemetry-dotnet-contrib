@@ -66,16 +66,20 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
                     activity.SetTag(WcfInstrumentationConstants.RpcSystemTag, WcfInstrumentationConstants.WcfSystemValue);
                     activity.SetTag(WcfInstrumentationConstants.RpcServiceTag, action.Substring(0, lastIndex));
                     activity.SetTag(WcfInstrumentationConstants.RpcMethodTag, action.Substring(lastIndex + 1));
-                    activity.SetTag(WcfInstrumentationConstants.NetHostNameTag, channel.LocalAddress.Uri.Host);
-                    activity.SetTag(WcfInstrumentationConstants.NetHostPortTag, channel.LocalAddress.Uri.Port);
 
                     if (WcfInstrumentationActivitySource.Options.SetSoapVersion)
                     {
                         activity.SetTag(WcfInstrumentationConstants.SoapVersionTag, request.Version.ToString());
                     }
 
-                    activity.SetTag(WcfInstrumentationConstants.WcfChannelSchemeTag, channel.LocalAddress.Uri.Scheme);
-                    activity.SetTag(WcfInstrumentationConstants.WcfChannelPathTag, channel.LocalAddress.Uri.LocalPath);
+                    var localAddressUri = channel.LocalAddress?.Uri;
+                    if (localAddressUri != null)
+                    {
+                        activity.SetTag(WcfInstrumentationConstants.NetHostNameTag, localAddressUri.Host);
+                        activity.SetTag(WcfInstrumentationConstants.NetHostPortTag, localAddressUri.Port);
+                        activity.SetTag(WcfInstrumentationConstants.WcfChannelSchemeTag, localAddressUri.Scheme);
+                        activity.SetTag(WcfInstrumentationConstants.WcfChannelPathTag, localAddressUri.LocalPath);
+                    }
                 }
             }
 
