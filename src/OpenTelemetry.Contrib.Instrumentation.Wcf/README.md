@@ -56,7 +56,7 @@ the clients you want to instrument:
 <!-- markdownlint-enable MD013 -->
 
 Example project available in
-[examples/wcf/client-netframework](../../examples/wcf/client-netframework/Program.cs)
+[examples/wcf/client-netframework](../../examples/wcf/client-netframework/)
 folder.
 
 ## WCF Client Configuration (.NET Core)
@@ -70,7 +70,7 @@ client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
 ```
 
 Example project available in
-[examples/wcf/client-core](../../examples/wcf/client-core/Program.cs) folder.
+[examples/wcf/client-core](../../examples/wcf/client-core/) folder.
 
 ## WCF Server Configuration (.NET Framework)
 
@@ -117,7 +117,7 @@ the services you want to instrument:
 <!-- markdownlint-enable MD013 -->
 
 Example project available in
-[examples/wcf/server-netframework](../../examples/wcf/server-netframework/Program.cs)
+[examples/wcf/server-netframework](../../examples/wcf/server-netframework/)
 folder.
 
 ## References
