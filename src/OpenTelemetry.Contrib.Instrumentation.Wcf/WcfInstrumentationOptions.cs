@@ -51,7 +51,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
         public Func<Message, bool> OutgoingRequestFilter { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether down stream instrumentation (HttpClient) is suppressed (disabled).
+        /// Gets or sets a value indicating whether down stream instrumentation (HttpClient) is suppressed (disabled). Default value: True.
         /// </summary>
         public bool SuppressDownstreamInstrumentation { get; set; } = true;
 
