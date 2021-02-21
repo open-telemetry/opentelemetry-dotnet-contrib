@@ -16,6 +16,7 @@
 
 #if NETFRAMEWORK
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
@@ -30,6 +31,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
     /// </summary>
     public class TelemetryDispatchMessageInspector : IDispatchMessageInspector
     {
+        private static readonly ConcurrentDictionary<string, ActionMetadata> ActionMetadataCache = new ConcurrentDictionary<string, ActionMetadata>();
+
         /// <inheritdoc/>
         public object AfterReceiveRequest(ref Message request, IClientChannel channel, InstanceContext instanceContext)
         {
@@ -61,11 +64,33 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
 
                 if (activity.IsAllDataRequested)
                 {
-                    int lastIndex = action.LastIndexOf('/');
-
                     activity.SetTag(WcfInstrumentationConstants.RpcSystemTag, WcfInstrumentationConstants.WcfSystemValue);
-                    activity.SetTag(WcfInstrumentationConstants.RpcServiceTag, action.Substring(0, lastIndex));
-                    activity.SetTag(WcfInstrumentationConstants.RpcMethodTag, action.Substring(lastIndex + 1));
+
+                    if (!ActionMetadataCache.TryGetValue(action, out var actionMetadata))
+                    {
+                        int lastIndex = action.LastIndexOf('/');
+                        if (lastIndex >= 0)
+                        {
+                            actionMetadata = new ActionMetadata
+                            {
+                                Service = action.Substring(0, lastIndex),
+                                Method = action.Substring(lastIndex + 1),
+                            };
+                        }
+                        else
+                        {
+                            actionMetadata = new ActionMetadata
+                            {
+                                Service = null,
+                                Method = action,
+                            };
+                        }
+
+                        ActionMetadataCache.TryAdd(action, actionMetadata);
+                    }
+
+                    activity.SetTag(WcfInstrumentationConstants.RpcServiceTag, actionMetadata.Service);
+                    activity.SetTag(WcfInstrumentationConstants.RpcMethodTag, actionMetadata.Method);
 
                     if (WcfInstrumentationActivitySource.Options.SetSoapVersion)
                     {
@@ -109,6 +134,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
 
                 activity.Stop();
             }
+        }
+
+        private class ActionMetadata
+        {
+            public string Service;
+            public string Method;
         }
     }
 }
