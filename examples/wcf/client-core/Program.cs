@@ -55,6 +55,9 @@ namespace Examples.Wcf.Client
 
         private static async Task CallService(Binding binding, EndpointAddress remoteAddress)
         {
+            // Note: Best practice is to re-use your client/channel instances.
+            // This code is not meant to illustrate best practics, only the
+            // instrumentation.
             StatusServiceClient client = new StatusServiceClient(binding, remoteAddress);
             client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
             try
