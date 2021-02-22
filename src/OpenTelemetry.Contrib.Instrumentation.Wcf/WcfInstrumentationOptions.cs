@@ -56,8 +56,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
         public bool SuppressDownstreamInstrumentation { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not the SOAP version should be added as the <see cref="WcfInstrumentationConstants.SoapVersionTag"/> tag. Default value: False.
+        /// Gets or sets a value indicating whether or not the SOAP message version should be added as the <see cref="WcfInstrumentationConstants.SoapMessageVersionTag"/> tag. Default value: False.
         /// </summary>
-        public bool SetSoapVersion { get; set; }
+        public bool SetSoapMessageVersion { get; set; }
     }
 }

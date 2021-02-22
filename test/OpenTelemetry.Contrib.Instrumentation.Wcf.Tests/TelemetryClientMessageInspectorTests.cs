@@ -152,7 +152,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                             return !filter;
                         };
                         options.SuppressDownstreamInstrumentation = suppressDownstreamInstrumentation;
-                        options.SetSoapVersion = includeVersion;
+                        options.SetSoapMessageVersion = includeVersion;
                     })
                     .AddHttpClientInstrumentation(); // <- Added to test SuppressDownstreamInstrumentation.
             }
@@ -224,7 +224,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                         Assert.Equal("/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelPathTag).Value);
                         if (includeVersion)
                         {
-                            Assert.Equal("Soap11 (http://schemas.xmlsoap.org/soap/envelope/) AddressingNone (http://schemas.microsoft.com/ws/2005/05/addressing/none)", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapVersionTag).Value);
+                            Assert.Equal("Soap11 (http://schemas.xmlsoap.org/soap/envelope/) AddressingNone (http://schemas.microsoft.com/ws/2005/05/addressing/none)", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapMessageVersionTag).Value);
                         }
                     }
                     else

@@ -92,9 +92,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
                     activity.SetTag(WcfInstrumentationConstants.RpcServiceTag, actionMetadata.Service);
                     activity.SetTag(WcfInstrumentationConstants.RpcMethodTag, actionMetadata.Method);
 
-                    if (WcfInstrumentationActivitySource.Options.SetSoapVersion)
+                    if (WcfInstrumentationActivitySource.Options.SetSoapMessageVersion)
                     {
-                        activity.SetTag(WcfInstrumentationConstants.SoapVersionTag, request.Version.ToString());
+                        activity.SetTag(WcfInstrumentationConstants.SoapMessageVersionTag, request.Version.ToString());
                     }
 
                     var localAddressUri = channel.LocalAddress?.Uri;
