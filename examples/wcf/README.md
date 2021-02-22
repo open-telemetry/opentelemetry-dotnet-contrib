@@ -15,7 +15,10 @@ Project structure:
 * Examples.Wcf.Server.NetFramework
 
   An example of how to implement a WCF service with OpenTelemetry
-  instrumentation on .NET Framework.
+  instrumentation on .NET Framework. The service will listen on http which
+  requires special permission on Windows. The easiest thing to do is run VS with
+  admin privileges. For details see: [Configuring HTTP and
+  HTTPS](https://docs.microsoft.com/en-us/dotnet/framework/wcf/feature-details/configuring-http-and-https).
 
   Note: There is no .NET Core server example because only the client libraries
   for WCF are available on .NET Core / .NET 5.
