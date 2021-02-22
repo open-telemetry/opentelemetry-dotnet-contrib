@@ -35,16 +35,16 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Implementation
             }
         }
 
-        [Event(1, Message = "Request is filtered out.", Level = EventLevel.Verbose)]
+        [Event(Constants.RequestIsFilteredOutEventId, Message = "Request is filtered out.", Level = EventLevel.Verbose)]
         public void RequestIsFilteredOut(string eventName)
         {
-            this.WriteEvent(1, eventName);
+            this.WriteEvent(Constants.RequestIsFilteredOutEventId, eventName);
         }
 
-        [Event(2, Message = "InstrumentationFilter threw exception. Request will not be collected. Exception {0}.", Level = EventLevel.Error)]
+        [Event(Constants.RequestFilterExceptionEventId, Message = "InstrumentationFilter threw exception. Request will not be collected. Exception {0}.", Level = EventLevel.Error)]
         public void RequestFilterException(string exception)
         {
-            this.WriteEvent(2, exception);
+            this.WriteEvent(Constants.RequestFilterExceptionEventId, exception);
         }
 
         /// <summary>
@@ -64,6 +64,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Implementation
             {
                 Thread.CurrentThread.CurrentUICulture = originalUICulture;
             }
+        }
+
+        private class Constants
+        {
+            public const int RequestIsFilteredOutEventId = 1;
+            public const int RequestFilterExceptionEventId = 2;
         }
     }
 }
