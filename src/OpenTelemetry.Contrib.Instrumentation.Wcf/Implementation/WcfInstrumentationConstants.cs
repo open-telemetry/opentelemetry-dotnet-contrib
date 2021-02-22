@@ -27,6 +27,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
         public const string NetPeerPortTag = "net.peer.port";
         public const string SoapVersionTag = "soap.version";
         public const string SoapReplyActionTag = "soap.reply_action";
+        public const string SoapViaTag = "soap.via";
         public const string WcfChannelSchemeTag = "wcf.channel.scheme";
         public const string WcfChannelPathTag = "wcf.channel.path";
 

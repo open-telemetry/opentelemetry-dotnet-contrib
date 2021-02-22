@@ -107,13 +107,18 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
                         activity.SetTag(WcfInstrumentationConstants.SoapVersionTag, request.Version.ToString());
                     }
 
-                    var remoteAddressUri = channel.RemoteAddress?.Uri;
+                    var remoteAddressUri = request.Headers.To ?? channel.RemoteAddress?.Uri;
                     if (remoteAddressUri != null)
                     {
                         activity.SetTag(WcfInstrumentationConstants.NetPeerNameTag, remoteAddressUri.Host);
                         activity.SetTag(WcfInstrumentationConstants.NetPeerPortTag, remoteAddressUri.Port);
                         activity.SetTag(WcfInstrumentationConstants.WcfChannelSchemeTag, remoteAddressUri.Scheme);
                         activity.SetTag(WcfInstrumentationConstants.WcfChannelPathTag, remoteAddressUri.LocalPath);
+                    }
+
+                    if (request.Properties.Via != null)
+                    {
+                        activity.SetTag(WcfInstrumentationConstants.SoapViaTag, request.Properties.Via.ToString());
                     }
                 }
             }
