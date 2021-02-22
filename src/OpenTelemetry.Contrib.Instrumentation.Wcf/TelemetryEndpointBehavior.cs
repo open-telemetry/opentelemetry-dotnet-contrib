@@ -58,11 +58,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
         /// <inheritdoc/>
         public void ApplyClientBehavior(ServiceEndpoint endpoint, ClientRuntime clientRuntime)
         {
-#if NETFRAMEWORK
-            clientRuntime.MessageInspectors.Add(this.telemetryClientMessageInspector);
-#else
             clientRuntime.ClientMessageInspectors.Add(this.telemetryClientMessageInspector);
-#endif
         }
 
         /// <inheritdoc/>
