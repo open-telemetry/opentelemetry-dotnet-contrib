@@ -195,3 +195,5 @@ By default, all attributes will be metadata.
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
 * [AWS Distro for OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/master/exporter/awsxrayexporter)
+
+Something to delete later
