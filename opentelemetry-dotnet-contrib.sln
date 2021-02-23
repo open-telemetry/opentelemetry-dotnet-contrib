@@ -79,6 +79,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Exten
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Extensions.AWSXRay.Tests", "test\OpenTelemetry.Contrib.Extensions.AWSXRay.Tests\OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.csproj", "{9CE513AC-CFC5-4DD1-9F16-8719EDCE9BF9}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.AWS", "src\OpenTelemetry.Contrib.Instrumentation.AWS\OpenTelemetry.Contrib.Instrumentation.AWS.csproj", "{970673DA-F308-4960-A58D-ECCEA44CEF6B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Contrib.Instrumentation.AWS.Tests", "test\OpenTelemetry.Contrib.Instrumentation.AWS.Tests\OpenTelemetry.Contrib.Instrumentation.AWS.Tests.csproj", "{CAB66B50-DAB6-49B8-83F9-6CCF520C4A36}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -125,6 +129,14 @@ Global
 		{9CE513AC-CFC5-4DD1-9F16-8719EDCE9BF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9CE513AC-CFC5-4DD1-9F16-8719EDCE9BF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9CE513AC-CFC5-4DD1-9F16-8719EDCE9BF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{970673DA-F308-4960-A58D-ECCEA44CEF6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{970673DA-F308-4960-A58D-ECCEA44CEF6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{970673DA-F308-4960-A58D-ECCEA44CEF6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{970673DA-F308-4960-A58D-ECCEA44CEF6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAB66B50-DAB6-49B8-83F9-6CCF520C4A36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAB66B50-DAB6-49B8-83F9-6CCF520C4A36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAB66B50-DAB6-49B8-83F9-6CCF520C4A36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAB66B50-DAB6-49B8-83F9-6CCF520C4A36}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -143,6 +155,8 @@ Global
 		{899E506C-8525-4471-8C6D-5A9FA6B8517B} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{D8C9AD2A-5C6A-46F5-A216-3D67E6C0FA94} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{9CE513AC-CFC5-4DD1-9F16-8719EDCE9BF9} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{970673DA-F308-4960-A58D-ECCEA44CEF6B} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{CAB66B50-DAB6-49B8-83F9-6CCF520C4A36} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
