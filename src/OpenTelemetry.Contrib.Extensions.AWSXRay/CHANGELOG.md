@@ -1,6 +1,6 @@
 # Changelog - OpenTelemetry.Contrib.Extensions.AWSXRay
 
-## 1.0.1 [2021-Feb-22]
+## 1.0.1 [2021-Feb-24]
 
 This is the first release for the `OpenTelemetry.Contrib.Extensions.AWSXRay`
 project. The project targets v1.0.1 of the
