@@ -26,8 +26,9 @@ dotnet add package OpenTelemetry.Contrib.Extensions.AWSXRay
 
 ### Note
 
-* You'll also need to have the AWS Distro for OpenTelemetry
-Collector running to export traces to X-Ray.
+* You'll also need to have the [AWS Distro for OpenTelemetry
+Collector](https://github.com/aws-observability/aws-otel-collector)
+running to export traces to X-Ray.
 
 ### Instrumenting .Net applications
 
@@ -62,7 +63,7 @@ public void ConfigureServices(IServiceCollection services)
 ```
 
 By default the OTLP exporter sends data to an OpenTelemetry
-collector at **localhost:55681**
+collector at **localhost:4317**
 
 #### ASP.Net
 
@@ -140,58 +141,7 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 Sdk.SetDefaultTextMapPropagator(new AWSXRayPropagator());
 ```
 
-### Instrumenting AWS SDK
-
-For tracing downstream call to AWS services from your .Net application,
-you will need three components: the `AWSXRayIdGenerator`,
-the `AWSXRayPropagator`, and the AWS client instrumentation.
-
-Download the `OpenTelemetry.Contrib.Extensions.AWSXRay` package:
-
-```shell
-dotnet add package OpenTelemetry.Contrib.Extensions.AWSXRay
-```
-
-Add the `AWSXRayIdGenerator`, `AWSXRayPropagator` and `AWSInstrumentation`
-to your application. The below example is for an ASP.Net Core application.
-
-```csharp
-using OpenTelemetry;
-using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
-using OpenTelemetry.Trace;
-
-public void ConfigureServices(IServiceCollection services)
-{
-    services.AddControllers();
-    services.AddOpenTelemetryTracing((builder) => builder
-        // for generating AWS X-Ray compliant trace IDs
-        .AddXRayTraceId()
-        // for tracing calls to AWS services via AWS SDK for .Net
-        .AddAWSInstrumentation()
-        .AddAspNetCoreInstrumentation()
-        .AddOtlpExporter());
-
-    // configure AWSXRayPropagator
-    Sdk.SetDefaultTextMapPropagator(new AWSXRayPropagator());
-}
-```
-
-### Adding Custom Attributes
-
-You can add custom attributes to an `Activity` by calling
-`SetTag` method on the current activity.
-
-```csharp
-var currentActivity = Activity.Current;
-currentActivity.SetTag("key", "val");
-```
-
-When using AWS X-Ray as your tracing backend, you can control whether
-attributes are uploaded as annotations or metadata by configuring the
-AWS OTel Collector's indexed keys.
-By default, all attributes will be metadata.
-
 ## References
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
-* [AWS Distro for OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/master/exporter/awsxrayexporter)
+* [AWS Distro for OpenTelemetry Collector](https://github.com/aws-observability/aws-otel-collector)
