@@ -4,6 +4,7 @@
     <Description>Elasticsearch instrumentation for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);distributed-tracing</PackageTags>
     <MinVerTagPrefix>Instrumentation.ElasticsearchClient-</MinVerTagPrefix>
+    <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="1.0.2-alpha.0.13" />
