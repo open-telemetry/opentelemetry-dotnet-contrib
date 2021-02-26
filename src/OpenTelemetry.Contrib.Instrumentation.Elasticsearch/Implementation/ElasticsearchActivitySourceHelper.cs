@@ -15,6 +15,7 @@
 // </copyright>
 using System;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementation
 {
@@ -23,15 +24,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
     /// </summary>
     internal class ElasticsearchActivitySourceHelper
     {
-        public const string ActivitySourceName = "Elasticsearch.Net.RequestPipeline";
+        internal const string DatabaseSystemName = "elasticsearch";
+        internal const string ExceptionCustomPropertyName = "OTel.Elasticsearch.Exception";
+        internal const string AttributeDbMethod = "db.method";
 
-        public const string DatabaseSystemName = "elasticsearch";
-        public const string ExceptionCustomPropertyName = "OTel.Elasticsearch.Exception";
-        public const string AttributeDbMethod = "db.method";
-
-        private static readonly Version Version = typeof(ElasticsearchActivitySourceHelper).Assembly.GetName().Version;
-#pragma warning disable SA1202 // Elements should be ordered by access <- In this case, Version MUST come before ActivitySource otherwise null ref exception is thrown.
+        internal static readonly AssemblyName AssemblyName = typeof(ElasticsearchRequestPipelineDiagnosticListener).Assembly.GetName();
+        internal static readonly string ActivitySourceName = AssemblyName.Name;
+        internal static readonly Version Version = AssemblyName.Version;
         internal static readonly ActivitySource ActivitySource = new ActivitySource(ActivitySourceName, Version.ToString());
-#pragma warning restore SA1202 // Elements should be ordered by access
     }
 }

@@ -21,7 +21,7 @@
       Please sort alphabetically.
       Refer to https://docs.microsoft.com/en-us/nuget/concepts/package-versioning for semver syntax.
     -->
-    <MinVerPkgVer>[2.3.0,3.0)</MinVerPkgVer>
+    <MinVerPkgVer>[2.4.0,3.0)</MinVerPkgVer>
     <MicrosoftCodeAnalysisFxCopAnalyzersPkgVer>[3.3.0]</MicrosoftCodeAnalysisFxCopAnalyzersPkgVer>
     <MicrosoftCodeCoveragePkgVer>[16.7.1]</MicrosoftCodeCoveragePkgVer>
     <MicrosoftExtensionsHostingAbstractionsPkgVer>[2.1.0,5.0)</MicrosoftExtensionsHostingAbstractionsPkgVer>
