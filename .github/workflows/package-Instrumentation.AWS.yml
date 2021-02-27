@@ -1,4 +1,4 @@
-name: Pack OpenTelemetry.Contrib.Exporter.Stackdriver
+name: Pack OpenTelemetry.Contrib.Instrumentation.AWS
 
 on:
   workflow_dispatch:
@@ -9,13 +9,13 @@ on:
         default: 'warning'
   push:
     tags:
-      - 'Exporter.Stackdriver-*' # trigger when we create a tag with prefix "Exporter.Stackdriver-"
+      - 'Instrumentation.AWS-*' # trigger when we create a tag with prefix "Instrumentation.AWS-"
 
 jobs:
   build-test-pack:
     runs-on: ${{ matrix.os }}
     env:
-      PROJECT: OpenTelemetry.Contrib.Exporter.Stackdriver
+      PROJECT: OpenTelemetry.Contrib.Instrumentation.AWS
 
     strategy:
       matrix:
