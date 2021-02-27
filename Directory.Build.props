@@ -7,22 +7,4 @@
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(IncludeSharedInstrumentationSource)'=='true'">
-    <Compile Include="$(MSBuildThisFileDirectory)src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\ActivityInstrumentationHelper.cs" Link="Includes\ActivityInstrumentationHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\DiagnosticSourceListener.cs" Link="Includes\DiagnosticSourceListener.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\DiagnosticSourceSubscriber.cs" Link="Includes\DiagnosticSourceSubscriber.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\InstrumentationEventSource.cs" Link="Includes\InstrumentationEventSource.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\ListenerHandler.cs" Link="Includes\ListenerHandler.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\MultiTypePropertyFetcher.cs" Link="Includes\MultiTypePropertyFetcher.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\PropertyFetcher.cs" Link="Includes\PropertyFetcher.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\OpenTelemetry.Contrib.Shared\Api\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\OpenTelemetry.Contrib.Shared\Api\EnumerationHelper.cs" Link="Includes\EnumerationHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\OpenTelemetry.Contrib.Shared\Api\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\OpenTelemetry.Contrib.Shared\Api\IActivityEnumerator.cs" Link="Includes\IActivityEnumerator.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\OpenTelemetry.Contrib.Shared\Api\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\OpenTelemetry.Contrib.Shared\Api\SpanAttributeConstants.cs" Link="Includes\SpanAttributeConstants.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\OpenTelemetry.Contrib.Shared\Api\SpanHelper.cs" Link="Includes\SpanHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\OpenTelemetry.Contrib.Shared\Api\StatusHelper.cs" Link="Includes\StatusHelper.cs" />
-  </ItemGroup>
-
 </Project>

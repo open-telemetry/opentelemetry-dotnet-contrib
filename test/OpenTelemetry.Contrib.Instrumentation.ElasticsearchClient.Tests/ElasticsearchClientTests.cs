@@ -22,6 +22,7 @@ using Elasticsearch.Net;
 using Moq;
 using Nest;
 using OpenTelemetry.Resources;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
 using Status = OpenTelemetry.Trace.Status;
@@ -198,6 +199,64 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
             Assert.Equal(Status.Unset, searchActivity.GetStatus());
 
             // Assert.Equal(expectedResource, searchActivity.GetResource());
+        }
+
+        [Fact]
+        public async Task CanSampleSearchCall()
+        {
+            bool samplerCalled = false;
+
+            var sampler = new TestSampler
+            {
+                SamplingAction =
+                (samplingParameters) =>
+                {
+                    samplerCalled = true;
+                    return new SamplingResult(SamplingDecision.RecordAndSample);
+                },
+            };
+
+            using TestActivityProcessor testActivityProcessor = new TestActivityProcessor();
+
+            bool startCalled = false;
+            bool endCalled = false;
+
+            testActivityProcessor.StartAction =
+                (a) =>
+                {
+                    Assert.True(samplerCalled);
+                    Assert.False(Sdk.SuppressInstrumentation);
+                    Assert.True(a.IsAllDataRequested); // If Proccessor.OnStart is called, activity's IsAllDataRequested is set to true
+                    startCalled = true;
+                };
+
+            testActivityProcessor.EndAction =
+                (a) =>
+                {
+                    Assert.False(Sdk.SuppressInstrumentation);
+                    Assert.True(a.IsAllDataRequested); // If Processor.OnEnd is called, activity's IsAllDataRequested is set to true
+                    endCalled = true;
+                };
+
+            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer").EnableDebugMode());
+
+            using (Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new AlwaysOffSampler())
+                .AddElasticsearchClientInstrumentation()
+                .AddProcessor(testActivityProcessor)
+                .Build())
+            {
+                var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+                Assert.NotNull(searchResponse);
+                Assert.True(searchResponse.ApiCall.Success);
+                Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
+
+                var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+                Assert.Empty(failed);
+            }
+
+            Assert.True(startCalled); // Processor.OnStart is called since we added a legacy OperationName
+            Assert.True(endCalled); // Processor.OnEnd is called since we added a legacy OperationName
         }
 
         [Fact]
