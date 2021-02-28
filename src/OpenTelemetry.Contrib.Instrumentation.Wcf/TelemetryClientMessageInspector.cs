@@ -15,7 +15,7 @@
 // </copyright>
 
 using System;
-using System.Collections.Concurrent;
+using System.Collections;
 using System.Diagnostics;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
@@ -31,7 +31,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
     /// </summary>
     public class TelemetryClientMessageInspector : IClientMessageInspector
     {
-        private static readonly ConcurrentDictionary<string, ActionMetadata> ActionMetadataCache = new ConcurrentDictionary<string, ActionMetadata>();
+        private static readonly Hashtable ActionMetadataCache = Hashtable.Synchronized(new Hashtable());
 
         /// <inheritdoc/>
         public object BeforeSendRequest(ref Message request, IClientChannel channel)
@@ -76,7 +76,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
                 {
                     activity.SetTag(WcfInstrumentationConstants.RpcSystemTag, WcfInstrumentationConstants.WcfSystemValue);
 
-                    if (!ActionMetadataCache.TryGetValue(action, out var actionMetadata))
+                    if (!(ActionMetadataCache[action] is ActionMetadata actionMetadata))
                     {
                         int lastIndex = action.LastIndexOf('/');
                         if (lastIndex >= 0)
@@ -96,7 +96,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
                             };
                         }
 
-                        ActionMetadataCache.TryAdd(action, actionMetadata);
+                        ActionMetadataCache[action] = actionMetadata;
                     }
 
                     activity.SetTag(WcfInstrumentationConstants.RpcServiceTag, actionMetadata.Service);
