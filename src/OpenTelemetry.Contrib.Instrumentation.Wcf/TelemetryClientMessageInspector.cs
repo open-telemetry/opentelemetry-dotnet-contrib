@@ -15,7 +15,7 @@
 // </copyright>
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
@@ -31,7 +31,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
     /// </summary>
     public class TelemetryClientMessageInspector : IClientMessageInspector
     {
-        private static readonly Hashtable ActionMetadataCache = Hashtable.Synchronized(new Hashtable());
+        private readonly IDictionary<string, ActionMetadata> actionMappings;
+
+        internal TelemetryClientMessageInspector(IDictionary<string, ActionMetadata> actionMappings)
+        {
+            this.actionMappings = actionMappings ?? throw new ArgumentNullException(nameof(actionMappings));
+        }
 
         /// <inheritdoc/>
         public object BeforeSendRequest(ref Message request, IClientChannel channel)
@@ -76,31 +81,17 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
                 {
                     activity.SetTag(WcfInstrumentationConstants.RpcSystemTag, WcfInstrumentationConstants.WcfSystemValue);
 
-                    if (!(ActionMetadataCache[action] is ActionMetadata actionMetadata))
+                    if (!this.actionMappings.TryGetValue(action, out ActionMetadata actionMetadata))
                     {
-                        int lastIndex = action.LastIndexOf('/');
-                        if (lastIndex >= 0)
+                        actionMetadata = new ActionMetadata
                         {
-                            actionMetadata = new ActionMetadata
-                            {
-                                Service = action.Substring(0, lastIndex),
-                                Method = action.Substring(lastIndex + 1),
-                            };
-                        }
-                        else
-                        {
-                            actionMetadata = new ActionMetadata
-                            {
-                                Service = null,
-                                Method = action,
-                            };
-                        }
-
-                        ActionMetadataCache[action] = actionMetadata;
+                            ContractName = null,
+                            OperationName = action,
+                        };
                     }
 
-                    activity.SetTag(WcfInstrumentationConstants.RpcServiceTag, actionMetadata.Service);
-                    activity.SetTag(WcfInstrumentationConstants.RpcMethodTag, actionMetadata.Method);
+                    activity.SetTag(WcfInstrumentationConstants.RpcServiceTag, actionMetadata.ContractName);
+                    activity.SetTag(WcfInstrumentationConstants.RpcMethodTag, actionMetadata.OperationName);
 
                     if (WcfInstrumentationActivitySource.Options.SetSoapMessageVersion)
                     {
@@ -159,12 +150,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
             return WcfInstrumentationActivitySource.Options?.SuppressDownstreamInstrumentation ?? false
                 ? SuppressInstrumentationScope.Begin()
                 : null;
-        }
-
-        private class ActionMetadata
-        {
-            public string Service;
-            public string Method;
         }
 
         private class State

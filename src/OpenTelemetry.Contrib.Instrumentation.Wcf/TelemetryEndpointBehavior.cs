@@ -14,6 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+using System;
+using System.Collections.Generic;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
@@ -34,22 +36,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
 #endif
     public class TelemetryEndpointBehavior : IEndpointBehavior
     {
-        private readonly TelemetryClientMessageInspector telemetryClientMessageInspector;
-#if NETFRAMEWORK
-        private readonly TelemetryDispatchMessageInspector telemetryDispatchMessageInspector;
-#endif
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TelemetryEndpointBehavior"/> class.
-        /// </summary>
-        public TelemetryEndpointBehavior()
-        {
-            this.telemetryClientMessageInspector = new TelemetryClientMessageInspector();
-#if NETFRAMEWORK
-            this.telemetryDispatchMessageInspector = new TelemetryDispatchMessageInspector();
-#endif
-        }
-
         /// <inheritdoc/>
         public void AddBindingParameters(ServiceEndpoint endpoint, BindingParameterCollection bindingParameters)
         {
@@ -58,14 +44,36 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
         /// <inheritdoc/>
         public void ApplyClientBehavior(ServiceEndpoint endpoint, ClientRuntime clientRuntime)
         {
-            clientRuntime.ClientMessageInspectors.Add(this.telemetryClientMessageInspector);
+            var actionMappings = new Dictionary<string, ActionMetadata>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var clientOperation in clientRuntime.ClientOperations)
+            {
+                actionMappings[clientOperation.Action] = new ActionMetadata
+                {
+                    ContractName = $"{clientRuntime.ContractNamespace}{clientRuntime.ContractName}",
+                    OperationName = clientOperation.Name,
+                };
+            }
+
+            clientRuntime.ClientMessageInspectors.Add(new TelemetryClientMessageInspector(actionMappings));
         }
 
         /// <inheritdoc/>
         public void ApplyDispatchBehavior(ServiceEndpoint endpoint, EndpointDispatcher endpointDispatcher)
         {
 #if NETFRAMEWORK
-            endpointDispatcher.DispatchRuntime.MessageInspectors.Add(this.telemetryDispatchMessageInspector);
+            var actionMappings = new Dictionary<string, ActionMetadata>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var dispatchOperation in endpointDispatcher.DispatchRuntime.Operations)
+            {
+                actionMappings[dispatchOperation.Action] = new ActionMetadata
+                {
+                    ContractName = $"{endpointDispatcher.ContractNamespace}{endpointDispatcher.ContractName}",
+                    OperationName = dispatchOperation.Name,
+                };
+            }
+
+            endpointDispatcher.DispatchRuntime.MessageInspectors.Add(new TelemetryDispatchMessageInspector(actionMappings));
 #endif
         }
 
