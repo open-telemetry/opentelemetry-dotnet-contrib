@@ -62,8 +62,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
                 Assert.Empty(failed);
             }
 
-            // SetParentProvider, OnEnd, OnShutdown, Dispose
-            Assert.Equal(4, processor.Invocations.Count);
+            // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
+            Assert.Equal(5, processor.Invocations.Count);
             var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
             Assert.Single(activities);
 
@@ -117,8 +117,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
                 Assert.Empty(failed);
             }
 
-            // SetParentProvider, OnEnd, OnShutdown, Dispose
-            Assert.Equal(4, processor.Invocations.Count);
+            // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
+            Assert.Equal(5, processor.Invocations.Count);
             var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
             Assert.Single(activities);
 
@@ -172,8 +172,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
                 Assert.Empty(failed);
             }
 
-            // SetParentProvider, OnEnd, OnShutdown, Dispose
-            Assert.Equal(4, processor.Invocations.Count);
+            // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
+            Assert.Equal(5, processor.Invocations.Count);
             var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
             Assert.Single(activities);
 
@@ -202,7 +202,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
         }
 
         [Fact]
-        public async Task CanSampleSearchCall()
+        public async Task CanRecordAndSampleSearchCall()
         {
             bool samplerCalled = false;
 
@@ -241,8 +241,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
             var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer").EnableDebugMode());
 
             using (Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new AlwaysOffSampler())
-                .AddElasticsearchClientInstrumentation()
+                .SetSampler(sampler)
+                .AddElasticsearchClientInstrumentation((opt) => opt.SuppressDownstreamInstrumentation = false)
                 .AddProcessor(testActivityProcessor)
                 .Build())
             {
@@ -257,6 +257,64 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
 
             Assert.True(startCalled); // Processor.OnStart is called since we added a legacy OperationName
             Assert.True(endCalled); // Processor.OnEnd is called since we added a legacy OperationName
+        }
+
+        [Fact]
+        public async Task CanDropSearchCall()
+        {
+            bool samplerCalled = false;
+
+            var sampler = new TestSampler
+            {
+                SamplingAction =
+                (samplingParameters) =>
+                {
+                    samplerCalled = true;
+                    return new SamplingResult(SamplingDecision.Drop);
+                },
+            };
+
+            using TestActivityProcessor testActivityProcessor = new TestActivityProcessor();
+
+            bool startCalled = false;
+            bool endCalled = false;
+
+            testActivityProcessor.StartAction =
+                (a) =>
+                {
+                    Assert.True(samplerCalled);
+                    Assert.False(Sdk.SuppressInstrumentation);
+                    Assert.False(a.IsAllDataRequested); // If Proccessor.OnStart is called, activity's IsAllDataRequested is set to true
+                    startCalled = true;
+                };
+
+            testActivityProcessor.EndAction =
+                (a) =>
+                {
+                    Assert.False(Sdk.SuppressInstrumentation);
+                    Assert.False(a.IsAllDataRequested); // If Processor.OnEnd is called, activity's IsAllDataRequested is set to true
+                    endCalled = true;
+                };
+
+            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer").EnableDebugMode());
+
+            using (Sdk.CreateTracerProviderBuilder()
+                .SetSampler(sampler)
+                .AddElasticsearchClientInstrumentation((opt) => opt.SuppressDownstreamInstrumentation = false)
+                .AddProcessor(testActivityProcessor)
+                .Build())
+            {
+                var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+                Assert.NotNull(searchResponse);
+                Assert.True(searchResponse.ApiCall.Success);
+                Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
+
+                var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+                Assert.Empty(failed);
+            }
+
+            Assert.False(startCalled); // Processor.OnStart is called since we added a legacy OperationName
+            Assert.False(endCalled); // Processor.OnEnd is called since we added a legacy OperationName
         }
 
         [Fact]
@@ -285,8 +343,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
                 Assert.Empty(failed);
             }
 
-            // SetParentProvider, OnEnd, OnShutdown, Dispose
-            Assert.Equal(4, processor.Invocations.Count);
+            // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
+            Assert.Equal(5, processor.Invocations.Count);
             var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
             Assert.Single(activities);
 
@@ -340,8 +398,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
                 Assert.Empty(failed);
             }
 
-            // SetParentProvider, OnEnd, OnShutdown, Dispose
-            Assert.Equal(4, processor.Invocations.Count);
+            // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
+            Assert.Equal(5, processor.Invocations.Count);
             var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
             Assert.Single(activities);
 
@@ -411,8 +469,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
                 Assert.Empty(failed);
             }
 
-            // SetParentProvider, OnEnd, OnShutdown, Dispose
-            Assert.Equal(4, processor.Invocations.Count);
+            // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
+            Assert.Equal(5, processor.Invocations.Count);
             var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
             Assert.Single(activities);
 
@@ -466,8 +524,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
                 Assert.Empty(failed);
             }
 
-            // SetParentProvider, OnEnd, OnShutdown, Dispose
-            Assert.Equal(4, processor.Invocations.Count);
+            // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
+            Assert.Equal(5, processor.Invocations.Count);
             var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
             Assert.Single(activities);
 
@@ -522,8 +580,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
                 Assert.NotEmpty(failed);
             }
 
-            // SetParentProvider, OnEnd, OnShutdown, Dispose
-            Assert.Equal(4, processor.Invocations.Count);
+            // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
+            Assert.Equal(5, processor.Invocations.Count);
             var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
             Assert.Single(activities);
 
@@ -578,8 +636,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
                 Assert.Empty(failed);
             }
 
-            // SetParentProvider, OnEnd, OnShutdown, Dispose
-            Assert.Equal(4, processor.Invocations.Count);
+            // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
+            Assert.Equal(5, processor.Invocations.Count);
             var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
             Assert.Single(activities);
 
