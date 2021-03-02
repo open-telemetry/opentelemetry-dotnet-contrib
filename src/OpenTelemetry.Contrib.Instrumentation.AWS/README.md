@@ -18,14 +18,9 @@ public void ConfigureServices(IServiceCollection services)
 {
     services.AddControllers();
     services.AddOpenTelemetryTracing((builder) => builder
-        // for generating AWS X-Ray compliant trace IDs
-        .AddXRayTraceId()
         // for tracing calls to AWS services via AWS SDK for .Net
         .AddAWSInstrumentation()
         .AddAspNetCoreInstrumentation()
         .AddOtlpExporter());
-
-    // configure AWSXRayPropagator
-    Sdk.SetDefaultTextMapPropagator(new AWSXRayPropagator());
 }
 ```

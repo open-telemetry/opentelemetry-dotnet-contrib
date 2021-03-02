@@ -26,8 +26,9 @@ dotnet add package OpenTelemetry.Contrib.Extensions.AWSXRay
 
 ### Note
 
-* You'll also need to have the AWS Distro for OpenTelemetry
-Collector running to export traces to X-Ray.
+* You'll also need to have the [AWS Distro for OpenTelemetry
+Collector](https://github.com/aws-observability/aws-otel-collector)
+running to export traces to X-Ray.
 
 ### Instrumenting .Net applications
 
@@ -62,7 +63,7 @@ public void ConfigureServices(IServiceCollection services)
 ```
 
 By default the OTLP exporter sends data to an OpenTelemetry
-collector at **localhost:55681**
+collector at **localhost:4317**
 
 #### ASP.Net
 
@@ -140,22 +141,7 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 Sdk.SetDefaultTextMapPropagator(new AWSXRayPropagator());
 ```
 
-### Adding Custom Attributes
-
-You can add custom attributes to an `Activity` by calling
-`SetTag` method on the current activity.
-
-```csharp
-var currentActivity = Activity.Current;
-currentActivity.SetTag("key", "val");
-```
-
-When using AWS X-Ray as your tracing backend, you can control whether
-attributes are uploaded as annotations or metadata by configuring the
-AWS OTel Collector's indexed keys.
-By default, all attributes will be metadata.
-
 ## References
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
-* [AWS Distro for OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/master/exporter/awsxrayexporter)
+* [AWS Distro for OpenTelemetry Collector](https://github.com/aws-observability/aws-otel-collector)
