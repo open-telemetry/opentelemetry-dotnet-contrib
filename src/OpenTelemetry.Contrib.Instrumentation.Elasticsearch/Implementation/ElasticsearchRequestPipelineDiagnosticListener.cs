@@ -20,6 +20,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -30,6 +31,15 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
 {
     internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
     {
+        internal const string DatabaseSystemName = "elasticsearch";
+        internal const string ExceptionCustomPropertyName = "OTel.Elasticsearch.Exception";
+        internal const string AttributeDbMethod = "db.method";
+
+        internal static readonly AssemblyName AssemblyName = typeof(ElasticsearchRequestPipelineDiagnosticListener).Assembly.GetName();
+        internal static readonly string ActivitySourceName = AssemblyName.Name;
+        internal static readonly Version Version = AssemblyName.Version;
+        internal static readonly ActivitySource ActivitySource = new ActivitySource(ActivitySourceName, Version.ToString());
+
         private static readonly Regex ParseRequest = new Regex(@"\n# Request:\r?\n(\{.*)\n# Response", RegexOptions.Compiled | RegexOptions.Singleline);
         private static readonly ConcurrentDictionary<object, string> MethodNameCache = new ConcurrentDictionary<object, string>();
 
@@ -58,7 +68,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
                 return;
             }
 
-            ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ElasticsearchActivitySourceHelper.ActivitySource);
+            ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
             ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Client);
 
             var method = this.methodFetcher.Fetch(payload);
@@ -76,7 +86,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
 
             var elasticIndex = this.GetElasticIndex(uri);
             activity.DisplayName = this.GetDisplayName(activity, method, elasticIndex);
-            activity.SetTag(SemanticConventions.AttributeDbSystem, ElasticsearchActivitySourceHelper.DatabaseSystemName);
+            activity.SetTag(SemanticConventions.AttributeDbSystem, DatabaseSystemName);
 
             if (elasticIndex != null)
             {
@@ -100,7 +110,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
 
             if (method != null)
             {
-                activity.SetTag(ElasticsearchActivitySourceHelper.AttributeDbMethod, method.ToString());
+                activity.SetTag(AttributeDbMethod, method.ToString());
             }
 
             activity.SetTag(SemanticConventions.AttributeDbUrl, uri.OriginalString);
@@ -127,7 +137,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
                 var originalException = this.originalExceptionFetcher.Fetch(payload);
                 if (originalException != null)
                 {
-                    activity.SetCustomProperty(ElasticsearchActivitySourceHelper.ExceptionCustomPropertyName, originalException);
+                    activity.SetCustomProperty(ExceptionCustomPropertyName, originalException);
 
                     var failureReason = this.failureReasonFetcher.Fetch(originalException);
                     if (failureReason != null)
@@ -222,7 +232,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
                 return debugInformation;
             }
 
-            string method = activity.GetTagValue(ElasticsearchActivitySourceHelper.AttributeDbMethod).ToString();
+            string method = activity.GetTagValue(AttributeDbMethod).ToString();
             string url = activity.GetTagValue(SemanticConventions.AttributeDbUrl).ToString();
 
             if (method == "GET")
