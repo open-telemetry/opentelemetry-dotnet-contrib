@@ -15,7 +15,8 @@
 // </copyright>
 
 using System;
-using OpenTelemetry.Contrib.Instrumentation.Azure;
+using OpenTelemetry.Contrib.Instrumentation.AWS;
+using OpenTelemetry.Contrib.Instrumentation.AWS.Implementation;
 
 namespace OpenTelemetry.Trace
 {
@@ -25,20 +26,25 @@ namespace OpenTelemetry.Trace
     public static class TracerProviderBuilderExtensions
     {
         /// <summary>
-        /// Enables Azure Instrumentation.
+        /// Enables AWS Instrumentation.
         /// </summary>
         /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+        /// <param name="configure">AWS client configuration options.</param>
         /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-        public static TracerProviderBuilder AddAzureInstrumentation(
-            this TracerProviderBuilder builder)
+        public static TracerProviderBuilder AddAWSInstrumentation(
+            this TracerProviderBuilder builder,
+            Action<AWSClientInstrumentationOptions> configure = null)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            builder.AddInstrumentation((activitySource) => new AzureClientsInstrumentation());
-            builder.AddInstrumentation((activitySource) => new AzurePipelineInstrumentation());
+            var awsClientOptions = new AWSClientInstrumentationOptions();
+            configure?.Invoke(awsClientOptions);
+
+            new AWSClientsInstrumentation(awsClientOptions);
+            builder.AddSource("Amazon.AWS.AWSClientInstrumentation");
             return builder;
         }
     }
