@@ -22,3 +22,4 @@ comment:
 ignore:
   - "test/**/*"     # ignore test folder
   - "**.md"          # ignore md files
+  - "src/OpenTelemetry.Contrib.Shared"  # copied from main OTel project and has code coverage there
