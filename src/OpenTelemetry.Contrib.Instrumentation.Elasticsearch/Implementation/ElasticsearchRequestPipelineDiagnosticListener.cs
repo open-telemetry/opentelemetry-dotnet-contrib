@@ -114,6 +114,15 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
             }
 
             activity.SetTag(SemanticConventions.AttributeDbUrl, uri.OriginalString);
+
+            try
+            {
+                this.options.Enrich?.Invoke(activity, "OnStartActivity", payload);
+            }
+            catch (Exception ex)
+            {
+                ElasticsearchInstrumentationEventSource.Log.EnrichmentException(ex);
+            }
         }
 
         public override void OnStopActivity(Activity activity, object payload)
@@ -169,6 +178,15 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
                             activity.SetStatus(Status.Error.WithDescription(originalException.Message));
                         }
                     }
+                }
+
+                try
+                {
+                    this.options.Enrich?.Invoke(activity, "OnStopActivity", payload);
+                }
+                catch (Exception ex)
+                {
+                    ElasticsearchInstrumentationEventSource.Log.EnrichmentException(ex);
                 }
             }
         }
