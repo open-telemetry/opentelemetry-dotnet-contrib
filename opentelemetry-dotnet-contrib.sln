@@ -103,6 +103,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Contrib.Instr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.Wcf.Tests", "test\OpenTelemetry.Contrib.Instrumentation.Wcf.Tests\OpenTelemetry.Contrib.Instrumentation.Wcf.Tests.csproj", "{76BAB24F-85DB-4FCE-89D0-EFB4185004C9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Contrib.Shared", "src\OpenTelemetry.Contrib.Shared\OpenTelemetry.Contrib.Shared.csproj", "{4F73469B-B597-4B38-80C4-B121D248CF72}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -181,6 +183,10 @@ Global
 		{76BAB24F-85DB-4FCE-89D0-EFB4185004C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{76BAB24F-85DB-4FCE-89D0-EFB4185004C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{76BAB24F-85DB-4FCE-89D0-EFB4185004C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F73469B-B597-4B38-80C4-B121D248CF72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F73469B-B597-4B38-80C4-B121D248CF72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F73469B-B597-4B38-80C4-B121D248CF72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F73469B-B597-4B38-80C4-B121D248CF72}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -208,6 +214,7 @@ Global
 		{970673DA-F308-4960-A58D-ECCEA44CEF6B} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{CAB66B50-DAB6-49B8-83F9-6CCF520C4A36} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{76BAB24F-85DB-4FCE-89D0-EFB4185004C9} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{4F73469B-B597-4B38-80C4-B121D248CF72} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
