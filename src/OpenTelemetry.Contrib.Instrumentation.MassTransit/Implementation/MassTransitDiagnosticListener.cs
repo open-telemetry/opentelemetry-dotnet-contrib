@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using OpenTelemetry.Instrumentation;
 using OpenTelemetry.Trace;
 
@@ -25,13 +26,16 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
 {
     internal class MassTransitDiagnosticListener : ListenerHandler
     {
-        private readonly ActivitySourceAdapter activitySource;
+        internal static readonly AssemblyName AssemblyName = typeof(MassTransitDiagnosticListener).Assembly.GetName();
+        internal static readonly string ActivitySourceName = AssemblyName.Name;
+        internal static readonly Version Version = AssemblyName.Version;
+        internal static readonly ActivitySource ActivitySource = new ActivitySource(ActivitySourceName, Version.ToString());
+
         private readonly MassTransitInstrumentationOptions options;
 
-        public MassTransitDiagnosticListener(ActivitySourceAdapter activitySource, MassTransitInstrumentationOptions options)
-            : base("MassTransit")
+        public MassTransitDiagnosticListener(string name, MassTransitInstrumentationOptions options)
+            : base(name)
         {
-            this.activitySource = activitySource;
             this.options = options;
         }
 
@@ -44,7 +48,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
 
             activity.DisplayName = this.GetDisplayName(activity);
 
-            this.activitySource.Start(activity, this.GetActivityKind(activity));
+            ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
+            ActivityInstrumentationHelper.SetKindProperty(activity, this.GetActivityKind(activity));
         }
 
         public override void OnStopActivity(Activity activity, object payload)
@@ -59,7 +64,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
                 this.TransformMassTransitTags(activity);
             }
 
-            this.activitySource.Stop(activity);
+            activity.Stop();
         }
 
         private string GetDisplayName(Activity activity)
