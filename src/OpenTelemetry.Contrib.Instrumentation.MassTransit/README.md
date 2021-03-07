@@ -1,4 +1,4 @@
-# MassTransit Instrumentation for OpenTelemetry.Contrib .NET
+# MassTransit Instrumentation for OpenTelemetry .NET
 
 Automatically instruments
 [DiagnosticSource](https://masstransit-project.com/advanced/monitoring/diagnostic-source.html)
