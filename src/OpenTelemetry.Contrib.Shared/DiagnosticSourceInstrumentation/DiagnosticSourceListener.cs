@@ -17,11 +17,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using OpenTelemetry.Context;
 
 namespace OpenTelemetry.Instrumentation
 {
     internal class DiagnosticSourceListener : IObserver<KeyValuePair<string, object>>
     {
+        private static readonly RuntimeContextSlot<int> Slot = RuntimeContext.RegisterSlot<int>("otel.suppress_instrumentation_listener");
         private readonly ListenerHandler handler;
 
         public DiagnosticSourceListener(ListenerHandler handler)
@@ -50,17 +52,33 @@ namespace OpenTelemetry.Instrumentation
             {
                 if (value.Key.EndsWith("Start", StringComparison.Ordinal))
                 {
-                    this.handler.OnStartActivity(Activity.Current, value.Value);
+                    if (!Sdk.SuppressInstrumentation)
+                    {
+                        this.handler.OnStartActivity(Activity.Current, value.Value);
+                    }
+                    else
+                    {
+                        var supressionCount = Slot.Get();
+                        Slot.Set(++supressionCount);
+                    }
                 }
                 else if (value.Key.EndsWith("Stop", StringComparison.Ordinal))
                 {
-                    this.handler.OnStopActivity(Activity.Current, value.Value);
+                    var supressionCount = Slot.Get();
+                    if (supressionCount <= 0)
+                    {
+                        this.handler.OnStopActivity(Activity.Current, value.Value);
+                    }
+                    else if (supressionCount > 0)
+                    {
+                        Slot.Set(--supressionCount);
+                    }
                 }
-                else if (value.Key.EndsWith("Exception", StringComparison.Ordinal))
+                else if (value.Key.EndsWith("Exception", StringComparison.Ordinal) && !Sdk.SuppressInstrumentation)
                 {
                     this.handler.OnException(Activity.Current, value.Value);
                 }
-                else
+                else if (!Sdk.SuppressInstrumentation)
                 {
                     this.handler.OnCustom(value.Key, Activity.Current, value.Value);
                 }

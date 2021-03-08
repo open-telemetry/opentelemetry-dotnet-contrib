@@ -17,6 +17,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Elasticsearch.Net;
 using Moq;
@@ -218,8 +219,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
 
             using TestActivityProcessor testActivityProcessor = new TestActivityProcessor();
 
-            bool startCalled = false;
-            bool endCalled = false;
+            int startCalled = 0;
+            int endCalled = 0;
 
             testActivityProcessor.StartAction =
                 (a) =>
@@ -227,7 +228,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
                     Assert.True(samplerCalled);
                     Assert.False(Sdk.SuppressInstrumentation);
                     Assert.True(a.IsAllDataRequested); // If Proccessor.OnStart is called, activity's IsAllDataRequested is set to true
-                    startCalled = true;
+                    startCalled++;
                 };
 
             testActivityProcessor.EndAction =
@@ -235,13 +236,15 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
                 {
                     Assert.False(Sdk.SuppressInstrumentation);
                     Assert.True(a.IsAllDataRequested); // If Processor.OnEnd is called, activity's IsAllDataRequested is set to true
-                    endCalled = true;
+                    endCalled++;
                 };
 
-            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer").EnableDebugMode());
+            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnectionWithDownstreamActivity()).DefaultIndex("customer").EnableDebugMode());
 
             using (Sdk.CreateTracerProviderBuilder()
                 .SetSampler(sampler)
+                .AddSource("Downstream")
+                .AddSource("NestedDownstream")
                 .AddElasticsearchClientInstrumentation((opt) => opt.SuppressDownstreamInstrumentation = false)
                 .AddProcessor(testActivityProcessor)
                 .Build())
@@ -255,8 +258,68 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
                 Assert.Empty(failed);
             }
 
-            Assert.True(startCalled); // Processor.OnStart is called since we added a legacy OperationName
-            Assert.True(endCalled); // Processor.OnEnd is called since we added a legacy OperationName
+            Assert.Equal(3, startCalled); // Processor.OnStart is called since we added a legacy OperationName
+            Assert.Equal(3, endCalled); // Processor.OnEnd is called since we added a legacy OperationName
+        }
+
+        [Fact]
+        public async Task CanSupressDownstreamActivities()
+        {
+            bool samplerCalled = false;
+
+            var sampler = new TestSampler
+            {
+                SamplingAction =
+                (samplingParameters) =>
+                {
+                    samplerCalled = true;
+                    return new SamplingResult(SamplingDecision.RecordAndSample);
+                },
+            };
+
+            using TestActivityProcessor testActivityProcessor = new TestActivityProcessor();
+
+            int startCalled = 0;
+            int endCalled = 0;
+
+            testActivityProcessor.StartAction =
+                (a) =>
+                {
+                    Assert.True(samplerCalled);
+                    Assert.False(Sdk.SuppressInstrumentation);
+                    Assert.True(a.IsAllDataRequested); // If Proccessor.OnStart is called, activity's IsAllDataRequested is set to true
+                    startCalled++;
+                };
+
+            testActivityProcessor.EndAction =
+                (a) =>
+                {
+                    Assert.False(Sdk.SuppressInstrumentation);
+                    Assert.True(a.IsAllDataRequested); // If Processor.OnEnd is called, activity's IsAllDataRequested is set to true
+                    endCalled++;
+                };
+
+            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnectionWithDownstreamActivity()).DefaultIndex("customer").EnableDebugMode());
+
+            using (Sdk.CreateTracerProviderBuilder()
+                .SetSampler(sampler)
+                .AddSource("Downstream")
+                .AddSource("NestedDownstream")
+                .AddElasticsearchClientInstrumentation((opt) => opt.SuppressDownstreamInstrumentation = true)
+                .AddProcessor(testActivityProcessor)
+                .Build())
+            {
+                var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+                Assert.NotNull(searchResponse);
+                Assert.True(searchResponse.ApiCall.Success);
+                Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
+
+                var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+                Assert.Empty(failed);
+            }
+
+            Assert.Equal(1, startCalled); // Processor.OnStart is called since we added a legacy OperationName
+            Assert.Equal(1, endCalled); // Processor.OnEnd is called since we added a legacy OperationName
         }
 
         [Fact]
@@ -276,8 +339,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
 
             using TestActivityProcessor testActivityProcessor = new TestActivityProcessor();
 
-            bool startCalled = false;
-            bool endCalled = false;
+            int startCalled = 0;
+            int endCalled = 0;
 
             testActivityProcessor.StartAction =
                 (a) =>
@@ -285,7 +348,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
                     Assert.True(samplerCalled);
                     Assert.False(Sdk.SuppressInstrumentation);
                     Assert.False(a.IsAllDataRequested); // If Proccessor.OnStart is called, activity's IsAllDataRequested is set to true
-                    startCalled = true;
+                    startCalled++;
                 };
 
             testActivityProcessor.EndAction =
@@ -293,13 +356,15 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
                 {
                     Assert.False(Sdk.SuppressInstrumentation);
                     Assert.False(a.IsAllDataRequested); // If Processor.OnEnd is called, activity's IsAllDataRequested is set to true
-                    endCalled = true;
+                    endCalled++;
                 };
 
-            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer").EnableDebugMode());
+            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnectionWithDownstreamActivity()).DefaultIndex("customer").EnableDebugMode());
 
             using (Sdk.CreateTracerProviderBuilder()
                 .SetSampler(sampler)
+                .AddSource("Downstream")
+                .AddSource("NestedDownstream")
                 .AddElasticsearchClientInstrumentation((opt) => opt.SuppressDownstreamInstrumentation = false)
                 .AddProcessor(testActivityProcessor)
                 .Build())
@@ -313,8 +378,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
                 Assert.Empty(failed);
             }
 
-            Assert.False(startCalled); // Processor.OnStart is called since we added a legacy OperationName
-            Assert.False(endCalled); // Processor.OnEnd is called since we added a legacy OperationName
+            Assert.Equal(0, startCalled); // Processor.OnStart is called since we added a legacy OperationName
+            Assert.Equal(0, endCalled); // Processor.OnEnd is called since we added a legacy OperationName
         }
 
         [Fact]
