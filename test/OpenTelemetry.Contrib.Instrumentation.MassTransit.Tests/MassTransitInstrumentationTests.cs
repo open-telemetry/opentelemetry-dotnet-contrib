@@ -171,7 +171,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                 Assert.NotNull(expectedMessageContext);
                 Assert.Equal("OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer process", actualActivity.DisplayName);
                 Assert.Equal(ActivityKind.Internal, actualActivity.Kind);
-                Assert.Equal("OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer", actualActivity.GetTagValue(SemanticConventions.AttributeMessagingMassTransitConsumerType)?.ToString());
+                Assert.Equal("OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer", actualActivity.GetTagValue(MassTransitSemanticConventions.AttributeMessagingMassTransitConsumerType)?.ToString());
 
                 Assert.Null(actualActivity.GetTagValue(TagName.SpanKind));
                 Assert.Null(actualActivity.GetTagValue(TagName.PeerService));
