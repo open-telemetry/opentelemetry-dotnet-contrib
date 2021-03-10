@@ -24,6 +24,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Moq;
 using OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementation;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -63,7 +64,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Tests
                 Assert.Equal("ItemTwo", items[2].Name);
             }
 
-            Assert.Equal(2, activityProcessor.Invocations.Count);
+            Assert.Equal(3, activityProcessor.Invocations.Count);
 
             var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
 
@@ -90,7 +91,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Tests
                 }
             }
 
-            Assert.Equal(2, activityProcessor.Invocations.Count);
+            Assert.Equal(3, activityProcessor.Invocations.Count);
 
             var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
 
@@ -122,11 +123,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Tests
 
             if (!isError)
             {
-                Assert.Null(activity.Tags.FirstOrDefault(t => t.Key == SpanAttributeConstants.StatusCodeKey).Value);
+                Assert.Equal(StatusHelper.GetTagValueForStatusCode(Status.Unset.StatusCode), activity.Tags.FirstOrDefault(t => t.Key == SpanAttributeConstants.StatusCodeKey).Value);
             }
             else
             {
-                Assert.Equal(Status.Error.Description, activity.Tags.FirstOrDefault(t => t.Key == SpanAttributeConstants.StatusCodeKey).Value);
+                Assert.Equal(StatusHelper.GetTagValueForStatusCode(Status.Error.StatusCode), activity.Tags.FirstOrDefault(t => t.Key == SpanAttributeConstants.StatusCodeKey).Value);
                 Assert.Contains(activity.Tags, t => t.Key == SpanAttributeConstants.StatusDescriptionKey);
             }
         }
