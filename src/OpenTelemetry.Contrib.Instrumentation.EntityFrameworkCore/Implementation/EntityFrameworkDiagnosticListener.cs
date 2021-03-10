@@ -71,17 +71,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementati
             {
                 case EntityFrameworkCoreCommandCreated:
                     {
-                        if (this.options.SuppressDownstreamInstrumentation)
-                        {
-                            SuppressInstrumentationScope.Enter();
-
-                            // If we are suppressing downstream instrumentation then inject
-                            // context here. EFCore uses SqlClient, so
-                            // SuppressDownstreamInstrumentation means that the
-                            // OpenTelemetry instrumentation for SqlClient will not be
-                            // invoked.
-                        }
-
                         activity = SqlClientActivitySource.StartActivity(ActivityName, ActivityKind.Client);
                         if (activity == null)
                         {

@@ -25,11 +25,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore
     public class EntityFrameworkInstrumentationOptions
     {
         /// <summary>
-        /// Gets or sets a value indicating whether down stream instrumentation is suppressed (disabled).
-        /// </summary>
-        public bool SuppressDownstreamInstrumentation { get; set; }
-
-        /// <summary>
         /// Gets or sets a value indicating whether or not the <see cref="EntityFrameworkInstrumentation"/> should add the names of <see cref="CommandType.StoredProcedure"/> commands as the <see cref="SemanticConventions.AttributeDbStatement"/> tag. Default value: True.
         /// </summary>
         public bool SetDbStatementForStoredProcedure { get; set; } = true;
