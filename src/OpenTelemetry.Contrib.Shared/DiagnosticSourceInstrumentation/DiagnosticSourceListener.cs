@@ -17,13 +17,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using OpenTelemetry.Context;
 
 namespace OpenTelemetry.Instrumentation
 {
     internal class DiagnosticSourceListener : IObserver<KeyValuePair<string, object>>
     {
-        private static readonly RuntimeContextSlot<int> Slot = RuntimeContext.RegisterSlot<int>("otel.suppress_instrumentation_listener");
         private readonly ListenerHandler handler;
 
         public DiagnosticSourceListener(ListenerHandler handler)
@@ -43,7 +41,10 @@ namespace OpenTelemetry.Instrumentation
         {
             if (!this.handler.SupportsNullActivity && Activity.Current == null)
             {
-                InstrumentationEventSource.Log.NullActivity(value.Key);
+                if (!Sdk.SuppressInstrumentation)
+                {
+                    InstrumentationEventSource.Log.NullActivity(value.Key);
+                }
 
                 return;
             }
@@ -52,35 +53,25 @@ namespace OpenTelemetry.Instrumentation
             {
                 if (value.Key.EndsWith("Start", StringComparison.Ordinal))
                 {
-                    if (!Sdk.SuppressInstrumentation)
-                    {
-                        this.handler.OnStartActivity(Activity.Current, value.Value);
-                    }
-                    else
-                    {
-                        var supressionCount = Slot.Get();
-                        Slot.Set(++supressionCount);
-                    }
+                    this.handler.OnStartActivity(Activity.Current, value.Value);
                 }
                 else if (value.Key.EndsWith("Stop", StringComparison.Ordinal))
                 {
-                    var supressionCount = Slot.Get();
-                    if (supressionCount <= 0)
+                    this.handler.OnStopActivity(Activity.Current, value.Value);
+                }
+                else if (value.Key.EndsWith("Exception", StringComparison.Ordinal))
+                {
+                    if (!Sdk.SuppressInstrumentation)
                     {
-                        this.handler.OnStopActivity(Activity.Current, value.Value);
-                    }
-                    else if (supressionCount > 0)
-                    {
-                        Slot.Set(--supressionCount);
+                        this.handler.OnException(Activity.Current, value.Value);
                     }
                 }
-                else if (value.Key.EndsWith("Exception", StringComparison.Ordinal) && !Sdk.SuppressInstrumentation)
+                else
                 {
-                    this.handler.OnException(Activity.Current, value.Value);
-                }
-                else if (!Sdk.SuppressInstrumentation)
-                {
-                    this.handler.OnCustom(value.Key, Activity.Current, value.Value);
+                    if (!Sdk.SuppressInstrumentation)
+                    {
+                        this.handler.OnCustom(value.Key, Activity.Current, value.Value);
+                    }
                 }
             }
             catch (Exception ex)

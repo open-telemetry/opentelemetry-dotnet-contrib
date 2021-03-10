@@ -45,7 +45,7 @@ namespace OpenTelemetry.Trace
 
             builder.AddInstrumentation(() => new ElasticsearchClientInstrumentation(elasticsearchClientOptions));
             builder.AddSource(ElasticsearchRequestPipelineDiagnosticListener.ActivitySourceName);
-            builder.AddLegacyActivity("CallElasticsearch");
+            builder.AddLegacySource("CallElasticsearch");
 
             return builder;
         }
