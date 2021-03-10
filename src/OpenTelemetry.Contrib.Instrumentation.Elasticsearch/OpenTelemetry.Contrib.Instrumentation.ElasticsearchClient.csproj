@@ -4,9 +4,10 @@
     <Description>Elasticsearch instrumentation for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);distributed-tracing</PackageTags>
     <MinVerTagPrefix>Instrumentation.ElasticsearchClient-</MinVerTagPrefix>
+    <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="4.7.2" />
-    <PackageReference Include="OpenTelemetry" Version="0.7.0-beta.1" />
+    <PackageReference Include="OpenTelemetry" Version="1.0.2-alpha.0.29" />
+    <PackageReference Include="System.Text.Json" Version="5.0.0" />
   </ItemGroup>
 </Project>

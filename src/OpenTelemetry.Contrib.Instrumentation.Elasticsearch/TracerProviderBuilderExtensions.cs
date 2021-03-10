@@ -16,6 +16,7 @@
 
 using System;
 using OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient;
+using OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementation;
 
 namespace OpenTelemetry.Trace
 {
@@ -42,7 +43,10 @@ namespace OpenTelemetry.Trace
             var elasticsearchClientOptions = new ElasticsearchClientInstrumentationOptions();
             configure?.Invoke(elasticsearchClientOptions);
 
-            builder.AddInstrumentation((activitySource) => new ElasticsearchClientInstrumentation(activitySource, elasticsearchClientOptions));
+            builder.AddInstrumentation(() => new ElasticsearchClientInstrumentation(elasticsearchClientOptions));
+            builder.AddSource(ElasticsearchRequestPipelineDiagnosticListener.ActivitySourceName);
+            builder.AddLegacySource("CallElasticsearch");
+
             return builder;
         }
     }
