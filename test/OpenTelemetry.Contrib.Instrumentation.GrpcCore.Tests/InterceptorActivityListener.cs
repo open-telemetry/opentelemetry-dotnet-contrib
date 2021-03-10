@@ -16,11 +16,12 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 
 namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
 {
     /// <summary>
-    /// This class listens for the Activities created by the Grpc Core interceptors.
+    /// This class listens for a single Activity created by the Grpc Core interceptors.
     /// </summary>
     internal sealed class InterceptorActivityListener : IDisposable
     {
@@ -30,14 +31,21 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         private readonly ActivityListener activityListener;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InterceptorActivityListener"/> class.
+        /// Initializes a new instance of the <see cref="InterceptorActivityListener" /> class.
         /// </summary>
-        public InterceptorActivityListener()
+        /// <param name="activityIdentifier">The activity identifier.</param>
+        public InterceptorActivityListener(Guid activityIdentifier)
         {
             this.activityListener = new ActivityListener
             {
                 ShouldListenTo = source => source.Name == GrpcCoreInstrumentation.ActivitySourceName,
-                ActivityStarted = activity => this.Activity = activity,
+                ActivityStarted = activity =>
+                {
+                    if (activity.TagObjects.Any(t => t.Key == SemanticConventions.AttributeActivityIdentifier && (Guid)t.Value == activityIdentifier))
+                    {
+                        this.Activity = activity;
+                    }
+                },
                 Sample = this.Sample,
             };
 

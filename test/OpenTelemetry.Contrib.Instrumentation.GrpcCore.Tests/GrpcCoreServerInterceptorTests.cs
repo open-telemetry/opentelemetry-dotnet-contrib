@@ -18,22 +18,21 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Grpc.Core;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OpenTelemetry.Context.Propagation;
+using Xunit;
 
 namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
 {
     /// <summary>
     /// Grpc Core server interceptor tests.
     /// </summary>
-    [TestClass]
     public class GrpcCoreServerInterceptorTests
     {
         /// <summary>
         /// Validates a successful UnaryServerHandler call.
         /// </summary>
         /// <returns>A task.</returns>
-        [TestMethod]
+        [Fact]
         public async Task UnaryServerHandlerSuccess()
         {
             await this.TestHandlerSuccess(FoobarService.MakeUnaryAsyncRequest).ConfigureAwait(false);
@@ -43,7 +42,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         /// Validates a failed UnaryServerHandler call.
         /// </summary>
         /// <returns>A task.</returns>
-        [TestMethod]
+        [Fact]
         public async Task UnaryServerHandlerFail()
         {
             await this.TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest).ConfigureAwait(false);
@@ -53,7 +52,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         /// Validates a successful ClientStreamingServerHandler call.
         /// </summary>
         /// <returns>A task.</returns>
-        [TestMethod]
+        [Fact]
         public async Task ClientStreamingServerHandlerSuccess()
         {
             await this.TestHandlerSuccess(FoobarService.MakeClientStreamingRequest).ConfigureAwait(false);
@@ -63,7 +62,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         /// Validates a failed ClientStreamingServerHandler call.
         /// </summary>
         /// <returns>A task.</returns>
-        [TestMethod]
+        [Fact]
         public async Task ClientStreamingServerHandlerFail()
         {
             await this.TestHandlerFailure(FoobarService.MakeClientStreamingRequest).ConfigureAwait(false);
@@ -73,7 +72,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         /// Validates a successful ServerStreamingServerHandler call.
         /// </summary>
         /// <returns>A task.</returns>
-        [TestMethod]
+        [Fact]
         public async Task ServerStreamingServerHandlerSuccess()
         {
             await this.TestHandlerSuccess(FoobarService.MakeServerStreamingRequest).ConfigureAwait(false);
@@ -83,7 +82,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         /// Validates a failed ServerStreamingServerHandler call.
         /// </summary>
         /// <returns>A task.</returns>
-        [TestMethod]
+        [Fact]
         public async Task ServerStreamingServerHandlerFail()
         {
             await this.TestHandlerFailure(FoobarService.MakeServerStreamingRequest).ConfigureAwait(false);
@@ -93,7 +92,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         /// Validates a successful DuplexStreamingServerHandler call.
         /// </summary>
         /// <returns>A task.</returns>
-        [TestMethod]
+        [Fact]
         public async Task DuplexStreamingServerHandlerSuccess()
         {
             await this.TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest).ConfigureAwait(false);
@@ -103,7 +102,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         /// Validates a failed DuplexStreamingServerHandler call.
         /// </summary>
         /// <returns>A task.</returns>
-        [TestMethod]
+        [Fact]
         public async Task DuplexStreamingServerHandlerFail()
         {
             await this.TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest).ConfigureAwait(false);
@@ -117,22 +116,22 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         private async Task TestHandlerSuccess(Func<Foobar.FoobarClient, Task> clientRequestFunc)
         {
             // starts the server with the server interceptor
-            var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), RecordMessageEvents = true };
+            var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), RecordMessageEvents = true, ActivityIdentifierValue = Guid.NewGuid() };
             using var server = FoobarService.Start(new ServerTracingInterceptor(interceptorOptions));
 
             // No parent Activity, no context from header
-            using (var activityListener = new InterceptorActivityListener())
+            using (var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue))
             {
                 var client = FoobarService.ConstructRpcClient(server.UriString);
                 await clientRequestFunc(client).ConfigureAwait(false);
 
                 var activity = activityListener.Activity;
                 GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
-                Assert.AreEqual(default, activity.ParentSpanId);
+                Assert.Equal(default, activity.ParentSpanId);
             }
 
             // No parent Activity, context from header
-            using (var activityListener = new InterceptorActivityListener())
+            using (var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue))
             {
                 var client = FoobarService.ConstructRpcClient(
                     server.UriString,
@@ -145,7 +144,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
 
                 var activity = activityListener.Activity;
                 GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
-                Assert.AreEqual(FoobarService.DefaultParentFromTraceparentHeader.SpanId, activity.ParentSpanId);
+                Assert.Equal(FoobarService.DefaultParentFromTraceparentHeader.SpanId, activity.ParentSpanId);
             }
         }
 
@@ -157,10 +156,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         private async Task TestHandlerFailure(Func<Foobar.FoobarClient, Task> clientRequestFunc)
         {
             // starts the server with the server interceptor
-            var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator() };
+            var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), ActivityIdentifierValue = Guid.NewGuid() };
             using var server = FoobarService.Start(new ServerTracingInterceptor(interceptorOptions));
 
-            using var activityListener = new InterceptorActivityListener();
+            using var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue);
             var client = FoobarService.ConstructRpcClient(
                 server.UriString,
                 additionalMetadata: new List<Metadata.Entry>
@@ -170,18 +169,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
                     new Metadata.Entry(FoobarService.RequestHeaderErrorDescription, "fubar"),
                 });
 
-            try
-            {
-                await clientRequestFunc(client).ConfigureAwait(false);
-                Assert.Fail();
-            }
-            catch (RpcException)
-            {
-            }
+            await Assert.ThrowsAsync<RpcException>(async () => await clientRequestFunc(client).ConfigureAwait(false));
 
             var activity = activityListener.Activity;
             GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.ResourceExhausted, interceptorOptions.RecordMessageEvents);
-            Assert.AreEqual(FoobarService.DefaultParentFromTraceparentHeader.SpanId, activity.ParentSpanId);
+            Assert.Equal(FoobarService.DefaultParentFromTraceparentHeader.SpanId, activity.ParentSpanId);
         }
     }
 }

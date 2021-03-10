@@ -17,6 +17,7 @@
 namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using global::Grpc.Core;
     using global::Grpc.Core.Interceptors;
@@ -289,6 +290,16 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore
                     return;
                 }
 
+                // This if block is for unit testing only.
+                IEnumerable<KeyValuePair<string, object>> customTags = null;
+                if (options.ActivityIdentifierValue != default)
+                {
+                    customTags = new List<KeyValuePair<string, object>>
+                    {
+                        new KeyValuePair<string, object>(SemanticConventions.AttributeActivityIdentifier, options.ActivityIdentifierValue),
+                    };
+                }
+
                 // We want to start an activity but don't activate it.
                 // After calling StartActivity, Activity.Current will be the new Activity.
                 // This scope is created synchronously before the RPC invocation starts and so this new Activity will overwrite
@@ -297,7 +308,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore
                 // gRPC Core just doesn't have the hooks to do this as far as I can tell.
                 var rpcActivity = GrpcCoreInstrumentation.ActivitySource.StartActivity(
                     this.FullServiceName,
-                    ActivityKind.Client);
+                    ActivityKind.Client,
+                    this.parentActivity == default ? default : this.parentActivity.Context,
+                    tags: customTags);
 
                 if (rpcActivity == null)
                 {

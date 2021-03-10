@@ -16,6 +16,7 @@
 
 namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore
 {
+    using System;
     using OpenTelemetry.Context.Propagation;
 
     /// <summary>
@@ -32,5 +33,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore
         /// Gets the propagator.
         /// </summary>
         public TextMapPropagator Propagator { get; internal set; } = Propagators.DefaultTextMapPropagator;
+
+        /// <summary>
+        /// Gets or sets a custom identfier used during unit testing.
+        /// </summary>
+        internal Guid ActivityIdentifierValue { get; set; }
     }
 }

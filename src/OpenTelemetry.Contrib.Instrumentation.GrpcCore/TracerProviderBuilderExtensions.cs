@@ -28,19 +28,14 @@ namespace OpenTelemetry.Trace
         /// Configures OpenTelemetry to listen for the Activities created by the client and server interceptors.
         /// </summary>
         /// <param name="builder">The builder.</param>
-        /// <param name="configureOptions">The configure options.</param>
         /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
         public static TracerProviderBuilder AddGrpcCoreInstrumentation(
-            this TracerProviderBuilder builder,
-            Action<GrpcCoreInstrumentationOptions> configureOptions = null)
+            this TracerProviderBuilder builder)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
-
-            var options = new GrpcCoreInstrumentationOptions();
-            configureOptions?.Invoke(options);
 
             return builder.AddSource(GrpcCoreInstrumentation.ActivitySourceName);
         }
