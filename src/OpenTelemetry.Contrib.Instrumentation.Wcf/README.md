@@ -1,5 +1,7 @@
 # WCF Instrumentation for OpenTelemetry .NET
 
+[![nuget](https://img.shields.io/nuget/v/OpenTelemetry.Contrib.Instrumentation.Wcf.svg)](https://www.nuget.org/packages/OpenTelemetry.Contrib.Instrumentation.Wcf/)
+
 Instruments WCF clients and/or services using implementations of
 `IClientMessageInspector` and `IDispatchMessageInspector` respectively.
 
