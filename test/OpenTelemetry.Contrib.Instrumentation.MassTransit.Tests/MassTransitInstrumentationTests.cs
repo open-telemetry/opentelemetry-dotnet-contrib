@@ -269,7 +269,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
 
             var consumes = this.GetActivitiesFromInvocationsByOperationName(activityProcessor.Invocations, operationName);
 
-            Assert.Equal(2, consumes.Count());
+            Assert.Single(consumes);
         }
 
         private IEnumerable<Activity> GetActivitiesFromInvocationsByOperationName(IEnumerable<IInvocation> invocations, string operationName)
@@ -279,6 +279,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                     .Where(i =>
                         i.Arguments.OfType<Activity>()
                             .Any(a => a.OperationName == operationName))
+                    .Where(i => i.Method.Name == "OnEnd")
                     .Select(i => i.Arguments.OfType<Activity>().Single());
         }
     }
