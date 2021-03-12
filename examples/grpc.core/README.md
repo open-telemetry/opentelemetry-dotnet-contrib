@@ -5,7 +5,7 @@ Project structure:
 * Examples.GrpcCore.AspNetCore
 
   This is an all-in-one sample that shows how to use the client and server
-  interceptors. The main project is new a vanilla webapi project created
+  interceptors. The main project is a vanilla webapi project created
   using dotnet new ...
 
   When launched, the project will hit the <http://localhost:5000/weather>
