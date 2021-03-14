@@ -8,10 +8,10 @@ src/OpenTelemetry.Contrib.Exporter.Stackdriver/                             @ope
 src/OpenTelemetry.Contrib.Extensions.AWSXRay/                               @open-telemetry/dotnet-contrib-approvers @srprash @lupengamzn
 src/OpenTelemetry.Contrib.Instrumentation.Elasticsearch/                    @open-telemetry/dotnet-contrib-approvers
 src/OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore/              @open-telemetry/dotnet-contrib-approvers
-src/OpenTelemetry.Contrib.Instrumentation.MassTransit/                      @open-telemetry/dotnet-contrib-approvers
+src/OpenTelemetry.Contrib.Instrumentation.MassTransit/                      @open-telemetry/dotnet-contrib-approvers @alexvaluyskiy
 
 test/OpenTelemetry.Contrib.Exporter.Stackdriver.Tests/                      @open-telemetry/dotnet-contrib-approvers
 test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/                        @open-telemetry/dotnet-contrib-approvers @srprash @lupengamzn
 test/OpenTelemetry.Contrib.Instrumentation.Elasticsearch.Tests/             @open-telemetry/dotnet-contrib-approvers
 test/OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCoreTests/        @open-telemetry/dotnet-contrib-approvers
-test/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests/               @open-telemetry/dotnet-contrib-approvers
+test/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests/               @open-telemetry/dotnet-contrib-approvers @alexvaluyskiy
