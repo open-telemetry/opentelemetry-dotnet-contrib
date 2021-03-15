@@ -17,32 +17,25 @@
 using System;
 using OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation;
 using OpenTelemetry.Instrumentation;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Contrib.Instrumentation.MassTransit
 {
     internal class MassTransitInstrumentation : IDisposable
     {
+        internal const string MassTransitDiagnosticListenerName = "MassTransit";
+
         private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MassTransitInstrumentation"/> class.
         /// </summary>
-        /// <param name="activitySource">ActivitySource adapter instance.</param>
-        public MassTransitInstrumentation(ActivitySourceAdapter activitySource)
-            : this(activitySource, new MassTransitInstrumentationOptions())
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MassTransitInstrumentation"/> class.
-        /// </summary>
-        /// <param name="activitySource">ActivitySource adapter instance.</param>
         /// <param name="options">Instrumentation options.</param>
-        public MassTransitInstrumentation(ActivitySourceAdapter activitySource, MassTransitInstrumentationOptions options)
+        public MassTransitInstrumentation(MassTransitInstrumentationOptions options)
         {
-            var diagnosticListener = new MassTransitDiagnosticListener(activitySource, options);
-            this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(diagnosticListener, null);
+            this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(
+                name => new MassTransitDiagnosticListener(name, options),
+                listener => listener.Name == MassTransitDiagnosticListenerName,
+                null);
             this.diagnosticSourceSubscriber.Subscribe();
         }
 

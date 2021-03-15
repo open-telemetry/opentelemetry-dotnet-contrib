@@ -171,7 +171,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                 Assert.NotNull(expectedMessageContext);
                 Assert.Equal("OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer process", actualActivity.DisplayName);
                 Assert.Equal(ActivityKind.Internal, actualActivity.Kind);
-                Assert.Equal("OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer", actualActivity.GetTagValue(SemanticConventions.AttributeMessagingMassTransitConsumerType)?.ToString());
+                Assert.Equal("OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer", actualActivity.GetTagValue(MassTransitSemanticConventions.AttributeMessagingMassTransitConsumerType)?.ToString());
 
                 Assert.Null(actualActivity.GetTagValue(TagName.SpanKind));
                 Assert.Null(actualActivity.GetTagValue(TagName.PeerService));
@@ -223,8 +223,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
             }
         }
 
-        [Fact]
-        public async Task MassTransitInstrumentationTestOptions()
+        [Theory]
+        [InlineData(OperationName.Consumer.Consume)]
+        [InlineData(OperationName.Consumer.Handle)]
+        [InlineData(OperationName.Transport.Send)]
+        [InlineData(OperationName.Transport.Receive)]
+        public async Task MassTransitInstrumentationTestOptions(string operationName)
         {
             using Activity activity = new Activity("Parent");
             activity.SetParentId(
@@ -237,7 +241,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
             using (Sdk.CreateTracerProviderBuilder()
                 .AddProcessor(activityProcessor.Object)
                 .AddMassTransitInstrumentation(o =>
-                    o.TracedOperations = new HashSet<string>(new[] { OperationName.Consumer.Consume }))
+                    o.TracedOperations = new HashSet<string>(new[] { operationName }))
                 .Build())
             {
                 var harness = new InMemoryTestHarness();
@@ -261,11 +265,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                 }
             }
 
-            Assert.Equal(4, activityProcessor.Invocations.Count);
+            Assert.Equal(8, activityProcessor.Invocations.Count);
 
-            var consumes = this.GetActivitiesFromInvocationsByOperationName(activityProcessor.Invocations, OperationName.Consumer.Consume);
+            var consumes = this.GetActivitiesFromInvocationsByOperationName(activityProcessor.Invocations, operationName);
 
-            Assert.Equal(2, consumes.Count());
+            Assert.Single(consumes);
         }
 
         private IEnumerable<Activity> GetActivitiesFromInvocationsByOperationName(IEnumerable<IInvocation> invocations, string operationName)
@@ -275,6 +279,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                     .Where(i =>
                         i.Arguments.OfType<Activity>()
                             .Any(a => a.OperationName == operationName))
+                    .Where(i => i.Method.Name == "OnEnd")
                     .Select(i => i.Arguments.OfType<Activity>().Single());
         }
     }
