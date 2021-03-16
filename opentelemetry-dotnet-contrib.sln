@@ -105,6 +105,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Share
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.Wcf.Tests", "test\OpenTelemetry.Contrib.Instrumentation.Wcf.Tests\OpenTelemetry.Contrib.Instrumentation.Wcf.Tests.csproj", "{76BAB24F-85DB-4FCE-89D0-EFB4185004C9}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "grpc.core", "grpc.core", "{58D1DE55-B0A5-4BC4-AB37-09B1C7B26752}"
+	ProjectSection(SolutionItems) = preProject
+		examples\grpc.core\README.md = examples\grpc.core\README.md
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.GrpcCore.AspNetCore", "examples\grpc.core\Examples.GrpcCore.AspNetCore\Examples.GrpcCore.AspNetCore.csproj", "{F1591DEE-79C0-4161-85C2-1477B261D274}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.GrpcCore", "src\OpenTelemetry.Contrib.Instrumentation.GrpcCore\OpenTelemetry.Contrib.Instrumentation.GrpcCore.csproj", "{ECBF7E54-3490-4B69-A376-17DC7BC75B0D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests", "test\OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests\OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests.csproj", "{22E101DD-D6D7-4554-9A98-8963230D6B2F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -187,6 +198,18 @@ Global
 		{76BAB24F-85DB-4FCE-89D0-EFB4185004C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{76BAB24F-85DB-4FCE-89D0-EFB4185004C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{76BAB24F-85DB-4FCE-89D0-EFB4185004C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1591DEE-79C0-4161-85C2-1477B261D274}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1591DEE-79C0-4161-85C2-1477B261D274}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1591DEE-79C0-4161-85C2-1477B261D274}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1591DEE-79C0-4161-85C2-1477B261D274}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECBF7E54-3490-4B69-A376-17DC7BC75B0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECBF7E54-3490-4B69-A376-17DC7BC75B0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECBF7E54-3490-4B69-A376-17DC7BC75B0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECBF7E54-3490-4B69-A376-17DC7BC75B0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22E101DD-D6D7-4554-9A98-8963230D6B2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22E101DD-D6D7-4554-9A98-8963230D6B2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22E101DD-D6D7-4554-9A98-8963230D6B2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22E101DD-D6D7-4554-9A98-8963230D6B2F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -215,6 +238,10 @@ Global
 		{CAB66B50-DAB6-49B8-83F9-6CCF520C4A36} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{F52B9D81-2155-433A-B6F2-4CD7CBBEC7E6} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{76BAB24F-85DB-4FCE-89D0-EFB4185004C9} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{58D1DE55-B0A5-4BC4-AB37-09B1C7B26752} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
+		{F1591DEE-79C0-4161-85C2-1477B261D274} = {58D1DE55-B0A5-4BC4-AB37-09B1C7B26752}
+		{ECBF7E54-3490-4B69-A376-17DC7BC75B0D} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{22E101DD-D6D7-4554-9A98-8963230D6B2F} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}

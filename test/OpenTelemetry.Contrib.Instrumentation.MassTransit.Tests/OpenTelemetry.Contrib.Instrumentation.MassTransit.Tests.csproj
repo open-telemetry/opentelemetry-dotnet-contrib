@@ -4,6 +4,7 @@
     <Description>Unit test project for OpenTelemetry MassTransit instrumentation</Description>
     <TargetFrameworks>netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net461</TargetFrameworks>
+    <IncludeSharedTestSource>true</IncludeSharedTestSource>
   </PropertyGroup>
 
   <ItemGroup>
