@@ -306,6 +306,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
 
             // Since instrumentation is suppressed, activiy is not emitted
             Assert.Equal(3, activityProcessor.Invocations.Count); // SetParentProvider + OnShutdown + Dispose
+
+            // Processor.OnStart and Processor.OnEnd are not called
+            Assert.DoesNotContain(activityProcessor.Invocations, invo => invo.Method.Name == nameof(activityProcessor.Object.OnStart));
+            Assert.DoesNotContain(activityProcessor.Invocations, invo => invo.Method.Name == nameof(activityProcessor.Object.OnEnd));
         }
 
         [Theory]
