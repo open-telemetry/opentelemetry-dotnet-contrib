@@ -41,6 +41,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
 
         public override void OnStartActivity(Activity activity, object payload)
         {
+            // By this time, samplers have already run and
+            // activity.IsAllDataRequested populated accordingly.
+
             if (Sdk.SuppressInstrumentation)
             {
                 return;
