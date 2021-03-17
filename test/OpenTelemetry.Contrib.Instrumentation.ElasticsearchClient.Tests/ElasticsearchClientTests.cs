@@ -729,5 +729,73 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
 
             // Assert.Equal(expectedResource, searchActivity.GetResource());
         }
+
+        [Fact]
+        public async Task DoesNotCaptureWhenInstrumentationIsSuppressed()
+        {
+            var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
+            var processor = new Mock<BaseProcessor<Activity>>();
+
+            var parent = new Activity("parent").Start();
+
+            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
+
+            using (Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new AlwaysOnSampler())
+                .AddElasticsearchClientInstrumentation()
+                .SetResourceBuilder(expectedResource)
+                .AddProcessor(processor.Object)
+                .Build())
+            {
+                using var scope = SuppressInstrumentationScope.Begin();
+                var getResponse = await client.GetAsync<Customer>("123");
+                Assert.NotNull(getResponse);
+                Assert.True(getResponse.ApiCall.Success);
+                Assert.NotEmpty(getResponse.ApiCall.AuditTrail);
+
+                var failed = getResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+                Assert.Empty(failed);
+            }
+
+            // Since instrumentation is suppressed, activity is not emitted
+            Assert.Equal(3, processor.Invocations.Count); // SetParentProvider + OnShutdown + Dispose
+
+            // Processor.OnStart and Processor.OnEnd are not called
+            Assert.DoesNotContain(processor.Invocations, invo => invo.Method.Name == nameof(processor.Object.OnStart));
+            Assert.DoesNotContain(processor.Invocations, invo => invo.Method.Name == nameof(processor.Object.OnEnd));
+        }
+
+        [Theory]
+        [InlineData(SamplingDecision.Drop, false)]
+        [InlineData(SamplingDecision.RecordOnly, true)]
+        [InlineData(SamplingDecision.RecordAndSample, true)]
+        public async Task CapturesBasedOnSamplingDecision(SamplingDecision samplingDecision, bool isActivityExpected)
+        {
+            var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
+            var processor = new Mock<BaseProcessor<Activity>>();
+
+            var parent = new Activity("parent").Start();
+
+            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
+
+            using (Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new TestSampler() { SamplingAction = (samplingParameters) => new SamplingResult(samplingDecision) })
+                .AddElasticsearchClientInstrumentation()
+                .SetResourceBuilder(expectedResource)
+                .AddProcessor(processor.Object)
+                .Build())
+            {
+                var getResponse = await client.GetAsync<Customer>("123");
+                Assert.NotNull(getResponse);
+                Assert.True(getResponse.ApiCall.Success);
+                Assert.NotEmpty(getResponse.ApiCall.AuditTrail);
+
+                var failed = getResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+                Assert.Empty(failed);
+            }
+
+            Assert.Equal(isActivityExpected, processor.Invocations.Any(invo => invo.Method.Name == nameof(processor.Object.OnStart)));
+            Assert.Equal(isActivityExpected, processor.Invocations.Any(invo => invo.Method.Name == nameof(processor.Object.OnEnd)));
+        }
     }
 }
