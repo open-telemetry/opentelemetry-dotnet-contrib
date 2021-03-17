@@ -272,6 +272,79 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
             Assert.Single(consumes);
         }
 
+        [Fact]
+        public async Task ShouldMapMassTransitTagsWhenIntrumentationIsSuppressed()
+        {
+            var activityProcessor = new Mock<BaseProcessor<Activity>>();
+            using (Sdk.CreateTracerProviderBuilder()
+                .AddProcessor(activityProcessor.Object)
+                .AddMassTransitInstrumentation()
+                .Build())
+            {
+                var harness = new InMemoryTestHarness();
+                var consumerHarness = harness.Consumer<TestConsumer>();
+                var handlerHarness = harness.Handler<TestMessage>();
+                using var scope = SuppressInstrumentationScope.Begin();
+                await harness.Start();
+                try
+                {
+                    await harness.InputQueueSendEndpoint.Send<TestMessage>(new { Text = "Hello, world!" });
+
+                    Assert.True(await harness.Consumed.SelectAsync<TestMessage>().Any());
+                    Assert.True(await consumerHarness.Consumed.SelectAsync<TestMessage>().Any());
+                    Assert.True(await handlerHarness.Consumed.SelectAsync().Any());
+                }
+                finally
+                {
+                    await harness.Stop();
+                }
+
+                var expectedMessageContext = harness.Sent.Select<TestMessage>().FirstOrDefault()?.Context;
+                Assert.NotNull(expectedMessageContext);
+            }
+
+            // Since instrumentation is suppressed, activiy is not emitted
+            Assert.Equal(3, activityProcessor.Invocations.Count); // SetParentProvider + OnShutdown + Dispose
+        }
+
+        [Theory]
+        [InlineData(SamplingDecision.Drop, false)]
+        [InlineData(SamplingDecision.RecordOnly, true)]
+        [InlineData(SamplingDecision.RecordAndSample, true)]
+        public async Task ShouldMapMassTransitTagsWhenIntrumentationWhenSampled(SamplingDecision samplingDecision, bool isActivityExpected)
+        {
+            var activityProcessor = new Mock<BaseProcessor<Activity>>();
+            using (Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new TestSampler(samplingDecision))
+                .AddProcessor(activityProcessor.Object)
+                .AddMassTransitInstrumentation()
+                .Build())
+            {
+                var harness = new InMemoryTestHarness();
+                var consumerHarness = harness.Consumer<TestConsumer>();
+                var handlerHarness = harness.Handler<TestMessage>();
+                await harness.Start();
+                try
+                {
+                    await harness.InputQueueSendEndpoint.Send<TestMessage>(new { Text = "Hello, world!" });
+
+                    Assert.True(await harness.Consumed.SelectAsync<TestMessage>().Any());
+                    Assert.True(await consumerHarness.Consumed.SelectAsync<TestMessage>().Any());
+                    Assert.True(await handlerHarness.Consumed.SelectAsync().Any());
+                }
+                finally
+                {
+                    await harness.Stop();
+                }
+
+                var expectedMessageContext = harness.Sent.Select<TestMessage>().FirstOrDefault()?.Context;
+                Assert.NotNull(expectedMessageContext);
+            }
+
+            Assert.Equal(isActivityExpected, activityProcessor.Invocations.Any(invo => invo.Method.Name == nameof(activityProcessor.Object.OnStart)));
+            Assert.Equal(isActivityExpected, activityProcessor.Invocations.Any(invo => invo.Method.Name == nameof(activityProcessor.Object.OnEnd)));
+        }
+
         private IEnumerable<Activity> GetActivitiesFromInvocationsByOperationName(IEnumerable<IInvocation> invocations, string operationName)
         {
             return
@@ -281,6 +354,21 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                             .Any(a => a.OperationName == operationName))
                     .Where(i => i.Method.Name == "OnEnd")
                     .Select(i => i.Arguments.OfType<Activity>().Single());
+        }
+
+        private class TestSampler : Sampler
+        {
+            private SamplingDecision samplingDecision;
+
+            public TestSampler(SamplingDecision samplingDecision)
+            {
+                this.samplingDecision = samplingDecision;
+            }
+
+            public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
+            {
+                return new SamplingResult(this.samplingDecision);
+            }
         }
     }
 }
