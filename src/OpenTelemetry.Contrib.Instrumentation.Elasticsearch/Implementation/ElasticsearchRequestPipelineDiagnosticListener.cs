@@ -60,68 +60,74 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
 
         public override void OnStartActivity(Activity activity, object payload)
         {
-            var uri = this.uriFetcher.Fetch(payload);
+            // By this time, samplers have already run and
+            // activity.IsAllDataRequested populated accordingly.
 
-            if (uri == null)
-            {
-                ElasticsearchInstrumentationEventSource.Log.NullPayload(nameof(ElasticsearchRequestPipelineDiagnosticListener), nameof(this.OnStartActivity));
-                return;
-            }
-
-            ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
-            ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Client);
-
-            var method = this.methodFetcher.Fetch(payload);
-            activity.DisplayName = this.GetDisplayName(activity, method);
-
-            if (this.options.SuppressDownstreamInstrumentation)
-            {
-                SuppressInstrumentationScope.Enter();
-            }
-
-            if (!activity.IsAllDataRequested)
+            if (Sdk.SuppressInstrumentation)
             {
                 return;
             }
 
-            var elasticIndex = this.GetElasticIndex(uri);
-            activity.DisplayName = this.GetDisplayName(activity, method, elasticIndex);
-            activity.SetTag(SemanticConventions.AttributeDbSystem, DatabaseSystemName);
+            if (activity.IsAllDataRequested)
+            {
+                var uri = this.uriFetcher.Fetch(payload);
 
-            if (elasticIndex != null)
-            {
-                activity.SetTag(SemanticConventions.AttributeDbName, elasticIndex);
-            }
+                if (uri == null)
+                {
+                    ElasticsearchInstrumentationEventSource.Log.NullPayload(nameof(ElasticsearchRequestPipelineDiagnosticListener), nameof(this.OnStartActivity));
+                    return;
+                }
 
-            var uriHostNameType = Uri.CheckHostName(uri.Host);
-            if (uriHostNameType == UriHostNameType.IPv4 || uriHostNameType == UriHostNameType.IPv6)
-            {
-                activity.SetTag(SemanticConventions.AttributeNetPeerIp, uri.Host);
-            }
-            else
-            {
-                activity.SetTag(SemanticConventions.AttributeNetPeerName, uri.Host);
-            }
+                ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
+                ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Client);
 
-            if (uri.Port > 0)
-            {
-                activity.SetTag(SemanticConventions.AttributeNetPeerPort, uri.Port);
-            }
+                var method = this.methodFetcher.Fetch(payload);
+                activity.DisplayName = this.GetDisplayName(activity, method);
 
-            if (method != null)
-            {
-                activity.SetTag(AttributeDbMethod, method.ToString());
-            }
+                if (this.options.SuppressDownstreamInstrumentation)
+                {
+                    SuppressInstrumentationScope.Enter();
+                }
 
-            activity.SetTag(SemanticConventions.AttributeDbUrl, uri.OriginalString);
+                var elasticIndex = this.GetElasticIndex(uri);
+                activity.DisplayName = this.GetDisplayName(activity, method, elasticIndex);
+                activity.SetTag(SemanticConventions.AttributeDbSystem, DatabaseSystemName);
 
-            try
-            {
-                this.options.Enrich?.Invoke(activity, "OnStartActivity", payload);
-            }
-            catch (Exception ex)
-            {
-                ElasticsearchInstrumentationEventSource.Log.EnrichmentException(ex);
+                if (elasticIndex != null)
+                {
+                    activity.SetTag(SemanticConventions.AttributeDbName, elasticIndex);
+                }
+
+                var uriHostNameType = Uri.CheckHostName(uri.Host);
+                if (uriHostNameType == UriHostNameType.IPv4 || uriHostNameType == UriHostNameType.IPv6)
+                {
+                    activity.SetTag(SemanticConventions.AttributeNetPeerIp, uri.Host);
+                }
+                else
+                {
+                    activity.SetTag(SemanticConventions.AttributeNetPeerName, uri.Host);
+                }
+
+                if (uri.Port > 0)
+                {
+                    activity.SetTag(SemanticConventions.AttributeNetPeerPort, uri.Port);
+                }
+
+                if (method != null)
+                {
+                    activity.SetTag(AttributeDbMethod, method.ToString());
+                }
+
+                activity.SetTag(SemanticConventions.AttributeDbUrl, uri.OriginalString);
+
+                try
+                {
+                    this.options.Enrich?.Invoke(activity, "OnStartActivity", payload);
+                }
+                catch (Exception ex)
+                {
+                    ElasticsearchInstrumentationEventSource.Log.EnrichmentException(ex);
+                }
             }
         }
 
