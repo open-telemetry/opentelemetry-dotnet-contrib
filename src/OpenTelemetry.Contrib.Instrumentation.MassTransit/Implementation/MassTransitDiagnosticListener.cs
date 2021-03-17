@@ -41,28 +41,29 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
 
         public override void OnStartActivity(Activity activity, object payload)
         {
-            if (this.options.TracedOperations != null && !this.options.TracedOperations.Contains(activity.OperationName))
+            if (Sdk.SuppressInstrumentation)
             {
-                MassTransitInstrumentationEventSource.Log.RequestIsFilteredOut(activity.OperationName);
-                activity.IsAllDataRequested = false;
                 return;
             }
 
-            activity.DisplayName = this.GetDisplayName(activity);
+            if (activity.IsAllDataRequested)
+            {
+                if (this.options.TracedOperations != null && !this.options.TracedOperations.Contains(activity.OperationName))
+                {
+                    MassTransitInstrumentationEventSource.Log.RequestIsFilteredOut(activity.OperationName);
+                    activity.IsAllDataRequested = false;
+                    return;
+                }
 
-            ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
-            ActivityInstrumentationHelper.SetKindProperty(activity, this.GetActivityKind(activity));
+                activity.DisplayName = this.GetDisplayName(activity);
+
+                ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
+                ActivityInstrumentationHelper.SetKindProperty(activity, this.GetActivityKind(activity));
+            }
         }
 
         public override void OnStopActivity(Activity activity, object payload)
         {
-            if (this.options.TracedOperations != null && !this.options.TracedOperations.Contains(activity.OperationName))
-            {
-                MassTransitInstrumentationEventSource.Log.RequestIsFilteredOut(activity.OperationName);
-                activity.IsAllDataRequested = false;
-                return;
-            }
-
             if (activity.IsAllDataRequested)
             {
                 try
