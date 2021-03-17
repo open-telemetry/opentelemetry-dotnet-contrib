@@ -21,6 +21,7 @@ using System.Threading.Tasks;
 using MassTransit.Testing;
 using Moq;
 using OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -315,7 +316,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
         {
             var activityProcessor = new Mock<BaseProcessor<Activity>>();
             using (Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new TestSampler(samplingDecision))
+                .SetSampler(new TestSampler() { SamplingAction = (samplingParameters) => new SamplingResult(samplingDecision) })
                 .AddProcessor(activityProcessor.Object)
                 .AddMassTransitInstrumentation()
                 .Build())
@@ -354,21 +355,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                             .Any(a => a.OperationName == operationName))
                     .Where(i => i.Method.Name == "OnEnd")
                     .Select(i => i.Arguments.OfType<Activity>().Single());
-        }
-
-        private class TestSampler : Sampler
-        {
-            private SamplingDecision samplingDecision;
-
-            public TestSampler(SamplingDecision samplingDecision)
-            {
-                this.samplingDecision = samplingDecision;
-            }
-
-            public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
-            {
-                return new SamplingResult(this.samplingDecision);
-            }
         }
     }
 }
