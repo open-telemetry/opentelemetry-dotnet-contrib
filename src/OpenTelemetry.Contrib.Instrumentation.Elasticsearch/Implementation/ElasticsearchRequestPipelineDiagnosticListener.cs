@@ -82,7 +82,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
                 ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Client);
 
                 var method = this.methodFetcher.Fetch(payload);
-                activity.DisplayName = this.GetDisplayName(activity, method);
 
                 if (this.options.SuppressDownstreamInstrumentation)
                 {
