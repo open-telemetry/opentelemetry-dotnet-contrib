@@ -1,0 +1,49 @@
+## Release Process
+Releasing of projects from the opentelemetry-dotnet-contrib repo is currently a mix of automated workflow and some manual steps. Hopefully most of this will be automated soon.
+
+### Pre-requisites
+To carry out the release successfully, make sure you fulfill the following:
+1. You must be a maintainer on the repo. This will allow you to push tags to `main` branch and create a GitHub release later on.
+2. Have access to the Nuget token for releasing the project to Nuget.org OpenTelemetry account.
+
+### Pre-step
+Before starting with the release process, ensure that the latest commit on the `main` branch is the commit which has added/updated the Changelog to the project being released. This is the commit that will be tagged on the release.
+
+### Steps
+1. Create and push git tag for the project and the version of the project you want to release. 
+    ```
+    git tag -a <PROJECT TAG PREFIX><VERSION> -m "<PROJECT TAG PREFIX><VERSION>"
+    ```
+    You can find the project tag prefix in the workflow file for the project. See the example [here](https://github.com/srprash/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml#L12).
+
+    ```
+    git push origin <PROJECT TAG PREFIX><VERSION>
+    ```
+    **Note:** If you are releasing more than one inter-dependent projects that need to go out together, you should create and push all the relevant tags together. This will ensure that [MinVer](https://github.com/adamralph/minver#how-it-works) will pick up the version for each project is what you specified in the tags instead of calculating the version based on the tag depth in the commit history.
+
+    This will trigger the building and packaging workflow for the project. 
+
+2. Navigate to the [**Actions**](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/actions) tab on the repo and monitor the "Pack <Project Name>" workflow. The last step in the workflow is to publish to MyGet.
+
+3. Validate that the project has been published to MyGet with the latest version that you had specified in step 1.
+
+4. Get the build artifact .zip from the workflow execution in step 2. Extract the artifact to a local folder. This should contain the nuget files and symbols.
+
+5. Download the latest [nuget.exe](https://www.nuget.org/downloads) into the same folder as step 4.
+
+6. Publish the project to nuget.org
+    ```
+    .\nuget.exe setApiKey <NUGET TOKEN>
+    ```
+
+    ```
+    get-childitem -Recurse | where {$_.extension -eq ".nupkg"} | foreach ($_) {.\nuget.exe push $_.fullname -Source https://api.nuget.org/v3/index.json}
+    ```
+
+    It usually takes a while for the new version of the project to show up in nuget.org
+
+7. Validate that the new version of the project is successfully published to nuget.org under OpenTelemetry owner.
+
+8. Delete the NUGET TOKEN set in step 6.
+
+9. Go to the [**Releases**](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/releases) page on the repo. Draft a new release with the tag created in step 1. 
