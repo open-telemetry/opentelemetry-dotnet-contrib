@@ -36,6 +36,7 @@ namespace OpenTelemetry.Contrib.Exporter.Stackdriver
         private readonly Google.Api.Gax.ResourceNames.ProjectName googleCloudProjectId;
         private readonly TraceServiceSettings traceServiceSettings;
         private readonly TraceServiceClient traceServiceClient;
+        private readonly string jsonCredentials;
 
         static StackdriverTraceExporter()
         {
@@ -63,8 +64,10 @@ namespace OpenTelemetry.Contrib.Exporter.Stackdriver
         /// Initializes a new instance of the <see cref="StackdriverTraceExporter"/> class.
         /// </summary>
         /// <param name="projectId">Project ID to send telemetry to.</param>
-        public StackdriverTraceExporter(string projectId)
+        /// <param name="jsonCredentials">Google Cloud JsonCredentials.</param>
+        public StackdriverTraceExporter(string projectId, string jsonCredentials = null)
         {
+            this.jsonCredentials = jsonCredentials;
             this.googleCloudProjectId = new Google.Api.Gax.ResourceNames.ProjectName(projectId);
 
             // Set header mutation for every outgoing API call to Stackdriver so the BE knows
@@ -78,10 +81,11 @@ namespace OpenTelemetry.Contrib.Exporter.Stackdriver
         /// Only used internally for tests.
         /// </summary>
         /// <param name="projectId">Project ID to send telemetry to.</param>
+        /// <param name="jsonCredentials">Google Cloud JsonCredentials.</param>
         /// <param name="traceServiceClient">TraceServiceClient instance to use.</param>
         [ExcludeFromCodeCoverage]
-        internal StackdriverTraceExporter(string projectId, TraceServiceClient traceServiceClient)
-            : this(projectId)
+        internal StackdriverTraceExporter(string projectId, string jsonCredentials, TraceServiceClient traceServiceClient)
+            : this(projectId, jsonCredentials)
         {
             this.traceServiceClient = traceServiceClient;
         }
@@ -95,6 +99,7 @@ namespace OpenTelemetry.Contrib.Exporter.Stackdriver
                 traceWriter = new TraceServiceClientBuilder
                 {
                     Settings = this.traceServiceSettings,
+                    JsonCredentials = this.jsonCredentials,
                 }.Build();
             }
 

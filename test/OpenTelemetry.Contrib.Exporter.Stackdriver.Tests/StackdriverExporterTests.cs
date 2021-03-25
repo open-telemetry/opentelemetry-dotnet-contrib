@@ -101,10 +101,10 @@ namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Tests
                     x.BatchWriteSpans(It.IsAny<BatchWriteSpansRequest>(), It.IsAny<CallSettings>()))
                 .Throws(new RpcException(Status.DefaultCancelled))
                 .Verifiable($"{nameof(TraceServiceClient.BatchWriteSpans)} was never called");
-            var activityExporter = new StackdriverTraceExporter("test", traceClientMock.Object);
+            var activityExporter = new StackdriverTraceExporter("test", null, traceClientMock.Object);
             var testExporter = new TestExporter<Activity>(RunTest);
 
-            var processor = new BatchExportProcessor<Activity>(testExporter);
+            var processor = new BatchActivityExportProcessor(testExporter);
 
             for (int i = 0; i < 10; i++)
             {
@@ -138,10 +138,10 @@ namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Tests
             traceClientMock.Setup(x =>
                     x.BatchWriteSpans(It.IsAny<BatchWriteSpansRequest>(), It.IsAny<CallSettings>()))
                 .Verifiable($"{nameof(TraceServiceClient.BatchWriteSpans)} was never called");
-            var activityExporter = new StackdriverTraceExporter("test", traceClientMock.Object);
+            var activityExporter = new StackdriverTraceExporter("test", null, traceClientMock.Object);
             var testExporter = new TestExporter<Activity>(RunTest);
 
-            var processor = new BatchExportProcessor<Activity>(testExporter);
+            var processor = new BatchActivityExportProcessor(testExporter);
 
             for (int i = 0; i < 10; i++)
             {

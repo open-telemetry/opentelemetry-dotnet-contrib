@@ -40,9 +40,9 @@ namespace OpenTelemetry.Trace
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            var activityExporter = new StackdriverTraceExporter(projectId);
+            var activityExporter = new StackdriverTraceExporter(projectId, null);
 
-            return builder.AddProcessor(new BatchExportProcessor<Activity>(activityExporter));
+            return builder.AddProcessor(new BatchActivityExportProcessor(activityExporter));
         }
     }
 }
