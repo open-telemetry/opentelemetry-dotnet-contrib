@@ -23,7 +23,7 @@ namespace OpenTelemetry.Trace
     /// <summary>
     /// Extension methods to simplify registering of dependency instrumentation.
     /// </summary>
-    public static class TracerProviderBuilderExtensions
+    public static class EntityFrameworkCoreTracerProviderBuilderExtensions
     {
         /// <summary>
         /// Enables Microsoft.EntityFrameworkCore instrumentation.
