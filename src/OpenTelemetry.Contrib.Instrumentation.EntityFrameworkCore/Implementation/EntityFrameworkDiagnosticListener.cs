@@ -199,17 +199,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementati
                             return;
                         }
 
-                        try
-                        {
-                            if (activity.IsAllDataRequested)
-                            {
-                                activity.SetStatus(Status.Unset);
-                            }
-                        }
-                        finally
-                        {
-                            activity.Stop();
-                        }
+                        activity.Stop();
                     }
 
                     break;

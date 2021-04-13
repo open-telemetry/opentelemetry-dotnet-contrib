@@ -123,11 +123,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Tests
 
             if (!isError)
             {
-                Assert.Equal(StatusHelper.GetTagValueForStatusCode(Status.Unset.StatusCode), activity.Tags.FirstOrDefault(t => t.Key == SpanAttributeConstants.StatusCodeKey).Value);
+                Assert.Equal(Status.Unset, activity.GetStatus());
             }
             else
             {
-                Assert.Equal(StatusHelper.GetTagValueForStatusCode(Status.Error.StatusCode), activity.Tags.FirstOrDefault(t => t.Key == SpanAttributeConstants.StatusCodeKey).Value);
+                Status status = activity.GetStatus();
+                Assert.Equal(StatusCode.Error, status.StatusCode);
+                Assert.Equal("SQLite Error 1: 'no such table: no_table'.", status.Description);
                 Assert.Contains(activity.Tags, t => t.Key == SpanAttributeConstants.StatusDescriptionKey);
             }
         }
