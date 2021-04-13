@@ -42,7 +42,7 @@ namespace OpenTelemetry.Trace
 
             var activityExporter = new StackdriverTraceExporter(projectId);
 
-            return builder.AddProcessor(new BatchExportProcessor<Activity>(activityExporter));
+            return builder.AddProcessor(new BatchActivityExportProcessor(activityExporter));
         }
     }
 }
