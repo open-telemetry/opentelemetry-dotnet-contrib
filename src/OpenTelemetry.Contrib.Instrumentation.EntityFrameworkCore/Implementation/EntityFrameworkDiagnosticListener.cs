@@ -109,6 +109,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementati
                                     activity.AddTag(AttributeDbSystem, "sqlite");
                                     break;
                                 case "MySql.Data.EntityFrameworkCore":
+                                case "Pomelo.EntityFrameworkCore.MySql":
                                     activity.AddTag(AttributeDbSystem, "mysql");
                                     break;
                                 case "Npgsql.EntityFrameworkCore.PostgreSQL":
@@ -159,7 +160,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementati
                                 {
                                     case CommandType.StoredProcedure:
                                         activity.AddTag(SpanAttributeConstants.DatabaseStatementTypeKey, nameof(CommandType.StoredProcedure));
-                                        if (this.options.SetStoredProcedureCommandName)
+                                        if (this.options.SetDbStatementForStoredProcedure)
                                         {
                                             activity.AddTag(AttributeDbStatement, commandText);
                                         }
@@ -168,7 +169,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementati
 
                                     case CommandType.Text:
                                         activity.AddTag(SpanAttributeConstants.DatabaseStatementTypeKey, nameof(CommandType.Text));
-                                        if (this.options.SetTextCommandContent)
+                                        if (this.options.SetDbStatementForText)
                                         {
                                             activity.AddTag(AttributeDbStatement, commandText);
                                         }
@@ -198,17 +199,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementati
                             return;
                         }
 
-                        try
-                        {
-                            if (activity.IsAllDataRequested)
-                            {
-                                activity.SetStatus(Status.Ok);
-                            }
-                        }
-                        finally
-                        {
-                            activity.Stop();
-                        }
+                        activity.Stop();
                     }
 
                     break;
