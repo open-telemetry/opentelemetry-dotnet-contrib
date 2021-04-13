@@ -104,7 +104,7 @@ namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Tests
             var activityExporter = new StackdriverTraceExporter("test", traceClientMock.Object);
             var testExporter = new TestExporter<Activity>(RunTest);
 
-            var processor = new BatchExportProcessor<Activity>(testExporter);
+            var processor = new BatchActivityExportProcessor(testExporter);
 
             for (int i = 0; i < 10; i++)
             {
@@ -141,7 +141,7 @@ namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Tests
             var activityExporter = new StackdriverTraceExporter("test", traceClientMock.Object);
             var testExporter = new TestExporter<Activity>(RunTest);
 
-            var processor = new BatchExportProcessor<Activity>(testExporter);
+            var processor = new BatchActivityExportProcessor(testExporter);
 
             for (int i = 0; i < 10; i++)
             {
