@@ -30,6 +30,8 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2
         internal static readonly JsonEncodedText DurationPropertyName = JsonEncodedText.Encode("duration");
         internal static readonly JsonEncodedText TimestampPropertyName = JsonEncodedText.Encode("timestamp");
         internal static readonly JsonEncodedText TypePropertyName = JsonEncodedText.Encode("type");
+        internal static readonly JsonEncodedText OutcomePropertyName = JsonEncodedText.Encode("outcome");
+        internal static readonly JsonEncodedText ResultPropertyName = JsonEncodedText.Encode("result");
         internal static readonly JsonEncodedText SpanCountPropertyName = JsonEncodedText.Encode("span_count");
         internal static readonly JsonEncodedText DroppedPropertyName = JsonEncodedText.Encode("dropped");
         internal static readonly JsonEncodedText StartedPropertyName = JsonEncodedText.Encode("started");

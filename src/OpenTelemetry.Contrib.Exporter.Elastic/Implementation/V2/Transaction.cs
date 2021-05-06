@@ -27,7 +27,9 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2
             string parentId,
             long duration,
             long timestamp,
-            string type)
+            string type,
+            string result,
+            Outcome outcome)
         {
             this.Id = id;
             this.ParentId = parentId;
@@ -36,6 +38,8 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2
             this.Duration = duration;
             this.Timestamp = timestamp;
             this.Type = type;
+            this.Result = result;
+            this.Outcome = outcome;
         }
 
         public string Id { get; }
@@ -52,6 +56,10 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2
 
         public string Type { get; }
 
+        public string Result { get; }
+
+        public Outcome Outcome { get; }
+
         public void Write(Utf8JsonWriter writer)
         {
             writer.WriteStartObject();
@@ -62,10 +70,17 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2
             writer.WriteString(JsonHelper.NamePropertyName, this.Name);
             writer.WriteString(JsonHelper.TraceIdPropertyName, this.TraceId);
             writer.WriteString(JsonHelper.IdPropertyName, this.Id);
-            writer.WriteString(JsonHelper.ParentIdPropertyName, this.ParentId);
+
+            if (this.ParentId != null)
+            {
+                writer.WriteString(JsonHelper.ParentIdPropertyName, this.ParentId);
+            }
+
             writer.WriteNumber(JsonHelper.DurationPropertyName, this.Duration);
             writer.WriteNumber(JsonHelper.TimestampPropertyName, this.Timestamp);
             writer.WriteString(JsonHelper.TypePropertyName, this.Type);
+            writer.WriteString(JsonHelper.ResultPropertyName, this.Result);
+            writer.WriteString(JsonHelper.OutcomePropertyName, this.Outcome.AsString());
 
             // TODO: Not sure if this can be somehow in OT implemented and how this will influence the APM view.
             writer.WriteStartObject(JsonHelper.SpanCountPropertyName);

@@ -16,6 +16,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2;
 
 namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation
@@ -44,7 +45,10 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation
                 return new Span(name, traceId, id, parentId, duration, timestamp, type);
             }
 
-            return new Transaction(name, traceId, id, parentId, duration, timestamp, type);
+            var result = activity.GetResult();
+            var outcome = GetOutcome(result);
+
+            return new Transaction(name, traceId, id, parentId, duration, timestamp, type, result, outcome);
         }
 
         private static string GetSpanId(this Activity activity)
@@ -74,6 +78,24 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation
                 ActivityKind.Client => "client",
                 _ => null,
             };
+        }
+
+        private static string GetResult(this Activity activity)
+        {
+            var statusCode = activity.TagObjects.FirstOrDefault(t => t.Key == "http.status_code");
+            return statusCode.Value?.ToString() ?? "unknown";
+        }
+
+        private static Outcome GetOutcome(string result)
+        {
+            if (int.TryParse(result, out int statusCode))
+            {
+                return (statusCode >= 200) && (statusCode <= 299)
+                    ? Outcome.Success
+                    : Outcome.Failure;
+            }
+
+            return Outcome.Unknown;
         }
     }
 }

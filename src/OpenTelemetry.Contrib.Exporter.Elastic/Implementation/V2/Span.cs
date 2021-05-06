@@ -62,7 +62,12 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2
             writer.WriteString(JsonHelper.NamePropertyName, this.Name);
             writer.WriteString(JsonHelper.TraceIdPropertyName, this.TraceId);
             writer.WriteString(JsonHelper.IdPropertyName, this.Id);
-            writer.WriteString(JsonHelper.ParentIdPropertyName, this.ParentId);
+
+            if (this.ParentId != null)
+            {
+                writer.WriteString(JsonHelper.ParentIdPropertyName, this.ParentId);
+            }
+
             writer.WriteNumber(JsonHelper.DurationPropertyName, this.Duration);
             writer.WriteNumber(JsonHelper.TimestampPropertyName, this.Timestamp);
             writer.WriteString(JsonHelper.TypePropertyName, this.Type);
