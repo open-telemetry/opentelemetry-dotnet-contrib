@@ -8,14 +8,13 @@ namespace OpenTelemetry.Contrib.Exporter.ElasticApm
     internal class ElasticApmExporter : BaseExporter<Activity>
     {
         private readonly HttpClient httpClient;
+        private readonly ElasticApmOptions options;
 
         public ElasticApmExporter(ElasticApmOptions options, HttpClient httpClient = null)
         {
-            this.httpClient = httpClient ?? this.CreateHttpClient(options);
-            this.Options = options;
+            this.options = options;
+            this.httpClient = httpClient ?? new HttpClient { BaseAddress = new Uri(options.ServerUrl) };
         }
-
-        internal ElasticApmOptions Options { get; }
 
         public override ExportResult Export(in Batch<Activity> batch)
         {
@@ -23,9 +22,9 @@ namespace OpenTelemetry.Contrib.Exporter.ElasticApm
 
             try
             {
-                using var request = new HttpRequestMessage(HttpMethod.Post, this.Options.IntakeApiVersion)
+                using var request = new HttpRequestMessage(HttpMethod.Post, this.options.IntakeApiVersion)
                 {
-                    Content = new NdjsonContent(this.Options, batch),
+                    Content = new NdjsonContent(this.options, batch),
                 };
 
                 using var response = this.httpClient
@@ -39,14 +38,6 @@ namespace OpenTelemetry.Contrib.Exporter.ElasticApm
             {
                 return ExportResult.Failure;
             }
-        }
-
-        private HttpClient CreateHttpClient(ElasticApmOptions options)
-        {
-            return new HttpClient
-            {
-                BaseAddress = new UriBuilder(options.ServerScheme, options.ServerHost, options.ServerPort).Uri,
-            };
         }
     }
 }
