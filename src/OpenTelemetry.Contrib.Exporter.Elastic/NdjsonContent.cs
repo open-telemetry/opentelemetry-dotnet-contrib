@@ -18,12 +18,12 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic
                 CharSet = new UTF8Encoding(false).WebName,
             };
 
-        private readonly ElasticApmOptions options;
+        private readonly ElasticOptions options;
         private readonly Batch<Activity> batch;
         private readonly IJsonSerializable metadata;
         private Utf8JsonWriter writer;
 
-        public NdjsonContent(ElasticApmOptions options, in Batch<Activity> batch)
+        public NdjsonContent(ElasticOptions options, in Batch<Activity> batch)
         {
             this.options = options;
             this.batch = batch;

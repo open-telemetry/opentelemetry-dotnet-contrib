@@ -8,9 +8,9 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic
     internal class ElasticExporter : BaseExporter<Activity>
     {
         private readonly HttpClient httpClient;
-        private readonly ElasticApmOptions options;
+        private readonly ElasticOptions options;
 
-        public ElasticExporter(ElasticApmOptions options, HttpClient httpClient = null)
+        public ElasticExporter(ElasticOptions options, HttpClient httpClient = null)
         {
             this.options = options;
             this.httpClient = httpClient ?? new HttpClient { BaseAddress = new Uri(options.ServerUrl) };

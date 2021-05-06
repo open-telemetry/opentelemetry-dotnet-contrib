@@ -16,14 +16,14 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic
         /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
         public static TracerProviderBuilder UseElasticApmExporter(
             this TracerProviderBuilder builder,
-            Action<ElasticApmOptions> configure = null)
+            Action<ElasticOptions> configure = null)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            var options = new ElasticApmOptions();
+            var options = new ElasticOptions();
             configure?.Invoke(options);
 
             var activityExporter = new ElasticExporter(options);

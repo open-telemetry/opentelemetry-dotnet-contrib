@@ -3,7 +3,7 @@
     /// <summary>
     /// Elastic APM exporter options.
     /// </summary>
-    public class ElasticApmOptions
+    public class ElasticOptions
     {
         /// <summary>
         /// Gets or sets Elastic APM Server host. Default value: http://localhost:8200/.
