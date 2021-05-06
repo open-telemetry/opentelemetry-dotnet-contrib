@@ -123,7 +123,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests", "test\OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests\OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests.csproj", "{22E101DD-D6D7-4554-9A98-8963230D6B2F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Exporter.Elastic", "src\OpenTelemetry.Contrib.Exporter.ElasticApm\OpenTelemetry.Contrib.Exporter.Elastic.csproj", "{7FC10E2A-FA1D-4B3A-9403-E7560E7E6B6B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Exporter.Elastic", "src\OpenTelemetry.Contrib.Exporter.Elastic\OpenTelemetry.Contrib.Exporter.Elastic.csproj", "{7FC10E2A-FA1D-4B3A-9403-E7560E7E6B6B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
