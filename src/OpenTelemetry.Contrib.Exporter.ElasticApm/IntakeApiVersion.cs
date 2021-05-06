@@ -1,4 +1,4 @@
-﻿namespace OpenTelemetry.Contrib.Exporter.ElasticApm
+﻿namespace OpenTelemetry.Contrib.Exporter.Elastic
 {
     /// <summary>
     /// Elastic APM Server events intake API versions.

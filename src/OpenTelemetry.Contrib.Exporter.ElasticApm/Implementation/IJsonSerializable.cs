@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace OpenTelemetry.Contrib.Exporter.ElasticApm.Implementation
+namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation
 {
     internal interface IJsonSerializable
     {

@@ -1,8 +1,8 @@
 ﻿using System.Text.Json;
 
-namespace OpenTelemetry.Contrib.Exporter.ElasticApm.Implementation.V2
+namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2
 {
-    internal static class ElasticApmJsonHelper
+    internal static class JsonHelper
     {
         internal static readonly JsonEncodedText TransactionPropertyName = JsonEncodedText.Encode("transaction");
         internal static readonly JsonEncodedText SpanPropertyName = JsonEncodedText.Encode("span");

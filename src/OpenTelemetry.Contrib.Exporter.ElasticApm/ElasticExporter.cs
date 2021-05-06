@@ -3,14 +3,14 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Threading;
 
-namespace OpenTelemetry.Contrib.Exporter.ElasticApm
+namespace OpenTelemetry.Contrib.Exporter.Elastic
 {
-    internal class ElasticApmExporter : BaseExporter<Activity>
+    internal class ElasticExporter : BaseExporter<Activity>
     {
         private readonly HttpClient httpClient;
         private readonly ElasticApmOptions options;
 
-        public ElasticApmExporter(ElasticApmOptions options, HttpClient httpClient = null)
+        public ElasticExporter(ElasticApmOptions options, HttpClient httpClient = null)
         {
             this.options = options;
             this.httpClient = httpClient ?? new HttpClient { BaseAddress = new Uri(options.ServerUrl) };

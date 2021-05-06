@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OpenTelemetry.Contrib.Exporter.ElasticApm.Implementation
+namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation
 {
     internal static class DateTimeExtensions
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Contrib.Exporter.ElasticApm
+namespace OpenTelemetry.Contrib.Exporter.Elastic
 {
     /// <summary>
     /// Extension methods to register Elastic APM exporter.
@@ -26,7 +26,7 @@ namespace OpenTelemetry.Contrib.Exporter.ElasticApm
             var options = new ElasticApmOptions();
             configure?.Invoke(options);
 
-            var activityExporter = new ElasticApmExporter(options);
+            var activityExporter = new ElasticExporter(options);
 
             return builder.AddProcessor(new BatchActivityExportProcessor(activityExporter));
         }

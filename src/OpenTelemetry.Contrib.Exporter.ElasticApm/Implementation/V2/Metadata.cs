@@ -2,11 +2,11 @@
 using System.Reflection;
 using System.Text.Json;
 
-namespace OpenTelemetry.Contrib.Exporter.ElasticApm.Implementation.V2
+namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2
 {
-    internal readonly struct ElasticApmMetadata : IJsonSerializable
+    internal readonly struct Metadata : IJsonSerializable
     {
-        public ElasticApmMetadata(Service service)
+        public Metadata(Service service)
         {
             this.Service = service;
         }
@@ -17,10 +17,10 @@ namespace OpenTelemetry.Contrib.Exporter.ElasticApm.Implementation.V2
         {
             writer.WriteStartObject();
 
-            writer.WritePropertyName(ElasticApmJsonHelper.MetadataPropertyName);
+            writer.WritePropertyName(JsonHelper.MetadataPropertyName);
             writer.WriteStartObject();
 
-            writer.WritePropertyName(ElasticApmJsonHelper.ServicePropertyName);
+            writer.WritePropertyName(JsonHelper.ServicePropertyName);
             this.Service.Write(writer);
 
             writer.WriteEndObject();
@@ -48,9 +48,9 @@ namespace OpenTelemetry.Contrib.Exporter.ElasticApm.Implementation.V2
         {
             writer.WriteStartObject();
 
-            writer.WriteString(ElasticApmJsonHelper.NamePropertyName, this.Name);
-            writer.WriteString(ElasticApmJsonHelper.EnvironmentPropertyName, this.Environment);
-            writer.WritePropertyName(ElasticApmJsonHelper.AgentPropertyName);
+            writer.WriteString(JsonHelper.NamePropertyName, this.Name);
+            writer.WriteString(JsonHelper.EnvironmentPropertyName, this.Environment);
+            writer.WritePropertyName(JsonHelper.AgentPropertyName);
             this.Agent.Write(writer);
 
             writer.WriteEndObject();
@@ -73,8 +73,8 @@ namespace OpenTelemetry.Contrib.Exporter.ElasticApm.Implementation.V2
         {
             writer.WriteStartObject();
 
-            writer.WriteString(ElasticApmJsonHelper.NamePropertyName, this.Name);
-            writer.WriteString(ElasticApmJsonHelper.VersionPropertyName, this.Version);
+            writer.WriteString(JsonHelper.NamePropertyName, this.Name);
+            writer.WriteString(JsonHelper.VersionPropertyName, this.Version);
 
             writer.WriteEndObject();
         }

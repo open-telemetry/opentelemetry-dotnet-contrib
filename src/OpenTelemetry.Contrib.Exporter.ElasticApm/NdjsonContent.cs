@@ -6,9 +6,9 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using OpenTelemetry.Contrib.Exporter.ElasticApm.Implementation;
+using OpenTelemetry.Contrib.Exporter.Elastic.Implementation;
 
-namespace OpenTelemetry.Contrib.Exporter.ElasticApm
+namespace OpenTelemetry.Contrib.Exporter.Elastic
 {
     internal class NdjsonContent : HttpContent
     {
@@ -69,11 +69,11 @@ namespace OpenTelemetry.Contrib.Exporter.ElasticApm
 
         private IJsonSerializable CreateMetadata()
         {
-            return new Implementation.V2.ElasticApmMetadata(
+            return new Implementation.V2.Metadata(
                 new Implementation.V2.Service(
                     this.options.ServiceName,
                     this.options.Environment,
-                    new Implementation.V2.Agent(typeof(ElasticApmExporter).Assembly)));
+                    new Implementation.V2.Agent(typeof(ElasticExporter).Assembly)));
         }
     }
 }

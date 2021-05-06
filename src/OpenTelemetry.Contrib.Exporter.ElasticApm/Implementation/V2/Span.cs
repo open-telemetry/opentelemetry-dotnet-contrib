@@ -1,10 +1,10 @@
 ﻿using System.Text.Json;
 
-namespace OpenTelemetry.Contrib.Exporter.ElasticApm.Implementation.V2
+namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2
 {
-    internal readonly struct ElasticApmSpan : IJsonSerializable
+    internal readonly struct Span : IJsonSerializable
     {
-        public ElasticApmSpan(
+        public Span(
             string name,
             string traceId,
             string id,
@@ -40,16 +40,16 @@ namespace OpenTelemetry.Contrib.Exporter.ElasticApm.Implementation.V2
         {
             writer.WriteStartObject();
 
-            writer.WritePropertyName(ElasticApmJsonHelper.SpanPropertyName);
+            writer.WritePropertyName(JsonHelper.SpanPropertyName);
             writer.WriteStartObject();
 
-            writer.WriteString(ElasticApmJsonHelper.NamePropertyName, this.Name);
-            writer.WriteString(ElasticApmJsonHelper.TraceIdPropertyName, this.TraceId);
-            writer.WriteString(ElasticApmJsonHelper.IdPropertyName, this.Id);
-            writer.WriteString(ElasticApmJsonHelper.ParentIdPropertyName, this.ParentId);
-            writer.WriteNumber(ElasticApmJsonHelper.DurationPropertyName, this.Duration);
-            writer.WriteNumber(ElasticApmJsonHelper.TimestampPropertyName, this.Timestamp);
-            writer.WriteString(ElasticApmJsonHelper.TypePropertyName, this.Type);
+            writer.WriteString(JsonHelper.NamePropertyName, this.Name);
+            writer.WriteString(JsonHelper.TraceIdPropertyName, this.TraceId);
+            writer.WriteString(JsonHelper.IdPropertyName, this.Id);
+            writer.WriteString(JsonHelper.ParentIdPropertyName, this.ParentId);
+            writer.WriteNumber(JsonHelper.DurationPropertyName, this.Duration);
+            writer.WriteNumber(JsonHelper.TimestampPropertyName, this.Timestamp);
+            writer.WriteString(JsonHelper.TypePropertyName, this.Type);
 
             writer.WriteEndObject();
 

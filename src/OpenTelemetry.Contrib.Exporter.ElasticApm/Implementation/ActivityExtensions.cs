@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
-using OpenTelemetry.Contrib.Exporter.ElasticApm.Implementation.V2;
+using OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2;
 
-namespace OpenTelemetry.Contrib.Exporter.ElasticApm.Implementation
+namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation
 {
-    internal static class ElasticApmActivityExtensions
+    internal static class ActivityExtensions
     {
         internal static IJsonSerializable ToElasticApmSpan(
             this Activity activity,
@@ -25,10 +25,10 @@ namespace OpenTelemetry.Contrib.Exporter.ElasticApm.Implementation
 
             if (activity.Kind == ActivityKind.Internal)
             {
-                return new ElasticApmSpan(name, traceId, id, parentId, duration, timestamp, type);
+                return new Span(name, traceId, id, parentId, duration, timestamp, type);
             }
 
-            return new ElasticApmTransaction(name, traceId, id, parentId, duration, timestamp, type);
+            return new Transaction(name, traceId, id, parentId, duration, timestamp, type);
         }
 
         private static string GetSpanId(this Activity activity)

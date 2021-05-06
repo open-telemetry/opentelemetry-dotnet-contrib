@@ -1,10 +1,10 @@
 ﻿using System.Text.Json;
 
-namespace OpenTelemetry.Contrib.Exporter.ElasticApm.Implementation.V2
+namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2
 {
-    internal readonly struct ElasticApmTransaction : IJsonSerializable
+    internal readonly struct Transaction : IJsonSerializable
     {
-        public ElasticApmTransaction(
+        public Transaction(
             string name,
             string traceId,
             string id,
@@ -40,21 +40,21 @@ namespace OpenTelemetry.Contrib.Exporter.ElasticApm.Implementation.V2
         {
             writer.WriteStartObject();
 
-            writer.WritePropertyName(ElasticApmJsonHelper.TransactionPropertyName);
+            writer.WritePropertyName(JsonHelper.TransactionPropertyName);
             writer.WriteStartObject();
 
-            writer.WriteString(ElasticApmJsonHelper.NamePropertyName, this.Name);
-            writer.WriteString(ElasticApmJsonHelper.TraceIdPropertyName, this.TraceId);
-            writer.WriteString(ElasticApmJsonHelper.IdPropertyName, this.Id);
-            writer.WriteString(ElasticApmJsonHelper.ParentIdPropertyName, this.ParentId);
-            writer.WriteNumber(ElasticApmJsonHelper.DurationPropertyName, this.Duration);
-            writer.WriteNumber(ElasticApmJsonHelper.TimestampPropertyName, this.Timestamp);
-            writer.WriteString(ElasticApmJsonHelper.TypePropertyName, this.Type);
+            writer.WriteString(JsonHelper.NamePropertyName, this.Name);
+            writer.WriteString(JsonHelper.TraceIdPropertyName, this.TraceId);
+            writer.WriteString(JsonHelper.IdPropertyName, this.Id);
+            writer.WriteString(JsonHelper.ParentIdPropertyName, this.ParentId);
+            writer.WriteNumber(JsonHelper.DurationPropertyName, this.Duration);
+            writer.WriteNumber(JsonHelper.TimestampPropertyName, this.Timestamp);
+            writer.WriteString(JsonHelper.TypePropertyName, this.Type);
 
             // TODO: Not sure if this can be somehow in OT implemented and how this will influence the APM view.
-            writer.WriteStartObject(ElasticApmJsonHelper.SpanCountPropertyName);
-            writer.WriteNumber(ElasticApmJsonHelper.DroppedPropertyName, 0);
-            writer.WriteNumber(ElasticApmJsonHelper.StartedPropertyName, 0);
+            writer.WriteStartObject(JsonHelper.SpanCountPropertyName);
+            writer.WriteNumber(JsonHelper.DroppedPropertyName, 0);
+            writer.WriteNumber(JsonHelper.StartedPropertyName, 0);
             writer.WriteEndObject();
 
             writer.WriteEndObject();
