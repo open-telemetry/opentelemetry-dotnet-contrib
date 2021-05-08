@@ -37,8 +37,8 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2
         {
             writer.WriteStartObject();
 
-            writer.WriteString(JsonHelper.NamePropertyName, this.Name);
-            writer.WriteString(JsonHelper.EnvironmentPropertyName, this.Environment);
+            writer.WriteStringLimited(JsonHelper.NamePropertyName, this.Name);
+            writer.WriteStringLimited(JsonHelper.EnvironmentPropertyName, this.Environment);
             writer.WritePropertyName(JsonHelper.AgentPropertyName);
             this.Agent.Write(writer);
 

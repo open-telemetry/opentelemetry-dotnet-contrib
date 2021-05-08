@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.IO;
 using System.Text.Json;
 
@@ -21,6 +22,7 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic
 {
     internal static class Utf8JsonWriterExtensions
     {
+        private static readonly int MaxStringLength = 1024;
         private static readonly byte NewLine = (byte)'\n';
 
         internal static void WriteNewLine(this Utf8JsonWriter writer, Stream stream)
@@ -28,6 +30,18 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic
             writer.Flush();
             writer.Reset();
             stream.WriteByte(NewLine);
+        }
+
+        internal static void WriteStringLimited(this Utf8JsonWriter writer, JsonEncodedText propertyName, string value)
+        {
+            if (value.Length <= MaxStringLength)
+            {
+                writer.WriteString(propertyName, value);
+            }
+            else
+            {
+                writer.WriteString(propertyName, value.AsSpan().Slice(0, MaxStringLength));
+            }
         }
     }
 }

@@ -67,25 +67,25 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2
             writer.WritePropertyName(JsonHelper.TransactionPropertyName);
             writer.WriteStartObject();
 
-            writer.WriteString(JsonHelper.NamePropertyName, this.Name);
-            writer.WriteString(JsonHelper.TraceIdPropertyName, this.TraceId);
-            writer.WriteString(JsonHelper.IdPropertyName, this.Id);
+            writer.WriteStringLimited(JsonHelper.NamePropertyName, this.Name);
+            writer.WriteStringLimited(JsonHelper.TraceIdPropertyName, this.TraceId);
+            writer.WriteStringLimited(JsonHelper.IdPropertyName, this.Id);
 
             if (this.ParentId != null)
             {
-                writer.WriteString(JsonHelper.ParentIdPropertyName, this.ParentId);
+                writer.WriteStringLimited(JsonHelper.ParentIdPropertyName, this.ParentId);
             }
 
             writer.WriteNumber(JsonHelper.DurationPropertyName, this.Duration);
             writer.WriteNumber(JsonHelper.TimestampPropertyName, this.Timestamp);
-            writer.WriteString(JsonHelper.TypePropertyName, this.Type);
+            writer.WriteStringLimited(JsonHelper.TypePropertyName, this.Type);
 
             if (this.Result != null)
             {
-                writer.WriteString(JsonHelper.ResultPropertyName, this.Result);
+                writer.WriteStringLimited(JsonHelper.ResultPropertyName, this.Result);
             }
 
-            writer.WriteString(JsonHelper.OutcomePropertyName, this.Outcome.AsString());
+            writer.WriteStringLimited(JsonHelper.OutcomePropertyName, this.Outcome.AsString());
 
             // TODO: Not sure if this can be somehow in OT implemented and how this will influence the APM view.
             writer.WriteStartObject(JsonHelper.SpanCountPropertyName);
