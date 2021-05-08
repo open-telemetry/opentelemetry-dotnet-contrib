@@ -1,4 +1,4 @@
-﻿// <copyright file="OutcomeExtensions.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="EnumExtensions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
 
 namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2
 {
-    internal static class OutcomeExtensions
+    internal static class EnumExtensions
     {
         internal static string AsString(this Outcome outcome)
         {

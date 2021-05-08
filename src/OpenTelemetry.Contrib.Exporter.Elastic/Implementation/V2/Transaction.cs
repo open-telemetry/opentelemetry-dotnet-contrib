@@ -79,7 +79,12 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2
             writer.WriteNumber(JsonHelper.DurationPropertyName, this.Duration);
             writer.WriteNumber(JsonHelper.TimestampPropertyName, this.Timestamp);
             writer.WriteString(JsonHelper.TypePropertyName, this.Type);
-            writer.WriteString(JsonHelper.ResultPropertyName, this.Result);
+
+            if (this.Result != null)
+            {
+                writer.WriteString(JsonHelper.ResultPropertyName, this.Result);
+            }
+
             writer.WriteString(JsonHelper.OutcomePropertyName, this.Outcome.AsString());
 
             // TODO: Not sure if this can be somehow in OT implemented and how this will influence the APM view.

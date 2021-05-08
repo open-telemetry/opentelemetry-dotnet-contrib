@@ -57,7 +57,7 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic
 
             foreach (var activity in this.batch)
             {
-                var span = activity.ToElasticApmSpan(this.options.IntakeApiVersion);
+                var span = activity.ToElasticApmSpan(this.options);
                 span.Write(this.writer);
                 this.writer.WriteNewLine(stream);
             }

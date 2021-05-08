@@ -17,7 +17,9 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation
 {
@@ -25,9 +27,9 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation
     {
         internal static IJsonSerializable ToElasticApmSpan(
             this Activity activity,
-            IntakeApiVersion intakeApiVersion)
+            ElasticOptions options)
         {
-            if (intakeApiVersion != IntakeApiVersion.V2)
+            if (options.IntakeApiVersion != IntakeApiVersion.V2)
             {
                 throw new NotSupportedException();
             }
@@ -45,8 +47,10 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation
                 return new Span(name, traceId, id, parentId, duration, timestamp, type);
             }
 
-            var result = activity.GetResult();
-            var outcome = GetOutcome(result);
+            var httpStatusCode = activity.GetHttpStatusCode();
+            var otelStatusCode = activity.GetOtelStatusCode();
+            var result = options.TransactionResultMapping(httpStatusCode, otelStatusCode);
+            var outcome = GetOutcome(httpStatusCode, default);
 
             return new Transaction(name, traceId, id, parentId, duration, timestamp, type, result, outcome);
         }
@@ -80,17 +84,40 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation
             };
         }
 
-        private static string GetResult(this Activity activity)
+        private static HttpStatusCode? GetHttpStatusCode(this Activity activity)
         {
             var statusCode = activity.TagObjects.FirstOrDefault(t => t.Key == "http.status_code");
-            return statusCode.Value?.ToString() ?? "unknown";
+            if (Enum.TryParse(statusCode.Value?.ToString(), out HttpStatusCode httpStatusCode))
+            {
+                return httpStatusCode;
+            }
+
+            return null;
         }
 
-        private static Outcome GetOutcome(string result)
+        private static StatusCode? GetOtelStatusCode(this Activity activity)
         {
-            if (int.TryParse(result, out int statusCode))
+            var statusCode = activity.TagObjects.FirstOrDefault(t => t.Key == "otel.status_code");
+            if (Enum.TryParse(statusCode.Value?.ToString(), true, out StatusCode otelStatusCode))
             {
-                return (statusCode >= 200) && (statusCode <= 299)
+                return otelStatusCode;
+            }
+
+            return null;
+        }
+
+        private static Outcome GetOutcome(HttpStatusCode? httpStatusCode, StatusCode? otelStatusCode)
+        {
+            if (httpStatusCode.HasValue)
+            {
+                return ((int)httpStatusCode >= 200) && ((int)httpStatusCode <= 299)
+                    ? Outcome.Success
+                    : Outcome.Failure;
+            }
+
+            if (otelStatusCode.HasValue)
+            {
+                return otelStatusCode != StatusCode.Error
                     ? Outcome.Success
                     : Outcome.Failure;
             }
