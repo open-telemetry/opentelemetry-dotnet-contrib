@@ -40,7 +40,7 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic
         /// <summary>
         /// Gets or sets custom mappings for transactions and spans.
         /// </summary>
-        public ElasticCustomMapping CustomMapping { get; set; } = new ElasticCustomMapping();
+        public ElasticCustomMappings CustomMappings { get; set; } = new ElasticCustomMappings();
 
         /// <summary>
         /// Gets or sets Elastic APM Server API version. Default value: IntakeApiVersion.V2.

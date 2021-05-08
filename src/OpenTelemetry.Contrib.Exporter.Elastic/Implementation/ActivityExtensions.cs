@@ -49,7 +49,7 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation
 
             var httpStatusCode = activity.GetHttpStatusCode();
             var otelStatusCode = activity.GetOtelStatusCode();
-            var result = options.CustomMapping.TransactionResult(httpStatusCode, otelStatusCode);
+            var result = options.CustomMappings.TransactionResult(httpStatusCode, otelStatusCode);
             var outcome = GetOutcome(httpStatusCode, default);
 
             return new Transaction(name, traceId, id, parentId, duration, timestamp, type, result, outcome);
