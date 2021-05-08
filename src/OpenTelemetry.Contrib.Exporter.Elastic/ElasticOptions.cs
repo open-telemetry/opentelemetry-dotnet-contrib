@@ -14,10 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
-using System.Net;
-using OpenTelemetry.Trace;
-
 namespace OpenTelemetry.Contrib.Exporter.Elastic
 {
     /// <summary>
@@ -42,21 +38,9 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic
         public string ServiceName { get; set; } = "MyService";
 
         /// <summary>
-        /// Gets or sets custom mapping for Elastic APM transaction result. Default OTel StatusCode with Ok for Http Success status code.
-        /// https://github.com/elastic/apm-server/blob/32f34ed4298d648bf9476790f2a8a54d72805bb6/docs/spec/v2/transaction.json#L680.
+        /// Gets or sets custom mappings for transactions and spans.
         /// </summary>
-        public Func<HttpStatusCode?, StatusCode?, string> TransactionResultMapping { get; set; } =
-            (httpStatusCode, otelStatusCode) => otelStatusCode switch
-            {
-                StatusCode.Ok => "Ok",
-                StatusCode.Error => "Error",
-                StatusCode.Unset => httpStatusCode.HasValue
-                    ? ((int)httpStatusCode >= 200) && ((int)httpStatusCode <= 299)
-                        ? "Ok"
-                        : "Error"
-                    : "Unset",
-                _ => "Unknown"
-            };
+        public ElasticCustomMapping CustomMapping { get; set; } = new ElasticCustomMapping();
 
         /// <summary>
         /// Gets or sets Elastic APM Server API version. Default value: IntakeApiVersion.V2.

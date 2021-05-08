@@ -16,14 +16,14 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
-using System.Net;
 using OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation
 {
-    internal static class ActivityExtensions
+    /// <summary>
+    /// Extension methods to create Elastic APM transactions/spans.
+    /// </summary>
+    internal static partial class ActivityExtensions
     {
         internal static IJsonSerializable ToElasticApmSpan(
             this Activity activity,
@@ -49,27 +49,10 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation
 
             var httpStatusCode = activity.GetHttpStatusCode();
             var otelStatusCode = activity.GetOtelStatusCode();
-            var result = options.TransactionResultMapping(httpStatusCode, otelStatusCode);
+            var result = options.CustomMapping.TransactionResult(httpStatusCode, otelStatusCode);
             var outcome = GetOutcome(httpStatusCode, default);
 
             return new Transaction(name, traceId, id, parentId, duration, timestamp, type, result, outcome);
-        }
-
-        private static string GetSpanId(this Activity activity)
-        {
-            return activity.SpanId.ToHexString();
-        }
-
-        private static string GetTraceId(this Activity activity)
-        {
-            return activity.Context.TraceId.ToHexString();
-        }
-
-        private static string GetParentId(this Activity activity)
-        {
-            return activity.ParentSpanId == default
-                ? null
-                : activity.ParentSpanId.ToHexString();
         }
 
         private static string GetActivityType(this Activity activity)
@@ -82,47 +65,6 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation
                 ActivityKind.Client => "client",
                 _ => null,
             };
-        }
-
-        private static HttpStatusCode? GetHttpStatusCode(this Activity activity)
-        {
-            var statusCode = activity.TagObjects.FirstOrDefault(t => t.Key == "http.status_code");
-            if (Enum.TryParse(statusCode.Value?.ToString(), out HttpStatusCode httpStatusCode))
-            {
-                return httpStatusCode;
-            }
-
-            return null;
-        }
-
-        private static StatusCode? GetOtelStatusCode(this Activity activity)
-        {
-            var statusCode = activity.TagObjects.FirstOrDefault(t => t.Key == "otel.status_code");
-            if (Enum.TryParse(statusCode.Value?.ToString(), true, out StatusCode otelStatusCode))
-            {
-                return otelStatusCode;
-            }
-
-            return null;
-        }
-
-        private static Outcome GetOutcome(HttpStatusCode? httpStatusCode, StatusCode? otelStatusCode)
-        {
-            if (httpStatusCode.HasValue)
-            {
-                return ((int)httpStatusCode >= 200) && ((int)httpStatusCode <= 299)
-                    ? Outcome.Success
-                    : Outcome.Failure;
-            }
-
-            if (otelStatusCode.HasValue)
-            {
-                return otelStatusCode != StatusCode.Error
-                    ? Outcome.Success
-                    : Outcome.Failure;
-            }
-
-            return Outcome.Unknown;
         }
     }
 }
