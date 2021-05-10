@@ -15,15 +15,18 @@ To carry out the release successfully, make sure you fulfill the following:
 2. Have access to the Nuget token for releasing the project to Nuget.org
 OpenTelemetry account.
 
-## Pre-step
+## Pre-steps
 
-Before starting with the release process, ensure that the latest commit on
-the `main` branch is the commit which has added/updated the Changelog to
-the project being released. The Changelog at this point **must** include the
-actual version and the date of the release.
-This latest commit will be tagged on the release.
+1. Update the Changelog for your project with relevant details. You
+**must** specify the version and the date of the release in this Changelog.
+
+2. Create a PR for the above update and get it merged to `main` branch.
 
 ## Steps
+
+*Note:* Before starting with the following steps, ensure that the latest commit
+on the `main` branch is the one which added/updated the Changelog to
+the project being released. *This latest commit will be tagged on the release.*
 
 1. Create and push git tag for the project and the version of the project
 you want to release.
