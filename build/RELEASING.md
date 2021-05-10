@@ -19,8 +19,9 @@ OpenTelemetry account.
 
 Before starting with the release process, ensure that the latest commit on
 the `main` branch is the commit which has added/updated the Changelog to
-the project being released. This is the commit that will be tagged on the
-release.
+the project being released. The Changelog at this point **must** include the
+actual version and the date of the release.
+This latest commit will be tagged on the release.
 
 ## Steps
 
@@ -28,14 +29,22 @@ release.
 you want to release.
 
     ```powershell
-    git tag -a <PROJECT TAG PREFIX><VERSION> -m "<PROJECT TAG PREFIX><VERSION>"
+    git tag -a <PROJECT TAG PREFIX>-<VERSION> -m "<PROJECT TAG PREFIX>-<VERSION>"
     ```
 
-    You can find the project tag prefix in the workflow file for the project.
-    See the example [here](https://github.com/srprash/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml#L12).
+    You can find the project tag prefix in the `.csproj` file for the project.
+    Look for value of the `<MinVerTagPrefix>` tag.
+    See the example [here](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/22f2eb1026162510571241eae1eb6c2952146ace/src/OpenTelemetry.Contrib.Instrumentation.AWS/OpenTelemetry.Contrib.Instrumentation.AWS.csproj#L6).
 
     ```powershell
-    git push origin <PROJECT TAG PREFIX><VERSION>
+    git push origin <PROJECT TAG PREFIX>-<VERSION>
+    ```
+
+    **example:**
+
+    ```powershell
+    git tag -a Instrumentation.AWS-1.0.0 -m "Instrumentation.AWS-1.0.0"
+    git push origin Instrumentation.AWS-1.0.0
     ```
 
     **Note:** If you are releasing more than one inter-dependent projects
@@ -81,4 +90,5 @@ nuget.org under OpenTelemetry owner.
 8. Delete the NUGET TOKEN set in step 6.
 
 9. Go to the [**Releases**](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/releases)
-page on the repo. Draft a new release with the tag created in step 1.
+page on the repo. Create a new release with the tag from step 1. Include the
+Changelog from your project to the release notes.
