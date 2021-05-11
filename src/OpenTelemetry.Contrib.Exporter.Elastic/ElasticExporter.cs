@@ -18,6 +18,7 @@ using System;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Threading;
+using OpenTelemetry.Contrib.Exporter.Elastic.Implementation;
 
 namespace OpenTelemetry.Contrib.Exporter.Elastic
 {

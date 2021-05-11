@@ -18,7 +18,7 @@ using System;
 using System.IO;
 using System.Text.Json;
 
-namespace OpenTelemetry.Contrib.Exporter.Elastic
+namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation
 {
     internal static class Utf8JsonWriterExtensions
     {

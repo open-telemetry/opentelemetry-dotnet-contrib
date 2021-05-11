@@ -22,9 +22,8 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using OpenTelemetry.Contrib.Exporter.Elastic.Implementation;
 
-namespace OpenTelemetry.Contrib.Exporter.Elastic
+namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation
 {
     internal class NdjsonContent : HttpContent
     {
