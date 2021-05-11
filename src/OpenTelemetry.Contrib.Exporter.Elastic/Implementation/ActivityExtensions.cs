@@ -16,6 +16,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Text.Json;
 using OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2;
 
 namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation
@@ -42,9 +43,11 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation
             long timestamp = activity.StartTimeUtc.ToEpochMicroseconds();
             string type = activity.GetActivityType();
 
-            if (activity.Kind == ActivityKind.Internal)
+            if (activity.Kind == ActivityKind.Internal || activity.Kind == ActivityKind.Client)
             {
-                return new Span(name, traceId, id, parentId, duration, timestamp, type);
+                string subtype = activity.GetActivitySubtype();
+
+                return new Span(name, traceId, id, parentId, duration, timestamp, type, subtype);
             }
 
             var httpStatusCode = activity.GetHttpStatusCode();
@@ -59,10 +62,20 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation
         {
             return activity.Kind switch
             {
-                ActivityKind.Server => "server",
-                ActivityKind.Producer => "producer",
-                ActivityKind.Consumer => "consumer",
-                ActivityKind.Client => "client",
+                ActivityKind.Server => "request",
+                ActivityKind.Producer => "external",
+                ActivityKind.Consumer => "request",
+                ActivityKind.Client => "external",
+                ActivityKind.Internal => "internal",
+                _ => "unknown",
+            };
+        }
+
+        private static string GetActivitySubtype(this Activity activity)
+        {
+            return activity.Kind switch
+            {
+                ActivityKind.Client => "http",
                 _ => null,
             };
         }

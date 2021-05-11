@@ -27,7 +27,8 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2
             string parentId,
             long duration,
             long timestamp,
-            string type)
+            string type,
+            string subtype)
         {
             this.Name = name;
             this.TraceId = traceId;
@@ -36,6 +37,7 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2
             this.Duration = duration;
             this.Timestamp = timestamp;
             this.Type = type;
+            this.Subtype = subtype;
         }
 
         public string Id { get; }
@@ -52,6 +54,8 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2
 
         public string Type { get; }
 
+        public string Subtype { get; }
+
         public void Write(Utf8JsonWriter writer)
         {
             writer.WriteStartObject();
@@ -66,6 +70,7 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2
             writer.WriteNumber(JsonHelper.DurationPropertyName, this.Duration);
             writer.WriteNumber(JsonHelper.TimestampPropertyName, this.Timestamp);
             writer.WriteStringLimited(JsonHelper.TypePropertyName, this.Type);
+            writer.WriteStringLimited(JsonHelper.SubtypePropertyName, this.Subtype);
 
             writer.WriteEndObject();
 
