@@ -34,6 +34,11 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic
 
         internal static void WriteStringLimited(this Utf8JsonWriter writer, JsonEncodedText propertyName, string value)
         {
+            if (value == null)
+            {
+                return;
+            }
+
             if (value.Length <= MaxStringLength)
             {
                 writer.WriteString(propertyName, value);

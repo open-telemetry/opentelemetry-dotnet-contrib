@@ -70,21 +70,11 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2
             writer.WriteStringLimited(JsonHelper.NamePropertyName, this.Name);
             writer.WriteStringLimited(JsonHelper.TraceIdPropertyName, this.TraceId);
             writer.WriteStringLimited(JsonHelper.IdPropertyName, this.Id);
-
-            if (this.ParentId != null)
-            {
-                writer.WriteStringLimited(JsonHelper.ParentIdPropertyName, this.ParentId);
-            }
-
+            writer.WriteStringLimited(JsonHelper.ParentIdPropertyName, this.ParentId);
             writer.WriteNumber(JsonHelper.DurationPropertyName, this.Duration);
             writer.WriteNumber(JsonHelper.TimestampPropertyName, this.Timestamp);
             writer.WriteStringLimited(JsonHelper.TypePropertyName, this.Type);
-
-            if (this.Result != null)
-            {
-                writer.WriteStringLimited(JsonHelper.ResultPropertyName, this.Result);
-            }
-
+            writer.WriteStringLimited(JsonHelper.ResultPropertyName, this.Result);
             writer.WriteStringLimited(JsonHelper.OutcomePropertyName, this.Outcome.AsString());
 
             // TODO: Not sure if this can be somehow in OT implemented and how this will influence the APM view.
