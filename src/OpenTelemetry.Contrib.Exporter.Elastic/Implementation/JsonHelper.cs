@@ -38,6 +38,8 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation
 
         internal static readonly JsonEncodedText MetadataPropertyName = JsonEncodedText.Encode("metadata");
         internal static readonly JsonEncodedText ServicePropertyName = JsonEncodedText.Encode("service");
+        internal static readonly JsonEncodedText SystemPropertyName = JsonEncodedText.Encode("system");
+        internal static readonly JsonEncodedText HostNamePropertyName = JsonEncodedText.Encode("detected_hostname");
         internal static readonly JsonEncodedText EnvironmentPropertyName = JsonEncodedText.Encode("environment");
         internal static readonly JsonEncodedText AgentPropertyName = JsonEncodedText.Encode("agent");
         internal static readonly JsonEncodedText VersionPropertyName = JsonEncodedText.Encode("version");

@@ -33,7 +33,8 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation
                 new Service(
                     options.ServiceName,
                     options.Environment,
-                    new Agent(typeof(ElasticExporter).Assembly)));
+                    new Agent(typeof(ElasticExporter).Assembly)),
+                new V2.System(Environment.MachineName));
         }
     }
 }

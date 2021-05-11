@@ -1,4 +1,4 @@
-﻿// <copyright file="Metadata.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="System.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,32 +18,20 @@ using System.Text.Json;
 
 namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2
 {
-    internal readonly struct Metadata : IJsonSerializable
+    internal readonly struct System : IJsonSerializable
     {
-        public Metadata(Service service, System system)
+        public System(string hostName)
         {
-            this.Service = service;
-            this.System = system;
+            this.HostName = hostName;
         }
 
-        internal Service Service { get; }
-
-        internal System System { get; }
+        internal string HostName { get; }
 
         public void Write(Utf8JsonWriter writer)
         {
             writer.WriteStartObject();
 
-            writer.WritePropertyName(JsonHelper.MetadataPropertyName);
-            writer.WriteStartObject();
-
-            writer.WritePropertyName(JsonHelper.ServicePropertyName);
-            this.Service.Write(writer);
-
-            writer.WritePropertyName(JsonHelper.SystemPropertyName);
-            this.System.Write(writer);
-
-            writer.WriteEndObject();
+            writer.WriteStringLimited(JsonHelper.HostNamePropertyName, this.HostName);
 
             writer.WriteEndObject();
         }
