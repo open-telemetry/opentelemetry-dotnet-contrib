@@ -20,6 +20,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -87,8 +88,63 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Tests
             Assert.Contains("\"transaction\":{\"name\":\"Test Activity\"", messageHandler.Content);
         }
 
+        [Fact]
+        public void GivenExporter_WhenProcessActivity_ExportResultSuccess()
+        {
+            ExportResult result = ExportResult.Failure;
+            var messageHandler = new TestHttpMessageHandler();
+            var httpClient = new HttpClient(messageHandler) { BaseAddress = new Uri("http://localhost/") };
+            var options = new ElasticOptions();
+            var exporter = new ElasticExporter(options, httpClient);
+            var passthroughExporter = new TestExporter<Activity>(Export);
+            var processor = new BatchActivityExportProcessor(passthroughExporter);
+
+            var source = new ActivitySource("elastic-test");
+            using Activity activity = source.StartActivity("Test Activity");
+            processor.OnEnd(activity);
+            processor.Shutdown();
+
+            void Export(Batch<Activity> batch)
+            {
+                result = exporter.Export(batch);
+            }
+
+            Assert.StrictEqual(ExportResult.Success, result);
+        }
+
+        [Fact]
+        public void GivenExporter_WhenProcessBadActivity_ExportResultFailure()
+        {
+            ExportResult result = ExportResult.Success;
+            var messageHandler = new TestHttpMessageHandler(HttpStatusCode.BadRequest);
+            var httpClient = new HttpClient(messageHandler) { BaseAddress = new Uri("http://localhost/") };
+            var options = new ElasticOptions();
+            var exporter = new ElasticExporter(options, httpClient);
+            var passthroughExporter = new TestExporter<Activity>(Export);
+            var processor = new BatchActivityExportProcessor(passthroughExporter);
+
+            var source = new ActivitySource("elastic-test");
+            using Activity activity = source.StartActivity("Test Activity");
+            processor.OnEnd(activity);
+            processor.Shutdown();
+
+            void Export(Batch<Activity> batch)
+            {
+                result = exporter.Export(batch);
+            }
+
+            Assert.StrictEqual(ExportResult.Failure, result);
+        }
+
         private class TestHttpMessageHandler : DelegatingHandler
         {
+            private readonly HttpStatusCode responseStatusCode;
+
+            public TestHttpMessageHandler(HttpStatusCode responseStatusCode = HttpStatusCode.Accepted)
+            {
+                this.responseStatusCode = responseStatusCode;
+            }
+
             public string Content { get; set; }
 
             protected override async Task<HttpResponseMessage> SendAsync(
@@ -96,7 +152,7 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Tests
                 CancellationToken cancellationToken)
             {
                 this.Content = await request.Content.ReadAsStringAsync();
-                return new HttpResponseMessage(HttpStatusCode.Accepted);
+                return new HttpResponseMessage(this.responseStatusCode);
             }
         }
     }

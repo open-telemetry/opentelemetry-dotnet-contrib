@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Test\TestExporter.cs" Link="Shared\TestExporter.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Exporter.Elastic\OpenTelemetry.Contrib.Exporter.Elastic.csproj" />
   </ItemGroup>
 
