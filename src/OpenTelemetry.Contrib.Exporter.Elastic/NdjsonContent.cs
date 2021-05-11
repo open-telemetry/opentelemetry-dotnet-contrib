@@ -43,7 +43,7 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic
         {
             this.options = options;
             this.batch = batch;
-            this.metadata = this.CreateMetadata();
+            this.metadata = this.options.CreateMetadata();
 
             this.Headers.ContentType = NdjsonHeader;
         }
@@ -81,15 +81,6 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic
             {
                 this.writer.Reset(stream);
             }
-        }
-
-        private IJsonSerializable CreateMetadata()
-        {
-            return new Implementation.V2.Metadata(
-                new Implementation.V2.Service(
-                    this.options.ServiceName,
-                    this.options.Environment,
-                    new Implementation.V2.Agent(typeof(ElasticExporter).Assembly)));
         }
     }
 }

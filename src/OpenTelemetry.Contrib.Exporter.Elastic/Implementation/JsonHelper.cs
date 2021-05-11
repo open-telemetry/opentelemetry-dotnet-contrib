@@ -16,7 +16,7 @@
 
 using System.Text.Json;
 
-namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation.V2
+namespace OpenTelemetry.Contrib.Exporter.Elastic.Implementation
 {
     internal static class JsonHelper
     {
