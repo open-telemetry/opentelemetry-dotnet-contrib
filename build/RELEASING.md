@@ -17,10 +17,12 @@ OpenTelemetry account.
 
 ## Pre-steps
 
-1. Update the Changelog for your project with relevant details. You
-**must** specify the version and the date of the release in this Changelog.
+1. Decide on the version to use for the release.
 
-2. Create a PR for the above update and get it merged to `main` branch.
+2. Update the Changelog for your project with relevant details.
+Replace any "Unreleased" heading with this version and add the release date.
+
+3. Submit a PR to update Changelog and get it merged to `main` branch.
 
 ## Steps
 
@@ -29,7 +31,8 @@ on the `main` branch is the one which added/updated the Changelog to
 the project being released. *This latest commit will be tagged on the release.*
 
 1. Create and push git tag for the project and the version of the project
-you want to release.
+you want to release. The version shoud the one used in the **Pre-steps** to
+update the Changelog.
 
     ```powershell
     git tag -a <PROJECT TAG PREFIX>-<VERSION> -m "<PROJECT TAG PREFIX>-<VERSION>"
