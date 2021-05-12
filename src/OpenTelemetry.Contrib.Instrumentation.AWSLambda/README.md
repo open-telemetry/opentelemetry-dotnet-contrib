@@ -58,6 +58,44 @@ public override async Task<APIGatewayProxyResponse> FunctionHandlerAsync(
     request, lambdaContext);
 ```
 
+## Example
+
+A more detailed Lambda function example that takes a JObject and ILambdaContext
+as inputs.
+
+```csharp
+public class Function
+{
+    public static TracerProvider tracerProvider;
+
+    static Function()
+    {
+        tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddHttpClientInstrumentation()
+                .AddAWSInstrumentation()
+                .AddOtlpExporter()
+                .AddLambdaConfigurations()
+                .Build();
+    }
+
+    public string TracingFunctionHandler(JObject input, ILambdaContext context)
+    => AWSLambdaWrapper.Trace(tracerProvider, FunctionHandler, input, context);
+
+    /// <summary>
+    /// A simple function that takes a JObject input and sends downstream http
+    /// request to aws.amazon.com and aws request to S3.
+    /// </summary>
+    public string FunctionHandler(JObject input, ILambdaContext context)
+    {
+        var S3Client = new AmazonS3Client();
+        var httpClient = new HttpClient();
+        _ = S3Client.ListBucketsAsync().Result;
+        _ = httpClient.GetAsync("https://aws.amazon.com").Result;
+        return input?.ToString();
+    }
+}
+```
+
 ## Reference
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
