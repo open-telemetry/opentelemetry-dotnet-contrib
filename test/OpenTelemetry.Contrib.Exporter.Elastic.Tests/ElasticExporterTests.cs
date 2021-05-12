@@ -50,8 +50,10 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Tests
             Assert.Throws<ArgumentNullException>(() => builder.UseElasticExporter());
         }
 
-        [Fact]
-        public void GivenExporter_WhenProcessInternalActivity_ExportSpan()
+        [Theory]
+        [InlineData(ActivityKind.Internal)]
+        [InlineData(ActivityKind.Client)]
+        public void GivenExporter_WhenProcessInternalActivity_ExportSpan(ActivityKind activityKind)
         {
             var messageHandler = new TestHttpMessageHandler();
             var httpClient = new HttpClient(messageHandler) { BaseAddress = new Uri("http://localhost/") };
@@ -60,7 +62,7 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Tests
             var processor = new BatchActivityExportProcessor(exporter);
 
             var source = new ActivitySource("elastic-test");
-            using Activity activity = source.StartActivity("Test Activity");
+            using Activity activity = source.StartActivity("Test Activity", activityKind);
             processor.OnEnd(activity);
             processor.Shutdown();
 
@@ -68,7 +70,6 @@ namespace OpenTelemetry.Contrib.Exporter.Elastic.Tests
         }
 
         [Theory]
-        [InlineData(ActivityKind.Client)]
         [InlineData(ActivityKind.Consumer)]
         [InlineData(ActivityKind.Producer)]
         [InlineData(ActivityKind.Server)]
