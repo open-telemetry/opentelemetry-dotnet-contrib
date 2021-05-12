@@ -14,7 +14,7 @@ jobs:
       fail-fast: false  # ensures the entire test matrix is run, even if one permutation fails
       matrix:
         os: [windows-latest,ubuntu-latest]
-        version: [net461,netcoreapp2.1,netcoreapp3.1]
+        version: [net461,netcoreapp2.1,netcoreapp3.1,net5.0]
         exclude:
           - os: ubuntu-latest
             version: net461
