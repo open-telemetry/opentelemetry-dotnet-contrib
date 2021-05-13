@@ -10,8 +10,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{07AA0F83-22F6-4B8C-921D-029D3384CB17}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
-		Directory.Build.props = Directory.Build.props
-		Directory.Build.targets = Directory.Build.targets
 		NuGet.config = NuGet.config
 		opentelemetry-dotnet-contrib.proj = opentelemetry-dotnet-contrib.proj
 		README.md = README.md
@@ -31,6 +29,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\markdownlint.yml = .github\workflows\markdownlint.yml
 		.github\workflows\package-Exporter.Stackdriver.yml = .github\workflows\package-Exporter.Stackdriver.yml
 		.github\workflows\package-Extensions.AWSXRay.yml = .github\workflows\package-Extensions.AWSXRay.yml
+		.github\workflows\package-Extensions.yml = .github\workflows\package-Extensions.yml
 		.github\workflows\package-Instrumentation.AWS.yml = .github\workflows\package-Instrumentation.AWS.yml
 		.github\workflows\package-Instrumentation.Elasticsearch.yml = .github\workflows\package-Instrumentation.Elasticsearch.yml
 		.github\workflows\package-Instrumentation.EntityFrameworkCore.yml = .github\workflows\package-Instrumentation.EntityFrameworkCore.yml
@@ -46,6 +45,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{824BD1DE
 		build\Common.nonprod.props = build\Common.nonprod.props
 		build\Common.prod.props = build\Common.prod.props
 		build\Common.props = build\Common.props
+		build\Common.targets = build\Common.targets
 		build\debug.snk = build\debug.snk
 		build\docfx.cmd = build\docfx.cmd
 		build\opentelemetry-icon-color.png = build\opentelemetry-icon-color.png
@@ -122,6 +122,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.GrpcCore", "src\OpenTelemetry.Contrib.Instrumentation.GrpcCore\OpenTelemetry.Contrib.Instrumentation.GrpcCore.csproj", "{ECBF7E54-3490-4B69-A376-17DC7BC75B0D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests", "test\OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests\OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests.csproj", "{22E101DD-D6D7-4554-9A98-8963230D6B2F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Extensions", "src\OpenTelemetry.Contrib.Extensions\OpenTelemetry.Contrib.Extensions.csproj", "{B978939B-278C-43A3-AD12-32EA9BBD27D0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -217,6 +219,10 @@ Global
 		{22E101DD-D6D7-4554-9A98-8963230D6B2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{22E101DD-D6D7-4554-9A98-8963230D6B2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{22E101DD-D6D7-4554-9A98-8963230D6B2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B978939B-278C-43A3-AD12-32EA9BBD27D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B978939B-278C-43A3-AD12-32EA9BBD27D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B978939B-278C-43A3-AD12-32EA9BBD27D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B978939B-278C-43A3-AD12-32EA9BBD27D0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -249,6 +255,7 @@ Global
 		{F1591DEE-79C0-4161-85C2-1477B261D274} = {58D1DE55-B0A5-4BC4-AB37-09B1C7B26752}
 		{ECBF7E54-3490-4B69-A376-17DC7BC75B0D} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{22E101DD-D6D7-4554-9A98-8963230D6B2F} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{B978939B-278C-43A3-AD12-32EA9BBD27D0} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
