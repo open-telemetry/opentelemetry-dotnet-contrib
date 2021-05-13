@@ -5,6 +5,7 @@
 * @open-telemetry/dotnet-contrib-approvers
 
 src/OpenTelemetry.Contrib.Exporter.Stackdriver/                             @open-telemetry/dotnet-contrib-approvers @SergeyKanzhelev
+src/OpenTelemetry.Contrib.Extensions/                                       @open-telemetry/dotnet-contrib-approvers @codeblanch
 src/OpenTelemetry.Contrib.Extensions.AWSXRay/                               @open-telemetry/dotnet-contrib-approvers @srprash @lupengamzn
 src/OpenTelemetry.Contrib.Instrumentation.Elasticsearch/                    @open-telemetry/dotnet-contrib-approvers @ejsmith
 src/OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore/              @open-telemetry/dotnet-contrib-approvers
