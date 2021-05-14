@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <Description>OpenTelemetry instrumentation for Mysql.Data</Description>
+        <PackageTags>$(PackageTags);distributed-tracing;Mysql.Data</PackageTags>
+        <MinVerTagPrefix>Instrumentation.MysqlData-</MinVerTagPrefix>
+        <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="MySql.Data" Version="8.0.25" />
+      <PackageReference Include="OpenTelemetry" Version="1.1.0-beta3" />
+    </ItemGroup>
+
+</Project>
