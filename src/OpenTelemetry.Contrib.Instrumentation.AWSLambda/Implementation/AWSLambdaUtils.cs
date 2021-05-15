@@ -51,9 +51,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             // https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html#configuration-envvars-runtime
             // TODO: Add steps to extract trace header from http header
 
-            var traceHeaderKey = Environment.GetEnvironmentVariable(AWSXRayLambdaTraceHeaderKey);
-            var traceHeader = ParseXRayTraceHeader(traceHeaderKey);
-            return traceHeader;
+            var tracerHeaderValue = Environment.GetEnvironmentVariable(AWSXRayLambdaTraceHeaderKey);
+            var activityContext = ParseXRayTraceHeader(tracerHeaderValue);
+            return activityContext;
         }
 
         internal static string GetCloudProvider()

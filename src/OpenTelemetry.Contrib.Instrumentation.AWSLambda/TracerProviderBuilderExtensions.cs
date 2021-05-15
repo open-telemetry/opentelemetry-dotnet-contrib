@@ -41,6 +41,7 @@ namespace OpenTelemetry.Trace
             builder.SetResourceBuilder(ResourceBuilder
                 .CreateEmpty()
                 .AddService(AWSLambdaUtils.GetFunctionName(), null, null, false)
+                .AddTelemetrySdk()
                 .AddAttributes(AWSLambdaResourceDetector.Detect()));
 
             return builder;

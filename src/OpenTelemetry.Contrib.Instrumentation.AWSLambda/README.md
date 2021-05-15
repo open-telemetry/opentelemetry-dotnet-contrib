@@ -23,11 +23,11 @@ TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
 
 ### Lambda Function
 
-1. Create a function with the same signature as the original Lambda function. Call
-`AWSLambdaWrapper.Trace()` API and pass `TracerProvider`, original Lambda function
+1. Create a wrapper function with the same signature as the original Lambda function.
+Call `AWSLambdaWrapper.Trace()` API and pass `TracerProvider`, original Lambda function
 and its inputs as parameters.
 
-2. Set the Lambda handler field point to the new function.
+2. Set the wrapper function as the Lambda handler input.
 
 ```csharp
 // new Lambda function handler passed in
@@ -46,7 +46,8 @@ public string OriginalFunctionHandler(JObject input, ILambdaContext context)
 
 ### Lambda Function - Asp.Net Core
 
-Override the `FunctionHandlerAsync` function in `LambdaEntryPoint.cs` file. Call
+For using base classes from package [Amazon.Lambda.AspNetCoreServer](https://github.com/aws/aws-lambda-dotnet/tree/master/Libraries/src/Amazon.Lambda.AspNetCoreServer#amazonlambdaaspnetcoreserver),
+override the `FunctionHandlerAsync` function in `LambdaEntryPoint.cs` file. Call
 `AWSLambdaWrapper.Trace()` API and pass `TracerProvider`, original Lambda function
 and its inputs as parameters. Below is an example if using `APIGatewayProxyFunction`
 as base class.
