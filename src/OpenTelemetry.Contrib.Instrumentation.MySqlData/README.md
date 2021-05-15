@@ -2,8 +2,8 @@
 
 This is an
 [Instrumentation Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library),
-which instruments
-[MySql.Data](https://www.nuget.org/packages/MySql.Data) and collects telemetry about database operations.
+which instruments [MySql.Data](https://www.nuget.org/packages/MySql.Data)
+and collects telemetry about database operations.
 
 ## Steps to enable OpenTelemetry.Contrib.Instrumentation.MySqlData
 
@@ -62,8 +62,8 @@ attribute is captured upon execution of a query.
 
 #### SetDbStatement
 
-The `SetDbStatement` property can be used to control whether this instrumentation should set the
-[`db.statement`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md#call-level-attributes)
+The `SetDbStatement` property can be used to control whether this instrumentation
+should set the [`db.statement`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md#call-level-attributes)
 attribute to the text of the `MySqlCommand` being executed.
 
 Since `CommandType.Text` might contain sensitive data, SQL capturing is
@@ -102,9 +102,11 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
 
 ### RecordException
 
-This option can be set to instruct the instrumentation to record Exceptions as Activity [events](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/exceptions.md).
+This option can be set to instruct the instrumentation to record Exceptions
+as Activity [events](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/exceptions.md).
 
-> Due to the limitation of this library's implementation, We cannot get the raw `MysqlException`, only exception message is available.
+> Due to the limitation of this library's implementation, We cannot get the raw `MysqlException`,
+> only exception message is available.
 
 The default value is `false` and can be changed by the code like below.
 
