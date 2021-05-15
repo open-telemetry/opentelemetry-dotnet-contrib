@@ -16,10 +16,7 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Net;
-
 using MySql.Data.MySqlClient;
 using OpenTelemetry.Trace;
 
@@ -46,46 +43,56 @@ namespace OpenTelemetry.Contrib.Instrumentation.MySqlData
         /// <inheritdoc />
         public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
         {
-            switch ((MySqlTraceEventType)id)
+            try
             {
-                case MySqlTraceEventType.ConnectionOpened:
-                    // args: [driverId, connStr, threadId]
-                    var driverId = (long)args[0];
-                    var connStr = args[1].ToString();
-                    this.dbConn[driverId] = new MySqlConnectionStringBuilder(connStr);
-                    break;
-                case MySqlTraceEventType.ConnectionClosed:
-                    break;
-                case MySqlTraceEventType.QueryOpened:
-                    // args: [driverId, threadId, cmdText]
-                    this.BeforeExecuteCommand(this.GetCommand(args[0], args[2]));
-                    break;
-                case MySqlTraceEventType.ResultOpened:
-                    break;
-                case MySqlTraceEventType.ResultClosed:
-                    break;
-                case MySqlTraceEventType.QueryClosed:
-                    // args: [driverId]
-                    this.AfterExecuteCommand();
-                    break;
-                case MySqlTraceEventType.StatementPrepared:
-                    break;
-                case MySqlTraceEventType.StatementExecuted:
-                    break;
-                case MySqlTraceEventType.StatementClosed:
-                    break;
-                case MySqlTraceEventType.NonQuery:
-                    break;
-                case MySqlTraceEventType.UsageAdvisorWarning:
-                    break;
-                case MySqlTraceEventType.Warning:
-                    break;
-                case MySqlTraceEventType.Error:
-                    // args: [driverId, exNumber, exMessage]
-                    this.ErrorExecuteCommand(this.GetMySqlErrorException(args[2]));
-                    break;
-                case MySqlTraceEventType.QueryNormalized:
-                    break;
+                switch ((MySqlTraceEventType)id)
+                {
+                    case MySqlTraceEventType.ConnectionOpened:
+                        // args: [driverId, connStr, threadId]
+                        var driverId = (long)args[0];
+                        var connStr = args[1].ToString();
+                        this.dbConn[driverId] = new MySqlConnectionStringBuilder(connStr);
+                        break;
+                    case MySqlTraceEventType.ConnectionClosed:
+                        break;
+                    case MySqlTraceEventType.QueryOpened:
+                        // args: [driverId, threadId, cmdText]
+                        this.BeforeExecuteCommand(this.GetCommand(args[0], args[2]));
+                        break;
+                    case MySqlTraceEventType.ResultOpened:
+                        break;
+                    case MySqlTraceEventType.ResultClosed:
+                        break;
+                    case MySqlTraceEventType.QueryClosed:
+                        // args: [driverId]
+                        this.AfterExecuteCommand();
+                        break;
+                    case MySqlTraceEventType.StatementPrepared:
+                        break;
+                    case MySqlTraceEventType.StatementExecuted:
+                        break;
+                    case MySqlTraceEventType.StatementClosed:
+                        break;
+                    case MySqlTraceEventType.NonQuery:
+                        break;
+                    case MySqlTraceEventType.UsageAdvisorWarning:
+                        break;
+                    case MySqlTraceEventType.Warning:
+                        break;
+                    case MySqlTraceEventType.Error:
+                        // args: [driverId, exNumber, exMessage]
+                        this.ErrorExecuteCommand(this.GetMySqlErrorException(args[2]));
+                        break;
+                    case MySqlTraceEventType.QueryNormalized:
+                        break;
+                    default:
+                        MySqlDataInstrumentationEventSource.Log.UnknownMySqlTraceEventType(id, string.Format(format, args));
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                MySqlDataInstrumentationEventSource.Log.ErrorTraceEvent(id, string.Format(format, args), e.ToString());
             }
         }
 

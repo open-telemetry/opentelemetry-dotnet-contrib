@@ -34,7 +34,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MySqlData.Tests
         [InlineData("select 1/1", true, true, true, false)]
         [InlineData("select 1/1", true, true, false, false)]
         [InlineData("selext 1/1", true, true, true, true)]
-        public void Test(
+        public void SuccessTraceEventTest(
             string commandText,
             bool setDbStatement = false,
             bool recordException = false,
@@ -63,6 +63,42 @@ namespace OpenTelemetry.Contrib.Instrumentation.MySqlData.Tests
             var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
 
             VerifyActivityData(commandText, setDbStatement, recordException, enableConnectionLevelAttributes, isFailure, activity);
+        }
+
+        [Theory]
+        [InlineData(MySqlTraceEventType.ConnectionClosed)]
+        [InlineData(MySqlTraceEventType.ResultOpened)]
+        [InlineData(MySqlTraceEventType.ResultClosed)]
+        [InlineData(MySqlTraceEventType.StatementPrepared)]
+        [InlineData(MySqlTraceEventType.StatementExecuted)]
+        [InlineData(MySqlTraceEventType.StatementClosed)]
+        [InlineData(MySqlTraceEventType.NonQuery)]
+        [InlineData(MySqlTraceEventType.UsageAdvisorWarning)]
+        [InlineData(MySqlTraceEventType.Warning)]
+        [InlineData(MySqlTraceEventType.QueryNormalized)]
+        public void UnknownMySqlTraceEventType(MySqlTraceEventType eventType)
+        {
+            var activityProcessor = new Mock<BaseProcessor<Activity>>();
+            var sampler = new TestSampler();
+            using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
+                .AddProcessor(activityProcessor.Object)
+                .SetSampler(sampler)
+                .AddMySqlDataInstrumentation()
+                .Build();
+
+            var traceListener = (TraceListener)Assert.Single(MySqlTrace.Listeners);
+
+            traceListener?.TraceEvent(
+                new TraceEventCache(),
+                "mysql",
+                TraceEventType.Information,
+                (int)eventType,
+                "{0}: Connection Opened: connection string = '{1}'",
+                1L,
+                ConnStr,
+                10);
+
+            Assert.Equal(1, activityProcessor.Invocations.Count);
         }
 
         private static void VerifyActivityData(
