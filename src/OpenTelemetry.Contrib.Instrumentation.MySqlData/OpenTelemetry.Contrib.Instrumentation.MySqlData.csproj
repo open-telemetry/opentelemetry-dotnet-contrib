@@ -5,12 +5,15 @@
         <Description>OpenTelemetry instrumentation for Mysql.Data</Description>
         <PackageTags>$(PackageTags);distributed-tracing;Mysql.Data</PackageTags>
         <MinVerTagPrefix>Instrumentation.MysqlData-</MinVerTagPrefix>
-        <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="MySql.Data" Version="6.10.7" />
-      <PackageReference Include="OpenTelemetry" Version="1.1.0-beta3" />
+      <PackageReference Include="OpenTelemetry.Api" Version="1.1.0-beta3" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
     </ItemGroup>
 
 </Project>
