@@ -52,6 +52,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             // TODO: Add steps to extract trace header from http header
 
             var tracerHeaderValue = Environment.GetEnvironmentVariable(AWSXRayLambdaTraceHeaderKey);
+            if (tracerHeaderValue == null)
+            {
+                return default;
+            }
+
             var activityContext = ParseXRayTraceHeader(tracerHeaderValue);
             return activityContext;
         }
