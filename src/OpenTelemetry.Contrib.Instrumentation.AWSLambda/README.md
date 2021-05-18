@@ -10,12 +10,12 @@ dotnet add package OpenTelemetry.Contrib.Instrumentation.AWSLambda
 
 ## Configuration
 
-Add `AddLambdaConfigurations()` to `TracerProvider`.
+Add `AddAWSLambdaConfigurations()` to `TracerProvider`.
 
 ```csharp
 TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
         // add other instrumentations
-        .AddLambdaConfigurations()
+        .AddAWSLambdaConfigurations()
         .Build();
 ```
 
@@ -75,7 +75,7 @@ public class Function
                 .AddHttpClientInstrumentation()
                 .AddAWSInstrumentation()
                 .AddOtlpExporter()
-                .AddLambdaConfigurations()
+                .AddAWSLambdaConfigurations()
                 .Build();
     }
 
