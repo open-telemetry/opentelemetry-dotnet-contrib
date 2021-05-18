@@ -47,7 +47,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             var processor = new Mock<BaseProcessor<Activity>>();
 
             using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .AddLambdaConfigurations()
+                .AddAWSLambdaConfigurations()
                 .AddProcessor(processor.Object)
                 .Build())
             {
@@ -70,7 +70,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             var processor = new Mock<BaseProcessor<Activity>>();
 
             using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .AddLambdaConfigurations()
+                .AddAWSLambdaConfigurations()
                 .AddProcessor(processor.Object)
                 .Build())
             {
@@ -93,7 +93,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             var processor = new Mock<BaseProcessor<Activity>>();
 
             using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .AddLambdaConfigurations()
+                .AddAWSLambdaConfigurations()
                 .AddProcessor(processor.Object)
                 .Build())
             {
@@ -116,7 +116,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             var processor = new Mock<BaseProcessor<Activity>>();
 
             using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .AddLambdaConfigurations()
+                .AddAWSLambdaConfigurations()
                 .AddProcessor(processor.Object)
                 .Build())
             {
@@ -139,7 +139,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             var processor = new Mock<BaseProcessor<Activity>>();
 
             using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .AddLambdaConfigurations()
+                .AddAWSLambdaConfigurations()
                 .AddProcessor(processor.Object)
                 .Build())
             {
@@ -161,7 +161,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             var processor = new Mock<BaseProcessor<Activity>>();
 
             using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .AddLambdaConfigurations()
+                .AddAWSLambdaConfigurations()
                 .AddProcessor(processor.Object)
                 .Build())
             {
@@ -183,7 +183,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             var processor = new Mock<BaseProcessor<Activity>>();
 
             using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .AddLambdaConfigurations()
+                .AddAWSLambdaConfigurations()
                 .AddProcessor(processor.Object)
                 .Build())
             {
@@ -205,7 +205,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             var processor = new Mock<BaseProcessor<Activity>>();
 
             using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .AddLambdaConfigurations()
+                .AddAWSLambdaConfigurations()
                 .AddProcessor(processor.Object)
                 .Build())
             {
@@ -227,7 +227,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             var processor = new Mock<BaseProcessor<Activity>>();
 
             using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .AddLambdaConfigurations()
+                .AddAWSLambdaConfigurations()
                 .AddProcessor(processor.Object)
                 .Build())
             {
@@ -259,7 +259,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             var processor = new Mock<BaseProcessor<Activity>>();
 
             using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .AddLambdaConfigurations()
+                .AddAWSLambdaConfigurations()
                 .AddProcessor(processor.Object)
                 .Build())
             {
