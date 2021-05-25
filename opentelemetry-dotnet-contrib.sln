@@ -124,9 +124,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests", "test\OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests\OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests.csproj", "{22E101DD-D6D7-4554-9A98-8963230D6B2F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Contrib.Instrumentation.AWSLambda", "src\OpenTelemetry.Contrib.Instrumentation.AWSLambda\OpenTelemetry.Contrib.Instrumentation.AWSLambda.csproj", "{87FE0ED4-56A5-4775-9F63-DD532F2200BD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.AWSLambda", "src\OpenTelemetry.Contrib.Instrumentation.AWSLambda\OpenTelemetry.Contrib.Instrumentation.AWSLambda.csproj", "{87FE0ED4-56A5-4775-9F63-DD532F2200BD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests", "test\OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests\OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests.csproj", "{08EDD935-8B4E-4CF5-8840-200DEBA8E110}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests", "test\OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests\OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests.csproj", "{08EDD935-8B4E-4CF5-8840-200DEBA8E110}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Contrib.Tests.Shared", "test\OpenTelemetry.Contrib.Tests.Shared\OpenTelemetry.Contrib.Tests.Shared.csproj", "{C33F2D9D-89A6-459C-9A51-79BA5A9EF194}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -230,6 +232,10 @@ Global
 		{08EDD935-8B4E-4CF5-8840-200DEBA8E110}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{08EDD935-8B4E-4CF5-8840-200DEBA8E110}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{08EDD935-8B4E-4CF5-8840-200DEBA8E110}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C33F2D9D-89A6-459C-9A51-79BA5A9EF194}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C33F2D9D-89A6-459C-9A51-79BA5A9EF194}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C33F2D9D-89A6-459C-9A51-79BA5A9EF194}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C33F2D9D-89A6-459C-9A51-79BA5A9EF194}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -264,6 +270,7 @@ Global
 		{22E101DD-D6D7-4554-9A98-8963230D6B2F} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{87FE0ED4-56A5-4775-9F63-DD532F2200BD} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{08EDD935-8B4E-4CF5-8840-200DEBA8E110} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{C33F2D9D-89A6-459C-9A51-79BA5A9EF194} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
