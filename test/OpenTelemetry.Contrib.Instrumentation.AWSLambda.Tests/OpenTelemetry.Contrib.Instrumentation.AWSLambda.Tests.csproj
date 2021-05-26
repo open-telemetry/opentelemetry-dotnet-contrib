@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\OpenTelemetry.Contrib.Instrumentation.AWSLambda\OpenTelemetry.Contrib.Instrumentation.AWSLambda.csproj" />
+    <PackageReference Include="OpenTelemetry" Version="1.0.1" />
   </ItemGroup>
 
 </Project>
