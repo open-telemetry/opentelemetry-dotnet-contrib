@@ -20,4 +20,8 @@
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore\OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry" Version="1.0.1" />
+  </ItemGroup>
+
 </Project>
