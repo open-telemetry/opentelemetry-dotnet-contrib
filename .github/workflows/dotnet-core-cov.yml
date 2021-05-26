@@ -23,7 +23,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-            
+
     - name: Install dependencies
       run: dotnet restore
 
@@ -39,7 +39,7 @@ jobs:
 
     - name: Install report tool
       run: dotnet tool install -g dotnet-reportgenerator-globaltool
-    
+
     - name: Merging test results
       run: reportgenerator -reports:TestResults/**/*.xml -targetdir:TestResults -reporttypes:Cobertura
 
