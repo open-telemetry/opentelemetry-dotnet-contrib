@@ -19,7 +19,7 @@ using System.Diagnostics.Tracing;
 namespace OpenTelemetry.Contrib.Instrumentation.MySqlData
 {
     /// <summary>
-    /// EventSource events emmited from the project.
+    /// EventSource events emitted from the project.
     /// </summary>
     [EventSource(Name = "OpenTelemetry-Instrumentation-MySqlData")]
     internal class MySqlDataInstrumentationEventSource : EventSource
