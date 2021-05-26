@@ -65,6 +65,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.MySqlData.Tests
             VerifyActivityData(commandText, setDbStatement, recordException, enableConnectionLevelAttributes, isFailure, activity);
         }
 
+        [Fact]
+        public void MySqlDataInstrumentationEventSource_test()
+        {
+            MySqlDataInstrumentationEventSource.Log.UnknownMySqlTraceEventType(15, "UnknownMySqlTraceEventType");
+            MySqlDataInstrumentationEventSource.Log.ErrorTraceEvent(1, "ErrorTraceEvent", "ErrorTraceEvent exception");
+        }
+
         [Theory]
         [InlineData(MySqlTraceEventType.ConnectionClosed)]
         [InlineData(MySqlTraceEventType.ResultOpened)]
@@ -76,6 +83,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MySqlData.Tests
         [InlineData(MySqlTraceEventType.UsageAdvisorWarning)]
         [InlineData(MySqlTraceEventType.Warning)]
         [InlineData(MySqlTraceEventType.QueryNormalized)]
+        [InlineData((MySqlTraceEventType)0)]
         public void UnknownMySqlTraceEventType(MySqlTraceEventType eventType)
         {
             var activityProcessor = new Mock<BaseProcessor<Activity>>();
