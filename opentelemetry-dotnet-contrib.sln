@@ -37,6 +37,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\package-Instrumentation.EntityFrameworkCore.yml = .github\workflows\package-Instrumentation.EntityFrameworkCore.yml
 		.github\workflows\package-Instrumentation.GrpcCore.yml = .github\workflows\package-Instrumentation.GrpcCore.yml
 		.github\workflows\package-Instrumentation.MassTransit.yml = .github\workflows\package-Instrumentation.MassTransit.yml
+		.github\workflows\package-Instrumentation.MySqlData.yml = .github\workflows\package-Instrumentation.MySqlData.yml
 		.github\workflows\package-Instrumentation.Wcf.yml = .github\workflows\package-Instrumentation.Wcf.yml
 		.github\workflows\pr_build.yml = .github\workflows\pr_build.yml
 		.github\workflows\sanitycheck.yml = .github\workflows\sanitycheck.yml
@@ -123,6 +124,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.GrpcCore", "src\OpenTelemetry.Contrib.Instrumentation.GrpcCore\OpenTelemetry.Contrib.Instrumentation.GrpcCore.csproj", "{ECBF7E54-3490-4B69-A376-17DC7BC75B0D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests", "test\OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests\OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests.csproj", "{22E101DD-D6D7-4554-9A98-8963230D6B2F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.MySqlData", "src\OpenTelemetry.Contrib.Instrumentation.MySqlData\OpenTelemetry.Contrib.Instrumentation.MySqlData.csproj", "{7D6175C4-1E8C-43BD-878D-6241E9627A69}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.MySqlData.Tests", "test\OpenTelemetry.Contrib.Instrumentation.MySqlData.Tests\OpenTelemetry.Contrib.Instrumentation.MySqlData.Tests.csproj", "{9F837AD0-C410-4001-B002-55090DA584EA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.AWSLambda", "src\OpenTelemetry.Contrib.Instrumentation.AWSLambda\OpenTelemetry.Contrib.Instrumentation.AWSLambda.csproj", "{87FE0ED4-56A5-4775-9F63-DD532F2200BD}"
 EndProject
@@ -224,6 +229,14 @@ Global
 		{22E101DD-D6D7-4554-9A98-8963230D6B2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{22E101DD-D6D7-4554-9A98-8963230D6B2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{22E101DD-D6D7-4554-9A98-8963230D6B2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D6175C4-1E8C-43BD-878D-6241E9627A69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D6175C4-1E8C-43BD-878D-6241E9627A69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D6175C4-1E8C-43BD-878D-6241E9627A69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D6175C4-1E8C-43BD-878D-6241E9627A69}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F837AD0-C410-4001-B002-55090DA584EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F837AD0-C410-4001-B002-55090DA584EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F837AD0-C410-4001-B002-55090DA584EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F837AD0-C410-4001-B002-55090DA584EA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{87FE0ED4-56A5-4775-9F63-DD532F2200BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{87FE0ED4-56A5-4775-9F63-DD532F2200BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{87FE0ED4-56A5-4775-9F63-DD532F2200BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -268,6 +281,8 @@ Global
 		{F1591DEE-79C0-4161-85C2-1477B261D274} = {58D1DE55-B0A5-4BC4-AB37-09B1C7B26752}
 		{ECBF7E54-3490-4B69-A376-17DC7BC75B0D} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{22E101DD-D6D7-4554-9A98-8963230D6B2F} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{7D6175C4-1E8C-43BD-878D-6241E9627A69} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{9F837AD0-C410-4001-B002-55090DA584EA} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{87FE0ED4-56A5-4775-9F63-DD532F2200BD} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{08EDD935-8B4E-4CF5-8840-200DEBA8E110} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{C33F2D9D-89A6-459C-9A51-79BA5A9EF194} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
