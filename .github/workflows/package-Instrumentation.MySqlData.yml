@@ -1,21 +1,21 @@
-name: Pack OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient
+name: Pack OpenTelemetry.Contrib.Instrumentation.MySqlData
 
 on:
   workflow_dispatch:
     inputs:
       logLevel:
-        description: 'Log level'
+        description: 'Log level'     
         required: true
         default: 'warning'
   push:
     tags:
-      - 'Instrumentation.ElasticsearchClient-*' # trigger when we create a tag with prefix "Instrumentation.ElasticsearchClient-"
+      - 'Instrumentation.MySqlData-*' # trigger when we create a tag with prefix "Instrumentation.MySqlData-"
 
 jobs:
   build-test-pack:
     runs-on: ${{ matrix.os }}
     env:
-      PROJECT: OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient
+      PROJECT: OpenTelemetry.Contrib.Instrumentation.MySqlData
 
     strategy:
       matrix:

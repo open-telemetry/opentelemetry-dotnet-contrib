@@ -12,6 +12,7 @@ src/OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore/              @ope
 src/OpenTelemetry.Contrib.Instrumentation.MassTransit/                      @open-telemetry/dotnet-contrib-approvers @alexvaluyskiy
 src/OpenTelemetry.Contrib.Instrumentation.GrpcCore/                         @open-telemetry/dotnet-contrib-approvers @pcwiese
 src/OpenTelemetry.Contrib.Instrumentation.Wcf/                              @open-telemetry/dotnet-contrib-approvers @codeblanch
+src/OpenTelemetry.Contrib.Instrumentation.MySqlData/                        @open-telemetry/dotnet-contrib-approvers @moonheart
 
 test/OpenTelemetry.Contrib.Exporter.Stackdriver.Tests/                      @open-telemetry/dotnet-contrib-approvers @SergeyKanzhelev
 test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/                        @open-telemetry/dotnet-contrib-approvers @srprash @lupengamzn
@@ -20,3 +21,4 @@ test/OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCoreTests/        @ope
 test/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests/               @open-telemetry/dotnet-contrib-approvers @alexvaluyskiy
 test/OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests/                  @open-telemetry/dotnet-contrib-approvers @pcwiese
 src/OpenTelemetry.Contrib.Instrumentation.Wcf.Tests/                        @open-telemetry/dotnet-contrib-approvers @codeblanch
+src/OpenTelemetry.Contrib.Instrumentation.MySqlData.Tests/                  @open-telemetry/dotnet-contrib-approvers @moonheart

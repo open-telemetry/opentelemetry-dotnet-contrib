@@ -66,10 +66,10 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(IncludeSharedTestSource)'=='true'">
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Test\TestExporter.cs" Link="Includes\TestExporter.cs" />
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Test\TestSampler.cs" Link="Includes\TestSampler.cs" />
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Test\TestActivityExportProcessor.cs" Link="Includes\TestActivityExportProcessor.cs" />
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Test\TestActivityProcessor.cs" Link="Includes\TestActivityProcessor.cs" />
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestExporter.cs" Link="Includes\TestExporter.cs" />
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestSampler.cs" Link="Includes\TestSampler.cs" />
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestActivityExportProcessor.cs" Link="Includes\TestActivityExportProcessor.cs" />
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestActivityProcessor.cs" Link="Includes\TestActivityProcessor.cs" />
   </ItemGroup>
 
 </Project>
