@@ -79,7 +79,7 @@ namespace OpenTelemetry.Logs
 
                 if (!string.IsNullOrEmpty(data.FormattedMessage))
                 {
-                    tags["FormattedMessage"] = data.FormattedMessage;
+                    tags[nameof(data.FormattedMessage)] = data.FormattedMessage;
                 }
 
                 activity.AddEvent(activityEvent);
