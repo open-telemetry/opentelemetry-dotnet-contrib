@@ -96,6 +96,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
                         activity.SetTag(WcfInstrumentationConstants.WcfChannelSchemeTag, localAddressUri.Scheme);
                         activity.SetTag(WcfInstrumentationConstants.WcfChannelPathTag, localAddressUri.LocalPath);
                     }
+
+                    WcfInstrumentationActivitySource.Options.Enrich?.Invoke(activity, WcfEventNames.AfterReceiveRequest, request);
                 }
             }
 
@@ -121,6 +123,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
                     }
 
                     activity.SetTag(WcfInstrumentationConstants.SoapReplyActionTag, reply.Headers.Action);
+                    WcfInstrumentationActivitySource.Options.Enrich?.Invoke(activity, WcfEventNames.BeforeSendReply, reply);
                 }
 
                 activity.Stop();

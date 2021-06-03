@@ -126,11 +126,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
         [InlineData(true, false, false)]
         [InlineData(false)]
         [InlineData(true, false, true, true)]
+        [InlineData(true, false, true, true, true)]
         public async Task OutgoingRequestInstrumentationTest(
             bool instrument,
             bool filter = false,
             bool suppressDownstreamInstrumentation = true,
-            bool includeVersion = false)
+            bool includeVersion = false,
+            bool enrich = false)
         {
 #if NETFRAMEWORK
             const string OutgoingHttpOperationName = "OpenTelemetry.HttpWebRequest.HttpRequestOut";
@@ -147,6 +149,22 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                 builder
                     .AddWcfInstrumentation(options =>
                     {
+                        if (enrich)
+                        {
+                            options.Enrich = (activity, eventName, message) =>
+                            {
+                                switch (eventName)
+                                {
+                                    case WcfEventNames.BeforeSendRequest:
+                                        activity.AddTag("client.beforesendrequest", WcfEventNames.BeforeSendRequest);
+                                        break;
+                                    case WcfEventNames.AfterReceiveReply:
+                                        activity.AddTag("client.afterreceivereply", WcfEventNames.AfterReceiveReply);
+                                        break;
+                                }
+                            };
+                        }
+
                         options.OutgoingRequestFilter = (Message m) =>
                         {
                             return !filter;
@@ -225,6 +243,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                         if (includeVersion)
                         {
                             Assert.Equal("Soap11 (http://schemas.xmlsoap.org/soap/envelope/) AddressingNone (http://schemas.microsoft.com/ws/2005/05/addressing/none)", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapMessageVersionTag).Value);
+                        }
+
+                        if (enrich)
+                        {
+                            Assert.Equal(WcfEventNames.BeforeSendRequest, activity.TagObjects.Single(t => t.Key == "client.beforesendrequest").Value);
+                            Assert.Equal(WcfEventNames.AfterReceiveReply, activity.TagObjects.Single(t => t.Key == "client.afterreceivereply").Value);
                         }
                     }
                     else

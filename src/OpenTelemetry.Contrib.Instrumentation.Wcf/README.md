@@ -20,6 +20,24 @@ using var openTelemetry = Sdk.CreateTracerProviderBuilder()
     .Build();
 ```
 
+Instrumentation can be configured via options overload for `AddWcfInstrumentation` method:
+
+```csharp
+using var openTelemetry = Sdk.CreateTracerProviderBuilder()
+    .AddWcfInstrumentation(options => 
+    {
+        options.SuppressDownstreamInstrumentation = false;  
+        options.Enrich = (activity,eventName,message) =>    // -> Enable enriching an activity after it is created.
+        {
+            if(eventName == "AfterReceiveRequest")  // For event names, please refer to string contstants in WcfEventNames class.
+            {
+                activity.AddTag("companyname.customtag", Guid.NewGuid());
+            }
+        }
+    })
+    .Build();
+```
+
 ## WCF Client Configuration (.NET Framework)
 
 Add the `IClientMessageInspector` instrumentation via a behavior extension on

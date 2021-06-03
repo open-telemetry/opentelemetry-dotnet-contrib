@@ -87,10 +87,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
         [InlineData(true, true)]
         [InlineData(false)]
         [InlineData(true, false, true)]
+        [InlineData(true, false, true, true)]
         public async Task IncomingRequestInstrumentationTest(
             bool instrument,
             bool filter = false,
-            bool includeVersion = false)
+            bool includeVersion = false,
+            bool enrich = false)
         {
             List<Activity> stoppedActivities = new List<Activity>();
 
@@ -108,6 +110,22 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                 tracerProvider = Sdk.CreateTracerProviderBuilder()
                     .AddWcfInstrumentation(options =>
                     {
+                        if (enrich)
+                        {
+                            options.Enrich = (activity, eventName, message) =>
+                            {
+                                switch (eventName)
+                                {
+                                    case WcfEventNames.AfterReceiveRequest:
+                                        activity.AddTag("server.afterreceiverequest", WcfEventNames.AfterReceiveRequest);
+                                        break;
+                                    case WcfEventNames.BeforeSendReply:
+                                        activity.AddTag("server.beforesendreply", WcfEventNames.BeforeSendReply);
+                                        break;
+                                }
+                            };
+                        }
+
                         options.IncomingRequestFilter = (Message m) =>
                         {
                             return !filter;
@@ -163,6 +181,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                 if (includeVersion)
                 {
                     Assert.Equal("Soap12 (http://www.w3.org/2003/05/soap-envelope) Addressing10 (http://www.w3.org/2005/08/addressing)", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapMessageVersionTag).Value);
+                }
+
+                if (enrich)
+                {
+                    Assert.Equal(WcfEventNames.AfterReceiveRequest, activity.TagObjects.Single(t => t.Key == "server.afterreceiverequest").Value);
+                    Assert.Equal(WcfEventNames.BeforeSendReply, activity.TagObjects.Single(t => t.Key == "server.beforesendreply").Value);
                 }
             }
             else
