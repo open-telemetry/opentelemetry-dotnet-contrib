@@ -36,7 +36,7 @@ jobs:
       run: dotnet test test/${{env.PROJECT}}.Tests
 
     - name: dotnet pack ${{env.PROJECT}}
-      run: dotnet pack src/${{env.PROJECT}} --configuration Release --no-build
+      run: dotnet pack src/${{env.PROJECT}} --configuration Release #--no-build <- OpenTelemetry.Contrib.Preview has a conditional net5.0 target which causes dotnet pack to break when -no-build is used (for some reason)
 
     - name: Publish Artifacts
       uses: actions/upload-artifact@v2
