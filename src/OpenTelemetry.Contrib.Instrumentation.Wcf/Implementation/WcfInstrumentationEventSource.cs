@@ -47,6 +47,21 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Implementation
             this.WriteEvent(EventIds.RequestFilterException, exception);
         }
 
+        [NonEvent]
+        public void EnrichmentException(Exception exception)
+        {
+            if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
+            {
+                this.EnrichmentException(ToInvariantString(exception));
+            }
+        }
+
+        [Event(EventIds.EnrichmentException, Message = "Enrichment threw exception. Exception {0}.", Level = EventLevel.Error)]
+        public void EnrichmentException(string exception)
+        {
+            this.WriteEvent(EventIds.EnrichmentException, exception);
+        }
+
         /// <summary>
         /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
         /// appropriate for diagnostics tracing.
@@ -70,6 +85,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Implementation
         {
             public const int RequestIsFilteredOut = 1;
             public const int RequestFilterException = 2;
+            public const int EnrichmentException = 3;
         }
     }
 }

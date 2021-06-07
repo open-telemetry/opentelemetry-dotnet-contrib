@@ -40,7 +40,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
         /// </summary>
         /// <remarks>
         /// <para><see cref="Activity"/>: the activity being enriched.</para>
-        /// <para>string: the name of the event. Will be one of the constants in <see cref="WcfEventNames"/>.
+        /// <para>string: the name of the event. Will be one of the constants in <see cref="WcfEnrichEventNames"/>.
         /// </para>
         /// <para>object: the raw <see cref="Message"/> from which additional information can be extracted to enrich the activity.
         /// </para>

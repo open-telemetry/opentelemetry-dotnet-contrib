@@ -1,4 +1,4 @@
-﻿// <copyright file="WcfEventNames.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="WcfEnrichEventNames.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
     /// <summary>
     /// Constants used for event names when enriching an activity.
     /// </summary>
-    public class WcfEventNames
+    public class WcfEnrichEventNames
     {
 #if NETFRAMEWORK
         /// <summary>

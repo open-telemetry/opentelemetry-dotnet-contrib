@@ -111,7 +111,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
                         activity.SetTag(WcfInstrumentationConstants.SoapViaTag, request.Properties.Via.ToString());
                     }
 
-                    WcfInstrumentationActivitySource.Options.Enrich?.Invoke(activity, WcfEventNames.BeforeSendRequest, request);
+                    try
+                    {
+                        WcfInstrumentationActivitySource.Options.Enrich?.Invoke(activity, WcfEnrichEventNames.BeforeSendRequest, request);
+                    }
+                    catch (Exception ex)
+                    {
+                        WcfInstrumentationEventSource.Log.EnrichmentException(ex);
+                    }
                 }
             }
 
@@ -140,7 +147,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
                     }
 
                     activity.SetTag(WcfInstrumentationConstants.SoapReplyActionTag, reply.Headers.Action);
-                    WcfInstrumentationActivitySource.Options.Enrich?.Invoke(activity, WcfEventNames.AfterReceiveReply, reply);
+                    try
+                    {
+                        WcfInstrumentationActivitySource.Options.Enrich?.Invoke(activity, WcfEnrichEventNames.AfterReceiveReply, reply);
+                    }
+                    catch (Exception ex)
+                    {
+                        WcfInstrumentationEventSource.Log.EnrichmentException(ex);
+                    }
                 }
 
                 activity.Stop();

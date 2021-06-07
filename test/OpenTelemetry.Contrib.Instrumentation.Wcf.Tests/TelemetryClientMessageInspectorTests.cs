@@ -155,11 +155,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                             {
                                 switch (eventName)
                                 {
-                                    case WcfEventNames.BeforeSendRequest:
-                                        activity.AddTag("client.beforesendrequest", WcfEventNames.BeforeSendRequest);
+                                    case WcfEnrichEventNames.BeforeSendRequest:
+                                        activity.AddTag("client.beforesendrequest", WcfEnrichEventNames.BeforeSendRequest);
                                         break;
-                                    case WcfEventNames.AfterReceiveReply:
-                                        activity.AddTag("client.afterreceivereply", WcfEventNames.AfterReceiveReply);
+                                    case WcfEnrichEventNames.AfterReceiveReply:
+                                        activity.AddTag("client.afterreceivereply", WcfEnrichEventNames.AfterReceiveReply);
                                         break;
                                 }
                             };
@@ -247,8 +247,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
 
                         if (enrich)
                         {
-                            Assert.Equal(WcfEventNames.BeforeSendRequest, activity.TagObjects.Single(t => t.Key == "client.beforesendrequest").Value);
-                            Assert.Equal(WcfEventNames.AfterReceiveReply, activity.TagObjects.Single(t => t.Key == "client.afterreceivereply").Value);
+                            Assert.Equal(WcfEnrichEventNames.BeforeSendRequest, activity.TagObjects.Single(t => t.Key == "client.beforesendrequest").Value);
+                            Assert.Equal(WcfEnrichEventNames.AfterReceiveReply, activity.TagObjects.Single(t => t.Key == "client.afterreceivereply").Value);
                         }
                     }
                     else
