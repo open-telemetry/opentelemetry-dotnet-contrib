@@ -15,7 +15,6 @@
 // </copyright>
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -42,14 +41,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Implementation
 
         public override void OnStartActivity(Activity activity, object payload)
         {
-            // By this time, samplers have already run and
-            // activity.IsAllDataRequested populated accordingly.
-
-            if (Sdk.SuppressInstrumentation)
-            {
-                return;
-            }
-
             if (activity.IsAllDataRequested)
             {
                 if (this.options.TracedOperations != null && !this.options.TracedOperations.Contains(activity.OperationName))
@@ -66,21 +57,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Implementation
             }
         }
 
-        public override void OnStopActivity(Activity activity, object payload)
-        {
-            if (activity.IsAllDataRequested)
-            {
-                try
-                {
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    QuartzInstrumentationEventSource.Log.EnrichmentException(ex);
-                }
-            }
-        }
-
         public override void OnException(Activity activity, object payload)
         {
             if (!this.options.TracedOperations.Contains(activity.OperationName))
@@ -94,9 +70,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Implementation
                 return;
             }
 
-            activity.AddTag(SemanticConventions.AttributeExceptionType, "true");
-            activity.AddTag(SemanticConventions.AttributeExceptionMessage, this.options.IncludeExceptionDetails ? exception.Message : $"{nameof(QuartzInstrumentationOptions.IncludeExceptionDetails)} is disabled");
-            activity.AddTag(SemanticConventions.AttributeExceptionStacktrace, this.options.IncludeExceptionDetails ? exception.StackTrace : $"{nameof(QuartzInstrumentationOptions.IncludeExceptionDetails)} is disabled");
+            activity.RecordException(exception);
         }
 
         private string GetDisplayName(Activity activity)

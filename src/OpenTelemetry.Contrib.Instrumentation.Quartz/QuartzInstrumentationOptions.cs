@@ -26,14 +26,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.Quartz
         /// <summary>
         /// Default traced operations.
         /// </summary>
-        public static readonly IEnumerable<string> DefaultTracedOperations = new[]
+        private static readonly IEnumerable<string> DefaultTracedOperations = new[]
         {
             OperationName.Job.Execute,
             OperationName.Job.Veto,
         };
 
         /// <summary>
-        /// Gets or sets a value indicating whether gets or sets a value whether to add exception details to logs.
+        /// Gets or sets a value indicating whether gets or sets a value whether to add exception details as ActivityEvents.
         /// Defaults to false as they may contain
         /// Personally Identifiable Information (PII), passwords or usernames.
         /// </summary>
