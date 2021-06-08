@@ -131,7 +131,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore
             {
                 rpcScope = new ClientRpcScope<TRequest, TResponse>(context, this.options);
                 var responseContinuation = continuation(rpcScope.Context);
-                var clientRequestStreamProxy = new ClientStreamWriterProxy<TRequest>(responseContinuation.RequestStream, rpcScope.RecordRequest);
+                var clientRequestStreamProxy = new ClientStreamWriterProxy<TRequest>(
+                    responseContinuation.RequestStream,
+                    rpcScope.RecordRequest,
+                    onException: rpcScope.CompleteWithException);
+
                 var responseAsync = responseContinuation.ResponseAsync.ContinueWith(
                     responseTask =>
                     {
@@ -220,7 +224,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore
 
                 var requestStreamProxy = new ClientStreamWriterProxy<TRequest>(
                     responseContinuation.RequestStream,
-                    rpcScope.RecordRequest);
+                    rpcScope.RecordRequest,
+                    onException: rpcScope.CompleteWithException);
 
                 var responseStreamProxy = new AsyncStreamReaderProxy<TResponse>(
                     responseContinuation.ResponseStream,
