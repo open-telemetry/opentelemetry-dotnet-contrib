@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       logLevel:
-        description: 'Log level'     
+        description: 'Log level'
         required: true
         default: 'warning'
   push:
@@ -46,5 +46,4 @@ jobs:
 
     - name: Publish Nuget
       run: |
-        nuget setApiKey ${{ secrets.NUGET_TOKEN }} -Source https://api.nuget.org/v3/index.json
-        nuget push **/${{env.PROJECT}}/bin/**/*.nupkg -Source https://api.nuget.org/v3/index.json
+        nuget push **/${{env.PROJECT}}/bin/**/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_TOKEN }} -SymbolApiKey ${{ secrets.NUGET_TOKEN }}
