@@ -20,16 +20,21 @@ using var openTelemetry = Sdk.CreateTracerProviderBuilder()
     .Build();
 ```
 
-Instrumentation can be configured via options overload for `AddWcfInstrumentation` method:
+Instrumentation can be configured via options overload for 
+`AddWcfInstrumentation` method:
 
 ```csharp
 using var openTelemetry = Sdk.CreateTracerProviderBuilder()
     .AddWcfInstrumentation(options => 
     {
         options.SuppressDownstreamInstrumentation = false;  
-        options.Enrich = (activity,eventName,message) =>    // -> Enable enriching an activity after it is created.
+
+        // Enable enriching an activity after it is created.
+        options.Enrich = (activity,eventName,message) =>    
         {
-            if(eventName == WcfEnrichEventNames.AfterReceiveRequest)  // For event names, please refer to string contstants in WcfEventNames class.
+            // For event names, please refer to string constants in 
+            // WcfEnrichEventNames class.
+            if(eventName == WcfEnrichEventNames.AfterReceiveRequest)  
             {
                 activity.AddTag("companyname.customtag", Guid.NewGuid());
             }
