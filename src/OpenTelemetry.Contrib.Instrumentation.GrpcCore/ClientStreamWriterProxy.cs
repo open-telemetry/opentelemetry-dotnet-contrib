@@ -47,16 +47,23 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore
         private readonly Action onComplete;
 
         /// <summary>
+        /// The on exception action.
+        /// </summary>
+        private readonly Action<Exception> onException;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="ClientStreamWriterProxy{T}"/> class.
         /// </summary>
         /// <param name="writer">The writer.</param>
         /// <param name="onWrite">The on write action if any.</param>
         /// <param name="onComplete">The on complete action, if any.</param>
-        public ClientStreamWriterProxy(IClientStreamWriter<T> writer, Action<T> onWrite = null, Action onComplete = null)
+        /// <param name="onException">The on exception action, if any.</param>
+        public ClientStreamWriterProxy(IClientStreamWriter<T> writer, Action<T> onWrite = null, Action onComplete = null, Action<Exception> onException = null)
         {
             this.writer = writer;
             this.onWrite = onWrite;
             this.onComplete = onComplete;
+            this.onException = onException;
         }
 
         /// <inheritdoc/>
@@ -67,17 +74,35 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore
         }
 
         /// <inheritdoc/>
-        public Task WriteAsync(T message)
+        public async Task WriteAsync(T message)
         {
             this.onWrite?.Invoke(message);
-            return this.writer.WriteAsync(message);
+
+            try
+            {
+                await this.writer.WriteAsync(message).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                this.onException?.Invoke(e);
+                throw;
+            }
         }
 
         /// <inheritdoc/>
-        public Task CompleteAsync()
+        public async Task CompleteAsync()
         {
             this.onComplete?.Invoke();
-            return this.writer.CompleteAsync();
+
+            try
+            {
+                await this.writer.CompleteAsync().ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                this.onException?.Invoke(e);
+                throw;
+            }
         }
     }
 }

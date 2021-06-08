@@ -33,6 +33,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
     public class GrpcCoreClientInterceptorTests
     {
         /// <summary>
+        /// A bogus server uri.
+        /// </summary>
+        private static readonly string BogusServerUri = "dns:i.dont.exist:77923";
+
+        /// <summary>
         /// Validates a successful AsyncUnary call.
         /// </summary>
         /// <returns>A task.</returns>
@@ -53,7 +58,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
                 FoobarService.MakeUnaryAsyncRequest,
                 StatusCode.Unavailable,
                 validateErrorDescription: false,
-                "dns:i.dont.exist:77923").ConfigureAwait(false);
+                BogusServerUri).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -88,6 +93,20 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         public async Task ClientStreamingSuccess()
         {
             await this.TestHandlerSuccess(FoobarService.MakeClientStreamingRequest).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Validates a failed ClientStreaming call when the service is unavailable.
+        /// </summary>
+        /// <returns>A task.</returns>
+        [Fact]
+        public async Task ClientStreamingUnavailable()
+        {
+            await this.TestHandlerFailure(
+                FoobarService.MakeClientStreamingRequest,
+                StatusCode.Unavailable,
+                validateErrorDescription: false,
+                BogusServerUri).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -156,6 +175,20 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         public async Task DuplexStreamingSuccess()
         {
             await this.TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Validates a failed DuplexStreaming call when the service is unavailable.
+        /// </summary>
+        /// <returns>A task.</returns>
+        [Fact]
+        public async Task DuplexStreamingUnavailable()
+        {
+            await this.TestHandlerFailure(
+                FoobarService.MakeDuplexStreamingRequest,
+                StatusCode.Unavailable,
+                validateErrorDescription: false,
+                BogusServerUri).ConfigureAwait(false);
         }
 
         /// <summary>
