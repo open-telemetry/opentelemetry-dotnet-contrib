@@ -40,6 +40,26 @@ services.AddOpenTelemetrySdk(x =>
 });
 ```
 
+## Filter traced operations
+
+For example you can trace only consume and handle operations using this snippet:
+
+```csharp
+// ...
+using OpenTelemetry.Instrumentation.Quartz.Implementation;
+// ...
+x.AddQuartzInstrumentation(
+    opts =>
+        opts.TracedOperations = new HashSet<string>(new[] {
+            OperationName.Job.Execute,
+            OperationName.Job.Veto
+}));
+```
+
+For full operation list please see: [OperationName](../OpenTelemetry.Instrumentation.Quartz/Implementation/OperationName.cs).
+
+All operations are enabled by default.
+
 ## References
 
 * [OpenTelemetry Project](https://opentelemetry.io/)

@@ -14,7 +14,9 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace OpenTelemetry.Contrib.Instrumentation.Quartz
 {
@@ -33,11 +35,23 @@ namespace OpenTelemetry.Contrib.Instrumentation.Quartz
         };
 
         /// <summary>
-        /// Gets or sets a value indicating whether gets or sets a value whether to add exception details as ActivityEvents.
-        /// Defaults to false as they may contain
-        /// Personally Identifiable Information (PII), passwords or usernames.
+        /// Gets or sets an action to enrich an Activity.
         /// </summary>
-        public bool IncludeExceptionDetails { get; set; }
+        /// <remarks>
+        /// <para><see cref="Activity"/>: the activity being enriched.</para>
+        /// <para>string: the name of the event.</para>
+        /// <para>object: the raw object from which additional information can be extracted to enrich the activity.
+        /// The type of this object depends on the event, which is given by the above parameter.</para>
+        /// </remarks>
+        public Action<Activity, string, object> Enrich { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the exception will be recorded as ActivityEvent or not.
+        /// </summary>
+        /// <remarks>
+        /// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/exceptions.md.
+        /// </remarks>
+        public bool RecordException { get; set; }
 
         /// <summary>
         /// Gets or sets traced operations set.

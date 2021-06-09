@@ -43,9 +43,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Implementation
         {
             if (activity.IsAllDataRequested)
             {
-                if (this.options.TracedOperations != null && !this.options.TracedOperations.Contains(activity.OperationName))
+                if (!this.options.TracedOperations.Contains(activity.OperationName))
                 {
-                    QuartzInstrumentationEventSource.Log.RequestIsFilteredOut(activity.OperationName);
+                    QuartzInstrumentationEventSource.Log.OperationIsFilteredOut(activity.OperationName);
                     activity.IsAllDataRequested = false;
                     return;
                 }
@@ -54,23 +54,60 @@ namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Implementation
 
                 ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
                 ActivityInstrumentationHelper.SetKindProperty(activity, this.GetActivityKind(activity));
+
+                try
+                {
+                    this.options.Enrich?.Invoke(activity, "OnStartActivity", payload);
+                }
+                catch (Exception ex)
+                {
+                    QuartzInstrumentationEventSource.Log.EnrichmentException(ex);
+                }
+            }
+        }
+
+        public override void OnStopActivity(Activity activity, object payload)
+        {
+            if (activity.IsAllDataRequested)
+            {
+                try
+                {
+                    this.options.Enrich?.Invoke(activity, "OnStopActivity", payload);
+                }
+                catch (Exception ex)
+                {
+                    QuartzInstrumentationEventSource.Log.EnrichmentException(ex);
+                }
             }
         }
 
         public override void OnException(Activity activity, object payload)
         {
-            if (!this.options.TracedOperations.Contains(activity.OperationName))
+            if (activity.IsAllDataRequested)
             {
-                return;
-            }
+                var exc = payload as Exception;
+                if (exc == null)
+                {
+                    QuartzInstrumentationEventSource.Log.NullPayload(nameof(QuartzDiagnosticListener), nameof(this.OnStopActivity));
+                    return;
+                }
 
-            if (!(payload is Exception exception))
-            {
-                QuartzInstrumentationEventSource.Log.NullPayload(nameof(QuartzDiagnosticListener), nameof(this.OnStopActivity));
-                return;
-            }
+                if (this.options.RecordException)
+                {
+                    activity.RecordException(exc);
+                }
 
-            activity.RecordException(exception);
+                activity.SetStatus(Status.Error.WithDescription(exc.Message));
+
+                try
+                {
+                    this.options.Enrich?.Invoke(activity, "OnException", exc);
+                }
+                catch (Exception ex)
+                {
+                    QuartzInstrumentationEventSource.Log.EnrichmentException(ex);
+                }
+            }
         }
 
         private string GetDisplayName(Activity activity)

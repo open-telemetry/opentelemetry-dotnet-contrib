@@ -35,7 +35,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Implementation
         }
 
         [Event(2, Message = "Request is filtered out.", Level = EventLevel.Verbose)]
-        public void RequestIsFilteredOut(string eventName)
+        public void OperationIsFilteredOut(string eventName)
         {
             this.WriteEvent(2, eventName);
         }
