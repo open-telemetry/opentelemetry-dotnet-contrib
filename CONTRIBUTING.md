@@ -19,7 +19,7 @@ resource for your first contribution, join our Slack channel and find a buddy!
    [otel-dotnet](https://cloud-native.slack.com/archives/C01N3BC2W7Q) channel.
 2. Post in the room with an introduction to yourself, what area you are
    interested in (check issues marked with [help
-   wanted](https://github.com/open-telemetry/opentelemetry-dotnet/labels/help%20wanted)),
+   wanted](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/labels/help%20wanted)),
    and say you are looking for a buddy. We will match you with someone who has
    experience in that area.
 
