@@ -38,7 +38,7 @@ using var openTelemetry = Sdk.CreateTracerProviderBuilder()
             // WcfEnrichEventNames class.
             if (eventName == WcfEnrichEventNames.AfterReceiveReply)
             {
-                activity.AddTag(
+                activity.SetTag(
                     "companyname.messagetag",
                     wcfMessage.Properties["CustomProperty"]);
             }
