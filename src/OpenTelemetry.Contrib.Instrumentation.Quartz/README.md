@@ -64,4 +64,3 @@ All operations are enabled by default.
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
 * [Quartz.NET Project](https://www.quartz-scheduler.net/)
-
