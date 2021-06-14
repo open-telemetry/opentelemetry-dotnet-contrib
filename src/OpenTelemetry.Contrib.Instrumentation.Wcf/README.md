@@ -20,7 +20,7 @@ using var openTelemetry = Sdk.CreateTracerProviderBuilder()
     .Build();
 ```
 
-Instrumentation can be configured via options overload for 
+Instrumentation can be configured via options overload for
 `AddWcfInstrumentation` method:
 
 ```csharp
