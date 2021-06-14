@@ -88,11 +88,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
         [InlineData(false)]
         [InlineData(true, false, true)]
         [InlineData(true, false, true, true)]
+        [InlineData(true, false, true, true, true)]
         public async Task IncomingRequestInstrumentationTest(
             bool instrument,
             bool filter = false,
             bool includeVersion = false,
-            bool enrich = false)
+            bool enrich = false,
+            bool enrichmentExcecption = false)
         {
             List<Activity> stoppedActivities = new List<Activity>();
 
@@ -112,18 +114,32 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                     {
                         if (enrich)
                         {
-                            options.Enrich = (activity, eventName, message) =>
+                            if (!enrichmentExcecption)
                             {
-                                switch (eventName)
+                                options.Enrich = (activity, eventName, message) =>
                                 {
-                                    case WcfEnrichEventNames.AfterReceiveRequest:
-                                        activity.AddTag("server.afterreceiverequest", WcfEnrichEventNames.AfterReceiveRequest);
-                                        break;
-                                    case WcfEnrichEventNames.BeforeSendReply:
-                                        activity.AddTag("server.beforesendreply", WcfEnrichEventNames.BeforeSendReply);
-                                        break;
-                                }
-                            };
+                                    switch (eventName)
+                                    {
+                                        case WcfEnrichEventNames.AfterReceiveRequest:
+                                            activity.SetTag(
+                                                "server.afterreceiverequest",
+                                                WcfEnrichEventNames.AfterReceiveRequest);
+                                            break;
+                                        case WcfEnrichEventNames.BeforeSendReply:
+                                            activity.SetTag(
+                                                "server.beforesendreply",
+                                                WcfEnrichEventNames.BeforeSendReply);
+                                            break;
+                                    }
+                                };
+                            }
+                            else
+                            {
+                                options.Enrich = (activity, eventName, message) =>
+                                {
+                                    throw new Exception("Failure whilst enriching activity");
+                                };
+                            }
                         }
 
                         options.IncomingRequestFilter = (Message m) =>
@@ -183,7 +199,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                     Assert.Equal("Soap12 (http://www.w3.org/2003/05/soap-envelope) Addressing10 (http://www.w3.org/2005/08/addressing)", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapMessageVersionTag).Value);
                 }
 
-                if (enrich)
+                if (enrich && !enrichmentExcecption)
                 {
                     Assert.Equal(WcfEnrichEventNames.AfterReceiveRequest, activity.TagObjects.Single(t => t.Key == "server.afterreceiverequest").Value);
                     Assert.Equal(WcfEnrichEventNames.BeforeSendReply, activity.TagObjects.Single(t => t.Key == "server.beforesendreply").Value);
