@@ -31,7 +31,7 @@ using var openTelemetry = Sdk.CreateTracerProviderBuilder()
 
         // Enable enriching an activity after it is created.
         options.Enrich = (activity, eventName,  message) =>
-        {            
+        {
             var wcfMessage = message as Message;
 
             // For event names, please refer to string constants in
