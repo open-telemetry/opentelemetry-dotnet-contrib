@@ -42,6 +42,9 @@ namespace OpenTelemetry.Trace
             builder.AddInstrumentation(() => new QuartzJobInstrumentation(options));
             builder.AddSource(QuartzDiagnosticListener.ActivitySourceName);
 
+            builder.AddLegacySource(OperationName.Job.Execute);
+            builder.AddLegacySource(OperationName.Job.Veto);
+
             return builder;
         }
     }
