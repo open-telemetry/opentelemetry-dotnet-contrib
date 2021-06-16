@@ -7,7 +7,7 @@
     <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry" Version="1.1.0-beta1" />
+    <PackageReference Include="OpenTelemetry" Version="1.1.0-beta4" />
     <PackageReference Include="System.Text.Json" Version="5.0.0" />
   </ItemGroup>
 </Project>
