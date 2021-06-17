@@ -1,4 +1,4 @@
-// <copyright file="QuartzDiagnosticListener.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="QuartzDiagnosticListener.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -131,9 +131,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Implementation
         }
 
         private string GetTag(IEnumerable<KeyValuePair<string, string>> tags, string tagName)
-         {
-             var tag = tags.SingleOrDefault(kv => kv.Key == tagName);
-             return tag.Value;
-         }
+        {
+            var tag = tags.SingleOrDefault(kv => kv.Key == tagName);
+            return tag.Value;
+        }
     }
 }
