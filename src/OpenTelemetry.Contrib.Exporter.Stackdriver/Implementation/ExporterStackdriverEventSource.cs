@@ -56,6 +56,21 @@ namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Implementation
             this.WriteEvent(2, ex);
         }
 
+        [NonEvent]
+        public void ExportMethodException(Exception ex)
+        {
+            if (Log.IsEnabled(EventLevel.Error, EventKeywords.All))
+            {
+                this.ExportMethodException(ToInvariantString(ex));
+            }
+        }
+
+        [Event(3, Message = "Stackdriver exporter encountered an error while exporting. Exception: {0}", Level = EventLevel.Error)]
+        public void ExportMethodException(string ex)
+        {
+            this.WriteEvent(1, ex);
+        }
+
         /// <summary>
         /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
         /// appropriate for diagnostics tracing.
