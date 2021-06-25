@@ -79,7 +79,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Tests
             await scheduler.Shutdown(true);
 
             // Assert
-            Assert.Equal(2, activityProcessor.Invocations.Count);
+            Assert.Equal(3, activityProcessor.Invocations.Count);
             var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
 
             Assert.Contains("execute ", activity.DisplayName);
@@ -147,7 +147,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Tests
             await scheduler.Shutdown(true);
 
             // Assert
-            Assert.Equal(2, activityProcessor.Invocations.Count);
+            Assert.Equal(3, activityProcessor.Invocations.Count);
             var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
 
             Assert.Equal("Quartz.Job.Execute", activity.OperationName);
@@ -204,7 +204,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Tests
             await scheduler.Shutdown(true);
 
             // Assert
-            Assert.Equal(2, activityProcessor.Invocations.Count);
+            Assert.Equal(3, activityProcessor.Invocations.Count);
             var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
 
             Assert.Equal("ERROR", activity.Tags.SingleOrDefault(t => t.Key.Equals(SpanAttributeConstants.StatusCodeKey)).Value);
@@ -272,7 +272,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Tests
             await scheduler.Shutdown(true);
 
             // Assert
-            Assert.Equal(2, activityProcessor.Invocations.Count);
+            Assert.Equal(3, activityProcessor.Invocations.Count);
             var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
 
             Assert.Equal("ERROR", activity.Tags.SingleOrDefault(t => t.Key.Equals(SpanAttributeConstants.StatusCodeKey)).Value);
@@ -334,7 +334,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Tests
             await scheduler.Shutdown(true);
 
             // Assert
-            Assert.Equal(2, activityProcessor.Invocations.Count);
+            Assert.Equal(3, activityProcessor.Invocations.Count);
             var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
             Assert.Equal("exception", activity.Events.First().Name);
             Assert.Equal("Quartz.JobExecutionException", activity.Events.First().Tags.SingleOrDefault(t => t.Key.Equals(SemanticConventions.AttributeExceptionType)).Value);
@@ -389,7 +389,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Tests
             await scheduler.Shutdown(true);
 
             // Assert
-            var activities = activityProcessor.Invocations.SelectMany(i => i.Arguments.OfType<Activity>());
+            var activities = activityProcessor.Invocations.SelectMany(i => i.Arguments.OfType<Activity>())
+                .Where(a => a.IsAllDataRequested);
             Assert.Empty(activities);
         }
     }
