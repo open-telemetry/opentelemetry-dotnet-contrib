@@ -38,13 +38,18 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         private static readonly string BogusServerUri = "dns:i.dont.exist:77923";
 
         /// <summary>
+        /// The default metadata func.
+        /// </summary>
+        private static readonly Func<Metadata> DefaultMetadataFunc = () => new Metadata { new Metadata.Entry("foo", "bar") };
+
+        /// <summary>
         /// Validates a successful AsyncUnary call.
         /// </summary>
         /// <returns>A task.</returns>
         [Fact]
         public async Task AsyncUnarySuccess()
         {
-            await this.TestHandlerSuccess(FoobarService.MakeUnaryAsyncRequest).ConfigureAwait(false);
+            await this.TestHandlerSuccess(FoobarService.MakeUnaryAsyncRequest, DefaultMetadataFunc()).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -92,7 +97,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         [Fact]
         public async Task ClientStreamingSuccess()
         {
-            await this.TestHandlerSuccess(FoobarService.MakeClientStreamingRequest).ConfigureAwait(false);
+            await this.TestHandlerSuccess(FoobarService.MakeClientStreamingRequest, DefaultMetadataFunc()).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -140,7 +145,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         [Fact]
         public async Task ServerStreamingSuccess()
         {
-            await this.TestHandlerSuccess(FoobarService.MakeServerStreamingRequest).ConfigureAwait(false);
+            await this.TestHandlerSuccess(FoobarService.MakeServerStreamingRequest, DefaultMetadataFunc()).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -174,7 +179,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         [Fact]
         public async Task DuplexStreamingSuccess()
         {
-            await this.TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest).ConfigureAwait(false);
+            await this.TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest, DefaultMetadataFunc()).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -369,13 +374,15 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         /// Tests basic handler success.
         /// </summary>
         /// <param name="clientRequestFunc">The client request function.</param>
+        /// <param name="additionalMetadata">The additional metadata, if any.</param>
         /// <returns>A Task.</returns>
-        private async Task TestHandlerSuccess(Func<Foobar.FoobarClient, Task> clientRequestFunc)
+        private async Task TestHandlerSuccess(Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc, Metadata additionalMetadata)
         {
             var mockPropagator = new Mock<TextMapPropagator>();
             PropagationContext capturedPropagationContext = default;
             Metadata capturedCarrier = null;
             var propagatorCalled = 0;
+            var originalMetadataCount = additionalMetadata.Count;
 
             mockPropagator
                 .Setup(
@@ -390,9 +397,15 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
                         capturedPropagationContext = propagation;
                         capturedCarrier = carrier;
 
+                        // Make sure the original metadata make it through
+                        if (additionalMetadata != null)
+                        {
+                            Assert.Equal(capturedCarrier, additionalMetadata);
+                        }
+
                         // Call the actual setter to ensure it updates the carrier.
                         // It doesn't matter what we put in
-                        setter(capturedCarrier, "foo", "bar");
+                        setter(capturedCarrier, "bar", "baz");
                     });
 
             using var server = FoobarService.Start();
@@ -407,7 +420,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
             using (var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue))
             {
                 var client = FoobarService.ConstructRpcClient(server.UriString, new ClientTracingInterceptor(interceptorOptions));
-                await clientRequestFunc(client).ConfigureAwait(false);
+                await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false);
 
                 Assert.Equal(default, Activity.Current);
 
@@ -415,6 +428,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
 
                 // Propagator was called exactly once
                 Assert.Equal(1, propagatorCalled);
+
+                // The client tracing interceptor should create a copy of the original call headers before passing to the propagator.
+                // Retries that sit above this interceptor rely on the original call metadata.
+                // The propagator should not have mutated the original CallOption headers.
+                Assert.Equal(originalMetadataCount, additionalMetadata.Count);
 
                 // There was no parent activity, so these will be default
                 Assert.Equal(default, capturedPropagationContext.ActivityContext.TraceId);
@@ -437,7 +455,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
                 parentActivity.SetIdFormat(ActivityIdFormat.W3C);
                 parentActivity.Start();
                 var client = FoobarService.ConstructRpcClient(server.UriString, new ClientTracingInterceptor(interceptorOptions));
-                await clientRequestFunc(client).ConfigureAwait(false);
+                await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false);
 
                 Assert.Equal(parentActivity, Activity.Current);
 
@@ -465,7 +483,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         /// A Task.
         /// </returns>
         private async Task TestHandlerFailure(
-            Func<Foobar.FoobarClient, Task> clientRequestFunc,
+            Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc,
             StatusCode statusCode = StatusCode.ResourceExhausted,
             bool validateErrorDescription = true,
             string serverUriString = null)
@@ -482,7 +500,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
                 });
 
             using var activityListener = new InterceptorActivityListener(clientInterceptorOptions.ActivityIdentifierValue);
-            await Assert.ThrowsAsync<RpcException>(async () => await clientRequestFunc(client).ConfigureAwait(false));
+            await Assert.ThrowsAsync<RpcException>(async () => await clientRequestFunc(client, null).ConfigureAwait(false));
 
             var activity = activityListener.Activity;
             ValidateCommonActivityTags(activity, statusCode, false);
