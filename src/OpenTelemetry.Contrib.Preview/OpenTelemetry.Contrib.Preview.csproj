@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry" Version="1.1.0-beta3" />
+    <PackageReference Include="OpenTelemetry" Version="1.1.0" />
   </ItemGroup>
 
 </Project>

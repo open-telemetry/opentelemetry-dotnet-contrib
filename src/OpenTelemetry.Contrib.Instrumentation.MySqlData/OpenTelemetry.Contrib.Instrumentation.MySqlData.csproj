@@ -9,7 +9,7 @@
 
     <ItemGroup>
         <PackageReference Include="MySql.Data" Version="6.10.7"/>
-        <PackageReference Include="OpenTelemetry.Api" Version="1.1.0-beta4"/>
+        <PackageReference Include="OpenTelemetry.Api" Version="1.1.0"/>
     </ItemGroup>
 
     <ItemGroup>
