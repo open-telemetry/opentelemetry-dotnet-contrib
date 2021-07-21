@@ -6,8 +6,11 @@ Automatically instruments the Quartz jobs from
 ## Installation
 
 ```shell
+dotnet add package OpenTelemetry.Extensions.Hosting
 dotnet add package OpenTelemetry.Contrib.Instrumentation.Quartz
 ```
+
+
 
 ## Configuration
 
@@ -31,11 +34,11 @@ public void ConfigureServices(IServiceCollection services)
 }
 
 // Add OpenTelemetry and Quartz instrumentation
-services.AddOpenTelemetrySdk(x =>
+services.AddOpenTelemetryTracing(x =>
 {
     x.AddQuartzInstrumentation();
     x.UseJaegerExporter(config => {
-      // Configure Jaeger
+      // Configure Jaeger       
     });
 });
 ```
