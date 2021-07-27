@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="1.1.0-beta1" />
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="1.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsLoggingPkgVer)" />
   </ItemGroup>
 

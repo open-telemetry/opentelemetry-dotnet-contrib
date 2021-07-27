@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* Update OTel SDK package version to 1.1.0-beta4
+* Update OTel SDK package version to 1.1.0
 * Log exceptions when failing to export data to stackdriver
 
 ## Initial Release
