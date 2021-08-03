@@ -30,6 +30,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Implementation
         internal static readonly string ActivitySourceName = AssemblyName.Name;
         internal static readonly Version Version = AssemblyName.Version;
         internal static readonly ActivitySource ActivitySource = new ActivitySource(ActivitySourceName, Version.ToString());
+        internal readonly PropertyFetcher<object> JobDetailsPropertyFetcher = new PropertyFetcher<object>("JobDetail");
 
         private readonly QuartzInstrumentationOptions options;
 
@@ -57,7 +58,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Implementation
 
                 try
                 {
-                    this.options.Enrich?.Invoke(activity, "OnStartActivity", payload);
+                    this.JobDetailsPropertyFetcher.TryFetch(payload, out var jobDetails);
+                    this.options.Enrich?.Invoke(activity, "OnStartActivity", jobDetails);
                 }
                 catch (Exception ex)
                 {
@@ -72,7 +74,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Implementation
             {
                 try
                 {
-                    this.options.Enrich?.Invoke(activity, "OnStopActivity", payload);
+                    this.JobDetailsPropertyFetcher.TryFetch(payload, out var jobDetails);
+                    this.options.Enrich?.Invoke(activity, "OnStopActivity", jobDetails);
                 }
                 catch (Exception ex)
                 {

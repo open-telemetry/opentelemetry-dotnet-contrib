@@ -98,19 +98,19 @@ namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Tests
             List<DateTime> jobExecTimestamps = new List<DateTime>();
 
             var activityProcessor = new Mock<BaseProcessor<Activity>>();
-            var jobDetailsPropertyFetcher = new PropertyFetcher<object>("JobDetail");
+
             var jobDataMapPropertyFetcher = new PropertyFetcher<object>("JobDataMap");
             using var tel = Sdk.CreateTracerProviderBuilder()
                 .SetSampler(new AlwaysOnSampler())
                 .AddQuartzInstrumentation(q =>
-                    q.Enrich = (a, s, p) =>
+                    q.Enrich = (a, s, payload) =>
                     {
-                        if (jobDetailsPropertyFetcher.TryFetch(p, out var jobDetail))
+                        if (payload is IJobDetail jobDetail)
                         {
-                            var dataMap = jobDataMapPropertyFetcher.Fetch(jobDetail);
-                            if (dataMap is IDictionary<string, object> map && map.ContainsKey("TestId"))
+                            var dataMap = jobDetail.JobDataMap;
+                            if (dataMap.ContainsKey("TestId"))
                             {
-                                a.SetTag("test.id", map["TestId"]);
+                                a.SetTag("test.id", dataMap["TestId"]);
                             }
                         }
                     })
@@ -220,8 +220,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Tests
             List<DateTime> jobExecTimestamps = new List<DateTime>();
 
             var activityProcessor = new Mock<BaseProcessor<Activity>>();
-            var jobDetailsPropertyFetcher = new PropertyFetcher<object>("JobDetail");
-            var jobDataMapPropertyFetcher = new PropertyFetcher<object>("JobDataMap");
 
             using var tel = Sdk.CreateTracerProviderBuilder()
                 .SetSampler(new AlwaysOnSampler())
@@ -230,12 +228,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Tests
                     q.RecordException = true;
                     q.Enrich = (a, s, p) =>
                         {
-                            if (jobDetailsPropertyFetcher.TryFetch(p, out var jobDetail))
+                            if (p is IJobDetail jobDetail)
                             {
-                                var dataMap = jobDataMapPropertyFetcher.Fetch(jobDetail);
-                                if (dataMap is IDictionary<string, object> map && map.ContainsKey("TestId"))
+                                var dataMap = jobDetail.JobDataMap;
+                                if (dataMap.ContainsKey("TestId"))
                                 {
-                                    a.SetTag("test.id", map["TestId"]);
+                                    a.SetTag("test.id", dataMap["TestId"]);
                                 }
                             }
                         };

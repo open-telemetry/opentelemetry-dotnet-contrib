@@ -10,8 +10,6 @@ dotnet add package OpenTelemetry.Extensions.Hosting
 dotnet add package OpenTelemetry.Contrib.Instrumentation.Quartz
 ```
 
-
-
 ## Configuration
 
 ASP.NET Core instrumentation example:
@@ -57,6 +55,38 @@ x.AddQuartzInstrumentation(
             OperationName.Job.Execute,
             OperationName.Job.Veto
 }));
+```
+
+## Enrich
+### Enrich
+
+This option allows one to enrich the activity with additional information
+from the raw `JobDetail` object. The `Enrich` action is
+called only when `activity.IsAllDataRequested` is `true`. It contains the
+activity itself (which can be enriched), the name of the event, and the
+actual raw object.
+For event names "OnStartActivity", "OnStopActivity",, the actual object will be `IJobDetail`.
+For event name "OnException", the actual object will be the exception thrown 
+
+The following code snippet shows how to add additional tags using `Enrich`.
+
+```csharp
+// ...
+using OpenTelemetry.Instrumentation.Quartz.Implementation;
+// ...
+// Enable enriching an activity after it is created.
+x.AddQuartzInstrumentation(opt =>
+{
+    opt.Enrich = (activity, eventName, quartzJobDetails) =>
+    {
+        // update activity
+        if (quartzJobDetails is IJobDetail jobDetail)
+        {
+            activity.SetTag("customProperty", jobDetail.JobDataMap["customProperty"]);
+            ...
+        }
+    };
+})
 ```
 
 For full operation list please see: [OperationName](../OpenTelemetry.Instrumentation.Quartz/Implementation/OperationName.cs).
