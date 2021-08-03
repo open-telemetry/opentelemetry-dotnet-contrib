@@ -58,7 +58,6 @@ x.AddQuartzInstrumentation(
 ```
 
 ## Enrich
-### Enrich
 
 This option allows one to enrich the activity with additional information
 from the raw `JobDetail` object. The `Enrich` action is
