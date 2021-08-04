@@ -139,9 +139,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Previ
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Tests", "test\OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Tests\OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Tests.csproj", "{4172D671-3AAC-443F-9EB0-A6608B154AF0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Contrib.Exporter.ApplicationInsights", "src\OpenTelemetry.Contrib.Exporter.ApplicationInsights\OpenTelemetry.Contrib.Exporter.ApplicationInsights.csproj", "{C3932D98-FAC7-4F3C-AE34-3755520AE99D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Extensions.AzureMonitor", "src\OpenTelemetry.Contrib.Extensions.AzureMonitor\OpenTelemetry.Contrib.Extensions.AzureMonitor.csproj", "{9C2D6D1A-8580-4527-B718-E206D0690635}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Contrib.Exporter.ApplicationInsights.Tests", "test\OpenTelemetry.Contrib.Exporter.ApplicationInsights.Tests\OpenTelemetry.Contrib.Exporter.ApplicationInsights.Tests.csproj", "{0D7F96A5-62E8-4385-A36E-539A31C4E179}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Extensions.AzureMonitor.Tests", "test\OpenTelemetry.Contrib.Extensions.AzureMonitor.Tests\OpenTelemetry.Contrib.Extensions.AzureMonitor.Tests.csproj", "{771651AA-010F-4FF6-9CB2-BAFFE5E04FC2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -265,14 +265,14 @@ Global
 		{4172D671-3AAC-443F-9EB0-A6608B154AF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4172D671-3AAC-443F-9EB0-A6608B154AF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4172D671-3AAC-443F-9EB0-A6608B154AF0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C3932D98-FAC7-4F3C-AE34-3755520AE99D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C3932D98-FAC7-4F3C-AE34-3755520AE99D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C3932D98-FAC7-4F3C-AE34-3755520AE99D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C3932D98-FAC7-4F3C-AE34-3755520AE99D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0D7F96A5-62E8-4385-A36E-539A31C4E179}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0D7F96A5-62E8-4385-A36E-539A31C4E179}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0D7F96A5-62E8-4385-A36E-539A31C4E179}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0D7F96A5-62E8-4385-A36E-539A31C4E179}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C2D6D1A-8580-4527-B718-E206D0690635}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C2D6D1A-8580-4527-B718-E206D0690635}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C2D6D1A-8580-4527-B718-E206D0690635}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C2D6D1A-8580-4527-B718-E206D0690635}.Release|Any CPU.Build.0 = Release|Any CPU
+		{771651AA-010F-4FF6-9CB2-BAFFE5E04FC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{771651AA-010F-4FF6-9CB2-BAFFE5E04FC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{771651AA-010F-4FF6-9CB2-BAFFE5E04FC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{771651AA-010F-4FF6-9CB2-BAFFE5E04FC2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -312,8 +312,8 @@ Global
 		{B978939B-278C-43A3-AD12-32EA9BBD27D0} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{D2C68560-C252-41A9-B742-2CEB7D760E0F} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{4172D671-3AAC-443F-9EB0-A6608B154AF0} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
-		{C3932D98-FAC7-4F3C-AE34-3755520AE99D} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
-		{0D7F96A5-62E8-4385-A36E-539A31C4E179} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{9C2D6D1A-8580-4527-B718-E206D0690635} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{771651AA-010F-4FF6-9CB2-BAFFE5E04FC2} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
