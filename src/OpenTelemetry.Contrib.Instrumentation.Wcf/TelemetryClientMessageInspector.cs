@@ -64,7 +64,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
             Activity activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
                 WcfInstrumentationActivitySource.OutgoingRequestActivityName,
                 ActivityKind.Client);
-
             IDisposable suppressionScope = this.SuppressDownstreamInstrumentation();
 
             if (activity != null)
@@ -111,6 +110,15 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
                     {
                         activity.SetTag(WcfInstrumentationConstants.SoapViaTag, request.Properties.Via.ToString());
                     }
+
+                    try
+                    {
+                        WcfInstrumentationActivitySource.Options.Enrich?.Invoke(activity, WcfEnrichEventNames.BeforeSendRequest, request);
+                    }
+                    catch (Exception ex)
+                    {
+                        WcfInstrumentationEventSource.Log.EnrichmentException(ex);
+                    }
                 }
             }
 
@@ -139,6 +147,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
                     }
 
                     activity.SetTag(WcfInstrumentationConstants.SoapReplyActionTag, reply.Headers.Action);
+                    try
+                    {
+                        WcfInstrumentationActivitySource.Options.Enrich?.Invoke(activity, WcfEnrichEventNames.AfterReceiveReply, reply);
+                    }
+                    catch (Exception ex)
+                    {
+                        WcfInstrumentationEventSource.Log.EnrichmentException(ex);
+                    }
                 }
 
                 activity.Stop();

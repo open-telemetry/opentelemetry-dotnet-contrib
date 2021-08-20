@@ -2,14 +2,14 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <Description>OpenTelemetry instrumentation for Mysql.Data</Description>
-        <PackageTags>$(PackageTags);distributed-tracing;Mysql.Data</PackageTags>
-        <MinVerTagPrefix>Instrumentation.MysqlData-</MinVerTagPrefix>
+        <Description>OpenTelemetry instrumentation for MySql.Data</Description>
+        <PackageTags>$(PackageTags);distributed-tracing;MySql.Data</PackageTags>
+        <MinVerTagPrefix>Instrumentation.MySqlData-</MinVerTagPrefix>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="MySql.Data" Version="6.10.7"/>
-        <PackageReference Include="OpenTelemetry.Api" Version="1.1.0-beta3"/>
+        <PackageReference Include="OpenTelemetry.Api" Version="1.1.0"/>
     </ItemGroup>
 
     <ItemGroup>

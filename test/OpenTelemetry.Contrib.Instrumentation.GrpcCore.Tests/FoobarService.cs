@@ -140,10 +140,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         /// Makes a unary asynchronous request.
         /// </summary>
         /// <param name="client">The client.</param>
+        /// <param name="additionalMetadata">The additional metadata.</param>
         /// <returns>A Task.</returns>
-        public static async Task MakeUnaryAsyncRequest(Foobar.FoobarClient client)
+        public static async Task MakeUnaryAsyncRequest(Foobar.FoobarClient client, Metadata additionalMetadata)
         {
-            using var call = client.UnaryAsync(DefaultRequestMessage);
+            using var call = client.UnaryAsync(DefaultRequestMessage, headers: additionalMetadata);
             _ = await call.ResponseAsync.ConfigureAwait(false);
         }
 
@@ -151,10 +152,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         /// Makes a client streaming request.
         /// </summary>
         /// <param name="client">The client.</param>
+        /// <param name="additionalMetadata">The additional metadata.</param>
         /// <returns>A Task.</returns>
-        public static async Task MakeClientStreamingRequest(Foobar.FoobarClient client)
+        public static async Task MakeClientStreamingRequest(Foobar.FoobarClient client, Metadata additionalMetadata)
         {
-            using var call = client.ClientStreaming();
+            using var call = client.ClientStreaming(headers: additionalMetadata);
             await call.RequestStream.WriteAsync(DefaultRequestMessage).ConfigureAwait(false);
             await call.RequestStream.CompleteAsync().ConfigureAwait(false);
             _ = await call.ResponseAsync.ConfigureAwait(false);
@@ -164,10 +166,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         /// Makes a server streaming request.
         /// </summary>
         /// <param name="client">The client.</param>
+        /// <param name="additionalMetadata">The additional metadata.</param>
         /// <returns>A Task.</returns>
-        public static async Task MakeServerStreamingRequest(Foobar.FoobarClient client)
+        public static async Task MakeServerStreamingRequest(Foobar.FoobarClient client, Metadata additionalMetadata)
         {
-            using var call = client.ServerStreaming(DefaultRequestMessage);
+            using var call = client.ServerStreaming(DefaultRequestMessage, headers: additionalMetadata);
             while (await call.ResponseStream.MoveNext().ConfigureAwait(false))
             {
             }
@@ -177,10 +180,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         /// Makes a duplex streaming request.
         /// </summary>
         /// <param name="client">The client.</param>
+        /// <param name="additionalMetadata">The additional metadata.</param>
         /// <returns>A Task.</returns>
-        public static async Task MakeDuplexStreamingRequest(Foobar.FoobarClient client)
+        public static async Task MakeDuplexStreamingRequest(Foobar.FoobarClient client, Metadata additionalMetadata)
         {
-            using var call = client.DuplexStreaming();
+            using var call = client.DuplexStreaming(headers: additionalMetadata);
             await call.RequestStream.WriteAsync(DefaultRequestMessage).ConfigureAwait(false);
             await call.RequestStream.CompleteAsync().ConfigureAwait(false);
 
