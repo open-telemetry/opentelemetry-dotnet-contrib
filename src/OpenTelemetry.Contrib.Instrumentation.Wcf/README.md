@@ -59,7 +59,7 @@ the clients you want to instrument:
   <system.serviceModel>
     <extensions>
       <behaviorExtensions>
-        <add name="telemetryExtension" type="OpenTelemetry.Contrib.Instrumentation.Wcf.TelemetryBehaviourExtensionElement, OpenTelemetry.Contrib.Instrumentation.Wcf"   />
+        <add name="telemetryExtension" type="OpenTelemetry.Contrib.Instrumentation.Wcf.TelemetryEndpointBehaviorExtensionElement, OpenTelemetry.Contrib.Instrumentation.Wcf"   />
       </behaviorExtensions>
     </extensions>
     <behaviors>
@@ -103,8 +103,8 @@ Example project available in
 
 ## WCF Server Configuration (.NET Framework)
 
-Add the `IDispatchMessageInspector` instrumentation via a behavior extension on
-the services you want to instrument:
+Add the `IDispatchMessageInspector` instrumentation via an endpoint behavior extension on
+the service endpoints you want to instrument:
 
 <!-- markdownlint-disable MD013 -->
 ```xml
@@ -113,7 +113,7 @@ the services you want to instrument:
   <system.serviceModel>
     <extensions>
       <behaviorExtensions>
-        <add name="telemetryExtension" type="OpenTelemetry.Contrib.Instrumentation.Wcf.TelemetryBehaviourExtensionElement, OpenTelemetry.Contrib.Instrumentation.Wcf" />
+        <add name="telemetryExtension" type="OpenTelemetry.Contrib.Instrumentation.Wcf.TelemetryEndpointBehaviorExtensionElement, OpenTelemetry.Contrib.Instrumentation.Wcf" />
       </behaviorExtensions>
     </extensions>
     <behaviors>
@@ -148,6 +148,49 @@ the services you want to instrument:
 Example project available in
 [examples/wcf/server-netframework](../../examples/wcf/server-netframework/)
 folder.
+
+To add the `IDispatchMessageInspector` instrumentation for all endpoints of a service, use the service behavior extension on
+the services you want to instrument:
+
+<!-- markdownlint-disable MD013 -->
+```xml
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+  <system.serviceModel>
+    <extensions>
+      <behaviorExtensions>
+        <add name="telemetryExtension" type="OpenTelemetry.Contrib.Instrumentation.Wcf.TelemetryServiceBehaviorExtensionElement, OpenTelemetry.Contrib.Instrumentation.Wcf" />
+      </behaviorExtensions>
+    </extensions>
+    <behaviors>
+      <serviceBehaviors>
+        <behavior name="telemetry">
+          <telemetryExtension />
+        </behavior>
+      </serviceBehaviors>
+    </behaviors>
+    <bindings>
+      <netTcpBinding>
+        <binding name="netTCPConfig">
+          <security mode="None" />
+        </binding>
+      </netTcpBinding>
+    </bindings>
+    <services>
+      <service name="Examples.Wcf.Server.StatusService" behaviorConfiguration="telemetry">
+        <endpoint binding="netTcpBinding" bindingConfiguration="netTCPConfig" contract="Examples.Wcf.IStatusServiceContract" />
+        <host>
+          <baseAddresses>
+            <add baseAddress="net.tcp://localhost:9090/Telemetry" />
+          </baseAddresses>
+        </host>
+      </service>
+    </services>
+  </system.serviceModel>
+</configuration>
+```
+<!-- markdownlint-enable MD013 -->
+
 
 ## References
 
