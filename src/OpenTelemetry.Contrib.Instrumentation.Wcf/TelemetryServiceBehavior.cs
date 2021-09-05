@@ -24,7 +24,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
 {
 #if NETFRAMEWORK
     /// <summary>
-    /// An <see cref="IServiceBehavior"/> implementation add the the
+    /// An <see cref="IServiceBehavior"/> implementation to add the
     /// <see cref="TelemetryDispatchMessageInspector"/> to service operations.
     /// </summary>
     public class TelemetryServiceBehavior : IServiceBehavior
