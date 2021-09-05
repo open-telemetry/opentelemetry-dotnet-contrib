@@ -24,7 +24,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
 {
 #if NETFRAMEWORK
     /// <summary>
-    /// An <see cref="IServiceBehavior"/> implementation add the the
+    /// An <see cref="IServiceBehavior"/> implementation to add the
     /// <see cref="TelemetryDispatchMessageInspector"/> to service operations.
     /// </summary>
     public class TelemetryServiceBehavior : IServiceBehavior
@@ -42,17 +42,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
                 var channelDispatcher = (ChannelDispatcher)channelDispatcherBase;
                 foreach (var endpointDispatcher in channelDispatcher.Endpoints)
                 {
-                    var actionMappings = new Dictionary<string, ActionMetadata>(StringComparer.OrdinalIgnoreCase);
-                    foreach (var dispatchOperation in endpointDispatcher.DispatchRuntime.Operations)
-                    {
-                        actionMappings[dispatchOperation.Action] = new ActionMetadata
-                        {
-                            ContractName = $"{endpointDispatcher.ContractNamespace}{endpointDispatcher.ContractName}",
-                            OperationName = dispatchOperation.Name,
-                        };
-                    }
-
-                    endpointDispatcher.DispatchRuntime.MessageInspectors.Add(new TelemetryDispatchMessageInspector(actionMappings));
+                    TelemetryEndpointBehavior.ApplyDispatchBehaviorToEndpoint(endpointDispatcher);
                 }
             }
         }
