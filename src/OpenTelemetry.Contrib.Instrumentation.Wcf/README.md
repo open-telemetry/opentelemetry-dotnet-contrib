@@ -103,8 +103,8 @@ Example project available in
 
 ## WCF Server Configuration (.NET Framework)
 
-Add the `IDispatchMessageInspector` instrumentation via an endpoint behavior extension on
-the service endpoints you want to instrument:
+Add the `IDispatchMessageInspector` instrumentation via an endpoint behavior
+extension on the service endpoints you want to instrument:
 
 <!-- markdownlint-disable MD013 -->
 ```xml
@@ -149,8 +149,9 @@ Example project available in
 [examples/wcf/server-netframework](../../examples/wcf/server-netframework/)
 folder.
 
-To add the `IDispatchMessageInspector` instrumentation for all endpoints of a service, use the service behavior extension on
-the services you want to instrument:
+To add the `IDispatchMessageInspector` instrumentation for all endpoints of a
+service, use the service behavior extension on the services you want to
+instrument:
 
 <!-- markdownlint-disable MD013 -->
 ```xml
@@ -190,7 +191,6 @@ the services you want to instrument:
 </configuration>
 ```
 <!-- markdownlint-enable MD013 -->
-
 
 ## References
 
