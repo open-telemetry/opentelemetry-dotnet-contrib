@@ -24,7 +24,7 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'net452'">
     <Reference Include="System.Net.Http" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Update="Resources\SampleMetadataFiles\environment.conf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
