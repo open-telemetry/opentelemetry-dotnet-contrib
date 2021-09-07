@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 #if NETSTANDARD
 using System.Runtime.InteropServices;
@@ -66,9 +67,9 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
                     new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceVersion, metadata.VersionLabel),
                 };
             }
-            catch
+            catch (Exception ex)
             {
-                // TODO: add logging for exception
+                AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSEBSResourceDetector), ex);
             }
 
             return resourceAttributes;

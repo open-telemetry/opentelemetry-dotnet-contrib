@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Models;
 
@@ -56,9 +57,9 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
                     new KeyValuePair<string, object>(AWSSemanticConventions.AttributeHostName, hostName),
                 };
             }
-            catch
+            catch (Exception ex)
             {
-                // TODO: add logging for exception
+                AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSEC2ResourceDetector), ex);
             }
 
             return resourceAttributes;

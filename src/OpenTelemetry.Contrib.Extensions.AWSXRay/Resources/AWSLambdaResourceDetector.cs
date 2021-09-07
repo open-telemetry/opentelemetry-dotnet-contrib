@@ -48,9 +48,9 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
                     new KeyValuePair<string, object>(AWSSemanticConventions.AttributeFaasVersion, GetFunctionVersion()),
                 };
             }
-            catch
+            catch (Exception ex)
             {
-                // TODO: add logging for exception
+                AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSLambdaResourceDetector), ex);
             }
 
             return resourceAttributes;

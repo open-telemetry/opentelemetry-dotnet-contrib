@@ -15,6 +15,7 @@
 // </copyright>
 
 #if NETSTANDARD
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
@@ -60,9 +61,9 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
                     new KeyValuePair<string, object>(AWSSemanticConventions.AttributeContainerID, containerId),
                 };
             }
-            catch
+            catch (Exception ex)
             {
-                // TODO: add logging for exception
+                AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSEKSResourceDetector), ex);
             }
 
             return resourceAttributes;
