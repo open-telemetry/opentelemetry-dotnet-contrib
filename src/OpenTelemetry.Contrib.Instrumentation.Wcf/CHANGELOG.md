@@ -1,11 +1,15 @@
 # Changelog
 
-## Unreleased
+## 1.0.0-rc3
 
 * Added `TelemetryServiceBehavior`. **Breaking change** (config update
   required): Renamed `TelemetryBehaviourExtensionElement` ->
   `TelemetryEndpointBehaviorExtensionElement`
   ([#152](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/152))
+
+* Added `TelemetryContractBehaviorAttribute` which can be used for programmatic
+  configuration of WCF services & clients
+  ([#X](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/X))
 
 ## 1.0.0-rc2
 
