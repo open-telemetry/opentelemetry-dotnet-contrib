@@ -103,7 +103,7 @@ Example project available in
 
 ## WCF Server Configuration (.NET Framework)
 
-### Option 1: Add the `IDispatchMessageInspector` instrumentation via an endpoint behavior
+### Option 1: Instrument by endpoint
 
 To add the `IDispatchMessageInspector` instrumentation to select endpoints of a
 service, use the endpoint behavior extension on the service endpoints you want
@@ -152,7 +152,7 @@ Example project available in
 [examples/wcf/server-netframework](../../examples/wcf/server-netframework/)
 folder.
 
-### Option 2: Add the `IDispatchMessageInspector` instrumentation via a service behavior
+### Option 2: Instrument by service
 
 To add the `IDispatchMessageInspector` instrumentation for all endpoints of a
 service, use the service behavior extension on the services you want to
