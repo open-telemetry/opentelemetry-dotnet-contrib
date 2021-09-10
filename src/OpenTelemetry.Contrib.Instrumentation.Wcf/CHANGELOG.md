@@ -9,7 +9,7 @@
 
 * Added `TelemetryContractBehaviorAttribute` which can be used for programmatic
   configuration of WCF services & clients
-  ([#X](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/X))
+  ([#153](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/153))
 
 ## 1.0.0-rc2
 
