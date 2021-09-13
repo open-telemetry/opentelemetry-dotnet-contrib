@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>OpenTelemetry instrumentation for MySqlConnector</Description>
+    <PackageTags>$(PackageTags);distributed-tracing;MySqlConnector</PackageTags>
+    <MinVerTagPrefix>Instrumentation.MySqlConnector-</MinVerTagPrefix>
+    <SignAssembly>False</SignAssembly>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HarmonyX" Version="2.5.4" />
+    <PackageReference Include="MySqlConnector" Version="1.3.10" />
+    <PackageReference Include="OpenTelemetry.Api" Version="1.1.0" />
+  </ItemGroup>
+
+</Project>
