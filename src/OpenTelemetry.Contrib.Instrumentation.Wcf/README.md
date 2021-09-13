@@ -103,8 +103,11 @@ Example project available in
 
 ## WCF Server Configuration (.NET Framework)
 
-Add the `IDispatchMessageInspector` instrumentation via an endpoint behavior
-extension on the service endpoints you want to instrument:
+### Option 1: Instrument by endpoint
+
+To add the `IDispatchMessageInspector` instrumentation to select endpoints of a
+service, use the endpoint behavior extension on the service endpoints you want
+to instrument:
 
 <!-- markdownlint-disable MD013 -->
 ```xml
@@ -149,6 +152,8 @@ Example project available in
 [examples/wcf/server-netframework](../../examples/wcf/server-netframework/)
 folder.
 
+### Option 2: Instrument by service
+
 To add the `IDispatchMessageInspector` instrumentation for all endpoints of a
 service, use the service behavior extension on the services you want to
 instrument:
@@ -191,6 +196,26 @@ instrument:
 </configuration>
 ```
 <!-- markdownlint-enable MD013 -->
+
+## WCF Programmatic Configuration Server and/or Client (.NET Framework + .NET Core)
+
+To add `IDispatchMessageInspector` for servers (.NET Framework only) and/or
+`IClientMessageInspector` for clients (.NET Framework & .NET Core)
+programmatically, use the `TelemetryContractBehaviorAttribute` on the service
+contracts you want to instrument:
+
+```csharp
+    [ServiceContract(
+        Namespace = "http://opentelemetry.io/",
+        Name = "StatusService",
+        SessionMode = SessionMode.Allowed)]
+    [TelemetryContractBehavior]
+    public interface IStatusServiceContract
+    {
+        [OperationContract]
+        Task<StatusResponse> PingAsync(StatusRequest request);
+    }
+```
 
 ## References
 

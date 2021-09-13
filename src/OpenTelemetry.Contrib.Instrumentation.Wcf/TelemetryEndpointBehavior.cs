@@ -44,18 +44,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
         /// <inheritdoc/>
         public void ApplyClientBehavior(ServiceEndpoint endpoint, ClientRuntime clientRuntime)
         {
-            var actionMappings = new Dictionary<string, ActionMetadata>(StringComparer.OrdinalIgnoreCase);
-
-            foreach (var clientOperation in clientRuntime.ClientOperations)
-            {
-                actionMappings[clientOperation.Action] = new ActionMetadata
-                {
-                    ContractName = $"{clientRuntime.ContractNamespace}{clientRuntime.ContractName}",
-                    OperationName = clientOperation.Name,
-                };
-            }
-
-            clientRuntime.ClientMessageInspectors.Add(new TelemetryClientMessageInspector(actionMappings));
+            ApplyClientBehaviorToClientRuntime(clientRuntime);
         }
 
         /// <inheritdoc/>
@@ -69,6 +58,22 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
         /// <inheritdoc/>
         public void Validate(ServiceEndpoint endpoint)
         {
+        }
+
+        internal static void ApplyClientBehaviorToClientRuntime(ClientRuntime clientRuntime)
+        {
+            var actionMappings = new Dictionary<string, ActionMetadata>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var clientOperation in clientRuntime.ClientOperations)
+            {
+                actionMappings[clientOperation.Action] = new ActionMetadata
+                {
+                    ContractName = $"{clientRuntime.ContractNamespace}{clientRuntime.ContractName}",
+                    OperationName = clientOperation.Name,
+                };
+            }
+
+            clientRuntime.ClientMessageInspectors.Add(new TelemetryClientMessageInspector(actionMappings));
         }
 
 #if NETFRAMEWORK
