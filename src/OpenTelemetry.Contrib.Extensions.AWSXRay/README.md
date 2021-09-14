@@ -61,13 +61,13 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 The resource detectors will record the following metadata based on where
 your application is running:
 
-**AWS EC2**: cloud provider, cloud platform, account id, cloud available
+- **AWS EC2**: cloud provider, cloud platform, account id, cloud available
 zone, host id, host type, aws region, host name.
-**AWS ElasticBeanstalk**: cloud provider, cloud platform, service name,
+- **AWS ElasticBeanstalk**: cloud provider, cloud platform, service name,
 service namespace, instance id, service version.
-**AWS ECS**: cloud provider, cloud platform, container id.
-**AWS EKS**: cloud provider, cloud platform, cluster name, container id.
-**AWS Lambda**: cloud provider, cloud platform, aws region, function name,
+- **AWS ECS**: cloud provider, cloud platform, container id.
+- **AWS EKS**: cloud provider, cloud platform, cluster name, container id.
+- **AWS Lambda**: cloud provider, cloud platform, aws region, function name,
 function version.
 
 ## References
