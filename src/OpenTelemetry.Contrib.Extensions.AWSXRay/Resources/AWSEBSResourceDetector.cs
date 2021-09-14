@@ -75,7 +75,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
             return resourceAttributes;
         }
 
-        private AWSEBSMetadataModel GetEBSMetadata(string filePath)
+        internal AWSEBSMetadataModel GetEBSMetadata(string filePath)
         {
             return ResourceDetectorUtils.DeserializeFromFile<AWSEBSMetadataModel>(filePath);
         }

@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-#if NETSTANDARD
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -45,8 +44,8 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
 
             try
             {
-                var clusterName = this.GetEKSClusterName();
-                var containerId = this.GetEKSContainerId();
+                var clusterName = this.GetEKSClusterName(AWSEKSCredentialPath);
+                var containerId = this.GetEKSContainerId(AWSEKSMetadataFilePath);
 
                 if (clusterName == null && containerId == null)
                 {
@@ -69,9 +68,49 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
             return resourceAttributes;
         }
 
-        private string GetEKSClusterName()
+        internal string GetEKSCredentials(string path)
         {
-            var credentials = this.GetEKSCredentials();
+            StringBuilder stringBuilder = new StringBuilder();
+
+            using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
+            {
+                while (!streamReader.EndOfStream)
+                {
+                    stringBuilder.Append(streamReader.ReadLine().Trim());
+                }
+            }
+
+            return "Bearer " + stringBuilder.ToString();
+        }
+
+        internal string GetEKSContainerId(string path)
+        {
+            string containerId = null;
+
+            using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
+            {
+                while (!streamReader.EndOfStream)
+                {
+                    var trimmedLine = streamReader.ReadLine().Trim();
+                    if (trimmedLine.Length > 64)
+                    {
+                        containerId = trimmedLine.Substring(trimmedLine.Length - 64);
+                        return containerId;
+                    }
+                }
+            }
+
+            return containerId;
+        }
+
+        internal AWSEKSClusterInformationModel DeserializeResponse(string response)
+        {
+            return ResourceDetectorUtils.DeserializeFromString<AWSEKSClusterInformationModel>(response);
+        }
+
+        private string GetEKSClusterName(string path)
+        {
+            var credentials = this.GetEKSCredentials(path);
 
             if (!this.IsEKSProcess(credentials))
             {
@@ -103,46 +142,5 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
             httpClientHandler.ClientCertificates.Add(new X509Certificate2(AWSEKSCertificatePath));
             return httpClientHandler;
         }
-
-        private AWSEKSClusterInformationModel DeserializeResponse(string response)
-        {
-            return ResourceDetectorUtils.DeserializeFromString<AWSEKSClusterInformationModel>(response);
-        }
-
-        private string GetEKSCredentials()
-        {
-            StringBuilder stringBuilder = new StringBuilder();
-
-            using (var streamReader = ResourceDetectorUtils.GetStreamReader(AWSEKSCredentialPath))
-            {
-                while (!streamReader.EndOfStream)
-                {
-                    stringBuilder.Append(streamReader.ReadLine().Trim());
-                }
-            }
-
-            return "Bearer " + stringBuilder.ToString();
-        }
-
-        private string GetEKSContainerId()
-        {
-            string containerId = null;
-
-            using (var streamReader = ResourceDetectorUtils.GetStreamReader(AWSEKSMetadataFilePath))
-            {
-                while (!streamReader.EndOfStream)
-                {
-                    var trimmedLine = streamReader.ReadLine().Trim();
-                    if (trimmedLine.Length > 64)
-                    {
-                        containerId = trimmedLine.Substring(trimmedLine.Length - 64);
-                        return containerId;
-                    }
-                }
-            }
-
-            return containerId;
-        }
     }
 }
-#endif

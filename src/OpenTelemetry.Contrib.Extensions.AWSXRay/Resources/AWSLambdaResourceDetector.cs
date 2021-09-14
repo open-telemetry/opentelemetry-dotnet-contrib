@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-#if NETSTANDARD
 using System;
 using System.Collections.Generic;
 
@@ -72,4 +71,3 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
         }
     }
 }
-#endif

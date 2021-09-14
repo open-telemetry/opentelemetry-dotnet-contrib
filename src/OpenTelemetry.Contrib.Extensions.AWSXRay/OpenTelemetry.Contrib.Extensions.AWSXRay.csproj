@@ -11,4 +11,10 @@
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
+    <Compile Remove="Resources\AWSECSResourceDetector.cs" />
+    <Compile Remove="Resources\AWSEKSResourceDetector.cs" />
+    <Compile Remove="Resources\AWSLambdaResourceDetector.cs" />
+  </ItemGroup>
+
 </Project>

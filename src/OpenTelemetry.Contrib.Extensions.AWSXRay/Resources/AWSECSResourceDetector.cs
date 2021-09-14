@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-#if NETSTANDARD
 using System;
 using System.Collections.Generic;
 
@@ -44,7 +43,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
 
             try
             {
-                var containerId = this.GetECSContainerId();
+                var containerId = this.GetECSContainerId(AWSECSMetadataPath);
 
                 resourceAttributes = new List<KeyValuePair<string, object>>()
                 {
@@ -61,11 +60,11 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
             return resourceAttributes;
         }
 
-        private string GetECSContainerId()
+        internal string GetECSContainerId(string path)
         {
             string containerId = null;
 
-            using (var streamReader = ResourceDetectorUtils.GetStreamReader(AWSECSMetadataPath))
+            using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
             {
                 while (!streamReader.EndOfStream)
                 {
@@ -81,10 +80,9 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
             return containerId;
         }
 
-        private bool IsECSProcess()
+        internal bool IsECSProcess()
         {
             return Environment.GetEnvironmentVariable(AWSECSMetadataURLKey) != null || Environment.GetEnvironmentVariable(AWSECSMetadataURLV4Key) != null;
         }
     }
 }
-#endif

@@ -65,6 +65,11 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
             return resourceAttributes;
         }
 
+        internal AWSEC2IdentityDocumentModel DeserializeResponse(string response)
+        {
+            return ResourceDetectorUtils.DeserializeFromString<AWSEC2IdentityDocumentModel>(response);
+        }
+
         private string GetAWSEC2Token()
         {
             return ResourceDetectorUtils.SendOutRequest(AWSEC2MetadataTokenUrl, "PUT", new KeyValuePair<string, string>(AWSEC2MetadataTokenTTLHeader, "60")).Result;
@@ -81,11 +86,6 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
         private string GetIdentityResponse(string token)
         {
             return ResourceDetectorUtils.SendOutRequest(AWSEC2IdentityDocumentUrl, "GET", new KeyValuePair<string, string>(AWSEC2MetadataTokenHeader, token)).Result;
-        }
-
-        private AWSEC2IdentityDocumentModel DeserializeResponse(string response)
-        {
-            return ResourceDetectorUtils.DeserializeFromString<AWSEC2IdentityDocumentModel>(response);
         }
 
         private string GetAWSEC2HostName(string token)
