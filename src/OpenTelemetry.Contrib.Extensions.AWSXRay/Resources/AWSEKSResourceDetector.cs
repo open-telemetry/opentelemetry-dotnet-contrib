@@ -52,18 +52,25 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
                     return resourceAttributes;
                 }
 
-                resourceAttributes = new List<KeyValuePair<string, object>>()
-                {
-                    new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-                    new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_eks"),
-                    new KeyValuePair<string, object>(AWSSemanticConventions.AttributeK8SClusterName, clusterName),
-                    new KeyValuePair<string, object>(AWSSemanticConventions.AttributeContainerID, containerId),
-                };
+                resourceAttributes = this.ExtractResourceAttributes(clusterName, containerId);
             }
             catch (Exception ex)
             {
                 AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSEKSResourceDetector), ex);
             }
+
+            return resourceAttributes;
+        }
+
+        internal List<KeyValuePair<string, object>> ExtractResourceAttributes(string clusterName, string containerId)
+        {
+            var resourceAttributes = new List<KeyValuePair<string, object>>()
+            {
+                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
+                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_eks"),
+                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeK8SClusterName, clusterName),
+                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeContainerID, containerId),
+            };
 
             return resourceAttributes;
         }

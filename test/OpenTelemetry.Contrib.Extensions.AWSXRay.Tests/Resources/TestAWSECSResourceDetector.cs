@@ -15,6 +15,8 @@
 // </copyright>
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 using Xunit;
 
@@ -25,6 +27,28 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources
         private const string AWSECSMetadataFilePath = "Resources/SampleMetadataFiles/testcgroup";
         private const string AWSECSMetadataURLKey = "ECS_CONTAINER_METADATA_URI";
         private const string AWSECSMetadataURLV4Key = "ECS_CONTAINER_METADATA_URI_V4";
+
+        [Fact]
+        public void TestDetect()
+        {
+            IEnumerable<KeyValuePair<string, object>> resourceAttributes;
+            var ecsResourceDetector = new AWSECSResourceDetector();
+            resourceAttributes = ecsResourceDetector.Detect();
+            Assert.Null(resourceAttributes); // will be null as it's not in ecs environment
+        }
+
+        [Fact]
+        public void TestExtractResourceAttributes()
+        {
+            var ecsResourceDetector = new AWSECSResourceDetector();
+            var containerId = "Test container id";
+
+            var resourceAttributes = ecsResourceDetector.ExtractResourceAttributes(containerId).ToDictionary(x => x.Key, x => x.Value);
+
+            Assert.Equal("aws", resourceAttributes[AWSSemanticConventions.AttributeCloudProvider]);
+            Assert.Equal("aws_ecs", resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform]);
+            Assert.Equal("Test container id", resourceAttributes[AWSSemanticConventions.AttributeContainerID]);
+        }
 
         [Fact]
         public void TestGetECSContainerId()

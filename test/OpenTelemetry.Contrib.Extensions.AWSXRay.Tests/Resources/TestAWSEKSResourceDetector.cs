@@ -14,6 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+using System.Collections.Generic;
+using System.Linq;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 using Xunit;
 
@@ -23,6 +25,30 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources
     {
         private const string AWSEKSCredentialsPath = "Resources/SampleMetadataFiles/testekstoken";
         private const string AWSEKSMetadataFilePath = "Resources/SampleMetadataFiles/testcgroup";
+
+        [Fact]
+        public void TestDetect()
+        {
+            IEnumerable<KeyValuePair<string, object>> resourceAttributes;
+            var eksResourceDetector = new AWSEKSResourceDetector();
+            resourceAttributes = eksResourceDetector.Detect();
+            Assert.Null(resourceAttributes); // will be null as it's not in eks environment
+        }
+
+        [Fact]
+        public void TestExtractResourceAttributes()
+        {
+            var eksResourceDetector = new AWSEKSResourceDetector();
+            var clusterName = "Test cluster name";
+            var containerId = "Test container id";
+
+            var resourceAttributes = eksResourceDetector.ExtractResourceAttributes(clusterName, containerId).ToDictionary(x => x.Key, x => x.Value);
+
+            Assert.Equal("aws", resourceAttributes[AWSSemanticConventions.AttributeCloudProvider]);
+            Assert.Equal("aws_eks", resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform]);
+            Assert.Equal("Test cluster name", resourceAttributes[AWSSemanticConventions.AttributeK8SClusterName]);
+            Assert.Equal("Test container id", resourceAttributes[AWSSemanticConventions.AttributeContainerID]);
+        }
 
         [Fact]
         public void TestGetEKSCredentials()

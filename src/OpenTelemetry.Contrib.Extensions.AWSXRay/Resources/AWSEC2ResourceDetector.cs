@@ -45,22 +45,29 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
                 var identity = this.GetAWSEC2Identity(token);
                 var hostName = this.GetAWSEC2HostName(token);
 
-                resourceAttributes = new List<KeyValuePair<string, object>>()
-                {
-                    new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-                    new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_ec2"),
-                    new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudAccountID, identity.AccountId),
-                    new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudAvailableZone, identity.AvailabilityZone),
-                    new KeyValuePair<string, object>(AWSSemanticConventions.AttributeHostID, identity.InstanceId),
-                    new KeyValuePair<string, object>(AWSSemanticConventions.AttributeHostType, identity.InstanceType),
-                    new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudRegion, identity.Region),
-                    new KeyValuePair<string, object>(AWSSemanticConventions.AttributeHostName, hostName),
-                };
+                resourceAttributes = this.ExtractResourceAttributes(identity, hostName);
             }
             catch (Exception ex)
             {
                 AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSEC2ResourceDetector), ex);
             }
+
+            return resourceAttributes;
+        }
+
+        internal List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEC2IdentityDocumentModel identity, string hostName)
+        {
+            var resourceAttributes = new List<KeyValuePair<string, object>>()
+            {
+                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
+                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_ec2"),
+                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudAccountID, identity.AccountId),
+                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudAvailableZone, identity.AvailabilityZone),
+                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeHostID, identity.InstanceId),
+                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeHostType, identity.InstanceType),
+                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudRegion, identity.Region),
+                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeHostName, hostName),
+            };
 
             return resourceAttributes;
         }

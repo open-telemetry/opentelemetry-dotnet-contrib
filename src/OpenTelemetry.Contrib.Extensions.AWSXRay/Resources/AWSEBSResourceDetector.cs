@@ -57,20 +57,27 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
 
                 var metadata = this.GetEBSMetadata(filePath);
 
-                resourceAttributes = new List<KeyValuePair<string, object>>()
-                {
-                    new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-                    new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_elastic_beanstalk"),
-                    new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceName, "aws_elastic_beanstalk"),
-                    new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceNamespace, metadata.EnvironmentName),
-                    new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceInstanceID, metadata.DeploymentId),
-                    new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceVersion, metadata.VersionLabel),
-                };
+                resourceAttributes = this.ExtractResourceAttributes(metadata);
             }
             catch (Exception ex)
             {
                 AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSEBSResourceDetector), ex);
             }
+
+            return resourceAttributes;
+        }
+
+        internal List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEBSMetadataModel metadata)
+        {
+            var resourceAttributes = new List<KeyValuePair<string, object>>()
+            {
+                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
+                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_elastic_beanstalk"),
+                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceName, "aws_elastic_beanstalk"),
+                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceNamespace, metadata.EnvironmentName),
+                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceInstanceID, metadata.DeploymentId),
+                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceVersion, metadata.VersionLabel),
+            };
 
             return resourceAttributes;
         }

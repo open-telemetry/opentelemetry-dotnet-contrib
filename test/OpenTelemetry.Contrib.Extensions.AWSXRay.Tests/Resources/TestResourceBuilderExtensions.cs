@@ -35,7 +35,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources
             using var tracerProvider = Sdk.CreateTracerProviderBuilder()
                                           .SetResourceBuilder(ResourceBuilder
                                           .CreateDefault()
-                                          .AddDetector(new AWSLambdaResourceDetector())) // use lambda resource detector hhere as it doesn't require sending identical http request to aws endpoint
+                                          .AddDetector(new AWSLambdaResourceDetector())) // use lambda resource detector here as it doesn't require sending identical http request to aws endpoint
                                           .Build();
 
             var resource = tracerProvider.GetResource();

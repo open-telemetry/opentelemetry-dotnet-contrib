@@ -45,17 +45,24 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
             {
                 var containerId = this.GetECSContainerId(AWSECSMetadataPath);
 
-                resourceAttributes = new List<KeyValuePair<string, object>>()
-                {
-                    new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-                    new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_ecs"),
-                    new KeyValuePair<string, object>(AWSSemanticConventions.AttributeContainerID, containerId),
-                };
+                resourceAttributes = this.ExtractResourceAttributes(containerId);
             }
             catch (Exception ex)
             {
                 AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSResourceDetector), ex);
             }
+
+            return resourceAttributes;
+        }
+
+        internal List<KeyValuePair<string, object>> ExtractResourceAttributes(string containerId)
+        {
+            var resourceAttributes = new List<KeyValuePair<string, object>>()
+            {
+                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
+                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_ecs"),
+                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeContainerID, containerId),
+            };
 
             return resourceAttributes;
         }
