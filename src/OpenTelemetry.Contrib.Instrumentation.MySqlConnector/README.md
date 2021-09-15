@@ -56,14 +56,14 @@ This instrumentation can be configured to change the default behavior by using
 
 ### Capturing 'db.statement'
 
-The `MySqlConnectorInstrumentationOptions` class exposes several properties that can be
-used to configure how the [`db.statement`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md#call-level-attributes)
+The `MySqlConnectorInstrumentationOptions` class exposes several properties that
+can be used to configure how the [`db.statement`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md#call-level-attributes)
 attribute is captured upon execution of a query.
 
 #### SetDbStatement
 
-The `SetDbStatement` property can be used to control whether this instrumentation
-should set the [`db.statement`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md#call-level-attributes)
+The `SetDbStatement` property can be used to control whether this
+instrumentation should set the [`db.statement`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md#call-level-attributes)
 attribute to the text of the `MySqlCommand` being executed.
 
 Since `CommandType.Text` might contain sensitive data, SQL capturing is
@@ -104,9 +104,6 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
 
 This option can be set to instruct the instrumentation to record Exceptions
 as Activity [events](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/exceptions.md).
-
-> Due to the limitation of this library's implementation, We cannot get the raw `MysqlException`,
-> only exception message is available.
 
 The default value is `false` and can be changed by the code like below.
 
