@@ -6,11 +6,11 @@ by using AWS Distro with the OpenTelemetry SDK.
 ## Getting Started
 
 The OpenTelemetry SDK generates traces with W3C random ID which X-Ray
-backend doesn’t currently support. You need to install the
+backend doesn't currently support. You need to install the
 `OpenTelemetry.Contrib.Extensions.AWSXRay` to be able to use the
 AWS X-Ray id generator which generates X-Ray compatible trace IDs.
 If you plan to call another application instrumented with AWS X-Ray SDK,
-you’ll need to configure the AWS X-Ray propagator as well.
+you'll need to configure the AWS X-Ray propagator as well.
 
 ```shell
 dotnet add package OpenTelemetry.Contrib.Extensions.AWSXRay
@@ -61,16 +61,16 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 The resource detectors will record the following metadata based on where
 your application is running:
 
-**AWS EC2**: cloud provider, cloud platform, account id, cloud available
+- **AWS EC2**: cloud provider, cloud platform, account id, cloud available
 zone, host id, host type, aws region, host name.
-**AWS ElasticBeanstalk**: cloud provider, cloud platform, service name,
+- **AWS ElasticBeanstalk**: cloud provider, cloud platform, service name,
 service namespace, instance id, service version.
-**AWS ECS**: cloud provider, cloud platform, container id.
-**AWS EKS**: cloud provider, cloud platform, cluster name, container id.
-**AWS Lambda**: cloud provider, cloud platform, aws region, function name,
+- **AWS ECS**: cloud provider, cloud platform, container id.
+- **AWS EKS**: cloud provider, cloud platform, cluster name, container id.
+- **AWS Lambda**: cloud provider, cloud platform, aws region, function name,
 function version.
 
 ## References
 
-* [OpenTelemetry Project](https://opentelemetry.io/)
-* [AWS Distro for OpenTelemetry .NET](https://aws-otel.github.io/docs/getting-started/dotnet-sdk)
+- [OpenTelemetry Project](https://opentelemetry.io/)
+- [AWS Distro for OpenTelemetry .NET](https://aws-otel.github.io/docs/getting-started/dotnet-sdk)
