@@ -38,6 +38,10 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources
             Assert.Equal("us-east-1", resourceAttributes[AWSSemanticConventions.AttributeCloudRegion]);
             Assert.Equal("testfunction", resourceAttributes[AWSSemanticConventions.AttributeFaasName]);
             Assert.Equal("latest", resourceAttributes[AWSSemanticConventions.AttributeFaasVersion]);
+
+            Environment.SetEnvironmentVariable("AWS_REGION", null);
+            Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_NAME", null);
+            Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_VERSION", null);
         }
     }
 }
