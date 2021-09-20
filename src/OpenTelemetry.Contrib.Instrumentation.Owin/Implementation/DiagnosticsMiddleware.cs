@@ -55,6 +55,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Owin
             catch (Exception ex)
             {
                 RequestEnd(owinContext, ex);
+                throw;
             }
         }
 
