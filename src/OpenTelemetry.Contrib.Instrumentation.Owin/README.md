@@ -50,7 +50,7 @@ OpenTelemetry instrumentation which listens to the OWIN diagnostic events.
         .Build();
 ```
 
-## Customize OWIN span display names
+## Customize OWIN span names
 
 The OpenTelemetry OWIN instrumentation will create spans with very generic names
 based on the http method of the request. For example: `HTTP GET` or `HTTP POST`.
