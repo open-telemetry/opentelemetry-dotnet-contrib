@@ -1,4 +1,4 @@
-// <copyright file="TracerProviderBuilderExtensions.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="TracerProviderBuilderExtensions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,7 @@
 // </copyright>
 
 using System;
-using OpenTelemetry.Instrumentation.Owin;
+using OpenTelemetry.Contrib.Instrumentation.Owin;
 
 namespace OpenTelemetry.Trace
 {
@@ -42,9 +42,9 @@ namespace OpenTelemetry.Trace
             var owinOptions = new OwinInstrumentationOptions();
             configureOwinInstrumentationOptions?.Invoke(owinOptions);
 
-            builder.AddInstrumentation(activitySource => new OwinInstrumentation(activitySource, owinOptions));
+            OwinInstrumentationActivitySource.Options = owinOptions;
 
-            return builder;
+            return builder.AddSource(OwinInstrumentationActivitySource.ActivitySourceName);
         }
     }
 }

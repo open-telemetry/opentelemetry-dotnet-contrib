@@ -1,4 +1,4 @@
-// <copyright file="OwinInstrumentationEventSource.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="OwinEnrichEventNames.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,16 +14,21 @@
 // limitations under the License.
 // </copyright>
 
-using System.Diagnostics.Tracing;
-
-namespace OpenTelemetry.Instrumentation.Owin.Implementation
+namespace OpenTelemetry.Contrib.Instrumentation.Owin
 {
     /// <summary>
-    /// EventSource events emitted from the project.
+    /// Constants used for event names when enriching an activity.
     /// </summary>
-    [EventSource(Name = "OpenTelemetry-Instrumentation-Owin")]
-    internal class OwinInstrumentationEventSource : EventSource
+    public class OwinEnrichEventNames
     {
-        public static OwinInstrumentationEventSource Log = new OwinInstrumentationEventSource();
+        /// <summary>
+        /// Begin request.
+        /// </summary>
+        public const string BeginRequest = "BeginRequest";
+
+        /// <summary>
+        /// End request.
+        /// </summary>
+        public const string EndRequest = "BeginRequest";
     }
 }

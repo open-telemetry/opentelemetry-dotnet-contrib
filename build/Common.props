@@ -26,6 +26,7 @@
     <MicrosoftCodeCoveragePkgVer>[16.7.1]</MicrosoftCodeCoveragePkgVer>
     <MicrosoftExtensionsHostingAbstractionsPkgVer>[2.1.0,5.0)</MicrosoftExtensionsHostingAbstractionsPkgVer>
     <MicrosoftNETFrameworkReferenceAssembliesPkgVer>[1.0.0,2.0)</MicrosoftNETFrameworkReferenceAssembliesPkgVer>
+    <MicrosoftOwinPkgVer>[4.1.1]</MicrosoftOwinPkgVer>
     <MicrosoftPublicApiAnalyzersPkgVer>[3.3.2]</MicrosoftPublicApiAnalyzersPkgVer>
     <MicrosoftSourceLinkGitHubPkgVer>[1.0.0,2.0)</MicrosoftSourceLinkGitHubPkgVer>
     <StyleCopAnalyzersPkgVer>[1.1.118,2.0)</StyleCopAnalyzersPkgVer>
