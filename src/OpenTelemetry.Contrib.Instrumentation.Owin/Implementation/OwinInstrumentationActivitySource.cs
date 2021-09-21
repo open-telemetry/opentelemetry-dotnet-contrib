@@ -23,7 +23,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Owin
     {
         public const string ActivitySourceName = "OpenTelemetry.OWIN";
         public const string IncomingRequestActivityName = ActivitySourceName + ".IncomingRequest";
-        public const string OutgoingRequestActivityName = ActivitySourceName + ".OutgoingRequest";
 
         private static readonly Version Version = typeof(OwinInstrumentationActivitySource).Assembly.GetName().Version;
 

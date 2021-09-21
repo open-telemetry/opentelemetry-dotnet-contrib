@@ -1,4 +1,4 @@
-﻿// <copyright file="OwinEnrichEventNames.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="TestController.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,21 +14,17 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Contrib.Instrumentation.Owin
-{
-    /// <summary>
-    /// Constants used for event names when enriching an activity.
-    /// </summary>
-    public class OwinEnrichEventNames
-    {
-        /// <summary>
-        /// Begin request.
-        /// </summary>
-        public const string BeginRequest = "BeginRequest";
+using System;
+using System.Web.Http;
 
-        /// <summary>
-        /// End request.
-        /// </summary>
-        public const string EndRequest = "EndRequest";
+namespace OpenTelemetry.Contrib.Instrumentation.Owin.Tests.Controllers
+{
+    public class TestController : ApiController
+    {
+        // GET api/test/{id}
+        public string Get(string id = null)
+        {
+            return $"id:{id}";
+        }
     }
 }
