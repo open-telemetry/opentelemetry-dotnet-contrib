@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30204.135
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31710.8
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}"
 EndProject
@@ -143,6 +143,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Exten
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Extensions.AzureMonitor.Tests", "test\OpenTelemetry.Contrib.Extensions.AzureMonitor.Tests\OpenTelemetry.Contrib.Extensions.AzureMonitor.Tests.csproj", "{771651AA-010F-4FF6-9CB2-BAFFE5E04FC2}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.HttpTelemetryHandler", "src\OpenTelemetry.Contrib.Instrumentation.HttpTelemetryHandler\OpenTelemetry.Contrib.Instrumentation.HttpTelemetryHandler.csproj", "{D3FDF78C-E7E8-4015-8228-2BDC26728731}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -273,6 +275,10 @@ Global
 		{771651AA-010F-4FF6-9CB2-BAFFE5E04FC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{771651AA-010F-4FF6-9CB2-BAFFE5E04FC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{771651AA-010F-4FF6-9CB2-BAFFE5E04FC2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3FDF78C-E7E8-4015-8228-2BDC26728731}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3FDF78C-E7E8-4015-8228-2BDC26728731}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3FDF78C-E7E8-4015-8228-2BDC26728731}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3FDF78C-E7E8-4015-8228-2BDC26728731}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -314,6 +320,7 @@ Global
 		{4172D671-3AAC-443F-9EB0-A6608B154AF0} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{9C2D6D1A-8580-4527-B718-E206D0690635} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{771651AA-010F-4FF6-9CB2-BAFFE5E04FC2} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{D3FDF78C-E7E8-4015-8228-2BDC26728731} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
