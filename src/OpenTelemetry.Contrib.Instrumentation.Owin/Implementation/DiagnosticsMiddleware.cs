@@ -70,7 +70,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.Owin
                     return;
                 }
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 OwinInstrumentationEventSource.Log.RequestFilterException(ex);
                 return;
@@ -127,11 +129,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.Owin
                     {
                         OwinInstrumentationActivitySource.Options.Enrich?.Invoke(
                             activity,
-                            OwinEnrichEventNames.BeginRequest,
+                            OwinEnrichEventType.BeginRequest,
                             owinContext,
                             null);
                     }
+#pragma warning disable CA1031 // Do not catch general exception types
                     catch (Exception ex)
+#pragma warning restore CA1031 // Do not catch general exception types
                     {
                         OwinInstrumentationEventSource.Log.EnrichmentException(ex);
                     }
@@ -181,11 +185,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.Owin
                     {
                         OwinInstrumentationActivitySource.Options.Enrich?.Invoke(
                             activity,
-                            OwinEnrichEventNames.EndRequest,
+                            OwinEnrichEventType.EndRequest,
                             owinContext,
                             exception);
                     }
+#pragma warning disable CA1031 // Do not catch general exception types
                     catch (Exception ex)
+#pragma warning restore CA1031 // Do not catch general exception types
                     {
                         OwinInstrumentationEventSource.Log.EnrichmentException(ex);
                     }

@@ -42,7 +42,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Owin
         /// <summary>
         /// Gets or sets an action to enrich the <see cref="Activity"/> created by the instrumentation.
         /// </summary>
-        public Action<Activity, string, IOwinContext, Exception> Enrich { get; set; }
+        public Action<Activity, OwinEnrichEventType, IOwinContext, Exception> Enrich { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the exception will be recorded as <see cref="ActivityEvent"/> or not.

@@ -139,11 +139,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.Owin.Tests
                                 {
                                     switch (eventName)
                                     {
-                                        case OwinEnrichEventNames.BeginRequest:
-                                            activity.SetTag("client.beginrequest", OwinEnrichEventNames.BeginRequest);
+                                        case OwinEnrichEventType.BeginRequest:
+                                            activity.SetTag("client.beginrequest", nameof(OwinEnrichEventType.BeginRequest));
                                             break;
-                                        case OwinEnrichEventNames.EndRequest:
-                                            activity.SetTag("client.endrequest", OwinEnrichEventNames.EndRequest);
+                                        case OwinEnrichEventType.EndRequest:
+                                            activity.SetTag("client.endrequest", nameof(OwinEnrichEventType.EndRequest));
                                             break;
                                     }
                                 };
@@ -209,8 +209,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.Owin.Tests
 
                     if (enrich && !enrichmentException)
                     {
-                        Assert.Equal(OwinEnrichEventNames.BeginRequest, activity.TagObjects.Single(t => t.Key == "client.beginrequest").Value);
-                        Assert.Equal(OwinEnrichEventNames.EndRequest, activity.TagObjects.Single(t => t.Key == "client.endrequest").Value);
+                        Assert.Equal(nameof(OwinEnrichEventType.BeginRequest), activity.TagObjects.Single(t => t.Key == "client.beginrequest").Value);
+                        Assert.Equal(nameof(OwinEnrichEventType.EndRequest), activity.TagObjects.Single(t => t.Key == "client.endrequest").Value);
                     }
                 }
                 else
