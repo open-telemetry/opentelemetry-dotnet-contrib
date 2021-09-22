@@ -34,7 +34,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Owin.Tests
     {
         private readonly Uri serviceBaseUri;
         private readonly IDisposable listener;
-        private readonly EventWaitHandle requestCompleteHandle = new (false, EventResetMode.AutoReset);
+        private readonly EventWaitHandle requestCompleteHandle = new(false, EventResetMode.AutoReset);
 
         public DiagnosticsMiddlewareTests()
         {
