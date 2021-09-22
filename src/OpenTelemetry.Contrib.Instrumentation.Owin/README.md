@@ -83,7 +83,9 @@ to display once a route has been resolved. Here is how this can be done using We
 
     private class ActivityDisplayNameRouteEnrichingHandler : DelegatingHandler
     {
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
         {
             try
             {
