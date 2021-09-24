@@ -25,4 +25,23 @@
     <Reference Include="System.Net.Http" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp2.1' AND '$(TargetFramework)' != 'netcoreapp3.1'">
+    <Compile Remove="Resources\TestAWSECSResourceDetector.cs" />
+    <Compile Remove="Resources\TestAWSEKSResourceDetector.cs" />
+    <Compile Remove="Resources\TestAWSLambdaResourceDetector.cs" />
+    <Compile Remove="Resources\TestResourceBuilderExtensions.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\SampleMetadataFiles\environment.conf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\SampleMetadataFiles\testcgroup">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\SampleMetadataFiles\testekstoken">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

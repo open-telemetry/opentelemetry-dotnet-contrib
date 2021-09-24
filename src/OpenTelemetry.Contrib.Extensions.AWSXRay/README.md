@@ -5,126 +5,24 @@ by using AWS Distro with the OpenTelemetry SDK.
 
 ## Getting Started
 
-In order to instrument your .Net application for tracing,
-start by downloading the OpenTelemetry nuget package
-
-```shell
-dotnet add package OpenTelemetry
-```
-
-By default, the OpenTelemetry SDK generates traces with
-W3C random ID which X-Ray backend doesn't support yet.
-You need to install the `OpenTelemetry.Contrib.Extensions.AWSXRay`
-to be able to use the `AWSXRayIdGenerator` which generates X-Ray
-compatible trace IDs. If you plan to call an AWS service or
-another application instrumented with AWS X-Ray SDK, you'll
-need to use the `AWSXRayPropagator` as well.
+The OpenTelemetry SDK generates traces with W3C random ID which X-Ray
+backend doesn't currently support. You need to install the
+`OpenTelemetry.Contrib.Extensions.AWSXRay` to be able to use the
+AWS X-Ray id generator which generates X-Ray compatible trace IDs.
+If you plan to call another application instrumented with AWS X-Ray SDK,
+you'll need to configure the AWS X-Ray propagator as well.
 
 ```shell
 dotnet add package OpenTelemetry.Contrib.Extensions.AWSXRay
 ```
 
-### Note
+## Usage
 
-* You'll also need to have the [AWS Distro for OpenTelemetry
-Collector](https://github.com/aws-observability/aws-otel-collector)
-running to export traces to X-Ray.
+### AWS X-Ray Id Generator and Propagator
 
-### Instrumenting .Net applications
-
-#### ASP.Net Core
-
-Start by downloading the ASP.Net Core and OTLP exporter instrumentation
-packages
-
-```shell
-dotnet add package OpenTelemetry.Instrumentation.AspNetCore
-dotnet add package OpenTelemetry.Exporter.OpenTelemetryProtocol
-```
-
-Next, in your application's **Startup.cs** add the instrumentation
-and the OTLP exporter as services in the `ConfigureServices` method.
-Make sure to call `AddXRayTraceId()` in the **beginning** when
-building `TracerProviderBuilder`. If you want to trace AWS services,
-make sure to configure `AWSXRayPropagator`.
-
-```csharp
-using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
-using OpenTelemetry.Trace;
-
-public void ConfigureServices(IServiceCollection services)
-{
-    services.AddOpenTelemetryTracing((builder) => builder
-        .AddXRayTraceId() // for generating AWS X-Ray compliant trace IDs
-        .AddAspNetCoreInstrumentation()
-        .AddOtlpExporter());
-    Sdk.SetDefaultTextMapPropagator(new AWSXRayPropagator());
-}
-```
-
-By default the OTLP exporter sends data to an OpenTelemetry
-collector at **localhost:4317**
-
-#### ASP.Net
-
-Download the ASP.Net and OTLP exporter instrumentation packages
-
-```shell
-dotnet add package OpenTelemetry.Instrumentation.AspNet
-dotnet add package OpenTelemetry.Exporter.OpenTelemetryProtocol
-```
-
-The ASP.Net instrumentation requires modification to Web.config to add
-a HttpModule to your web server.
-
-```xml
-<system.webServer>
-    <modules>
-    <add name="TelemetryCorrelationHttpModule"
-    type="Microsoft.AspNet.TelemetryCorrelation.TelemetryCorrelationHttpModule,
-    Microsoft.AspNet.TelemetryCorrelation"
-    preCondition="integratedMode,managedHandler" />
-    </modules>
-</system.webServer>
-```
-
-Now all you need to do is enable the instrumentation for the application startup.
-This is done in the **Global.asax.cs** as shown below. Make sure to call
-`AddXRayTraceId()` in the **beginning** when building `TracerProviderBuilder`.
-If you want to trace AWS services, make sure to configure `AWSXRayPropagator`.
-
-```csharp
-using OpenTelemetry;
-using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
-using OpenTelemetry.Trace;
-
-public class WebApiApplication : HttpApplication
-{
-    private TracerProvider tracerProvider;
-    protected void Application_Start()
-    {
-        this.tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddXRayTraceId() // for generating AWS X-Ray compliant trace IDs
-            .AddAspNetInstrumentation()
-            .AddOtlpExporter()
-            .Build();
-        Sdk.SetDefaultTextMapPropagator(new AWSXRayPropagator());
-    }
-
-    protected void Application_End()
-    {
-        this.tracerProvider?.Dispose();
-    }
-}
-```
-
-#### Console
-
-Make sure to call `AddXRayTraceIdWithSampler()` in the **beginning**
-when building `TracerProviderBuilder`. You'll need to pass the sampler
-you're using in your application. If you're using the default sampler,
-just pass `new ParentBasedSampler(new AlwaysOnSampler())`.
-If you want to trace AWS services, make sure to configure `AWSXRayPropagator`.
+Configure AWS X-Ray ID generator and propagator globally in your
+application as follows. Make sure to call `AddXRayTraceId()` in the
+very beginning when creating `TracerProvider`.
 
 ```csharp
 using OpenTelemetry;
@@ -132,16 +30,48 @@ using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
 using OpenTelemetry.Trace;
 
 var tracerProvider = Sdk.CreateTracerProviderBuilder()
-    // generating AWS X-Ray compliant trace IDs
-    .AddXRayTraceIdWithSampler(your_sampler)
-    .AddOtlpExporter()
-    .Build();
+                        .AddXRayTraceId()
+                        // other instrumentations
+                        ...
+                        .Build();
 
-// configure AWSXRayPropagator
 Sdk.SetDefaultTextMapPropagator(new AWSXRayPropagator());
 ```
 
+### AWS Resource Detectors
+
+The ADOT .NET SDK supports automatically recording metadata in
+EC2, Elastic Beanstalk, ECS, and EKS environments. You can configure
+the corresponding resource detector to the `TracerProvider` following
+the EC2 example below.
+
+```csharp
+using OpenTelemetry;
+using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
+using OpenTelemetry.Resources;
+
+var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                        // other configurations
+                        .SetResourceBuilder(ResourceBuilder
+                            .CreateDefault()
+                            .AddDetector(new AWSEC2ResourceDetector()))
+                        .Build();
+```
+
+The resource detectors will record the following metadata based on where
+your application is running:
+
+- **AWSEC2ResourceDetector**: cloud provider, cloud platform, account id,
+cloud available zone, host id, host type, aws region, host name.
+- **AWSEBSResourceDetector**: cloud provider, cloud platform, service name,
+service namespace, instance id, service version.
+- **AWSECSResourceDetector**: cloud provider, cloud platform, container id.
+- **AWSEKSResourceDetector**: cloud provider, cloud platform, cluster name,
+container id.
+- **AWSLambdaResourceDetector**: cloud provider, cloud platform, aws region,
+function name, function version.
+
 ## References
 
-* [OpenTelemetry Project](https://opentelemetry.io/)
-* [AWS Distro for OpenTelemetry Collector](https://github.com/aws-observability/aws-otel-collector)
+- [OpenTelemetry Project](https://opentelemetry.io/)
+- [AWS Distro for OpenTelemetry .NET](https://aws-otel.github.io/docs/getting-started/dotnet-sdk)
