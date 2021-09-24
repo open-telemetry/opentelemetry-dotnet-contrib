@@ -44,7 +44,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
 
         // Uri like "tcp://localhost:1234/HelloServer.rem"
         // TODO: semantic conventions don't have an attribute for a full uri of an RPC endpoint, but seems useful?
-        internal const string AttributeRpcRemotingUri = "rpc.netframework_remoting.uri";
+        internal const string AttributeRpcRemotingUri = "rpc.remoting.uri";
 
         internal const string ActivitySourceName = "OpenTelemetry.Remoting";
         private const string ActivityOutName = ActivitySourceName + ".RequestOut";
@@ -107,14 +107,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
 
                     var callContext = (LogicalCallContext)reqMsg.Properties["__CallContext"];
 
-                    this.options.Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), callContext, InjectActivityProperties);
+                    Propagators.DefaultTextMapPropagator.Inject(new PropagationContext(contextToInject, Baggage.Current), callContext, InjectActivityProperties);
                 }
                 else
                 {
                     // We are on server, need to start new or attach to an existing incoming activity.
 
                     var callContext = (LogicalCallContext)reqMsg.Properties["__CallContext"];
-                    var activityParentContext = this.options.Propagator.Extract(default, callContext, ExtractActivityProperties);
+                    var activityParentContext = Propagators.DefaultTextMapPropagator.Extract(default, callContext, ExtractActivityProperties);
 
                     Activity ourActivity = null;
 
@@ -160,7 +160,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
                         // (see ProcessMessageFinish) to give ASP.NET Instrumentation a chance to stop it.
 
                         ourActivity = RemotingActivitySource.StartActivity(ActivityInName, ActivityKind.Server, activityParentContext.ActivityContext);
-                        ourActivity.SetCustomProperty(SavedAspnetActivityPropertyName, parentActivity);
+                        ourActivity?.SetCustomProperty(SavedAspnetActivityPropertyName, parentActivity);
                     }
                     else
                     {
@@ -239,7 +239,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
             string serviceName = GetServiceName(msg.TypeName);
             string methodName = msg.MethodName;
             activity.DisplayName = $"{serviceName}/{methodName}";
-            activity.SetTag(AttributeRpcSystem, "netframework_remoting");
+            activity.SetTag(AttributeRpcSystem, "remoting");
             activity.SetTag(AttributeRpcService, serviceName);
             activity.SetTag(AttributeRpcMethod, methodName);
 

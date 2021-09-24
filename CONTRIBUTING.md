@@ -8,24 +8,15 @@ See the [public meeting
 notes](https://docs.google.com/document/d/1yjjD6aBcLxlRazYrawukDgrhZMObwHARJbB9glWdHj8/edit?usp=sharing)
 for a summary description of past meetings. To request edit access, join the
 meeting or get in touch on
-[Gitter](https://gitter.im/open-telemetry/opentelemetry-dotnet).
-
-Even though, anybody can contribute, there are benefits of being a member of our
-community. See to the [community membership
-document](https://github.com/open-telemetry/community/blob/master/community-membership.md)
-on how to become a
-[**Member**](https://github.com/open-telemetry/community/blob/master/community-membership.md#member),
-[**Approver**](https://github.com/open-telemetry/community/blob/master/community-membership.md#approver)
-and
-[**Maintainer**](https://github.com/open-telemetry/community/blob/master/community-membership.md#maintainer).
+[Slack](https://cloud-native.slack.com/archives/C01N3BC2W7Q).
 
 ## Find a Buddy and Get Started Quickly
 
 If you are looking for someone to help you find a starting point and be a
-resource for your first contribution, join our Gitter and find a buddy!
+resource for your first contribution, join our Slack channel and find a buddy!
 
-1. Join [Gitter.im](https://gitter.im) and join our [chat
-   room](https://gitter.im/open-telemetry/opentelemetry-dotnet).
+1. Create your [CNCF Slack account](http://slack.cncf.io/) and join the
+   [otel-dotnet](https://cloud-native.slack.com/archives/C01N3BC2W7Q) channel.
 2. Post in the room with an introduction to yourself, what area you are
    interested in (check issues marked with [help
    wanted](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/labels/help%20wanted)),
@@ -149,3 +140,56 @@ This repository also includes [stylecop ruleset
 files](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/tree/master/build).
 These files are used to configure the _StyleCop.Analyzers_ which runs during
 build. Breaking the rules will result in a build failure.
+
+## Contributing a new project
+
+This repo is a great place to contribute a new instrumentation, exporter or
+any kind of extension. Please refer to
+[this page](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/docs/trace/extending-the-sdk/README.md#extending-the-opentelemetry-net-sdk)
+for help writing your component.
+Although the projects within this repo share some
+properties and configurations, they are built and released independently.
+So if you are creating a new project within `/src` and corresponding test
+project within `/test`, here are a few things you should do to ensure that
+your project is automatically built and shipped through CI.
+
+* Based on what your project is, you may need to depend on the
+[OpenTelemetry SDK](https://www.nuget.org/packages/OpenTelemetry)
+or the
+[OpenTelemetry API](https://www.nuget.org/packages/OpenTelemetry.Api)
+Include the necessary package in your project.
+You can choose the version that you want to depend on.
+Usually it is a good idea to use the latest version. Example:
+
+  ```xml
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry" Version="1.0.0-rc4" />
+  </ItemGroup>
+  ```
+
+* The assembly and nuget versioning is managed through
+[MinVer](https://github.com/adamralph/minver) for all the projects in the
+repo. MinVer will assign the version to your project based on the tag prefix
+specified by you. To ensure your project is versioned appropriately, specify
+a `<MinVerTagPrefix>` property in your project file. If your project is named
+as "OpenTelemetry.Contrib.Foo.Bar", the MinVerTagPrefix must be "Foo.Bar-".
+Example:
+
+  ```xml
+  <PropertyGroup>
+    <MinVerTagPrefix>Foo.Bar-</MinVerTagPrefix>
+  </PropertyGroup>
+  ```
+
+* To build and release your project as nuget, you must provide a GitHub
+workflow to be triggered when a tag with prefix "Foo.Bar-" is pushed to the
+main branch. The workflow file should be named as `package-Foo.Bar.yml` and
+to be placed in the `.github/workflows/` folder.
+
+  You can copy one of the
+  [existing workflow files](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml)
+  and replace the
+  [`tags`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml#L12)
+  value to "Foo.Bar-*" and
+  [`PROJECT`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml#L18)
+  value to "OpenTelemetry.Contrib.Foo.Bar".

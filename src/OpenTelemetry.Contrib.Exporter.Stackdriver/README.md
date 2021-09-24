@@ -3,6 +3,8 @@
 [![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.Stackdriver.svg)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Stackdriver)
 [![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Exporter.Stackdriver.svg)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Stackdriver)
 
+**NOTE: This exporter is not affiliated with or officially supported by Google.**
+
 This sample assumes your code authenticates to Stackdriver APIs using [service
 account][gcp-auth] with credentials stored in environment variable
 GOOGLE_APPLICATION_CREDENTIALS. When you run on [GAE][GAE], [GKE][GKE] or

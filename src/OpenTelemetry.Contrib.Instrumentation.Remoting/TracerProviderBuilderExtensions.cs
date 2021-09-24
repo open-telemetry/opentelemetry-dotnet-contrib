@@ -44,7 +44,7 @@ namespace OpenTelemetry.Trace
             var remotingOptions = new RemotingInstrumentationOptions();
             configureRemotingInstrumentationOptions?.Invoke(remotingOptions);
 
-            builder.AddInstrumentation(activitySource => new RemotingInstrumentation(remotingOptions));
+            builder.AddInstrumentation(() => new RemotingInstrumentation(remotingOptions));
 
             return builder;
         }

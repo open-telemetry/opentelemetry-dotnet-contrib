@@ -1,9 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net452</TargetFrameworks>
+    <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
+    <TargetFrameworks>net461</TargetFrameworks>
     <Description>.NET Remoting instrumentation for OpenTelemetry.NET</Description>
     <PackageTags>$(PackageTags);distributed-tracing;Remoting</PackageTags>
+    <MinVerTagPrefix>Instrumentation.Remoting-</MinVerTagPrefix>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Api" Version="1.1.0"/>
+  </ItemGroup>
 
 </Project>

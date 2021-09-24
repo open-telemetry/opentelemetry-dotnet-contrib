@@ -1,12 +1,12 @@
 <Project>
   <Import Project="..\Directory.Build.targets" Condition="Exists('..\Directory.Build.targets')" />
-  
+  <Import Project="$(RepoRoot)\build\Common.targets" />
+
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="$(MicrosoftSourceLinkGitHubPkgVer)">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryPkgVer)" />
   </ItemGroup>
 
   <PropertyGroup>

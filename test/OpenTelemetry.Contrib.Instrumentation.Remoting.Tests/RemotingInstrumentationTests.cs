@@ -71,11 +71,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Tests
                 AppDomain.Unload(ad);
             }
 
-            Assert.Equal(4, activityProcessor.Invocations.Count); // OnStart/OnEnd/OnShutdown/Dispose called.
-            var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
+            Assert.Equal(5, activityProcessor.Invocations.Count); // SetParentProvider/OnStart/OnEnd/OnShutdown/Dispose called.
+            var activity = (Activity)activityProcessor.Invocations[2].Arguments[0];
 
             Assert.Equal(ActivityKind.Client, activity.Kind);
-            Assert.Equal("netframework_remoting", activity.GetTagValue("rpc.system"));
+            Assert.Equal("remoting", activity.GetTagValue("rpc.system"));
             Assert.Equal(
                 "OpenTelemetry.Contrib.Instrumentation.Remoting.Tests.RemotingInstrumentationTests+RemoteObject",
                 activity.GetTagValue("rpc.service"));
@@ -83,11 +83,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Tests
 
             if (success)
             {
-                Assert.Equal((int)StatusCode.Unset, activity.GetTagValue(SpanAttributeConstants.StatusCodeKey));
+                Assert.Equal(StatusCode.Unset, activity.GetStatus().StatusCode);
             }
             else
             {
-                Assert.Equal((int)StatusCode.Error, activity.GetTagValue(SpanAttributeConstants.StatusCodeKey));
+                Assert.Equal(StatusCode.Error, activity.GetStatus().StatusCode);
 
                 var eventList = activity.Events.ToList();
                 Assert.Single(eventList);

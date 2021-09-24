@@ -26,15 +26,6 @@ namespace OpenTelemetry.Trace
     public class RemotingInstrumentationOptions
     {
         /// <summary>
-        /// Gets or sets <see cref="IPropagator"/> for context propagation. Default value: <see cref="CompositePropagator"/> with <see cref="TextMapPropagator"/> &amp; <see cref="BaggagePropagator"/>.
-        /// </summary>
-        public IPropagator Propagator { get; set; } = new CompositePropagator(new IPropagator[]
-        {
-            new TextMapPropagator(),
-            new BaggagePropagator(),
-        });
-
-        /// <summary>
         /// Gets or sets a Filter function to filter instrumentation for Remoting messages.
         /// The Filter gets an IMessage, and should return a bool.
         /// If the Filter returns true, the message is instrumented.
