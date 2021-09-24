@@ -19,6 +19,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Remoting.Contexts;
 using System.Runtime.Remoting.Messaging;
 using OpenTelemetry.Context.Propagation;
@@ -38,21 +39,19 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
     /// </remarks>
     internal class TelemetryDynamicSink : IDynamicMessageSink
     {
-        internal const string AttributeRpcSystem = "rpc.system";
-        internal const string AttributeRpcService = "rpc.service";
-        internal const string AttributeRpcMethod = "rpc.method";
-
         // Uri like "tcp://localhost:1234/HelloServer.rem"
         // TODO: semantic conventions don't have an attribute for a full uri of an RPC endpoint, but seems useful?
         internal const string AttributeRpcRemotingUri = "rpc.remoting.uri";
 
-        internal const string ActivitySourceName = "OpenTelemetry.Remoting";
-        private const string ActivityOutName = ActivitySourceName + ".RequestOut";
-        private const string ActivityInName = ActivitySourceName + ".RequestIn";
+        internal static readonly AssemblyName AssemblyName = typeof(TelemetryDynamicSink).Assembly.GetName();
+        internal static readonly string ActivitySourceName = AssemblyName.Name;
+        internal static readonly Version Version = AssemblyName.Version;
 
-        private const string SavedAspnetActivityPropertyName = ActivitySourceName + ".SavedAspnetActivity";
+        private static readonly string ActivityOutName = ActivitySourceName + ".RequestOut";
+        private static readonly string ActivityInName = ActivitySourceName + ".RequestIn";
 
-        private static readonly Version Version = typeof(TelemetryDynamicSink).Assembly.GetName().Version;
+        private static readonly string SavedAspnetActivityPropertyName = ActivitySourceName + ".SavedAspnetActivity";
+
         private static readonly ActivitySource RemotingActivitySource = new ActivitySource(ActivitySourceName, Version.ToString());
 
         private static readonly ConcurrentDictionary<string, string> ServiceNameCache = new ConcurrentDictionary<string, string>();
@@ -96,6 +95,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
                         if (act.IsAllDataRequested && reqMsg is IMethodMessage methodMsg)
                         {
                             SetStartingActivityAttributes(act, methodMsg);
+
+                            AddConnectionLevelDetailsToActivity(new Uri(methodMsg.Uri), act);
                         }
 
                         contextToInject = act.Context;
@@ -239,12 +240,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
             string serviceName = GetServiceName(msg.TypeName);
             string methodName = msg.MethodName;
             activity.DisplayName = $"{serviceName}/{methodName}";
-            activity.SetTag(AttributeRpcSystem, "remoting");
-            activity.SetTag(AttributeRpcService, serviceName);
-            activity.SetTag(AttributeRpcMethod, methodName);
+            activity.SetTag(SemanticConventions.AttributeRpcSystem, "remoting");
+            activity.SetTag(SemanticConventions.AttributeRpcService, serviceName);
+            activity.SetTag(SemanticConventions.AttributeRpcMethod, methodName);
 
-            var uriString = msg.Uri;
-            activity.SetTag(AttributeRpcRemotingUri, uriString);
+            activity.SetTag(AttributeRpcRemotingUri, msg.Uri);
         }
 
         private static string GetServiceName(string typeName)
@@ -276,6 +276,19 @@ namespace OpenTelemetry.Contrib.Instrumentation.Remoting.Implementation
             }
 
             return Enumerable.Empty<string>();
+        }
+
+        private static void AddConnectionLevelDetailsToActivity(Uri uri, Activity activity)
+        {
+            activity.SetTag(
+                uri.HostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6
+                    ? SemanticConventions.AttributeNetPeerIp
+                    : SemanticConventions.AttributeNetPeerName,
+                uri.Host);
+
+            activity.SetTag(SemanticConventions.AttributeNetTransport, uri.Scheme);
+
+            activity.SetTag(SemanticConventions.AttributeNetPeerPort, uri.Port);
         }
     }
 }
