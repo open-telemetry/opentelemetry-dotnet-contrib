@@ -36,6 +36,8 @@ namespace Examples.Owin
                 "http://localhost:9000",
                 appBuilder =>
                 {
+                    // Add OpenTelemetry early in the pipeline to start timing
+                    // the request as soon as possible.
                     appBuilder.UseOpenTelemetry();
 
                     HttpConfiguration config = new HttpConfiguration();
