@@ -78,7 +78,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Owin
                 return;
             }
 
-            var textMapPropagator = OwinInstrumentationActivitySource.Options.Propagator;
+            var textMapPropagator = Propagators.DefaultTextMapPropagator;
             var ctx = textMapPropagator.Extract(default, owinContext.Request, OwinRequestHeaderValuesGetter);
 
             Activity activity = OwinInstrumentationActivitySource.ActivitySource.StartActivity(
@@ -199,7 +199,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Owin
 
                 activity.Stop();
 
-                if (!(OwinInstrumentationActivitySource.Options.Propagator is TraceContextPropagator))
+                if (!(Propagators.DefaultTextMapPropagator is TraceContextPropagator))
                 {
                     Baggage.Current = default;
                 }

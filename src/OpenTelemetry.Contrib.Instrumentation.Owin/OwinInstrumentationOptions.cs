@@ -27,11 +27,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Owin
     public class OwinInstrumentationOptions
     {
         /// <summary>
-        /// Gets or sets <see cref="TextMapPropagator"/> for context propagation. Default value: <see cref="Propagators.DefaultTextMapPropagator"/>.
-        /// </summary>
-        public TextMapPropagator Propagator { get; set; } = Propagators.DefaultTextMapPropagator;
-
-        /// <summary>
         /// Gets or sets a Filter function that determines whether or not to collect telemetry about requests on a per request basis.
         /// The Filter gets the <see cref="IOwinContext"/>, and should return a boolean.
         /// If Filter returns true, the request is collected.
