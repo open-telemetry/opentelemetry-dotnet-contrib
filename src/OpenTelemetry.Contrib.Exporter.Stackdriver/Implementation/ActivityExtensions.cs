@@ -32,7 +32,7 @@ namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Implementation
             { "http.host", "/http/host" },
             { "http.status_code", "/http/status_code" },
             { "http.user_agent", "/http/user_agent" },
-            { "http.path", "/http/path" },
+            { "http.target", "/http/target" },
             { "http.url", "/http/url" },
             { "http.route", "/http/route" },
         };
