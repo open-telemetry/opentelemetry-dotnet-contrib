@@ -17,7 +17,6 @@
 using System;
 using System.Diagnostics;
 using System.ServiceModel.Channels;
-using OpenTelemetry.Context.Propagation;
 
 namespace OpenTelemetry.Contrib.Instrumentation.Wcf
 {

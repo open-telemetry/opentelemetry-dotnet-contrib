@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.0-rc4
+
+* Removed `Propagator` property on `WcfInstrumentationOptions`
+  ([#163](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/163))
+
 ## 1.0.0-rc3
 
 * Added `TelemetryServiceBehavior`. **Breaking change** (config update

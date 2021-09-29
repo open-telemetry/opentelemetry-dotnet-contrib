@@ -36,7 +36,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
     /// </summary>
 #endif
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    public class TelemetryContractBehaviorAttribute : Attribute, IContractBehavior
+    public sealed class TelemetryContractBehaviorAttribute : Attribute, IContractBehavior
     {
         /// <inheritdoc />
         public void AddBindingParameters(ContractDescription contractDescription, ServiceEndpoint endpoint, BindingParameterCollection bindingParameters)
