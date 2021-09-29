@@ -25,7 +25,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Owin
     /// EventSource events emitted from the project.
     /// </summary>
     [EventSource(Name = "OpenTelemetry-Instrumentation-Owin")]
-    internal class OwinInstrumentationEventSource : EventSource
+    internal sealed class OwinInstrumentationEventSource : EventSource
     {
         public static OwinInstrumentationEventSource Log { get; } = new OwinInstrumentationEventSource();
 
