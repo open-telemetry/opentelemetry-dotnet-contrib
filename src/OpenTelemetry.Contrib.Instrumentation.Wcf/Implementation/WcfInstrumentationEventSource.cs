@@ -22,7 +22,7 @@ using System.Threading;
 namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Implementation
 {
     [EventSource(Name = "OpenTelemetry-Instrumentation-Wcf")]
-    internal class WcfInstrumentationEventSource : EventSource
+    internal sealed class WcfInstrumentationEventSource : EventSource
     {
         public static readonly WcfInstrumentationEventSource Log = new WcfInstrumentationEventSource();
 
@@ -36,9 +36,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Implementation
         }
 
         [Event(EventIds.RequestIsFilteredOut, Message = "Request is filtered out.", Level = EventLevel.Verbose)]
-        public void RequestIsFilteredOut(string eventName)
+        public void RequestIsFilteredOut()
         {
-            this.WriteEvent(EventIds.RequestIsFilteredOut, eventName);
+            this.WriteEvent(EventIds.RequestIsFilteredOut);
         }
 
         [Event(EventIds.RequestFilterException, Message = "InstrumentationFilter threw exception. Request will not be collected. Exception {0}.", Level = EventLevel.Error)]
