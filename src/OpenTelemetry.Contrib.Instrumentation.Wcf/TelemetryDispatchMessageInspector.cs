@@ -123,11 +123,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
         {
             if (correlationState is Activity activity)
             {
-                if (Activity.Current != activity)
-                {
-                    Activity.Current = activity;
-                }
-
                 if (activity.IsAllDataRequested)
                 {
                     if (reply.IsFault)

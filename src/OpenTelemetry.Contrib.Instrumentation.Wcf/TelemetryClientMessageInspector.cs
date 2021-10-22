@@ -138,11 +138,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
 
             if (state.Activity is Activity activity)
             {
-                if (Activity.Current != activity)
-                {
-                    Activity.Current = activity;
-                }
-
                 if (activity.IsAllDataRequested)
                 {
                     if (reply.IsFault)
