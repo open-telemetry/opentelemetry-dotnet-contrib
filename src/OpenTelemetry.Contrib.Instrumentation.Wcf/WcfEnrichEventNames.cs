@@ -19,7 +19,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
     /// <summary>
     /// Constants used for event names when enriching an activity.
     /// </summary>
-    public class WcfEnrichEventNames
+    public static class WcfEnrichEventNames
     {
 #if NETFRAMEWORK
         /// <summary>

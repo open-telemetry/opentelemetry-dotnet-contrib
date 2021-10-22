@@ -45,7 +45,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
             {
                 if (WcfInstrumentationActivitySource.Options == null || WcfInstrumentationActivitySource.Options.OutgoingRequestFilter?.Invoke(request) == false)
                 {
-                    WcfInstrumentationEventSource.Log.RequestIsFilteredOut(request.Headers.Action);
+                    WcfInstrumentationEventSource.Log.RequestIsFilteredOut();
                     return new State
                     {
                         SuppressionScope = this.SuppressDownstreamInstrumentation(),
@@ -71,7 +71,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
                 string action = request.Headers.Action;
                 activity.DisplayName = action;
 
-                WcfInstrumentationActivitySource.Options.Propagator.Inject(
+                Propagators.DefaultTextMapPropagator.Inject(
                     new PropagationContext(activity.Context, Baggage.Current),
                     request,
                     WcfInstrumentationActivitySource.MessageHeaderValueSetter);
@@ -136,8 +136,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
 
             state.SuppressionScope?.Dispose();
 
-            Activity activity = state.Activity;
-            if (activity != null)
+            if (state.Activity is Activity activity)
             {
                 if (activity.IsAllDataRequested)
                 {

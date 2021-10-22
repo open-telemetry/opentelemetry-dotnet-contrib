@@ -16,7 +16,7 @@
 
 namespace OpenTelemetry.Contrib.Instrumentation.Wcf
 {
-    internal class ActionMetadata
+    internal sealed class ActionMetadata
     {
         public string ContractName { get; set; }
 
