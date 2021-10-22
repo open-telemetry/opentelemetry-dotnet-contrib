@@ -163,7 +163,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore
         {
             this.activity = activity;
 
-            if (!this.activity.IsAllDataRequested)
+            if (this.activity == null || !this.activity.IsAllDataRequested)
             {
                 return;
             }
