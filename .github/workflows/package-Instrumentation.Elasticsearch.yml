@@ -1,21 +1,21 @@
-name: Pack OpenTelemetry.Contrib.Instrumentation.Elasticsearch
+name: Pack OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient
 
 on:
   workflow_dispatch:
     inputs:
       logLevel:
-        description: 'Log level'     
+        description: 'Log level'
         required: true
         default: 'warning'
   push:
     tags:
-      - 'Instrumentation.Elasticsearch-*' # trigger when we create a tag with prefix "Instrumentation.Elasticsearch-"
+      - 'Instrumentation.ElasticsearchClient-*' # trigger when we create a tag with prefix "Instrumentation.ElasticsearchClient-"
 
 jobs:
   build-test-pack:
     runs-on: ${{ matrix.os }}
     env:
-      PROJECT: OpenTelemetry.Contrib.Instrumentation.Elasticsearch
+      PROJECT: OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient
 
     strategy:
       matrix:
@@ -44,7 +44,6 @@ jobs:
         name: ${{env.PROJECT}}-packages
         path: '**/${{env.PROJECT}}/bin/**/*.*nupkg'
 
-    - name: Publish MyGet
+    - name: Publish Nuget
       run: |
-        nuget setApiKey ${{ secrets.MYGET_TOKEN }} -Source https://www.myget.org/F/opentelemetry-contrib/api/v2/package
-        nuget push **/${{env.PROJECT}}/bin/**/*.nupkg -Source https://www.myget.org/F/opentelemetry-contrib/api/v2/package
+        nuget push **/${{env.PROJECT}}/bin/**/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_TOKEN }} -SymbolApiKey ${{ secrets.NUGET_TOKEN }}

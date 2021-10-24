@@ -1,6 +1,6 @@
 # OpenTelemetry .NET Contrib
 
-[![Gitter](https://badges.gitter.im/open-telemetry/opentelemetry-dotnet.svg)](https://gitter.im/open-telemetry/opentelemetry-dotnet?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Slack](https://img.shields.io/badge/slack-@cncf/otel/dotnet-brightgreen.svg?logo=slack)](https://cloud-native.slack.com/archives/C01N3BC2W7Q)
 [![Build
 Status](https://action-badges.now.sh/open-telemetry/opentelemetry-dotnet-contrib)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/actions)
 
@@ -29,10 +29,7 @@ expected to directly contribute to every component.
 Approvers
 ([@open-telemetry/dotnet-contrib-approvers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-approvers)):
 
-* [Bruno Garcia](https://github.com/bruno-garcia), Sentry
-* [Eddy Nakamura](https://github.com/eddynaka), Microsoft
-* [Paulo Janotti](https://github.com/pjanotti), Splunk
-* [Reiley Yang](https://github.com/reyang), Microsoft
+* This list is currently empty.
 
 *Find more about the approver role in [community
 repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#approver).*
@@ -42,7 +39,6 @@ Maintainers
 
 * [Alan West](https://github.com/alanwest), New Relic
 * [Cijo Thomas](https://github.com/cijothomas), Microsoft
-* [Mike Goldsmith](https://github.com/MikeGoldsmith), Honeycomb
 * [Mikel Blanchard](https://github.com/CodeBlanch), CoStar Group
 * [Prashant Srivastava](https://github.com/srprash), AWS
 * [Sergey Kanzhelev](https://github.com/SergeyKanzhelev), Google

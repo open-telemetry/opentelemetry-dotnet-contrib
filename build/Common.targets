@@ -1,0 +1,8 @@
+<Project>
+
+  <PropertyGroup Condition="'$(EnableAnalysis)'=='true' and '$(SkipAnalysis)'!='true'">
+    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+    <AnalysisLevel>latest</AnalysisLevel>
+  </PropertyGroup>
+
+</Project>

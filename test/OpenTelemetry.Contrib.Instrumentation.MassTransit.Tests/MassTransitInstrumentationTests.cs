@@ -21,6 +21,7 @@ using System.Threading.Tasks;
 using MassTransit.Testing;
 using Moq;
 using OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -171,7 +172,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                 Assert.NotNull(expectedMessageContext);
                 Assert.Equal("OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer process", actualActivity.DisplayName);
                 Assert.Equal(ActivityKind.Internal, actualActivity.Kind);
-                Assert.Equal("OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer", actualActivity.GetTagValue(SemanticConventions.AttributeMessagingMassTransitConsumerType)?.ToString());
+                Assert.Equal("OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer", actualActivity.GetTagValue(MassTransitSemanticConventions.AttributeMessagingMassTransitConsumerType)?.ToString());
 
                 Assert.Null(actualActivity.GetTagValue(TagName.SpanKind));
                 Assert.Null(actualActivity.GetTagValue(TagName.PeerService));
@@ -223,8 +224,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
             }
         }
 
-        [Fact]
-        public async Task MassTransitInstrumentationTestOptions()
+        [Theory]
+        [InlineData(OperationName.Consumer.Consume)]
+        [InlineData(OperationName.Consumer.Handle)]
+        [InlineData(OperationName.Transport.Send)]
+        [InlineData(OperationName.Transport.Receive)]
+        public async Task MassTransitInstrumentationTestOptions(string operationName)
         {
             using Activity activity = new Activity("Parent");
             activity.SetParentId(
@@ -237,7 +242,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
             using (Sdk.CreateTracerProviderBuilder()
                 .AddProcessor(activityProcessor.Object)
                 .AddMassTransitInstrumentation(o =>
-                    o.TracedOperations = new HashSet<string>(new[] { OperationName.Consumer.Consume }))
+                    o.TracedOperations = new HashSet<string>(new[] { operationName }))
                 .Build())
             {
                 var harness = new InMemoryTestHarness();
@@ -261,11 +266,88 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                 }
             }
 
-            Assert.Equal(4, activityProcessor.Invocations.Count);
+            Assert.Equal(8, activityProcessor.Invocations.Count);
 
-            var consumes = this.GetActivitiesFromInvocationsByOperationName(activityProcessor.Invocations, OperationName.Consumer.Consume);
+            var consumes = this.GetActivitiesFromInvocationsByOperationName(activityProcessor.Invocations, operationName);
 
-            Assert.Equal(2, consumes.Count());
+            Assert.Single(consumes);
+        }
+
+        [Fact]
+        public async Task ShouldMapMassTransitTagsWhenIntrumentationIsSuppressed()
+        {
+            var activityProcessor = new Mock<BaseProcessor<Activity>>();
+            using (Sdk.CreateTracerProviderBuilder()
+                .AddProcessor(activityProcessor.Object)
+                .AddMassTransitInstrumentation()
+                .Build())
+            {
+                var harness = new InMemoryTestHarness();
+                var consumerHarness = harness.Consumer<TestConsumer>();
+                var handlerHarness = harness.Handler<TestMessage>();
+                using var scope = SuppressInstrumentationScope.Begin();
+                await harness.Start();
+                try
+                {
+                    await harness.InputQueueSendEndpoint.Send<TestMessage>(new { Text = "Hello, world!" });
+
+                    Assert.True(await harness.Consumed.SelectAsync<TestMessage>().Any());
+                    Assert.True(await consumerHarness.Consumed.SelectAsync<TestMessage>().Any());
+                    Assert.True(await handlerHarness.Consumed.SelectAsync().Any());
+                }
+                finally
+                {
+                    await harness.Stop();
+                }
+
+                var expectedMessageContext = harness.Sent.Select<TestMessage>().FirstOrDefault()?.Context;
+                Assert.NotNull(expectedMessageContext);
+            }
+
+            // Since instrumentation is suppressed, activiy is not emitted
+            Assert.Equal(3, activityProcessor.Invocations.Count); // SetParentProvider + OnShutdown + Dispose
+
+            // Processor.OnStart and Processor.OnEnd are not called
+            Assert.DoesNotContain(activityProcessor.Invocations, invo => invo.Method.Name == nameof(activityProcessor.Object.OnStart));
+            Assert.DoesNotContain(activityProcessor.Invocations, invo => invo.Method.Name == nameof(activityProcessor.Object.OnEnd));
+        }
+
+        [Theory]
+        [InlineData(SamplingDecision.Drop, false)]
+        [InlineData(SamplingDecision.RecordOnly, true)]
+        [InlineData(SamplingDecision.RecordAndSample, true)]
+        public async Task ShouldMapMassTransitTagsWhenIntrumentationWhenSampled(SamplingDecision samplingDecision, bool isActivityExpected)
+        {
+            var activityProcessor = new Mock<BaseProcessor<Activity>>();
+            using (Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new TestSampler() { SamplingAction = (samplingParameters) => new SamplingResult(samplingDecision) })
+                .AddProcessor(activityProcessor.Object)
+                .AddMassTransitInstrumentation()
+                .Build())
+            {
+                var harness = new InMemoryTestHarness();
+                var consumerHarness = harness.Consumer<TestConsumer>();
+                var handlerHarness = harness.Handler<TestMessage>();
+                await harness.Start();
+                try
+                {
+                    await harness.InputQueueSendEndpoint.Send<TestMessage>(new { Text = "Hello, world!" });
+
+                    Assert.True(await harness.Consumed.SelectAsync<TestMessage>().Any());
+                    Assert.True(await consumerHarness.Consumed.SelectAsync<TestMessage>().Any());
+                    Assert.True(await handlerHarness.Consumed.SelectAsync().Any());
+                }
+                finally
+                {
+                    await harness.Stop();
+                }
+
+                var expectedMessageContext = harness.Sent.Select<TestMessage>().FirstOrDefault()?.Context;
+                Assert.NotNull(expectedMessageContext);
+            }
+
+            Assert.Equal(isActivityExpected, activityProcessor.Invocations.Any(invo => invo.Method.Name == nameof(activityProcessor.Object.OnStart)));
+            Assert.Equal(isActivityExpected, activityProcessor.Invocations.Any(invo => invo.Method.Name == nameof(activityProcessor.Object.OnEnd)));
         }
 
         private IEnumerable<Activity> GetActivitiesFromInvocationsByOperationName(IEnumerable<IInvocation> invocations, string operationName)
@@ -275,6 +357,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                     .Where(i =>
                         i.Arguments.OfType<Activity>()
                             .Any(a => a.OperationName == operationName))
+                    .Where(i => i.Method.Name == "OnEnd")
                     .Select(i => i.Arguments.OfType<Activity>().Single());
         }
     }

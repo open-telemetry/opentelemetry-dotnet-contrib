@@ -1,5 +1,7 @@
 # WCF Instrumentation for OpenTelemetry .NET
 
+[![nuget](https://img.shields.io/nuget/v/OpenTelemetry.Contrib.Instrumentation.Wcf.svg)](https://www.nuget.org/packages/OpenTelemetry.Contrib.Instrumentation.Wcf/)
+
 Instruments WCF clients and/or services using implementations of
 `IClientMessageInspector` and `IDispatchMessageInspector` respectively.
 
@@ -18,6 +20,33 @@ using var openTelemetry = Sdk.CreateTracerProviderBuilder()
     .Build();
 ```
 
+Instrumentation can be configured via options overload for
+`AddWcfInstrumentation` method:
+
+```csharp
+using var openTelemetry = Sdk.CreateTracerProviderBuilder()
+    .AddWcfInstrumentation(options =>
+    {
+        options.SuppressDownstreamInstrumentation = false;
+
+        // Enable enriching an activity after it is created.
+        options.Enrich = (activity, eventName,  message) =>
+        {
+            var wcfMessage = message as Message;
+
+            // For event names, please refer to string constants in
+            // WcfEnrichEventNames class.
+            if (eventName == WcfEnrichEventNames.AfterReceiveReply)
+            {
+                activity.SetTag(
+                    "companyname.messagetag",
+                    wcfMessage.Properties["CustomProperty"]);
+            }
+        };
+    })
+    .Build();
+```
+
 ## WCF Client Configuration (.NET Framework)
 
 Add the `IClientMessageInspector` instrumentation via a behavior extension on
@@ -30,7 +59,7 @@ the clients you want to instrument:
   <system.serviceModel>
     <extensions>
       <behaviorExtensions>
-        <add name="telemetryExtension" type="OpenTelemetry.Contrib.Instrumentation.Wcf.TelemetryBehaviourExtensionElement, OpenTelemetry.Contrib.Instrumentation.Wcf"   />
+        <add name="telemetryExtension" type="OpenTelemetry.Contrib.Instrumentation.Wcf.TelemetryEndpointBehaviorExtensionElement, OpenTelemetry.Contrib.Instrumentation.Wcf"   />
       </behaviorExtensions>
     </extensions>
     <behaviors>
@@ -74,8 +103,11 @@ Example project available in
 
 ## WCF Server Configuration (.NET Framework)
 
-Add the `IDispatchMessageInspector` instrumentation via a behavior extension on
-the services you want to instrument:
+### Option 1: Instrument by endpoint
+
+To add the `IDispatchMessageInspector` instrumentation to select endpoints of a
+service, use the endpoint behavior extension on the service endpoints you want
+to instrument:
 
 <!-- markdownlint-disable MD013 -->
 ```xml
@@ -84,7 +116,7 @@ the services you want to instrument:
   <system.serviceModel>
     <extensions>
       <behaviorExtensions>
-        <add name="telemetryExtension" type="OpenTelemetry.Contrib.Instrumentation.Wcf.TelemetryBehaviourExtensionElement, OpenTelemetry.Contrib.Instrumentation.Wcf" />
+        <add name="telemetryExtension" type="OpenTelemetry.Contrib.Instrumentation.Wcf.TelemetryEndpointBehaviorExtensionElement, OpenTelemetry.Contrib.Instrumentation.Wcf" />
       </behaviorExtensions>
     </extensions>
     <behaviors>
@@ -119,6 +151,71 @@ the services you want to instrument:
 Example project available in
 [examples/wcf/server-netframework](../../examples/wcf/server-netframework/)
 folder.
+
+### Option 2: Instrument by service
+
+To add the `IDispatchMessageInspector` instrumentation for all endpoints of a
+service, use the service behavior extension on the services you want to
+instrument:
+
+<!-- markdownlint-disable MD013 -->
+```xml
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+  <system.serviceModel>
+    <extensions>
+      <behaviorExtensions>
+        <add name="telemetryExtension" type="OpenTelemetry.Contrib.Instrumentation.Wcf.TelemetryServiceBehaviorExtensionElement, OpenTelemetry.Contrib.Instrumentation.Wcf" />
+      </behaviorExtensions>
+    </extensions>
+    <behaviors>
+      <serviceBehaviors>
+        <behavior name="telemetry">
+          <telemetryExtension />
+        </behavior>
+      </serviceBehaviors>
+    </behaviors>
+    <bindings>
+      <netTcpBinding>
+        <binding name="netTCPConfig">
+          <security mode="None" />
+        </binding>
+      </netTcpBinding>
+    </bindings>
+    <services>
+      <service name="Examples.Wcf.Server.StatusService" behaviorConfiguration="telemetry">
+        <endpoint binding="netTcpBinding" bindingConfiguration="netTCPConfig" contract="Examples.Wcf.IStatusServiceContract" />
+        <host>
+          <baseAddresses>
+            <add baseAddress="net.tcp://localhost:9090/Telemetry" />
+          </baseAddresses>
+        </host>
+      </service>
+    </services>
+  </system.serviceModel>
+</configuration>
+```
+<!-- markdownlint-enable MD013 -->
+
+## WCF Programmatic Configuration Server and/or Client (.NET Framework + .NET Core)
+
+To add `IDispatchMessageInspector` for servers (.NET Framework only) and/or
+`IClientMessageInspector` for clients (.NET Framework & .NET Core)
+programmatically, use the `TelemetryContractBehaviorAttribute` on the service
+contracts you want to instrument:
+
+```csharp
+    [ServiceContract(
+        Namespace = "http://opentelemetry.io/",
+        Name = "StatusService",
+        SessionMode = SessionMode.Allowed)]
+    [TelemetryContractBehavior]
+    public interface IStatusServiceContract
+    {
+        [OperationContract]
+        Task<StatusResponse> PingAsync(StatusRequest request);
+    }
+```
 
 ## References
 

@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>9.0</LangVersion>
     <SignAssembly>true</SignAssembly>
     <RepoRoot>$([System.IO.Directory]::GetParent($(MSBuildThisFileDirectory)).Parent.FullName)</RepoRoot>
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)debug.snk</AssemblyOriginatorKeyFile>
@@ -22,12 +22,19 @@
       Refer to https://docs.microsoft.com/en-us/nuget/concepts/package-versioning for semver syntax.
     -->
     <MinVerPkgVer>[2.4.0,3.0)</MinVerPkgVer>
-    <MicrosoftCodeAnalysisFxCopAnalyzersPkgVer>[3.3.0]</MicrosoftCodeAnalysisFxCopAnalyzersPkgVer>
+    <MicrosoftCodeAnalysisNetAnalyzersPkgVer>[5.0.3]</MicrosoftCodeAnalysisNetAnalyzersPkgVer>
     <MicrosoftCodeCoveragePkgVer>[16.7.1]</MicrosoftCodeCoveragePkgVer>
     <MicrosoftExtensionsHostingAbstractionsPkgVer>[2.1.0,5.0)</MicrosoftExtensionsHostingAbstractionsPkgVer>
     <MicrosoftNETFrameworkReferenceAssembliesPkgVer>[1.0.0,2.0)</MicrosoftNETFrameworkReferenceAssembliesPkgVer>
+    <MicrosoftOwinPkgVer>[4.1.1]</MicrosoftOwinPkgVer>
+    <MicrosoftPublicApiAnalyzersPkgVer>[3.3.2]</MicrosoftPublicApiAnalyzersPkgVer>
     <MicrosoftSourceLinkGitHubPkgVer>[1.0.0,2.0)</MicrosoftSourceLinkGitHubPkgVer>
-    <StyleCopAnalyzersPkgVer>[1.1.118,2.0)</StyleCopAnalyzersPkgVer>
+    <StyleCopAnalyzersPkgVer>[1.2.0-beta.354,2.0)</StyleCopAnalyzersPkgVer>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' != 'net5.0' and '$(TargetFramework)' != 'netstandard2.1'">
+    <!-- Nullable analysis really only works on .net standard 2.1 and newer. -->
+    <NoWarn>$(NoWarn);nullable</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -36,13 +43,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="$(MicrosoftNETFrameworkReferenceAssembliesPkgVer)" PrivateAssets="All" />
-    <PackageReference Include="StyleCop.Analyzers" Version="$(StyleCopAnalyzersPkgVer)" Condition="'$(SkipAnalysis)'!='true'">
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeCoverage" Version="$(MicrosoftCodeCoveragePkgVer)" Condition="'$(Configuration)'=='Release'"/>
-    <!--<PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="$(MicrosoftCodeAnalysisFxCopAnalyzersPkgVer)" Condition="'$(SkipAnalysis)'!='true'">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>-->
+    <PackageReference Include="StyleCop.Analyzers" Version="$(StyleCopAnalyzersPkgVer)" Condition="'$(SkipAnalysis)'!='true'" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.CodeCoverage" Version="$(MicrosoftCodeCoveragePkgVer)" Condition="'$(Configuration)'=='Release'" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(MicrosoftCodeAnalysisNetAnalyzersPkgVer)" Condition="'$(EnableAnalysis)'=='true' and '$(SkipAnalysis)'!='true'" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(IncludeSharedInstrumentationSource)'=='true'">
@@ -64,10 +67,10 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(IncludeSharedTestSource)'=='true'">
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Test\TestExporter.cs" Link="Includes\TestExporter.cs" />
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Test\TestSampler.cs" Link="Includes\TestSampler.cs" />
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Test\TestActivityExportProcessor.cs" Link="Includes\TestActivityExportProcessor.cs" />
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Test\TestActivityProcessor.cs" Link="Includes\TestActivityProcessor.cs" />
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestExporter.cs" Link="Includes\TestExporter.cs" />
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestSampler.cs" Link="Includes\TestSampler.cs" />
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestActivityExportProcessor.cs" Link="Includes\TestActivityExportProcessor.cs" />
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestActivityProcessor.cs" Link="Includes\TestActivityProcessor.cs" />
   </ItemGroup>
 
 </Project>

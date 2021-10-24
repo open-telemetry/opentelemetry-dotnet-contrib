@@ -2,13 +2,6 @@
   <Import Project=".\Common.props" />
 
   <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)debug.snk</AssemblyOriginatorKeyFile>
-    <DefineConstants>$(DefineConstants);SIGNED</DefineConstants>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/open-telemetry/opentelemetry-dotnet-contrib</RepositoryUrl>
     <PackageProjectUrl>https://OpenTelemetry.io</PackageProjectUrl>
@@ -25,12 +18,12 @@
 
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)opentelemetry-icon-color.png" Pack="true" PackagePath="\"/>
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)/stylecop.json" />
 
     <PackageReference Include="MinVer" Version="$(MinVerPkgVer)" Condition="'$(IntegrationBuild)' != 'true'">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="$(MicrosoftPublicApiAnalyzersPkgVer)" Condition=" $(OS) == 'Windows_NT' and '$(EnablePublicApi)'=='true'" PrivateAssets="All" />
   </ItemGroup>
 
   <Target Name="AssemblyVersionTarget" AfterTargets="MinVer" Condition="'$(MinVerVersion)'!=''">
@@ -57,5 +50,13 @@
   <PropertyGroup Condition="'$(Deterministic)'=='true'">
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
+
+  <!--PublicApi Analyzer-->
+  <ItemGroup Condition="'$(EnablePublicApi)'=='true'">
+    <AdditionalFiles Include=".publicApi\$(TargetFramework)\PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include=".publicApi\$(TargetFramework)\PublicAPI.Unshipped.txt" />
+    <None Include=".publicApi\*\PublicAPI.Shipped.txt" />
+    <None Include=".publicApi\*\PublicAPI.Unshipped.txt" />
+  </ItemGroup>
 
 </Project>

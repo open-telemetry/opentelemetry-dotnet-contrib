@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       logLevel:
-        description: 'Log level'     
+        description: 'Log level'
         required: true
         default: 'warning'
   push:
@@ -33,7 +33,7 @@ jobs:
       run: dotnet build src/${{env.PROJECT}} --configuration Release --no-restore -p:Deterministic=true
 
     - name: dotnet test ${{env.PROJECT}}
-      run: dotnet test test/${{env.PROJECT}}Tests
+      run: dotnet test test/${{env.PROJECT}}.Tests
 
     - name: dotnet pack ${{env.PROJECT}}
       run: dotnet pack src/${{env.PROJECT}} --configuration Release --no-build
@@ -44,7 +44,6 @@ jobs:
         name: ${{env.PROJECT}}-packages
         path: '**/${{env.PROJECT}}/bin/**/*.*nupkg'
 
-    - name: Publish MyGet
+    - name: Publish Nuget
       run: |
-        nuget setApiKey ${{ secrets.MYGET_TOKEN }} -Source https://www.myget.org/F/opentelemetry-contrib/api/v2/package
-        nuget push **/${{env.PROJECT}}/bin/**/*.nupkg -Source https://www.myget.org/F/opentelemetry-contrib/api/v2/package
+        nuget push **/${{env.PROJECT}}/bin/**/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_TOKEN }} -SymbolApiKey ${{ secrets.NUGET_TOKEN }}

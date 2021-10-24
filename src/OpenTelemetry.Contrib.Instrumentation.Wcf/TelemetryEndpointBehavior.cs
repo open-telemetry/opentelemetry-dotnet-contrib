@@ -24,13 +24,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
 {
 #if NETFRAMEWORK
     /// <summary>
-    /// An <see cref="IEndpointBehavior"/> implementation whichs add the <see
+    /// An <see cref="IEndpointBehavior"/> implementation which adds the <see
     /// cref="TelemetryClientMessageInspector"/> to client endpoints and the
     /// <see cref="TelemetryDispatchMessageInspector"/> to service endpoints.
     /// </summary>
 #else
     /// <summary>
-    /// An <see cref="IEndpointBehavior"/> implementation whichs add the <see
+    /// An <see cref="IEndpointBehavior"/> implementation which adds the <see
     /// cref="TelemetryClientMessageInspector"/> to client endpoints.
     /// </summary>
 #endif
@@ -43,6 +43,24 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
 
         /// <inheritdoc/>
         public void ApplyClientBehavior(ServiceEndpoint endpoint, ClientRuntime clientRuntime)
+        {
+            ApplyClientBehaviorToClientRuntime(clientRuntime);
+        }
+
+        /// <inheritdoc/>
+        public void ApplyDispatchBehavior(ServiceEndpoint endpoint, EndpointDispatcher endpointDispatcher)
+        {
+#if NETFRAMEWORK
+            ApplyDispatchBehaviorToEndpoint(endpointDispatcher);
+#endif
+        }
+
+        /// <inheritdoc/>
+        public void Validate(ServiceEndpoint endpoint)
+        {
+        }
+
+        internal static void ApplyClientBehaviorToClientRuntime(ClientRuntime clientRuntime)
         {
             var actionMappings = new Dictionary<string, ActionMetadata>(StringComparer.OrdinalIgnoreCase);
 
@@ -58,10 +76,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
             clientRuntime.ClientMessageInspectors.Add(new TelemetryClientMessageInspector(actionMappings));
         }
 
-        /// <inheritdoc/>
-        public void ApplyDispatchBehavior(ServiceEndpoint endpoint, EndpointDispatcher endpointDispatcher)
-        {
 #if NETFRAMEWORK
+        internal static void ApplyDispatchBehaviorToEndpoint(EndpointDispatcher endpointDispatcher)
+        {
             var actionMappings = new Dictionary<string, ActionMetadata>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var dispatchOperation in endpointDispatcher.DispatchRuntime.Operations)
@@ -74,12 +91,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
             }
 
             endpointDispatcher.DispatchRuntime.MessageInspectors.Add(new TelemetryDispatchMessageInspector(actionMappings));
+        }
 #endif
-        }
-
-        /// <inheritdoc/>
-        public void Validate(ServiceEndpoint endpoint)
-        {
-        }
     }
 }

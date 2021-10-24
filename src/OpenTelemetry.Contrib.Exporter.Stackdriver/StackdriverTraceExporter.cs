@@ -119,8 +119,10 @@ namespace OpenTelemetry.Contrib.Exporter.Stackdriver
             {
                 traceWriter.BatchWriteSpans(batchSpansRequest);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                ExporterStackdriverEventSource.Log.ExportMethodException(ex);
+
                 return ExportResult.Failure;
             }
 

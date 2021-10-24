@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using OpenTelemetry.Instrumentation;
 using OpenTelemetry.Trace;
 
@@ -25,41 +26,58 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
 {
     internal class MassTransitDiagnosticListener : ListenerHandler
     {
-        private readonly ActivitySourceAdapter activitySource;
+        internal static readonly AssemblyName AssemblyName = typeof(MassTransitDiagnosticListener).Assembly.GetName();
+        internal static readonly string ActivitySourceName = AssemblyName.Name;
+        internal static readonly Version Version = AssemblyName.Version;
+        internal static readonly ActivitySource ActivitySource = new ActivitySource(ActivitySourceName, Version.ToString());
+
         private readonly MassTransitInstrumentationOptions options;
 
-        public MassTransitDiagnosticListener(ActivitySourceAdapter activitySource, MassTransitInstrumentationOptions options)
-            : base("MassTransit")
+        public MassTransitDiagnosticListener(string name, MassTransitInstrumentationOptions options)
+            : base(name)
         {
-            this.activitySource = activitySource;
             this.options = options;
         }
 
         public override void OnStartActivity(Activity activity, object payload)
         {
-            if (this.options.TracedOperations != null && !this.options.TracedOperations.Contains(activity.OperationName))
-            {
-                return;
-            }
+            // By this time, samplers have already run and
+            // activity.IsAllDataRequested populated accordingly.
 
-            activity.DisplayName = this.GetDisplayName(activity);
-
-            this.activitySource.Start(activity, this.GetActivityKind(activity));
-        }
-
-        public override void OnStopActivity(Activity activity, object payload)
-        {
-            if (this.options.TracedOperations != null && !this.options.TracedOperations.Contains(activity.OperationName))
+            if (Sdk.SuppressInstrumentation)
             {
                 return;
             }
 
             if (activity.IsAllDataRequested)
             {
-                this.TransformMassTransitTags(activity);
-            }
+                if (this.options.TracedOperations != null && !this.options.TracedOperations.Contains(activity.OperationName))
+                {
+                    MassTransitInstrumentationEventSource.Log.RequestIsFilteredOut(activity.OperationName);
+                    activity.IsAllDataRequested = false;
+                    return;
+                }
 
-            this.activitySource.Stop(activity);
+                activity.DisplayName = this.GetDisplayName(activity);
+
+                ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
+                ActivityInstrumentationHelper.SetKindProperty(activity, this.GetActivityKind(activity));
+            }
+        }
+
+        public override void OnStopActivity(Activity activity, object payload)
+        {
+            if (activity.IsAllDataRequested)
+            {
+                try
+                {
+                    this.TransformMassTransitTags(activity);
+                }
+                catch (Exception ex)
+                {
+                    MassTransitInstrumentationEventSource.Log.EnrichmentException(ex);
+                }
+            }
         }
 
         private string GetDisplayName(Activity activity)
@@ -94,8 +112,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
 
                 this.RenameTag(activity, TagName.MessageId, SemanticConventions.AttributeMessagingMessageId);
                 this.RenameTag(activity, TagName.ConversationId, SemanticConventions.AttributeMessagingConversationId);
-                this.RenameTag(activity, TagName.InitiatorId, SemanticConventions.AttributeMessagingMassTransitInitiatorId);
-                this.RenameTag(activity, TagName.CorrelationId, SemanticConventions.AttributeMessagingMassTransitCorrelationId);
+                this.RenameTag(activity, TagName.InitiatorId, MassTransitSemanticConventions.AttributeMessagingMassTransitInitiatorId);
+                this.RenameTag(activity, TagName.CorrelationId, MassTransitSemanticConventions.AttributeMessagingMassTransitCorrelationId);
 
                 activity.SetTag(TagName.SourceAddress, null);
             }
@@ -105,8 +123,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
 
                 this.RenameTag(activity, TagName.MessageId, SemanticConventions.AttributeMessagingMessageId);
                 this.RenameTag(activity, TagName.ConversationId, SemanticConventions.AttributeMessagingConversationId);
-                this.RenameTag(activity, TagName.InitiatorId, SemanticConventions.AttributeMessagingMassTransitInitiatorId);
-                this.RenameTag(activity, TagName.CorrelationId, SemanticConventions.AttributeMessagingMassTransitCorrelationId);
+                this.RenameTag(activity, TagName.InitiatorId, MassTransitSemanticConventions.AttributeMessagingMassTransitInitiatorId);
+                this.RenameTag(activity, TagName.CorrelationId, MassTransitSemanticConventions.AttributeMessagingMassTransitCorrelationId);
 
                 activity.SetTag(TagName.MessageId, null);
 
@@ -116,7 +134,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
             }
             else if (activity.OperationName == OperationName.Consumer.Consume)
             {
-                this.RenameTag(activity, TagName.ConsumerType, SemanticConventions.AttributeMessagingMassTransitConsumerType);
+                this.RenameTag(activity, TagName.ConsumerType, MassTransitSemanticConventions.AttributeMessagingMassTransitConsumerType);
             }
             else if (activity.OperationName == OperationName.Consumer.Handle)
             {
