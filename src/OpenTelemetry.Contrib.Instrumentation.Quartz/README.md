@@ -65,7 +65,7 @@ called only when `activity.IsAllDataRequested` is `true`. It contains the
 activity itself (which can be enriched), the name of the event, and the
 actual raw object.
 For event names "OnStartActivity", "OnStopActivity",, the actual object will be `IJobDetail`.
-For event name "OnException", the actual object will be the exception thrown 
+For event name "OnException", the actual object will be the exception thrown
 
 The following code snippet shows how to add additional tags using `Enrich`.
 
