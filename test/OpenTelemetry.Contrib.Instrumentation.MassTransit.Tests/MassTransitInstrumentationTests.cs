@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -226,10 +227,21 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
 
         [Theory]
         [InlineData(OperationName.Consumer.Consume)]
+        [InlineData(OperationName.Consumer.Consume, true)]
+        [InlineData(OperationName.Consumer.Consume, true, true)]
         [InlineData(OperationName.Consumer.Handle)]
+        [InlineData(OperationName.Consumer.Handle, true)]
+        [InlineData(OperationName.Consumer.Handle, true, true)]
         [InlineData(OperationName.Transport.Send)]
+        [InlineData(OperationName.Transport.Send, true)]
+        [InlineData(OperationName.Transport.Send, true, true)]
         [InlineData(OperationName.Transport.Receive)]
-        public async Task MassTransitInstrumentationTestOptions(string operationName)
+        [InlineData(OperationName.Transport.Receive, true)]
+        [InlineData(OperationName.Transport.Receive, true, true)]
+        public async Task MassTransitInstrumentationTestOptions(
+            string operationName,
+            bool enrich = false,
+            bool enrichmentException = false)
         {
             using Activity activity = new Activity("Parent");
             activity.SetParentId(
@@ -242,7 +254,31 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
             using (Sdk.CreateTracerProviderBuilder()
                 .AddProcessor(activityProcessor.Object)
                 .AddMassTransitInstrumentation(o =>
-                    o.TracedOperations = new HashSet<string>(new[] { operationName }))
+                {
+                    o.TracedOperations = new HashSet<string>(new[] { operationName });
+
+                    if (enrich)
+                    {
+                        if (!enrichmentException)
+                        {
+                            o.Enrich = (activity, eventName, obj) =>
+                            {
+                                if (eventName.Equals(MassTransitEnrichEventType.OnStartActivity.ToString()))
+                                {
+                                    activity.SetTag("client.startactivity", nameof(MassTransitEnrichEventType.OnStartActivity));
+                                }
+                                else if (eventName.Equals(MassTransitEnrichEventType.OnStopActivity.ToString()))
+                                {
+                                    activity.SetTag("client.stopactivity", nameof(MassTransitEnrichEventType.OnStopActivity));
+                                }
+                            };
+                        }
+                        else
+                        {
+                            o.Enrich = (activity, eventName, obj) => throw new Exception("Error while enriching activity");
+                        }
+                    }
+                })
                 .Build())
             {
                 var harness = new InMemoryTestHarness();
@@ -271,6 +307,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
             var consumes = this.GetActivitiesFromInvocationsByOperationName(activityProcessor.Invocations, operationName);
 
             Assert.Single(consumes);
+
+            if (enrich && !enrichmentException)
+            {
+                var consume = consumes.First();
+                Assert.Equal(nameof(MassTransitEnrichEventType.OnStartActivity), consume.TagObjects.Single(t => t.Key == "client.startactivity").Value);
+                Assert.Equal(nameof(MassTransitEnrichEventType.OnStopActivity), consume.TagObjects.Single(t => t.Key == "client.stopactivity").Value);
+            }
         }
 
         [Fact]
