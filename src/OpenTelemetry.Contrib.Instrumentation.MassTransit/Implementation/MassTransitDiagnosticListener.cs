@@ -62,6 +62,15 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
 
                 ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
                 ActivityInstrumentationHelper.SetKindProperty(activity, this.GetActivityKind(activity));
+
+                try
+                {
+                    this.options.Enrich?.Invoke(activity, "OnStartActivity", payload);
+                }
+                catch (Exception ex)
+                {
+                    MassTransitInstrumentationEventSource.Log.EnrichmentException("OnStartActivity", ex);
+                }
             }
         }
 
@@ -72,6 +81,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
                 try
                 {
                     this.TransformMassTransitTags(activity);
+
+                    this.options.Enrich?.Invoke(activity, "OnStopActivity", payload);
                 }
                 catch (Exception ex)
                 {

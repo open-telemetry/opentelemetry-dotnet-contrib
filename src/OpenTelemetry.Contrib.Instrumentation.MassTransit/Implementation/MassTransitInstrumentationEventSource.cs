@@ -48,5 +48,20 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
         {
             this.WriteEvent(2, exception);
         }
+
+        [NonEvent]
+        public void EnrichmentException(string eventName, Exception ex)
+        {
+            if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
+            {
+                this.EnrichmentException(eventName, ex.ToInvariantString());
+            }
+        }
+
+        [Event(3, Message = "Enrich callback threw an exception. Event='{0}': {1}", Level = EventLevel.Error)]
+        public void EnrichmentException(string eventName, string exception)
+        {
+            this.WriteEvent(3, eventName, exception);
+        }
     }
 }
