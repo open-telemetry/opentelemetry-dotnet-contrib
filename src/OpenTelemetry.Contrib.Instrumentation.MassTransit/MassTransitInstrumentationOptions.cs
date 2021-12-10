@@ -42,7 +42,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit
         /// </summary>
         public HashSet<string> TracedOperations { get; set; } = new HashSet<string>(DefaultTracedOperations);
 
-
         /// <summary>
         /// Gets or sets an action to enrich an Activity.
         /// </summary>
