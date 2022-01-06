@@ -35,6 +35,15 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                     Payload = $"RSP: {request.Payload}",
                 });
         }
+
+        public Task<ServiceResponse> ExecuteWithEmptyActionNameAsync(ServiceRequest request)
+        {
+            return Task.FromResult(
+               new ServiceResponse
+               {
+                   Payload = $"RSP: {request.Payload}",
+               });
+        }
     }
 }
 #endif

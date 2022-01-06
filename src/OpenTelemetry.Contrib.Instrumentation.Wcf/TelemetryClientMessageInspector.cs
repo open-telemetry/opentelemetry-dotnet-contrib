@@ -68,7 +68,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
 
             if (activity != null)
             {
-                string action = request.Headers.Action ?? string.Empty;
+                string action = !string.IsNullOrEmpty(request.Headers.Action) ? request.Headers.Action : string.Empty;
                 activity.DisplayName = action;
 
                 Propagators.DefaultTextMapPropagator.Inject(

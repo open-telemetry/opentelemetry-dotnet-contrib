@@ -89,12 +89,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
         [InlineData(true, false, true)]
         [InlineData(true, false, true, true)]
         [InlineData(true, false, true, true, true)]
+        [InlineData(true, false, true, true, true, true)]
         public async Task IncomingRequestInstrumentationTest(
             bool instrument,
             bool filter = false,
             bool includeVersion = false,
             bool enrich = false,
-            bool enrichmentExcecption = false)
+            bool enrichmentExcecption = false,
+            bool emptyornullAction = false)
         {
             List<Activity> stoppedActivities = new List<Activity>();
 
@@ -156,11 +158,24 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                 new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
             try
             {
-                var response = await client.ExecuteAsync(
-                    new ServiceRequest
-                    {
-                        Payload = "Hello Open Telemetry!",
-                    }).ConfigureAwait(false);
+                ServiceResponse response = null;
+                if (emptyornullAction)
+                {
+                    response = await client.ExecuteWithEmptyActionNameAsync(
+                        new ServiceRequest
+                        {
+                            Payload = "Hello Open Telemetry!",
+                        }).ConfigureAwait(false);
+
+                }
+                else
+                {
+                    response = await client.ExecuteAsync(
+                        new ServiceRequest
+                        {
+                            Payload = "Hello Open Telemetry!",
+                        }).ConfigureAwait(false);
+                }
             }
             finally
             {

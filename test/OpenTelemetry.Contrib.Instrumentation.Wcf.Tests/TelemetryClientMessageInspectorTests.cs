@@ -128,13 +128,15 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
         [InlineData(true, false, true, true)]
         [InlineData(true, false, true, true, true)]
         [InlineData(true, false, true, true, true, true)]
+        [InlineData(true, false, true, true, true, true, true)]
         public async Task OutgoingRequestInstrumentationTest(
             bool instrument,
             bool filter = false,
             bool suppressDownstreamInstrumentation = true,
             bool includeVersion = false,
             bool enrich = false,
-            bool enrichmentException = false)
+            bool enrichmentException = false,
+            bool emptyornullAction = false)
         {
 #if NETFRAMEWORK
             const string OutgoingHttpOperationName = "OpenTelemetry.HttpWebRequest.HttpRequestOut";
@@ -186,15 +188,28 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
             ServiceClient client = new ServiceClient(
                 new BasicHttpBinding(BasicHttpSecurityMode.None),
                 new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
-            try
+                        try
             {
                 client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
 
-                var response = await client.ExecuteAsync(
-                    new ServiceRequest
-                    {
-                        Payload = "Hello Open Telemetry!",
-                    }).ConfigureAwait(false);
+                ServiceResponse response = null;
+                if (emptyornullAction)
+                {
+                    response = await client.ExecuteWithEmptyActionNameAsync(
+                                new ServiceRequest
+                                {
+                                    Payload = "Hello Open Telemetry!",
+                                }).ConfigureAwait(false);
+
+                }
+                else
+                {
+                    response = await client.ExecuteAsync(
+                                new ServiceRequest
+                                {
+                                    Payload = "Hello Open Telemetry!",
+                                }).ConfigureAwait(false);
+                }
             }
             finally
             {
