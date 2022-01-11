@@ -15,8 +15,8 @@
 // </copyright>
 
 using System;
+using System.Diagnostics;
 using System.ServiceModel.Channels;
-using OpenTelemetry.Context.Propagation;
 
 namespace OpenTelemetry.Contrib.Instrumentation.Wcf
 {
@@ -26,13 +26,16 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
     public class WcfInstrumentationOptions
     {
         /// <summary>
-        /// Gets or sets <see cref="TextMapPropagator"/> for context propagation. Default value: <see cref="CompositeTextMapPropagator"/> with <see cref="TraceContextPropagator"/> &amp; <see cref="BaggagePropagator"/>.
+        /// Gets or sets an action to enrich an Activity.
         /// </summary>
-        public TextMapPropagator Propagator { get; set; } = new CompositeTextMapPropagator(new TextMapPropagator[]
-        {
-            new TraceContextPropagator(),
-            new BaggagePropagator(),
-        });
+        /// <remarks>
+        /// <para><see cref="Activity"/>: the activity being enriched.</para>
+        /// <para>string: the name of the event. Will be one of the constants in <see cref="WcfEnrichEventNames"/>.
+        /// </para>
+        /// <para>object: the raw <see cref="Message"/> from which additional information can be extracted to enrich the activity.
+        /// </para>
+        /// </remarks>
+        public Action<Activity, string, object> Enrich { get; set; }
 
         /// <summary>
         /// Gets or sets a Filter function to filter instrumentation for requests on a per request basis.

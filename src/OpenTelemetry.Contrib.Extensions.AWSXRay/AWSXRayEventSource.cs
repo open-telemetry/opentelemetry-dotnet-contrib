@@ -35,6 +35,15 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay
             }
         }
 
+        [NonEvent]
+        public void ResourceAttributesExtractException(string format, Exception ex)
+        {
+            if (this.IsEnabled(EventLevel.Warning, (EventKeywords)(-1)))
+            {
+                this.FailedToExtractResourceAttributes(format, ToInvariantString(ex));
+            }
+        }
+
         [Event(1, Message = "Failed to extract activity context in format: '{0}', context: '{1}'.", Level = EventLevel.Warning)]
         public void FailedToExtractActivityContext(string format, string exception)
         {
@@ -45,6 +54,12 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay
         public void FailedToInjectActivityContext(string format, string error)
         {
             this.WriteEvent(2, format, error);
+        }
+
+        [Event(3, Message = "Failed to extract resource attributes in '{0}'.", Level = EventLevel.Warning)]
+        public void FailedToExtractResourceAttributes(string format, string exception)
+        {
+            this.WriteEvent(3, format, exception);
         }
 
         /// <summary>

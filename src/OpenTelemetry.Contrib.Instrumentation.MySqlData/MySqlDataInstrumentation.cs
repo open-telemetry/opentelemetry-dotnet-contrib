@@ -23,7 +23,7 @@ using OpenTelemetry.Trace;
 namespace OpenTelemetry.Contrib.Instrumentation.MySqlData
 {
     /// <summary>
-    /// Mysql.Data instrumentation.
+    /// MySql.Data instrumentation.
     /// </summary>
     internal class MySqlDataInstrumentation : DefaultTraceListener
     {

@@ -45,7 +45,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
             {
                 if (WcfInstrumentationActivitySource.Options == null || WcfInstrumentationActivitySource.Options.OutgoingRequestFilter?.Invoke(request) == false)
                 {
-                    WcfInstrumentationEventSource.Log.RequestIsFilteredOut(request.Headers.Action);
+                    WcfInstrumentationEventSource.Log.RequestIsFilteredOut();
                     return new State
                     {
                         SuppressionScope = this.SuppressDownstreamInstrumentation(),
@@ -64,7 +64,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
             Activity activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
                 WcfInstrumentationActivitySource.OutgoingRequestActivityName,
                 ActivityKind.Client);
-
             IDisposable suppressionScope = this.SuppressDownstreamInstrumentation();
 
             if (activity != null)
@@ -72,7 +71,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
                 string action = request.Headers.Action;
                 activity.DisplayName = action;
 
-                WcfInstrumentationActivitySource.Options.Propagator.Inject(
+                Propagators.DefaultTextMapPropagator.Inject(
                     new PropagationContext(activity.Context, Baggage.Current),
                     request,
                     WcfInstrumentationActivitySource.MessageHeaderValueSetter);
@@ -111,6 +110,15 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
                     {
                         activity.SetTag(WcfInstrumentationConstants.SoapViaTag, request.Properties.Via.ToString());
                     }
+
+                    try
+                    {
+                        WcfInstrumentationActivitySource.Options.Enrich?.Invoke(activity, WcfEnrichEventNames.BeforeSendRequest, request);
+                    }
+                    catch (Exception ex)
+                    {
+                        WcfInstrumentationEventSource.Log.EnrichmentException(ex);
+                    }
                 }
             }
 
@@ -128,8 +136,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
 
             state.SuppressionScope?.Dispose();
 
-            Activity activity = state.Activity;
-            if (activity != null)
+            if (state.Activity is Activity activity)
             {
                 if (activity.IsAllDataRequested)
                 {
@@ -139,6 +146,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
                     }
 
                     activity.SetTag(WcfInstrumentationConstants.SoapReplyActionTag, reply.Headers.Action);
+                    try
+                    {
+                        WcfInstrumentationActivitySource.Options.Enrich?.Invoke(activity, WcfEnrichEventNames.AfterReceiveReply, reply);
+                    }
+                    catch (Exception ex)
+                    {
+                        WcfInstrumentationEventSource.Log.EnrichmentException(ex);
+                    }
                 }
 
                 activity.Stop();

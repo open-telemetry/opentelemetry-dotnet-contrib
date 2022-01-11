@@ -22,7 +22,7 @@ using System.Threading;
 namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Implementation
 {
     [EventSource(Name = "OpenTelemetry-Instrumentation-Wcf")]
-    internal class WcfInstrumentationEventSource : EventSource
+    internal sealed class WcfInstrumentationEventSource : EventSource
     {
         public static readonly WcfInstrumentationEventSource Log = new WcfInstrumentationEventSource();
 
@@ -36,15 +36,30 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Implementation
         }
 
         [Event(EventIds.RequestIsFilteredOut, Message = "Request is filtered out.", Level = EventLevel.Verbose)]
-        public void RequestIsFilteredOut(string eventName)
+        public void RequestIsFilteredOut()
         {
-            this.WriteEvent(EventIds.RequestIsFilteredOut, eventName);
+            this.WriteEvent(EventIds.RequestIsFilteredOut);
         }
 
         [Event(EventIds.RequestFilterException, Message = "InstrumentationFilter threw exception. Request will not be collected. Exception {0}.", Level = EventLevel.Error)]
         public void RequestFilterException(string exception)
         {
             this.WriteEvent(EventIds.RequestFilterException, exception);
+        }
+
+        [NonEvent]
+        public void EnrichmentException(Exception exception)
+        {
+            if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
+            {
+                this.EnrichmentException(ToInvariantString(exception));
+            }
+        }
+
+        [Event(EventIds.EnrichmentException, Message = "Enrichment threw exception. Exception {0}.", Level = EventLevel.Error)]
+        public void EnrichmentException(string exception)
+        {
+            this.WriteEvent(EventIds.EnrichmentException, exception);
         }
 
         /// <summary>
@@ -70,6 +85,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Implementation
         {
             public const int RequestIsFilteredOut = 1;
             public const int RequestFilterException = 2;
+            public const int EnrichmentException = 3;
         }
     }
 }

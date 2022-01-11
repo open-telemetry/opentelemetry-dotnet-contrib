@@ -112,8 +112,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         /// A common method to test server interceptor handler success.
         /// </summary>
         /// <param name="clientRequestFunc">The specific client request function.</param>
+        /// <param name="additionalMetadata">The additional metadata, if any.</param>
         /// <returns>A Task.</returns>
-        private async Task TestHandlerSuccess(Func<Foobar.FoobarClient, Task> clientRequestFunc)
+        private async Task TestHandlerSuccess(Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc, Metadata additionalMetadata = null)
         {
             // starts the server with the server interceptor
             var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), RecordMessageEvents = true, ActivityIdentifierValue = Guid.NewGuid() };
@@ -123,7 +124,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
             using (var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue))
             {
                 var client = FoobarService.ConstructRpcClient(server.UriString);
-                await clientRequestFunc(client).ConfigureAwait(false);
+                await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false);
 
                 var activity = activityListener.Activity;
                 GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
@@ -140,7 +141,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
                         new Metadata.Entry("traceparent", FoobarService.DefaultTraceparentWithSampling),
                     });
 
-                await clientRequestFunc(client).ConfigureAwait(false);
+                await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false);
 
                 var activity = activityListener.Activity;
                 GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
@@ -152,8 +153,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
         /// A common method to test server interceptor handler failure.
         /// </summary>
         /// <param name="clientRequestFunc">The specific client request function.</param>
+        /// <param name="additionalMetadata">The additional metadata, if any.</param>
         /// <returns>A Task.</returns>
-        private async Task TestHandlerFailure(Func<Foobar.FoobarClient, Task> clientRequestFunc)
+        private async Task TestHandlerFailure(Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc, Metadata additionalMetadata = null)
         {
             // starts the server with the server interceptor
             var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), ActivityIdentifierValue = Guid.NewGuid() };
@@ -169,7 +171,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
                     new Metadata.Entry(FoobarService.RequestHeaderErrorDescription, "fubar"),
                 });
 
-            await Assert.ThrowsAsync<RpcException>(async () => await clientRequestFunc(client).ConfigureAwait(false));
+            await Assert.ThrowsAsync<RpcException>(async () => await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false));
 
             var activity = activityListener.Activity;
             GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.ResourceExhausted, interceptorOptions.RecordMessageEvents);

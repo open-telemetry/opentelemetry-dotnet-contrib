@@ -126,11 +126,15 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
         [InlineData(true, false, false)]
         [InlineData(false)]
         [InlineData(true, false, true, true)]
+        [InlineData(true, false, true, true, true)]
+        [InlineData(true, false, true, true, true, true)]
         public async Task OutgoingRequestInstrumentationTest(
             bool instrument,
             bool filter = false,
             bool suppressDownstreamInstrumentation = true,
-            bool includeVersion = false)
+            bool includeVersion = false,
+            bool enrich = false,
+            bool enrichmentException = false)
         {
 #if NETFRAMEWORK
             const string OutgoingHttpOperationName = "OpenTelemetry.HttpWebRequest.HttpRequestOut";
@@ -147,10 +151,30 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                 builder
                     .AddWcfInstrumentation(options =>
                     {
-                        options.OutgoingRequestFilter = (Message m) =>
+                        if (enrich)
                         {
-                            return !filter;
-                        };
+                            if (!enrichmentException)
+                            {
+                                options.Enrich = (activity, eventName, message) =>
+                                {
+                                    switch (eventName)
+                                    {
+                                        case WcfEnrichEventNames.BeforeSendRequest:
+                                            activity.SetTag("client.beforesendrequest", WcfEnrichEventNames.BeforeSendRequest);
+                                            break;
+                                        case WcfEnrichEventNames.AfterReceiveReply:
+                                            activity.SetTag("client.afterreceivereply", WcfEnrichEventNames.AfterReceiveReply);
+                                            break;
+                                    }
+                                };
+                            }
+                            else
+                            {
+                                options.Enrich = (activity, eventName, message) => throw new Exception("Error while enriching activity");
+                            }
+                        }
+
+                        options.OutgoingRequestFilter = (Message m) => !filter;
                         options.SuppressDownstreamInstrumentation = suppressDownstreamInstrumentation;
                         options.SetSoapMessageVersion = includeVersion;
                     })
@@ -225,6 +249,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                         if (includeVersion)
                         {
                             Assert.Equal("Soap11 (http://schemas.xmlsoap.org/soap/envelope/) AddressingNone (http://schemas.microsoft.com/ws/2005/05/addressing/none)", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapMessageVersionTag).Value);
+                        }
+
+                        if (enrich && !enrichmentException)
+                        {
+                            Assert.Equal(WcfEnrichEventNames.BeforeSendRequest, activity.TagObjects.Single(t => t.Key == "client.beforesendrequest").Value);
+                            Assert.Equal(WcfEnrichEventNames.AfterReceiveReply, activity.TagObjects.Single(t => t.Key == "client.afterreceivereply").Value);
                         }
                     }
                     else
