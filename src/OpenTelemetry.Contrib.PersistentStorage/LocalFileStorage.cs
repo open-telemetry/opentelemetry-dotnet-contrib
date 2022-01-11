@@ -60,11 +60,11 @@ namespace OpenTelemetry.Contrib.PersistentStorage
         /// Default is 1 minute.
         /// </param>
         public LocalFileStorage(
-                                string path,
-                                long maxSizeInBytes = 52428800,
-                                int maintenancePeriodInMilliseconds = 6000,
-                                long retentionPeriodInMilliseconds = 172800,
-                                int writeTimeoutInMilliseconds = 6000)
+            string path,
+            long maxSizeInBytes = 52428800,
+            int maintenancePeriodInMilliseconds = 120000,
+            long retentionPeriodInMilliseconds = 172800000,
+            int writeTimeoutInMilliseconds = 60000)
         {
             if (path == null)
             {
@@ -167,7 +167,7 @@ namespace OpenTelemetry.Contrib.PersistentStorage
             if (size >= this.maxSizeInBytes)
             {
                 StorageEventSource.Log.Warning($"Persistent storage max capacity has been reached. Currently at {size / 1024} KB. " +
-                                                "Telemetry will be lost. Please consider increasing the value of storage max size in exporter config.");
+                                                "Telemetry may be lost. Please consider increasing the value of storage max size in exporter config.");
                 return false;
             }
 

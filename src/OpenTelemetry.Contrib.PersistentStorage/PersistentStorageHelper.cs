@@ -40,7 +40,7 @@ namespace OpenTelemetry.Contrib.PersistentStorage
                     try
                     {
                         File.Delete(filePath);
-                        StorageEventSource.Log.Warning("File write exceeded retention. Dropping telemetry");
+                        StorageEventSource.Log.Warning("Removing blob as retention deadline expired");
                     }
                     catch (Exception ex)
                     {
