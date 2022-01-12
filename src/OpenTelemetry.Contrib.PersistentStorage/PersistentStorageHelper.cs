@@ -195,6 +195,8 @@ namespace OpenTelemetry.Contrib.PersistentStorage
         {
             var fileName = Path.GetFileNameWithoutExtension(filePath);
             var time = fileName.Substring(0, fileName.LastIndexOf('-'));
+
+            // TODO:Handle possible parsing failure.
             DateTime.TryParseExact(time, "yyyy-MM-ddTHHmmss.fffffffZ", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime);
             return dateTime.ToUniversalTime();
         }
