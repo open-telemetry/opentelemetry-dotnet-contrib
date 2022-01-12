@@ -108,7 +108,7 @@ namespace OpenTelemetry.Contrib.PersistentStorage
             var retentionDeadline = currentUtcDateTime - TimeSpan.FromMilliseconds(retentionPeriodInMilliseconds);
             var timeoutDeadline = currentUtcDateTime - TimeSpan.FromMilliseconds(writeTimeoutInMilliseconds);
 
-            foreach (var file in Directory.EnumerateFiles(directoryPath).OrderByDescending(f => f))
+            foreach (var file in Directory.EnumerateFiles(directoryPath).OrderByDescending(filename => filename))
             {
                 var success = RemoveTimedOutTmpFiles(timeoutDeadline, file);
 

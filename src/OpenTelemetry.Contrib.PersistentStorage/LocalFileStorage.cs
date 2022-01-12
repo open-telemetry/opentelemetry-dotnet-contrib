@@ -71,6 +71,7 @@ namespace OpenTelemetry.Contrib.PersistentStorage
                 throw new ArgumentNullException(nameof(path));
             }
 
+            // TODO: Validate time period values
             this.directoryPath = PersistentStorageHelper.CreateSubdirectory(path);
             this.maxSizeInBytes = maxSizeInBytes;
             this.retentionPeriodInMilliseconds = retentionPeriodInMilliseconds;
@@ -166,8 +167,9 @@ namespace OpenTelemetry.Contrib.PersistentStorage
             var size = PersistentStorageHelper.GetDirectorySize();
             if (size >= this.maxSizeInBytes)
             {
+                // TODO: check accuracy of size reporting.
                 StorageEventSource.Log.Warning($"Persistent storage max capacity has been reached. Currently at {size / 1024} KB. " +
-                                                "Telemetry may be lost. Please consider increasing the value of storage max size in exporter config.");
+                                                "Please consider increasing the value of storage max size in exporter config.");
                 return false;
             }
 
