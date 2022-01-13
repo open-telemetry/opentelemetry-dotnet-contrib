@@ -49,7 +49,7 @@ namespace OpenTelemetry.Contrib.PersistentStorage
         /// <param name="maintenancePeriodInMilliseconds">
         /// Maintenance event runs at specified interval.
         /// Removes expired leases and blobs that exceed retention period.
-        /// Default is 2 minute.
+        /// Default is 2 minutes.
         /// </param>
         /// <param name="retentionPeriodInMilliseconds">
         /// Retention period in milliseconds for the blob.
@@ -139,7 +139,7 @@ namespace OpenTelemetry.Contrib.PersistentStorage
             }
             catch (Exception ex)
             {
-                StorageEventSource.Log.Warning("CreateBlob has failed.", ex);
+                PersistentStorageEventSource.Log.Warning("CreateBlob has failed.", ex);
                 return null;
             }
         }
@@ -155,7 +155,7 @@ namespace OpenTelemetry.Contrib.PersistentStorage
             }
             catch (Exception ex)
             {
-                StorageEventSource.Log.Error($"Error creating directory {this.directoryPath}", ex);
+                PersistentStorageEventSource.Log.Error($"Error creating directory {this.directoryPath}", ex);
                 return;
             }
 
@@ -168,7 +168,7 @@ namespace OpenTelemetry.Contrib.PersistentStorage
             if (size >= this.maxSizeInBytes)
             {
                 // TODO: check accuracy of size reporting.
-                StorageEventSource.Log.Warning($"Persistent storage max capacity has been reached. Currently at {size / 1024} KB. " +
+                PersistentStorageEventSource.Log.Warning($"Persistent storage max capacity has been reached. Currently at {size / 1024} KB. " +
                                                 "Please consider increasing the value of storage max size in exporter config.");
                 return false;
             }

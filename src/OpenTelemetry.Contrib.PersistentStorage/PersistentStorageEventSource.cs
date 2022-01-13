@@ -1,4 +1,4 @@
-﻿// <copyright file="StorageEventSource.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="PersistentStorageEventSource.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,10 +21,10 @@ using System.Runtime.CompilerServices;
 namespace OpenTelemetry.Contrib.PersistentStorage
 {
     [EventSource(Name = EventSourceName)]
-    internal sealed class StorageEventSource : EventSource
+    internal sealed class PersistentStorageEventSource : EventSource
     {
-        public static StorageEventSource Log = new StorageEventSource();
-        private const string EventSourceName = "OpenTelemetry-Shared";
+        public static PersistentStorageEventSource Log = new PersistentStorageEventSource();
+        private const string EventSourceName = "OpenTelemetry-Contrib-PersistentStorage";
 
         [NonEvent]
         public void Critical(string message, object value = null)

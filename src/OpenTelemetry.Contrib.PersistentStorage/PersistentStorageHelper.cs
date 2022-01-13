@@ -40,11 +40,11 @@ namespace OpenTelemetry.Contrib.PersistentStorage
                     try
                     {
                         File.Delete(filePath);
-                        StorageEventSource.Log.Warning("Removing blob as retention deadline expired");
+                        PersistentStorageEventSource.Log.Warning("Removing blob as retention deadline expired");
                     }
                     catch (Exception ex)
                     {
-                        StorageEventSource.Log.Warning($"Deletion of file {filePath} has failed.", ex);
+                        PersistentStorageEventSource.Log.Warning($"Deletion of file {filePath} has failed.", ex);
                     }
                 }
             }
@@ -67,7 +67,7 @@ namespace OpenTelemetry.Contrib.PersistentStorage
                     }
                     catch (Exception ex)
                     {
-                        StorageEventSource.Log.Warning("File rename of {filePath} to {newFilePath} has failed.", ex);
+                        PersistentStorageEventSource.Log.Warning("File rename of {filePath} to {newFilePath} has failed.", ex);
                     }
                 }
             }
@@ -88,11 +88,11 @@ namespace OpenTelemetry.Contrib.PersistentStorage
                     {
                         File.Delete(filePath);
                         success = true;
-                        StorageEventSource.Log.Warning("File write exceeded timeout. Dropping telemetry");
+                        PersistentStorageEventSource.Log.Warning("File write exceeded timeout. Dropping telemetry");
                     }
                     catch (Exception ex)
                     {
-                        StorageEventSource.Log.Warning($"Deletion of file {filePath} has failed.", ex);
+                        PersistentStorageEventSource.Log.Warning($"Deletion of file {filePath} has failed.", ex);
                     }
                 }
             }
@@ -178,7 +178,7 @@ namespace OpenTelemetry.Contrib.PersistentStorage
             }
             catch (Exception ex)
             {
-                StorageEventSource.Log.Error($"Error creating sub-directory {path}.", ex);
+                PersistentStorageEventSource.Log.Error($"Error creating sub-directory {path}.", ex);
             }
 
             directorySize = CalculateFolderSize(subdirectoryPath);
@@ -253,7 +253,7 @@ namespace OpenTelemetry.Contrib.PersistentStorage
             }
             catch (Exception ex)
             {
-                StorageEventSource.Log.Error("Error calculating folder size.", ex);
+                PersistentStorageEventSource.Log.Error("Error calculating folder size.", ex);
             }
 
             return directorySize;
