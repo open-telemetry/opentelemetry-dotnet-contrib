@@ -1,7 +1,7 @@
 # Persistent Storage for OpenTelemetry Exporters
 
-This package enables OpenTelemetry exporters to store telemetry offline in
-case of transient failures. The data can be read at later time for retries.
+This package enables OpenTelemetry exporters to store telemetry offline in case
+of transient failures. The data can be read at later time for retries.
 
 ## Installation
 
@@ -12,8 +12,11 @@ TODO
 ### Setup Storage
 
 ```csharp
-var testDirectory = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "test"));
-using var storage = new LocalFileStorage(testDirectory.FullName);
+var testDir = new DirectoryInfo(Path.Combine(
+            Environment.GetFolderPath(
+                Environment.SpecialFolder.LocalApplicationData)
+            , "test"));
+using var storage = new LocalFileStorage(testDir.FullName);
 ```
 
 Following is the complete list of configurable options that can be used to set
@@ -97,8 +100,11 @@ blob2.Delete();
 ## Sample
 
 ```c#
-var testDirectory = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "test"));
-using var storage = new LocalFileStorage(testDirectory.FullName);
+var testDir = new DirectoryInfo(Path.Combine(
+            Environment.GetFolderPath(
+                Environment.SpecialFolder.LocalApplicationData)
+            , "test"));
+using var storage = new LocalFileStorage(testDir.FullName);
 
 var data = Encoding.UTF8.GetBytes("Hello, World!");
 
