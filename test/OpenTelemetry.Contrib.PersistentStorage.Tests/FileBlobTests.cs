@@ -1,4 +1,4 @@
-﻿// <copyright file="LocalFileBlobTests.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="FileBlobTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,19 +20,19 @@ using Xunit;
 
 namespace OpenTelemetry.Contrib.PersistentStorage.Tests
 {
-    public class LocalFileBlobTests
+    public class FileBlobTests
     {
         [Fact]
-        public void LocalFileBlobTests_E2E_Test()
+        public void FileBlobTests_E2E_Test()
         {
             var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-            IPersistentBlob blob = new LocalFileBlob(testFile.FullName);
+            IPersistentBlob blob = new FileBlob(testFile.FullName);
 
             var data = Encoding.UTF8.GetBytes("Hello, World!");
             IPersistentBlob blob1 = blob.Write(data);
             var blobContent = blob.Read();
 
-            Assert.Equal(testFile.FullName, ((LocalFileBlob)blob1).FullPath);
+            Assert.Equal(testFile.FullName, ((FileBlob)blob1).FullPath);
             Assert.Equal(data, blobContent);
 
             blob1.Delete();
@@ -40,26 +40,26 @@ namespace OpenTelemetry.Contrib.PersistentStorage.Tests
         }
 
         [Fact]
-        public void LocalFileBlobTests_Lease()
+        public void FileBlobTests_Lease()
         {
             var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-            IPersistentBlob blob = new LocalFileBlob(testFile.FullName);
+            IPersistentBlob blob = new FileBlob(testFile.FullName);
 
             var data = Encoding.UTF8.GetBytes("Hello, World!");
             IPersistentBlob blob1 = blob.Write(data);
             IPersistentBlob leasedBlob = blob1.Lease(1000);
 
-            Assert.Contains(".lock", ((LocalFileBlob)leasedBlob).FullPath);
+            Assert.Contains(".lock", ((FileBlob)leasedBlob).FullPath);
 
             blob1.Delete();
             Assert.False(testFile.Exists);
         }
 
         [Fact]
-        public void LocalFileBlobTests_LeaseAfterDelete()
+        public void FileBlobTests_LeaseAfterDelete()
         {
             var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-            IPersistentBlob blob = new LocalFileBlob(testFile.FullName);
+            IPersistentBlob blob = new FileBlob(testFile.FullName);
 
             var data = Encoding.UTF8.GetBytes("Hello, World!");
             IPersistentBlob blob1 = blob.Write(data);
