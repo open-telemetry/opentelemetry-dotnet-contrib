@@ -165,5 +165,14 @@ namespace OpenTelemetry.Contrib.PersistentStorage.Tests
 
             Assert.NotEqual(leaseTime, newLeaseTime);
         }
+
+        [Fact]
+        public void FileBlobTests_FailedWrite()
+        {
+            var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
+            FileBlob blob = new FileBlob(testFile.FullName);
+
+            Assert.Null(blob.Write(null));
+        }
     }
 }
