@@ -1,4 +1,4 @@
-﻿// <copyright file="LocalFileStorage.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="FileStorage.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,10 +23,10 @@ using System.Timers;
 namespace OpenTelemetry.Contrib.PersistentStorage
 {
     /// <summary>
-    /// Persistent file storage <see cref="LocalFileStorage"/> allows to save data
+    /// Persistent file storage <see cref="FileStorage"/> allows to save data
     /// as blobs in file storage.
     /// </summary>
-    public class LocalFileStorage : IPersistentStorage, IDisposable
+    public class FileStorage : IPersistentStorage, IDisposable
     {
         private readonly string directoryPath;
         private readonly long maxSizeInBytes;
@@ -36,7 +36,7 @@ namespace OpenTelemetry.Contrib.PersistentStorage
         private bool disposedValue;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LocalFileStorage"/>
+        /// Initializes a new instance of the <see cref="FileStorage"/>
         /// class.
         /// </summary>
         /// <param name="path">
@@ -59,7 +59,7 @@ namespace OpenTelemetry.Contrib.PersistentStorage
         /// Controls the timeout when writing a buffer to blob.
         /// Default is 1 minute.
         /// </param>
-        public LocalFileStorage(
+        public FileStorage(
             string path,
             long maxSizeInBytes = 52428800,
             int maintenancePeriodInMilliseconds = 120000,
@@ -112,7 +112,7 @@ namespace OpenTelemetry.Contrib.PersistentStorage
                 DateTime fileDateTime = PersistentStorageHelper.GetDateTimeFromBlobName(file);
                 if (fileDateTime > retentionDeadline)
                 {
-                    yield return new LocalFileBlob(file);
+                    yield return new FileBlob(file);
                 }
             }
         }
@@ -134,7 +134,7 @@ namespace OpenTelemetry.Contrib.PersistentStorage
             try
             {
                 var blobFilePath = Path.Combine(this.directoryPath, PersistentStorageHelper.GetUniqueFileName(".blob"));
-                var blob = new LocalFileBlob(blobFilePath);
+                var blob = new FileBlob(blobFilePath);
                 return blob.Write(buffer, leasePeriodMilliseconds);
             }
             catch (Exception ex)
