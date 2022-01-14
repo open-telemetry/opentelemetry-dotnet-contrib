@@ -73,5 +73,18 @@ namespace OpenTelemetry.Contrib.PersistentStorage.Tests
 
             testDirectory.Delete(true);
         }
+
+        [Fact]
+        public void FileStorage_CreateBlobReturnsNullIfStorageIsFull()
+        {
+            var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
+            using var storage = new FileStorage(testDirectory.FullName, 10000);
+
+            PersistentStorageHelper.UpdateDirectorySize(10000);
+
+            var data = Encoding.UTF8.GetBytes("Hello, World!");
+
+            Assert.Null(storage.CreateBlob(data));
+        }
     }
 }
