@@ -86,5 +86,11 @@ namespace OpenTelemetry.Contrib.PersistentStorage.Tests
 
             Assert.Null(storage.CreateBlob(data));
         }
+
+        [Fact]
+        public void FileStorage_PathIsRequired()
+        {
+            Assert.Throws<ArgumentNullException>(() => new FileStorage(null));
+        }
     }
 }
