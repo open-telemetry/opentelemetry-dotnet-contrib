@@ -1,4 +1,4 @@
-﻿// <copyright file="LocalFileBlob.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="FileBlob.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,17 +20,17 @@ using System.IO;
 namespace OpenTelemetry.Contrib.PersistentStorage
 {
     /// <summary>
-    /// The <see cref="LocalFileBlob"/> allows to save a blob
+    /// The <see cref="FileBlob"/> allows to save a blob
     /// in file storage.
     /// </summary>
-    public class LocalFileBlob : IPersistentBlob
+    public class FileBlob : IPersistentBlob
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="LocalFileBlob"/>
+        /// Initializes a new instance of the <see cref="FileBlob"/>
         /// class.
         /// </summary>
         /// <param name="fullPath">Absolute file path of the blob.</param>
-        public LocalFileBlob(string fullPath)
+        public FileBlob(string fullPath)
         {
             this.FullPath = fullPath;
         }

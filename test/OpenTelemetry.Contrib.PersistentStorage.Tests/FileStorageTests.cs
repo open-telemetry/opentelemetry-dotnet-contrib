@@ -1,4 +1,4 @@
-﻿// <copyright file="LocalFileStorageTests.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="FileStorageTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,13 +23,13 @@ using Xunit;
 
 namespace OpenTelemetry.Contrib.PersistentStorage.Tests
 {
-    public class LocalFileStorageTests
+    public class FileStorageTests
     {
         [Fact]
-        public void LocalFileStorage_E2E_Test()
+        public void FileStorage_E2E_Test()
         {
             var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-            using var storage = new LocalFileStorage(testDirectory.FullName);
+            using var storage = new FileStorage(testDirectory.FullName);
 
             var data = Encoding.UTF8.GetBytes("Hello, World!");
 
@@ -42,7 +42,7 @@ namespace OpenTelemetry.Contrib.PersistentStorage.Tests
             Assert.Single(storage.GetBlobs());
 
             // Verify file name from both create blob and get blob are same.
-            Assert.Equal(((LocalFileBlob)blob1).FullPath, ((LocalFileBlob)blob2).FullPath);
+            Assert.Equal(((FileBlob)blob1).FullPath, ((FileBlob)blob2).FullPath);
 
             // Validate if content in the blob is same as buffer data passed to create blob.
             Assert.Equal(data, blob1.Read());
@@ -51,10 +51,10 @@ namespace OpenTelemetry.Contrib.PersistentStorage.Tests
         }
 
         [Fact]
-        public void LocalFileStorageTests_Lease()
+        public void FileStorageTests_Lease()
         {
             var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-            using var storage = new LocalFileStorage(testDirectory.FullName, 10000, 500);
+            using var storage = new FileStorage(testDirectory.FullName, 10000, 500);
 
             var data = Encoding.UTF8.GetBytes("Hello, World!");
 
@@ -62,14 +62,14 @@ namespace OpenTelemetry.Contrib.PersistentStorage.Tests
             IPersistentBlob blob = storage.CreateBlob(data, 100);
 
             // Leasing a blob will change the extension of a file to .lock
-            Assert.EndsWith(".lock", ((LocalFileBlob)blob).FullPath);
+            Assert.EndsWith(".lock", ((FileBlob)blob).FullPath);
 
             // Maintenance timer will validate will run every 500ms.
             // Sleep for a minute so that mainenance timer will remove the lease on the blob.
             Thread.Sleep(TimeSpan.FromSeconds(1));
 
             // Lease is released, file name has changed.
-            Assert.False(File.Exists(((LocalFileBlob)blob).FullPath));
+            Assert.False(File.Exists(((FileBlob)blob).FullPath));
 
             testDirectory.Delete(true);
         }
