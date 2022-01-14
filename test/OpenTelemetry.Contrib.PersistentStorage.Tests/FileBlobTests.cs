@@ -90,7 +90,7 @@ namespace OpenTelemetry.Contrib.PersistentStorage.Tests
         }
 
         [Fact]
-        public void FileBlobTests_LeaseFailsOnAlreadyLeasedFile()
+        public void FileBlobTests_LeaseFailsOnAlreadyLeasedFileByOtherObject()
         {
             var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
             FileBlob blob1 = new FileBlob(testFile.FullName);
@@ -144,6 +144,26 @@ namespace OpenTelemetry.Contrib.PersistentStorage.Tests
 
             // Assert
             Assert.NotNull(storage.GetBlob());
+        }
+
+        [Fact]
+        public void FileBlobTests_LeaseTimeIsUpdatedWhenLeasingAlreadyLeasedFile()
+        {
+            var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
+            FileBlob blob = new FileBlob(testFile.FullName);
+            var data = Encoding.UTF8.GetBytes("Hello, World!");
+
+            blob.Write(data);
+
+            blob.Lease(10000);
+
+            var leaseTime = PersistentStorageHelper.GetDateTimeFromLeaseName(blob.FullPath);
+
+            Assert.NotNull(blob.Lease(10000));
+
+            var newLeaseTime = PersistentStorageHelper.GetDateTimeFromLeaseName(blob.FullPath);
+
+            Assert.NotEqual(leaseTime, newLeaseTime);
         }
     }
 }
