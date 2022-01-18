@@ -47,8 +47,9 @@ namespace OpenTelemetry.Contrib.PersistentStorage.Tests
             IPersistentBlob blob = new FileBlob(testFile.FullName);
 
             var data = Encoding.UTF8.GetBytes("Hello, World!");
+            var leasePeriodMilliseconds = 1000;
             IPersistentBlob blob1 = blob.Write(data);
-            IPersistentBlob leasedBlob = blob1.Lease(1000);
+            IPersistentBlob leasedBlob = blob1.Lease(leasePeriodMilliseconds);
 
             Assert.Contains(".lock", ((FileBlob)leasedBlob).FullPath);
 
@@ -78,9 +79,10 @@ namespace OpenTelemetry.Contrib.PersistentStorage.Tests
             FileBlob blob2 = new FileBlob(testFile.FullName);
             var data = Encoding.UTF8.GetBytes("Hello, World!");
             blob1.Write(data);
+            var leasePeriodMilliseconds = 10000;
 
             // Leased by another thread/process/object
-            blob2.Lease(10000);
+            blob2.Lease(leasePeriodMilliseconds);
 
             // Read should fail as file is leased
             Assert.Null(blob1.Read());
@@ -97,9 +99,10 @@ namespace OpenTelemetry.Contrib.PersistentStorage.Tests
             FileBlob blob2 = new FileBlob(testFile.FullName);
             var data = Encoding.UTF8.GetBytes("Hello, World!");
             blob1.Write(data);
+            var leasePeriodMilliseconds = 10000;
 
             // Leased by another thread/process/object
-            blob2.Lease(10000);
+            blob2.Lease(leasePeriodMilliseconds);
 
             // Lease should fail as already leased
             Assert.Null(blob1.Lease(10));
@@ -134,8 +137,9 @@ namespace OpenTelemetry.Contrib.PersistentStorage.Tests
 
             var blob = storage.CreateBlob(data);
 
-            // lease for 1 sec
-            blob.Lease(1);
+            var leasePeriodMilliseconds = 1;
+            // lease for 1 ms
+            blob.Lease(leasePeriodMilliseconds);
 
             // Wait for lease to expire and maintenance job to run
             Thread.Sleep(5000);
@@ -155,7 +159,8 @@ namespace OpenTelemetry.Contrib.PersistentStorage.Tests
 
             blob.Write(data);
 
-            blob.Lease(10000);
+            var leasePeriodMilliseconds = 10000;
+            blob.Lease(leasePeriodMilliseconds);
 
             var leaseTime = PersistentStorageHelper.GetDateTimeFromLeaseName(blob.FullPath);
 
