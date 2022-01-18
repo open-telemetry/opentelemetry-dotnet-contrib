@@ -136,6 +136,7 @@ namespace OpenTelemetry.Contrib.PersistentStorage.Tests
             var blob = storage.CreateBlob(data);
 
             var leasePeriodMilliseconds = 1;
+
             // lease for 1 ms
             blob.Lease(leasePeriodMilliseconds);
 
