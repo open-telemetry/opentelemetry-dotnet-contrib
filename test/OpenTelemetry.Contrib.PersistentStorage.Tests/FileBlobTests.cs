@@ -116,9 +116,7 @@ namespace OpenTelemetry.Contrib.PersistentStorage.Tests
         {
             var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
             FileBlob blob = new FileBlob(testFile.FullName);
-            var data = Encoding.UTF8.GetBytes("Hello, World!");
 
-            blob.Write(data);
             blob.Delete();
 
             // Assert
