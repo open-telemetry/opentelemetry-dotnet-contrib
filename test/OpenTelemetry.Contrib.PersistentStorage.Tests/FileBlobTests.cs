@@ -147,6 +147,8 @@ namespace OpenTelemetry.Contrib.PersistentStorage.Tests
 
             // Assert
             Assert.NotNull(storage.GetBlob());
+
+            testDirectory.Delete(true);
         }
 
         [Fact]
@@ -168,6 +170,8 @@ namespace OpenTelemetry.Contrib.PersistentStorage.Tests
             var newLeaseTime = PersistentStorageHelper.GetDateTimeFromLeaseName(blob.FullPath);
 
             Assert.NotEqual(leaseTime, newLeaseTime);
+
+            blob.Delete();
         }
 
         [Fact]
