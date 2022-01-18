@@ -51,30 +51,6 @@ namespace OpenTelemetry.Contrib.PersistentStorage.Tests
         }
 
         [Fact]
-        public void FileStorageTests_Lease()
-        {
-            var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-            using var storage = new FileStorage(testDirectory.FullName, 10000, 500);
-
-            var data = Encoding.UTF8.GetBytes("Hello, World!");
-
-            // Create a blob and lease for 100 ms.
-            IPersistentBlob blob = storage.CreateBlob(data, 100);
-
-            // Leasing a blob will change the extension of a file to .lock
-            Assert.EndsWith(".lock", ((FileBlob)blob).FullPath);
-
-            // Maintenance timer will validate will run every 500ms.
-            // Sleep for a minute so that mainenance timer will remove the lease on the blob.
-            Thread.Sleep(TimeSpan.FromSeconds(1));
-
-            // Lease is released, file name has changed.
-            Assert.False(File.Exists(((FileBlob)blob).FullPath));
-
-            testDirectory.Delete(true);
-        }
-
-        [Fact]
         public void FileStorage_CreateBlobReturnsNullIfStorageIsFull()
         {
             var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
@@ -85,12 +61,108 @@ namespace OpenTelemetry.Contrib.PersistentStorage.Tests
             var data = Encoding.UTF8.GetBytes("Hello, World!");
 
             Assert.Null(storage.CreateBlob(data));
+
+            testDirectory.Delete(true);
         }
 
         [Fact]
         public void FileStorage_PathIsRequired()
         {
             Assert.Throws<ArgumentNullException>(() => new FileStorage(null));
+        }
+
+        [Fact]
+        public void FileStorage_TestRetentionPeriod()
+        {
+            var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
+            long maxSizeInBytes = 100000;
+            int maintenancePeriodInMilliseconds = 3000;
+            int retentionPeriodInMilliseconds = 2000;
+            int writeTimeOutInMilliseconds = 1000;
+            using var storage = new FileStorage(
+                testDirectory.FullName,
+                maxSizeInBytes,
+                maintenancePeriodInMilliseconds,
+                retentionPeriodInMilliseconds,
+                writeTimeOutInMilliseconds);
+
+            var data = Encoding.UTF8.GetBytes("Hello, World!");
+            var blob1 = (FileBlob)storage.CreateBlob(data);
+
+            // Wait for maintenance job to run
+            Thread.Sleep(4000);
+
+            // Blob will be deleted as retention period is 1 sec
+            Assert.False(File.Exists(blob1.FullPath));
+
+            testDirectory.Delete(true);
+        }
+
+        [Fact]
+        public void FileStorage_TestWriteTimeoutPeriod()
+        {
+            var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
+            long maxSizeInBytes = 100000;
+            int maintenancePeriodInMilliseconds = 3000;
+            int retentionPeriodInMilliseconds = 2000;
+            int writeTimeOutInMilliseconds = 1000;
+            using var storage = new FileStorage(
+                testDirectory.FullName,
+                maxSizeInBytes,
+                maintenancePeriodInMilliseconds,
+                retentionPeriodInMilliseconds,
+                writeTimeOutInMilliseconds);
+
+            var data = Encoding.UTF8.GetBytes("Hello, World!");
+            var blob2 = (FileBlob)storage.CreateBlob(data);
+
+            // Mock write
+            File.Move(blob2.FullPath, blob2.FullPath + ".tmp");
+
+            // validate file moved successfully
+            Assert.True(File.Exists(blob2.FullPath + ".tmp"));
+
+            // Wait for maintenance job to run
+            Thread.Sleep(4000);
+
+            // tmp file will be deleted as write timeout period is 1 sec
+            Assert.False(File.Exists(blob2.FullPath + ".tmp"));
+            Assert.False(File.Exists(blob2.FullPath));
+
+            testDirectory.Delete(true);
+        }
+
+        [Fact]
+        public void FileStorageTests_TestLeaseExpiration()
+        {
+            var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
+            long maxSizeInBytes = 100000;
+            int maintenancePeriodInMilliseconds = 3000;
+            int retentionPeriodInMilliseconds = 2000;
+            int writeTimeOutInMilliseconds = 1000;
+            using var storage = new FileStorage(
+                testDirectory.FullName,
+                maxSizeInBytes,
+                maintenancePeriodInMilliseconds,
+                retentionPeriodInMilliseconds,
+                writeTimeOutInMilliseconds);
+
+            var data = Encoding.UTF8.GetBytes("Hello, World!");
+            var blob = (FileBlob)storage.CreateBlob(data);
+            var blobPath = blob.FullPath;
+
+            blob.Lease(1000);
+            var leasePath = blob.FullPath;
+            Assert.True(File.Exists(leasePath));
+
+            // Wait for maintenance job to run
+            Thread.Sleep(4000);
+
+            // File name will be change to .blob
+            Assert.True(File.Exists(blobPath));
+            Assert.False(File.Exists(leasePath));
+
+            testDirectory.Delete(true);
         }
     }
 }
