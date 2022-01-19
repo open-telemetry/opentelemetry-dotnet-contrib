@@ -35,7 +35,7 @@ namespace OpenTelemetry.Contrib.PersistentStorage
             if (filePath.EndsWith(".blob", StringComparison.OrdinalIgnoreCase))
             {
                 DateTime fileDateTime = GetDateTimeFromBlobName(filePath);
-                if (fileDateTime < retentionDeadline)
+                if (fileDateTime != DateTime.MinValue && fileDateTime < retentionDeadline)
                 {
                     try
                     {
@@ -57,7 +57,7 @@ namespace OpenTelemetry.Contrib.PersistentStorage
             if (filePath.EndsWith(".lock", StringComparison.OrdinalIgnoreCase))
             {
                 DateTime fileDateTime = GetDateTimeFromLeaseName(filePath);
-                if (fileDateTime < leaseDeadline)
+                if (fileDateTime != DateTime.MinValue && fileDateTime < leaseDeadline)
                 {
                     var newFilePath = filePath.Substring(0, filePath.LastIndexOf('@'));
                     try
@@ -195,10 +195,8 @@ namespace OpenTelemetry.Contrib.PersistentStorage
         {
             var fileName = Path.GetFileNameWithoutExtension(filePath);
             var time = fileName.Substring(0, fileName.LastIndexOf('-'));
-
-            // TODO:Handle possible parsing failure.
-            DateTime.TryParseExact(time, "yyyy-MM-ddTHHmmss.fffffffZ", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime);
-            return dateTime.ToUniversalTime();
+            bool isParsed = DateTime.TryParseExact(time, "yyyy-MM-ddTHHmmss.fffffffZ", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime);
+            return isParsed ? dateTime.ToUniversalTime() : dateTime;
         }
 
         internal static DateTime GetDateTimeFromLeaseName(string filePath)
@@ -206,8 +204,8 @@ namespace OpenTelemetry.Contrib.PersistentStorage
             var fileName = Path.GetFileNameWithoutExtension(filePath);
             var startIndex = fileName.LastIndexOf('@') + 1;
             var time = fileName.Substring(startIndex, fileName.Length - startIndex);
-            DateTime.TryParseExact(time, "yyyy-MM-ddTHHmmss.fffffffZ", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime);
-            return dateTime.ToUniversalTime();
+            bool isParsed = DateTime.TryParseExact(time, "yyyy-MM-ddTHHmmss.fffffffZ", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime);
+            return isParsed ? dateTime.ToUniversalTime() : dateTime;
         }
 
         internal static string GetSHA256Hash(string input)
