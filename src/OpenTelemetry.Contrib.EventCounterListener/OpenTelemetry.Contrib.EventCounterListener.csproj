@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <Description>OpenTelemetry Metrics for Dotnet EventCounters</Description>
+        <PackageTags>$(PackageTags);</PackageTags>
+        <MinVerTagPrefix>EventCounterListener-</MinVerTagPrefix>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
+        <PackageReference Include="Microsoft.Diagnostics.Monitoring.EventPipe" Version="5.0.257301" />
+        <PackageReference Include="OpenTelemetry.Api" Version="1.2.0-rc1.22" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
+        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\IActivityEnumerator.cs" Link="Includes\IActivityEnumerator.cs" />
+        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs" />
+        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\EnumerationHelper.cs" Link="Includes\EnumerationHelper.cs" />
+        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\SpanAttributeConstants.cs" Link="Includes\SpanAttributeConstants.cs" />
+        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\StatusHelper.cs" Link="Includes\StatusHelper.cs" />
+    </ItemGroup>
+
+   
+</Project>

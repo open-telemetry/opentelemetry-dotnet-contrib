@@ -1,0 +1,135 @@
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics.Metrics;
+using System.Diagnostics.Tracing;
+using System.Reflection;
+using Microsoft.Diagnostics.Monitoring.EventPipe;
+using OpenTelemetry.Contrib.EventCounterListener.EventPipe;
+
+namespace OpenTelemetry.Contrib.Instrumentation.EventCounterListener
+{
+    /// <summary>
+    /// EventCounterListener that subscribes to EventSource Events.
+    /// </summary>
+    public class EventCounterListener : EventListener
+    {
+        internal static readonly AssemblyName AssemblyName = typeof(EventCounterListener).Assembly.GetName();
+        internal static readonly string InstrumentationName = AssemblyName.Name;
+        internal static readonly string InstrumentationVersion = AssemblyName.Version.ToString();
+
+        private readonly string eventSourceName = "System.Runtime"; // TODO : Get from options
+        private readonly string eventName = "EventCounters";
+        private readonly Meter meter;
+        private readonly EventCounterListenerOptions options;
+
+        private ConcurrentDictionary<MetricKey, double> metericStore = new();
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EventCounterListener"/> class.
+        /// </summary>
+        /// <param name="options">Options to configure the EventCounterListener</param>
+        public EventCounterListener(EventCounterListenerOptions options)
+        {
+            this.options = options;
+            this.meter = new Meter(InstrumentationName, InstrumentationVersion);
+        }
+
+        /// <summary>
+        /// Processes a new EventSource event.
+        /// </summary>
+        /// <param name="eventData">Event to process.</param>
+        protected override void OnEventWritten(EventWrittenEventArgs eventData)
+        {
+            if (eventData == null)
+            {
+                throw new ArgumentNullException(nameof(eventData));
+            }
+
+            try
+            {
+                if (eventData.EventName.Equals(this.eventName, StringComparison.OrdinalIgnoreCase))
+                {
+                    this.ExtractAndRecordMetric(eventData);
+                }
+            }
+            catch (Exception ex)
+            {
+                EventCounterListenerEventSource.Log.ErrorEventCounter(this.eventName, ex.ToString());
+            }
+        }
+
+        /// <inheritdoc/>
+        protected override void OnEventSourceCreated(EventSource eventSource)
+        {
+            if (eventSource == null)
+            {
+                throw new ArgumentNullException(nameof(eventSource));
+            }
+
+            if (this.eventSourceName.Equals(eventSource.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                var refreshInterval = new Dictionary<string, string>() { { "EventCounterIntervalSec", "1" } }; // TODO: Get from configuration
+                try
+                {
+                    this.EnableEvents(eventSource, EventLevel.Verbose, EventKeywords.All, refreshInterval);
+                }
+                catch (Exception ex)
+                {
+                    // TODO: Log to eventSource
+                }
+            }
+        }
+
+        private static bool CompareMetrics(ICounterPayload first, ICounterPayload second)
+        {
+            return string.Equals(first.Name, second.Name);
+        }
+
+        private double ObserveValue(MetricKey key)
+        {
+            // return last value
+            return this.metericStore[key];
+        }
+
+        private void ExtractAndRecordMetric(EventWrittenEventArgs eventWrittenEventArgs)
+        {
+            eventWrittenEventArgs.TryGetCounterPayload(out var eventPayload);
+            var metricKey = new MetricKey(eventPayload);
+            if (!this.metericStore.ContainsKey(metricKey))
+            {
+                this.meter.CreateObservableGauge<double>(eventPayload.Name, () => this.ObserveValue(metricKey), eventPayload.DisplayName);
+            }
+
+            this.metericStore[metricKey] = eventPayload.Value;
+        }
+
+        private sealed class MetricKey
+        {
+            private ICounterPayload metric;
+
+            public MetricKey(ICounterPayload metric)
+            {
+                this.metric = metric;
+            }
+
+            public override int GetHashCode()
+            {
+                HashCode code = default(HashCode);
+                code.Add(this.metric.Provider);
+                code.Add(this.metric.Name);
+                return code.ToHashCode();
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (obj is MetricKey metricKey)
+                {
+                    return CompareMetrics(this.metric, metricKey.metric);
+                }
+
+                return false;
+            }
+        }
+    }
+}
