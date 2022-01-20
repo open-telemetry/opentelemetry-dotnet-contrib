@@ -25,7 +25,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounterListener.Tests
 {
     public class EventCounterListenerTests
     {
-
         private MeterProvider meterProvider = null;
 
         [Fact]
@@ -51,6 +50,5 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounterListener.Tests
 
             Assert.True(metricItems.Count > 1);
         }
-
     }
 }
