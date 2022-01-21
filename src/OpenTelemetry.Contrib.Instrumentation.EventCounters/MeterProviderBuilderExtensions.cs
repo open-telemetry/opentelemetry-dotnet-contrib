@@ -15,7 +15,7 @@
 // </copyright>
 
 using System;
-using OpenTelemetry.Contrib.Instrumentation.EventCounterListener;
+using OpenTelemetry.Contrib.Instrumentation.EventCounters;
 
 namespace OpenTelemetry.Metrics
 {
@@ -25,12 +25,12 @@ namespace OpenTelemetry.Metrics
     public static class MeterProviderBuilderExtensions
     {
         /// <summary>
-        /// Enables EventCounterListener instrumentation.
+        /// Enables EventCounters instrumentation.
         /// </summary>
         /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
         /// <param name="configureEventCounterListenerOptions">EventCounter Listener configuration options.</param>
         /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
-        public static MeterProviderBuilder AddEventCounterListener(
+        public static MeterProviderBuilder AddEventCounters(
             this MeterProviderBuilder builder,
             Action<EventCounterListenerOptions> configureEventCounterListenerOptions = null)
         {

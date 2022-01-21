@@ -1,4 +1,4 @@
-﻿// <copyright file="EventCounter.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="AssemblyInfo.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,21 +14,10 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Contrib.Instrumentation.EventCounterListener
-{
-    /// <summary>
-    /// The Event Counter to listen to.
-    /// </summary>
-    public class EventCounter
-    {
-        /// <summary>
-        /// Gets or sets the name of the event counter.
-        /// </summary>
-        public string Name { get; set; }
+using System.Runtime.CompilerServices;
 
-        /// <summary>
-        /// Gets or sets the type of the event counter.
-        /// </summary>
-        public string Type { get; set; }
-    }
-}
+#if SIGNED
+[assembly: InternalsVisibleTo("OpenTelemetry.Contrib.Instrumentation.EventCounters.Tests, PublicKey=")]
+#else
+[assembly: InternalsVisibleTo("OpenTelemetry.Contrib.Instrumentation.EventCounters.Tests")]
+#endif

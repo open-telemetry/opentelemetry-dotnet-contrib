@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-using OpenTelemetry.Contrib.Instrumentation.EventCounterListener;
+using OpenTelemetry.Contrib.Instrumentation.EventCounters;
 using OpenTelemetry.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,7 +26,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenTelemetryMetrics(
                 (builder) => builder
                     .AddPrometheusExporter()
-                    .AddEventCounterListener(options =>
+                    .AddEventCounters(options =>
                     {
                         options.Sources = new[]
                         {

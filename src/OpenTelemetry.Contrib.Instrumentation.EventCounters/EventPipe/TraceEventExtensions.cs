@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 
-namespace OpenTelemetry.Contrib.EventCounterListener.EventPipe
+namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.EventPipe
 {
     internal static class TraceEventExtensions
     {

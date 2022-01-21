@@ -1,4 +1,4 @@
-﻿// <copyright file="AssemblyInfo.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="EventCounterListenerOptions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,10 +14,16 @@
 // limitations under the License.
 // </copyright>
 
-using System.Runtime.CompilerServices;
-
-#if SIGNED
-[assembly: InternalsVisibleTo("OpenTelemetry.Contrib.EventCounterListener.Tests, PublicKey=")]
-#else
-[assembly: InternalsVisibleTo("OpenTelemetry.Contrib.EventCounterListener.Tests")]
-#endif
+namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
+{
+    /// <summary>
+    /// Options for <see cref="EventCounterListener"/>.
+    /// </summary>
+    public class EventCounterListenerOptions
+    {
+        /// <summary>
+        /// Gets or sets event Counters to listen to.
+        /// </summary>
+        public EventCounter[] Sources { get; set; }
+    }
+}

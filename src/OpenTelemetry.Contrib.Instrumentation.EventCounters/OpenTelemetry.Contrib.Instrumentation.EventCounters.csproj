@@ -3,8 +3,8 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <Description>OpenTelemetry Metrics instrumentation for Dotnet EventCounters</Description>
-        <PackageTags>$(PackageTags);metrics;eventcounter</PackageTags>
-        <MinVerTagPrefix>EventCounterListener-</MinVerTagPrefix>
+        <PackageTags>$(PackageTags);metrics;eventcounters</PackageTags>
+        <MinVerTagPrefix>Instrumentation.EventCounters-</MinVerTagPrefix>
         <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
     </PropertyGroup>
 

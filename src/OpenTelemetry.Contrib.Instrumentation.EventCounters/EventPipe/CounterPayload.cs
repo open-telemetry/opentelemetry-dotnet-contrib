@@ -16,7 +16,7 @@
 
 using System;
 
-namespace OpenTelemetry.Contrib.EventCounterListener.EventPipe
+namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.EventPipe
 {
     internal class CounterPayload : ICounterPayload
     {

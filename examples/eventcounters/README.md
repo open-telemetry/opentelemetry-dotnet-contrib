@@ -2,6 +2,6 @@
 
 Project structure:
 
-* Examples.Eventcounter.AspNetCore
+* Examples.EventCounters.AspNetCore
 
   This is a small example how to use and configure the instrumentation library.

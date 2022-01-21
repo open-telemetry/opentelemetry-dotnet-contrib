@@ -1,4 +1,4 @@
-﻿// <copyright file="MySqlDataTests.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="EventCounterListenerTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Instrumentation.EventCounterListener.Tests
+namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Tests
 {
     public class EventCounterListenerTests
     {
@@ -38,7 +38,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounterListener.Tests
                 Temporality = AggregationTemporality.Cumulative,
             };
             this.meterProvider = Sdk.CreateMeterProviderBuilder()
-                 .AddEventCounterListener(options =>
+                 .AddEventCounters(options =>
                  {
                      options.Sources = null;
                  })

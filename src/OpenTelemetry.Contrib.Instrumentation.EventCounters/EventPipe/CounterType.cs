@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
- namespace OpenTelemetry.Contrib.EventCounterListener.EventPipe
+namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.EventPipe
 {
     /// <summary>
     /// Counter Type Enumeration.

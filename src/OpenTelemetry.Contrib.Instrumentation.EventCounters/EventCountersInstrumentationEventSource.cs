@@ -16,17 +16,17 @@
 
 using System.Diagnostics.Tracing;
 
-namespace OpenTelemetry.Contrib.Instrumentation.EventCounterListener
+namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
 {
     /// <summary>
     /// EventSource events emitted from the project.
     /// </summary>
-    [EventSource(Name = "OpenTelemetry-Instrumentation-EventCounter")]
-    internal class EventCounterListenerEventSource : EventSource
+    [EventSource(Name = "OpenTelemetry-Instrumentation-EventCounters")]
+    internal class EventCountersInstrumentationEventSource : EventSource
     {
-        public static readonly EventCounterListenerEventSource Log = new EventCounterListenerEventSource();
+        public static readonly EventCountersInstrumentationEventSource Log = new EventCountersInstrumentationEventSource();
 
-        [Event(2, Message = "Error accured while processing eventCounter, EventCounter: {0}, Exception: {2}", Level = EventLevel.Error)]
+        [Event(2, Message = "Error occurred while processing eventCounter, EventCounter: {0}, Exception: {2}", Level = EventLevel.Error)]
         public void ErrorEventCounter(string counterName, string exception)
         {
             this.WriteEvent(1, counterName, exception);

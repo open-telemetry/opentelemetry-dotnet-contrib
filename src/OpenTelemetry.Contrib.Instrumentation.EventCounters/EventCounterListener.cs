@@ -20,9 +20,9 @@ using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Diagnostics.Tracing;
 using System.Reflection;
-using OpenTelemetry.Contrib.EventCounterListener.EventPipe;
+using OpenTelemetry.Contrib.Instrumentation.EventCounters.EventPipe;
 
-namespace OpenTelemetry.Contrib.Instrumentation.EventCounterListener
+namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
 {
     /// <summary>
     /// EventCounterListener that subscribes to EventSource Events.
@@ -70,7 +70,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounterListener
             }
             catch (Exception ex)
             {
-                EventCounterListenerEventSource.Log.ErrorEventCounter(this.eventName, ex.ToString());
+                EventCountersInstrumentationEventSource.Log.ErrorEventCounter(this.eventName, ex.ToString());
             }
         }
 

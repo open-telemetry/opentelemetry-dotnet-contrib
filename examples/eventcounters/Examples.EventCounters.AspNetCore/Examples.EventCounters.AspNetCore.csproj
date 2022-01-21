@@ -14,7 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\src\OpenTelemetry.Contrib.EventCounterListener\OpenTelemetry.Contrib.EventCounterListener.csproj" />
+      <ProjectReference Include="..\..\..\src\OpenTelemetry.Contrib.Instrumentation.EventCounters\OpenTelemetry.Contrib.Instrumentation.EventCounters.csproj" />
     </ItemGroup>
 
 </Project>
