@@ -21,7 +21,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounterListener
     /// <summary>
     /// EventSource events emitted from the project.
     /// </summary>
-    [EventSource(Name = "OpenTelemetry-Instrumentation-MySqlData")]
+    [EventSource(Name = "OpenTelemetry-Instrumentation-EventCounter")]
     internal class EventCounterListenerEventSource : EventSource
     {
         public static readonly EventCounterListenerEventSource Log = new EventCounterListenerEventSource();

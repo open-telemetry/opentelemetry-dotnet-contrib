@@ -27,7 +27,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounterListener
     /// <summary>
     /// EventCounterListener that subscribes to EventSource Events.
     /// </summary>
-    public class EventCounterListener : EventListener
+    internal class EventCounterListener : EventListener
     {
         internal static readonly AssemblyName AssemblyName = typeof(EventCounterListener).Assembly.GetName();
         internal static readonly string InstrumentationName = AssemblyName.Name;

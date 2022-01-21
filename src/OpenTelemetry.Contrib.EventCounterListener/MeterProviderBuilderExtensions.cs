@@ -15,9 +15,9 @@
 // </copyright>
 
 using System;
-using OpenTelemetry.Metrics;
+using OpenTelemetry.Contrib.Instrumentation.EventCounterListener;
 
-namespace OpenTelemetry.Contrib.Instrumentation.EventCounterListener
+namespace OpenTelemetry.Metrics
 {
     /// <summary>
     /// Extension methods to simplify registering of dependency instrumentation.
