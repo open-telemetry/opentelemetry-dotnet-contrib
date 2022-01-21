@@ -20,7 +20,6 @@ using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Diagnostics.Tracing;
 using System.Reflection;
-using Microsoft.Diagnostics.Monitoring.EventPipe;
 using OpenTelemetry.Contrib.EventCounterListener.EventPipe;
 
 namespace OpenTelemetry.Contrib.Instrumentation.EventCounterListener
@@ -122,20 +121,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounterListener
 
         private sealed class MetricKey
         {
-            private ICounterPayload metric;
+            private readonly ICounterPayload metric;
 
             public MetricKey(ICounterPayload metric)
             {
                 this.metric = metric;
             }
 
-            public override int GetHashCode()
-            {
-                HashCode code = default(HashCode);
-                code.Add(this.metric.Provider);
-                code.Add(this.metric.Name);
-                return code.ToHashCode();
-            }
+            public override int GetHashCode() => (this.metric.Provider, this.metric.Name).GetHashCode();
 
             public override bool Equals(object obj)
             {

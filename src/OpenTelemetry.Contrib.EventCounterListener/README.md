@@ -1,4 +1,4 @@
-# MySqlData Instrumentation for OpenTelemetry
+# Event counter instrumentation for OpenTelemetry
 
 This is an
 [Instrumentation Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library),

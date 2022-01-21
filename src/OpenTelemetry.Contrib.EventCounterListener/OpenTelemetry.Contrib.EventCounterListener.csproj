@@ -2,15 +2,13 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <Description>OpenTelemetry Metrics for Dotnet EventCounters</Description>
-        <PackageTags>$(PackageTags);</PackageTags>
+        <Description>OpenTelemetry Metrics instrumentation for Dotnet EventCounters</Description>
+        <PackageTags>$(PackageTags);metrics;eventcounter</PackageTags>
         <MinVerTagPrefix>EventCounterListener-</MinVerTagPrefix>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
-        <PackageReference Include="Microsoft.Diagnostics.Monitoring.EventPipe" Version="5.0.257301" />
-        <PackageReference Include="OpenTelemetry.Api" Version="1.2.0-rc1.22" />
+        <PackageReference Include="OpenTelemetry.Api" Version="1.2.0-rc1" />
     </ItemGroup>
 
     <ItemGroup>
@@ -22,5 +20,5 @@
         <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\StatusHelper.cs" Link="Includes\StatusHelper.cs" />
     </ItemGroup>
 
-   
+
 </Project>
