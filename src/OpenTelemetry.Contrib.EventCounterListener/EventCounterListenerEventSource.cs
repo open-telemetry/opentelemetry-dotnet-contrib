@@ -1,4 +1,4 @@
-﻿// <copyright file="MySqlDataInstrumentationEventSource.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="EventCounterListenerEventSource.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounterListener
         [Event(2, Message = "Error accured while processing eventCounter, EventCounter: {0}, Exception: {2}", Level = EventLevel.Error)]
         public void ErrorEventCounter(string counterName, string exception)
         {
-            this.WriteEvent(1, counterName,  exception);
+            this.WriteEvent(1, counterName, exception);
         }
     }
 }

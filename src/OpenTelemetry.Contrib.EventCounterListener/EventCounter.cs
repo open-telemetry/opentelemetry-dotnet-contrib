@@ -1,4 +1,4 @@
-﻿// <copyright file="MySqlDataInstrumentationOptions.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="EventCounter.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,24 +14,21 @@
 // limitations under the License.
 // </copyright>
 
-using System;
-using System.Collections.Concurrent;
-using System.Data;
-using System.Diagnostics;
-using System.Text.RegularExpressions;
-
-using OpenTelemetry.Trace;
-
 namespace OpenTelemetry.Contrib.Instrumentation.EventCounterListener
 {
-
     /// <summary>
-    /// The Event Counter to listen to
+    /// The Event Counter to listen to.
     /// </summary>
     public class EventCounter
     {
+        /// <summary>
+        /// Gets or sets the name of the event counter.
+        /// </summary>
         public string Name { get; set; }
 
+        /// <summary>
+        /// Gets or sets the type of the event counter.
+        /// </summary>
         public string Type { get; set; }
     }
 }

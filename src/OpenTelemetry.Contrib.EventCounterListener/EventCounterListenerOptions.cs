@@ -1,4 +1,4 @@
-﻿// <copyright file="MySqlDataInstrumentationOptions.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="EventCounterListenerOptions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,14 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-
-using System;
-using System.Collections.Concurrent;
-using System.Data;
-using System.Diagnostics;
-using System.Text.RegularExpressions;
-
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Contrib.Instrumentation.EventCounterListener
 {
