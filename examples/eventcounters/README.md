@@ -8,4 +8,5 @@ Project structure:
 
   It shows how to add several event counters.
 
-  Start the project and open the "/metrics" endpoint to view the published metrics.
+  Start the project and open the "/metrics" endpoint to view the published 
+  metrics.

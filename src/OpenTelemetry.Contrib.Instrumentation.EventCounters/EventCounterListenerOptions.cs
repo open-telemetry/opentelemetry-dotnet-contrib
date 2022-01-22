@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation;
 
 namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
 {
