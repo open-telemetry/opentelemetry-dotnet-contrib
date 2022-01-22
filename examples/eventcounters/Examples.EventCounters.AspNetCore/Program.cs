@@ -30,6 +30,17 @@ builder.Services.AddOpenTelemetryMetrics(
                         options.AddRuntime("cpu-usage");
                         options.AddAspNetCore();
                         options.AddProvider("Microsoft-AspNetCore-Server-Kestrel", "total-connections");
+                        options.MetricNameMapper = (eventSource, countername) =>
+                        {
+                            if (countername == "total-requests")
+                            {
+                                return "http_requests_received_total";
+                            }
+                            else
+                            {
+                                return null;
+                            }
+                        };
                     }));
 
 var app = builder.Build();

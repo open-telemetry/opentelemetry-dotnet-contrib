@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 
 namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
@@ -32,5 +33,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
         /// Gets or sets metric providers to listen to.
         /// </summary>
         public List<MetricProvider> Providers { get; set; } = new List<MetricProvider>(0);
+
+        /// <summary>
+        /// Gets or sets the delegate to create a custom metric name.
+        /// </summary>
+        public Func<string, string, string>? MetricNameMapper { get; set; }
     }
 }

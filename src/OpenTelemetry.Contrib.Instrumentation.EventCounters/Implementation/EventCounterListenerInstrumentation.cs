@@ -24,7 +24,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
 
         public EventCounterListenerInstrumentation(EventCounterListenerOptions options)
         {
-            this.eventCounterListener = new EventCounterListener(options, new MeterTelemetryPublisher());
+            this.eventCounterListener = new EventCounterListener(options, new MeterTelemetryPublisher(options));
         }
 
         public void Dispose()

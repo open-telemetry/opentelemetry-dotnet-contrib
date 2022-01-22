@@ -63,7 +63,7 @@ namespace OpenTelemetry.Metrics
         }
 
         /// <summary>
-        /// Adds the System.Runtime provider.
+        /// Adds the System.Runtime provider. Adds all counters from <a href="https://docs.microsoft.com/en-us/dotnet/core/diagnostics/available-counters#systemruntime-counters">well-known event counters</a>.
         /// </summary>
         /// <param name="options">The options to add the provider to.</param>
         /// <param name="counterNames">Name of the counters to listen to. Null/empty or all counters.</param>
@@ -74,7 +74,7 @@ namespace OpenTelemetry.Metrics
         }
 
         /// <summary>
-        /// Adds the ASP.NET Core provider.
+        /// Adds the ASP.NET Core provider. Adds all counters from <a href="https://docs.microsoft.com/en-us/dotnet/core/diagnostics/available-counters#microsoftaspnetcorehosting-counters">well-known event counters</a>.
         /// </summary>
         /// <param name="options">The options to add the provider to.</param>
         /// <param name="counterNames">Name of the counters to listen to. Null/empty or all counters.</param>

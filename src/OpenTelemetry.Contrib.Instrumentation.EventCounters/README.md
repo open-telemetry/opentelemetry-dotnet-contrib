@@ -41,7 +41,9 @@ namespace DotnetMetrics
             using var meterprovider = Sdk.CreateMeterProviderBuilder()
                     .AddEventCounters(options =>
                     {
-                        options.Sources = null;
+                        options.AddRuntime("cpu-usage"); // only 'cpu-usage' from 'System.Runtime'
+                        options.AddAspNetCore(); // All of 'Microsoft.AspNetCore.Hosting'
+                        options.AddProvider("Microsoft-AspNetCore-Server-Kestrel", "total-connections"); // add any other event counter
                     })
                     .AddConsoleExporter()
                     .Build();
