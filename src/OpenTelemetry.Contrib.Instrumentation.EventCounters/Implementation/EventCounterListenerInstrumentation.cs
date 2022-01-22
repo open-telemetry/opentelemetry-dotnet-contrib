@@ -1,4 +1,4 @@
-﻿// <copyright file="ICounterPayload.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="EventCounterListenerInstrumentation.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,48 +16,20 @@
 
 using System;
 
-namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.EventPipe
+namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
 {
-    internal interface ICounterPayload
+    internal sealed class EventCounterListenerInstrumentation : IDisposable
     {
-        string Name
+        private readonly EventCounterListener eventCounterListener;
+
+        public EventCounterListenerInstrumentation(EventCounterListenerOptions options)
         {
-            get;
+            this.eventCounterListener = new EventCounterListener(options, new MeterTelemetryPublisher());
         }
 
-        double Value
+        public void Dispose()
         {
-            get;
-        }
-
-        CounterType CounterType
-        {
-            get;
-        }
-
-        string Provider
-        {
-            get;
-        }
-
-        string DisplayName
-        {
-            get;
-        }
-
-        string Unit
-        {
-            get;
-        }
-
-        DateTime Timestamp
-        {
-            get;
-        }
-
-        float Interval
-        {
-            get;
+            this.eventCounterListener.Dispose();
         }
     }
 }

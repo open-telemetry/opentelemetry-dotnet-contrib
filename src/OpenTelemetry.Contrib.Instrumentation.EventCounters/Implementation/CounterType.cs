@@ -1,4 +1,4 @@
-﻿// <copyright file="EventCounterListenerInstrumentation.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="CounterType.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,22 +14,17 @@
 // limitations under the License.
 // </copyright>
 
-using System;
-
-namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
+namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
 {
-    internal class EventCounterListenerInstrumentation : IDisposable
+    /// <summary>
+    /// Counter Type Enumeration.
+    /// </summary>
+    internal enum CounterType
     {
-        private readonly EventCounterListener eventCounterListener;
+        /// <summary>Metric Counter Type.</summary>
+        Metric,
 
-        public EventCounterListenerInstrumentation(EventCounterListenerOptions options)
-        {
-            this.eventCounterListener = new EventCounterListener(options);
-        }
-
-        public void Dispose()
-        {
-            this.eventCounterListener.Dispose();
-        }
+        /// <summary>Rate Counter Type.</summary>
+        Rate,
     }
 }

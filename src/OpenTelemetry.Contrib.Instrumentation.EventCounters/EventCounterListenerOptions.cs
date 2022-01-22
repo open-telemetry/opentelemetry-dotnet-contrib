@@ -24,6 +24,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
     public class EventCounterListenerOptions
     {
         /// <summary>
+        /// Gets or sets the interval in seconds.
+        /// </summary>
+        public int RefreshIntervalSecs { get; set; } = 1;
+
+        /// <summary>
         /// Gets or sets metric providers to listen to.
         /// </summary>
         public List<MetricProvider> Providers { get; set; } = new List<MetricProvider>(0);

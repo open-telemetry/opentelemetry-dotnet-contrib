@@ -28,7 +28,7 @@ builder.Services.AddOpenTelemetryMetrics(
                     .AddEventCounters(options =>
                     {
                         options.AddRuntime("cpu-usage");
-                        options.AddAspNetCore("current-requests", "requests-per-second");
+                        options.AddAspNetCore();
                         options.AddProvider("Microsoft-AspNetCore-Server-Kestrel", "total-connections");
                     }));
 
@@ -41,5 +41,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
 app.Run();

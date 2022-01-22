@@ -16,6 +16,7 @@
 
 using System;
 using OpenTelemetry.Contrib.Instrumentation.EventCounters;
+using OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation;
 
 namespace OpenTelemetry.Metrics
 {
@@ -41,7 +42,7 @@ namespace OpenTelemetry.Metrics
 
             var options = new EventCounterListenerOptions();
             configureEventCounterListenerOptions?.Invoke(options);
-            builder.AddMeter(EventCounterListener.InstrumentationName);
+            builder.AddMeter(MeterTelemetryPublisher.InstrumentationName);
             builder.AddInstrumentation(() => new EventCounterListenerInstrumentation(options));
 
             return builder;
