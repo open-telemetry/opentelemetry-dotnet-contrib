@@ -22,7 +22,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
     {
         private readonly EventCounterListener eventCounterListener;
 
-        public EventCounterListenerInstrumentation(EventCounterListenerOptions options)
+        public EventCounterListenerInstrumentation(EventCountersOptions options)
         {
             this.eventCounterListener = new EventCounterListener(options, new MeterTelemetryPublisher(options));
         }

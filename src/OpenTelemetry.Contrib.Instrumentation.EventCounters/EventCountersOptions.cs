@@ -1,4 +1,4 @@
-﻿// <copyright file="EventCounterListenerOptions.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="EventCountersOptions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using System.Collections.Generic;
 using OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation;
 
@@ -23,7 +22,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
     /// <summary>
     /// Options for <see cref="EventCounterListener"/>.
     /// </summary>
-    public class EventCounterListenerOptions
+    public class EventCountersOptions
     {
         /// <summary>
         /// Gets or sets the interval in seconds.
@@ -31,13 +30,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
         public int RefreshIntervalSecs { get; set; } = 1;
 
         /// <summary>
-        /// Gets or sets metric providers to listen to.
+        /// Gets or sets event sources to listen to.
         /// </summary>
-        public List<MetricProvider> Providers { get; set; } = new List<MetricProvider>(0);
-
-        /// <summary>
-        /// Gets or sets the delegate to create a custom metric name.
-        /// </summary>
-        public Func<string, string, string>? MetricNameMapper { get; set; }
+        public List<EventSourceOption> Sources { get; set; } = new List<EventSourceOption>(0);
     }
 }

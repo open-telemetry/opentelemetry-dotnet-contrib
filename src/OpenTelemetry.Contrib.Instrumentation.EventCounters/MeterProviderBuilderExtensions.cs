@@ -33,14 +33,14 @@ namespace OpenTelemetry.Metrics
         /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
         public static MeterProviderBuilder AddEventCounters(
             this MeterProviderBuilder builder,
-            Action<EventCounterListenerOptions> configureEventCounterListenerOptions = null)
+            Action<EventCountersOptions> configureEventCounterListenerOptions = null)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            var options = new EventCounterListenerOptions();
+            var options = new EventCountersOptions();
             configureEventCounterListenerOptions?.Invoke(options);
             builder.AddMeter(MeterTelemetryPublisher.InstrumentationName);
             builder.AddInstrumentation(() => new EventCounterListenerInstrumentation(options));

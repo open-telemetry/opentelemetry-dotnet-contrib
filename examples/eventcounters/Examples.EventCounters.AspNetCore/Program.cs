@@ -27,28 +27,15 @@ builder.Services.AddOpenTelemetryMetrics(
                     .AddPrometheusExporter()
                     .AddEventCounters(options =>
                     {
-                        options.AddRuntime("cpu-usage", "working-set");
-                        options.AddAspNetCore();
-                        options.AddProvider("Microsoft-AspNetCore-Server-Kestrel", "total-connections");
-                        options.MetricNameMapper = (eventSource, countername) =>
-                        {
-                            if (countername == "total-requests")
-                            {
-                                return "http_requests_received_total";
-                            }
-                            else if (countername == "current-requests")
-                            {
-                                return "http_requests_in_progress";
-                            }
-                            else if (countername == "working-set")
-                            {
-                                return "process_working_set_bytes";
-                            }
-                            else
-                            {
-                                return null;
-                            }
-                        };
+                        options.AddRuntime().With("cpu-usage", "working-set");
+
+                        options.AddAspNetCore()
+                            .WithCurrentRequests("http_requests_in_progress")
+                            .WithFailedRequests()
+                            .WithRequestRate()
+                            .WithTotalRequests("http_requests_received_total");
+
+                        options.AddEventSource("Microsoft-AspNetCore-Server-Kestrel", "total-connections");
                     }));
 
 var app = builder.Build();

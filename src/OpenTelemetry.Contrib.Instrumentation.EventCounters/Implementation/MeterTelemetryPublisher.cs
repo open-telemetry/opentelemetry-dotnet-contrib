@@ -16,6 +16,7 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
+using System.Linq;
 using System.Reflection;
 
 namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
@@ -28,10 +29,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
 
         private readonly Meter meter;
         private readonly ConcurrentDictionary<MetricKey, double> metricStore = new();
-        private readonly EventCounterListenerOptions options;
-        private readonly ConcurrentDictionary<string, string> metricsNameLookup = new ConcurrentDictionary<string, string>();
+        private readonly EventCountersOptions options;
 
-        public MeterTelemetryPublisher(EventCounterListenerOptions options)
+        public MeterTelemetryPublisher(EventCountersOptions options)
         {
             this.meter = new Meter(InstrumentationName, InstrumentationVersion);
             this.options = options ?? throw new System.ArgumentNullException(nameof(options));
@@ -42,14 +42,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
             var metricKey = new MetricKey(metricTelemetry);
             if (!this.metricStore.ContainsKey(metricKey))
             {
-                if (metricTelemetry.CounterType == CounterType.Rate)
-                {
-                    this.meter.CreateObservableGauge<double>(this.GetMetricName(metricTelemetry), () => this.ObserveValue(metricKey), description: metricTelemetry.DisplayName);
-                }
-                else
-                {
-                    this.meter.CreateObservableCounter(this.GetMetricName(metricTelemetry), () => this.ObserveValue(metricKey), description: metricTelemetry.DisplayName);
-                }
+                this.CreateInstrument(metricTelemetry, metricKey);
             }
 
             this.metricStore[metricKey] = metricTelemetry.Sum;
@@ -60,23 +53,23 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
             return string.Equals(first.Name, second.Name);
         }
 
-        private string GetMetricName(MetricTelemetry metricTelemetry)
+        private void CreateInstrument(MetricTelemetry metricTelemetry, MetricKey metricKey)
         {
-            var key = $"{metricTelemetry.ProviderName}-{metricTelemetry.Name}";
+            var eventSource = this.options.Sources.Single(source => source.EventSourceName.Equals(metricTelemetry.EventSource, System.StringComparison.OrdinalIgnoreCase));
+            var eventCounter = eventSource.EventCounters.Single(counter => counter.Name.Equals(metricTelemetry.Name, System.StringComparison.OrdinalIgnoreCase));
 
-            if (!this.metricsNameLookup.TryGetValue(key, out var metricName))
+            var description = !string.IsNullOrEmpty(eventCounter.Description) ? eventCounter.Description : metricTelemetry.DisplayName;
+            var metricType = eventCounter.Type ?? metricTelemetry.Type;
+            var metricName = !string.IsNullOrEmpty(eventCounter.MetricName) ? eventCounter.MetricName : eventCounter.Name;
+
+            if (metricType == MetricType.Rate)
             {
-                metricName = this.options.MetricNameMapper?.Invoke(metricTelemetry.ProviderName, metricTelemetry.Name);
-
-                if (string.IsNullOrEmpty(metricName))
-                {
-                    metricName = metricTelemetry.Name;
-                }
-
-                this.metricsNameLookup.TryAdd(key, metricName);
+                this.meter.CreateObservableGauge<double>(metricName, () => this.ObserveValue(metricKey), description: description);
             }
-
-            return metricName;
+            else
+            {
+                this.meter.CreateObservableCounter(metricName, () => this.ObserveValue(metricKey), description: description);
+            }
         }
 
         private double ObserveValue(MetricKey key)
@@ -94,7 +87,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
                 this.metric = metric;
             }
 
-            public override int GetHashCode() => (this.metric.ProviderName, this.metric.Name).GetHashCode();
+            public override int GetHashCode() => (this.metric.EventSource, this.metric.Name).GetHashCode();
 
             public override bool Equals(object obj)
             {

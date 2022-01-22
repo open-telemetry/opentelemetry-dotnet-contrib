@@ -26,73 +26,50 @@ namespace OpenTelemetry.Metrics
     public static class OptionsExtensions
     {
         /// <summary>
-        /// Determines whether a provider was already added.
+        /// Determines whether an event source was already added.
         /// </summary>
-        /// <param name="options">The options to check for the provider.</param>
-        /// <param name="providerName">Name of the provider to check for existence.</param>
-        /// <returns>True if the provider was already added, otherwise false.</returns>
-        public static bool HasProvider(this EventCounterListenerOptions options, string providerName) => options.Providers.Any(provider => provider.ProviderName.Equals(providerName, System.StringComparison.OrdinalIgnoreCase));
+        /// <param name="options">The options to check for the event source.</param>
+        /// <param name="eventSource">Name of the event source to check for existence.</param>
+        /// <returns>True if the event source was already added, otherwise false.</returns>
+        public static bool HasEventSource(this EventCountersOptions options, string eventSource) => options.Sources.Any(provider => provider.EventSourceName.Equals(eventSource, System.StringComparison.OrdinalIgnoreCase));
 
         /// <summary>
-        /// Adds the metric provider.
+        /// Adds a custom event source.
         /// </summary>
-        /// <param name="options">The options to add the provider to.</param>
-        /// <param name="providerName">Name of the provider.</param>
+        /// <param name="options">The options to add the event source to.</param>
+        /// <param name="eventSourceName">Name of the event source.</param>
         /// <param name="counterNames">Name of the counters to listen to. Null/empty or all counters.</param>
         /// <returns>The options instance.</returns>
-        public static EventCounterListenerOptions AddProvider(this EventCounterListenerOptions options, string providerName, params string[] counterNames)
+        public static EventSourceOption AddEventSource(this EventCountersOptions options, string eventSourceName, params string[] counterNames)
         {
-            if (string.IsNullOrEmpty(providerName))
+            if (string.IsNullOrEmpty(eventSourceName))
             {
-                throw new ArgumentNullException(nameof(providerName));
+                throw new ArgumentNullException(nameof(eventSourceName));
             }
 
-            if (options.HasProvider(providerName))
+            if (options.HasEventSource(eventSourceName))
             {
-                throw new ArgumentException($"Provider '{providerName}' was already added.", nameof(providerName));
+                throw new ArgumentException($"Event source '{eventSourceName}' was already added.", nameof(eventSourceName));
             }
 
-            var provider = new MetricProvider { ProviderName = providerName };
+            var eventSource = new EventSourceOption { EventSourceName = eventSourceName };
+            eventSource.AddEventCounters(counterNames);
+
+            options.Sources.Add(eventSource);
+            return eventSource;
+        }
+
+        /// <summary>
+        /// Add named event counters to the event source option.
+        /// </summary>
+        /// <param name="eventSource">The option to add the event counters to.</param>
+        /// <param name="counterNames">Name of the counters to listen to.</param>
+        public static void AddEventCounters(this EventSourceOption eventSource, params string[] counterNames)
+        {
             if (counterNames != null && counterNames.Length > 0)
             {
-                provider.CounterNames = counterNames.ToList();
+                eventSource.EventCounters.AddRange(counterNames.Select(name => new EventCounter { Name = name }));
             }
-
-            options.Providers.Add(provider);
-            return options;
-        }
-
-        /// <summary>
-        /// Adds the System.Runtime provider. Adds all counters from <a href="https://docs.microsoft.com/en-us/dotnet/core/diagnostics/available-counters#systemruntime-counters">well-known event counters</a>.
-        /// </summary>
-        /// <param name="options">The options to add the provider to.</param>
-        /// <param name="counterNames">Name of the counters to listen to. Null/empty or all counters.</param>
-        /// <returns>The options instance.</returns>
-        public static EventCounterListenerOptions AddRuntime(this EventCounterListenerOptions options, params string[] counterNames)
-        {
-            return options.AddProvider(KnownEventSources.SystemRuntime, counterNames);
-        }
-
-        /// <summary>
-        /// Adds the ASP.NET Core provider. Adds all counters from <a href="https://docs.microsoft.com/en-us/dotnet/core/diagnostics/available-counters#microsoftaspnetcorehosting-counters">well-known event counters</a>.
-        /// </summary>
-        /// <param name="options">The options to add the provider to.</param>
-        /// <param name="counterNames">Name of the counters to listen to. Null/empty or all counters.</param>
-        /// <returns>The options instance.</returns>
-        public static EventCounterListenerOptions AddAspNetCore(this EventCounterListenerOptions options, params string[] counterNames)
-        {
-            return options.AddProvider(KnownEventSources.MicrosoftAspNetCoreHosting, counterNames);
-        }
-
-        /// <summary>
-        /// Adds the Grpc provider.
-        /// </summary>
-        /// <param name="options">The options to add the provider to.</param>
-        /// <param name="counterNames">Name of the counters to listen to. Null/empty or all counters.</param>
-        /// <returns>The options instance.</returns>
-        public static EventCounterListenerOptions AddGrcpServer(this EventCounterListenerOptions options, params string[] counterNames)
-        {
-            return options.AddProvider(KnownEventSources.GrpcAspNetCoreServer, counterNames);
         }
     }
 }

@@ -19,7 +19,7 @@ using System.Diagnostics;
 
 namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
 {
-    [DebuggerDisplay("{Name} ({ProviderName})")]
+    [DebuggerDisplay("{Name} ({EventSource})")]
     internal class MetricTelemetry
     {
         /// <summary>
@@ -28,9 +28,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
         public string Name { get; set; }
 
         /// <summary>
-        /// Gets or sets the provider of the metric.
+        /// Gets or sets the event source of the metric.
         /// </summary>
-        public string ProviderName { get; set; }
+        public string EventSource { get; set; }
 
         /// <summary>
         /// Gets a dictionary of application-defined property names and values providing additional information about this metric.
@@ -53,8 +53,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
         public string DisplayName { get; set; }
 
         /// <summary>
-        /// Gets or sets the counter type.
+        /// Gets or sets the metric type.
         /// </summary>
-        public CounterType CounterType { get; set; } = CounterType.Metric;
+        public MetricType Type { get; set; } = MetricType.Counter;
     }
 }

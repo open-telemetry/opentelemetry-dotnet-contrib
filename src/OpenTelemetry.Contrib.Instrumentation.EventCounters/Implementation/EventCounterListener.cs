@@ -19,6 +19,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Globalization;
+using System.Linq;
 
 namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
 {
@@ -27,7 +28,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
     /// </summary>
     internal class EventCounterListener : EventListener
     {
-        private readonly EventCounterListenerOptions options;
+        private readonly EventCountersOptions options;
         private readonly ConcurrentQueue<EventSource> allEventSourcesCreated = new ConcurrentQueue<EventSource>();
         private readonly Dictionary<string, string> refreshIntervalDictionary;
         private readonly bool isInitialized = false;
@@ -42,7 +43,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
         /// </summary>
         /// <param name="options">Options to configure the EventCounterListener.</param>
         /// <param name="telemetryPublisher">Instance to publish the retrieved telemetry data.</param>
-        public EventCounterListener(EventCounterListenerOptions options, IEventSourceTelemetryPublisher telemetryPublisher)
+        public EventCounterListener(EventCountersOptions options, IEventSourceTelemetryPublisher telemetryPublisher)
         {
             this.telemetryPublisher = telemetryPublisher ?? throw new ArgumentNullException(nameof(telemetryPublisher));
 
@@ -53,9 +54,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
                 this.refreshIntervalDictionary = new Dictionary<string, string>();
                 this.refreshIntervalDictionary.Add("EventCounterIntervalSec", options.RefreshIntervalSecs.ToString());
 
-                foreach (var metricProvider in options.Providers)
+                foreach (var source in options.Sources)
                 {
-                    this.countersToCollect.Add(metricProvider.ProviderName, metricProvider.CounterNames);
+                    this.countersToCollect.Add(source.EventSourceName, source.EventCounters.Select(c => c.Name).ToArray());
                 }
 
                 EventCountersInstrumentationEventSource.Log.EventCounterInitializeSuccess();
@@ -201,7 +202,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
                     {
                         if (payload.Value.Equals("Sum"))
                         {
-                            metricTelemetry.CounterType = CounterType.Rate;
+                            metricTelemetry.Type = MetricType.Rate;
                             if (string.IsNullOrEmpty(counterDisplayUnit))
                             {
                                 counterDisplayUnit = "count";
@@ -245,7 +246,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
 
                 metricTelemetry.Name = counterName;
                 metricTelemetry.DisplayName = string.IsNullOrEmpty(counterDisplayName) ? counterName : counterDisplayName;
-                metricTelemetry.ProviderName = eventSourceName;
+                metricTelemetry.EventSource = eventSourceName;
 
                 if (!string.IsNullOrEmpty(counterDisplayUnit))
                 {
