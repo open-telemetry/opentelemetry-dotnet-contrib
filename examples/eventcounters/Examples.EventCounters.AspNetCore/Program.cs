@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using OpenTelemetry.Contrib.Instrumentation.EventCounters;
 using OpenTelemetry.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,10 +27,9 @@ builder.Services.AddOpenTelemetryMetrics(
                     .AddPrometheusExporter()
                     .AddEventCounters(options =>
                     {
-                        options.Sources = new[]
-                        {
-                            new EventCounter(),
-                        };
+                        options.AddRuntime("cpu-usage");
+                        options.AddAspNetCore("current-requests", "requests-per-second");
+                        options.AddProvider("Microsoft-AspNetCore-Server-Kestrel", "total-connections");
                     }));
 
 var app = builder.Build();

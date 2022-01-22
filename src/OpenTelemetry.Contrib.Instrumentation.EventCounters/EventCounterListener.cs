@@ -19,8 +19,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Diagnostics.Tracing;
+using System.Linq;
 using System.Reflection;
 using OpenTelemetry.Contrib.Instrumentation.EventCounters.EventPipe;
+using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
 {
@@ -33,21 +35,27 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
         internal static readonly string InstrumentationName = AssemblyName.Name;
         internal static readonly string InstrumentationVersion = AssemblyName.Version.ToString();
 
-        private readonly string eventSourceName = "System.Runtime"; // TODO : Get from options
-        private readonly string eventName = "EventCounters";
         private readonly Meter meter;
         private readonly EventCounterListenerOptions options;
-
-        private ConcurrentDictionary<MetricKey, double> metericStore = new();
+        private readonly ConcurrentDictionary<MetricKey, double> metricStore = new();
+        private readonly List<EventSource> earlyCreatedEventSources = new List<EventSource>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventCounterListener"/> class.
         /// </summary>
-        /// <param name="options">Options to configure the EventCounterListener</param>
+        /// <param name="options">Options to configure the EventCounterListener.</param>
         public EventCounterListener(EventCounterListenerOptions options)
         {
-            this.options = options;
+            this.options = options ?? throw new ArgumentNullException(nameof(options));
             this.meter = new Meter(InstrumentationName, InstrumentationVersion);
+
+            // enable event sources which are already created
+            foreach (var eventSource in this.earlyCreatedEventSources)
+            {
+                this.EnableEventSource(eventSource);
+            }
+
+            this.earlyCreatedEventSources.Clear();
         }
 
         /// <summary>
@@ -63,15 +71,27 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
 
             try
             {
-                if (eventData.EventName.Equals(this.eventName, StringComparison.OrdinalIgnoreCase))
+                if (this.IsValidEvent(eventData))
                 {
                     this.ExtractAndRecordMetric(eventData);
                 }
             }
             catch (Exception ex)
             {
-                EventCountersInstrumentationEventSource.Log.ErrorEventCounter(this.eventName, ex.ToString());
+                EventCountersInstrumentationEventSource.Log.ErrorEventCounter(eventData.EventName, ex.ToString());
             }
+        }
+
+        private bool IsValidEvent(EventWrittenEventArgs eventData)
+        {
+            var provider = this.options.Providers.Single(provider => provider.ProviderName.Equals(eventData.EventSource.Name, StringComparison.OrdinalIgnoreCase));
+
+            if (provider.CounterNames.Count == 0)
+            {
+                return true;
+            }
+
+            return provider.CounterNames.Contains(eventData.EventName, StringComparer.OrdinalIgnoreCase);
         }
 
         /// <inheritdoc/>
@@ -82,7 +102,21 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
                 throw new ArgumentNullException(nameof(eventSource));
             }
 
-            if (this.eventSourceName.Equals(eventSource.Name, StringComparison.OrdinalIgnoreCase))
+            // options might be null when this method gets called
+            // before our constructor was completed
+            if (this.options == null)
+            {
+                this.earlyCreatedEventSources.Add(eventSource);
+            }
+            else
+            {
+                this.EnableEventSource(eventSource);
+            }
+        }
+
+        private void EnableEventSource(EventSource eventSource)
+        {
+            if (this.options.HasProvider(eventSource.Name))
             {
                 var refreshInterval = new Dictionary<string, string>() { { "EventCounterIntervalSec", "1" } }; // TODO: Get from configuration
                 try
@@ -104,19 +138,25 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
         private double ObserveValue(MetricKey key)
         {
             // return last value
-            return this.metericStore[key];
+            return this.metricStore[key];
         }
 
         private void ExtractAndRecordMetric(EventWrittenEventArgs eventWrittenEventArgs)
         {
             eventWrittenEventArgs.TryGetCounterPayload(out var eventPayload);
+
+            if (eventPayload == null)
+            {
+                return;
+            }
+
             var metricKey = new MetricKey(eventPayload);
-            if (!this.metericStore.ContainsKey(metricKey))
+            if (!this.metricStore.ContainsKey(metricKey))
             {
                 this.meter.CreateObservableGauge<double>(eventPayload.Name, () => this.ObserveValue(metricKey), eventPayload.DisplayName);
             }
 
-            this.metericStore[metricKey] = eventPayload.Value;
+            this.metricStore[metricKey] = eventPayload.Value;
         }
 
         private sealed class MetricKey

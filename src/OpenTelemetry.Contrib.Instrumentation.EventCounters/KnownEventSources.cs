@@ -1,4 +1,4 @@
-﻿// <copyright file="EventCounter.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="KnownEventSources.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,19 +16,11 @@
 
 namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
 {
-    /// <summary>
-    /// The Event Counter to listen to.
-    /// </summary>
-    public class EventCounter
+    internal static class KnownEventSources
     {
-        /// <summary>
-        /// Gets or sets the name of the event counter.
-        /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
-        /// Gets or sets the type of the event counter.
-        /// </summary>
-        public string Type { get; set; }
+        public const string SystemRuntime = "System.Runtime";
+        public const string MicrosoftAspNetCoreHosting = "Microsoft.AspNetCore.Hosting";
+        public const string GrpcAspNetCoreServer = "Grpc.AspNetCore.Server";
+        public const string WindowsDotNetRuntime = "Microsoft-Windows-DotNETRuntime";
     }
 }

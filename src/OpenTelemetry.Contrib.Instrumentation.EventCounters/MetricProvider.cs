@@ -1,4 +1,4 @@
-﻿// <copyright file="EventCounterListenerOptions.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="EventCounter.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,13 +19,18 @@ using System.Collections.Generic;
 namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
 {
     /// <summary>
-    /// Options for <see cref="EventCounterListener"/>.
+    /// The Event Counter to listen to.
     /// </summary>
-    public class EventCounterListenerOptions
+    public class MetricProvider
     {
         /// <summary>
-        /// Gets or sets metric providers to listen to.
+        /// Gets or sets the name of the event source.
         /// </summary>
-        public List<MetricProvider> Providers { get; set; } = new List<MetricProvider>(0);
+        public string ProviderName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the counter names of the event source which should be retrieved.
+        /// </summary>
+        public List<string> CounterNames { get; set; } = new List<string>(0);
     }
 }
