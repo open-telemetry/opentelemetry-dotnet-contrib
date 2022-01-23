@@ -26,7 +26,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.SystemRuntime
         /// </summary>
         /// <param name="counterNames">Name of the counters to listen to.</param>
         /// <returns>The builder instance to define event counters.</returns>
-        ISystemRuntimeBuilder With(params string[] counterNames);
+        ISystemRuntimeBuilder WithCounters(params string[] counterNames);
 
         /// <summary>
         /// Adds the event counter for the percent of time in GC since the last GC.

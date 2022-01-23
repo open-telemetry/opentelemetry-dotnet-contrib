@@ -14,10 +14,12 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Reflection;
+using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
 {
@@ -28,7 +30,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
         internal static readonly string InstrumentationVersion = AssemblyName.Version.ToString();
 
         private readonly Meter meter;
-        private readonly ConcurrentDictionary<MetricKey, double> metricStore = new();
+        private readonly ConcurrentDictionary<MetricKey, MetricInstrument> metricStore = new();
+        private readonly ConcurrentDictionary<MetricKey, long> longValueStore = new();
+        private readonly ConcurrentDictionary<MetricKey, double> doubleValueStore = new();
         private readonly EventCountersOptions options;
 
         public MeterTelemetryPublisher(EventCountersOptions options)
@@ -40,42 +44,79 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
         public void Publish(MetricTelemetry metricTelemetry)
         {
             var metricKey = new MetricKey(metricTelemetry);
-            if (!this.metricStore.ContainsKey(metricKey))
+
+            if (!this.metricStore.TryGetValue(metricKey, out var instrument))
             {
-                this.CreateInstrument(metricTelemetry, metricKey);
+                instrument = this.CreateInstrument(metricTelemetry, metricKey);
             }
 
-            this.metricStore[metricKey] = metricTelemetry.Sum;
+            this.StoreValue(metricKey, instrument, metricTelemetry);
         }
 
-        private static bool CompareMetrics(MetricTelemetry first, MetricTelemetry second)
+        private void StoreValue(MetricKey metricKey, MetricInstrument instrument, MetricTelemetry metricTelemetry)
         {
-            return string.Equals(first.Name, second.Name);
+            switch (instrument.Type)
+            {
+                case MetricType.LongSum:
+                case MetricType.LongGauge:
+                    this.longValueStore[metricKey] = (long)metricTelemetry.Sum;
+                    break;
+                case MetricType.DoubleGauge:
+                case MetricType.DoubleSum:
+                    this.doubleValueStore[metricKey] = metricTelemetry.Sum;
+                    break;
+                case MetricType.Histogram:
+                    ((Histogram<double>)instrument.Instrument).Record(metricTelemetry.Sum);
+                    break;
+                default:
+                    throw new InvalidOperationException($"Metric type '{instrument.Type}' is not supported.");
+            }
         }
 
-        private void CreateInstrument(MetricTelemetry metricTelemetry, MetricKey metricKey)
+        private MetricInstrument CreateInstrument(MetricTelemetry metricTelemetry, MetricKey metricKey)
         {
-            var eventSource = this.options.Sources.Single(source => source.EventSourceName.Equals(metricTelemetry.EventSource, System.StringComparison.OrdinalIgnoreCase));
-            var eventCounter = eventSource.EventCounters.Single(counter => counter.Name.Equals(metricTelemetry.Name, System.StringComparison.OrdinalIgnoreCase));
+            var eventSource = this.options.Sources.Single(source => source.EventSourceName.Equals(metricTelemetry.EventSource, StringComparison.OrdinalIgnoreCase));
+            var eventCounter = eventSource.EventCounters.FirstOrDefault(counter => counter.Name.Equals(metricTelemetry.Name, StringComparison.OrdinalIgnoreCase));
 
-            var description = !string.IsNullOrEmpty(eventCounter.Description) ? eventCounter.Description : metricTelemetry.DisplayName;
-            var metricType = eventCounter.Type ?? metricTelemetry.Type;
-            var metricName = !string.IsNullOrEmpty(eventCounter.MetricName) ? eventCounter.MetricName : eventCounter.Name;
+            var description = !string.IsNullOrEmpty(eventCounter?.Description) ? eventCounter.Description : metricTelemetry.DisplayName;
+            var metricType = eventCounter?.Type ?? metricTelemetry.Type;
+            var metricName = !string.IsNullOrEmpty(eventCounter?.MetricName) ? eventCounter.MetricName : metricTelemetry.Name;
+            var metricInstrument = new MetricInstrument { Type = metricType };
 
-            if (metricType == MetricType.Rate)
+            switch (metricType)
             {
-                this.meter.CreateObservableGauge<double>(metricName, () => this.ObserveValue(metricKey), description: description);
+                case MetricType.DoubleGauge:
+                    metricInstrument.Instrument = this.meter.CreateObservableGauge(metricName, () => this.ObserveDouble(metricKey), description: description);
+                    break;
+                case MetricType.DoubleSum:
+                    metricInstrument.Instrument = this.meter.CreateObservableCounter(metricName, () => this.ObserveDouble(metricKey), description: description);
+                    break;
+                case MetricType.LongGauge:
+                    metricInstrument.Instrument = this.meter.CreateObservableGauge<long>(metricName, () => this.ObserveLong(metricKey), description: description);
+                    break;
+                case MetricType.LongSum:
+                    metricInstrument.Instrument = this.meter.CreateObservableCounter<long>(metricName, () => this.ObserveLong(metricKey), description: description);
+                    break;
+                case MetricType.Histogram:
+                    metricInstrument.Instrument = this.meter.CreateHistogram<double>(metricName, description: description);
+                    break;
+                default:
+                    throw new InvalidOperationException($"Metric type '{metricType}' is not supported.");
             }
-            else
-            {
-                this.meter.CreateObservableCounter(metricName, () => this.ObserveValue(metricKey), description: description);
-            }
+
+            return metricInstrument;
         }
 
-        private double ObserveValue(MetricKey key)
+        private double ObserveDouble(MetricKey key)
         {
             // return last value
-            return this.metricStore[key];
+            return this.doubleValueStore[key];
+        }
+
+        private long ObserveLong(MetricKey key)
+        {
+            // return last value
+            return this.longValueStore[key];
         }
 
         private sealed class MetricKey
@@ -98,6 +139,18 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
 
                 return false;
             }
+
+            private static bool CompareMetrics(MetricTelemetry first, MetricTelemetry second)
+            {
+                return string.Equals(first.Name, second.Name);
+            }
+        }
+
+        private sealed class MetricInstrument
+        {
+            public Instrument Instrument { get; set; }
+
+            public MetricType Type { get; set; }
         }
     }
 }

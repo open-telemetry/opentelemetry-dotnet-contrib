@@ -26,6 +26,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Grpc
         /// </summary>
         /// <param name="counterNames">Name of the counters to listen to.</param>
         /// <returns>The builder instance to define event counters.</returns>
-        IGrpcBuilder With(params string[] counterNames);
+        IGrpcBuilder WithCounters(params string[] counterNames);
     }
 }

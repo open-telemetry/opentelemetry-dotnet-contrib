@@ -27,7 +27,8 @@ builder.Services.AddOpenTelemetryMetrics(
                     .AddPrometheusExporter()
                     .AddEventCounters(options =>
                     {
-                        options.AddRuntime().With("cpu-usage", "working-set");
+                        options.AddRuntime()
+                            .WithCounters("cpu-usage", "working-set");
 
                         options.AddAspNetCore()
                             .WithCurrentRequests("http_requests_in_progress")
@@ -35,7 +36,11 @@ builder.Services.AddOpenTelemetryMetrics(
                             .WithRequestRate()
                             .WithTotalRequests("http_requests_received_total");
 
-                        options.AddEventSource("Microsoft-AspNetCore-Server-Kestrel", "total-connections");
+                        options.AddEventSource("Microsoft-AspNetCore-Server-Kestrel")
+                            .WithCounters("total-connections")
+                            .With("connections-per-second", "The number of connections per update interval to the web server", MetricType.LongSum);
+
+                        options.AddEventSource("Microsoft.AspNetCore.Http.Connections");
                     }));
 
 var app = builder.Build();

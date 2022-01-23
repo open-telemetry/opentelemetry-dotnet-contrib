@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
@@ -6,10 +6,11 @@
         <PackageTags>$(PackageTags);metrics;eventcounters</PackageTags>
         <MinVerTagPrefix>Instrumentation.EventCounters-</MinVerTagPrefix>
         <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="OpenTelemetry.Api" Version="1.2.0-rc1" />
+        <PackageReference Include="OpenTelemetry" Version="1.2.0-rc1" />
     </ItemGroup>
 
 </Project>

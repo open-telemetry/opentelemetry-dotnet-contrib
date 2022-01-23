@@ -27,60 +27,52 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.AspNetCore
             this.option = options.AddEventSource(KnownEventSources.MicrosoftAspNetCoreHosting);
         }
 
-        public IAspNetCoreBuilder With(params string[] counterNames)
+        public IAspNetCoreBuilder WithCounters(params string[] counterNames)
         {
-            this.option.AddEventCounters(counterNames);
+            this.option.WithCounters(counterNames);
             return this;
         }
 
         public IAspNetCoreBuilder WithCurrentRequests(string? metricName = null)
         {
-            this.option.EventCounters.Add(new EventCounter
-            {
-                Name = "current-requests",
-                Description = "The total number of requests that have started, but not yet stopped",
-                Type = MetricType.Counter,
-                MetricName = metricName,
-            });
+            this.option.With(
+                "current-requests",
+                "The total number of requests that have started, but not yet stopped",
+                MetricType.LongSum,
+                metricName);
 
             return this;
         }
 
         public IAspNetCoreBuilder WithFailedRequests(string? metricName = null)
         {
-            this.option.EventCounters.Add(new EventCounter
-            {
-                Name = "failed-requests",
-                Description = "The total number of failed requests that have occurred for the life of the app",
-                Type = MetricType.Counter,
-                MetricName = metricName,
-            });
+            this.option.With(
+                "failed-requests",
+                "The total number of failed requests that have occurred for the life of the app",
+                MetricType.LongSum,
+                metricName);
 
             return this;
         }
 
         public IAspNetCoreBuilder WithRequestRate(string? metricName = null)
         {
-            this.option.EventCounters.Add(new EventCounter
-            {
-                Name = "requests-per-second",
-                Description = "The number of requests that occur per update interval",
-                Type = MetricType.Rate,
-                MetricName = metricName,
-            });
+            this.option.With(
+               "requests-per-second",
+               "The number of requests that occur per update interval",
+               MetricType.LongGauge,
+               metricName);
 
             return this;
         }
 
         public IAspNetCoreBuilder WithTotalRequests(string? metricName = null)
         {
-            this.option.EventCounters.Add(new EventCounter
-            {
-                Name = "total-requests",
-                Description = "The total number of requests that have occurred for the life of the app",
-                Type = MetricType.Counter,
-                MetricName = metricName,
-            });
+            this.option.With(
+                "total-requests",
+                "The total number of requests that have occurred for the life of the app",
+                MetricType.LongSum,
+                metricName);
 
             return this;
         }

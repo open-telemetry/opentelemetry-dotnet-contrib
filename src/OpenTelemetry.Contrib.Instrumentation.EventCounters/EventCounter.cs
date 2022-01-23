@@ -14,6 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+using OpenTelemetry.Metrics;
+
 namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
 {
     /// <summary>
@@ -34,7 +36,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
         /// <summary>
         /// Gets or sets the metric type.
         /// </summary>
-        public MetricType? Type { get; set; } = MetricType.Counter;
+        public MetricType? Type { get; set; } = MetricType.LongSum;
 
         /// <summary>
         /// Gets or sets the name used for the published metric.

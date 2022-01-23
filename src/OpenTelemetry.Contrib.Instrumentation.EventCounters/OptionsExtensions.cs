@@ -38,9 +38,8 @@ namespace OpenTelemetry.Metrics
         /// </summary>
         /// <param name="options">The options to add the event source to.</param>
         /// <param name="eventSourceName">Name of the event source.</param>
-        /// <param name="counterNames">Name of the counters to listen to. Null/empty or all counters.</param>
         /// <returns>The options instance.</returns>
-        public static EventSourceOption AddEventSource(this EventCountersOptions options, string eventSourceName, params string[] counterNames)
+        public static EventSourceOption AddEventSource(this EventCountersOptions options, string eventSourceName)
         {
             if (string.IsNullOrEmpty(eventSourceName))
             {
@@ -53,7 +52,6 @@ namespace OpenTelemetry.Metrics
             }
 
             var eventSource = new EventSourceOption { EventSourceName = eventSourceName };
-            eventSource.AddEventCounters(counterNames);
 
             options.Sources.Add(eventSource);
             return eventSource;
@@ -64,12 +62,37 @@ namespace OpenTelemetry.Metrics
         /// </summary>
         /// <param name="eventSource">The option to add the event counters to.</param>
         /// <param name="counterNames">Name of the counters to listen to.</param>
-        public static void AddEventCounters(this EventSourceOption eventSource, params string[] counterNames)
+        /// <returns>The event source instance to define event counters.</returns>
+        public static EventSourceOption WithCounters(this EventSourceOption eventSource, params string[] counterNames)
         {
             if (counterNames != null && counterNames.Length > 0)
             {
                 eventSource.EventCounters.AddRange(counterNames.Select(name => new EventCounter { Name = name }));
             }
+
+            return eventSource;
+        }
+
+        /// <summary>
+        /// Adds an event counter to the given event source options.
+        /// </summary>
+        /// <param name="eventSource">The option to add the event counter to.</param>
+        /// <param name="counterName">Name of the event counter.</param>
+        /// <param name="description">The metric description.</param>
+        /// <param name="metricType">The type of the metric.</param>
+        /// <param name="metricName">Optional name of the published metric. Otherwise the counter name will be used.</param>
+        /// <returns>The event source instance to define event counters.</returns>
+        public static EventSourceOption With(this EventSourceOption eventSource, string counterName, string description, MetricType metricType, string? metricName = null)
+        {
+            eventSource.EventCounters.Add(new EventCounter
+            {
+                Name = counterName,
+                Description = description,
+                Type = metricType,
+                MetricName = metricName,
+            });
+
+            return eventSource;
         }
     }
 }

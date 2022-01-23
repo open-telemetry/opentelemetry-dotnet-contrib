@@ -27,9 +27,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Grpc
             this.option = options.AddEventSource(KnownEventSources.GrpcAspNetCoreServer);
         }
 
-        public IGrpcBuilder With(params string[] counterNames)
+        public IGrpcBuilder WithCounters(params string[] counterNames)
         {
-            this.option.AddEventCounters(counterNames);
+            this.option.WithCounters(counterNames);
             return this;
         }
     }

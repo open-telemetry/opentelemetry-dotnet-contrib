@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Globalization;
 using System.Linq;
+using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
 {
@@ -92,7 +93,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
             {
                 if (this.countersToCollect.ContainsKey(eventData.EventSource.Name))
                 {
-                    if (eventData.Payload[0] is IDictionary<string, object> eventPayload)
+                    if (eventData.Payload.Count > 0 && eventData.Payload[0] is IDictionary<string, object> eventPayload)
                     {
                         this.ExtractAndPostMetric(eventData.EventSource.Name, eventPayload);
                     }
@@ -200,12 +201,33 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
                     }
                     else if (key.Equals("CounterType", StringComparison.OrdinalIgnoreCase))
                     {
+                        var isRate = eventPayload.ContainsKey("Increment");
+
                         if (payload.Value.Equals("Sum"))
                         {
-                            metricTelemetry.Type = MetricType.Rate;
+                            if (isRate)
+                            {
+                                metricTelemetry.Type = MetricType.LongGauge;
+                            }
+                            else
+                            {
+                                metricTelemetry.Type = MetricType.LongSum;
+                            }
+
                             if (string.IsNullOrEmpty(counterDisplayUnit))
                             {
                                 counterDisplayUnit = "count";
+                            }
+                        }
+                        else if (payload.Value.Equals("Mean"))
+                        {
+                            if (isRate)
+                            {
+                                metricTelemetry.Type = MetricType.DoubleGauge;
+                            }
+                            else
+                            {
+                                metricTelemetry.Type = MetricType.DoubleSum;
                             }
                         }
                     }

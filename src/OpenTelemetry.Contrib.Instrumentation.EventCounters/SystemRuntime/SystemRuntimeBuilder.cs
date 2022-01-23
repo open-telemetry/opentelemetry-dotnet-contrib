@@ -27,34 +27,30 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.SystemRuntime
             this.option = options.AddEventSource(KnownEventSources.SystemRuntime);
         }
 
-        public ISystemRuntimeBuilder With(params string[] counterNames)
+        public ISystemRuntimeBuilder WithCounters(params string[] counterNames)
         {
-            this.option.AddEventCounters(counterNames);
+            this.option.WithCounters(counterNames);
             return this;
         }
 
         public ISystemRuntimeBuilder WithAllocationRate(string? metricName = null)
         {
-            this.option.EventCounters.Add(new EventCounter
-            {
-                Name = "alloc-rate",
-                Description = "The number of bytes allocated per update interval",
-                Type = MetricType.Counter,
-                MetricName = metricName,
-            });
+            this.option.With(
+                "alloc-rate",
+                "The number of bytes allocated per update interval",
+                MetricType.LongSum,
+                metricName);
 
             return this;
         }
 
         public ISystemRuntimeBuilder WithPercentOfTimeinGCSinceLastGC(string? metricName = null)
         {
-            this.option.EventCounters.Add(new EventCounter
-            {
-                Name = "time-in-gc",
-                Description = "The percent of time in GC since the last GC",
-                Type = MetricType.Counter,
-                MetricName = metricName,
-            });
+            this.option.With(
+                "time-in-gc",
+                "The percent of time in GC since the last GC",
+                MetricType.DoubleGauge,
+                metricName);
 
             return this;
         }

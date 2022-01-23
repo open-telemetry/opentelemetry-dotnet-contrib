@@ -41,7 +41,7 @@ namespace DotnetMetrics
             using var meterprovider = Sdk.CreateMeterProviderBuilder()
                     .AddEventCounters(options =>
                     {
-                        options.AddRuntime(); // all from from 'System.Runtime'
+                        options.AddRuntime(); // all from 'System.Runtime'
 
                         options.AddAspNetCore() // dedicated event counters with optional mapped metric name
                             .WithCurrentRequests("http_requests_in_progress")
@@ -49,7 +49,9 @@ namespace DotnetMetrics
                             .WithRequestRate()
                             .WithTotalRequests("http_requests_received_total");
                         
-                        options.AddEventSource("Microsoft-AspNetCore-Server-Kestrel", "total-connections"); // add any other event counter
+                        options.AddEventSource("Microsoft-AspNetCore-Server-Kestrel") // add any other event counter
+                            .WithCounters("total-connections", "connections-per-second")
+                            .With("connections-per-second", "The number of connections per update interval to the web server", MetricType.LongSum);
                     })
                     .AddConsoleExporter()
                     .Build();

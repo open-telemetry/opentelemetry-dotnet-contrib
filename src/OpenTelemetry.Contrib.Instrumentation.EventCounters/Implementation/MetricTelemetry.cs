@@ -16,6 +16,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
 {
@@ -55,6 +56,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
         /// <summary>
         /// Gets or sets the metric type.
         /// </summary>
-        public MetricType Type { get; set; } = MetricType.Counter;
+        public MetricType Type { get; set; } = MetricType.LongSum;
     }
 }
