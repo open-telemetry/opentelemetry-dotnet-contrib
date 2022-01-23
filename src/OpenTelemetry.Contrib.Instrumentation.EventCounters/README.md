@@ -41,7 +41,7 @@ namespace DotnetMetrics
             using var meterprovider = Sdk.CreateMeterProviderBuilder()
                     .AddEventCounters(options =>
                     {
-                        options.AddRuntime(); // all from 'System.Runtime'
+                        options.AddRuntime().WithAll(); // all from 'System.Runtime'
 
                         options.AddAspNetCore() // dedicated event counters with optional mapped metric name
                             .WithCurrentRequests("http_requests_in_progress")

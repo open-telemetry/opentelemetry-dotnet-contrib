@@ -1,4 +1,4 @@
-﻿// <copyright file="EventCounterListenerTests.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="EventCountersInstrumentationTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,7 @@ using Xunit;
 
 namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Tests
 {
-    public class EventCounterListenerTests
+    public class EventCountersInstrumentationTests
     {
         private MeterProvider meterProvider = null;
 
@@ -37,10 +37,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Tests
             {
                 Temporality = AggregationTemporality.Cumulative,
             };
+
             this.meterProvider = Sdk.CreateMeterProviderBuilder()
                  .AddEventCounters(options =>
                  {
-                     //options.Sources = null;
+                     options.AddRuntime();
                  })
                 .AddReader(metricReader)
                 .Build();

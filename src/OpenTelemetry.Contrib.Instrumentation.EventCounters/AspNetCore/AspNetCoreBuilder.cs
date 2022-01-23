@@ -33,6 +33,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.AspNetCore
             return this;
         }
 
+        public IAspNetCoreBuilder WithAll()
+        {
+            return this.WithCurrentRequests()
+                       .WithFailedRequests()
+                       .WithRequestRate()
+                       .WithTotalRequests();
+        }
+
         public IAspNetCoreBuilder WithCurrentRequests(string? metricName = null)
         {
             this.option.With(

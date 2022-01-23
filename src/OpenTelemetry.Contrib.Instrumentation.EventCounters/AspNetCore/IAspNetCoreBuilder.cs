@@ -29,6 +29,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.AspNetCore
         IAspNetCoreBuilder WithCounters(params string[] counterNames);
 
         /// <summary>
+        /// Add all known event counters to the options.
+        /// </summary>
+        /// <returns>The builder instance to define event counters.</returns>
+        IAspNetCoreBuilder WithAll();
+
+        /// <summary>
         /// Adds the event counter for the total number of requests that have started, but not yet stopped.
         /// </summary>
         /// <param name="metricName">Optional name of the published metric. Otherwise the counter name will be used.</param>
