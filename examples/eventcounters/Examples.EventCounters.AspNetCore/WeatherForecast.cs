@@ -1,4 +1,4 @@
-﻿// <copyright file="MySqlDataInstrumentationOptions.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="WeatherForecast.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,24 +14,16 @@
 // limitations under the License.
 // </copyright>
 
-using System;
-using System.Collections.Concurrent;
-using System.Data;
-using System.Diagnostics;
-using System.Text.RegularExpressions;
-
-using OpenTelemetry.Trace;
-
-namespace OpenTelemetry.Contrib.Instrumentation.EventCounterListener
+namespace Examples.EventCounter.AspNetCore
 {
-
-    /// <summary>
-    /// The Event Counter to listen to
-    /// </summary>
-    public class EventCounter
+    public class WeatherForecast
     {
-        public string Name { get; set; }
+        public DateTime Date { get; set; }
 
-        public string Type { get; set; }
+        public int TemperatureC { get; set; }
+
+        public int TemperatureF => 32 + (int)(this.TemperatureC / 0.5556);
+
+        public string? Summary { get; set; }
     }
 }

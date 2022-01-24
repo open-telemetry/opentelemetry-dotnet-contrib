@@ -1,4 +1,4 @@
-﻿// <copyright file="CounterType.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="GrpcBuilder.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,17 +14,23 @@
 // limitations under the License.
 // </copyright>
 
- namespace OpenTelemetry.Contrib.EventCounterListener.EventPipe
-{
-    /// <summary>
-    /// Counter Type Enumeration.
-    /// </summary>
-    internal enum CounterType
-    {
-        /// <summary>Metric Counter Type.</summary>
-        Metric,
+using OpenTelemetry.Metrics;
 
-        /// <summary>Rate Counter Type.</summary>
-        Rate,
+namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Grpc
+{
+    internal class GrpcBuilder : IGrpcBuilder
+    {
+        private readonly EventSourceOption option;
+
+        public GrpcBuilder(EventCountersOptions options)
+        {
+            this.option = options.AddEventSource(KnownEventSources.GrpcAspNetCoreServer);
+        }
+
+        public IGrpcBuilder WithCounters(params string[] counterNames)
+        {
+            this.option.WithCounters(counterNames);
+            return this;
+        }
     }
 }

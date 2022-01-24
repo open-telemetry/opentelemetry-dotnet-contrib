@@ -1,4 +1,4 @@
-﻿// <copyright file="MySqlDataInstrumentationOptions.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="EventCountersOptions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,24 +14,24 @@
 // limitations under the License.
 // </copyright>
 
-using System;
-using System.Collections.Concurrent;
-using System.Data;
-using System.Diagnostics;
-using System.Text.RegularExpressions;
+using System.Collections.Generic;
+using OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation;
 
-using OpenTelemetry.Trace;
-
-namespace OpenTelemetry.Contrib.Instrumentation.EventCounterListener
+namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
 {
     /// <summary>
     /// Options for <see cref="EventCounterListener"/>.
     /// </summary>
-    public class EventCounterListenerOptions
+    public class EventCountersOptions
     {
         /// <summary>
-        /// Gets or sets event Counters to listen to.
+        /// Gets or sets the interval in seconds.
         /// </summary>
-        public EventCounter[] Sources { get; set; }
+        public int RefreshIntervalSecs { get; set; } = 1;
+
+        /// <summary>
+        /// Gets or sets event sources to listen to.
+        /// </summary>
+        public List<EventSourceOption> Sources { get; set; } = new List<EventSourceOption>(0);
     }
 }

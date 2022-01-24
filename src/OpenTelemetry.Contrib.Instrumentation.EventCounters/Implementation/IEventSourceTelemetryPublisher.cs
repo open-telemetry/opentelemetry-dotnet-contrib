@@ -1,4 +1,4 @@
-﻿// <copyright file="AssemblyInfo.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="IEventSourceTelemetryPublisher.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,10 +14,10 @@
 // limitations under the License.
 // </copyright>
 
-using System.Runtime.CompilerServices;
-
-#if SIGNED
-[assembly: InternalsVisibleTo("OpenTelemetry.Contrib.EventCounterListener.Tests, PublicKey=")]
-#else
-[assembly: InternalsVisibleTo("OpenTelemetry.Contrib.EventCounterListener.Tests")]
-#endif
+namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
+{
+    internal interface IEventSourceTelemetryPublisher
+    {
+        void Publish(MetricTelemetry metricTelemetry);
+    }
+}

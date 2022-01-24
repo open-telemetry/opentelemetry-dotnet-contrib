@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30204.135
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}"
 EndProject
@@ -156,9 +156,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Owin", "examples\o
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.Owin.Tests", "test\OpenTelemetry.Contrib.Instrumentation.Owin.Tests\OpenTelemetry.Contrib.Instrumentation.Owin.Tests.csproj", "{D52558C8-B7BF-4F59-A0FA-9AA629E68012}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.EventCounterListener", "src\OpenTelemetry.Contrib.EventCounterListener\OpenTelemetry.Contrib.EventCounterListener.csproj", "{8487C723-DCAE-4EF5-A29F-ADB9BCDF9DCD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.EventCounters", "src\OpenTelemetry.Contrib.Instrumentation.EventCounters\OpenTelemetry.Contrib.Instrumentation.EventCounters.csproj", "{8487C723-DCAE-4EF5-A29F-ADB9BCDF9DCD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.EventCounterListener.Tests", "test\OpenTelemetry.Contrib.EventCounterListener.Tests\OpenTelemetry.Contrib.EventCounterListener.Tests.csproj", "{2872634A-581E-494C-B3ED-01E0F3D304ED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.EventCounters.Tests", "test\OpenTelemetry.Contrib.Instrumentation.EventCounters.Tests\OpenTelemetry.Contrib.Instrumentation.EventCounters.Tests.csproj", "{2872634A-581E-494C-B3ED-01E0F3D304ED}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "eventcounters", "eventcounters", "{906FBA3E-CE12-4618-A833-184BA8ACC24C}"
+	ProjectSection(SolutionItems) = preProject
+		examples\eventcounters\README.md = examples\eventcounters\README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples.EventCounters.AspNetCore", "examples\eventcounters\Examples.EventCounters.AspNetCore\Examples.EventCounters.AspNetCore.csproj", "{D593FCA7-724D-4C46-AF94-EE48FA2AC48A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -318,6 +325,10 @@ Global
 		{2872634A-581E-494C-B3ED-01E0F3D304ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2872634A-581E-494C-B3ED-01E0F3D304ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2872634A-581E-494C-B3ED-01E0F3D304ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D593FCA7-724D-4C46-AF94-EE48FA2AC48A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D593FCA7-724D-4C46-AF94-EE48FA2AC48A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D593FCA7-724D-4C46-AF94-EE48FA2AC48A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D593FCA7-724D-4C46-AF94-EE48FA2AC48A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -367,6 +378,8 @@ Global
 		{D52558C8-B7BF-4F59-A0FA-9AA629E68012} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{8487C723-DCAE-4EF5-A29F-ADB9BCDF9DCD} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{2872634A-581E-494C-B3ED-01E0F3D304ED} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{906FBA3E-CE12-4618-A833-184BA8ACC24C} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
+		{D593FCA7-724D-4C46-AF94-EE48FA2AC48A} = {906FBA3E-CE12-4618-A833-184BA8ACC24C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}

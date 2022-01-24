@@ -1,4 +1,4 @@
-﻿// <copyright file="TracerProviderBuilderExtensions.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="MeterProviderBuilderExtensions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,9 +15,10 @@
 // </copyright>
 
 using System;
-using OpenTelemetry.Metrics;
+using OpenTelemetry.Contrib.Instrumentation.EventCounters;
+using OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation;
 
-namespace OpenTelemetry.Contrib.Instrumentation.EventCounterListener
+namespace OpenTelemetry.Metrics
 {
     /// <summary>
     /// Extension methods to simplify registering of dependency instrumentation.
@@ -25,23 +26,23 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounterListener
     public static class MeterProviderBuilderExtensions
     {
         /// <summary>
-        /// Enables EventCounterListener instrumentation.
+        /// Enables EventCounters instrumentation.
         /// </summary>
         /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
         /// <param name="configureEventCounterListenerOptions">EventCounter Listener configuration options.</param>
         /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
-        public static MeterProviderBuilder AddEventCounterListener(
+        public static MeterProviderBuilder AddEventCounters(
             this MeterProviderBuilder builder,
-            Action<EventCounterListenerOptions> configureEventCounterListenerOptions = null)
+            Action<EventCountersOptions> configureEventCounterListenerOptions = null)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            var options = new EventCounterListenerOptions();
+            var options = new EventCountersOptions();
             configureEventCounterListenerOptions?.Invoke(options);
-            builder.AddMeter(EventCounterListener.InstrumentationName);
+            builder.AddMeter(MeterTelemetryPublisher.InstrumentationName);
             builder.AddInstrumentation(() => new EventCounterListenerInstrumentation(options));
 
             return builder;
