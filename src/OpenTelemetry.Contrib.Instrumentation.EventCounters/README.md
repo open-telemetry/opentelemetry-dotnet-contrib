@@ -63,6 +63,73 @@ namespace DotnetMetrics
 }
 ```
 
+Configuration can be done completely using the IConfiguration.
+
+```json
+{
+    "Telemetry": {
+        "RefreshIntervalSecs": 55,
+        "Sources": [
+            {
+                "EventSourceName": "System.Runtime",
+                "EventCounters" : [
+                    {
+                        "Name": "cpu-usage",
+                        "Description": "Current CPU usage",
+                        "Type": "DoubleGauge"
+                    },
+                    {
+                        "Name": "working-set",
+                        "Description": "Process working set",
+                        "Type": "LongSum",
+                        "MetricName": "process_working_set"
+                    }
+                ]
+            },
+            {
+                "EventSourceName": "MyCustomSource",
+                "EventCounters" : [
+                    {
+                        "Name": "orders_submitted",
+                        "Description": "Number of submitted orders",
+                        "Type": "LongSum"
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+
+builder.Services.AddControllers();
+
+builder.Services.AddOpenTelemetryMetrics(
+                (meterBuilder) => meterBuilder
+                    .AddPrometheusExporter()
+                    .AddEventCounters(options =>
+                    {
+                        builder.Configuration.GetSection("Telemetry").Bind(options);                       
+                    }));
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+
+app.UseHttpsRedirection();
+
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.UseOpenTelemetryPrometheusScrapingEndpoint();
+
+app.Run();
+```
+
 ## References
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
