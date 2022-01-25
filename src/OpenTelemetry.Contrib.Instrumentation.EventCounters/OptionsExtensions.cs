@@ -41,6 +41,11 @@ namespace OpenTelemetry.Metrics
         /// <returns>The options instance.</returns>
         public static EventSourceOption AddEventSource(this EventCountersOptions options, string eventSourceName)
         {
+            if (options is null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
             if (string.IsNullOrEmpty(eventSourceName))
             {
                 throw new ArgumentNullException(nameof(eventSourceName));
