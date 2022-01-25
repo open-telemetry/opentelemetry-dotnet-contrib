@@ -32,6 +32,7 @@ Default is 2 minutes. Maintenance event performs following 3 tasks:
 1. Removes `*.blob` files for which the retention period has expired.
 2. Removes `*.tmp` files for which the write timeout period has expired.
 3. Updates `*.lock` files to `*.blob` for which the lease period has expired.
+4. Updates `directorySize`.
 
 `retentionPeriodInMilliseconds` : Retention period in milliseconds for the blob.
 Default is 2 days.
@@ -43,7 +44,7 @@ blob. Default is 1 minute.
 
 `CreateBlob(byte[] buffer, int leasePeriodMilliseconds = 0)` method can be used
 to store data on disk in case of failures. The file stored will have `.blob`
-extension.
+extension. If acquiring lease, the file will have `.lock` extension.
 
 ```csharp
 IPersistentBlob blob = storage.CreateBlob(data);
