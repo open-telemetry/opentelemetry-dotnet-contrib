@@ -14,7 +14,7 @@ TODO
 ### Setup Storage
 
 ```csharp
-using var storage = new LocalFileStorage("test");
+using var storage = new FileStorage("test");
 ```
 
 Following is the complete list of configurable options that can be used to set
@@ -64,7 +64,7 @@ IPersistentBlob blob1 = storage.GetBlob();
 // List all blobs.
 foreach (var blobItem in storage.GetBlobs())
 {
-    Console.WriteLine(((LocalFileBlob)blobItem).FullPath);
+    Console.WriteLine(((FileBlob)blobItem).FullPath);
 }
 ```
 
@@ -99,11 +99,7 @@ blob2.Delete();
 ## Example
 
 ```csharp
-var testDir = new DirectoryInfo(Path.Combine(
-            Environment.GetFolderPath(
-                Environment.SpecialFolder.LocalApplicationData)
-            , "test"));
-using var storage = new LocalFileStorage(testDir.FullName);
+using var storage = new FileStorage("test");
 
 var data = Encoding.UTF8.GetBytes("Hello, World!");
 
@@ -113,7 +109,7 @@ IPersistentBlob blob1 = storage.CreateBlob(data);
 // List all blobs.
 foreach (var blobItem in storage.GetBlobs())
 {
-    Console.WriteLine(((LocalFileBlob)blobItem).FullPath);
+    Console.WriteLine(((FileBlob)blobItem).FullPath);
 }
 
 // Get blob.
