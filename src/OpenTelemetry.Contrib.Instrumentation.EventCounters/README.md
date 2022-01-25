@@ -31,34 +31,36 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Contrib.Instrumentation.EventCounters;
 
-namespace DotnetMetrics
+public class Program
 {
-    public class Program
+
+    public static void Main(string[] args)
     {
-
-        public static void Main(string[] args)
+        using var meterprovider = Sdk.CreateMeterProviderBuilder()
+        .AddEventCounters(options =>
         {
-            using var meterprovider = Sdk.CreateMeterProviderBuilder()
-                    .AddEventCounters(options =>
-                    {
-                        options.AddRuntime().WithAll(); // all from 'System.Runtime'
+          options.AddRuntime().WithAll(); // all from 'System.Runtime'
 
-                        options.AddAspNetCore() // dedicated event counters with optional mapped metric name
-                            .WithCurrentRequests("http_requests_in_progress")
-                            .WithFailedRequests()
-                            .WithRequestRate()
-                            .WithTotalRequests("http_requests_received_total");
-                        
-                        options.AddEventSource("Microsoft-AspNetCore-Server-Kestrel") // add any other event counter
-                            .WithCounters("total-connections", "connections-per-second")
-                            .With("connections-per-second", "The number of connections per update interval to the web server", MetricType.LongSum);
-                    })
-                    .AddConsoleExporter()
-                    .Build();
+          // dedicated event counters with optional mapped metric name.
+          options.AddAspNetCore() 
+            .WithCurrentRequests("http_requests_in_progress")
+            .WithFailedRequests()
+            .WithRequestRate()
+            .WithTotalRequests("http_requests_received_total");
+        
+          // add any other event counter
+          options.AddEventSource("Microsoft-AspNetCore-Server-Kestrel")
+            .WithCounters("total-connections", "connections-per-second")
+            .With(
+            "connections-per-second", 
+            "The number of connections per update interval to the web server",
+            MetricType.LongSum);
+                })
+                .AddConsoleExporter()
+                .Build();
 
-            System.Threading.Thread.Sleep(15000); // Give it some time to record metrics
+            System.Threading.Thread.Sleep(15000); 
 
-        }
     }
 }
 ```
@@ -112,7 +114,7 @@ builder.Services.AddOpenTelemetryMetrics(
                     .AddPrometheusExporter()
                     .AddEventCounters(options =>
                     {
-                        builder.Configuration.GetSection("Telemetry").Bind(options);                       
+                        builder.Configuration.GetSection("Telemetry").Bind(options);
                     }));
 
 var app = builder.Build();
