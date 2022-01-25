@@ -42,24 +42,24 @@ public class Program
           options.AddRuntime().WithAll(); // all from 'System.Runtime'
 
           // dedicated event counters with optional mapped metric name.
-          options.AddAspNetCore() 
+          options.AddAspNetCore()
             .WithCurrentRequests("http_requests_in_progress")
             .WithFailedRequests()
             .WithRequestRate()
             .WithTotalRequests("http_requests_received_total");
-        
+
           // add any other event counter
           options.AddEventSource("Microsoft-AspNetCore-Server-Kestrel")
             .WithCounters("total-connections", "connections-per-second")
             .With(
-            "connections-per-second", 
+            "connections-per-second",
             "The number of connections per update interval to the web server",
             MetricType.LongSum);
                 })
                 .AddConsoleExporter()
                 .Build();
 
-            System.Threading.Thread.Sleep(15000); 
+            System.Threading.Thread.Sleep(15000);
 
     }
 }
