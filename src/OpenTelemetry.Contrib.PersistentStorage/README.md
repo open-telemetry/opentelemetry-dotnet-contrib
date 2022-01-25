@@ -25,11 +25,12 @@ up storage:
 * `maxSizeInBytes`: Maximum allowed storage folder size. Default is 50 MB.
 
 * `maintenancePeriodInMilliseconds`: Maintenance event runs at specified interval.
-Default is 2 minutes. Maintenance event performs following 3 tasks:
+Default is 2 minutes. Maintenance event performs the following tasks:
 
   * Removes `*.blob` files for which the retention period has expired.
   * Removes `*.tmp` files for which the write timeout period has expired.
   * Updates `*.lock` files to `*.blob` for which the lease period has expired.
+  * Updates `directorySize`.
 
 * `retentionPeriodInMilliseconds`: Retention period in milliseconds for the blob.
 Default is 2 days.
@@ -41,7 +42,7 @@ blob. Default is 1 minute.
 
 `CreateBlob(byte[] buffer, int leasePeriodMilliseconds = 0)` method can be used
 to store data on disk in case of failures. The file stored will have `.blob`
-extension.
+extension. If acquiring lease, the file will have `.lock` extension.
 
 ```csharp
 IPersistentBlob blob = storage.CreateBlob(data);
