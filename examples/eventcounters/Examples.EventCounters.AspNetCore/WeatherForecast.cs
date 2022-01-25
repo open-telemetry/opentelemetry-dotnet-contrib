@@ -14,6 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+using System;
+
 namespace Examples.EventCounter.AspNetCore
 {
     public class WeatherForecast

@@ -14,7 +14,11 @@
 // limitations under the License.
 // </copyright>
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace Examples.EventCounter.AspNetCore.Controllers
 {
@@ -40,8 +44,8 @@ namespace Examples.EventCounter.AspNetCore.Controllers
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
                 Date = DateTime.Now.AddDays(index),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)],
+                TemperatureC = new Random().Next(-20, 55),
+                Summary = Summaries[new Random().Next(Summaries.Length)],
             })
             .ToArray();
         }

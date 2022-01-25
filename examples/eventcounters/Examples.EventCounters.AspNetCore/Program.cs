@@ -14,45 +14,23 @@
 // limitations under the License.
 // </copyright>
 
-using OpenTelemetry.Metrics;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
-var builder = WebApplication.CreateBuilder(args);
+namespace Examples.EventCounter.AspNetCore.Controllers
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            CreateHostBuilder(args).Build().Run();
+        }
 
-// Add services to the container.
-
-builder.Services.AddControllers();
-
-builder.Services.AddOpenTelemetryMetrics(
-                (builder) => builder
-                    .AddPrometheusExporter()
-                    .AddEventCounters(options =>
-                    {
-                        options.AddRuntime()
-                            .WithCounters("cpu-usage", "working-set");
-
-                        options.AddAspNetCore()
-                            .WithCurrentRequests("http_requests_in_progress")
-                            .WithFailedRequests()
-                            .WithRequestRate()
-                            .WithTotalRequests("http_requests_received_total");
-
-                        options.AddEventSource("Microsoft-AspNetCore-Server-Kestrel")
-                            .WithCounters("total-connections")
-                            .With("connections-per-second", "The number of connections per update interval to the web server", MetricType.LongSum);
-
-                        options.AddEventSource("Microsoft.AspNetCore.Http.Connections");
-                    }));
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.UseOpenTelemetryPrometheusScrapingEndpoint();
-
-app.Run();
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                });
+    }
+}
