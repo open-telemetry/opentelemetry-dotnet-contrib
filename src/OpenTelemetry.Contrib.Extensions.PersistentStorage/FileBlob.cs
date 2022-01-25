@@ -17,103 +17,104 @@
 using System;
 using System.IO;
 
-namespace OpenTelemetry.Contrib.Extensions.PersistentStorage;
-
-/// <summary>
-/// The <see cref="FileBlob"/> allows to save a blob
-/// in file storage.
-/// </summary>
-public class FileBlob : IPersistentBlob
+namespace OpenTelemetry.Contrib.Extensions.PersistentStorage
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="FileBlob"/>
-    /// class.
+    /// The <see cref="FileBlob"/> allows to save a blob
+    /// in file storage.
     /// </summary>
-    /// <param name="fullPath">Absolute file path of the blob.</param>
-    public FileBlob(string fullPath)
+    public class FileBlob : IPersistentBlob
     {
-        this.FullPath = fullPath;
-    }
-
-    public string FullPath { get; private set; }
-
-    /// <inheritdoc/>
-    public byte[] Read()
-    {
-        try
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileBlob"/>
+        /// class.
+        /// </summary>
+        /// <param name="fullPath">Absolute file path of the blob.</param>
+        public FileBlob(string fullPath)
         {
-            return File.ReadAllBytes(this.FullPath);
-        }
-        catch (Exception ex)
-        {
-            PersistentStorageEventSource.Log.Warning($"Reading a blob from file {this.FullPath} has failed.", ex);
+            this.FullPath = fullPath;
         }
 
-        return null;
-    }
+        public string FullPath { get; private set; }
 
-    /// <inheritdoc/>
-    public IPersistentBlob Write(byte[] buffer, int leasePeriodMilliseconds = 0)
-    {
-        string path = this.FullPath + ".tmp";
-
-        try
+        /// <inheritdoc/>
+        public byte[] Read()
         {
-            PersistentStorageHelper.WriteAllBytes(path, buffer);
-
-            if (leasePeriodMilliseconds > 0)
+            try
             {
-                var timestamp = DateTime.UtcNow + TimeSpan.FromMilliseconds(leasePeriodMilliseconds);
-                this.FullPath += $"@{timestamp:yyyy-MM-ddTHHmmss.fffffffZ}.lock";
+                return File.ReadAllBytes(this.FullPath);
+            }
+            catch (Exception ex)
+            {
+                PersistentStorageEventSource.Log.Warning($"Reading a blob from file {this.FullPath} has failed.", ex);
             }
 
-            File.Move(path, this.FullPath);
-        }
-        catch (Exception ex)
-        {
-            PersistentStorageEventSource.Log.Warning($"Writing a blob to file {path} has failed.", ex);
             return null;
         }
 
-        return this;
-    }
-
-    /// <inheritdoc/>
-    public IPersistentBlob Lease(int leasePeriodMilliseconds)
-    {
-        var path = this.FullPath;
-        var leaseTimestamp = DateTime.UtcNow + TimeSpan.FromMilliseconds(leasePeriodMilliseconds);
-        if (path.EndsWith(".lock", StringComparison.OrdinalIgnoreCase))
+        /// <inheritdoc/>
+        public IPersistentBlob Write(byte[] buffer, int leasePeriodMilliseconds = 0)
         {
-            path = path.Substring(0, path.LastIndexOf('@'));
+            string path = this.FullPath + ".tmp";
+
+            try
+            {
+                PersistentStorageHelper.WriteAllBytes(path, buffer);
+
+                if (leasePeriodMilliseconds > 0)
+                {
+                    var timestamp = DateTime.UtcNow + TimeSpan.FromMilliseconds(leasePeriodMilliseconds);
+                    this.FullPath += $"@{timestamp:yyyy-MM-ddTHHmmss.fffffffZ}.lock";
+                }
+
+                File.Move(path, this.FullPath);
+            }
+            catch (Exception ex)
+            {
+                PersistentStorageEventSource.Log.Warning($"Writing a blob to file {path} has failed.", ex);
+                return null;
+            }
+
+            return this;
         }
 
-        path += $"@{leaseTimestamp:yyyy-MM-ddTHHmmss.fffffffZ}.lock";
+        /// <inheritdoc/>
+        public IPersistentBlob Lease(int leasePeriodMilliseconds)
+        {
+            var path = this.FullPath;
+            var leaseTimestamp = DateTime.UtcNow + TimeSpan.FromMilliseconds(leasePeriodMilliseconds);
+            if (path.EndsWith(".lock", StringComparison.OrdinalIgnoreCase))
+            {
+                path = path.Substring(0, path.LastIndexOf('@'));
+            }
 
-        try
-        {
-            File.Move(this.FullPath, path);
-        }
-        catch (Exception ex)
-        {
-            PersistentStorageEventSource.Log.Warning($"Acquiring a lease to file {this.FullPath} has failed.", ex);
-            return null;
+            path += $"@{leaseTimestamp:yyyy-MM-ddTHHmmss.fffffffZ}.lock";
+
+            try
+            {
+                File.Move(this.FullPath, path);
+            }
+            catch (Exception ex)
+            {
+                PersistentStorageEventSource.Log.Warning($"Acquiring a lease to file {this.FullPath} has failed.", ex);
+                return null;
+            }
+
+            this.FullPath = path;
+            return this;
         }
 
-        this.FullPath = path;
-        return this;
-    }
-
-    /// <inheritdoc/>
-    public void Delete()
-    {
-        try
+        /// <inheritdoc/>
+        public void Delete()
         {
-            PersistentStorageHelper.RemoveFile(this.FullPath);
-        }
-        catch (Exception ex)
-        {
-            PersistentStorageEventSource.Log.Warning($"Deletion of file blob {this.FullPath} has failed.", ex);
+            try
+            {
+                PersistentStorageHelper.RemoveFile(this.FullPath);
+            }
+            catch (Exception ex)
+            {
+                PersistentStorageEventSource.Log.Warning($"Deletion of file blob {this.FullPath} has failed.", ex);
+            }
         }
     }
 }

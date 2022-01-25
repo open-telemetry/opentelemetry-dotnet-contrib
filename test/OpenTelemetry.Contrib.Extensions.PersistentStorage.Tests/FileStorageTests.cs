@@ -21,9 +21,9 @@ using System.Text;
 using System.Threading;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Extensions.PersistentStorage.Tests;
-
-public class FileStorageTests
+namespace OpenTelemetry.Contrib.Extensions.PersistentStorage.Tests
+{
+    public class FileStorageTests
 {
     [Fact]
     public void FileStorage_E2E_Test()
@@ -165,3 +165,6 @@ public class FileStorageTests
         testDirectory.Delete(true);
     }
 }
+}
+
+
