@@ -15,6 +15,7 @@
 // </copyright>
 
 using System;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Diagnostics;
 using OpenTelemetry.Instrumentation;
@@ -45,6 +46,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementati
 #pragma warning restore SA1202 // Elements should be ordered by access
 
         private readonly PropertyFetcher<object> commandFetcher = new PropertyFetcher<object>("Command");
+        private readonly PropertyFetcher<object> commandIdFetcher = new PropertyFetcher<object>("CommandId");
         private readonly PropertyFetcher<object> connectionFetcher = new PropertyFetcher<object>("Connection");
         private readonly PropertyFetcher<object> dbContextFetcher = new PropertyFetcher<object>("Context");
         private readonly PropertyFetcher<object> dbContextDatabaseFetcher = new PropertyFetcher<object>("Database");
@@ -57,6 +59,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementati
 
         private readonly EntityFrameworkInstrumentationOptions options;
 
+        private readonly ConcurrentDictionary<object, Activity> activitiesByCommandId =
+            new ConcurrentDictionary<object, Activity>();
+
         public EntityFrameworkDiagnosticListener(string sourceName, EntityFrameworkInstrumentationOptions options)
             : base(sourceName)
         {
@@ -65,13 +70,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementati
 
         public override bool SupportsNullActivity => true;
 
-        public override void OnCustom(string name, Activity activity, object payload)
+        public override void OnCustom(string name, Activity _, object payload)
         {
             switch (name)
             {
                 case EntityFrameworkCoreCommandCreated:
                     {
-                        activity = SqlClientActivitySource.StartActivity(ActivityName, ActivityKind.Client);
+                        var activity = SqlClientActivitySource.StartActivity(ActivityName, ActivityKind.Client);
                         if (activity == null)
                         {
                             // There is no listener or it decided not to sample the current request.
@@ -79,12 +84,15 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementati
                         }
 
                         var command = this.commandFetcher.Fetch(payload);
-                        if (command == null)
+                        var commandId = this.commandIdFetcher.Fetch(payload);
+                        if (command == null || commandId == null)
                         {
                             EntityFrameworkInstrumentationEventSource.Log.NullPayload(nameof(EntityFrameworkDiagnosticListener), name);
                             activity.Stop();
                             return;
                         }
+
+                        this.activitiesByCommandId.TryAdd(commandId, activity);
 
                         var connection = this.connectionFetcher.Fetch(command);
                         var database = (string)this.databaseFetcher.Fetch(connection);
@@ -138,14 +146,18 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementati
 
                 case EntityFrameworkCoreCommandExecuting:
                     {
-                        if (activity == null)
+                        var commandId = this.commandIdFetcher.Fetch(payload);
+                        if (commandId == null)
                         {
-                            EntityFrameworkInstrumentationEventSource.Log.NullActivity(name);
+                            EntityFrameworkInstrumentationEventSource.Log.NullPayload(
+                                nameof(EntityFrameworkDiagnosticListener),
+                                name);
                             return;
                         }
 
-                        if (activity.Source != SqlClientActivitySource)
+                        if (!this.activitiesByCommandId.TryGetValue(commandId, out var activity))
                         {
+                            EntityFrameworkInstrumentationEventSource.Log.NullActivity(name);
                             return;
                         }
 
@@ -188,14 +200,18 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementati
 
                 case EntityFrameworkCoreCommandExecuted:
                     {
-                        if (activity == null)
+                        var commandId = this.commandIdFetcher.Fetch(payload);
+                        if (commandId == null)
                         {
-                            EntityFrameworkInstrumentationEventSource.Log.NullActivity(name);
+                            EntityFrameworkInstrumentationEventSource.Log.NullPayload(
+                                nameof(EntityFrameworkDiagnosticListener),
+                                name);
                             return;
                         }
 
-                        if (activity.Source != SqlClientActivitySource)
+                        if (!this.activitiesByCommandId.TryRemove(commandId, out var activity))
                         {
+                            EntityFrameworkInstrumentationEventSource.Log.NullActivity(name);
                             return;
                         }
 
@@ -206,14 +222,18 @@ namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementati
 
                 case EntityFrameworkCoreCommandError:
                     {
-                        if (activity == null)
+                        var commandId = this.commandIdFetcher.Fetch(payload);
+                        if (commandId == null)
                         {
-                            EntityFrameworkInstrumentationEventSource.Log.NullActivity(name);
+                            EntityFrameworkInstrumentationEventSource.Log.NullPayload(
+                                nameof(EntityFrameworkDiagnosticListener),
+                                name);
                             return;
                         }
 
-                        if (activity.Source != SqlClientActivitySource)
+                        if (!this.activitiesByCommandId.TryRemove(commandId, out var activity))
                         {
+                            EntityFrameworkInstrumentationEventSource.Log.NullActivity(name);
                             return;
                         }
 
