@@ -35,7 +35,6 @@ namespace DotnetMetrics
 {
     public class Program
     {
-
         public static void Main(string[] args)
         {
             using var meterprovider = Sdk.CreateMeterProviderBuilder()
@@ -52,7 +51,6 @@ namespace DotnetMetrics
                     .Build();
 
             System.Threading.Thread.Sleep(15000); // Give it some time to record metrics
-
         }
     }
 }
