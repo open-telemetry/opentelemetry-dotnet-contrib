@@ -5,7 +5,6 @@
         <Description>OpenTelemetry Metrics instrumentation for Dotnet EventCounters</Description>
         <PackageTags>$(PackageTags);metrics;eventcounters</PackageTags>
         <MinVerTagPrefix>Instrumentation.EventCounters-</MinVerTagPrefix>
-        <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
         <Nullable>enable</Nullable>
     </PropertyGroup>
 

@@ -231,22 +231,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
                             }
                         }
                     }
-                    else if (key.Equals("Metadata", StringComparison.OrdinalIgnoreCase))
-                    {
-                        var metadata = payload.Value.ToString();
-                        if (!string.IsNullOrEmpty(metadata))
-                        {
-                            var keyValuePairStrings = metadata.Split(',');
-                            foreach (var keyValuePairString in keyValuePairStrings)
-                            {
-                                var keyValuePair = keyValuePairString.Split(':');
-                                if (!metricTelemetry.Properties.ContainsKey(keyValuePair[0]))
-                                {
-                                    metricTelemetry.Properties.Add(keyValuePair[0], keyValuePair[1]);
-                                }
-                            }
-                        }
-                    }
                 }
 
                 if (calculateRate)
@@ -269,11 +253,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
                 metricTelemetry.Name = counterName;
                 metricTelemetry.DisplayName = string.IsNullOrEmpty(counterDisplayName) ? counterName : counterDisplayName;
                 metricTelemetry.EventSource = eventSourceName;
-
-                if (!string.IsNullOrEmpty(counterDisplayUnit))
-                {
-                    metricTelemetry.Properties.Add("DisplayUnits", counterDisplayUnit);
-                }
 
                 metricTelemetry.Count = actualCount;
                 this.telemetryPublisher.Publish(metricTelemetry);

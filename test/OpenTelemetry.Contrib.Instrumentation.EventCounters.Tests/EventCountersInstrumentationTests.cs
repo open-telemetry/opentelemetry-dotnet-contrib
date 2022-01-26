@@ -41,7 +41,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Tests
             this.meterProvider = Sdk.CreateMeterProviderBuilder()
                  .AddEventCounters(options =>
                  {
-                     options.AddRuntime();
+                     options.AddEventSource("System.Runtime");
                  })
                 .AddReader(metricReader)
                 .Build();

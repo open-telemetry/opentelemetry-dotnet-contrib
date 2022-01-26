@@ -34,11 +34,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
         public string EventSource { get; set; }
 
         /// <summary>
-        /// Gets a dictionary of application-defined property names and values providing additional information about this metric.
-        /// </summary>
-        public Dictionary<string, string> Properties { get; } = new Dictionary<string, string>();
-
-        /// <summary>
         /// Gets or sets sum of the values of the metric samples.
         /// </summary>
         public double Sum { get; set; }
