@@ -1,4 +1,4 @@
-name: Pack OpenTelemetry.Contrib.PersistentStorage
+name: Pack OpenTelemetry.Contrib.Extensions.PersistentStorage
 
 on:
   workflow_dispatch:
@@ -9,13 +9,13 @@ on:
         default: 'warning'
   push:
     tags:
-      - 'PersistentStorage-*' # trigger when we create a tag with prefix "PersistentStorage-"
+      - 'Extensions.PersistentStorage-*' # trigger when we create a tag with prefix "Extensions.PersistentStorage-"
 
 jobs:
   build-test-pack:
     runs-on: ${{ matrix.os }}
     env:
-      PROJECT: OpenTelemetry.Contrib.PersistentStorage
+      PROJECT: OpenTelemetry.Contrib.Extensions.PersistentStorage
 
     strategy:
       matrix:

@@ -138,10 +138,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Previ
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Preview.Tests", "test\OpenTelemetry.Contrib.Preview.Tests\OpenTelemetry.Contrib.Preview.Tests.csproj", "{D2C68560-C252-41A9-B742-2CEB7D760E0F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.PersistentStorage", "src\OpenTelemetry.Contrib.PersistentStorage\OpenTelemetry.Contrib.PersistentStorage.csproj", "{735E9121-93E0-4770-BF8F-45598EEC37FC}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.PersistentStorage.Tests", "test\OpenTelemetry.Contrib.PersistentStorage.Tests\OpenTelemetry.Contrib.PersistentStorage.Tests.csproj", "{B4278414-48B8-45CF-B22F-A8BA614A6685}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Tests", "test\OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Tests\OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Tests.csproj", "{4172D671-3AAC-443F-9EB0-A6608B154AF0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Extensions.AzureMonitor", "src\OpenTelemetry.Contrib.Extensions.AzureMonitor\OpenTelemetry.Contrib.Extensions.AzureMonitor.csproj", "{9C2D6D1A-8580-4527-B718-E206D0690635}"
@@ -159,6 +155,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.EventCounters", "src\OpenTelemetry.Contrib.Instrumentation.EventCounters\OpenTelemetry.Contrib.Instrumentation.EventCounters.csproj", "{8487C723-DCAE-4EF5-A29F-ADB9BCDF9DCD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.EventCounters.Tests", "test\OpenTelemetry.Contrib.Instrumentation.EventCounters.Tests\OpenTelemetry.Contrib.Instrumentation.EventCounters.Tests.csproj", "{2872634A-581E-494C-B3ED-01E0F3D304ED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Extensions.PersistentStorage", "src\OpenTelemetry.Contrib.Extensions.PersistentStorage\OpenTelemetry.Contrib.Extensions.PersistentStorage.csproj", "{433C59A3-D535-421E-BA7F-9BCE0D4A3D25}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Extensions.PersistentStorage.Tests", "test\OpenTelemetry.Contrib.Extensions.PersistentStorage.Tests\OpenTelemetry.Contrib.Extensions.PersistentStorage.Tests.csproj", "{72EBA81D-2933-417C-8F21-D4CFFD72F530}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -278,14 +277,6 @@ Global
 		{D2C68560-C252-41A9-B742-2CEB7D760E0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D2C68560-C252-41A9-B742-2CEB7D760E0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D2C68560-C252-41A9-B742-2CEB7D760E0F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{735E9121-93E0-4770-BF8F-45598EEC37FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{735E9121-93E0-4770-BF8F-45598EEC37FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{735E9121-93E0-4770-BF8F-45598EEC37FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{735E9121-93E0-4770-BF8F-45598EEC37FC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B4278414-48B8-45CF-B22F-A8BA614A6685}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B4278414-48B8-45CF-B22F-A8BA614A6685}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B4278414-48B8-45CF-B22F-A8BA614A6685}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B4278414-48B8-45CF-B22F-A8BA614A6685}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4172D671-3AAC-443F-9EB0-A6608B154AF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4172D671-3AAC-443F-9EB0-A6608B154AF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4172D671-3AAC-443F-9EB0-A6608B154AF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -318,6 +309,14 @@ Global
 		{2872634A-581E-494C-B3ED-01E0F3D304ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2872634A-581E-494C-B3ED-01E0F3D304ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2872634A-581E-494C-B3ED-01E0F3D304ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{433C59A3-D535-421E-BA7F-9BCE0D4A3D25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{433C59A3-D535-421E-BA7F-9BCE0D4A3D25}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{433C59A3-D535-421E-BA7F-9BCE0D4A3D25}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{433C59A3-D535-421E-BA7F-9BCE0D4A3D25}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72EBA81D-2933-417C-8F21-D4CFFD72F530}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72EBA81D-2933-417C-8F21-D4CFFD72F530}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72EBA81D-2933-417C-8F21-D4CFFD72F530}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72EBA81D-2933-417C-8F21-D4CFFD72F530}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -356,8 +355,6 @@ Global
 		{C33F2D9D-89A6-459C-9A51-79BA5A9EF194} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{B978939B-278C-43A3-AD12-32EA9BBD27D0} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{D2C68560-C252-41A9-B742-2CEB7D760E0F} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
-		{735E9121-93E0-4770-BF8F-45598EEC37FC} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
-		{B4278414-48B8-45CF-B22F-A8BA614A6685} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{4172D671-3AAC-443F-9EB0-A6608B154AF0} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{9C2D6D1A-8580-4527-B718-E206D0690635} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{771651AA-010F-4FF6-9CB2-BAFFE5E04FC2} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
@@ -367,6 +364,8 @@ Global
 		{D52558C8-B7BF-4F59-A0FA-9AA629E68012} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{8487C723-DCAE-4EF5-A29F-ADB9BCDF9DCD} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{2872634A-581E-494C-B3ED-01E0F3D304ED} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{433C59A3-D535-421E-BA7F-9BCE0D4A3D25} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{72EBA81D-2933-417C-8F21-D4CFFD72F530} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
