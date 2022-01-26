@@ -40,12 +40,12 @@ namespace DotnetMetrics
             using var meterprovider = Sdk.CreateMeterProviderBuilder()
                     .AddEventCounters(options =>
                     {
-                        options.AddEventSource("Microsoft-AspNetCore-Server-Kestrel")
-                            .WithCounters("total-connections", "connections-per-second")
-                            .With(
-                            "connections-per-second", 
-                            "The number of connections per update interval to the web server", 
-                            MetricType.LongSum);
+                      options.AddEventSource("Microsoft-AspNetCore-Server-Kestrel")
+                        .WithCounters("total-connections", "connections-per-second")
+                        .With(
+                        "connections-per-second",
+                        "The number of connections per update interval to the web server",
+                        MetricType.LongSum);
                     })
                     .AddConsoleExporter()
                     .Build();
@@ -105,7 +105,7 @@ builder.Services.AddOpenTelemetryMetrics(
                     .AddPrometheusExporter()
                     .AddEventCounters(options =>
                     {
-                        builder.Configuration.GetSection("Telemetry").Bind(options);                       
+                        builder.Configuration.GetSection("Telemetry").Bind(options);                     
                     }));
 
 var app = builder.Build();
