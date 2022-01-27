@@ -1,6 +1,7 @@
 # Changelog
 
-## 1.1.0-beta1
+## 1.0.0-beta1
+
 
 * Update OTel SDK package version to 1.1.0
 * Log exceptions when failing to export data to stackdriver
