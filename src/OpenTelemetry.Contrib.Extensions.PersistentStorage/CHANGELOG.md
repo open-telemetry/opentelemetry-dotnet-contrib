@@ -1,6 +1,6 @@
 # Changelog - OpenTelemetry.Contrib.Extensions.PersistentStorage
 
-## 1.0.0 [Unreleased]
+## 1.0.0 [1.0.0-alpha1]
 
 This is the first release for the `OpenTelemetry.Contrib.Extensions.PersistentStorage`
 project.
