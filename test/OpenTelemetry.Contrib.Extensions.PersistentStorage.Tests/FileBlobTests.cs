@@ -124,7 +124,7 @@ namespace OpenTelemetry.Contrib.Extensions.PersistentStorage.Tests
             Assert.False(testFile.Exists);
         }
 
-        [Fact]
+        [Fact(Skip = "Unstable")]
         public void FileBlobTests_DeleteFailsAfterLeaseIsExpired()
         {
             var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
