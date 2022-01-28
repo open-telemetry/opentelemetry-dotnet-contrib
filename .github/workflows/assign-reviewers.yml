@@ -1,0 +1,22 @@
+name: 'Assign Reviewers'
+on:
+  # pull_request_target is suggested for projects where pull requests will be
+  # made from forked repositories. If pull_request is used in these cases,
+  # the github token will not have sufficient permission to update the PR.
+  pull_request_target:
+
+jobs:
+  assign:
+    runs-on: ubuntu-latest
+    name: Assign Reviewers
+    steps:
+      - uses: open-telemetry/assign-reviewers-action@main
+        with:
+          # default: .github/code_owners.yml
+          config-file: .github/code_owners.yml
+          # default: ${{ github.token }}
+          repo-token: ${{ github.token }} 
+          # default: true
+          assign-users: "true"
+          # default: true
+          request-user-reviews: "true"
