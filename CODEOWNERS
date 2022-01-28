@@ -25,5 +25,5 @@ test/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests/               @ope
 test/OpenTelemetry.Contrib.Instrumentation.Owin.Tests/                      @open-telemetry/dotnet-contrib-approvers @codeblanch
 test/OpenTelemetry.Contrib.Instrumentation.Wcf.Tests/                       @open-telemetry/dotnet-contrib-approvers @codeblanch
 test/OpenTelemetry.Contrib.Instrumentation.MySqlData.Tests/                 @open-telemetry/dotnet-contrib-approvers @moonheart
-src/OpenTelemetry.Contrib.Extensions.PersistentStorage.Tests/               @open-telemetry/dotnet-contrib-approvers @vishweshbankwar
+test/OpenTelemetry.Contrib.Extensions.PersistentStorage.Tests/               @open-telemetry/dotnet-contrib-approvers @vishweshbankwar
 test/OpenTelemetry.Contrib.Preview.Tests/                                   @open-telemetry/dotnet-contrib-approvers @codeblanch
