@@ -193,3 +193,5 @@ to be placed in the `.github/workflows/` folder.
   value to "Foo.Bar-*" and
   [`PROJECT`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml#L18)
   value to "OpenTelemetry.Contrib.Foo.Bar".
+
+* When contributing a new project you are expected to assign yourself to your project in the CODEOWNERS file
