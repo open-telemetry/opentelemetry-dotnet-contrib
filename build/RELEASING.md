@@ -69,4 +69,3 @@ in the workflow is to publish to Nuget.org.
 
 3. Validate that the new version (as specified in step1) of the project is
 successfully published to nuget.org under OpenTelemetry owner.
-
