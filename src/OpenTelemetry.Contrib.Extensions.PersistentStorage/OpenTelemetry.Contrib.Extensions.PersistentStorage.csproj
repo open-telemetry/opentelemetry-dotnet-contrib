@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
-    <Description>Persistent Storage</Description>
+    <Description>OpenTelemetry Persistent Storage</Description>
+    <MinVerTagPrefix>Extensions.PersistentStorage-</MinVerTagPrefix>
   </PropertyGroup>
 
   <PropertyGroup>

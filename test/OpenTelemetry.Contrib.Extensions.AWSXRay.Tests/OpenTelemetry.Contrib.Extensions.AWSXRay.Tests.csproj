@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>Unit test project for AWS X-Ray for OpenTelemetry</Description>
-    <TargetFrameworks>netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net452</TargetFrameworks>
   </PropertyGroup>
 
@@ -25,7 +25,7 @@
     <Reference Include="System.Net.Http" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp2.1' AND '$(TargetFramework)' != 'netcoreapp3.1'">
+  <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
     <Compile Remove="Resources\TestAWSECSResourceDetector.cs" />
     <Compile Remove="Resources\TestAWSEKSResourceDetector.cs" />
     <Compile Remove="Resources\TestAWSLambdaResourceDetector.cs" />

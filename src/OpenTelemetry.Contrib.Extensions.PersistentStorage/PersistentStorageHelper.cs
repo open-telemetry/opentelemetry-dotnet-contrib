@@ -24,7 +24,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 
-namespace OpenTelemetry.Contrib.PersistentStorage
+namespace OpenTelemetry.Contrib.Extensions.PersistentStorage
 {
     internal static class PersistentStorageHelper
     {
