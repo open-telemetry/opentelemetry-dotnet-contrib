@@ -129,6 +129,11 @@ Any Maintainer can merge the PR once it is **ready to merge**. Note, that some
 PR may not be merged immediately if repo is being in process of a major release
 and the new feature doesn't fit it.
 
+### How to request for release of package
+
+Submit a PR with `CHANGELOG.md` file reflecting the version to be released. Also,
+tag the maintainers of this repository who can release the package.
+
 ## Style Guide
 
 This project includes a
