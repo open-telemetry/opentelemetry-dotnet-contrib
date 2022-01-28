@@ -172,8 +172,6 @@ namespace OpenTelemetry.Contrib.Extensions.PersistentStorage.Tests
 
             Assert.NotEqual(leaseTime, newLeaseTime);
 
-            Console.WriteLine(leaseTime);
-            Console.WriteLine(newLeaseTime);
 
             blob.Delete();
         }
