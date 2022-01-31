@@ -43,7 +43,7 @@ components:
     - codeblanch
   test/OpenTelemetry.Contrib.Instrumentation.MySqlData.Tests/:
     - moonheart
-  src/OpenTelemetry.Contrib.Extensions.PersistentStorage.Tests/:
+  test/OpenTelemetry.Contrib.Extensions.PersistentStorage.Tests/:
     - vishweshbankwar
   test/OpenTelemetry.Contrib.Preview.Tests/:
     - codeblanch
