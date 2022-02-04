@@ -29,7 +29,7 @@ to the application.
 ```csharp
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
-using OpenTelemetry.Contrib.Instrumentation.EventCounters; 
+using OpenTelemetry.Contrib.Instrumentation.EventCounters;
 
 namespace DotnetMetrics;
 
