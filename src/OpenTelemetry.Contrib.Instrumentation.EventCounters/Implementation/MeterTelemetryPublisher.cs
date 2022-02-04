@@ -71,12 +71,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
 
         private MetricInstrument CreateInstrument(MetricTelemetry metricTelemetry, MetricKey metricKey)
         {
-            var eventSource = this.options.Sources.Single(source => source.EventSourceName.Equals(metricTelemetry.EventSource, StringComparison.OrdinalIgnoreCase));
-            var eventCounter = eventSource.EventCounters.FirstOrDefault(counter => counter.Name.Equals(metricTelemetry.Name, StringComparison.OrdinalIgnoreCase));
+            var eventSourceOptions = this.options.Sources.Single(source => source.EventSourceName.Equals(metricTelemetry.EventSource, StringComparison.OrdinalIgnoreCase));
+            var eventCounterOption = eventSourceOptions.EventCounters.FirstOrDefault(counter => counter.Name.Equals(metricTelemetry.Name, StringComparison.OrdinalIgnoreCase));
 
-            var description = !string.IsNullOrEmpty(eventCounter?.Description) ? eventCounter.Description : metricTelemetry.DisplayName;
-            var instrumentationType = eventCounter?.Type ?? metricTelemetry.Type;
-            var metricName = !string.IsNullOrEmpty(eventCounter?.MetricName) ? eventCounter.MetricName : metricTelemetry.Name;
+            var description = !string.IsNullOrEmpty(eventCounterOption?.Description) ? eventCounterOption.Description : metricTelemetry.DisplayName;
+            var instrumentationType = eventCounterOption?.Type ?? metricTelemetry.Type;
+            var metricName = !string.IsNullOrEmpty(eventCounterOption?.MetricName) ? eventCounterOption.MetricName : metricTelemetry.Name;
             var metricInstrument = new MetricInstrument { Type = instrumentationType };
 
             metricInstrument.Instrument = instrumentationType switch
