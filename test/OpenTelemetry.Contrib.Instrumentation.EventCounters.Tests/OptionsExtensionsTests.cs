@@ -71,7 +71,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Tests
 
                 Assert.Equal("firstCounter", options.EventCounters[0].Name);
                 Assert.Null(options.EventCounters[0].Description);
-                Assert.Equal(InstrumentationType.LongCounter, options.EventCounters[0].Type);
+                Assert.Equal(InstrumentationType.Counter, options.EventCounters[0].Type);
                 Assert.Null(options.EventCounters[0].MetricName);
             }
         }
