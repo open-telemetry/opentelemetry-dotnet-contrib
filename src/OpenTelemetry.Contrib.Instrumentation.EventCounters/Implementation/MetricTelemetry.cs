@@ -14,9 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-using System.Collections.Generic;
 using System.Diagnostics;
-using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
 {
@@ -54,8 +52,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
         public string DisplayName { get; set; }
 
         /// <summary>
-        /// Gets or sets the metric type.
+        /// Gets or sets the instrumentation type.
         /// </summary>
-        public MetricType Type { get; set; } = MetricType.LongSum;
+        public InstrumentationType Type { get; set; } = InstrumentationType.LongCounter;
     }
 }

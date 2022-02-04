@@ -31,7 +31,10 @@ namespace OpenTelemetry.Metrics
         /// <param name="options">The options to check for the event source.</param>
         /// <param name="eventSource">Name of the event source to check for existence.</param>
         /// <returns>True if the event source was already added, otherwise false.</returns>
-        public static bool HasEventSource(this EventCountersOptions options, string eventSource) => options.Sources.Any(provider => provider.EventSourceName.Equals(eventSource, System.StringComparison.OrdinalIgnoreCase));
+        public static bool HasEventSource(this EventCountersOptions options, string eventSource)
+        {
+            return options.Sources.Any(provider => provider.EventSourceName.Equals(eventSource, StringComparison.OrdinalIgnoreCase));
+        }
 
         /// <summary>
         /// Adds a custom event source.
@@ -84,16 +87,16 @@ namespace OpenTelemetry.Metrics
         /// <param name="eventSource">The option to add the event counter to.</param>
         /// <param name="counterName">Name of the event counter.</param>
         /// <param name="description">The metric description.</param>
-        /// <param name="metricType">The type of the metric.</param>
+        /// <param name="instrumentationType">The type of the instrumentation that will be created.</param>
         /// <param name="metricName">Optional name of the published metric. Otherwise the counter name will be used.</param>
         /// <returns>The event source instance to define event counters.</returns>
-        public static EventSourceOption With(this EventSourceOption eventSource, string counterName, string description, MetricType metricType, string? metricName = null)
+        public static EventSourceOption With(this EventSourceOption eventSource, string counterName, string description, InstrumentationType instrumentationType, string? metricName = null)
         {
             eventSource.EventCounters.Add(new EventCounter
             {
                 Name = counterName,
                 Description = description,
-                Type = metricType,
+                Type = instrumentationType,
                 MetricName = metricName,
             });
 

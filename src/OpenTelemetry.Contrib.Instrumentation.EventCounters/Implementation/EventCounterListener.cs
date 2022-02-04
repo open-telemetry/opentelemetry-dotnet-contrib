@@ -20,7 +20,6 @@ using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Globalization;
 using System.Linq;
-using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
 {
@@ -207,11 +206,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
                         {
                             if (isRate)
                             {
-                                metricTelemetry.Type = MetricType.LongGauge;
+                                metricTelemetry.Type = InstrumentationType.LongGauge;
                             }
                             else
                             {
-                                metricTelemetry.Type = MetricType.LongSum;
+                                metricTelemetry.Type = InstrumentationType.LongCounter;
                             }
 
                             if (string.IsNullOrEmpty(counterDisplayUnit))
@@ -223,11 +222,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
                         {
                             if (isRate)
                             {
-                                metricTelemetry.Type = MetricType.DoubleGauge;
+                                metricTelemetry.Type = InstrumentationType.DoubleGauge;
                             }
                             else
                             {
-                                metricTelemetry.Type = MetricType.DoubleSum;
+                                metricTelemetry.Type = InstrumentationType.DoubleCounter;
                             }
                         }
                     }

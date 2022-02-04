@@ -71,11 +71,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Tests
 
             Assert.Equal("cpu-usage", options.Sources[0].EventCounters[0].Name);
             Assert.Equal("Current CPU usage", options.Sources[0].EventCounters[0].Description);
-            Assert.Equal(OpenTelemetry.Metrics.MetricType.DoubleGauge, options.Sources[0].EventCounters[0].Type);
+            Assert.Equal(InstrumentationType.DoubleGauge, options.Sources[0].EventCounters[0].Type);
 
             Assert.Equal("working-set", options.Sources[0].EventCounters[1].Name);
             Assert.Equal("Process working set", options.Sources[0].EventCounters[1].Description);
-            Assert.Equal(OpenTelemetry.Metrics.MetricType.LongSum, options.Sources[1].EventCounters[0].Type);
+            Assert.Equal(InstrumentationType.LongCounter, options.Sources[1].EventCounters[0].Type);
             Assert.Equal("process_working_set", options.Sources[0].EventCounters[1].MetricName);
         }
     }
