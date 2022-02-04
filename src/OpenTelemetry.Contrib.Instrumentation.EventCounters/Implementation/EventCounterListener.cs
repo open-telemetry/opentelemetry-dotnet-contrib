@@ -209,22 +209,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
                             EventCountersInstrumentationEventSource.Log.EventCounterRefreshIntervalLessThanConfigured(actualInterval, this.options.RefreshIntervalSecs);
                         }
                     }
-                    else if (key.Equals("Metadata", StringComparison.OrdinalIgnoreCase))
-                    {
-                        var metadata = payload.Value.ToString();
-                        if (!string.IsNullOrEmpty(metadata))
-                        {
-                            var keyValuePairStrings = metadata.Split(',');
-                            foreach (var keyValuePairString in keyValuePairStrings)
-                            {
-                                var keyValuePair = keyValuePairString.Split(':');
-                                if (!metricTelemetry.Properties.ContainsKey(keyValuePair[0]))
-                                {
-                                    metricTelemetry.Properties.Add(keyValuePair[0], keyValuePair[1]);
-                                }
-                            }
-                        }
-                    }
                 }
 
                 if (calculateRate)
