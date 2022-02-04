@@ -35,6 +35,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient
         public bool ParseAndFormatRequest { get; set; } = false;
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not the OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient
+        /// should add the request information as db.statement attribute tag. Default value: True.
+        /// </summary>
+        public bool SetDbStatementForRequest { get; set; } = true;
+
+        /// <summary>
         /// Gets or sets an action to enrich an Activity.
         /// </summary>
         /// <remarks>
