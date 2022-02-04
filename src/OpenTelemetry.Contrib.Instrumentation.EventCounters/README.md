@@ -29,29 +29,26 @@ to the application.
 ```csharp
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
-using OpenTelemetry.Contrib.Instrumentation.EventCounters;
+using OpenTelemetry.Contrib.Instrumentation.EventCounters; 
 
-namespace DotnetMetrics
+namespace DotnetMetrics;
+
+public class Program
 {
-    public class Program
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
-        {
-            using var meterprovider = Sdk.CreateMeterProviderBuilder()
-                    .AddEventCounters(options =>
-                    {
-                      options.AddEventSource("Microsoft-AspNetCore-Server-Kestrel")
+        using var meterprovider = Sdk.CreateMeterProviderBuilder()
+                .AddEventCounters(options =>
+                {
+                    options.AddEventSource("Microsoft-AspNetCore-Server-Kestrel")
                         .WithCounters("total-connections", "connections-per-second")
                         .With(
                         "connections-per-second",
-                        "The number of connections per update interval to the web server",
-                        MetricType.LongSum);
-                    })
-                    .AddConsoleExporter()
-                    .Build();
-
-            System.Threading.Thread.Sleep(15000); // Give it some time to record metrics
-        }
+                        "The number of connections per update interval",
+                        InstrumentationType.Counter);
+                })
+                .AddConsoleExporter()
+                .Build();
     }
 }
 ```
