@@ -20,7 +20,6 @@ using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Globalization;
 using System.Linq;
-using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
 {
@@ -150,10 +149,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
                 bool calculateRate = false;
                 double actualValue = 0.0;
                 double actualInterval = 0.0;
-                int actualCount = 0;
+
                 string counterName = string.Empty;
                 string counterDisplayName = string.Empty;
-                string counterDisplayUnit = string.Empty;
+
                 foreach (KeyValuePair<string, object> payload in eventPayload)
                 {
                     var key = payload.Key;
@@ -171,18 +170,33 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
                     {
                         counterDisplayName = payload.Value.ToString();
                     }
-                    else if (key.Equals("DisplayUnits", StringComparison.OrdinalIgnoreCase))
-                    {
-                        counterDisplayUnit = payload.Value.ToString();
-                    }
                     else if (key.Equals("Mean", StringComparison.OrdinalIgnoreCase))
                     {
-                        actualValue = Convert.ToDouble(payload.Value, CultureInfo.InvariantCulture);
+                        if (long.TryParse(payload.Value.ToString(), out var longValue))
+                        {
+                            actualValue = longValue;
+                            metricTelemetry.Type = InstrumentationType.Counter;
+                        }
+                        else
+                        {
+                            actualValue = Convert.ToDouble(payload.Value, CultureInfo.InvariantCulture);
+                            metricTelemetry.Type = InstrumentationType.DoubleCounter;
+                        }
                     }
                     else if (key.Equals("Increment", StringComparison.OrdinalIgnoreCase))
                     {
+                        if (long.TryParse(payload.Value.ToString(), out var longValue))
+                        {
+                            actualValue = longValue;
+                            metricTelemetry.Type = InstrumentationType.Gauge;
+                        }
+                        else
+                        {
+                            actualValue = Convert.ToDouble(payload.Value, CultureInfo.InvariantCulture);
+                            metricTelemetry.Type = InstrumentationType.DoubleGauge;
+                        }
+
                         // Increment indicates we have to calculate rate.
-                        actualValue = Convert.ToDouble(payload.Value, CultureInfo.InvariantCulture);
                         calculateRate = true;
                     }
                     else if (key.Equals("IntervalSec", StringComparison.OrdinalIgnoreCase))
@@ -195,87 +209,29 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
                             EventCountersInstrumentationEventSource.Log.EventCounterRefreshIntervalLessThanConfigured(actualInterval, this.options.RefreshIntervalSecs);
                         }
                     }
-                    else if (key.Equals("Count", StringComparison.OrdinalIgnoreCase))
-                    {
-                        actualCount = Convert.ToInt32(payload.Value, CultureInfo.InvariantCulture);
-                    }
-                    else if (key.Equals("CounterType", StringComparison.OrdinalIgnoreCase))
-                    {
-                        var isRate = eventPayload.ContainsKey("Increment");
-
-                        if (payload.Value.Equals("Sum"))
-                        {
-                            if (isRate)
-                            {
-                                metricTelemetry.Type = MetricType.LongGauge;
-                            }
-                            else
-                            {
-                                metricTelemetry.Type = MetricType.LongSum;
-                            }
-
-                            if (string.IsNullOrEmpty(counterDisplayUnit))
-                            {
-                                counterDisplayUnit = "count";
-                            }
-                        }
-                        else if (payload.Value.Equals("Mean"))
-                        {
-                            if (isRate)
-                            {
-                                metricTelemetry.Type = MetricType.DoubleGauge;
-                            }
-                            else
-                            {
-                                metricTelemetry.Type = MetricType.DoubleSum;
-                            }
-                        }
-                    }
-                    else if (key.Equals("Metadata", StringComparison.OrdinalIgnoreCase))
-                    {
-                        var metadata = payload.Value.ToString();
-                        if (!string.IsNullOrEmpty(metadata))
-                        {
-                            var keyValuePairStrings = metadata.Split(',');
-                            foreach (var keyValuePairString in keyValuePairStrings)
-                            {
-                                var keyValuePair = keyValuePairString.Split(':');
-                                if (!metricTelemetry.Properties.ContainsKey(keyValuePair[0]))
-                                {
-                                    metricTelemetry.Properties.Add(keyValuePair[0], keyValuePair[1]);
-                                }
-                            }
-                        }
-                    }
                 }
 
                 if (calculateRate)
                 {
                     if (actualInterval > 0)
                     {
-                        metricTelemetry.Sum = actualValue / actualInterval;
+                        metricTelemetry.Value = actualValue / actualInterval;
                     }
                     else
                     {
-                        metricTelemetry.Sum = actualValue / this.options.RefreshIntervalSecs;
+                        metricTelemetry.Value = actualValue / this.options.RefreshIntervalSecs;
                         EventCountersInstrumentationEventSource.Log.EventCounterIntervalZero(metricTelemetry.Name);
                     }
                 }
                 else
                 {
-                    metricTelemetry.Sum = actualValue;
+                    metricTelemetry.Value = actualValue;
                 }
 
                 metricTelemetry.Name = counterName;
                 metricTelemetry.DisplayName = string.IsNullOrEmpty(counterDisplayName) ? counterName : counterDisplayName;
                 metricTelemetry.EventSource = eventSourceName;
 
-                if (!string.IsNullOrEmpty(counterDisplayUnit))
-                {
-                    metricTelemetry.Properties.Add("DisplayUnits", counterDisplayUnit);
-                }
-
-                metricTelemetry.Count = actualCount;
                 this.telemetryPublisher.Publish(metricTelemetry);
             }
             catch (Exception ex)

@@ -14,9 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-using System.Collections.Generic;
 using System.Diagnostics;
-using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
 {
@@ -34,19 +32,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
         public string EventSource { get; set; }
 
         /// <summary>
-        /// Gets a dictionary of application-defined property names and values providing additional information about this metric.
+        /// Gets or sets the values of the metric.
         /// </summary>
-        public Dictionary<string, string> Properties { get; } = new Dictionary<string, string>();
-
-        /// <summary>
-        /// Gets or sets sum of the values of the metric samples.
-        /// </summary>
-        public double Sum { get; set; }
-
-        /// <summary>
-        /// Gets or sets the number of values in the sample set.
-        /// </summary>
-        public int? Count { get; set; }
+        public double Value { get; set; }
 
         /// <summary>
         /// Gets or sets the display name.
@@ -54,8 +42,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
         public string DisplayName { get; set; }
 
         /// <summary>
-        /// Gets or sets the metric type.
+        /// Gets or sets the instrumentation type.
         /// </summary>
-        public MetricType Type { get; set; } = MetricType.LongSum;
+        public InstrumentationType Type { get; set; } = InstrumentationType.Counter;
     }
 }

@@ -19,7 +19,6 @@ using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Reflection;
-using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
 {
@@ -57,19 +56,16 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
         {
             switch (instrument.Type)
             {
-                case MetricType.LongSum:
-                case MetricType.LongGauge:
-                    this.longValueStore[metricKey] = (long)metricTelemetry.Sum;
+                case InstrumentationType.Counter:
+                case InstrumentationType.Gauge:
+                    this.longValueStore[metricKey] = (long)metricTelemetry.Value;
                     break;
-                case MetricType.DoubleGauge:
-                case MetricType.DoubleSum:
-                    this.doubleValueStore[metricKey] = metricTelemetry.Sum;
-                    break;
-                case MetricType.Histogram:
-                    ((Histogram<double>)instrument.Instrument).Record(metricTelemetry.Sum);
+                case InstrumentationType.DoubleGauge:
+                case InstrumentationType.DoubleCounter:
+                    this.doubleValueStore[metricKey] = metricTelemetry.Value;
                     break;
                 default:
-                    throw new InvalidOperationException($"Metric type '{instrument.Type}' is not supported.");
+                    throw new InvalidOperationException($"Instrumentation type '{instrument.Type}' is not supported.");
             }
         }
 
@@ -79,31 +75,18 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
             var eventCounter = eventSource.EventCounters.FirstOrDefault(counter => counter.Name.Equals(metricTelemetry.Name, StringComparison.OrdinalIgnoreCase));
 
             var description = !string.IsNullOrEmpty(eventCounter?.Description) ? eventCounter.Description : metricTelemetry.DisplayName;
-            var metricType = eventCounter?.Type ?? metricTelemetry.Type;
+            var instrumentationType = eventCounter?.Type ?? metricTelemetry.Type;
             var metricName = !string.IsNullOrEmpty(eventCounter?.MetricName) ? eventCounter.MetricName : metricTelemetry.Name;
-            var metricInstrument = new MetricInstrument { Type = metricType };
+            var metricInstrument = new MetricInstrument { Type = instrumentationType };
 
-            switch (metricType)
+            metricInstrument.Instrument = instrumentationType switch
             {
-                case MetricType.DoubleGauge:
-                    metricInstrument.Instrument = this.meter.CreateObservableGauge(metricName, () => this.ObserveDouble(metricKey), description: description);
-                    break;
-                case MetricType.DoubleSum:
-                    metricInstrument.Instrument = this.meter.CreateObservableCounter(metricName, () => this.ObserveDouble(metricKey), description: description);
-                    break;
-                case MetricType.LongGauge:
-                    metricInstrument.Instrument = this.meter.CreateObservableGauge<long>(metricName, () => this.ObserveLong(metricKey), description: description);
-                    break;
-                case MetricType.LongSum:
-                    metricInstrument.Instrument = this.meter.CreateObservableCounter<long>(metricName, () => this.ObserveLong(metricKey), description: description);
-                    break;
-                case MetricType.Histogram:
-                    metricInstrument.Instrument = this.meter.CreateHistogram<double>(metricName, description: description);
-                    break;
-                default:
-                    throw new InvalidOperationException($"Metric type '{metricType}' is not supported.");
-            }
-
+                InstrumentationType.DoubleGauge => this.meter.CreateObservableGauge(metricName, () => this.ObserveDouble(metricKey), description: description),
+                InstrumentationType.DoubleCounter => this.meter.CreateObservableCounter(metricName, () => this.ObserveDouble(metricKey), description: description),
+                InstrumentationType.Gauge => this.meter.CreateObservableGauge<long>(metricName, () => this.ObserveLong(metricKey), description: description),
+                InstrumentationType.Counter => this.meter.CreateObservableCounter<long>(metricName, () => this.ObserveLong(metricKey), description: description),
+                _ => throw new InvalidOperationException($"Instrumentation type '{instrumentationType}' is not supported."),
+            };
             return metricInstrument;
         }
 
@@ -150,7 +133,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
         {
             public Instrument Instrument { get; set; }
 
-            public MetricType Type { get; set; }
+            public InstrumentationType Type { get; set; }
         }
     }
 }

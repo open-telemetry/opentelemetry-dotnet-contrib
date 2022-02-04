@@ -71,8 +71,26 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Tests
 
                 Assert.Equal("firstCounter", options.EventCounters[0].Name);
                 Assert.Null(options.EventCounters[0].Description);
-                Assert.Equal(MetricType.LongSum, options.EventCounters[0].Type);
+                Assert.Equal(InstrumentationType.Counter, options.EventCounters[0].Type);
                 Assert.Null(options.EventCounters[0].MetricName);
+            }
+        }
+
+        public class WithMethod : OptionsExtensionsTests
+        {
+            [Fact]
+            public void Adds_Counter()
+            {
+                var options = new EventSourceOption();
+
+                options.With("firstCounter", "counterDescription", InstrumentationType.DoubleGauge, "counterMetric");
+
+                Assert.Single(options.EventCounters);
+
+                Assert.Equal("firstCounter", options.EventCounters[0].Name);
+                Assert.Equal("counterDescription", options.EventCounters[0].Description);
+                Assert.Equal(InstrumentationType.DoubleGauge, options.EventCounters[0].Type);
+                Assert.Equal("counterMetric", options.EventCounters[0].MetricName);
             }
         }
     }

@@ -29,98 +29,28 @@ to the application.
 ```csharp
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
-using OpenTelemetry.Contrib.Instrumentation.EventCounters;
+using OpenTelemetry.Contrib.Instrumentation.EventCounters; 
 
-namespace DotnetMetrics
+namespace DotnetMetrics;
+
+public class Program
 {
-    public class Program
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
-        {
-            using var meterprovider = Sdk.CreateMeterProviderBuilder()
-                    .AddEventCounters(options =>
-                    {
-                      options.AddEventSource("Microsoft-AspNetCore-Server-Kestrel")
+        using var meterprovider = Sdk.CreateMeterProviderBuilder()
+                .AddEventCounters(options =>
+                {
+                    options.AddEventSource("Microsoft-AspNetCore-Server-Kestrel")
                         .WithCounters("total-connections", "connections-per-second")
                         .With(
                         "connections-per-second",
-                        "The number of connections per update interval to the web server",
-                        MetricType.LongSum);
-                    })
-                    .AddConsoleExporter()
-                    .Build();
-
-            System.Threading.Thread.Sleep(15000); // Give it some time to record metrics
-        }
+                        "The number of connections per update interval",
+                        InstrumentationType.Counter);
+                })
+                .AddConsoleExporter()
+                .Build();
     }
 }
-```
-
-Configuration can be done completely using the IConfiguration.
-
-```json
-{
-    "Telemetry": {
-        "RefreshIntervalSecs": 55,
-        "Sources": [
-            {
-                "EventSourceName": "System.Runtime",
-                "EventCounters" : [
-                    {
-                        "Name": "cpu-usage",
-                        "Description": "Current CPU usage",
-                        "Type": "DoubleGauge"
-                    },
-                    {
-                        "Name": "working-set",
-                        "Description": "Process working set",
-                        "Type": "LongSum",
-                        "MetricName": "process_working_set"
-                    }
-                ]
-            },
-            {
-                "EventSourceName": "MyCustomSource",
-                "EventCounters" : [
-                    {
-                        "Name": "orders_submitted",
-                        "Description": "Number of submitted orders",
-                        "Type": "LongSum"
-                    }
-                ]
-            }
-        ]
-    }
-}
-```
-
-```csharp
-var builder = WebApplication.CreateBuilder(args);
-
-
-builder.Services.AddControllers();
-
-builder.Services.AddOpenTelemetryMetrics(
-                (meterBuilder) => meterBuilder
-                    .AddPrometheusExporter()
-                    .AddEventCounters(options =>
-                    {
-                        builder.Configuration.GetSection("Telemetry").Bind(options);                     
-                    }));
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.UseOpenTelemetryPrometheusScrapingEndpoint();
-
-app.Run();
 ```
 
 ## References
