@@ -89,12 +89,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
         [InlineData(true, false, true)]
         [InlineData(true, false, true, true)]
         [InlineData(true, false, true, true, true)]
+        [InlineData(true, false, true, true, true, true)]
         public async Task IncomingRequestInstrumentationTest(
             bool instrument,
             bool filter = false,
             bool includeVersion = false,
             bool enrich = false,
-            bool enrichmentExcecption = false)
+            bool enrichmentExcecption = false,
+            bool emptyOrNullAction = false)
         {
             List<Activity> stoppedActivities = new List<Activity>();
 
@@ -156,11 +158,22 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                 new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
             try
             {
-                var response = await client.ExecuteAsync(
-                    new ServiceRequest
-                    {
-                        Payload = "Hello Open Telemetry!",
-                    }).ConfigureAwait(false);
+                if (emptyOrNullAction)
+                {
+                    await client.ExecuteWithEmptyActionNameAsync(
+                        new ServiceRequest
+                        {
+                            Payload = "Hello Open Telemetry!",
+                        }).ConfigureAwait(false);
+                }
+                else
+                {
+                    await client.ExecuteAsync(
+                        new ServiceRequest
+                        {
+                            Payload = "Hello Open Telemetry!",
+                        }).ConfigureAwait(false);
+                }
             }
             finally
             {
@@ -185,15 +198,28 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                 Assert.Single(stoppedActivities);
 
                 Activity activity = stoppedActivities[0];
+
+                if (emptyOrNullAction)
+                {
+                    Assert.Equal(WcfInstrumentationActivitySource.IncomingRequestActivityName, activity.DisplayName);
+                    Assert.Equal("ExecuteWithEmptyActionName", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcMethodTag).Value);
+                    Assert.Equal("http://opentelemetry.io/Service/ExecuteWithEmptyActionNameResponse", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapReplyActionTag).Value);
+                }
+                else
+                {
+                    Assert.Equal("http://opentelemetry.io/Service/Execute", activity.DisplayName);
+                    Assert.Equal("Execute", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcMethodTag).Value);
+                    Assert.Equal("http://opentelemetry.io/Service/ExecuteResponse", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapReplyActionTag).Value);
+                }
+
                 Assert.Equal(WcfInstrumentationActivitySource.IncomingRequestActivityName, activity.OperationName);
                 Assert.Equal(WcfInstrumentationConstants.WcfSystemValue, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcSystemTag).Value);
                 Assert.Equal("http://opentelemetry.io/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcServiceTag).Value);
-                Assert.Equal("Execute", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcMethodTag).Value);
                 Assert.Equal(this.serviceBaseUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.NetHostNameTag).Value);
                 Assert.Equal(this.serviceBaseUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.NetHostPortTag).Value);
                 Assert.Equal("net.tcp", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelSchemeTag).Value);
                 Assert.Equal("/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelPathTag).Value);
-                Assert.Equal("http://opentelemetry.io/Service/ExecuteResponse", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapReplyActionTag).Value);
+
                 if (includeVersion)
                 {
                     Assert.Equal("Soap12 (http://www.w3.org/2003/05/soap-envelope) Addressing10 (http://www.w3.org/2005/08/addressing)", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapMessageVersionTag).Value);

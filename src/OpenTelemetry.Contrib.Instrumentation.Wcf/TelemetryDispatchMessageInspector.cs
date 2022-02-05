@@ -66,8 +66,16 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
 
             if (activity != null)
             {
-                string action = request.Headers.Action;
-                activity.DisplayName = action;
+                string action;
+                if (!string.IsNullOrEmpty(request.Headers.Action))
+                {
+                    action = request.Headers.Action;
+                    activity.DisplayName = action;
+                }
+                else
+                {
+                    action = string.Empty;
+                }
 
                 if (activity.IsAllDataRequested)
                 {
