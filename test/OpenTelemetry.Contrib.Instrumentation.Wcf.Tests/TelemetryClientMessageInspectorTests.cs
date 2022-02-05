@@ -89,12 +89,23 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
 
                         var ctx = await ctxTask.ConfigureAwait(false);
 
+                        using StreamReader reader = new StreamReader(ctx.Request.InputStream);
+
+                        string request = reader.ReadToEnd();
+
                         ctx.Response.StatusCode = 200;
                         ctx.Response.ContentType = "text/xml; charset=utf-8";
 
                         using (StreamWriter writer = new StreamWriter(ctx.Response.OutputStream))
                         {
-                            writer.Write(@"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Body><ExecuteResponse xmlns=""http://opentelemetry.io/""><ExecuteResult xmlns:a=""http://schemas.datacontract.org/2004/07/OpenTelemetry.Contrib.Instrumentation.Wcf.Tests"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><a:Payload>RSP: Hello Open Telemetry!</a:Payload></ExecuteResult></ExecuteResponse></s:Body></s:Envelope>");
+                            if (request.Contains("ExecuteWithEmptyActionName"))
+                            {
+                                writer.Write(@"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Body><ExecuteWithEmptyActionNameResponse xmlns=""http://opentelemetry.io/""><ExecuteResult xmlns:a=""http://schemas.datacontract.org/2004/07/OpenTelemetry.Contrib.Instrumentation.Wcf.Tests"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><a:Payload>RSP: Hello Open Telemetry!</a:Payload></ExecuteResult></ExecuteWithEmptyActionNameResponse></s:Body></s:Envelope>");
+                            }
+                            else
+                            {
+                                writer.Write(@"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Body><ExecuteResponse xmlns=""http://opentelemetry.io/""><ExecuteResult xmlns:a=""http://schemas.datacontract.org/2004/07/OpenTelemetry.Contrib.Instrumentation.Wcf.Tests"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><a:Payload>RSP: Hello Open Telemetry!</a:Payload></ExecuteResult></ExecuteResponse></s:Body></s:Envelope>");
+                            }
                         }
 
                         ctx.Response.Close();
@@ -136,7 +147,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
             bool includeVersion = false,
             bool enrich = false,
             bool enrichmentException = false,
-            bool emptyornullAction = false)
+            bool emptyOrNullAction = false)
         {
 #if NETFRAMEWORK
             const string OutgoingHttpOperationName = "OpenTelemetry.HttpWebRequest.HttpRequestOut";
@@ -188,27 +199,25 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
             ServiceClient client = new ServiceClient(
                 new BasicHttpBinding(BasicHttpSecurityMode.None),
                 new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
-                        try
+            try
             {
                 client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
 
-                ServiceResponse response = null;
-                if (emptyornullAction)
+                if (emptyOrNullAction)
                 {
-                    response = await client.ExecuteWithEmptyActionNameAsync(
-                                new ServiceRequest
-                                {
-                                    Payload = "Hello Open Telemetry!",
-                                }).ConfigureAwait(false);
-
+                    await client.ExecuteWithEmptyActionNameAsync(
+                        new ServiceRequest
+                        {
+                            Payload = "Hello Open Telemetry!",
+                        }).ConfigureAwait(false);
                 }
                 else
                 {
-                    response = await client.ExecuteAsync(
-                                new ServiceRequest
-                                {
-                                    Payload = "Hello Open Telemetry!",
-                                }).ConfigureAwait(false);
+                    await client.ExecuteAsync(
+                        new ServiceRequest
+                        {
+                            Payload = "Hello Open Telemetry!",
+                        }).ConfigureAwait(false);
                 }
             }
             finally
@@ -253,10 +262,21 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                         Assert.Single(stoppedActivities);
 
                         Activity activity = stoppedActivities[0];
+
+                        if (emptyOrNullAction)
+                        {
+                            Assert.Equal(WcfInstrumentationActivitySource.OutgoingRequestActivityName, activity.DisplayName);
+                            Assert.Equal("ExecuteWithEmptyActionName", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcMethodTag).Value);
+                        }
+                        else
+                        {
+                            Assert.Equal("http://opentelemetry.io/Service/Execute", activity.DisplayName);
+                            Assert.Equal("Execute", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcMethodTag).Value);
+                        }
+
                         Assert.Equal(WcfInstrumentationActivitySource.OutgoingRequestActivityName, activity.OperationName);
                         Assert.Equal(WcfInstrumentationConstants.WcfSystemValue, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcSystemTag).Value);
                         Assert.Equal("http://opentelemetry.io/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcServiceTag).Value);
-                        Assert.Equal("Execute", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcMethodTag).Value);
                         Assert.Equal(this.serviceBaseUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.NetPeerNameTag).Value);
                         Assert.Equal(this.serviceBaseUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.NetPeerPortTag).Value);
                         Assert.Equal("http", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelSchemeTag).Value);
