@@ -25,13 +25,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
         /// Creates a counter instrumentation of long values which is an instrument that reports monotonically
         /// increasing values.
         /// </summary>
-        Counter = 0,
+        ObservableCounter = 0,
 
         /// <summary>
         /// Creates a counter instrumentation of double values which is an instrument that reports monotonically
         /// increasing values.
         /// </summary>
-        DoubleCounter = 1,
+        ObservableCounterDouble = 1,
 
         /// <summary>
         /// Creates a gauge instrumentation of long values which is an instrument that reports
@@ -39,7 +39,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
         /// value is the room temperature - it makes no sense to report the temperature value
         /// from multiple rooms and sum them up.
         /// </summary>
-        Gauge = 2,
+        ObservableGauge = 2,
 
         /// <summary>
         /// Creates a gauge instrumentation of double values which is an instrument that reports
@@ -47,6 +47,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
         /// value is the room temperature - it makes no sense to report the temperature value
         /// from multiple rooms and sum them up.
         /// </summary>
-        DoubleGauge = 3,
+        ObservableGaugeDouble = 3,
     }
 }

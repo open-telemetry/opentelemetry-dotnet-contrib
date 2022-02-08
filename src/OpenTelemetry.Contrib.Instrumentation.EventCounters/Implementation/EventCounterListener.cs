@@ -175,12 +175,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
                         if (long.TryParse(payload.Value.ToString(), out var longValue))
                         {
                             actualValue = longValue;
-                            metricTelemetry.Type = InstrumentationType.Counter;
+                            metricTelemetry.Type = InstrumentationType.ObservableCounter;
                         }
                         else
                         {
                             actualValue = Convert.ToDouble(payload.Value, CultureInfo.InvariantCulture);
-                            metricTelemetry.Type = InstrumentationType.DoubleCounter;
+                            metricTelemetry.Type = InstrumentationType.ObservableCounterDouble;
                         }
                     }
                     else if (key.Equals("Increment", StringComparison.OrdinalIgnoreCase))
@@ -188,12 +188,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
                         if (long.TryParse(payload.Value.ToString(), out var longValue))
                         {
                             actualValue = longValue;
-                            metricTelemetry.Type = InstrumentationType.Gauge;
+                            metricTelemetry.Type = InstrumentationType.ObservableGauge;
                         }
                         else
                         {
                             actualValue = Convert.ToDouble(payload.Value, CultureInfo.InvariantCulture);
-                            metricTelemetry.Type = InstrumentationType.DoubleGauge;
+                            metricTelemetry.Type = InstrumentationType.ObservableGaugeDouble;
                         }
 
                         // Increment indicates we have to calculate rate.

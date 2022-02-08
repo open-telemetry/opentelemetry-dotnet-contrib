@@ -42,9 +42,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Tests
                  .AddEventCounters(options =>
                  {
                      options.AddEventSource("System.Runtime")
-                        .With("cpu-usage", "CPU usage", InstrumentationType.DoubleGauge)
-                        .With("working-set", "Private working set in bytes", InstrumentationType.Gauge)
-                        .With("gen-0-gc-count", "Gen 0 GC count", InstrumentationType.Counter);
+                        .With("cpu-usage", "CPU usage", InstrumentationType.ObservableGaugeDouble)
+                        .With("working-set", "Private working set in bytes", InstrumentationType.ObservableGauge)
+                        .With("gen-0-gc-count", "Gen 0 GC count", InstrumentationType.ObservableCounter);
                  })
                 .AddReader(metricReader)
                 .Build();
