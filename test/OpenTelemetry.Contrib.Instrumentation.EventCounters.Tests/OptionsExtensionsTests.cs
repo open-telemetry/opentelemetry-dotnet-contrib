@@ -71,7 +71,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Tests
 
                 Assert.Equal("firstCounter", options.EventCounters[0].Name);
                 Assert.Null(options.EventCounters[0].Description);
-                Assert.Equal(InstrumentationType.Counter, options.EventCounters[0].Type);
+                Assert.Equal(InstrumentationType.ObservableCounter, options.EventCounters[0].Type);
                 Assert.Null(options.EventCounters[0].MetricName);
             }
         }
@@ -83,13 +83,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Tests
             {
                 var options = new EventSourceOption();
 
-                options.With("firstCounter", "counterDescription", InstrumentationType.DoubleGauge, "counterMetric");
+                options.With("firstCounter", "counterDescription", InstrumentationType.ObservableGaugeDouble, "counterMetric");
 
                 Assert.Single(options.EventCounters);
 
                 Assert.Equal("firstCounter", options.EventCounters[0].Name);
                 Assert.Equal("counterDescription", options.EventCounters[0].Description);
-                Assert.Equal(InstrumentationType.DoubleGauge, options.EventCounters[0].Type);
+                Assert.Equal(InstrumentationType.ObservableGaugeDouble, options.EventCounters[0].Type);
                 Assert.Equal("counterMetric", options.EventCounters[0].MetricName);
             }
         }

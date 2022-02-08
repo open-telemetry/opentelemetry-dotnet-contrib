@@ -56,12 +56,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
         {
             switch (instrument.Type)
             {
-                case InstrumentationType.Counter:
-                case InstrumentationType.Gauge:
+                case InstrumentationType.ObservableCounter:
+                case InstrumentationType.ObservableGauge:
                     this.longValueStore[metricKey] = (long)metricTelemetry.Value;
                     break;
-                case InstrumentationType.DoubleGauge:
-                case InstrumentationType.DoubleCounter:
+                case InstrumentationType.ObservableGaugeDouble:
+                case InstrumentationType.ObservableCounterDouble:
                     this.doubleValueStore[metricKey] = metricTelemetry.Value;
                     break;
                 default:
@@ -81,10 +81,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Implementation
 
             metricInstrument.Instrument = instrumentationType switch
             {
-                InstrumentationType.DoubleGauge => this.meter.CreateObservableGauge(metricName, () => this.ObserveDouble(metricKey), description: description),
-                InstrumentationType.DoubleCounter => this.meter.CreateObservableCounter(metricName, () => this.ObserveDouble(metricKey), description: description),
-                InstrumentationType.Gauge => this.meter.CreateObservableGauge<long>(metricName, () => this.ObserveLong(metricKey), description: description),
-                InstrumentationType.Counter => this.meter.CreateObservableCounter<long>(metricName, () => this.ObserveLong(metricKey), description: description),
+                InstrumentationType.ObservableGaugeDouble => this.meter.CreateObservableGauge(metricName, () => this.ObserveDouble(metricKey), description: description),
+                InstrumentationType.ObservableCounterDouble => this.meter.CreateObservableCounter(metricName, () => this.ObserveDouble(metricKey), description: description),
+                InstrumentationType.ObservableGauge => this.meter.CreateObservableGauge<long>(metricName, () => this.ObserveLong(metricKey), description: description),
+                InstrumentationType.ObservableCounter => this.meter.CreateObservableCounter<long>(metricName, () => this.ObserveLong(metricKey), description: description),
                 _ => throw new InvalidOperationException($"Instrumentation type '{instrumentationType}' is not supported."),
             };
             return metricInstrument;

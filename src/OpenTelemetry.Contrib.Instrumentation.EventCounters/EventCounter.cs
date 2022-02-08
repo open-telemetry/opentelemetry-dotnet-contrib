@@ -34,7 +34,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters
         /// <summary>
         /// Gets or sets the instrumentation type.
         /// </summary>
-        public InstrumentationType? Type { get; set; } = InstrumentationType.Counter;
+        public InstrumentationType? Type { get; set; } = InstrumentationType.ObservableCounter;
 
         /// <summary>
         /// Gets or sets the name used for the published metric.
