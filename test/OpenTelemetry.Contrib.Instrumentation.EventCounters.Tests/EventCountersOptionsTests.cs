@@ -36,12 +36,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Tests
                             {
                                 ""Name"": ""cpu-usage"",
                                 ""Description"": ""Current CPU usage"",
-                                ""Type"": ""DoubleGauge""
+                                ""Type"": ""ObservableGaugeDouble""
                             },
                              {
                                 ""Name"": ""working-set"",
                                 ""Description"": ""Process working set"",
-                                ""Type"": ""Counter"",
+                                ""Type"": ""ObservableCounter"",
                                 ""MetricName"": ""process_working_set""
                             }
                         ]
@@ -52,7 +52,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.EventCounters.Tests
                             {
                                 ""Name"": ""orders_submitted"",
                                 ""Description"": ""Number of submitted orders"",
-                                ""Type"": ""Counter""
+                                ""Type"": ""ObservableCounter""
                             }
                         ]
                     }
