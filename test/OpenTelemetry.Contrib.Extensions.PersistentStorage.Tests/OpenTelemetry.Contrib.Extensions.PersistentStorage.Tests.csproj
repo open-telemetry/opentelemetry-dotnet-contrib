@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\OpenTelemetry.Contrib.PersistentStorage\OpenTelemetry.Contrib.PersistentStorage.csproj" />
+    <ProjectReference Include="..\..\src\OpenTelemetry.Contrib.Extensions.PersistentStorage\OpenTelemetry.Contrib.Extensions.PersistentStorage.csproj" />
   </ItemGroup>
 
 </Project>

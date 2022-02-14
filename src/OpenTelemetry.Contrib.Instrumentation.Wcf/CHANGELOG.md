@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0-rc5
+
+* Fixed an `ArgumentNullException` setting `Activity`.`DisplayName` when
+  processing service requests with empty actions
+  ([#170](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/170))
+
 ## 1.0.0-rc4
 
 * Removed `Propagator` property on `WcfInstrumentationOptions`

@@ -21,7 +21,7 @@ using System.Text;
 using System.Threading;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.PersistentStorage.Tests
+namespace OpenTelemetry.Contrib.Extensions.PersistentStorage.Tests
 {
     public class FileStorageTests
     {

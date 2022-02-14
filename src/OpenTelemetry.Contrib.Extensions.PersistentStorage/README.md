@@ -1,49 +1,50 @@
-# Persistent Storage for OpenTelemetry Exporters
+# Persistent Storage Interface and Implementation
 
-This package enables OpenTelemetry exporters to store telemetry offline in case
-of transient failures. The data can be read at later time for retries.
+This package provides both the interface and implementation of persistent
+storage. It is an experimental component which can be used by OpenTelemetry
+Exporters to provide reliable data delivery. Eventually this component should
+get splitted into the abstract interface and concrete implementations.
 
 ## Installation
 
-TODO
+```shell
+dotnet add package OpenTelemetry.Contrib.Extensions.PersistentStorage
+```
 
 ## Basic Usage
 
 ### Setup Storage
 
 ```csharp
-var testDir = new DirectoryInfo(Path.Combine(
-            Environment.GetFolderPath(
-                Environment.SpecialFolder.LocalApplicationData)
-            , "test"));
-using var storage = new LocalFileStorage(testDir.FullName);
+using var storage = new FileStorage("test");
 ```
 
 Following is the complete list of configurable options that can be used to set
 up storage:
 
-`path`: Sets file storage folder location where blobs are stored.
+* `path`: Sets file storage folder location where blobs are stored.
 
-`maxSizeInBytes` : Maximum allowed storage folder size. Default is 50 MB.
+* `maxSizeInBytes`: Maximum allowed storage folder size. Default is 50 MB.
 
-`maintenancePeriodInMilliseconds`: Maintenance event runs at specified interval.
-Default is 2 minutes. Maintenance event performs following 3 tasks:
+* `maintenancePeriodInMilliseconds`: Maintenance event runs at specified interval.
+Default is 2 minutes. Maintenance event performs the following tasks:
 
-1. Removes `*.blob` files for which the retention period has expired.
-2. Removes `*.tmp` files for which the write timeout period has expired.
-3. Updates `*.lock` files to `*.blob` for which the lease period has expired.
+  * Removes `*.blob` files for which the retention period has expired.
+  * Removes `*.tmp` files for which the write timeout period has expired.
+  * Updates `*.lock` files to `*.blob` for which the lease period has expired.
+  * Updates `directorySize`.
 
-`retentionPeriodInMilliseconds` : Retention period in milliseconds for the blob.
+* `retentionPeriodInMilliseconds`: Retention period in milliseconds for the blob.
 Default is 2 days.
 
-`writeTimeoutInMilliseconds`: Controls the timeout when writing a buffer to
+* `writeTimeoutInMilliseconds`: Controls the timeout when writing a buffer to
 blob. Default is 1 minute.
 
 ### CreateBlob
 
 `CreateBlob(byte[] buffer, int leasePeriodMilliseconds = 0)` method can be used
 to store data on disk in case of failures. The file stored will have `.blob`
-extension.
+extension. If acquiring lease, the file will have `.lock` extension.
 
 ```csharp
 IPersistentBlob blob = storage.CreateBlob(data);
@@ -65,7 +66,7 @@ IPersistentBlob blob1 = storage.GetBlob();
 // List all blobs.
 foreach (var blobItem in storage.GetBlobs())
 {
-    Console.WriteLine(((LocalFileBlob)blobItem).FullPath);
+    Console.WriteLine(((FileBlob)blobItem).FullPath);
 }
 ```
 
@@ -97,14 +98,10 @@ byte[] data =  blob2.Read();
 blob2.Delete();
 ```
 
-## Sample
+## Example
 
-```c#
-var testDir = new DirectoryInfo(Path.Combine(
-            Environment.GetFolderPath(
-                Environment.SpecialFolder.LocalApplicationData)
-            , "test"));
-using var storage = new LocalFileStorage(testDir.FullName);
+```csharp
+using var storage = new FileStorage("test");
 
 var data = Encoding.UTF8.GetBytes("Hello, World!");
 
@@ -114,7 +111,7 @@ IPersistentBlob blob1 = storage.CreateBlob(data);
 // List all blobs.
 foreach (var blobItem in storage.GetBlobs())
 {
-    Console.WriteLine(((LocalFileBlob)blobItem).FullPath);
+    Console.WriteLine(((FileBlob)blobItem).FullPath);
 }
 
 // Get blob.
