@@ -58,7 +58,7 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
 
 ## Advanced configuration
 
-By default all available runtime metrics will be added. It's also possible to 
+By default all available runtime metrics will be added. It's also possible to
 specify only the required metrics:
 
 ```csharp
