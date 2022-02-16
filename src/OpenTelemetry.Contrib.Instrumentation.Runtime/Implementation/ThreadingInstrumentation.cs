@@ -27,7 +27,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
         private readonly ObservableCounter<long> threadPoolQueueCounter;
         private readonly ObservableGauge<long> completedItemsCounter;
         private readonly ObservableCounter<long> timerCounter;
-        private readonly ObservableCounter<int> test;
 
         public ThreadingInstrumentation(Meter meter)
         {
