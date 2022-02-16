@@ -40,26 +40,15 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
         /// <returns>List of key-value pairs of resource attributes.</returns>
         public IEnumerable<KeyValuePair<string, object>> Detect()
         {
-            List<KeyValuePair<string, object>> resourceAttributes = null;
-
-            try
+            var credentials = this.GetEKSCredentials(AWSEKSCredentialPath);
+            if (credentials == null || !this.IsEKSProcess(credentials))
             {
-                var clusterName = this.GetEKSClusterName(AWSEKSCredentialPath);
-                var containerId = this.GetEKSContainerId(AWSEKSMetadataFilePath);
-
-                if (clusterName == null && containerId == null)
-                {
-                    return resourceAttributes;
-                }
-
-                resourceAttributes = this.ExtractResourceAttributes(clusterName, containerId);
-            }
-            catch (Exception ex)
-            {
-                AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSEKSResourceDetector), ex);
+                return null;
             }
 
-            return resourceAttributes;
+            return this.ExtractResourceAttributes(
+                this.GetEKSClusterName(credentials),
+                this.GetEKSContainerId(AWSEKSMetadataFilePath));
         }
 
         internal List<KeyValuePair<string, object>> ExtractResourceAttributes(string clusterName, string containerId)
@@ -68,46 +57,67 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
             {
                 new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
                 new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_eks"),
-                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeK8SClusterName, clusterName),
-                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeContainerID, containerId),
             };
+
+            if (!string.IsNullOrEmpty(clusterName))
+            {
+                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeK8SClusterName, clusterName));
+            }
+
+            if (!string.IsNullOrEmpty(containerId))
+            {
+                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeContainerID, containerId));
+            }
 
             return resourceAttributes;
         }
 
         internal string GetEKSCredentials(string path)
         {
-            StringBuilder stringBuilder = new StringBuilder();
-
-            using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
+            try
             {
-                while (!streamReader.EndOfStream)
+                StringBuilder stringBuilder = new StringBuilder();
+
+                using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
                 {
-                    stringBuilder.Append(streamReader.ReadLine().Trim());
+                    while (!streamReader.EndOfStream)
+                    {
+                        stringBuilder.Append(streamReader.ReadLine().Trim());
+                    }
                 }
+
+                return "Bearer " + stringBuilder.ToString();
+            }
+            catch (Exception ex)
+            {
+                AWSXRayEventSource.Log.ResourceAttributesExtractException($"{nameof(AWSEKSResourceDetector)} : Failed to load client token", ex);
             }
 
-            return "Bearer " + stringBuilder.ToString();
+            return null;
         }
 
         internal string GetEKSContainerId(string path)
         {
-            string containerId = null;
-
-            using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
+            try
             {
-                while (!streamReader.EndOfStream)
+                using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
                 {
-                    var trimmedLine = streamReader.ReadLine().Trim();
-                    if (trimmedLine.Length > 64)
+                    while (!streamReader.EndOfStream)
                     {
-                        containerId = trimmedLine.Substring(trimmedLine.Length - 64);
-                        return containerId;
+                        var trimmedLine = streamReader.ReadLine().Trim();
+                        if (trimmedLine.Length > 64)
+                        {
+                            return trimmedLine.Substring(trimmedLine.Length - 64);
+                        }
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                AWSXRayEventSource.Log.ResourceAttributesExtractException($"{nameof(AWSEKSResourceDetector)} : Failed to get Container Id", ex);
+            }
 
-            return containerId;
+            return null;
         }
 
         internal AWSEKSClusterInformationModel DeserializeResponse(string response)
@@ -115,26 +125,35 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
             return ResourceDetectorUtils.DeserializeFromString<AWSEKSClusterInformationModel>(response);
         }
 
-        private string GetEKSClusterName(string path)
+        private string GetEKSClusterName(string credentials)
         {
-            var credentials = this.GetEKSCredentials(path);
-
-            if (!this.IsEKSProcess(credentials))
+            try
             {
-                return null;
+                var clusterInfo = this.GetEKSClusterInfo(credentials);
+                return this.DeserializeResponse(clusterInfo)?.Data?.ClusterName;
+            }
+            catch (Exception ex)
+            {
+                AWSXRayEventSource.Log.ResourceAttributesExtractException($"{nameof(AWSEKSResourceDetector)} : Failed to get cluster information", ex);
             }
 
-            var clusterInfo = this.GetEKSClusterInfo(credentials);
-            var clusterInfoObject = this.DeserializeResponse(clusterInfo);
-
-            return clusterInfoObject.Data?.ClusterName;
+            return null;
         }
 
         private bool IsEKSProcess(string credentials)
         {
-            var httpClientHandler = this.CreateHttpClientHandler();
-            var awsAuth = ResourceDetectorUtils.SendOutRequest(AWSAuthUrl, "GET", new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler).Result;
-            return string.IsNullOrEmpty(awsAuth);
+            string awsAuth = null;
+            try
+            {
+                var httpClientHandler = this.CreateHttpClientHandler();
+                awsAuth = ResourceDetectorUtils.SendOutRequest(AWSAuthUrl, "GET", new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler).Result;
+            }
+            catch (Exception ex)
+            {
+                AWSXRayEventSource.Log.ResourceAttributesExtractException($"{nameof(AWSEKSResourceDetector)} : Failed to get EKS information", ex);
+            }
+
+            return !string.IsNullOrEmpty(awsAuth);
         }
 
         private string GetEKSClusterInfo(string credentials)
