@@ -62,11 +62,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
             this.gen1GCCounter = meter.CreateObservableGauge("gen-1-gc-count", () => GC.CollectionCount(1), description: "Gen 1 GC Count");
             this.gen2GCCounter = meter.CreateObservableGauge("gen-2-gc-count", () => GC.CollectionCount(2), description: "Gen 2 GC Count");
             this.allocRateCounter = meter.CreateObservableGauge("alloc-rate", () => GC.GetTotalAllocatedBytes(), "B", "Allocation Rate");
-            this.fragmentationCounter = meter.CreateObservableCounter("gc-fragmentation", () =>
-            {
-                var gcInfo = GC.GetGCMemoryInfo();
-                return gcInfo.HeapSizeBytes != 0 ? gcInfo.FragmentedBytes * 100d / gcInfo.HeapSizeBytes : 0;
-            }, "%", description: "GC Fragmentation");
+            this.fragmentationCounter = meter.CreateObservableCounter("gc-fragmentation", GetFragmentation, description: "GC Fragmentation");
 
 #if NET6_0_OR_GREATER
             this.committedCounter = meter.CreateObservableCounter("gc-committed", () => (double)(GC.GetGCMemoryInfo().TotalCommittedBytes / 1_000_000), "MB", description: "GC Committed Bytes");
@@ -75,12 +71,18 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
             this.committedCounter = meter.CreateObservableCounter("gc-committed", () => this.eventCounterStore.ReadDouble(CommittedCounterName), "MB", description: "GC Committed Bytes");
 #endif
 
-            this.gcTimeCounter = meter.CreateObservableCounter("time-in-gc", () => this.eventCounterStore.ReadDouble(GcTimeCounterName), "%", description: "% Time in GC since last GC");
+            this.gcTimeCounter = meter.CreateObservableCounter("time-in-gc", () => this.eventCounterStore.ReadDouble(GcTimeCounterName), description: "% Time in GC since last GC");
             this.gen0SizeCounter = meter.CreateObservableCounter("gen-0-size", () => this.eventCounterStore.ReadLong(Gen0SizeCounterName), "B", description: "Gen 0 Size");
             this.gen1SizeCounter = meter.CreateObservableCounter("gen-1-size", () => this.eventCounterStore.ReadLong(Gen1SizeCounterName), "B", description: "Gen 1 Size");
             this.gen2SizeCounter = meter.CreateObservableCounter("gen-2-size", () => this.eventCounterStore.ReadLong(Gen2SizeCounterName), "B", description: "Gen 2 Size");
             this.lohSizeCounter = meter.CreateObservableCounter("loh-size", () => this.eventCounterStore.ReadLong(LohSizeCounterName), "B", description: "LOH Size");
             this.pohSizeCounter = meter.CreateObservableCounter("poh-size", () => this.eventCounterStore.ReadLong(PohSizeCounterName), "B", description: "POH (Pinned Object Heap) Size");
+        }
+
+        private static double GetFragmentation()
+        {
+            var gcInfo = GC.GetGCMemoryInfo();
+            return gcInfo.HeapSizeBytes != 0 ? gcInfo.FragmentedBytes * 100d / gcInfo.HeapSizeBytes : 0;
         }
     }
 }

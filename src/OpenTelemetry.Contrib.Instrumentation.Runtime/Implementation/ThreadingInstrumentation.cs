@@ -37,10 +37,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
             this.threadPoolQueueCounter = meter.CreateObservableCounter("threadpool-queue-length", () => ThreadPool.PendingWorkItemCount, description: "ThreadPool Queue Length");
             this.completedItemsCounter = meter.CreateObservableGauge("threadpool-completed-items-count", () => ThreadPool.CompletedWorkItemCount, description: "ThreadPool Completed Work Item Count");
             this.timerCounter = meter.CreateObservableCounter("active-timer-count", () => Timer.ActiveCount, description: "Number of Active Timers");
-            this.test = meter.CreateObservableCounter("t", () =>
-            {
-                return 5;
-            }, description: "Number of Active Timers");
         }
     }
 }

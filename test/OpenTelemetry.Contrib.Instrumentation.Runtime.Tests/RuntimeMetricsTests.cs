@@ -53,7 +53,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
                 .AddReader(metricReader)
                 .Build();
 
-            await Task.Delay(TimeSpan.FromSeconds(10));
+            await Task.Delay(TimeSpan.FromSeconds(5));
             this.meterProvider.Dispose();
 
             Assert.True(metricItems.Count > 1);

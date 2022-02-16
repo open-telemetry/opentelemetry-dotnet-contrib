@@ -44,7 +44,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 
             Assert.True(options.IsGcEnabled);
 #if NET6_0_OR_GREATER
-            Assert.True(options.IsJitEnabled);
+            Assert.False(options.IsJitEnabled);
 #endif
             Assert.False(options.IsThreadingEnabled);
             Assert.False(options.IsPerformanceEnabled);
@@ -76,7 +76,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 
             Assert.False(options.IsGcEnabled);
 #if NET6_0_OR_GREATER
-            Assert.True(options.IsJitEnabled);
+            Assert.False(options.IsJitEnabled);
 #endif
             Assert.True(options.IsThreadingEnabled);
             Assert.False(options.IsPerformanceEnabled);
@@ -92,7 +92,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 
             Assert.False(options.IsGcEnabled);
 #if NET6_0_OR_GREATER
-            Assert.True(options.IsJitEnabled);
+            Assert.False(options.IsJitEnabled);
 #endif
             Assert.False(options.IsThreadingEnabled);
             Assert.True(options.IsPerformanceEnabled);
@@ -108,7 +108,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 
             Assert.False(options.IsGcEnabled);
 #if NET6_0_OR_GREATER
-            Assert.True(options.IsJitEnabled);
+            Assert.False(options.IsJitEnabled);
 #endif
             Assert.False(options.IsThreadingEnabled);
             Assert.False(options.IsPerformanceEnabled);
@@ -124,7 +124,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 
             Assert.False(options.IsGcEnabled);
 #if NET6_0_OR_GREATER
-            Assert.True(options.IsJitEnabled);
+            Assert.False(options.IsJitEnabled);
 #endif
             Assert.False(options.IsThreadingEnabled);
             Assert.False(options.IsPerformanceEnabled);
@@ -140,7 +140,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 
             Assert.True(options.IsGcEnabled);
 #if NET6_0_OR_GREATER
-            Assert.True(options.IsJitEnabled);
+            Assert.False(options.IsJitEnabled);
 #endif
             Assert.True(options.IsThreadingEnabled);
             Assert.False(options.IsPerformanceEnabled);
