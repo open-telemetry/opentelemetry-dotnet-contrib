@@ -14,11 +14,12 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Diagnostics.Metrics;
 
 namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
 {
-    internal class ExceptionsInstrumentation : IRuntimeInstrumentation
+    internal class ExceptionsInstrumentation : IRuntimeInstrumentation, IDisposable
     {
         private const string CounterName = "exception-count";
 
@@ -33,6 +34,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
             this.eventCounterStore.Subscribe(CounterName, EventCounterType.Sum);
 
             this.exceptionCounter = meter.CreateObservableGauge("exception-count", () => this.eventCounterStore.ReadLong(CounterName), description: "Exception Count");
+        }
+
+        public void Dispose()
+        {
+            this.eventCounterStore?.Unsubscribe(CounterName);
         }
     }
 }

@@ -32,9 +32,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
         private readonly Dictionary<string, string> refreshIntervalDictionary;
         private readonly bool isInitialized = false;
 
-        // EventSourceNames from which counters are to be collected are the keys for this IDictionary.
-        // The value will be the corresponding ICollection of counter names.
-        private readonly IDictionary<string, ICollection<string>> countersToCollect = new Dictionary<string, ICollection<string>>();
         private readonly IEventCounterStore eventCounterStore;
 
         /// <summary>

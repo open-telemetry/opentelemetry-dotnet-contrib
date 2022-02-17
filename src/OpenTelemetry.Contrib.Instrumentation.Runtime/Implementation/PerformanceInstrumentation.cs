@@ -19,7 +19,7 @@ using System.Diagnostics.Metrics;
 
 namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
 {
-    internal class PerformanceInstrumentation : IRuntimeInstrumentation
+    internal class PerformanceInstrumentation : IRuntimeInstrumentation, IDisposable
     {
         private const string CpuTimeCounterName = "cpu-usage";
 
@@ -37,6 +37,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
 
             this.cpuTimeCounter = meter.CreateObservableGauge("cpu-usage", () => this.eventCounterStore.ReadDouble(CpuTimeCounterName), "CPU Usage");
             this.workingSetCounter = meter.CreateObservableGauge("working-set", () => (double)(Environment.WorkingSet / 1_000_000), "MB", "Working Set");
+        }
+
+        public void Dispose()
+        {
+            this.eventCounterStore?.Unsubscribe(CpuTimeCounterName);
         }
     }
 }

@@ -35,14 +35,30 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
         bool HasSubscription(string counterName);
 
         /// <summary>
+        /// Remove the subscription to event counter events.
+        /// </summary>
+        /// <param name="counterName">Name of the counter.</param>
+        void Unsubscribe(string counterName);
+
+        /// <summary>
         /// Extracts and persists the counter value.
         /// </summary>
         /// <param name="counterName">Name of the event counter.</param>
         /// <param name="eventPayload">The event data.</param>
         void WriteValue(string counterName, IDictionary<string, object> eventPayload);
 
+        /// <summary>
+        /// Reads a double value stored for the given counter name.
+        /// </summary>
+        /// <param name="counterName">Name of the counter.</param>
+        /// <returns>A value stored for the event counter.</returns>
         double ReadDouble(string counterName);
 
+        /// <summary>
+        /// Reads a long value stored for the given counter name.
+        /// </summary>
+        /// <param name="counterName">Name of the counter.</param>
+        /// <returns>A value stored for the event counter.</returns>
         long ReadLong(string counterName);
     }
 }

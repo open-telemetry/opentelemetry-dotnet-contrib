@@ -19,7 +19,7 @@ using System.Diagnostics.Metrics;
 
 namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
 {
-    internal class GcInstrumentation : IRuntimeInstrumentation
+    internal class GcInstrumentation : IRuntimeInstrumentation, IDisposable
     {
         private const string CommittedCounterName = "gc-committed";
         private const string GcTimeCounterName = "time-in-gc";
@@ -83,6 +83,20 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
         {
             var gcInfo = GC.GetGCMemoryInfo();
             return gcInfo.HeapSizeBytes != 0 ? gcInfo.FragmentedBytes * 100d / gcInfo.HeapSizeBytes : 0;
+        }
+
+        public void Dispose()
+        {
+            this.eventCounterStore?.Unsubscribe(GcTimeCounterName);
+            this.eventCounterStore?.Unsubscribe(Gen0SizeCounterName);
+            this.eventCounterStore?.Unsubscribe(Gen1SizeCounterName);
+            this.eventCounterStore?.Unsubscribe(Gen2SizeCounterName);
+            this.eventCounterStore?.Unsubscribe(LohSizeCounterName);
+            this.eventCounterStore?.Unsubscribe(PohSizeCounterName);
+
+#if !NET6_0_OR_GREATER
+            this.eventCounterStore?.Unsubscribe(CommittedCounterName);
+#endif
         }
     }
 }

@@ -42,6 +42,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
             return this.eventCounters.Count > 0;
         }
 
+        public void Unsubscribe(string counterName)
+        {
+            this.eventCounters.Remove(counterName);
+        }
+
         public double ReadDouble(string counterName)
         {
             return Convert.ToDouble(this.eventCounters[counterName].Value);

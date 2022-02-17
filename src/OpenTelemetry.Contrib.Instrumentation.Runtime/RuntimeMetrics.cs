@@ -86,6 +86,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
         /// <inheritdoc/>
         public void Dispose()
         {
+            foreach (var instrumentation in this.instrumentations)
+            {
+                if (instrumentation is IDisposable disposableInstrumentation)
+                {
+                    disposableInstrumentation.Dispose();
+                }
+            }
+
             this.meter?.Dispose();
             this.eventCounterListener?.Dispose();
         }
