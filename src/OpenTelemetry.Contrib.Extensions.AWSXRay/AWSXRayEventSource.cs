@@ -56,6 +56,12 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay
             this.WriteEvent(2, format, error);
         }
 
+        [Event(2, Message = "Failed to validate certificate in format: '{0}', error: '{1}'.", Level = EventLevel.Warning)]
+        public void FailedToValidateCertificate(string format, string error)
+        {
+            this.WriteEvent(2, format, error);
+        }
+
         [Event(3, Message = "Failed to extract resource attributes in '{0}'.", Level = EventLevel.Warning)]
         public void FailedToExtractResourceAttributes(string format, string exception)
         {
