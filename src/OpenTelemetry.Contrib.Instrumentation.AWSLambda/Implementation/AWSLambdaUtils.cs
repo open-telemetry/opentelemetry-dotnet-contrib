@@ -28,12 +28,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
     internal static class AWSLambdaUtils
     {
         internal const string ActivitySourceName = "Amazon.AWS.AWSLambdaInstrumentation";
-        private const string CloudProvider = "aws";
-        private const string AWSRegion = "AWS_REGION";
         private const string AWSXRayLambdaTraceHeaderKey = "_X_AMZN_TRACE_ID";
         private const string AWSXRayTraceHeaderKey = "X-Amzn-Trace-Id";
         private const string FunctionName = "AWS_LAMBDA_FUNCTION_NAME";
-        private const string FunctionVersion = "AWS_LAMBDA_FUNCTION_VERSION";
 
         private static readonly Func<IDictionary<string, string>, string, IEnumerable<string>> Getter = (headers, name) =>
         {
@@ -61,16 +58,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             return activityContext;
         }
 
-        internal static string GetCloudProvider()
-        {
-            return CloudProvider;
-        }
-
-        internal static string GetAWSRegion()
-        {
-            return Environment.GetEnvironmentVariable(AWSRegion);
-        }
-
         internal static string GetFunctionName(ILambdaContext context = null)
         {
             if (context != null)
@@ -79,11 +66,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             }
 
             return Environment.GetEnvironmentVariable(FunctionName);
-        }
-
-        internal static string GetFunctionVersion()
-        {
-            return Environment.GetEnvironmentVariable(FunctionVersion);
         }
 
         internal static string GetAccountId(string functionArn)

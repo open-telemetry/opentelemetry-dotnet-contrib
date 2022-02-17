@@ -20,7 +20,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation;
-using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -36,9 +35,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             this.sampleHandlers = new SampleHandlers();
             this.sampleLambdaContext = new SampleLambdaContext();
             Environment.SetEnvironmentVariable("_X_AMZN_TRACE_ID", "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1");
-            Environment.SetEnvironmentVariable("AWS_REGION", "us-east-1");
             Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_NAME", "testfunction");
-            Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_VERSION", "latest");
         }
 
         [Fact]
@@ -52,8 +49,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
                 .Build())
             {
                 var result = AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncReturn, "TestStream", this.sampleLambdaContext);
-                var resource = tracerProvider.GetResource();
-                this.AssertResourceAttributes(resource);
             }
 
             // SetParentProvider -> OnStart -> OnEnd -> OnForceFlush -> OnShutdown -> Dispose
@@ -75,8 +70,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
                 .Build())
             {
                 AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncNoReturn, "TestStream", this.sampleLambdaContext);
-                var resource = tracerProvider.GetResource();
-                this.AssertResourceAttributes(resource);
             }
 
             // SetParentProvider -> OnStart -> OnEnd -> OnForceFlush -> OnShutdown -> Dispose
@@ -98,8 +91,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
                 .Build())
             {
                 var result = await AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerAsyncReturn, "TestStream", this.sampleLambdaContext);
-                var resource = tracerProvider.GetResource();
-                this.AssertResourceAttributes(resource);
             }
 
             // SetParentProvider -> OnStart -> OnEnd -> OnForceFlush -> OnShutdown -> Dispose
@@ -121,8 +112,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
                 .Build())
             {
                 await AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerAsyncNoReturn, "TestStream", this.sampleLambdaContext);
-                var resource = tracerProvider.GetResource();
-                this.AssertResourceAttributes(resource);
             }
 
             // SetParentProvider -> OnStart -> OnEnd -> OnForceFlush -> OnShutdown -> Dispose
@@ -144,8 +133,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
                 .Build())
             {
                 var result = AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncReturn, "TestStream");
-                var resource = tracerProvider.GetResource();
-                this.AssertResourceAttributes(resource);
             }
 
             // SetParentProvider -> OnStart -> OnEnd -> OnForceFlush -> OnShutdown -> Dispose
@@ -166,8 +153,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
                 .Build())
             {
                 AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncNoReturn, "TestStream");
-                var resource = tracerProvider.GetResource();
-                this.AssertResourceAttributes(resource);
             }
 
             // SetParentProvider -> OnStart -> OnEnd -> OnForceFlush -> OnShutdown -> Dispose
@@ -188,8 +173,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
                 .Build())
             {
                 var result = await AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerAsyncReturn, "TestStream");
-                var resource = tracerProvider.GetResource();
-                this.AssertResourceAttributes(resource);
             }
 
             // SetParentProvider -> OnStart -> OnEnd -> OnForceFlush -> OnShutdown -> Dispose
@@ -210,8 +193,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
                 .Build())
             {
                 await AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerAsyncNoReturn, "TestStream");
-                var resource = tracerProvider.GetResource();
-                this.AssertResourceAttributes(resource);
             }
 
             // SetParentProvider -> OnStart -> OnEnd -> OnForceFlush -> OnShutdown -> Dispose
@@ -237,8 +218,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
                 }
                 catch
                 {
-                    var resource = tracerProvider.GetResource();
-                    this.AssertResourceAttributes(resource);
                 }
             }
 
@@ -264,8 +243,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
                 .Build())
             {
                 var result = AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncReturn, "TestStream", this.sampleLambdaContext);
-                var resource = tracerProvider.GetResource();
-                this.AssertResourceAttributes(resource);
             }
 
             // SetParentProvider -> OnForceFlush -> OnShutdown -> Dispose
@@ -282,15 +259,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             Assert.Equal(ActivityTraceFlags.Recorded, activity.ActivityTraceFlags);
             Assert.Equal(ActivityKind.Server, activity.Kind);
             Assert.Equal("testfunction", activity.DisplayName);
-        }
-
-        private void AssertResourceAttributes(Resource resource)
-        {
-            var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
-            Assert.Equal("aws", resourceAttributes[AWSLambdaSemanticConventions.AttributeCloudProvider]);
-            Assert.Equal("us-east-1", resourceAttributes[AWSLambdaSemanticConventions.AttributeCloudRegion]);
-            Assert.Equal("testfunction", resourceAttributes[AWSLambdaSemanticConventions.AttributeFaasName]);
-            Assert.Equal("latest", resourceAttributes[AWSLambdaSemanticConventions.AttributeFaasVersion]);
         }
 
         private void AssertSpanAttributes(Activity activity)

@@ -16,7 +16,6 @@
 
 using System;
 using OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation;
-using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Trace
 {
@@ -38,12 +37,6 @@ namespace OpenTelemetry.Trace
             }
 
             builder.AddSource(AWSLambdaUtils.ActivitySourceName);
-            builder.SetResourceBuilder(ResourceBuilder
-                .CreateEmpty()
-                .AddService(AWSLambdaUtils.GetFunctionName(), null, null, false)
-                .AddTelemetrySdk()
-                .AddAttributes(AWSLambdaResourceDetector.Detect()));
-
             return builder;
         }
     }
