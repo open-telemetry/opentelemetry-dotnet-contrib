@@ -79,12 +79,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
             this.pohSizeCounter = meter.CreateObservableCounter($"{RuntimeMetrics.MetricPrefix}poh_size", () => this.eventCounterStore.ReadLong(PohSizeCounterName), "B", description: "POH (Pinned Object Heap) Size");
         }
 
-        private static double GetFragmentation()
-        {
-            var gcInfo = GC.GetGCMemoryInfo();
-            return gcInfo.HeapSizeBytes != 0 ? gcInfo.FragmentedBytes * 100d / gcInfo.HeapSizeBytes : 0;
-        }
-
         public void Dispose()
         {
             this.eventCounterStore?.Unsubscribe(GcTimeCounterName);
@@ -97,6 +91,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
 #if !NET6_0_OR_GREATER
             this.eventCounterStore?.Unsubscribe(CommittedCounterName);
 #endif
+        }
+
+        private static double GetFragmentation()
+        {
+            var gcInfo = GC.GetGCMemoryInfo();
+            return gcInfo.HeapSizeBytes != 0 ? gcInfo.FragmentedBytes * 100d / gcInfo.HeapSizeBytes : 0;
         }
     }
 }
