@@ -33,7 +33,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
             this.eventCounterStore = eventCounterStore;
             this.eventCounterStore.Subscribe(CounterName, EventCounterType.Sum);
 
-            this.exceptionCounter = meter.CreateObservableGauge("exception-count", () => this.eventCounterStore.ReadLong(CounterName), description: "Exception Count");
+            this.exceptionCounter = meter.CreateObservableGauge($"{RuntimeMetrics.MetricPrefix}exception_count", () => this.eventCounterStore.ReadLong(CounterName), description: "Exception Count");
         }
 
         public void Dispose()

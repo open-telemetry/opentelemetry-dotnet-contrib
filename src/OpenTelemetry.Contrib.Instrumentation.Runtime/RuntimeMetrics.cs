@@ -27,6 +27,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
     /// </summary>
     internal class RuntimeMetrics : IDisposable
     {
+        internal const string MetricPrefix = "process_runtime_dotnet_";
+
         internal static readonly AssemblyName AssemblyName = typeof(RuntimeMetrics).Assembly.GetName();
         internal static readonly string InstrumentationName = AssemblyName.Name;
         internal static readonly string InstrumentationVersion = AssemblyName.Version.ToString();

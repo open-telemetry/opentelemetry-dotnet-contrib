@@ -29,9 +29,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
         public JitInstrumentation(Meter meter)
         {
             this.meter = meter;
-            this.ilBytesJittedCounter = meter.CreateObservableCounter("il-bytes-jitted", () => System.Runtime.JitInfo.GetCompiledILBytes(), "B", description: "IL Bytes Jitted");
-            this.methodsJittedCounter = meter.CreateObservableCounter("methods-jitted-count", () => System.Runtime.JitInfo.GetCompiledMethodCount(), description: "Number of Methods Jitted");
-            this.jitTimeCounter = meter.CreateObservableGauge("time-in-jit", () => System.Runtime.JitInfo.GetCompilationTime().TotalMilliseconds, "ms", description: "Time spent in JIT");
+            this.ilBytesJittedCounter = meter.CreateObservableCounter($"{RuntimeMetrics.MetricPrefix}il_bytes_jitted", () => System.Runtime.JitInfo.GetCompiledILBytes(), "B", description: "IL Bytes Jitted");
+            this.methodsJittedCounter = meter.CreateObservableCounter($"{RuntimeMetrics.MetricPrefix}methods_jitted_count", () => System.Runtime.JitInfo.GetCompiledMethodCount(), description: "Number of Methods Jitted");
+            this.jitTimeCounter = meter.CreateObservableGauge($"{RuntimeMetrics.MetricPrefix}time_in_jit", () => System.Runtime.JitInfo.GetCompilationTime().TotalMilliseconds, "ms", description: "Time spent in JIT");
         }
     }
 }

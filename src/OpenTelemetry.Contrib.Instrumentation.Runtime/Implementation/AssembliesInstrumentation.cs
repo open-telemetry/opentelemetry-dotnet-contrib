@@ -27,7 +27,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
         public AssembliesInstrumentation(Meter meter)
         {
             this.meter = meter;
-            this.assemblyCounter = meter.CreateObservableCounter("assembly-count", () => AppDomain.CurrentDomain.GetAssemblies().Length, description: "Number of Assemblies Loaded");
+            this.assemblyCounter = meter.CreateObservableCounter($"{RuntimeMetrics.MetricPrefix}assembly_count", () => AppDomain.CurrentDomain.GetAssemblies().Length, description: "Number of Assemblies Loaded");
         }
     }
 }

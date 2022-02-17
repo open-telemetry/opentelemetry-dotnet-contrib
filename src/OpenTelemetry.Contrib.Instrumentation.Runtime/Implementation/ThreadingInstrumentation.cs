@@ -31,11 +31,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
         public ThreadingInstrumentation(Meter meter)
         {
             this.meter = meter;
-            this.threadPoolThreadCounter = meter.CreateObservableCounter("threadpool-thread-count", () => ThreadPool.ThreadCount, description: "ThreadPool Thread Count");
-            this.monitorContentionCounter = meter.CreateObservableGauge("monitor-lock-contention-count", () => Monitor.LockContentionCount, description: "Monitor Lock Contention Count");
-            this.threadPoolQueueCounter = meter.CreateObservableCounter("threadpool-queue-length", () => ThreadPool.PendingWorkItemCount, description: "ThreadPool Queue Length");
-            this.completedItemsCounter = meter.CreateObservableGauge("threadpool-completed-items-count", () => ThreadPool.CompletedWorkItemCount, description: "ThreadPool Completed Work Item Count");
-            this.timerCounter = meter.CreateObservableCounter("active-timer-count", () => Timer.ActiveCount, description: "Number of Active Timers");
+            this.threadPoolThreadCounter = meter.CreateObservableCounter($"{RuntimeMetrics.MetricPrefix}threadpool_thread_count", () => ThreadPool.ThreadCount, description: "ThreadPool Thread Count");
+            this.monitorContentionCounter = meter.CreateObservableGauge($"{RuntimeMetrics.MetricPrefix}monitor_lock_contention_count", () => Monitor.LockContentionCount, description: "Monitor Lock Contention Count");
+            this.threadPoolQueueCounter = meter.CreateObservableCounter($"{RuntimeMetrics.MetricPrefix}threadpool_queue_length", () => ThreadPool.PendingWorkItemCount, description: "ThreadPool Queue Length");
+            this.completedItemsCounter = meter.CreateObservableGauge($"{RuntimeMetrics.MetricPrefix}threadpool_completed_items_count", () => ThreadPool.CompletedWorkItemCount, description: "ThreadPool Completed Work Item Count");
+            this.timerCounter = meter.CreateObservableCounter($"{RuntimeMetrics.MetricPrefix}active_timer_count", () => Timer.ActiveCount, description: "Number of Active Timers");
         }
     }
 }

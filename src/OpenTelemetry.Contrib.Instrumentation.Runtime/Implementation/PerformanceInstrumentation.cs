@@ -35,8 +35,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
 
             this.eventCounterStore.Subscribe(CpuTimeCounterName, EventCounterType.Mean);
 
-            this.cpuTimeCounter = meter.CreateObservableGauge("cpu-usage", () => this.eventCounterStore.ReadDouble(CpuTimeCounterName), "CPU Usage");
-            this.workingSetCounter = meter.CreateObservableGauge("working-set", () => (double)(Environment.WorkingSet / 1_000_000), "MB", "Working Set");
+            this.cpuTimeCounter = meter.CreateObservableGauge($"{RuntimeMetrics.MetricPrefix}cpu_usage", () => this.eventCounterStore.ReadDouble(CpuTimeCounterName), "CPU Usage");
+            this.workingSetCounter = meter.CreateObservableGauge($"{RuntimeMetrics.MetricPrefix}working_set", () => (double)(Environment.WorkingSet / 1_000_000), "MB", "Working Set");
         }
 
         public void Dispose()
