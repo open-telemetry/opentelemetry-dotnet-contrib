@@ -21,7 +21,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
 {
     internal class ThreadingInstrumentation : IRuntimeInstrumentation
     {
-        private readonly Meter meter;
         private readonly ObservableCounter<int> threadPoolThreadCounter;
         private readonly ObservableGauge<long> monitorContentionCounter;
         private readonly ObservableCounter<long> threadPoolQueueCounter;
@@ -30,7 +29,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
 
         public ThreadingInstrumentation(RuntimeMetricsOptions options, Meter meter)
         {
-            this.meter = meter;
             this.threadPoolThreadCounter = meter.CreateObservableCounter($"{options.MetricPrefix}threadpool_thread_count", () => ThreadPool.ThreadCount, description: "ThreadPool Thread Count");
             this.monitorContentionCounter = meter.CreateObservableGauge($"{options.MetricPrefix}monitor_lock_contention_count", () => Monitor.LockContentionCount, description: "Monitor Lock Contention Count");
             this.threadPoolQueueCounter = meter.CreateObservableCounter($"{options.MetricPrefix}threadpool_queue_length", () => ThreadPool.PendingWorkItemCount, description: "ThreadPool Queue Length");

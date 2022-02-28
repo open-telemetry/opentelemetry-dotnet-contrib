@@ -21,7 +21,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
 {
     internal class GcInstrumentation : IRuntimeInstrumentation
     {
-        private readonly Meter meter;
         private readonly ObservableGauge<double> gcHeapSizeCounter;
         private readonly ObservableGauge<int> gen0GCCounter;
         private readonly ObservableGauge<int> gen1GCCounter;
@@ -35,8 +34,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
 
         public GcInstrumentation(RuntimeMetricsOptions options, Meter meter)
         {
-            this.meter = meter;
-
             this.gcHeapSizeCounter = meter.CreateObservableGauge($"{options.MetricPrefix}gc_heap_size", () => (double)(GC.GetTotalMemory(false) / 1_000_000), "MB", "GC Heap Size");
             this.gen0GCCounter = meter.CreateObservableGauge($"{options.MetricPrefix}gen_0-gc_count", () => GC.CollectionCount(0), description: "Gen 0 GC Count");
             this.gen1GCCounter = meter.CreateObservableGauge($"{options.MetricPrefix}gen_1-gc_count", () => GC.CollectionCount(1), description: "Gen 1 GC Count");

@@ -21,12 +21,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
 {
     internal class AssembliesInstrumentation : IRuntimeInstrumentation
     {
-        private readonly Meter meter;
         private readonly ObservableCounter<int> assemblyCounter;
 
         public AssembliesInstrumentation(RuntimeMetricsOptions options, Meter meter)
         {
-            this.meter = meter;
             this.assemblyCounter = meter.CreateObservableCounter($"{options.MetricPrefix}assembly_count", () => AppDomain.CurrentDomain.GetAssemblies().Length, description: "Number of Assemblies Loaded");
         }
     }
