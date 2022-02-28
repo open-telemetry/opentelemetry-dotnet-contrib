@@ -33,8 +33,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
 
         private readonly Meter meter;
         private readonly List<IRuntimeInstrumentation> instrumentations = new List<IRuntimeInstrumentation>();
-        private readonly EventCounterListener eventCounterListener;
-        private readonly EventCounterStore eventCounterStore;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RuntimeMetrics"/> class.
@@ -43,11 +41,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
         public RuntimeMetrics(RuntimeMetricsOptions options)
         {
             this.meter = new Meter(InstrumentationName, InstrumentationVersion);
-            this.eventCounterStore = new EventCounterStore();
 
             if (options.IsGcEnabled)
             {
-                this.instrumentations.Add(new GcInstrumentation(options, this.meter, this.eventCounterStore));
+                this.instrumentations.Add(new GcInstrumentation(options, this.meter));
             }
 
 #if NET6_0_OR_GREATER
@@ -64,38 +61,19 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
 
             if (options.IsPerformanceEnabled)
             {
-                this.instrumentations.Add(new PerformanceInstrumentation(options, this.meter, this.eventCounterStore));
-            }
-
-            if (options.IsExceptionsEnabled)
-            {
-                this.instrumentations.Add(new ExceptionsInstrumentation(options, this.meter, this.eventCounterStore));
+                this.instrumentations.Add(new PerformanceInstrumentation(options, this.meter));
             }
 
             if (options.IsAssembliesEnabled)
             {
                 this.instrumentations.Add(new AssembliesInstrumentation(options, this.meter));
             }
-
-            if (this.eventCounterStore.HasSubscriptions())
-            {
-                this.eventCounterListener = new EventCounterListener(this.eventCounterStore);
-            }
         }
 
         /// <inheritdoc/>
         public void Dispose()
         {
-            foreach (var instrumentation in this.instrumentations)
-            {
-                if (instrumentation is IDisposable disposableInstrumentation)
-                {
-                    disposableInstrumentation.Dispose();
-                }
-            }
-
             this.meter?.Dispose();
-            this.eventCounterListener?.Dispose();
         }
     }
 }

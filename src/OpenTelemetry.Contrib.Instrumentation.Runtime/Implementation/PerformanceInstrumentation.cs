@@ -19,29 +19,16 @@ using System.Diagnostics.Metrics;
 
 namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
 {
-    internal class PerformanceInstrumentation : IRuntimeInstrumentation, IDisposable
+    internal class PerformanceInstrumentation : IRuntimeInstrumentation
     {
-        private const string CpuTimeCounterName = "cpu-usage";
-
         private readonly Meter meter;
-        private readonly IEventCounterStore eventCounterStore;
-        private readonly ObservableGauge<double> cpuTimeCounter;
         private readonly ObservableGauge<double> workingSetCounter;
 
-        public PerformanceInstrumentation(RuntimeMetricsOptions options, Meter meter, IEventCounterStore eventCounterStore)
+        public PerformanceInstrumentation(RuntimeMetricsOptions options, Meter meter)
         {
             this.meter = meter;
-            this.eventCounterStore = eventCounterStore;
 
-            this.eventCounterStore.Subscribe(CpuTimeCounterName, EventCounterType.Mean);
-
-            this.cpuTimeCounter = meter.CreateObservableGauge($"{options.MetricPrefix}cpu_usage", () => this.eventCounterStore.ReadDouble(CpuTimeCounterName), "CPU Usage");
             this.workingSetCounter = meter.CreateObservableGauge($"{options.MetricPrefix}working_set", () => (double)(Environment.WorkingSet / 1_000_000), "MB", "Working Set");
-        }
-
-        public void Dispose()
-        {
-            this.eventCounterStore?.Unsubscribe(CpuTimeCounterName);
         }
     }
 }

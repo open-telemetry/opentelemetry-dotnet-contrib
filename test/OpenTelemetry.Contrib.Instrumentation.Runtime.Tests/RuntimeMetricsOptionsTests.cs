@@ -32,7 +32,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 #endif
             Assert.True(options.IsThreadingEnabled);
             Assert.True(options.IsPerformanceEnabled);
-            Assert.True(options.IsExceptionsEnabled);
             Assert.True(options.IsAssembliesEnabled);
             Assert.True(options.IsAllEnabled);
         }
@@ -48,7 +47,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 #endif
             Assert.False(options.IsThreadingEnabled);
             Assert.False(options.IsPerformanceEnabled);
-            Assert.False(options.IsExceptionsEnabled);
             Assert.False(options.IsAssembliesEnabled);
             Assert.False(options.IsAllEnabled);
         }
@@ -63,7 +61,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
             Assert.True(options.IsJitEnabled);
             Assert.False(options.IsThreadingEnabled);
             Assert.False(options.IsPerformanceEnabled);
-            Assert.False(options.IsExceptionsEnabled);
             Assert.False(options.IsAssembliesEnabled);
             Assert.False(options.IsAllEnabled);
         }
@@ -80,7 +77,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 #endif
             Assert.True(options.IsThreadingEnabled);
             Assert.False(options.IsPerformanceEnabled);
-            Assert.False(options.IsExceptionsEnabled);
             Assert.False(options.IsAssembliesEnabled);
             Assert.False(options.IsAllEnabled);
         }
@@ -96,23 +92,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 #endif
             Assert.False(options.IsThreadingEnabled);
             Assert.True(options.IsPerformanceEnabled);
-            Assert.False(options.IsExceptionsEnabled);
-            Assert.False(options.IsAssembliesEnabled);
-            Assert.False(options.IsAllEnabled);
-        }
-
-        [Fact]
-        public void Enable_Exceptions_Only()
-        {
-            var options = new RuntimeMetricsOptions().WithExceptions();
-
-            Assert.False(options.IsGcEnabled);
-#if NET6_0_OR_GREATER
-            Assert.False(options.IsJitEnabled);
-#endif
-            Assert.False(options.IsThreadingEnabled);
-            Assert.False(options.IsPerformanceEnabled);
-            Assert.True(options.IsExceptionsEnabled);
             Assert.False(options.IsAssembliesEnabled);
             Assert.False(options.IsAllEnabled);
         }
@@ -128,7 +107,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 #endif
             Assert.False(options.IsThreadingEnabled);
             Assert.False(options.IsPerformanceEnabled);
-            Assert.False(options.IsExceptionsEnabled);
             Assert.True(options.IsAssembliesEnabled);
             Assert.False(options.IsAllEnabled);
         }
@@ -144,7 +122,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 #endif
             Assert.True(options.IsThreadingEnabled);
             Assert.False(options.IsPerformanceEnabled);
-            Assert.False(options.IsExceptionsEnabled);
             Assert.False(options.IsAssembliesEnabled);
             Assert.False(options.IsAllEnabled);
         }

@@ -70,17 +70,6 @@ namespace OpenTelemetry.Metrics
         }
 
         /// <summary>
-        /// Enable the exceptions metrics.
-        /// </summary>
-        /// <param name="options">The options to enable the metrics on.</param>
-        /// <returns>The options instance.</returns>
-        public static RuntimeMetricsOptions WithExceptions(this RuntimeMetricsOptions options)
-        {
-            options.ExceptionsEnabled = true;
-            return options;
-        }
-
-        /// <summary>
         /// Enable the assembly metrics.
         /// </summary>
         /// <param name="options">The options to enable the metrics on.</param>

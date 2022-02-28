@@ -49,11 +49,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
         public bool? PerformanceEnabled { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether exception metrics should be collected.
-        /// </summary>
-        public bool? ExceptionsEnabled { get; set; }
-
-        /// <summary>
         /// Gets or sets a value indicating whether assembly metrics should be collected.
         /// </summary>
         public bool? AssembliesEnabled { get; set; }
@@ -67,7 +62,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
 #endif
         && this.ThreadingEnabled == null
         && this.PerformanceEnabled == null
-        && this.ExceptionsEnabled == null
         && this.AssembliesEnabled == null;
 
         /// <summary>
@@ -91,11 +85,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
         /// Gets a value indicating whether performance metrics is enabled.
         /// </summary>
         internal bool IsPerformanceEnabled => this.PerformanceEnabled == true || this.IsAllEnabled;
-
-        /// <summary>
-        /// Gets a value indicating whether exception metrics is enabled.
-        /// </summary>
-        internal bool IsExceptionsEnabled => this.ExceptionsEnabled == true || this.IsAllEnabled;
 
         /// <summary>
         /// Gets a value indicating whether assembly metrics is enabled.
