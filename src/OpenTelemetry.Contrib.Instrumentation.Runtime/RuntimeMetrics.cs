@@ -15,10 +15,9 @@
 // </copyright>
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
-using OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation;
+using System.Threading;
 
 namespace OpenTelemetry.Contrib.Instrumentation.Runtime
 {
@@ -32,7 +31,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
         internal static readonly string InstrumentationVersion = AssemblyName.Version.ToString();
 
         private readonly Meter meter;
-        private readonly List<IRuntimeInstrumentation> instrumentations = new List<IRuntimeInstrumentation>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RuntimeMetrics"/> class.
@@ -44,29 +42,44 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
 
             if (options.IsGcEnabled)
             {
-                this.instrumentations.Add(new GcInstrumentation(options, this.meter));
+                this.meter.CreateObservableGauge($"{options.MetricPrefix}gc_heap_size", () => (double)(GC.GetTotalMemory(false) / 1_000_000), "MB", "GC Heap Size");
+                this.meter.CreateObservableGauge($"{options.MetricPrefix}gen_0-gc_count", () => GC.CollectionCount(0), description: "Gen 0 GC Count");
+                this.meter.CreateObservableGauge($"{options.MetricPrefix}gen_1-gc_count", () => GC.CollectionCount(1), description: "Gen 1 GC Count");
+                this.meter.CreateObservableGauge($"{options.MetricPrefix}gen_2-gc_count", () => GC.CollectionCount(2), description: "Gen 2 GC Count");
+                this.meter.CreateObservableCounter($"{options.MetricPrefix}alloc_rate", () => GC.GetTotalAllocatedBytes(), "B", "Allocation Rate");
+                this.meter.CreateObservableCounter($"{options.MetricPrefix}gc_fragmentation", GetFragmentation, description: "GC Fragmentation");
+
+#if NET6_0_OR_GREATER
+                this.meter.CreateObservableCounter($"{options.MetricPrefix}gc_committed", () => (double)(GC.GetGCMemoryInfo().TotalCommittedBytes / 1_000_000), "MB", description: "GC Committed Bytes");
+#endif
             }
 
 #if NET6_0_OR_GREATER
             if (options.IsJitEnabled)
             {
-                this.instrumentations.Add(new JitInstrumentation(options, this.meter));
+                this.meter.CreateObservableCounter($"{options.MetricPrefix}il_bytes_jitted", () => System.Runtime.JitInfo.GetCompiledILBytes(), "B", description: "IL Bytes Jitted");
+                this.meter.CreateObservableCounter($"{options.MetricPrefix}methods_jitted_count", () => System.Runtime.JitInfo.GetCompiledMethodCount(), description: "Number of Methods Jitted");
+                this.meter.CreateObservableGauge($"{options.MetricPrefix}time_in_jit", () => System.Runtime.JitInfo.GetCompilationTime().TotalMilliseconds, "ms", description: "Time spent in JIT");
             }
 #endif
 
             if (options.IsThreadingEnabled)
             {
-                this.instrumentations.Add(new ThreadingInstrumentation(options, this.meter));
+                this.meter.CreateObservableCounter($"{options.MetricPrefix}threadpool_thread_count", () => ThreadPool.ThreadCount, description: "ThreadPool Thread Count");
+                this.meter.CreateObservableGauge($"{options.MetricPrefix}monitor_lock_contention_count", () => Monitor.LockContentionCount, description: "Monitor Lock Contention Count");
+                this.meter.CreateObservableCounter($"{options.MetricPrefix}threadpool_queue_length", () => ThreadPool.PendingWorkItemCount, description: "ThreadPool Queue Length");
+                this.meter.CreateObservableGauge($"{options.MetricPrefix}threadpool_completed_items_count", () => ThreadPool.CompletedWorkItemCount, description: "ThreadPool Completed Work Item Count");
+                this.meter.CreateObservableCounter($"{options.MetricPrefix}active_timer_count", () => Timer.ActiveCount, description: "Number of Active Timers");
             }
 
             if (options.IsPerformanceEnabled)
             {
-                this.instrumentations.Add(new PerformanceInstrumentation(options, this.meter));
+                this.meter.CreateObservableGauge($"{options.MetricPrefix}working_set", () => (double)(Environment.WorkingSet / 1_000_000), "MB", "Working Set");
             }
 
             if (options.IsAssembliesEnabled)
             {
-                this.instrumentations.Add(new AssembliesInstrumentation(options, this.meter));
+                this.meter.CreateObservableCounter($"{options.MetricPrefix}assembly_count", () => AppDomain.CurrentDomain.GetAssemblies().Length, description: "Number of Assemblies Loaded");
             }
         }
 
@@ -74,6 +87,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
         public void Dispose()
         {
             this.meter?.Dispose();
+        }
+
+        private static double GetFragmentation()
+        {
+            var gcInfo = GC.GetGCMemoryInfo();
+            return gcInfo.HeapSizeBytes != 0 ? gcInfo.FragmentedBytes * 100d / gcInfo.HeapSizeBytes : 0;
         }
     }
 }
