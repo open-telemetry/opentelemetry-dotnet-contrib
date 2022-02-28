@@ -42,7 +42,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
                  .AddRuntimeMetrics(options =>
                  {
                      options.GcEnabled = true;
+#if NETCOREAPP3_1_OR_GREATER
                      options.ThreadingEnabled = true;
+#endif
                      options.PerformanceEnabled = true;
 #if NET6_0_OR_GREATER
 

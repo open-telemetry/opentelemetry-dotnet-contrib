@@ -38,10 +38,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
         public bool? JitEnabled { get; set; }
 #endif
 
+#if NETCOREAPP3_1_OR_GREATER
         /// <summary>
         /// Gets or sets a value indicating whether threading metrics should be collected.
         /// </summary>
         public bool? ThreadingEnabled { get; set; }
+#endif
 
         /// <summary>
         /// Gets or sets a value indicating whether performance metrics should be collected.
@@ -60,7 +62,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
 #if NET6_0_OR_GREATER
         && this.JitEnabled == null
 #endif
+#if NETCOREAPP3_1_OR_GREATER
         && this.ThreadingEnabled == null
+#endif
         && this.PerformanceEnabled == null
         && this.AssembliesEnabled == null;
 
@@ -76,10 +80,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
         internal bool IsJitEnabled => this.JitEnabled == true || this.IsAllEnabled;
 #endif
 
+#if NETCOREAPP3_1_OR_GREATER
         /// <summary>
         /// Gets a value indicating whether threading metrics is enabled.
         /// </summary>
         internal bool IsThreadingEnabled => this.ThreadingEnabled == true || this.IsAllEnabled;
+#endif
 
         /// <summary>
         /// Gets a value indicating whether performance metrics is enabled.

@@ -46,8 +46,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
                 this.meter.CreateObservableGauge($"{options.MetricPrefix}gen_0-gc_count", () => GC.CollectionCount(0), description: "Gen 0 GC Count");
                 this.meter.CreateObservableGauge($"{options.MetricPrefix}gen_1-gc_count", () => GC.CollectionCount(1), description: "Gen 1 GC Count");
                 this.meter.CreateObservableGauge($"{options.MetricPrefix}gen_2-gc_count", () => GC.CollectionCount(2), description: "Gen 2 GC Count");
+#if NETCOREAPP3_1_OR_GREATER
                 this.meter.CreateObservableCounter($"{options.MetricPrefix}alloc_rate", () => GC.GetTotalAllocatedBytes(), "B", "Allocation Rate");
                 this.meter.CreateObservableCounter($"{options.MetricPrefix}gc_fragmentation", GetFragmentation, description: "GC Fragmentation");
+#endif
 
 #if NET6_0_OR_GREATER
                 this.meter.CreateObservableCounter($"{options.MetricPrefix}gc_committed", () => (double)(GC.GetGCMemoryInfo().TotalCommittedBytes / 1_000_000), "MB", description: "GC Committed Bytes");
@@ -63,14 +65,16 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
             }
 #endif
 
+#if NETCOREAPP3_1_OR_GREATER
             if (options.IsThreadingEnabled)
             {
-                this.meter.CreateObservableCounter($"{options.MetricPrefix}threadpool_thread_count", () => ThreadPool.ThreadCount, description: "ThreadPool Thread Count");
                 this.meter.CreateObservableGauge($"{options.MetricPrefix}monitor_lock_contention_count", () => Monitor.LockContentionCount, description: "Monitor Lock Contention Count");
-                this.meter.CreateObservableCounter($"{options.MetricPrefix}threadpool_queue_length", () => ThreadPool.PendingWorkItemCount, description: "ThreadPool Queue Length");
+                this.meter.CreateObservableCounter($"{options.MetricPrefix}threadpool_thread_count", () => ThreadPool.ThreadCount, description: "ThreadPool Thread Count");
                 this.meter.CreateObservableGauge($"{options.MetricPrefix}threadpool_completed_items_count", () => ThreadPool.CompletedWorkItemCount, description: "ThreadPool Completed Work Item Count");
+                this.meter.CreateObservableCounter($"{options.MetricPrefix}threadpool_queue_length", () => ThreadPool.PendingWorkItemCount, description: "ThreadPool Queue Length");
                 this.meter.CreateObservableCounter($"{options.MetricPrefix}active_timer_count", () => Timer.ActiveCount, description: "Number of Active Timers");
             }
+#endif
 
             if (options.IsPerformanceEnabled)
             {
@@ -89,10 +93,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
             this.meter?.Dispose();
         }
 
+#if NETCOREAPP3_1_OR_GREATER
         private static double GetFragmentation()
         {
             var gcInfo = GC.GetGCMemoryInfo();
             return gcInfo.HeapSizeBytes != 0 ? gcInfo.FragmentedBytes * 100d / gcInfo.HeapSizeBytes : 0;
         }
+#endif
     }
 }

@@ -29,7 +29,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 #if NET6_0_OR_GREATER
             Assert.True(options.IsJitEnabled);
 #endif
+#if NETCOREAPP3_1_OR_GREATER
             Assert.True(options.IsThreadingEnabled);
+#endif
             Assert.True(options.IsPerformanceEnabled);
             Assert.True(options.IsAssembliesEnabled);
             Assert.True(options.IsAllEnabled);
@@ -44,7 +46,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 #if NET6_0_OR_GREATER
             Assert.False(options.IsJitEnabled);
 #endif
+#if NETCOREAPP3_1_OR_GREATER
             Assert.False(options.IsThreadingEnabled);
+#endif
             Assert.False(options.IsPerformanceEnabled);
             Assert.False(options.IsAssembliesEnabled);
             Assert.False(options.IsAllEnabled);
@@ -65,6 +69,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
         }
 #endif
 
+#if NETCOREAPP3_1_OR_GREATER
         [Fact]
         public void Enable_Threading_Only()
         {
@@ -79,6 +84,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
             Assert.False(options.IsAssembliesEnabled);
             Assert.False(options.IsAllEnabled);
         }
+#endif
 
         [Fact]
         public void Enable_Performance_Only()
@@ -89,7 +95,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 #if NET6_0_OR_GREATER
             Assert.False(options.IsJitEnabled);
 #endif
+#if NETCOREAPP3_1_OR_GREATER
             Assert.False(options.IsThreadingEnabled);
+#endif
             Assert.True(options.IsPerformanceEnabled);
             Assert.False(options.IsAssembliesEnabled);
             Assert.False(options.IsAllEnabled);
@@ -104,7 +112,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 #if NET6_0_OR_GREATER
             Assert.False(options.IsJitEnabled);
 #endif
+#if NETCOREAPP3_1_OR_GREATER
             Assert.False(options.IsThreadingEnabled);
+#endif
             Assert.False(options.IsPerformanceEnabled);
             Assert.True(options.IsAssembliesEnabled);
             Assert.False(options.IsAllEnabled);
@@ -113,14 +123,16 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
         [Fact]
         public void Enable_Multiple()
         {
-            var options = new RuntimeMetricsOptions { GcEnabled = true, ThreadingEnabled = true };
+            var options = new RuntimeMetricsOptions { GcEnabled = true, PerformanceEnabled = true };
 
             Assert.True(options.IsGcEnabled);
 #if NET6_0_OR_GREATER
             Assert.False(options.IsJitEnabled);
 #endif
-            Assert.True(options.IsThreadingEnabled);
-            Assert.False(options.IsPerformanceEnabled);
+#if NETCOREAPP3_1_OR_GREATER
+            Assert.False(options.IsThreadingEnabled);
+#endif
+            Assert.True(options.IsPerformanceEnabled);
             Assert.False(options.IsAssembliesEnabled);
             Assert.False(options.IsAllEnabled);
         }
