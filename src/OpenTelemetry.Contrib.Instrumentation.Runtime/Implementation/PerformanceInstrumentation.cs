@@ -21,11 +21,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
 {
     internal class PerformanceInstrumentation : IRuntimeInstrumentation
     {
-        private readonly ObservableGauge<double> workingSetCounter;
-
         public PerformanceInstrumentation(RuntimeMetricsOptions options, Meter meter)
         {
-            this.workingSetCounter = meter.CreateObservableGauge($"{options.MetricPrefix}working_set", () => (double)(Environment.WorkingSet / 1_000_000), "MB", "Working Set");
+            meter.CreateObservableGauge($"{options.MetricPrefix}working_set", () => (double)(Environment.WorkingSet / 1_000_000), "MB", "Working Set");
         }
     }
 }

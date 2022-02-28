@@ -21,19 +21,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
 {
     internal class ThreadingInstrumentation : IRuntimeInstrumentation
     {
-        private readonly ObservableCounter<int> threadPoolThreadCounter;
-        private readonly ObservableGauge<long> monitorContentionCounter;
-        private readonly ObservableCounter<long> threadPoolQueueCounter;
-        private readonly ObservableGauge<long> completedItemsCounter;
-        private readonly ObservableCounter<long> timerCounter;
-
         public ThreadingInstrumentation(RuntimeMetricsOptions options, Meter meter)
         {
-            this.threadPoolThreadCounter = meter.CreateObservableCounter($"{options.MetricPrefix}threadpool_thread_count", () => ThreadPool.ThreadCount, description: "ThreadPool Thread Count");
-            this.monitorContentionCounter = meter.CreateObservableGauge($"{options.MetricPrefix}monitor_lock_contention_count", () => Monitor.LockContentionCount, description: "Monitor Lock Contention Count");
-            this.threadPoolQueueCounter = meter.CreateObservableCounter($"{options.MetricPrefix}threadpool_queue_length", () => ThreadPool.PendingWorkItemCount, description: "ThreadPool Queue Length");
-            this.completedItemsCounter = meter.CreateObservableGauge($"{options.MetricPrefix}threadpool_completed_items_count", () => ThreadPool.CompletedWorkItemCount, description: "ThreadPool Completed Work Item Count");
-            this.timerCounter = meter.CreateObservableCounter($"{options.MetricPrefix}active_timer_count", () => Timer.ActiveCount, description: "Number of Active Timers");
+            meter.CreateObservableCounter($"{options.MetricPrefix}threadpool_thread_count", () => ThreadPool.ThreadCount, description: "ThreadPool Thread Count");
+            meter.CreateObservableGauge($"{options.MetricPrefix}monitor_lock_contention_count", () => Monitor.LockContentionCount, description: "Monitor Lock Contention Count");
+            meter.CreateObservableCounter($"{options.MetricPrefix}threadpool_queue_length", () => ThreadPool.PendingWorkItemCount, description: "ThreadPool Queue Length");
+            meter.CreateObservableGauge($"{options.MetricPrefix}threadpool_completed_items_count", () => ThreadPool.CompletedWorkItemCount, description: "ThreadPool Completed Work Item Count");
+            meter.CreateObservableCounter($"{options.MetricPrefix}active_timer_count", () => Timer.ActiveCount, description: "Number of Active Timers");
         }
     }
 }
