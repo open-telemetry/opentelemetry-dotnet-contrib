@@ -16,7 +16,6 @@
 
 using System;
 using OpenTelemetry.Contrib.Instrumentation.Runtime;
-using OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation;
 
 namespace OpenTelemetry.Metrics
 {
@@ -40,22 +39,7 @@ namespace OpenTelemetry.Metrics
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (builder is IDeferredMeterProviderBuilder deferredMeterProviderBuilder)
-            {
-                return deferredMeterProviderBuilder.Configure((sp, builder) =>
-                {
-                    AddRuntimeMetrics(builder, sp.GetOptions<RuntimeMetricsOptions>(), configure);
-                });
-            }
-
-            return AddRuntimeMetrics(builder, new RuntimeMetricsOptions(), configure);
-        }
-
-        private static MeterProviderBuilder AddRuntimeMetrics(
-            MeterProviderBuilder builder,
-            RuntimeMetricsOptions options,
-            Action<RuntimeMetricsOptions> configure)
-        {
+            var options = new RuntimeMetricsOptions();
             configure?.Invoke(options);
 
             var instrumentation = new RuntimeMetrics(options);
