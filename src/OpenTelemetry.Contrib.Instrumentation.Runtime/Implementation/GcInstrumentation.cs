@@ -31,11 +31,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
 
         private readonly Meter meter;
         private readonly IEventCounterStore eventCounterStore;
-        private readonly ObservableCounter<double> gcHeapSizeCounter;
+        private readonly ObservableGauge<double> gcHeapSizeCounter;
         private readonly ObservableGauge<int> gen0GCCounter;
         private readonly ObservableGauge<int> gen1GCCounter;
         private readonly ObservableGauge<int> gen2GCCounter;
-        private readonly ObservableGauge<long> allocRateCounter;
+        private readonly ObservableCounter<long> allocRateCounter;
         private readonly ObservableCounter<double> fragmentationCounter;
         private readonly ObservableCounter<double> committedCounter;
         private readonly ObservableCounter<double> gcTimeCounter;
@@ -57,11 +57,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
             this.eventCounterStore.Subscribe(LohSizeCounterName, EventCounterType.Mean);
             this.eventCounterStore.Subscribe(PohSizeCounterName, EventCounterType.Mean);
 
-            this.gcHeapSizeCounter = meter.CreateObservableCounter($"{options.MetricPrefix}gc_heap_size", () => (double)(GC.GetTotalMemory(false) / 1_000_000), "MB", "GC Heap Size");
+            this.gcHeapSizeCounter = meter.CreateObservableGauge($"{options.MetricPrefix}gc_heap_size", () => (double)(GC.GetTotalMemory(false) / 1_000_000), "MB", "GC Heap Size");
             this.gen0GCCounter = meter.CreateObservableGauge($"{options.MetricPrefix}gen_0-gc_count", () => GC.CollectionCount(0), description: "Gen 0 GC Count");
             this.gen1GCCounter = meter.CreateObservableGauge($"{options.MetricPrefix}gen_1-gc_count", () => GC.CollectionCount(1), description: "Gen 1 GC Count");
             this.gen2GCCounter = meter.CreateObservableGauge($"{options.MetricPrefix}gen_2-gc_count", () => GC.CollectionCount(2), description: "Gen 2 GC Count");
-            this.allocRateCounter = meter.CreateObservableGauge($"{options.MetricPrefix}alloc_rate", () => GC.GetTotalAllocatedBytes(), "B", "Allocation Rate");
+            this.allocRateCounter = meter.CreateObservableCounter($"{options.MetricPrefix}alloc_rate", () => GC.GetTotalAllocatedBytes(), "B", "Allocation Rate");
             this.fragmentationCounter = meter.CreateObservableCounter($"{options.MetricPrefix}gc_fragmentation", GetFragmentation, description: "GC Fragmentation");
 
 #if NET6_0_OR_GREATER
