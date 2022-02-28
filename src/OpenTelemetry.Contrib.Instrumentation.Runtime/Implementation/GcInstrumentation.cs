@@ -45,7 +45,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
         private readonly ObservableCounter<long> lohSizeCounter;
         private readonly ObservableCounter<long> pohSizeCounter;
 
-        public GcInstrumentation(Meter meter, IEventCounterStore eventCounterStore)
+        public GcInstrumentation(RuntimeMetricsOptions options, Meter meter, IEventCounterStore eventCounterStore)
         {
             this.meter = meter;
             this.eventCounterStore = eventCounterStore;
@@ -57,26 +57,26 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
             this.eventCounterStore.Subscribe(LohSizeCounterName, EventCounterType.Mean);
             this.eventCounterStore.Subscribe(PohSizeCounterName, EventCounterType.Mean);
 
-            this.gcHeapSizeCounter = meter.CreateObservableCounter($"{RuntimeMetrics.MetricPrefix}gc_heap_size", () => (double)(GC.GetTotalMemory(false) / 1_000_000), "MB", "GC Heap Size");
-            this.gen0GCCounter = meter.CreateObservableGauge($"{RuntimeMetrics.MetricPrefix}gen_0-gc_count", () => GC.CollectionCount(0), description: "Gen 0 GC Count");
-            this.gen1GCCounter = meter.CreateObservableGauge($"{RuntimeMetrics.MetricPrefix}gen_1-gc_count", () => GC.CollectionCount(1), description: "Gen 1 GC Count");
-            this.gen2GCCounter = meter.CreateObservableGauge($"{RuntimeMetrics.MetricPrefix}gen_2-gc_count", () => GC.CollectionCount(2), description: "Gen 2 GC Count");
-            this.allocRateCounter = meter.CreateObservableGauge($"{RuntimeMetrics.MetricPrefix}alloc_rate", () => GC.GetTotalAllocatedBytes(), "B", "Allocation Rate");
-            this.fragmentationCounter = meter.CreateObservableCounter($"{RuntimeMetrics.MetricPrefix}gc_fragmentation", GetFragmentation, description: "GC Fragmentation");
+            this.gcHeapSizeCounter = meter.CreateObservableCounter($"{options.MetricPrefix}gc_heap_size", () => (double)(GC.GetTotalMemory(false) / 1_000_000), "MB", "GC Heap Size");
+            this.gen0GCCounter = meter.CreateObservableGauge($"{options.MetricPrefix}gen_0-gc_count", () => GC.CollectionCount(0), description: "Gen 0 GC Count");
+            this.gen1GCCounter = meter.CreateObservableGauge($"{options.MetricPrefix}gen_1-gc_count", () => GC.CollectionCount(1), description: "Gen 1 GC Count");
+            this.gen2GCCounter = meter.CreateObservableGauge($"{options.MetricPrefix}gen_2-gc_count", () => GC.CollectionCount(2), description: "Gen 2 GC Count");
+            this.allocRateCounter = meter.CreateObservableGauge($"{options.MetricPrefix}alloc_rate", () => GC.GetTotalAllocatedBytes(), "B", "Allocation Rate");
+            this.fragmentationCounter = meter.CreateObservableCounter($"{options.MetricPrefix}gc_fragmentation", GetFragmentation, description: "GC Fragmentation");
 
 #if NET6_0_OR_GREATER
-            this.committedCounter = meter.CreateObservableCounter($"{RuntimeMetrics.MetricPrefix}gc_committed", () => (double)(GC.GetGCMemoryInfo().TotalCommittedBytes / 1_000_000), "MB", description: "GC Committed Bytes");
+            this.committedCounter = meter.CreateObservableCounter($"{options.MetricPrefix}gc_committed", () => (double)(GC.GetGCMemoryInfo().TotalCommittedBytes / 1_000_000), "MB", description: "GC Committed Bytes");
 #else
             this.eventCounterStore.Subscribe(CommittedCounterName, EventCounterType.Mean);
-            this.committedCounter = meter.CreateObservableCounter($"{RuntimeMetrics.MetricPrefix}gc_committed", () => this.eventCounterStore.ReadDouble(CommittedCounterName), "MB", description: "GC Committed Bytes");
+            this.committedCounter = meter.CreateObservableCounter($"{options.MetricPrefix}gc_committed", () => this.eventCounterStore.ReadDouble(CommittedCounterName), "MB", description: "GC Committed Bytes");
 #endif
 
-            this.gcTimeCounter = meter.CreateObservableCounter($"{RuntimeMetrics.MetricPrefix}time_in_gc", () => this.eventCounterStore.ReadDouble(GcTimeCounterName), description: "% Time in GC since last GC");
-            this.gen0SizeCounter = meter.CreateObservableCounter($"{RuntimeMetrics.MetricPrefix}gen_0_size", () => this.eventCounterStore.ReadLong(Gen0SizeCounterName), "B", description: "Gen 0 Size");
-            this.gen1SizeCounter = meter.CreateObservableCounter($"{RuntimeMetrics.MetricPrefix}gen_1_size", () => this.eventCounterStore.ReadLong(Gen1SizeCounterName), "B", description: "Gen 1 Size");
-            this.gen2SizeCounter = meter.CreateObservableCounter($"{RuntimeMetrics.MetricPrefix}gen_2_size", () => this.eventCounterStore.ReadLong(Gen2SizeCounterName), "B", description: "Gen 2 Size");
-            this.lohSizeCounter = meter.CreateObservableCounter($"{RuntimeMetrics.MetricPrefix}loh_size", () => this.eventCounterStore.ReadLong(LohSizeCounterName), "B", description: "LOH Size");
-            this.pohSizeCounter = meter.CreateObservableCounter($"{RuntimeMetrics.MetricPrefix}poh_size", () => this.eventCounterStore.ReadLong(PohSizeCounterName), "B", description: "POH (Pinned Object Heap) Size");
+            this.gcTimeCounter = meter.CreateObservableCounter($"{options.MetricPrefix}time_in_gc", () => this.eventCounterStore.ReadDouble(GcTimeCounterName), description: "% Time in GC since last GC");
+            this.gen0SizeCounter = meter.CreateObservableCounter($"{options.MetricPrefix}gen_0_size", () => this.eventCounterStore.ReadLong(Gen0SizeCounterName), "B", description: "Gen 0 Size");
+            this.gen1SizeCounter = meter.CreateObservableCounter($"{options.MetricPrefix}gen_1_size", () => this.eventCounterStore.ReadLong(Gen1SizeCounterName), "B", description: "Gen 1 Size");
+            this.gen2SizeCounter = meter.CreateObservableCounter($"{options.MetricPrefix}gen_2_size", () => this.eventCounterStore.ReadLong(Gen2SizeCounterName), "B", description: "Gen 2 Size");
+            this.lohSizeCounter = meter.CreateObservableCounter($"{options.MetricPrefix}loh_size", () => this.eventCounterStore.ReadLong(LohSizeCounterName), "B", description: "LOH Size");
+            this.pohSizeCounter = meter.CreateObservableCounter($"{options.MetricPrefix}poh_size", () => this.eventCounterStore.ReadLong(PohSizeCounterName), "B", description: "POH (Pinned Object Heap) Size");
         }
 
         public void Dispose()

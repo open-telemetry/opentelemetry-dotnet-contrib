@@ -27,8 +27,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
     /// </summary>
     internal class RuntimeMetrics : IDisposable
     {
-        internal const string MetricPrefix = "process_runtime_dotnet_";
-
         internal static readonly AssemblyName AssemblyName = typeof(RuntimeMetrics).Assembly.GetName();
         internal static readonly string InstrumentationName = AssemblyName.Name;
         internal static readonly string InstrumentationVersion = AssemblyName.Version.ToString();
@@ -49,34 +47,34 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
 
             if (options.IsGcEnabled)
             {
-                this.instrumentations.Add(new GcInstrumentation(this.meter, this.eventCounterStore));
+                this.instrumentations.Add(new GcInstrumentation(options, this.meter, this.eventCounterStore));
             }
 
 #if NET6_0_OR_GREATER
             if (options.IsJitEnabled)
             {
-                this.instrumentations.Add(new JitInstrumentation(this.meter));
+                this.instrumentations.Add(new JitInstrumentation(options, this.meter));
             }
 #endif
 
             if (options.IsThreadingEnabled)
             {
-                this.instrumentations.Add(new ThreadingInstrumentation(this.meter));
+                this.instrumentations.Add(new ThreadingInstrumentation(options, this.meter));
             }
 
             if (options.IsPerformanceEnabled)
             {
-                this.instrumentations.Add(new PerformanceInstrumentation(this.meter, this.eventCounterStore));
+                this.instrumentations.Add(new PerformanceInstrumentation(options, this.meter, this.eventCounterStore));
             }
 
             if (options.IsExceptionsEnabled)
             {
-                this.instrumentations.Add(new ExceptionsInstrumentation(this.meter, this.eventCounterStore));
+                this.instrumentations.Add(new ExceptionsInstrumentation(options, this.meter, this.eventCounterStore));
             }
 
             if (options.IsAssembliesEnabled)
             {
-                this.instrumentations.Add(new AssembliesInstrumentation(this.meter));
+                this.instrumentations.Add(new AssembliesInstrumentation(options, this.meter));
             }
 
             if (this.eventCounterStore.HasSubscriptions())

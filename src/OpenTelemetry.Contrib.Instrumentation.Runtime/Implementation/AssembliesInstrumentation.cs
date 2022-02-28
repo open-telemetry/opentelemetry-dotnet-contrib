@@ -24,10 +24,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
         private readonly Meter meter;
         private readonly ObservableCounter<int> assemblyCounter;
 
-        public AssembliesInstrumentation(Meter meter)
+        public AssembliesInstrumentation(RuntimeMetricsOptions options, Meter meter)
         {
             this.meter = meter;
-            this.assemblyCounter = meter.CreateObservableCounter($"{RuntimeMetrics.MetricPrefix}assembly_count", () => AppDomain.CurrentDomain.GetAssemblies().Length, description: "Number of Assemblies Loaded");
+            this.assemblyCounter = meter.CreateObservableCounter($"{options.MetricPrefix}assembly_count", () => AppDomain.CurrentDomain.GetAssemblies().Length, description: "Number of Assemblies Loaded");
         }
     }
 }

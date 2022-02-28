@@ -28,14 +28,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
         private readonly ObservableGauge<long> completedItemsCounter;
         private readonly ObservableCounter<long> timerCounter;
 
-        public ThreadingInstrumentation(Meter meter)
+        public ThreadingInstrumentation(RuntimeMetricsOptions options, Meter meter)
         {
             this.meter = meter;
-            this.threadPoolThreadCounter = meter.CreateObservableCounter($"{RuntimeMetrics.MetricPrefix}threadpool_thread_count", () => ThreadPool.ThreadCount, description: "ThreadPool Thread Count");
-            this.monitorContentionCounter = meter.CreateObservableGauge($"{RuntimeMetrics.MetricPrefix}monitor_lock_contention_count", () => Monitor.LockContentionCount, description: "Monitor Lock Contention Count");
-            this.threadPoolQueueCounter = meter.CreateObservableCounter($"{RuntimeMetrics.MetricPrefix}threadpool_queue_length", () => ThreadPool.PendingWorkItemCount, description: "ThreadPool Queue Length");
-            this.completedItemsCounter = meter.CreateObservableGauge($"{RuntimeMetrics.MetricPrefix}threadpool_completed_items_count", () => ThreadPool.CompletedWorkItemCount, description: "ThreadPool Completed Work Item Count");
-            this.timerCounter = meter.CreateObservableCounter($"{RuntimeMetrics.MetricPrefix}active_timer_count", () => Timer.ActiveCount, description: "Number of Active Timers");
+            this.threadPoolThreadCounter = meter.CreateObservableCounter($"{options.MetricPrefix}threadpool_thread_count", () => ThreadPool.ThreadCount, description: "ThreadPool Thread Count");
+            this.monitorContentionCounter = meter.CreateObservableGauge($"{options.MetricPrefix}monitor_lock_contention_count", () => Monitor.LockContentionCount, description: "Monitor Lock Contention Count");
+            this.threadPoolQueueCounter = meter.CreateObservableCounter($"{options.MetricPrefix}threadpool_queue_length", () => ThreadPool.PendingWorkItemCount, description: "ThreadPool Queue Length");
+            this.completedItemsCounter = meter.CreateObservableGauge($"{options.MetricPrefix}threadpool_completed_items_count", () => ThreadPool.CompletedWorkItemCount, description: "ThreadPool Completed Work Item Count");
+            this.timerCounter = meter.CreateObservableCounter($"{options.MetricPrefix}active_timer_count", () => Timer.ActiveCount, description: "Number of Active Timers");
         }
     }
 }

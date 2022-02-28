@@ -28,15 +28,15 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
         private readonly ObservableGauge<double> cpuTimeCounter;
         private readonly ObservableGauge<double> workingSetCounter;
 
-        public PerformanceInstrumentation(Meter meter, IEventCounterStore eventCounterStore)
+        public PerformanceInstrumentation(RuntimeMetricsOptions options, Meter meter, IEventCounterStore eventCounterStore)
         {
             this.meter = meter;
             this.eventCounterStore = eventCounterStore;
 
             this.eventCounterStore.Subscribe(CpuTimeCounterName, EventCounterType.Mean);
 
-            this.cpuTimeCounter = meter.CreateObservableGauge($"{RuntimeMetrics.MetricPrefix}cpu_usage", () => this.eventCounterStore.ReadDouble(CpuTimeCounterName), "CPU Usage");
-            this.workingSetCounter = meter.CreateObservableGauge($"{RuntimeMetrics.MetricPrefix}working_set", () => (double)(Environment.WorkingSet / 1_000_000), "MB", "Working Set");
+            this.cpuTimeCounter = meter.CreateObservableGauge($"{options.MetricPrefix}cpu_usage", () => this.eventCounterStore.ReadDouble(CpuTimeCounterName), "CPU Usage");
+            this.workingSetCounter = meter.CreateObservableGauge($"{options.MetricPrefix}working_set", () => (double)(Environment.WorkingSet / 1_000_000), "MB", "Working Set");
         }
 
         public void Dispose()

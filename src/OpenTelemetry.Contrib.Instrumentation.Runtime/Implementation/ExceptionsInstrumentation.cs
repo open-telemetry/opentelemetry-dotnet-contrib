@@ -27,13 +27,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Implementation
         private readonly IEventCounterStore eventCounterStore;
         private readonly ObservableGauge<long> exceptionCounter;
 
-        public ExceptionsInstrumentation(Meter meter, IEventCounterStore eventCounterStore)
+        public ExceptionsInstrumentation(RuntimeMetricsOptions options, Meter meter, IEventCounterStore eventCounterStore)
         {
             this.meter = meter;
             this.eventCounterStore = eventCounterStore;
             this.eventCounterStore.Subscribe(CounterName, EventCounterType.Sum);
 
-            this.exceptionCounter = meter.CreateObservableGauge($"{RuntimeMetrics.MetricPrefix}exception_count", () => this.eventCounterStore.ReadLong(CounterName), description: "Exception Count");
+            this.exceptionCounter = meter.CreateObservableGauge($"{options.MetricPrefix}exception_count", () => this.eventCounterStore.ReadLong(CounterName), description: "Exception Count");
         }
 
         public void Dispose()
