@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using OpenTelemetry.Metrics;
 using Xunit;
 
 namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
@@ -39,7 +38,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
         [Fact]
         public void Enable_Gc_Only()
         {
-            var options = new RuntimeMetricsOptions().WithGc();
+            var options = new RuntimeMetricsOptions { GcEnabled = true };
 
             Assert.True(options.IsGcEnabled);
 #if NET6_0_OR_GREATER
@@ -55,7 +54,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
         [Fact]
         public void Enable_Jit_Only()
         {
-            var options = new RuntimeMetricsOptions().WithJit();
+            var options = new RuntimeMetricsOptions { JitEnabled = true };
 
             Assert.False(options.IsGcEnabled);
             Assert.True(options.IsJitEnabled);
@@ -69,7 +68,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
         [Fact]
         public void Enable_Threading_Only()
         {
-            var options = new RuntimeMetricsOptions().WithThreading();
+            var options = new RuntimeMetricsOptions { ThreadingEnabled = true };
 
             Assert.False(options.IsGcEnabled);
 #if NET6_0_OR_GREATER
@@ -84,7 +83,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
         [Fact]
         public void Enable_Performance_Only()
         {
-            var options = new RuntimeMetricsOptions().WithPerformance();
+            var options = new RuntimeMetricsOptions { PerformanceEnabled = true };
 
             Assert.False(options.IsGcEnabled);
 #if NET6_0_OR_GREATER
@@ -99,7 +98,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
         [Fact]
         public void Enable_Assemblies_Only()
         {
-            var options = new RuntimeMetricsOptions().WithAssemblies();
+            var options = new RuntimeMetricsOptions { AssembliesEnabled = true };
 
             Assert.False(options.IsGcEnabled);
 #if NET6_0_OR_GREATER
@@ -114,7 +113,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
         [Fact]
         public void Enable_Multiple()
         {
-            var options = new RuntimeMetricsOptions().WithGc().WithThreading();
+            var options = new RuntimeMetricsOptions { GcEnabled = true, ThreadingEnabled = true };
 
             Assert.True(options.IsGcEnabled);
 #if NET6_0_OR_GREATER

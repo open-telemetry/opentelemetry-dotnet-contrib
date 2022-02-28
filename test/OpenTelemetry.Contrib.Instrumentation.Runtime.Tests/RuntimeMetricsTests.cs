@@ -41,14 +41,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
             this.meterProvider = Sdk.CreateMeterProviderBuilder()
                  .AddRuntimeMetrics(options =>
                  {
-                     options.WithGc()
-                     .WithThreading()
-                     .WithPerformance()
+                     options.GcEnabled = true;
+                     options.ThreadingEnabled = true;
+                     options.PerformanceEnabled = true;
 #if NET6_0_OR_GREATER
 
-                     .WithJit()
+                     options.JitEnabled = true;
 #endif
-                     .WithAssemblies();
+                     options.AssembliesEnabled = true;
                  })
                 .AddReader(metricReader)
                 .Build();
