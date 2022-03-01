@@ -64,10 +64,11 @@ specify only the required metrics:
 ```csharp
 using var meterProvider = Sdk.CreateMeterProviderBuilder()
     .AddRuntimeMetrics(options => options
-        .WithGc()
-        .WithThreading()
-        .WithPerformance()
-    )
+    {
+        options.GcEnabled = true;
+        options.ThreadingEnabled = true;
+        options.PerformanceEnabled = true;
+     })
     .Build();
 ```
 
