@@ -67,7 +67,7 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
     {
         options.GcEnabled = true;
         options.ThreadingEnabled = true;
-        options.PerformanceEnabled = true;
+        options.MemoryEnabled = true;
      })
     .Build();
 ```

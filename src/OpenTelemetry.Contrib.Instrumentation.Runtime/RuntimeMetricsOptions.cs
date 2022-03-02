@@ -22,9 +22,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
     public class RuntimeMetricsOptions
     {
         /// <summary>
-        /// Gets or sets a prefiix used for the metric names.
+        /// Gets a prefix used for the metric names.
         /// </summary>
-        public string MetricPrefix { get; set; } = "process_runtime_dotnet_";
+        public string MetricPrefix { get; } = "process.runtime.dotnet.";
 
         /// <summary>
         /// Gets or sets a value indicating whether garbage collection metrics should be collected.
@@ -46,9 +46,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
 #endif
 
         /// <summary>
-        /// Gets or sets a value indicating whether performance metrics should be collected.
+        /// Gets or sets a value indicating whether memory metrics should be collected.
         /// </summary>
-        public bool? PerformanceEnabled { get; set; }
+        public bool? MemoryEnabled { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether assembly metrics should be collected.
@@ -65,7 +65,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
 #if NETCOREAPP3_1_OR_GREATER
         && this.ThreadingEnabled == null
 #endif
-        && this.PerformanceEnabled == null
+        && this.MemoryEnabled == null
         && this.AssembliesEnabled == null;
 
         /// <summary>
@@ -88,9 +88,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
 #endif
 
         /// <summary>
-        /// Gets a value indicating whether performance metrics is enabled.
+        /// Gets a value indicating whether memory metrics is enabled.
         /// </summary>
-        internal bool IsPerformanceEnabled => this.PerformanceEnabled == true || this.IsAllEnabled;
+        internal bool IsMemoryEnabled => this.MemoryEnabled == true || this.IsAllEnabled;
 
         /// <summary>
         /// Gets a value indicating whether assembly metrics is enabled.

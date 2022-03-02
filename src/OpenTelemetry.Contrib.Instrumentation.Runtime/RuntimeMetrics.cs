@@ -42,48 +42,48 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
 
             if (options.IsGcEnabled)
             {
-                this.meter.CreateObservableGauge($"{options.MetricPrefix}gc_heap_size", () => (double)(GC.GetTotalMemory(false) / 1_000_000), "MB", "GC Heap Size");
-                this.meter.CreateObservableGauge($"{options.MetricPrefix}gen_0-gc_count", () => GC.CollectionCount(0), description: "Gen 0 GC Count");
-                this.meter.CreateObservableGauge($"{options.MetricPrefix}gen_1-gc_count", () => GC.CollectionCount(1), description: "Gen 1 GC Count");
-                this.meter.CreateObservableGauge($"{options.MetricPrefix}gen_2-gc_count", () => GC.CollectionCount(2), description: "Gen 2 GC Count");
+                this.meter.CreateObservableGauge($"{options.MetricPrefix}gc.heap", () => GC.GetTotalMemory(false), "B", "GC Heap Size");
+                this.meter.CreateObservableGauge($"{options.MetricPrefix}gen_0-gc.count", () => GC.CollectionCount(0), description: "Gen 0 GC Count");
+                this.meter.CreateObservableGauge($"{options.MetricPrefix}gen_1-gc.count", () => GC.CollectionCount(1), description: "Gen 1 GC Count");
+                this.meter.CreateObservableGauge($"{options.MetricPrefix}gen_2-gc.count", () => GC.CollectionCount(2), description: "Gen 2 GC Count");
 #if NETCOREAPP3_1_OR_GREATER
-                this.meter.CreateObservableCounter($"{options.MetricPrefix}alloc_rate", () => GC.GetTotalAllocatedBytes(), "B", "Allocation Rate");
-                this.meter.CreateObservableCounter($"{options.MetricPrefix}gc_fragmentation", GetFragmentation, description: "GC Fragmentation");
+                this.meter.CreateObservableCounter($"{options.MetricPrefix}alloc.rate", () => GC.GetTotalAllocatedBytes(), "B", "Allocation Rate");
+                this.meter.CreateObservableCounter($"{options.MetricPrefix}gc.fragmentation", GetFragmentation, description: "GC Fragmentation");
 #endif
 
 #if NET6_0_OR_GREATER
-                this.meter.CreateObservableCounter($"{options.MetricPrefix}gc_committed", () => (double)(GC.GetGCMemoryInfo().TotalCommittedBytes / 1_000_000), "MB", description: "GC Committed Bytes");
+                this.meter.CreateObservableCounter($"{options.MetricPrefix}gc.committed", () => (double)(GC.GetGCMemoryInfo().TotalCommittedBytes / 1_000_000), "MB", description: "GC Committed Bytes");
 #endif
             }
 
 #if NET6_0_OR_GREATER
             if (options.IsJitEnabled)
             {
-                this.meter.CreateObservableCounter($"{options.MetricPrefix}il_bytes_jitted", () => System.Runtime.JitInfo.GetCompiledILBytes(), "B", description: "IL Bytes Jitted");
-                this.meter.CreateObservableCounter($"{options.MetricPrefix}methods_jitted_count", () => System.Runtime.JitInfo.GetCompiledMethodCount(), description: "Number of Methods Jitted");
-                this.meter.CreateObservableGauge($"{options.MetricPrefix}time_in_jit", () => System.Runtime.JitInfo.GetCompilationTime().TotalMilliseconds, "ms", description: "Time spent in JIT");
+                this.meter.CreateObservableCounter($"{options.MetricPrefix}il.bytes.jitted", () => System.Runtime.JitInfo.GetCompiledILBytes(), "B", description: "IL Bytes Jitted");
+                this.meter.CreateObservableCounter($"{options.MetricPrefix}methods.jitted.count", () => System.Runtime.JitInfo.GetCompiledMethodCount(), description: "Number of Methods Jitted");
+                this.meter.CreateObservableGauge($"{options.MetricPrefix}time.in.jit", () => System.Runtime.JitInfo.GetCompilationTime().TotalMilliseconds, "ms", description: "Time spent in JIT");
             }
 #endif
 
 #if NETCOREAPP3_1_OR_GREATER
             if (options.IsThreadingEnabled)
             {
-                this.meter.CreateObservableGauge($"{options.MetricPrefix}monitor_lock_contention_count", () => Monitor.LockContentionCount, description: "Monitor Lock Contention Count");
-                this.meter.CreateObservableCounter($"{options.MetricPrefix}threadpool_thread_count", () => ThreadPool.ThreadCount, description: "ThreadPool Thread Count");
-                this.meter.CreateObservableGauge($"{options.MetricPrefix}threadpool_completed_items_count", () => ThreadPool.CompletedWorkItemCount, description: "ThreadPool Completed Work Item Count");
-                this.meter.CreateObservableCounter($"{options.MetricPrefix}threadpool_queue_length", () => ThreadPool.PendingWorkItemCount, description: "ThreadPool Queue Length");
-                this.meter.CreateObservableCounter($"{options.MetricPrefix}active_timer_count", () => Timer.ActiveCount, description: "Number of Active Timers");
+                this.meter.CreateObservableGauge($"{options.MetricPrefix}monitor.lock.contention.count", () => Monitor.LockContentionCount, description: "Monitor Lock Contention Count");
+                this.meter.CreateObservableCounter($"{options.MetricPrefix}threadpool.thread.count", () => ThreadPool.ThreadCount, description: "ThreadPool Thread Count");
+                this.meter.CreateObservableGauge($"{options.MetricPrefix}threadpool.completed.items.count", () => ThreadPool.CompletedWorkItemCount, description: "ThreadPool Completed Work Item Count");
+                this.meter.CreateObservableCounter($"{options.MetricPrefix}threadpool.queue.length", () => ThreadPool.PendingWorkItemCount, description: "ThreadPool Queue Length");
+                this.meter.CreateObservableCounter($"{options.MetricPrefix}active.timer.count", () => Timer.ActiveCount, description: "Number of Active Timers");
             }
 #endif
 
-            if (options.IsPerformanceEnabled)
+            if (options.IsMemoryEnabled)
             {
-                this.meter.CreateObservableGauge($"{options.MetricPrefix}working_set", () => (double)(Environment.WorkingSet / 1_000_000), "MB", "Working Set");
+                this.meter.CreateObservableGauge($"{options.MetricPrefix}memory.usage", () => (double)(Environment.WorkingSet / 1_000_000), "MB", "Working Set");
             }
 
             if (options.IsAssembliesEnabled)
             {
-                this.meter.CreateObservableCounter($"{options.MetricPrefix}assembly_count", () => AppDomain.CurrentDomain.GetAssemblies().Length, description: "Number of Assemblies Loaded");
+                this.meter.CreateObservableCounter($"{options.MetricPrefix}assembly.count", () => AppDomain.CurrentDomain.GetAssemblies().Length, description: "Number of Assemblies Loaded");
             }
         }
 

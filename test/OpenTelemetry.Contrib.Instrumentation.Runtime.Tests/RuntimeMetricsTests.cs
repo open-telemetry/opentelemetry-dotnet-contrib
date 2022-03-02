@@ -45,7 +45,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 #if NETCOREAPP3_1_OR_GREATER
                      options.ThreadingEnabled = true;
 #endif
-                     options.PerformanceEnabled = true;
+                     options.MemoryEnabled = true;
 #if NET6_0_OR_GREATER
 
                      options.JitEnabled = true;
