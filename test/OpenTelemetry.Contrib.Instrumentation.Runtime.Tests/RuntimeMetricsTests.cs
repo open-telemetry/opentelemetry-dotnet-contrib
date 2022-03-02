@@ -33,10 +33,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
             var metricItems = new List<Metric>();
             var metricExporter = new InMemoryExporter<Metric>(metricItems);
 
-            var metricReader = new BaseExportingMetricReader(metricExporter)
-            {
-                Temporality = AggregationTemporality.Cumulative,
-            };
+            var metricReader = new PeriodicExportingMetricReader(metricExporter, 500);
 
             this.meterProvider = Sdk.CreateMeterProviderBuilder()
                  .AddRuntimeMetrics(options =>
@@ -52,10 +49,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 #endif
                      options.AssembliesEnabled = true;
                  })
-                .AddReader(metricReader)
+                 .AddReader(metricReader)
                 .Build();
 
-            await Task.Delay(TimeSpan.FromSeconds(5));
+            await Task.Delay(TimeSpan.FromSeconds(2));
             this.meterProvider.Dispose();
 
             Assert.True(metricItems.Count > 1);

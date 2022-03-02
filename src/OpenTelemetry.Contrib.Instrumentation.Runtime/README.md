@@ -32,8 +32,8 @@ is shutdown.
 
 Additionally, this examples sets up the OpenTelemetry Prometheus exporter, which
 requires adding the package
-[`OpenTelemetry.Exporter.Prometheus`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Prometheus/README.md) to
-the application.
+[`OpenTelemetry.Exporter.Prometheus`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Prometheus/README.md)
+to the application.
 
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
@@ -78,8 +78,8 @@ This component uses an
 [EventSource](https://docs.microsoft.com/dotnet/api/system.diagnostics.tracing.eventsource)
 with the name "OpenTelemetry-Instrumentation-Runtime" for its internal
 logging. Please refer to [SDK
-troubleshooting](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/src/OpenTelemetry#troubleshooting) for instructions on
-seeing these internal logs.
+troubleshooting](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/src/OpenTelemetry#troubleshooting)
+for instructions on seeing these internal logs.
 
 ## References
 
