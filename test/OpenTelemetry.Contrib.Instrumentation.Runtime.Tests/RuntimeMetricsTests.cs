@@ -26,7 +26,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
     public class RuntimeMetricsTests
     {
         private const int MaxTimeToAllowForFlush = 10000;
-        private const string metricPrefix = "process.runtime.dotnet.";
+        private const string MetricPrefix = "process.runtime.dotnet.";
 
         [Fact]
         public async Task RuntimeMetricsAreCaptured()
@@ -52,7 +52,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
             meterProvider.ForceFlush(MaxTimeToAllowForFlush);
             Assert.True(exportedItems.Count > 1);
             var metric1 = exportedItems[0];
-            Assert.StartsWith(metricPrefix, metric1.Name);
+            Assert.StartsWith(MetricPrefix, metric1.Name);
         }
     }
 }
