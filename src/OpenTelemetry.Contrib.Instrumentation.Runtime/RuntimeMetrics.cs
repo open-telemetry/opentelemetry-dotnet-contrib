@@ -15,6 +15,7 @@
 // </copyright>
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using System.Threading;
@@ -31,6 +32,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
         internal static readonly string InstrumentationVersion = AssemblyName.Version.ToString();
         private static string metricPrefix = "process.runtime.dotnet.";
         private readonly Meter meter;
+        private double previousProcessorTime;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RuntimeMetrics"/> class.
@@ -81,6 +83,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
                 this.meter.CreateObservableGauge($"{metricPrefix}memory.usage", () => (double)(Environment.WorkingSet / 1_000_000), "MB", "Working Set");
             }
 
+            if (options.IsCpuEnabled)
+            {
+                this.meter.CreateObservableGauge($"{metricPrefix}cpu.usage", this.CalculateCpuUsage, "CPU usage");
+            }
+
             if (options.IsAssembliesEnabled)
             {
                 this.meter.CreateObservableCounter($"{metricPrefix}assembly.count", () => AppDomain.CurrentDomain.GetAssemblies().Length, description: "Number of Assemblies Loaded");
@@ -100,5 +107,21 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
             return gcInfo.HeapSizeBytes != 0 ? gcInfo.FragmentedBytes * 100d / gcInfo.HeapSizeBytes : 0;
         }
 #endif
+
+        private double CalculateCpuUsage()
+        {
+            var cpuUsage = 0.0;
+
+            var endTime = Process.GetCurrentProcess().TotalProcessorTime.TotalMilliseconds;
+
+            if (this.previousProcessorTime != 0)
+            {
+                cpuUsage = (endTime - this.previousProcessorTime) / (100 * Environment.ProcessorCount);
+            }
+
+            this.previousProcessorTime = endTime;
+
+            return cpuUsage;
+        }
     }
 }

@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using OpenTelemetry.Exporter;
@@ -40,6 +39,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
                      options.ThreadingEnabled = true;
 #endif
                      options.MemoryEnabled = true;
+                     options.CpuEnabled = true;
 #if NET6_0_OR_GREATER
 
                      options.JitEnabled = true;
@@ -53,6 +53,28 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
             Assert.True(exportedItems.Count > 1);
             var metric1 = exportedItems[0];
             Assert.StartsWith(MetricPrefix, metric1.Name);
+        }
+
+        [Fact]
+        public async Task CpuUsageMetricAreCaptured()
+        {
+            var exportedItems = new List<Metric>();
+            var metricReader = new PeriodicExportingMetricReader(new InMemoryExporter<Metric>(exportedItems), 500);
+
+            using var meterProvider = Sdk.CreateMeterProviderBuilder()
+                 .AddRuntimeMetrics(options =>
+                 {
+                     options.CpuEnabled = true;
+                 })
+                 .AddReader(metricReader)
+                .Build();
+
+            await Task.Delay(1000);
+
+            meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+            Assert.True(exportedItems.Count > 1);
+            var metric1 = exportedItems[0];
+            Assert.StartsWith($"{MetricPrefix}cpu.usage", metric1.Name);
         }
     }
 }
