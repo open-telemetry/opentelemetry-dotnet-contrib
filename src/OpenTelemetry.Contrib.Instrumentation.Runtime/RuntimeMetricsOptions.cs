@@ -22,11 +22,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
     public class RuntimeMetricsOptions
     {
         /// <summary>
-        /// Gets a prefix used for the metric names.
-        /// </summary>
-        public string MetricPrefix { get; } = "process.runtime.dotnet.";
-
-        /// <summary>
         /// Gets or sets a value indicating whether garbage collection metrics should be collected.
         /// </summary>
         public bool? GcEnabled { get; set; }
