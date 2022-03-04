@@ -14,9 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using Xunit;
 
@@ -56,25 +55,53 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
         }
 
         [Fact]
-        public async Task CpuUsageMetricAreCaptured()
+        public void CpuUsageMetricAreCaptured()
         {
             var exportedItems = new List<Metric>();
-            var metricReader = new PeriodicExportingMetricReader(new InMemoryExporter<Metric>(exportedItems), 500);
 
             using var meterProvider = Sdk.CreateMeterProviderBuilder()
                  .AddRuntimeMetrics(options =>
                  {
                      options.CpuEnabled = true;
                  })
-                 .AddReader(metricReader)
+                 .AddInMemoryExporter(exportedItems)
                 .Build();
 
-            await Task.Delay(1000);
+            meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+
+            // simple CPU spinning
+            var afterTenMsec = DateTime.UtcNow.AddMilliseconds(10);
+            while (DateTime.UtcNow < afterTenMsec)
+            {
+            }
 
             meterProvider.ForceFlush(MaxTimeToAllowForFlush);
-            Assert.True(exportedItems.Count > 1);
-            var metric1 = exportedItems[0];
-            Assert.StartsWith($"{MetricPrefix}cpu.usage", metric1.Name);
+
+            Assert.True(exportedItems.Count > 0);
+
+            var sumReceived = GetDoubleSum(exportedItems);
+            Assert.True(sumReceived > 0);
+        }
+
+        private static double GetDoubleSum(List<Metric> metrics)
+        {
+            double sum = 0;
+            foreach (var metric in metrics)
+            {
+                foreach (ref readonly var metricPoint in metric.GetMetricPoints())
+                {
+                    if (metric.MetricType.IsSum())
+                    {
+                        sum += metricPoint.GetSumDouble();
+                    }
+                    else
+                    {
+                        sum += metricPoint.GetGaugeLastValueDouble();
+                    }
+                }
+            }
+
+            return sum;
         }
     }
 }
