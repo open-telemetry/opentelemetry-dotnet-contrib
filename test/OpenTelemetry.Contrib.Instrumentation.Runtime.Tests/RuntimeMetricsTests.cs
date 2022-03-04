@@ -29,7 +29,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
         private const string MetricPrefix = "process.runtime.dotnet.";
 
         [Fact]
-        public async Task RuntimeMetricsAreCaptured()
+        public void RuntimeMetricsAreCaptured()
         {
             var exportedItems = new List<Metric>();
             using var meterProvider = Sdk.CreateMeterProviderBuilder()
