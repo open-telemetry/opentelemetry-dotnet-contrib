@@ -25,17 +25,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 {
     public class RuntimeMetricsTests
     {
-        private MeterProvider meterProvider = null;
+        private const int MaxTimeToAllowForFlush = 10000;
+        private const string MetricPrefix = "process.runtime.dotnet.";
 
         [Fact]
-        public async Task RequestMetricIsCaptured()
+        public void RuntimeMetricsAreCaptured()
         {
-            var metricItems = new List<Metric>();
-            var metricExporter = new InMemoryExporter<Metric>(metricItems);
-
-            var metricReader = new PeriodicExportingMetricReader(metricExporter, 500);
-
-            this.meterProvider = Sdk.CreateMeterProviderBuilder()
+            var exportedItems = new List<Metric>();
+            using var meterProvider = Sdk.CreateMeterProviderBuilder()
                  .AddRuntimeMetrics(options =>
                  {
                      options.GcEnabled = true;
@@ -49,13 +46,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 #endif
                      options.AssembliesEnabled = true;
                  })
-                 .AddReader(metricReader)
+                 .AddInMemoryExporter(exportedItems)
                 .Build();
 
-            await Task.Delay(TimeSpan.FromSeconds(2));
-            this.meterProvider.Dispose();
-
-            Assert.True(metricItems.Count > 1);
+            meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+            Assert.True(exportedItems.Count > 1);
+            var metric1 = exportedItems[0];
+            Assert.StartsWith(MetricPrefix, metric1.Name);
         }
     }
 }
