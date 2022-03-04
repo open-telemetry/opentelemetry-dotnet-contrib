@@ -70,8 +70,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
             meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
             // simple CPU spinning
-            var afterTenMsec = DateTime.UtcNow.AddMilliseconds(10);
-            while (DateTime.UtcNow < afterTenMsec)
+            var spinDuration = DateTime.UtcNow.AddMilliseconds(50);
+            while (DateTime.UtcNow < spinDuration)
             {
             }
 
