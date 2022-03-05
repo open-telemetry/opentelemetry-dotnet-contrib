@@ -69,6 +69,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 
             meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
+            // first time run
+            var sumReceived = GetDoubleSum(exportedItems);
+            Assert.Equal(0, sumReceived);
+
             // simple CPU spinning
             var spinDuration = DateTime.UtcNow.AddMilliseconds(50);
             while (DateTime.UtcNow < spinDuration)
@@ -79,7 +83,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 
             Assert.True(exportedItems.Count > 0);
 
-            var sumReceived = GetDoubleSum(exportedItems);
+            sumReceived = GetDoubleSum(exportedItems);
             Assert.True(sumReceived > 0);
         }
 

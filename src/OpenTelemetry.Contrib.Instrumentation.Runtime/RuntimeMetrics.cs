@@ -85,7 +85,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
 
             if (options.IsCpuEnabled)
             {
-                this.meter.CreateObservableGauge($"{metricPrefix}cpu.usage", this.CalculateCpuUsage, "CPU usage");
+                this.meter.CreateObservableGauge("process.cpu.usage", this.CalculateCpuUsage, "CPU usage");
             }
 
             if (options.IsAssembliesEnabled)
