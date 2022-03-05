@@ -42,6 +42,7 @@ Maintainers
 * [Mikel Blanchard](https://github.com/CodeBlanch), CoStar Group
 * [Prashant Srivastava](https://github.com/srprash), AWS
 * [Sergey Kanzhelev](https://github.com/SergeyKanzhelev), Google
+* [Utkarsh Umesan Pillai](https://github.com/utpilla), Microsoft
 
 *Find more about the maintainer role in [community
 repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#maintainer).*
