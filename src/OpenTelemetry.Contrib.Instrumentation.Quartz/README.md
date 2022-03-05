@@ -53,7 +53,8 @@ using OpenTelemetry.Instrumentation.Quartz.Implementation;
 // ...
 x.AddQuartzInstrumentation(
     opts =>
-        opts.TracedOperations = new HashSet<string>(new[] {
+        opts.TracedOperations = new 
+        HashSet<string>(new[] {
             OperationName.Job.Execute,
 }));
 ```
@@ -69,7 +70,9 @@ from the raw `JobDetail` object. The `Enrich` action is
 called only when `activity.IsAllDataRequested` is `true`. It contains the
 activity itself (which can be enriched), the name of the event, and the
 actual raw object.
-For event names "OnStartActivity", "OnStopActivity",, the actual object will be `IJobDetail`.
+
+For event names "OnStartActivity", "OnStopActivity", the actual object will be `IJobDetail`.
+
 For event name "OnException", the actual object will be the exception thrown
 
 The following code snippet shows how to add additional tags using `Enrich`.
@@ -77,6 +80,7 @@ The following code snippet shows how to add additional tags using `Enrich`.
 ```csharp
 // ...
 using OpenTelemetry.Instrumentation.Quartz.Implementation;
+using Quartz;
 // ...
 // Enable enriching an activity after it is created.
 x.AddQuartzInstrumentation(opt =>
@@ -92,10 +96,6 @@ x.AddQuartzInstrumentation(opt =>
     };
 })
 ```
-
-For full operation list please see: [OperationName](../OpenTelemetry.Instrumentation.Quartz/Implementation/OperationName.cs).
-
-All operations are enabled by default.
 
 ## References
 
