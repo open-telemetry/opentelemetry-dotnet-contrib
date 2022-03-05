@@ -43,7 +43,7 @@ services.AddOpenTelemetryTracing(x =>
 
 ## Filter traced operations
 
-This opening allows you to filter trace operations. 
+This opening allows you to filter trace operations.
 
 For example you can trace only execute operations using this snippet:
 
