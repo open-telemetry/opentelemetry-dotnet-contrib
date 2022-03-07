@@ -38,7 +38,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
                      options.ThreadingEnabled = true;
 #endif
                      options.MemoryEnabled = true;
-                     options.CpuEnabled = true;
+                     options.ProcessEnabled = true;
 #if NET6_0_OR_GREATER
 
                      options.JitEnabled = true;
@@ -55,26 +55,20 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
         }
 
         [Fact]
-        public void CpuUsageMetricAreCaptured()
+        public void CpuTimeMetricAreCaptured()
         {
             var exportedItems = new List<Metric>();
 
             using var meterProvider = Sdk.CreateMeterProviderBuilder()
                  .AddRuntimeMetrics(options =>
                  {
-                     options.CpuEnabled = true;
+                     options.ProcessEnabled = true;
                  })
                  .AddInMemoryExporter(exportedItems)
                 .Build();
 
-            meterProvider.ForceFlush(MaxTimeToAllowForFlush);
-
-            // first time run
-            var sumReceived = GetDoubleSum(exportedItems);
-            Assert.Equal(0, sumReceived);
-
             // simple CPU spinning
-            var spinDuration = DateTime.UtcNow.AddMilliseconds(50);
+            var spinDuration = DateTime.UtcNow.AddMilliseconds(10);
             while (DateTime.UtcNow < spinDuration)
             {
             }
@@ -83,7 +77,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 
             Assert.True(exportedItems.Count > 0);
 
-            sumReceived = GetDoubleSum(exportedItems);
+            var sumReceived = GetDoubleSum(exportedItems);
             Assert.True(sumReceived > 0);
         }
 
