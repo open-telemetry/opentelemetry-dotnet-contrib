@@ -84,7 +84,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
 
             if (options.IsProcessEnabled)
             {
-                this.meter.CreateObservableGauge("process.cpu.time", () => Process.GetCurrentProcess().TotalProcessorTime.TotalSeconds, "s", "Total processor time of this process");
+                this.meter.CreateObservableCounter("process.cpu.time", () => Process.GetCurrentProcess().TotalProcessorTime.TotalSeconds, "s", "Total processor time of this process");
             }
 
             if (options.IsAssembliesEnabled)
