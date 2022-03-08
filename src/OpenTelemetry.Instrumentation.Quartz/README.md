@@ -44,7 +44,7 @@ services.AddOpenTelemetryTracing(x =>
 {
     x.AddQuartzInstrumentation();
     x.UseJaegerExporter(config => {
-      // Configure Jaeger       
+      // Configure Jaeger
     });
 });
 ```
@@ -61,7 +61,7 @@ using OpenTelemetry.Instrumentation.Quartz.Implementation;
 // ...
 x.AddQuartzInstrumentation(
     opts =>
-        opts.TracedOperations = new 
+        opts.TracedOperations = new
         HashSet<string>(new[] {
             OperationName.Job.Execute,
 }));

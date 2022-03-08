@@ -11,5 +11,4 @@
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Api" Version="1.1.0" />
   </ItemGroup>
-    
 </Project>
