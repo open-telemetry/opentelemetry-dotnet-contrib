@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>OpenTelemetry Quartz.NET Instrumentation</Description>
+    <PackageTags>$(PackageTags);distributed-tracing</PackageTags>
+    <MinVerTagPrefix>Instrumentation.Quartz-</MinVerTagPrefix>
+    <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
+    <TargetFrameworks>net472;netstandard2.0</TargetFrameworks>
+    <AssemblyName>OpenTelemetry.Instrumentation.Quartz</AssemblyName>
+    <RootNamespace>OpenTelemetry.Instrumentation.Quartz</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Api" Version="1.1.0" />
+  </ItemGroup>
+</Project>
