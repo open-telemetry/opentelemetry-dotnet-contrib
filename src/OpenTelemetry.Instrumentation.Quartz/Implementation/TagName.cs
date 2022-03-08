@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Implementation
+namespace OpenTelemetry.Instrumentation.Quartz.Implementation
 {
     internal static class TagName
     {

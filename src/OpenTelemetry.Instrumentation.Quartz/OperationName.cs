@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Contrib.Instrumentation.Quartz
+namespace OpenTelemetry.Instrumentation.Quartz
 {
     /// <summary>
     /// Quartz diagnostic source operation name constants.

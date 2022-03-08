@@ -18,7 +18,7 @@ using System;
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Implementation
+namespace OpenTelemetry.Instrumentation.Quartz.Implementation
 {
     /// <summary>
     /// EventSource events emitted from the project.

@@ -15,8 +15,8 @@
 // </copyright>
 
 using System;
-using OpenTelemetry.Contrib.Instrumentation.Quartz;
-using OpenTelemetry.Contrib.Instrumentation.Quartz.Implementation;
+using OpenTelemetry.Instrumentation.Quartz;
+using OpenTelemetry.Instrumentation.Quartz.Implementation;
 
 // ReSharper disable once CheckNamespace
 namespace OpenTelemetry.Trace

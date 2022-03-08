@@ -20,7 +20,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Quartz;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Tests
+namespace OpenTelemetry.Instrumentation.Quartz.Tests
 {
     public class TestJob : IJob
     {

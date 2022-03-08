@@ -21,12 +21,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
-using OpenTelemetry.Instrumentation;
 using OpenTelemetry.Trace;
 using Quartz;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Tests
+namespace OpenTelemetry.Instrumentation.Quartz.Tests
 {
     public class QuartzDiagnosticListenerTests
     {

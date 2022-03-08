@@ -3,6 +3,14 @@
 Automatically instruments the Quartz jobs from
 [Quartz](https://www.nuget.org/packages/Quartz/).
 
+## Supported Frameworks
+
+QuartzNET Instrumentation is only supported when using
+.NET Framework >= `net472` and netstandard >= `netstandard2.0`.
+Quartz`net461` support for activity sources has been removed,
+more information can be found
+[here](https://www.quartz-scheduler.net/2021/04/07/quartznet-3-3-released/).
+
 ## Installation
 
 ```shell
@@ -44,7 +52,6 @@ services.AddOpenTelemetryTracing(x =>
 ## Filter traced operations
 
 This option allows you to filter trace operations.
-
 
 For example you can trace only execute operations using this snippet:
 

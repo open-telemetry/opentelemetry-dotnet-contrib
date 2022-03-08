@@ -15,10 +15,9 @@
 // </copyright>
 
 using System;
-using OpenTelemetry.Contrib.Instrumentation.Quartz.Implementation;
-using OpenTelemetry.Instrumentation;
+using OpenTelemetry.Instrumentation.Quartz.Implementation;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Quartz
+namespace OpenTelemetry.Instrumentation.Quartz
 {
     internal class QuartzJobInstrumentation : IDisposable
     {

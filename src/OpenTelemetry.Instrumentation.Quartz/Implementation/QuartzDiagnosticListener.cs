@@ -19,10 +19,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using OpenTelemetry.Instrumentation;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Quartz.Implementation
+namespace OpenTelemetry.Instrumentation.Quartz.Implementation
 {
     internal sealed class QuartzDiagnosticListener : ListenerHandler
     {

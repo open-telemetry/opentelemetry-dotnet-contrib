@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Quartz
+namespace OpenTelemetry.Instrumentation.Quartz
 {
     /// <summary>
     /// Options for <see cref="QuartzJobInstrumentation"/>.
