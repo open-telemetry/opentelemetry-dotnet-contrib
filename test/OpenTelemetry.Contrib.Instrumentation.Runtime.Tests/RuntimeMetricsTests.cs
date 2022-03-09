@@ -75,7 +75,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 
             meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
-            Assert.True(exportedItems.Count > 0);
+            Assert.Single(exportedItems);
 
             var sumReceived = GetDoubleSum(exportedItems);
             Assert.True(sumReceived > 0);
