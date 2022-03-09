@@ -15,6 +15,7 @@
 // </copyright>
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using System.Threading;
@@ -79,6 +80,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
             if (options.IsMemoryEnabled)
             {
                 this.meter.CreateObservableGauge($"{metricPrefix}memory.usage", () => (double)(Environment.WorkingSet / 1_000_000), "MB", "Working Set");
+            }
+
+            if (options.IsProcessEnabled)
+            {
+                this.meter.CreateObservableCounter("process.cpu.time", () => Process.GetCurrentProcess().TotalProcessorTime.TotalSeconds, "s", "Total processor time of this process");
             }
 
             if (options.IsAssembliesEnabled)
