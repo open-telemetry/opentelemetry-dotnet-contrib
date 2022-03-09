@@ -16,8 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using Xunit;
 
@@ -40,6 +38,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
                      options.ThreadingEnabled = true;
 #endif
                      options.MemoryEnabled = true;
+                     options.ProcessEnabled = true;
 #if NET6_0_OR_GREATER
 
                      options.JitEnabled = true;
@@ -53,6 +52,54 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
             Assert.True(exportedItems.Count > 1);
             var metric1 = exportedItems[0];
             Assert.StartsWith(MetricPrefix, metric1.Name);
+        }
+
+        [Fact]
+        public void CpuTimeMetricAreCaptured()
+        {
+            var exportedItems = new List<Metric>();
+
+            using var meterProvider = Sdk.CreateMeterProviderBuilder()
+                 .AddRuntimeMetrics(options =>
+                 {
+                     options.ProcessEnabled = true;
+                 })
+                 .AddInMemoryExporter(exportedItems)
+                .Build();
+
+            // simple CPU spinning
+            var spinDuration = DateTime.UtcNow.AddMilliseconds(10);
+            while (DateTime.UtcNow < spinDuration)
+            {
+            }
+
+            meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+
+            Assert.True(exportedItems.Count > 0);
+
+            var sumReceived = GetDoubleSum(exportedItems);
+            Assert.True(sumReceived > 0);
+        }
+
+        private static double GetDoubleSum(List<Metric> metrics)
+        {
+            double sum = 0;
+            foreach (var metric in metrics)
+            {
+                foreach (ref readonly var metricPoint in metric.GetMetricPoints())
+                {
+                    if (metric.MetricType.IsSum())
+                    {
+                        sum += metricPoint.GetSumDouble();
+                    }
+                    else
+                    {
+                        sum += metricPoint.GetGaugeLastValueDouble();
+                    }
+                }
+            }
+
+            return sum;
         }
     }
 }

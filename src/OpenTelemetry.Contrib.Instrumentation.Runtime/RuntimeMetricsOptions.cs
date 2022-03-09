@@ -46,6 +46,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
         public bool? MemoryEnabled { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether process metrics should be collected.
+        /// </summary>
+        public bool? ProcessEnabled { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether assembly metrics should be collected.
         /// </summary>
         public bool? AssembliesEnabled { get; set; }
@@ -61,6 +66,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
         && this.ThreadingEnabled == null
 #endif
         && this.MemoryEnabled == null
+        && this.ProcessEnabled == null
         && this.AssembliesEnabled == null;
 
         /// <summary>
@@ -86,6 +92,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
         /// Gets a value indicating whether memory metrics is enabled.
         /// </summary>
         internal bool IsMemoryEnabled => this.MemoryEnabled == true || this.IsAllEnabled;
+
+        /// <summary>
+        /// Gets a value indicating whether process metrics is enabled.
+        /// </summary>
+        internal bool IsProcessEnabled => this.ProcessEnabled == true || this.IsAllEnabled;
 
         /// <summary>
         /// Gets a value indicating whether assembly metrics is enabled.
