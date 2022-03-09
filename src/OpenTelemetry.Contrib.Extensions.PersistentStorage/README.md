@@ -7,7 +7,9 @@ get splitted into the abstract interface and concrete implementations.
 
 ## Installation
 
-TODO
+```shell
+dotnet add package OpenTelemetry.Contrib.Extensions.PersistentStorage
+```
 
 ## Basic Usage
 

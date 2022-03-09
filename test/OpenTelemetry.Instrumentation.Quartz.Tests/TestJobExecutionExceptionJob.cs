@@ -1,4 +1,4 @@
-﻿// <copyright file="IServiceContract.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="TestJobExecutionExceptionJob.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,18 +14,16 @@
 // limitations under the License.
 // </copyright>
 
-using System.ServiceModel;
 using System.Threading.Tasks;
+using Quartz;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
+namespace OpenTelemetry.Instrumentation.Quartz.Tests
 {
-    [ServiceContract(Namespace = "http://opentelemetry.io/", Name = "Service", SessionMode = SessionMode.Allowed)]
-    public interface IServiceContract
+    public class TestJobExecutionExceptionJob : IJob
     {
-        [OperationContract]
-        Task<ServiceResponse> ExecuteAsync(ServiceRequest request);
-
-        [OperationContract(Action = "")]
-        Task<ServiceResponse> ExecuteWithEmptyActionNameAsync(ServiceRequest request);
+        public Task Execute(IJobExecutionContext context)
+        {
+            throw new JobExecutionException("Catch me if you can!");
+        }
     }
 }
