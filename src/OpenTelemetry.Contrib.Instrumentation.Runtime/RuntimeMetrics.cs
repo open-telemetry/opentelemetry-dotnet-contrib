@@ -15,6 +15,7 @@
 // </copyright>
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Reflection;
@@ -84,7 +85,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
 
             if (options.IsProcessEnabled)
             {
-                this.meter.CreateObservableCounter("process.cpu.time", () => Process.GetCurrentProcess().TotalProcessorTime.TotalSeconds, "s", "Total processor time of this process");
+                this.meter.CreateObservableCounter("process.cpu.time", this.GetProcessorTimes, "s", "Processor time of this process");
             }
 
             if (options.IsAssembliesEnabled)
@@ -106,5 +107,15 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
             return gcInfo.HeapSizeBytes != 0 ? gcInfo.FragmentedBytes * 100d / gcInfo.HeapSizeBytes : 0;
         }
 #endif
+
+        private IEnumerable<Measurement<double>> GetProcessorTimes()
+        {
+            var process = Process.GetCurrentProcess();
+            return new[]
+            {
+                new Measurement<double>(process.UserProcessorTime.TotalSeconds, new KeyValuePair<string, object>("state", "user")),
+                new Measurement<double>(process.PrivilegedProcessorTime.TotalSeconds, new KeyValuePair<string, object>("state", "system")),
+            };
+        }
     }
 }
