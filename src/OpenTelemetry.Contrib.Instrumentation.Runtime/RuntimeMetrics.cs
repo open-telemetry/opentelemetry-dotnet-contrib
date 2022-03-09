@@ -81,7 +81,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
             if (options.IsProcessEnabled)
             {
                 this.meter.CreateObservableCounter("process.cpu.time", this.GetProcessorTimes, "s", "Processor time of this process");
-				this.meter.CreateObservableCounter("process.cpu.count", () => Environment.ProcessorCount, description: "The number of available logical CPUs");
+				this.meter.CreateObservableGauge("process.cpu.count", () => Environment.ProcessorCount, description: "The number of available logical CPUs");
                 this.meter.CreateObservableGauge("process.memory.usage", () => Process.GetCurrentProcess().WorkingSet64, "By", "The amount of physical memory in use");
                 this.meter.CreateObservableGauge("process.memory.virtual", () => Process.GetCurrentProcess().VirtualMemorySize64, "By", "The amount of committed virtual memory");
             }
