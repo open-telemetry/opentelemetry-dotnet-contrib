@@ -55,7 +55,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
         }
 
         [Fact]
-        public void CpuTimeMetricAreCaptured()
+        public void ProcessMetricsAreCaptured()
         {
             var exportedItems = new List<Metric>();
 
@@ -75,11 +75,20 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 
             meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
-            Assert.Equal(3, exportedItems.Count);
+            Assert.Equal(4, exportedItems.Count);
 
             var cpuTimeMetric = exportedItems.First(i => i.Name == "process.cpu.time");
             var sumReceived = GetDoubleSum(cpuTimeMetric);
             Assert.True(sumReceived > 0);
+
+            var cpuCountMetric = exportedItems.First(i => i.Name == "process.cpu.count");
+            Assert.Equal(Environment.ProcessorCount, (int)GetLongSum(cpuCountMetric));
+
+            var memoryMetric = exportedItems.First(i => i.Name == "process.memory.usage");
+            Assert.True(GetLongSum(memoryMetric) > 0);
+
+            var virtualMemoryMetric = exportedItems.First(i => i.Name == "process.memory.virtual");
+            Assert.True(GetLongSum(virtualMemoryMetric) > 0);
         }
 
         private static double GetDoubleSum(Metric metric)
@@ -95,6 +104,25 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
                 else
                 {
                     sum += metricPoint.GetGaugeLastValueDouble();
+                }
+            }
+
+            return sum;
+        }
+
+        private static double GetLongSum(Metric metric)
+        {
+            double sum = 0;
+
+            foreach (ref readonly var metricPoint in metric.GetMetricPoints())
+            {
+                if (metric.MetricType.IsSum())
+                {
+                    sum += metricPoint.GetSumLong();
+                }
+                else
+                {
+                    sum += metricPoint.GetGaugeLastValueLong();
                 }
             }
 
