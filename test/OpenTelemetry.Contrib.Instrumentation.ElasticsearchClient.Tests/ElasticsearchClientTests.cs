@@ -797,5 +797,75 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
             Assert.Equal(isActivityExpected, processor.Invocations.Any(invo => invo.Method.Name == nameof(processor.Object.OnStart)));
             Assert.Equal(isActivityExpected, processor.Invocations.Any(invo => invo.Method.Name == nameof(processor.Object.OnEnd)));
         }
+
+        [Fact]
+        public async Task DbStatementIsNotDisplayedWhenSetDbStatementForRequestIsFalse()
+        {
+            var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
+            var processor = new Mock<BaseProcessor<Activity>>();
+
+            var parent = new Activity("parent").Start();
+
+            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
+
+            using (Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new AlwaysOnSampler())
+                .AddElasticsearchClientInstrumentation(o => o.SetDbStatementForRequest = false)
+                .SetResourceBuilder(expectedResource)
+                .AddProcessor(processor.Object)
+                .Build())
+            {
+                var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+                Assert.NotNull(searchResponse);
+                Assert.True(searchResponse.ApiCall.Success);
+                Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
+
+                var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+                Assert.Empty(failed);
+            }
+
+            var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
+            Assert.Single(activities);
+
+            var searchActivity = activities[0];
+
+            var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement));
+        }
+
+        [Fact]
+        public async Task DbStatementIsDisplayedWhenSetDbStatementForRequestIsUsingTheDefaultValue()
+        {
+            var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
+            var processor = new Mock<BaseProcessor<Activity>>();
+
+            var parent = new Activity("parent").Start();
+
+            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
+
+            using (Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new AlwaysOnSampler())
+                .AddElasticsearchClientInstrumentation()
+                .SetResourceBuilder(expectedResource)
+                .AddProcessor(processor.Object)
+                .Build())
+            {
+                var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+                Assert.NotNull(searchResponse);
+                Assert.True(searchResponse.ApiCall.Success);
+                Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
+
+                var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+                Assert.Empty(failed);
+            }
+
+            var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
+            Assert.Single(activities);
+
+            var searchActivity = activities[0];
+
+            var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            Assert.NotNull(searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement));
+        }
     }
 }
