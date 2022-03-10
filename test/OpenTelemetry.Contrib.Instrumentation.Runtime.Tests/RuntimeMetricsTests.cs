@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenTelemetry.Metrics;
 using Xunit;
 
@@ -37,7 +38,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 #if NETCOREAPP3_1_OR_GREATER
                      options.ThreadingEnabled = true;
 #endif
-                     options.MemoryEnabled = true;
                      options.ProcessEnabled = true;
 #if NET6_0_OR_GREATER
 
@@ -75,27 +75,26 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 
             meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
-            Assert.True(exportedItems.Count > 0);
+            Assert.Equal(3, exportedItems.Count);
 
-            var sumReceived = GetDoubleSum(exportedItems);
+            var cpuTimeMetric = exportedItems.First(i => i.Name == "process.cpu.time");
+            var sumReceived = GetDoubleSum(cpuTimeMetric);
             Assert.True(sumReceived > 0);
         }
 
-        private static double GetDoubleSum(List<Metric> metrics)
+        private static double GetDoubleSum(Metric metric)
         {
             double sum = 0;
-            foreach (var metric in metrics)
+
+            foreach (ref readonly var metricPoint in metric.GetMetricPoints())
             {
-                foreach (ref readonly var metricPoint in metric.GetMetricPoints())
+                if (metric.MetricType.IsSum())
                 {
-                    if (metric.MetricType.IsSum())
-                    {
-                        sum += metricPoint.GetSumDouble();
-                    }
-                    else
-                    {
-                        sum += metricPoint.GetGaugeLastValueDouble();
-                    }
+                    sum += metricPoint.GetSumDouble();
+                }
+                else
+                {
+                    sum += metricPoint.GetGaugeLastValueDouble();
                 }
             }
 

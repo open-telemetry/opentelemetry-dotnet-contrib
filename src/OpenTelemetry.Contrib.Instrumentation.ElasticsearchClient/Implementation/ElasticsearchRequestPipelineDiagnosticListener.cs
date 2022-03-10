@@ -143,7 +143,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementati
                 }
 
                 var debugInformation = this.debugInformationFetcher.Fetch(payload);
-                if (debugInformation != null)
+                if (debugInformation != null && this.options.SetDbStatementForRequest)
                 {
                     activity.SetTag(SemanticConventions.AttributeDbStatement, this.ParseAndFormatRequest(activity, debugInformation));
                 }
