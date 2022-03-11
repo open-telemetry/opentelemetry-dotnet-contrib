@@ -13,7 +13,7 @@ src/OpenTelemetry.Contrib.Instrumentation.MassTransit/                      @ope
 src/OpenTelemetry.Contrib.Instrumentation.Owin/                             @open-telemetry/dotnet-contrib-approvers @codeblanch
 src/OpenTelemetry.Contrib.Instrumentation.Wcf/                              @open-telemetry/dotnet-contrib-approvers @codeblanch
 src/OpenTelemetry.Contrib.Instrumentation.MySqlData/                        @open-telemetry/dotnet-contrib-approvers @moonheart
-src/OpenTelemetry.Contrib.Extensions.PersistentStorage.Api/                 @open-telemetry/dotnet-contrib-approvers @vishweshbankwar
+src/OpenTelemetry.Extensions.PersistentStorage.Api/                         @open-telemetry/dotnet-contrib-approvers @vishweshbankwar
 src/OpenTelemetry.Contrib.Extensions.PersistentStorage/                     @open-telemetry/dotnet-contrib-approvers @vishweshbankwar
 src/OpenTelemetry.Contrib.Instrumentation.Quartz/                           @open-telemetry/dotnet-contrib-approvers @maldago
 src/OpenTelemetry.Contrib.Preview/                                          @open-telemetry/dotnet-contrib-approvers @codeblanch
