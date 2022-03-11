@@ -15,6 +15,7 @@
 // </copyright>
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Reflection;
@@ -43,24 +44,24 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
 
             if (options.IsGcEnabled)
             {
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.heap", () => GC.GetTotalMemory(false), "B", "GC Heap Size");
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.heap", () => GC.GetTotalMemory(false), "By", "GC Heap Size");
                 this.meter.CreateObservableGauge($"{metricPrefix}gen_0-gc.count", () => GC.CollectionCount(0), description: "Gen 0 GC Count");
                 this.meter.CreateObservableGauge($"{metricPrefix}gen_1-gc.count", () => GC.CollectionCount(1), description: "Gen 1 GC Count");
                 this.meter.CreateObservableGauge($"{metricPrefix}gen_2-gc.count", () => GC.CollectionCount(2), description: "Gen 2 GC Count");
 #if NETCOREAPP3_1_OR_GREATER
-                this.meter.CreateObservableCounter($"{metricPrefix}alloc.rate", () => GC.GetTotalAllocatedBytes(), "B", "Allocation Rate");
+                this.meter.CreateObservableCounter($"{metricPrefix}alloc.rate", () => GC.GetTotalAllocatedBytes(), "By", "Allocation Rate");
                 this.meter.CreateObservableCounter($"{metricPrefix}gc.fragmentation", GetFragmentation, description: "GC Fragmentation");
 #endif
 
 #if NET6_0_OR_GREATER
-                this.meter.CreateObservableCounter($"{metricPrefix}gc.committed", () => (double)(GC.GetGCMemoryInfo().TotalCommittedBytes / 1_000_000), "MB", description: "GC Committed Bytes");
+                this.meter.CreateObservableCounter($"{metricPrefix}gc.committed", () => (double)(GC.GetGCMemoryInfo().TotalCommittedBytes / 1_000_000), "Mi", description: "GC Committed Bytes");
 #endif
             }
 
 #if NET6_0_OR_GREATER
             if (options.IsJitEnabled)
             {
-                this.meter.CreateObservableCounter($"{metricPrefix}il.bytes.jitted", () => System.Runtime.JitInfo.GetCompiledILBytes(), "B", description: "IL Bytes Jitted");
+                this.meter.CreateObservableCounter($"{metricPrefix}il.bytes.jitted", () => System.Runtime.JitInfo.GetCompiledILBytes(), "By", description: "IL Bytes Jitted");
                 this.meter.CreateObservableCounter($"{metricPrefix}methods.jitted.count", () => System.Runtime.JitInfo.GetCompiledMethodCount(), description: "Number of Methods Jitted");
                 this.meter.CreateObservableGauge($"{metricPrefix}time.in.jit", () => System.Runtime.JitInfo.GetCompilationTime().TotalMilliseconds, "ms", description: "Time spent in JIT");
             }
@@ -84,7 +85,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
 
             if (options.IsProcessEnabled)
             {
-                this.meter.CreateObservableCounter("process.cpu.time", () => Process.GetCurrentProcess().TotalProcessorTime.TotalSeconds, "s", "Total processor time of this process");
+                this.meter.CreateObservableCounter("process.cpu.time", this.GetProcessorTimes, "s", "Processor time of this process");
             }
 
             if (options.IsAssembliesEnabled)
@@ -106,5 +107,15 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
             return gcInfo.HeapSizeBytes != 0 ? gcInfo.FragmentedBytes * 100d / gcInfo.HeapSizeBytes : 0;
         }
 #endif
+
+        private IEnumerable<Measurement<double>> GetProcessorTimes()
+        {
+            var process = Process.GetCurrentProcess();
+            return new[]
+            {
+                new Measurement<double>(process.UserProcessorTime.TotalSeconds, new KeyValuePair<string, object>("state", "user")),
+                new Measurement<double>(process.PrivilegedProcessorTime.TotalSeconds, new KeyValuePair<string, object>("state", "system")),
+            };
+        }
     }
 }

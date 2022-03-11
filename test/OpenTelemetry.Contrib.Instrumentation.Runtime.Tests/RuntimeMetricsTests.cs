@@ -75,7 +75,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 
             meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
-            Assert.True(exportedItems.Count > 0);
+            Assert.Single(exportedItems);
+            var metric1 = exportedItems[0];
+            Assert.Equal("process.cpu.time", metric1.Name);
 
             var sumReceived = GetDoubleSum(exportedItems);
             Assert.True(sumReceived > 0);
