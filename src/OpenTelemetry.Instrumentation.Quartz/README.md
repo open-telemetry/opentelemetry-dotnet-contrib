@@ -15,7 +15,7 @@ more information can be found
 
 ```shell
 dotnet add package OpenTelemetry.Extensions.Hosting
-dotnet add package OpenTelemetry.Contrib.Instrumentation.Quartz
+dotnet add package OpenTelemetry.Instrumentation.Quartz
 ```
 
 ## Configuration
