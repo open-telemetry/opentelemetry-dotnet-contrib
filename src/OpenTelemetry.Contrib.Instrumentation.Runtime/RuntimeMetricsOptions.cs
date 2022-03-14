@@ -41,11 +41,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
 #endif
 
         /// <summary>
-        /// Gets or sets a value indicating whether memory metrics should be collected.
-        /// </summary>
-        public bool? MemoryEnabled { get; set; }
-
-        /// <summary>
         /// Gets or sets a value indicating whether process metrics should be collected.
         /// </summary>
         public bool? ProcessEnabled { get; set; }
@@ -65,7 +60,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
 #if NETCOREAPP3_1_OR_GREATER
         && this.ThreadingEnabled == null
 #endif
-        && this.MemoryEnabled == null
         && this.ProcessEnabled == null
         && this.AssembliesEnabled == null;
 
@@ -87,11 +81,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime
         /// </summary>
         internal bool IsThreadingEnabled => this.ThreadingEnabled == true || this.IsAllEnabled;
 #endif
-
-        /// <summary>
-        /// Gets a value indicating whether memory metrics is enabled.
-        /// </summary>
-        internal bool IsMemoryEnabled => this.MemoryEnabled == true || this.IsAllEnabled;
 
         /// <summary>
         /// Gets a value indicating whether process metrics is enabled.

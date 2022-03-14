@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenTelemetry.Metrics;
 using Xunit;
 
@@ -37,7 +38,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 #if NETCOREAPP3_1_OR_GREATER
                      options.ThreadingEnabled = true;
 #endif
-                     options.MemoryEnabled = true;
                      options.ProcessEnabled = true;
 #if NET6_0_OR_GREATER
 
@@ -55,7 +55,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
         }
 
         [Fact]
-        public void CpuTimeMetricAreCaptured()
+        public void ProcessMetricsAreCaptured()
         {
             var exportedItems = new List<Metric>();
 
@@ -75,29 +75,54 @@ namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
 
             meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
-            Assert.Single(exportedItems);
-            var metric1 = exportedItems[0];
-            Assert.Equal("process.cpu.time", metric1.Name);
+            Assert.Equal(4, exportedItems.Count);
 
-            var sumReceived = GetDoubleSum(exportedItems);
+            var cpuTimeMetric = exportedItems.First(i => i.Name == "process.cpu.time");
+            var sumReceived = GetDoubleSum(cpuTimeMetric);
             Assert.True(sumReceived > 0);
+
+            var cpuCountMetric = exportedItems.First(i => i.Name == "process.cpu.count");
+            Assert.Equal(Environment.ProcessorCount, (int)GetLongSum(cpuCountMetric));
+
+            var memoryMetric = exportedItems.First(i => i.Name == "process.memory.usage");
+            Assert.True(GetLongSum(memoryMetric) > 0);
+
+            var virtualMemoryMetric = exportedItems.First(i => i.Name == "process.memory.virtual");
+            Assert.True(GetLongSum(virtualMemoryMetric) > 0);
         }
 
-        private static double GetDoubleSum(List<Metric> metrics)
+        private static double GetDoubleSum(Metric metric)
         {
             double sum = 0;
-            foreach (var metric in metrics)
+
+            foreach (ref readonly var metricPoint in metric.GetMetricPoints())
             {
-                foreach (ref readonly var metricPoint in metric.GetMetricPoints())
+                if (metric.MetricType.IsSum())
                 {
-                    if (metric.MetricType.IsSum())
-                    {
-                        sum += metricPoint.GetSumDouble();
-                    }
-                    else
-                    {
-                        sum += metricPoint.GetGaugeLastValueDouble();
-                    }
+                    sum += metricPoint.GetSumDouble();
+                }
+                else
+                {
+                    sum += metricPoint.GetGaugeLastValueDouble();
+                }
+            }
+
+            return sum;
+        }
+
+        private static double GetLongSum(Metric metric)
+        {
+            double sum = 0;
+
+            foreach (ref readonly var metricPoint in metric.GetMetricPoints())
+            {
+                if (metric.MetricType.IsSum())
+                {
+                    sum += metricPoint.GetSumLong();
+                }
+                else
+                {
+                    sum += metricPoint.GetGaugeLastValueLong();
                 }
             }
 
