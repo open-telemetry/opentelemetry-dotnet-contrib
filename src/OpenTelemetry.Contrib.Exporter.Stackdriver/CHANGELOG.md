@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+* Renamed project to `OpenTelemetry.Exporter.Stackdriver`
+  [(#223)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/223)
+
 ## 1.0.0-beta1
 
 * Update OTel SDK package version to 1.1.0
