@@ -1,4 +1,4 @@
-# .github/code_owners.yml
+# This file is used by .github/workflows/assign-reviewers.yml
 
 # Each component identified by its path prefix has a list of users
 components:
