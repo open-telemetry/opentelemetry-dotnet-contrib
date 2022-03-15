@@ -26,12 +26,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests.Tools
 {
     internal class ErrorHandlerServiceBehavior : IServiceBehavior
     {
-        private readonly EventWaitHandle handler;
+        private readonly EventWaitHandle handle;
         private readonly Action<Exception> action;
 
-        public ErrorHandlerServiceBehavior(EventWaitHandle handler, Action<Exception> action)
+        public ErrorHandlerServiceBehavior(EventWaitHandle handle, Action<Exception> action)
         {
-            this.handler = handler;
+            this.handle = handle;
             this.action = action;
         }
 
@@ -43,7 +43,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests.Tools
         {
             foreach (ChannelDispatcher dispatcher in serviceHostBase.ChannelDispatchers)
             {
-                dispatcher.ErrorHandlers.Add(new ErrorHandler(this.handler, this.action));
+                dispatcher.ErrorHandlers.Add(new ErrorHandler(this.handle, this.action));
             }
         }
 

@@ -23,19 +23,19 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests.Tools
 {
     internal class ErrorHandler : IErrorHandler
     {
-        private readonly EventWaitHandle handler;
+        private readonly EventWaitHandle handle;
         private readonly Action<Exception> log;
 
-        public ErrorHandler(EventWaitHandle handler, Action<Exception> log)
+        public ErrorHandler(EventWaitHandle handle, Action<Exception> log)
         {
-            this.handler = handler;
+            this.handle = handle;
             this.log = log;
         }
 
         public bool HandleError(Exception error)
         {
             this.log(error);
-            this.handler.Set();
+            this.handle.Set();
 
             return true;
         }
