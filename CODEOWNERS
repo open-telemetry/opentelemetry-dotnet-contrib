@@ -3,29 +3,3 @@
 
 # For anything not explicitly taken by someone else:
 * @open-telemetry/dotnet-contrib-approvers
-
-src/OpenTelemetry.Contrib.Exporter.Stackdriver/                             @open-telemetry/dotnet-contrib-approvers @SergeyKanzhelev
-src/OpenTelemetry.Contrib.Extensions.AWSXRay/                               @open-telemetry/dotnet-contrib-approvers @srprash @lupengamzn
-src/OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient/              @open-telemetry/dotnet-contrib-approvers @ejsmith
-src/OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore/              @open-telemetry/dotnet-contrib-approvers
-src/OpenTelemetry.Contrib.Instrumentation.GrpcCore/                         @open-telemetry/dotnet-contrib-approvers @pcwiese
-src/OpenTelemetry.Contrib.Instrumentation.MassTransit/                      @open-telemetry/dotnet-contrib-approvers @alexvaluyskiy
-src/OpenTelemetry.Contrib.Instrumentation.Owin/                             @open-telemetry/dotnet-contrib-approvers @codeblanch
-src/OpenTelemetry.Contrib.Instrumentation.Wcf/                              @open-telemetry/dotnet-contrib-approvers @codeblanch
-src/OpenTelemetry.Contrib.Instrumentation.MySqlData/                        @open-telemetry/dotnet-contrib-approvers @moonheart
-src/OpenTelemetry.Contrib.Extensions.PersistentStorage/                     @open-telemetry/dotnet-contrib-approvers @vishweshbankwar
-src/OpenTelemetry.Contrib.Preview/                                          @open-telemetry/dotnet-contrib-approvers @codeblanch
-src/OpenTelemetry.Instrumentation.Quartz/                                   @open-telemetry/dotnet-contrib-approvers @maldago
-
-test/OpenTelemetry.Contrib.Exporter.Stackdriver.Tests/                      @open-telemetry/dotnet-contrib-approvers @SergeyKanzhelev
-test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/                        @open-telemetry/dotnet-contrib-approvers @srprash @lupengamzn
-test/OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests/       @open-telemetry/dotnet-contrib-approvers @ejsmith
-test/OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCoreTests/        @open-telemetry/dotnet-contrib-approvers
-test/OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests/                  @open-telemetry/dotnet-contrib-approvers @pcwiese
-test/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests/               @open-telemetry/dotnet-contrib-approvers @alexvaluyskiy
-test/OpenTelemetry.Contrib.Instrumentation.Owin.Tests/                      @open-telemetry/dotnet-contrib-approvers @codeblanch
-test/OpenTelemetry.Contrib.Instrumentation.Wcf.Tests/                       @open-telemetry/dotnet-contrib-approvers @codeblanch
-test/OpenTelemetry.Contrib.Instrumentation.MySqlData.Tests/                 @open-telemetry/dotnet-contrib-approvers @moonheart
-test/OpenTelemetry.Contrib.Extensions.PersistentStorage.Tests/              @open-telemetry/dotnet-contrib-approvers @vishweshbankwar
-test/OpenTelemetry.Contrib.Preview.Tests/                                   @open-telemetry/dotnet-contrib-approvers @codeblanch
-test/OpenTelemetry.Instrumentation.Quartz.Tests/                            @open-telemetry/dotnet-contrib-approvers @maldago
