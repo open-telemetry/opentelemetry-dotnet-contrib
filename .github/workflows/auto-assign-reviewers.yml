@@ -11,3 +11,6 @@ jobs:
     name: Assign Reviewers
     steps:
       - uses: open-telemetry/assign-reviewers-action@main
+        with:
+          # default: .github/code_owners.yml
+          config-file: .github/component_owners.yml
