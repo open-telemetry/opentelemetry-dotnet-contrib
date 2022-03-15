@@ -10,6 +10,4 @@ jobs:
     runs-on: ubuntu-latest
     name: Assign Reviewers
     steps:
-      - uses: open-telemetry/assign-reviewers-action@main
-        with:
-          config-file: .github/component_owners.yml
+      - uses: dyladan/component-owners@main
