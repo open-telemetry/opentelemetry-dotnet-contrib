@@ -1,5 +1,6 @@
 # Persistent Storage Interface and Implementation
 
+
 This package provides both the interface and implementation of persistent
 storage. It is an experimental component which can be used by OpenTelemetry
 Exporters to provide reliable data delivery. Eventually this component should
