@@ -32,5 +32,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
 
         public Task<ServiceResponse> ExecuteWithEmptyActionNameAsync(ServiceRequest request)
             => this.Channel.ExecuteWithEmptyActionNameAsync(request);
+
+        public void ExecuteWithOneWay(ServiceRequest request)
+            => this.Channel.ExecuteWithOneWay(request);
     }
 }
