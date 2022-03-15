@@ -24,6 +24,8 @@ components:
     - vishweshbankwar
   src/OpenTelemetry.Contrib.Preview/:
     - codeblanch
+  src/OpenTelemetry.Instrumentation.Quartz/:
+    - maldago
 
   test/OpenTelemetry.Contrib.Exporter.Stackdriver.Tests/:
     - SergeyKanzhelev
@@ -47,3 +49,5 @@ components:
     - vishweshbankwar
   test/OpenTelemetry.Contrib.Preview.Tests/:
     - codeblanch
+  test/OpenTelemetry.Instrumentation.Quartz.Tests/:
+    - maldago
