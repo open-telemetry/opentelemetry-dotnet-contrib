@@ -11,12 +11,3 @@ jobs:
     name: Assign Reviewers
     steps:
       - uses: open-telemetry/assign-reviewers-action@main
-        with:
-          # default: .github/code_owners.yml
-          config-file: .github/code_owners.yml
-          # default: ${{ github.token }}
-          repo-token: ${{ github.token }} 
-          # default: true
-          assign-users: "true"
-          # default: true
-          request-user-reviews: "true"
