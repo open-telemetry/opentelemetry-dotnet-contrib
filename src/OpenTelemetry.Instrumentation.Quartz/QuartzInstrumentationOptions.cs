@@ -1,4 +1,4 @@
-﻿// <copyright file="ElasticsearchClientInstrumentationOptions.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="QuartzInstrumentationOptions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,30 +15,24 @@
 // </copyright>
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient
+namespace OpenTelemetry.Instrumentation.Quartz
 {
     /// <summary>
-    /// Options for Elasticsearch client instrumentation.
+    /// Options for <see cref="QuartzJobInstrumentation"/>.
     /// </summary>
-    public class ElasticsearchClientInstrumentationOptions
+    public class QuartzInstrumentationOptions
     {
         /// <summary>
-        /// Gets or sets a value indicating whether down stream instrumentation (HttpClient) is suppressed (disabled).
+        /// Default traced operations.
         /// </summary>
-        public bool SuppressDownstreamInstrumentation { get; set; } = true;
-
-        /// <summary>
-        /// Gets or sets a value indicating whether the JSON request body should be parsed out of the request debug information and formatted as indented JSON.
-        /// </summary>
-        public bool ParseAndFormatRequest { get; set; } = false;
-
-        /// <summary>
-        /// Gets or sets a value indicating whether or not the OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient
-        /// should add the request information as db.statement attribute tag. Default value: True.
-        /// </summary>
-        public bool SetDbStatementForRequest { get; set; } = true;
+        private static readonly IEnumerable<string> DefaultTracedOperations = new[]
+        {
+            OperationName.Job.Execute,
+            OperationName.Job.Veto,
+        };
 
         /// <summary>
         /// Gets or sets an action to enrich an Activity.
@@ -50,5 +44,18 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient
         /// The type of this object depends on the event, which is given by the above parameter.</para>
         /// </remarks>
         public Action<Activity, string, object> Enrich { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the exception will be recorded as ActivityEvent or not.
+        /// </summary>
+        /// <remarks>
+        /// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/exceptions.md.
+        /// </remarks>
+        public bool RecordException { get; set; }
+
+        /// <summary>
+        /// Gets or sets traced operations set.
+        /// </summary>
+        public HashSet<string> TracedOperations { get; set; } = new HashSet<string>(DefaultTracedOperations);
     }
 }
