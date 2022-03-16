@@ -200,4 +200,4 @@ to be placed in the `.github/workflows/` folder.
   value to "OpenTelemetry.Contrib.Foo.Bar".
 
 * When contributing a new project you are expected to assign yourself to your
-project in the [CODEOWNERS](./CODEOWNERS) file
+project in the [code_owners](./.github/code_owners.yml) file
