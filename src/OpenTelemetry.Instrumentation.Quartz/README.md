@@ -1,21 +1,23 @@
 # QuartzNET Instrumentation for OpenTelemetry .NET
 
+[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Quartz.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Quartz)
+[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Quartz.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Quartz)
+
 Automatically instruments the Quartz jobs from
 [Quartz](https://www.nuget.org/packages/Quartz/).
 
 ## Supported Frameworks
 
-QuartzNET Instrumentation is only supported when using
-.NET Framework >= `net472` and netstandard >= `netstandard2.0`.
-Quartz`net461` support for activity sources has been removed,
-more information can be found
+QuartzNET Instrumentation is only supported when using .NET Framework >=
+`net472` and netstandard >= `netstandard2.0`. Quartz`net461` support for
+activity sources has been removed, more information can be found
 [here](https://www.quartz-scheduler.net/2021/04/07/quartznet-3-3-released/).
 
 ## Installation
 
 ```shell
 dotnet add package OpenTelemetry.Extensions.Hosting
-dotnet add package OpenTelemetry.Instrumentation.Quartz
+dotnet add package --prerelease OpenTelemetry.Instrumentation.Quartz
 ```
 
 ## Configuration
@@ -67,19 +69,20 @@ x.AddQuartzInstrumentation(
 }));
 ```
 
-For full operation list please see: [OperationName](../OpenTelemetry.Instrumentation.Quartz/Implementation/OperationName.cs).
+For full operation list please see:
+[OperationName](../OpenTelemetry.Instrumentation.Quartz/Implementation/OperationName.cs).
 
 All operations are enabled by default.
 
 ## Enrich
 
-This option allows one to enrich the activity with additional information
-from the raw `JobDetail` object. The `Enrich` action is
-called only when `activity.IsAllDataRequested` is `true`. It contains the
-activity itself (which can be enriched), the name of the event, and the
-actual raw object.
+This option allows one to enrich the activity with additional information from
+the raw `JobDetail` object. The `Enrich` action is called only when
+`activity.IsAllDataRequested` is `true`. It contains the activity itself (which
+can be enriched), the name of the event, and the actual raw object.
 
-For event names "OnStartActivity", "OnStopActivity", the actual object will be `IJobDetail`.
+For event names "OnStartActivity", "OnStopActivity", the actual object will be
+`IJobDetail`.
 
 For event name "OnException", the actual object will be the exception thrown
 
