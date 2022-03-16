@@ -44,7 +44,7 @@ Please note that individual project requirements might vary.
 * Visual Studio for Mac or Visual Studio Code
 
 Mono might be required by your IDE but is not required by this project. This is
-because unit tests targeting .NET Framework (`nwt452`, `net46`, `net461` etc.)
+because unit tests targeting .NET Framework (`net452`, `net46`, `net461` etc.)
 are disabled outside of Windows.
 
 ### Windows
