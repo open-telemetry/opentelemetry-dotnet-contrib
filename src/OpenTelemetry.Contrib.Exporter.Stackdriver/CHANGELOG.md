@@ -3,9 +3,9 @@
 ## Unreleased
 
 * Going forward the NuGet package will be
-  [`OpenTelemetry.Exporter.Stackdriver`](https://www.nuget.org/packages/OpenTelemetry.Exporter.Stackdriver).  
-  Older versions will remain at 
-  [`OpenTelemetry.Contrib.Exporter.Stackdriver`](https://www.nuget.org/packages/OpenTelemetry.Contrib.Exporter.Stackdriver).  
+  [`OpenTelemetry.Exporter.Stackdriver`](https://www.nuget.org/packages/OpenTelemetry.Exporter.Stackdriver).
+  Older versions will remain at
+  [`OpenTelemetry.Contrib.Exporter.Stackdriver`](https://www.nuget.org/packages/OpenTelemetry.Contrib.Exporter.Stackdriver).
   [(#223)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/223)
 
 ## 1.0.0-beta1
