@@ -52,7 +52,6 @@ using var openTelemetry = Sdk.CreateTracerProviderBuilder()
 Add the `IClientMessageInspector` instrumentation via a behavior extension on
 the clients you want to instrument:
 
-<!-- markdownlint-disable MD013 -->
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
 <configuration>
@@ -82,7 +81,6 @@ the clients you want to instrument:
   </system.serviceModel>
 </configuration>
 ```
-<!-- markdownlint-enable MD013 -->
 
 Example project available in
 [examples/wcf/client-netframework](../../examples/wcf/client-netframework/)
@@ -109,7 +107,6 @@ To add the `IDispatchMessageInspector` instrumentation to select endpoints of a
 service, use the endpoint behavior extension on the service endpoints you want
 to instrument:
 
-<!-- markdownlint-disable MD013 -->
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
 <configuration>
@@ -146,7 +143,6 @@ to instrument:
   </system.serviceModel>
 </configuration>
 ```
-<!-- markdownlint-enable MD013 -->
 
 Example project available in
 [examples/wcf/server-netframework](../../examples/wcf/server-netframework/)
@@ -158,7 +154,6 @@ To add the `IDispatchMessageInspector` instrumentation for all endpoints of a
 service, use the service behavior extension on the services you want to
 instrument:
 
-<!-- markdownlint-disable MD013 -->
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
 <configuration>
@@ -195,7 +190,6 @@ instrument:
   </system.serviceModel>
 </configuration>
 ```
-<!-- markdownlint-enable MD013 -->
 
 ## WCF Programmatic Configuration Server and/or Client (.NET Framework + .NET Core)
 
