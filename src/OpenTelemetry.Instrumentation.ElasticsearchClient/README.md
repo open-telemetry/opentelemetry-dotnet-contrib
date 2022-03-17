@@ -1,5 +1,8 @@
 # Elasticsearch Client Instrumentation for OpenTelemetry .NET
 
+[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.ElasticsearchClient.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ElasticsearchClient)
+[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.ElasticsearchClient.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ElasticsearchClient)
+
 Automatically instruments events emitted by the NEST/Elasticsearch.Net client library.
 
 ## Installation
