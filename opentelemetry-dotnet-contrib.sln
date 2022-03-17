@@ -85,7 +85,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests", "test\OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests\OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests.csproj", "{BC839E07-108A-4184-B1F9-EF28A1E81088}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Wcf", "src\OpenTelemetry.Contrib.Instrumentation.Wcf\OpenTelemetry.Instrumentation.Wcf.csproj", "{CAD5C27A-D359-4086-9C4F-02204C084A8E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Wcf", "src\OpenTelemetry.Instrumentation.Wcf\OpenTelemetry.Instrumentation.Wcf.csproj", "{CAD5C27A-D359-4086-9C4F-02204C084A8E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}"
 EndProject
@@ -112,7 +112,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Shared", "src\OpenTelemetry.Contrib.Shared\OpenTelemetry.Contrib.Shared.csproj", "{F52B9D81-2155-433A-B6F2-4CD7CBBEC7E6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Wcf.Tests", "test\OpenTelemetry.Contrib.Instrumentation.Wcf.Tests\OpenTelemetry.Instrumentation.Wcf.Tests.csproj", "{76BAB24F-85DB-4FCE-89D0-EFB4185004C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Wcf.Tests", "test\OpenTelemetry.Instrumentation.Wcf.Tests\OpenTelemetry.Instrumentation.Wcf.Tests.csproj", "{76BAB24F-85DB-4FCE-89D0-EFB4185004C9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "grpc.core", "grpc.core", "{58D1DE55-B0A5-4BC4-AB37-09B1C7B26752}"
 	ProjectSection(SolutionItems) = preProject
