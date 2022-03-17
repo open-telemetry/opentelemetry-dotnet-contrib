@@ -137,10 +137,21 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
             // Assert
             Assert.Empty(this.thrownExceptions);
 
+            Assert.NotEmpty(stoppedActivities);
+            Assert.Single(stoppedActivities);
+
             Activity activity = stoppedActivities[0];
             Assert.Equal("http://opentelemetry.io/Service/ExecuteWithOneWay", activity.DisplayName);
             Assert.Equal("ExecuteWithOneWay", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcMethodTag).Value);
             Assert.DoesNotContain(activity.TagObjects, t => t.Key == WcfInstrumentationConstants.SoapReplyActionTag);
+
+            Assert.Equal(WcfInstrumentationActivitySource.IncomingRequestActivityName, activity.OperationName);
+            Assert.Equal(WcfInstrumentationConstants.WcfSystemValue, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcSystemTag).Value);
+            Assert.Equal("http://opentelemetry.io/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcServiceTag).Value);
+            Assert.Equal(this.serviceBaseUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.NetHostNameTag).Value);
+            Assert.Equal(this.serviceBaseUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.NetHostPortTag).Value);
+            Assert.Equal("net.tcp", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelSchemeTag).Value);
+            Assert.Equal("/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelPathTag).Value);
         }
     }
 }
