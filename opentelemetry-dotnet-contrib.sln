@@ -75,7 +75,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{E0F52FDB-2
 		test\Directory.Build.targets = test\Directory.Build.targets
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Exporter.Stackdriver", "src\OpenTelemetry.Contrib.Exporter.Stackdriver\OpenTelemetry.Contrib.Exporter.Stackdriver.csproj", "{BAFDB2B7-A8D4-4725-81CB-F69A9C8A362A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.Stackdriver", "src\OpenTelemetry.Contrib.Exporter.Stackdriver\OpenTelemetry.Exporter.Stackdriver.csproj", "{BAFDB2B7-A8D4-4725-81CB-F69A9C8A362A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore", "src\OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore\OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.csproj", "{09525C6C-68B7-405E-B476-23E64D91C11B}"
 EndProject

@@ -1,4 +1,4 @@
-name: Pack OpenTelemetry.Contrib.Exporter.Stackdriver
+name: Pack OpenTelemetry.Exporter.Stackdriver
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ jobs:
   build-test-pack:
     runs-on: ${{ matrix.os }}
     env:
-      PROJECT: OpenTelemetry.Contrib.Exporter.Stackdriver
+      PROJECT: OpenTelemetry.Exporter.Stackdriver
 
     strategy:
       matrix:
