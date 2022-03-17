@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <Description>.NET gRPC Core based client and server interceptors for OpenTelemetry.</Description>
-    <PackageTags>$(PackageTags);OpenTelemetry;gRPC Core;interceptors</PackageTags>
+    <PackageTags>$(PackageTags);gRPC Core;interceptors</PackageTags>
     <MinVerTagPrefix>Instrumentation.GrpcCore-</MinVerTagPrefix>
   </PropertyGroup>
   <ItemGroup>

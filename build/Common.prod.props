@@ -14,6 +14,7 @@
     <PackageOutputPath Condition="$(Build_ArtifactStagingDirectory) != ''">$(Build_ArtifactStagingDirectory)</PackageOutputPath>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!--<MinVerVerbosity>detailed</MinVerVerbosity>-->
+    <PackageTags>Observability;OpenTelemetry;Monitoring;Telemetry</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
