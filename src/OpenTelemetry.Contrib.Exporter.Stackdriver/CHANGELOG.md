@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.0-beta.2
+
 * Going forward the NuGet package will be
   [`OpenTelemetry.Exporter.Stackdriver`](https://www.nuget.org/packages/OpenTelemetry.Exporter.Stackdriver).
   Older versions will remain at
