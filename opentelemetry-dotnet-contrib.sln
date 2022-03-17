@@ -106,8 +106,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Wcf.Client.NetFram
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Wcf.Server.NetFramework", "examples\wcf\server-netframework\Examples.Wcf.Server.NetFramework.csproj", "{E205AA70-36BD-461D-8B87-909ED1BCA721}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Extensions.AWSXRay", "src\OpenTelemetry.Contrib.Extensions.AWSXRay\OpenTelemetry.Contrib.Extensions.AWSXRay.csproj", "{D8C9AD2A-5C6A-46F5-A216-3D67E6C0FA94}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Extensions.AWSXRay.Tests", "test\OpenTelemetry.Contrib.Extensions.AWSXRay.Tests\OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.csproj", "{9CE513AC-CFC5-4DD1-9F16-8719EDCE9BF9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.AWS", "src\OpenTelemetry.Contrib.Instrumentation.AWS\OpenTelemetry.Contrib.Instrumentation.AWS.csproj", "{970673DA-F308-4960-A58D-ECCEA44CEF6B}"
@@ -169,6 +167,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentati
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Runtime.Tests", "test\OpenTelemetry.Contrib.Instrumentation.Runtime.Tests\OpenTelemetry.Instrumentation.Runtime.Tests.csproj", "{FB907DF7-F3F3-4A07-885D-E5FECAE36BDA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Extensions.AWSXRay", "src\OpenTelemetry.Extensions.AWSXRay\OpenTelemetry.Extensions.AWSXRay.csproj", "{7FC26902-6025-48E7-AE59-E24AC3D6093D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -223,10 +223,6 @@ Global
 		{E205AA70-36BD-461D-8B87-909ED1BCA721}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E205AA70-36BD-461D-8B87-909ED1BCA721}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E205AA70-36BD-461D-8B87-909ED1BCA721}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D8C9AD2A-5C6A-46F5-A216-3D67E6C0FA94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D8C9AD2A-5C6A-46F5-A216-3D67E6C0FA94}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D8C9AD2A-5C6A-46F5-A216-3D67E6C0FA94}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D8C9AD2A-5C6A-46F5-A216-3D67E6C0FA94}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9CE513AC-CFC5-4DD1-9F16-8719EDCE9BF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9CE513AC-CFC5-4DD1-9F16-8719EDCE9BF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9CE513AC-CFC5-4DD1-9F16-8719EDCE9BF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -335,6 +331,10 @@ Global
 		{FB907DF7-F3F3-4A07-885D-E5FECAE36BDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FB907DF7-F3F3-4A07-885D-E5FECAE36BDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FB907DF7-F3F3-4A07-885D-E5FECAE36BDA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FC26902-6025-48E7-AE59-E24AC3D6093D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FC26902-6025-48E7-AE59-E24AC3D6093D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FC26902-6025-48E7-AE59-E24AC3D6093D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FC26902-6025-48E7-AE59-E24AC3D6093D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -356,7 +356,6 @@ Global
 		{3AF5D7E4-CA7D-401B-9729-A6D8F63B023C} = {73474960-8F91-4EE5-8E3E-F7E7ADA99238}
 		{2A7867E5-0FD6-42F8-B594-19E897EDA54C} = {73474960-8F91-4EE5-8E3E-F7E7ADA99238}
 		{E205AA70-36BD-461D-8B87-909ED1BCA721} = {73474960-8F91-4EE5-8E3E-F7E7ADA99238}
-		{D8C9AD2A-5C6A-46F5-A216-3D67E6C0FA94} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{9CE513AC-CFC5-4DD1-9F16-8719EDCE9BF9} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{970673DA-F308-4960-A58D-ECCEA44CEF6B} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{CAB66B50-DAB6-49B8-83F9-6CCF520C4A36} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
@@ -386,6 +385,7 @@ Global
 		{72EBA81D-2933-417C-8F21-D4CFFD72F530} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{F01E8C75-2791-4DBE-BD7A-5510871EBF56} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{FB907DF7-F3F3-4A07-885D-E5FECAE36BDA} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{7FC26902-6025-48E7-AE59-E24AC3D6093D} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}

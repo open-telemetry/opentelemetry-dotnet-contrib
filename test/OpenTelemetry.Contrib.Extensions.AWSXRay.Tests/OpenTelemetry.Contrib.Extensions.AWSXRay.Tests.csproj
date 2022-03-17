@@ -17,10 +17,6 @@
     <DotNetCliToolReference Include="dotnet-xunit" Version="$(DotNetXUnitCliVer)" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\OpenTelemetry.Contrib.Extensions.AWSXRay\OpenTelemetry.Contrib.Extensions.AWSXRay.csproj" />
-  </ItemGroup>
-
   <ItemGroup Condition="'$(TargetFramework)' == 'net452'">
     <Reference Include="System.Net.Http" />
   </ItemGroup>
@@ -42,6 +38,10 @@
     <None Update="Resources\SampleMetadataFiles\testekstoken">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\OpenTelemetry.Extensions.AWSXRay\OpenTelemetry.Extensions.AWSXRay.csproj" />
   </ItemGroup>
 
 </Project>
