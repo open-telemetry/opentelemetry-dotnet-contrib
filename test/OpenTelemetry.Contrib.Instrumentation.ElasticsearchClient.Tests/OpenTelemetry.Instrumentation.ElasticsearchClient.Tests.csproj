@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient\OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.csproj" />
+    <ProjectReference Include="..\..\src\OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient\OpenTelemetry.Instrumentation.ElasticsearchClient.csproj" />
   </ItemGroup>
 
 </Project>

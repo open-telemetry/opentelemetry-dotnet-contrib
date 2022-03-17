@@ -19,7 +19,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Elasticsearch.Net;
 
-namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
+namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Tests
 {
     public class InMemoryConnectionWithDownstreamActivity : InMemoryConnection
     {
