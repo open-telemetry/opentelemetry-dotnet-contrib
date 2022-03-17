@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Exporter.Stackdriver\OpenTelemetry.Contrib.Exporter.Stackdriver.csproj" />
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Exporter.Stackdriver\OpenTelemetry.Exporter.Stackdriver.csproj" />
   </ItemGroup>
 
   <ItemGroup>
