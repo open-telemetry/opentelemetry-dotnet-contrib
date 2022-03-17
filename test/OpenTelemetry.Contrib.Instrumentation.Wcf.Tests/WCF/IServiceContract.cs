@@ -27,5 +27,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
 
         [OperationContract(Action = "")]
         Task<ServiceResponse> ExecuteWithEmptyActionNameAsync(ServiceRequest request);
+
+        [OperationContract(IsOneWay = true)]
+        void ExecuteWithOneWay(ServiceRequest request);
     }
 }
