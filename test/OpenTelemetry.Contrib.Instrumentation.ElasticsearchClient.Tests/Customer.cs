@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
+namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Tests
 {
     public class Customer
     {

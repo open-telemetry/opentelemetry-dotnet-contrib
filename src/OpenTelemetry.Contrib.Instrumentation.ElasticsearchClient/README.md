@@ -5,7 +5,7 @@ Automatically instruments events emitted by the NEST/Elasticsearch.Net client li
 ## Installation
 
 ```shell
-dotnet add package OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient
+dotnet add package OpenTelemetry.Instrumentation.ElasticsearchClient
 ```
 
 ## Configuration
