@@ -2,8 +2,8 @@
 
 ## 1.0.0-rc6
 
-* Fixed a 'NullReferenceException' in 'TelemetryDispatchMessageInspector.BeforeSendReply' when
-  operation is OneWay
+* Fixed a `NullReferenceException` in
+  `TelemetryDispatchMessageInspector.BeforeSendReply` when operation is OneWay
   ([#237](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/237))
 
 ## 1.0.0-rc5
