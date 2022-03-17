@@ -1,6 +1,29 @@
 # Changelog
 
-## 1.0.0-rc6
+## 1.0.0-rc.6
+
+* Going forward the NuGet package will be
+  [`OpenTelemetry.Instrumentation.Wcf`](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Wcf).
+  Older versions will remain at
+  [`OpenTelemetry.Contrib.Instrumentation.Wcf`](https://www.nuget.org/packages/OpenTelemetry.Contrib.Instrumentation.Wcf)
+  [(#XXX)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXX)
+
+  Migration:
+
+  * In config files update fully qualified references to not use "Contrib" (eg
+    `type="OpenTelemetry.Contrib.Instrumentation.Wcf.TelemetryEndpointBehaviorExtensionElement,
+    OpenTelemetry.Contrib.Instrumentation.Wcf"` ->
+    `type="OpenTelemetry.Instrumentation.Wcf.TelemetryEndpointBehaviorExtensionElement,
+    OpenTelemetry.Instrumentation.Wcf"`)
+
+  * In code update namespaces (eg `using
+    OpenTelemetry.Contrib.Instrumentation.Wcf` -> `using
+    OpenTelemetry.Instrumentation.Wcf`)
+
+* The minimum supported .NET Framework version is now .NET Framework 4.6.2.
+  Previous versions will be going out of support in [April
+  2022](https://docs.microsoft.com/en-us/lifecycle/products/microsoft-net-framework)
+  [(#XXX)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXX)
 
 * Fixed a `NullReferenceException` in
   `TelemetryDispatchMessageInspector.BeforeSendReply` when operation is OneWay

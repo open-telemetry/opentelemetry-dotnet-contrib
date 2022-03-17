@@ -16,7 +16,7 @@
 
 using System.Runtime.Serialization;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
+namespace OpenTelemetry.Instrumentation.Wcf.Tests
 {
     [DataContract]
     public class ServiceResponse

@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Contrib.Instrumentation.Wcf
+namespace OpenTelemetry.Instrumentation.Wcf
 {
     /// <summary>
     /// Constants used for event names when enriching an activity.

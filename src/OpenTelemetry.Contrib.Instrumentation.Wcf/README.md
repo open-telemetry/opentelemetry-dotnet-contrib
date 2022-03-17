@@ -1,13 +1,13 @@
 # WCF Instrumentation for OpenTelemetry .NET
 
-[![nuget](https://img.shields.io/nuget/v/OpenTelemetry.Contrib.Instrumentation.Wcf.svg)](https://www.nuget.org/packages/OpenTelemetry.Contrib.Instrumentation.Wcf/)
+[![nuget](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Wcf.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Wcf/)
 
 Instruments WCF clients and/or services using implementations of
 `IClientMessageInspector` and `IDispatchMessageInspector` respectively.
 
 ## Installation
 
-Add the OpenTelemetry.Contrib.Instrumentation.Wcf package via NuGet.
+Add the OpenTelemetry.Instrumentation.Wcf package via NuGet.
 
 ## OpenTelemetry Configuration
 
@@ -58,7 +58,7 @@ the clients you want to instrument:
   <system.serviceModel>
     <extensions>
       <behaviorExtensions>
-        <add name="telemetryExtension" type="OpenTelemetry.Contrib.Instrumentation.Wcf.TelemetryEndpointBehaviorExtensionElement, OpenTelemetry.Contrib.Instrumentation.Wcf"   />
+        <add name="telemetryExtension" type="OpenTelemetry.Instrumentation.Wcf.TelemetryEndpointBehaviorExtensionElement, OpenTelemetry.Instrumentation.Wcf"   />
       </behaviorExtensions>
     </extensions>
     <behaviors>
@@ -113,7 +113,7 @@ to instrument:
   <system.serviceModel>
     <extensions>
       <behaviorExtensions>
-        <add name="telemetryExtension" type="OpenTelemetry.Contrib.Instrumentation.Wcf.TelemetryEndpointBehaviorExtensionElement, OpenTelemetry.Contrib.Instrumentation.Wcf" />
+        <add name="telemetryExtension" type="OpenTelemetry.Instrumentation.Wcf.TelemetryEndpointBehaviorExtensionElement, OpenTelemetry.Instrumentation.Wcf" />
       </behaviorExtensions>
     </extensions>
     <behaviors>
@@ -160,7 +160,7 @@ instrument:
   <system.serviceModel>
     <extensions>
       <behaviorExtensions>
-        <add name="telemetryExtension" type="OpenTelemetry.Contrib.Instrumentation.Wcf.TelemetryServiceBehaviorExtensionElement, OpenTelemetry.Contrib.Instrumentation.Wcf" />
+        <add name="telemetryExtension" type="OpenTelemetry.Instrumentation.Wcf.TelemetryServiceBehaviorExtensionElement, OpenTelemetry.Instrumentation.Wcf" />
       </behaviorExtensions>
     </extensions>
     <behaviors>

@@ -18,7 +18,7 @@
 using System;
 using System.ServiceModel.Configuration;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Wcf
+namespace OpenTelemetry.Instrumentation.Wcf
 {
     /// <summary>
     /// A <see cref="BehaviorExtensionElement"/> for registering <see cref="TelemetryEndpointBehavior"/> on a service endpoint through configuration.

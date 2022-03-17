@@ -17,7 +17,7 @@
 using System.ServiceModel;
 using System.Threading.Tasks;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
+namespace OpenTelemetry.Instrumentation.Wcf.Tests
 {
     [ServiceBehavior(
         Namespace = "http://opentelemetry.io/",

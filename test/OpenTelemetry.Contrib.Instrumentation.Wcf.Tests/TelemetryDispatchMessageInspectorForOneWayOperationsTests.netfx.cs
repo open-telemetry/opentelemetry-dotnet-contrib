@@ -20,12 +20,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.ServiceModel;
 using System.Threading;
-using OpenTelemetry.Contrib.Instrumentation.Wcf.Tests.Tools;
+using OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
 using OpenTelemetry.Trace;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
+namespace OpenTelemetry.Instrumentation.Wcf.Tests
 {
     [Collection("WCF")]
     public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDisposable
