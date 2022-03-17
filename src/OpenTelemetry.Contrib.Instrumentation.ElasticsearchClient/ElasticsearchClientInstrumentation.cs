@@ -15,7 +15,6 @@
 // </copyright>
 using System;
 using OpenTelemetry.Instrumentation.ElasticsearchClient.Implementation;
-using OpenTelemetry.Instrumentation;
 
 namespace OpenTelemetry.Instrumentation.ElasticsearchClient
 {
