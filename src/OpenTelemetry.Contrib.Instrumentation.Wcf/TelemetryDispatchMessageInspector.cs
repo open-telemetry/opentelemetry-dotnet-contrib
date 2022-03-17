@@ -131,7 +131,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf
         {
             if (correlationState is Activity activity)
             {
-                if (activity.IsAllDataRequested)
+                if (activity.IsAllDataRequested && reply != null)
                 {
                     if (reply.IsFault)
                     {

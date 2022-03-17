@@ -44,6 +44,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
                    Payload = $"RSP: {request.Payload}",
                });
         }
+
+        public void ExecuteWithOneWay(ServiceRequest request)
+        {
+        }
     }
 }
 #endif
