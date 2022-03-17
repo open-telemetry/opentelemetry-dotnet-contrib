@@ -1,5 +1,13 @@
 # Changelog - OpenTelemetry.Contrib.Extensions.AWSXRay
 
+## Unreleased
+
+* Going forward the NuGet package will be
+  [`OpenTelemetry.Extensions.AWSXRay`](https://www.nuget.org/packages/OpenTelemetry.Extensions.AWSXRay).
+  Older versions will remain at
+  [`OpenTelemetry.Contrib.Extensions.AWSXRay`](https://www.nuget.org/packages/OpenTelemetry.Contrib.Extensions.AWSXRay).
+  [(#244)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/244)
+
 ## 1.1.0 [2021-Sept-20]
 
 * Added AWS resource detectors ([#149](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/149))
