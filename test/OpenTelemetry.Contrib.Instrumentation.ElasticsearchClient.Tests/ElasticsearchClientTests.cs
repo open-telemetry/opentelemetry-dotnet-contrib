@@ -28,7 +28,7 @@ using OpenTelemetry.Trace;
 using Xunit;
 using Status = OpenTelemetry.Trace.Status;
 
-namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests
+namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Tests
 {
     public class ElasticsearchClientTests
     {

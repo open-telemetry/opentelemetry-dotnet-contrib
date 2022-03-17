@@ -27,7 +27,7 @@ using System.Text.RegularExpressions;
 using OpenTelemetry.Instrumentation;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementation
+namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Implementation
 {
     internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
     {

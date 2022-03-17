@@ -7,7 +7,7 @@ components:
   src/OpenTelemetry.Contrib.Extensions.AWSXRay/:
     - srprash
     - lupengamzn
-  src/OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient/:
+  src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
     - ejsmith
   src/OpenTelemetry.Contrib.Instrumentation.GrpcCore/:
     - pcwiese
@@ -31,7 +31,7 @@ components:
   test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/:
     - srprash 
     - lupengamzn
-  test/OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests/:
+  test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/:
     - ejsmith
   test/OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests/:
     - pcwiese

@@ -17,7 +17,7 @@
 using System;
 using System.Diagnostics;
 
-namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient
+namespace OpenTelemetry.Instrumentation.ElasticsearchClient
 {
     /// <summary>
     /// Options for Elasticsearch client instrumentation.
@@ -35,7 +35,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient
         public bool ParseAndFormatRequest { get; set; } = false;
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not the OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient
+        /// Gets or sets a value indicating whether or not the OpenTelemetry.Instrumentation.ElasticsearchClient
         /// should add the request information as db.statement attribute tag. Default value: True.
         /// </summary>
         public bool SetDbStatementForRequest { get; set; } = true;

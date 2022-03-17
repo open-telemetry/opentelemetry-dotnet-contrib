@@ -15,8 +15,8 @@
 // </copyright>
 
 using System;
-using OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient;
-using OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementation;
+using OpenTelemetry.Instrumentation.ElasticsearchClient;
+using OpenTelemetry.Instrumentation.ElasticsearchClient.Implementation;
 
 namespace OpenTelemetry.Trace
 {

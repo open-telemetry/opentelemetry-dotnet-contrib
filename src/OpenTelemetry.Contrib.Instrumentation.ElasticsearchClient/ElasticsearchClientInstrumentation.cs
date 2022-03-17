@@ -14,10 +14,9 @@
 // limitations under the License.
 // </copyright>
 using System;
-using OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Implementation;
-using OpenTelemetry.Instrumentation;
+using OpenTelemetry.Instrumentation.ElasticsearchClient.Implementation;
 
-namespace OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient
+namespace OpenTelemetry.Instrumentation.ElasticsearchClient
 {
     /// <summary>
     /// Elasticsearch client instrumentation.
