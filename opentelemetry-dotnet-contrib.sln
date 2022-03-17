@@ -81,10 +81,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests", "test\OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests\OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.csproj", "{1F4B5983-EA2E-4DAC-8E02-20C0CDA9FA93}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.ElasticsearchClient", "src\OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient\OpenTelemetry.Instrumentation.ElasticsearchClient.csproj", "{5F10395B-DF38-438A-B5DB-5F6449184F67}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.ElasticsearchClient.Tests", "test\OpenTelemetry.Contrib.Instrumentation.ElasticsearchClient.Tests\OpenTelemetry.Instrumentation.ElasticsearchClient.Tests.csproj", "{BC839E07-108A-4184-B1F9-EF28A1E81088}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Wcf", "src\OpenTelemetry.Instrumentation.Wcf\OpenTelemetry.Instrumentation.Wcf.csproj", "{CAD5C27A-D359-4086-9C4F-02204C084A8E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}"
@@ -169,6 +165,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.Stac
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Exporter.Stackdriver.Tests", "test\OpenTelemetry.Exporter.Stackdriver.Tests\OpenTelemetry.Contrib.Exporter.Stackdriver.Tests.csproj", "{8DABC11A-624E-4554-ACA4-D5B80146B9C6}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.ElasticsearchClient", "src\OpenTelemetry.Instrumentation.ElasticsearchClient\OpenTelemetry.Instrumentation.ElasticsearchClient.csproj", "{96F5B85B-402B-4DFB-AF31-33D5A2EBE35B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.ElasticsearchClient.Tests", "test\OpenTelemetry.Instrumentation.ElasticsearchClient.Tests\OpenTelemetry.Instrumentation.ElasticsearchClient.Tests.csproj", "{970B604C-C57F-4767-A080-67976E69F76E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -187,14 +187,6 @@ Global
 		{1F4B5983-EA2E-4DAC-8E02-20C0CDA9FA93}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F4B5983-EA2E-4DAC-8E02-20C0CDA9FA93}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F4B5983-EA2E-4DAC-8E02-20C0CDA9FA93}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5F10395B-DF38-438A-B5DB-5F6449184F67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5F10395B-DF38-438A-B5DB-5F6449184F67}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5F10395B-DF38-438A-B5DB-5F6449184F67}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5F10395B-DF38-438A-B5DB-5F6449184F67}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BC839E07-108A-4184-B1F9-EF28A1E81088}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BC839E07-108A-4184-B1F9-EF28A1E81088}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BC839E07-108A-4184-B1F9-EF28A1E81088}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BC839E07-108A-4184-B1F9-EF28A1E81088}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CAD5C27A-D359-4086-9C4F-02204C084A8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CAD5C27A-D359-4086-9C4F-02204C084A8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CAD5C27A-D359-4086-9C4F-02204C084A8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -335,6 +327,14 @@ Global
 		{8DABC11A-624E-4554-ACA4-D5B80146B9C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8DABC11A-624E-4554-ACA4-D5B80146B9C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8DABC11A-624E-4554-ACA4-D5B80146B9C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96F5B85B-402B-4DFB-AF31-33D5A2EBE35B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96F5B85B-402B-4DFB-AF31-33D5A2EBE35B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96F5B85B-402B-4DFB-AF31-33D5A2EBE35B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96F5B85B-402B-4DFB-AF31-33D5A2EBE35B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{970B604C-C57F-4767-A080-67976E69F76E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{970B604C-C57F-4767-A080-67976E69F76E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{970B604C-C57F-4767-A080-67976E69F76E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{970B604C-C57F-4767-A080-67976E69F76E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -346,8 +346,6 @@ Global
 		{09525C6C-68B7-405E-B476-23E64D91C11B} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{301BFB9F-6D73-4DEE-93D1-75F480816F63} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{1F4B5983-EA2E-4DAC-8E02-20C0CDA9FA93} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
-		{5F10395B-DF38-438A-B5DB-5F6449184F67} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
-		{BC839E07-108A-4184-B1F9-EF28A1E81088} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{CAD5C27A-D359-4086-9C4F-02204C084A8E} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{73474960-8F91-4EE5-8E3E-F7E7ADA99238} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
 		{21716C26-3B2A-4208-BDFB-8E58E2AF49EA} = {73474960-8F91-4EE5-8E3E-F7E7ADA99238}
@@ -386,6 +384,8 @@ Global
 		{FB907DF7-F3F3-4A07-885D-E5FECAE36BDA} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{8A25B43D-BBB2-40FF-B0EB-33AACCD15AD7} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{8DABC11A-624E-4554-ACA4-D5B80146B9C6} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{96F5B85B-402B-4DFB-AF31-33D5A2EBE35B} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{970B604C-C57F-4767-A080-67976E69F76E} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
