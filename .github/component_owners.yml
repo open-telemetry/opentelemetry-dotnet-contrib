@@ -20,7 +20,6 @@ components:
   src/OpenTelemetry.Contrib.Instrumentation.MySqlData/:
     - moonheart
   src/OpenTelemetry.Contrib.Extensions.PersistentStorage/:
-    - vishweshbankwar
     - Yun-Ting
   src/OpenTelemetry.Contrib.Preview/:
     - codeblanch
@@ -45,7 +44,6 @@ components:
   test/OpenTelemetry.Contrib.Instrumentation.MySqlData.Tests/:
     - moonheart
   test/OpenTelemetry.Contrib.Extensions.PersistentStorage.Tests/:
-    - vishweshbankwar
     - Yun-Ting
   test/OpenTelemetry.Contrib.Preview.Tests/:
     - codeblanch
