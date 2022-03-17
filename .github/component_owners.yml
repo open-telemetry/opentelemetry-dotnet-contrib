@@ -21,6 +21,7 @@ components:
     - moonheart
   src/OpenTelemetry.Contrib.Extensions.PersistentStorage/:
     - vishweshbankwar
+    - Yun-Ting
   src/OpenTelemetry.Contrib.Preview/:
     - codeblanch
   src/OpenTelemetry.Instrumentation.Quartz/:
@@ -45,6 +46,7 @@ components:
     - moonheart
   test/OpenTelemetry.Contrib.Extensions.PersistentStorage.Tests/:
     - vishweshbankwar
+    - Yun-Ting
   test/OpenTelemetry.Contrib.Preview.Tests/:
     - codeblanch
   test/OpenTelemetry.Instrumentation.Quartz.Tests/:
