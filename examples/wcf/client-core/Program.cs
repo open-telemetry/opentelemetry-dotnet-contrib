@@ -21,7 +21,7 @@ using System.ServiceModel.Channels;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using OpenTelemetry;
-using OpenTelemetry.Contrib.Instrumentation.Wcf;
+using OpenTelemetry.Instrumentation.Wcf;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 

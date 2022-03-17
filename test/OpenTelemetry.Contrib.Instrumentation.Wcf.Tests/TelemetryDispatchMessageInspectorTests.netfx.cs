@@ -25,7 +25,7 @@ using OpenTelemetry.Trace;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests
+namespace OpenTelemetry.Instrumentation.Wcf.Tests
 {
     [Collection("WCF")]
     public class TelemetryDispatchMessageInspectorTests : IDisposable

@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Contrib.Instrumentation.Wcf
+namespace OpenTelemetry.Instrumentation.Wcf
 {
     internal static class WcfInstrumentationConstants
     {

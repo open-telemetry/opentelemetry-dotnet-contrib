@@ -18,7 +18,7 @@ using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Wcf
+namespace OpenTelemetry.Instrumentation.Wcf
 {
 #if NETFRAMEWORK
     /// <summary>
