@@ -22,7 +22,7 @@ using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
 using System.Threading;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Tests.Tools
+namespace OpenTelemetry.Instrumentation.Wcf.Tests.Tools
 {
     internal class ErrorHandlerServiceBehavior : IServiceBehavior
     {

@@ -18,7 +18,7 @@ using System;
 using System.Diagnostics;
 using System.ServiceModel.Channels;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Wcf
+namespace OpenTelemetry.Instrumentation.Wcf
 {
     /// <summary>
     /// Options for WCF instrumentation.

@@ -15,7 +15,7 @@
 // </copyright>
 
 using System;
-using OpenTelemetry.Contrib.Instrumentation.Wcf;
+using OpenTelemetry.Instrumentation.Wcf;
 
 namespace OpenTelemetry.Trace
 {

@@ -19,7 +19,7 @@ using System.Diagnostics.Tracing;
 using System.Globalization;
 using System.Threading;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Wcf.Implementation
+namespace OpenTelemetry.Instrumentation.Wcf.Implementation
 {
     [EventSource(Name = "OpenTelemetry-Instrumentation-Wcf")]
     internal sealed class WcfInstrumentationEventSource : EventSource

@@ -22,10 +22,10 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Dispatcher;
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Contrib.Instrumentation.Wcf.Implementation;
+using OpenTelemetry.Instrumentation.Wcf.Implementation;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Wcf
+namespace OpenTelemetry.Instrumentation.Wcf
 {
     /// <summary>
     /// An <see cref="IDispatchMessageInspector"/> implementation which adds telemetry to incoming requests.

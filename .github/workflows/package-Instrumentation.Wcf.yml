@@ -1,4 +1,4 @@
-name: Pack OpenTelemetry.Contrib.Instrumentation.Wcf
+name: Pack OpenTelemetry.Instrumentation.Wcf
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ jobs:
   build-test-pack:
     runs-on: ${{ matrix.os }}
     env:
-      PROJECT: OpenTelemetry.Contrib.Instrumentation.Wcf
+      PROJECT: OpenTelemetry.Instrumentation.Wcf
 
     strategy:
       matrix:
