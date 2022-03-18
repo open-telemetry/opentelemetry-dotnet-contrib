@@ -17,7 +17,7 @@ using System;
 
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Contrib.Extensions.AzureMonitor
+namespace OpenTelemetry.Extensions.AzureMonitor
 {
     /// <summary>
     /// Sample configurable for OpenTelemetry exporters for compatibility
