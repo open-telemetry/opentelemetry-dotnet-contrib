@@ -8,7 +8,7 @@
   [`OpenTelemetry.Instrumentation.MassTransit`](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.MassTransit).
   Older versions will remain at
   [`OpenTelemetry.Contrib.Instrumentation.MassTransit`](https://www.nuget.org/packages/OpenTelemetry.Contrib.Instrumentation.MassTransit)
-  [(#248)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/248)
+  [(#252)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/252)
 
   Migration:
 
