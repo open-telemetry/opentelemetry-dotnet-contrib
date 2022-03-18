@@ -8,7 +8,7 @@
   [`OpenTelemetry.Instrumentation.EntityFrameworkCore`](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EntityFrameworkCore).
   Older versions will remain at
   [`OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore`](https://www.nuget.org/packages/OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore)
-  [(#260)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/260)
+  [(#261)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/261)
 
   Migration:
 
