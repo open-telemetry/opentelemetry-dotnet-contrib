@@ -15,8 +15,8 @@
 // </copyright>
 
 using System;
-using OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore;
-using OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementation;
+using OpenTelemetry.Instrumentation.EntityFrameworkCore;
+using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 
 namespace OpenTelemetry.Trace
 {

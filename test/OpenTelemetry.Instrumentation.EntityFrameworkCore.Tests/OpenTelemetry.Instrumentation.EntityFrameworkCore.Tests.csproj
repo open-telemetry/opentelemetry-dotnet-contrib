@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore\OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.EntityFrameworkCore\OpenTelemetry.Instrumentation.EntityFrameworkCore.csproj" />
   </ItemGroup>
 
   <ItemGroup>

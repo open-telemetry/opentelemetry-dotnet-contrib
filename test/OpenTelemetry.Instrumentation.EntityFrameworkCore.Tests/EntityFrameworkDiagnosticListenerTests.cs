@@ -23,12 +23,12 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Moq;
-using OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementation;
+using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Tests
+namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests
 {
     public class EntityFrameworkDiagnosticListenerTests : IDisposable
     {
