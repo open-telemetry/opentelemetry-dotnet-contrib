@@ -1,4 +1,4 @@
-﻿// <copyright file="TestController.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="OwinEnrichEventType.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,17 +14,23 @@
 // limitations under the License.
 // </copyright>
 
-using System;
-using System.Web.Http;
+using System.Diagnostics;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Owin.Tests.Controllers
+namespace OpenTelemetry.Instrumentation.Owin
 {
-    public class TestController : ApiController
+    /// <summary>
+    /// Describes the possible events fired when enriching an <see cref="Activity"/>.
+    /// </summary>
+    public enum OwinEnrichEventType
     {
-        // GET api/test/{id}
-        public string Get(string id = null)
-        {
-            return $"id:{id}";
-        }
+        /// <summary>
+        /// Begin request.
+        /// </summary>
+        BeginRequest,
+
+        /// <summary>
+        /// End request.
+        /// </summary>
+        EndRequest,
     }
 }

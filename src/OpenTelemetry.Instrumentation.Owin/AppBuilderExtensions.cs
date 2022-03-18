@@ -15,7 +15,7 @@
 // </copyright>
 
 using System.Diagnostics;
-using OpenTelemetry.Contrib.Instrumentation.Owin;
+using OpenTelemetry.Instrumentation.Owin;
 
 namespace Owin
 {
