@@ -5,8 +5,6 @@ components:
   src/OpenTelemetry.Contrib.Extensions.AWSXRay/:
     - srprash
     - lupengamzn
-  src/OpenTelemetry.Contrib.Instrumentation.GrpcCore/:
-    - pcwiese
   src/OpenTelemetry.Contrib.Instrumentation.MassTransit/:
     - alexvaluyskiy
   src/OpenTelemetry.Contrib.Instrumentation.MySqlData/:
@@ -19,6 +17,8 @@ components:
     - vishweshbankwar
   src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
     - ejsmith
+  src/OpenTelemetry.Instrumentation.GrpcCore/:
+    - pcwiese
   src/OpenTelemetry.Instrumentation.Owin/:
     - codeblanch
   src/OpenTelemetry.Instrumentation.Quartz/:
@@ -29,8 +29,6 @@ components:
   test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/:
     - srprash 
     - lupengamzn
-  test/OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests/:
-    - pcwiese
   test/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests/:
     - alexvaluyskiy
   test/OpenTelemetry.Contrib.Instrumentation.MySqlData.Tests/:
@@ -43,6 +41,8 @@ components:
     - vishweshbankwar
   test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/:
     - ejsmith
+  test/OpenTelemetry.Instrumentation.GrpcCore.Tests/:
+    - pcwiese
   test/OpenTelemetry.Instrumentation.Owin.Tests/:
     - codeblanch
   test/OpenTelemetry.Instrumentation.Quartz.Tests/:
