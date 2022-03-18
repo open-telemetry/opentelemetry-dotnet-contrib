@@ -8,7 +8,7 @@
   [`OpenTelemetry.Instrumentation.Owin`](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Owin).
   Older versions will remain at
   [`OpenTelemetry.Contrib.Instrumentation.Owin`](https://www.nuget.org/packages/OpenTelemetry.Contrib.Instrumentation.Owin)
-  [(#247)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/247)
+  [(#257)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/257)
 
   Migration:
 
