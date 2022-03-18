@@ -6,7 +6,7 @@
   [`OpenTelemetry.Extensions.PersistentStorage`](https://www.nuget.org/packages/OpenTelemetry.Extensions.PersistentStorage).
   Older versions will remain at
   [`OpenTelemetry.Contrib.Extensions.PersistentStorage`](https://www.nuget.org/packages/OpenTelemetry.Contrib.Extensions.PersistentStorage)
-  [(#247)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/247)
+  [(#258)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/258)
 
   Migration:
 
