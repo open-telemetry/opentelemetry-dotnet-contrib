@@ -17,7 +17,7 @@
 using System.Data;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore
+namespace OpenTelemetry.Instrumentation.EntityFrameworkCore
 {
     /// <summary>
     /// Options for <see cref="EntityFrameworkInstrumentation"/>.

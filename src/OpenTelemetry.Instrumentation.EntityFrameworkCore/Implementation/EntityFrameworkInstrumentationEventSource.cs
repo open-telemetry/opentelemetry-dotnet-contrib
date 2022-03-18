@@ -19,7 +19,7 @@ using System.Diagnostics.Tracing;
 using System.Globalization;
 using System.Threading;
 
-namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementation
+namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation
 {
     [EventSource(Name = "OpenTelemetry-Instrumentation-EntityFrameworkCore")]
     internal class EntityFrameworkInstrumentationEventSource : EventSource

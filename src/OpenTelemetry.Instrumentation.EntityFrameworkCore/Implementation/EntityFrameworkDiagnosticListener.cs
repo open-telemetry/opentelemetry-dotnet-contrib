@@ -20,7 +20,7 @@ using System.Diagnostics;
 using OpenTelemetry.Instrumentation;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Implementation
+namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation
 {
     internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     {
