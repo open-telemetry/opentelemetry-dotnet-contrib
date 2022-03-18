@@ -1,23 +1,23 @@
 # DotNet Runtime Instrumentation for OpenTelemetry .NET
 
-[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Contrib.Instrumentation.Runtime.svg)](https://www.nuget.org/packages/OpenTelemetry.Contrib.Instrumentation.Runtime)
-[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Contrib.Instrumentation.Runtime.svg)](https://www.nuget.org/packages/OpenTelemetry.Contrib.Instrumentation.Runtime)
+[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Runtime.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Runtime)
+[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Runtime.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Runtime)
 
 This is an [Instrumentation
 Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library),
 which instruments [.NET Runtime](https://docs.microsoft.com/dotnet) and
 collect telemetry about runtime behavior.
 
-## Steps to enable OpenTelemetry.Contrib.Instrumentation.Runtime
+## Steps to enable OpenTelemetry.Instrumentation.Runtime
 
 ### Step 1: Install Package
 
 Add a reference to the
-[`OpenTelemetry.Contrib.Instrumentation.Runtime`](https://www.nuget.org/packages/OpenTelemetry.Contrib.Instrumentation.Runtime)
+[`OpenTelemetry.Instrumentation.Runtime`](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Runtime)
 package. Also, add any other instrumentations & exporters you will need.
 
 ```shell
-dotnet add package OpenTelemetry.Contrib.Instrumentation.Runtime
+dotnet add package OpenTelemetry.Instrumentation.Runtime
 ```
 
 ### Step 2: Enable Runtime Instrumentation at application startup

@@ -15,7 +15,7 @@
 // </copyright>
 
 using System;
-using OpenTelemetry.Contrib.Instrumentation.Runtime;
+using OpenTelemetry.Instrumentation.Runtime;
 
 namespace OpenTelemetry.Metrics
 {
