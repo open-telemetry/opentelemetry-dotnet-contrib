@@ -18,6 +18,7 @@
 
 ## 1.0.0-beta1
 
-* This is the first release of `OpenTelemetry.Contrib.Instrumentation.MySqlData` package.
+* This is the first release of `OpenTelemetry.Contrib.Instrumentation.MySqlData`
+  package.
 
 For more details, please refer to the [README](README.md).
