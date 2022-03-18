@@ -8,7 +8,7 @@
   [`OpenTelemetry.Instrumentation.GrpcCore`](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.GrpcCore).
   Older versions will remain at
   [`OpenTelemetry.Contrib.Instrumentation.GrpcCore`](https://www.nuget.org/packages/OpenTelemetry.Contrib.Instrumentation.GrpcCore)
-  [(#247)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/247)
+  [(#255)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/255)
 
   Migration:
 
@@ -26,6 +26,7 @@
 
 ## 1.0.0-beta2
 
-* This is the first release of `OpenTelemetry.Instrumentation.GrpcCore` package.
+* This is the first release of `OpenTelemetry.Contrib.Instrumentation.GrpcCore`
+  package.
 
 For more details, please refer to the [README](README.md).
