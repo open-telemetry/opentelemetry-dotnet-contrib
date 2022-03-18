@@ -21,7 +21,7 @@ using System.Diagnostics.Metrics;
 using System.Reflection;
 using System.Threading;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Runtime
+namespace OpenTelemetry.Instrumentation.Runtime
 {
     /// <summary>
     /// .NET runtime instrumentation.

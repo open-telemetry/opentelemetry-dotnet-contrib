@@ -16,7 +16,7 @@
 
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Runtime.Tests
+namespace OpenTelemetry.Instrumentation.Runtime.Tests
 {
     public class RuntimeMetricsOptionsTests
     {

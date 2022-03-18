@@ -18,7 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\OpenTelemetry.Contrib.Instrumentation.Runtime\OpenTelemetry.Instrumentation.Runtime.csproj" />
+        <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Runtime\OpenTelemetry.Instrumentation.Runtime.csproj" />
     </ItemGroup>
 
 </Project>

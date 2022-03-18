@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Contrib.Instrumentation.Runtime
+namespace OpenTelemetry.Instrumentation.Runtime
 {
     /// <summary>
     /// Options to define the runtime metrics.
