@@ -11,12 +11,12 @@ components:
     - alexvaluyskiy
   src/OpenTelemetry.Contrib.Instrumentation.MySqlData/:
     - moonheart
-  src/OpenTelemetry.Contrib.Extensions.PersistentStorage/:
-    - vishweshbankwar
   src/OpenTelemetry.Contrib.Preview/:
     - codeblanch
   src/OpenTelemetry.Exporter.Stackdriver/:
     - SergeyKanzhelev
+  src/OpenTelemetry.Extensions.PersistentStorage/:
+    - vishweshbankwar
   src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
     - ejsmith
   src/OpenTelemetry.Instrumentation.Owin/:
@@ -35,12 +35,12 @@ components:
     - alexvaluyskiy
   test/OpenTelemetry.Contrib.Instrumentation.MySqlData.Tests/:
     - moonheart
-  test/OpenTelemetry.Contrib.Extensions.PersistentStorage.Tests/:
-    - vishweshbankwar
   test/OpenTelemetry.Contrib.Preview.Tests/:
     - codeblanch
   test/OpenTelemetry.Exporter.Stackdriver.Tests/:
     - SergeyKanzhelev
+  test/OpenTelemetry.Extensions.PersistentStorage.Tests/:
+    - vishweshbankwar
   test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/:
     - ejsmith
   test/OpenTelemetry.Instrumentation.Owin.Tests/:

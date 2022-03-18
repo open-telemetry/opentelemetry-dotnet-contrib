@@ -20,7 +20,7 @@ using System.Text;
 using System.Threading;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Extensions.PersistentStorage.Tests
+namespace OpenTelemetry.Extensions.PersistentStorage.Tests
 {
     public class FileBlobTests
     {

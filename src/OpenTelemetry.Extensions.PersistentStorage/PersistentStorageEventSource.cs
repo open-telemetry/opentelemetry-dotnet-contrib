@@ -18,7 +18,7 @@ using System;
 using System.Diagnostics.Tracing;
 using System.Runtime.CompilerServices;
 
-namespace OpenTelemetry.Contrib.Extensions.PersistentStorage
+namespace OpenTelemetry.Extensions.PersistentStorage
 {
     [EventSource(Name = EventSourceName)]
     internal sealed class PersistentStorageEventSource : EventSource
