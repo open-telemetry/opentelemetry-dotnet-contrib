@@ -15,8 +15,8 @@
 // </copyright>
 
 using System;
-using OpenTelemetry.Contrib.Instrumentation.MassTransit;
-using OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation;
+using OpenTelemetry.Instrumentation.MassTransit;
+using OpenTelemetry.Instrumentation.MassTransit.Implementation;
 
 namespace OpenTelemetry.Trace
 {

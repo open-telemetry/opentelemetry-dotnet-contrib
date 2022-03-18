@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
+namespace OpenTelemetry.Instrumentation.MassTransit.Implementation
 {
     internal class TagName
     {

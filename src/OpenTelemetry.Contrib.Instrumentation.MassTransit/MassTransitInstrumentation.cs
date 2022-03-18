@@ -15,10 +15,10 @@
 // </copyright>
 
 using System;
-using OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation;
+using OpenTelemetry.Instrumentation.MassTransit.Implementation;
 using OpenTelemetry.Instrumentation;
 
-namespace OpenTelemetry.Contrib.Instrumentation.MassTransit
+namespace OpenTelemetry.Instrumentation.MassTransit
 {
     internal class MassTransitInstrumentation : IDisposable
     {

@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Contrib.Instrumentation.MassTransit
+namespace OpenTelemetry.Instrumentation.MassTransit
 {
     /// <summary>
     /// MassTransit diagnostic source operation name constants.

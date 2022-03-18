@@ -17,7 +17,7 @@
 using System.Threading.Tasks;
 using MassTransit;
 
-namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
+namespace OpenTelemetry.Instrumentation.MassTransit.Tests
 {
     public class TestConsumer : IConsumer<TestMessage>
     {

@@ -11,7 +11,7 @@ components:
     - ejsmith
   src/OpenTelemetry.Contrib.Instrumentation.GrpcCore/:
     - pcwiese
-  src/OpenTelemetry.Contrib.Instrumentation.MassTransit/:
+  src/OpenTelemetry.Instrumentation.MassTransit/:
     - alexvaluyskiy
   src/OpenTelemetry.Contrib.Instrumentation.Owin/:
     - codeblanch
@@ -35,7 +35,7 @@ components:
     - ejsmith
   test/OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests/:
     - pcwiese
-  test/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests/:
+  test/OpenTelemetry.Instrumentation.MassTransit.Tests/:
     - alexvaluyskiy
   test/OpenTelemetry.Contrib.Instrumentation.Owin.Tests/:
     - codeblanch

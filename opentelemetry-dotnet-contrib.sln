@@ -77,9 +77,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{E0F52FDB-2
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore", "src\OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore\OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.csproj", "{09525C6C-68B7-405E-B476-23E64D91C11B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.MassTransit", "src\OpenTelemetry.Contrib.Instrumentation.MassTransit\OpenTelemetry.Contrib.Instrumentation.MassTransit.csproj", "{301BFB9F-6D73-4DEE-93D1-75F480816F63}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.MassTransit", "src\OpenTelemetry.Contrib.Instrumentation.MassTransit\OpenTelemetry.Instrumentation.MassTransit.csproj", "{301BFB9F-6D73-4DEE-93D1-75F480816F63}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests", "test\OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests\OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.csproj", "{1F4B5983-EA2E-4DAC-8E02-20C0CDA9FA93}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.MassTransit.Tests", "test\OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests\OpenTelemetry.Instrumentation.MassTransit.Tests.csproj", "{1F4B5983-EA2E-4DAC-8E02-20C0CDA9FA93}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Wcf", "src\OpenTelemetry.Instrumentation.Wcf\OpenTelemetry.Instrumentation.Wcf.csproj", "{CAD5C27A-D359-4086-9C4F-02204C084A8E}"
 EndProject

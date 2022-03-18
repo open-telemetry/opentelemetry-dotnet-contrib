@@ -18,7 +18,7 @@ using System;
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation
+namespace OpenTelemetry.Instrumentation.MassTransit.Implementation
 {
     /// <summary>
     /// EventSource events emitted from the project.

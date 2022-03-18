@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Unit test project for OpenTelemetry MassTransit instrumentation</Description>
@@ -22,6 +22,6 @@
 
 
   <ItemGroup>
-    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Instrumentation.MassTransit\OpenTelemetry.Contrib.Instrumentation.MassTransit.csproj" />
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Instrumentation.MassTransit\OpenTelemetry.Instrumentation.MassTransit.csproj" />
   </ItemGroup>
 </Project>
