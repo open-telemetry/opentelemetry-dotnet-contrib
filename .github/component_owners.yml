@@ -2,20 +2,14 @@
 
 # Each component identified by its path prefix has a list of users
 components:
-  src/OpenTelemetry.Contrib.Exporter.Stackdriver/:
-    - SergeyKanzhelev
   src/OpenTelemetry.Contrib.Extensions.AWSXRay/:
     - srprash
     - lupengamzn
-  src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
-    - ejsmith
   src/OpenTelemetry.Contrib.Instrumentation.GrpcCore/:
     - pcwiese
   src/OpenTelemetry.Contrib.Instrumentation.MassTransit/:
     - alexvaluyskiy
   src/OpenTelemetry.Contrib.Instrumentation.Owin/:
-    - codeblanch
-  src/OpenTelemetry.Contrib.Instrumentation.Wcf/:
     - codeblanch
   src/OpenTelemetry.Contrib.Instrumentation.MySqlData/:
     - moonheart
@@ -23,23 +17,23 @@ components:
     - vishweshbankwar
   src/OpenTelemetry.Contrib.Preview/:
     - codeblanch
+  src/OpenTelemetry.Exporter.Stackdriver/:
+    - SergeyKanzhelev
+  src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
+    - ejsmith
   src/OpenTelemetry.Instrumentation.Quartz/:
     - maldago
+  src/OpenTelemetry.Instrumentation.Wcf/:
+    - codeblanch
 
-  test/OpenTelemetry.Contrib.Exporter.Stackdriver.Tests/:
-    - SergeyKanzhelev
   test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/:
     - srprash 
     - lupengamzn
-  test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/:
-    - ejsmith
   test/OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests/:
     - pcwiese
   test/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests/:
     - alexvaluyskiy
   test/OpenTelemetry.Contrib.Instrumentation.Owin.Tests/:
-    - codeblanch
-  test/OpenTelemetry.Contrib.Instrumentation.Wcf.Tests/:
     - codeblanch
   test/OpenTelemetry.Contrib.Instrumentation.MySqlData.Tests/:
     - moonheart
@@ -47,5 +41,11 @@ components:
     - vishweshbankwar
   test/OpenTelemetry.Contrib.Preview.Tests/:
     - codeblanch
+  test/OpenTelemetry.Exporter.Stackdriver.Tests/:
+    - SergeyKanzhelev
+  test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/:
+    - ejsmith
   test/OpenTelemetry.Instrumentation.Quartz.Tests/:
     - maldago
+  test/OpenTelemetry.Instrumentation.Wcf.Tests/:
+    - codeblanch
