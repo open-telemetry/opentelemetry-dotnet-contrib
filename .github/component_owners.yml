@@ -7,8 +7,6 @@ components:
     - lupengamzn
   src/OpenTelemetry.Contrib.Instrumentation.GrpcCore/:
     - pcwiese
-  src/OpenTelemetry.Instrumentation.MassTransit/:
-    - alexvaluyskiy
   src/OpenTelemetry.Contrib.Instrumentation.Owin/:
     - codeblanch
   src/OpenTelemetry.Contrib.Instrumentation.MySqlData/:
@@ -21,6 +19,8 @@ components:
     - SergeyKanzhelev
   src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
     - ejsmith
+  src/OpenTelemetry.Instrumentation.MassTransit/:
+    - alexvaluyskiy
   src/OpenTelemetry.Instrumentation.Quartz/:
     - maldago
   src/OpenTelemetry.Instrumentation.Wcf/:
@@ -31,8 +31,6 @@ components:
     - lupengamzn
   test/OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests/:
     - pcwiese
-  test/OpenTelemetry.Instrumentation.MassTransit.Tests/:
-    - alexvaluyskiy
   test/OpenTelemetry.Contrib.Instrumentation.Owin.Tests/:
     - codeblanch
   test/OpenTelemetry.Contrib.Instrumentation.MySqlData.Tests/:
@@ -45,6 +43,8 @@ components:
     - SergeyKanzhelev
   test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/:
     - ejsmith
+  test/OpenTelemetry.Instrumentation.MassTransit.Tests/:
+    - alexvaluyskiy
   test/OpenTelemetry.Instrumentation.Quartz.Tests/:
     - maldago
   test/OpenTelemetry.Instrumentation.Wcf.Tests/:

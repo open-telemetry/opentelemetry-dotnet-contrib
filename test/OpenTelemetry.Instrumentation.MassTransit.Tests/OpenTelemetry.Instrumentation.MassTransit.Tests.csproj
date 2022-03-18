@@ -22,6 +22,6 @@
 
 
   <ItemGroup>
-    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Instrumentation.MassTransit\OpenTelemetry.Instrumentation.MassTransit.csproj" />
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.MassTransit\OpenTelemetry.Instrumentation.MassTransit.csproj" />
   </ItemGroup>
 </Project>
