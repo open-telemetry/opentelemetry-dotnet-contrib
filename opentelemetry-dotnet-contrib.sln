@@ -121,10 +121,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests", "test\OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests\OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests.csproj", "{22E101DD-D6D7-4554-9A98-8963230D6B2F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.MySqlData", "src\OpenTelemetry.Contrib.Instrumentation.MySqlData\OpenTelemetry.Instrumentation.MySqlData.csproj", "{7D6175C4-1E8C-43BD-878D-6241E9627A69}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.MySqlData.Tests", "test\OpenTelemetry.Contrib.Instrumentation.MySqlData.Tests\OpenTelemetry.Instrumentation.MySqlData.Tests.csproj", "{9F837AD0-C410-4001-B002-55090DA584EA}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.AWSLambda", "src\OpenTelemetry.Contrib.Instrumentation.AWSLambda\OpenTelemetry.Contrib.Instrumentation.AWSLambda.csproj", "{87FE0ED4-56A5-4775-9F63-DD532F2200BD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests", "test\OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests\OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests.csproj", "{08EDD935-8B4E-4CF5-8840-200DEBA8E110}"
@@ -168,6 +164,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.AzureMonitor", "src\OpenTelemetry.Extensions.AzureMonitor\OpenTelemetry.Extensions.AzureMonitor.csproj", "{426D8AE8-EC39-48EA-AC66-1BF84C4CE529}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.AzureMonitor.Tests", "test\OpenTelemetry.Extensions.AzureMonitor.Tests\OpenTelemetry.Extensions.AzureMonitor.Tests.csproj", "{47ABABE1-62CC-4655-AA95-352F4DC20C96}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.MySqlData", "src\OpenTelemetry.Instrumentation.MySqlData\OpenTelemetry.Instrumentation.MySqlData.csproj", "{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.MySqlData.Tests", "test\OpenTelemetry.Instrumentation.MySqlData.Tests\OpenTelemetry.Instrumentation.MySqlData.Tests.csproj", "{662A00CA-B152-40D4-B9A4-6061490B8B3D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -243,14 +243,6 @@ Global
 		{22E101DD-D6D7-4554-9A98-8963230D6B2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{22E101DD-D6D7-4554-9A98-8963230D6B2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{22E101DD-D6D7-4554-9A98-8963230D6B2F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7D6175C4-1E8C-43BD-878D-6241E9627A69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7D6175C4-1E8C-43BD-878D-6241E9627A69}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7D6175C4-1E8C-43BD-878D-6241E9627A69}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7D6175C4-1E8C-43BD-878D-6241E9627A69}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9F837AD0-C410-4001-B002-55090DA584EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9F837AD0-C410-4001-B002-55090DA584EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9F837AD0-C410-4001-B002-55090DA584EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9F837AD0-C410-4001-B002-55090DA584EA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{87FE0ED4-56A5-4775-9F63-DD532F2200BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{87FE0ED4-56A5-4775-9F63-DD532F2200BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{87FE0ED4-56A5-4775-9F63-DD532F2200BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -335,6 +327,14 @@ Global
 		{47ABABE1-62CC-4655-AA95-352F4DC20C96}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{47ABABE1-62CC-4655-AA95-352F4DC20C96}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{47ABABE1-62CC-4655-AA95-352F4DC20C96}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{662A00CA-B152-40D4-B9A4-6061490B8B3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{662A00CA-B152-40D4-B9A4-6061490B8B3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{662A00CA-B152-40D4-B9A4-6061490B8B3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{662A00CA-B152-40D4-B9A4-6061490B8B3D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -362,8 +362,6 @@ Global
 		{F1591DEE-79C0-4161-85C2-1477B261D274} = {58D1DE55-B0A5-4BC4-AB37-09B1C7B26752}
 		{ECBF7E54-3490-4B69-A376-17DC7BC75B0D} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{22E101DD-D6D7-4554-9A98-8963230D6B2F} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
-		{7D6175C4-1E8C-43BD-878D-6241E9627A69} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
-		{9F837AD0-C410-4001-B002-55090DA584EA} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{87FE0ED4-56A5-4775-9F63-DD532F2200BD} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{08EDD935-8B4E-4CF5-8840-200DEBA8E110} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{C33F2D9D-89A6-459C-9A51-79BA5A9EF194} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
@@ -386,6 +384,8 @@ Global
 		{970B604C-C57F-4767-A080-67976E69F76E} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{426D8AE8-EC39-48EA-AC66-1BF84C4CE529} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{47ABABE1-62CC-4655-AA95-352F4DC20C96} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{662A00CA-B152-40D4-B9A4-6061490B8B3D} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
