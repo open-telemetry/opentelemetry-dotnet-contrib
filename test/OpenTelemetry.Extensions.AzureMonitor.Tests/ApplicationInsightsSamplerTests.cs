@@ -20,7 +20,7 @@ using System.Diagnostics;
 using OpenTelemetry.Trace;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Extensions.AzureMonitor.Tests
+namespace OpenTelemetry.Extensions.AzureMonitor.Tests
 {
     public class ApplicationInsightsSamplerTests
     {

@@ -7,7 +7,7 @@ implements the same hash algorithm when deciding to sample telemetry.
 ## Installation
 
 ```shell
-dotnet add package OpenTelemetry.Contrib.Extensions.AzureMonitor
+dotnet add package OpenTelemetry.Extensions.AzureMonitor
 ```
 
 ## References
