@@ -28,7 +28,7 @@ using OpenTelemetry.Trace;
 using Owin;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Owin.Tests
+namespace OpenTelemetry.Instrumentation.Owin.Tests
 {
     public class DiagnosticsMiddlewareTests : IDisposable
     {

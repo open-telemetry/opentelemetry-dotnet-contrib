@@ -15,7 +15,7 @@
 // </copyright>
 
 using System;
-using OpenTelemetry.Contrib.Instrumentation.Owin;
+using OpenTelemetry.Instrumentation.Owin;
 
 namespace OpenTelemetry.Trace
 {

@@ -19,7 +19,7 @@ using System.Diagnostics;
 using Microsoft.Owin;
 using OpenTelemetry.Context.Propagation;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Owin
+namespace OpenTelemetry.Instrumentation.Owin
 {
     /// <summary>
     /// Options for requests instrumentation.

@@ -17,7 +17,7 @@
 using System;
 using System.Diagnostics;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Owin
+namespace OpenTelemetry.Instrumentation.Owin
 {
     internal static class OwinInstrumentationActivitySource
     {
