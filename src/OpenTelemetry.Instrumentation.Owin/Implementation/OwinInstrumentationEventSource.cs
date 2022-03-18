@@ -19,7 +19,7 @@ using System.Diagnostics.Tracing;
 using System.Globalization;
 using System.Threading;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Owin
+namespace OpenTelemetry.Instrumentation.Owin
 {
     /// <summary>
     /// EventSource events emitted from the project.

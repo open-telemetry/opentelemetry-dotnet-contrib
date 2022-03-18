@@ -1,13 +1,14 @@
 # OWIN Instrumentation for OpenTelemetry .NET
 
-[![nuget](https://img.shields.io/nuget/v/OpenTelemetry.Contrib.Instrumentation.Own.svg)](https://www.nuget.org/packages/OpenTelemetry.Contrib.Instrumentation.Owin/)
+[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Owin.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Owin)
+[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Owin.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Owin)
 
 This is an [Instrumentation
 Library](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/glossary.md#instrumentation-library),
 which instruments [OWIN/Katana](https://github.com/aspnet/AspNetKatana/) and
 collects telemetry about incoming requests.
 
-## Steps to enable OpenTelemetry.Contrib.Instrumentation.Owin
+## Steps to enable OpenTelemetry.Instrumentation.Owin
 
 An example project is available in the
 [examples/owin](../../examples/owin/) folder.
@@ -15,11 +16,11 @@ An example project is available in the
 ### Step 1: Install Package
 
 Add a reference to the
-[`OpenTelemetry.Contrib.Instrumentation.Owin`](https://www.nuget.org/packages/opentelemetry.contrib.instrumentation.owin)
+[`OpenTelemetry.Instrumentation.Owin`](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Owin)
 package. Also, add any other instrumentations & exporters you will need.
 
 ```shell
-dotnet add package OpenTelemetry.Contrib.Instrumentation.Owin
+dotnet add package OpenTelemetry.Instrumentation.Owin
 ```
 
 ### Step 2: Configure OWIN middleware

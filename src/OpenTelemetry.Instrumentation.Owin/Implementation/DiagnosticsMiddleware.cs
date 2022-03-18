@@ -23,7 +23,7 @@ using Microsoft.Owin;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Contrib.Instrumentation.Owin
+namespace OpenTelemetry.Instrumentation.Owin
 {
     /// <summary>
     /// Instruments incoming request with <see cref="Activity"/> and notifies listeners with <see cref="ActivitySource"/>.
