@@ -16,7 +16,7 @@
 
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("OpenTelemetry.Contrib.Extensions.PersistentStorage.Tests" + AssemblyInfo.PublicKey)]
+[assembly: InternalsVisibleTo("OpenTelemetry.Extensions.PersistentStorage.Tests" + AssemblyInfo.PublicKey)]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2" + AssemblyInfo.MoqPublicKey)]
 
 #if SIGNED

@@ -17,7 +17,7 @@
 using System;
 using System.IO;
 
-namespace OpenTelemetry.Contrib.Extensions.PersistentStorage
+namespace OpenTelemetry.Extensions.PersistentStorage
 {
     /// <summary>
     /// The <see cref="FileBlob"/> allows to save a blob

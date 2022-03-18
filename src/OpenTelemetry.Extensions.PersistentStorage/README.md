@@ -1,5 +1,8 @@
 # Persistent Storage Interface and Implementation
 
+[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Extensions.PersistentStorage.svg)](https://www.nuget.org/packages/OpenTelemetry.Extensions.PersistentStorage)
+[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Extensions.PersistentStorage.svg)](https://www.nuget.org/packages/OpenTelemetry.Extensions.PersistentStorage)
+
 This package provides both the interface and implementation of persistent
 storage. It is an experimental component which can be used by OpenTelemetry
 Exporters to provide reliable data delivery. Eventually this component should
@@ -8,7 +11,7 @@ get splitted into the abstract interface and concrete implementations.
 ## Installation
 
 ```shell
-dotnet add package OpenTelemetry.Contrib.Extensions.PersistentStorage
+dotnet add package OpenTelemetry.Extensions.PersistentStorage
 ```
 
 ## Basic Usage
