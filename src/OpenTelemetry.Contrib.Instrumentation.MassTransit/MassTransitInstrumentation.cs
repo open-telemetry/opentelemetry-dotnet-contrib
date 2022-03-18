@@ -16,7 +16,6 @@
 
 using System;
 using OpenTelemetry.Instrumentation.MassTransit.Implementation;
-using OpenTelemetry.Instrumentation;
 
 namespace OpenTelemetry.Instrumentation.MassTransit
 {
