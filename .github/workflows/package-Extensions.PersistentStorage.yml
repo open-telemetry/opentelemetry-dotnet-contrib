@@ -1,4 +1,4 @@
-name: Pack OpenTelemetry.Contrib.Extensions.PersistentStorage
+name: Pack OpenTelemetry.Extensions.PersistentStorage
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ jobs:
   build-test-pack:
     runs-on: ${{ matrix.os }}
     env:
-      PROJECT: OpenTelemetry.Contrib.Extensions.PersistentStorage
+      PROJECT: OpenTelemetry.Extensions.PersistentStorage
 
     strategy:
       matrix:
