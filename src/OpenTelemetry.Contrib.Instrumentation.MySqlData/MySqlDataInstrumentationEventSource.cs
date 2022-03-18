@@ -16,7 +16,7 @@
 
 using System.Diagnostics.Tracing;
 
-namespace OpenTelemetry.Contrib.Instrumentation.MySqlData
+namespace OpenTelemetry.Instrumentation.MySqlData
 {
     /// <summary>
     /// EventSource events emitted from the project.

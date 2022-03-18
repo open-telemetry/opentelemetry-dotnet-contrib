@@ -16,7 +16,7 @@
 
 using MySql.Data.MySqlClient;
 
-namespace OpenTelemetry.Contrib.Instrumentation.MySqlData
+namespace OpenTelemetry.Instrumentation.MySqlData
 {
     /// <summary>
     /// Informations of current executing command.

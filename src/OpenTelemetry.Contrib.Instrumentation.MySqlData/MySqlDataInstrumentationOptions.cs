@@ -22,7 +22,7 @@ using System.Text.RegularExpressions;
 
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Contrib.Instrumentation.MySqlData
+namespace OpenTelemetry.Instrumentation.MySqlData
 {
     /// <summary>
     /// Options for <see cref="MySqlDataInstrumentation"/>.
