@@ -1,5 +1,8 @@
 # gRPC Core-based Client and Server Interceptors for OpenTelemetry .NET
 
+[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.GrpcCore.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.GrpcCore)
+[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.GrpcCore.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.GrpcCore)
+
 Adds OpenTelemetry instrumentation for gRPC Core-based client and server calls.
 
 gRPC Core is the predecessor to ASP.NET Core gRPC. See <https://github.com/grpc/grpc/tree/master/src/csharp>
@@ -15,7 +18,7 @@ semantic RPC specification <https://github.com/open-telemetry/opentelemetry-spec
 ## Installation
 
 ```shell
-dotnet add package OpenTelemetry.Contrib.Instrumentation.GrpcCore
+dotnet add package OpenTelemetry.Instrumentation.GrpcCore
 ```
 
 ## Configuration

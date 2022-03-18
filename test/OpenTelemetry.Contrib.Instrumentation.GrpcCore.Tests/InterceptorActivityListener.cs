@@ -18,7 +18,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 
-namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
+namespace OpenTelemetry.Instrumentation.GrpcCore.Test
 {
     /// <summary>
     /// This class listens for a single Activity created by the Grpc Core interceptors.

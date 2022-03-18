@@ -117,9 +117,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "grpc.core", "grpc.core", "{
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.GrpcCore.AspNetCore", "examples\grpc.core\Examples.GrpcCore.AspNetCore\Examples.GrpcCore.AspNetCore.csproj", "{F1591DEE-79C0-4161-85C2-1477B261D274}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.GrpcCore", "src\OpenTelemetry.Contrib.Instrumentation.GrpcCore\OpenTelemetry.Contrib.Instrumentation.GrpcCore.csproj", "{ECBF7E54-3490-4B69-A376-17DC7BC75B0D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.GrpcCore", "src\OpenTelemetry.Contrib.Instrumentation.GrpcCore\OpenTelemetry.Instrumentation.GrpcCore.csproj", "{ECBF7E54-3490-4B69-A376-17DC7BC75B0D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests", "test\OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests\OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests.csproj", "{22E101DD-D6D7-4554-9A98-8963230D6B2F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.GrpcCore.Tests", "test\OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests\OpenTelemetry.Instrumentation.GrpcCore.Tests.csproj", "{22E101DD-D6D7-4554-9A98-8963230D6B2F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.MySqlData", "src\OpenTelemetry.Contrib.Instrumentation.MySqlData\OpenTelemetry.Contrib.Instrumentation.MySqlData.csproj", "{7D6175C4-1E8C-43BD-878D-6241E9627A69}"
 EndProject

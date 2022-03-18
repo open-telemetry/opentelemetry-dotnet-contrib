@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore
+namespace OpenTelemetry.Instrumentation.GrpcCore
 {
     using System;
 

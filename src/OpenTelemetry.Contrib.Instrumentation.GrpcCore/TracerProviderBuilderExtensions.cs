@@ -17,7 +17,7 @@
 namespace OpenTelemetry.Trace
 {
     using System;
-    using OpenTelemetry.Contrib.Instrumentation.GrpcCore;
+    using OpenTelemetry.Instrumentation.GrpcCore;
 
     /// <summary>
     /// OpenTelemetry builder extensions to simplify registration of Grpc.Core based interceptors.

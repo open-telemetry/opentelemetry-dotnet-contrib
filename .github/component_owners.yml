@@ -9,7 +9,7 @@ components:
     - lupengamzn
   src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
     - ejsmith
-  src/OpenTelemetry.Contrib.Instrumentation.GrpcCore/:
+  src/OpenTelemetry.Instrumentation.GrpcCore/:
     - pcwiese
   src/OpenTelemetry.Contrib.Instrumentation.MassTransit/:
     - alexvaluyskiy
@@ -33,7 +33,7 @@ components:
     - lupengamzn
   test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/:
     - ejsmith
-  test/OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests/:
+  test/OpenTelemetry.Instrumentation.GrpcCore.Tests/:
     - pcwiese
   test/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests/:
     - alexvaluyskiy

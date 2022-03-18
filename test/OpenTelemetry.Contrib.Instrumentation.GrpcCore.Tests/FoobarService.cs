@@ -23,7 +23,7 @@ using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 
-namespace OpenTelemetry.Contrib.Instrumentation.GrpcCore.Test
+namespace OpenTelemetry.Instrumentation.GrpcCore.Test
 {
     /// <summary>
     /// Test implementation of foobar.
