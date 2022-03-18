@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Contrib.Extensions.PersistentStorage
+namespace OpenTelemetry.Extensions.PersistentStorage
 {
     /// <summary>
     /// Represents a persistent blob.
