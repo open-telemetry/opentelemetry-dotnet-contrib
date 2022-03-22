@@ -15,7 +15,6 @@
 // </copyright>
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Moq;
@@ -24,7 +23,7 @@ using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Instrumentation.MySqlData.Tests
+namespace OpenTelemetry.Instrumentation.MySqlData.Tests
 {
     public class MySqlDataTests
     {

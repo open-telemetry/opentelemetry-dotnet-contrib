@@ -15,7 +15,7 @@
 // </copyright>
 
 using System;
-using OpenTelemetry.Contrib.Instrumentation.MySqlData;
+using OpenTelemetry.Instrumentation.MySqlData;
 
 namespace OpenTelemetry.Trace
 {

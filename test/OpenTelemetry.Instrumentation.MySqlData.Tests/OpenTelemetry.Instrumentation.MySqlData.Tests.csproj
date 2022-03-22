@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -20,7 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\OpenTelemetry.Contrib.Instrumentation.MySqlData\OpenTelemetry.Contrib.Instrumentation.MySqlData.csproj" />
+      <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.MySqlData\OpenTelemetry.Instrumentation.MySqlData.csproj" />
     </ItemGroup>
 
 </Project>

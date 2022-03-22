@@ -20,7 +20,7 @@ using System.Diagnostics;
 using MySql.Data.MySqlClient;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Contrib.Instrumentation.MySqlData
+namespace OpenTelemetry.Instrumentation.MySqlData
 {
     /// <summary>
     /// MySql.Data instrumentation.
