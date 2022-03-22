@@ -5,22 +5,22 @@ components:
   src/OpenTelemetry.Contrib.Extensions.AWSXRay/:
     - srprash
     - lupengamzn
-  src/OpenTelemetry.Contrib.Instrumentation.GrpcCore/:
-    - pcwiese
   src/OpenTelemetry.Contrib.Instrumentation.MassTransit/:
     - alexvaluyskiy
-  src/OpenTelemetry.Contrib.Instrumentation.Owin/:
-    - codeblanch
-  src/OpenTelemetry.Contrib.Extensions.PersistentStorage/:
-    - vishweshbankwar
   src/OpenTelemetry.Contrib.Preview/:
     - codeblanch
   src/OpenTelemetry.Exporter.Stackdriver/:
     - SergeyKanzhelev
+  src/OpenTelemetry.Extensions.PersistentStorage/:
+    - vishweshbankwar
   src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
     - ejsmith
+  src/OpenTelemetry.Instrumentation.GrpcCore/:
+    - pcwiese
   src/OpenTelemetry.Instrumentation.MySqlData/:
     - moonheart
+  src/OpenTelemetry.Instrumentation.Owin/:
+    - codeblanch
   src/OpenTelemetry.Instrumentation.Quartz/:
     - maldago
   src/OpenTelemetry.Instrumentation.Wcf/:
@@ -29,22 +29,22 @@ components:
   test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/:
     - srprash 
     - lupengamzn
-  test/OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests/:
-    - pcwiese
   test/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests/:
     - alexvaluyskiy
-  test/OpenTelemetry.Contrib.Instrumentation.Owin.Tests/:
-    - codeblanch
-  test/OpenTelemetry.Contrib.Extensions.PersistentStorage.Tests/:
-    - vishweshbankwar
   test/OpenTelemetry.Contrib.Preview.Tests/:
     - codeblanch
   test/OpenTelemetry.Exporter.Stackdriver.Tests/:
     - SergeyKanzhelev
+  test/OpenTelemetry.Extensions.PersistentStorage.Tests/:
+    - vishweshbankwar
   test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/:
     - ejsmith
+  test/OpenTelemetry.Instrumentation.GrpcCore.Tests/:
+    - pcwiese
   test/OpenTelemetry.Instrumentation.MySqlData.Tests/:
     - moonheart
+  test/OpenTelemetry.Instrumentation.Owin.Tests/:
+    - codeblanch
   test/OpenTelemetry.Instrumentation.Quartz.Tests/:
     - maldago
   test/OpenTelemetry.Instrumentation.Wcf.Tests/:

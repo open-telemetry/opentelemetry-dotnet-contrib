@@ -1,4 +1,4 @@
-name: Pack OpenTelemetry.Contrib.Instrumentation.Owin
+name: Pack OpenTelemetry.Instrumentation.Owin
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ jobs:
   build-test-pack:
     runs-on: ${{ matrix.os }}
     env:
-      PROJECT: OpenTelemetry.Contrib.Instrumentation.Owin
+      PROJECT: OpenTelemetry.Instrumentation.Owin
 
     strategy:
       matrix:
