@@ -20,7 +20,7 @@ using System.Diagnostics;
 using System.Reflection;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Contrib.Instrumentation.MySqlData
+namespace OpenTelemetry.Instrumentation.MySqlData
 {
     /// <summary>
     /// Helper class to hold common properties used by MySqlDataDiagnosticListener.

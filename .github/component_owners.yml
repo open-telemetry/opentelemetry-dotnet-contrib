@@ -7,8 +7,6 @@ components:
     - lupengamzn
   src/OpenTelemetry.Contrib.Instrumentation.MassTransit/:
     - alexvaluyskiy
-  src/OpenTelemetry.Contrib.Instrumentation.MySqlData/:
-    - moonheart
   src/OpenTelemetry.Contrib.Preview/:
     - codeblanch
   src/OpenTelemetry.Exporter.Stackdriver/:
@@ -19,6 +17,8 @@ components:
     - ejsmith
   src/OpenTelemetry.Instrumentation.GrpcCore/:
     - pcwiese
+  src/OpenTelemetry.Instrumentation.MySqlData/:
+    - moonheart
   src/OpenTelemetry.Instrumentation.Owin/:
     - codeblanch
   src/OpenTelemetry.Instrumentation.Quartz/:
@@ -31,8 +31,6 @@ components:
     - lupengamzn
   test/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests/:
     - alexvaluyskiy
-  test/OpenTelemetry.Contrib.Instrumentation.MySqlData.Tests/:
-    - moonheart
   test/OpenTelemetry.Contrib.Preview.Tests/:
     - codeblanch
   test/OpenTelemetry.Exporter.Stackdriver.Tests/:
@@ -43,6 +41,8 @@ components:
     - ejsmith
   test/OpenTelemetry.Instrumentation.GrpcCore.Tests/:
     - pcwiese
+  test/OpenTelemetry.Instrumentation.MySqlData.Tests/:
+    - moonheart
   test/OpenTelemetry.Instrumentation.Owin.Tests/:
     - codeblanch
   test/OpenTelemetry.Instrumentation.Quartz.Tests/:
