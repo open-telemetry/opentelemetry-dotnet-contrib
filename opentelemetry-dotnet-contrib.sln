@@ -1,4 +1,3 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31912.275
@@ -33,6 +32,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\markdownlint.yml = .github\workflows\markdownlint.yml
 		.github\workflows\package-Exporter.Stackdriver.yml = .github\workflows\package-Exporter.Stackdriver.yml
 		.github\workflows\package-Extensions.AWSXRay.yml = .github\workflows\package-Extensions.AWSXRay.yml
+		.github\workflows\package-Extensions.PersistentStorage.yml = .github\workflows\package-Extensions.PersistentStorage.yml
 		.github\workflows\package-Instrumentation.AWS.yml = .github\workflows\package-Instrumentation.AWS.yml
 		.github\workflows\package-Instrumentation.AWSLambda.yml = .github\workflows\package-Instrumentation.AWSLambda.yml
 		.github\workflows\package-Instrumentation.Elasticsearch.yml = .github\workflows\package-Instrumentation.Elasticsearch.yml
@@ -77,6 +77,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{E0F52FDB-2
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore", "src\OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore\OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.csproj", "{09525C6C-68B7-405E-B476-23E64D91C11B}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.MassTransit", "src\OpenTelemetry.Contrib.Instrumentation.MassTransit\OpenTelemetry.Contrib.Instrumentation.MassTransit.csproj", "{301BFB9F-6D73-4DEE-93D1-75F480816F63}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests", "test\OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests\OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.csproj", "{1F4B5983-EA2E-4DAC-8E02-20C0CDA9FA93}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Wcf", "src\OpenTelemetry.Instrumentation.Wcf\OpenTelemetry.Instrumentation.Wcf.csproj", "{CAD5C27A-D359-4086-9C4F-02204C084A8E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}"
@@ -113,10 +117,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "grpc.core", "grpc.core", "{
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.GrpcCore.AspNetCore", "examples\grpc.core\Examples.GrpcCore.AspNetCore\Examples.GrpcCore.AspNetCore.csproj", "{F1591DEE-79C0-4161-85C2-1477B261D274}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.GrpcCore", "src\OpenTelemetry.Contrib.Instrumentation.GrpcCore\OpenTelemetry.Contrib.Instrumentation.GrpcCore.csproj", "{ECBF7E54-3490-4B69-A376-17DC7BC75B0D}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests", "test\OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests\OpenTelemetry.Contrib.Instrumentation.GrpcCore.Tests.csproj", "{22E101DD-D6D7-4554-9A98-8963230D6B2F}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.MySqlData", "src\OpenTelemetry.Contrib.Instrumentation.MySqlData\OpenTelemetry.Contrib.Instrumentation.MySqlData.csproj", "{7D6175C4-1E8C-43BD-878D-6241E9627A69}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.MySqlData.Tests", "test\OpenTelemetry.Contrib.Instrumentation.MySqlData.Tests\OpenTelemetry.Contrib.Instrumentation.MySqlData.Tests.csproj", "{9F837AD0-C410-4001-B002-55090DA584EA}"
@@ -131,27 +131,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Previ
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Preview.Tests", "test\OpenTelemetry.Contrib.Preview.Tests\OpenTelemetry.Contrib.Preview.Tests.csproj", "{D2C68560-C252-41A9-B742-2CEB7D760E0F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Tests", "test\OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Tests\OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.Tests.csproj", "{4172D671-3AAC-443F-9EB0-A6608B154AF0}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Quartz", "src\OpenTelemetry.Instrumentation.Quartz\OpenTelemetry.Instrumentation.Quartz.csproj", "{2CFC0D07-7AEC-4BC3-96C4-A06A38DBF6DF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Quartz.Tests", "test\OpenTelemetry.Instrumentation.Quartz.Tests\OpenTelemetry.Instrumentation.Quartz.Tests.csproj", "{37564EE6-F0A4-4F40-BB13-0BBFAC7F7F28}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.Owin", "src\OpenTelemetry.Contrib.Instrumentation.Owin\OpenTelemetry.Contrib.Instrumentation.Owin.csproj", "{530255C1-D130-4B43-981D-911E54F7C787}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "owin", "owin", "{8D11A34C-D0EF-4DE1-8230-32168E67044D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Owin", "examples\owin\Examples.Owin.csproj", "{6B3AA3F2-89A7-433F-918A-1E5E6AAF8423}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.Owin.Tests", "test\OpenTelemetry.Contrib.Instrumentation.Owin.Tests\OpenTelemetry.Contrib.Instrumentation.Owin.Tests.csproj", "{D52558C8-B7BF-4F59-A0FA-9AA629E68012}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Extensions.PersistentStorage", "src\OpenTelemetry.Contrib.Extensions.PersistentStorage\OpenTelemetry.Contrib.Extensions.PersistentStorage.csproj", "{433C59A3-D535-421E-BA7F-9BCE0D4A3D25}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Extensions.PersistentStorage.Tests", "test\OpenTelemetry.Contrib.Extensions.PersistentStorage.Tests\OpenTelemetry.Contrib.Extensions.PersistentStorage.Tests.csproj", "{72EBA81D-2933-417C-8F21-D4CFFD72F530}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Runtime", "src\OpenTelemetry.Contrib.Instrumentation.Runtime\OpenTelemetry.Instrumentation.Runtime.csproj", "{F01E8C75-2791-4DBE-BD7A-5510871EBF56}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Runtime.Tests", "test\OpenTelemetry.Contrib.Instrumentation.Runtime.Tests\OpenTelemetry.Instrumentation.Runtime.Tests.csproj", "{FB907DF7-F3F3-4A07-885D-E5FECAE36BDA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.Stackdriver", "src\OpenTelemetry.Exporter.Stackdriver\OpenTelemetry.Exporter.Stackdriver.csproj", "{8A25B43D-BBB2-40FF-B0EB-33AACCD15AD7}"
 EndProject
@@ -169,16 +155,32 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentati
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.MassTransit.Tests", "test\OpenTelemetry.Instrumentation.MassTransit.Tests\OpenTelemetry.Instrumentation.MassTransit.Tests.csproj", "{4F8D7FF0-8D2C-4AD3-A033-2B165E59A701}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.PersistentStorage", "src\OpenTelemetry.Extensions.PersistentStorage\OpenTelemetry.Extensions.PersistentStorage.csproj", "{C2B9190B-E2F6-4D40-B298-91521E383A50}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.PersistentStorage.Tests", "test\OpenTelemetry.Extensions.PersistentStorage.Tests\OpenTelemetry.Extensions.PersistentStorage.Tests.csproj", "{61F40874-7BD2-4814-886E-8D7A463D7F5E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.EntityFrameworkCore", "src\OpenTelemetry.Instrumentation.EntityFrameworkCore\OpenTelemetry.Instrumentation.EntityFrameworkCore.csproj", "{D4468444-69EF-4BF3-B13F-61F4AB728813}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests", "test\OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests\OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests.csproj", "{A1F7FA66-C83D-485D-90FE-71C4018971D4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.GrpcCore", "src\OpenTelemetry.Instrumentation.GrpcCore\OpenTelemetry.Instrumentation.GrpcCore.csproj", "{D0B694E4-AAE4-492F-ACCB-3D913A874780}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.GrpcCore.Tests", "test\OpenTelemetry.Instrumentation.GrpcCore.Tests\OpenTelemetry.Instrumentation.GrpcCore.Tests.csproj", "{32D24733-C807-4816-84C3-270CE790AFD4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Owin", "src\OpenTelemetry.Instrumentation.Owin\OpenTelemetry.Instrumentation.Owin.csproj", "{2815DA76-D855-43FD-A005-FAB289B5EFE8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Owin.Tests", "test\OpenTelemetry.Instrumentation.Owin.Tests\OpenTelemetry.Instrumentation.Owin.Tests.csproj", "{D7311F9A-BFC3-4470-9C49-39D826BA9996}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Runtime", "src\OpenTelemetry.Instrumentation.Runtime\OpenTelemetry.Instrumentation.Runtime.csproj", "{67BFE7DF-505D-427E-8019-40BFF19363E9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Runtime.Tests", "test\OpenTelemetry.Instrumentation.Runtime.Tests\OpenTelemetry.Instrumentation.Runtime.Tests.csproj", "{6AE92AAD-CF08-4E60-98EF-A7F762DAAB4D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{09525C6C-68B7-405E-B476-23E64D91C11B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{09525C6C-68B7-405E-B476-23E64D91C11B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{09525C6C-68B7-405E-B476-23E64D91C11B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{09525C6C-68B7-405E-B476-23E64D91C11B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CAD5C27A-D359-4086-9C4F-02204C084A8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CAD5C27A-D359-4086-9C4F-02204C084A8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CAD5C27A-D359-4086-9C4F-02204C084A8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -227,14 +229,6 @@ Global
 		{F1591DEE-79C0-4161-85C2-1477B261D274}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F1591DEE-79C0-4161-85C2-1477B261D274}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F1591DEE-79C0-4161-85C2-1477B261D274}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ECBF7E54-3490-4B69-A376-17DC7BC75B0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ECBF7E54-3490-4B69-A376-17DC7BC75B0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ECBF7E54-3490-4B69-A376-17DC7BC75B0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ECBF7E54-3490-4B69-A376-17DC7BC75B0D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{22E101DD-D6D7-4554-9A98-8963230D6B2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{22E101DD-D6D7-4554-9A98-8963230D6B2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{22E101DD-D6D7-4554-9A98-8963230D6B2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{22E101DD-D6D7-4554-9A98-8963230D6B2F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7D6175C4-1E8C-43BD-878D-6241E9627A69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7D6175C4-1E8C-43BD-878D-6241E9627A69}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D6175C4-1E8C-43BD-878D-6241E9627A69}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -263,10 +257,6 @@ Global
 		{D2C68560-C252-41A9-B742-2CEB7D760E0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D2C68560-C252-41A9-B742-2CEB7D760E0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D2C68560-C252-41A9-B742-2CEB7D760E0F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4172D671-3AAC-443F-9EB0-A6608B154AF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4172D671-3AAC-443F-9EB0-A6608B154AF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4172D671-3AAC-443F-9EB0-A6608B154AF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4172D671-3AAC-443F-9EB0-A6608B154AF0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2CFC0D07-7AEC-4BC3-96C4-A06A38DBF6DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2CFC0D07-7AEC-4BC3-96C4-A06A38DBF6DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2CFC0D07-7AEC-4BC3-96C4-A06A38DBF6DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -275,34 +265,10 @@ Global
 		{37564EE6-F0A4-4F40-BB13-0BBFAC7F7F28}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{37564EE6-F0A4-4F40-BB13-0BBFAC7F7F28}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{37564EE6-F0A4-4F40-BB13-0BBFAC7F7F28}.Release|Any CPU.Build.0 = Release|Any CPU
-		{530255C1-D130-4B43-981D-911E54F7C787}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{530255C1-D130-4B43-981D-911E54F7C787}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{530255C1-D130-4B43-981D-911E54F7C787}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{530255C1-D130-4B43-981D-911E54F7C787}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6B3AA3F2-89A7-433F-918A-1E5E6AAF8423}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6B3AA3F2-89A7-433F-918A-1E5E6AAF8423}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6B3AA3F2-89A7-433F-918A-1E5E6AAF8423}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6B3AA3F2-89A7-433F-918A-1E5E6AAF8423}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D52558C8-B7BF-4F59-A0FA-9AA629E68012}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D52558C8-B7BF-4F59-A0FA-9AA629E68012}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D52558C8-B7BF-4F59-A0FA-9AA629E68012}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D52558C8-B7BF-4F59-A0FA-9AA629E68012}.Release|Any CPU.Build.0 = Release|Any CPU
-		{433C59A3-D535-421E-BA7F-9BCE0D4A3D25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{433C59A3-D535-421E-BA7F-9BCE0D4A3D25}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{433C59A3-D535-421E-BA7F-9BCE0D4A3D25}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{433C59A3-D535-421E-BA7F-9BCE0D4A3D25}.Release|Any CPU.Build.0 = Release|Any CPU
-		{72EBA81D-2933-417C-8F21-D4CFFD72F530}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{72EBA81D-2933-417C-8F21-D4CFFD72F530}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{72EBA81D-2933-417C-8F21-D4CFFD72F530}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{72EBA81D-2933-417C-8F21-D4CFFD72F530}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F01E8C75-2791-4DBE-BD7A-5510871EBF56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F01E8C75-2791-4DBE-BD7A-5510871EBF56}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F01E8C75-2791-4DBE-BD7A-5510871EBF56}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F01E8C75-2791-4DBE-BD7A-5510871EBF56}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FB907DF7-F3F3-4A07-885D-E5FECAE36BDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FB907DF7-F3F3-4A07-885D-E5FECAE36BDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FB907DF7-F3F3-4A07-885D-E5FECAE36BDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FB907DF7-F3F3-4A07-885D-E5FECAE36BDA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8A25B43D-BBB2-40FF-B0EB-33AACCD15AD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8A25B43D-BBB2-40FF-B0EB-33AACCD15AD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A25B43D-BBB2-40FF-B0EB-33AACCD15AD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -335,6 +301,46 @@ Global
 		{4F8D7FF0-8D2C-4AD3-A033-2B165E59A701}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F8D7FF0-8D2C-4AD3-A033-2B165E59A701}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4F8D7FF0-8D2C-4AD3-A033-2B165E59A701}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0B694E4-AAE4-492F-ACCB-3D913A874780}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0B694E4-AAE4-492F-ACCB-3D913A874780}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0B694E4-AAE4-492F-ACCB-3D913A874780}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0B694E4-AAE4-492F-ACCB-3D913A874780}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32D24733-C807-4816-84C3-270CE790AFD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32D24733-C807-4816-84C3-270CE790AFD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32D24733-C807-4816-84C3-270CE790AFD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32D24733-C807-4816-84C3-270CE790AFD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2B9190B-E2F6-4D40-B298-91521E383A50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2B9190B-E2F6-4D40-B298-91521E383A50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2B9190B-E2F6-4D40-B298-91521E383A50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2B9190B-E2F6-4D40-B298-91521E383A50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61F40874-7BD2-4814-886E-8D7A463D7F5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61F40874-7BD2-4814-886E-8D7A463D7F5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61F40874-7BD2-4814-886E-8D7A463D7F5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61F40874-7BD2-4814-886E-8D7A463D7F5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4468444-69EF-4BF3-B13F-61F4AB728813}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4468444-69EF-4BF3-B13F-61F4AB728813}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4468444-69EF-4BF3-B13F-61F4AB728813}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4468444-69EF-4BF3-B13F-61F4AB728813}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1F7FA66-C83D-485D-90FE-71C4018971D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1F7FA66-C83D-485D-90FE-71C4018971D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1F7FA66-C83D-485D-90FE-71C4018971D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1F7FA66-C83D-485D-90FE-71C4018971D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2815DA76-D855-43FD-A005-FAB289B5EFE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2815DA76-D855-43FD-A005-FAB289B5EFE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2815DA76-D855-43FD-A005-FAB289B5EFE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2815DA76-D855-43FD-A005-FAB289B5EFE8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7311F9A-BFC3-4470-9C49-39D826BA9996}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7311F9A-BFC3-4470-9C49-39D826BA9996}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7311F9A-BFC3-4470-9C49-39D826BA9996}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7311F9A-BFC3-4470-9C49-39D826BA9996}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67BFE7DF-505D-427E-8019-40BFF19363E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67BFE7DF-505D-427E-8019-40BFF19363E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67BFE7DF-505D-427E-8019-40BFF19363E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67BFE7DF-505D-427E-8019-40BFF19363E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6AE92AAD-CF08-4E60-98EF-A7F762DAAB4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6AE92AAD-CF08-4E60-98EF-A7F762DAAB4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6AE92AAD-CF08-4E60-98EF-A7F762DAAB4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6AE92AAD-CF08-4E60-98EF-A7F762DAAB4D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -343,7 +349,6 @@ Global
 		{43CAFE52-F329-4431-87DA-7FEE1454D9A9} = {1A06E14B-DD2F-4536-9D2E-F708C0C43555}
 		{0112BD4F-B7A6-4E43-AB23-B6E961E27A49} = {824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}
 		{E0F52FDB-23D1-4927-BAB8-332655DD7A0B} = {824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}
-		{09525C6C-68B7-405E-B476-23E64D91C11B} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{CAD5C27A-D359-4086-9C4F-02204C084A8E} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{73474960-8F91-4EE5-8E3E-F7E7ADA99238} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
 		{21716C26-3B2A-4208-BDFB-8E58E2AF49EA} = {73474960-8F91-4EE5-8E3E-F7E7ADA99238}
@@ -358,8 +363,6 @@ Global
 		{76BAB24F-85DB-4FCE-89D0-EFB4185004C9} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{58D1DE55-B0A5-4BC4-AB37-09B1C7B26752} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
 		{F1591DEE-79C0-4161-85C2-1477B261D274} = {58D1DE55-B0A5-4BC4-AB37-09B1C7B26752}
-		{ECBF7E54-3490-4B69-A376-17DC7BC75B0D} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
-		{22E101DD-D6D7-4554-9A98-8963230D6B2F} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{7D6175C4-1E8C-43BD-878D-6241E9627A69} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{9F837AD0-C410-4001-B002-55090DA584EA} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{87FE0ED4-56A5-4775-9F63-DD532F2200BD} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
@@ -367,17 +370,10 @@ Global
 		{C33F2D9D-89A6-459C-9A51-79BA5A9EF194} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{B978939B-278C-43A3-AD12-32EA9BBD27D0} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{D2C68560-C252-41A9-B742-2CEB7D760E0F} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
-		{4172D671-3AAC-443F-9EB0-A6608B154AF0} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{2CFC0D07-7AEC-4BC3-96C4-A06A38DBF6DF} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{37564EE6-F0A4-4F40-BB13-0BBFAC7F7F28} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
-		{530255C1-D130-4B43-981D-911E54F7C787} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{8D11A34C-D0EF-4DE1-8230-32168E67044D} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
 		{6B3AA3F2-89A7-433F-918A-1E5E6AAF8423} = {8D11A34C-D0EF-4DE1-8230-32168E67044D}
-		{D52558C8-B7BF-4F59-A0FA-9AA629E68012} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
-		{433C59A3-D535-421E-BA7F-9BCE0D4A3D25} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
-		{72EBA81D-2933-417C-8F21-D4CFFD72F530} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
-		{F01E8C75-2791-4DBE-BD7A-5510871EBF56} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
-		{FB907DF7-F3F3-4A07-885D-E5FECAE36BDA} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{8A25B43D-BBB2-40FF-B0EB-33AACCD15AD7} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{8DABC11A-624E-4554-ACA4-D5B80146B9C6} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{96F5B85B-402B-4DFB-AF31-33D5A2EBE35B} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
@@ -386,6 +382,16 @@ Global
 		{47ABABE1-62CC-4655-AA95-352F4DC20C96} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{D4120D09-93F6-4D5C-98C6-A98B459EA83D} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{4F8D7FF0-8D2C-4AD3-A033-2B165E59A701} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{D0B694E4-AAE4-492F-ACCB-3D913A874780} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{32D24733-C807-4816-84C3-270CE790AFD4} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{C2B9190B-E2F6-4D40-B298-91521E383A50} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{61F40874-7BD2-4814-886E-8D7A463D7F5E} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{D4468444-69EF-4BF3-B13F-61F4AB728813} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{A1F7FA66-C83D-485D-90FE-71C4018971D4} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{2815DA76-D855-43FD-A005-FAB289B5EFE8} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{D7311F9A-BFC3-4470-9C49-39D826BA9996} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{67BFE7DF-505D-427E-8019-40BFF19363E9} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{6AE92AAD-CF08-4E60-98EF-A7F762DAAB4D} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
