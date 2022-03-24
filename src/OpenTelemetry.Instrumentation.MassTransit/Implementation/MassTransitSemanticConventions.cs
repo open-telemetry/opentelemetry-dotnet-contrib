@@ -1,4 +1,4 @@
-﻿// <copyright file="TestMessage.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="MassTransitSemanticConventions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,10 +14,12 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
+namespace OpenTelemetry.Instrumentation.MassTransit.Implementation
 {
-    public class TestMessage
+    internal class MassTransitSemanticConventions
     {
-        public string Text;
+        public const string AttributeMessagingMassTransitInitiatorId = "messaging.masstransit.initiator_id";
+        public const string AttributeMessagingMassTransitCorrelationId = "messaging.masstransit.correlation_id";
+        public const string AttributeMessagingMassTransitConsumerType = "messaging.masstransit.consumer_type";
     }
 }

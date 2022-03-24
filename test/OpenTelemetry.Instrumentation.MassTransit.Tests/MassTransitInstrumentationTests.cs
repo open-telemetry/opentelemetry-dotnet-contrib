@@ -20,12 +20,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using MassTransit.Testing;
 using Moq;
-using OpenTelemetry.Contrib.Instrumentation.MassTransit.Implementation;
+using OpenTelemetry.Instrumentation.MassTransit.Implementation;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
+namespace OpenTelemetry.Instrumentation.MassTransit.Tests
 {
     public class MassTransitInstrumentationTests
     {
@@ -170,9 +170,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
 
                 Assert.NotNull(actualActivity);
                 Assert.NotNull(expectedMessageContext);
-                Assert.Equal("OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer process", actualActivity.DisplayName);
+                Assert.Equal("OpenTelemetry.Instrumentation.MassTransit.Tests.TestConsumer process", actualActivity.DisplayName);
                 Assert.Equal(ActivityKind.Internal, actualActivity.Kind);
-                Assert.Equal("OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.TestConsumer", actualActivity.GetTagValue(MassTransitSemanticConventions.AttributeMessagingMassTransitConsumerType)?.ToString());
+                Assert.Equal("OpenTelemetry.Instrumentation.MassTransit.Tests.TestConsumer", actualActivity.GetTagValue(MassTransitSemanticConventions.AttributeMessagingMassTransitConsumerType)?.ToString());
 
                 Assert.Null(actualActivity.GetTagValue(TagName.SpanKind));
                 Assert.Null(actualActivity.GetTagValue(TagName.PeerService));
@@ -213,7 +213,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
 
                 Assert.NotNull(actualActivity);
                 Assert.NotNull(expectedMessageContext);
-                Assert.Equal("TestMessage/OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests process", actualActivity.DisplayName);
+                Assert.Equal("TestMessage/OpenTelemetry.Instrumentation.MassTransit.Tests process", actualActivity.DisplayName);
                 Assert.Equal(ActivityKind.Internal, actualActivity.Kind);
 
                 Assert.Null(actualActivity.GetTagValue(TagName.SpanKind));

@@ -1,4 +1,3 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31912.275
@@ -76,6 +75,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{E0F52FDB-2
 		test\Directory.Build.targets = test\Directory.Build.targets
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore", "src\OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore\OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore.csproj", "{09525C6C-68B7-405E-B476-23E64D91C11B}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.MassTransit", "src\OpenTelemetry.Contrib.Instrumentation.MassTransit\OpenTelemetry.Contrib.Instrumentation.MassTransit.csproj", "{301BFB9F-6D73-4DEE-93D1-75F480816F63}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests", "test\OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests\OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests.csproj", "{1F4B5983-EA2E-4DAC-8E02-20C0CDA9FA93}"
@@ -146,6 +147,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.Az
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.AzureMonitor.Tests", "test\OpenTelemetry.Extensions.AzureMonitor.Tests\OpenTelemetry.Extensions.AzureMonitor.Tests.csproj", "{47ABABE1-62CC-4655-AA95-352F4DC20C96}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.MassTransit", "src\OpenTelemetry.Instrumentation.MassTransit\OpenTelemetry.Instrumentation.MassTransit.csproj", "{D4120D09-93F6-4D5C-98C6-A98B459EA83D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.MassTransit.Tests", "test\OpenTelemetry.Instrumentation.MassTransit.Tests\OpenTelemetry.Instrumentation.MassTransit.Tests.csproj", "{4F8D7FF0-8D2C-4AD3-A033-2B165E59A701}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.MySqlData", "src\OpenTelemetry.Instrumentation.MySqlData\OpenTelemetry.Instrumentation.MySqlData.csproj", "{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.MySqlData.Tests", "test\OpenTelemetry.Instrumentation.MySqlData.Tests\OpenTelemetry.Instrumentation.MySqlData.Tests.csproj", "{662A00CA-B152-40D4-B9A4-6061490B8B3D}"
@@ -176,14 +181,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{301BFB9F-6D73-4DEE-93D1-75F480816F63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{301BFB9F-6D73-4DEE-93D1-75F480816F63}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{301BFB9F-6D73-4DEE-93D1-75F480816F63}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{301BFB9F-6D73-4DEE-93D1-75F480816F63}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1F4B5983-EA2E-4DAC-8E02-20C0CDA9FA93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1F4B5983-EA2E-4DAC-8E02-20C0CDA9FA93}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1F4B5983-EA2E-4DAC-8E02-20C0CDA9FA93}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1F4B5983-EA2E-4DAC-8E02-20C0CDA9FA93}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CAD5C27A-D359-4086-9C4F-02204C084A8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CAD5C27A-D359-4086-9C4F-02204C084A8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CAD5C27A-D359-4086-9C4F-02204C084A8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -288,6 +285,14 @@ Global
 		{47ABABE1-62CC-4655-AA95-352F4DC20C96}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{47ABABE1-62CC-4655-AA95-352F4DC20C96}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{47ABABE1-62CC-4655-AA95-352F4DC20C96}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4120D09-93F6-4D5C-98C6-A98B459EA83D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4120D09-93F6-4D5C-98C6-A98B459EA83D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4120D09-93F6-4D5C-98C6-A98B459EA83D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4120D09-93F6-4D5C-98C6-A98B459EA83D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F8D7FF0-8D2C-4AD3-A033-2B165E59A701}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F8D7FF0-8D2C-4AD3-A033-2B165E59A701}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F8D7FF0-8D2C-4AD3-A033-2B165E59A701}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F8D7FF0-8D2C-4AD3-A033-2B165E59A701}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -344,8 +349,6 @@ Global
 		{43CAFE52-F329-4431-87DA-7FEE1454D9A9} = {1A06E14B-DD2F-4536-9D2E-F708C0C43555}
 		{0112BD4F-B7A6-4E43-AB23-B6E961E27A49} = {824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}
 		{E0F52FDB-23D1-4927-BAB8-332655DD7A0B} = {824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}
-		{301BFB9F-6D73-4DEE-93D1-75F480816F63} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
-		{1F4B5983-EA2E-4DAC-8E02-20C0CDA9FA93} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{CAD5C27A-D359-4086-9C4F-02204C084A8E} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{73474960-8F91-4EE5-8E3E-F7E7ADA99238} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
 		{21716C26-3B2A-4208-BDFB-8E58E2AF49EA} = {73474960-8F91-4EE5-8E3E-F7E7ADA99238}
@@ -375,6 +378,8 @@ Global
 		{970B604C-C57F-4767-A080-67976E69F76E} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{426D8AE8-EC39-48EA-AC66-1BF84C4CE529} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{47ABABE1-62CC-4655-AA95-352F4DC20C96} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{D4120D09-93F6-4D5C-98C6-A98B459EA83D} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{4F8D7FF0-8D2C-4AD3-A033-2B165E59A701} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{662A00CA-B152-40D4-B9A4-6061490B8B3D} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{D0B694E4-AAE4-492F-ACCB-3D913A874780} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}

@@ -1,5 +1,8 @@
 # MassTransit Instrumentation for OpenTelemetry .NET
 
+[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.MassTransit.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.MassTransit)
+[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.MassTransit.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.MassTransit)
+
 Automatically instruments
 [DiagnosticSource](https://masstransit-project.com/advanced/monitoring/diagnostic-source.html)
 events emitted by [MassTransit](https://masstransit-project.com/) library.
@@ -7,7 +10,7 @@ events emitted by [MassTransit](https://masstransit-project.com/) library.
 ## Installation
 
 ```shell
-dotnet add package OpenTelemetry.Contrib.Instrumentation.MassTransit
+dotnet add package OpenTelemetry.Instrumentation.MassTransit
 ```
 
 ## Configuration
