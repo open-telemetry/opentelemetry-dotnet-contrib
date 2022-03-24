@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Switched Grpc.Core package dependency to Grpc.Core.Api in the same range.
+  No functional change, just less exposure to unnecessary packages.
+
 ## 1.0.0-beta.4
 
 * Going forward the NuGet package will be
