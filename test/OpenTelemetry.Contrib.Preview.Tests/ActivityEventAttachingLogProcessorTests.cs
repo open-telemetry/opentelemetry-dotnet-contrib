@@ -22,7 +22,7 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Preview.Tests
+namespace OpenTelemetry.Extensions.Tests
 {
     public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
     {
@@ -116,7 +116,7 @@ namespace OpenTelemetry.Contrib.Preview.Tests
                 Dictionary<string, object> tags = logEvent.Value.Tags?.ToDictionary(i => i.Key, i => i.Value);
                 Assert.NotNull(tags);
 
-                Assert.Equal("OpenTelemetry.Contrib.Preview.Tests.ActivityEventAttachingLogProcessorTests", tags[nameof(LogRecord.CategoryName)]);
+                Assert.Equal("OpenTelemetry.Extensions.Tests.ActivityEventAttachingLogProcessorTests", tags[nameof(LogRecord.CategoryName)]);
                 Assert.Equal(LogLevel.Information, tags[nameof(LogRecord.LogLevel)]);
 
                 if (eventId != 0)

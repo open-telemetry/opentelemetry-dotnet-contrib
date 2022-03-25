@@ -117,9 +117,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Tests.Shared", "test\OpenTelemetry.Contrib.Tests.Shared\OpenTelemetry.Contrib.Tests.Shared.csproj", "{C33F2D9D-89A6-459C-9A51-79BA5A9EF194}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Preview", "src\OpenTelemetry.Contrib.Preview\OpenTelemetry.Contrib.Preview.csproj", "{B978939B-278C-43A3-AD12-32EA9BBD27D0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions", "src\OpenTelemetry.Contrib.Preview\OpenTelemetry.Extensions.csproj", "{B978939B-278C-43A3-AD12-32EA9BBD27D0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Preview.Tests", "test\OpenTelemetry.Contrib.Preview.Tests\OpenTelemetry.Contrib.Preview.Tests.csproj", "{D2C68560-C252-41A9-B742-2CEB7D760E0F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.Tests", "test\OpenTelemetry.Contrib.Preview.Tests\OpenTelemetry.Extensions.Tests.csproj", "{D2C68560-C252-41A9-B742-2CEB7D760E0F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Quartz", "src\OpenTelemetry.Instrumentation.Quartz\OpenTelemetry.Instrumentation.Quartz.csproj", "{2CFC0D07-7AEC-4BC3-96C4-A06A38DBF6DF}"
 EndProject
