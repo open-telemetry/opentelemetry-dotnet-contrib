@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.0-beta.5
+
 * Switched Grpc.Core package dependency to Grpc.Core.Api in the same range.
   No functional change, just less exposure to unnecessary packages.
 
