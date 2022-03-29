@@ -5,10 +5,10 @@ components:
   src/OpenTelemetry.Contrib.Extensions.AWSXRay/:
     - srprash
     - lupengamzn
-  src/OpenTelemetry.Contrib.Preview/:
-    - codeblanch
   src/OpenTelemetry.Exporter.Stackdriver/:
     - SergeyKanzhelev
+  src/OpenTelemetry.Extensions/:
+    - codeblanch
   src/OpenTelemetry.Extensions.PersistentStorage/:
     - vishweshbankwar
   src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
@@ -29,10 +29,10 @@ components:
   test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/:
     - srprash 
     - lupengamzn
-  test/OpenTelemetry.Contrib.Preview.Tests/:
-    - codeblanch
   test/OpenTelemetry.Exporter.Stackdriver.Tests/:
     - SergeyKanzhelev
+  test/OpenTelemetry.Extensions.Tests/:
+    - codeblanch
   test/OpenTelemetry.Extensions.PersistentStorage.Tests/:
     - vishweshbankwar
   test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/:
