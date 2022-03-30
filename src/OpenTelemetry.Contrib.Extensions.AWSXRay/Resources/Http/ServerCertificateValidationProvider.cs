@@ -16,6 +16,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 
@@ -66,7 +67,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Http
         {
             try
             {
-                collection.Import(certFileName, null, (X509KeyStorageFlags)32);
+                collection.Import(certFileName);
                 return true;
             }
             catch (Exception)
@@ -143,7 +144,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Http
             {
                 foreach (var certificate in collection)
                 {
-                    if (chainElement.Certificate.GetPublicKey().SequenceEqual(certificate.GetPublicKey()))
+                    if (Enumerable.SequenceEqual(chainElement.Certificate.GetPublicKey(), certificate.GetPublicKey()))
                     {
                         return true;
                     }
