@@ -40,7 +40,7 @@ Maintainers
 
 * [Alan West](https://github.com/alanwest), New Relic
 * [Cijo Thomas](https://github.com/cijothomas), Microsoft
-* [Mikel Blanchard](https://github.com/CodeBlanch), CoStar Group
+* [Mikel Blanchard](https://github.com/CodeBlanch), Microsoft
 * [Prashant Srivastava](https://github.com/srprash), AWS
 * [Sergey Kanzhelev](https://github.com/SergeyKanzhelev), Google
 * [Utkarsh Umesan Pillai](https://github.com/utpilla), Microsoft
