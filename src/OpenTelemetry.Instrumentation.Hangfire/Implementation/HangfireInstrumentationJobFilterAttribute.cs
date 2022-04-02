@@ -19,7 +19,6 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
     using System.Diagnostics;
     using global::Hangfire.Common;
     using global::Hangfire.Server;
-    using Newtonsoft.Json;
     using OpenTelemetry.Trace;
 
     internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, IServerFilter
@@ -42,11 +41,6 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
                 activity.DisplayName = $"JOB {filterContext.BackgroundJob.Job.Type.Name}.{filterContext.BackgroundJob.Job.Method.Name}";
                 activity.SetTag(HangfireInstrumentationConstants.JobIdTag, filterContext.BackgroundJob.Id);
                 activity.SetTag(HangfireInstrumentationConstants.JobCreatedAtTag, filterContext.BackgroundJob.CreatedAt.ToString("O"));
-                if (filterContext.BackgroundJob.Job.Args != null)
-                {
-                    activity.SetTag(HangfireInstrumentationConstants.JobCreatedAtTag, JsonConvert.SerializeObject(filterContext.BackgroundJob.Job.Args));
-                }
-
                 filterContext.Items.Add(ActivityKey, activity);
             }
         }
@@ -66,6 +60,7 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
                     activity.SetStatus(Status.Error);
                 }
 
+                activity.Stop();
                 activity.Dispose();
             }
         }

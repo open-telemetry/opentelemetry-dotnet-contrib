@@ -23,9 +23,9 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
     internal static class HangfireInstrumentation
     {
         /// <summary>
-        /// The activity source.
+        /// The assembly name.
         /// </summary>
-        internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version.ToString());
+        internal static readonly AssemblyName AssemblyName = typeof(HangfireInstrumentation).Assembly.GetName();
 
         /// <summary>
         /// The activity source name.
@@ -35,11 +35,11 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
         /// <summary>
         /// The version.
         /// </summary>
-        private static readonly Version Version = AssemblyName.Version;
+        internal static readonly Version Version = AssemblyName.Version;
 
         /// <summary>
-        /// The assembly name.
+        /// The activity source.
         /// </summary>
-        private static readonly AssemblyName AssemblyName = typeof(HangfireInstrumentation).Assembly.GetName();
+        internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version.ToString());
     }
 }
