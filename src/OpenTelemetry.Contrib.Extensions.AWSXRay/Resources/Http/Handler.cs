@@ -26,11 +26,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Http
         {
             try
             {
-                var clientHandler = new HttpClientHandler()
-                {
-                    ClientCertificateOptions = ClientCertificateOption.Manual,
-                };
-                clientHandler.ClientCertificates.Add(new X509Certificate2(certificateFile));
+                var clientHandler = new HttpClientHandler();
 
                 ServerCertificateValidationProvider serverCertificateValidationProvider =
                     ServerCertificateValidationProvider.FromCertificateFile(certificateFile);
