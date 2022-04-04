@@ -20,6 +20,5 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
     {
         public const string JobIdTag = "job.id";
         public const string JobCreatedAtTag = "job.createdat";
-        public const string JobArgsTag = "job.args";
     }
 }
