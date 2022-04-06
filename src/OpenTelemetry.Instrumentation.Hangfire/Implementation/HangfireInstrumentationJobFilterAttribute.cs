@@ -23,9 +23,7 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
 
     internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, IServerFilter
     {
-        private const string ActivityKey = "ActivityKey";
-
-        public void OnPerforming(PerformingContext filterContext)
+        public void OnPerforming(PerformingContext performingContext)
         {
             // Short-circuit if nobody is listening
             if (!HangfireInstrumentation.ActivitySource.HasListeners())
@@ -33,34 +31,32 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
                 return;
             }
 
-            var activityName = $"{filterContext.BackgroundJob.Job.Type.Name}.{filterContext.BackgroundJob.Job.Method.Name}".ToLowerInvariant();
-            var activity = HangfireInstrumentation.ActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext: default);
-
+            var activity = HangfireInstrumentation.ActivitySource
+                .StartActivity(HangfireInstrumentationConstants.ActivityName, ActivityKind.Internal, parentContext: default);
             if (activity != null)
             {
-                activity.DisplayName = $"JOB {filterContext.BackgroundJob.Job.Type.Name}.{filterContext.BackgroundJob.Job.Method.Name}";
-                activity.SetTag(HangfireInstrumentationConstants.JobIdTag, filterContext.BackgroundJob.Id);
-                activity.SetTag(HangfireInstrumentationConstants.JobCreatedAtTag, filterContext.BackgroundJob.CreatedAt.ToString("O"));
-                filterContext.Items.Add(ActivityKey, activity);
+                activity.DisplayName = $"JOB {performingContext.BackgroundJob.Job.Type.Name}.{performingContext.BackgroundJob.Job.Method.Name}";
+                activity.SetTag(HangfireInstrumentationConstants.JobIdTag, performingContext.BackgroundJob.Id);
+                activity.SetTag(HangfireInstrumentationConstants.JobCreatedAtTag, performingContext.BackgroundJob.CreatedAt.ToString("O"));
+                performingContext.Items.Add(HangfireInstrumentationConstants.ActivityKey, activity);
             }
         }
 
-        public void OnPerformed(PerformedContext filterContext)
+        public void OnPerformed(PerformedContext performedContext)
         {
             // Short-circuit if nobody is listening
-            if (!HangfireInstrumentation.ActivitySource.HasListeners() || !filterContext.Items.ContainsKey(ActivityKey))
+            if (!HangfireInstrumentation.ActivitySource.HasListeners() || !performedContext.Items.ContainsKey(HangfireInstrumentationConstants.ActivityKey))
             {
                 return;
             }
 
-            if (filterContext.Items[ActivityKey] is Activity activity)
+            if (performedContext.Items[HangfireInstrumentationConstants.ActivityKey] is Activity activity)
             {
-                if (filterContext.Exception != null)
+                if (performedContext.Exception != null)
                 {
-                    activity.SetStatus(Status.Error);
+                    activity.SetStatus(Status.Error.WithDescription(performedContext.Exception.Message));
                 }
 
-                activity.Stop();
                 activity.Dispose();
             }
         }
