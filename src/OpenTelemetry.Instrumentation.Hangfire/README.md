@@ -1,24 +1,67 @@
 # Hangfire Instrumentation for OpenTelemetry .NET
 
-Automatically instruments the Hangfire jobs from
-[Hangfire](https://www.nuget.org/packages/Hangfire/).
+[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Hangfire.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Hangfire)
+[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Hangfire.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Hangfire)
 
+This is an
+[Instrumentation Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library),
+which instruments
+[Hangfire](https://www.nuget.org/packages/Hangfire/)
+and collects telemetry about BackgroundJob.
 
-## Configuration
+## Steps to enable OpenTelemetry.Instrumentation.Hangfire
 
-ASP.NET Core instrumentation example:
+### Step 1: Install and configure Hangfire
 
-```csharp
-// Add OpenTelemetry and Hangfire instrumentation
-services.AddOpenTelemetryTracing(x =>
-{
-    x.AddHangfireInstrumentation();
-    x.UseJaegerExporter(config => {
-      // Configure Jaeger
-    });
-});
+[Getting Started](https://docs.hangfire.io/en/latest/getting-started/index.html)
+
+ASP.NET Applications
+https://docs.hangfire.io/en/latest/getting-started/aspnet-applications.html
+
+ASP.NET Core Applications
+https://docs.hangfire.io/en/latest/getting-started/aspnet-core-applications.html
+
+### Step 2: Install Hangfire instrumentation Package
+
+Add a reference to the
+[`OpenTelemetry.Instrumentation.Hangfire`](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Hangfire)
+package. Also, add any other instrumentations & exporters you will need.
+
+```shell
+dotnet add package OpenTelemetry.Instrumentation.Hangfire
 ```
 
+### Step 3: Enable Hangfire Instrumentation at application startup
+
+Hangfire instrumentation must be enabled at application startup.
+
+The following example demonstrates adding Hangfire instrumentation to a
+console application. This example also sets up the OpenTelemetry Console
+exporter, which requires adding the package
+[`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/src/OpenTelemetry.Exporter.Console/README.md)
+to the application.
+
+```csharp
+using OpenTelemetry.Trace;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddHangfireInstrumentation()
+            .AddConsoleExporter()
+            .Build();
+    }
+}
+```
+
+For an ASP.NET Core application, adding instrumentation is typically done in
+the `ConfigureServices` of your `Startup` class. Refer to documentation for
+[OpenTelemetry.Instrumentation.AspNetCore](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/src/OpenTelemetry.Instrumentation.AspNetCore/README.md).
+
+For an ASP.NET application, adding instrumentation is typically done in the
+`Global.asax.cs`. Refer to documentation for [OpenTelemetry.Instrumentation.AspNet](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/src/OpenTelemetry.Instrumentation.AspNet/README.md).
 
 ## References
 
