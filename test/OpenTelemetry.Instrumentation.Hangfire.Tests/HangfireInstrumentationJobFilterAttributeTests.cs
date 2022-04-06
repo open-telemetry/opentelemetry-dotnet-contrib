@@ -15,10 +15,11 @@
 // </copyright>
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Hangfire;
 using Hangfire.MemoryStorage;
-using Moq;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -35,11 +36,11 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Tests
                 .UseRecommendedSerializerSettings()
                 .UseMemoryStorage();
 
-            var activityProcessor = new Mock<BaseProcessor<Activity>>();
+            var exportedItems = new List<Activity>();
 
             using var tel = Sdk.CreateTracerProviderBuilder()
                 .AddHangfireInstrumentation()
-                .AddProcessor(activityProcessor.Object)
+                .AddInMemoryExporter(exportedItems)
                 .Build();
 
             // Act
@@ -52,9 +53,8 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Tests
             }
 
             // Assert
-            Assert.Equal(1, activityProcessor.Invocations.Count);
-            var activity = (Activity)activityProcessor.Invocations[0].Arguments[0];
-
+            Assert.Single(exportedItems);
+            var activity = exportedItems.Single();
             Assert.Contains("JOB TestJob.Execute", activity.DisplayName);
             Assert.Equal(ActivityKind.Internal, activity.Kind);
         }

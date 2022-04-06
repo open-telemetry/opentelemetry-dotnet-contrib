@@ -25,7 +25,7 @@ namespace OpenTelemetry.Trace
     public static class TracerProviderBuilderExtensions
     {
         /// <summary>
-        /// Enables the Hangfire job automatic data collection.
+        /// Adds Hangfire instrumentation to the tracer provider.
         /// </summary>
         /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
         /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>

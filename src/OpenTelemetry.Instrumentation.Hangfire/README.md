@@ -38,7 +38,7 @@ Hangfire instrumentation must be enabled at application startup.
 The following example demonstrates adding Hangfire instrumentation to a
 console application. This example also sets up the OpenTelemetry Console
 exporter, which requires adding the package
-[`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/src/OpenTelemetry.Exporter.Console/README.md)
+[`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md)
 to the application.
 
 ```csharp
@@ -57,11 +57,11 @@ public class Program
 ```
 
 For an ASP.NET Core application, adding instrumentation is typically done in
-the `ConfigureServices` of your `Startup` class. Refer to documentation for
-[OpenTelemetry.Instrumentation.AspNetCore](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/src/OpenTelemetry.Instrumentation.AspNetCore/README.md).
+the `ConfigureServices` of your `Startup` class. Refer to example for
+[OpenTelemetry.Instrumentation.AspNetCore](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/examples/AspNetCore/Program.cs).
 
 For an ASP.NET application, adding instrumentation is typically done in the
-`Global.asax.cs`. Refer to documentation for [OpenTelemetry.Instrumentation.AspNet](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/src/OpenTelemetry.Instrumentation.AspNet/README.md).
+`Global.asax.cs`. Refer to example for [OpenTelemetry.Instrumentation.AspNet](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/examples/AspNet/Global.asax.cs).
 
 ## References
 

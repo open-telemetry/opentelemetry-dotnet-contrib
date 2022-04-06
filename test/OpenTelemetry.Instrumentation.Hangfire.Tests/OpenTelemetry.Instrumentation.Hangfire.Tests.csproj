@@ -12,8 +12,8 @@
     <PackageReference Include="Hangfire.Core" Version="1.7.28" />
     <PackageReference Include="Hangfire.MemoryStorage" Version="1.7.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkPkgVer)" />
-    <PackageReference Include="Moq" Version="$(MoqPkgVer)" />
-    <PackageReference Include="OpenTelemetry" Version="1.1.0" />
+    <PackageReference Include="OpenTelemetry" Version="1.2.0-rc4" />
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="1.2.0-rc4" />
     <PackageReference Include="xunit" Version="$(XUnitPkgVer)" />
     <PackageReference Condition="$([MSBuild]::IsOsPlatform('Windows'))" Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)">
       <PrivateAssets>all</PrivateAssets>

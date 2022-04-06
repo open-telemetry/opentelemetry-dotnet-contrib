@@ -19,7 +19,6 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
     using System.Diagnostics;
     using global::Hangfire.Common;
     using global::Hangfire.Server;
-    using OpenTelemetry.Trace;
 
     internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, IServerFilter
     {
@@ -54,7 +53,7 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
             {
                 if (performedContext.Exception != null)
                 {
-                    activity.SetStatus(Status.Error.WithDescription(performedContext.Exception.Message));
+                    activity.SetStatus(ActivityStatusCode.Error, performedContext.Exception.Message);
                 }
 
                 activity.Dispose();

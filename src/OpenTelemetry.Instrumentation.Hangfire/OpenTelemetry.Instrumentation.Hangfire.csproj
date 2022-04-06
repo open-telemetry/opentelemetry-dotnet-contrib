@@ -7,6 +7,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Hangfire.Core" Version="[1.7.0,1.8.0)" />
-    <PackageReference Include="OpenTelemetry.Api" Version="1.1.0" />
+    <PackageReference Include="OpenTelemetry.Api" Version="1.2.0-rc4" />
   </ItemGroup>
 </Project>
