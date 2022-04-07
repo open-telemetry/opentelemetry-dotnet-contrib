@@ -32,11 +32,17 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
 
             var activity = HangfireInstrumentation.ActivitySource
                 .StartActivity(HangfireInstrumentationConstants.ActivityName, ActivityKind.Internal, parentContext: default);
+
             if (activity != null)
             {
                 activity.DisplayName = $"JOB {performingContext.BackgroundJob.Job.Type.Name}.{performingContext.BackgroundJob.Job.Method.Name}";
-                activity.SetTag(HangfireInstrumentationConstants.JobIdTag, performingContext.BackgroundJob.Id);
-                activity.SetTag(HangfireInstrumentationConstants.JobCreatedAtTag, performingContext.BackgroundJob.CreatedAt.ToString("O"));
+
+                if (activity.IsAllDataRequested)
+                {
+                    activity.SetTag(HangfireInstrumentationConstants.JobIdTag, performingContext.BackgroundJob.Id);
+                    activity.SetTag(HangfireInstrumentationConstants.JobCreatedAtTag, performingContext.BackgroundJob.CreatedAt.ToString("O"));
+                }
+
                 performingContext.Items.Add(HangfireInstrumentationConstants.ActivityKey, activity);
             }
         }

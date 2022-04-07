@@ -28,7 +28,7 @@ Add a reference to the
 package. Also, add any other instrumentations & exporters you will need.
 
 ```shell
-dotnet add package OpenTelemetry.Instrumentation.Hangfire
+dotnet add package OpenTelemetry.Instrumentation.Hangfire --prerelease
 ```
 
 ### Step 3: Enable Hangfire Instrumentation at application startup
@@ -57,11 +57,10 @@ public class Program
 ```
 
 For an ASP.NET Core application, adding instrumentation is typically done in
-the `ConfigureServices` of your `Startup` class. Refer to example for
-[OpenTelemetry.Instrumentation.AspNetCore](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/examples/AspNetCore/Program.cs).
+the `ConfigureServices` of your `Startup` class. Refer to [example](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/examples/AspNetCore/Program.cs).
 
 For an ASP.NET application, adding instrumentation is typically done in the
-`Global.asax.cs`. Refer to example for [OpenTelemetry.Instrumentation.AspNet](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/examples/AspNet/Global.asax.cs).
+`Global.asax.cs`. Refer to [example](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/examples/AspNet/Global.asax.cs).
 
 ## References
 

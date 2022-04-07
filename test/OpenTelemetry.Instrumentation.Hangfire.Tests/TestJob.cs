@@ -14,6 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+using System;
+
 namespace OpenTelemetry.Instrumentation.Hangfire.Tests
 {
     public class TestJob
@@ -21,6 +23,11 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Tests
         public void Execute()
         {
             return;
+        }
+
+        public void ThrowException()
+        {
+            throw new Exception();
         }
     }
 }

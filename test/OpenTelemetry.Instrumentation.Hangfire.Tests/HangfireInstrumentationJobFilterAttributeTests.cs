@@ -18,6 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Hangfire;
 using Hangfire.MemoryStorage;
 using OpenTelemetry.Trace;
@@ -27,36 +29,70 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Tests
 {
     public class HangfireInstrumentationJobFilterAttributeTests
     {
+        public HangfireInstrumentationJobFilterAttributeTests()
+        {
+            GlobalConfiguration.Configuration
+                .UseMemoryStorage();
+        }
+
         [Fact]
-        public void Should_Create_Activity()
+        public async Task Should_Create_Activity()
         {
             // Arrange
-            GlobalConfiguration.Configuration
-                .UseSimpleAssemblyNameTypeSerializer()
-                .UseRecommendedSerializerSettings()
-                .UseMemoryStorage();
-
+            using var server = new BackgroundJobServer();
             var exportedItems = new List<Activity>();
-
             using var tel = Sdk.CreateTracerProviderBuilder()
                 .AddHangfireInstrumentation()
                 .AddInMemoryExporter(exportedItems)
                 .Build();
 
             // Act
-            BackgroundJob.Enqueue<TestJob>(x => x.Execute());
-
-            using (var server = new BackgroundJobServer())
-            {
-                server.SendStop();
-                server.WaitForShutdown(TimeSpan.FromSeconds(1));
-            }
+            var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
+            await WaitJobProcessedAsync(jobId, 5);
 
             // Assert
-            Assert.Single(exportedItems);
-            var activity = exportedItems.Single();
+            Assert.Single(exportedItems, i => i.GetTagItem("job.id") as string == jobId);
+            var activity = exportedItems.Single(i => i.GetTagItem("job.id") as string == jobId);
             Assert.Contains("JOB TestJob.Execute", activity.DisplayName);
             Assert.Equal(ActivityKind.Internal, activity.Kind);
+        }
+
+        [Fact]
+        public async Task Should_Create_Activity_With_Status_Error_When_Job_Failed()
+        {
+            // Arrange
+            using var server = new BackgroundJobServer();
+            var exportedItems = new List<Activity>();
+            using var tel = Sdk.CreateTracerProviderBuilder()
+                .AddHangfireInstrumentation()
+                .AddInMemoryExporter(exportedItems)
+                .Build();
+
+            // Act
+            var jobId = BackgroundJob.Enqueue<TestJob>(x => x.ThrowException());
+            await WaitJobProcessedAsync(jobId, 5);
+
+            // Assert
+            Assert.Single(exportedItems, i => i.GetTagItem("job.id") as string == jobId);
+            var activity = exportedItems.Single(i => i.GetTagItem("job.id") as string == jobId);
+            Assert.Contains("JOB TestJob.ThrowException", activity.DisplayName);
+            Assert.Equal(ActivityKind.Internal, activity.Kind);
+            Assert.Equal(ActivityStatusCode.Error, activity.Status);
+            Assert.NotNull(activity.StatusDescription);
+        }
+
+        private static async Task WaitJobProcessedAsync(string jobId, int timeToWaitInSeconds)
+        {
+            var timeout = DateTime.Now.AddSeconds(timeToWaitInSeconds);
+            await Task.Factory.StartNew(() =>
+            {
+                string[] states = new[] { "Enqueued", "Processing" };
+                var monitoringApi = JobStorage.Current.GetMonitoringApi();
+                while (monitoringApi.JobDetails(jobId).History.All(h => states.Contains(h.StateName)) && DateTime.Now < timeout)
+                {
+                    Thread.Sleep(100);
+                }
+            });
         }
     }
 }
