@@ -15,12 +15,6 @@ and collects telemetry about BackgroundJob.
 
 [Getting Started](https://docs.hangfire.io/en/latest/getting-started/index.html)
 
-ASP.NET Applications
-https://docs.hangfire.io/en/latest/getting-started/aspnet-applications.html
-
-ASP.NET Core Applications
-https://docs.hangfire.io/en/latest/getting-started/aspnet-core-applications.html
-
 ### Step 2: Install Hangfire instrumentation Package
 
 Add a reference to the

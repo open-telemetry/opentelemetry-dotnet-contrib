@@ -22,6 +22,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Hangfire;
 using Hangfire.MemoryStorage;
+using Hangfire.Storage.Monitoring;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -88,7 +89,9 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Tests
             {
                 string[] states = new[] { "Enqueued", "Processing" };
                 var monitoringApi = JobStorage.Current.GetMonitoringApi();
-                while (monitoringApi.JobDetails(jobId).History.All(h => states.Contains(h.StateName)) && DateTime.Now < timeout)
+                JobDetailsDto jobDetails;
+                while (((jobDetails = monitoringApi.JobDetails(jobId)) == null || jobDetails.History.All(h => states.Contains(h.StateName)))
+                    && DateTime.Now < timeout)
                 {
                     Thread.Sleep(100);
                 }
