@@ -67,10 +67,12 @@ namespace OpenTelemetry.Exporter.Geneva
             {
                 return SerializeUInt8(buffer, cursor, unchecked((byte)value));
             }
+
             if (value < LIMIT_MIN_FIX_NEGATIVE_INT)
             {
                 buffer[cursor++] = INT8;
             }
+
             buffer[cursor++] = unchecked((byte)value);
             return cursor;
         }
@@ -82,10 +84,12 @@ namespace OpenTelemetry.Exporter.Geneva
             {
                 return SerializeUInt16(buffer, cursor, unchecked((ushort)value));
             }
+
             if (value >= sbyte.MinValue)
             {
                 return SerializeInt8(buffer, cursor, unchecked((sbyte)value));
             }
+
             buffer[cursor++] = INT16;
             return WriteInt16(buffer, cursor, value);
         }
@@ -97,10 +101,12 @@ namespace OpenTelemetry.Exporter.Geneva
             {
                 return SerializeUInt32(buffer, cursor, unchecked((uint)value));
             }
+
             if (value >= short.MinValue)
             {
                 return SerializeInt16(buffer, cursor, unchecked((short)value));
             }
+
             buffer[cursor++] = INT32;
             return WriteInt32(buffer, cursor, value);
         }
@@ -112,10 +118,12 @@ namespace OpenTelemetry.Exporter.Geneva
             {
                 return SerializeUInt64(buffer, cursor, unchecked((ulong)value));
             }
+
             if (value >= int.MinValue)
             {
                 return SerializeInt32(buffer, cursor, unchecked((int)value));
             }
+
             buffer[cursor++] = INT64;
             return WriteInt64(buffer, cursor, value);
         }
@@ -127,6 +135,7 @@ namespace OpenTelemetry.Exporter.Geneva
             {
                 buffer[cursor++] = UINT8;
             }
+
             buffer[cursor++] = value;
             return cursor;
         }
@@ -138,6 +147,7 @@ namespace OpenTelemetry.Exporter.Geneva
             {
                 return SerializeUInt8(buffer, cursor, unchecked((byte)value));
             }
+
             buffer[cursor++] = UINT16;
             return WriteUInt16(buffer, cursor, value);
         }
@@ -149,6 +159,7 @@ namespace OpenTelemetry.Exporter.Geneva
             {
                 return SerializeUInt16(buffer, cursor, unchecked((ushort)value));
             }
+
             buffer[cursor++] = UINT32;
             return WriteUInt32(buffer, cursor, value);
         }
@@ -160,6 +171,7 @@ namespace OpenTelemetry.Exporter.Geneva
             {
                 return SerializeUInt32(buffer, cursor, unchecked((uint)value));
             }
+
             buffer[cursor++] = UINT64;
             return WriteUInt64(buffer, cursor, value);
         }
@@ -170,8 +182,9 @@ namespace OpenTelemetry.Exporter.Geneva
             unchecked
             {
                 buffer[cursor++] = (byte)(value >> 8);
-                buffer[cursor++] = (byte)(value);
+                buffer[cursor++] = (byte)value;
             }
+
             return cursor;
         }
 
@@ -183,8 +196,9 @@ namespace OpenTelemetry.Exporter.Geneva
                 buffer[cursor++] = (byte)(value >> 24);
                 buffer[cursor++] = (byte)(value >> 16);
                 buffer[cursor++] = (byte)(value >> 8);
-                buffer[cursor++] = (byte)(value);
+                buffer[cursor++] = (byte)value;
             }
+
             return cursor;
         }
 
@@ -200,8 +214,9 @@ namespace OpenTelemetry.Exporter.Geneva
                 buffer[cursor++] = (byte)(value >> 24);
                 buffer[cursor++] = (byte)(value >> 16);
                 buffer[cursor++] = (byte)(value >> 8);
-                buffer[cursor++] = (byte)(value);
+                buffer[cursor++] = (byte)value;
             }
+
             return cursor;
         }
 
@@ -211,8 +226,9 @@ namespace OpenTelemetry.Exporter.Geneva
             unchecked
             {
                 buffer[cursor++] = (byte)(value >> 8);
-                buffer[cursor++] = (byte)(value);
+                buffer[cursor++] = (byte)value;
             }
+
             return cursor;
         }
 
@@ -224,8 +240,9 @@ namespace OpenTelemetry.Exporter.Geneva
                 buffer[cursor++] = (byte)(value >> 24);
                 buffer[cursor++] = (byte)(value >> 16);
                 buffer[cursor++] = (byte)(value >> 8);
-                buffer[cursor++] = (byte)(value);
+                buffer[cursor++] = (byte)value;
             }
+
             return cursor;
         }
 
@@ -241,8 +258,9 @@ namespace OpenTelemetry.Exporter.Geneva
                 buffer[cursor++] = (byte)(value >> 24);
                 buffer[cursor++] = (byte)(value >> 16);
                 buffer[cursor++] = (byte)(value >> 8);
-                buffer[cursor++] = (byte)(value);
+                buffer[cursor++] = (byte)value;
             }
+
             return cursor;
         }
 
@@ -327,11 +345,13 @@ namespace OpenTelemetry.Exporter.Geneva
                 cb = Encoding.ASCII.GetBytes(value, 0, STRING_SIZE_LIMIT_CHAR_COUNT - 3, buffer, cursor);
                 cursor += cb;
                 cb += 3;
+
                 // append "..." to indicate the string truncation
                 buffer[cursor++] = 0x2E;
                 buffer[cursor++] = 0x2E;
                 buffer[cursor++] = 0x2E;
             }
+
             buffer[start] = STR16;
             buffer[start + 1] = unchecked((byte)(cb >> 8));
             buffer[start + 2] = unchecked((byte)cb);
@@ -360,11 +380,13 @@ namespace OpenTelemetry.Exporter.Geneva
                 cb = Encoding.UTF8.GetBytes(value, 0, STRING_SIZE_LIMIT_CHAR_COUNT - 3, buffer, cursor);
                 cursor += cb;
                 cb += 3;
+
                 // append "..." to indicate the string truncation
                 buffer[cursor++] = 0x2E;
                 buffer[cursor++] = 0x2E;
                 buffer[cursor++] = 0x2E;
             }
+
             buffer[start] = STR16;
             buffer[start + 1] = unchecked((byte)(cb >> 8));
             buffer[start + 2] = unchecked((byte)cb);
@@ -388,6 +410,7 @@ namespace OpenTelemetry.Exporter.Geneva
                 buffer[cursor++] = ARRAY32;
                 cursor = WriteUInt32(buffer, cursor, unchecked((uint)length));
             }
+
             return cursor;
         }
 
@@ -398,11 +421,13 @@ namespace OpenTelemetry.Exporter.Geneva
             {
                 return SerializeNull(buffer, cursor);
             }
+
             cursor = WriteArrayHeader(buffer, cursor, array.Length);
             for (int i = 0; i < array.Length; i++)
             {
                 cursor = Serialize(buffer, cursor, array[i]);
             }
+
             return cursor;
         }
 
@@ -423,6 +448,7 @@ namespace OpenTelemetry.Exporter.Geneva
                 buffer[cursor++] = MAP32;
                 cursor = WriteUInt32(buffer, cursor, unchecked((uint)count));
             }
+
             return cursor;
         }
 
@@ -433,12 +459,14 @@ namespace OpenTelemetry.Exporter.Geneva
             {
                 return SerializeNull(buffer, cursor);
             }
+
             cursor = WriteMapHeader(buffer, cursor, map.Count);
             foreach (var entry in map)
             {
                 cursor = SerializeUnicodeString(buffer, cursor, entry.Key);
                 cursor = Serialize(buffer, cursor, entry.Value);
             }
+
             return cursor;
         }
 
@@ -479,6 +507,7 @@ namespace OpenTelemetry.Exporter.Geneva
             {
                 return SerializeNull(buffer, cursor);
             }
+
             switch (obj)
             {
                 case bool v:

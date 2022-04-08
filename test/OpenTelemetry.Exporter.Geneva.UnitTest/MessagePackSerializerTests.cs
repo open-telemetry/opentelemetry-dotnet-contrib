@@ -16,7 +16,8 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 byte expectedByte = expected[i];
                 byte actualByte = actual[i];
 
-                Assert.True(expectedByte == actualByte,
+                Assert.True(
+                    expectedByte == actualByte,
                     String.Format($"Expected: '{(byte)expectedByte}', Actual: '{(byte)actualByte}' at offset {i}.")
                 );
             }
@@ -26,7 +27,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
         {
             var buffer = new byte[64 * 1024];
             var length = MessagePackSerializer.Serialize(buffer, 0, obj);
-            AssertBytes(MessagePack.MessagePackSerializer.Serialize(obj), buffer, length);
+            this.AssertBytes(MessagePack.MessagePackSerializer.Serialize(obj), buffer, length);
         }
 
         private void MessagePackSerializer_TestASCIIStringSerialization(string input)
@@ -128,15 +129,15 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
         [Trait("Platform", "Any")]
         public void MessagePackSerializer_Null()
         {
-            MessagePackSerializer_TestSerialization(null);
+            this.MessagePackSerializer_TestSerialization(null);
         }
 
         [Fact]
         [Trait("Platform", "Any")]
         public void MessagePackSerializer_Boolean()
         {
-            MessagePackSerializer_TestSerialization(true);
-            MessagePackSerializer_TestSerialization(false);
+            this.MessagePackSerializer_TestSerialization(true);
+            this.MessagePackSerializer_TestSerialization(false);
         }
 
         [Fact]
@@ -146,60 +147,64 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
             // 8 bits
             for (sbyte value = sbyte.MinValue; value < sbyte.MaxValue; value++)
             {
-                MessagePackSerializer_TestSerialization(value);
+                this.MessagePackSerializer_TestSerialization(value);
             }
-            MessagePackSerializer_TestSerialization(sbyte.MaxValue);
+
+            this.MessagePackSerializer_TestSerialization(sbyte.MaxValue);
 
             // 16 bits
             for (short value = short.MinValue; value < short.MaxValue; value++)
             {
-                MessagePackSerializer_TestSerialization(value);
+                this.MessagePackSerializer_TestSerialization(value);
             }
-            MessagePackSerializer_TestSerialization(short.MaxValue);
+
+            this.MessagePackSerializer_TestSerialization(short.MaxValue);
 
             // 32 bits
-            MessagePackSerializer_TestSerialization(int.MinValue);
-            MessagePackSerializer_TestSerialization(int.MinValue + 1);
-            MessagePackSerializer_TestSerialization((int)short.MinValue - 1);
-            MessagePackSerializer_TestSerialization((int)short.MinValue);
-            MessagePackSerializer_TestSerialization((int)short.MinValue + 1);
-            MessagePackSerializer_TestSerialization((int)sbyte.MinValue - 1);
+            this.MessagePackSerializer_TestSerialization(int.MinValue);
+            this.MessagePackSerializer_TestSerialization(int.MinValue + 1);
+            this.MessagePackSerializer_TestSerialization((int)short.MinValue - 1);
+            this.MessagePackSerializer_TestSerialization((int)short.MinValue);
+            this.MessagePackSerializer_TestSerialization((int)short.MinValue + 1);
+            this.MessagePackSerializer_TestSerialization((int)sbyte.MinValue - 1);
             for (sbyte value = sbyte.MinValue; value < sbyte.MaxValue; value++)
             {
-                MessagePackSerializer_TestSerialization((int)value);
+                this.MessagePackSerializer_TestSerialization((int)value);
             }
-            MessagePackSerializer_TestSerialization((int)sbyte.MaxValue);
-            MessagePackSerializer_TestSerialization((int)sbyte.MaxValue + 1);
-            MessagePackSerializer_TestSerialization((int)short.MaxValue - 1);
-            MessagePackSerializer_TestSerialization((int)short.MaxValue);
-            MessagePackSerializer_TestSerialization((int)short.MaxValue + 1);
-            MessagePackSerializer_TestSerialization(int.MaxValue - 1);
-            MessagePackSerializer_TestSerialization(int.MaxValue);
+
+            this.MessagePackSerializer_TestSerialization((int)sbyte.MaxValue);
+            this.MessagePackSerializer_TestSerialization((int)sbyte.MaxValue + 1);
+            this.MessagePackSerializer_TestSerialization((int)short.MaxValue - 1);
+            this.MessagePackSerializer_TestSerialization((int)short.MaxValue);
+            this.MessagePackSerializer_TestSerialization((int)short.MaxValue + 1);
+            this.MessagePackSerializer_TestSerialization(int.MaxValue - 1);
+            this.MessagePackSerializer_TestSerialization(int.MaxValue);
 
             // 64 bits
-            MessagePackSerializer_TestSerialization(long.MinValue);
-            MessagePackSerializer_TestSerialization(long.MinValue + 1);
-            MessagePackSerializer_TestSerialization((long)int.MinValue - 1);
-            MessagePackSerializer_TestSerialization((long)int.MinValue);
-            MessagePackSerializer_TestSerialization((long)int.MinValue + 1);
-            MessagePackSerializer_TestSerialization((long)short.MinValue - 1);
-            MessagePackSerializer_TestSerialization((long)short.MinValue);
-            MessagePackSerializer_TestSerialization((long)short.MinValue + 1);
-            MessagePackSerializer_TestSerialization((long)sbyte.MinValue - 1);
+            this.MessagePackSerializer_TestSerialization(long.MinValue);
+            this.MessagePackSerializer_TestSerialization(long.MinValue + 1);
+            this.MessagePackSerializer_TestSerialization((long)int.MinValue - 1);
+            this.MessagePackSerializer_TestSerialization((long)int.MinValue);
+            this.MessagePackSerializer_TestSerialization((long)int.MinValue + 1);
+            this.MessagePackSerializer_TestSerialization((long)short.MinValue - 1);
+            this.MessagePackSerializer_TestSerialization((long)short.MinValue);
+            this.MessagePackSerializer_TestSerialization((long)short.MinValue + 1);
+            this.MessagePackSerializer_TestSerialization((long)sbyte.MinValue - 1);
             for (sbyte value = sbyte.MinValue; value < sbyte.MaxValue; value++)
             {
-                MessagePackSerializer_TestSerialization((long)value);
+                this.MessagePackSerializer_TestSerialization((long)value);
             }
-            MessagePackSerializer_TestSerialization((long)sbyte.MaxValue);
-            MessagePackSerializer_TestSerialization((long)sbyte.MaxValue + 1);
-            MessagePackSerializer_TestSerialization((long)short.MaxValue - 1);
-            MessagePackSerializer_TestSerialization((long)short.MaxValue);
-            MessagePackSerializer_TestSerialization((long)short.MaxValue + 1);
-            MessagePackSerializer_TestSerialization((long)int.MaxValue - 1);
-            MessagePackSerializer_TestSerialization((long)int.MaxValue);
-            MessagePackSerializer_TestSerialization((long)int.MaxValue + 1);
-            MessagePackSerializer_TestSerialization(long.MaxValue - 1);
-            MessagePackSerializer_TestSerialization(long.MaxValue);
+
+            this.MessagePackSerializer_TestSerialization((long)sbyte.MaxValue);
+            this.MessagePackSerializer_TestSerialization((long)sbyte.MaxValue + 1);
+            this.MessagePackSerializer_TestSerialization((long)short.MaxValue - 1);
+            this.MessagePackSerializer_TestSerialization((long)short.MaxValue);
+            this.MessagePackSerializer_TestSerialization((long)short.MaxValue + 1);
+            this.MessagePackSerializer_TestSerialization((long)int.MaxValue - 1);
+            this.MessagePackSerializer_TestSerialization((long)int.MaxValue);
+            this.MessagePackSerializer_TestSerialization((long)int.MaxValue + 1);
+            this.MessagePackSerializer_TestSerialization(long.MaxValue - 1);
+            this.MessagePackSerializer_TestSerialization(long.MaxValue);
         }
 
         [Fact]
@@ -209,131 +214,135 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
             // 8 bits
             for (byte value = byte.MinValue; value < byte.MaxValue; value++)
             {
-                MessagePackSerializer_TestSerialization(value);
+                this.MessagePackSerializer_TestSerialization(value);
             }
-            MessagePackSerializer_TestSerialization(byte.MaxValue);
+
+            this.MessagePackSerializer_TestSerialization(byte.MaxValue);
 
             // 16 bits
             for (ushort value = ushort.MinValue; value < ushort.MaxValue; value++)
             {
-                MessagePackSerializer_TestSerialization(value);
+                this.MessagePackSerializer_TestSerialization(value);
             }
-            MessagePackSerializer_TestSerialization(ushort.MaxValue);
+
+            this.MessagePackSerializer_TestSerialization(ushort.MaxValue);
 
             // 32 bits
-            MessagePackSerializer_TestSerialization(uint.MinValue);
-            MessagePackSerializer_TestSerialization((uint)byte.MaxValue - 1);
-            MessagePackSerializer_TestSerialization((uint)byte.MaxValue);
-            MessagePackSerializer_TestSerialization((uint)byte.MaxValue + 1);
-            MessagePackSerializer_TestSerialization((uint)ushort.MaxValue - 1);
-            MessagePackSerializer_TestSerialization((uint)ushort.MaxValue);
-            MessagePackSerializer_TestSerialization((uint)ushort.MaxValue + 1);
-            MessagePackSerializer_TestSerialization(uint.MaxValue - 1);
-            MessagePackSerializer_TestSerialization(uint.MaxValue);
+            this.MessagePackSerializer_TestSerialization(uint.MinValue);
+            this.MessagePackSerializer_TestSerialization((uint)byte.MaxValue - 1);
+            this.MessagePackSerializer_TestSerialization((uint)byte.MaxValue);
+            this.MessagePackSerializer_TestSerialization((uint)byte.MaxValue + 1);
+            this.MessagePackSerializer_TestSerialization((uint)ushort.MaxValue - 1);
+            this.MessagePackSerializer_TestSerialization((uint)ushort.MaxValue);
+            this.MessagePackSerializer_TestSerialization((uint)ushort.MaxValue + 1);
+            this.MessagePackSerializer_TestSerialization(uint.MaxValue - 1);
+            this.MessagePackSerializer_TestSerialization(uint.MaxValue);
 
             // 64 bits
-            MessagePackSerializer_TestSerialization(ulong.MinValue);
-            MessagePackSerializer_TestSerialization((ulong)byte.MaxValue - 1);
-            MessagePackSerializer_TestSerialization((ulong)byte.MaxValue);
-            MessagePackSerializer_TestSerialization((ulong)byte.MaxValue + 1);
-            MessagePackSerializer_TestSerialization((ulong)ushort.MaxValue - 1);
-            MessagePackSerializer_TestSerialization((ulong)ushort.MaxValue);
-            MessagePackSerializer_TestSerialization((ulong)ushort.MaxValue + 1);
-            MessagePackSerializer_TestSerialization((ulong)uint.MaxValue - 1);
-            MessagePackSerializer_TestSerialization((ulong)uint.MaxValue);
-            MessagePackSerializer_TestSerialization((ulong)uint.MaxValue + 1);
-            MessagePackSerializer_TestSerialization(ulong.MaxValue - 1);
-            MessagePackSerializer_TestSerialization(ulong.MaxValue);
+            this.MessagePackSerializer_TestSerialization(ulong.MinValue);
+            this.MessagePackSerializer_TestSerialization((ulong)byte.MaxValue - 1);
+            this.MessagePackSerializer_TestSerialization((ulong)byte.MaxValue);
+            this.MessagePackSerializer_TestSerialization((ulong)byte.MaxValue + 1);
+            this.MessagePackSerializer_TestSerialization((ulong)ushort.MaxValue - 1);
+            this.MessagePackSerializer_TestSerialization((ulong)ushort.MaxValue);
+            this.MessagePackSerializer_TestSerialization((ulong)ushort.MaxValue + 1);
+            this.MessagePackSerializer_TestSerialization((ulong)uint.MaxValue - 1);
+            this.MessagePackSerializer_TestSerialization((ulong)uint.MaxValue);
+            this.MessagePackSerializer_TestSerialization((ulong)uint.MaxValue + 1);
+            this.MessagePackSerializer_TestSerialization(ulong.MaxValue - 1);
+            this.MessagePackSerializer_TestSerialization(ulong.MaxValue);
         }
 
         [Fact]
         [Trait("Platform", "Any")]
         public void MessagePackSerializer_Float()
         {
-            MessagePackSerializer_TestSerialization(0.0f);
-            MessagePackSerializer_TestSerialization(1.0f);
-            MessagePackSerializer_TestSerialization(-123.45f);
-            MessagePackSerializer_TestSerialization(float.MaxValue);
-            MessagePackSerializer_TestSerialization(float.MinValue);
-            MessagePackSerializer_TestSerialization(float.PositiveInfinity);
-            MessagePackSerializer_TestSerialization(float.NegativeInfinity);
+            this.MessagePackSerializer_TestSerialization(0.0f);
+            this.MessagePackSerializer_TestSerialization(1.0f);
+            this.MessagePackSerializer_TestSerialization(-123.45f);
+            this.MessagePackSerializer_TestSerialization(float.MaxValue);
+            this.MessagePackSerializer_TestSerialization(float.MinValue);
+            this.MessagePackSerializer_TestSerialization(float.PositiveInfinity);
+            this.MessagePackSerializer_TestSerialization(float.NegativeInfinity);
 
-            MessagePackSerializer_TestSerialization(0.0d);
-            MessagePackSerializer_TestSerialization(3.1415926d);
-            MessagePackSerializer_TestSerialization(-67.89f);
-            MessagePackSerializer_TestSerialization(double.MaxValue);
-            MessagePackSerializer_TestSerialization(double.MinValue);
-            MessagePackSerializer_TestSerialization(double.PositiveInfinity);
-            MessagePackSerializer_TestSerialization(double.NegativeInfinity);
+            this.MessagePackSerializer_TestSerialization(0.0d);
+            this.MessagePackSerializer_TestSerialization(3.1415926d);
+            this.MessagePackSerializer_TestSerialization(-67.89f);
+            this.MessagePackSerializer_TestSerialization(double.MaxValue);
+            this.MessagePackSerializer_TestSerialization(double.MinValue);
+            this.MessagePackSerializer_TestSerialization(double.PositiveInfinity);
+            this.MessagePackSerializer_TestSerialization(double.NegativeInfinity);
         }
 
         [Fact]
         [Trait("Platform", "Any")]
         public void MessagePackSerializer_SerializeAsciiString()
         {
-            MessagePackSerializer_TestASCIIStringSerialization(null);
-            MessagePackSerializer_TestASCIIStringSerialization(string.Empty);
-            MessagePackSerializer_TestASCIIStringSerialization("");
-            MessagePackSerializer_TestASCIIStringSerialization("Hello world!");
-            //fixstr stores a byte array whose length is upto 31 bytes
-            MessagePackSerializer_TestASCIIStringSerialization("1234567890123456789012345678901");
+            this.MessagePackSerializer_TestASCIIStringSerialization(null);
+            this.MessagePackSerializer_TestASCIIStringSerialization(string.Empty);
+            this.MessagePackSerializer_TestASCIIStringSerialization("");
+            this.MessagePackSerializer_TestASCIIStringSerialization("Hello world!");
 
-            //str 8 stores a byte array whose length is upto (2^8)-1 bytes
-            MessagePackSerializer_TestASCIIStringSerialization("12345678901234567890123456789012");
-            MessagePackSerializer_TestASCIIStringSerialization(new string('A', byte.MaxValue));
-            MessagePackSerializer_TestASCIIStringSerialization(new string('B', byte.MaxValue + 1));
-            MessagePackSerializer_TestASCIIStringSerialization(new string('Z', (1 << 14) - 1));
-            MessagePackSerializer_TestASCIIStringSerialization(new string('Z', 1 << 14));
+            // fixstr stores a byte array whose length is upto 31 bytes
+            this.MessagePackSerializer_TestASCIIStringSerialization("1234567890123456789012345678901");
+
+            // str 8 stores a byte array whose length is upto (2^8)-1 bytes
+            this.MessagePackSerializer_TestASCIIStringSerialization("12345678901234567890123456789012");
+            this.MessagePackSerializer_TestASCIIStringSerialization(new string('A', byte.MaxValue));
+            this.MessagePackSerializer_TestASCIIStringSerialization(new string('B', byte.MaxValue + 1));
+            this.MessagePackSerializer_TestASCIIStringSerialization(new string('Z', (1 << 14) - 1));
+            this.MessagePackSerializer_TestASCIIStringSerialization(new string('Z', 1 << 14));
 
             // Unicode special characters
             // SerializeAsciiString will encode non-ASCII characters with '?'
-            Assert.Throws<EqualException>(() => MessagePackSerializer_TestASCIIStringSerialization("\u0418"));
+            Assert.Throws<EqualException>(() => this.MessagePackSerializer_TestASCIIStringSerialization("\u0418"));
         }
 
         [Fact]
         [Trait("Platform", "Any")]
         public void MessagePackSerializer_SerializeUnicodeString()
         {
-            MessagePackSerializer_TestUnicodeStringSerialization(null);
-            MessagePackSerializer_TestUnicodeStringSerialization(string.Empty);
-            MessagePackSerializer_TestUnicodeStringSerialization("");
-            MessagePackSerializer_TestUnicodeStringSerialization("Hello world!");
-            //fixstr stores a byte array whose length is upto 31 bytes
-            MessagePackSerializer_TestUnicodeStringSerialization("1234567890123456789012345678901");
+            this.MessagePackSerializer_TestUnicodeStringSerialization(null);
+            this.MessagePackSerializer_TestUnicodeStringSerialization(string.Empty);
+            this.MessagePackSerializer_TestUnicodeStringSerialization("");
+            this.MessagePackSerializer_TestUnicodeStringSerialization("Hello world!");
 
-            //str 8 stores a byte array whose length is upto (2^8)-1 bytes
-            MessagePackSerializer_TestUnicodeStringSerialization("12345678901234567890123456789012");
-            MessagePackSerializer_TestUnicodeStringSerialization(new string('A', byte.MaxValue));
-            MessagePackSerializer_TestUnicodeStringSerialization(new string('B', byte.MaxValue + 1));
-            MessagePackSerializer_TestUnicodeStringSerialization(new string('Z', (1 << 14) - 1));
-            MessagePackSerializer_TestUnicodeStringSerialization(new string('Z', 1 << 14));
+            // fixstr stores a byte array whose length is upto 31 bytes
+            this.MessagePackSerializer_TestUnicodeStringSerialization("1234567890123456789012345678901");
+
+            // str 8 stores a byte array whose length is upto (2^8)-1 bytes
+            this.MessagePackSerializer_TestUnicodeStringSerialization("12345678901234567890123456789012");
+            this.MessagePackSerializer_TestUnicodeStringSerialization(new string('A', byte.MaxValue));
+            this.MessagePackSerializer_TestUnicodeStringSerialization(new string('B', byte.MaxValue + 1));
+            this.MessagePackSerializer_TestUnicodeStringSerialization(new string('Z', (1 << 14) - 1));
+            this.MessagePackSerializer_TestUnicodeStringSerialization(new string('Z', 1 << 14));
 
             // ill-formed UTF-8 sequence
             // This is replaced by `U+FFFD REPLACEMENT CHARACTER` in the returned string instance constructed from the byte array
             // TODO: Update this test case once the serializer starts to throw exception for ill-formed UTF-8 sequence.
-            Assert.Throws<EqualException>(() => MessagePackSerializer_TestUnicodeStringSerialization("\uD801\uD802"));
+            Assert.Throws<EqualException>(() => this.MessagePackSerializer_TestUnicodeStringSerialization("\uD801\uD802"));
 
             // Unicode special characters
-            MessagePackSerializer_TestUnicodeStringSerialization("\u0418");
-            MessagePackSerializer_TestUnicodeStringSerialization(new string('\u0418', 31));
-            MessagePackSerializer_TestUnicodeStringSerialization(new string('\u0418', 50));
-            MessagePackSerializer_TestUnicodeStringSerialization(new string('\u0418', (1 << 8) - 1));
-            MessagePackSerializer_TestUnicodeStringSerialization(new string('\u0418', 1 << 10));
-            MessagePackSerializer_TestUnicodeStringSerialization(new string('\u0418', (1 << 14) - 1));
-            MessagePackSerializer_TestUnicodeStringSerialization(new string('\u0418', 1 << 14));
+            this.MessagePackSerializer_TestUnicodeStringSerialization("\u0418");
+            this.MessagePackSerializer_TestUnicodeStringSerialization(new string('\u0418', 31));
+            this.MessagePackSerializer_TestUnicodeStringSerialization(new string('\u0418', 50));
+            this.MessagePackSerializer_TestUnicodeStringSerialization(new string('\u0418', (1 << 8) - 1));
+            this.MessagePackSerializer_TestUnicodeStringSerialization(new string('\u0418', 1 << 10));
+            this.MessagePackSerializer_TestUnicodeStringSerialization(new string('\u0418', (1 << 14) - 1));
+            this.MessagePackSerializer_TestUnicodeStringSerialization(new string('\u0418', 1 << 14));
 
             // Unicode regular and special characters
-            MessagePackSerializer_TestUnicodeStringSerialization("\u0418TestString");
-            MessagePackSerializer_TestUnicodeStringSerialization("TestString\u0418");
-            MessagePackSerializer_TestUnicodeStringSerialization("Test\u0418String");
+            this.MessagePackSerializer_TestUnicodeStringSerialization("\u0418TestString");
+            this.MessagePackSerializer_TestUnicodeStringSerialization("TestString\u0418");
+            this.MessagePackSerializer_TestUnicodeStringSerialization("Test\u0418String");
         }
 
         [Fact]
         [Trait("Platform", "Any")]
         public void MessagePackSerializer_Array()
         {
-            MessagePackSerializer_TestSerialization((object[])null);
-            MessagePackSerializer_TestSerialization(new object[0]);
+            this.MessagePackSerializer_TestSerialization((object[])null);
+            this.MessagePackSerializer_TestSerialization(new object[0]);
 
             // This object array has a custom string which will be serialized as STR16
             var objectArrayWithString = new object[] {
@@ -357,8 +366,8 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
         [Trait("Platform", "Any")]
         public void MessagePackSerializer_Map()
         {
-            MessagePackSerializer_TestSerialization((Dictionary<string, object>)null);
-            MessagePackSerializer_TestSerialization(new Dictionary<string, object>());
+            this.MessagePackSerializer_TestSerialization((Dictionary<string, object>)null);
+            this.MessagePackSerializer_TestSerialization(new Dictionary<string, object>());
 
             // This dictionary has custom strings which will be serialized as STR16
             var dictionaryWithStrings = new Dictionary<string, object>

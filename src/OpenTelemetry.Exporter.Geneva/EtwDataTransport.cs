@@ -8,13 +8,14 @@ namespace OpenTelemetry.Exporter.Geneva
     [EventSource(Name = "OpenTelemetry")]
     internal class EtwEventSource : EventSource
     {
-        public EtwEventSource(string providerName) : base(providerName, EventSourceSettings.EtwManifestEventFormat)
+        public EtwEventSource(string providerName)
+            : base(providerName, EventSourceSettings.EtwManifestEventFormat)
         {
         }
 
         public enum EtwEventId
         {
-            TraceEvent = 100
+            TraceEvent = 100,
         }
 
         [Event((int)EtwEventId.TraceEvent, Version = 1, Level = EventLevel.Informational)]
@@ -29,8 +30,8 @@ namespace OpenTelemetry.Exporter.Geneva
             fixed (byte* ptr = data)
             {
                 dataDesc[0].DataPointer = (IntPtr)ptr;
-                dataDesc[0].Size = (int)(size);
-                WriteEventCore(eventId, 1, dataDesc);
+                dataDesc[0].Size = (int)size;
+                this.WriteEventCore(eventId, 1, dataDesc);
             }
         }
     }
@@ -39,17 +40,17 @@ namespace OpenTelemetry.Exporter.Geneva
     {
         public EtwDataTransport(string providerName)
         {
-            m_eventSource = new EtwEventSource(providerName);
+            this.m_eventSource = new EtwEventSource(providerName);
         }
 
         public void Send(byte[] data, int size)
         {
-            m_eventSource.SendEvent((int)EtwEventSource.EtwEventId.TraceEvent, data, size);
+            this.m_eventSource.SendEvent((int)EtwEventSource.EtwEventId.TraceEvent, data, size);
         }
 
         public bool IsEnabled()
         {
-            return m_eventSource.IsEnabled();
+            return this.m_eventSource.IsEnabled();
         }
 
         private EtwEventSource m_eventSource;
@@ -57,22 +58,22 @@ namespace OpenTelemetry.Exporter.Geneva
 
         public void Dispose()
         {
-            Dispose(true);
+            this.Dispose(true);
         }
 
         protected virtual void Dispose(bool disposing)
         {
-            if (m_disposed)
+            if (this.m_disposed)
             {
                 return;
             }
 
             if (disposing)
             {
-                m_eventSource.Dispose();
+                this.m_eventSource.Dispose();
             }
 
-            m_disposed = true;
+            this.m_disposed = true;
         }
     }
 }

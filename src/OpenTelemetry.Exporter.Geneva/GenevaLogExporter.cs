@@ -13,7 +13,7 @@ namespace OpenTelemetry.Exporter.Geneva
 {
     public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
     {
-        const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
+        private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
 
         private bool isDisposed;
         private Func<object, string> convertToJson;
@@ -63,7 +63,7 @@ namespace OpenTelemetry.Exporter.Geneva
                     }
                 }
 
-                m_tableMappings = tempTableMappings;
+                this.m_tableMappings = tempTableMappings;
             }
 
             var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
@@ -75,7 +75,7 @@ namespace OpenTelemetry.Exporter.Geneva
                         throw new ArgumentException("ETW cannot be used on non-Windows operating systems.");
                     }
 
-                    m_dataTransport = new EtwDataTransport(connectionStringBuilder.EtwSession);
+                    this.m_dataTransport = new EtwDataTransport(connectionStringBuilder.EtwSession);
                     break;
                 case TransportProtocol.Unix:
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -84,7 +84,7 @@ namespace OpenTelemetry.Exporter.Geneva
                     }
 
                     var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
-                    m_dataTransport = new UnixDomainSocketDataTransport(unixDomainSocketPath);
+                    this.m_dataTransport = new UnixDomainSocketDataTransport(unixDomainSocketPath);
                     break;
                 case TransportProtocol.Tcp:
                     throw new ArgumentException("TCP transport is not supported yet.");
@@ -98,15 +98,15 @@ namespace OpenTelemetry.Exporter.Geneva
 
             if (options.PrepopulatedFields != null)
             {
-                m_prepopulatedFieldKeys = new List<string>();
+                this.m_prepopulatedFieldKeys = new List<string>();
                 var tempPrepopulatedFields = new Dictionary<string, object>(options.PrepopulatedFields.Count, StringComparer.Ordinal);
                 foreach (var kv in options.PrepopulatedFields)
                 {
                     tempPrepopulatedFields[kv.Key] = kv.Value;
-                    m_prepopulatedFieldKeys.Add(kv.Key);
+                    this.m_prepopulatedFieldKeys.Add(kv.Key);
                 }
 
-                m_prepopulatedFields = tempPrepopulatedFields;
+                this.m_prepopulatedFields = tempPrepopulatedFields;
             }
 
             // TODO: Validate custom fields (reserved name? etc).
@@ -118,13 +118,13 @@ namespace OpenTelemetry.Exporter.Geneva
                     customFields[name] = true;
                 }
 
-                m_customFields = customFields;
+                this.m_customFields = customFields;
             }
 
             var buffer = new byte[BUFFER_SIZE];
             var cursor = MessagePackSerializer.Serialize(buffer, 0, new Dictionary<string, object> { { "TimeFormat", "DateTime" } });
-            m_bufferEpilogue = new byte[cursor - 0];
-            Buffer.BlockCopy(buffer, 0, m_bufferEpilogue, 0, cursor - 0);
+            this.m_bufferEpilogue = new byte[cursor - 0];
+            Buffer.BlockCopy(buffer, 0, this.m_bufferEpilogue, 0, cursor - 0);
         }
 
         private readonly IReadOnlyDictionary<string, string> m_tableMappings;
@@ -137,7 +137,7 @@ namespace OpenTelemetry.Exporter.Geneva
                 try
                 {
                     var cursor = this.SerializeLogRecord(logRecord);
-                    m_dataTransport.Send(m_buffer.Value, cursor - 0);
+                    this.m_dataTransport.Send(m_buffer.Value, cursor - 0);
                 }
                 catch (Exception ex)
                 {
@@ -161,8 +161,8 @@ namespace OpenTelemetry.Exporter.Geneva
                 // DO NOT Dispose m_buffer as it is a static type
                 try
                 {
-                    (m_dataTransport as IDisposable)?.Dispose();
-                    m_prepopulatedFieldKeys.Clear();
+                    (this.m_dataTransport as IDisposable)?.Dispose();
+                    this.m_prepopulatedFieldKeys.Clear();
                 }
                 catch (Exception ex)
                 {
@@ -176,7 +176,7 @@ namespace OpenTelemetry.Exporter.Geneva
 
         internal bool IsUsingUnixDomainSocket
         {
-            get => m_dataTransport is UnixDomainSocketDataTransport;
+            get => this.m_dataTransport is UnixDomainSocketDataTransport;
         }
 
         internal int SerializeLogRecord(LogRecord logRecord)
@@ -200,7 +200,7 @@ namespace OpenTelemetry.Exporter.Geneva
             var name = logRecord.CategoryName;
 
             // If user configured explicit TableName, use it.
-            if (m_tableMappings == null || !m_tableMappings.TryGetValue(name, out var eventName))
+            if (this.m_tableMappings == null || !this.m_tableMappings.TryGetValue(name, out var eventName))
             {
                 eventName = this.m_defaultEventName;
             }
@@ -243,12 +243,12 @@ namespace OpenTelemetry.Exporter.Geneva
             ushort cntFields = 0;
             var idxMapSizePatch = cursor - 2;
 
-            if (m_prepopulatedFieldKeys != null)
+            if (this.m_prepopulatedFieldKeys != null)
             {
-                for (int i = 0; i < m_prepopulatedFieldKeys.Count; i++)
+                for (int i = 0; i < this.m_prepopulatedFieldKeys.Count; i++)
                 {
-                    var key = m_prepopulatedFieldKeys[i];
-                    var value = m_prepopulatedFields[key];
+                    var key = this.m_prepopulatedFieldKeys[i];
+                    var value = this.m_prepopulatedFields[key];
                     switch (value)
                     {
                         case bool vb:
@@ -349,7 +349,7 @@ namespace OpenTelemetry.Exporter.Geneva
                         bodyPopulated = true;
                         continue;
                     }
-                    else if (m_customFields == null || m_customFields.ContainsKey(entry.Key))
+                    else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
                     {
                         // TODO: the above null check can be optimized and avoided inside foreach.
                         if (entry.Value != null)
@@ -385,7 +385,7 @@ namespace OpenTelemetry.Exporter.Geneva
                     for (int i = 0; i < listKvp.Count; i++)
                     {
                         var entry = listKvp[i];
-                        if (entry.Key == "{OriginalFormat}" || m_customFields.ContainsKey(entry.Key))
+                        if (entry.Key == "{OriginalFormat}" || this.m_customFields.ContainsKey(entry.Key))
                         {
                             continue;
                         }
@@ -411,8 +411,8 @@ namespace OpenTelemetry.Exporter.Geneva
             }
 
             MessagePackSerializer.WriteUInt16(buffer, idxMapSizePatch, cntFields);
-            Buffer.BlockCopy(m_bufferEpilogue, 0, buffer, cursor, m_bufferEpilogue.Length);
-            cursor += m_bufferEpilogue.Length;
+            Buffer.BlockCopy(this.m_bufferEpilogue, 0, buffer, cursor, this.m_bufferEpilogue.Length);
+            cursor += this.m_bufferEpilogue.Length;
             return cursor;
         }
 

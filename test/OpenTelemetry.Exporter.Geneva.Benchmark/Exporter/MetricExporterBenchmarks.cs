@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
@@ -80,64 +80,62 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
         [GlobalSetup]
         public void Setup()
         {
-
-            counterWithNoListener = meterWithNoListener.CreateCounter<long>("counter");
-            counterWithListener = meterWithListener.CreateCounter<long>("counter");
-            counterWithDummyReader = meterWithDummyReader.CreateCounter<long>("counter");
-            counterWithGenevaMetricExporter = meterWithGenevaMetricExporter.CreateCounter<long>("counter");
+            this.counterWithNoListener = this.meterWithNoListener.CreateCounter<long>("counter");
+            this.counterWithListener = this.meterWithListener.CreateCounter<long>("counter");
+            this.counterWithDummyReader = this.meterWithDummyReader.CreateCounter<long>("counter");
+            this.counterWithGenevaMetricExporter = this.meterWithGenevaMetricExporter.CreateCounter<long>("counter");
 
             var exporterOptions = new GenevaMetricExporterOptions() { ConnectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace" };
-            exporter = new GenevaMetricExporter(exporterOptions);
+            this.exporter = new GenevaMetricExporter(exporterOptions);
 
-            counterMetricPointWith3Dimensions = GenerateCounterMetricItemWith3Dimensions(out counterMetricDataWith3Dimensions);
-            counterMetricPointWith4Dimensions = GenerateCounterMetricItemWith4Dimensions(out counterMetricDataWith4Dimensions);
+            this.counterMetricPointWith3Dimensions = this.GenerateCounterMetricItemWith3Dimensions(out this.counterMetricDataWith3Dimensions);
+            this.counterMetricPointWith4Dimensions = this.GenerateCounterMetricItemWith4Dimensions(out this.counterMetricDataWith4Dimensions);
 
-            counterMetricBatchWith3Dimensions = GenerateCounterBatchWith3Dimensions();
-            counterMetricBatchWith4Dimensions = GenerateCounterBatchWith4Dimensions();
+            this.counterMetricBatchWith3Dimensions = this.GenerateCounterBatchWith3Dimensions();
+            this.counterMetricBatchWith4Dimensions = this.GenerateCounterBatchWith4Dimensions();
 
-            using var enumeratorForCounterBatchWith3Dimensions = counterMetricBatchWith3Dimensions.GetEnumerator();
+            using var enumeratorForCounterBatchWith3Dimensions = this.counterMetricBatchWith3Dimensions.GetEnumerator();
             enumeratorForCounterBatchWith3Dimensions.MoveNext();
-            counterMetricWith3Dimensions = enumeratorForCounterBatchWith3Dimensions.Current;
+            this.counterMetricWith3Dimensions = enumeratorForCounterBatchWith3Dimensions.Current;
 
-            using var enumeratorForCounterBatchWith4Dimensions = counterMetricBatchWith4Dimensions.GetEnumerator();
+            using var enumeratorForCounterBatchWith4Dimensions = this.counterMetricBatchWith4Dimensions.GetEnumerator();
             enumeratorForCounterBatchWith4Dimensions.MoveNext();
-            counterMetricWith4Dimensions = enumeratorForCounterBatchWith4Dimensions.Current;
+            this.counterMetricWith4Dimensions = enumeratorForCounterBatchWith4Dimensions.Current;
 
+            this.histogramMetricPointWith3Dimensions = this.GenerateHistogramMetricItemWith3Dimensions(out this.histogramSumWith3Dimensions, out this.histogramCountWith3Dimensions);
+            this.histogramMetricPointWith4Dimensions = this.GenerateHistogramMetricItemWith4Dimensions(out this.histogramSumWith4Dimensions, out this.histogramCountWith4Dimensions);
 
-            histogramMetricPointWith3Dimensions = GenerateHistogramMetricItemWith3Dimensions(out histogramSumWith3Dimensions, out histogramCountWith3Dimensions);
-            histogramMetricPointWith4Dimensions = GenerateHistogramMetricItemWith4Dimensions(out histogramSumWith4Dimensions, out histogramCountWith4Dimensions);
+            this.histogramMetricBatchWith3Dimensions = this.GenerateHistogramBatchWith3Dimensions();
+            this.histogramMetricBatchWith4Dimensions = this.GenerateHistogramBatchWith4Dimensions();
 
-            histogramMetricBatchWith3Dimensions = GenerateHistogramBatchWith3Dimensions();
-            histogramMetricBatchWith4Dimensions = GenerateHistogramBatchWith4Dimensions();
-
-            using var enumeratorForHistogramBatchWith3Dimensions = histogramMetricBatchWith3Dimensions.GetEnumerator();
+            using var enumeratorForHistogramBatchWith3Dimensions = this.histogramMetricBatchWith3Dimensions.GetEnumerator();
             enumeratorForHistogramBatchWith3Dimensions.MoveNext();
-            histogramMetricWith3Dimensions = enumeratorForHistogramBatchWith3Dimensions.Current;
+            this.histogramMetricWith3Dimensions = enumeratorForHistogramBatchWith3Dimensions.Current;
 
-            using var enumeratorForHistogramBatchWith4Dimensions = histogramMetricBatchWith4Dimensions.GetEnumerator();
+            using var enumeratorForHistogramBatchWith4Dimensions = this.histogramMetricBatchWith4Dimensions.GetEnumerator();
             enumeratorForHistogramBatchWith4Dimensions.MoveNext();
-            histogramMetricWith4Dimensions = enumeratorForHistogramBatchWith4Dimensions.Current;
+            this.histogramMetricWith4Dimensions = enumeratorForHistogramBatchWith4Dimensions.Current;
 
             #region Setup MeterListener
-            listener = new MeterListener();
-            listener.InstrumentPublished = (instrument, listener) =>
+            this.listener = new MeterListener();
+            this.listener.InstrumentPublished = (instrument, listener) =>
             {
-                if (instrument.Meter.Name == meterWithListener.Name)
+                if (instrument.Meter.Name == this.meterWithListener.Name)
                 {
                     listener.EnableMeasurementEvents(instrument);
                 }
             };
 
-            listener.Start();
+            this.listener.Start();
             #endregion
 
-            meterProviderWithDummyReader = Sdk.CreateMeterProviderBuilder()
-            .AddMeter(meterWithDummyReader.Name)
+            this.meterProviderWithDummyReader = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(this.meterWithDummyReader.Name)
             .AddReader(new DummyReader(new DummyMetricExporter()))
             .Build();
 
-            meterProviderWithGenevaMetricExporter = Sdk.CreateMeterProviderBuilder()
-            .AddMeter(meterWithGenevaMetricExporter.Name)
+            this.meterProviderWithGenevaMetricExporter = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(this.meterWithGenevaMetricExporter.Name)
             .AddGenevaMetricExporter(options =>
             {
                 options.ConnectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
@@ -163,9 +161,9 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
 
             counter.Add(
                 100,
-                new("DimName1", dimensionValues[random.Value.Next(0, 10)]),
-                new("DimName2", dimensionValues[random.Value.Next(0, 10)]),
-                new("DimName3", dimensionValues[random.Value.Next(0, 10)]));
+                new("DimName1", dimensionValues[this.random.Value.Next(0, 10)]),
+                new("DimName2", dimensionValues[this.random.Value.Next(0, 10)]),
+                new("DimName3", dimensionValues[this.random.Value.Next(0, 10)]));
 
             inMemoryReader.Collect();
 
@@ -197,10 +195,10 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
 
             var tags = new TagList
         {
-            { "DimName1", dimensionValues[random.Value.Next(0, 2)] },
-            { "DimName2", dimensionValues[random.Value.Next(0, 5)] },
-            { "DimName3", dimensionValues[random.Value.Next(0, 10)] },
-            { "DimName4", dimensionValues[random.Value.Next(0, 10)] },
+            { "DimName1", dimensionValues[this.random.Value.Next(0, 2)] },
+            { "DimName2", dimensionValues[this.random.Value.Next(0, 5)] },
+            { "DimName3", dimensionValues[this.random.Value.Next(0, 10)] },
+            { "DimName4", dimensionValues[this.random.Value.Next(0, 10)] },
         };
 
             counter.Add(100, tags);
@@ -228,18 +226,18 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
                 Temporality = AggregationTemporality.Delta,
             };
 
-            meterProviderForCounterBatchWith3Dimensions = Sdk.CreateMeterProviderBuilder()
+            this.meterProviderForCounterBatchWith3Dimensions = Sdk.CreateMeterProviderBuilder()
                 .AddMeter("GenerateCounterBatchWith3Dimensions")
                 .AddReader(batchGeneratorReader)
                 .Build();
 
             counter.Add(
                 100,
-                new("DimName1", dimensionValues[random.Value.Next(0, 10)]),
-                new("DimName2", dimensionValues[random.Value.Next(0, 10)]),
-                new("DimName3", dimensionValues[random.Value.Next(0, 10)]));
+                new("DimName1", dimensionValues[this.random.Value.Next(0, 10)]),
+                new("DimName2", dimensionValues[this.random.Value.Next(0, 10)]),
+                new("DimName3", dimensionValues[this.random.Value.Next(0, 10)]));
 
-            meterProviderForCounterBatchWith3Dimensions.ForceFlush();
+            this.meterProviderForCounterBatchWith3Dimensions.ForceFlush();
             return batchGeneratorExporter.Batch;
         }
 
@@ -254,22 +252,22 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
                 Temporality = AggregationTemporality.Delta,
             };
 
-            meterProviderForCounterBatchWith4Dimensions = Sdk.CreateMeterProviderBuilder()
+            this.meterProviderForCounterBatchWith4Dimensions = Sdk.CreateMeterProviderBuilder()
                 .AddMeter("GenerateCounterBatchWith4Dimensions")
                 .AddReader(batchGeneratorReader)
                 .Build();
 
             var tags = new TagList
         {
-            { "DimName1", dimensionValues[random.Value.Next(0, 2)] },
-            { "DimName2", dimensionValues[random.Value.Next(0, 5)] },
-            { "DimName3", dimensionValues[random.Value.Next(0, 10)] },
-            { "DimName4", dimensionValues[random.Value.Next(0, 10)] },
+            { "DimName1", dimensionValues[this.random.Value.Next(0, 2)] },
+            { "DimName2", dimensionValues[this.random.Value.Next(0, 5)] },
+            { "DimName3", dimensionValues[this.random.Value.Next(0, 10)] },
+            { "DimName4", dimensionValues[this.random.Value.Next(0, 10)] },
         };
 
             counter.Add(100, tags);
 
-            meterProviderForCounterBatchWith4Dimensions.ForceFlush();
+            this.meterProviderForCounterBatchWith4Dimensions.ForceFlush();
             return batchGeneratorExporter.Batch;
         }
 
@@ -289,9 +287,9 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
                 .AddReader(inMemoryReader)
                 .Build();
 
-            var tag1 = new KeyValuePair<string, object>("DimName1", dimensionValues[random.Value.Next(0, 10)]);
-            var tag2 = new KeyValuePair<string, object>("DimName2", dimensionValues[random.Value.Next(0, 10)]);
-            var tag3 = new KeyValuePair<string, object>("DimName3", dimensionValues[random.Value.Next(0, 10)]);
+            var tag1 = new KeyValuePair<string, object>("DimName1", dimensionValues[this.random.Value.Next(0, 10)]);
+            var tag2 = new KeyValuePair<string, object>("DimName2", dimensionValues[this.random.Value.Next(0, 10)]);
+            var tag3 = new KeyValuePair<string, object>("DimName3", dimensionValues[this.random.Value.Next(0, 10)]);
 
             for (int i = 0; i < 1000; i++)
             {
@@ -328,10 +326,10 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
 
             var tags = new TagList
         {
-            { "DimName1", dimensionValues[random.Value.Next(0, 2)] },
-            { "DimName2", dimensionValues[random.Value.Next(0, 5)] },
-            { "DimName3", dimensionValues[random.Value.Next(0, 10)] },
-            { "DimName4", dimensionValues[random.Value.Next(0, 10)] },
+            { "DimName1", dimensionValues[this.random.Value.Next(0, 2)] },
+            { "DimName2", dimensionValues[this.random.Value.Next(0, 5)] },
+            { "DimName3", dimensionValues[this.random.Value.Next(0, 10)] },
+            { "DimName4", dimensionValues[this.random.Value.Next(0, 10)] },
         };
 
             for (int i = 0; i < 1000; i++)
@@ -351,7 +349,6 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
             return metricPoint;
         }
 
-
         private Batch<Metric> GenerateHistogramBatchWith3Dimensions()
         {
             using var meterWithInMemoryExporter = new Meter("GenerateHistogramBatchWith3Dimensions", "0.0.1");
@@ -363,21 +360,21 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
                 Temporality = AggregationTemporality.Delta,
             };
 
-            meterProviderForHistogramBatchWith3Dimensions = Sdk.CreateMeterProviderBuilder()
+            this.meterProviderForHistogramBatchWith3Dimensions = Sdk.CreateMeterProviderBuilder()
                 .AddMeter("GenerateHistogramBatchWith3Dimensions")
                 .AddReader(batchGeneratorReader)
                 .Build();
 
-            var tag1 = new KeyValuePair<string, object>("DimName1", dimensionValues[random.Value.Next(0, 10)]);
-            var tag2 = new KeyValuePair<string, object>("DimName2", dimensionValues[random.Value.Next(0, 10)]);
-            var tag3 = new KeyValuePair<string, object>("DimName3", dimensionValues[random.Value.Next(0, 10)]);
+            var tag1 = new KeyValuePair<string, object>("DimName1", dimensionValues[this.random.Value.Next(0, 10)]);
+            var tag2 = new KeyValuePair<string, object>("DimName2", dimensionValues[this.random.Value.Next(0, 10)]);
+            var tag3 = new KeyValuePair<string, object>("DimName3", dimensionValues[this.random.Value.Next(0, 10)]);
 
             for (int i = 0; i < 1000; i++)
             {
                 histogram.Record(randomForHistogram.Next(1, 1000), tag1, tag2, tag3);
             }
 
-            meterProviderForHistogramBatchWith3Dimensions.ForceFlush();
+            this.meterProviderForHistogramBatchWith3Dimensions.ForceFlush();
             return batchGeneratorExporter.Batch;
         }
 
@@ -392,17 +389,17 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
                 Temporality = AggregationTemporality.Delta,
             };
 
-            meterProviderForHistogramBatchWith4Dimensions = Sdk.CreateMeterProviderBuilder()
+            this.meterProviderForHistogramBatchWith4Dimensions = Sdk.CreateMeterProviderBuilder()
                 .AddMeter("GenerateHistogramBatchWith4Dimensions")
                 .AddReader(batchGeneratorReader)
                 .Build();
 
             var tags = new TagList
         {
-            { "DimName1", dimensionValues[random.Value.Next(0, 2)] },
-            { "DimName2", dimensionValues[random.Value.Next(0, 5)] },
-            { "DimName3", dimensionValues[random.Value.Next(0, 10)] },
-            { "DimName4", dimensionValues[random.Value.Next(0, 10)] },
+            { "DimName1", dimensionValues[this.random.Value.Next(0, 2)] },
+            { "DimName2", dimensionValues[this.random.Value.Next(0, 5)] },
+            { "DimName3", dimensionValues[this.random.Value.Next(0, 10)] },
+            { "DimName4", dimensionValues[this.random.Value.Next(0, 10)] },
         };
 
             for (int i = 0; i < 1000; i++)
@@ -410,34 +407,34 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
                 histogram.Record(randomForHistogram.Next(1, 1000), tags);
             }
 
-            meterProviderForHistogramBatchWith4Dimensions.ForceFlush();
+            this.meterProviderForHistogramBatchWith4Dimensions.ForceFlush();
             return batchGeneratorExporter.Batch;
         }
 
         [GlobalCleanup]
         public void Cleanup()
         {
-            meterWithNoListener?.Dispose();
-            meterWithListener?.Dispose();
-            meterWithDummyReader?.Dispose();
-            meterWithGenevaMetricExporter?.Dispose();
-            listener?.Dispose();
-            meterProviderWithDummyReader?.Dispose();
-            meterProviderWithGenevaMetricExporter?.Dispose();
-            meterProviderForCounterBatchWith3Dimensions?.Dispose();
-            meterProviderForCounterBatchWith4Dimensions?.Dispose();
-            meterProviderForHistogramBatchWith3Dimensions?.Dispose();
-            meterProviderForHistogramBatchWith4Dimensions?.Dispose();
-            exporter?.Dispose();
+            this.meterWithNoListener?.Dispose();
+            this.meterWithListener?.Dispose();
+            this.meterWithDummyReader?.Dispose();
+            this.meterWithGenevaMetricExporter?.Dispose();
+            this.listener?.Dispose();
+            this.meterProviderWithDummyReader?.Dispose();
+            this.meterProviderWithGenevaMetricExporter?.Dispose();
+            this.meterProviderForCounterBatchWith3Dimensions?.Dispose();
+            this.meterProviderForCounterBatchWith4Dimensions?.Dispose();
+            this.meterProviderForHistogramBatchWith3Dimensions?.Dispose();
+            this.meterProviderForHistogramBatchWith4Dimensions?.Dispose();
+            this.exporter?.Dispose();
         }
 
         [Benchmark]
         public void InstrumentWithNoListener3Dimensions()
         {
-            var tag1 = new KeyValuePair<string, object>("DimName1", dimensionValues[random.Value.Next(0, 10)]);
-            var tag2 = new KeyValuePair<string, object>("DimName2", dimensionValues[random.Value.Next(0, 10)]);
-            var tag3 = new KeyValuePair<string, object>("DimName3", dimensionValues[random.Value.Next(0, 10)]);
-            counterWithNoListener?.Add(100, tag1, tag2, tag3);
+            var tag1 = new KeyValuePair<string, object>("DimName1", dimensionValues[this.random.Value.Next(0, 10)]);
+            var tag2 = new KeyValuePair<string, object>("DimName2", dimensionValues[this.random.Value.Next(0, 10)]);
+            var tag3 = new KeyValuePair<string, object>("DimName3", dimensionValues[this.random.Value.Next(0, 10)]);
+            this.counterWithNoListener?.Add(100, tag1, tag2, tag3);
         }
 
         [Benchmark]
@@ -445,23 +442,23 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
         {
             var tags = new TagList
         {
-            { "DimName1", dimensionValues[random.Value.Next(0, 2)] },
-            { "DimName2", dimensionValues[random.Value.Next(0, 5)] },
-            { "DimName3", dimensionValues[random.Value.Next(0, 10)] },
-            { "DimName4", dimensionValues[random.Value.Next(0, 10)] },
+            { "DimName1", dimensionValues[this.random.Value.Next(0, 2)] },
+            { "DimName2", dimensionValues[this.random.Value.Next(0, 5)] },
+            { "DimName3", dimensionValues[this.random.Value.Next(0, 10)] },
+            { "DimName4", dimensionValues[this.random.Value.Next(0, 10)] },
         };
 
             // 2 * 5 * 10 * 10 = 1000 time series max.
-            counterWithNoListener?.Add(100, tags);
+            this.counterWithNoListener?.Add(100, tags);
         }
 
         [Benchmark]
         public void InstrumentWithWithListener3Dimensions()
         {
-            var tag1 = new KeyValuePair<string, object>("DimName1", dimensionValues[random.Value.Next(0, 10)]);
-            var tag2 = new KeyValuePair<string, object>("DimName2", dimensionValues[random.Value.Next(0, 10)]);
-            var tag3 = new KeyValuePair<string, object>("DimName3", dimensionValues[random.Value.Next(0, 10)]);
-            counterWithListener?.Add(100, tag1, tag2, tag3);
+            var tag1 = new KeyValuePair<string, object>("DimName1", dimensionValues[this.random.Value.Next(0, 10)]);
+            var tag2 = new KeyValuePair<string, object>("DimName2", dimensionValues[this.random.Value.Next(0, 10)]);
+            var tag3 = new KeyValuePair<string, object>("DimName3", dimensionValues[this.random.Value.Next(0, 10)]);
+            this.counterWithListener?.Add(100, tag1, tag2, tag3);
         }
 
         [Benchmark]
@@ -469,23 +466,23 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
         {
             var tags = new TagList
         {
-            { "DimName1", dimensionValues[random.Value.Next(0, 2)] },
-            { "DimName2", dimensionValues[random.Value.Next(0, 5)] },
-            { "DimName3", dimensionValues[random.Value.Next(0, 10)] },
-            { "DimName4", dimensionValues[random.Value.Next(0, 10)] },
+            { "DimName1", dimensionValues[this.random.Value.Next(0, 2)] },
+            { "DimName2", dimensionValues[this.random.Value.Next(0, 5)] },
+            { "DimName3", dimensionValues[this.random.Value.Next(0, 10)] },
+            { "DimName4", dimensionValues[this.random.Value.Next(0, 10)] },
         };
 
             // 2 * 5 * 10 * 10 = 1000 time series max.
-            counterWithListener?.Add(100, tags);
+            this.counterWithListener?.Add(100, tags);
         }
 
         [Benchmark]
         public void InstrumentWithWithDummyReader3Dimensions()
         {
-            var tag1 = new KeyValuePair<string, object>("DimName1", dimensionValues[random.Value.Next(0, 10)]);
-            var tag2 = new KeyValuePair<string, object>("DimName2", dimensionValues[random.Value.Next(0, 10)]);
-            var tag3 = new KeyValuePair<string, object>("DimName3", dimensionValues[random.Value.Next(0, 10)]);
-            counterWithDummyReader?.Add(100, tag1, tag2, tag3);
+            var tag1 = new KeyValuePair<string, object>("DimName1", dimensionValues[this.random.Value.Next(0, 10)]);
+            var tag2 = new KeyValuePair<string, object>("DimName2", dimensionValues[this.random.Value.Next(0, 10)]);
+            var tag3 = new KeyValuePair<string, object>("DimName3", dimensionValues[this.random.Value.Next(0, 10)]);
+            this.counterWithDummyReader?.Add(100, tag1, tag2, tag3);
         }
 
         [Benchmark]
@@ -493,23 +490,23 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
         {
             var tags = new TagList
         {
-            { "DimName1", dimensionValues[random.Value.Next(0, 2)] },
-            { "DimName2", dimensionValues[random.Value.Next(0, 5)] },
-            { "DimName3", dimensionValues[random.Value.Next(0, 10)] },
-            { "DimName4", dimensionValues[random.Value.Next(0, 10)] },
+            { "DimName1", dimensionValues[this.random.Value.Next(0, 2)] },
+            { "DimName2", dimensionValues[this.random.Value.Next(0, 5)] },
+            { "DimName3", dimensionValues[this.random.Value.Next(0, 10)] },
+            { "DimName4", dimensionValues[this.random.Value.Next(0, 10)] },
         };
 
             // 2 * 5 * 10 * 10 = 1000 time series max.
-            counterWithDummyReader?.Add(100, tags);
+            this.counterWithDummyReader?.Add(100, tags);
         }
 
         [Benchmark]
         public void InstrumentWithWithGenevaCounterMetricExporter3Dimensions()
         {
-            var tag1 = new KeyValuePair<string, object>("DimName1", dimensionValues[random.Value.Next(0, 10)]);
-            var tag2 = new KeyValuePair<string, object>("DimName2", dimensionValues[random.Value.Next(0, 10)]);
-            var tag3 = new KeyValuePair<string, object>("DimName3", dimensionValues[random.Value.Next(0, 10)]);
-            counterWithGenevaMetricExporter?.Add(100, tag1, tag2, tag3);
+            var tag1 = new KeyValuePair<string, object>("DimName1", dimensionValues[this.random.Value.Next(0, 10)]);
+            var tag2 = new KeyValuePair<string, object>("DimName2", dimensionValues[this.random.Value.Next(0, 10)]);
+            var tag3 = new KeyValuePair<string, object>("DimName3", dimensionValues[this.random.Value.Next(0, 10)]);
+            this.counterWithGenevaMetricExporter?.Add(100, tag1, tag2, tag3);
         }
 
         [Benchmark]
@@ -517,89 +514,90 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
         {
             var tags = new TagList
         {
-            { "DimName1", dimensionValues[random.Value.Next(0, 2)] },
-            { "DimName2", dimensionValues[random.Value.Next(0, 5)] },
-            { "DimName3", dimensionValues[random.Value.Next(0, 10)] },
-            { "DimName4", dimensionValues[random.Value.Next(0, 10)] },
+            { "DimName1", dimensionValues[this.random.Value.Next(0, 2)] },
+            { "DimName2", dimensionValues[this.random.Value.Next(0, 5)] },
+            { "DimName3", dimensionValues[this.random.Value.Next(0, 10)] },
+            { "DimName4", dimensionValues[this.random.Value.Next(0, 10)] },
         };
 
             // 2 * 5 * 10 * 10 = 1000 time series max.
-            counterWithGenevaMetricExporter?.Add(100, tags);
+            this.counterWithGenevaMetricExporter?.Add(100, tags);
         }
 
         [Benchmark]
         public void SerializeCounterMetricItemWith3Dimensions()
         {
-            exporter.SerializeMetric(
+            this.exporter.SerializeMetric(
                    MetricEventType.ULongMetric,
-                   counterMetricWith3Dimensions.Name,
-                   counterMetricPointWith3Dimensions.EndTime.ToFileTime(),
-                   counterMetricPointWith3Dimensions.Tags,
-                   counterMetricDataWith3Dimensions);
+                   this.counterMetricWith3Dimensions.Name,
+                   this.counterMetricPointWith3Dimensions.EndTime.ToFileTime(),
+                   this.counterMetricPointWith3Dimensions.Tags,
+                   this.counterMetricDataWith3Dimensions);
         }
 
         [Benchmark]
         public void SerializeCounterMetricItemWith4Dimensions()
         {
-            exporter.SerializeMetric(
+            this.exporter.SerializeMetric(
                 MetricEventType.ULongMetric,
-                counterMetricWith4Dimensions.Name,
-                counterMetricPointWith4Dimensions.EndTime.ToFileTime(),
-                counterMetricPointWith4Dimensions.Tags,
-                counterMetricDataWith4Dimensions);
+                this.counterMetricWith4Dimensions.Name,
+                this.counterMetricPointWith4Dimensions.EndTime.ToFileTime(),
+                this.counterMetricPointWith4Dimensions.Tags,
+                this.counterMetricDataWith4Dimensions);
         }
 
         [Benchmark]
         public void ExportCounterMetricItemWith3Dimensions()
         {
-            exporter.Export(counterMetricBatchWith3Dimensions);
+            this.exporter.Export(this.counterMetricBatchWith3Dimensions);
         }
 
         [Benchmark]
         public void ExportCounterMetricItemWith4Dimensions()
         {
-            exporter.Export(counterMetricBatchWith4Dimensions);
+            this.exporter.Export(this.counterMetricBatchWith4Dimensions);
         }
 
         [Benchmark]
         public void SerializeHistogramMetricItemWith3Dimensions()
         {
-            exporter.SerializeHistogramMetric(
-                histogramMetricWith3Dimensions.Name,
-                histogramMetricPointWith3Dimensions.EndTime.ToFileTime(),
-                histogramMetricPointWith3Dimensions.Tags,
-                histogramMetricPointWith3Dimensions.GetHistogramBuckets(),
-                histogramSumWith3Dimensions,
-                histogramCountWith3Dimensions);
+            this.exporter.SerializeHistogramMetric(
+                this.histogramMetricWith3Dimensions.Name,
+                this.histogramMetricPointWith3Dimensions.EndTime.ToFileTime(),
+                this.histogramMetricPointWith3Dimensions.Tags,
+                this.histogramMetricPointWith3Dimensions.GetHistogramBuckets(),
+                this.histogramSumWith3Dimensions,
+                this.histogramCountWith3Dimensions);
         }
 
         [Benchmark]
         public void SerializeHistogramMetricItemWith4Dimensions()
         {
-            exporter.SerializeHistogramMetric(
-                histogramMetricWith4Dimensions.Name,
-                histogramMetricPointWith4Dimensions.EndTime.ToFileTime(),
-                histogramMetricPointWith4Dimensions.Tags,
-                histogramMetricPointWith4Dimensions.GetHistogramBuckets(),
-                histogramSumWith4Dimensions,
-                histogramCountWith4Dimensions);
+            this.exporter.SerializeHistogramMetric(
+                this.histogramMetricWith4Dimensions.Name,
+                this.histogramMetricPointWith4Dimensions.EndTime.ToFileTime(),
+                this.histogramMetricPointWith4Dimensions.Tags,
+                this.histogramMetricPointWith4Dimensions.GetHistogramBuckets(),
+                this.histogramSumWith4Dimensions,
+                this.histogramCountWith4Dimensions);
         }
 
         [Benchmark]
         public void ExportHistogramMetricItemWith3Dimensions()
         {
-            exporter.Export(histogramMetricBatchWith3Dimensions);
+            this.exporter.Export(this.histogramMetricBatchWith3Dimensions);
         }
 
         [Benchmark]
         public void ExportHistogramMetricItemWith4Dimensions()
         {
-            exporter.Export(histogramMetricBatchWith4Dimensions);
+            this.exporter.Export(this.histogramMetricBatchWith4Dimensions);
         }
 
         private class DummyReader : BaseExportingMetricReader
         {
-            public DummyReader(BaseExporter<Metric> exporter) : base(exporter)
+            public DummyReader(BaseExporter<Metric> exporter)
+                : base(exporter)
             {
             }
         }
@@ -618,7 +616,7 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
 
             public override ExportResult Export(in Batch<Metric> batch)
             {
-                Batch = batch;
+                this.Batch = batch;
                 return ExportResult.Success;
             }
         }

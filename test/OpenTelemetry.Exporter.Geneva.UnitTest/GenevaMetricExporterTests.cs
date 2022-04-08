@@ -77,7 +77,9 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 {
                     File.Delete(path);
                 }
-                catch { }
+                catch
+                {
+                }
             }
         }
 
@@ -121,28 +123,28 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 "observableLongCounter",
                 () => new List<Measurement<long>>()
                 {
-                    new (longValue, new("tag1", "value1"), new("tag2", "value2")),
+                    new(longValue, new("tag1", "value1"), new("tag2", "value2")),
                 });
 
             meter.CreateObservableCounter(
                 "observableDoubleCounter",
                 () => new List<Measurement<double>>()
                 {
-                    new (doubleValue, new("tag1", "value1"), new("tag2", "value2")),
+                    new(doubleValue, new("tag1", "value1"), new("tag2", "value2")),
                 });
 
             meter.CreateObservableGauge(
                 "observableLongGauge",
                 () => new List<Measurement<long>>()
                 {
-                    new (longValue, new("tag1", "value1"), new("tag2", "value2")),
+                    new(longValue, new("tag1", "value1"), new("tag2", "value2")),
                 });
 
             meter.CreateObservableGauge(
                 "observableDoubleGauge",
                 () => new List<Measurement<double>>()
                 {
-                    new (doubleValue, new("tag1", "value1"), new("tag2", "value2")),
+                    new(doubleValue, new("tag1", "value1"), new("tag2", "value2")),
                 });
 
             if (testMaxLimits)
@@ -212,25 +214,25 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 Assert.Equal(7, exportedItems.Count);
 
                 // check serialization for longCounter
-                CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+                this.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
 
                 // check serialization for doubleCounter
-                CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+                this.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
 
                 // check serialization for histogram
-                CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+                this.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
 
                 // check serialization for observableLongCounter
-                CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+                this.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
 
                 // check serialization for observableDoubleCounter
-                CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+                this.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
 
                 // check serialization for observableLongGauge
-                CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+                this.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
 
                 // check serialization for observableDoubleGauge
-                CheckSerializationForSingleMetricPoint(exportedItems[6], exporter, exporterOptions);
+                this.CheckSerializationForSingleMetricPoint(exportedItems[6], exporter, exporterOptions);
             }
             finally
             {
@@ -239,7 +241,9 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 {
                     File.Delete(path);
                 }
-                catch { }
+                catch
+                {
+                }
             }
         }
 
@@ -268,7 +272,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                     {
                         Name = "renamedhistogramWithCustomBounds",
                         Description = "modifiedDescription",
-                        Boundaries = new double[] { 500, 1000 }
+                        Boundaries = new double[] { 500, 1000 },
                     })
                 .AddView(instrument =>
                 {
@@ -317,28 +321,28 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 "observableLongCounter",
                 () => new List<Measurement<long>>()
                 {
-                    new (123, new("tag1", "value1"), new("tag2", "value2")),
+                    new(123, new("tag1", "value1"), new("tag2", "value2")),
                 });
 
             meter.CreateObservableCounter(
                 "observableDoubleCounter",
                 () => new List<Measurement<double>>()
                 {
-                    new (123.45, new("tag1", "value1"), new("tag2", "value2")),
+                    new(123.45, new("tag1", "value1"), new("tag2", "value2")),
                 });
 
             meter.CreateObservableGauge(
                 "observableLongGauge",
                 () => new List<Measurement<long>>()
                 {
-                    new (123, new("tag1", "value1"), new("tag2", "value2")),
+                    new(123, new("tag1", "value1"), new("tag2", "value2")),
                 });
 
             meter.CreateObservableGauge(
                 "observableDoubleGauge",
                 () => new List<Measurement<double>>()
                 {
-                    new (123.45, new("tag1", "value1"), new("tag2", "value2")),
+                    new(123.45, new("tag1", "value1"), new("tag2", "value2")),
                 });
 
             // Record the following values for histogramWithCustomBounds:
@@ -356,7 +360,6 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
             histogramWithCustomBounds.Record(150, new("tag1", "value1"), new("tag2", "value2"));
             histogramWithCustomBounds.Record(750, new("tag1", "value1"), new("tag2", "value2"));
             histogramWithCustomBounds.Record(2500, new("tag1", "value1"), new("tag2", "value2"));
-
 
             // Record the following values for histogramWithNoBounds:
             // (-inf - 500] : 3
@@ -408,22 +411,22 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 Assert.Empty(exportedItems.Where(item => item.Name == "observableLongCounter" || item.Name == "observableDoubleGauge"));
 
                 // check serialization for longCounter
-                CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+                this.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
 
                 // check serialization for doubleCounter
-                CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+                this.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
 
                 // check serialization for histogramWithCustomBounds
-                CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+                this.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
 
                 // check serialization for histogramWithNoBounds
-                CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+                this.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
 
                 // check serialization for observableDoubleCounter
-                CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+                this.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
 
                 // check serialization for observableLongGauge
-                CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+                this.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
             }
             finally
             {
@@ -432,7 +435,9 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 {
                     File.Delete(path);
                 }
-                catch { }
+                catch
+                {
+                }
             }
         }
 
@@ -479,7 +484,6 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
 
                 using var serverSocket = server.Accept();
                 serverSocket.ReceiveTimeout = 15000;
-
 
                 // Create a test exporter to get byte data for validation of the data received via Socket.
                 var exporterOptions = new GenevaMetricExporterOptions() { ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace" };
@@ -556,7 +560,9 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 {
                     File.Delete(path);
                 }
-                catch { }
+                catch
+                {
+                }
             }
         }
 
@@ -671,8 +677,8 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
 
                 Assert.Equal(count, valueSection.Count);
                 Assert.Equal(Convert.ToUInt64(metricPoint.GetHistogramSum()), valueSection.Sum);
-                Assert.Equal((ulong)0, valueSection.Min);
-                Assert.Equal((ulong)0, valueSection.Max);
+                Assert.Equal(0UL, valueSection.Min);
+                Assert.Equal(0UL, valueSection.Max);
                 Assert.Equal((ulong)metricPoint.EndTime.ToFileTime(), valueSection.Timestamp);
                 Assert.Equal((ushort)MetricEventType.ExternallyAggregatedULongDistributionMetric, data.EventId);
                 Assert.Equal(bodyLength, data.LenBody);

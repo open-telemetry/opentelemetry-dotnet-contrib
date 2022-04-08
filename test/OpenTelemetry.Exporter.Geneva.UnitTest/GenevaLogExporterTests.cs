@@ -111,6 +111,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                     {
                         mappingsDict.Add(category[i], category[i + 1]);
                     }
+
                     exporterOptions.TableNameMappings = mappingsDict;
                 }
 
@@ -186,7 +187,9 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 {
                     File.Delete(path);
                 }
-                catch { }
+                catch
+                {
+                }
             }
         }
 
@@ -247,7 +250,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                     new List<KeyValuePair<string, object>>()
                     {
                         new KeyValuePair<string, object>("Key1", "Value1"),
-                        new KeyValuePair<string, object>("Key2", "Value2")
+                        new KeyValuePair<string, object>("Key2", "Value2"),
                     },
                     null,
                     (state, ex) => "Formatted Message");
@@ -314,7 +317,9 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 {
                     File.Delete(path);
                 }
-                catch { }
+                catch
+                {
+                }
             }
         }
 
@@ -364,7 +369,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                     exporterOptions.TableNameMappings = new Dictionary<string, string>
                     {
                         { typeof(GenevaLogExporterTests).FullName, "CustomLogRecord" },
-                        {  "*", "DefaultLogRecord" }
+                        { "*", "DefaultLogRecord" },
                     };
                 }
 
@@ -410,6 +415,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                     // Log inside an activity to set LogRecord.TraceId and LogRecord.SpanId
                     logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99); // structured logging
                 }
+
                 // When the exporter options are configured with TableMappings only "customField" will be logged as a separate key in the mapping
                 // "property" will be logged under "env_properties" in the mapping
                 logger.Log(LogLevel.Trace, 101, "Log a {customField} and {property}", "CustomFieldValue", "PropertyValue");
@@ -432,7 +438,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                     new List<KeyValuePair<string, object>>()
                     {
                         new KeyValuePair<string, object>("Key1", "Value1"),
-                        new KeyValuePair<string, object>("Key2", "Value2")
+                        new KeyValuePair<string, object>("Key2", "Value2"),
                     },
                     null,
                     (state, ex) => "Formatted Exception!");
@@ -451,7 +457,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 {
                     _ = exporter.SerializeLogRecord(logRecord);
                     object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
-                    AssertFluentdForwardModeForLogRecord(exporterOptions, fluentdData, logRecord);
+                    this.AssertFluentdForwardModeForLogRecord(exporterOptions, fluentdData, logRecord);
                 }
             }
             finally
@@ -461,7 +467,9 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 {
                     File.Delete(path);
                 }
-                catch { }
+                catch
+                {
+                }
             }
         }
 
@@ -566,7 +574,9 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 {
                     File.Delete(path);
                 }
-                catch { }
+                catch
+                {
+                }
             }
         }
 
@@ -651,6 +661,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
             // Part A core envelope fields
 
             var nameKey = GenevaBaseExporter<LogRecord>.CS40_PART_A_MAPPING[Schema.V40.PartA.Name];
+
             // Check if the user has configured a custom table mapping
             Assert.Equal(partAName, mapping[nameKey]);
 

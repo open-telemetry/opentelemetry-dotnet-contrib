@@ -28,7 +28,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
         {
             var endpoint = new UnixDomainSocketEndPoint("abc");
             Assert.Throws<ArgumentNullException>(() => _ = endpoint.Create(null));
-            Assert.Throws<ArgumentOutOfRangeException>(() => _ = endpoint.Create(CreateSocketAddress(new string('a', 100))));
+            Assert.Throws<ArgumentOutOfRangeException>(() => _ = endpoint.Create(this.CreateSocketAddress(new string('a', 100))));
         }
 
         [Fact]
@@ -39,8 +39,8 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
             var sa = new SocketAddress(AddressFamily.Unix, 2);  // SocketAddress size is 2
             Assert.Equal("", endpoint.Create(sa).ToString());
 
-            Assert.Equal("\0", endpoint.Create(CreateSocketAddress("")).ToString());
-            Assert.Equal("test\0", endpoint.Create(CreateSocketAddress("test")).ToString());
+            Assert.Equal("\0", endpoint.Create(this.CreateSocketAddress("")).ToString());
+            Assert.Equal("test\0", endpoint.Create(this.CreateSocketAddress("test")).ToString());
         }
 
         [Fact]
@@ -48,7 +48,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
         {
             var path = "abc";
             var endpoint = new UnixDomainSocketEndPoint(path);
-            Assert.Equal(CreateSocketAddress(path), endpoint.Serialize());
+            Assert.Equal(this.CreateSocketAddress(path), endpoint.Serialize());
         }
 
         private SocketAddress CreateSocketAddress(string path)
@@ -60,6 +60,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
             {
                 sa[NativePathOffset + i] = nativePath[i];
             }
+
             sa[NativePathOffset + nativePath.Length] = 0;
             return sa;
         }

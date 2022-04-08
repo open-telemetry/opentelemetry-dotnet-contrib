@@ -18,7 +18,7 @@ namespace OpenTelemetry.Exporter.Geneva
 
         public IReadOnlyDictionary<string, object> PrepopulatedFields
         {
-            get => _fields;
+            get => this._fields;
             set
             {
                 if (value == null)
@@ -54,7 +54,7 @@ namespace OpenTelemetry.Exporter.Geneva
                     copy[entry.Key] = entry.Value; // shallow copy
                 }
 
-                _fields = copy;
+                this._fields = copy;
             }
         }
 

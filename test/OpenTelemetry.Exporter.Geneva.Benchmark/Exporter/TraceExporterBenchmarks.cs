@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using BenchmarkDotNet.Attributes;
@@ -40,16 +40,16 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
             {
                 ActivityStarted = null,
                 ActivityStopped = null,
-                ShouldListenTo = (activitySource) => activitySource.Name == sourceTedious.Name,
+                ShouldListenTo = (activitySource) => activitySource.Name == this.sourceTedious.Name,
                 Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded,
             });
 
-            using (var tedious = sourceTedious.StartActivity("Benchmark"))
+            using (var tedious = this.sourceTedious.StartActivity("Benchmark"))
             {
-                activity = tedious;
-                activity?.SetTag("tagString", "value");
-                activity?.SetTag("tagInt", 100);
-                activity?.SetStatus(Status.Error);
+                this.activity = tedious;
+                this.activity?.SetTag("tagString", "value");
+                this.activity?.SetTag("tagInt", 100);
+                this.activity?.SetStatus(Status.Error);
             }
 
             this.exporter = new GenevaTraceExporter(new GenevaExporterOptions
@@ -66,7 +66,7 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
 
             Sdk.CreateTracerProviderBuilder()
                 .SetSampler(new AlwaysOnSampler())
-                .AddSource(sourceInteresting.Name)
+                .AddSource(this.sourceInteresting.Name)
                 .AddGenevaTraceExporter(options =>
                 {
                     options.ConnectionString = "EtwSession=OpenTelemetry";
@@ -84,27 +84,27 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
         public void CreateBoringActivity()
         {
             // this activity won't be created as there is no listener
-            using var activity = sourceBoring.StartActivity("Benchmark");
+            using var activity = this.sourceBoring.StartActivity("Benchmark");
         }
 
         [Benchmark]
         public void CreateTediousActivity()
         {
             // this activity will be created and feed into an ActivityListener that simply drops everything on the floor
-            using var activity = sourceTedious.StartActivity("Benchmark");
+            using var activity = this.sourceTedious.StartActivity("Benchmark");
         }
 
         [Benchmark]
         public void CreateInterestingActivity()
         {
             // this activity will be created and feed into the actual Geneva exporter
-            using var activity = sourceInteresting.StartActivity("Benchmark");
+            using var activity = this.sourceInteresting.StartActivity("Benchmark");
         }
 
         [Benchmark]
         public void SerializeActivity()
         {
-            exporter.SerializeActivity(activity);
+            this.exporter.SerializeActivity(this.activity);
         }
     }
 }

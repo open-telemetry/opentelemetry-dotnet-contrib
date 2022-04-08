@@ -35,7 +35,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
             {
                 using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
                 {
-                    ConnectionString = null
+                    ConnectionString = null,
                 });
             });
         }
@@ -49,7 +49,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
             {
                 using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
                 {
-                    ConnectionString = "key=value"
+                    ConnectionString = "key=value",
                 });
             });
 
@@ -58,7 +58,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
             {
                 using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
                 {
-                    ConnectionString = "EtwSession="
+                    ConnectionString = "EtwSession=",
                 });
             });
         }
@@ -83,7 +83,8 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
             // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
             // the ActivitySource used by other unit tests.
             var sourceName = GetTestMethodName();
-            //TODO: Setup a mock or spy for eventLogger to assert that eventLogger.LogInformationalEvent is actually called.
+
+            // TODO: Setup a mock or spy for eventLogger to assert that eventLogger.LogInformationalEvent is actually called.
             using var tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .SetSampler(new AlwaysOnSampler())
                 .AddSource(sourceName)
@@ -196,7 +197,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 {
                     _ = exporter.SerializeActivity(activity);
                     object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
-                    AssertFluentdForwardModeForActivity(exporterOptions, fluentdData, activity, CS40_PART_B_MAPPING, dedicatedFields);
+                    this.AssertFluentdForwardModeForActivity(exporterOptions, fluentdData, activity, CS40_PART_B_MAPPING, dedicatedFields);
                     invocationCount++;
                 };
                 ActivitySource.AddActivityListener(listener);
@@ -219,8 +220,9 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                     new ActivityLink(new ActivityContext(
                         linkedtraceId2,
                         linkedSpanId2,
-                        ActivityTraceFlags.Recorded))
-                };
+                        ActivityTraceFlags.Recorded)),
+                    };
+
                     using (var activity = source.StartActivity("SayHello", ActivityKind.Internal, parentActivity.Context, null, links))
                     {
                         activity?.SetTag("http.status_code", 500); // This should be added as httpStatusCode in the mapping
@@ -241,7 +243,9 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 {
                     File.Delete(path);
                 }
-                catch { }
+                catch
+                {
+                }
             }
         }
 
@@ -250,6 +254,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
         public void GenevaTraceExporter_Linux_constructor_Missing()
         {
             string path = GetRandomFilePath();
+
             // System.Net.Internals.SocketExceptionFactory+ExtendedSocketException : Cannot assign requested address
             try
             {
@@ -315,6 +320,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                     })
                     .Build();
                 using Socket serverSocket = server.Accept();
+
                 // Create a test exporter to get MessagePack byte data for validation of the data received via Socket.
                 var exporter = new GenevaTraceExporter(new GenevaExporterOptions
                 {
@@ -352,7 +358,9 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 {
                     File.Delete(path);
                 }
-                catch { }
+                catch
+                {
+                }
             }
         }
 
@@ -408,6 +416,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
             // Part A core envelope fields
 
             var nameKey = GenevaBaseExporter<Activity>.CS40_PART_A_MAPPING[Schema.V40.PartA.Name];
+
             // Check if the user has configured a custom table mapping
             Assert.Equal(partAName, mapping[nameKey]);
 

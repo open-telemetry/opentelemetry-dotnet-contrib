@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.Logging;
@@ -38,9 +38,9 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
 
         public LogExporterBenchmarks()
         {
-            logRecord = GenerateTestLogRecord();
+            this.logRecord = this.GenerateTestLogRecord();
 
-            exporter = new GenevaLogExporter(new GenevaExporterOptions
+            this.exporter = new GenevaLogExporter(new GenevaExporterOptions
             {
                 ConnectionString = "EtwSession=OpenTelemetry",
                 PrepopulatedFields = new Dictionary<string, object>
@@ -51,21 +51,21 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
                 },
             });
 
-            loggerWithNoListener = CreateLogger();
+            this.loggerWithNoListener = this.CreateLogger();
 
-            loggerWithOneProcessor = CreateLogger(options => options
+            this.loggerWithOneProcessor = this.CreateLogger(options => options
                 .AddProcessor(new DummyLogProcessor()));
 
-            loggerWithTwoProcessors = CreateLogger(options => options
+            this.loggerWithTwoProcessors = this.CreateLogger(options => options
                 .AddProcessor(new DummyLogProcessor())
                 .AddProcessor(new DummyLogProcessor()));
 
-            loggerWithThreeProcessors = CreateLogger(options => options
+            this.loggerWithThreeProcessors = this.CreateLogger(options => options
                 .AddProcessor(new DummyLogProcessor())
                 .AddProcessor(new DummyLogProcessor())
                 .AddProcessor(new DummyLogProcessor()));
 
-            loggerWithGenevaExporter = CreateLogger(options =>
+            this.loggerWithGenevaExporter = this.CreateLogger(options =>
             {
                 options.AddGenevaLogExporter(genevaOptions =>
                 {
@@ -83,37 +83,37 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
         [Benchmark]
         public void NoListener()
         {
-            loggerWithNoListener.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+            this.loggerWithNoListener.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
         }
 
         [Benchmark]
         public void OneProcessor()
         {
-            loggerWithOneProcessor.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+            this.loggerWithOneProcessor.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
         }
 
         [Benchmark]
         public void TwoProcessors()
         {
-            loggerWithTwoProcessors.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+            this.loggerWithTwoProcessors.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
         }
 
         [Benchmark]
         public void ThreeProcessors()
         {
-            loggerWithThreeProcessors.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+            this.loggerWithThreeProcessors.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
         }
 
         [Benchmark]
         public void LoggerWithGenevaExporter()
         {
-            loggerWithGenevaExporter.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+            this.loggerWithGenevaExporter.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
         }
 
         [Benchmark]
         public void SerializeLogRecord()
         {
-            exporter.SerializeLogRecord(logRecord);
+            this.exporter.SerializeLogRecord(this.logRecord);
         }
 
         internal class DummyLogProcessor : BaseProcessor<LogRecord>
@@ -128,7 +128,7 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
             {
                 foreach (var record in batch)
                 {
-                    LastRecord = record;
+                    this.LastRecord = record;
                 }
 
                 return ExportResult.Success;
@@ -151,7 +151,7 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
         internal LogRecord GenerateTestLogRecord()
         {
             var dummyLogExporter = new DummyLogExporter();
-            var dummyLogger = CreateLogger(options => options
+            var dummyLogger = this.CreateLogger(options => options
                 .AddProcessor(new SimpleLogRecordExportProcessor(dummyLogExporter)));
             dummyLogger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
             return dummyLogExporter.LastRecord;

@@ -31,6 +31,6 @@ namespace OpenTelemetry.Exporter.Geneva
             this.exporter.Export(CreateBatch(data));
         }
 
-        static readonly Func<T, Batch<T>> CreateBatch;
+        private static readonly Func<T, Batch<T>> CreateBatch;
     }
 }

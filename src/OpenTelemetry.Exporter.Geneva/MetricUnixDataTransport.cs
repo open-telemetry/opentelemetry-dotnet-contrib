@@ -6,7 +6,8 @@
         private readonly int fixedPayloadLength;
         private readonly UnixDomainSocketDataTransport udsDataTransport;
 
-        public MetricUnixDataTransport(string unixDomainSocketPath,
+        public MetricUnixDataTransport(
+            string unixDomainSocketPath,
             int timeoutMilliseconds = UnixDomainSocketDataTransport.DefaultTimeoutMilliseconds)
         {
             unsafe
@@ -24,13 +25,13 @@
 
         public void Dispose()
         {
-            if (isDisposed)
+            if (this.isDisposed)
             {
                 return;
             }
 
-            udsDataTransport?.Dispose();
-            isDisposed = true;
+            this.udsDataTransport?.Dispose();
+            this.isDisposed = true;
         }
     }
 }

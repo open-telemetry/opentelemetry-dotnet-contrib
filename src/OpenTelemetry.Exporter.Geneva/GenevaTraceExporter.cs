@@ -48,15 +48,16 @@ namespace OpenTelemetry.Exporter.Geneva
                         throw new ArgumentException("ETW cannot be used on non-Windows operating systems.");
                     }
 
-                    m_dataTransport = new EtwDataTransport(connectionStringBuilder.EtwSession);
+                    this.m_dataTransport = new EtwDataTransport(connectionStringBuilder.EtwSession);
                     break;
                 case TransportProtocol.Unix:
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
                         throw new ArgumentException("Unix domain socket should not be used on Windows.");
                     }
+
                     var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
-                    m_dataTransport = new UnixDomainSocketDataTransport(unixDomainSocketPath);
+                    this.m_dataTransport = new UnixDomainSocketDataTransport(unixDomainSocketPath);
                     break;
                 case TransportProtocol.Tcp:
                     throw new ArgumentException("TCP transport is not supported yet.");
@@ -87,7 +88,7 @@ namespace OpenTelemetry.Exporter.Geneva
                     dedicatedFields[name] = true;
                 }
 
-                m_customFields = customFields;
+                this.m_customFields = customFields;
 
                 foreach (var name in CS40_PART_B_MAPPING.Keys)
                 {
@@ -95,7 +96,7 @@ namespace OpenTelemetry.Exporter.Geneva
                 }
 
                 dedicatedFields["otel.status_code"] = true;
-                m_dedicatedFields = dedicatedFields;
+                this.m_dedicatedFields = dedicatedFields;
             }
 
             var buffer = new byte[BUFFER_SIZE];
@@ -115,20 +116,21 @@ namespace OpenTelemetry.Exporter.Geneva
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, partAName);
             cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 1);
             cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 2);
+
             // timestamp
             cursor = MessagePackSerializer.WriteTimestamp96Header(buffer, cursor);
-            m_idxTimestampPatch = cursor;
+            this.m_idxTimestampPatch = cursor;
             cursor += 12; // reserve 12 bytes for the timestamp
 
             cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue); // Note: always use Map16 for perf consideration
-            m_idxMapSizePatch = cursor - 2;
+            this.m_idxMapSizePatch = cursor - 2;
 
-            m_cntPrepopulatedFields = 0;
+            this.m_cntPrepopulatedFields = 0;
 
             // TODO: Do we support PartB as well?
             // Part A - core envelope
             cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, partAName);
-            m_cntPrepopulatedFields += 1;
+            this.m_cntPrepopulatedFields += 1;
 
             foreach (var entry in options.PrepopulatedFields)
             {
@@ -152,17 +154,18 @@ namespace OpenTelemetry.Exporter.Geneva
                         value = options.ConvertToJson(value);
                         break;
                 }
+
                 cursor = AddPartAField(buffer, cursor, entry.Key, value);
-                m_cntPrepopulatedFields += 1;
+                this.m_cntPrepopulatedFields += 1;
             }
 
-            m_bufferPrologue = new byte[cursor - 0];
-            Buffer.BlockCopy(buffer, 0, m_bufferPrologue, 0, cursor - 0);
+            this.m_bufferPrologue = new byte[cursor - 0];
+            Buffer.BlockCopy(buffer, 0, this.m_bufferPrologue, 0, cursor - 0);
 
             cursor = MessagePackSerializer.Serialize(buffer, 0, new Dictionary<string, object> { { "TimeFormat", "DateTime" } });
 
-            m_bufferEpilogue = new byte[cursor - 0];
-            Buffer.BlockCopy(buffer, 0, m_bufferEpilogue, 0, cursor - 0);
+            this.m_bufferEpilogue = new byte[cursor - 0];
+            Buffer.BlockCopy(buffer, 0, this.m_bufferEpilogue, 0, cursor - 0);
         }
 
         public override ExportResult Export(in Batch<Activity> batch)
@@ -182,7 +185,7 @@ namespace OpenTelemetry.Exporter.Geneva
                 try
                 {
                     var cursor = this.SerializeActivity(activity);
-                    m_dataTransport.Send(m_buffer.Value, cursor - 0);
+                    this.m_dataTransport.Send(this.m_buffer.Value, cursor - 0);
                 }
                 catch (Exception ex)
                 {
@@ -205,8 +208,8 @@ namespace OpenTelemetry.Exporter.Geneva
             {
                 try
                 {
-                    (m_dataTransport as IDisposable)?.Dispose();
-                    m_buffer.Dispose();
+                    (this.m_dataTransport as IDisposable)?.Dispose();
+                    this.m_buffer.Dispose();
                 }
                 catch (Exception ex)
                 {
@@ -220,27 +223,27 @@ namespace OpenTelemetry.Exporter.Geneva
 
         internal bool IsUsingUnixDomainSocket
         {
-            get => m_dataTransport is UnixDomainSocketDataTransport;
+            get => this.m_dataTransport is UnixDomainSocketDataTransport;
         }
 
         internal int SerializeActivity(Activity activity)
         {
-            var buffer = m_buffer.Value;
+            var buffer = this.m_buffer.Value;
             if (buffer == null)
             {
                 buffer = new byte[BUFFER_SIZE]; // TODO: handle OOM
-                Buffer.BlockCopy(m_bufferPrologue, 0, buffer, 0, m_bufferPrologue.Length);
-                m_buffer.Value = buffer;
+                Buffer.BlockCopy(this.m_bufferPrologue, 0, buffer, 0, this.m_bufferPrologue.Length);
+                this.m_buffer.Value = buffer;
             }
 
-            var cursor = m_bufferPrologue.Length;
-            var cntFields = m_cntPrepopulatedFields;
+            var cursor = this.m_bufferPrologue.Length;
+            var cntFields = this.m_cntPrepopulatedFields;
             var dtBegin = activity.StartTimeUtc;
             var tsBegin = dtBegin.Ticks;
             var tsEnd = tsBegin + activity.Duration.Ticks;
             var dtEnd = new DateTime(tsEnd);
 
-            MessagePackSerializer.WriteTimestamp96(buffer, m_idxTimestampPatch, tsEnd);
+            MessagePackSerializer.WriteTimestamp96(buffer, this.m_idxTimestampPatch, tsEnd);
 
             #region Part A - core envelope
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_time");
@@ -250,6 +253,7 @@ namespace OpenTelemetry.Exporter.Geneva
 
             #region Part A - dt extension
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_dt_traceId");
+
             // Note: ToHexString returns the pre-calculated hex representation without allocation
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, activity.Context.TraceId.ToHexString());
             cntFields += 1;
@@ -280,6 +284,7 @@ namespace OpenTelemetry.Exporter.Geneva
 
             #region Part B Span optional fields and Part C fields
             var strParentId = activity.ParentSpanId.ToHexString();
+
             // Note: this should be blazing fast since Object.ReferenceEquals(strParentId, INVALID_SPAN_ID) == true
             if (!string.Equals(strParentId, INVALID_SPAN_ID, StringComparison.Ordinal))
             {
@@ -304,6 +309,7 @@ namespace OpenTelemetry.Exporter.Geneva
                     cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, link.Context.SpanId.ToHexString());
                     cntLink += 1;
                 }
+
                 MessagePackSerializer.WriteUInt16(buffer, idxLinkPatch, cntLink);
                 cntFields += 1;
             }
@@ -330,9 +336,10 @@ namespace OpenTelemetry.Exporter.Geneva
                     {
                         MessagePackSerializer.SerializeBool(buffer, idxSuccessPatch, false);
                     }
+
                     continue;
                 }
-                else if (m_customFields == null || m_customFields.ContainsKey(entry.Key))
+                else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
                 {
                     // TODO: the above null check can be optimized and avoided inside foreach.
                     cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
@@ -359,7 +366,7 @@ namespace OpenTelemetry.Exporter.Geneva
                 foreach (var entry in activity.TagObjects)
                 {
                     // TODO: check name collision
-                    if (m_dedicatedFields.ContainsKey(entry.Key))
+                    if (this.m_dedicatedFields.ContainsKey(entry.Key))
                     {
                         continue;
                     }
@@ -376,15 +383,15 @@ namespace OpenTelemetry.Exporter.Geneva
             }
             #endregion
 
-            MessagePackSerializer.WriteUInt16(buffer, m_idxMapSizePatch, cntFields);
+            MessagePackSerializer.WriteUInt16(buffer, this.m_idxMapSizePatch, cntFields);
 
-            Buffer.BlockCopy(m_bufferEpilogue, 0, buffer, cursor, m_bufferEpilogue.Length);
-            cursor += m_bufferEpilogue.Length;
+            Buffer.BlockCopy(this.m_bufferEpilogue, 0, buffer, cursor, this.m_bufferEpilogue.Length);
+            cursor += this.m_bufferEpilogue.Length;
 
             return cursor;
         }
 
-        const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
+        private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
 
         private bool isDisposed;
 

@@ -26,7 +26,7 @@ namespace OpenTelemetry.Exporter.Geneva
         {
             get
             {
-                return _prepopulatedMetricDimensions;
+                return this._prepopulatedMetricDimensions;
             }
 
             set
@@ -47,7 +47,7 @@ namespace OpenTelemetry.Exporter.Geneva
 
                     if (entry.Value == null)
                     {
-                        throw new ArgumentNullException($"{nameof(PrepopulatedMetricDimensions)}[\"{entry.Key}\"]");
+                        throw new ArgumentNullException($"{nameof(this.PrepopulatedMetricDimensions)}[\"{entry.Key}\"]");
                     }
 
                     var dimensionValue = Convert.ToString(entry.Value, CultureInfo.InvariantCulture);
@@ -59,7 +59,7 @@ namespace OpenTelemetry.Exporter.Geneva
                     copy[entry.Key] = entry.Value; // shallow copy
                 }
 
-                _prepopulatedMetricDimensions = copy;
+                this._prepopulatedMetricDimensions = copy;
             }
         }
     }

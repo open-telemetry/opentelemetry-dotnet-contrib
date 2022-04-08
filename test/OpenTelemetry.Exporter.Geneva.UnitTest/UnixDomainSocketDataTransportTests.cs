@@ -41,7 +41,9 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 {
                     File.Delete(path);
                 }
-                catch { }
+                catch
+                {
+                }
             }
         }
 
@@ -87,7 +89,9 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 {
                     File.Delete(path);
                 }
-                catch { }
+                catch
+                {
+                }
             }
         }
 
@@ -101,6 +105,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
             try
             {
                 var server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+
                 // LingerOption lo = new LingerOption(false, 0);
                 // server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Linger, lo);
                 server.Bind(endpoint);
@@ -130,7 +135,10 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 {
                     File.Delete(path);
                 }
-                catch { }
+                catch
+                {
+                }
+
                 Console.WriteLine("Destroyed server.");
 
                 Console.WriteLine("Client will fail during Send, but shouldn't throw exception.");
@@ -166,7 +174,9 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 {
                     File.Delete(path);
                 }
-                catch { }
+                catch
+                {
+                }
             }
         }
 

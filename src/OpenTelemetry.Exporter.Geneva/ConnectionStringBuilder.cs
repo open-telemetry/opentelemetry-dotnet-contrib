@@ -10,7 +10,7 @@ namespace OpenTelemetry.Exporter.Geneva
         Tcp,
         Udp,
         Unix,
-        Unspecified
+        Unspecified,
     }
 
     internal class ConnectionStringBuilder
@@ -48,10 +48,10 @@ namespace OpenTelemetry.Exporter.Geneva
                     throw new ArgumentException("Connection string cannot contain empty keys or values.");
                 }
 
-                _parts[key] = value;
+                this._parts[key] = value;
             }
 
-            if (_parts.Count == 0)
+            if (this._parts.Count == 0)
             {
                 throw new ArgumentNullException(nameof(connectionString), $"{nameof(connectionString)} is invalid.");
             }
@@ -59,14 +59,14 @@ namespace OpenTelemetry.Exporter.Geneva
 
         public string EtwSession
         {
-            get => ThrowIfNotExists<string>(nameof(EtwSession));
-            set => _parts[nameof(EtwSession)] = value;
+            get => this.ThrowIfNotExists<string>(nameof(this.EtwSession));
+            set => this._parts[nameof(this.EtwSession)] = value;
         }
 
         public string Endpoint
         {
-            get => ThrowIfNotExists<string>(nameof(Endpoint));
-            set => _parts[nameof(Endpoint)] = value;
+            get => this.ThrowIfNotExists<string>(nameof(this.Endpoint));
+            set => this._parts[nameof(this.Endpoint)] = value;
         }
 
         public TransportProtocol Protocol
@@ -76,17 +76,17 @@ namespace OpenTelemetry.Exporter.Geneva
                 try
                 {
                     // Checking Etw first, since it's preferred for Windows and enables fail fast on Linux
-                    if (_parts.ContainsKey(nameof(EtwSession)))
+                    if (this._parts.ContainsKey(nameof(this.EtwSession)))
                     {
                         return TransportProtocol.Etw;
                     }
 
-                    if (!_parts.ContainsKey(nameof(Endpoint)))
+                    if (!this._parts.ContainsKey(nameof(this.Endpoint)))
                     {
                         return TransportProtocol.Unspecified;
                     }
 
-                    var endpoint = new Uri(Endpoint);
+                    var endpoint = new Uri(this.Endpoint);
                     if (Enum.TryParse(endpoint.Scheme, true, out TransportProtocol protocol))
                     {
                         return protocol;
@@ -96,7 +96,7 @@ namespace OpenTelemetry.Exporter.Geneva
                 }
                 catch (UriFormatException ex)
                 {
-                    throw new ArgumentException($"{nameof(Endpoint)} value is malformed.", ex);
+                    throw new ArgumentException($"{nameof(this.Endpoint)} value is malformed.", ex);
                 }
             }
         }
@@ -105,12 +105,12 @@ namespace OpenTelemetry.Exporter.Geneva
         {
             try
             {
-                var endpoint = new Uri(Endpoint);
+                var endpoint = new Uri(this.Endpoint);
                 return endpoint.AbsolutePath;
             }
             catch (UriFormatException ex)
             {
-                throw new ArgumentException($"{nameof(Endpoint)} value is malformed.", ex);
+                throw new ArgumentException($"{nameof(this.Endpoint)} value is malformed.", ex);
             }
         }
 
@@ -118,7 +118,7 @@ namespace OpenTelemetry.Exporter.Geneva
         {
             get
             {
-                if (!_parts.TryGetValue(nameof(TimeoutMilliseconds), out string value))
+                if (!this._parts.TryGetValue(nameof(this.TimeoutMilliseconds), out string value))
                 {
                     return UnixDomainSocketDataTransport.DefaultTimeoutMilliseconds;
                 }
@@ -128,8 +128,9 @@ namespace OpenTelemetry.Exporter.Geneva
                     int timeout = int.Parse(value, CultureInfo.InvariantCulture);
                     if (timeout <= 0)
                     {
-                        throw new ArgumentException($"{nameof(TimeoutMilliseconds)} should be greater than zero.",
-                            nameof(TimeoutMilliseconds));
+                        throw new ArgumentException(
+                            $"{nameof(this.TimeoutMilliseconds)} should be greater than zero.",
+                            nameof(this.TimeoutMilliseconds));
                     }
 
                     return timeout;
@@ -140,11 +141,12 @@ namespace OpenTelemetry.Exporter.Geneva
                 }
                 catch (Exception ex)
                 {
-                    throw new ArgumentException($"{nameof(TimeoutMilliseconds)} is malformed.",
-                        nameof(TimeoutMilliseconds), ex);
+                    throw new ArgumentException(
+                        $"{nameof(this.TimeoutMilliseconds)} is malformed.",
+                        nameof(this.TimeoutMilliseconds), ex);
                 }
             }
-            set => _parts[nameof(TimeoutMilliseconds)] = value.ToString(CultureInfo.InvariantCulture);
+            set => this._parts[nameof(this.TimeoutMilliseconds)] = value.ToString(CultureInfo.InvariantCulture);
         }
 
         public string Host
@@ -153,12 +155,12 @@ namespace OpenTelemetry.Exporter.Geneva
             {
                 try
                 {
-                    var endpoint = new Uri(Endpoint);
+                    var endpoint = new Uri(this.Endpoint);
                     return endpoint.Host;
                 }
                 catch (UriFormatException ex)
                 {
-                    throw new ArgumentException($"{nameof(Endpoint)} value is malformed.", ex);
+                    throw new ArgumentException($"{nameof(this.Endpoint)} value is malformed.", ex);
                 }
             }
         }
@@ -169,36 +171,36 @@ namespace OpenTelemetry.Exporter.Geneva
             {
                 try
                 {
-                    var endpoint = new Uri(Endpoint);
+                    var endpoint = new Uri(this.Endpoint);
                     if (endpoint.IsDefaultPort)
                     {
-                        throw new ArgumentException($"Port should be explicitly set in {nameof(Endpoint)} value.");
+                        throw new ArgumentException($"Port should be explicitly set in {nameof(this.Endpoint)} value.");
                     }
 
                     return endpoint.Port;
                 }
                 catch (UriFormatException ex)
                 {
-                    throw new ArgumentException($"{nameof(Endpoint)} value is malformed.", ex);
+                    throw new ArgumentException($"{nameof(this.Endpoint)} value is malformed.", ex);
                 }
             }
         }
 
         public string Account
         {
-            get => ThrowIfNotExists<string>(nameof(Account));
-            set => _parts[nameof(Account)] = value;
+            get => this.ThrowIfNotExists<string>(nameof(this.Account));
+            set => this._parts[nameof(this.Account)] = value;
         }
 
         public string Namespace
         {
-            get => ThrowIfNotExists<string>(nameof(Namespace));
-            set => _parts[nameof(Namespace)] = value;
+            get => this.ThrowIfNotExists<string>(nameof(this.Namespace));
+            set => this._parts[nameof(this.Namespace)] = value;
         }
 
         private T ThrowIfNotExists<T>(string name)
         {
-            if (!_parts.TryGetValue(name, out var value))
+            if (!this._parts.TryGetValue(name, out var value))
             {
                 throw new ArgumentException($"'{name}' value is missing in connection string.");
             }

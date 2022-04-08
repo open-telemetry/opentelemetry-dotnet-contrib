@@ -20,12 +20,13 @@ namespace OpenTelemetry.Exporter.Geneva
         /// If you set the property with a value between 1 and 499, the value will be changed to 500.
         /// The default value is 15,000 milliseconds.
         /// </param>
-        public UnixDomainSocketDataTransport(string unixDomainSocketPath,
+        public UnixDomainSocketDataTransport(
+            string unixDomainSocketPath,
             int timeoutMilliseconds = DefaultTimeoutMilliseconds)
         {
-            unixEndpoint = new UnixDomainSocketEndPoint(unixDomainSocketPath);
+            this.unixEndpoint = new UnixDomainSocketEndPoint(unixDomainSocketPath);
             this.TimeoutMilliseconds = timeoutMilliseconds;
-            Connect();
+            this.Connect();
         }
 
         public bool IsEnabled()
@@ -37,12 +38,13 @@ namespace OpenTelemetry.Exporter.Geneva
         {
             try
             {
-                if (!socket.Connected)
+                if (!this.socket.Connected)
                 {
                     // Socket connection is off! Server might have stopped. Trying to reconnect.
-                    Reconnect();
+                    this.Reconnect();
                 }
-                socket.Send(data, size, SocketFlags.None);
+
+                this.socket.Send(data, size, SocketFlags.None);
             }
             catch (SocketException ex)
             {
@@ -57,22 +59,23 @@ namespace OpenTelemetry.Exporter.Geneva
 
         public void Dispose()
         {
-            socket.Dispose();
+            this.socket.Dispose();
         }
 
         private void Connect()
         {
             try
             {
-                socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP)
+                this.socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP)
                 {
-                    SendTimeout = this.TimeoutMilliseconds
+                    SendTimeout = this.TimeoutMilliseconds,
                 };
-                socket.Connect(unixEndpoint);
+                this.socket.Connect(this.unixEndpoint);
             }
             catch (Exception ex)
             {
                 ExporterEventSource.Log.ExporterException(ex);
+
                 // Re-throw the exception to
                 // 1. fail fast in Geneva exporter contructor, or
                 // 2. fail in the Reconnect attempt.
@@ -82,8 +85,8 @@ namespace OpenTelemetry.Exporter.Geneva
 
         private void Reconnect()
         {
-            socket.Close();
-            Connect();
+            this.socket.Close();
+            this.Connect();
         }
     }
 }

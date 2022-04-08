@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -10,14 +10,14 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Exporter.Geneva.Stress
 {
-    class Program
+    internal class Program
     {
         private static volatile bool s_bContinue = true;
         private static long s_nEvents = 0;
 
         private static ActivitySource source = new ActivitySource("OpenTelemetry.Exporter.Geneva.Stress");
 
-        static int Main(string[] args)
+        private static int Main(string[] args)
         {
             return Parser.Default.ParseArguments<WindowsOptions, LinuxOptions, ServerOptions, ExporterCreationOptions>(args)
                 .MapResult(
@@ -26,6 +26,7 @@ namespace OpenTelemetry.Exporter.Geneva.Stress
                     (ServerOptions options) => RunServer(options),
                     (ExporterCreationOptions options) => RunExporterCreation(),
                     errs => 1);
+
             // return EntryPoint(InitMetrics, RunMetrics);
         }
 
@@ -64,7 +65,7 @@ namespace OpenTelemetry.Exporter.Geneva.Stress
                     ["cloud.role"] = "BusyWorker",
                     ["cloud.roleInstance"] = "CY1SCH030021417",
                     ["cloud.roleVer"] = "9.0.15289.2",
-                }
+                },
             };
 
             for (var i = 0; i < 300000; ++i)
@@ -92,7 +93,8 @@ namespace OpenTelemetry.Exporter.Geneva.Stress
             init();
 
             var statistics = new long[Environment.ProcessorCount];
-            Parallel.Invoke(() =>
+            Parallel.Invoke(
+                () =>
             {
                 Console.WriteLine("Running, press <Esc> to stop...");
                 var watch = new Stopwatch();
@@ -107,8 +109,10 @@ namespace OpenTelemetry.Exporter.Geneva.Stress
                                 s_bContinue = false;
                                 return;
                         }
+
                         continue;
                     }
+
                     s_nEvents = statistics.Sum();
                     watch.Restart();
                     Thread.Sleep(200);
@@ -117,7 +121,8 @@ namespace OpenTelemetry.Exporter.Geneva.Stress
                     var nEventPerSecond = (int)((nEvents - s_nEvents) / (watch.ElapsedMilliseconds / 1000.0));
                     Console.Title = string.Format("Loops: {0:n0}, Loops/Second: {1:n0}", nEvents, nEventPerSecond);
                 }
-            }, () =>
+            },
+                () =>
             {
                 Parallel.For(0, statistics.Length, (i) =>
                 {

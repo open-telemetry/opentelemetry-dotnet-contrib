@@ -61,8 +61,8 @@ namespace OpenTelemetry.Exporter.Geneva
             if (options.PrepopulatedMetricDimensions != null)
             {
                 this.prepopulatedDimensionsCount = (ushort)options.PrepopulatedMetricDimensions.Count;
-                this.serializedPrepopulatedDimensionsKeys = SerializePrepopulatedDimensionsKeys(options.PrepopulatedMetricDimensions.Keys);
-                this.serializedPrepopulatedDimensionsValues = SerializePrepopulatedDimensionsValues(options.PrepopulatedMetricDimensions.Values);
+                this.serializedPrepopulatedDimensionsKeys = this.SerializePrepopulatedDimensionsKeys(options.PrepopulatedMetricDimensions.Keys);
+                this.serializedPrepopulatedDimensionsValues = this.SerializePrepopulatedDimensionsValues(options.PrepopulatedMetricDimensions.Values);
             }
 
             switch (connectionStringBuilder.Protocol)
@@ -95,8 +95,8 @@ namespace OpenTelemetry.Exporter.Geneva
                     throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
             }
 
-            this.bufferIndexForNonHistogramMetrics = InitializeBufferForNonHistogramMetrics();
-            this.bufferIndexForHistogramMetrics = InitializeBufferForHistogramMetrics();
+            this.bufferIndexForNonHistogramMetrics = this.InitializeBufferForNonHistogramMetrics();
+            this.bufferIndexForHistogramMetrics = this.InitializeBufferForHistogramMetrics();
 
             unsafe
             {
@@ -209,7 +209,7 @@ namespace OpenTelemetry.Exporter.Geneva
             {
                 try
                 {
-                    metricDataTransport?.Dispose();
+                    this.metricDataTransport?.Dispose();
                 }
                 catch (Exception ex)
                 {
