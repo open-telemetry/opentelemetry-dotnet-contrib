@@ -1,10 +1,8 @@
-using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System;
 using System.Diagnostics.Tracing;
 
 namespace OpenTelemetry.Exporter.Geneva
 {
-    [SuppressMessage("Usage", "CA1801:Review unused parameters", Justification = "Maintain consistent API signature across different frameworks.")]
     [EventSource(Name = "OpenTelemetry")]
     internal class EtwEventSource : EventSource
     {

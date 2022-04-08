@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -393,8 +393,6 @@ namespace OpenTelemetry.Exporter.Geneva
 
         private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
 
-        private bool isDisposed;
-
         private readonly ThreadLocal<byte[]> m_buffer = new ThreadLocal<byte[]>(() => null);
 
         private readonly byte[] m_bufferPrologue;
@@ -431,5 +429,7 @@ namespace OpenTelemetry.Exporter.Geneva
 
             ["otel.status_description"] = "statusMessage",
         };
+
+        private bool isDisposed;
     }
 }

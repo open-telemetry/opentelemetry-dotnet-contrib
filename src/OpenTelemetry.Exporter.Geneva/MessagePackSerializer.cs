@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -482,8 +482,8 @@ namespace OpenTelemetry.Exporter.Geneva
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteTimestamp96(byte[] buffer, int cursor, long ticks)
         {
-            cursor = WriteUInt32(buffer, cursor, unchecked((uint)(ticks % TimeSpan.TicksPerSecond * 100)));
-            cursor = WriteInt64(buffer, cursor, ticks / TimeSpan.TicksPerSecond - 62135596800L);
+            cursor = WriteUInt32(buffer, cursor, unchecked((uint)((ticks % TimeSpan.TicksPerSecond) * 100)));
+            cursor = WriteInt64(buffer, cursor, (ticks / TimeSpan.TicksPerSecond) - 62135596800L);
             return cursor;
         }
 

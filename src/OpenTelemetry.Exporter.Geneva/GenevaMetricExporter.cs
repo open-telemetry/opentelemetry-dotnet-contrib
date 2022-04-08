@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -15,8 +15,6 @@ namespace OpenTelemetry.Exporter.Geneva
         internal const int MaxDimensionNameSize = 256;
 
         internal const int MaxDimensionValueSize = 1024;
-
-        private bool isDisposed;
 
         private readonly ushort prepopulatedDimensionsCount;
 
@@ -41,6 +39,8 @@ namespace OpenTelemetry.Exporter.Geneva
         private readonly int bufferIndexForHistogramMetrics;
 
         private static readonly MetricData ulongZero = new MetricData { UInt64Value = 0 };
+
+        private bool isDisposed;
 
         public GenevaMetricExporter(GenevaMetricExporterOptions options)
         {

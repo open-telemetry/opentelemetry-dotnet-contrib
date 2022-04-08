@@ -20,7 +20,7 @@ namespace OpenTelemetry.Exporter.Geneva
         public int MetricExportIntervalMilliseconds { get; set; } = 20000;
 
         /// <summary>
-        /// Gets or sets the pre-populated dimensions for all the metrics exported by the exporter
+        /// Gets or sets the pre-populated dimensions for all the metrics exported by the exporter.
         /// </summary>
         public IReadOnlyDictionary<string, object> PrepopulatedMetricDimensions
         {

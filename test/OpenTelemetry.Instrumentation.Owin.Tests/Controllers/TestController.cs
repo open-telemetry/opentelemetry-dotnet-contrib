@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using System.Web.Http;
 
 namespace OpenTelemetry.Instrumentation.Owin.Tests.Controllers

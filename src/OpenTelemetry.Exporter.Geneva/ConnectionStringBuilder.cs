@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -143,7 +143,8 @@ namespace OpenTelemetry.Exporter.Geneva
                 {
                     throw new ArgumentException(
                         $"{nameof(this.TimeoutMilliseconds)} is malformed.",
-                        nameof(this.TimeoutMilliseconds), ex);
+                        nameof(this.TimeoutMilliseconds),
+                        ex);
                 }
             }
             set => this._parts[nameof(this.TimeoutMilliseconds)] = value.ToString(CultureInfo.InvariantCulture);

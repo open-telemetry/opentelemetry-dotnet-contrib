@@ -1,4 +1,4 @@
-#if NETSTANDARD2_0 || NET461
+﻿#if NETSTANDARD2_0 || NET461
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -15,8 +15,6 @@ namespace OpenTelemetry.Exporter.Geneva
     {
         private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
 
-        private bool isDisposed;
-        private Func<object, string> convertToJson;
         private readonly IReadOnlyDictionary<string, object> m_customFields;
         private readonly string m_defaultEventName = "Log";
         private readonly IReadOnlyDictionary<string, object> m_prepopulatedFields;
@@ -29,6 +27,8 @@ namespace OpenTelemetry.Exporter.Geneva
         };
 
         private readonly IDataTransport m_dataTransport;
+        private bool isDisposed;
+        private Func<object, string> convertToJson;
 
         public GenevaLogExporter(GenevaExporterOptions options)
         {

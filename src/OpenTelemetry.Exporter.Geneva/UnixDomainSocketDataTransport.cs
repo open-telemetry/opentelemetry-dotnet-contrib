@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Net;
 using System.Net.Sockets;
 
@@ -9,9 +9,10 @@ namespace OpenTelemetry.Exporter.Geneva
         public const int DefaultTimeoutMilliseconds = 15000;
         private readonly EndPoint unixEndpoint;
         private Socket socket;
-        private int TimeoutMilliseconds;
+        private int timeoutMilliseconds;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="UnixDomainSocketDataTransport"/> class.
         /// The class for transporting data over Unix domain socket.
         /// </summary>
         /// <param name="unixDomainSocketPath">The path to connect a unix domain socket over.</param>
@@ -25,7 +26,7 @@ namespace OpenTelemetry.Exporter.Geneva
             int timeoutMilliseconds = DefaultTimeoutMilliseconds)
         {
             this.unixEndpoint = new UnixDomainSocketEndPoint(unixDomainSocketPath);
-            this.TimeoutMilliseconds = timeoutMilliseconds;
+            this.timeoutMilliseconds = timeoutMilliseconds;
             this.Connect();
         }
 
@@ -68,7 +69,7 @@ namespace OpenTelemetry.Exporter.Geneva
             {
                 this.socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP)
                 {
-                    SendTimeout = this.TimeoutMilliseconds,
+                    SendTimeout = this.timeoutMilliseconds,
                 };
                 this.socket.Connect(this.unixEndpoint);
             }

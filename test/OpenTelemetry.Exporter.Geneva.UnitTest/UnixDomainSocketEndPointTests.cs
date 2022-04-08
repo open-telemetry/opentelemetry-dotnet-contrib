@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -12,7 +12,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
         public void UnixDomainSocketEndPoint_constructor_InvalidArgument()
         {
             Assert.Throws<ArgumentNullException>(() => _ = new UnixDomainSocketEndPoint(null));
-            Assert.Throws<ArgumentOutOfRangeException>(() => _ = new UnixDomainSocketEndPoint(""));
+            Assert.Throws<ArgumentOutOfRangeException>(() => _ = new UnixDomainSocketEndPoint(string.Empty));
             Assert.Throws<ArgumentOutOfRangeException>(() => _ = new UnixDomainSocketEndPoint(new string('a', 100)));
         }
 
@@ -37,9 +37,9 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
             var endpoint = new UnixDomainSocketEndPoint("abc");
 
             var sa = new SocketAddress(AddressFamily.Unix, 2);  // SocketAddress size is 2
-            Assert.Equal("", endpoint.Create(sa).ToString());
+            Assert.Equal(string.Empty, endpoint.Create(sa).ToString());
 
-            Assert.Equal("\0", endpoint.Create(this.CreateSocketAddress("")).ToString());
+            Assert.Equal("\0", endpoint.Create(this.CreateSocketAddress(string.Empty)).ToString());
             Assert.Equal("test\0", endpoint.Create(this.CreateSocketAddress("test")).ToString());
         }
 

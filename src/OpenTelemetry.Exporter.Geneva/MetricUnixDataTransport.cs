@@ -2,9 +2,9 @@
 {
     internal sealed class MetricUnixDataTransport : IMetricDataTransport
     {
-        private bool isDisposed;
         private readonly int fixedPayloadLength;
         private readonly UnixDomainSocketDataTransport udsDataTransport;
+        private bool isDisposed;
 
         public MetricUnixDataTransport(
             string unixDomainSocketPath,

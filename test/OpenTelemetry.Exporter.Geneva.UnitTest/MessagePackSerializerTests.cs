@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using Xunit;
@@ -18,8 +18,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
 
                 Assert.True(
                     expectedByte == actualByte,
-                    String.Format($"Expected: '{(byte)expectedByte}', Actual: '{(byte)actualByte}' at offset {i}.")
-                );
+                    string.Format($"Expected: '{(byte)expectedByte}', Actual: '{(byte)actualByte}' at offset {i}."));
             }
         }
 
@@ -280,7 +279,6 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
         {
             this.MessagePackSerializer_TestASCIIStringSerialization(null);
             this.MessagePackSerializer_TestASCIIStringSerialization(string.Empty);
-            this.MessagePackSerializer_TestASCIIStringSerialization("");
             this.MessagePackSerializer_TestASCIIStringSerialization("Hello world!");
 
             // fixstr stores a byte array whose length is upto 31 bytes
@@ -304,7 +302,6 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
         {
             this.MessagePackSerializer_TestUnicodeStringSerialization(null);
             this.MessagePackSerializer_TestUnicodeStringSerialization(string.Empty);
-            this.MessagePackSerializer_TestUnicodeStringSerialization("");
             this.MessagePackSerializer_TestUnicodeStringSerialization("Hello world!");
 
             // fixstr stores a byte array whose length is upto 31 bytes
@@ -345,7 +342,8 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
             this.MessagePackSerializer_TestSerialization(new object[0]);
 
             // This object array has a custom string which will be serialized as STR16
-            var objectArrayWithString = new object[] {
+            var objectArrayWithString = new object[]
+            {
                 "foo",
                 1,
                 0.6180340f,
