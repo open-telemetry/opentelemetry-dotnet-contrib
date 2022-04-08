@@ -18,29 +18,27 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Hangfire;
-using Hangfire.MemoryStorage;
 using Hangfire.Storage.Monitoring;
 using OpenTelemetry.Trace;
 using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Tests
 {
-    public class HangfireInstrumentationJobFilterAttributeTests
+    public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<HangfireFixture>
     {
-        public HangfireInstrumentationJobFilterAttributeTests()
+        private HangfireFixture hangfireFixture;
+
+        public HangfireInstrumentationJobFilterAttributeTests(HangfireFixture hangfireFixture)
         {
-            GlobalConfiguration.Configuration
-                .UseMemoryStorage();
+            this.hangfireFixture = hangfireFixture;
         }
 
         [Fact]
         public async Task Should_Create_Activity()
         {
             // Arrange
-            using var server = new BackgroundJobServer();
             var exportedItems = new List<Activity>();
             using var tel = Sdk.CreateTracerProviderBuilder()
                 .AddHangfireInstrumentation()
@@ -49,7 +47,7 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Tests
 
             // Act
             var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
-            await WaitJobProcessedAsync(jobId, 5);
+            await this.WaitJobProcessedAsync(jobId, 5);
 
             // Assert
             Assert.Single(exportedItems, i => i.GetTagItem("job.id") as string == jobId);
@@ -62,7 +60,6 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Tests
         public async Task Should_Create_Activity_With_Status_Error_When_Job_Failed()
         {
             // Arrange
-            using var server = new BackgroundJobServer();
             var exportedItems = new List<Activity>();
             using var tel = Sdk.CreateTracerProviderBuilder()
                 .AddHangfireInstrumentation()
@@ -71,7 +68,7 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Tests
 
             // Act
             var jobId = BackgroundJob.Enqueue<TestJob>(x => x.ThrowException());
-            await WaitJobProcessedAsync(jobId, 5);
+            await this.WaitJobProcessedAsync(jobId, 5);
 
             // Assert
             Assert.Single(exportedItems, i => i.GetTagItem("job.id") as string == jobId);
@@ -82,20 +79,16 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Tests
             Assert.NotNull(activity.StatusDescription);
         }
 
-        private static async Task WaitJobProcessedAsync(string jobId, int timeToWaitInSeconds)
+        private async Task WaitJobProcessedAsync(string jobId, int timeToWaitInSeconds)
         {
             var timeout = DateTime.Now.AddSeconds(timeToWaitInSeconds);
-            await Task.Factory.StartNew(() =>
+            string[] states = new[] { "Enqueued", "Processing" };
+            JobDetailsDto jobDetails;
+            while (((jobDetails = this.hangfireFixture.MonitoringApi.JobDetails(jobId)) == null || jobDetails.History.All(h => states.Contains(h.StateName)))
+                && DateTime.Now < timeout)
             {
-                string[] states = new[] { "Enqueued", "Processing" };
-                var monitoringApi = JobStorage.Current.GetMonitoringApi();
-                JobDetailsDto jobDetails;
-                while (((jobDetails = monitoringApi.JobDetails(jobId)) == null || jobDetails.History.All(h => states.Contains(h.StateName)))
-                    && DateTime.Now < timeout)
-                {
-                    Thread.Sleep(100);
-                }
-            });
+                await Task.Delay(500);
+            }
         }
     }
 }
