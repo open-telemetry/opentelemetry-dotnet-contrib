@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Globalization;
@@ -58,9 +58,6 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 {
                     path = GenerateTempFilePath();
                     exporterOptions.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
-
-                    // A stub server simulating the Geneva agent should be set up before construction of GenevaMetricExporter
-                    // Or the unix domain socket connection will fail during construction.
                     var endpoint = new UnixDomainSocketEndPoint(path);
                     server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
                     server.Bind(endpoint);
@@ -195,9 +192,6 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 {
                     path = GenerateTempFilePath();
                     exporterOptions.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
-
-                    // A stub server simulating the Geneva agent should be set up before construction of GenevaMetricExporter
-                    // Or the unix domain socket connection will fail during construction.
                     var endpoint = new UnixDomainSocketEndPoint(path);
                     server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
                     server.Bind(endpoint);
@@ -391,9 +385,6 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 {
                     path = GenerateTempFilePath();
                     exporterOptions.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
-
-                    // A stub server simulating the Geneva agent should be set up before construction of GenevaMetricExporter
-                    // Or the unix domain socket connection will fail during construction.
                     var endpoint = new UnixDomainSocketEndPoint(path);
                     server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
                     server.Bind(endpoint);
@@ -460,8 +451,6 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
 
             try
             {
-                // A stub server simulating the Geneva agent should be set up before construction of GenevaMetricExporter
-                // Or the unix domain socket connection will fail during construction.
                 var endpoint = new UnixDomainSocketEndPoint(path);
                 using var server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
                 server.Bind(endpoint);

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Kaitai;
 
 namespace OpenTelemetry.Exporter.Geneva.UnitTest
@@ -28,7 +28,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
         public enum DistributionType
         {
             Bucketed = 0,
-            MonAgentBucketed = 1,
+            MonBucketed = 1,
             ValueCountPairs = 2,
         }
         public MetricsContract(KaitaiStream p__io, KaitaiStruct p__parent = null, MetricsContract p__root = null) : base(p__io)
@@ -349,7 +349,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                             _body = new HistogramUint16Bucketed(m_io, this, m_root);
                             break;
                         }
-                    case MetricsContract.DistributionType.MonAgentBucketed:
+                    case MetricsContract.DistributionType.MonBucketed:
                         {
                             _body = new HistogramUint16Bucketed(m_io, this, m_root);
                             break;

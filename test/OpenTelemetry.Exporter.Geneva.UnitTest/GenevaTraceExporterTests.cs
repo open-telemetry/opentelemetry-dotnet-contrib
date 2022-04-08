@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -160,8 +160,6 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 {
                     path = GetRandomFilePath();
                     exporterOptions.ConnectionString = "Endpoint=unix:" + path;
-                    // A stub server simulating the Geneva agent should be set up before construction of GenevaTraceExporter
-                    // Or the unix domain socket connection will fail during construction.
                     var endpoint = new UnixDomainSocketEndPoint(path);
                     server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
                     server.Bind(endpoint);
@@ -249,7 +247,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
 
         [Fact]
         [Trait("Platform", "Linux")]
-        public void GenevaTraceExporter_Linux_constructor_Missing_Agent()
+        public void GenevaTraceExporter_Linux_constructor_Missing()
         {
             string path = GetRandomFilePath();
             // System.Net.Internals.SocketExceptionFactory+ExtendedSocketException : Cannot assign requested address
@@ -294,8 +292,6 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
             string path = GetRandomFilePath();
             try
             {
-                // A stub server simulating the Geneva agent should be set up before construction of GenevaTraceExporter
-                // Or the unix domain socket connection will fail during construction.
                 var endpoint = new UnixDomainSocketEndPoint(path);
                 using var server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
                 server.Bind(endpoint);
