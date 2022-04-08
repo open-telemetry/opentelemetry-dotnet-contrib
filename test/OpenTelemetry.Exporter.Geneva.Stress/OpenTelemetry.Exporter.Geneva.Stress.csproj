@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <Import Project="..\..\src\App.TargetFrameworks.proj" />
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\OpenTelemetry.Exporter.Geneva\OpenTelemetry.Exporter.Geneva.csproj" />
+  </ItemGroup>
+
+</Project>

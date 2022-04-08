@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="..\..\src\App.TargetFrameworks.proj" />
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
+		<PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="1.2.0-rc2" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="[5.0.0,)" />
+		<PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.4" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\OpenTelemetry.Exporter.Geneva\OpenTelemetry.Exporter.Geneva.csproj" />
+	</ItemGroup>
+
+</Project>
