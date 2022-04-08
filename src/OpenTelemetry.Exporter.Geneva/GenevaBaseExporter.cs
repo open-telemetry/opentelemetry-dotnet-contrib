@@ -1,11 +1,11 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace OpenTelemetry.Exporter.Geneva
 {
     public abstract class GenevaBaseExporter<T> : BaseExporter<T>
     where T : class
     {
-        internal static readonly IReadOnlyDictionary<string, string> CS21_PART_A_MAPPING = new Dictionary<string, string>
+        internal static readonly IReadOnlyDictionary<string, string> V21_PART_A_MAPPING = new Dictionary<string, string>
         {
             // Part A
             [Schema.V21.PartA.IKey] = "env_iKey",
@@ -37,7 +37,7 @@ namespace OpenTelemetry.Exporter.Geneva
             [Schema.V21.PartA.Extensions.Os.Ver] = "env_osVer",
         };
 
-        internal static readonly IReadOnlyDictionary<string, string> CS40_PART_A_MAPPING = new Dictionary<string, string>
+        internal static readonly IReadOnlyDictionary<string, string> V40_PART_A_MAPPING = new Dictionary<string, string>
         {
             // Part A
             [Schema.V40.PartA.IKey] = "env_iKey",
@@ -61,7 +61,7 @@ namespace OpenTelemetry.Exporter.Geneva
 
         internal static int AddPartAField(byte[] buffer, int cursor, string name, object value)
         {
-            if (CS40_PART_A_MAPPING.TryGetValue(name, out string replacementKey))
+            if (V40_PART_A_MAPPING.TryGetValue(name, out string replacementKey))
             {
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, replacementKey);
             }
