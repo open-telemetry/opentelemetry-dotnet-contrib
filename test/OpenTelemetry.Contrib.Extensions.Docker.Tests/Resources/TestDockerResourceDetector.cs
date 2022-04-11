@@ -58,13 +58,6 @@ namespace OpenTelemetry.Contrib.Extensions.Docker.Tests.Resources
             "d86d75589bf6cc254f3e2cc29debdf85dde404998aa128997a819ff991827356";
 
         [Fact]
-        public void TestDetect()
-        {
-            var dockerResourceDetector = new DockerResourceDetector();
-            Assert.Null(dockerResourceDetector.Detect()); // will be null as it's not in Docker environment
-        }
-
-        [Fact]
         public void TestExtractResourceAttributes()
         {
             var dockerResourceDetector = new DockerResourceDetector();

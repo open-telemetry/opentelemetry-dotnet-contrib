@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using OpenTelemetry.Contrib.Extensions.Docker.Utils;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Contrib.Extensions.Docker.Resources
 {
@@ -31,17 +32,10 @@ namespace OpenTelemetry.Contrib.Extensions.Docker.Resources
         /// <summary>
         /// Detects the resource attributes from Docker.
         /// </summary>
-        /// <returns>List of key-value pairs of resource attributes.</returns>
-        public IEnumerable<KeyValuePair<string, object>> Detect()
+        /// <returns>Resource with key-value pairs of resource attributes.</returns>
+        public Resource Detect()
         {
-            string containerId = this.ExtractContainerId(FILEPATH);
-
-            if (string.IsNullOrEmpty(containerId))
-            {
-                return null;
-            }
-
-            return this.BuildResourceAttributes(containerId);
+            return new Resource(this.BuildResourceAttributes(this.ExtractContainerId(FILEPATH)));
         }
 
         /// <summary>
