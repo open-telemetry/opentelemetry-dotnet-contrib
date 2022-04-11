@@ -35,10 +35,10 @@ namespace OpenTelemetry.Contrib.Extensions.Docker
             }
         }
 
-        [Event(3, Message = "Failed to extract resource attributes in '{0}'.", Level = EventLevel.Warning)]
+        [Event(1, Message = "Failed to extract resource attributes in '{0}'.", Level = EventLevel.Warning)]
         public void FailedToExtractResourceAttributes(string format, string exception)
         {
-            this.WriteEvent(3, format, exception);
+            this.WriteEvent(1, format, exception);
         }
 
         /// <summary>
