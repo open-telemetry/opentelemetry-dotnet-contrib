@@ -1,4 +1,4 @@
-#if NETSTANDARD2_0 || NET461
+﻿#if NETSTANDARD2_0 || NET461
 using System;
 using OpenTelemetry;
 using OpenTelemetry.Exporter.Geneva;
