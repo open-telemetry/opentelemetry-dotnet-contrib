@@ -17,6 +17,7 @@
 using System;
 using System.Data;
 using System.Diagnostics;
+using OpenTelemetry.Instrumentation;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation

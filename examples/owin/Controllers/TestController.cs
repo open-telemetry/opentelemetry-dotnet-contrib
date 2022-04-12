@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Web.Http;
 
 namespace Examples.Owin.Controllers

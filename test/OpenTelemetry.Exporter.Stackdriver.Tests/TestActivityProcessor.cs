@@ -16,6 +16,7 @@
 
 using System;
 using System.Diagnostics;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Tests
 {

@@ -62,7 +62,7 @@ namespace OpenTelemetry.Extensions.AzureMonitor
 
             for (int i = 0; i < traceIdHex.Length; i++)
             {
-                hash = (hash << 5) + hash + (int)traceIdHex[i];
+                hash = ((hash << 5) + hash) + (int)traceIdHex[i];
             }
 
             // Take the absolute value of the hash

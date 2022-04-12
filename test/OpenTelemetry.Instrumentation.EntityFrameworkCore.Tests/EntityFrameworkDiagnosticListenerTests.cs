@@ -24,6 +24,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Moq;
 using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 using Xunit;
 
