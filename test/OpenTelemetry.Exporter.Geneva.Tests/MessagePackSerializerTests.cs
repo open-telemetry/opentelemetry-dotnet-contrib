@@ -4,7 +4,7 @@ using System.Text;
 using Xunit;
 using Xunit.Sdk;
 
-namespace OpenTelemetry.Exporter.Geneva.UnitTest
+namespace OpenTelemetry.Exporter.Geneva.Tests
 {
     public class MessagePackSerializerTests
     {

@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using Kaitai;
 
-namespace OpenTelemetry.Exporter.Geneva.UnitTest
+namespace OpenTelemetry.Exporter.Geneva.Tests
 {
     public partial class MetricsContract : KaitaiStruct
     {

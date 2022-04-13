@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Xunit;
 
-namespace OpenTelemetry.Exporter.Geneva.UnitTest
+namespace OpenTelemetry.Exporter.Geneva.Tests
 {
     public class GenevaMetricExporterOptionsTests
     {
