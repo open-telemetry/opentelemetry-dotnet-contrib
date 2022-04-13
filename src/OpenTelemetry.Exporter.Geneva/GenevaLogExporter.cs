@@ -228,7 +228,8 @@ namespace OpenTelemetry.Exporter.Geneva
                         }
                         else if (name[readIdx] >= 'a' && name[readIdx] <= 'z')
                         {
-                            // If the first character in the resulting string is lower -case ALPHA, it will be converted to the corresponding upper-case.
+                            // If the first character in the resulting string is lower -case ALPHA,
+                            // it will be converted to the corresponding upper-case.
                             tempArr[writeIdx] = (char)(name[readIdx] - 32);
                             ++writeIdx;
                         }
@@ -239,6 +240,8 @@ namespace OpenTelemetry.Exporter.Geneva
                             break;
                         }
                     }
+
+                    // The category name must match "^[A-Z][a-zA-Z0-9]*$"; any character that is not allowed will be removed.
                     else if ((name[readIdx] >= '0' && name[readIdx] <= '9') ||
                              (name[readIdx] >= 'A' && name[readIdx] <= 'Z') ||
                              (name[readIdx] >= 'a' && name[readIdx] <= 'z'))
@@ -250,8 +253,11 @@ namespace OpenTelemetry.Exporter.Geneva
                     ++readIdx;
                 }
 
+                // After removing not allowed characters,
+                // if the resulting string is still an illegal Part B name, the data will get dropped on the floor.
                 if (readIdx == name.Length && writeIdx != 0)
                 {
+                    // If the resulting string is longer than 32 characters, only the first 32 characters will be taken.
                     eventName = new string(tempArr, 0, writeIdx <= 31 ? writeIdx : 32);
                 }
             }
