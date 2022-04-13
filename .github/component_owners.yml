@@ -5,7 +5,7 @@ components:
   src/OpenTelemetry.Contrib.Extensions.AWSXRay/:
     - srprash
     - lupengamzn
-  src/OpenTelemetry.Exporter.Geneva/:  
+  src/OpenTelemetry.Exporter.Geneva/:
     - cijothomas
     - codeblanch
     - reyang
