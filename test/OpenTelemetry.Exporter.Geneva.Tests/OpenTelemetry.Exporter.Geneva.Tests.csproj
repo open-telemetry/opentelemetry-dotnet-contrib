@@ -9,10 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AdditionalFiles Remove="C:\Git\opentelemetry-dotnet-contrib\build\/stylecop.json" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="3.1.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
