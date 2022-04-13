@@ -11,7 +11,7 @@ using System.Threading;
 using OpenTelemetry.Trace;
 using Xunit;
 
-namespace OpenTelemetry.Exporter.Geneva.UnitTest
+namespace OpenTelemetry.Exporter.Geneva.Tests
 {
     public class GenevaTraceExporterTests
     {
