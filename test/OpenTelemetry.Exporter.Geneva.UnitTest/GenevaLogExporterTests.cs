@@ -193,6 +193,82 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
             }
         }
 
+        [Fact]
+        public void PassThruTableMappings()
+        {
+            var userInitializedCategoryToTableName = new Dictionary<string, string>
+            {
+                ["Company.Store"] = "Store",
+                ["*"] = "*",
+            };
+
+            var expectedCategoryToTableNameMappings = new Dictionary<string, string>
+            {
+                // The category name must match "^[A-Z][a-zA-Z0-9]*$"; any character that is not allowed will be removed.
+                ["Company.Customer"] = "CompanyCustomer",
+                ["Company-%-Customer*Region$##"] = "CompanyCustomerRegion",
+
+                // If the first character in the resulting string is lower -case ALPHA, it will be converted to the corresponding upper-case.
+                ["company.Customer"] = "CompanyCustomer",
+
+                // After removing not allowed characters,
+                // if the resulting string is still an illegal Part B name, the data will get dropped on the floor.
+                ["$&-.$~!!"] = null,
+
+                // If the resulting string is longer than 32 characters, only the first 32 characters will be taken.
+                ["Company.Customer.rsLiheLClHJasBOvM.XI4uW7iop6ghvwBzahfs"] = "CompanyCustomerrsLiheLClHJasBOvM",
+
+                // the data will be dropped on the floor as the exporter cannot deduce a valid table name.
+                ["1.2"] = null,
+            };
+
+            var logRecordList = new List<LogRecord>();
+            var exporterOptions = new GenevaExporterOptions
+            {
+                TableNameMappings = userInitializedCategoryToTableName,
+                ConnectionString = "EtwSession=OpenTelemetry",
+            };
+
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+            .AddOpenTelemetry(options =>
+            {
+                options.AddInMemoryExporter(logRecordList);
+            })
+            .AddFilter("*", LogLevel.Trace)); // Enable all LogLevels
+
+            // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
+            using var exporter = new GenevaLogExporter(exporterOptions);
+
+            ILogger customerLogger, companyLogger;
+            ThreadLocal<byte[]> m_buffer;
+            object fluentdData;
+            string actualTableName;
+
+            companyLogger = loggerFactory.CreateLogger("Company.Store");
+            companyLogger.LogInformation("This information does not matter.");
+            Assert.Single(logRecordList);
+            m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+            _ = exporter.SerializeLogRecord(logRecordList[0]);
+            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            actualTableName = (fluentdData as object[])[0] as string;
+            Assert.Equal("Store", actualTableName);
+            logRecordList.Clear();
+
+            foreach (var mapping in expectedCategoryToTableNameMappings)
+            {
+                customerLogger = loggerFactory.CreateLogger(mapping.Key);
+                customerLogger.LogInformation("This information does not matter.");
+                Assert.Single(logRecordList);
+                m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+                _ = exporter.SerializeLogRecord(logRecordList[0]);
+                fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+                actualTableName = (fluentdData as object[])[0] as string;
+                expectedCategoryToTableNameMappings.TryGetValue(mapping.Key, out var expectedTableNme);
+                Assert.Equal(expectedTableNme, actualTableName);
+                logRecordList.Clear();
+            }
+        }
+
         [Theory]
         [InlineData(true)]
         [InlineData(false)]

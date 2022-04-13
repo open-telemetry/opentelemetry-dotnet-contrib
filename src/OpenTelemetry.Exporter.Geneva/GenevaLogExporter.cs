@@ -228,7 +228,8 @@ namespace OpenTelemetry.Exporter.Geneva
                         }
                         else if (name[readIdx] >= 'a' && name[readIdx] <= 'z')
                         {
-                            tempArr[writeIdx] = name[readIdx - 32]; // 97-65 = 32 ascii table
+                            // If the first character in the resulting string is lower -case ALPHA, it will be converted to the corresponding upper-case.
+                            tempArr[writeIdx] = (char)(name[readIdx] - 32);
                             ++writeIdx;
                         }
 
@@ -249,7 +250,7 @@ namespace OpenTelemetry.Exporter.Geneva
                     ++readIdx;
                 }
 
-                if (readIdx == name.Length)
+                if (readIdx == name.Length && writeIdx != 0)
                 {
                     eventName = new string(tempArr, 0, writeIdx <= 31 ? writeIdx : 32);
                 }
