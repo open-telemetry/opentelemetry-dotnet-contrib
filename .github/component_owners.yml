@@ -8,8 +8,8 @@ components:
   src/OpenTelemetry.Exporter.Geneva/:
     - cijothomas
     - codeblanch
-    - reyang
     - mic-max
+    - reyang
     - utpilla
     - Yun-Ting
   src/OpenTelemetry.Exporter.Stackdriver/:
@@ -41,22 +41,22 @@ components:
   test/OpenTelemetry.Exporter.Geneva.Benchmark/:
     - cijothomas
     - codeblanch
-    - reyang
     - mic-max
+    - reyang
     - utpilla
     - Yun-Ting
   test/OpenTelemetry.Exporter.Geneva.Stress/:
     - cijothomas
     - codeblanch
-    - reyang
     - mic-max
+    - reyang
     - utpilla
     - Yun-Ting
   test/OpenTelemetry.Exporter.Geneva.Tests/:
     - cijothomas
     - codeblanch
-    - reyang
     - mic-max
+    - reyang
     - utpilla
     - Yun-Ting
   test/OpenTelemetry.Exporter.Stackdriver.Tests/:
