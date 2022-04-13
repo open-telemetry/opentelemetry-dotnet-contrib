@@ -221,11 +221,11 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         var name = logRecord.CategoryName;
 
             // If user configured explicit TableName, use it.
-            if (m_tableMappings == null || !m_tableMappings.TryGetValue(name, out var eventName) && !shouldPassThruTableMappings)
+            if (this.m_tableMappings == null || (!this.m_tableMappings.TryGetValue(name, out var eventName) && !this.shouldPassThruTableMappings))
             {
                 eventName = this.m_defaultEventName;
             }
-            else if (shouldPassThruTableMappings && eventName == null)
+            else if (this.shouldPassThruTableMappings && eventName == null)
             {
                 char[] tempArr = new char[name.Length];
                 int readIdx = 0;
@@ -245,13 +245,15 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
                             ++writeIdx;
                         }
 
-                        // Not a valid name - Part B name should follow PascalCase.
+                        // Not a valid name - Part B name should follow PascalCase naming convention.
                         else
                         {
                             break;
                         }
                     }
-                    else if (name[readIdx] >= '0' && name[readIdx] <= '9' || name[readIdx] >= 'A' && name[readIdx] <= 'Z' || name[readIdx] >= 'a' && name[readIdx] <= 'z')
+                    else if ((name[readIdx] >= '0' && name[readIdx] <= '9') ||
+                             (name[readIdx] >= 'A' && name[readIdx] <= 'Z') ||
+                             (name[readIdx] >= 'a' && name[readIdx] <= 'z'))
                     {
                         tempArr[writeIdx] = name[readIdx];
                         ++writeIdx;
@@ -260,8 +262,10 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
                     ++readIdx;
                 }
 
-                // If the resulting string is still an illegal Part B name, the data will get dropped on the floor.
-                eventName = new string(tempArr, 0, writeIdx <= 31 ? writeIdx : 32);
+                if (readIdx == name.Length)
+                {
+                    eventName = new string(tempArr, 0, writeIdx <= 31 ? writeIdx : 32);
+                }
             }
 
         var buffer = m_buffer.Value;
