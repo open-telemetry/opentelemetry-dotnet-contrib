@@ -42,9 +42,10 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None",
     };
 
-    private readonly IDataTransport m_dataTransport;
-    private bool isDisposed;
-    private Func<object, string> convertToJson;
+        private readonly IDataTransport m_dataTransport;
+        private bool isDisposed;
+        private bool shouldPassThruTableMappings;
+        private Func<object, string> convertToJson;
 
     public GenevaLogExporter(GenevaExporterOptions options)
     {
@@ -69,15 +70,22 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
                     throw new ArgumentException("The value: \"{tableName}\" provided for TableNameMappings option contains non-ASCII characters", kv.Value);
                 }
 
-                if (kv.Key == "*")
-                {
-                    this.m_defaultEventName = kv.Value;
+                    if (kv.Key == "*")
+                    {
+                        if (kv.Value == "*")
+                        {
+                            this.shouldPassThruTableMappings = true;
+                        }
+                        else
+                        {
+                            this.m_defaultEventName = kv.Value;
+                        }
+                    }
+                    else
+                    {
+                        tempTableMappings[kv.Key] = kv.Value;
+                    }
                 }
-                else
-                {
-                    tempTableMappings[kv.Key] = kv.Value;
-                }
-            }
 
             this.m_tableMappings = tempTableMappings;
         }
@@ -212,11 +220,49 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
 
         var name = logRecord.CategoryName;
 
-        // If user configured explicit TableName, use it.
-        if (this.m_tableMappings == null || !this.m_tableMappings.TryGetValue(name, out var eventName))
-        {
-            eventName = this.m_defaultEventName;
-        }
+            // If user configured explicit TableName, use it.
+            if (m_tableMappings == null || !m_tableMappings.TryGetValue(name, out var eventName) && !shouldPassThruTableMappings)
+            {
+                eventName = this.m_defaultEventName;
+            }
+            else if (shouldPassThruTableMappings && eventName == null)
+            {
+                char[] tempArr = new char[name.Length];
+                int readIdx = 0;
+                int writeIdx = 0;
+                while (readIdx < name.Length)
+                {
+                    if (readIdx == 0)
+                    {
+                        if (name[readIdx] >= 'A' && name[readIdx] <= 'Z')
+                        {
+                            tempArr[writeIdx] = name[readIdx];
+                            ++writeIdx;
+                        }
+                        else if (name[readIdx] >= 'a' && name[readIdx] <= 'z')
+                        {
+                            tempArr[writeIdx] = name[readIdx - 32]; // 97-65 = 32 ascii table
+                            ++writeIdx;
+                        }
+
+                        // Not a valid name - Part B name should follow PascalCase.
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    else if (name[readIdx] >= '0' && name[readIdx] <= '9' || name[readIdx] >= 'A' && name[readIdx] <= 'Z' || name[readIdx] >= 'a' && name[readIdx] <= 'z')
+                    {
+                        tempArr[writeIdx] = name[readIdx];
+                        ++writeIdx;
+                    }
+
+                    ++readIdx;
+                }
+
+                // If the resulting string is still an illegal Part B name, the data will get dropped on the floor.
+                eventName = new string(tempArr, 0, writeIdx <= 31 ? writeIdx : 32);
+            }
 
         var buffer = m_buffer.Value;
         if (buffer == null)
