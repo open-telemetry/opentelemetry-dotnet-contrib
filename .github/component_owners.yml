@@ -1,0 +1,55 @@
+# This file is used by .github/workflows/assign-reviewers.yml
+
+# Each component identified by its path prefix has a list of users
+components:
+  src/OpenTelemetry.Contrib.Extensions.AWSXRay/:
+    - srprash
+    - lupengamzn
+  src/OpenTelemetry.Exporter.Stackdriver/:
+    - SergeyKanzhelev
+  src/OpenTelemetry.Extensions/:
+    - codeblanch
+  src/OpenTelemetry.Extensions.PersistentStorage/:
+    - vishweshbankwar
+  src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
+    - ejsmith
+  src/OpenTelemetry.Instrumentation.GrpcCore/:
+    - pcwiese
+  src/OpenTelemetry.Instrumentation.Hangfire/:
+    - fred2u
+  src/OpenTelemetry.Instrumentation.MassTransit/:
+    - alexvaluyskiy
+  src/OpenTelemetry.Instrumentation.MySqlData/:
+    - moonheart
+  src/OpenTelemetry.Instrumentation.Owin/:
+    - codeblanch
+  src/OpenTelemetry.Instrumentation.Quartz/:
+    - maldago
+  src/OpenTelemetry.Instrumentation.Wcf/:
+    - codeblanch
+
+  test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/:
+    - srprash 
+    - lupengamzn
+  test/OpenTelemetry.Exporter.Stackdriver.Tests/:
+    - SergeyKanzhelev
+  test/OpenTelemetry.Extensions.Tests/:
+    - codeblanch
+  test/OpenTelemetry.Extensions.PersistentStorage.Tests/:
+    - vishweshbankwar
+  test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/:
+    - ejsmith
+  test/OpenTelemetry.Instrumentation.GrpcCore.Tests/:
+    - pcwiese
+  test/OpenTelemetry.Instrumentation.Hangfire.Tests/:
+    - fred2u
+  test/OpenTelemetry.Instrumentation.MassTransit.Tests/:
+    - alexvaluyskiy
+  test/OpenTelemetry.Instrumentation.MySqlData.Tests/:
+    - moonheart
+  test/OpenTelemetry.Instrumentation.Owin.Tests/:
+    - codeblanch
+  test/OpenTelemetry.Instrumentation.Quartz.Tests/:
+    - maldago
+  test/OpenTelemetry.Instrumentation.Wcf.Tests/:
+    - codeblanch

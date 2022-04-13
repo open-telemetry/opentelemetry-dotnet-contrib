@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+		<OutputType>Exe</OutputType>
+        <TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
+        <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net461;net462;net47;net471;net472;net48</TargetFrameworks>
+        <NoWarn>$(NoWarn),SA1633,SA1201,SA1202,SA1204,SA1311,SA1123</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
+		<PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="1.2.0-rc2" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="[5.0.0,)" />
+		<PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.4" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\OpenTelemetry.Exporter.Geneva\OpenTelemetry.Exporter.Geneva.csproj" />
+	</ItemGroup>
+
+</Project>

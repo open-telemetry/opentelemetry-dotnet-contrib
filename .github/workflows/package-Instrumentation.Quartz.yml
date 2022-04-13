@@ -1,4 +1,4 @@
-name: Pack OpenTelemetry.Contrib.Instrumentation.Quartz
+name: Pack OpenTelemetry.Instrumentation.Quartz
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ jobs:
   build-test-pack:
     runs-on: ${{ matrix.os }}
     env:
-      PROJECT: OpenTelemetry.Contrib.Instrumentation.Quartz
+      PROJECT: OpenTelemetry.Instrumentation.Quartz
 
     strategy:
       matrix:

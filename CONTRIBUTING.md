@@ -35,20 +35,22 @@ You can contribute to this project from a Windows, macOS or Linux machine.
 On all platforms, the minimum requirements are:
 
 * Git client and command line tools.
-* .NET Core 3.1+
+* .NET 6.0+
+
+Please note that individual project requirements might vary.
 
 ### Linux or MacOS
 
 * Visual Studio for Mac or Visual Studio Code
 
 Mono might be required by your IDE but is not required by this project. This is
-because unit tests targeting .NET Framework (i.e: `net46`) are disabled outside
-of Windows.
+because unit tests targeting .NET Framework (`net452`, `net46`, `net461` etc.)
+are disabled outside of Windows.
 
 ### Windows
 
-* Visual Studio 2017+ or Visual Studio Code
-* .NET Framework 4.6+
+* Visual Studio 2022+ or Visual Studio Code
+* .NET Framework 4.6.1+
 
 ## Pull Requests
 
@@ -110,13 +112,17 @@ Open a pull request against the main `opentelemetry-dotnet-contrib` repo.
 * If the PR is not ready for review, please mark it as
   [`draft`](https://github.blog/2019-02-14-introducing-draft-pull-requests/).
 * Make sure CLA is signed and CI is clear.
+* Submit small, focused PRs addressing a single concern/issue.
+* Make sure the PR title reflects the contribution.
+* Write a summary that helps understand the change.
+* Include usage examples in the summary, where applicable.
 
 ### How to Get PRs Merged
 
 A PR is considered to be **ready to merge** when:
 
 * It has received approval from
-  [Approvers](https://github.com/open-telemetry/community/blob/master/community-membership.md#approver).
+  [Approvers](https://github.com/open-telemetry/community/blob/master/community-membership.md#approver)
   /
   [Maintainers](https://github.com/open-telemetry/community/blob/master/community-membership.md#maintainer).
 * Major feedbacks are resolved.
@@ -131,8 +137,8 @@ and the new feature doesn't fit it.
 
 ### How to request for release of package
 
-Submit a PR with `CHANGELOG.md` file reflecting the version to be released. Also,
-tag the maintainers of this repository who can release the package.
+Submit a PR with `CHANGELOG.md` file reflecting the version to be released.
+Also, tag the maintainers of this repository who can release the package.
 
 ## Style Guide
 
@@ -148,36 +154,33 @@ build. Breaking the rules will result in a build failure.
 
 ## Contributing a new project
 
-This repo is a great place to contribute a new instrumentation, exporter or
-any kind of extension. Please refer to
-[this page](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/docs/trace/extending-the-sdk/README.md#extending-the-opentelemetry-net-sdk)
-for help writing your component.
-Although the projects within this repo share some
-properties and configurations, they are built and released independently.
+This repo is a great place to contribute a new instrumentation, exporter or any
+kind of extension. Please refer to [this
+page](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/docs/trace/extending-the-sdk/README.md#extending-the-opentelemetry-net-sdk)
+for help writing your component. Although the projects within this repo share
+some properties and configurations, they are built and released independently.
 So if you are creating a new project within `/src` and corresponding test
-project within `/test`, here are a few things you should do to ensure that
-your project is automatically built and shipped through CI.
+project within `/test`, here are a few things you should do to ensure that your
+project is automatically built and shipped through CI.
 
-* Based on what your project is, you may need to depend on the
-[OpenTelemetry SDK](https://www.nuget.org/packages/OpenTelemetry)
-or the
-[OpenTelemetry API](https://www.nuget.org/packages/OpenTelemetry.Api)
-Include the necessary package in your project.
-You can choose the version that you want to depend on.
+* Based on what your project is, you may need to depend on the [OpenTelemetry
+SDK](https://www.nuget.org/packages/OpenTelemetry) or the [OpenTelemetry
+API](https://www.nuget.org/packages/OpenTelemetry.Api) Include the necessary
+package in your project. You can choose the version that you want to depend on.
 Usually it is a good idea to use the latest version. Example:
 
   ```xml
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry" Version="1.0.0-rc4" />
+    <PackageReference Include="OpenTelemetry" Version="1.2.0-rc3" />
   </ItemGroup>
   ```
 
 * The assembly and nuget versioning is managed through
-[MinVer](https://github.com/adamralph/minver) for all the projects in the
-repo. MinVer will assign the version to your project based on the tag prefix
-specified by you. To ensure your project is versioned appropriately, specify
-a `<MinVerTagPrefix>` property in your project file. If your project is named
-as "OpenTelemetry.Contrib.Foo.Bar", the MinVerTagPrefix must be "Foo.Bar-".
+[MinVer](https://github.com/adamralph/minver) for all the projects in the repo.
+MinVer will assign the version to your project based on the tag prefix specified
+by you. To ensure your project is versioned appropriately, specify a
+`<MinVerTagPrefix>` property in your project file. If your project is named as
+"OpenTelemetry.Contrib.Foo.Bar", the MinVerTagPrefix must be "Foo.Bar-".
 Example:
 
   ```xml
@@ -186,18 +189,31 @@ Example:
   </PropertyGroup>
   ```
 
-* To build and release your project as nuget, you must provide a GitHub
-workflow to be triggered when a tag with prefix "Foo.Bar-" is pushed to the
-main branch. The workflow file should be named as `package-Foo.Bar.yml` and
-to be placed in the `.github/workflows/` folder.
+* To build and release your project as nuget, you must provide a GitHub workflow
+to be triggered when a tag with prefix "Foo.Bar-" is pushed to the main branch.
+The workflow file should be named as `package-Foo.Bar.yml` and to be placed in
+the `.github/workflows/` folder.
 
-  You can copy one of the
-  [existing workflow files](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml)
+  You can copy one of the [existing workflow
+  files](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml)
   and replace the
   [`tags`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml#L12)
   value to "Foo.Bar-*" and
   [`PROJECT`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml#L18)
   value to "OpenTelemetry.Contrib.Foo.Bar".
 
-* When contributing a new project you are expected to assign yourself to your
-project in the [CODEOWNERS](./CODEOWNERS) file
+* Add a README file for your project describing how to install and use your
+  package. Every project's README file needs to have a link to the Nuget
+  package. You can use the below snippet for reference:
+
+<!-- markdownlint-disable MD040 -->
+```
+[![NuGet](https://img.shields.io/nuget/v/{your_package_name}.svg)](https://www.nuget.org/packages/{your_package_name})
+[![NuGet](https://img.shields.io/nuget/dt/{your_package_name}.svg)](https://www.nuget.org/packages/{your_package_name})
+```
+<!-- markdownlint-enable MD040 -->
+
+* When contributing a new project you are expected to assign either yourself or
+someone else who would take ownership for the component you are contributing.
+Please add the right onwer for your project in the
+[component_owners](./.github/component_owners.yml) file.

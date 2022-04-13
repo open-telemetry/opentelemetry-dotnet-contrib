@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\OpenTelemetry.Contrib.Instrumentation.Wcf\OpenTelemetry.Contrib.Instrumentation.Wcf.csproj" />
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Wcf\OpenTelemetry.Instrumentation.Wcf.csproj" />
   </ItemGroup>
 
   <ItemGroup>

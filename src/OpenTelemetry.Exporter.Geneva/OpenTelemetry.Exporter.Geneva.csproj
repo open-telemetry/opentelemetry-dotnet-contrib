@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Description>An OpenTelemetry .NET exporter that exports to local ETW or UDS</Description>
+    <Authors>OpenTelemetry Authors</Authors>
+    <NoWarn>$(NoWarn),NU5104,CS1591,SA1123,SA1633,SA1310,CA1031,CA1810,CA1822,CA2000,CA2208,SA1204,SA1201,SA1202,SA1308,SA1309,SA1311,SA1402,SA1602,SA1649</NoWarn>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net461</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry" Version="1.2.0-rc2" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+  </PropertyGroup>
+
+</Project>

@@ -1,4 +1,4 @@
-name: Pack OpenTelemetry.Contrib.Instrumentation.MassTransit
+name: Pack OpenTelemetry.Instrumentation.MassTransit
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ jobs:
   build-test-pack:
     runs-on: ${{ matrix.os }}
     env:
-      PROJECT: OpenTelemetry.Contrib.Instrumentation.MassTransit
+      PROJECT: OpenTelemetry.Instrumentation.MassTransit
 
     strategy:
       matrix:

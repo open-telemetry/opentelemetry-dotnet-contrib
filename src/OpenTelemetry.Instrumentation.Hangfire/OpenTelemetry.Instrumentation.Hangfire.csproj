@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>OpenTelemetry Hangfire Instrumentation</Description>
+    <PackageTags>$(PackageTags);Hangfire</PackageTags>
+    <MinVerTagPrefix>Instrumentation.Hangfire-</MinVerTagPrefix>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Hangfire.Core" Version="[1.7.0,1.8.0)" />
+    <PackageReference Include="OpenTelemetry.Api" Version="1.2.0-rc4" />
+  </ItemGroup>
+</Project>

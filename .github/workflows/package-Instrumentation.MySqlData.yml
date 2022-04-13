@@ -1,4 +1,4 @@
-name: Pack OpenTelemetry.Contrib.Instrumentation.MySqlData
+name: Pack OpenTelemetry.Instrumentation.MySqlData
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ jobs:
   build-test-pack:
     runs-on: ${{ matrix.os }}
     env:
-      PROJECT: OpenTelemetry.Contrib.Instrumentation.MySqlData
+      PROJECT: OpenTelemetry.Instrumentation.MySqlData
 
     strategy:
       matrix:

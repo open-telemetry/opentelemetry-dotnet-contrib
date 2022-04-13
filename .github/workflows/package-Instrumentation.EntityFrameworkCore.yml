@@ -1,4 +1,4 @@
-name: Pack OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore
+name: Pack OpenTelemetry.Instrumentation.EntityFrameworkCore
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ jobs:
   build-test-pack:
     runs-on: ${{ matrix.os }}
     env:
-      PROJECT: OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore
+      PROJECT: OpenTelemetry.Instrumentation.EntityFrameworkCore
 
     strategy:
       matrix:
