@@ -175,7 +175,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.Gene
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.Geneva.Stress", "test\OpenTelemetry.Exporter.Geneva.Stress\OpenTelemetry.Exporter.Geneva.Stress.csproj", "{F632DFB6-38AD-4356-8997-8CCC0492619C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.Geneva.UnitTest", "test\OpenTelemetry.Exporter.Geneva.UnitTest\OpenTelemetry.Exporter.Geneva.UnitTest.csproj", "{A3EB4E60-256C-45EC-92EE-68FD035CAD11}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.Geneva.Tests", "test\OpenTelemetry.Exporter.Geneva.Tests\OpenTelemetry.Exporter.Geneva.Tests.csproj", "{A3EB4E60-256C-45EC-92EE-68FD035CAD11}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Hangfire", "src\OpenTelemetry.Instrumentation.Hangfire\OpenTelemetry.Instrumentation.Hangfire.csproj", "{BE5FFBBB-D73F-4071-92F4-F1694881604F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Hangfire.Tests", "test\OpenTelemetry.Instrumentation.Hangfire.Tests\OpenTelemetry.Instrumentation.Hangfire.Tests.csproj", "{ED774FC3-C1C0-44CD-BA41-686C04BEB3E5}"
