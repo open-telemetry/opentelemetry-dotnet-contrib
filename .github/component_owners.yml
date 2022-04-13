@@ -15,6 +15,8 @@ components:
     - ejsmith
   src/OpenTelemetry.Instrumentation.GrpcCore/:
     - pcwiese
+  src/OpenTelemetry.Instrumentation.Hangfire/:
+    - fred2u
   src/OpenTelemetry.Instrumentation.MassTransit/:
     - alexvaluyskiy
   src/OpenTelemetry.Instrumentation.MySqlData/:
@@ -39,6 +41,8 @@ components:
     - ejsmith
   test/OpenTelemetry.Instrumentation.GrpcCore.Tests/:
     - pcwiese
+  test/OpenTelemetry.Instrumentation.Hangfire.Tests/:
+    - fred2u
   test/OpenTelemetry.Instrumentation.MassTransit.Tests/:
     - alexvaluyskiy
   test/OpenTelemetry.Instrumentation.MySqlData.Tests/:
