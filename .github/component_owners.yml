@@ -5,6 +5,9 @@ components:
   src/OpenTelemetry.Contrib.Extensions.AWSXRay/:
     - srprash
     - lupengamzn
+  src/OpenTelemetry.Exporter.Geneva/:
+    - cijothomas
+    - utpilla
   src/OpenTelemetry.Exporter.Stackdriver/:
     - SergeyKanzhelev
   src/OpenTelemetry.Extensions/:
@@ -31,6 +34,15 @@ components:
   test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/:
     - srprash 
     - lupengamzn
+  test/OpenTelemetry.Exporter.Geneva.Benchmark/:
+    - cijothomas
+    - utpilla
+  test/OpenTelemetry.Exporter.Geneva.Stress/:
+    - cijothomas
+    - utpilla
+  test/OpenTelemetry.Exporter.Geneva.Tests/:
+    - cijothomas
+    - utpilla
   test/OpenTelemetry.Exporter.Stackdriver.Tests/:
     - SergeyKanzhelev
   test/OpenTelemetry.Extensions.Tests/:
