@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 [assembly: CLSCompliant(false)]
 [assembly: InternalsVisibleTo("OpenTelemetry.Exporter.Geneva.Benchmark" + AssemblyInfo.PublicKey)]
-[assembly: InternalsVisibleTo("OpenTelemetry.Exporter.Geneva.UnitTest" + AssemblyInfo.PublicKey)]
+[assembly: InternalsVisibleTo("OpenTelemetry.Exporter.Geneva.Tests" + AssemblyInfo.PublicKey)]
 [assembly: InternalsVisibleTo("OpenTelemetry.Exporter.Geneva.Stress" + AssemblyInfo.PublicKey)]
 
 internal static class AssemblyInfo
