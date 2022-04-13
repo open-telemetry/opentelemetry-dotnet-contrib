@@ -38,7 +38,21 @@ components:
   test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/:
     - srprash 
     - lupengamzn
-  test/OpenTelemetry.Exporter.Geneva.UnitTest/:
+  test/OpenTelemetry.Exporter.Geneva.Benchmark/:
+    - cijothomas
+    - codeblanch
+    - reyang
+    - mic-max
+    - utpilla
+    - Yun-Ting
+  test/OpenTelemetry.Exporter.Geneva.Stress/:
+    - cijothomas
+    - codeblanch
+    - reyang
+    - mic-max
+    - utpilla
+    - Yun-Ting
+  test/OpenTelemetry.Exporter.Geneva.Tests/:
     - cijothomas
     - codeblanch
     - reyang
