@@ -5,6 +5,13 @@ components:
   src/OpenTelemetry.Contrib.Extensions.AWSXRay/:
     - srprash
     - lupengamzn
+  src/OpenTelemetry.Exporter.Geneva/:  
+    - cijothomas
+    - codeblanch
+    - reyang
+    - mic-max
+    - utpilla
+    - Yun-Ting
   src/OpenTelemetry.Exporter.Stackdriver/:
     - SergeyKanzhelev
   src/OpenTelemetry.Extensions/:
@@ -31,6 +38,13 @@ components:
   test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/:
     - srprash 
     - lupengamzn
+  test/OpenTelemetry.Exporter.Geneva.UnitTest/:
+    - cijothomas
+    - codeblanch
+    - reyang
+    - mic-max
+    - utpilla
+    - Yun-Ting
   test/OpenTelemetry.Exporter.Stackdriver.Tests/:
     - SergeyKanzhelev
   test/OpenTelemetry.Extensions.Tests/:
