@@ -363,7 +363,9 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 {
                     File.Delete(path);
                 }
-                catch { }
+                catch
+                {
+                }
             }
         }
 
