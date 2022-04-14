@@ -261,8 +261,15 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 _ = exporter.SerializeLogRecord(logRecordList[0]);
                 object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
                 var body = GetField(fluentdData, "body");
-                string expectedBody = includeFormattedMessage ? "Formatted Message" : null;
-                Assert.Equal(expectedBody, body);
+                if (includeFormattedMessage)
+                {
+                    Assert.Equal("Formatted Message", body);
+                }
+                else
+                {
+                    Assert.Null(body);
+                }
+
                 Assert.Equal("Value1", GetField(fluentdData, "Key1"));
                 Assert.Equal("Value2", GetField(fluentdData, "Key2"));
 
@@ -284,8 +291,14 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 _ = exporter.SerializeLogRecord(logRecordList[0]);
                 fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
                 body = GetField(fluentdData, "body");
-                expectedBody = includeFormattedMessage ? "Formatted Message" : "somestringasdata";
-                Assert.Equal(expectedBody, body);
+                if (includeFormattedMessage)
+                {
+                    Assert.Equal("Formatted Message", body);
+                }
+                else
+                {
+                    Assert.Null(body);
+                }
 
                 // ARRANGE
                 logRecordList.Clear();
@@ -306,9 +319,42 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
                 body = GetField(fluentdData, "body");
 
-                // Formatter is null, hence body is always the ToString() of the data
-                expectedBody = "somestringasdata";
-                Assert.Equal(expectedBody, body);
+                // Formatter is null, hence body is always null
+                Assert.Null(body);
+
+                // ARRANGE
+                logRecordList.Clear();
+
+                // ACT
+                // This is treated as Structured logging as the state can be converted to IReadOnlyList<KeyValuePair<string, object>>
+                logger.Log(logLevel: LogLevel.Information,
+                   eventId: default,
+                   new List<KeyValuePair<string, object>>()
+                    {
+                        new KeyValuePair<string, object>("Key1", "Value1"),
+                    },
+                    exception: null,
+                    formatter: (state, ex) => "Example formatted message."
+                    );
+
+                // VALIDATE
+                Assert.Single(logRecordList);
+                m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+                _ = exporter.SerializeLogRecord(logRecordList[0]);
+                fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+                Assert.Equal("Value1", GetField(fluentdData, "Key1"));
+
+                body = GetField(fluentdData, "body");
+
+                // Only populate body if FormattedMessage is enabled
+                if (includeFormattedMessage)
+                {
+                    Assert.Equal("Example formatted message.", body);
+                }
+                else
+                {
+                    Assert.Null(body);
+                }
             }
             finally
             {
@@ -317,9 +363,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 {
                     File.Delete(path);
                 }
-                catch
-                {
-                }
+                catch { }
             }
         }
 
@@ -333,7 +377,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         [InlineData(true, false, true)]
         [InlineData(true, true, true)]
         [Trait("Platform", "Any")]
-        public void SuccessfulSerialization(bool hasTableNameMapping, bool hasCustomFields, bool parseStateValues)
+        public void SerializationTestWithILoggerLogWithTemplates(bool hasTableNameMapping, bool hasCustomFields, bool parseStateValues)
         {
             string path = string.Empty;
             Socket server = null;
@@ -427,29 +471,13 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 logger.Log(LogLevel.Error, 101, "Log a {customField} and {property}", "CustomFieldValue", "PropertyValue");
                 logger.Log(LogLevel.Critical, 101, "Log a {customField} and {property}", "CustomFieldValue", "PropertyValue");
                 logger.LogInformation("Hello World!"); // unstructured logging
-
-                logger.Log(LogLevel.Information, default, "Hello World!", null, null); // unstructured logging using a non-extension method call
-
-                // logging custom state
-                // This is treated as structured logging as the state can be converted to IReadOnlyList<KeyValuePair<string, object>>
-                logger.Log(
-                    LogLevel.Information,
-                    default,
-                    new List<KeyValuePair<string, object>>()
-                    {
-                        new KeyValuePair<string, object>("Key1", "Value1"),
-                        new KeyValuePair<string, object>("Key2", "Value2"),
-                    },
-                    null,
-                    (state, ex) => "Formatted Exception!");
-
                 logger.LogError(new InvalidOperationException("Oops! Food is spoiled!"), "Hello from {food} {price}.", "artichoke", 3.99);
 
                 var loggerWithDefaultCategory = loggerFactory.CreateLogger("DefaultCategory");
                 loggerWithDefaultCategory.LogInformation("Basic test");
 
-                // logRecordList should have two logRecord entries after the logger.LogInformation calls
-                Assert.Equal(14, logRecordList.Count);
+                // logRecordList should have 12 logRecord entries as there were 12 Log calls
+                Assert.Equal(12, logRecordList.Count);
 
                 var m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
 
