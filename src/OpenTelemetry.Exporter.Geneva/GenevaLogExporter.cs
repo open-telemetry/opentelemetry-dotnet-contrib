@@ -181,20 +181,17 @@ namespace OpenTelemetry.Exporter.Geneva
 
         internal int SerializeLogRecord(LogRecord logRecord)
         {
-            bool isUnstructuredLog = true;
             IReadOnlyList<KeyValuePair<string, object>> listKvp;
             if (logRecord.State == null)
             {
+                // When State is null, OTel SDK guarantees StateValues is populated
+                // TODO: Debug.Assert?
                 listKvp = logRecord.StateValues;
             }
             else
             {
+                // Attempt to see if State could be ROL_KVP.
                 listKvp = logRecord.State as IReadOnlyList<KeyValuePair<string, object>>;
-            }
-
-            if (listKvp != null)
-            {
-                isUnstructuredLog = listKvp.Count == 1;
             }
 
             var name = logRecord.CategoryName;
@@ -325,81 +322,72 @@ namespace OpenTelemetry.Exporter.Geneva
             cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, name);
             cntFields += 1;
 
-            if (isUnstructuredLog)
+            bool hasEnvProperties = false;
+            bool bodyPopulated = false;
+            for (int i = 0; i < listKvp?.Count; i++)
+            {
+                var entry = listKvp[i];
+
+                // Iteration #1 - Get those fields which become dedicated columns
+                // i.e all Part B fields and opt-in Part C fields.
+                if (entry.Key == "{OriginalFormat}")
+                {
+                    cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "body");
+                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, logRecord.FormattedMessage ?? Convert.ToString(entry.Value, CultureInfo.InvariantCulture));
+                    cntFields += 1;
+                    bodyPopulated = true;
+                    continue;
+                }
+                else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
+                {
+                    // TODO: the above null check can be optimized and avoided inside foreach.
+                    if (entry.Value != null)
+                    {
+                        // null is not supported.
+                        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
+                        cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
+                        cntFields += 1;
+                    }
+                }
+                else
+                {
+                    hasEnvProperties = true;
+                    continue;
+                }
+            }
+
+            if (!bodyPopulated && logRecord.FormattedMessage != null)
             {
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "body");
-                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, logRecord.FormattedMessage ?? (listKvp != null ? Convert.ToString(listKvp[0].Value, CultureInfo.InvariantCulture) : Convert.ToString(logRecord.State, CultureInfo.InvariantCulture)));
+                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, logRecord.FormattedMessage);
                 cntFields += 1;
             }
-            else
+
+            if (hasEnvProperties)
             {
-                bool hasEnvProperties = false;
-                bool bodyPopulated = false;
+                // Iteration #2 - Get all "other" fields and collapse them into single field
+                // named "env_properties".
+                ushort envPropertiesCount = 0;
+                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_properties");
+                cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
+                int idxMapSizeEnvPropertiesPatch = cursor - 2;
                 for (int i = 0; i < listKvp.Count; i++)
                 {
                     var entry = listKvp[i];
-
-                    // Iteration #1 - Get those fields which become dedicated column
-                    // i.e all PartB fields and opt-in part c fields.
-                    if (entry.Key == "{OriginalFormat}")
+                    if (entry.Key == "{OriginalFormat}" || this.m_customFields.ContainsKey(entry.Key))
                     {
-                        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "body");
-                        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, logRecord.FormattedMessage ?? Convert.ToString(entry.Value, CultureInfo.InvariantCulture));
-                        cntFields += 1;
-                        bodyPopulated = true;
                         continue;
-                    }
-                    else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
-                    {
-                        // TODO: the above null check can be optimized and avoided inside foreach.
-                        if (entry.Value != null)
-                        {
-                            // Geneva doesn't support null.
-                            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
-                            cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
-                            cntFields += 1;
-                        }
                     }
                     else
                     {
-                        hasEnvProperties = true;
-                        continue;
+                        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
+                        cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
+                        envPropertiesCount += 1;
                     }
                 }
 
-                if (!bodyPopulated && logRecord.FormattedMessage != null)
-                {
-                    cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "body");
-                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, logRecord.FormattedMessage);
-                    cntFields += 1;
-                }
-
-                if (hasEnvProperties)
-                {
-                    // Iteration #2 - Get all "other" fields and collapse them into single field
-                    // named "env_properties".
-                    ushort envPropertiesCount = 0;
-                    cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_properties");
-                    cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
-                    int idxMapSizeEnvPropertiesPatch = cursor - 2;
-                    for (int i = 0; i < listKvp.Count; i++)
-                    {
-                        var entry = listKvp[i];
-                        if (entry.Key == "{OriginalFormat}" || this.m_customFields.ContainsKey(entry.Key))
-                        {
-                            continue;
-                        }
-                        else
-                        {
-                            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
-                            cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
-                            envPropertiesCount += 1;
-                        }
-                    }
-
-                    cntFields += 1;
-                    MessagePackSerializer.WriteUInt16(buffer, idxMapSizeEnvPropertiesPatch, envPropertiesCount);
-                }
+                cntFields += 1;
+                MessagePackSerializer.WriteUInt16(buffer, idxMapSizeEnvPropertiesPatch, envPropertiesCount);
             }
 
             var eventId = logRecord.EventId;
