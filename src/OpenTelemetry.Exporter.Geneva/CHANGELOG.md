@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-LogExporter modified to stop calling ToString()
+LogExporter modified to stop calling `ToString()`
 on `LogRecord.State` to obtain Log body. It now
 obtains body from `LogRecord.FormattedMessage`
 or special casing "{OriginalFormat}" only.
