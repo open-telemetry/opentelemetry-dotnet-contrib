@@ -23,7 +23,6 @@ using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Exporter.Geneva
 {
-    [AggregationTemporality(AggregationTemporality.Delta)]
     public class GenevaMetricExporter : BaseExporter<Metric>
     {
         private const int BufferSize = 65360; // the maximum ETW payload (inclusive)
