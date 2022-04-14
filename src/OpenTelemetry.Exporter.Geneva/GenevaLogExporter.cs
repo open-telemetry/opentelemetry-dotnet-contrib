@@ -185,6 +185,7 @@ namespace OpenTelemetry.Exporter.Geneva
             if (logRecord.State == null)
             {
                 // When State is null, OTel SDK guarantees StateValues is populated
+                // TODO: Debug.Assert?
                 listKvp = logRecord.StateValues;
             }
             else
@@ -327,8 +328,8 @@ namespace OpenTelemetry.Exporter.Geneva
             {
                 var entry = listKvp[i];
 
-                // Iteration #1 - Get those fields which become dedicated column
-                // i.e all PartB fields and opt-in part c fields.
+                // Iteration #1 - Get those fields which become dedicated columns
+                // i.e all Part B fields and opt-in Part C fields.
                 if (entry.Key == "{OriginalFormat}")
                 {
                     cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "body");
@@ -342,7 +343,7 @@ namespace OpenTelemetry.Exporter.Geneva
                     // TODO: the above null check can be optimized and avoided inside foreach.
                     if (entry.Value != null)
                     {
-                        // Geneva doesn't support null.
+                        // null is not supported.
                         cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
                         cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
                         cntFields += 1;
