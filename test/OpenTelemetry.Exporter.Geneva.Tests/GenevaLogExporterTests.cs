@@ -327,15 +327,15 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
 
                 // ACT
                 // This is treated as Structured logging as the state can be converted to IReadOnlyList<KeyValuePair<string, object>>
-                logger.Log(logLevel: LogLevel.Information,
-                   eventId: default,
-                   new List<KeyValuePair<string, object>>()
-                    {
-                        new KeyValuePair<string, object>("Key1", "Value1"),
-                    },
+                logger.Log(
+                    logLevel: LogLevel.Information,
+                    eventId: default,
+                    new List<KeyValuePair<string, object>>()
+                        {
+                            new KeyValuePair<string, object>("Key1", "Value1"),
+                        },
                     exception: null,
-                    formatter: (state, ex) => "Example formatted message."
-                    );
+                    formatter: (state, ex) => "Example formatted message.");
 
                 // VALIDATE
                 Assert.Single(logRecordList);
