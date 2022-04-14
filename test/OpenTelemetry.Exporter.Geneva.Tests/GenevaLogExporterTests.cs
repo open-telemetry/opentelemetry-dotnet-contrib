@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 using Xunit;
 
-namespace OpenTelemetry.Exporter.Geneva.UnitTest
+namespace OpenTelemetry.Exporter.Geneva.Tests
 {
     public class GenevaLogExporterTests
     {

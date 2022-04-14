@@ -12,9 +12,9 @@ using Kaitai;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Xunit;
-using static OpenTelemetry.Exporter.Geneva.UnitTest.MetricsContract;
+using static OpenTelemetry.Exporter.Geneva.Tests.MetricsContract;
 
-namespace OpenTelemetry.Exporter.Geneva.UnitTest
+namespace OpenTelemetry.Exporter.Geneva.Tests
 {
     public class GenevaMetricExporterTests
     {

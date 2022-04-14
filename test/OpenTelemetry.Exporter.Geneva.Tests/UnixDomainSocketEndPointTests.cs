@@ -4,7 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using Xunit;
 
-namespace OpenTelemetry.Exporter.Geneva.UnitTest
+namespace OpenTelemetry.Exporter.Geneva.Tests
 {
     public class UnixDomainSocketEndPointTests
     {
