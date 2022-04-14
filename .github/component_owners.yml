@@ -7,7 +7,11 @@ components:
     - lupengamzn
   src/OpenTelemetry.Exporter.Geneva/:
     - cijothomas
+    - codeblanch
+    - mic-max
+    - reyang
     - utpilla
+    - Yun-Ting
   src/OpenTelemetry.Exporter.Stackdriver/:
     - SergeyKanzhelev
   src/OpenTelemetry.Extensions/:
@@ -36,13 +40,25 @@ components:
     - lupengamzn
   test/OpenTelemetry.Exporter.Geneva.Benchmark/:
     - cijothomas
+    - codeblanch
+    - mic-max
+    - reyang
     - utpilla
+    - Yun-Ting
   test/OpenTelemetry.Exporter.Geneva.Stress/:
     - cijothomas
+    - codeblanch
+    - mic-max
+    - reyang
     - utpilla
+    - Yun-Ting
   test/OpenTelemetry.Exporter.Geneva.Tests/:
     - cijothomas
+    - codeblanch
+    - mic-max
+    - reyang
     - utpilla
+    - Yun-Ting
   test/OpenTelemetry.Exporter.Stackdriver.Tests/:
     - SergeyKanzhelev
   test/OpenTelemetry.Extensions.Tests/:
