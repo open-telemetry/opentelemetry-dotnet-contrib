@@ -112,7 +112,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
             var exportedItems = new List<Metric>();
             using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
             {
-                Temporality = AggregationTemporality.Delta,
+                TemporalityPreference = MetricReaderTemporalityPreference.Delta,
             };
 
             using var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -275,7 +275,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
             var exportedItems = new List<Metric>();
             using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
             {
-                Temporality = AggregationTemporality.Delta,
+                TemporalityPreference = MetricReaderTemporalityPreference.Delta,
             };
 
             using var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -479,7 +479,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
 
                 using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
                 {
-                    Temporality = AggregationTemporality.Delta,
+                    TemporalityPreference = MetricReaderTemporalityPreference.Delta,
                 };
 
                 // Set up two different providers as only one Metric Processor is allowed.
