@@ -28,6 +28,8 @@ namespace OpenTelemetry.Trace
     {
         private readonly Predicate<Activity> predicate;
         private readonly int timeoutMilliseconds;
+        private TracerProvider tracerProvider;
+        private bool canForceFlush = true;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AutoFlushActivityProcessor"/> class.
@@ -51,9 +53,28 @@ namespace OpenTelemetry.Trace
         /// <inheritdoc/>
         public override void OnEnd(Activity data)
         {
+            if (!this.canForceFlush)
+            {
+                return;
+            }
+
+            if (this.tracerProvider == null && this.ParentProvider != null)
+            {
+                this.tracerProvider = this.ParentProvider as TracerProvider;
+                this.canForceFlush = this.tracerProvider != null;
+                if (!this.canForceFlush)
+                {
+                    return;
+                }
+            }
+            else if (this.ParentProvider == null)
+            {
+                return;
+            }
+
             if (this.predicate(data))
             {
-                (this.ParentProvider as TracerProvider)?.ForceFlush(this.timeoutMilliseconds);
+                this.tracerProvider.ForceFlush(this.timeoutMilliseconds);
             }
         }
     }
