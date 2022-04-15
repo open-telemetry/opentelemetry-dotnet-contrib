@@ -412,6 +412,10 @@ namespace OpenTelemetry.Exporter.Geneva
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "eventId");
                 cursor = MessagePackSerializer.SerializeInt32(buffer, cursor, eventId.Id);
                 cntFields += 1;
+
+                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "eventName");
+                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, eventId.Name);
+                cntFields += 1;
             }
 
             MessagePackSerializer.WriteUInt16(buffer, idxMapSizePatch, cntFields);
