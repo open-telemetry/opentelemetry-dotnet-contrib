@@ -13,3 +13,25 @@ future.
 
 Adds a log processor which will convert log messages into events and attach them
 to the currently running Activity.
+
+## Traces
+
+### AutoFlushActivityProcessor
+
+Processor that flushes its containing TracerProvider if an ended activity matches a predicate. 
+Note that this processor must be added *after* exporter related span processors.
+
+Example of AutoFlushActivityProcessor usage:
+```cs
+public static TracerProviderBuilder AddMyExporter(this TracerProviderBuilder builder, MyExporterOptions options)
+{
+    var exporter = new MyExporter(options);
+
+    var autoFlushProcessor = new AutoFlushActivityProcessor(
+        a => a.Parent == null && (a.Kind == ActivityKind.Server || a.Kind == ActivityKind.Consumer), 5000);
+
+    return builder
+        .AddProcessor(new SimpleActivityExportProcessor(exporter))
+        .AddProcessor(autoFlushProcessor);
+}
+```

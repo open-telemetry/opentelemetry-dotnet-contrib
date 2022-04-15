@@ -23,6 +23,7 @@ namespace OpenTelemetry.Trace
     /// <summary>
     /// Activity processor that flushes its containing <see cref="TracerProvider"/> if an ended
     /// activity matches a predicate.
+    /// Beware: add this class *after* exporter related span processors.
     /// </summary>
     public sealed class AutoFlushActivityProcessor : BaseProcessor<Activity>
     {
@@ -34,7 +35,10 @@ namespace OpenTelemetry.Trace
         /// <summary>
         /// Initializes a new instance of the <see cref="AutoFlushActivityProcessor"/> class.
         /// </summary>
-        /// <param name="predicate">Predicate that should return <c>true</c> to initiate a flush.</param>
+        /// <param name="predicate">Predicate that should return <c>true</c> to initiate a flush.
+        /// It's assumed that predicate is defined as a lambda expression which is executed quite fast
+        /// and doesn't contain more complex code.
+        /// </param>
         /// <param name="timeoutMilliseconds">Timeout (in milliseconds) to use for flushing.</param>
         /// <exception cref="ArgumentOutOfRangeException">
         /// Thrown when the <c>timeoutMilliseconds</c> is smaller than -1.
