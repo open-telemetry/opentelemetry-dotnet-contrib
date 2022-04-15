@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Diagnostics;
 using Moq;
 using Moq.Protected;
@@ -27,9 +28,10 @@ namespace OpenTelemetry.Extensions.Tests.Trace
         [Fact]
         public void AutoFlushActivityProcessor_FlushAfterLocalServerSideRootSpans_EndMatchingSpan_Flush()
         {
-            var mockExporting = new Mock<BaseProcessor<Activity>>();
+            var processor = new AutoFlushActivityProcessor(
+                a => a.Parent == null && (a.Kind == ActivityKind.Server || a.Kind == ActivityKind.Consumer), 5000);
 
-            var processor = AutoFlushActivityProcessor.FlushAfterLocalServerSideRootSpans();
+            var mockExporting = new Mock<BaseProcessor<Activity>>();
 
             using var provider = Sdk.CreateTracerProviderBuilder()
                 .AddProcessor(mockExporting.Object)
@@ -47,9 +49,10 @@ namespace OpenTelemetry.Extensions.Tests.Trace
         [Fact]
         public void AutoFlushActivityProcessor_FlushAfterLocalServerSideRootSpans_EndNonMatchingSpan_DoesNothing()
         {
-            var mockExporting = new Mock<BaseProcessor<Activity>>();
+            var processor = new AutoFlushActivityProcessor(
+                a => a.Parent == null && (a.Kind == ActivityKind.Server || a.Kind == ActivityKind.Consumer), 5000);
 
-            var processor = AutoFlushActivityProcessor.FlushAfterLocalServerSideRootSpans();
+            var mockExporting = new Mock<BaseProcessor<Activity>>();
 
             using var provider = Sdk.CreateTracerProviderBuilder()
                 .AddProcessor(mockExporting.Object)
