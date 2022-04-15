@@ -33,6 +33,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\package-Exporter.Stackdriver.yml = .github\workflows\package-Exporter.Stackdriver.yml
 		.github\workflows\package-Extensions.AWSXRay.yml = .github\workflows\package-Extensions.AWSXRay.yml
 		.github\workflows\package-Extensions.PersistentStorage.yml = .github\workflows\package-Extensions.PersistentStorage.yml
+		.github\workflows\package-Extensions.yml = .github\workflows\package-Extensions.yml
 		.github\workflows\package-Instrumentation.AWS.yml = .github\workflows\package-Instrumentation.AWS.yml
 		.github\workflows\package-Instrumentation.AWSLambda.yml = .github\workflows\package-Instrumentation.AWSLambda.yml
 		.github\workflows\package-Instrumentation.Elasticsearch.yml = .github\workflows\package-Instrumentation.Elasticsearch.yml
@@ -44,7 +45,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\package-Instrumentation.Quartz.yml = .github\workflows\package-Instrumentation.Quartz.yml
 		.github\workflows\package-Instrumentation.Runtime.yml = .github\workflows\package-Instrumentation.Runtime.yml
 		.github\workflows\package-Instrumentation.Wcf.yml = .github\workflows\package-Instrumentation.Wcf.yml
-		.github\workflows\package-Preview.yml = .github\workflows\package-Preview.yml
 		.github\workflows\sanitycheck.yml = .github\workflows\sanitycheck.yml
 		.github\workflows\windows-ci.yml = .github\workflows\windows-ci.yml
 	EndProjectSection
