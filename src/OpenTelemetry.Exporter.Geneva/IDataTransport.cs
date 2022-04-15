@@ -14,12 +14,11 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Exporter.Geneva
-{
-    internal interface IDataTransport
-    {
-        bool IsEnabled();
+namespace OpenTelemetry.Exporter.Geneva;
 
-        void Send(byte[] data, int size);
-    }
+internal interface IDataTransport
+{
+    bool IsEnabled();
+
+    void Send(byte[] data, int size);
 }
