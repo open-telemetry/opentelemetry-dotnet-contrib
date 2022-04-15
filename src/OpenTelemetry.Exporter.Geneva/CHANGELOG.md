@@ -13,5 +13,7 @@ serialize if the `LogRecord.State` had a
 single KeyValuePair.
 [295](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/295)
 
+* LogExporter modified to serialize `LogRecord.EventId.Name`.
+
 * Update OTel SDK version to `1.2.0-rc5`.
 [308](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/308)
