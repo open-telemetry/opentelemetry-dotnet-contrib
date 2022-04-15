@@ -167,7 +167,7 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
             var exportedItems = new List<Metric>();
             using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
             {
-                Temporality = AggregationTemporality.Delta,
+                TemporalityPreference = MetricReaderTemporalityPreference.Delta,
             };
 
             using var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -201,7 +201,7 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
             var exportedItems = new List<Metric>();
             using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
             {
-                Temporality = AggregationTemporality.Delta,
+                TemporalityPreference = MetricReaderTemporalityPreference.Delta,
             };
 
             using var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -239,7 +239,7 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
             var batchGeneratorExporter = new BatchGenerator();
             var batchGeneratorReader = new BaseExportingMetricReader(batchGeneratorExporter)
             {
-                Temporality = AggregationTemporality.Delta,
+                TemporalityPreference = MetricReaderTemporalityPreference.Delta,
             };
 
             this.meterProviderForCounterBatchWith3Dimensions = Sdk.CreateMeterProviderBuilder()
@@ -265,7 +265,7 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
             var batchGeneratorExporter = new BatchGenerator();
             var batchGeneratorReader = new BaseExportingMetricReader(batchGeneratorExporter)
             {
-                Temporality = AggregationTemporality.Delta,
+                TemporalityPreference = MetricReaderTemporalityPreference.Delta,
             };
 
             this.meterProviderForCounterBatchWith4Dimensions = Sdk.CreateMeterProviderBuilder()
@@ -295,7 +295,7 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
             var exportedItems = new List<Metric>();
             using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
             {
-                Temporality = AggregationTemporality.Delta,
+                TemporalityPreference = MetricReaderTemporalityPreference.Delta,
             };
 
             using var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -332,7 +332,7 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
             var exportedItems = new List<Metric>();
             using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
             {
-                Temporality = AggregationTemporality.Delta,
+                TemporalityPreference = MetricReaderTemporalityPreference.Delta,
             };
 
             using var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -373,7 +373,7 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
             var batchGeneratorExporter = new BatchGenerator();
             var batchGeneratorReader = new BaseExportingMetricReader(batchGeneratorExporter)
             {
-                Temporality = AggregationTemporality.Delta,
+                TemporalityPreference = MetricReaderTemporalityPreference.Delta,
             };
 
             this.meterProviderForHistogramBatchWith3Dimensions = Sdk.CreateMeterProviderBuilder()
@@ -402,7 +402,7 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
             var batchGeneratorExporter = new BatchGenerator();
             var batchGeneratorReader = new BaseExportingMetricReader(batchGeneratorExporter)
             {
-                Temporality = AggregationTemporality.Delta,
+                TemporalityPreference = MetricReaderTemporalityPreference.Delta,
             };
 
             this.meterProviderForHistogramBatchWith4Dimensions = Sdk.CreateMeterProviderBuilder()
