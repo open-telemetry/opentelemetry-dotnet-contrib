@@ -1,4 +1,20 @@
-﻿using System;
+﻿// <copyright file="GenevaLogExporterTests.cs" company="OpenTelemetry Authors">
+// Copyright The OpenTelemetry Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -12,7 +28,7 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 using Xunit;
 
-namespace OpenTelemetry.Exporter.Geneva.UnitTest
+namespace OpenTelemetry.Exporter.Geneva.Tests
 {
     public class GenevaLogExporterTests
     {
@@ -261,8 +277,15 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 _ = exporter.SerializeLogRecord(logRecordList[0]);
                 object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
                 var body = GetField(fluentdData, "body");
-                string expectedBody = includeFormattedMessage ? "Formatted Message" : null;
-                Assert.Equal(expectedBody, body);
+                if (includeFormattedMessage)
+                {
+                    Assert.Equal("Formatted Message", body);
+                }
+                else
+                {
+                    Assert.Null(body);
+                }
+
                 Assert.Equal("Value1", GetField(fluentdData, "Key1"));
                 Assert.Equal("Value2", GetField(fluentdData, "Key2"));
 
@@ -284,8 +307,14 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 _ = exporter.SerializeLogRecord(logRecordList[0]);
                 fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
                 body = GetField(fluentdData, "body");
-                expectedBody = includeFormattedMessage ? "Formatted Message" : "somestringasdata";
-                Assert.Equal(expectedBody, body);
+                if (includeFormattedMessage)
+                {
+                    Assert.Equal("Formatted Message", body);
+                }
+                else
+                {
+                    Assert.Null(body);
+                }
 
                 // ARRANGE
                 logRecordList.Clear();
@@ -306,9 +335,42 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
                 body = GetField(fluentdData, "body");
 
-                // Formatter is null, hence body is always the ToString() of the data
-                expectedBody = "somestringasdata";
-                Assert.Equal(expectedBody, body);
+                // Formatter is null, hence body is always null
+                Assert.Null(body);
+
+                // ARRANGE
+                logRecordList.Clear();
+
+                // ACT
+                // This is treated as Structured logging as the state can be converted to IReadOnlyList<KeyValuePair<string, object>>
+                logger.Log(
+                    logLevel: LogLevel.Information,
+                    eventId: default,
+                    new List<KeyValuePair<string, object>>()
+                        {
+                            new KeyValuePair<string, object>("Key1", "Value1"),
+                        },
+                    exception: null,
+                    formatter: (state, ex) => "Example formatted message.");
+
+                // VALIDATE
+                Assert.Single(logRecordList);
+                m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+                _ = exporter.SerializeLogRecord(logRecordList[0]);
+                fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+                Assert.Equal("Value1", GetField(fluentdData, "Key1"));
+
+                body = GetField(fluentdData, "body");
+
+                // Only populate body if FormattedMessage is enabled
+                if (includeFormattedMessage)
+                {
+                    Assert.Equal("Example formatted message.", body);
+                }
+                else
+                {
+                    Assert.Null(body);
+                }
             }
             finally
             {
@@ -333,7 +395,7 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
         [InlineData(true, false, true)]
         [InlineData(true, true, true)]
         [Trait("Platform", "Any")]
-        public void SuccessfulSerialization(bool hasTableNameMapping, bool hasCustomFields, bool parseStateValues)
+        public void SerializationTestWithILoggerLogWithTemplates(bool hasTableNameMapping, bool hasCustomFields, bool parseStateValues)
         {
             string path = string.Empty;
             Socket server = null;
@@ -427,29 +489,13 @@ namespace OpenTelemetry.Exporter.Geneva.UnitTest
                 logger.Log(LogLevel.Error, 101, "Log a {customField} and {property}", "CustomFieldValue", "PropertyValue");
                 logger.Log(LogLevel.Critical, 101, "Log a {customField} and {property}", "CustomFieldValue", "PropertyValue");
                 logger.LogInformation("Hello World!"); // unstructured logging
-
-                logger.Log(LogLevel.Information, default, "Hello World!", null, null); // unstructured logging using a non-extension method call
-
-                // logging custom state
-                // This is treated as structured logging as the state can be converted to IReadOnlyList<KeyValuePair<string, object>>
-                logger.Log(
-                    LogLevel.Information,
-                    default,
-                    new List<KeyValuePair<string, object>>()
-                    {
-                        new KeyValuePair<string, object>("Key1", "Value1"),
-                        new KeyValuePair<string, object>("Key2", "Value2"),
-                    },
-                    null,
-                    (state, ex) => "Formatted Exception!");
-
                 logger.LogError(new InvalidOperationException("Oops! Food is spoiled!"), "Hello from {food} {price}.", "artichoke", 3.99);
 
                 var loggerWithDefaultCategory = loggerFactory.CreateLogger("DefaultCategory");
                 loggerWithDefaultCategory.LogInformation("Basic test");
 
-                // logRecordList should have two logRecord entries after the logger.LogInformation calls
-                Assert.Equal(14, logRecordList.Count);
+                // logRecordList should have 12 logRecord entries as there were 12 Log calls
+                Assert.Equal(12, logRecordList.Count);
 
                 var m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
 

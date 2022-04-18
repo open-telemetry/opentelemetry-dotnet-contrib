@@ -30,9 +30,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\dotnet-format.yml = .github\workflows\dotnet-format.yml
 		.github\workflows\linux-ci.yml = .github\workflows\linux-ci.yml
 		.github\workflows\markdownlint.yml = .github\workflows\markdownlint.yml
+		.github\workflows\package-Exporter.Geneva.yml = .github\workflows\package-Exporter.Geneva.yml
 		.github\workflows\package-Exporter.Stackdriver.yml = .github\workflows\package-Exporter.Stackdriver.yml
 		.github\workflows\package-Extensions.AWSXRay.yml = .github\workflows\package-Extensions.AWSXRay.yml
 		.github\workflows\package-Extensions.PersistentStorage.yml = .github\workflows\package-Extensions.PersistentStorage.yml
+		.github\workflows\package-Extensions.yml = .github\workflows\package-Extensions.yml
 		.github\workflows\package-Instrumentation.AWS.yml = .github\workflows\package-Instrumentation.AWS.yml
 		.github\workflows\package-Instrumentation.AWSLambda.yml = .github\workflows\package-Instrumentation.AWSLambda.yml
 		.github\workflows\package-Instrumentation.Elasticsearch.yml = .github\workflows\package-Instrumentation.Elasticsearch.yml
@@ -44,7 +46,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\package-Instrumentation.Quartz.yml = .github\workflows\package-Instrumentation.Quartz.yml
 		.github\workflows\package-Instrumentation.Runtime.yml = .github\workflows\package-Instrumentation.Runtime.yml
 		.github\workflows\package-Instrumentation.Wcf.yml = .github\workflows\package-Instrumentation.Wcf.yml
-		.github\workflows\package-Preview.yml = .github\workflows\package-Preview.yml
 		.github\workflows\sanitycheck.yml = .github\workflows\sanitycheck.yml
 		.github\workflows\windows-ci.yml = .github\workflows\windows-ci.yml
 	EndProjectSection
@@ -175,7 +176,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.Gene
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.Geneva.Stress", "test\OpenTelemetry.Exporter.Geneva.Stress\OpenTelemetry.Exporter.Geneva.Stress.csproj", "{F632DFB6-38AD-4356-8997-8CCC0492619C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.Geneva.UnitTest", "test\OpenTelemetry.Exporter.Geneva.UnitTest\OpenTelemetry.Exporter.Geneva.UnitTest.csproj", "{A3EB4E60-256C-45EC-92EE-68FD035CAD11}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.Geneva.Tests", "test\OpenTelemetry.Exporter.Geneva.Tests\OpenTelemetry.Exporter.Geneva.Tests.csproj", "{A3EB4E60-256C-45EC-92EE-68FD035CAD11}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Hangfire", "src\OpenTelemetry.Instrumentation.Hangfire\OpenTelemetry.Instrumentation.Hangfire.csproj", "{BE5FFBBB-D73F-4071-92F4-F1694881604F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Hangfire.Tests", "test\OpenTelemetry.Instrumentation.Hangfire.Tests\OpenTelemetry.Instrumentation.Hangfire.Tests.csproj", "{ED774FC3-C1C0-44CD-BA41-686C04BEB3E5}"

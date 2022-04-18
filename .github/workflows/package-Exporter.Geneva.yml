@@ -1,4 +1,4 @@
-name: Pack OpenTelemetry.Instrumentation.Quartz
+name: Pack OpenTelemetry.Exporter.Geneva
 
 on:
   workflow_dispatch:
@@ -9,13 +9,13 @@ on:
         default: 'warning'
   push:
     tags:
-      - 'Instrumentation.Quartz-*' # trigger when we create a tag with prefix "Instrumentation.Quartz-"
+      - 'Exporter.Geneva-*' # trigger when we create a tag with prefix "Exporter.Geneva-"
 
 jobs:
   build-test-pack:
     runs-on: ${{ matrix.os }}
     env:
-      PROJECT: OpenTelemetry.Instrumentation.Quartz
+      PROJECT: OpenTelemetry.Exporter.Geneva
 
     strategy:
       matrix:
