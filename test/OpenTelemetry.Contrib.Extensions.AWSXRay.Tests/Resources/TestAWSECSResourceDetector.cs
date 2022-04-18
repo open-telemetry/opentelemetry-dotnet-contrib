@@ -20,64 +20,63 @@ using System.Linq;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources
+namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources;
+
+public class TestAWSECSResourceDetector
 {
-    public class TestAWSECSResourceDetector
+    private const string AWSECSMetadataFilePath = "Resources/SampleMetadataFiles/testcgroup";
+    private const string AWSECSMetadataURLKey = "ECS_CONTAINER_METADATA_URI";
+    private const string AWSECSMetadataURLV4Key = "ECS_CONTAINER_METADATA_URI_V4";
+
+    [Fact]
+    public void TestDetect()
     {
-        private const string AWSECSMetadataFilePath = "Resources/SampleMetadataFiles/testcgroup";
-        private const string AWSECSMetadataURLKey = "ECS_CONTAINER_METADATA_URI";
-        private const string AWSECSMetadataURLV4Key = "ECS_CONTAINER_METADATA_URI_V4";
+        IEnumerable<KeyValuePair<string, object>> resourceAttributes;
+        var ecsResourceDetector = new AWSECSResourceDetector();
+        resourceAttributes = ecsResourceDetector.Detect();
+        Assert.Null(resourceAttributes); // will be null as it's not in ecs environment
+    }
 
-        [Fact]
-        public void TestDetect()
-        {
-            IEnumerable<KeyValuePair<string, object>> resourceAttributes;
-            var ecsResourceDetector = new AWSECSResourceDetector();
-            resourceAttributes = ecsResourceDetector.Detect();
-            Assert.Null(resourceAttributes); // will be null as it's not in ecs environment
-        }
+    [Fact]
+    public void TestExtractResourceAttributes()
+    {
+        var ecsResourceDetector = new AWSECSResourceDetector();
+        var containerId = "Test container id";
 
-        [Fact]
-        public void TestExtractResourceAttributes()
-        {
-            var ecsResourceDetector = new AWSECSResourceDetector();
-            var containerId = "Test container id";
+        var resourceAttributes = ecsResourceDetector.ExtractResourceAttributes(containerId).ToDictionary(x => x.Key, x => x.Value);
 
-            var resourceAttributes = ecsResourceDetector.ExtractResourceAttributes(containerId).ToDictionary(x => x.Key, x => x.Value);
+        Assert.Equal("aws", resourceAttributes[AWSSemanticConventions.AttributeCloudProvider]);
+        Assert.Equal("aws_ecs", resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform]);
+        Assert.Equal("Test container id", resourceAttributes[AWSSemanticConventions.AttributeContainerID]);
+    }
 
-            Assert.Equal("aws", resourceAttributes[AWSSemanticConventions.AttributeCloudProvider]);
-            Assert.Equal("aws_ecs", resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform]);
-            Assert.Equal("Test container id", resourceAttributes[AWSSemanticConventions.AttributeContainerID]);
-        }
+    [Fact]
+    public void TestGetECSContainerId()
+    {
+        var ecsResourceDetector = new AWSECSResourceDetector();
+        var ecsContainerId = ecsResourceDetector.GetECSContainerId(AWSECSMetadataFilePath);
 
-        [Fact]
-        public void TestGetECSContainerId()
-        {
-            var ecsResourceDetector = new AWSECSResourceDetector();
-            var ecsContainerId = ecsResourceDetector.GetECSContainerId(AWSECSMetadataFilePath);
+        Assert.Equal("a4d00c9dd675d67f866c786181419e1b44832d4696780152e61afd44a3e02856", ecsContainerId);
+    }
 
-            Assert.Equal("a4d00c9dd675d67f866c786181419e1b44832d4696780152e61afd44a3e02856", ecsContainerId);
-        }
+    [Fact]
+    public void TestIsECSProcess()
+    {
+        Environment.SetEnvironmentVariable(AWSECSMetadataURLKey, "TestECSURIKey");
+        Environment.SetEnvironmentVariable(AWSECSMetadataURLV4Key, "TestECSURIV4Key");
 
-        [Fact]
-        public void TestIsECSProcess()
-        {
-            Environment.SetEnvironmentVariable(AWSECSMetadataURLKey, "TestECSURIKey");
-            Environment.SetEnvironmentVariable(AWSECSMetadataURLV4Key, "TestECSURIV4Key");
+        var ecsResourceDetector = new AWSECSResourceDetector();
+        var isEcsProcess = ecsResourceDetector.IsECSProcess();
 
-            var ecsResourceDetector = new AWSECSResourceDetector();
-            var isEcsProcess = ecsResourceDetector.IsECSProcess();
+        Assert.True(isEcsProcess);
+    }
 
-            Assert.True(isEcsProcess);
-        }
+    [Fact]
+    public void TestIsNotECSProcess()
+    {
+        var ecsResourceDetector = new AWSECSResourceDetector();
+        var isEcsProcess = ecsResourceDetector.IsECSProcess();
 
-        [Fact]
-        public void TestIsNotECSProcess()
-        {
-            var ecsResourceDetector = new AWSECSResourceDetector();
-            var isEcsProcess = ecsResourceDetector.IsECSProcess();
-
-            Assert.False(isEcsProcess);
-        }
+        Assert.False(isEcsProcess);
     }
 }

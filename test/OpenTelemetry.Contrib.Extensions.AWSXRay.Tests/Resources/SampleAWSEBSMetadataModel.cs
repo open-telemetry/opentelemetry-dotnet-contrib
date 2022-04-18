@@ -16,15 +16,14 @@
 
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Models;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources
+namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources;
+
+internal class SampleAWSEBSMetadataModel : AWSEBSMetadataModel
 {
-    internal class SampleAWSEBSMetadataModel : AWSEBSMetadataModel
+    public SampleAWSEBSMetadataModel()
     {
-        public SampleAWSEBSMetadataModel()
-        {
-            this.EnvironmentName = "Test environment name";
-            this.DeploymentId = "Test ID";
-            this.VersionLabel = "Test version label";
-        }
+        this.EnvironmentName = "Test environment name";
+        this.DeploymentId = "Test ID";
+        this.VersionLabel = "Test version label";
     }
 }

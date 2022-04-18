@@ -20,27 +20,26 @@ using System.Diagnostics;
 using System.Reflection;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Instrumentation.MySqlData
+namespace OpenTelemetry.Instrumentation.MySqlData;
+
+/// <summary>
+/// Helper class to hold common properties used by MySqlDataDiagnosticListener.
+/// </summary>
+internal class MySqlActivitySourceHelper
 {
-    /// <summary>
-    /// Helper class to hold common properties used by MySqlDataDiagnosticListener.
-    /// </summary>
-    internal class MySqlActivitySourceHelper
+    public const string MysqlDatabaseSystemName = "mysql";
+
+    public static readonly AssemblyName AssemblyName = typeof(MySqlActivitySourceHelper).Assembly.GetName();
+    public static readonly string ActivitySourceName = AssemblyName.Name;
+    public static readonly string ActivityName = ActivitySourceName + ".Execute";
+
+    public static readonly IEnumerable<KeyValuePair<string, object>> CreationTags = new[]
     {
-        public const string MysqlDatabaseSystemName = "mysql";
+        new KeyValuePair<string, object>(SemanticConventions.AttributeDbSystem, MysqlDatabaseSystemName),
+    };
 
-        public static readonly AssemblyName AssemblyName = typeof(MySqlActivitySourceHelper).Assembly.GetName();
-        public static readonly string ActivitySourceName = AssemblyName.Name;
-        public static readonly string ActivityName = ActivitySourceName + ".Execute";
-
-        public static readonly IEnumerable<KeyValuePair<string, object>> CreationTags = new[]
-        {
-            new KeyValuePair<string, object>(SemanticConventions.AttributeDbSystem, MysqlDatabaseSystemName),
-        };
-
-        private static readonly Version Version = typeof(MySqlActivitySourceHelper).Assembly.GetName().Version;
+    private static readonly Version Version = typeof(MySqlActivitySourceHelper).Assembly.GetName().Version;
 #pragma warning disable SA1202 // Elements should be ordered by access <- In this case, Version MUST come before ActivitySource otherwise null ref exception is thrown.
-        internal static readonly ActivitySource ActivitySource = new ActivitySource(ActivitySourceName, Version.ToString());
+    internal static readonly ActivitySource ActivitySource = new ActivitySource(ActivitySourceName, Version.ToString());
 #pragma warning restore SA1202 // Elements should be ordered by access
-    }
 }

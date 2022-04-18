@@ -18,37 +18,46 @@ using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
 
+
+/* Unmerged change from project 'OpenTelemetry.Instrumentation.Wcf (netstandard2.0)'
+Before:
 namespace OpenTelemetry.Instrumentation.Wcf
 {
 #if NETFRAMEWORK
-    /// <summary>
-    /// An <see cref="IServiceBehavior"/> implementation to add the
-    /// <see cref="TelemetryDispatchMessageInspector"/> to service operations.
-    /// </summary>
-    public class TelemetryServiceBehavior : IServiceBehavior
-    {
-        /// <inheritdoc />
-        public void AddBindingParameters(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase, System.Collections.ObjectModel.Collection<ServiceEndpoint> endpoints, System.ServiceModel.Channels.BindingParameterCollection bindingParameters)
-        {
-        }
+After:
+namespace OpenTelemetry.Instrumentation.Wcf;
+#if NETFRAMEWORK
+*/
+namespace OpenTelemetry.Instrumentation.Wcf;
 
-        /// <inheritdoc/>
-        public void ApplyDispatchBehavior(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
+#if NETFRAMEWORK
+/// <summary>
+/// An <see cref="IServiceBehavior"/> implementation to add the
+/// <see cref="TelemetryDispatchMessageInspector"/> to service operations.
+/// </summary>
+public class TelemetryServiceBehavior : IServiceBehavior
+{
+    /// <inheritdoc />
+    public void AddBindingParameters(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase, System.Collections.ObjectModel.Collection<ServiceEndpoint> endpoints, System.ServiceModel.Channels.BindingParameterCollection bindingParameters)
+    {
+    }
+
+    /// <inheritdoc/>
+    public void ApplyDispatchBehavior(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
+    {
+        foreach (var channelDispatcherBase in serviceHostBase.ChannelDispatchers)
         {
-            foreach (var channelDispatcherBase in serviceHostBase.ChannelDispatchers)
+            var channelDispatcher = (ChannelDispatcher)channelDispatcherBase;
+            foreach (var endpointDispatcher in channelDispatcher.Endpoints)
             {
-                var channelDispatcher = (ChannelDispatcher)channelDispatcherBase;
-                foreach (var endpointDispatcher in channelDispatcher.Endpoints)
-                {
-                    TelemetryEndpointBehavior.ApplyDispatchBehaviorToEndpoint(endpointDispatcher);
-                }
+                TelemetryEndpointBehavior.ApplyDispatchBehaviorToEndpoint(endpointDispatcher);
             }
         }
-
-        /// <inheritdoc/>
-        public void Validate(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
-        {
-        }
     }
-#endif
+
+    /// <inheritdoc/>
+    public void Validate(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
+    {
+    }
 }
+#endif

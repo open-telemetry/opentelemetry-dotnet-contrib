@@ -21,206 +21,205 @@ using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests
+namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests;
+
+public class TestAWSXRayPropagator
 {
-    public class TestAWSXRayPropagator
+    private const string AWSXRayTraceHeaderKey = "X-Amzn-Trace-Id";
+    private const string TraceId = "5759e988bd862e3fe1be46a994272793";
+    private const string ParentId = "53995c3f42cd8ad8";
+
+    private static readonly string[] Empty = new string[0];
+    private static readonly Func<IDictionary<string, string>, string, IEnumerable<string>> Getter = (headers, name) =>
     {
-        private const string AWSXRayTraceHeaderKey = "X-Amzn-Trace-Id";
-        private const string TraceId = "5759e988bd862e3fe1be46a994272793";
-        private const string ParentId = "53995c3f42cd8ad8";
-
-        private static readonly string[] Empty = new string[0];
-        private static readonly Func<IDictionary<string, string>, string, IEnumerable<string>> Getter = (headers, name) =>
+        if (headers.TryGetValue(name, out var value))
         {
-            if (headers.TryGetValue(name, out var value))
-            {
-                return new[] { value };
-            }
+            return new[] { value };
+        }
 
-            return Empty;
+        return Empty;
+    };
+
+    private static readonly Action<IDictionary<string, string>, string, string> Setter = (carrier, name, value) =>
+    {
+        carrier[name] = value;
+    };
+
+    private readonly AWSXRayPropagator awsXRayPropagator = new AWSXRayPropagator();
+
+    [Fact]
+    public void TestInjectTraceHeader()
+    {
+        var carrier = new Dictionary<string, string>();
+        var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
+        var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
+        var traceFlags = ActivityTraceFlags.Recorded;
+        var activityContext = new ActivityContext(traceId, parentId, traceFlags);
+        this.awsXRayPropagator.Inject(new PropagationContext(activityContext, default), carrier, Setter);
+
+        Assert.True(carrier.ContainsKey(AWSXRayTraceHeaderKey));
+        Assert.Equal("Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1", carrier[AWSXRayTraceHeaderKey]);
+    }
+
+    [Fact]
+    public void TestInjectTraceHeaderNotSampled()
+    {
+        var carrier = new Dictionary<string, string>();
+        var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
+        var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
+        var traceFlags = ActivityTraceFlags.None;
+        var activityContext = new ActivityContext(traceId, parentId, traceFlags);
+        this.awsXRayPropagator.Inject(new PropagationContext(activityContext, default), carrier, Setter);
+
+        Assert.True(carrier.ContainsKey(AWSXRayTraceHeaderKey));
+        Assert.Equal("Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=0", carrier[AWSXRayTraceHeaderKey]);
+    }
+
+    [Fact]
+    public void TestExtractTraceHeader()
+    {
+        var carrier = new Dictionary<string, string>()
+        {
+            { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1" },
+        };
+        var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
+        var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
+        var traceFlags = ActivityTraceFlags.Recorded;
+        var activityContext = new ActivityContext(traceId, parentId, traceFlags, isRemote: true);
+
+        Assert.Equal(new PropagationContext(activityContext, default), this.awsXRayPropagator.Extract(default, carrier, Getter));
+    }
+
+    [Fact]
+    public void TestExtractTraceHeaderNotSampled()
+    {
+        var carrier = new Dictionary<string, string>()
+        {
+            { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=0" },
+        };
+        var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
+        var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
+        var traceFlags = ActivityTraceFlags.None;
+        var activityContext = new ActivityContext(traceId, parentId, traceFlags, isRemote: true);
+
+        Assert.Equal(new PropagationContext(activityContext, default), this.awsXRayPropagator.Extract(default, carrier, Getter));
+    }
+
+    [Fact]
+    public void TestExtractTraceHeaderDifferentOrder()
+    {
+        var carrier = new Dictionary<string, string>()
+        {
+            { AWSXRayTraceHeaderKey, "Sampled=1;Parent=53995c3f42cd8ad8;Root=1-5759e988-bd862e3fe1be46a994272793" },
+        };
+        var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
+        var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
+        var traceFlags = ActivityTraceFlags.Recorded;
+        var activityContext = new ActivityContext(traceId, parentId, traceFlags, isRemote: true);
+
+        Assert.Equal(new PropagationContext(activityContext, default), this.awsXRayPropagator.Extract(default, carrier, Getter));
+    }
+
+    [Fact]
+    public void TestExtractTraceHeaderWithEmptyValue()
+    {
+        var carrier = new Dictionary<string, string>()
+        {
+            { AWSXRayTraceHeaderKey, string.Empty },
         };
 
-        private static readonly Action<IDictionary<string, string>, string, string> Setter = (carrier, name, value) =>
+        Assert.Equal(default, this.awsXRayPropagator.Extract(default, carrier, Getter));
+    }
+
+    [Fact]
+    public void TestExtractTraceHeaderWithoutParentId()
+    {
+        var carrier = new Dictionary<string, string>()
         {
-            carrier[name] = value;
+            { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793;Sampled=1" },
         };
 
-        private readonly AWSXRayPropagator awsXRayPropagator = new AWSXRayPropagator();
+        Assert.Equal(default, this.awsXRayPropagator.Extract(default, carrier, Getter));
+    }
 
-        [Fact]
-        public void TestInjectTraceHeader()
+    [Fact]
+    public void TestExtractTraceHeaderWithoutSampleDecision()
+    {
+        var carrier = new Dictionary<string, string>()
         {
-            var carrier = new Dictionary<string, string>();
-            var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
-            var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
-            var traceFlags = ActivityTraceFlags.Recorded;
-            var activityContext = new ActivityContext(traceId, parentId, traceFlags);
-            this.awsXRayPropagator.Inject(new PropagationContext(activityContext, default), carrier, Setter);
+            { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8" },
+        };
 
-            Assert.True(carrier.ContainsKey(AWSXRayTraceHeaderKey));
-            Assert.Equal("Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1", carrier[AWSXRayTraceHeaderKey]);
-        }
+        Assert.Equal(default, this.awsXRayPropagator.Extract(default, carrier, Getter));
+    }
 
-        [Fact]
-        public void TestInjectTraceHeaderNotSampled()
+    [Fact]
+    public void TestExtractTraceHeaderWithInvalidTraceId()
+    {
+        var carrier = new Dictionary<string, string>()
         {
-            var carrier = new Dictionary<string, string>();
-            var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
-            var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
-            var traceFlags = ActivityTraceFlags.None;
-            var activityContext = new ActivityContext(traceId, parentId, traceFlags);
-            this.awsXRayPropagator.Inject(new PropagationContext(activityContext, default), carrier, Setter);
+            { AWSXRayTraceHeaderKey, "Root=15759e988bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1" },
+        };
 
-            Assert.True(carrier.ContainsKey(AWSXRayTraceHeaderKey));
-            Assert.Equal("Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=0", carrier[AWSXRayTraceHeaderKey]);
-        }
+        Assert.Equal(default, this.awsXRayPropagator.Extract(default, carrier, Getter));
+    }
 
-        [Fact]
-        public void TestExtractTraceHeader()
+    [Fact]
+    public void TestExtractTraceHeaderWithInvalidParentId()
+    {
+        var carrier = new Dictionary<string, string>()
         {
-            var carrier = new Dictionary<string, string>()
-            {
-                { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1" },
-            };
-            var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
-            var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
-            var traceFlags = ActivityTraceFlags.Recorded;
-            var activityContext = new ActivityContext(traceId, parentId, traceFlags, isRemote: true);
+            { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=123;Sampled=1" },
+        };
 
-            Assert.Equal(new PropagationContext(activityContext, default), this.awsXRayPropagator.Extract(default, carrier, Getter));
-        }
+        Assert.Equal(default, this.awsXRayPropagator.Extract(default, carrier, Getter));
+    }
 
-        [Fact]
-        public void TestExtractTraceHeaderNotSampled()
+    [Fact]
+    public void TestExtractTraceHeaderWithInvalidSampleDecision()
+    {
+        var carrier = new Dictionary<string, string>()
         {
-            var carrier = new Dictionary<string, string>()
-            {
-                { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=0" },
-            };
-            var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
-            var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
-            var traceFlags = ActivityTraceFlags.None;
-            var activityContext = new ActivityContext(traceId, parentId, traceFlags, isRemote: true);
+            { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=" },
+        };
 
-            Assert.Equal(new PropagationContext(activityContext, default), this.awsXRayPropagator.Extract(default, carrier, Getter));
-        }
+        Assert.Equal(default, this.awsXRayPropagator.Extract(default, carrier, Getter));
+    }
 
-        [Fact]
-        public void TestExtractTraceHeaderDifferentOrder()
+    [Fact]
+    public void TestExtractTraceHeaderWithInvalidSampleDecisionValue()
+    {
+        var carrier = new Dictionary<string, string>()
         {
-            var carrier = new Dictionary<string, string>()
-            {
-                { AWSXRayTraceHeaderKey, "Sampled=1;Parent=53995c3f42cd8ad8;Root=1-5759e988-bd862e3fe1be46a994272793" },
-            };
-            var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
-            var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
-            var traceFlags = ActivityTraceFlags.Recorded;
-            var activityContext = new ActivityContext(traceId, parentId, traceFlags, isRemote: true);
+            { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=3" },
+        };
 
-            Assert.Equal(new PropagationContext(activityContext, default), this.awsXRayPropagator.Extract(default, carrier, Getter));
-        }
+        Assert.Equal(default, this.awsXRayPropagator.Extract(default, carrier, Getter));
+    }
 
-        [Fact]
-        public void TestExtractTraceHeaderWithEmptyValue()
+    [Fact]
+    public void TestExtractTraceHeaderWithInvalidSampleDecisionLength()
+    {
+        var carrier = new Dictionary<string, string>()
         {
-            var carrier = new Dictionary<string, string>()
-            {
-                { AWSXRayTraceHeaderKey, string.Empty },
-            };
+            { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=123" },
+        };
 
-            Assert.Equal(default, this.awsXRayPropagator.Extract(default, carrier, Getter));
-        }
+        Assert.Equal(default, this.awsXRayPropagator.Extract(default, carrier, Getter));
+    }
 
-        [Fact]
-        public void TestExtractTraceHeaderWithoutParentId()
+    [Fact]
+    public void TestExtractTraceHeaderWithAdditionalField()
+    {
+        var carrier = new Dictionary<string, string>()
         {
-            var carrier = new Dictionary<string, string>()
-            {
-                { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793;Sampled=1" },
-            };
+            { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1;Foo=Bar" },
+        };
+        var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
+        var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
+        var traceFlags = ActivityTraceFlags.Recorded;
+        var activityContext = new ActivityContext(traceId, parentId, traceFlags, isRemote: true);
 
-            Assert.Equal(default, this.awsXRayPropagator.Extract(default, carrier, Getter));
-        }
-
-        [Fact]
-        public void TestExtractTraceHeaderWithoutSampleDecision()
-        {
-            var carrier = new Dictionary<string, string>()
-            {
-                { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8" },
-            };
-
-            Assert.Equal(default, this.awsXRayPropagator.Extract(default, carrier, Getter));
-        }
-
-        [Fact]
-        public void TestExtractTraceHeaderWithInvalidTraceId()
-        {
-            var carrier = new Dictionary<string, string>()
-            {
-                { AWSXRayTraceHeaderKey, "Root=15759e988bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1" },
-            };
-
-            Assert.Equal(default, this.awsXRayPropagator.Extract(default, carrier, Getter));
-        }
-
-        [Fact]
-        public void TestExtractTraceHeaderWithInvalidParentId()
-        {
-            var carrier = new Dictionary<string, string>()
-            {
-                { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=123;Sampled=1" },
-            };
-
-            Assert.Equal(default, this.awsXRayPropagator.Extract(default, carrier, Getter));
-        }
-
-        [Fact]
-        public void TestExtractTraceHeaderWithInvalidSampleDecision()
-        {
-            var carrier = new Dictionary<string, string>()
-            {
-                { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=" },
-            };
-
-            Assert.Equal(default, this.awsXRayPropagator.Extract(default, carrier, Getter));
-        }
-
-        [Fact]
-        public void TestExtractTraceHeaderWithInvalidSampleDecisionValue()
-        {
-            var carrier = new Dictionary<string, string>()
-            {
-                { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=3" },
-            };
-
-            Assert.Equal(default, this.awsXRayPropagator.Extract(default, carrier, Getter));
-        }
-
-        [Fact]
-        public void TestExtractTraceHeaderWithInvalidSampleDecisionLength()
-        {
-            var carrier = new Dictionary<string, string>()
-            {
-                { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=123" },
-            };
-
-            Assert.Equal(default, this.awsXRayPropagator.Extract(default, carrier, Getter));
-        }
-
-        [Fact]
-        public void TestExtractTraceHeaderWithAdditionalField()
-        {
-            var carrier = new Dictionary<string, string>()
-            {
-                { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1;Foo=Bar" },
-            };
-            var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
-            var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
-            var traceFlags = ActivityTraceFlags.Recorded;
-            var activityContext = new ActivityContext(traceId, parentId, traceFlags, isRemote: true);
-
-            Assert.Equal(new PropagationContext(activityContext, default), this.awsXRayPropagator.Extract(default, carrier, Getter));
-        }
+        Assert.Equal(new PropagationContext(activityContext, default), this.awsXRayPropagator.Extract(default, carrier, Getter));
     }
 }

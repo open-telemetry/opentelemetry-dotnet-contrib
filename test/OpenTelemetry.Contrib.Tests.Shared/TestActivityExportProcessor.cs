@@ -17,20 +17,19 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace OpenTelemetry.Tests
+namespace OpenTelemetry.Tests;
+
+internal class TestActivityExportProcessor : SimpleActivityExportProcessor
 {
-    internal class TestActivityExportProcessor : SimpleActivityExportProcessor
+    public List<Activity> ExportedItems = new List<Activity>();
+
+    public TestActivityExportProcessor(BaseExporter<Activity> exporter)
+        : base(exporter)
     {
-        public List<Activity> ExportedItems = new List<Activity>();
+    }
 
-        public TestActivityExportProcessor(BaseExporter<Activity> exporter)
-            : base(exporter)
-        {
-        }
-
-        protected override void OnExport(Activity data)
-        {
-            this.ExportedItems.Add(data);
-        }
+    protected override void OnExport(Activity data)
+    {
+        this.ExportedItems.Add(data);
     }
 }

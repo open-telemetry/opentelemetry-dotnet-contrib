@@ -18,33 +18,32 @@ using System;
 using OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Resources;
 
-namespace OpenTelemetry.Trace
+namespace OpenTelemetry.Trace;
+
+/// <summary>
+/// Extension class for TracerProviderBuilder.
+/// </summary>
+public static class TracerProviderBuilderExtensions
 {
     /// <summary>
-    /// Extension class for TracerProviderBuilder.
+    /// Add AWS Lambda configurations.
     /// </summary>
-    public static class TracerProviderBuilderExtensions
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddAWSLambdaConfigurations(this TracerProviderBuilder builder)
     {
-        /// <summary>
-        /// Add AWS Lambda configurations.
-        /// </summary>
-        /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-        /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-        public static TracerProviderBuilder AddAWSLambdaConfigurations(this TracerProviderBuilder builder)
+        if (builder == null)
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            builder.AddSource(AWSLambdaUtils.ActivitySourceName);
-            builder.SetResourceBuilder(ResourceBuilder
-                .CreateEmpty()
-                .AddService(AWSLambdaUtils.GetFunctionName(), null, null, false)
-                .AddTelemetrySdk()
-                .AddAttributes(AWSLambdaResourceDetector.Detect()));
-
-            return builder;
+            throw new ArgumentNullException(nameof(builder));
         }
+
+        builder.AddSource(AWSLambdaUtils.ActivitySourceName);
+        builder.SetResourceBuilder(ResourceBuilder
+            .CreateEmpty()
+            .AddService(AWSLambdaUtils.GetFunctionName(), null, null, false)
+            .AddTelemetrySdk()
+            .AddAttributes(AWSLambdaResourceDetector.Detect()));
+
+        return builder;
     }
 }

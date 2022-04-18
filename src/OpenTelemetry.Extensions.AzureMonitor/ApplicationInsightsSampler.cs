@@ -17,67 +17,66 @@ using System;
 
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Extensions.AzureMonitor
+namespace OpenTelemetry.Extensions.AzureMonitor;
+
+/// <summary>
+/// Sample configurable for OpenTelemetry exporters for compatibility
+/// with Application Insight SDKs.
+/// </summary>
+public class ApplicationInsightsSampler : Sampler
 {
+    private readonly float samplingRatio;
+
     /// <summary>
-    /// Sample configurable for OpenTelemetry exporters for compatibility
-    /// with Application Insight SDKs.
+    /// Initializes a new instance of the <see cref="ApplicationInsightsSampler"/> class.
     /// </summary>
-    public class ApplicationInsightsSampler : Sampler
+    /// <param name="samplingRatio">Ratio of telemetry that should be sampled.</param>
+    public ApplicationInsightsSampler(float samplingRatio)
     {
-        private readonly float samplingRatio;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ApplicationInsightsSampler"/> class.
-        /// </summary>
-        /// <param name="samplingRatio">Ratio of telemetry that should be sampled.</param>
-        public ApplicationInsightsSampler(float samplingRatio)
+        // Ensure passed ratio is between 0 and 1, inclusive
+        if (samplingRatio < 0 || samplingRatio > 1)
         {
-            // Ensure passed ratio is between 0 and 1, inclusive
-            if (samplingRatio < 0 || samplingRatio > 1)
-            {
-                throw new ArgumentOutOfRangeException(nameof(samplingRatio), "Ratio must be between 0 and 1, inclusive.");
-            }
-
-            this.samplingRatio = samplingRatio;
-            this.Description = "ApplicationInsightsSampler{" + samplingRatio + "}";
+            throw new ArgumentOutOfRangeException(nameof(samplingRatio), "Ratio must be between 0 and 1, inclusive.");
         }
 
-        /// <summary>
-        /// Computational method using the DJB2 Hash algorithm to decide whether to sample
-        /// a given telemetry item, based on its Trace Id.
-        /// </summary>
-        /// <param name="samplingParameters">Parameters of telemetry item used to make sampling decision.</param>
-        /// <returns>Returns whether or not we should sample telemetry in the form of a <see cref="SamplingResult"/> class.</returns>
-        public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
+        this.samplingRatio = samplingRatio;
+        this.Description = "ApplicationInsightsSampler{" + samplingRatio + "}";
+    }
+
+    /// <summary>
+    /// Computational method using the DJB2 Hash algorithm to decide whether to sample
+    /// a given telemetry item, based on its Trace Id.
+    /// </summary>
+    /// <param name="samplingParameters">Parameters of telemetry item used to make sampling decision.</param>
+    /// <returns>Returns whether or not we should sample telemetry in the form of a <see cref="SamplingResult"/> class.</returns>
+    public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
+    {
+        double sampleScore = DJB2SampleScore(samplingParameters.TraceId.ToHexString().ToLowerInvariant());
+        return new SamplingResult(sampleScore < this.samplingRatio);
+    }
+
+    private static double DJB2SampleScore(string traceIdHex)
+    {
+        // Calculate DJB2 hash code from hex-converted TraceId
+        int hash = 5381;
+
+        for (int i = 0; i < traceIdHex.Length; i++)
         {
-            double sampleScore = DJB2SampleScore(samplingParameters.TraceId.ToHexString().ToLowerInvariant());
-            return new SamplingResult(sampleScore < this.samplingRatio);
+            hash = ((hash << 5) + hash) + (int)traceIdHex[i];
         }
 
-        private static double DJB2SampleScore(string traceIdHex)
+        // Take the absolute value of the hash
+        if (hash == int.MinValue)
         {
-            // Calculate DJB2 hash code from hex-converted TraceId
-            int hash = 5381;
-
-            for (int i = 0; i < traceIdHex.Length; i++)
-            {
-                hash = ((hash << 5) + hash) + (int)traceIdHex[i];
-            }
-
-            // Take the absolute value of the hash
-            if (hash == int.MinValue)
-            {
-                hash = int.MaxValue;
-            }
-            else
-            {
-                hash = Math.Abs(hash);
-            }
-
-            // Divide by MaxValue for value between 0 and 1 for sampling score
-            double samplingScore = (double)hash / int.MaxValue;
-            return samplingScore;
+            hash = int.MaxValue;
         }
+        else
+        {
+            hash = Math.Abs(hash);
+        }
+
+        // Divide by MaxValue for value between 0 and 1 for sampling score
+        double samplingScore = (double)hash / int.MaxValue;
+        return samplingScore;
     }
 }

@@ -18,33 +18,32 @@ using System;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation
+namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation;
+
+internal class AWSTracingPipelineCustomizer : IRuntimePipelineCustomizer
 {
-    internal class AWSTracingPipelineCustomizer : IRuntimePipelineCustomizer
+    private readonly AWSClientInstrumentationOptions options;
+
+    public AWSTracingPipelineCustomizer(AWSClientInstrumentationOptions options)
     {
-        private readonly AWSClientInstrumentationOptions options;
+        this.options = options;
+    }
 
-        public AWSTracingPipelineCustomizer(AWSClientInstrumentationOptions options)
+    public string UniqueName
+    {
+        get
         {
-            this.options = options;
+            return "AWS Tracing Registration Customization";
+        }
+    }
+
+    public void Customize(Type serviceClientType, RuntimePipeline pipeline)
+    {
+        if (serviceClientType.BaseType != typeof(AmazonServiceClient))
+        {
+            return;
         }
 
-        public string UniqueName
-        {
-            get
-            {
-                return "AWS Tracing Registration Customization";
-            }
-        }
-
-        public void Customize(Type serviceClientType, RuntimePipeline pipeline)
-        {
-            if (serviceClientType.BaseType != typeof(AmazonServiceClient))
-            {
-                return;
-            }
-
-            pipeline.AddHandlerAfter<EndpointResolver>(new AWSTracingPipelineHandler(this.options));
-        }
+        pipeline.AddHandlerAfter<EndpointResolver>(new AWSTracingPipelineHandler(this.options));
     }
 }

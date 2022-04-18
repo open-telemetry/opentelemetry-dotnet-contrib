@@ -14,31 +14,30 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Trace
+namespace OpenTelemetry.Trace;
+
+using System;
+using OpenTelemetry.Instrumentation.Hangfire.Implementation;
+
+/// <summary>
+/// Extension methods to simplify registering of Hangfire job instrumentation.
+/// </summary>
+public static class TracerProviderBuilderExtensions
 {
-    using System;
-    using OpenTelemetry.Instrumentation.Hangfire.Implementation;
-
     /// <summary>
-    /// Extension methods to simplify registering of Hangfire job instrumentation.
+    /// Adds Hangfire instrumentation to the tracer provider.
     /// </summary>
-    public static class TracerProviderBuilderExtensions
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddHangfireInstrumentation(this TracerProviderBuilder builder)
     {
-        /// <summary>
-        /// Adds Hangfire instrumentation to the tracer provider.
-        /// </summary>
-        /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-        /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-        public static TracerProviderBuilder AddHangfireInstrumentation(this TracerProviderBuilder builder)
+        if (builder == null)
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            Hangfire.GlobalJobFilters.Filters.Add(new HangfireInstrumentationJobFilterAttribute());
-
-            return builder.AddSource(HangfireInstrumentation.ActivitySourceName);
+            throw new ArgumentNullException(nameof(builder));
         }
+
+        Hangfire.GlobalJobFilters.Filters.Add(new HangfireInstrumentationJobFilterAttribute());
+
+        return builder.AddSource(HangfireInstrumentation.ActivitySourceName);
     }
 }

@@ -19,22 +19,21 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace OpenTelemetry.Logs
+namespace OpenTelemetry.Logs;
+
+/// <summary>
+/// Stores options used to convert log messages into <see cref="ActivityEvent"/>s.
+/// </summary>
+public class LogToActivityEventConversionOptions
 {
     /// <summary>
-    /// Stores options used to convert log messages into <see cref="ActivityEvent"/>s.
+    /// Gets or sets the callback action used to convert log state into <see cref="ActivityEvent"/> tags.
     /// </summary>
-    public class LogToActivityEventConversionOptions
-    {
-        /// <summary>
-        /// Gets or sets the callback action used to convert log state into <see cref="ActivityEvent"/> tags.
-        /// </summary>
-        public Action<ActivityTagsCollection, IReadOnlyList<KeyValuePair<string, object>>> StateConverter { get; set; } = DefaultLogStateConverter.ConvertState;
+    public Action<ActivityTagsCollection, IReadOnlyList<KeyValuePair<string, object>>> StateConverter { get; set; } = DefaultLogStateConverter.ConvertState;
 
-        /// <summary>
-        /// Gets or sets the callback action used to convert log scopes into <see cref="ActivityEvent"/> tags.
-        /// </summary>
-        public Action<ActivityTagsCollection, int, LogRecordScope> ScopeConverter { get; set; } = DefaultLogStateConverter.ConvertScope;
-    }
+    /// <summary>
+    /// Gets or sets the callback action used to convert log scopes into <see cref="ActivityEvent"/> tags.
+    /// </summary>
+    public Action<ActivityTagsCollection, int, LogRecordScope> ScopeConverter { get; set; } = DefaultLogStateConverter.ConvertScope;
 }
 #endif

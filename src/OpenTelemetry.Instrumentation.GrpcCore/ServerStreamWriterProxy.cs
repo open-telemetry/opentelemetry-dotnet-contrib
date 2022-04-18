@@ -14,56 +14,55 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.GrpcCore
+namespace OpenTelemetry.Instrumentation.GrpcCore;
+
+using System;
+using System.Threading.Tasks;
+using global::Grpc.Core;
+
+/// <summary>
+/// A proxy server stream writer.
+/// </summary>
+/// <remarks>
+/// Borrowed heavily from
+/// https://github.com/opentracing-contrib/csharp-grpc/blob/master/src/OpenTracing.Contrib.Grpc/Streaming/TracingServerStreamWriter.cs.
+/// </remarks>
+/// <typeparam name="T">The message type.</typeparam>
+/// <seealso cref="global::Grpc.Core.IServerStreamWriter{T}" />
+internal class ServerStreamWriterProxy<T> : IServerStreamWriter<T>
 {
-    using System;
-    using System.Threading.Tasks;
-    using global::Grpc.Core;
+    /// <summary>
+    /// The writer.
+    /// </summary>
+    private readonly IServerStreamWriter<T> writer;
 
     /// <summary>
-    /// A proxy server stream writer.
+    /// The on write action.
     /// </summary>
-    /// <remarks>
-    /// Borrowed heavily from
-    /// https://github.com/opentracing-contrib/csharp-grpc/blob/master/src/OpenTracing.Contrib.Grpc/Streaming/TracingServerStreamWriter.cs.
-    /// </remarks>
-    /// <typeparam name="T">The message type.</typeparam>
-    /// <seealso cref="global::Grpc.Core.IServerStreamWriter{T}" />
-    internal class ServerStreamWriterProxy<T> : IServerStreamWriter<T>
+    private readonly Action<T> onWrite;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ServerStreamWriterProxy{T}"/> class.
+    /// </summary>
+    /// <param name="writer">The writer.</param>
+    /// <param name="onWrite">The on write action, if any.</param>
+    public ServerStreamWriterProxy(IServerStreamWriter<T> writer, Action<T> onWrite = null)
     {
-        /// <summary>
-        /// The writer.
-        /// </summary>
-        private readonly IServerStreamWriter<T> writer;
+        this.writer = writer;
+        this.onWrite = onWrite;
+    }
 
-        /// <summary>
-        /// The on write action.
-        /// </summary>
-        private readonly Action<T> onWrite;
+    /// <inheritdoc/>
+    public WriteOptions WriteOptions
+    {
+        get => this.writer.WriteOptions;
+        set => this.writer.WriteOptions = value;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ServerStreamWriterProxy{T}"/> class.
-        /// </summary>
-        /// <param name="writer">The writer.</param>
-        /// <param name="onWrite">The on write action, if any.</param>
-        public ServerStreamWriterProxy(IServerStreamWriter<T> writer, Action<T> onWrite = null)
-        {
-            this.writer = writer;
-            this.onWrite = onWrite;
-        }
-
-        /// <inheritdoc/>
-        public WriteOptions WriteOptions
-        {
-            get => this.writer.WriteOptions;
-            set => this.writer.WriteOptions = value;
-        }
-
-        /// <inheritdoc/>
-        public Task WriteAsync(T message)
-        {
-            this.onWrite?.Invoke(message);
-            return this.writer.WriteAsync(message);
-        }
+    /// <inheritdoc/>
+    public Task WriteAsync(T message)
+    {
+        this.onWrite?.Invoke(message);
+        return this.writer.WriteAsync(message);
     }
 }

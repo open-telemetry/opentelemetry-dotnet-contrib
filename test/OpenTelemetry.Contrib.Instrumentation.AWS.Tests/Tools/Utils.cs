@@ -21,57 +21,56 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
+namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests;
+
+internal static class Utils
 {
-    internal static class Utils
+    public static Stream CreateStreamFromString(string s)
     {
-        public static Stream CreateStreamFromString(string s)
-        {
-            MemoryStream stream = new MemoryStream();
-            StreamWriter writer = new StreamWriter(stream);
-            writer.Write(s);
-            writer.Flush();
-            stream.Position = 0;
-            return stream;
-        }
+        MemoryStream stream = new MemoryStream();
+        StreamWriter writer = new StreamWriter(stream);
+        writer.Write(s);
+        writer.Flush();
+        stream.Position = 0;
+        return stream;
+    }
 
-        public static Stream GetResourceStream(string resourceName)
-        {
-            Assembly assembly = typeof(Utils).Assembly;
-            var resource = FindResourceName(resourceName);
-            Stream stream = assembly.GetManifestResourceStream(resource);
-            return stream;
-        }
+    public static Stream GetResourceStream(string resourceName)
+    {
+        Assembly assembly = typeof(Utils).Assembly;
+        var resource = FindResourceName(resourceName);
+        Stream stream = assembly.GetManifestResourceStream(resource);
+        return stream;
+    }
 
-        public static string GetResourceText(string resourceName)
+    public static string GetResourceText(string resourceName)
+    {
+        using (StreamReader reader = new StreamReader(GetResourceStream(resourceName)))
         {
-            using (StreamReader reader = new StreamReader(GetResourceStream(resourceName)))
+            return reader.ReadToEnd();
+        }
+    }
+
+    public static string FindResourceName(string partialName)
+    {
+        return FindResourceName(s => s.IndexOf(partialName, StringComparison.OrdinalIgnoreCase) >= 0).SingleOrDefault();
+    }
+
+    public static IEnumerable<string> FindResourceName(Predicate<string> match)
+    {
+        Assembly assembly = typeof(Utils).Assembly;
+        var allResources = assembly.GetManifestResourceNames();
+        foreach (var resource in allResources)
+        {
+            if (match(resource))
             {
-                return reader.ReadToEnd();
+                yield return resource;
             }
         }
+    }
 
-        public static string FindResourceName(string partialName)
-        {
-            return FindResourceName(s => s.IndexOf(partialName, StringComparison.OrdinalIgnoreCase) >= 0).SingleOrDefault();
-        }
-
-        public static IEnumerable<string> FindResourceName(Predicate<string> match)
-        {
-            Assembly assembly = typeof(Utils).Assembly;
-            var allResources = assembly.GetManifestResourceNames();
-            foreach (var resource in allResources)
-            {
-                if (match(resource))
-                {
-                    yield return resource;
-                }
-            }
-        }
-
-        public static object GetTagValue(Activity activity, string tagName)
-        {
-            return OpenTelemetry.Contrib.Instrumentation.AWS.Implementation.Utils.GetTagValue(activity, tagName);
-        }
+    public static object GetTagValue(Activity activity, string tagName)
+    {
+        return OpenTelemetry.Contrib.Instrumentation.AWS.Implementation.Utils.GetTagValue(activity, tagName);
     }
 }

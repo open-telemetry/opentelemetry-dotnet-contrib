@@ -14,56 +14,55 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
+namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
+
+using System.Diagnostics;
+using global::Hangfire.Common;
+using global::Hangfire.Server;
+
+internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, IServerFilter
 {
-    using System.Diagnostics;
-    using global::Hangfire.Common;
-    using global::Hangfire.Server;
-
-    internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, IServerFilter
+    public void OnPerforming(PerformingContext performingContext)
     {
-        public void OnPerforming(PerformingContext performingContext)
+        // Short-circuit if nobody is listening
+        if (!HangfireInstrumentation.ActivitySource.HasListeners())
         {
-            // Short-circuit if nobody is listening
-            if (!HangfireInstrumentation.ActivitySource.HasListeners())
-            {
-                return;
-            }
-
-            var activity = HangfireInstrumentation.ActivitySource
-                .StartActivity(HangfireInstrumentationConstants.ActivityName, ActivityKind.Internal, parentContext: default);
-
-            if (activity != null)
-            {
-                activity.DisplayName = $"JOB {performingContext.BackgroundJob.Job.Type.Name}.{performingContext.BackgroundJob.Job.Method.Name}";
-
-                if (activity.IsAllDataRequested)
-                {
-                    activity.SetTag(HangfireInstrumentationConstants.JobIdTag, performingContext.BackgroundJob.Id);
-                    activity.SetTag(HangfireInstrumentationConstants.JobCreatedAtTag, performingContext.BackgroundJob.CreatedAt.ToString("O"));
-                }
-
-                performingContext.Items.Add(HangfireInstrumentationConstants.ActivityKey, activity);
-            }
+            return;
         }
 
-        public void OnPerformed(PerformedContext performedContext)
+        var activity = HangfireInstrumentation.ActivitySource
+            .StartActivity(HangfireInstrumentationConstants.ActivityName, ActivityKind.Internal, parentContext: default);
+
+        if (activity != null)
         {
-            // Short-circuit if nobody is listening
-            if (!HangfireInstrumentation.ActivitySource.HasListeners() || !performedContext.Items.ContainsKey(HangfireInstrumentationConstants.ActivityKey))
+            activity.DisplayName = $"JOB {performingContext.BackgroundJob.Job.Type.Name}.{performingContext.BackgroundJob.Job.Method.Name}";
+
+            if (activity.IsAllDataRequested)
             {
-                return;
+                activity.SetTag(HangfireInstrumentationConstants.JobIdTag, performingContext.BackgroundJob.Id);
+                activity.SetTag(HangfireInstrumentationConstants.JobCreatedAtTag, performingContext.BackgroundJob.CreatedAt.ToString("O"));
             }
 
-            if (performedContext.Items[HangfireInstrumentationConstants.ActivityKey] is Activity activity)
-            {
-                if (performedContext.Exception != null)
-                {
-                    activity.SetStatus(ActivityStatusCode.Error, performedContext.Exception.Message);
-                }
+            performingContext.Items.Add(HangfireInstrumentationConstants.ActivityKey, activity);
+        }
+    }
 
-                activity.Dispose();
+    public void OnPerformed(PerformedContext performedContext)
+    {
+        // Short-circuit if nobody is listening
+        if (!HangfireInstrumentation.ActivitySource.HasListeners() || !performedContext.Items.ContainsKey(HangfireInstrumentationConstants.ActivityKey))
+        {
+            return;
+        }
+
+        if (performedContext.Items[HangfireInstrumentationConstants.ActivityKey] is Activity activity)
+        {
+            if (performedContext.Exception != null)
+            {
+                activity.SetStatus(ActivityStatusCode.Error, performedContext.Exception.Message);
             }
+
+            activity.Dispose();
         }
     }
 }

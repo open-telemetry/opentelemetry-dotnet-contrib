@@ -14,12 +14,11 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Tests
-{
-    public class Customer
-    {
-        public string Id { get; set; }
+namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Tests;
 
-        public string Name { get; set; }
-    }
+public class Customer
+{
+    public string Id { get; set; }
+
+    public string Name { get; set; }
 }

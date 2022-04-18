@@ -17,37 +17,36 @@
 using System.ServiceModel;
 using System.Threading.Tasks;
 
-namespace OpenTelemetry.Instrumentation.Wcf.Tests
+namespace OpenTelemetry.Instrumentation.Wcf.Tests;
+
+[ServiceBehavior(
+    Namespace = "http://opentelemetry.io/",
+    ConcurrencyMode = ConcurrencyMode.Multiple,
+    InstanceContextMode = InstanceContextMode.Single,
+    UseSynchronizationContext = false,
+    Name = "Service")]
+public class Service : IServiceContract
 {
-    [ServiceBehavior(
-        Namespace = "http://opentelemetry.io/",
-        ConcurrencyMode = ConcurrencyMode.Multiple,
-        InstanceContextMode = InstanceContextMode.Single,
-        UseSynchronizationContext = false,
-        Name = "Service")]
-    public class Service : IServiceContract
+    public Task<ServiceResponse> ExecuteAsync(ServiceRequest request)
     {
-        public Task<ServiceResponse> ExecuteAsync(ServiceRequest request)
-        {
-            return Task.FromResult(
-                new ServiceResponse
-                {
-                    Payload = $"RSP: {request.Payload}",
-                });
-        }
+        return Task.FromResult(
+            new ServiceResponse
+            {
+                Payload = $"RSP: {request.Payload}",
+            });
+    }
 
-        public Task<ServiceResponse> ExecuteWithEmptyActionNameAsync(ServiceRequest request)
-        {
-            return Task.FromResult(
-               new ServiceResponse
-               {
-                   Payload = $"RSP: {request.Payload}",
-               });
-        }
+    public Task<ServiceResponse> ExecuteWithEmptyActionNameAsync(ServiceRequest request)
+    {
+        return Task.FromResult(
+           new ServiceResponse
+           {
+               Payload = $"RSP: {request.Payload}",
+           });
+    }
 
-        public void ExecuteWithOneWay(ServiceRequest request)
-        {
-        }
+    public void ExecuteWithOneWay(ServiceRequest request)
+    {
     }
 }
 #endif

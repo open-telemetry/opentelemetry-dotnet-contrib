@@ -18,90 +18,89 @@ using System;
 using System.Diagnostics.Tracing;
 using System.Runtime.CompilerServices;
 
-namespace OpenTelemetry.Extensions.PersistentStorage
+namespace OpenTelemetry.Extensions.PersistentStorage;
+
+[EventSource(Name = EventSourceName)]
+internal sealed class PersistentStorageEventSource : EventSource
 {
-    [EventSource(Name = EventSourceName)]
-    internal sealed class PersistentStorageEventSource : EventSource
+    public static PersistentStorageEventSource Log = new PersistentStorageEventSource();
+    private const string EventSourceName = "OpenTelemetry-Contrib-PersistentStorage";
+
+    [NonEvent]
+    public void Critical(string message, object value = null)
     {
-        public static PersistentStorageEventSource Log = new PersistentStorageEventSource();
-        private const string EventSourceName = "OpenTelemetry-Contrib-PersistentStorage";
+        this.Write(EventLevel.Critical, message, value);
+    }
 
-        [NonEvent]
-        public void Critical(string message, object value = null)
+    [NonEvent]
+    public void Error(string message, object value = null)
+    {
+        this.Write(EventLevel.Error, message, value);
+    }
+
+    [NonEvent]
+    public void Warning(string message, object value = null)
+    {
+        this.Write(EventLevel.Warning, message, value);
+    }
+
+    [NonEvent]
+    public void Informational(string message, object value = null)
+    {
+        this.Write(EventLevel.Informational, message, value);
+    }
+
+    [NonEvent]
+    public void Verbose(string message, object value = null)
+    {
+        this.Write(EventLevel.Verbose, message, value);
+    }
+
+    [Event(1, Message = "{0}", Level = EventLevel.Critical)]
+    public void WriteCritical(string message) => this.WriteEvent(1, message);
+
+    [Event(2, Message = "{0}", Level = EventLevel.Error)]
+    public void WriteError(string message) => this.WriteEvent(2, message);
+
+    [Event(3, Message = "{0}", Level = EventLevel.Warning)]
+    public void WriteWarning(string message) => this.WriteEvent(3, message);
+
+    [Event(4, Message = "{0}", Level = EventLevel.Informational)]
+    public void WriteInformational(string message) => this.WriteEvent(4, message);
+
+    [Event(5, Message = "{0}", Level = EventLevel.Verbose)]
+    public void WriteVerbose(string message) => this.WriteEvent(5, message);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static string GetMessage(object value)
+    {
+        return value is Exception exception ? exception.ToString() : value.ToString();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void Write(EventLevel eventLevel, string message, object value)
+    {
+        if (this.IsEnabled(eventLevel, (EventKeywords)(-1)))
         {
-            this.Write(EventLevel.Critical, message, value);
-        }
+            var logMessage = value == null ? message : $"{message} - {GetMessage(value)}";
 
-        [NonEvent]
-        public void Error(string message, object value = null)
-        {
-            this.Write(EventLevel.Error, message, value);
-        }
-
-        [NonEvent]
-        public void Warning(string message, object value = null)
-        {
-            this.Write(EventLevel.Warning, message, value);
-        }
-
-        [NonEvent]
-        public void Informational(string message, object value = null)
-        {
-            this.Write(EventLevel.Informational, message, value);
-        }
-
-        [NonEvent]
-        public void Verbose(string message, object value = null)
-        {
-            this.Write(EventLevel.Verbose, message, value);
-        }
-
-        [Event(1, Message = "{0}", Level = EventLevel.Critical)]
-        public void WriteCritical(string message) => this.WriteEvent(1, message);
-
-        [Event(2, Message = "{0}", Level = EventLevel.Error)]
-        public void WriteError(string message) => this.WriteEvent(2, message);
-
-        [Event(3, Message = "{0}", Level = EventLevel.Warning)]
-        public void WriteWarning(string message) => this.WriteEvent(3, message);
-
-        [Event(4, Message = "{0}", Level = EventLevel.Informational)]
-        public void WriteInformational(string message) => this.WriteEvent(4, message);
-
-        [Event(5, Message = "{0}", Level = EventLevel.Verbose)]
-        public void WriteVerbose(string message) => this.WriteEvent(5, message);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static string GetMessage(object value)
-        {
-            return value is Exception exception ? exception.ToString() : value.ToString();
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Write(EventLevel eventLevel, string message, object value)
-        {
-            if (this.IsEnabled(eventLevel, (EventKeywords)(-1)))
+            switch (eventLevel)
             {
-                var logMessage = value == null ? message : $"{message} - {GetMessage(value)}";
-
-                switch (eventLevel)
-                {
-                    case EventLevel.Critical:
-                        this.WriteCritical(logMessage);
-                        break;
-                    case EventLevel.Error:
-                        this.WriteError(logMessage);
-                        break;
-                    case EventLevel.Informational:
-                        this.WriteInformational(logMessage);
-                        break;
-                    case EventLevel.Verbose:
-                        this.WriteVerbose(logMessage);
-                        break;
-                    case EventLevel.Warning:
-                        this.WriteWarning(logMessage);
-                        break;
-                }
+                case EventLevel.Critical:
+                    this.WriteCritical(logMessage);
+                    break;
+                case EventLevel.Error:
+                    this.WriteError(logMessage);
+                    break;
+                case EventLevel.Informational:
+                    this.WriteInformational(logMessage);
+                    break;
+                case EventLevel.Verbose:
+                    this.WriteVerbose(logMessage);
+                    break;
+                case EventLevel.Warning:
+                    this.WriteWarning(logMessage);
+                    break;
             }
         }
     }

@@ -28,154 +28,153 @@ using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 using Xunit;
 
-namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests
+namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests;
+
+public class EntityFrameworkDiagnosticListenerTests : IDisposable
 {
-    public class EntityFrameworkDiagnosticListenerTests : IDisposable
+    private readonly DbContextOptions<ItemsContext> contextOptions;
+    private readonly DbConnection connection;
+
+    public EntityFrameworkDiagnosticListenerTests()
     {
-        private readonly DbContextOptions<ItemsContext> contextOptions;
-        private readonly DbConnection connection;
+        this.contextOptions = new DbContextOptionsBuilder<ItemsContext>()
+            .UseSqlite(CreateInMemoryDatabase())
+            .Options;
 
-        public EntityFrameworkDiagnosticListenerTests()
+        this.connection = RelationalOptionsExtension.Extract(this.contextOptions).Connection;
+
+        this.Seed();
+    }
+
+    [Fact]
+    public void EntityFrameworkContextEventsInstrumentedTest()
+    {
+        var activityProcessor = new Mock<BaseProcessor<Activity>>();
+        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
+            .AddProcessor(activityProcessor.Object)
+            .AddEntityFrameworkCoreInstrumentation().Build();
+
+        using (var context = new ItemsContext(this.contextOptions))
         {
-            this.contextOptions = new DbContextOptionsBuilder<ItemsContext>()
-                .UseSqlite(CreateInMemoryDatabase())
-                .Options;
+            var items = context.Set<Item>().OrderBy(e => e.Name).ToList();
 
-            this.connection = RelationalOptionsExtension.Extract(this.contextOptions).Connection;
-
-            this.Seed();
+            Assert.Equal(3, items.Count);
+            Assert.Equal("ItemOne", items[0].Name);
+            Assert.Equal("ItemThree", items[1].Name);
+            Assert.Equal("ItemTwo", items[2].Name);
         }
 
-        [Fact]
-        public void EntityFrameworkContextEventsInstrumentedTest()
+        Assert.Equal(3, activityProcessor.Invocations.Count);
+
+        var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
+
+        VerifyActivityData(activity);
+    }
+
+    [Fact]
+    public void EntityFrameworkContextExceptionEventsInstrumentedTest()
+    {
+        var activityProcessor = new Mock<BaseProcessor<Activity>>();
+        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
+            .AddProcessor(activityProcessor.Object)
+            .AddEntityFrameworkCoreInstrumentation()
+            .Build();
+
+        using (var context = new ItemsContext(this.contextOptions))
         {
-            var activityProcessor = new Mock<BaseProcessor<Activity>>();
-            using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-                .AddProcessor(activityProcessor.Object)
-                .AddEntityFrameworkCoreInstrumentation().Build();
-
-            using (var context = new ItemsContext(this.contextOptions))
+            try
             {
-                var items = context.Set<Item>().OrderBy(e => e.Name).ToList();
-
-                Assert.Equal(3, items.Count);
-                Assert.Equal("ItemOne", items[0].Name);
-                Assert.Equal("ItemThree", items[1].Name);
-                Assert.Equal("ItemTwo", items[2].Name);
+                context.Database.ExecuteSqlRaw("select * from no_table");
             }
-
-            Assert.Equal(3, activityProcessor.Invocations.Count);
-
-            var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
-
-            VerifyActivityData(activity);
+            catch
+            {
+            }
         }
 
-        [Fact]
-        public void EntityFrameworkContextExceptionEventsInstrumentedTest()
-        {
-            var activityProcessor = new Mock<BaseProcessor<Activity>>();
-            using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-                .AddProcessor(activityProcessor.Object)
-                .AddEntityFrameworkCoreInstrumentation()
-                .Build();
+        Assert.Equal(3, activityProcessor.Invocations.Count);
 
-            using (var context = new ItemsContext(this.contextOptions))
-            {
-                try
+        var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
+
+        VerifyActivityData(activity, isError: true);
+    }
+
+    public void Dispose() => this.connection.Dispose();
+
+    private static DbConnection CreateInMemoryDatabase()
+    {
+        var connection = new SqliteConnection("Filename=:memory:");
+
+        connection.Open();
+
+        return connection;
+    }
+
+    private static void VerifyActivityData(Activity activity, bool isError = false)
+    {
+        Assert.Equal("main", activity.DisplayName);
+        Assert.Equal(ActivityKind.Client, activity.Kind);
+        Assert.Equal("sqlite", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbSystem).Value);
+
+        // TBD: SqlLite not setting the DataSource so it doesn't get set.
+        Assert.DoesNotContain(activity.Tags, t => t.Key == EntityFrameworkDiagnosticListener.AttributePeerService);
+
+        Assert.Equal("main", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbName).Value);
+        Assert.Equal(CommandType.Text.ToString(), activity.Tags.FirstOrDefault(t => t.Key == SpanAttributeConstants.DatabaseStatementTypeKey).Value);
+
+        if (!isError)
+        {
+            Assert.Equal(Status.Unset, activity.GetStatus());
+        }
+        else
+        {
+            Status status = activity.GetStatus();
+            Assert.Equal(StatusCode.Error, status.StatusCode);
+            Assert.Equal("SQLite Error 1: 'no such table: no_table'.", status.Description);
+            Assert.Contains(activity.Tags, t => t.Key == SpanAttributeConstants.StatusDescriptionKey);
+        }
+    }
+
+    private void Seed()
+    {
+        using var context = new ItemsContext(this.contextOptions);
+
+        context.Database.EnsureDeleted();
+        context.Database.EnsureCreated();
+
+        var one = new Item { Name = "ItemOne" };
+
+        var two = new Item { Name = "ItemTwo" };
+
+        var three = new Item { Name = "ItemThree" };
+
+        context.AddRange(one, two, three);
+
+        context.SaveChanges();
+    }
+
+    private class Item
+    {
+        public int Id { get; set; }
+
+        public string Name { get; set; }
+    }
+
+    private class ItemsContext : DbContext
+    {
+        public ItemsContext(DbContextOptions options)
+            : base(options)
+        {
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Item>(
+                b =>
                 {
-                    context.Database.ExecuteSqlRaw("select * from no_table");
-                }
-                catch
-                {
-                }
-            }
-
-            Assert.Equal(3, activityProcessor.Invocations.Count);
-
-            var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
-
-            VerifyActivityData(activity, isError: true);
-        }
-
-        public void Dispose() => this.connection.Dispose();
-
-        private static DbConnection CreateInMemoryDatabase()
-        {
-            var connection = new SqliteConnection("Filename=:memory:");
-
-            connection.Open();
-
-            return connection;
-        }
-
-        private static void VerifyActivityData(Activity activity, bool isError = false)
-        {
-            Assert.Equal("main", activity.DisplayName);
-            Assert.Equal(ActivityKind.Client, activity.Kind);
-            Assert.Equal("sqlite", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbSystem).Value);
-
-            // TBD: SqlLite not setting the DataSource so it doesn't get set.
-            Assert.DoesNotContain(activity.Tags, t => t.Key == EntityFrameworkDiagnosticListener.AttributePeerService);
-
-            Assert.Equal("main", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbName).Value);
-            Assert.Equal(CommandType.Text.ToString(), activity.Tags.FirstOrDefault(t => t.Key == SpanAttributeConstants.DatabaseStatementTypeKey).Value);
-
-            if (!isError)
-            {
-                Assert.Equal(Status.Unset, activity.GetStatus());
-            }
-            else
-            {
-                Status status = activity.GetStatus();
-                Assert.Equal(StatusCode.Error, status.StatusCode);
-                Assert.Equal("SQLite Error 1: 'no such table: no_table'.", status.Description);
-                Assert.Contains(activity.Tags, t => t.Key == SpanAttributeConstants.StatusDescriptionKey);
-            }
-        }
-
-        private void Seed()
-        {
-            using var context = new ItemsContext(this.contextOptions);
-
-            context.Database.EnsureDeleted();
-            context.Database.EnsureCreated();
-
-            var one = new Item { Name = "ItemOne" };
-
-            var two = new Item { Name = "ItemTwo" };
-
-            var three = new Item { Name = "ItemThree" };
-
-            context.AddRange(one, two, three);
-
-            context.SaveChanges();
-        }
-
-        private class Item
-        {
-            public int Id { get; set; }
-
-            public string Name { get; set; }
-        }
-
-        private class ItemsContext : DbContext
-        {
-            public ItemsContext(DbContextOptions options)
-                : base(options)
-            {
-            }
-
-            protected override void OnModelCreating(ModelBuilder modelBuilder)
-            {
-                modelBuilder.Entity<Item>(
-                    b =>
-                    {
-                        b.Property("Id");
-                        b.HasKey("Id");
-                        b.Property(e => e.Name);
-                    });
-            }
+                    b.Property("Id");
+                    b.HasKey("Id");
+                    b.Property(e => e.Name);
+                });
         }
     }
 }

@@ -14,10 +14,9 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Models
+namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Models;
+
+internal class AWSEKSClusterInformationModel
 {
-    internal class AWSEKSClusterInformationModel
-    {
-        public AWSEKSClusterDataModel Data { get; set; }
-    }
+    public AWSEKSClusterDataModel Data { get; set; }
 }

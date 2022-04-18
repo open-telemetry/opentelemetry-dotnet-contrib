@@ -14,32 +14,31 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
+namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
+
+internal static class AWSSemanticConventions
 {
-    internal static class AWSSemanticConventions
-    {
-        public const string AttributeCloudAccountID = "cloud.account.id";
-        public const string AttributeCloudAvailableZone = "cloud.availability_zone";
-        public const string AttributeCloudPlatform = "cloud.platform";
-        public const string AttributeCloudProvider = "cloud.provider";
-        public const string AttributeCloudRegion = "cloud.region";
+    public const string AttributeCloudAccountID = "cloud.account.id";
+    public const string AttributeCloudAvailableZone = "cloud.availability_zone";
+    public const string AttributeCloudPlatform = "cloud.platform";
+    public const string AttributeCloudProvider = "cloud.provider";
+    public const string AttributeCloudRegion = "cloud.region";
 
-        public const string AttributeContainerID = "container.id";
+    public const string AttributeContainerID = "container.id";
 
-        public const string AttributeFaasExecution = "faas.execution";
-        public const string AttributeFaasID = "faas.id";
-        public const string AttributeFaasName = "faas.name";
-        public const string AttributeFaasVersion = "faas.version";
+    public const string AttributeFaasExecution = "faas.execution";
+    public const string AttributeFaasID = "faas.id";
+    public const string AttributeFaasName = "faas.name";
+    public const string AttributeFaasVersion = "faas.version";
 
-        public const string AttributeHostID = "host.id";
-        public const string AttributeHostType = "host.type";
-        public const string AttributeHostName = "host.name";
+    public const string AttributeHostID = "host.id";
+    public const string AttributeHostType = "host.type";
+    public const string AttributeHostName = "host.name";
 
-        public const string AttributeK8SClusterName = "k8s.cluster.name";
+    public const string AttributeK8SClusterName = "k8s.cluster.name";
 
-        public const string AttributeServiceName = "service.name";
-        public const string AttributeServiceNamespace = "service.namespace";
-        public const string AttributeServiceInstanceID = "service.instance.id";
-        public const string AttributeServiceVersion = "service.version";
-    }
+    public const string AttributeServiceName = "service.name";
+    public const string AttributeServiceNamespace = "service.namespace";
+    public const string AttributeServiceInstanceID = "service.instance.id";
+    public const string AttributeServiceVersion = "service.version";
 }

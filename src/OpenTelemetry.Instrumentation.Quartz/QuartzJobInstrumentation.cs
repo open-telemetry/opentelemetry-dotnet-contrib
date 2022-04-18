@@ -17,30 +17,29 @@
 using System;
 using OpenTelemetry.Instrumentation.Quartz.Implementation;
 
-namespace OpenTelemetry.Instrumentation.Quartz
+namespace OpenTelemetry.Instrumentation.Quartz;
+
+internal class QuartzJobInstrumentation : IDisposable
 {
-    internal class QuartzJobInstrumentation : IDisposable
+    internal const string QuartzDiagnosticListenerName = "Quartz";
+    private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
+
+    public QuartzJobInstrumentation()
+        : this(new QuartzInstrumentationOptions())
     {
-        internal const string QuartzDiagnosticListenerName = "Quartz";
-        private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
+    }
 
-        public QuartzJobInstrumentation()
-            : this(new QuartzInstrumentationOptions())
-        {
-        }
+    public QuartzJobInstrumentation(QuartzInstrumentationOptions options)
+    {
+        this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(
+            name => new QuartzDiagnosticListener(name, options),
+            listener => listener.Name == QuartzDiagnosticListenerName,
+            null);
+        this.diagnosticSourceSubscriber.Subscribe();
+    }
 
-        public QuartzJobInstrumentation(QuartzInstrumentationOptions options)
-        {
-            this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(
-                name => new QuartzDiagnosticListener(name, options),
-                listener => listener.Name == QuartzDiagnosticListenerName,
-                null);
-            this.diagnosticSourceSubscriber.Subscribe();
-        }
-
-        public void Dispose()
-        {
-            this.diagnosticSourceSubscriber?.Dispose();
-        }
+    public void Dispose()
+    {
+        this.diagnosticSourceSubscriber?.Dispose();
     }
 }

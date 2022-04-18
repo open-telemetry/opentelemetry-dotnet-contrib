@@ -14,12 +14,11 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.MassTransit.Implementation
+namespace OpenTelemetry.Instrumentation.MassTransit.Implementation;
+
+internal class MassTransitSemanticConventions
 {
-    internal class MassTransitSemanticConventions
-    {
-        public const string AttributeMessagingMassTransitInitiatorId = "messaging.masstransit.initiator_id";
-        public const string AttributeMessagingMassTransitCorrelationId = "messaging.masstransit.correlation_id";
-        public const string AttributeMessagingMassTransitConsumerType = "messaging.masstransit.consumer_type";
-    }
+    public const string AttributeMessagingMassTransitInitiatorId = "messaging.masstransit.initiator_id";
+    public const string AttributeMessagingMassTransitCorrelationId = "messaging.masstransit.correlation_id";
+    public const string AttributeMessagingMassTransitConsumerType = "messaging.masstransit.consumer_type";
 }

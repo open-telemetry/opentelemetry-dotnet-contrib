@@ -17,64 +17,63 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation
+namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation;
+
+internal class Utils
 {
-    internal class Utils
+    internal static object GetTagValue(Activity activity, string tagName)
     {
-        internal static object GetTagValue(Activity activity, string tagName)
+        foreach (KeyValuePair<string, object> tag in activity.TagObjects)
         {
-            foreach (KeyValuePair<string, object> tag in activity.TagObjects)
+            if (tag.Key.Equals(tagName))
             {
-                if (tag.Key.Equals(tagName))
-                {
-                    return tag.Value;
-                }
+                return tag.Value;
             }
-
-            return null;
         }
 
-        internal static string RemoveSuffix(string originalString, string suffix)
+        return null;
+    }
+
+    internal static string RemoveSuffix(string originalString, string suffix)
+    {
+        if (string.IsNullOrEmpty(originalString))
         {
-            if (string.IsNullOrEmpty(originalString))
-            {
-                return string.Empty;
-            }
-
-            if (originalString.EndsWith(suffix))
-            {
-                return originalString.Substring(0, originalString.Length - suffix.Length);
-            }
-
-            return originalString;
+            return string.Empty;
         }
 
-        /// <summary>
-        /// Removes amazon prefix from service name. There are two type of service name.
-        ///     Amazon.DynamoDbV2
-        ///     AmazonS3
-        ///     .
-        /// </summary>
-        /// <param name="serviceName">Name of the service.</param>
-        /// <returns>String after removing Amazon prefix.</returns>
-        internal static string RemoveAmazonPrefixFromServiceName(string serviceName)
+        if (originalString.EndsWith(suffix))
         {
-            return RemovePrefix(RemovePrefix(serviceName, "Amazon"), ".");
+            return originalString.Substring(0, originalString.Length - suffix.Length);
         }
 
-        private static string RemovePrefix(string originalString, string prefix)
+        return originalString;
+    }
+
+    /// <summary>
+    /// Removes amazon prefix from service name. There are two type of service name.
+    ///     Amazon.DynamoDbV2
+    ///     AmazonS3
+    ///     .
+    /// </summary>
+    /// <param name="serviceName">Name of the service.</param>
+    /// <returns>String after removing Amazon prefix.</returns>
+    internal static string RemoveAmazonPrefixFromServiceName(string serviceName)
+    {
+        return RemovePrefix(RemovePrefix(serviceName, "Amazon"), ".");
+    }
+
+    private static string RemovePrefix(string originalString, string prefix)
+    {
+        if (string.IsNullOrEmpty(originalString))
         {
-            if (string.IsNullOrEmpty(originalString))
-            {
-                return string.Empty;
-            }
-
-            if (originalString.StartsWith(prefix))
-            {
-                return originalString.Substring(prefix.Length);
-            }
-
-            return originalString;
+            return string.Empty;
         }
+
+        if (originalString.StartsWith(prefix))
+        {
+            return originalString.Substring(prefix.Length);
+        }
+
+        return originalString;
     }
 }

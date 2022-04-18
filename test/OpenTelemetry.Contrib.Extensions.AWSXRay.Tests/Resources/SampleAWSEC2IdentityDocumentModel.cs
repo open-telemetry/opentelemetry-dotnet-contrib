@@ -16,17 +16,16 @@
 
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Models;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources
+namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources;
+
+internal class SampleAWSEC2IdentityDocumentModel : AWSEC2IdentityDocumentModel
 {
-    internal class SampleAWSEC2IdentityDocumentModel : AWSEC2IdentityDocumentModel
+    public SampleAWSEC2IdentityDocumentModel()
     {
-        public SampleAWSEC2IdentityDocumentModel()
-        {
-            this.AccountId = "Test account id";
-            this.AvailabilityZone = "Test availability zone";
-            this.Region = "Test aws region";
-            this.InstanceId = "Test instance id";
-            this.InstanceType = "Test instance type";
-        }
+        this.AccountId = "Test account id";
+        this.AvailabilityZone = "Test availability zone";
+        this.Region = "Test aws region";
+        this.InstanceId = "Test instance id";
+        this.InstanceType = "Test instance type";
     }
 }

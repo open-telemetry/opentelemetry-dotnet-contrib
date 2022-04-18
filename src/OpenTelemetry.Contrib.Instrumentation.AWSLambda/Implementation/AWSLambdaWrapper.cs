@@ -20,258 +20,257 @@ using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
+namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation;
+
+/// <summary>
+/// Wrapper class for AWS Lambda handlers.
+/// </summary>
+public class AWSLambdaWrapper
 {
+    private static readonly ActivitySource AWSLambdaActivitySource = new ActivitySource(AWSLambdaUtils.ActivitySourceName);
+
     /// <summary>
-    /// Wrapper class for AWS Lambda handlers.
+    /// Tracing wrapper for Lambda handler without Lambda context.
     /// </summary>
-    public class AWSLambdaWrapper
+    /// <typeparam name="TInput">Input.</typeparam>
+    /// <typeparam name="TResult">Output result.</typeparam>
+    /// <param name="tracerProvider">TracerProvider passed in.</param>
+    /// <param name="lambdaHandler">Lambda handler function passed in.</param>
+    /// <param name="input">Instance of input.</param>
+    /// <returns>Instance of output result.</returns>
+    public static TResult Trace<TInput, TResult>(TracerProvider tracerProvider, Func<TInput, TResult> lambdaHandler, TInput input)
     {
-        private static readonly ActivitySource AWSLambdaActivitySource = new ActivitySource(AWSLambdaUtils.ActivitySourceName);
+        return Intercept(tracerProvider, () => lambdaHandler(input));
+    }
 
-        /// <summary>
-        /// Tracing wrapper for Lambda handler without Lambda context.
-        /// </summary>
-        /// <typeparam name="TInput">Input.</typeparam>
-        /// <typeparam name="TResult">Output result.</typeparam>
-        /// <param name="tracerProvider">TracerProvider passed in.</param>
-        /// <param name="lambdaHandler">Lambda handler function passed in.</param>
-        /// <param name="input">Instance of input.</param>
-        /// <returns>Instance of output result.</returns>
-        public static TResult Trace<TInput, TResult>(TracerProvider tracerProvider, Func<TInput, TResult> lambdaHandler, TInput input)
+    /// <summary>
+    /// Tracing wrapper for Lambda handler without Lambda context.
+    /// </summary>
+    /// <typeparam name="TInput">Input.</typeparam>
+    /// <param name="tracerProvider">TracerProvider passed in.</param>
+    /// <param name="lambdaHandler">Lambda handler function passed in.</param>
+    /// <param name="input">Instance of input.</param>
+    public static void Trace<TInput>(TracerProvider tracerProvider, Action<TInput> lambdaHandler, TInput input)
+    {
+        Intercept(tracerProvider, () => lambdaHandler(input));
+    }
+
+    /// <summary>
+    /// Tracing wrapper for async Lambda handler without Lambda context.
+    /// </summary>
+    /// <typeparam name="TInput">Input.</typeparam>
+    /// <param name="tracerProvider">TracerProvider passed in.</param>
+    /// <param name="lambdaHandler">Lambda handler function passed in.</param>
+    /// <param name="input">Instance of input.</param>
+    /// <returns>Task.</returns>
+    public static async Task Trace<TInput>(TracerProvider tracerProvider, Func<TInput, Task> lambdaHandler, TInput input)
+    {
+        await Intercept(tracerProvider, () => lambdaHandler(input));
+    }
+
+    /// <summary>
+    /// Tracing wrapper for async Lambda handler without Lambda context.
+    /// </summary>
+    /// <typeparam name="TInput">Input.</typeparam>
+    /// <typeparam name="TResult">Output result.</typeparam>
+    /// <param name="tracerProvider">TracerProvider passed in.</param>
+    /// <param name="lambdaHandler">Lambda handler function passed in.</param>
+    /// <param name="input">Instance of input.</param>
+    /// <returns>Task of result.</returns>
+    public static async Task<TResult> Trace<TInput, TResult>(TracerProvider tracerProvider, Func<TInput, Task<TResult>> lambdaHandler, TInput input)
+    {
+        return await Intercept(tracerProvider, () => lambdaHandler(input));
+    }
+
+    /// <summary>
+    /// Tracing wrapper for Lambda handler.
+    /// </summary>
+    /// <typeparam name="TInput">Input.</typeparam>
+    /// <typeparam name="TResult">Output result.</typeparam>
+    /// <param name="tracerProvider">TracerProvider passed in.</param>
+    /// <param name="lambdaHandler">Lambda handler function passed in.</param>
+    /// <param name="input">Instance of input.</param>
+    /// <param name="context">Instance of lambda context.</param>
+    /// <returns>Instance of output result.</returns>
+    public static TResult Trace<TInput, TResult>(TracerProvider tracerProvider, Func<TInput, ILambdaContext, TResult> lambdaHandler, TInput input, ILambdaContext context)
+    {
+        return Intercept(tracerProvider, () => lambdaHandler(input, context), context);
+    }
+
+    /// <summary>
+    /// Tracing wrapper for Lambda handler.
+    /// </summary>
+    /// <typeparam name="TInput">Input.</typeparam>
+    /// <param name="tracerProvider">TracerProvider passed in.</param>
+    /// <param name="lambdaHandler">Lambda handler function passed in.</param>
+    /// <param name="input">Instance of input.</param>
+    /// <param name="context">Instance of lambda context.</param>
+    public static void Trace<TInput>(TracerProvider tracerProvider, Action<TInput, ILambdaContext> lambdaHandler, TInput input, ILambdaContext context)
+    {
+        Intercept(tracerProvider, () => lambdaHandler(input, context), context);
+    }
+
+    /// <summary>
+    /// Tracing wrapper for async Lambda handler.
+    /// </summary>
+    /// <typeparam name="TInput">Input.</typeparam>
+    /// <param name="tracerProvider">TracerProvider passed in.</param>
+    /// <param name="lambdaHandler">Lambda handler function passed in.</param>
+    /// <param name="input">Instance of input.</param>
+    /// <param name="context">Instance of lambda context.</param>
+    /// <returns>Task.</returns>
+    public static async Task Trace<TInput>(TracerProvider tracerProvider, Func<TInput, ILambdaContext, Task> lambdaHandler, TInput input, ILambdaContext context)
+    {
+        await Intercept(tracerProvider, () => lambdaHandler(input, context), context);
+    }
+
+    /// <summary>
+    /// Tracing wrapper for async Lambda handler.
+    /// </summary>
+    /// <typeparam name="TInput">Input.</typeparam>
+    /// <typeparam name="TResult">Output result.</typeparam>
+    /// <param name="tracerProvider">TracerProvider passed in.</param>
+    /// <param name="lambdaHandler">Lambda handler function passed in.</param>
+    /// <param name="input">Instance of input.</param>
+    /// <param name="context">Instance of lambda context.</param>
+    /// <returns>Task of result.</returns>
+    public static async Task<TResult> Trace<TInput, TResult>(TracerProvider tracerProvider, Func<TInput, ILambdaContext, Task<TResult>> lambdaHandler, TInput input, ILambdaContext context)
+    {
+        return await Intercept(tracerProvider, () => lambdaHandler(input, context), context);
+    }
+
+    private static TResult Intercept<TResult>(TracerProvider tracerProvider, Func<TResult> method, ILambdaContext context = null)
+    {
+        var lambdaActivity = OnFunctionStart(context);
+        try
         {
-            return Intercept(tracerProvider, () => lambdaHandler(input));
+            return method();
         }
-
-        /// <summary>
-        /// Tracing wrapper for Lambda handler without Lambda context.
-        /// </summary>
-        /// <typeparam name="TInput">Input.</typeparam>
-        /// <param name="tracerProvider">TracerProvider passed in.</param>
-        /// <param name="lambdaHandler">Lambda handler function passed in.</param>
-        /// <param name="input">Instance of input.</param>
-        public static void Trace<TInput>(TracerProvider tracerProvider, Action<TInput> lambdaHandler, TInput input)
+        catch (Exception ex)
         {
-            Intercept(tracerProvider, () => lambdaHandler(input));
+            OnException(lambdaActivity, ex);
+
+            throw;
         }
-
-        /// <summary>
-        /// Tracing wrapper for async Lambda handler without Lambda context.
-        /// </summary>
-        /// <typeparam name="TInput">Input.</typeparam>
-        /// <param name="tracerProvider">TracerProvider passed in.</param>
-        /// <param name="lambdaHandler">Lambda handler function passed in.</param>
-        /// <param name="input">Instance of input.</param>
-        /// <returns>Task.</returns>
-        public static async Task Trace<TInput>(TracerProvider tracerProvider, Func<TInput, Task> lambdaHandler, TInput input)
+        finally
         {
-            await Intercept(tracerProvider, () => lambdaHandler(input));
+            OnFunctionStop(lambdaActivity, tracerProvider);
         }
+    }
 
-        /// <summary>
-        /// Tracing wrapper for async Lambda handler without Lambda context.
-        /// </summary>
-        /// <typeparam name="TInput">Input.</typeparam>
-        /// <typeparam name="TResult">Output result.</typeparam>
-        /// <param name="tracerProvider">TracerProvider passed in.</param>
-        /// <param name="lambdaHandler">Lambda handler function passed in.</param>
-        /// <param name="input">Instance of input.</param>
-        /// <returns>Task of result.</returns>
-        public static async Task<TResult> Trace<TInput, TResult>(TracerProvider tracerProvider, Func<TInput, Task<TResult>> lambdaHandler, TInput input)
+    private static void Intercept(TracerProvider tracerProvider, Action method, ILambdaContext context = null)
+    {
+        var lambdaActivity = OnFunctionStart(context);
+        try
         {
-            return await Intercept(tracerProvider, () => lambdaHandler(input));
+            method();
         }
-
-        /// <summary>
-        /// Tracing wrapper for Lambda handler.
-        /// </summary>
-        /// <typeparam name="TInput">Input.</typeparam>
-        /// <typeparam name="TResult">Output result.</typeparam>
-        /// <param name="tracerProvider">TracerProvider passed in.</param>
-        /// <param name="lambdaHandler">Lambda handler function passed in.</param>
-        /// <param name="input">Instance of input.</param>
-        /// <param name="context">Instance of lambda context.</param>
-        /// <returns>Instance of output result.</returns>
-        public static TResult Trace<TInput, TResult>(TracerProvider tracerProvider, Func<TInput, ILambdaContext, TResult> lambdaHandler, TInput input, ILambdaContext context)
+        catch (Exception ex)
         {
-            return Intercept(tracerProvider, () => lambdaHandler(input, context), context);
+            OnException(lambdaActivity, ex);
+
+            throw;
         }
-
-        /// <summary>
-        /// Tracing wrapper for Lambda handler.
-        /// </summary>
-        /// <typeparam name="TInput">Input.</typeparam>
-        /// <param name="tracerProvider">TracerProvider passed in.</param>
-        /// <param name="lambdaHandler">Lambda handler function passed in.</param>
-        /// <param name="input">Instance of input.</param>
-        /// <param name="context">Instance of lambda context.</param>
-        public static void Trace<TInput>(TracerProvider tracerProvider, Action<TInput, ILambdaContext> lambdaHandler, TInput input, ILambdaContext context)
+        finally
         {
-            Intercept(tracerProvider, () => lambdaHandler(input, context), context);
+            OnFunctionStop(lambdaActivity, tracerProvider);
         }
+    }
 
-        /// <summary>
-        /// Tracing wrapper for async Lambda handler.
-        /// </summary>
-        /// <typeparam name="TInput">Input.</typeparam>
-        /// <param name="tracerProvider">TracerProvider passed in.</param>
-        /// <param name="lambdaHandler">Lambda handler function passed in.</param>
-        /// <param name="input">Instance of input.</param>
-        /// <param name="context">Instance of lambda context.</param>
-        /// <returns>Task.</returns>
-        public static async Task Trace<TInput>(TracerProvider tracerProvider, Func<TInput, ILambdaContext, Task> lambdaHandler, TInput input, ILambdaContext context)
+    private static async Task<TResult> Intercept<TResult>(TracerProvider tracerProvider, Func<Task<TResult>> method, ILambdaContext context = null)
+    {
+        var lambdaActivity = OnFunctionStart(context);
+        try
         {
-            await Intercept(tracerProvider, () => lambdaHandler(input, context), context);
+            return await method();
         }
-
-        /// <summary>
-        /// Tracing wrapper for async Lambda handler.
-        /// </summary>
-        /// <typeparam name="TInput">Input.</typeparam>
-        /// <typeparam name="TResult">Output result.</typeparam>
-        /// <param name="tracerProvider">TracerProvider passed in.</param>
-        /// <param name="lambdaHandler">Lambda handler function passed in.</param>
-        /// <param name="input">Instance of input.</param>
-        /// <param name="context">Instance of lambda context.</param>
-        /// <returns>Task of result.</returns>
-        public static async Task<TResult> Trace<TInput, TResult>(TracerProvider tracerProvider, Func<TInput, ILambdaContext, Task<TResult>> lambdaHandler, TInput input, ILambdaContext context)
+        catch (Exception ex)
         {
-            return await Intercept(tracerProvider, () => lambdaHandler(input, context), context);
+            OnException(lambdaActivity, ex);
+
+            throw;
         }
-
-        private static TResult Intercept<TResult>(TracerProvider tracerProvider, Func<TResult> method, ILambdaContext context = null)
+        finally
         {
-            var lambdaActivity = OnFunctionStart(context);
-            try
-            {
-                return method();
-            }
-            catch (Exception ex)
-            {
-                OnException(lambdaActivity, ex);
-
-                throw;
-            }
-            finally
-            {
-                OnFunctionStop(lambdaActivity, tracerProvider);
-            }
+            OnFunctionStop(lambdaActivity, tracerProvider);
         }
+    }
 
-        private static void Intercept(TracerProvider tracerProvider, Action method, ILambdaContext context = null)
+    private static async Task Intercept(TracerProvider tracerProvider, Func<Task> method, ILambdaContext context = null)
+    {
+        var lambdaActivity = OnFunctionStart(context);
+        try
         {
-            var lambdaActivity = OnFunctionStart(context);
-            try
-            {
-                method();
-            }
-            catch (Exception ex)
-            {
-                OnException(lambdaActivity, ex);
-
-                throw;
-            }
-            finally
-            {
-                OnFunctionStop(lambdaActivity, tracerProvider);
-            }
+            await method();
         }
-
-        private static async Task<TResult> Intercept<TResult>(TracerProvider tracerProvider, Func<Task<TResult>> method, ILambdaContext context = null)
+        catch (Exception ex)
         {
-            var lambdaActivity = OnFunctionStart(context);
-            try
-            {
-                return await method();
-            }
-            catch (Exception ex)
-            {
-                OnException(lambdaActivity, ex);
+            OnException(lambdaActivity, ex);
 
-                throw;
-            }
-            finally
-            {
-                OnFunctionStop(lambdaActivity, tracerProvider);
-            }
+            throw;
         }
-
-        private static async Task Intercept(TracerProvider tracerProvider, Func<Task> method, ILambdaContext context = null)
+        finally
         {
-            var lambdaActivity = OnFunctionStart(context);
-            try
-            {
-                await method();
-            }
-            catch (Exception ex)
-            {
-                OnException(lambdaActivity, ex);
-
-                throw;
-            }
-            finally
-            {
-                OnFunctionStop(lambdaActivity, tracerProvider);
-            }
+            OnFunctionStop(lambdaActivity, tracerProvider);
         }
+    }
 
-        private static Activity OnFunctionStart(ILambdaContext context = null)
+    private static Activity OnFunctionStart(ILambdaContext context = null)
+    {
+        Activity activity = null;
+
+        var parentContext = AWSLambdaUtils.GetParentContext();
+        if (parentContext != default)
         {
-            Activity activity = null;
+            var activityName = AWSLambdaUtils.GetFunctionName(context);
+            activity = AWSLambdaActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext);
 
-            var parentContext = AWSLambdaUtils.GetParentContext();
-            if (parentContext != default)
+            if (activity != null && context != null)
             {
-                var activityName = AWSLambdaUtils.GetFunctionName(context);
-                activity = AWSLambdaActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext);
-
-                if (activity != null && context != null)
+                if (activity.IsAllDataRequested)
                 {
-                    if (activity.IsAllDataRequested)
+                    if (context.AwsRequestId != null)
                     {
-                        if (context.AwsRequestId != null)
-                        {
-                            activity.SetTag(AWSLambdaSemanticConventions.AttributeFaasExecution, context.AwsRequestId);
-                        }
+                        activity.SetTag(AWSLambdaSemanticConventions.AttributeFaasExecution, context.AwsRequestId);
+                    }
 
-                        var functionArn = context.InvokedFunctionArn;
-                        if (functionArn != null)
-                        {
-                            activity.SetTag(AWSLambdaSemanticConventions.AttributeFaasID, functionArn);
+                    var functionArn = context.InvokedFunctionArn;
+                    if (functionArn != null)
+                    {
+                        activity.SetTag(AWSLambdaSemanticConventions.AttributeFaasID, functionArn);
 
-                            var accountId = AWSLambdaUtils.GetAccountId(functionArn);
-                            if (accountId != null)
-                            {
-                                activity.SetTag(AWSLambdaSemanticConventions.AttributeCloudAccountID, accountId);
-                            }
+                        var accountId = AWSLambdaUtils.GetAccountId(functionArn);
+                        if (accountId != null)
+                        {
+                            activity.SetTag(AWSLambdaSemanticConventions.AttributeCloudAccountID, accountId);
                         }
                     }
                 }
             }
-
-            return activity;
         }
 
-        private static void OnFunctionStop(Activity activity, TracerProvider tracerProvider)
-        {
-            if (activity != null)
-            {
-                activity.Stop();
-            }
+        return activity;
+    }
 
-            // force flush before function quit in case of Lambda freeze.
-            tracerProvider.ForceFlush();
+    private static void OnFunctionStop(Activity activity, TracerProvider tracerProvider)
+    {
+        if (activity != null)
+        {
+            activity.Stop();
         }
 
-        private static void OnException(Activity activity, Exception exception)
+        // force flush before function quit in case of Lambda freeze.
+        tracerProvider.ForceFlush();
+    }
+
+    private static void OnException(Activity activity, Exception exception)
+    {
+        if (activity != null)
         {
-            if (activity != null)
+            if (activity.IsAllDataRequested)
             {
-                if (activity.IsAllDataRequested)
-                {
-                    activity.RecordException(exception);
-                    activity.SetStatus(Status.Error.WithDescription(exception.Message));
-                }
+                activity.RecordException(exception);
+                activity.SetStatus(Status.Error.WithDescription(exception.Message));
             }
         }
     }

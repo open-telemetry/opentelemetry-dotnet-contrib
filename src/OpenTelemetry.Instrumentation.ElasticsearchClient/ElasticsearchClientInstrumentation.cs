@@ -16,29 +16,28 @@
 using System;
 using OpenTelemetry.Instrumentation.ElasticsearchClient.Implementation;
 
-namespace OpenTelemetry.Instrumentation.ElasticsearchClient
+namespace OpenTelemetry.Instrumentation.ElasticsearchClient;
+
+/// <summary>
+/// Elasticsearch client instrumentation.
+/// </summary>
+internal class ElasticsearchClientInstrumentation : IDisposable
 {
+    private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
+
     /// <summary>
-    /// Elasticsearch client instrumentation.
+    /// Initializes a new instance of the <see cref="ElasticsearchClientInstrumentation"/> class.
     /// </summary>
-    internal class ElasticsearchClientInstrumentation : IDisposable
+    /// <param name="options">Configuration options for Elasticsearch client instrumentation.</param>
+    public ElasticsearchClientInstrumentation(ElasticsearchClientInstrumentationOptions options)
     {
-        private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
+        this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(new ElasticsearchRequestPipelineDiagnosticListener(options), null);
+        this.diagnosticSourceSubscriber.Subscribe();
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ElasticsearchClientInstrumentation"/> class.
-        /// </summary>
-        /// <param name="options">Configuration options for Elasticsearch client instrumentation.</param>
-        public ElasticsearchClientInstrumentation(ElasticsearchClientInstrumentationOptions options)
-        {
-            this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(new ElasticsearchRequestPipelineDiagnosticListener(options), null);
-            this.diagnosticSourceSubscriber.Subscribe();
-        }
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            this.diagnosticSourceSubscriber.Dispose();
-        }
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.diagnosticSourceSubscriber.Dispose();
     }
 }

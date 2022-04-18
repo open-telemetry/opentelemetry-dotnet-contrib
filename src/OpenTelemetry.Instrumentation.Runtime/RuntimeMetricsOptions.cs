@@ -14,82 +14,81 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.Runtime
+namespace OpenTelemetry.Instrumentation.Runtime;
+
+/// <summary>
+/// Options to define the runtime metrics.
+/// </summary>
+public class RuntimeMetricsOptions
 {
     /// <summary>
-    /// Options to define the runtime metrics.
+    /// Gets or sets a value indicating whether garbage collection metrics should be collected.
     /// </summary>
-    public class RuntimeMetricsOptions
-    {
-        /// <summary>
-        /// Gets or sets a value indicating whether garbage collection metrics should be collected.
-        /// </summary>
-        public bool? GcEnabled { get; set; }
+    public bool? GcEnabled { get; set; }
 
 #if NET6_0_OR_GREATER
-        /// <summary>
-        /// Gets or sets a value indicating whether jitter metrics should be collected.
-        /// </summary>
-        public bool? JitEnabled { get; set; }
+    /// <summary>
+    /// Gets or sets a value indicating whether jitter metrics should be collected.
+    /// </summary>
+    public bool? JitEnabled { get; set; }
 #endif
 
 #if NETCOREAPP3_1_OR_GREATER
-        /// <summary>
-        /// Gets or sets a value indicating whether threading metrics should be collected.
-        /// </summary>
-        public bool? ThreadingEnabled { get; set; }
+    /// <summary>
+    /// Gets or sets a value indicating whether threading metrics should be collected.
+    /// </summary>
+    public bool? ThreadingEnabled { get; set; }
 #endif
 
-        /// <summary>
-        /// Gets or sets a value indicating whether process metrics should be collected.
-        /// </summary>
-        public bool? ProcessEnabled { get; set; }
+    /// <summary>
+    /// Gets or sets a value indicating whether process metrics should be collected.
+    /// </summary>
+    public bool? ProcessEnabled { get; set; }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether assembly metrics should be collected.
-        /// </summary>
-        public bool? AssembliesEnabled { get; set; }
+    /// <summary>
+    /// Gets or sets a value indicating whether assembly metrics should be collected.
+    /// </summary>
+    public bool? AssembliesEnabled { get; set; }
 
-        /// <summary>
-        /// Gets a value indicating whether all metrics are enabled.
-        /// </summary>
-        internal bool IsAllEnabled => this.GcEnabled == null
+    /// <summary>
+    /// Gets a value indicating whether all metrics are enabled.
+    /// </summary>
+    internal bool IsAllEnabled => this.GcEnabled == null
 #if NET6_0_OR_GREATER
-        && this.JitEnabled == null
+    && this.JitEnabled == null
 #endif
 #if NETCOREAPP3_1_OR_GREATER
-        && this.ThreadingEnabled == null
+    && this.ThreadingEnabled == null
 #endif
-        && this.ProcessEnabled == null
-        && this.AssembliesEnabled == null;
+    && this.ProcessEnabled == null
+    && this.AssembliesEnabled == null;
 
-        /// <summary>
-        /// Gets a value indicating whether garbage collection metrics is enabled.
-        /// </summary>
-        internal bool IsGcEnabled => this.GcEnabled == true || this.IsAllEnabled;
+    /// <summary>
+    /// Gets a value indicating whether garbage collection metrics is enabled.
+    /// </summary>
+    internal bool IsGcEnabled => this.GcEnabled == true || this.IsAllEnabled;
 
 #if NET6_0_OR_GREATER
-        /// <summary>
-        /// Gets a value indicating whether jitter metrics is enabled.
-        /// </summary>
-        internal bool IsJitEnabled => this.JitEnabled == true || this.IsAllEnabled;
+    /// <summary>
+    /// Gets a value indicating whether jitter metrics is enabled.
+    /// </summary>
+    internal bool IsJitEnabled => this.JitEnabled == true || this.IsAllEnabled;
 #endif
 
 #if NETCOREAPP3_1_OR_GREATER
-        /// <summary>
-        /// Gets a value indicating whether threading metrics is enabled.
-        /// </summary>
-        internal bool IsThreadingEnabled => this.ThreadingEnabled == true || this.IsAllEnabled;
+    /// <summary>
+    /// Gets a value indicating whether threading metrics is enabled.
+    /// </summary>
+    internal bool IsThreadingEnabled => this.ThreadingEnabled == true || this.IsAllEnabled;
 #endif
 
-        /// <summary>
-        /// Gets a value indicating whether process metrics is enabled.
-        /// </summary>
-        internal bool IsProcessEnabled => this.ProcessEnabled == true || this.IsAllEnabled;
+    /// <summary>
+    /// Gets a value indicating whether process metrics is enabled.
+    /// </summary>
+    internal bool IsProcessEnabled => this.ProcessEnabled == true || this.IsAllEnabled;
 
-        /// <summary>
-        /// Gets a value indicating whether assembly metrics is enabled.
-        /// </summary>
-        internal bool IsAssembliesEnabled => this.AssembliesEnabled == true || this.IsAllEnabled;
-    }
+    /// <summary>
+    /// Gets a value indicating whether assembly metrics is enabled.
+    /// </summary>
+    internal bool IsAssembliesEnabled => this.AssembliesEnabled == true || this.IsAllEnabled;
 }

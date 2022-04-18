@@ -18,53 +18,52 @@ using System;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
+namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests;
+
+public class SampleHandlers
 {
-    public class SampleHandlers
+    public void SampleHandlerSyncNoReturn(string str, ILambdaContext context)
     {
-        public void SampleHandlerSyncNoReturn(string str, ILambdaContext context)
-        {
-        }
+    }
 
-        public void SampleHandlerSyncNoReturn(string str)
-        {
-        }
+    public void SampleHandlerSyncNoReturn(string str)
+    {
+    }
 
-        public string SampleHandlerSyncReturn(string str, ILambdaContext context)
-        {
-            return str;
-        }
+    public string SampleHandlerSyncReturn(string str, ILambdaContext context)
+    {
+        return str;
+    }
 
-        public string SampleHandlerSyncReturn(string str)
-        {
-            return str;
-        }
+    public string SampleHandlerSyncReturn(string str)
+    {
+        return str;
+    }
 
-        public async Task SampleHandlerAsyncNoReturn(string str, ILambdaContext context)
-        {
-            await Task.Delay(10);
-        }
+    public async Task SampleHandlerAsyncNoReturn(string str, ILambdaContext context)
+    {
+        await Task.Delay(10);
+    }
 
-        public async Task SampleHandlerAsyncNoReturn(string str)
-        {
-            await Task.Delay(10);
-        }
+    public async Task SampleHandlerAsyncNoReturn(string str)
+    {
+        await Task.Delay(10);
+    }
 
-        public async Task<string> SampleHandlerAsyncReturn(string str, ILambdaContext context)
-        {
-            await Task.Delay(10);
-            return str;
-        }
+    public async Task<string> SampleHandlerAsyncReturn(string str, ILambdaContext context)
+    {
+        await Task.Delay(10);
+        return str;
+    }
 
-        public async Task<string> SampleHandlerAsyncReturn(string str)
-        {
-            await Task.Delay(10);
-            return str;
-        }
+    public async Task<string> SampleHandlerAsyncReturn(string str)
+    {
+        await Task.Delay(10);
+        return str;
+    }
 
-        public void SampleHandlerSyncNoReturnException(string str, ILambdaContext context)
-        {
-            throw new Exception(str);
-        }
+    public void SampleHandlerSyncNoReturnException(string str, ILambdaContext context)
+    {
+        throw new Exception(str);
     }
 }

@@ -16,125 +16,124 @@
 
 using Xunit;
 
-namespace OpenTelemetry.Instrumentation.Runtime.Tests
+namespace OpenTelemetry.Instrumentation.Runtime.Tests;
+
+public class RuntimeMetricsOptionsTests
 {
-    public class RuntimeMetricsOptionsTests
+    [Fact]
+    public void Enable_All_If_Nothing_Was_Defined()
     {
-        [Fact]
-        public void Enable_All_If_Nothing_Was_Defined()
-        {
-            var options = new RuntimeMetricsOptions();
+        var options = new RuntimeMetricsOptions();
 
-            Assert.True(options.IsGcEnabled);
+        Assert.True(options.IsGcEnabled);
 #if NET6_0_OR_GREATER
-            Assert.True(options.IsJitEnabled);
+        Assert.True(options.IsJitEnabled);
 #endif
 #if NETCOREAPP3_1_OR_GREATER
-            Assert.True(options.IsThreadingEnabled);
+        Assert.True(options.IsThreadingEnabled);
 #endif
-            Assert.True(options.IsProcessEnabled);
-            Assert.True(options.IsAssembliesEnabled);
-            Assert.True(options.IsAllEnabled);
-        }
+        Assert.True(options.IsProcessEnabled);
+        Assert.True(options.IsAssembliesEnabled);
+        Assert.True(options.IsAllEnabled);
+    }
 
-        [Fact]
-        public void Enable_Gc_Only()
-        {
-            var options = new RuntimeMetricsOptions { GcEnabled = true };
+    [Fact]
+    public void Enable_Gc_Only()
+    {
+        var options = new RuntimeMetricsOptions { GcEnabled = true };
 
-            Assert.True(options.IsGcEnabled);
+        Assert.True(options.IsGcEnabled);
 #if NET6_0_OR_GREATER
-            Assert.False(options.IsJitEnabled);
+        Assert.False(options.IsJitEnabled);
 #endif
 #if NETCOREAPP3_1_OR_GREATER
-            Assert.False(options.IsThreadingEnabled);
+        Assert.False(options.IsThreadingEnabled);
 #endif
-            Assert.False(options.IsProcessEnabled);
-            Assert.False(options.IsAssembliesEnabled);
-            Assert.False(options.IsAllEnabled);
-        }
+        Assert.False(options.IsProcessEnabled);
+        Assert.False(options.IsAssembliesEnabled);
+        Assert.False(options.IsAllEnabled);
+    }
 
 #if NET6_0_OR_GREATER
-        [Fact]
-        public void Enable_Jit_Only()
-        {
-            var options = new RuntimeMetricsOptions { JitEnabled = true };
+    [Fact]
+    public void Enable_Jit_Only()
+    {
+        var options = new RuntimeMetricsOptions { JitEnabled = true };
 
-            Assert.False(options.IsGcEnabled);
-            Assert.True(options.IsJitEnabled);
-            Assert.False(options.IsThreadingEnabled);
-            Assert.False(options.IsProcessEnabled);
-            Assert.False(options.IsAssembliesEnabled);
-            Assert.False(options.IsAllEnabled);
-        }
+        Assert.False(options.IsGcEnabled);
+        Assert.True(options.IsJitEnabled);
+        Assert.False(options.IsThreadingEnabled);
+        Assert.False(options.IsProcessEnabled);
+        Assert.False(options.IsAssembliesEnabled);
+        Assert.False(options.IsAllEnabled);
+    }
 #endif
 
 #if NETCOREAPP3_1_OR_GREATER
-        [Fact]
-        public void Enable_Threading_Only()
-        {
-            var options = new RuntimeMetricsOptions { ThreadingEnabled = true };
+    [Fact]
+    public void Enable_Threading_Only()
+    {
+        var options = new RuntimeMetricsOptions { ThreadingEnabled = true };
 
-            Assert.False(options.IsGcEnabled);
+        Assert.False(options.IsGcEnabled);
 #if NET6_0_OR_GREATER
-            Assert.False(options.IsJitEnabled);
+        Assert.False(options.IsJitEnabled);
 #endif
-            Assert.True(options.IsThreadingEnabled);
-            Assert.False(options.IsProcessEnabled);
-            Assert.False(options.IsAssembliesEnabled);
-            Assert.False(options.IsAllEnabled);
-        }
+        Assert.True(options.IsThreadingEnabled);
+        Assert.False(options.IsProcessEnabled);
+        Assert.False(options.IsAssembliesEnabled);
+        Assert.False(options.IsAllEnabled);
+    }
 #endif
 
-        [Fact]
-        public void Enable_Process_Only()
-        {
-            var options = new RuntimeMetricsOptions { ProcessEnabled = true };
+    [Fact]
+    public void Enable_Process_Only()
+    {
+        var options = new RuntimeMetricsOptions { ProcessEnabled = true };
 
-            Assert.False(options.IsGcEnabled);
+        Assert.False(options.IsGcEnabled);
 #if NET6_0_OR_GREATER
-            Assert.False(options.IsJitEnabled);
+        Assert.False(options.IsJitEnabled);
 #endif
 #if NETCOREAPP3_1_OR_GREATER
-            Assert.False(options.IsThreadingEnabled);
+        Assert.False(options.IsThreadingEnabled);
 #endif
-            Assert.True(options.IsProcessEnabled);
-            Assert.False(options.IsAssembliesEnabled);
-            Assert.False(options.IsAllEnabled);
-        }
+        Assert.True(options.IsProcessEnabled);
+        Assert.False(options.IsAssembliesEnabled);
+        Assert.False(options.IsAllEnabled);
+    }
 
-        [Fact]
-        public void Enable_Assemblies_Only()
-        {
-            var options = new RuntimeMetricsOptions { AssembliesEnabled = true };
+    [Fact]
+    public void Enable_Assemblies_Only()
+    {
+        var options = new RuntimeMetricsOptions { AssembliesEnabled = true };
 
-            Assert.False(options.IsGcEnabled);
+        Assert.False(options.IsGcEnabled);
 #if NET6_0_OR_GREATER
-            Assert.False(options.IsJitEnabled);
+        Assert.False(options.IsJitEnabled);
 #endif
 #if NETCOREAPP3_1_OR_GREATER
-            Assert.False(options.IsThreadingEnabled);
+        Assert.False(options.IsThreadingEnabled);
 #endif
-            Assert.False(options.IsProcessEnabled);
-            Assert.True(options.IsAssembliesEnabled);
-            Assert.False(options.IsAllEnabled);
-        }
+        Assert.False(options.IsProcessEnabled);
+        Assert.True(options.IsAssembliesEnabled);
+        Assert.False(options.IsAllEnabled);
+    }
 
-        [Fact]
-        public void Enable_Multiple()
-        {
-            var options = new RuntimeMetricsOptions { GcEnabled = true, ProcessEnabled = true };
+    [Fact]
+    public void Enable_Multiple()
+    {
+        var options = new RuntimeMetricsOptions { GcEnabled = true, ProcessEnabled = true };
 
-            Assert.True(options.IsGcEnabled);
+        Assert.True(options.IsGcEnabled);
 #if NET6_0_OR_GREATER
-            Assert.False(options.IsJitEnabled);
+        Assert.False(options.IsJitEnabled);
 #endif
 #if NETCOREAPP3_1_OR_GREATER
-            Assert.False(options.IsThreadingEnabled);
+        Assert.False(options.IsThreadingEnabled);
 #endif
-            Assert.True(options.IsProcessEnabled);
-            Assert.False(options.IsAssembliesEnabled);
-            Assert.False(options.IsAllEnabled);
-        }
+        Assert.True(options.IsProcessEnabled);
+        Assert.False(options.IsAssembliesEnabled);
+        Assert.False(options.IsAllEnabled);
     }
 }

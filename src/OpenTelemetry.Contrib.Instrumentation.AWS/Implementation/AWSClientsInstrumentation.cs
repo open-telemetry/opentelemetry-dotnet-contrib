@@ -16,13 +16,12 @@
 
 using Amazon.Runtime.Internal;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation
+namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation;
+
+internal class AWSClientsInstrumentation
 {
-    internal class AWSClientsInstrumentation
+    public AWSClientsInstrumentation(AWSClientInstrumentationOptions options)
     {
-        public AWSClientsInstrumentation(AWSClientInstrumentationOptions options)
-        {
-            RuntimePipelineCustomizerRegistry.Instance.Register(new AWSTracingPipelineCustomizer(options));
-        }
+        RuntimePipelineCustomizerRegistry.Instance.Register(new AWSTracingPipelineCustomizer(options));
     }
 }

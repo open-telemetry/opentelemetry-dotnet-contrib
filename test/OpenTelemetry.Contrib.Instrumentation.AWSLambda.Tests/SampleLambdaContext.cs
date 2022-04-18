@@ -17,30 +17,29 @@
 using System;
 using Amazon.Lambda.Core;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
+namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests;
+
+public class SampleLambdaContext : ILambdaContext
 {
-    public class SampleLambdaContext : ILambdaContext
-    {
-        public string AwsRequestId { get; } = "testrequestid";
+    public string AwsRequestId { get; } = "testrequestid";
 
-        public IClientContext ClientContext { get; } = null;
+    public IClientContext ClientContext { get; } = null;
 
-        public string FunctionName { get; } = "testfunction";
+    public string FunctionName { get; } = "testfunction";
 
-        public string FunctionVersion { get; } = "latest";
+    public string FunctionVersion { get; } = "latest";
 
-        public ICognitoIdentity Identity { get; } = null;
+    public ICognitoIdentity Identity { get; } = null;
 
-        public string InvokedFunctionArn { get; } = "arn:aws:lambda:us-east-1:111111111111:function:testfunction";
+    public string InvokedFunctionArn { get; } = "arn:aws:lambda:us-east-1:111111111111:function:testfunction";
 
-        public ILambdaLogger Logger { get; } = null;
+    public ILambdaLogger Logger { get; } = null;
 
-        public string LogGroupName { get; } = null;
+    public string LogGroupName { get; } = null;
 
-        public string LogStreamName { get; } = null;
+    public string LogStreamName { get; } = null;
 
-        public int MemoryLimitInMB { get; } = 0;
+    public int MemoryLimitInMB { get; } = 0;
 
-        public TimeSpan RemainingTime { get; } = default;
-    }
+    public TimeSpan RemainingTime { get; } = default;
 }

@@ -14,16 +14,15 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWS
+namespace OpenTelemetry.Contrib.Instrumentation.AWS;
+
+/// <summary>
+/// Options for AWS client instrumentation.
+/// </summary>
+public class AWSClientInstrumentationOptions
 {
     /// <summary>
-    /// Options for AWS client instrumentation.
+    /// Gets or sets a value indicating whether downstream Http instrumentation is suppressed.
     /// </summary>
-    public class AWSClientInstrumentationOptions
-    {
-        /// <summary>
-        /// Gets or sets a value indicating whether downstream Http instrumentation is suppressed.
-        /// </summary>
-        public bool SuppressDownstreamInstrumentation { get; set; } = true;
-    }
+    public bool SuppressDownstreamInstrumentation { get; set; } = true;
 }

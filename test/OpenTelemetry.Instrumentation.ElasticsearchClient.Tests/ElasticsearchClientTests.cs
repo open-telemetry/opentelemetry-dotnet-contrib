@@ -28,464 +28,464 @@ using OpenTelemetry.Trace;
 using Xunit;
 using Status = OpenTelemetry.Trace.Status;
 
-namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Tests
+namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Tests;
+
+public class ElasticsearchClientTests
 {
-    public class ElasticsearchClientTests
+    public ElasticsearchClientTests()
     {
-        public ElasticsearchClientTests()
+        Activity.DefaultIdFormat = ActivityIdFormat.W3C;
+    }
+
+    [Fact]
+    public async Task CanCaptureGetById()
+    {
+        var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
+        var processor = new Mock<BaseProcessor<Activity>>();
+
+        var parent = new Activity("parent").Start();
+
+        var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
+
+        using (Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new AlwaysOnSampler())
+            .AddElasticsearchClientInstrumentation()
+            .SetResourceBuilder(expectedResource)
+            .AddProcessor(processor.Object)
+            .Build())
         {
-            Activity.DefaultIdFormat = ActivityIdFormat.W3C;
+            var getResponse = await client.GetAsync<Customer>("123");
+            Assert.NotNull(getResponse);
+            Assert.True(getResponse.ApiCall.Success);
+            Assert.NotEmpty(getResponse.ApiCall.AuditTrail);
+
+            var failed = getResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+            Assert.Empty(failed);
         }
 
-        [Fact]
-        public async Task CanCaptureGetById()
+        // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
+        Assert.Equal(5, processor.Invocations.Count);
+        var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
+        Assert.Single(activities);
+
+        var searchActivity = activities[0];
+
+        Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
+        Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
+        Assert.NotEqual(parent.SpanId, searchActivity.Context.SpanId);
+        Assert.NotEqual(default, searchActivity.Context.SpanId);
+
+        Assert.Equal($"Elasticsearch GET customer", searchActivity.DisplayName);
+
+        var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+
+        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
+        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
+        var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.NotEmpty(debugInfo);
+        Assert.Contains("Successful (200) low level call", debugInfo);
+
+        Assert.Equal(Status.Unset, searchActivity.GetStatus());
+
+        // Assert.Equal(expectedResource, searchActivity.GetResource());
+    }
+
+    [Fact]
+    public async Task CanCaptureGetByIdNotFound()
+    {
+        var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
+        var processor = new Mock<BaseProcessor<Activity>>();
+
+        var parent = new Activity("parent").Start();
+
+        var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection(null, statusCode: 404)).DefaultIndex("customer"));
+
+        using (Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new AlwaysOnSampler())
+            .AddElasticsearchClientInstrumentation()
+            .SetResourceBuilder(expectedResource)
+            .AddProcessor(processor.Object)
+            .Build())
         {
-            var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
-            var processor = new Mock<BaseProcessor<Activity>>();
+            var getResponse = await client.GetAsync<Customer>("123");
+            Assert.NotNull(getResponse);
+            Assert.True(getResponse.ApiCall.Success);
+            Assert.NotEmpty(getResponse.ApiCall.AuditTrail);
 
-            var parent = new Activity("parent").Start();
-
-            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
-
-            using (Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new AlwaysOnSampler())
-                .AddElasticsearchClientInstrumentation()
-                .SetResourceBuilder(expectedResource)
-                .AddProcessor(processor.Object)
-                .Build())
-            {
-                var getResponse = await client.GetAsync<Customer>("123");
-                Assert.NotNull(getResponse);
-                Assert.True(getResponse.ApiCall.Success);
-                Assert.NotEmpty(getResponse.ApiCall.AuditTrail);
-
-                var failed = getResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
-                Assert.Empty(failed);
-            }
-
-            // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
-            Assert.Equal(5, processor.Invocations.Count);
-            var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
-            Assert.Single(activities);
-
-            var searchActivity = activities[0];
-
-            Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
-            Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
-            Assert.NotEqual(parent.SpanId, searchActivity.Context.SpanId);
-            Assert.NotEqual(default, searchActivity.Context.SpanId);
-
-            Assert.Equal($"Elasticsearch GET customer", searchActivity.DisplayName);
-
-            var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-            Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
-            Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
-
-            Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
-            Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-            var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
-            Assert.NotEmpty(debugInfo);
-            Assert.Contains("Successful (200) low level call", debugInfo);
-
-            Assert.Equal(Status.Unset, searchActivity.GetStatus());
-
-            // Assert.Equal(expectedResource, searchActivity.GetResource());
+            var failed = getResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+            Assert.Empty(failed);
         }
 
-        [Fact]
-        public async Task CanCaptureGetByIdNotFound()
+        // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
+        Assert.Equal(5, processor.Invocations.Count);
+        var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
+        Assert.Single(activities);
+
+        var searchActivity = activities[0];
+
+        Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
+        Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
+        Assert.NotEqual(parent.SpanId, searchActivity.Context.SpanId);
+        Assert.NotEqual(default, searchActivity.Context.SpanId);
+
+        Assert.Equal($"Elasticsearch GET customer", searchActivity.DisplayName);
+
+        var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+
+        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
+        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
+        var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.NotEmpty(debugInfo);
+        Assert.Contains("Successful (404) low level call", debugInfo);
+
+        Assert.Equal(Status.Error, searchActivity.GetStatus());
+
+        // Assert.Equal(expectedResource, searchActivity.GetResource());
+    }
+
+    [Fact]
+    public async Task CanCaptureSearchCall()
+    {
+        var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
+        var processor = new Mock<BaseProcessor<Activity>>();
+
+        var parent = new Activity("parent").Start();
+
+        var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
+
+        using (Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new AlwaysOnSampler())
+            .AddElasticsearchClientInstrumentation()
+            .SetResourceBuilder(expectedResource)
+            .AddProcessor(processor.Object)
+            .Build())
         {
-            var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
-            var processor = new Mock<BaseProcessor<Activity>>();
+            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            Assert.NotNull(searchResponse);
+            Assert.True(searchResponse.ApiCall.Success);
+            Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
 
-            var parent = new Activity("parent").Start();
-
-            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection(null, statusCode: 404)).DefaultIndex("customer"));
-
-            using (Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new AlwaysOnSampler())
-                .AddElasticsearchClientInstrumentation()
-                .SetResourceBuilder(expectedResource)
-                .AddProcessor(processor.Object)
-                .Build())
-            {
-                var getResponse = await client.GetAsync<Customer>("123");
-                Assert.NotNull(getResponse);
-                Assert.True(getResponse.ApiCall.Success);
-                Assert.NotEmpty(getResponse.ApiCall.AuditTrail);
-
-                var failed = getResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
-                Assert.Empty(failed);
-            }
-
-            // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
-            Assert.Equal(5, processor.Invocations.Count);
-            var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
-            Assert.Single(activities);
-
-            var searchActivity = activities[0];
-
-            Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
-            Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
-            Assert.NotEqual(parent.SpanId, searchActivity.Context.SpanId);
-            Assert.NotEqual(default, searchActivity.Context.SpanId);
-
-            Assert.Equal($"Elasticsearch GET customer", searchActivity.DisplayName);
-
-            var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-            Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
-            Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
-
-            Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
-            Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-            var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
-            Assert.NotEmpty(debugInfo);
-            Assert.Contains("Successful (404) low level call", debugInfo);
-
-            Assert.Equal(Status.Error, searchActivity.GetStatus());
-
-            // Assert.Equal(expectedResource, searchActivity.GetResource());
+            var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+            Assert.Empty(failed);
         }
 
-        [Fact]
-        public async Task CanCaptureSearchCall()
+        // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
+        Assert.Equal(5, processor.Invocations.Count);
+        var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
+        Assert.Single(activities);
+
+        var searchActivity = activities[0];
+
+        Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
+        Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
+        Assert.NotEqual(parent.SpanId, searchActivity.Context.SpanId);
+        Assert.NotEqual(default, searchActivity.Context.SpanId);
+
+        Assert.Equal($"Elasticsearch POST customer", searchActivity.DisplayName);
+
+        var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+
+        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
+        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
+        var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.NotEmpty(debugInfo);
+        Assert.Contains("Successful (200) low level call", debugInfo);
+
+        Assert.Equal(Status.Unset, searchActivity.GetStatus());
+
+        // Assert.Equal(expectedResource, searchActivity.GetResource());
+    }
+
+    [Fact]
+    public async Task CanRecordAndSampleSearchCall()
+    {
+        bool samplerCalled = false;
+
+        var sampler = new TestSampler
         {
-            var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
-            var processor = new Mock<BaseProcessor<Activity>>();
-
-            var parent = new Activity("parent").Start();
-
-            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
-
-            using (Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new AlwaysOnSampler())
-                .AddElasticsearchClientInstrumentation()
-                .SetResourceBuilder(expectedResource)
-                .AddProcessor(processor.Object)
-                .Build())
+            SamplingAction =
+            (samplingParameters) =>
             {
-                var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
-                Assert.NotNull(searchResponse);
-                Assert.True(searchResponse.ApiCall.Success);
-                Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
+                samplerCalled = true;
+                return new SamplingResult(SamplingDecision.RecordAndSample);
+            },
+        };
 
-                var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
-                Assert.Empty(failed);
-            }
+        using TestActivityProcessor testActivityProcessor = new TestActivityProcessor();
 
-            // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
-            Assert.Equal(5, processor.Invocations.Count);
-            var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
-            Assert.Single(activities);
+        int startCalled = 0;
+        int endCalled = 0;
 
-            var searchActivity = activities[0];
-
-            Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
-            Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
-            Assert.NotEqual(parent.SpanId, searchActivity.Context.SpanId);
-            Assert.NotEqual(default, searchActivity.Context.SpanId);
-
-            Assert.Equal($"Elasticsearch POST customer", searchActivity.DisplayName);
-
-            var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-            Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
-            Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
-
-            Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
-            Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-            var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
-            Assert.NotEmpty(debugInfo);
-            Assert.Contains("Successful (200) low level call", debugInfo);
-
-            Assert.Equal(Status.Unset, searchActivity.GetStatus());
-
-            // Assert.Equal(expectedResource, searchActivity.GetResource());
-        }
-
-        [Fact]
-        public async Task CanRecordAndSampleSearchCall()
-        {
-            bool samplerCalled = false;
-
-            var sampler = new TestSampler
+        testActivityProcessor.StartAction =
+            (a) =>
             {
-                SamplingAction =
-                (samplingParameters) =>
-                {
-                    samplerCalled = true;
-                    return new SamplingResult(SamplingDecision.RecordAndSample);
-                },
+                Assert.True(samplerCalled);
+                Assert.False(Sdk.SuppressInstrumentation);
+                Assert.True(a.IsAllDataRequested); // If Proccessor.OnStart is called, activity's IsAllDataRequested is set to true
+                startCalled++;
             };
 
-            using TestActivityProcessor testActivityProcessor = new TestActivityProcessor();
-
-            int startCalled = 0;
-            int endCalled = 0;
-
-            testActivityProcessor.StartAction =
-                (a) =>
-                {
-                    Assert.True(samplerCalled);
-                    Assert.False(Sdk.SuppressInstrumentation);
-                    Assert.True(a.IsAllDataRequested); // If Proccessor.OnStart is called, activity's IsAllDataRequested is set to true
-                    startCalled++;
-                };
-
-            testActivityProcessor.EndAction =
-                (a) =>
-                {
-                    Assert.False(Sdk.SuppressInstrumentation);
-                    Assert.True(a.IsAllDataRequested); // If Processor.OnEnd is called, activity's IsAllDataRequested is set to true
-                    endCalled++;
-                };
-
-            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnectionWithDownstreamActivity()).DefaultIndex("customer").EnableDebugMode());
-
-            using (Sdk.CreateTracerProviderBuilder()
-                .SetSampler(sampler)
-                .AddSource("Downstream")
-                .AddSource("NestedDownstream")
-                .AddElasticsearchClientInstrumentation((opt) => opt.SuppressDownstreamInstrumentation = false)
-                .AddProcessor(testActivityProcessor)
-                .Build())
+        testActivityProcessor.EndAction =
+            (a) =>
             {
-                var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
-                Assert.NotNull(searchResponse);
-                Assert.True(searchResponse.ApiCall.Success);
-                Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
-
-                var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
-                Assert.Empty(failed);
-            }
-
-            Assert.Equal(3, startCalled); // Processor.OnStart is called since we added a legacy OperationName
-            Assert.Equal(3, endCalled); // Processor.OnEnd is called since we added a legacy OperationName
-        }
-
-        [Fact]
-        public async Task CanSupressDownstreamActivities()
-        {
-            bool samplerCalled = false;
-
-            var sampler = new TestSampler
-            {
-                SamplingAction =
-                (samplingParameters) =>
-                {
-                    samplerCalled = true;
-                    return new SamplingResult(SamplingDecision.RecordAndSample);
-                },
+                Assert.False(Sdk.SuppressInstrumentation);
+                Assert.True(a.IsAllDataRequested); // If Processor.OnEnd is called, activity's IsAllDataRequested is set to true
+                endCalled++;
             };
 
-            using TestActivityProcessor testActivityProcessor = new TestActivityProcessor();
+        var client = new ElasticClient(new ConnectionSettings(new InMemoryConnectionWithDownstreamActivity()).DefaultIndex("customer").EnableDebugMode());
 
-            int startCalled = 0;
-            int endCalled = 0;
+        using (Sdk.CreateTracerProviderBuilder()
+            .SetSampler(sampler)
+            .AddSource("Downstream")
+            .AddSource("NestedDownstream")
+            .AddElasticsearchClientInstrumentation((opt) => opt.SuppressDownstreamInstrumentation = false)
+            .AddProcessor(testActivityProcessor)
+            .Build())
+        {
+            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            Assert.NotNull(searchResponse);
+            Assert.True(searchResponse.ApiCall.Success);
+            Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
 
-            testActivityProcessor.StartAction =
-                (a) =>
-                {
-                    Assert.True(samplerCalled);
-                    Assert.False(Sdk.SuppressInstrumentation);
-                    Assert.True(a.IsAllDataRequested); // If Proccessor.OnStart is called, activity's IsAllDataRequested is set to true
-                    startCalled++;
-                };
-
-            testActivityProcessor.EndAction =
-                (a) =>
-                {
-                    Assert.False(Sdk.SuppressInstrumentation);
-                    Assert.True(a.IsAllDataRequested); // If Processor.OnEnd is called, activity's IsAllDataRequested is set to true
-                    endCalled++;
-                };
-
-            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnectionWithDownstreamActivity()).DefaultIndex("customer").EnableDebugMode());
-
-            using (Sdk.CreateTracerProviderBuilder()
-                .SetSampler(sampler)
-                .AddSource("Downstream")
-                .AddSource("NestedDownstream")
-                .AddElasticsearchClientInstrumentation((opt) => opt.SuppressDownstreamInstrumentation = true)
-                .AddProcessor(testActivityProcessor)
-                .Build())
-            {
-                var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
-                Assert.NotNull(searchResponse);
-                Assert.True(searchResponse.ApiCall.Success);
-                Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
-
-                var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
-                Assert.Empty(failed);
-            }
-
-            Assert.Equal(1, startCalled); // Processor.OnStart is called since we added a legacy OperationName
-            Assert.Equal(1, endCalled); // Processor.OnEnd is called since we added a legacy OperationName
+            var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+            Assert.Empty(failed);
         }
 
-        [Fact]
-        public async Task CanDropSearchCall()
-        {
-            bool samplerCalled = false;
+        Assert.Equal(3, startCalled); // Processor.OnStart is called since we added a legacy OperationName
+        Assert.Equal(3, endCalled); // Processor.OnEnd is called since we added a legacy OperationName
+    }
 
-            var sampler = new TestSampler
+    [Fact]
+    public async Task CanSupressDownstreamActivities()
+    {
+        bool samplerCalled = false;
+
+        var sampler = new TestSampler
+        {
+            SamplingAction =
+            (samplingParameters) =>
             {
-                SamplingAction =
-                (samplingParameters) =>
-                {
-                    samplerCalled = true;
-                    return new SamplingResult(SamplingDecision.Drop);
-                },
+                samplerCalled = true;
+                return new SamplingResult(SamplingDecision.RecordAndSample);
+            },
+        };
+
+        using TestActivityProcessor testActivityProcessor = new TestActivityProcessor();
+
+        int startCalled = 0;
+        int endCalled = 0;
+
+        testActivityProcessor.StartAction =
+            (a) =>
+            {
+                Assert.True(samplerCalled);
+                Assert.False(Sdk.SuppressInstrumentation);
+                Assert.True(a.IsAllDataRequested); // If Proccessor.OnStart is called, activity's IsAllDataRequested is set to true
+                startCalled++;
             };
 
-            using TestActivityProcessor testActivityProcessor = new TestActivityProcessor();
-
-            int startCalled = 0;
-            int endCalled = 0;
-
-            testActivityProcessor.StartAction =
-                (a) =>
-                {
-                    Assert.True(samplerCalled);
-                    Assert.False(Sdk.SuppressInstrumentation);
-                    Assert.False(a.IsAllDataRequested); // If Proccessor.OnStart is called, activity's IsAllDataRequested is set to true
-                    startCalled++;
-                };
-
-            testActivityProcessor.EndAction =
-                (a) =>
-                {
-                    Assert.False(Sdk.SuppressInstrumentation);
-                    Assert.False(a.IsAllDataRequested); // If Processor.OnEnd is called, activity's IsAllDataRequested is set to true
-                    endCalled++;
-                };
-
-            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnectionWithDownstreamActivity()).DefaultIndex("customer").EnableDebugMode());
-
-            using (Sdk.CreateTracerProviderBuilder()
-                .SetSampler(sampler)
-                .AddSource("Downstream")
-                .AddSource("NestedDownstream")
-                .AddElasticsearchClientInstrumentation((opt) => opt.SuppressDownstreamInstrumentation = false)
-                .AddProcessor(testActivityProcessor)
-                .Build())
+        testActivityProcessor.EndAction =
+            (a) =>
             {
-                var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
-                Assert.NotNull(searchResponse);
-                Assert.True(searchResponse.ApiCall.Success);
-                Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
+                Assert.False(Sdk.SuppressInstrumentation);
+                Assert.True(a.IsAllDataRequested); // If Processor.OnEnd is called, activity's IsAllDataRequested is set to true
+                endCalled++;
+            };
 
-                var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
-                Assert.Empty(failed);
-            }
+        var client = new ElasticClient(new ConnectionSettings(new InMemoryConnectionWithDownstreamActivity()).DefaultIndex("customer").EnableDebugMode());
 
-            Assert.Equal(0, startCalled); // Processor.OnStart is called since we added a legacy OperationName
-            Assert.Equal(0, endCalled); // Processor.OnEnd is called since we added a legacy OperationName
+        using (Sdk.CreateTracerProviderBuilder()
+            .SetSampler(sampler)
+            .AddSource("Downstream")
+            .AddSource("NestedDownstream")
+            .AddElasticsearchClientInstrumentation((opt) => opt.SuppressDownstreamInstrumentation = true)
+            .AddProcessor(testActivityProcessor)
+            .Build())
+        {
+            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            Assert.NotNull(searchResponse);
+            Assert.True(searchResponse.ApiCall.Success);
+            Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
+
+            var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+            Assert.Empty(failed);
         }
 
-        [Fact]
-        public async Task CanCaptureSearchCallWithDebugMode()
+        Assert.Equal(1, startCalled); // Processor.OnStart is called since we added a legacy OperationName
+        Assert.Equal(1, endCalled); // Processor.OnEnd is called since we added a legacy OperationName
+    }
+
+    [Fact]
+    public async Task CanDropSearchCall()
+    {
+        bool samplerCalled = false;
+
+        var sampler = new TestSampler
         {
-            var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
-            var processor = new Mock<BaseProcessor<Activity>>();
-
-            var parent = new Activity("parent").Start();
-
-            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer").EnableDebugMode());
-
-            using (Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new AlwaysOnSampler())
-                .AddElasticsearchClientInstrumentation()
-                .SetResourceBuilder(expectedResource)
-                .AddProcessor(processor.Object)
-                .Build())
+            SamplingAction =
+            (samplingParameters) =>
             {
-                var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
-                Assert.NotNull(searchResponse);
-                Assert.True(searchResponse.ApiCall.Success);
-                Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
+                samplerCalled = true;
+                return new SamplingResult(SamplingDecision.Drop);
+            },
+        };
 
-                var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
-                Assert.Empty(failed);
-            }
+        using TestActivityProcessor testActivityProcessor = new TestActivityProcessor();
 
-            // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
-            Assert.Equal(5, processor.Invocations.Count);
-            var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
-            Assert.Single(activities);
+        int startCalled = 0;
+        int endCalled = 0;
 
-            var searchActivity = activities[0];
+        testActivityProcessor.StartAction =
+            (a) =>
+            {
+                Assert.True(samplerCalled);
+                Assert.False(Sdk.SuppressInstrumentation);
+                Assert.False(a.IsAllDataRequested); // If Proccessor.OnStart is called, activity's IsAllDataRequested is set to true
+                startCalled++;
+            };
 
-            Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
-            Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
-            Assert.NotEqual(parent.SpanId, searchActivity.Context.SpanId);
-            Assert.NotEqual(default, searchActivity.Context.SpanId);
+        testActivityProcessor.EndAction =
+            (a) =>
+            {
+                Assert.False(Sdk.SuppressInstrumentation);
+                Assert.False(a.IsAllDataRequested); // If Processor.OnEnd is called, activity's IsAllDataRequested is set to true
+                endCalled++;
+            };
 
-            Assert.Equal($"Elasticsearch POST customer", searchActivity.DisplayName);
+        var client = new ElasticClient(new ConnectionSettings(new InMemoryConnectionWithDownstreamActivity()).DefaultIndex("customer").EnableDebugMode());
 
-            var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-            Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
-            Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+        using (Sdk.CreateTracerProviderBuilder()
+            .SetSampler(sampler)
+            .AddSource("Downstream")
+            .AddSource("NestedDownstream")
+            .AddElasticsearchClientInstrumentation((opt) => opt.SuppressDownstreamInstrumentation = false)
+            .AddProcessor(testActivityProcessor)
+            .Build())
+        {
+            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            Assert.NotNull(searchResponse);
+            Assert.True(searchResponse.ApiCall.Success);
+            Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
 
-            Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
-            Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-            var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
-            Assert.NotEmpty(debugInfo);
-            Assert.Contains("Successful (200) low level call", debugInfo);
-
-            Assert.Equal(Status.Unset, searchActivity.GetStatus());
-
-            // Assert.Equal(expectedResource, searchActivity.GetResource());
+            var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+            Assert.Empty(failed);
         }
 
-        [Fact]
-        public async Task CanCaptureSearchCallWithParseAndFormatRequestOption()
+        Assert.Equal(0, startCalled); // Processor.OnStart is called since we added a legacy OperationName
+        Assert.Equal(0, endCalled); // Processor.OnEnd is called since we added a legacy OperationName
+    }
+
+    [Fact]
+    public async Task CanCaptureSearchCallWithDebugMode()
+    {
+        var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
+        var processor = new Mock<BaseProcessor<Activity>>();
+
+        var parent = new Activity("parent").Start();
+
+        var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer").EnableDebugMode());
+
+        using (Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new AlwaysOnSampler())
+            .AddElasticsearchClientInstrumentation()
+            .SetResourceBuilder(expectedResource)
+            .AddProcessor(processor.Object)
+            .Build())
         {
-            var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
-            var processor = new Mock<BaseProcessor<Activity>>();
+            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            Assert.NotNull(searchResponse);
+            Assert.True(searchResponse.ApiCall.Success);
+            Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
 
-            var parent = new Activity("parent").Start();
+            var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+            Assert.Empty(failed);
+        }
 
-            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer").EnableDebugMode());
+        // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
+        Assert.Equal(5, processor.Invocations.Count);
+        var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
+        Assert.Single(activities);
 
-            using (Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new AlwaysOnSampler())
-                .AddElasticsearchClientInstrumentation(o => o.ParseAndFormatRequest = true)
-                .SetResourceBuilder(expectedResource)
-                .AddProcessor(processor.Object)
-                .Build())
-            {
-                var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
-                Assert.NotNull(searchResponse);
-                Assert.True(searchResponse.ApiCall.Success);
-                Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
+        var searchActivity = activities[0];
 
-                var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
-                Assert.Empty(failed);
-            }
+        Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
+        Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
+        Assert.NotEqual(parent.SpanId, searchActivity.Context.SpanId);
+        Assert.NotEqual(default, searchActivity.Context.SpanId);
 
-            // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
-            Assert.Equal(5, processor.Invocations.Count);
-            var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
-            Assert.Single(activities);
+        Assert.Equal($"Elasticsearch POST customer", searchActivity.DisplayName);
 
-            var searchActivity = activities[0];
+        var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
 
-            Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
-            Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
-            Assert.NotEqual(parent.SpanId, searchActivity.Context.SpanId);
-            Assert.NotEqual(default, searchActivity.Context.SpanId);
+        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
+        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
+        var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.NotEmpty(debugInfo);
+        Assert.Contains("Successful (200) low level call", debugInfo);
 
-            Assert.Equal($"Elasticsearch POST customer", searchActivity.DisplayName);
+        Assert.Equal(Status.Unset, searchActivity.GetStatus());
 
-            Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
-            Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+        // Assert.Equal(expectedResource, searchActivity.GetResource());
+    }
 
-            Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
-            Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-            var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
-            Assert.NotEmpty(debugInfo);
-            Assert.Equal(
-                @"POST http://localhost:9200/customer/_search?pretty=true&error_trace=true&typed_keys=true
+    [Fact]
+    public async Task CanCaptureSearchCallWithParseAndFormatRequestOption()
+    {
+        var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
+        var processor = new Mock<BaseProcessor<Activity>>();
+
+        var parent = new Activity("parent").Start();
+
+        var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer").EnableDebugMode());
+
+        using (Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new AlwaysOnSampler())
+            .AddElasticsearchClientInstrumentation(o => o.ParseAndFormatRequest = true)
+            .SetResourceBuilder(expectedResource)
+            .AddProcessor(processor.Object)
+            .Build())
+        {
+            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            Assert.NotNull(searchResponse);
+            Assert.True(searchResponse.ApiCall.Success);
+            Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
+
+            var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+            Assert.Empty(failed);
+        }
+
+        // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
+        Assert.Equal(5, processor.Invocations.Count);
+        var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
+        Assert.Single(activities);
+
+        var searchActivity = activities[0];
+
+        Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
+        Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
+        Assert.NotEqual(parent.SpanId, searchActivity.Context.SpanId);
+        Assert.NotEqual(default, searchActivity.Context.SpanId);
+
+        Assert.Equal($"Elasticsearch POST customer", searchActivity.DisplayName);
+
+        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+
+        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
+        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
+        var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.NotEmpty(debugInfo);
+        Assert.Equal(
+            @"POST http://localhost:9200/customer/_search?pretty=true&error_trace=true&typed_keys=true
 {
   ""query"": {
     ""bool"": {
@@ -501,371 +501,370 @@ namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Tests
     }
   }
 }".Replace("\r\n", "\n"),
-                debugInfo.Replace("\r\n", "\n"));
+            debugInfo.Replace("\r\n", "\n"));
 
-            Assert.Equal(Status.Unset, searchActivity.GetStatus());
+        Assert.Equal(Status.Unset, searchActivity.GetStatus());
 
-            // Assert.Equal(expectedResource, searchActivity.GetResource());
-        }
+        // Assert.Equal(expectedResource, searchActivity.GetResource());
+    }
 
-        [Fact]
-        public async Task CanCaptureSearchCallWithoutDebugMode()
+    [Fact]
+    public async Task CanCaptureSearchCallWithoutDebugMode()
+    {
+        var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
+        var processor = new Mock<BaseProcessor<Activity>>();
+
+        var parent = new Activity("parent").Start();
+
+        var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
+
+        using (Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new AlwaysOnSampler())
+            .AddElasticsearchClientInstrumentation(o => o.ParseAndFormatRequest = true)
+            .SetResourceBuilder(expectedResource)
+            .AddProcessor(processor.Object)
+            .Build())
         {
-            var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
-            var processor = new Mock<BaseProcessor<Activity>>();
+            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            Assert.NotNull(searchResponse);
+            Assert.True(searchResponse.ApiCall.Success);
+            Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
 
-            var parent = new Activity("parent").Start();
-
-            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
-
-            using (Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new AlwaysOnSampler())
-                .AddElasticsearchClientInstrumentation(o => o.ParseAndFormatRequest = true)
-                .SetResourceBuilder(expectedResource)
-                .AddProcessor(processor.Object)
-                .Build())
-            {
-                var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
-                Assert.NotNull(searchResponse);
-                Assert.True(searchResponse.ApiCall.Success);
-                Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
-
-                var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
-                Assert.Empty(failed);
-            }
-
-            // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
-            Assert.Equal(5, processor.Invocations.Count);
-            var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
-            Assert.Single(activities);
-
-            var searchActivity = activities[0];
-
-            Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
-            Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
-            Assert.NotEqual(parent.SpanId, searchActivity.Context.SpanId);
-            Assert.NotEqual(default, searchActivity.Context.SpanId);
-
-            Assert.Equal($"Elasticsearch POST customer", searchActivity.DisplayName);
-
-            var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-            Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
-            Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
-
-            Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
-            Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-            var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
-            Assert.NotEmpty(debugInfo);
-            Assert.DoesNotContain("123", debugInfo);
-
-            Assert.Equal(Status.Unset, searchActivity.GetStatus());
-
-            // Assert.Equal(expectedResource, searchActivity.GetResource());
+            var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+            Assert.Empty(failed);
         }
 
-        [Fact]
-        public async Task CanCaptureMultipleIndiceSearchCall()
+        // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
+        Assert.Equal(5, processor.Invocations.Count);
+        var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
+        Assert.Single(activities);
+
+        var searchActivity = activities[0];
+
+        Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
+        Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
+        Assert.NotEqual(parent.SpanId, searchActivity.Context.SpanId);
+        Assert.NotEqual(default, searchActivity.Context.SpanId);
+
+        Assert.Equal($"Elasticsearch POST customer", searchActivity.DisplayName);
+
+        var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+
+        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
+        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
+        var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.NotEmpty(debugInfo);
+        Assert.DoesNotContain("123", debugInfo);
+
+        Assert.Equal(Status.Unset, searchActivity.GetStatus());
+
+        // Assert.Equal(expectedResource, searchActivity.GetResource());
+    }
+
+    [Fact]
+    public async Task CanCaptureMultipleIndiceSearchCall()
+    {
+        var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
+        var processor = new Mock<BaseProcessor<Activity>>();
+
+        var parent = new Activity("parent").Start();
+
+        var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer,order"));
+
+        using (Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new AlwaysOnSampler())
+            .AddElasticsearchClientInstrumentation()
+            .SetResourceBuilder(expectedResource)
+            .AddProcessor(processor.Object)
+            .Build())
         {
-            var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
-            var processor = new Mock<BaseProcessor<Activity>>();
+            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            Assert.NotNull(searchResponse);
+            Assert.True(searchResponse.ApiCall.Success);
+            Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
 
-            var parent = new Activity("parent").Start();
-
-            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer,order"));
-
-            using (Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new AlwaysOnSampler())
-                .AddElasticsearchClientInstrumentation()
-                .SetResourceBuilder(expectedResource)
-                .AddProcessor(processor.Object)
-                .Build())
-            {
-                var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
-                Assert.NotNull(searchResponse);
-                Assert.True(searchResponse.ApiCall.Success);
-                Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
-
-                var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
-                Assert.Empty(failed);
-            }
-
-            // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
-            Assert.Equal(5, processor.Invocations.Count);
-            var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
-            Assert.Single(activities);
-
-            var searchActivity = activities[0];
-
-            Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
-            Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
-            Assert.NotEqual(parent.SpanId, searchActivity.Context.SpanId);
-            Assert.NotEqual(default, searchActivity.Context.SpanId);
-
-            Assert.Equal($"Elasticsearch POST", searchActivity.DisplayName);
-
-            var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-            Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
-            Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
-
-            Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
-            Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-            var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
-            Assert.NotEmpty(debugInfo);
-            Assert.Contains("Successful (200) low level call", debugInfo);
-
-            Assert.Equal(Status.Unset, searchActivity.GetStatus());
-
-            // Assert.Equal(expectedResource, searchActivity.GetResource());
+            var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+            Assert.Empty(failed);
         }
 
-        [Fact]
-        public async Task CanCaptureElasticsearchClientException()
+        // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
+        Assert.Equal(5, processor.Invocations.Count);
+        var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
+        Assert.Single(activities);
+
+        var searchActivity = activities[0];
+
+        Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
+        Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
+        Assert.NotEqual(parent.SpanId, searchActivity.Context.SpanId);
+        Assert.NotEqual(default, searchActivity.Context.SpanId);
+
+        Assert.Equal($"Elasticsearch POST", searchActivity.DisplayName);
+
+        var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+
+        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
+        Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
+        var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.NotEmpty(debugInfo);
+        Assert.Contains("Successful (200) low level call", debugInfo);
+
+        Assert.Equal(Status.Unset, searchActivity.GetStatus());
+
+        // Assert.Equal(expectedResource, searchActivity.GetResource());
+    }
+
+    [Fact]
+    public async Task CanCaptureElasticsearchClientException()
+    {
+        var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
+        var processor = new Mock<BaseProcessor<Activity>>();
+
+        var parent = new Activity("parent").Start();
+
+        var connection = new InMemoryConnection(Encoding.UTF8.GetBytes("{}"), statusCode: 500, exception: new ElasticsearchClientException("Boom"));
+        var client = new ElasticClient(new ConnectionSettings(connection).DefaultIndex("customer").EnableDebugMode());
+
+        using (Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new AlwaysOnSampler())
+            .AddElasticsearchClientInstrumentation()
+            .SetResourceBuilder(expectedResource)
+            .AddProcessor(processor.Object)
+            .Build())
         {
-            var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
-            var processor = new Mock<BaseProcessor<Activity>>();
+            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            Assert.NotNull(searchResponse);
+            Assert.False(searchResponse.ApiCall.Success);
+            Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
 
-            var parent = new Activity("parent").Start();
-
-            var connection = new InMemoryConnection(Encoding.UTF8.GetBytes("{}"), statusCode: 500, exception: new ElasticsearchClientException("Boom"));
-            var client = new ElasticClient(new ConnectionSettings(connection).DefaultIndex("customer").EnableDebugMode());
-
-            using (Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new AlwaysOnSampler())
-                .AddElasticsearchClientInstrumentation()
-                .SetResourceBuilder(expectedResource)
-                .AddProcessor(processor.Object)
-                .Build())
-            {
-                var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
-                Assert.NotNull(searchResponse);
-                Assert.False(searchResponse.ApiCall.Success);
-                Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
-
-                var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
-                Assert.NotEmpty(failed);
-            }
-
-            // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
-            Assert.Equal(5, processor.Invocations.Count);
-            var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
-            Assert.Single(activities);
-
-            var searchActivity = activities[0];
-
-            Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
-            Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
-            Assert.NotEqual(parent.SpanId, searchActivity.Context.SpanId);
-            Assert.NotEqual(default, searchActivity.Context.SpanId);
-
-            Assert.Equal($"Elasticsearch POST customer", searchActivity.DisplayName);
-
-            var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-            Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
-            Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
-
-            Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
-            Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-            var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
-            Assert.NotEmpty(debugInfo);
-            Assert.Contains("Unsuccessful (500) low level call", debugInfo);
-
-            var status = searchActivity.GetStatus();
-            Assert.Equal(Status.Error.StatusCode, status.StatusCode);
-
-            // Assert.Equal(expectedResource, searchActivity.GetResource());
+            var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+            Assert.NotEmpty(failed);
         }
 
-        [Fact]
-        public async Task CanCaptureCatRequest()
+        // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
+        Assert.Equal(5, processor.Invocations.Count);
+        var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
+        Assert.Single(activities);
+
+        var searchActivity = activities[0];
+
+        Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
+        Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
+        Assert.NotEqual(parent.SpanId, searchActivity.Context.SpanId);
+        Assert.NotEqual(default, searchActivity.Context.SpanId);
+
+        Assert.Equal($"Elasticsearch POST customer", searchActivity.DisplayName);
+
+        var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+
+        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
+        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
+        var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.NotEmpty(debugInfo);
+        Assert.Contains("Unsuccessful (500) low level call", debugInfo);
+
+        var status = searchActivity.GetStatus();
+        Assert.Equal(Status.Error.StatusCode, status.StatusCode);
+
+        // Assert.Equal(expectedResource, searchActivity.GetResource());
+    }
+
+    [Fact]
+    public async Task CanCaptureCatRequest()
+    {
+        var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
+        var processor = new Mock<BaseProcessor<Activity>>();
+
+        var parent = new Activity("parent").Start();
+
+        var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer").EnableDebugMode());
+
+        using (Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new AlwaysOnSampler())
+            .AddElasticsearchClientInstrumentation()
+            .SetResourceBuilder(expectedResource)
+            .AddProcessor(processor.Object)
+            .Build())
         {
-            var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
-            var processor = new Mock<BaseProcessor<Activity>>();
+            var getResponse = await client.Cat.IndicesAsync();
+            Assert.NotNull(getResponse);
+            Assert.True(getResponse.ApiCall.Success);
+            Assert.NotEmpty(getResponse.ApiCall.AuditTrail);
 
-            var parent = new Activity("parent").Start();
-
-            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer").EnableDebugMode());
-
-            using (Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new AlwaysOnSampler())
-                .AddElasticsearchClientInstrumentation()
-                .SetResourceBuilder(expectedResource)
-                .AddProcessor(processor.Object)
-                .Build())
-            {
-                var getResponse = await client.Cat.IndicesAsync();
-                Assert.NotNull(getResponse);
-                Assert.True(getResponse.ApiCall.Success);
-                Assert.NotEmpty(getResponse.ApiCall.AuditTrail);
-
-                var failed = getResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
-                Assert.Empty(failed);
-            }
-
-            // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
-            Assert.Equal(5, processor.Invocations.Count);
-            var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
-            Assert.Single(activities);
-
-            var searchActivity = activities[0];
-
-            Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
-            Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
-            Assert.NotEqual(parent.SpanId, searchActivity.Context.SpanId);
-            Assert.NotEqual(default, searchActivity.Context.SpanId);
-
-            Assert.Equal($"Elasticsearch GET", searchActivity.DisplayName);
-
-            var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-            Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
-            Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
-
-            Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
-            Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-            var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
-            Assert.NotEmpty(debugInfo);
-            Assert.Contains("Successful (200) low level call", debugInfo);
-
-            Assert.Equal(Status.Unset, searchActivity.GetStatus());
-
-            // Assert.Equal(expectedResource, searchActivity.GetResource());
+            var failed = getResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+            Assert.Empty(failed);
         }
 
-        [Fact]
-        public async Task DoesNotCaptureWhenInstrumentationIsSuppressed()
+        // SetParentProvider, OnStart, OnEnd, OnShutdown, Dispose
+        Assert.Equal(5, processor.Invocations.Count);
+        var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
+        Assert.Single(activities);
+
+        var searchActivity = activities[0];
+
+        Assert.Equal(parent.TraceId, searchActivity.Context.TraceId);
+        Assert.Equal(parent.SpanId, searchActivity.ParentSpanId);
+        Assert.NotEqual(parent.SpanId, searchActivity.Context.SpanId);
+        Assert.NotEqual(default, searchActivity.Context.SpanId);
+
+        Assert.Equal($"Elasticsearch GET", searchActivity.DisplayName);
+
+        var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+
+        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
+        Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
+        var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.NotEmpty(debugInfo);
+        Assert.Contains("Successful (200) low level call", debugInfo);
+
+        Assert.Equal(Status.Unset, searchActivity.GetStatus());
+
+        // Assert.Equal(expectedResource, searchActivity.GetResource());
+    }
+
+    [Fact]
+    public async Task DoesNotCaptureWhenInstrumentationIsSuppressed()
+    {
+        var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
+        var processor = new Mock<BaseProcessor<Activity>>();
+
+        var parent = new Activity("parent").Start();
+
+        var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
+
+        using (Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new AlwaysOnSampler())
+            .AddElasticsearchClientInstrumentation()
+            .SetResourceBuilder(expectedResource)
+            .AddProcessor(processor.Object)
+            .Build())
         {
-            var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
-            var processor = new Mock<BaseProcessor<Activity>>();
+            using var scope = SuppressInstrumentationScope.Begin();
+            var getResponse = await client.GetAsync<Customer>("123");
+            Assert.NotNull(getResponse);
+            Assert.True(getResponse.ApiCall.Success);
+            Assert.NotEmpty(getResponse.ApiCall.AuditTrail);
 
-            var parent = new Activity("parent").Start();
-
-            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
-
-            using (Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new AlwaysOnSampler())
-                .AddElasticsearchClientInstrumentation()
-                .SetResourceBuilder(expectedResource)
-                .AddProcessor(processor.Object)
-                .Build())
-            {
-                using var scope = SuppressInstrumentationScope.Begin();
-                var getResponse = await client.GetAsync<Customer>("123");
-                Assert.NotNull(getResponse);
-                Assert.True(getResponse.ApiCall.Success);
-                Assert.NotEmpty(getResponse.ApiCall.AuditTrail);
-
-                var failed = getResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
-                Assert.Empty(failed);
-            }
-
-            // Since instrumentation is suppressed, activity is not emitted
-            Assert.Equal(3, processor.Invocations.Count); // SetParentProvider + OnShutdown + Dispose
-
-            // Processor.OnStart and Processor.OnEnd are not called
-            Assert.DoesNotContain(processor.Invocations, invo => invo.Method.Name == nameof(processor.Object.OnStart));
-            Assert.DoesNotContain(processor.Invocations, invo => invo.Method.Name == nameof(processor.Object.OnEnd));
+            var failed = getResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+            Assert.Empty(failed);
         }
 
-        [Theory]
-        [InlineData(SamplingDecision.Drop, false)]
-        [InlineData(SamplingDecision.RecordOnly, true)]
-        [InlineData(SamplingDecision.RecordAndSample, true)]
-        public async Task CapturesBasedOnSamplingDecision(SamplingDecision samplingDecision, bool isActivityExpected)
+        // Since instrumentation is suppressed, activity is not emitted
+        Assert.Equal(3, processor.Invocations.Count); // SetParentProvider + OnShutdown + Dispose
+
+        // Processor.OnStart and Processor.OnEnd are not called
+        Assert.DoesNotContain(processor.Invocations, invo => invo.Method.Name == nameof(processor.Object.OnStart));
+        Assert.DoesNotContain(processor.Invocations, invo => invo.Method.Name == nameof(processor.Object.OnEnd));
+    }
+
+    [Theory]
+    [InlineData(SamplingDecision.Drop, false)]
+    [InlineData(SamplingDecision.RecordOnly, true)]
+    [InlineData(SamplingDecision.RecordAndSample, true)]
+    public async Task CapturesBasedOnSamplingDecision(SamplingDecision samplingDecision, bool isActivityExpected)
+    {
+        var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
+        var processor = new Mock<BaseProcessor<Activity>>();
+
+        var parent = new Activity("parent").Start();
+
+        var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
+
+        using (Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new TestSampler() { SamplingAction = (samplingParameters) => new SamplingResult(samplingDecision) })
+            .AddElasticsearchClientInstrumentation()
+            .SetResourceBuilder(expectedResource)
+            .AddProcessor(processor.Object)
+            .Build())
         {
-            var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
-            var processor = new Mock<BaseProcessor<Activity>>();
+            var getResponse = await client.GetAsync<Customer>("123");
+            Assert.NotNull(getResponse);
+            Assert.True(getResponse.ApiCall.Success);
+            Assert.NotEmpty(getResponse.ApiCall.AuditTrail);
 
-            var parent = new Activity("parent").Start();
-
-            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
-
-            using (Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new TestSampler() { SamplingAction = (samplingParameters) => new SamplingResult(samplingDecision) })
-                .AddElasticsearchClientInstrumentation()
-                .SetResourceBuilder(expectedResource)
-                .AddProcessor(processor.Object)
-                .Build())
-            {
-                var getResponse = await client.GetAsync<Customer>("123");
-                Assert.NotNull(getResponse);
-                Assert.True(getResponse.ApiCall.Success);
-                Assert.NotEmpty(getResponse.ApiCall.AuditTrail);
-
-                var failed = getResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
-                Assert.Empty(failed);
-            }
-
-            Assert.Equal(isActivityExpected, processor.Invocations.Any(invo => invo.Method.Name == nameof(processor.Object.OnStart)));
-            Assert.Equal(isActivityExpected, processor.Invocations.Any(invo => invo.Method.Name == nameof(processor.Object.OnEnd)));
+            var failed = getResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+            Assert.Empty(failed);
         }
 
-        [Fact]
-        public async Task DbStatementIsNotDisplayedWhenSetDbStatementForRequestIsFalse()
+        Assert.Equal(isActivityExpected, processor.Invocations.Any(invo => invo.Method.Name == nameof(processor.Object.OnStart)));
+        Assert.Equal(isActivityExpected, processor.Invocations.Any(invo => invo.Method.Name == nameof(processor.Object.OnEnd)));
+    }
+
+    [Fact]
+    public async Task DbStatementIsNotDisplayedWhenSetDbStatementForRequestIsFalse()
+    {
+        var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
+        var processor = new Mock<BaseProcessor<Activity>>();
+
+        var parent = new Activity("parent").Start();
+
+        var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
+
+        using (Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new AlwaysOnSampler())
+            .AddElasticsearchClientInstrumentation(o => o.SetDbStatementForRequest = false)
+            .SetResourceBuilder(expectedResource)
+            .AddProcessor(processor.Object)
+            .Build())
         {
-            var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
-            var processor = new Mock<BaseProcessor<Activity>>();
+            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            Assert.NotNull(searchResponse);
+            Assert.True(searchResponse.ApiCall.Success);
+            Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
 
-            var parent = new Activity("parent").Start();
-
-            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
-
-            using (Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new AlwaysOnSampler())
-                .AddElasticsearchClientInstrumentation(o => o.SetDbStatementForRequest = false)
-                .SetResourceBuilder(expectedResource)
-                .AddProcessor(processor.Object)
-                .Build())
-            {
-                var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
-                Assert.NotNull(searchResponse);
-                Assert.True(searchResponse.ApiCall.Success);
-                Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
-
-                var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
-                Assert.Empty(failed);
-            }
-
-            var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
-            Assert.Single(activities);
-
-            var searchActivity = activities[0];
-
-            var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-            Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement));
+            var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+            Assert.Empty(failed);
         }
 
-        [Fact]
-        public async Task DbStatementIsDisplayedWhenSetDbStatementForRequestIsUsingTheDefaultValue()
+        var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
+        Assert.Single(activities);
+
+        var searchActivity = activities[0];
+
+        var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement));
+    }
+
+    [Fact]
+    public async Task DbStatementIsDisplayedWhenSetDbStatementForRequestIsUsingTheDefaultValue()
+    {
+        var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
+        var processor = new Mock<BaseProcessor<Activity>>();
+
+        var parent = new Activity("parent").Start();
+
+        var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
+
+        using (Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new AlwaysOnSampler())
+            .AddElasticsearchClientInstrumentation()
+            .SetResourceBuilder(expectedResource)
+            .AddProcessor(processor.Object)
+            .Build())
         {
-            var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
-            var processor = new Mock<BaseProcessor<Activity>>();
+            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            Assert.NotNull(searchResponse);
+            Assert.True(searchResponse.ApiCall.Success);
+            Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
 
-            var parent = new Activity("parent").Start();
-
-            var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
-
-            using (Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new AlwaysOnSampler())
-                .AddElasticsearchClientInstrumentation()
-                .SetResourceBuilder(expectedResource)
-                .AddProcessor(processor.Object)
-                .Build())
-            {
-                var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
-                Assert.NotNull(searchResponse);
-                Assert.True(searchResponse.ApiCall.Success);
-                Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
-
-                var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
-                Assert.Empty(failed);
-            }
-
-            var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
-            Assert.Single(activities);
-
-            var searchActivity = activities[0];
-
-            var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-            Assert.NotNull(searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement));
+            var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+            Assert.Empty(failed);
         }
+
+        var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
+        Assert.Single(activities);
+
+        var searchActivity = activities[0];
+
+        var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        Assert.NotNull(searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement));
     }
 }

@@ -16,21 +16,20 @@
 
 using System.Diagnostics;
 
-namespace OpenTelemetry.Instrumentation.Owin
+namespace OpenTelemetry.Instrumentation.Owin;
+
+/// <summary>
+/// Describes the possible events fired when enriching an <see cref="Activity"/>.
+/// </summary>
+public enum OwinEnrichEventType
 {
     /// <summary>
-    /// Describes the possible events fired when enriching an <see cref="Activity"/>.
+    /// Begin request.
     /// </summary>
-    public enum OwinEnrichEventType
-    {
-        /// <summary>
-        /// Begin request.
-        /// </summary>
-        BeginRequest,
+    BeginRequest,
 
-        /// <summary>
-        /// End request.
-        /// </summary>
-        EndRequest,
-    }
+    /// <summary>
+    /// End request.
+    /// </summary>
+    EndRequest,
 }

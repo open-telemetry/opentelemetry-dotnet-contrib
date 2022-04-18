@@ -16,25 +16,24 @@
 
 using System.Collections.Generic;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
-{
-    internal static class AWSLambdaResourceDetector
-    {
-        /// <summary>
-        /// Detect the resource attributes for AWS Lambda.
-        /// </summary>
-        /// <returns>List of resource attributes pairs.</returns>
-        internal static IEnumerable<KeyValuePair<string, object>> Detect()
-        {
-            var resourceAttributes = new List<KeyValuePair<string, object>>()
-            {
-                new KeyValuePair<string, object>(AWSLambdaSemanticConventions.AttributeCloudProvider, AWSLambdaUtils.GetCloudProvider()),
-                new KeyValuePair<string, object>(AWSLambdaSemanticConventions.AttributeCloudRegion, AWSLambdaUtils.GetAWSRegion()),
-                new KeyValuePair<string, object>(AWSLambdaSemanticConventions.AttributeFaasName, AWSLambdaUtils.GetFunctionName()),
-                new KeyValuePair<string, object>(AWSLambdaSemanticConventions.AttributeFaasVersion, AWSLambdaUtils.GetFunctionVersion()),
-            };
+namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation;
 
-            return resourceAttributes;
-        }
+internal static class AWSLambdaResourceDetector
+{
+    /// <summary>
+    /// Detect the resource attributes for AWS Lambda.
+    /// </summary>
+    /// <returns>List of resource attributes pairs.</returns>
+    internal static IEnumerable<KeyValuePair<string, object>> Detect()
+    {
+        var resourceAttributes = new List<KeyValuePair<string, object>>()
+        {
+            new KeyValuePair<string, object>(AWSLambdaSemanticConventions.AttributeCloudProvider, AWSLambdaUtils.GetCloudProvider()),
+            new KeyValuePair<string, object>(AWSLambdaSemanticConventions.AttributeCloudRegion, AWSLambdaUtils.GetAWSRegion()),
+            new KeyValuePair<string, object>(AWSLambdaSemanticConventions.AttributeFaasName, AWSLambdaUtils.GetFunctionName()),
+            new KeyValuePair<string, object>(AWSLambdaSemanticConventions.AttributeFaasVersion, AWSLambdaUtils.GetFunctionVersion()),
+        };
+
+        return resourceAttributes;
     }
 }

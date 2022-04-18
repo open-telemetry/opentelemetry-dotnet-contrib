@@ -20,28 +20,27 @@ using System.Threading;
 using System.Threading.Tasks;
 using Quartz;
 
-namespace OpenTelemetry.Instrumentation.Quartz.Tests
+namespace OpenTelemetry.Instrumentation.Quartz.Tests;
+
+public class TestJob : IJob
 {
-    public class TestJob : IJob
+    public Task Execute(IJobExecutionContext context)
     {
-        public Task Execute(IJobExecutionContext context)
+        try
         {
-            try
-            {
-                List<DateTime> jobExecTimestamps = (List<DateTime>)context.Scheduler.Context.Get("DATESTAMPS");
-                Barrier barrier = (Barrier)context.Scheduler.Context.Get("BARRIER");
+            List<DateTime> jobExecTimestamps = (List<DateTime>)context.Scheduler.Context.Get("DATESTAMPS");
+            Barrier barrier = (Barrier)context.Scheduler.Context.Get("BARRIER");
 
-                jobExecTimestamps.Add(DateTime.UtcNow);
+            jobExecTimestamps.Add(DateTime.UtcNow);
 
-                barrier.SignalAndWait(TimeSpan.FromSeconds(125));
-                return Task.CompletedTask;
-            }
-            catch (Exception e)
-            {
-                Console.Write(e);
-            }
-
+            barrier.SignalAndWait(TimeSpan.FromSeconds(125));
             return Task.CompletedTask;
         }
+        catch (Exception e)
+        {
+            Console.Write(e);
+        }
+
+        return Task.CompletedTask;
     }
 }

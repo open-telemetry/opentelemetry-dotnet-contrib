@@ -16,11 +16,10 @@
 
 using Newtonsoft.Json;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Models
+namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Models;
+
+internal class AWSEKSClusterDataModel
 {
-    internal class AWSEKSClusterDataModel
-    {
-        [JsonProperty(PropertyName = "cluster.name")]
-        public string ClusterName { get; set; }
-    }
+    [JsonProperty(PropertyName = "cluster.name")]
+    public string ClusterName { get; set; }
 }

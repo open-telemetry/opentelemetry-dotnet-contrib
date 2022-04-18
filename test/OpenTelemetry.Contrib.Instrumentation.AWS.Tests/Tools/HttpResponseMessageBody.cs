@@ -20,76 +20,75 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Amazon.Runtime.Internal.Transform;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
+namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests;
+
+internal class HttpResponseMessageBody : IHttpResponseBody
 {
-    internal class HttpResponseMessageBody : IHttpResponseBody
+    private HttpClient httpClient;
+    private HttpResponseMessage response;
+    private bool disposeClient = false;
+    private bool disposed = false;
+
+    public HttpResponseMessageBody(HttpResponseMessage response, HttpClient httpClient, bool disposeClient)
     {
-        private HttpClient httpClient;
-        private HttpResponseMessage response;
-        private bool disposeClient = false;
-        private bool disposed = false;
+        this.httpClient = httpClient;
+        this.response = response;
+        this.disposeClient = disposeClient;
+    }
 
-        public HttpResponseMessageBody(HttpResponseMessage response, HttpClient httpClient, bool disposeClient)
+    public void Dispose()
+    {
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    Stream IHttpResponseBody.OpenResponse()
+    {
+        if (this.disposed)
         {
-            this.httpClient = httpClient;
-            this.response = response;
-            this.disposeClient = disposeClient;
+            throw new ObjectDisposedException("HttpWebResponseBody");
         }
 
-        public void Dispose()
+        return this.response.Content.ReadAsStreamAsync().Result;
+    }
+
+    Task<Stream> IHttpResponseBody.OpenResponseAsync()
+    {
+        if (this.disposed)
         {
-            this.Dispose(true);
-            GC.SuppressFinalize(this);
+            throw new ObjectDisposedException("HttpWebResponseBody");
         }
 
-        Stream IHttpResponseBody.OpenResponse()
+        if (this.response.Content != null)
         {
-            if (this.disposed)
-            {
-                throw new ObjectDisposedException("HttpWebResponseBody");
-            }
+            return this.response.Content.ReadAsStreamAsync();
+        }
+        else
+        {
+            return null;
+        }
+    }
 
-            return this.response.Content.ReadAsStreamAsync().Result;
+    protected virtual void Dispose(bool disposing)
+    {
+        if (this.disposed)
+        {
+            return;
         }
 
-        Task<Stream> IHttpResponseBody.OpenResponseAsync()
+        if (disposing)
         {
-            if (this.disposed)
+            if (this.response != null)
             {
-                throw new ObjectDisposedException("HttpWebResponseBody");
+                this.response.Dispose();
             }
 
-            if (this.response.Content != null)
+            if (this.httpClient != null && this.disposeClient)
             {
-                return this.response.Content.ReadAsStreamAsync();
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (this.disposed)
-            {
-                return;
+                this.httpClient.Dispose();
             }
 
-            if (disposing)
-            {
-                if (this.response != null)
-                {
-                    this.response.Dispose();
-                }
-
-                if (this.httpClient != null && this.disposeClient)
-                {
-                    this.httpClient.Dispose();
-                }
-
-                this.disposed = true;
-            }
+            this.disposed = true;
         }
     }
 }

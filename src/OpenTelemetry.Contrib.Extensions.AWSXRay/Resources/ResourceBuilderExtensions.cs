@@ -17,34 +17,33 @@
 using System;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 
-namespace OpenTelemetry.Resources
+namespace OpenTelemetry.Resources;
+
+/// <summary>
+/// Extension class for ResourceBuilder.
+/// </summary>
+public static class ResourceBuilderExtensions
 {
     /// <summary>
-    /// Extension class for ResourceBuilder.
+    /// Add resource detector to ResourceBuilder.
     /// </summary>
-    public static class ResourceBuilderExtensions
+    /// <param name="resourceBuilder"><see cref="ResourceBuilder"/> being configured.</param>
+    /// <param name="resourceDetector"><see cref="IResourceDetector"/> being added.</param>
+    /// <returns>The instance of <see cref="ResourceBuilder"/> to chain the calls.</returns>
+    public static ResourceBuilder AddDetector(this ResourceBuilder resourceBuilder, IResourceDetector resourceDetector)
     {
-        /// <summary>
-        /// Add resource detector to ResourceBuilder.
-        /// </summary>
-        /// <param name="resourceBuilder"><see cref="ResourceBuilder"/> being configured.</param>
-        /// <param name="resourceDetector"><see cref="IResourceDetector"/> being added.</param>
-        /// <returns>The instance of <see cref="ResourceBuilder"/> to chain the calls.</returns>
-        public static ResourceBuilder AddDetector(this ResourceBuilder resourceBuilder, IResourceDetector resourceDetector)
+        if (resourceDetector == null)
         {
-            if (resourceDetector == null)
-            {
-                throw new ArgumentNullException(nameof(resourceDetector));
-            }
-
-            var resourceAttributes = resourceDetector.Detect();
-
-            if (resourceAttributes != null)
-            {
-                resourceBuilder.AddAttributes(resourceAttributes);
-            }
-
-            return resourceBuilder;
+            throw new ArgumentNullException(nameof(resourceDetector));
         }
+
+        var resourceAttributes = resourceDetector.Detect();
+
+        if (resourceAttributes != null)
+        {
+            resourceBuilder.AddAttributes(resourceAttributes);
+        }
+
+        return resourceBuilder;
     }
 }

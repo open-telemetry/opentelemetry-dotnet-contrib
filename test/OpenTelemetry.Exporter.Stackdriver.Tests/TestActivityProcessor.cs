@@ -18,56 +18,55 @@ using System;
 using System.Diagnostics;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Tests
+namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Tests;
+
+public class TestActivityProcessor : BaseProcessor<Activity>, IDisposable
 {
-    public class TestActivityProcessor : BaseProcessor<Activity>, IDisposable
+    public Action<Activity> StartAction;
+    public Action<Activity> EndAction;
+
+    public TestActivityProcessor()
     {
-        public Action<Activity> StartAction;
-        public Action<Activity> EndAction;
+    }
 
-        public TestActivityProcessor()
-        {
-        }
+    public TestActivityProcessor(Action<Activity> onStart, Action<Activity> onEnd)
+    {
+        this.StartAction = onStart;
+        this.EndAction = onEnd;
+    }
 
-        public TestActivityProcessor(Action<Activity> onStart, Action<Activity> onEnd)
-        {
-            this.StartAction = onStart;
-            this.EndAction = onEnd;
-        }
+    public bool ShutdownCalled { get; private set; } = false;
 
-        public bool ShutdownCalled { get; private set; } = false;
+    public bool ForceFlushCalled { get; private set; } = false;
 
-        public bool ForceFlushCalled { get; private set; } = false;
+    public bool DisposedCalled { get; private set; } = false;
 
-        public bool DisposedCalled { get; private set; } = false;
+    public override void OnStart(Activity activity)
+    {
+        this.StartAction?.Invoke(activity);
+    }
 
-        public override void OnStart(Activity activity)
-        {
-            this.StartAction?.Invoke(activity);
-        }
+    public override void OnEnd(Activity activity)
+    {
+        this.EndAction?.Invoke(activity);
+    }
 
-        public override void OnEnd(Activity activity)
-        {
-            this.EndAction?.Invoke(activity);
-        }
+    protected override bool OnShutdown(int timeoutMilliseconds)
+    {
+        this.ShutdownCalled = true;
+        base.OnShutdown(timeoutMilliseconds);
+        return true;
+    }
 
-        protected override bool OnShutdown(int timeoutMilliseconds)
-        {
-            this.ShutdownCalled = true;
-            base.OnShutdown(timeoutMilliseconds);
-            return true;
-        }
+    protected override bool OnForceFlush(int timeoutMilliseconds)
+    {
+        this.ForceFlushCalled = true;
+        return base.OnForceFlush(timeoutMilliseconds);
+    }
 
-        protected override bool OnForceFlush(int timeoutMilliseconds)
-        {
-            this.ForceFlushCalled = true;
-            return base.OnForceFlush(timeoutMilliseconds);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            this.DisposedCalled = true;
-            base.Dispose(disposing);
-        }
+    protected override void Dispose(bool disposing)
+    {
+        this.DisposedCalled = true;
+        base.Dispose(disposing);
     }
 }

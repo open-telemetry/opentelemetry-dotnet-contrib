@@ -20,25 +20,24 @@ using OpenTelemetry;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
-namespace Examples.Wcf.Server
+namespace Examples.Wcf.Server;
+
+internal static class Program
 {
-    internal static class Program
+    public static void Main()
     {
-        public static void Main()
-        {
-            using var openTelemetry = Sdk.CreateTracerProviderBuilder()
-                .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Wcf-Server"))
-                .AddWcfInstrumentation()
-                .AddZipkinExporter()
-                .Build();
+        using var openTelemetry = Sdk.CreateTracerProviderBuilder()
+            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Wcf-Server"))
+            .AddWcfInstrumentation()
+            .AddZipkinExporter()
+            .Build();
 
-            ServiceHost serviceHost = new ServiceHost(typeof(StatusService));
-            serviceHost.Open();
+        ServiceHost serviceHost = new ServiceHost(typeof(StatusService));
+        serviceHost.Open();
 
-            Console.WriteLine("Service listening. Press enter to exit.");
-            Console.ReadLine();
+        Console.WriteLine("Service listening. Press enter to exit.");
+        Console.ReadLine();
 
-            serviceHost.Close();
-        }
+        serviceHost.Close();
     }
 }

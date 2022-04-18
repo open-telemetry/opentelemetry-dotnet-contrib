@@ -16,15 +16,14 @@
 
 using MySql.Data.MySqlClient;
 
-namespace OpenTelemetry.Instrumentation.MySqlData
-{
-    /// <summary>
-    /// Informations of current executing command.
-    /// </summary>
-    internal class MySqlDataTraceCommand
-    {
-        public MySqlConnectionStringBuilder ConnectionStringBuilder { get; set; }
+namespace OpenTelemetry.Instrumentation.MySqlData;
 
-        public string SqlText { get; set; }
-    }
+/// <summary>
+/// Informations of current executing command.
+/// </summary>
+internal class MySqlDataTraceCommand
+{
+    public MySqlConnectionStringBuilder ConnectionStringBuilder { get; set; }
+
+    public string SqlText { get; set; }
 }

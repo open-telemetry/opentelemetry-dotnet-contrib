@@ -17,35 +17,34 @@
 using System;
 using OpenTelemetry.Instrumentation.MySqlData;
 
-namespace OpenTelemetry.Trace
+namespace OpenTelemetry.Trace;
+
+/// <summary>
+/// Extension methods to simplify registering of dependency instrumentation.
+/// </summary>
+public static class TracerProviderBuilderExtensions
 {
     /// <summary>
-    /// Extension methods to simplify registering of dependency instrumentation.
+    /// Enables SqlClient instrumentation.
     /// </summary>
-    public static class TracerProviderBuilderExtensions
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="configureMySqlDataInstrumentationOptions">SqlClient configuration options.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddMySqlDataInstrumentation(
+        this TracerProviderBuilder builder,
+        Action<MySqlDataInstrumentationOptions> configureMySqlDataInstrumentationOptions = null)
     {
-        /// <summary>
-        /// Enables SqlClient instrumentation.
-        /// </summary>
-        /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-        /// <param name="configureMySqlDataInstrumentationOptions">SqlClient configuration options.</param>
-        /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-        public static TracerProviderBuilder AddMySqlDataInstrumentation(
-            this TracerProviderBuilder builder,
-            Action<MySqlDataInstrumentationOptions> configureMySqlDataInstrumentationOptions = null)
+        if (builder == null)
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            var sqlOptions = new MySqlDataInstrumentationOptions();
-            configureMySqlDataInstrumentationOptions?.Invoke(sqlOptions);
-
-            builder.AddInstrumentation(() => new MySqlDataInstrumentation(sqlOptions));
-            builder.AddSource(MySqlActivitySourceHelper.ActivitySourceName);
-
-            return builder;
+            throw new ArgumentNullException(nameof(builder));
         }
+
+        var sqlOptions = new MySqlDataInstrumentationOptions();
+        configureMySqlDataInstrumentationOptions?.Invoke(sqlOptions);
+
+        builder.AddInstrumentation(() => new MySqlDataInstrumentation(sqlOptions));
+        builder.AddSource(MySqlActivitySourceHelper.ActivitySourceName);
+
+        return builder;
     }
 }

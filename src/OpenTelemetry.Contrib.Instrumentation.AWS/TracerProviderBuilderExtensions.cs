@@ -18,34 +18,33 @@ using System;
 using OpenTelemetry.Contrib.Instrumentation.AWS;
 using OpenTelemetry.Contrib.Instrumentation.AWS.Implementation;
 
-namespace OpenTelemetry.Trace
+namespace OpenTelemetry.Trace;
+
+/// <summary>
+/// Extension methods to simplify registering of dependency instrumentation.
+/// </summary>
+public static class TracerProviderBuilderExtensions
 {
     /// <summary>
-    /// Extension methods to simplify registering of dependency instrumentation.
+    /// Enables AWS Instrumentation.
     /// </summary>
-    public static class TracerProviderBuilderExtensions
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="configure">AWS client configuration options.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddAWSInstrumentation(
+        this TracerProviderBuilder builder,
+        Action<AWSClientInstrumentationOptions> configure = null)
     {
-        /// <summary>
-        /// Enables AWS Instrumentation.
-        /// </summary>
-        /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-        /// <param name="configure">AWS client configuration options.</param>
-        /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-        public static TracerProviderBuilder AddAWSInstrumentation(
-            this TracerProviderBuilder builder,
-            Action<AWSClientInstrumentationOptions> configure = null)
+        if (builder == null)
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            var awsClientOptions = new AWSClientInstrumentationOptions();
-            configure?.Invoke(awsClientOptions);
-
-            new AWSClientsInstrumentation(awsClientOptions);
-            builder.AddSource("Amazon.AWS.AWSClientInstrumentation");
-            return builder;
+            throw new ArgumentNullException(nameof(builder));
         }
+
+        var awsClientOptions = new AWSClientInstrumentationOptions();
+        configure?.Invoke(awsClientOptions);
+
+        new AWSClientsInstrumentation(awsClientOptions);
+        builder.AddSource("Amazon.AWS.AWSClientInstrumentation");
+        return builder;
     }
 }

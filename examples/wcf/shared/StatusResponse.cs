@@ -17,12 +17,11 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace Examples.Wcf
+namespace Examples.Wcf;
+
+[DataContract]
+public class StatusResponse
 {
-    [DataContract]
-    public class StatusResponse
-    {
-        [DataMember]
-        public DateTimeOffset ServerTime { get; set; }
-    }
+    [DataMember]
+    public DateTimeOffset ServerTime { get; set; }
 }

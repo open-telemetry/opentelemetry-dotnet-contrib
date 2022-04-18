@@ -14,14 +14,13 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
-{
-    internal static class HangfireInstrumentationConstants
-    {
-        public const string JobIdTag = "job.id";
-        public const string JobCreatedAtTag = "job.createdat";
+namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 
-        public const string ActivityName = "JOB";
-        public const string ActivityKey = "opentelemetry_activity_key";
-    }
+internal static class HangfireInstrumentationConstants
+{
+    public const string JobIdTag = "job.id";
+    public const string JobCreatedAtTag = "job.createdat";
+
+    public const string ActivityName = "JOB";
+    public const string ActivityKey = "opentelemetry_activity_key";
 }

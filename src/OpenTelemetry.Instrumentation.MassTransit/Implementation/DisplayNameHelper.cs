@@ -16,33 +16,32 @@
 
 using System.Collections.Concurrent;
 
-namespace OpenTelemetry.Instrumentation.MassTransit.Implementation
+namespace OpenTelemetry.Instrumentation.MassTransit.Implementation;
+
+internal static class DisplayNameHelper
 {
-    internal static class DisplayNameHelper
-    {
-        private static readonly ConcurrentDictionary<string, string> SendOperationDisplayNameCache = new ConcurrentDictionary<string, string>();
-        private static readonly ConcurrentDictionary<string, string> ReceiveOperationDisplayNameCache = new ConcurrentDictionary<string, string>();
-        private static readonly ConcurrentDictionary<string, string> ConsumeOperationDisplayNameCache = new ConcurrentDictionary<string, string>();
-        private static readonly ConcurrentDictionary<string, string> HandleOperationDisplayNameCache = new ConcurrentDictionary<string, string>();
+    private static readonly ConcurrentDictionary<string, string> SendOperationDisplayNameCache = new ConcurrentDictionary<string, string>();
+    private static readonly ConcurrentDictionary<string, string> ReceiveOperationDisplayNameCache = new ConcurrentDictionary<string, string>();
+    private static readonly ConcurrentDictionary<string, string> ConsumeOperationDisplayNameCache = new ConcurrentDictionary<string, string>();
+    private static readonly ConcurrentDictionary<string, string> HandleOperationDisplayNameCache = new ConcurrentDictionary<string, string>();
 
-        public static string GetSendOperationDisplayName(string peerAddress) =>
-            SendOperationDisplayNameCache.GetOrAdd(peerAddress, ConvertSendOperationToDisplayName);
+    public static string GetSendOperationDisplayName(string peerAddress) =>
+        SendOperationDisplayNameCache.GetOrAdd(peerAddress, ConvertSendOperationToDisplayName);
 
-        public static string GetReceiveOperationDisplayName(string peerAddress) =>
-            ReceiveOperationDisplayNameCache.GetOrAdd(peerAddress, ConvertReceiveOperationToDisplayName);
+    public static string GetReceiveOperationDisplayName(string peerAddress) =>
+        ReceiveOperationDisplayNameCache.GetOrAdd(peerAddress, ConvertReceiveOperationToDisplayName);
 
-        public static string GetConsumeOperationDisplayName(string peerAddress) =>
-            ConsumeOperationDisplayNameCache.GetOrAdd(peerAddress, ConvertConsumeOperationToDisplayName);
+    public static string GetConsumeOperationDisplayName(string peerAddress) =>
+        ConsumeOperationDisplayNameCache.GetOrAdd(peerAddress, ConvertConsumeOperationToDisplayName);
 
-        public static string GetHandleOperationDisplayName(string peerAddress) =>
-            HandleOperationDisplayNameCache.GetOrAdd(peerAddress, ConvertHandleOperationToDisplayName);
+    public static string GetHandleOperationDisplayName(string peerAddress) =>
+        HandleOperationDisplayNameCache.GetOrAdd(peerAddress, ConvertHandleOperationToDisplayName);
 
-        private static string ConvertSendOperationToDisplayName(string peerAddress) => $"{peerAddress} send";
+    private static string ConvertSendOperationToDisplayName(string peerAddress) => $"{peerAddress} send";
 
-        private static string ConvertReceiveOperationToDisplayName(string peerAddress) => $"{peerAddress} consume";
+    private static string ConvertReceiveOperationToDisplayName(string peerAddress) => $"{peerAddress} consume";
 
-        private static string ConvertConsumeOperationToDisplayName(string consumerType) => $"{consumerType} process";
+    private static string ConvertConsumeOperationToDisplayName(string consumerType) => $"{consumerType} process";
 
-        private static string ConvertHandleOperationToDisplayName(string peerAddress) => $"{peerAddress} process";
-    }
+    private static string ConvertHandleOperationToDisplayName(string peerAddress) => $"{peerAddress} process";
 }

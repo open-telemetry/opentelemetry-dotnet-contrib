@@ -20,45 +20,44 @@ using System.Net;
 using System.Net.Http;
 using Amazon.Runtime;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
-{
+namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests;
+
 #if NET452
-    internal class MockHttpRequestFactory : IHttpRequestFactory<Stream>
+internal class MockHttpRequestFactory : IHttpRequestFactory<Stream>
+{
+    public Action GetResponseAction { get; set; }
+
+    public Func<MockHttpRequest, HttpWebResponse> ResponseCreator { get; set; }
+
+    public MockHttpRequest LastCreatedRequest { get; private set; }
+
+    public IHttpRequest<Stream> CreateHttpRequest(Uri requestUri)
     {
-        public Action GetResponseAction { get; set; }
-
-        public Func<MockHttpRequest, HttpWebResponse> ResponseCreator { get; set; }
-
-        public MockHttpRequest LastCreatedRequest { get; private set; }
-
-        public IHttpRequest<Stream> CreateHttpRequest(Uri requestUri)
-        {
-            this.LastCreatedRequest = new MockHttpRequest(requestUri, this.GetResponseAction, this.ResponseCreator);
-            return this.LastCreatedRequest;
-        }
-
-        public void Dispose()
-        {
-        }
+        this.LastCreatedRequest = new MockHttpRequest(requestUri, this.GetResponseAction, this.ResponseCreator);
+        return this.LastCreatedRequest;
     }
-#else
-    internal class MockHttpRequestFactory : IHttpRequestFactory<HttpContent>
+
+    public void Dispose()
     {
-        public Action GetResponseAction { get; set; }
-
-        public MockHttpRequest LastCreatedRequest { get; private set; }
-
-        public Func<MockHttpRequest, HttpResponseMessage> ResponseCreator { get; set; }
-
-        public IHttpRequest<HttpContent> CreateHttpRequest(Uri requestUri)
-        {
-            this.LastCreatedRequest = new MockHttpRequest(requestUri, this.GetResponseAction, this.ResponseCreator);
-            return this.LastCreatedRequest;
-        }
-
-        public void Dispose()
-        {
-        }
     }
-#endif
 }
+#else
+internal class MockHttpRequestFactory : IHttpRequestFactory<HttpContent>
+{
+    public Action GetResponseAction { get; set; }
+
+    public MockHttpRequest LastCreatedRequest { get; private set; }
+
+    public Func<MockHttpRequest, HttpResponseMessage> ResponseCreator { get; set; }
+
+    public IHttpRequest<HttpContent> CreateHttpRequest(Uri requestUri)
+    {
+        this.LastCreatedRequest = new MockHttpRequest(requestUri, this.GetResponseAction, this.ResponseCreator);
+        return this.LastCreatedRequest;
+    }
+
+    public void Dispose()
+    {
+    }
+}
+#endif

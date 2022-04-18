@@ -22,49 +22,48 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
+namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
+
+/// <summary>
+/// Class for resource detector utils.
+/// </summary>
+public class ResourceDetectorUtils
 {
-    /// <summary>
-    /// Class for resource detector utils.
-    /// </summary>
-    public class ResourceDetectorUtils
+    internal static async Task<string> SendOutRequest(string url, string method, KeyValuePair<string, string> header, HttpClientHandler handler = null)
     {
-        internal static async Task<string> SendOutRequest(string url, string method, KeyValuePair<string, string> header, HttpClientHandler handler = null)
+        using (var httpRequestMessage = new HttpRequestMessage())
         {
-            using (var httpRequestMessage = new HttpRequestMessage())
-            {
-                httpRequestMessage.RequestUri = new Uri(url);
-                httpRequestMessage.Method = new HttpMethod(method);
-                httpRequestMessage.Headers.Add(header.Key, header.Value);
+            httpRequestMessage.RequestUri = new Uri(url);
+            httpRequestMessage.Method = new HttpMethod(method);
+            httpRequestMessage.Headers.Add(header.Key, header.Value);
 
-                var httpClient = handler == null ? new HttpClient() : new HttpClient(handler);
-                using (var response = await httpClient.SendAsync(httpRequestMessage))
-                {
-                    response.EnsureSuccessStatusCode();
-                    return await response.Content.ReadAsStringAsync();
-                }
+            var httpClient = handler == null ? new HttpClient() : new HttpClient(handler);
+            using (var response = await httpClient.SendAsync(httpRequestMessage))
+            {
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadAsStringAsync();
             }
         }
+    }
 
-        internal static T DeserializeFromFile<T>(string filePath)
+    internal static T DeserializeFromFile<T>(string filePath)
+    {
+        using (var streamReader = GetStreamReader(filePath))
         {
-            using (var streamReader = GetStreamReader(filePath))
-            {
-                JsonSerializer serializer = new JsonSerializer();
-                return (T)serializer.Deserialize(streamReader, typeof(T));
-            }
+            JsonSerializer serializer = new JsonSerializer();
+            return (T)serializer.Deserialize(streamReader, typeof(T));
         }
+    }
 
-        internal static T DeserializeFromString<T>(string json)
-        {
-            return JsonConvert.DeserializeObject<T>(json);
-        }
+    internal static T DeserializeFromString<T>(string json)
+    {
+        return JsonConvert.DeserializeObject<T>(json);
+    }
 
-        internal static StreamReader GetStreamReader(string filePath)
-        {
-            var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            var streamReader = new StreamReader(fileStream, Encoding.UTF8);
-            return streamReader;
-        }
+    internal static StreamReader GetStreamReader(string filePath)
+    {
+        var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        var streamReader = new StreamReader(fileStream, Encoding.UTF8);
+        return streamReader;
     }
 }

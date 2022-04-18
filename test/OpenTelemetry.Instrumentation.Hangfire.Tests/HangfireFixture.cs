@@ -19,25 +19,24 @@ using Hangfire;
 using Hangfire.MemoryStorage;
 using Hangfire.Storage;
 
-namespace OpenTelemetry.Instrumentation.Hangfire.Tests
+namespace OpenTelemetry.Instrumentation.Hangfire.Tests;
+
+public class HangfireFixture : IDisposable
 {
-    public class HangfireFixture : IDisposable
+    public HangfireFixture()
     {
-        public HangfireFixture()
-        {
-            GlobalConfiguration.Configuration
-               .UseMemoryStorage();
-            this.Server = new BackgroundJobServer();
-            this.MonitoringApi = JobStorage.Current.GetMonitoringApi();
-        }
+        GlobalConfiguration.Configuration
+           .UseMemoryStorage();
+        this.Server = new BackgroundJobServer();
+        this.MonitoringApi = JobStorage.Current.GetMonitoringApi();
+    }
 
-        public BackgroundJobServer Server { get; }
+    public BackgroundJobServer Server { get; }
 
-        public IMonitoringApi MonitoringApi { get; }
+    public IMonitoringApi MonitoringApi { get; }
 
-        public void Dispose()
-        {
-            this.Server.Dispose();
-        }
+    public void Dispose()
+    {
+        this.Server.Dispose();
     }
 }

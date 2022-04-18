@@ -17,64 +17,63 @@
 using System;
 using System.Collections.Generic;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
+namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
+
+/// <summary>
+/// Resource detector for application running in AWS Lambda.
+/// </summary>
+public class AWSLambdaResourceDetector : IResourceDetector
 {
+    private const string AWSLambdaRegion = "AWS_REGION";
+    private const string AWSLambdaFunctionName = "AWS_LAMBDA_FUNCTION_NAME";
+    private const string AWSLambdaFunctionVersion = "AWS_LAMBDA_FUNCTION_VERSION";
+
     /// <summary>
-    /// Resource detector for application running in AWS Lambda.
+    /// Detector the required and optional resource attributes from AWS Lambda.
     /// </summary>
-    public class AWSLambdaResourceDetector : IResourceDetector
+    /// <returns>List of key-value pairs of resource attributes.</returns>
+    public IEnumerable<KeyValuePair<string, object>> Detect()
     {
-        private const string AWSLambdaRegion = "AWS_REGION";
-        private const string AWSLambdaFunctionName = "AWS_LAMBDA_FUNCTION_NAME";
-        private const string AWSLambdaFunctionVersion = "AWS_LAMBDA_FUNCTION_VERSION";
+        List<KeyValuePair<string, object>> resourceAttributes = null;
 
-        /// <summary>
-        /// Detector the required and optional resource attributes from AWS Lambda.
-        /// </summary>
-        /// <returns>List of key-value pairs of resource attributes.</returns>
-        public IEnumerable<KeyValuePair<string, object>> Detect()
+        try
         {
-            List<KeyValuePair<string, object>> resourceAttributes = null;
-
-            try
-            {
-                resourceAttributes = this.ExtractResourceAttributes();
-            }
-            catch (Exception ex)
-            {
-                AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSLambdaResourceDetector), ex);
-            }
-
-            return resourceAttributes;
+            resourceAttributes = this.ExtractResourceAttributes();
+        }
+        catch (Exception ex)
+        {
+            AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSLambdaResourceDetector), ex);
         }
 
-        internal List<KeyValuePair<string, object>> ExtractResourceAttributes()
-        {
-            var resourceAttributes = new List<KeyValuePair<string, object>>()
-            {
-                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_lambda"),
-                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudRegion, GetAWSRegion()),
-                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeFaasName, GetFunctionName()),
-                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeFaasVersion, GetFunctionVersion()),
-            };
+        return resourceAttributes;
+    }
 
-            return resourceAttributes;
-        }
-
-        private static string GetAWSRegion()
+    internal List<KeyValuePair<string, object>> ExtractResourceAttributes()
+    {
+        var resourceAttributes = new List<KeyValuePair<string, object>>()
         {
-            return Environment.GetEnvironmentVariable(AWSLambdaRegion);
-        }
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_lambda"),
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudRegion, GetAWSRegion()),
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeFaasName, GetFunctionName()),
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeFaasVersion, GetFunctionVersion()),
+        };
 
-        private static string GetFunctionName()
-        {
-            return Environment.GetEnvironmentVariable(AWSLambdaFunctionName);
-        }
+        return resourceAttributes;
+    }
 
-        private static string GetFunctionVersion()
-        {
-            return Environment.GetEnvironmentVariable(AWSLambdaFunctionVersion);
-        }
+    private static string GetAWSRegion()
+    {
+        return Environment.GetEnvironmentVariable(AWSLambdaRegion);
+    }
+
+    private static string GetFunctionName()
+    {
+        return Environment.GetEnvironmentVariable(AWSLambdaFunctionName);
+    }
+
+    private static string GetFunctionVersion()
+    {
+        return Environment.GetEnvironmentVariable(AWSLambdaFunctionVersion);
     }
 }
