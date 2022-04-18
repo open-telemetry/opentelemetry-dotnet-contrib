@@ -18,16 +18,6 @@ using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
 
-
-/* Unmerged change from project 'OpenTelemetry.Instrumentation.Wcf (netstandard2.0)'
-Before:
-namespace OpenTelemetry.Instrumentation.Wcf
-{
-#if NETFRAMEWORK
-After:
-namespace OpenTelemetry.Instrumentation.Wcf;
-#if NETFRAMEWORK
-*/
 namespace OpenTelemetry.Instrumentation.Wcf;
 
 #if NETFRAMEWORK
