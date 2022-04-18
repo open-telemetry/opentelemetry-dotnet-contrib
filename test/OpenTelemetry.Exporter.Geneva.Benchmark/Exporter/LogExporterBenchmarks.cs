@@ -39,138 +39,137 @@ AMD Ryzen 9 3900X, 1 CPU, 24 logical and 12 physical cores
 |       SerializeLogRecord |   743.53 ns | 2.233 ns | 2.088 ns | 0.0029 |      24 B |
 */
 
-namespace OpenTelemetry.Exporter.Geneva.Benchmark
+namespace OpenTelemetry.Exporter.Geneva.Benchmark;
+
+[MemoryDiagnoser]
+public class LogExporterBenchmarks
 {
-    [MemoryDiagnoser]
-    public class LogExporterBenchmarks
+    private readonly LogRecord logRecord;
+    private readonly GenevaLogExporter exporter;
+    private readonly ILogger loggerWithNoListener;
+    private readonly ILogger loggerWithGenevaExporter;
+    private readonly ILogger loggerWithOneProcessor;
+    private readonly ILogger loggerWithTwoProcessors;
+    private readonly ILogger loggerWithThreeProcessors;
+
+    public LogExporterBenchmarks()
     {
-        private readonly LogRecord logRecord;
-        private readonly GenevaLogExporter exporter;
-        private readonly ILogger loggerWithNoListener;
-        private readonly ILogger loggerWithGenevaExporter;
-        private readonly ILogger loggerWithOneProcessor;
-        private readonly ILogger loggerWithTwoProcessors;
-        private readonly ILogger loggerWithThreeProcessors;
+        this.logRecord = this.GenerateTestLogRecord();
 
-        public LogExporterBenchmarks()
+        this.exporter = new GenevaLogExporter(new GenevaExporterOptions
         {
-            this.logRecord = this.GenerateTestLogRecord();
-
-            this.exporter = new GenevaLogExporter(new GenevaExporterOptions
+            ConnectionString = "EtwSession=OpenTelemetry",
+            PrepopulatedFields = new Dictionary<string, object>
             {
-                ConnectionString = "EtwSession=OpenTelemetry",
-                PrepopulatedFields = new Dictionary<string, object>
+                ["cloud.role"] = "BusyWorker",
+                ["cloud.roleInstance"] = "CY1SCH030021417",
+                ["cloud.roleVer"] = "9.0.15289.2",
+            },
+        });
+
+        this.loggerWithNoListener = this.CreateLogger();
+
+        this.loggerWithOneProcessor = this.CreateLogger(options => options
+            .AddProcessor(new DummyLogProcessor()));
+
+        this.loggerWithTwoProcessors = this.CreateLogger(options => options
+            .AddProcessor(new DummyLogProcessor())
+            .AddProcessor(new DummyLogProcessor()));
+
+        this.loggerWithThreeProcessors = this.CreateLogger(options => options
+            .AddProcessor(new DummyLogProcessor())
+            .AddProcessor(new DummyLogProcessor())
+            .AddProcessor(new DummyLogProcessor()));
+
+        this.loggerWithGenevaExporter = this.CreateLogger(options =>
+        {
+            options.AddGenevaLogExporter(genevaOptions =>
+            {
+                genevaOptions.ConnectionString = "EtwSession=OpenTelemetry";
+                genevaOptions.PrepopulatedFields = new Dictionary<string, object>
                 {
                     ["cloud.role"] = "BusyWorker",
                     ["cloud.roleInstance"] = "CY1SCH030021417",
                     ["cloud.roleVer"] = "9.0.15289.2",
-                },
+                };
             });
+        });
+    }
 
-            this.loggerWithNoListener = this.CreateLogger();
+    [Benchmark]
+    public void NoListener()
+    {
+        this.loggerWithNoListener.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+    }
 
-            this.loggerWithOneProcessor = this.CreateLogger(options => options
-                .AddProcessor(new DummyLogProcessor()));
+    [Benchmark]
+    public void OneProcessor()
+    {
+        this.loggerWithOneProcessor.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+    }
 
-            this.loggerWithTwoProcessors = this.CreateLogger(options => options
-                .AddProcessor(new DummyLogProcessor())
-                .AddProcessor(new DummyLogProcessor()));
+    [Benchmark]
+    public void TwoProcessors()
+    {
+        this.loggerWithTwoProcessors.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+    }
 
-            this.loggerWithThreeProcessors = this.CreateLogger(options => options
-                .AddProcessor(new DummyLogProcessor())
-                .AddProcessor(new DummyLogProcessor())
-                .AddProcessor(new DummyLogProcessor()));
+    [Benchmark]
+    public void ThreeProcessors()
+    {
+        this.loggerWithThreeProcessors.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+    }
 
-            this.loggerWithGenevaExporter = this.CreateLogger(options =>
+    [Benchmark]
+    public void LoggerWithGenevaExporter()
+    {
+        this.loggerWithGenevaExporter.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+    }
+
+    [Benchmark]
+    public void SerializeLogRecord()
+    {
+        this.exporter.SerializeLogRecord(this.logRecord);
+    }
+
+    internal class DummyLogProcessor : BaseProcessor<LogRecord>
+    {
+    }
+
+    internal class DummyLogExporter : BaseExporter<LogRecord>
+    {
+        public LogRecord LastRecord { get; set; }
+
+        public override ExportResult Export(in Batch<LogRecord> batch)
+        {
+            foreach (var record in batch)
             {
-                options.AddGenevaLogExporter(genevaOptions =>
-                {
-                    genevaOptions.ConnectionString = "EtwSession=OpenTelemetry";
-                    genevaOptions.PrepopulatedFields = new Dictionary<string, object>
-                    {
-                        ["cloud.role"] = "BusyWorker",
-                        ["cloud.roleInstance"] = "CY1SCH030021417",
-                        ["cloud.roleVer"] = "9.0.15289.2",
-                    };
-                });
-            });
-        }
-
-        [Benchmark]
-        public void NoListener()
-        {
-            this.loggerWithNoListener.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
-        }
-
-        [Benchmark]
-        public void OneProcessor()
-        {
-            this.loggerWithOneProcessor.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
-        }
-
-        [Benchmark]
-        public void TwoProcessors()
-        {
-            this.loggerWithTwoProcessors.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
-        }
-
-        [Benchmark]
-        public void ThreeProcessors()
-        {
-            this.loggerWithThreeProcessors.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
-        }
-
-        [Benchmark]
-        public void LoggerWithGenevaExporter()
-        {
-            this.loggerWithGenevaExporter.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
-        }
-
-        [Benchmark]
-        public void SerializeLogRecord()
-        {
-            this.exporter.SerializeLogRecord(this.logRecord);
-        }
-
-        internal class DummyLogProcessor : BaseProcessor<LogRecord>
-        {
-        }
-
-        internal class DummyLogExporter : BaseExporter<LogRecord>
-        {
-            public LogRecord LastRecord { get; set; }
-
-            public override ExportResult Export(in Batch<LogRecord> batch)
-            {
-                foreach (var record in batch)
-                {
-                    this.LastRecord = record;
-                }
-
-                return ExportResult.Success;
+                this.LastRecord = record;
             }
-        }
 
-        internal ILogger CreateLogger(Action<OpenTelemetryLoggerOptions> configure = null)
+            return ExportResult.Success;
+        }
+    }
+
+    internal ILogger CreateLogger(Action<OpenTelemetryLoggerOptions> configure = null)
+    {
+        var loggerFactory = LoggerFactory.Create(builder =>
         {
-            var loggerFactory = LoggerFactory.Create(builder =>
+            if (configure != null)
             {
-                if (configure != null)
-                {
-                    builder.AddOpenTelemetry(configure);
-                }
-            });
+                builder.AddOpenTelemetry(configure);
+            }
+        });
 
-            return loggerFactory.CreateLogger<LogExporterBenchmarks>();
-        }
+        return loggerFactory.CreateLogger<LogExporterBenchmarks>();
+    }
 
-        internal LogRecord GenerateTestLogRecord()
-        {
-            var dummyLogExporter = new DummyLogExporter();
-            var dummyLogger = this.CreateLogger(options => options
-                .AddProcessor(new SimpleLogRecordExportProcessor(dummyLogExporter)));
-            dummyLogger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
-            return dummyLogExporter.LastRecord;
-        }
+    internal LogRecord GenerateTestLogRecord()
+    {
+        var dummyLogExporter = new DummyLogExporter();
+        var dummyLogger = this.CreateLogger(options => options
+            .AddProcessor(new SimpleLogRecordExportProcessor(dummyLogExporter)));
+        dummyLogger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+        return dummyLogExporter.LastRecord;
     }
 }

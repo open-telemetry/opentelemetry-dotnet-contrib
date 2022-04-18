@@ -36,91 +36,90 @@ AMD Ryzen 9 3900X, 1 CPU, 24 logical and 12 physical cores
 |         SerializeActivity | 506.55 ns | 3.862 ns | 3.612 ns | 0.0095 |      80 B |
 */
 
-namespace OpenTelemetry.Exporter.Geneva.Benchmark
+namespace OpenTelemetry.Exporter.Geneva.Benchmark;
+
+[MemoryDiagnoser]
+public class TraceExporterBenchmarks
 {
-    [MemoryDiagnoser]
-    public class TraceExporterBenchmarks
+    private readonly Random r = new Random();
+    private readonly Activity activity;
+    private readonly GenevaTraceExporter exporter;
+    private readonly ActivitySource sourceBoring = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark.Boring");
+    private readonly ActivitySource sourceTedious = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark.Tedious");
+    private readonly ActivitySource sourceInteresting = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark.Interesting");
+
+    public TraceExporterBenchmarks()
     {
-        private readonly Random r = new Random();
-        private readonly Activity activity;
-        private readonly GenevaTraceExporter exporter;
-        private readonly ActivitySource sourceBoring = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark.Boring");
-        private readonly ActivitySource sourceTedious = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark.Tedious");
-        private readonly ActivitySource sourceInteresting = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark.Interesting");
+        Activity.DefaultIdFormat = ActivityIdFormat.W3C;
 
-        public TraceExporterBenchmarks()
+        ActivitySource.AddActivityListener(new ActivityListener
         {
-            Activity.DefaultIdFormat = ActivityIdFormat.W3C;
+            ActivityStarted = null,
+            ActivityStopped = null,
+            ShouldListenTo = (activitySource) => activitySource.Name == this.sourceTedious.Name,
+            Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded,
+        });
 
-            ActivitySource.AddActivityListener(new ActivityListener
-            {
-                ActivityStarted = null,
-                ActivityStopped = null,
-                ShouldListenTo = (activitySource) => activitySource.Name == this.sourceTedious.Name,
-                Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded,
-            });
+        using (var tedious = this.sourceTedious.StartActivity("Benchmark"))
+        {
+            this.activity = tedious;
+            this.activity?.SetTag("tagString", "value");
+            this.activity?.SetTag("tagInt", 100);
+            this.activity?.SetStatus(Status.Error);
+        }
 
-            using (var tedious = this.sourceTedious.StartActivity("Benchmark"))
+        this.exporter = new GenevaTraceExporter(new GenevaExporterOptions
+        {
+            ConnectionString = "EtwSession=OpenTelemetry",
+            CustomFields = new List<string> { "azureResourceProvider", "clientRequestId" },
+            PrepopulatedFields = new Dictionary<string, object>
             {
-                this.activity = tedious;
-                this.activity?.SetTag("tagString", "value");
-                this.activity?.SetTag("tagInt", 100);
-                this.activity?.SetStatus(Status.Error);
-            }
+                ["cloud.role"] = "BusyWorker",
+                ["cloud.roleInstance"] = "CY1SCH030021417",
+                ["cloud.roleVer"] = "9.0.15289.2",
+            },
+        });
 
-            this.exporter = new GenevaTraceExporter(new GenevaExporterOptions
+        Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new AlwaysOnSampler())
+            .AddSource(this.sourceInteresting.Name)
+            .AddGenevaTraceExporter(options =>
             {
-                ConnectionString = "EtwSession=OpenTelemetry",
-                CustomFields = new List<string> { "azureResourceProvider", "clientRequestId" },
-                PrepopulatedFields = new Dictionary<string, object>
+                options.ConnectionString = "EtwSession=OpenTelemetry";
+                options.PrepopulatedFields = new Dictionary<string, object>
                 {
                     ["cloud.role"] = "BusyWorker",
                     ["cloud.roleInstance"] = "CY1SCH030021417",
                     ["cloud.roleVer"] = "9.0.15289.2",
-                },
-            });
+                };
+            })
+            .Build();
+    }
 
-            Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new AlwaysOnSampler())
-                .AddSource(this.sourceInteresting.Name)
-                .AddGenevaTraceExporter(options =>
-                {
-                    options.ConnectionString = "EtwSession=OpenTelemetry";
-                    options.PrepopulatedFields = new Dictionary<string, object>
-                    {
-                        ["cloud.role"] = "BusyWorker",
-                        ["cloud.roleInstance"] = "CY1SCH030021417",
-                        ["cloud.roleVer"] = "9.0.15289.2",
-                    };
-                })
-                .Build();
-        }
+    [Benchmark]
+    public void CreateBoringActivity()
+    {
+        // this activity won't be created as there is no listener
+        using var activity = this.sourceBoring.StartActivity("Benchmark");
+    }
 
-        [Benchmark]
-        public void CreateBoringActivity()
-        {
-            // this activity won't be created as there is no listener
-            using var activity = this.sourceBoring.StartActivity("Benchmark");
-        }
+    [Benchmark]
+    public void CreateTediousActivity()
+    {
+        // this activity will be created and feed into an ActivityListener that simply drops everything on the floor
+        using var activity = this.sourceTedious.StartActivity("Benchmark");
+    }
 
-        [Benchmark]
-        public void CreateTediousActivity()
-        {
-            // this activity will be created and feed into an ActivityListener that simply drops everything on the floor
-            using var activity = this.sourceTedious.StartActivity("Benchmark");
-        }
+    [Benchmark]
+    public void CreateInterestingActivity()
+    {
+        // this activity will be created and feed into the actual Geneva exporter
+        using var activity = this.sourceInteresting.StartActivity("Benchmark");
+    }
 
-        [Benchmark]
-        public void CreateInterestingActivity()
-        {
-            // this activity will be created and feed into the actual Geneva exporter
-            using var activity = this.sourceInteresting.StartActivity("Benchmark");
-        }
-
-        [Benchmark]
-        public void SerializeActivity()
-        {
-            this.exporter.SerializeActivity(this.activity);
-        }
+    [Benchmark]
+    public void SerializeActivity()
+    {
+        this.exporter.SerializeActivity(this.activity);
     }
 }
