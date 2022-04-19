@@ -23,8 +23,10 @@ namespace OpenTelemetry.Trace
     /// <summary>
     /// Activity processor that flushes its containing <see cref="TracerProvider"/> if an ended
     /// activity matches a predicate.
-    /// Beware: add this class *after* exporter related span processors.
     /// </summary>
+    /// <remarks>
+    /// Add this processor *after* exporter related span processors.
+    /// </remarks>
     public sealed class AutoFlushActivityProcessor : BaseProcessor<Activity>
     {
         private readonly Predicate<Activity> predicate;
@@ -36,15 +38,16 @@ namespace OpenTelemetry.Trace
         /// <summary>
         /// Initializes a new instance of the <see cref="AutoFlushActivityProcessor"/> class.
         /// </summary>
-        /// <param name="predicate">Predicate that should return <c>true</c> to initiate a flush.
-        /// It's assumed that predicate is defined as a lambda expression which is executed quite fast
-        /// and doesn't contain more complex code. The predicate must not create new Activity instances,
-        /// otherwise the behavior is undefined. Any exception thrown by the predicate will be swallowed and logged.
-        /// </param>
+        /// <param name="predicate">Predicate that should return <c>true</c> to initiate a flush.</param>
         /// <param name="timeoutMilliseconds">Timeout (in milliseconds) to use for flushing.</param>
         /// <exception cref="ArgumentOutOfRangeException">
         /// Thrown when the <c>timeoutMilliseconds</c> is smaller than -1.
         /// </exception>
+        /// <remarks>
+        /// It's assumed that the predicate is defined as a lambda expression which is executed quite fast and
+        /// doesn't contain more complex code. The predicate must not create new Activity instances,
+        /// otherwise the behavior is undefined. Any exception thrown by the predicate will be swallowed and logged.
+        /// </remarks>
         public AutoFlushActivityProcessor(Predicate<Activity> predicate, int timeoutMilliseconds)
         {
             this.predicate = predicate ?? throw new ArgumentNullException(nameof(predicate));
