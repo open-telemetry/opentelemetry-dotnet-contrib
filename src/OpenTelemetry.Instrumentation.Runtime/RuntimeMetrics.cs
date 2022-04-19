@@ -19,7 +19,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Reflection;
+#if NETCOREAPP3_1_OR_GREATER
 using System.Threading;
+#endif
 
 namespace OpenTelemetry.Instrumentation.Runtime;
 

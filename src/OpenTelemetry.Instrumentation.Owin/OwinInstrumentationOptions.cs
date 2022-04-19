@@ -17,7 +17,6 @@
 using System;
 using System.Diagnostics;
 using Microsoft.Owin;
-using OpenTelemetry.Context.Propagation;
 
 namespace OpenTelemetry.Instrumentation.Owin;
 

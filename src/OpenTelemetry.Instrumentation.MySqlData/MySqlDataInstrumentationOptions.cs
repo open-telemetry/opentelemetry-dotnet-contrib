@@ -14,12 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
-using System.Collections.Concurrent;
-using System.Data;
-using System.Diagnostics;
-using System.Text.RegularExpressions;
-
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.MySqlData;
