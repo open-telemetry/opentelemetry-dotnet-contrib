@@ -16,6 +16,7 @@
 
 using System;
 using OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Trace
@@ -32,10 +33,7 @@ namespace OpenTelemetry.Trace
         /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
         public static TracerProviderBuilder AddAWSLambdaConfigurations(this TracerProviderBuilder builder)
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
+            Guard.ThrowIfNull(builder);
 
             builder.AddSource(AWSLambdaUtils.ActivitySourceName);
             builder.SetResourceBuilder(ResourceBuilder
