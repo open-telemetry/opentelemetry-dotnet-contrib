@@ -29,6 +29,7 @@ namespace OpenTelemetry.Trace
     {
         private readonly Predicate<Activity> predicate;
         private readonly int timeoutMilliseconds;
+
         private TracerProvider tracerProvider;
         private bool canForceFlush = true;
 
@@ -37,7 +38,8 @@ namespace OpenTelemetry.Trace
         /// </summary>
         /// <param name="predicate">Predicate that should return <c>true</c> to initiate a flush.
         /// It's assumed that predicate is defined as a lambda expression which is executed quite fast
-        /// and doesn't contain more complex code.
+        /// and doesn't contain more complex code. The predicate must not create new Activity instances,
+        /// otherwise the behavior is undefined. Any exception thrown by the predicate will be swallowed and logged.
         /// </param>
         /// <param name="timeoutMilliseconds">Timeout (in milliseconds) to use for flushing.</param>
         /// <exception cref="ArgumentOutOfRangeException">
@@ -76,6 +78,15 @@ namespace OpenTelemetry.Trace
                 return;
             }
 
+            var shouldFlash = this.RunPredicate(data);
+            if (shouldFlash)
+            {
+                this.tracerProvider.ForceFlush(this.timeoutMilliseconds);
+            }
+        }
+
+        private bool RunPredicate(Activity data)
+        {
             var shouldFlash = false;
             try
             {
@@ -88,10 +99,7 @@ namespace OpenTelemetry.Trace
                 OpenTelemetryExtensionsEventSource.Log.LogProcessorException($"Flushing predicate threw an exception. Flush of {typeof(TracerProvider)} was skipped.", ex);
             }
 
-            if (shouldFlash)
-            {
-                this.tracerProvider.ForceFlush(this.timeoutMilliseconds);
-            }
+            return shouldFlash;
         }
     }
 }
