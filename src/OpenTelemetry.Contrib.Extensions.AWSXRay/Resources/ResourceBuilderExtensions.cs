@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 using OpenTelemetry.Internal;
 

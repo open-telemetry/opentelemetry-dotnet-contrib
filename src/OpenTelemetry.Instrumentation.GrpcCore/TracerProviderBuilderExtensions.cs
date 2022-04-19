@@ -16,7 +16,6 @@
 
 namespace OpenTelemetry.Trace
 {
-    using System;
     using OpenTelemetry.Instrumentation.GrpcCore;
     using OpenTelemetry.Internal;
 

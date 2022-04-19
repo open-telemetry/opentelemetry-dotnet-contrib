@@ -16,7 +16,6 @@
 
 namespace OpenTelemetry.Trace
 {
-    using System;
     using OpenTelemetry.Instrumentation.Hangfire.Implementation;
     using OpenTelemetry.Internal;
 

@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using OpenTelemetry.Contrib.Exporter.Stackdriver;
 using OpenTelemetry.Internal;
 
