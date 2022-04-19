@@ -25,13 +25,13 @@ Example of AutoFlushActivityProcessor usage:
 ```cs
 public static TracerProviderBuilder AddMyExporter(this TracerProviderBuilder builder, MyExporterOptions options)
 {
-    var exporter = new MyExporter(options);
-
-    var autoFlushProcessor = new AutoFlushActivityProcessor(
-        a => a.Parent == null && (a.Kind == ActivityKind.Server || a.Kind == ActivityKind.Consumer), 5000);
-
     return builder
-        .AddProcessor(new SimpleActivityExportProcessor(exporter))
-        .AddProcessor(autoFlushProcessor);
+        .AddProcessor(new BatchActivityExportProcessor(
+                    new MyExporter(options),
+                    options.BatchExportProcessorOptions.MaxQueueSize,
+                    options.BatchExportProcessorOptions.ScheduledDelayMilliseconds,
+                    options.BatchExportProcessorOptions.ExporterTimeoutMilliseconds,
+                    options.BatchExportProcessorOptions.MaxExportBatchSize))
+        .AddAutoFlushProcessorProcessor(a => a.Parent == null && (a.Kind == ActivityKind.Server || a.Kind == ActivityKind.Consumer), 5000);
 }
 ```

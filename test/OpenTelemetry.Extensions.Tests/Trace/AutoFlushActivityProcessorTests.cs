@@ -66,5 +66,26 @@ namespace OpenTelemetry.Extensions.Tests.Trace
 
             mockExporting.Protected().Verify("OnForceFlush", Times.Never(), It.IsAny<int>());
         }
+
+        [Fact]
+        public void AutoFlushActivityProcessor_PredicateThrows_DoesNothing()
+        {
+            var processor = new AutoFlushActivityProcessor(
+                _ => throw new Exception("Predicate throws exception."), 5000);
+
+            var mockExporting = new Mock<BaseProcessor<Activity>>();
+
+            using var provider = Sdk.CreateTracerProviderBuilder()
+                .AddProcessor(mockExporting.Object)
+                .AddProcessor(processor)
+                .AddSource("foo")
+                .Build();
+
+            using var source = new ActivitySource("foo");
+            using var activity = source.StartActivity("name", ActivityKind.Server);
+            activity.Dispose();
+
+            mockExporting.Protected().Verify("OnForceFlush", Times.Never(), 5_000);
+        }
     }
 }

@@ -76,7 +76,19 @@ namespace OpenTelemetry.Trace
                 return;
             }
 
-            if (this.predicate(data))
+            var shouldFlash = false;
+            try
+            {
+                shouldFlash = this.predicate(data);
+            }
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch (Exception ex)
+#pragma warning restore CA1031 // Do not catch general exception types
+            {
+                OpenTelemetryExtensionsEventSource.Log.LogProcessorException($"Flushing predicate threw an exception. Flush of {typeof(TracerProvider)} was skipped.", ex);
+            }
+
+            if (shouldFlash)
             {
                 this.tracerProvider.ForceFlush(this.timeoutMilliseconds);
             }
