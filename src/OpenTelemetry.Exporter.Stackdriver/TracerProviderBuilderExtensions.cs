@@ -15,7 +15,6 @@
 // </copyright>
 
 using System;
-using System.Diagnostics;
 using OpenTelemetry.Contrib.Exporter.Stackdriver;
 using OpenTelemetry.Internal;
 
