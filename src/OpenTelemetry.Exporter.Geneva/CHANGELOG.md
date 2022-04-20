@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Update OTel SDK version to `1.2.0`.
+[xxx](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/xxx)
+
 ## 1.2.4 [2022-Apr-20]
 
 This is the first release of the `OpenTelemetry.Exporter.Geneva`
