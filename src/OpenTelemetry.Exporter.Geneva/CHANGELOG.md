@@ -1,4 +1,6 @@
-# Changelog - OpenTelemetry.Exporter.Geneva
+# Changelog
+
+## Unreleased
 
 ## 1.2.4 [2022-Apr-20]
 
