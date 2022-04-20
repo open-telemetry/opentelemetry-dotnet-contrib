@@ -3,7 +3,7 @@
 ## Unreleased
 
 * Update OTel SDK version to `1.2.0`.
-[xxx](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/xxx)
+[319](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/319)
 
 ## 1.2.4 [2022-Apr-20]
 
