@@ -14,9 +14,11 @@
 // limitations under the License.
 // </copyright>
 
+#pragma warning disable IDE0005 // Using directive is unnecessary.
 using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
+#pragma warning restore IDE0005 // Using directive is unnecessary.
 
 namespace OpenTelemetry.Instrumentation.Wcf
 {
