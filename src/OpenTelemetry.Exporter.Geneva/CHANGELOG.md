@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.2.4 [2022-Apr-20]
+
+This is the first release of the `OpenTelemetry.Exporter.Geneva`
+project.
+
 * LogExporter modified to stop calling `ToString()`
 on `LogRecord.State` to obtain Log body. It now
 obtains body from `LogRecord.FormattedMessage`
