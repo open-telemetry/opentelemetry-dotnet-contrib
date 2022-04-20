@@ -62,6 +62,14 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                     TableNameMappings = new Dictionary<string, string> { ["*"] = "\u0418" },
                 });
             });
+
+		    Assert.Throws<ArgumentNullException>(() =>
+            {
+                using var exporter = new GenevaLogExporter(new GenevaExporterOptions
+                {
+                    TableNameMappings = new Dictionary<string, string> { ["TestCategory"] = null },
+                });
+            });
         }
 
         [Theory]
