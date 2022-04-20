@@ -39,7 +39,9 @@ namespace OpenTelemetry.Trace
         /// Initializes a new instance of the <see cref="AutoFlushActivityProcessor"/> class.
         /// </summary>
         /// <param name="predicate">Predicate that should return <c>true</c> to initiate a flush.</param>
-        /// <param name="timeoutMilliseconds">Timeout (in milliseconds) to use for flushing.</param>
+        /// <param name="timeoutMilliseconds">Timeout (in milliseconds) to use for flushing. Specify <see cref="Timeout.Infinite"/>
+        /// to wait indefinitely.
+        /// </param>
         /// <exception cref="ArgumentOutOfRangeException">
         /// Thrown when the <c>timeoutMilliseconds</c> is smaller than -1.
         /// </exception>
@@ -47,8 +49,9 @@ namespace OpenTelemetry.Trace
         /// It's assumed that the predicate is defined as a lambda expression which is executed quite fast and
         /// doesn't contain more complex code. The predicate must not create new Activity instances,
         /// otherwise the behavior is undefined. Any exception thrown by the predicate will be swallowed and logged.
+        /// In case of an exception the predicated is treated as false which means flush will not be applied.
         /// </remarks>
-        public AutoFlushActivityProcessor(Predicate<Activity> predicate, int timeoutMilliseconds)
+        public AutoFlushActivityProcessor(Predicate<Activity> predicate, int timeoutMilliseconds = 10000)
         {
             this.predicate = predicate ?? throw new ArgumentNullException(nameof(predicate));
             if (timeoutMilliseconds < Timeout.Infinite)
