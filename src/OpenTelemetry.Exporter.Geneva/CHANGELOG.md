@@ -1,8 +1,8 @@
 # Changelog - OpenTelemetry.Exporter.Geneva
 
-## 0.0.1 [2022-Apr-19]
+## 1.2.4 [2022-Apr-20]
 
-This is teh first release for the `OpenTelemetry.Exporter.Geneva`
+This is the first release of the `OpenTelemetry.Exporter.Geneva`
 project.
 
 * LogExporter modified to stop calling `ToString()`
