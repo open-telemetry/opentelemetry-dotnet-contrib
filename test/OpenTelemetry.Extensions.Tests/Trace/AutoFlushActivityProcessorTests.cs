@@ -28,14 +28,11 @@ namespace OpenTelemetry.Extensions.Tests.Trace
         [Fact]
         public void AutoFlushActivityProcessor_FlushAfterLocalServerSideRootSpans_EndMatchingSpan_Flush()
         {
-            var processor = new AutoFlushActivityProcessor(
-                a => a.Parent == null && (a.Kind == ActivityKind.Server || a.Kind == ActivityKind.Consumer), 5000);
-
             var mockExporting = new Mock<BaseProcessor<Activity>>();
 
             using var provider = Sdk.CreateTracerProviderBuilder()
                 .AddProcessor(mockExporting.Object)
-                .AddProcessor(processor)
+                .AddAutoFlushActivityProcessor(a => a.Parent == null && (a.Kind == ActivityKind.Server || a.Kind == ActivityKind.Consumer), 5000)
                 .AddSource("foo")
                 .Build();
 
@@ -49,14 +46,11 @@ namespace OpenTelemetry.Extensions.Tests.Trace
         [Fact]
         public void AutoFlushActivityProcessor_FlushAfterLocalServerSideRootSpans_EndNonMatchingSpan_DoesNothing()
         {
-            var processor = new AutoFlushActivityProcessor(
-                a => a.Parent == null && (a.Kind == ActivityKind.Server || a.Kind == ActivityKind.Consumer), 5000);
-
             var mockExporting = new Mock<BaseProcessor<Activity>>();
 
             using var provider = Sdk.CreateTracerProviderBuilder()
                 .AddProcessor(mockExporting.Object)
-                .AddProcessor(processor)
+                .AddAutoFlushActivityProcessor(a => a.Parent == null && (a.Kind == ActivityKind.Server || a.Kind == ActivityKind.Consumer))
                 .AddSource("foo")
                 .Build();
 
@@ -70,14 +64,11 @@ namespace OpenTelemetry.Extensions.Tests.Trace
         [Fact]
         public void AutoFlushActivityProcessor_PredicateThrows_DoesNothing()
         {
-            var processor = new AutoFlushActivityProcessor(
-                _ => throw new Exception("Predicate throws exception."), 5000);
-
             var mockExporting = new Mock<BaseProcessor<Activity>>();
 
             using var provider = Sdk.CreateTracerProviderBuilder()
                 .AddProcessor(mockExporting.Object)
-                .AddProcessor(processor)
+                .AddAutoFlushActivityProcessor(_ => throw new Exception("Predicate throws an exception."))
                 .AddSource("foo")
                 .Build();
 

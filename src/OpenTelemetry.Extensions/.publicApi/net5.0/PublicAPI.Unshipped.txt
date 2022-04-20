@@ -7,6 +7,8 @@ OpenTelemetry.Logs.LogToActivityEventConversionOptions.ScopeConverter.set -> voi
 OpenTelemetry.Logs.LogToActivityEventConversionOptions.StateConverter.get -> System.Action<System.Diagnostics.ActivityTagsCollection!, System.Collections.Generic.IReadOnlyList<System.Collections.Generic.KeyValuePair<string!, object!>>!>!
 OpenTelemetry.Logs.LogToActivityEventConversionOptions.StateConverter.set -> void
 OpenTelemetry.Trace.AutoFlushActivityProcessor
-OpenTelemetry.Trace.AutoFlushActivityProcessor.AutoFlushActivityProcessor(System.Predicate<System.Diagnostics.Activity!>! predicate, int timeoutMilliseconds = 10000) -> void
+OpenTelemetry.Trace.AutoFlushActivityProcessor.AutoFlushActivityProcessor(System.Func<System.Diagnostics.Activity!, bool>! predicate, int timeoutMilliseconds = 10000) -> void
+OpenTelemetry.Trace.TracerProviderBuilderExtensions
 override OpenTelemetry.Trace.AutoFlushActivityProcessor.OnEnd(System.Diagnostics.Activity! data) -> void
 static Microsoft.Extensions.Logging.OpenTelemetryLoggingExtensions.AttachLogsToActivityEvent(this OpenTelemetry.Logs.OpenTelemetryLoggerOptions! loggerOptions, System.Action<OpenTelemetry.Logs.LogToActivityEventConversionOptions!>? configure = null) -> OpenTelemetry.Logs.OpenTelemetryLoggerOptions!
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddAutoFlushActivityProcessor(this OpenTelemetry.Trace.TracerProviderBuilder! builder, System.Func<System.Diagnostics.Activity!, bool>! predicate, int timeoutMilliseconds = 10000) -> OpenTelemetry.Trace.TracerProviderBuilder!

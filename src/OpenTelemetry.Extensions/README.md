@@ -32,6 +32,6 @@ public static TracerProviderBuilder AddMyExporter(this TracerProviderBuilder bui
                     options.BatchExportProcessorOptions.ScheduledDelayMilliseconds,
                     options.BatchExportProcessorOptions.ExporterTimeoutMilliseconds,
                     options.BatchExportProcessorOptions.MaxExportBatchSize))
-        .AddAutoFlushProcessorProcessor(a => a.Parent == null && (a.Kind == ActivityKind.Server || a.Kind == ActivityKind.Consumer), 5000);
+        .AddAutoFlushActivityProcessor(a => a.Parent == null && (a.Kind == ActivityKind.Server || a.Kind == ActivityKind.Consumer), 5000);
 }
 ```

@@ -22,17 +22,17 @@ namespace OpenTelemetry.Trace
 {
     /// <summary>
     /// Activity processor that flushes its containing <see cref="TracerProvider"/> if an ended
-    /// activity matches a predicate.
+    /// Activity matches a predicate.
     /// </summary>
     /// <remarks>
     /// Add this processor *after* exporter related span processors.
     /// </remarks>
     public sealed class AutoFlushActivityProcessor : BaseProcessor<Activity>
     {
-        private readonly Predicate<Activity> predicate;
+        private readonly Func<Activity, bool> predicate;
         private readonly int timeoutMilliseconds;
 
-        private TracerProvider tracerProvider;
+        private TracerProvider? tracerProvider;
         private bool canForceFlush = true;
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace OpenTelemetry.Trace
         /// otherwise the behavior is undefined. Any exception thrown by the predicate will be swallowed and logged.
         /// In case of an exception the predicated is treated as false which means flush will not be applied.
         /// </remarks>
-        public AutoFlushActivityProcessor(Predicate<Activity> predicate, int timeoutMilliseconds = 10000)
+        public AutoFlushActivityProcessor(Func<Activity, bool> predicate, int timeoutMilliseconds = 10000)
         {
             this.predicate = predicate ?? throw new ArgumentNullException(nameof(predicate));
             if (timeoutMilliseconds < Timeout.Infinite)
@@ -84,8 +84,8 @@ namespace OpenTelemetry.Trace
                 return;
             }
 
-            var shouldFlash = this.RunPredicate(data);
-            if (shouldFlash)
+            var shouldFlush = this.RunPredicate(data);
+            if (shouldFlush)
             {
                 this.tracerProvider.ForceFlush(this.timeoutMilliseconds);
             }
@@ -93,10 +93,10 @@ namespace OpenTelemetry.Trace
 
         private bool RunPredicate(Activity data)
         {
-            var shouldFlash = false;
+            var shouldFlush = false;
             try
             {
-                shouldFlash = this.predicate(data);
+                shouldFlush = this.predicate(data);
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)
@@ -105,7 +105,7 @@ namespace OpenTelemetry.Trace
                 OpenTelemetryExtensionsEventSource.Log.LogProcessorException($"Flushing predicate threw an exception. Flush of {typeof(TracerProvider)} was skipped.", ex);
             }
 
-            return shouldFlash;
+            return shouldFlush;
         }
     }
 }
