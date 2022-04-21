@@ -18,6 +18,7 @@
 using System;
 using OpenTelemetry;
 using OpenTelemetry.Exporter.Geneva;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 
 namespace Microsoft.Extensions.Logging;
@@ -26,10 +27,7 @@ public static class GenevaLoggingExtensions
 {
     public static OpenTelemetryLoggerOptions AddGenevaLogExporter(this OpenTelemetryLoggerOptions options, Action<GenevaExporterOptions> configure)
     {
-        if (options == null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        Guard.ThrowIfNull(options);
 
         var genevaOptions = new GenevaExporterOptions();
         configure?.Invoke(genevaOptions);

@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 using System;
-
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Extensions.AzureMonitor
@@ -34,10 +34,7 @@ namespace OpenTelemetry.Extensions.AzureMonitor
         public ApplicationInsightsSampler(float samplingRatio)
         {
             // Ensure passed ratio is between 0 and 1, inclusive
-            if (samplingRatio < 0 || samplingRatio > 1)
-            {
-                throw new ArgumentOutOfRangeException(nameof(samplingRatio), "Ratio must be between 0 and 1, inclusive.");
-            }
+            Guard.ThrowIfOutOfRange((double)samplingRatio, min: 0.0, max: 1.0);
 
             this.samplingRatio = samplingRatio;
             this.Description = "ApplicationInsightsSampler{" + samplingRatio + "}";
