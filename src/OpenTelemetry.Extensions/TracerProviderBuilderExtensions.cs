@@ -36,11 +36,11 @@ namespace OpenTelemetry.Trace
         /// <exception cref="ArgumentNullException">Thrown when the <c>builder</c> is null.</exception>
         /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
         /// <remarks>
-        /// Add this processor *after* exporter related span processors.
+        /// Add this processor *after* exporter related Activity processors.
         /// It's assumed that the predicate is defined as a lambda expression which is executed quite fast and
         /// doesn't contain more complex code. The predicate must not create new Activity instances,
         /// otherwise the behavior is undefined. Any exception thrown by the predicate will be swallowed and logged.
-        /// In case of an exception the predicated is treated as false which means flush will not be applied.
+        /// In case of an exception the predicate is treated as false which means flush will not be applied.
         /// </remarks>
         public static TracerProviderBuilder AddAutoFlushActivityProcessor(
             this TracerProviderBuilder builder,

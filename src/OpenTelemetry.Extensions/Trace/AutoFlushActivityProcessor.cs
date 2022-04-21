@@ -25,9 +25,9 @@ namespace OpenTelemetry.Trace
     /// Activity matches a predicate.
     /// </summary>
     /// <remarks>
-    /// Add this processor *after* exporter related span processors.
+    /// Add this processor *after* exporter related Activity processors.
     /// </remarks>
-    public sealed class AutoFlushActivityProcessor : BaseProcessor<Activity>
+    internal sealed class AutoFlushActivityProcessor : BaseProcessor<Activity>
     {
         private readonly Func<Activity, bool> predicate;
         private readonly int timeoutMilliseconds;
@@ -49,9 +49,9 @@ namespace OpenTelemetry.Trace
         /// It's assumed that the predicate is defined as a lambda expression which is executed quite fast and
         /// doesn't contain more complex code. The predicate must not create new Activity instances,
         /// otherwise the behavior is undefined. Any exception thrown by the predicate will be swallowed and logged.
-        /// In case of an exception the predicated is treated as false which means flush will not be applied.
+        /// In case of an exception the predicate is treated as false which means flush will not be applied.
         /// </remarks>
-        public AutoFlushActivityProcessor(Func<Activity, bool> predicate, int timeoutMilliseconds = 10000)
+        internal AutoFlushActivityProcessor(Func<Activity, bool> predicate, int timeoutMilliseconds = 10000)
         {
             this.predicate = predicate ?? throw new ArgumentNullException(nameof(predicate));
             if (timeoutMilliseconds < Timeout.Infinite)
