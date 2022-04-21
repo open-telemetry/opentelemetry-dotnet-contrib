@@ -10,4 +10,8 @@
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\Guard.cs" Link="Includes\Guard.cs" />
+  </ItemGroup>
+
 </Project>

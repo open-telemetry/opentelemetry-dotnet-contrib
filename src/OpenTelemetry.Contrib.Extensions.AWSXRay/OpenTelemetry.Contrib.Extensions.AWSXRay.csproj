@@ -19,4 +19,8 @@
     <Compile Remove="Resources\Http\ServerCertificateValidationProvider.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\Guard.cs" Link="Includes\Guard.cs" />
+  </ItemGroup>
+
 </Project>

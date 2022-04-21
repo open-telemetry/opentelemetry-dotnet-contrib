@@ -21,6 +21,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
@@ -28,15 +29,8 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 {
     public GenevaTraceExporter(GenevaExporterOptions options)
     {
-        if (options == null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
-
-        if (string.IsNullOrWhiteSpace(options.ConnectionString))
-        {
-            throw new ArgumentException($"{nameof(options.ConnectionString)} is invalid.");
-        }
+        Guard.ThrowIfNull(options);
+        Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
         var partAName = "Span";
         if (options.TableNameMappings != null

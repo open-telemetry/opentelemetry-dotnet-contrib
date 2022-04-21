@@ -11,4 +11,7 @@
         <PackageReference Include="OpenTelemetry.Api" Version="1.2.0-rc2" />
     </ItemGroup>
 
+    <ItemGroup>
+        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\Guard.cs" Link="Includes\Guard.cs" />
+    </ItemGroup>
 </Project>
