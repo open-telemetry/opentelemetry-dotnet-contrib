@@ -5,7 +5,7 @@
 ## 1.2.6 [2022-Apr-21]
 
 * Set GenevaMetricExporter temporality preference back to Delta.
-[xxx](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/xxx)
+[323](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/323)
 
 ## 1.2.5 [2022-Apr-20] Broken
 
