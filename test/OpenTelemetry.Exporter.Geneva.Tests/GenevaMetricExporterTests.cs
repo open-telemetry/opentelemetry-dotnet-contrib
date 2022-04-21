@@ -54,7 +54,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
             {
                 using var exporter = new GenevaMetricExporter(exporterOptions);
             });
-            Assert.Equal($"{nameof(exporterOptions.ConnectionString)} is invalid.", exception.Message);
         }
 
         [Fact]
