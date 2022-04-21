@@ -17,6 +17,7 @@
 using System;
 using OpenTelemetry.Instrumentation.EntityFrameworkCore;
 using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Trace
 {
@@ -35,10 +36,7 @@ namespace OpenTelemetry.Trace
             this TracerProviderBuilder builder,
             Action<EntityFrameworkInstrumentationOptions> configureOptions = null)
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
+            Guard.ThrowIfNull(builder);
 
             var options = new EntityFrameworkInstrumentationOptions();
             configureOptions?.Invoke(options);

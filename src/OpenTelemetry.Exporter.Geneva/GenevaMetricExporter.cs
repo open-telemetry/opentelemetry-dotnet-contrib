@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Exporter.Geneva;
@@ -59,15 +60,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
     public GenevaMetricExporter(GenevaMetricExporterOptions options)
     {
-        if (options == null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
-
-        if (string.IsNullOrWhiteSpace(options.ConnectionString))
-        {
-            throw new ArgumentException($"{nameof(options.ConnectionString)} is invalid.");
-        }
+        Guard.ThrowIfNull(options);
+        Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
         this.monitoringAccount = connectionStringBuilder.Account;

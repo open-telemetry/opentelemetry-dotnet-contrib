@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
@@ -47,10 +48,7 @@ public class GenevaMetricExporterOptions
 
         set
         {
-            if (value == null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
+            Guard.ThrowIfNull(value);
 
             var copy = new Dictionary<string, object>(value.Count);
 
