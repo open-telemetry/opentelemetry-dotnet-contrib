@@ -51,7 +51,7 @@ namespace OpenTelemetry.Trace
         /// otherwise the behavior is undefined. Any exception thrown by the predicate will be swallowed and logged.
         /// In case of an exception the predicate is treated as false which means flush will not be applied.
         /// </remarks>
-        internal AutoFlushActivityProcessor(Func<Activity, bool> predicate, int timeoutMilliseconds = 10000)
+        internal AutoFlushActivityProcessor(Func<Activity, bool> predicate, int timeoutMilliseconds)
         {
             this.predicate = predicate ?? throw new ArgumentNullException(nameof(predicate));
             if (timeoutMilliseconds < Timeout.Infinite)
