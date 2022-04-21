@@ -18,6 +18,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
@@ -34,7 +35,9 @@ internal class UnixDomainSocketEndPoint : EndPoint
 
     public UnixDomainSocketEndPoint(string path)
     {
-        this.path = path ?? throw new ArgumentNullException(nameof(path), "Path cannot be null.");
+        Guard.ThrowIfNull(path);
+
+        this.path = path;
         this.nativePath = Encoding.UTF8.GetBytes(path);
         if (this.nativePath.Length == 0 || this.nativePath.Length > MaximumNativePathLength)
         {
@@ -48,10 +51,7 @@ internal class UnixDomainSocketEndPoint : EndPoint
 
     private UnixDomainSocketEndPoint(SocketAddress socketAddress)
     {
-        if (socketAddress == null)
-        {
-            throw new ArgumentNullException(nameof(socketAddress), "SocketAddress cannot be null.");
-        }
+        Guard.ThrowIfNull(socketAddress);
 
         if (socketAddress.Family != this.AddressFamily ||
             socketAddress.Size > NativePathOffset + MaximumNativePathLength)

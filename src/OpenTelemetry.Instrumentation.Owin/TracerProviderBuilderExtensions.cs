@@ -16,6 +16,7 @@
 
 using System;
 using OpenTelemetry.Instrumentation.Owin;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Trace
 {
@@ -34,10 +35,7 @@ namespace OpenTelemetry.Trace
             this TracerProviderBuilder builder,
             Action<OwinInstrumentationOptions> configureOwinInstrumentationOptions = null)
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
+            Guard.ThrowIfNull(builder);
 
             var owinOptions = new OwinInstrumentationOptions();
             configureOwinInstrumentationOptions?.Invoke(owinOptions);

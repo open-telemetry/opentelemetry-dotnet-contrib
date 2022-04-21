@@ -23,6 +23,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 
 namespace OpenTelemetry.Exporter.Geneva;
@@ -48,15 +49,8 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
 
     public GenevaLogExporter(GenevaExporterOptions options)
     {
-        if (options == null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
-
-        if (string.IsNullOrWhiteSpace(options.ConnectionString))
-        {
-            throw new ArgumentException($"{nameof(options.ConnectionString)} is invalid.");
-        }
+        Guard.ThrowIfNull(options);
+        Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
         // TODO: Validate mappings for reserved tablenames etc.
         if (options.TableNameMappings != null)

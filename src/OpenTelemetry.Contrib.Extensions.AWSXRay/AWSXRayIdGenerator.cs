@@ -19,6 +19,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay
@@ -125,10 +126,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay
         /// <returns>The generated hex number.</returns>
         private static string GenerateHexNumber(int digits)
         {
-            if (digits < 0)
-            {
-                throw new ArgumentException("Length can't be a negative number.", "digits");
-            }
+            Guard.ThrowIfOutOfRange(digits, min: 0);
 
             byte[] bytes = new byte[digits / 2];
             NextBytes(bytes);

@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Timers;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Extensions.PersistentStorage
 {
@@ -66,10 +67,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             long retentionPeriodInMilliseconds = 172800000,
             int writeTimeoutInMilliseconds = 60000)
         {
-            if (path == null)
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
+            Guard.ThrowIfNull(path);
 
             // TODO: Validate time period values
             this.directoryPath = PersistentStorageHelper.CreateSubdirectory(path);

@@ -22,6 +22,7 @@ namespace OpenTelemetry.Instrumentation.GrpcCore
     using global::Grpc.Core;
     using global::Grpc.Core.Interceptors;
     using OpenTelemetry.Context.Propagation;
+    using OpenTelemetry.Internal;
 
     /// <summary>
     /// A client interceptor that starts and stops an Activity for each outbound RPC.
@@ -40,7 +41,9 @@ namespace OpenTelemetry.Instrumentation.GrpcCore
         /// <param name="options">The options.</param>
         public ClientTracingInterceptor(ClientTracingInterceptorOptions options)
         {
-            this.options = options ?? throw new ArgumentNullException(nameof(options));
+            Guard.ThrowIfNull(options);
+
+            this.options = options;
         }
 
         /// <inheritdoc/>
