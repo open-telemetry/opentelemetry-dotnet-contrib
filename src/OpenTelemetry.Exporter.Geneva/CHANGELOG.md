@@ -12,6 +12,8 @@
 Note: This release was broken due to the GenevaMetricExporter
 using a TemporalityPreference of Cumulative instead of Delta, it has been
 unlisted from NuGet.
+[303](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/303)
+is the PR that introduced this bug to GenevaMetricExporterExtensions.cs
 
 * Update OTel SDK version to `1.2.0`.
 [319](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/319)
