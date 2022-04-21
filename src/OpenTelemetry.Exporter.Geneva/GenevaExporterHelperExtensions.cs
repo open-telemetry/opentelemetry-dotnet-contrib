@@ -16,6 +16,7 @@
 
 using System;
 using System.Diagnostics;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Exporter.Geneva;
@@ -24,10 +25,7 @@ public static class GenevaExporterHelperExtensions
 {
     public static TracerProviderBuilder AddGenevaTraceExporter(this TracerProviderBuilder builder, Action<GenevaExporterOptions> configure)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        Guard.ThrowIfNull(builder);
 
         if (builder is IDeferredTracerProviderBuilder deferredTracerProviderBuilder)
         {

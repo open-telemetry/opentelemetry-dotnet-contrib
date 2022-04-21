@@ -16,6 +16,7 @@
 
 using System;
 using OpenTelemetry.Instrumentation.MySqlData;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Trace
 {
@@ -34,10 +35,7 @@ namespace OpenTelemetry.Trace
             this TracerProviderBuilder builder,
             Action<MySqlDataInstrumentationOptions> configureMySqlDataInstrumentationOptions = null)
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
+            Guard.ThrowIfNull(builder);
 
             var sqlOptions = new MySqlDataInstrumentationOptions();
             configureMySqlDataInstrumentationOptions?.Invoke(sqlOptions);
