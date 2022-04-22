@@ -14,8 +14,8 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using OpenTelemetry.Contrib.Exporter.Stackdriver;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Trace;
 
@@ -34,10 +34,8 @@ public static class TracerProviderBuilderExtensions
         this TracerProviderBuilder builder,
         string projectId)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+
+        Guard.ThrowIfNull(builder);
 
         var activityExporter = new StackdriverTraceExporter(projectId);
 

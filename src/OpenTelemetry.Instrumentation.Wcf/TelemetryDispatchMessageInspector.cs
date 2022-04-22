@@ -23,6 +23,7 @@ using System.ServiceModel.Channels;
 using System.ServiceModel.Dispatcher;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Instrumentation.Wcf.Implementation;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Wcf;
@@ -36,7 +37,9 @@ public class TelemetryDispatchMessageInspector : IDispatchMessageInspector
 
     internal TelemetryDispatchMessageInspector(IDictionary<string, ActionMetadata> actionMappings)
     {
-        this.actionMappings = actionMappings ?? throw new ArgumentNullException(nameof(actionMappings));
+        Guard.ThrowIfNull(actionMappings);
+
+        this.actionMappings = actionMappings;
     }
 
     /// <inheritdoc/>

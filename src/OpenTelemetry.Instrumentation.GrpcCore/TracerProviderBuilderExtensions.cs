@@ -18,6 +18,7 @@ namespace OpenTelemetry.Trace;
 
 using System;
 using OpenTelemetry.Instrumentation.GrpcCore;
+using OpenTelemetry.Internal;
 
 /// <summary>
 /// OpenTelemetry builder extensions to simplify registration of Grpc.Core based interceptors.
@@ -32,10 +33,7 @@ public static class TracerProviderBuilderExtensions
     public static TracerProviderBuilder AddGrpcCoreInstrumentation(
         this TracerProviderBuilder builder)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        Guard.ThrowIfNull(builder);
 
         return builder.AddSource(GrpcCoreInstrumentation.ActivitySourceName);
     }

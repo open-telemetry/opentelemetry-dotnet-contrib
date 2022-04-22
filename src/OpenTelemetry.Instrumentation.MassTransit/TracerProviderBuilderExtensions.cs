@@ -17,6 +17,7 @@
 using System;
 using OpenTelemetry.Instrumentation.MassTransit;
 using OpenTelemetry.Instrumentation.MassTransit.Implementation;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Trace;
 
@@ -35,10 +36,7 @@ public static class TracerProviderBuilderExtensions
         this TracerProviderBuilder builder,
         Action<MassTransitInstrumentationOptions> configureMassTransitInstrumentationOptions = null)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        Guard.ThrowIfNull(builder);
 
         var options = new MassTransitInstrumentationOptions();
         configureMassTransitInstrumentationOptions?.Invoke(options);

@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 using System;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Tests.Shared;
 
@@ -24,7 +25,9 @@ internal class TestExporter<T> : BaseExporter<T>
 
     public TestExporter(Action<Batch<T>> processBatchAction)
     {
-        this.processBatchAction = processBatchAction ?? throw new ArgumentNullException(nameof(processBatchAction));
+        Guard.ThrowIfNull(processBatchAction);
+
+        this.processBatchAction = processBatchAction;
     }
 
     public override ExportResult Export(in Batch<T> batch)

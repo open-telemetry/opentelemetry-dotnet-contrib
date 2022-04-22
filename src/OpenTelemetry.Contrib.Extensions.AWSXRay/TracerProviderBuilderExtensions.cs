@@ -14,8 +14,8 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using OpenTelemetry.Contrib.Extensions.AWSXRay;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Trace;
 
@@ -31,10 +31,7 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/>.</returns>
     public static TracerProviderBuilder AddXRayTraceId(this TracerProviderBuilder builder)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        Guard.ThrowIfNull(builder);
 
         AWSXRayIdGenerator.ReplaceTraceId();
         return builder;

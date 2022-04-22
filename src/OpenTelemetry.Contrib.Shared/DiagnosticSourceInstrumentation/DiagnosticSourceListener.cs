@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation;
 
@@ -26,7 +27,9 @@ internal class DiagnosticSourceListener : IObserver<KeyValuePair<string, object>
 
     public DiagnosticSourceListener(ListenerHandler handler)
     {
-        this.handler = handler ?? throw new ArgumentNullException(nameof(handler));
+        Guard.ThrowIfNull(handler);
+
+        this.handler = handler;
     }
 
     public void OnCompleted()

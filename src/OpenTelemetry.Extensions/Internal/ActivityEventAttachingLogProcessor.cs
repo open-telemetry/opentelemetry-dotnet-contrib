@@ -17,6 +17,7 @@
 #if NET461_OR_GREATER || NETSTANDARD2_0 || NET5_0_OR_GREATER
 using System;
 using System.Diagnostics;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Logs;
@@ -39,7 +40,9 @@ internal sealed class ActivityEventAttachingLogProcessor : BaseProcessor<LogReco
 
     public ActivityEventAttachingLogProcessor(LogToActivityEventConversionOptions options)
     {
-        this.options = options ?? throw new ArgumentNullException(nameof(options));
+        Guard.ThrowIfNull(options);
+
+        this.options = options;
     }
 
     public override void OnEnd(LogRecord data)

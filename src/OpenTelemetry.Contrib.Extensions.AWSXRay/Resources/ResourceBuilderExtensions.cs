@@ -14,8 +14,8 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Resources;
 
@@ -32,10 +32,7 @@ public static class ResourceBuilderExtensions
     /// <returns>The instance of <see cref="ResourceBuilder"/> to chain the calls.</returns>
     public static ResourceBuilder AddDetector(this ResourceBuilder resourceBuilder, IResourceDetector resourceDetector)
     {
-        if (resourceDetector == null)
-        {
-            throw new ArgumentNullException(nameof(resourceDetector));
-        }
+        Guard.ThrowIfNull(resourceDetector);
 
         var resourceAttributes = resourceDetector.Detect();
 

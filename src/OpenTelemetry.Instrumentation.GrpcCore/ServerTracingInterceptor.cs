@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using global::Grpc.Core;
 using global::Grpc.Core.Interceptors;
 using OpenTelemetry.Context.Propagation;
+using OpenTelemetry.Internal;
 
 /// <summary>
 /// A service interceptor that starts and stops an Activity for each inbound RPC.
@@ -42,7 +43,9 @@ public class ServerTracingInterceptor : Interceptor
     /// <param name="options">The options.</param>
     public ServerTracingInterceptor(ServerTracingInterceptorOptions options)
     {
-        this.options = options ?? throw new ArgumentNullException(nameof(options));
+        Guard.ThrowIfNull(options);
+
+        this.options = options;
     }
 
     /// <inheritdoc/>

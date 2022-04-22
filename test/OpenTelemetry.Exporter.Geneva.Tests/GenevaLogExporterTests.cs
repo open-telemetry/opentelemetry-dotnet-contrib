@@ -76,7 +76,6 @@ public class GenevaLogExporterTests
         {
             using var exporter = new GenevaLogExporter(exporterOptions);
         });
-        Assert.Equal($"{nameof(exporterOptions.ConnectionString)} is invalid.", exception.Message);
     }
 
     [Fact]

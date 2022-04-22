@@ -17,6 +17,7 @@
 using System;
 using OpenTelemetry.Instrumentation.ElasticsearchClient;
 using OpenTelemetry.Instrumentation.ElasticsearchClient.Implementation;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Trace;
 
@@ -35,10 +36,7 @@ public static class TracerProviderBuilderExtensions
         this TracerProviderBuilder builder,
         Action<ElasticsearchClientInstrumentationOptions> configure = null)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        Guard.ThrowIfNull(builder);
 
         var elasticsearchClientOptions = new ElasticsearchClientInstrumentationOptions();
         configure?.Invoke(elasticsearchClientOptions);

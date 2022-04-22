@@ -17,6 +17,7 @@
 #if NET461_OR_GREATER || NETSTANDARD2_0 || NET5_0_OR_GREATER
 using System;
 using System.Diagnostics;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 
 namespace Microsoft.Extensions.Logging;
@@ -40,10 +41,7 @@ public static class OpenTelemetryLoggingExtensions
         this OpenTelemetryLoggerOptions loggerOptions,
         Action<LogToActivityEventConversionOptions>? configure = null)
     {
-        if (loggerOptions == null)
-        {
-            throw new ArgumentNullException(nameof(loggerOptions));
-        }
+        Guard.ThrowIfNull(loggerOptions);
 
         var options = new LogToActivityEventConversionOptions();
         configure?.Invoke(options);

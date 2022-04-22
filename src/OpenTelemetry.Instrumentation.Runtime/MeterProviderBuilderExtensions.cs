@@ -16,6 +16,7 @@
 
 using System;
 using OpenTelemetry.Instrumentation.Runtime;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Metrics;
 
@@ -34,10 +35,7 @@ public static class MeterProviderBuilderExtensions
         this MeterProviderBuilder builder,
         Action<RuntimeMetricsOptions> configure = null)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        Guard.ThrowIfNull(builder);
 
         var options = new RuntimeMetricsOptions();
         configure?.Invoke(options);
