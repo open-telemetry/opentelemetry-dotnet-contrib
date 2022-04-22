@@ -26,12 +26,28 @@ public class GenevaExporterOptions
     {
         [Schema.V40.PartA.Ver] = "4.0",
     };
+    
+    private IReadOnlyDictionary<string, string> _tableNameMappings = new();
 
     public string ConnectionString { get; set; }
 
     public IEnumerable<string> CustomFields { get; set; }
 
-    public IReadOnlyDictionary<string, string> TableNameMappings { get; set; }
+    public IReadOnlyDictionary<string, string> TableNameMappings {
+        get => this._tableNameMappings;
+        set
+        {
+            Guard.ThrowIfNull(value);
+            
+            foreach (var entry in value)
+            {
+                if (entry.Value is null)
+                {
+                    throw new ArgumentNullException(entry.Key);
+                }
+            }
+        }
+    }
 
     public IReadOnlyDictionary<string, object> PrepopulatedFields
     {
