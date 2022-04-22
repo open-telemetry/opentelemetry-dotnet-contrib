@@ -26,11 +26,11 @@ public class ConnectionStringBuilderTests
     public void ConnectionStringBuilder_constructor_Invalid_Input()
     {
         // null connection string
-        Assert.Throws<ArgumentNullException>(() => _ = new ConnectionStringBuilder(null));
+        Assert.Throws<ArgumentException>(() => _ = new ConnectionStringBuilder(null));
 
         // empty connection string
-        Assert.Throws<ArgumentNullException>(() => _ = new ConnectionStringBuilder(string.Empty));
-        Assert.Throws<ArgumentNullException>(() => _ = new ConnectionStringBuilder("   "));
+        Assert.Throws<ArgumentException>(() => _ = new ConnectionStringBuilder(string.Empty));
+        Assert.Throws<ArgumentException>(() => _ = new ConnectionStringBuilder("   "));
 
         // empty key
         Assert.Throws<ArgumentException>(() => _ = new ConnectionStringBuilder("=value"));

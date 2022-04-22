@@ -54,7 +54,6 @@ public class GenevaMetricExporterTests
         {
             using var exporter = new GenevaMetricExporter(exporterOptions);
         });
-        Assert.Equal($"{nameof(exporterOptions.ConnectionString)} is invalid.", exception.Message);
     }
 
     [Fact]
