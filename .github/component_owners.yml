@@ -32,6 +32,8 @@ components:
     - codeblanch
   src/OpenTelemetry.Instrumentation.Quartz/:
     - maldago
+  src/OpenTelemetry.Instrumentation.Runtime/:
+    - xiang17
   src/OpenTelemetry.Instrumentation.Wcf/:
     - codeblanch
 
