@@ -43,7 +43,7 @@ internal class DiagnosticSourceSubscriber : IDisposable, IObserver<DiagnosticLis
         Func<string, object, object, bool> isEnabledFilter)
     {
         Guard.ThrowIfNull(handlerFactory);
-        
+
         this.listenerSubscriptions = new List<IDisposable>();
         this.handlerFactory = handlerFactory;
         this.diagnosticSourceFilter = diagnosticSourceFilter;
