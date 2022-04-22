@@ -29,6 +29,7 @@ public static class GenevaMetricExporterExtensions
 
         var options = new GenevaMetricExporterOptions();
         configure?.Invoke(options);
-        return builder.AddReader(new PeriodicExportingMetricReader(new GenevaMetricExporter(options), options.MetricExportIntervalMilliseconds));
+        return builder.AddReader(new PeriodicExportingMetricReader(new GenevaMetricExporter(options), options.MetricExportIntervalMilliseconds)
+        { TemporalityPreference = MetricReaderTemporalityPreference.Delta });
     }
 }
