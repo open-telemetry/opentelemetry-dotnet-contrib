@@ -55,11 +55,6 @@ internal class DiagnosticSourceSubscriber : IDisposable, IObserver<DiagnosticLis
         if (this.allSourcesSubscription == null)
         {
             this.allSourcesSubscription = DiagnosticListener.AllListeners.Subscribe(this);
-
-            this.listenerSubscriptions = new List<IDisposable>();
-            this.handlerFactory = handlerFactory;
-            this.diagnosticSourceFilter = diagnosticSourceFilter;
-            this.isEnabledFilter = isEnabledFilter;
         }
     }
 

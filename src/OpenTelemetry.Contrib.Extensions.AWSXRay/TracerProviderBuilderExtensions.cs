@@ -46,10 +46,7 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/>.</returns>
     public static TracerProviderBuilder AddXRayTraceIdWithSampler(this TracerProviderBuilder builder, Sampler sampler)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        Guard.ThrowIfNull(builder);
 
         AWSXRayIdGenerator.ReplaceTraceId(sampler);
         return builder;
