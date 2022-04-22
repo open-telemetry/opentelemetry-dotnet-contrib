@@ -34,11 +34,9 @@ public static class TracerProviderBuilderExtensions
         this TracerProviderBuilder builder,
         string projectId)
     {
-
         Guard.ThrowIfNull(builder);
 
         var activityExporter = new StackdriverTraceExporter(projectId);
-
         return builder.AddProcessor(new BatchActivityExportProcessor(activityExporter));
     }
 }

@@ -14,11 +14,10 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Trace;
-
-using System;
 using OpenTelemetry.Instrumentation.GrpcCore;
 using OpenTelemetry.Internal;
+
+namespace OpenTelemetry.Trace;
 
 /// <summary>
 /// OpenTelemetry builder extensions to simplify registration of Grpc.Core based interceptors.

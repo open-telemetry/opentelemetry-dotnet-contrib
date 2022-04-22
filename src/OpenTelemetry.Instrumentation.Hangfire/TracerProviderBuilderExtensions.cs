@@ -14,11 +14,10 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Trace;
-
-using System;
 using OpenTelemetry.Instrumentation.Hangfire.Implementation;
 using OpenTelemetry.Internal;
+
+namespace OpenTelemetry.Trace;
 
 /// <summary>
 /// Extension methods to simplify registering of Hangfire job instrumentation.
