@@ -16,8 +16,8 @@
 
 namespace OpenTelemetry.Trace
 {
-    using System;
     using OpenTelemetry.Instrumentation.Hangfire.Implementation;
+    using OpenTelemetry.Internal;
 
     /// <summary>
     /// Extension methods to simplify registering of Hangfire job instrumentation.
@@ -31,10 +31,7 @@ namespace OpenTelemetry.Trace
         /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
         public static TracerProviderBuilder AddHangfireInstrumentation(this TracerProviderBuilder builder)
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
+            Guard.ThrowIfNull(builder);
 
             Hangfire.GlobalJobFilters.Filters.Add(new HangfireInstrumentationJobFilterAttribute());
 

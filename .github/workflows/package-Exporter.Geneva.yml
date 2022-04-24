@@ -1,4 +1,4 @@
-name: Pack OpenTelemetry.Extensions
+name: Pack OpenTelemetry.Exporter.Geneva
 
 on:
   workflow_dispatch:
@@ -9,20 +9,20 @@ on:
         default: 'warning'
   push:
     tags:
-      - 'Extensions-*' # trigger when we create a tag with prefix "Extensions-"
+      - 'Exporter.Geneva-*' # trigger when we create a tag with prefix "Exporter.Geneva-"
 
 jobs:
   build-test-pack:
     runs-on: ${{ matrix.os }}
     env:
-      PROJECT: OpenTelemetry.Extensions
+      PROJECT: OpenTelemetry.Exporter.Geneva
 
     strategy:
       matrix:
         os: [windows-latest]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0 # fetching all
 
@@ -33,13 +33,13 @@ jobs:
       run: dotnet build src/${{env.PROJECT}} --configuration Release --no-restore -p:Deterministic=true
 
     - name: dotnet test ${{env.PROJECT}}
-      run: dotnet test test/${{env.PROJECT}}.Tests
+      run: dotnet test test/${{env.PROJECT}}.Tests --filter "Platform=Any|Platform=Windows"
 
     - name: dotnet pack ${{env.PROJECT}}
-      run: dotnet pack src/${{env.PROJECT}} --configuration Release #--no-build <- OpenTelemetry.Extensions has a conditional net5.0 target which causes dotnet pack to break when -no-build is used (for some reason)
+      run: dotnet pack src/${{env.PROJECT}} --configuration Release --no-build
 
     - name: Publish Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: ${{env.PROJECT}}-packages
         path: '**/${{env.PROJECT}}/bin/**/*.*nupkg'

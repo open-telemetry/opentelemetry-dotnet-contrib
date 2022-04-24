@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Implemented auto flush activity processor
+  ([#297](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/297))
+
 ## 1.0.0-beta.3
 
 * Going forward the NuGet package will be

@@ -16,6 +16,7 @@
 
 using System;
 using OpenTelemetry.Instrumentation.Wcf;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Trace
 {
@@ -32,10 +33,7 @@ namespace OpenTelemetry.Trace
         /// <returns>The instance of <see cref="TracerProviderBuilderExtensions"/> to chain the calls.</returns>
         public static TracerProviderBuilder AddWcfInstrumentation(this TracerProviderBuilder builder, Action<WcfInstrumentationOptions> configure = null)
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
+            Guard.ThrowIfNull(builder);
 
             if (WcfInstrumentationActivitySource.Options != null)
             {

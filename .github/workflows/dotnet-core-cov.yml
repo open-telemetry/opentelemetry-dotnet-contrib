@@ -22,7 +22,7 @@ jobs:
       OS: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Install dependencies
       run: dotnet restore
@@ -31,7 +31,7 @@ jobs:
       run: dotnet build --configuration Release --no-restore
 
     - name: dotnet test
-      run: dotnet test --collect:"Code Coverage" --results-directory:"TestResults" --configuration Release --no-build -- RunConfiguration.DisableAppDomain=true
+      run: dotnet test --collect:"Code Coverage" --results-directory:"TestResults" --configuration Release --no-build --filter "Platform=Any|Platform=Windows" -- RunConfiguration.DisableAppDomain=true
 
     - name: Process code coverage
       run: .\build\process-codecoverage.ps1
@@ -43,7 +43,7 @@ jobs:
     - name: Merging test results
       run: reportgenerator -reports:TestResults/**/*.xml -targetdir:TestResults -reporttypes:Cobertura
 
-    - uses: codecov/codecov-action@v1.0.12
+    - uses: codecov/codecov-action@v3.1.0
       with:
         file: TestResults/Cobertura.xml
         env_vars: OS
