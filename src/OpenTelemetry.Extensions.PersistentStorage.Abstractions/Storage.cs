@@ -24,21 +24,18 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
     public abstract class Storage
     {
         /// <summary>
-        /// Attempts to read a sequence of blobs from storage.
+        /// Reads a sequence of blobs from storage.
         /// </summary>
-        /// <param name="blobs">
-        /// List of Blobs if found.
-        /// </param>
         /// <returns>
-        /// True if blobs are present in storage or else false.
+        /// List of blobs if present in storage or else null.
         /// </returns>
         /// <remarks>
         /// Note to implementers: This function should never throw exception.
         /// </remarks>
-        public abstract bool TryGetBlobs(out IEnumerable<Blob> blobs);
+        public abstract IEnumerable<Blob> GetBlobs();
 
         /// <summary>
-        /// Attempts to get a blob from storage.
+        /// Attempts to get a single blob from storage.
         /// </summary>
         /// <param name="blob">
         /// Blob object if found.
