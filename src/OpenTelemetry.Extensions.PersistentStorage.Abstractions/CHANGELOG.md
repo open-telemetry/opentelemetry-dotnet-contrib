@@ -2,7 +2,7 @@
 
 ## 1.0.0-alpha1
 
-This is the first release for the `OpenTelemetry.Contrib.Extensions.PersistentStorage.Abstractions`
+This is the first release for the `OpenTelemetry.Extensions.PersistentStorage.Abstractions`
 project.
 
 For more details, please refer to the
