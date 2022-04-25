@@ -24,13 +24,13 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
     public abstract class Storage
     {
         /// <summary>
-        /// Reads a sequence of blobs from storage.
+        /// Attempts to read a sequence of blobs from storage.
         /// </summary>
         /// <param name="blobs">
-        /// list of blobs if found.
+        /// List of Blobs if found.
         /// </param>
         /// <returns>
-        /// Sequence of blobs from storage.
+        /// True if blobs are present in storage or else false.
         /// </returns>
         /// <remarks>
         /// Note to implementers: This function should never throw exception.
@@ -44,7 +44,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
         /// Blob object if found.
         /// </param>
         /// <returns>
-        /// A blob if there is an available one, or null if there is no blob available.
+        /// True if blob is present or else false.
         /// </returns>
         /// <remarks>
         /// Note to implementers: This function should never throw exception.
@@ -52,10 +52,10 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
         public abstract bool TryGetBlob(out Blob blob);
 
         /// <summary>
-        /// Creates a new blob with the provided data.
+        /// Attempts to create a new blob with the provided data.
         /// </summary>
         /// <param name="blob">
-        /// Created blob.
+        /// Blob if it is created.
         /// </param>
         /// <param name="buffer">
         /// The content to be written.

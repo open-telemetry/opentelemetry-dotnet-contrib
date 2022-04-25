@@ -24,13 +24,13 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
     public abstract class Blob
     {
         /// <summary>
-        /// Reads the content from the blob.
+        /// Attempts to read the content from the blob.
         /// </summary>
         /// <param name="buffer">
         /// The content to be read.
         /// </param>
         /// <returns>
-        /// true if read was successful or else false.
+        /// True if read was successful or else false.
         /// </returns>
         /// <remarks>
         /// Note to implementers: This function should never throw exception.
@@ -47,7 +47,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
         /// The number of milliseconds to lease after the write operation finished.
         /// </param>
         /// <returns>
-        /// true if the write operation succeeded, otherwise false.
+        /// True if the write operation succeeded or else false.
         /// </returns>
         /// <remarks>
         /// Note to implementers: This function should never throw exception.
@@ -72,7 +72,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
         /// Attempts to delete the blob.
         /// </summary>
         /// <returns>
-        /// true if delete was successful else false.
+        /// True if delete was successful else false.
         /// </returns>
         /// <remarks>
         /// Note to implementers: This function should never throw exception.
