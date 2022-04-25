@@ -17,6 +17,7 @@
 using System;
 using OpenTelemetry.Contrib.Instrumentation.AWS;
 using OpenTelemetry.Contrib.Instrumentation.AWS.Implementation;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Trace
 {
@@ -35,10 +36,7 @@ namespace OpenTelemetry.Trace
             this TracerProviderBuilder builder,
             Action<AWSClientInstrumentationOptions> configure = null)
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
+            Guard.ThrowIfNull(builder);
 
             var awsClientOptions = new AWSClientInstrumentationOptions();
             configure?.Invoke(awsClientOptions);
