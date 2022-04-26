@@ -79,7 +79,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
                 {
                     tempTableMappings[kv.Key] = kv.Value;
                 }
-                }
+            }
 
             this.m_tableMappings = tempTableMappings;
         }
