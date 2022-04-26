@@ -1,4 +1,4 @@
-﻿// <copyright file="Blob.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="PersistentBlob.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,12 +14,14 @@
 // limitations under the License.
 // </copyright>
 
+using System;
+
 namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
 {
     /// <summary>
     /// Represents a persistent blob.
     /// </summary>
-    public abstract class Blob
+    public abstract class PersistentBlob
     {
         /// <summary>
         /// Attempts to read the content from the blob.
@@ -30,10 +32,19 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
         /// <returns>
         /// True if read was successful or else false.
         /// </returns>
-        /// <remarks>
-        /// Note to implementers: This function should never throw exception.
-        /// </remarks>
-        public abstract bool TryRead(out byte[] buffer);
+        public bool TryRead(out byte[] buffer)
+        {
+            try
+            {
+                return this.OnTryRead(out buffer);
+            }
+            catch (Exception)
+            {
+                // TODO: log exception.
+                buffer = null;
+                return false;
+            }
+        }
 
         /// <summary>
         /// Attempts to write the given content to the blob.
@@ -47,10 +58,18 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
         /// <returns>
         /// True if the write operation succeeded or else false.
         /// </returns>
-        /// <remarks>
-        /// Note to implementers: This function should never throw exception.
-        /// </remarks>
-        public abstract bool TryWrite(byte[] buffer, int leasePeriodMilliseconds = 0);
+        public bool TryWrite(byte[] buffer, int leasePeriodMilliseconds = 0)
+        {
+            try
+            {
+                return this.OnTryWrite(buffer, leasePeriodMilliseconds);
+            }
+            catch (Exception)
+            {
+                // TODO: log exception.
+                return false;
+            }
+        }
 
         /// <summary>
         /// Attempts to acquire lease on the blob.
@@ -61,10 +80,18 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
         /// <returns>
         /// true if lease is acquired or else false.
         /// </returns>
-        /// <remarks>
-        /// Note to implementers: This function should never throw exception.
-        /// </remarks>
-        public abstract bool TryLease(int leasePeriodMilliseconds);
+        public bool TryLease(int leasePeriodMilliseconds)
+        {
+            try
+            {
+                return this.OnTryLease(leasePeriodMilliseconds);
+            }
+            catch (Exception)
+            {
+                // TODO: log exception.
+                return false;
+            }
+        }
 
         /// <summary>
         /// Attempts to delete the blob.
@@ -72,9 +99,25 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
         /// <returns>
         /// True if delete was successful else false.
         /// </returns>
-        /// <remarks>
-        /// Note to implementers: This function should never throw exception.
-        /// </remarks>
-        public abstract bool TryDelete();
+        public bool TryDelete()
+        {
+            try
+            {
+                return this.OnTryDelete();
+            }
+            catch (Exception)
+            {
+                // TODO: log exception.
+                return false;
+            }
+        }
+
+        protected abstract bool OnTryRead(out byte[] buffer);
+
+        protected abstract bool OnTryWrite(byte[] buffer, int leasePeriodMilliseconds = 0);
+
+        protected abstract bool OnTryLease(int leasePeriodMilliseconds);
+
+        protected abstract bool OnTryDelete();
     }
 }

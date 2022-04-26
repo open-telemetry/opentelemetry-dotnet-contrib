@@ -1,6 +1,6 @@
-# Changelog - OpenTelemetry.Contrib.Extensions.PersistentStorage
+# Changelog
 
-## 1.0.0-alpha1
+## Unreleased
 
 This is the first release for the `OpenTelemetry.Extensions.PersistentStorage.Abstractions`
 project.
