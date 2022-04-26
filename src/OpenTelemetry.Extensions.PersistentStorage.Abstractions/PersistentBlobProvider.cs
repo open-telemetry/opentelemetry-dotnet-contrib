@@ -113,7 +113,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
         {
             try
             {
-                return this.OnGetBlobs();
+                return this.OnGetBlobs() ?? Enumerable.Empty<PersistentBlob>();
             }
             catch (Exception)
             {
