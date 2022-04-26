@@ -43,10 +43,10 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None",
     };
 
-        private readonly IDataTransport m_dataTransport;
-        private bool isDisposed;
-        private bool shouldPassThruTableMappings;
-        private Func<object, string> convertToJson;
+    private readonly IDataTransport m_dataTransport;
+    private bool isDisposed;
+    private bool shouldPassThruTableMappings;
+    private Func<object, string> convertToJson;
 
     public GenevaLogExporter(GenevaExporterOptions options)
     {
@@ -64,21 +64,21 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
                     throw new ArgumentException("The value: \"{tableName}\" provided for TableNameMappings option contains non-ASCII characters", kv.Value);
                 }
 
-                    if (kv.Key == "*")
+                if (kv.Key == "*")
+                {
+                    if (kv.Value == "*")
                     {
-                        if (kv.Value == "*")
-                        {
-                            this.shouldPassThruTableMappings = true;
-                        }
-                        else
-                        {
-                            this.m_defaultEventName = kv.Value;
-                        }
+                        this.shouldPassThruTableMappings = true;
                     }
                     else
                     {
-                        tempTableMappings[kv.Key] = kv.Value;
+                        this.m_defaultEventName = kv.Value;
                     }
+                }
+                else
+                {
+                    tempTableMappings[kv.Key] = kv.Value;
+                }
                 }
 
             this.m_tableMappings = tempTableMappings;
@@ -214,60 +214,60 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
 
         var name = logRecord.CategoryName;
 
-            // If user configured explicit TableName, use it.
-            if (this.m_tableMappings == null || (!this.m_tableMappings.TryGetValue(name, out var eventName) && !this.shouldPassThruTableMappings))
+        // If user configured explicit TableName, use it.
+        if (this.m_tableMappings == null || (!this.m_tableMappings.TryGetValue(name, out var eventName) && !this.shouldPassThruTableMappings))
+        {
+            eventName = this.m_defaultEventName;
+        }
+        else if (this.shouldPassThruTableMappings && eventName == null)
+        {
+            char[] tempArr = new char[name.Length];
+            int readIdx = 0;
+            int writeIdx = 0;
+            while (readIdx < name.Length)
             {
-                eventName = this.m_defaultEventName;
-            }
-            else if (this.shouldPassThruTableMappings && eventName == null)
-            {
-                char[] tempArr = new char[name.Length];
-                int readIdx = 0;
-                int writeIdx = 0;
-                while (readIdx < name.Length)
+                if (readIdx == 0)
                 {
-                    if (readIdx == 0)
-                    {
-                        if (name[readIdx] >= 'A' && name[readIdx] <= 'Z')
-                        {
-                            tempArr[writeIdx] = name[readIdx];
-                            ++writeIdx;
-                        }
-                        else if (name[readIdx] >= 'a' && name[readIdx] <= 'z')
-                        {
-                            // If the first character in the resulting string is lower -case ALPHA,
-                            // it will be converted to the corresponding upper-case.
-                            tempArr[writeIdx] = (char)(name[readIdx] - 32);
-                            ++writeIdx;
-                        }
-
-                        // Not a valid name - Part B name should follow PascalCase naming convention.
-                        else
-                        {
-                            break;
-                        }
-                    }
-
-                    // The category name must match "^[A-Z][a-zA-Z0-9]*$"; any character that is not allowed will be removed.
-                    else if ((name[readIdx] >= '0' && name[readIdx] <= '9') ||
-                             (name[readIdx] >= 'A' && name[readIdx] <= 'Z') ||
-                             (name[readIdx] >= 'a' && name[readIdx] <= 'z'))
+                    if (name[readIdx] >= 'A' && name[readIdx] <= 'Z')
                     {
                         tempArr[writeIdx] = name[readIdx];
                         ++writeIdx;
                     }
+                    else if (name[readIdx] >= 'a' && name[readIdx] <= 'z')
+                    {
+                        // If the first character in the resulting string is lower -case ALPHA,
+                        // it will be converted to the corresponding upper-case.
+                        tempArr[writeIdx] = (char)(name[readIdx] - 32);
+                        ++writeIdx;
+                    }
 
-                    ++readIdx;
+                    // Not a valid name - Part B name should follow PascalCase naming convention.
+                    else
+                    {
+                        break;
+                    }
                 }
 
-                // After removing not allowed characters,
-                // if the resulting string is still an illegal Part B name, the data will get dropped on the floor.
-                if (readIdx == name.Length && writeIdx != 0)
+                // The category name must match "^[A-Z][a-zA-Z0-9]*$"; any character that is not allowed will be removed.
+                else if ((name[readIdx] >= '0' && name[readIdx] <= '9') ||
+                        (name[readIdx] >= 'A' && name[readIdx] <= 'Z') ||
+                        (name[readIdx] >= 'a' && name[readIdx] <= 'z'))
                 {
-                    // If the resulting string is longer than 32 characters, only the first 32 characters will be taken.
-                    eventName = new string(tempArr, 0, writeIdx <= 31 ? writeIdx : 32);
+                    tempArr[writeIdx] = name[readIdx];
+                    ++writeIdx;
                 }
+
+                ++readIdx;
             }
+
+            // After removing not allowed characters,
+            // if the resulting string is still an illegal Part B name, the data will get dropped on the floor.
+            if (readIdx == name.Length && writeIdx != 0)
+            {
+                // If the resulting string is longer than 32 characters, only the first 32 characters will be taken.
+                eventName = new string(tempArr, 0, writeIdx <= 31 ? writeIdx : 32);
+            }
+        }
 
         var buffer = m_buffer.Value;
         if (buffer == null)
