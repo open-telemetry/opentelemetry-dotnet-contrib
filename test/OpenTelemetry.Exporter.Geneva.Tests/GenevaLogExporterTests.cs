@@ -224,7 +224,8 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 ["Company.Customer"] = "CompanyCustomer",
                 ["Company-%-Customer*Region$##"] = "CompanyCustomerRegion",
 
-                // If the first character in the resulting string is lower -case ALPHA, it will be converted to the corresponding upper-case.
+                // If the first character in the resulting string is lower-case ALPHA,
+                // it will be converted to the corresponding upper -case.
                 ["company.Customer"] = "CompanyCustomer",
 
                 // After removing not allowed characters,

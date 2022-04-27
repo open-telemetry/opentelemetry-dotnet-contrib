@@ -37,6 +37,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
     private readonly IReadOnlyDictionary<string, object> m_prepopulatedFields;
     private readonly List<string> m_prepopulatedFieldKeys;
     private static readonly ThreadLocal<byte[]> m_buffer = new ThreadLocal<byte[]>(() => null);
+    private static readonly ThreadLocal<char[]> categoryNameCharArrTLS = new();
     private readonly byte[] m_bufferEpilogue;
     private static readonly string[] logLevels = new string[7]
     {
@@ -221,8 +222,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         }
         else if (this.shouldPassThruTableMappings && eventName == null)
         {
-            Span<char> tempArrSpan = new Span<char>(name.ToCharArray());
-
+            Span<char> tempArrSpan = new Span<char>(categoryNameCharArrTLS.Value = name.ToCharArray());
             int readIdx = 0;
             int writeIdx = 0;
             while (readIdx < name.Length)
