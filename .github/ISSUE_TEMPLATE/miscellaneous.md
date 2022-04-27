@@ -7,7 +7,7 @@ about: Issue that does not fit into other categories
 
 **What are you trying to achieve?**
 
-What did you expect to see?
+What do you expect to see?
 
 **Additional context.**
 
