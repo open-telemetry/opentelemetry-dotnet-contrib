@@ -221,7 +221,8 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         }
         else if (this.shouldPassThruTableMappings && eventName == null)
         {
-            char[] tempArr = new char[name.Length];
+            Span<char> tempArrSpan = new Span<char>(name.ToCharArray());
+
             int readIdx = 0;
             int writeIdx = 0;
             while (readIdx < name.Length)
@@ -230,14 +231,14 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
                 {
                     if (name[readIdx] >= 'A' && name[readIdx] <= 'Z')
                     {
-                        tempArr[writeIdx] = name[readIdx];
+                        tempArrSpan[writeIdx] = name[readIdx];
                         ++writeIdx;
                     }
                     else if (name[readIdx] >= 'a' && name[readIdx] <= 'z')
                     {
                         // If the first character in the resulting string is lower -case ALPHA,
                         // it will be converted to the corresponding upper-case.
-                        tempArr[writeIdx] = (char)(name[readIdx] - 32);
+                        tempArrSpan[writeIdx] = (char)(name[readIdx] - 32);
                         ++writeIdx;
                     }
 
@@ -253,7 +254,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
                         (name[readIdx] >= 'A' && name[readIdx] <= 'Z') ||
                         (name[readIdx] >= 'a' && name[readIdx] <= 'z'))
                 {
-                    tempArr[writeIdx] = name[readIdx];
+                    tempArrSpan[writeIdx] = name[readIdx];
                     ++writeIdx;
                 }
 
@@ -265,7 +266,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             if (readIdx == name.Length && writeIdx != 0)
             {
                 // If the resulting string is longer than 32 characters, only the first 32 characters will be taken.
-                eventName = new string(tempArr, 0, writeIdx <= 31 ? writeIdx : 32);
+                eventName = tempArrSpan.Slice(0, writeIdx <= 31 ? writeIdx : 32).ToString();
             }
         }
 
