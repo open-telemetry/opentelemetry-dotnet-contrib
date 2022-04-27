@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
@@ -37,10 +38,7 @@ public class GenevaExporterOptions
         get => this._fields;
         set
         {
-            if (value == null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
+            Guard.ThrowIfNull(value);
 
             var schemaVersion = "4.0";
 

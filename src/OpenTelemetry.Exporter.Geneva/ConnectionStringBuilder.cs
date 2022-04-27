@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
@@ -35,10 +36,7 @@ internal class ConnectionStringBuilder
 
     public ConnectionStringBuilder(string connectionString)
     {
-        if (string.IsNullOrWhiteSpace(connectionString))
-        {
-            throw new ArgumentNullException(nameof(connectionString), $"{nameof(connectionString)} is invalid.");
-        }
+        Guard.ThrowIfNullOrWhitespace(connectionString);
 
         const char Semicolon = ';';
         const char EqualSign = '=';

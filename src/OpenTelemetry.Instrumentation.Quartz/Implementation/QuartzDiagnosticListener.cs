@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Quartz.Implementation
@@ -36,7 +37,9 @@ namespace OpenTelemetry.Instrumentation.Quartz.Implementation
         public QuartzDiagnosticListener(string sourceName, QuartzInstrumentationOptions options)
             : base(sourceName)
         {
-            this.options = options ?? throw new ArgumentNullException(nameof(options));
+            Guard.ThrowIfNull(options);
+
+            this.options = options;
         }
 
         public override void OnStartActivity(Activity activity, object payload)
