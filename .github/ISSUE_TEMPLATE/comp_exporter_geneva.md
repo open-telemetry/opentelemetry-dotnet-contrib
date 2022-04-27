@@ -25,7 +25,7 @@ find this information from the `*.csproj` file):
 
 **What is the expected behavior?**
 
-What did you expect to see?
+What do you expect to see?
 
 **What is the actual behavior?**
 
