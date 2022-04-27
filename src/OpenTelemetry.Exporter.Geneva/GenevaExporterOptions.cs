@@ -26,26 +26,35 @@ public class GenevaExporterOptions
     {
         [Schema.V40.PartA.Ver] = "4.0",
     };
-    
-    private IReadOnlyDictionary<string, string> _tableNameMappings = new();
+
+    private IReadOnlyDictionary<string, string> _tableNameMappings;
 
     public string ConnectionString { get; set; }
 
     public IEnumerable<string> CustomFields { get; set; }
 
-    public IReadOnlyDictionary<string, string> TableNameMappings {
+    public IReadOnlyDictionary<string, string> TableNameMappings
+    {
         get => this._tableNameMappings;
         set
         {
             Guard.ThrowIfNull(value);
-            
+
             foreach (var entry in value)
             {
                 if (entry.Value is null)
                 {
-                    throw new ArgumentNullException(entry.Key);
+                    throw new ArgumentNullException(entry.Key, $"{nameof(this.TableNameMappings)} must not contain null values.");
                 }
             }
+
+            var copy = new Dictionary<string, string>(value.Count);
+            foreach (var entry in value)
+            {
+                copy[entry.Key] = entry.Value; // shallow copy
+            }
+
+            this._tableNameMappings = copy;
         }
     }
 

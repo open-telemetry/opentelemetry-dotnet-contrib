@@ -58,8 +58,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             var tempTableMappings = new Dictionary<string, string>(options.TableNameMappings.Count, StringComparer.Ordinal);
             foreach (var kv in options.TableNameMappings)
             {
-                Guard.ThrowIfNull(kv.Value);
-
                 if (Encoding.UTF8.GetByteCount(kv.Value) != kv.Value.Length)
                 {
                     throw new ArgumentException("The value: \"{tableName}\" provided for TableNameMappings option contains non-ASCII characters", kv.Value);

@@ -63,12 +63,23 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 });
             });
 
-		    Assert.Throws<ArgumentNullException>(() =>
+            // Throw on null value - include key in exception message
+            var ex = Assert.Throws<ArgumentNullException>(() =>
             {
-                using var exporter = new GenevaLogExporter(new GenevaExporterOptions
+                new GenevaExporterOptions
                 {
                     TableNameMappings = new Dictionary<string, string> { ["TestCategory"] = null },
-                });
+                };
+            });
+            Assert.Equal("TableNameMappings must not contain null values. (Parameter 'TestCategory')", ex.Message);
+
+            // Throw when TableNameMappings is null
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                new GenevaExporterOptions
+                {
+                    TableNameMappings = null,
+                };
             });
         }
 
