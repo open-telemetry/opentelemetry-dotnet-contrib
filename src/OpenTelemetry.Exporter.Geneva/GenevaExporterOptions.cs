@@ -40,6 +40,11 @@ public class GenevaExporterOptions
         {
             Guard.ThrowIfNull(value);
 
+            if (value.ContainsKey(null))
+            {
+                throw new ArgumentNullException(nameof(value), $"{nameof(this.TableNameMappings)} must not contain a null key.");
+            }
+
             foreach (var entry in value)
             {
                 if (entry.Value is null)
