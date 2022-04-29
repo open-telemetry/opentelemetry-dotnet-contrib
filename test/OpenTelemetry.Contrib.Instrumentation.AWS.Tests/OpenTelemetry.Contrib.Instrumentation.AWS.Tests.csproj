@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Unit test project for AWS client instrumentation for OpenTelemetry</Description>
     <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
-    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net452</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,7 +24,7 @@
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Instrumentation.AWS\OpenTelemetry.Contrib.Instrumentation.AWS.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net452'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
     <Compile Remove="Tools\CustomWebResponse.cs" />
     <Compile Remove="Tools\HttpResponseMessageBody.cs" />
     <Reference Include="System.Net.Http" />

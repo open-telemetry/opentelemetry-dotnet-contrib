@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
 {
@@ -32,13 +33,13 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
         /// Detector the required and optional resource attributes from AWS ECS.
         /// </summary>
         /// <returns>List of key-value pairs of resource attributes.</returns>
-        public IEnumerable<KeyValuePair<string, object>> Detect()
+        public Resource Detect()
         {
             List<KeyValuePair<string, object>> resourceAttributes = null;
 
             if (!this.IsECSProcess())
             {
-                return resourceAttributes;
+                return Resource.Empty;
             }
 
             try
@@ -52,7 +53,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
                 AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSResourceDetector), ex);
             }
 
-            return resourceAttributes;
+            return new Resource(resourceAttributes);
         }
 
         internal List<KeyValuePair<string, object>> ExtractResourceAttributes(string containerId)

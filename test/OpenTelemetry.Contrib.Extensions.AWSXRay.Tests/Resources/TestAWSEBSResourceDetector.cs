@@ -30,8 +30,8 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources
         {
             IEnumerable<KeyValuePair<string, object>> resourceAttributes;
             var ebsResourceDetector = new AWSEBSResourceDetector();
-            resourceAttributes = ebsResourceDetector.Detect();
-            Assert.Null(resourceAttributes); // will be null as it's not in ebs environment
+            resourceAttributes = ebsResourceDetector.Detect().Attributes;
+            Assert.Empty(resourceAttributes); // will be empty as it's not in ebs environment
         }
 
         [Fact]

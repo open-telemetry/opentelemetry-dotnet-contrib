@@ -28,8 +28,8 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources
         {
             IEnumerable<KeyValuePair<string, object>> resourceAttributes;
             var ec2ResourceDetector = new AWSEC2ResourceDetector();
-            resourceAttributes = ec2ResourceDetector.Detect();
-            Assert.Null(resourceAttributes); // will be null as it's not in ec2 environment
+            resourceAttributes = ec2ResourceDetector.Detect().Attributes;
+            Assert.Empty(resourceAttributes); // will be empty as it's not in ec2 environment
         }
 
         [Fact]

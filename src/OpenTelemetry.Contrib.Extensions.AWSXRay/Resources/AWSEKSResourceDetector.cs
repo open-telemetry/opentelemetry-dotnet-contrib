@@ -20,6 +20,7 @@ using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Models;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
 {
@@ -38,7 +39,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
         /// Detector the required and optional resource attributes from AWS EKS.
         /// </summary>
         /// <returns>List of key-value pairs of resource attributes.</returns>
-        public IEnumerable<KeyValuePair<string, object>> Detect()
+        public Resource Detect()
         {
             var credentials = this.GetEKSCredentials(AWSEKSCredentialPath);
             if (credentials == null || !this.IsEKSProcess(credentials))
@@ -46,9 +47,9 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
                 return null;
             }
 
-            return this.ExtractResourceAttributes(
+            return new Resource(this.ExtractResourceAttributes(
                 this.GetEKSClusterName(credentials),
-                this.GetEKSContainerId(AWSEKSMetadataFilePath));
+                this.GetEKSContainerId(AWSEKSMetadataFilePath)));
         }
 
         internal List<KeyValuePair<string, object>> ExtractResourceAttributes(string clusterName, string containerId)

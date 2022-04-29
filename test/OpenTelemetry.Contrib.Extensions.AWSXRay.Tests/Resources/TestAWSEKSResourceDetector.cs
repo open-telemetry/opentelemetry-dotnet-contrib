@@ -31,8 +31,8 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources
         {
             IEnumerable<KeyValuePair<string, object>> resourceAttributes;
             var eksResourceDetector = new AWSEKSResourceDetector();
-            resourceAttributes = eksResourceDetector.Detect();
-            Assert.Null(resourceAttributes); // will be null as it's not in eks environment
+            resourceAttributes = eksResourceDetector.Detect().Attributes;
+            Assert.Empty(resourceAttributes); // will be empty as it's not in eks environment
         }
 
         [Fact]
