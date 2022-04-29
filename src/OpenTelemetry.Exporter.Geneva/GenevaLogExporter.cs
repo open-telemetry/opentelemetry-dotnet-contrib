@@ -16,6 +16,7 @@
 
 #if NETSTANDARD2_0 || NET461
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -37,7 +38,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
     private readonly IReadOnlyDictionary<string, object> m_prepopulatedFields;
     private readonly List<string> m_prepopulatedFieldKeys;
     private static readonly ThreadLocal<byte[]> m_buffer = new ThreadLocal<byte[]>(() => null);
-    private static readonly ThreadLocal<char[]> categoryNameCharArrTLS = new();
     private readonly byte[] m_bufferEpilogue;
     private static readonly string[] logLevels = new string[7]
     {
@@ -45,6 +45,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
     };
 
     private readonly IDataTransport m_dataTransport;
+    private static readonly ConcurrentDictionary<string, string> rawNameToSanitizedName = new();
     private bool isDisposed;
     private bool shouldPassThruTableMappings;
     private Func<object, string> convertToJson;
@@ -213,60 +214,28 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             listKvp = logRecord.State as IReadOnlyList<KeyValuePair<string, object>>;
         }
 
-        var name = logRecord.CategoryName;
+        var categoryName = logRecord.CategoryName;
 
         // If user configured explicit TableName, use it.
-        if (this.m_tableMappings == null || (!this.m_tableMappings.TryGetValue(name, out var eventName) && !this.shouldPassThruTableMappings))
+        if (this.m_tableMappings == null || (!this.m_tableMappings.TryGetValue(categoryName, out var eventName) && !this.shouldPassThruTableMappings))
         {
             eventName = this.m_defaultEventName;
         }
         else if (this.shouldPassThruTableMappings && eventName == null)
         {
-            Span<char> tempArrSpan = new Span<char>(categoryNameCharArrTLS.Value = name.ToCharArray());
-            int readIdx = 0;
-            int writeIdx = 0;
-            while (readIdx < name.Length)
+            if (!rawNameToSanitizedName.TryGetValue(categoryName, out var sanitizedName))
             {
-                if (readIdx == 0)
+                eventName = Sanitize(categoryName);
+
+                // TODO: how to determine the right cap for the size here?
+                if (rawNameToSanitizedName.Count <= 1024)
                 {
-                    if (name[readIdx] >= 'A' && name[readIdx] <= 'Z')
-                    {
-                        tempArrSpan[writeIdx] = name[readIdx];
-                        ++writeIdx;
-                    }
-                    else if (name[readIdx] >= 'a' && name[readIdx] <= 'z')
-                    {
-                        // If the first character in the resulting string is lower -case ALPHA,
-                        // it will be converted to the corresponding upper-case.
-                        tempArrSpan[writeIdx] = (char)(name[readIdx] - 32);
-                        ++writeIdx;
-                    }
-
-                    // Not a valid name - Part B name should follow PascalCase naming convention.
-                    else
-                    {
-                        break;
-                    }
+                    rawNameToSanitizedName.TryAdd(categoryName, eventName);
                 }
-
-                // The category name must match "^[A-Z][a-zA-Z0-9]*$"; any character that is not allowed will be removed.
-                else if ((name[readIdx] >= '0' && name[readIdx] <= '9') ||
-                        (name[readIdx] >= 'A' && name[readIdx] <= 'Z') ||
-                        (name[readIdx] >= 'a' && name[readIdx] <= 'z'))
-                {
-                    tempArrSpan[writeIdx] = name[readIdx];
-                    ++writeIdx;
-                }
-
-                ++readIdx;
             }
-
-            // After removing not allowed characters,
-            // if the resulting string is still an illegal Part B name, the data will get dropped on the floor.
-            if (readIdx == name.Length && writeIdx != 0)
+            else
             {
-                // If the resulting string is longer than 32 characters, only the first 32 characters will be taken.
-                eventName = tempArrSpan.Slice(0, writeIdx <= 31 ? writeIdx : 32).ToString();
+                eventName = sanitizedName;
             }
         }
 
@@ -387,7 +356,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         cntFields += 1;
 
         cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "name");
-        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, name);
+        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, categoryName);
         cntFields += 1;
 
         bool hasEnvProperties = false;
@@ -500,6 +469,71 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             default:
                 return 1;
         }
+    }
+
+    private static string Sanitize(string categoryName)
+    {
+        Span<char> tempArrSpan = stackalloc char[200];
+        int readIdx = 0;
+        int writeIdx = 0;
+
+        if (categoryName.Length > 0)
+        {
+            var firstChar = categoryName[0]; // special treatment for the first character.
+            if (firstChar >= 'A' && firstChar <= 'Z')
+            {
+                tempArrSpan[writeIdx] = firstChar;
+                ++writeIdx;
+            }
+            else if (firstChar >= 'a' && firstChar <= 'z')
+            {
+                // If the first character in the resulting string is lower-case ALPHA,
+                // it will be converted to the corresponding upper-case.
+                tempArrSpan[writeIdx] = (char)(firstChar - 32);
+                ++writeIdx;
+            }
+
+            // Not a valid name - Part B name should follow PascalCase naming convention.
+            else
+            {
+                return null;
+            }
+
+            ++readIdx;
+        }
+
+        while (readIdx < categoryName.Length)
+        {
+            // Recommended by Part B that table name should not be longer than 50 characters.
+            if (writeIdx >= 49)
+            {
+                break;
+            }
+
+            var cur = categoryName[readIdx];
+
+            // The category name must match "^[A-Z][a-zA-Z0-9]*$";
+            // any character that is not allowed will be removed.
+            if ((cur >= '0' && cur <= '9') ||
+                (cur >= 'A' && cur <= 'Z') ||
+                (cur >= 'a' && cur <= 'z'))
+            {
+                tempArrSpan[writeIdx] = cur;
+                ++writeIdx;
+            }
+
+            ++readIdx;
+        }
+
+        if (writeIdx != 0)
+        {
+             return tempArrSpan.Slice(0, writeIdx).ToString();
+        }
+
+        // After removing not allowed characters,
+        // if the resulting string is still an illegal Part B name,
+        // the data will get dropped on the floor.
+        return null; // (Or instead of dropping the invalid tableNames on the floor, consider writing them into the default table?)
     }
 }
 #endif
