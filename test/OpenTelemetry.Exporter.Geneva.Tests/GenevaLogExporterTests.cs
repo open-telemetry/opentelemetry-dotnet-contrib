@@ -72,16 +72,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 };
             });
             Assert.Contains("TableNameMappings must not contain null values.", ex.Message);
-
-            // Throw on null key
-            ex = Assert.Throws<ArgumentNullException>(() =>
-            {
-                new GenevaExporterOptions
-                {
-                    TableNameMappings = new Dictionary<string, string> { [null] = "valid_value" },
-                };
-            });
-            Assert.Contains("TableNameMappings must not contain a null key.", ex.Message);
+            Assert.Equal("TestCategory", ex.ParamName);
 
             // Throw when TableNameMappings is null
             Assert.Throws<ArgumentNullException>(() =>
