@@ -35,13 +35,17 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Http
             {
                 this.trustedCertificates = null;
                 this.ValidationCallback = null;
+                this.IsCertificateLoaded = false;
                 return;
             }
 
             this.trustedCertificates = trustedCertificates;
             this.ValidationCallback = (sender, cert, chain, errors) =>
                 this.ValidateCertificate(new X509Certificate2(cert), chain, errors);
+            this.IsCertificateLoaded = true;
         }
+
+        public bool IsCertificateLoaded { get; }
 
         public RemoteCertificateValidationCallback ValidationCallback { get; }
 

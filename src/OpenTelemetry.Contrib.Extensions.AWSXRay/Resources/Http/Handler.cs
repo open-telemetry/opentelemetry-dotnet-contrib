@@ -16,6 +16,7 @@
 
 using System;
 using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Http
 {
@@ -25,11 +26,16 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Http
         {
             try
             {
-                var clientHandler = new HttpClientHandler();
-
                 ServerCertificateValidationProvider serverCertificateValidationProvider =
                     ServerCertificateValidationProvider.FromCertificateFile(certificateFile);
 
+                if (!serverCertificateValidationProvider.IsCertificateLoaded)
+                {
+                    AWSXRayEventSource.Log.FailedToValidateCertificate(nameof(Handler), "Failed to Load the certificate file into trusted collection");
+                    return null;
+                }
+
+                var clientHandler = new HttpClientHandler();
                 clientHandler.ServerCertificateCustomValidationCallback =
                             (sender, x509Certificate2, x509Chain, sslPolicyErrors) =>
                                 serverCertificateValidationProvider.ValidationCallback(null, x509Certificate2, x509Chain, sslPolicyErrors);
