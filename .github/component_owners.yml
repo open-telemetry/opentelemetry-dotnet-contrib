@@ -32,6 +32,9 @@ components:
     - codeblanch
   src/OpenTelemetry.Instrumentation.Quartz/:
     - maldago
+  src/OpenTelemetry.Instrumentation.Runtime/:
+    - twenzel
+    - xiang17
   src/OpenTelemetry.Instrumentation.Wcf/:
     - codeblanch
 
@@ -79,5 +82,8 @@ components:
     - codeblanch
   test/OpenTelemetry.Instrumentation.Quartz.Tests/:
     - maldago
+  test/OpenTelemetry.Instrumentation.Runtime.Tests/:
+    - twenzel
+    - xiang17
   test/OpenTelemetry.Instrumentation.Wcf.Tests/:
     - codeblanch
