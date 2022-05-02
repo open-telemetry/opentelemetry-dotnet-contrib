@@ -1,0 +1,14 @@
+name: dotnet format
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+    - '**.md'
+
+jobs:
+  check-format:
+    runs-on: ubuntu-latest
+
+    steps:
+      run: 'echo "No build required"'
