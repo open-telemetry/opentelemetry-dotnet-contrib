@@ -83,13 +83,9 @@ Exporter.
 
 #### `ConnectionString` (required)
 
-##### Linux
+On Linux the connection string has the format `Endpoint=unix:{UDS Path}`.
 
-The connection string has the format `Endpoint=unix:{UDS Path}`.
-
-##### Windows
-
-The connection string has the format `EtwSession={ETW session}`.
+On Windows the connection string has the format `EtwSession={ETW session}`.
 
 #### `CustomFields` (optional)
 
@@ -141,15 +137,11 @@ configure the GenevaMetricExporter.
 
 #### `ConnectionString` (required for metrics)
 
-##### Windows
-
-**DO NOT** provide an ETW session name for Metrics, only specify Account and
+On Windows **DO NOT** provide an ETW session name for Metrics, only specify Account and
 Namespace. For example:
 `Account={MetricAccount};Namespace={MetricNamespace}`.
 
-##### Linux
-
-Provide an `Endpoint` in addition to the `Account` and `Namespace`.
+On Linux provide an `Endpoint` in addition to the `Account` and `Namespace`.
 For example:
 `Endpoint=unix:{UDS Path};Account={MetricAccount};Namespace={MetricNamespace}`.
 
