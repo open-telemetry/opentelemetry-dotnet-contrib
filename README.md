@@ -6,7 +6,7 @@
 
 This project is intended to provide helpful libraries and standalone
 OpenTelemetry-based utilities that don't fit the express scope of the
-[OpenTelemetry .NET](https://github.com/open-telemetry/opentelemetry-dotnet/) or
+[OpenTelemetry .NET](https://github.com/open-telemetry/opentelemetry-dotnet) or
 [OpenTelemetry .NET Automatic
 Instrumentation](https://github.com/open-telemetry/opentelemetry-dotnet-instrumentation)
 projects.
