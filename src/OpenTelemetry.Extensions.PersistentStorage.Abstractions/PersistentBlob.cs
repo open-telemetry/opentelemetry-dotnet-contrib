@@ -32,7 +32,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
         /// <returns>
         /// True if read was successful or else false.
         /// </returns>
-        public bool TryRead(out byte[] buffer)
+        public bool TryRead([NotNullWhen(true)] out byte[]? buffer)
         {
 #pragma warning disable CA1031 // Do not catch general exception types
             try
@@ -120,7 +120,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
 #pragma warning restore CA1031 // Do not catch general exception types
         }
 
-        protected abstract bool OnTryRead(out byte[] buffer);
+        protected abstract bool OnTryRead([NotNullWhen(true)] out byte[]? buffer);
 
         protected abstract bool OnTryWrite(byte[] buffer, int leasePeriodMilliseconds = 0);
 
