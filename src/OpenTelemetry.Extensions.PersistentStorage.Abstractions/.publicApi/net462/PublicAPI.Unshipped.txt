@@ -1,5 +1,6 @@
 abstract OpenTelemetry.Extensions.PersistentStorage.Abstractions.PersistentBlob.OnTryDelete() -> bool
 abstract OpenTelemetry.Extensions.PersistentStorage.Abstractions.PersistentBlob.OnTryLease(int leasePeriodMilliseconds) -> bool
+abstract OpenTelemetry.Extensions.PersistentStorage.Abstractions.PersistentBlob.OnTryRead(out byte[]? buffer) -> bool
 abstract OpenTelemetry.Extensions.PersistentStorage.Abstractions.PersistentBlob.OnTryWrite(byte[]! buffer, int leasePeriodMilliseconds = 0) -> bool
 abstract OpenTelemetry.Extensions.PersistentStorage.Abstractions.PersistentBlobProvider.OnGetBlobs() -> System.Collections.Generic.IEnumerable<OpenTelemetry.Extensions.PersistentStorage.Abstractions.PersistentBlob!>!
 abstract OpenTelemetry.Extensions.PersistentStorage.Abstractions.PersistentBlobProvider.OnTryCreateBlob(byte[]! buffer, int leasePeriodMilliseconds, out OpenTelemetry.Extensions.PersistentStorage.Abstractions.PersistentBlob? blob) -> bool
