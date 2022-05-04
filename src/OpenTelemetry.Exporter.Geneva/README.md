@@ -141,8 +141,8 @@ configure the GenevaMetricExporter.
 
 #### `ConnectionString` (required for metrics)
 
-On Windows **DO NOT** provide an ETW session name for Metrics, only specify Account and
-Namespace. For example:
+On Windows **DO NOT** provide an ETW session name for Metrics, only specify
+Account and Namespace. For example:
 `Account={MetricAccount};Namespace={MetricNamespace}`.
 
 On Linux provide an `Endpoint` in addition to the `Account` and `Namespace`.
