@@ -3,7 +3,11 @@
 [![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.Geneva.svg)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Geneva)
 [![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Exporter.Geneva.svg)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Geneva)
 
-The Geneva Exporter exports telemetry to ETW or to a UDS on the local machine.
+The Geneva Exporter exports telemetry to
+[Event Tracing for Windows (ETW)](https://docs.microsoft.com/en-us/windows/win32/etw/about-event-tracing)
+or to a
+[Unix Domain Socket (UDS)](https://en.wikipedia.org/wiki/Unix_domain_socket)
+on the local machine.
 
 ## Installation
 
@@ -168,9 +172,3 @@ follow the [troubleshooting guide for OpenTelemetry
 .NET](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/src/OpenTelemetry#troubleshooting)
 for instructions on seeing logs from the geneva exporter, as well as other
 OpenTelemetry components.
-
-## References
-
-* [Event Tracing for
-  Windows](https://docs.microsoft.com/en-us/windows/win32/etw/about-event-tracing)
-* [Unix Domain Socket](https://en.wikipedia.org/wiki/Unix_domain_socket)
