@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
+    <TargetFrameworks Condition="'$(Configuration)' == 'Debug'">$(TargetFrameworks);net6.0</TargetFrameworks> <!-- Added just to get proper nullable analysis in IDE -->
     <Description>OpenTelemetry Persistent Storage Abstractions</Description>
     <MinVerTagPrefix>Extensions.PersistentStorage.Abstractions-</MinVerTagPrefix>
   </PropertyGroup>
