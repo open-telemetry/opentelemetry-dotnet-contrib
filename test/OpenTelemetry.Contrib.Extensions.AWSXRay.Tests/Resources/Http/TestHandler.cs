@@ -19,6 +19,7 @@ using Xunit;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources.Http
 {
+    [Trait("Platform", "Any")]
     public class TestHandler
     {
         private const string CRTNAME = "cert";
