@@ -30,7 +30,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources.Http
 
         public CertificateUploader()
         {
-            this.filePath = Path.Combine(Path.GetTempPath(), "cert");
+            this.filePath = Path.GetTempFileName();
         }
 
         public string FilePath
@@ -65,34 +65,20 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources.Http
 
         public void Dispose()
         {
-            for (int tries = 0; this.IsFileLocked() && tries < 5; tries++)
+            for (int tries = 0; tries < 3; tries++)
             {
-                Thread.Sleep(1000);
+                try
+                {
+                    File.Delete(this.filePath);
+                    return;
+                }
+                catch (IOException) when (tries < 3)
+                {
+                    // the file is unavailable because it is: still being written to or being processed by another thread
+                    // sleep for sometime before deleting
+                    Thread.Sleep(1000);
+                }
             }
-
-            File.Delete(this.filePath);
-        }
-
-        private bool IsFileLocked()
-        {
-            FileStream stream = null;
-
-            try
-            {
-                stream = new FileInfo(this.filePath).Open(FileMode.Open, FileAccess.ReadWrite, FileShare.None);
-            }
-            catch (IOException)
-            {
-                // the file is unavailable because it is: still being written to or being processed by another thread
-                return true;
-            }
-            finally
-            {
-                stream?.Close();
-            }
-
-            // file is not locked
-            return false;
         }
     }
 }
