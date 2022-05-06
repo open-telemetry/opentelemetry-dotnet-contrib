@@ -218,24 +218,29 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 ["*"] = "*",
             };
 
-            var expectedCategoryToTableNameMappings = new Dictionary<string, string>
+            var expectedCategoryToTableNameList = new List<KeyValuePair<string, string>>
             {
                 // The category name must match "^[A-Z][a-zA-Z0-9]*$"; any character that is not allowed will be removed.
-                ["Company.Customer"] = "CompanyCustomer",
-                ["Company-%-Customer*Region$##"] = "CompanyCustomerRegion",
+                new KeyValuePair<string, string>("Company.Customer", "CompanyCustomer"),
 
-                // If the first character in the resulting string is lower -case ALPHA, it will be converted to the corresponding upper-case.
-                ["company.Customer"] = "CompanyCustomer",
+                // testing caching code-path.
+                new KeyValuePair<string, string>("Company.Customer", "CompanyCustomer"),
+
+                new KeyValuePair<string, string>("Company-%-Customer*Region$##", "CompanyCustomerRegion"),
+
+                // If the first character in the resulting string is lower-case ALPHA,
+                // it will be converted to the corresponding upper-case.
+                new KeyValuePair<string, string>("company.Calendar", "CompanyCalendar"),
 
                 // After removing not allowed characters,
                 // if the resulting string is still an illegal Part B name, the data will get dropped on the floor.
-                ["$&-.$~!!"] = null,
+                new KeyValuePair<string, string>("$&-.$~!!", null),
 
-                // If the resulting string is longer than 32 characters, only the first 32 characters will be taken.
-                ["Company.Customer.rsLiheLClHJasBOvM.XI4uW7iop6ghvwBzahfs"] = "CompanyCustomerrsLiheLClHJasBOvM",
+                // If the resulting string is longer than 50 characters, only the first 50 characters will be taken.
+                new KeyValuePair<string, string>("Company.Customer.rsLiheLClHJasBOvM.XI4uW7iop6ghvwBzahfs", "CompanyCustomerrsLiheLClHJasBOvMXI4uW7iop6ghvwBza"),
 
                 // The data will be dropped on the floor as the exporter cannot deduce a valid table name.
-                ["1.2"] = null,
+                new KeyValuePair<string, string>("1.2", null),
             };
 
             var logRecordList = new List<LogRecord>();
@@ -279,7 +284,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
             }
 
             // Verify that when the "*" = "*" were enabled, the correct table names were being deduced following the set of rules.
-            foreach (var mapping in expectedCategoryToTableNameMappings)
+            foreach (var mapping in expectedCategoryToTableNameList)
             {
                 passThruTableMappingsLogger = loggerFactory.CreateLogger(mapping.Key);
                 passThruTableMappingsLogger.LogInformation("This information does not matter.");
@@ -288,8 +293,14 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 _ = exporter.SerializeLogRecord(logRecordList[0]);
                 fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
                 actualTableName = (fluentdData as object[])[0] as string;
-                expectedCategoryToTableNameMappings.TryGetValue(mapping.Key, out var expectedTableNme);
-                Assert.Equal(expectedTableNme, actualTableName);
+
+                string expectedTableName = string.Empty;
+                if (expectedCategoryToTableNameList.Contains(new KeyValuePair<string, string>(mapping.Key, mapping.Value)))
+                {
+                    expectedTableName = mapping.Value;
+                }
+
+                Assert.Equal(expectedTableName, actualTableName);
                 logRecordList.Clear();
             }
         }

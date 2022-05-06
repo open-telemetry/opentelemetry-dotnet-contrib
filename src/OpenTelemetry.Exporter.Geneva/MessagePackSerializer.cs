@@ -307,6 +307,13 @@ internal static class MessagePackSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void BackFill(byte[] buffer, int nameStartIdx, int validNameLength)
+    {
+        buffer[nameStartIdx] = STR8;
+        buffer[nameStartIdx + 1] = unchecked((byte)validNameLength);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeAsciiString(byte[] buffer, int cursor, string value)
     {
         if (value == null)

@@ -19,17 +19,19 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.Logging;
 
 /*
-BenchmarkDotNet = v0.13.1, OS = Windows 10.0.19044.1645(21H2)
-Intel Core i7-8650U CPU 1.90GHz (Kaby Lake R), 1 CPU, 8 logical and 4 physical cores
+Summary
+
+BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19044.1645 (21H2)
+Intel Xeon CPU E5-1650 v4 3.60GHz, 1 CPU, 12 logical and 6 physical cores
 .NET SDK=6.0.202
   [Host]     : .NET Core 3.1.24 (CoreCLR 4.700.22.16002, CoreFX 4.700.22.17909), X64 RyuJIT
   DefaultJob : .NET Core 3.1.24 (CoreCLR 4.700.22.16002, CoreFX 4.700.22.17909), X64 RyuJIT
 
 
-|                                          Method |     Mean |     Error |    StdDev |   Median |  Gen 0 | Allocated |
-|------------------------------------------------ |---------:|----------:|----------:|---------:|-------:|----------:|
-| CategoryTableNameMappingsDefinedInConfiguration | 1.873 us | 0.0442 us | 0.1218 us | 1.839 us | 0.0610 |     256 B |
-|    PassThruTableNameMappingsWhenTheRuleIsEnbled | 1.824 us | 0.0358 us | 0.0317 us | 1.817 us | 0.0877 |     368 B |
+|                                          Method |     Mean |     Error |    StdDev |  Gen 0 | Allocated |
+|------------------------------------------------ |---------:|----------:|----------:|-------:|----------:|
+| CategoryTableNameMappingsDefinedInConfiguration | 1.560 us | 0.0307 us | 0.0673 us | 0.0324 |     256 B |
+|    PassThruTableNameMappingsWhenTheRuleIsEnbled | 1.573 us | 0.0314 us | 0.0574 us | 0.0324 |     256 B |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark
@@ -38,8 +40,8 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
     public class LogExporterTableMappingsBenchmarks
     {
         private readonly ILoggerFactory loggerFactory;
-        private readonly ILogger storeLogger;
-        private readonly ILogger customerLogger;
+        private readonly ILogger storeALogger;
+        private readonly ILogger storeBLogger;
 
         public LogExporterTableMappingsBenchmarks()
         {
@@ -59,27 +61,27 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
 
                         exporterOptions.TableNameMappings = new Dictionary<string, string>
                         {
-                            ["Company.Store"] = "Store",
+                            ["Company.StoreA"] = "Store",
                             ["*"] = "*",
                         };
                     });
                 });
             });
 
-            this.storeLogger = this.loggerFactory.CreateLogger("Company.Store");
-            this.customerLogger = this.loggerFactory.CreateLogger("Company.Customer");
+            this.storeALogger = this.loggerFactory.CreateLogger("Company.StoreA");
+            this.storeBLogger = this.loggerFactory.CreateLogger("Company.StoreB");
         }
 
         [Benchmark]
         public void CategoryTableNameMappingsDefinedInConfiguration()
         {
-            this.storeLogger.LogInformation("Hello from {storeName} {number}.", "Tokyo", 6);
+            this.storeALogger.LogInformation("Hello from {storeName} {number}.", "Tokyo", 6);
         }
 
         [Benchmark]
         public void PassThruTableNameMappingsWhenTheRuleIsEnbled()
         {
-            this.customerLogger.LogInformation("Hello from {customerName} {amount}.", "Gakki", 1.75);
+            this.storeBLogger.LogInformation("Hello from {storeName} {number}.", "Kyoto", 2);
         }
     }
 }
