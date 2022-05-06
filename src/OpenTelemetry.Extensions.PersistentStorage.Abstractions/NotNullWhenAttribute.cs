@@ -15,9 +15,7 @@
 // </copyright>
 
 #if NETSTANDARD2_0 || NET462
-using System;
-
-namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
+namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.All)]
     internal sealed class NotNullWhenAttribute : Attribute

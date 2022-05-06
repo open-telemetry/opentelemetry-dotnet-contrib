@@ -15,9 +15,7 @@
 // </copyright>
 
 using System;
-#if NET6_0
 using System.Diagnostics.CodeAnalysis;
-#endif
 
 namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
 {

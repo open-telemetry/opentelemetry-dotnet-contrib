@@ -16,9 +16,7 @@
 
 using System;
 using System.Collections.Generic;
-#if NET6_0
 using System.Diagnostics.CodeAnalysis;
-#endif
 using System.Linq;
 
 namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
