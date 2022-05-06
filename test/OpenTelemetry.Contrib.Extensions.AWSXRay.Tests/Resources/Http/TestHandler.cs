@@ -22,17 +22,18 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources.Http
     [Trait("Platform", "Any")]
     public class TestHandler
     {
-        private const string CRTNAME = "cert";
         private const string INVALIDCRTNAME = "invalidcert";
 
         [Fact]
         public void TestValidHandler()
         {
-            // Creates a self-signed certificate
-            using var tempCertificate = new TempCertificate();
+            using (CertificateUploader certificateUploader = new CertificateUploader())
+            {
+                certificateUploader.Create();
 
-            // Validates if the handler created.
-            Assert.NotNull(Handler.Create(CRTNAME));
+                // Validates if the handler created.
+                Assert.NotNull(Handler.Create(certificateUploader.FilePath));
+            }
         }
 
         [Fact]

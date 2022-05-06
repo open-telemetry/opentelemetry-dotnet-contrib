@@ -30,7 +30,7 @@
     <Compile Remove="Resources\TestAWSEKSResourceDetector.cs" />
     <Compile Remove="Resources\TestAWSLambdaResourceDetector.cs" />
     <Compile Remove="Resources\TestResourceBuilderExtensions.cs" />
-    <Compile Remove="Resources\Http\CertificateUtil.cs" />
+    <Compile Remove="Resources\Http\CertificateUploader.cs" />
     <Compile Remove="Resources\Http\TestHandler.cs" />
     <Compile Remove="Resources\Http\TestServerCertificateValidationProvider.cs" />
 

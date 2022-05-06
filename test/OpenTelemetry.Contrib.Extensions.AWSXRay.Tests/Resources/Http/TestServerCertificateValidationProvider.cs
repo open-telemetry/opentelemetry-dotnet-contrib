@@ -23,28 +23,29 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources.Http
     [Trait("Platform", "Any")]
     public class TestServerCertificateValidationProvider
     {
-        private const string CRTNAME = "cert";
         private const string INVALIDCRTNAME = "invalidcert";
 
         [Fact]
         public void TestValidCertificate()
         {
-            // Creates a self-signed certificate
-            using var tempCertificate = new TempCertificate();
+            using (CertificateUploader certificateUploader = new CertificateUploader())
+            {
+                certificateUploader.Create();
 
-            // Loads the certificate to the trusted collection from the file
-            ServerCertificateValidationProvider serverCertificateValidationProvider =
-                    ServerCertificateValidationProvider.FromCertificateFile(CRTNAME);
+                // Loads the certificate to the trusted collection from the file
+                ServerCertificateValidationProvider serverCertificateValidationProvider =
+                        ServerCertificateValidationProvider.FromCertificateFile(certificateUploader.FilePath);
 
-            // Validates if the certificate loaded into the trusted collection.
-            Assert.True(serverCertificateValidationProvider.IsCertificateLoaded);
+                // Validates if the certificate loaded into the trusted collection.
+                Assert.True(serverCertificateValidationProvider.IsCertificateLoaded);
 
-            var certificate = new X509Certificate2(CRTNAME);
-            X509Chain chain = new X509Chain();
-            chain.Build(certificate);
+                var certificate = new X509Certificate2(certificateUploader.FilePath);
+                X509Chain chain = new X509Chain();
+                chain.Build(certificate);
 
-            // validates if certificate is valid
-            Assert.True(serverCertificateValidationProvider.ValidationCallback(null, certificate, chain, System.Net.Security.SslPolicyErrors.None));
+                // validates if certificate is valid
+                Assert.True(serverCertificateValidationProvider.ValidationCallback(null, certificate, chain, System.Net.Security.SslPolicyErrors.None));
+            }
         }
 
         [Fact]
