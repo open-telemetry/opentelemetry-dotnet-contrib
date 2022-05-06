@@ -214,31 +214,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             listKvp = logRecord.State as IReadOnlyList<KeyValuePair<string, object>>;
         }
 
-        var categoryName = logRecord.CategoryName;
-
-        // If user configured explicit TableName, use it.
-        if (this.m_tableMappings == null || (!this.m_tableMappings.TryGetValue(categoryName, out var eventName) && !this.shouldPassThruTableMappings))
-        {
-            eventName = this.m_defaultEventName;
-        }
-        else if (this.shouldPassThruTableMappings && eventName == null)
-        {
-            if (!rawNameToSanitizedName.TryGetValue(categoryName, out var sanitizedName))
-            {
-                eventName = Sanitize(categoryName);
-
-                // TODO: how to determine the right cap for the size here?
-                if (rawNameToSanitizedName.Count <= 1024)
-                {
-                    rawNameToSanitizedName.TryAdd(categoryName, eventName);
-                }
-            }
-            else
-            {
-                eventName = sanitizedName;
-            }
-        }
-
         var buffer = m_buffer.Value;
         if (buffer == null)
         {
@@ -269,7 +244,51 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         var timestamp = logRecord.Timestamp;
         var cursor = 0;
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 3);
-        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, eventName);
+
+        var categoryName = logRecord.CategoryName;
+        string eventName = null;
+
+        // If user configured explicit TableName, use it.
+        if (this.m_tableMappings != null && this.m_tableMappings.TryGetValue(categoryName, out eventName))
+        {
+            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, eventName);
+        }
+        else if (!this.shouldPassThruTableMappings)
+        {
+            eventName = this.m_defaultEventName;
+            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, eventName);
+        }
+        else if (this.shouldPassThruTableMappings)
+        {
+            if (!rawNameToSanitizedName.TryGetValue(categoryName, out var sanitizedName))
+            {
+                if (categoryName.Length > 0)
+                {
+                    int cursorStartIdx = cursor;
+                    int validNameLength = 0;
+                    cursor = Sanitize(buffer, cursor, ref cursorStartIdx, ref validNameLength,  categoryName);
+                    if (validNameLength > 0)
+                    {
+                        eventName = Encoding.UTF8.GetString(buffer, cursorStartIdx + 2, validNameLength);
+                    }
+                    else
+                    {
+                        cursor = MessagePackSerializer.SerializeNull(buffer, cursor);
+                    }
+                }
+
+                if (rawNameToSanitizedName.Count <= 1024)
+                {
+                    rawNameToSanitizedName.TryAdd(categoryName, eventName);
+                }
+            }
+            else
+            {
+                eventName = sanitizedName;
+                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, eventName);
+            }
+        }
+
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 1);
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 2);
         cursor = MessagePackSerializer.SerializeUtcDateTime(buffer, cursor, timestamp);
@@ -471,69 +490,64 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         }
     }
 
-    private static string Sanitize(string categoryName)
+    private static int Sanitize(byte[] buffer, int cursor, ref int cursorStartIdx, ref int validNameLength, string categoryName)
     {
-        Span<char> tempArrSpan = stackalloc char[200];
-        int readIdx = 0;
-        int writeIdx = 0;
-
-        if (categoryName.Length > 0)
+        if (categoryName.Length > (1 << 8) - 1)
         {
-            var firstChar = categoryName[0]; // special treatment for the first character.
-            if (firstChar >= 'A' && firstChar <= 'Z')
-            {
-                tempArrSpan[writeIdx] = firstChar;
-                ++writeIdx;
-            }
-            else if (firstChar >= 'a' && firstChar <= 'z')
-            {
-                // If the first character in the resulting string is lower-case ALPHA,
-                // it will be converted to the corresponding upper-case.
-                tempArrSpan[writeIdx] = (char)(firstChar - 32);
-                ++writeIdx;
-            }
-
-            // Not a valid name - Part B name should follow PascalCase naming convention.
-            else
-            {
-                return null;
-            }
-
-            ++readIdx;
+            // The size of categoryName should not be greater than 2^8 -1.
+            return cursor;
         }
 
-        while (readIdx < categoryName.Length)
+        // Reserve 2 bytes for storing LIMIT_MAX_STR8_LENGTH_IN_BYTES and (byte)validNameLength -
+        // these 2 bytes will be back filled after iterating through categoryName.
+        cursor += 2;
+
+        // Special treatment for the first character.
+        var firstChar = categoryName[0];
+        if (firstChar >= 'A' && firstChar <= 'Z')
         {
-            // Recommended by Part B that table name should not be longer than 50 characters.
-            if (writeIdx >= 49)
+            buffer[cursor++] = (byte)firstChar;
+            ++validNameLength;
+        }
+        else if (firstChar >= 'a' && firstChar <= 'z')
+        {
+            // If the first character in the resulting string is lower-case ALPHA,
+            // it will be converted to the corresponding upper-case.
+            buffer[cursor++] = (byte)(firstChar - 32);
+            ++validNameLength;
+        }
+        else
+        {
+            // Not a valid name - Part B name should follow PascalCase naming convention.
+            return cursor -= 2;
+        }
+
+        for (int i = 1; i < categoryName.Length; ++i)
+        {
+            if (validNameLength >= 49)
             {
                 break;
             }
 
-            var cur = categoryName[readIdx];
-
-            // The category name must match "^[A-Z][a-zA-Z0-9]*$";
-            // any character that is not allowed will be removed.
-            if ((cur >= '0' && cur <= '9') ||
-                (cur >= 'A' && cur <= 'Z') ||
-                (cur >= 'a' && cur <= 'z'))
+            var cur = categoryName[i];
+            if ((cur >= '0' && cur <= '9') || (cur >= 'A' && cur <= 'Z') || (cur >= 'a' && cur <= 'z'))
             {
-                tempArrSpan[writeIdx] = cur;
-                ++writeIdx;
+                buffer[cursor++] = (byte)cur;
+                ++validNameLength;
             }
-
-            ++readIdx;
         }
 
-        if (writeIdx != 0)
+        if (validNameLength > 0)
         {
-             return tempArrSpan.Slice(0, writeIdx).ToString();
+            // Backfilling MessagePack serialization protocol and valid category length to the startIdx of the cateoryName byte array.
+            MessagePackSerializer.BackFill(buffer, cursorStartIdx, validNameLength);
+        }
+        else
+        {
+            cursor -= 2;
         }
 
-        // After removing not allowed characters,
-        // if the resulting string is still an illegal Part B name,
-        // the data will get dropped on the floor.
-        return null; // (Or instead of dropping the invalid tableNames on the floor, consider writing them into the default table?)
+        return cursor;
     }
 }
 #endif

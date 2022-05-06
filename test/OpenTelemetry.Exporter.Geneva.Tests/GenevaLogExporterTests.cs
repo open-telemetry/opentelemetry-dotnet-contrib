@@ -218,32 +218,30 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 ["*"] = "*",
             };
 
-            var expectedCategoryToTableNameList = new List<KeyValuePair<string, string>>();
-            for (int i = 0; i < 7; ++i)
+            var expectedCategoryToTableNameList = new List<KeyValuePair<string, string>>
             {
                 // The category name must match "^[A-Z][a-zA-Z0-9]*$"; any character that is not allowed will be removed.
-                expectedCategoryToTableNameList.Add(new KeyValuePair<string, string>("Company.Customer", "CompanyCustomer"));
+                new KeyValuePair<string, string>("Company.Customer", "CompanyCustomer"),
 
                 // testing caching code-path.
-                expectedCategoryToTableNameList.Add(new KeyValuePair<string, string>("Company.Customer", "CompanyCustomer"));
-                expectedCategoryToTableNameList.Add(new KeyValuePair<string, string>("Company-%-Customer*Region$##", "CompanyCustomerRegion"));
+                new KeyValuePair<string, string>("Company.Customer", "CompanyCustomer"),
+
+                new KeyValuePair<string, string>("Company-%-Customer*Region$##", "CompanyCustomerRegion"),
 
                 // If the first character in the resulting string is lower-case ALPHA,
                 // it will be converted to the corresponding upper-case.
-                expectedCategoryToTableNameList.Add(new KeyValuePair<string, string>("company.Customer", "CompanyCustomer"));
+                new KeyValuePair<string, string>("company.Calendar", "CompanyCalendar"),
 
                 // After removing not allowed characters,
                 // if the resulting string is still an illegal Part B name, the data will get dropped on the floor.
-                expectedCategoryToTableNameList.Add(new KeyValuePair<string, string>("$&-.$~!!", null));
+                new KeyValuePair<string, string>("$&-.$~!!", null),
 
                 // If the resulting string is longer than 50 characters, only the first 50 characters will be taken.
-                expectedCategoryToTableNameList.Add(new KeyValuePair<string, string>("Company.Customer.rsLiheLClHJasBOvM.XI4uW7iop6ghvwBzahfs", "CompanyCustomerrsLiheLClHJasBOvMXI4uW7iop6ghvwBza"));
+                new KeyValuePair<string, string>("Company.Customer.rsLiheLClHJasBOvM.XI4uW7iop6ghvwBzahfs", "CompanyCustomerrsLiheLClHJasBOvMXI4uW7iop6ghvwBza"),
 
                 // The data will be dropped on the floor as the exporter cannot deduce a valid table name.
-                expectedCategoryToTableNameList.Add(new KeyValuePair<string, string>("1.2", null));
-
-                expectedCategoryToTableNameList.Add(new KeyValuePair<string, string>("你好", null));
-            }
+                new KeyValuePair<string, string>("1.2", null),
+            };
 
             var logRecordList = new List<LogRecord>();
             var exporterOptions = new GenevaExporterOptions
