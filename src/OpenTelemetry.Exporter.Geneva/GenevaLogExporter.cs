@@ -522,9 +522,10 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             return cursor -= 2;
         }
 
+        const int maxNameCharCount = 50;
         for (int i = 1; i < categoryName.Length; ++i)
         {
-            if (validNameLength >= 49)
+            if (validNameLength >= maxNameCharCount - 1)
             {
                 break;
             }
