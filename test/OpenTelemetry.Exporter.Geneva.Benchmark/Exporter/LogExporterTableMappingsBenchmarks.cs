@@ -19,6 +19,8 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.Logging;
 
 /*
+Summary
+
 BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19044.1645 (21H2)
 Intel Xeon CPU E5-1650 v4 3.60GHz, 1 CPU, 12 logical and 6 physical cores
 .NET SDK=6.0.202
@@ -28,8 +30,8 @@ Intel Xeon CPU E5-1650 v4 3.60GHz, 1 CPU, 12 logical and 6 physical cores
 
 |                                          Method |     Mean |     Error |    StdDev |  Gen 0 | Allocated |
 |------------------------------------------------ |---------:|----------:|----------:|-------:|----------:|
-| CategoryTableNameMappingsDefinedInConfiguration | 1.640 us | 0.0324 us | 0.0711 us | 0.0324 |     256 B |
-|    PassThruTableNameMappingsWhenTheRuleIsEnbled | 1.761 us | 0.0349 us | 0.0729 us | 0.0324 |     256 B |
+| CategoryTableNameMappingsDefinedInConfiguration | 1.560 us | 0.0307 us | 0.0673 us | 0.0324 |     256 B |
+|    PassThruTableNameMappingsWhenTheRuleIsEnbled | 1.573 us | 0.0314 us | 0.0574 us | 0.0324 |     256 B |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark

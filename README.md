@@ -4,18 +4,17 @@
 [![Linux](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/actions/workflows/linux-ci.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/actions/workflows/linux-ci.yml)
 [![Windows](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/actions/workflows/windows-ci.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/actions/workflows/windows-ci.yml)
 
-This repository contains set of components extending functionality of the
-OpenTelemetry SDK. Instrumentation libraries, exporters, and other components
-can find their home here.
-
-Packages in this repository are prefixed with `OpenTelemetry.Contrib` to
-highlight that they are different from the packages produced by the primary .NET
-SDK repository.
+This project is intended to provide helpful libraries and standalone
+OpenTelemetry-based utilities that don't fit the express scope of the
+[OpenTelemetry .NET](https://github.com/open-telemetry/opentelemetry-dotnet) or
+[OpenTelemetry .NET Automatic
+Instrumentation](https://github.com/open-telemetry/opentelemetry-dotnet-instrumentation)
+projects.
 
 ## Contributing
 
 For information on how to contribute, consult [the contributing
-guidelines](./CONTRIBUTING.md)
+guidelines](./CONTRIBUTING.md).
 
 ## Support
 
