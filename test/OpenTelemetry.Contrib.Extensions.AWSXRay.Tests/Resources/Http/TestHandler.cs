@@ -29,13 +29,10 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources.Http
         public void TestValidHandler()
         {
             // Creates a self-signed certificate
-            CertificateUtil.CreateCertificate(CRTNAME);
+            using var tempCertificate = new TempCertificate();
 
             // Validates if the handler created.
             Assert.NotNull(Handler.Create(CRTNAME));
-
-            // Deletes the certificate
-            CertificateUtil.DeleteCertificate(CRTNAME);
         }
 
         [Fact]

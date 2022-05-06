@@ -30,7 +30,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources.Http
         public void TestValidCertificate()
         {
             // Creates a self-signed certificate
-            CertificateUtil.CreateCertificate(CRTNAME);
+            using var tempCertificate = new TempCertificate();
 
             // Loads the certificate to the trusted collection from the file
             ServerCertificateValidationProvider serverCertificateValidationProvider =
@@ -45,9 +45,6 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources.Http
 
             // validates if certificate is valid
             Assert.True(serverCertificateValidationProvider.ValidationCallback(null, certificate, chain, System.Net.Security.SslPolicyErrors.None));
-
-            // Deletes the certificate
-            CertificateUtil.DeleteCertificate(CRTNAME);
         }
 
         [Fact]

@@ -21,15 +21,16 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources.Http
 {
-    internal class CertificateUtil
+    internal class TempCertificate : IDisposable
     {
         private const string CRTHEADER = "-----BEGIN CERTIFICATE-----\n";
         private const string CRTFOOTER = "\n-----END CERTIFICATE-----";
 
-        public static void CreateCertificate(string certificateName)
+        public TempCertificate()
         {
             using var rsa = RSA.Create();
-            var certRequest = new CertificateRequest("cn=test", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            var certRequest =
+                new CertificateRequest("cn=test", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
 
             var subjectAlternativeNames = new SubjectAlternativeNameBuilder();
             subjectAlternativeNames.AddDnsName("test");
@@ -40,14 +41,17 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources.Http
 
             var exportData = certificate.Export(X509ContentType.Cert);
             var crt = Convert.ToBase64String(exportData, Base64FormattingOptions.InsertLineBreaks);
-            File.WriteAllText(certificateName, CRTHEADER + crt + CRTFOOTER);
+            this.FullPath = Path.GetTempFileName();
+            File.WriteAllText(FullPath, CRTHEADER + crt + CRTFOOTER);
         }
 
-        public static void DeleteCertificate(string certificateName)
+        public string FullPath { get; }
+
+        public void Dispose()
         {
-            if (File.Exists(certificateName))
+            if (File.Exists(FullPath))
             {
-                File.Delete(certificateName);
+                File.Delete(FullPath);
             }
         }
     }
