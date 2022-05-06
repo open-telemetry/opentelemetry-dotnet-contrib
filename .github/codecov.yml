@@ -5,6 +5,9 @@ coverage:
   precision: 2
   round: down
   range: "70...100"
+  status:
+    project: off
+    patch: off
 
 parsers:
   gcov:
@@ -20,6 +23,6 @@ comment:
   require_changes: no
 
 ignore:
-  - "test/**/*"     # ignore test folder
-  - "**.md"          # ignore md files
+  - "**.md"
   - "src/OpenTelemetry.Contrib.Shared"  # copied from main OTel project and has code coverage there
+  - "test/**/*"
