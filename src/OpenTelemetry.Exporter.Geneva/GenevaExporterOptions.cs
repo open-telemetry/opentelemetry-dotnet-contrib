@@ -40,18 +40,16 @@ public class GenevaExporterOptions
         {
             Guard.ThrowIfNull(value);
 
+            var copy = new Dictionary<string, string>(value.Count);
+
             foreach (var entry in value)
             {
                 if (entry.Value is null)
                 {
                     throw new ArgumentNullException(entry.Key, $"{nameof(this.TableNameMappings)} must not contain null values.");
                 }
-            }
 
-            var copy = new Dictionary<string, string>(value.Count);
-            foreach (var entry in value)
-            {
-                copy[entry.Key] = entry.Value; // shallow copy
+                copy[entry.Key] = entry.Value;
             }
 
             this._tableNameMappings = copy;
