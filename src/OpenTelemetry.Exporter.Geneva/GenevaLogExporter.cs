@@ -16,6 +16,7 @@
 
 #if NETSTANDARD2_0 || NET461
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -44,6 +45,8 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
     };
 
     private readonly IDataTransport m_dataTransport;
+    private static readonly ConcurrentDictionary<string, string> rawNameToSanitizedName = new();
+    private readonly bool shouldPassThruTableMappings;
     private bool isDisposed;
     private Func<object, string> convertToJson;
 
@@ -65,7 +68,14 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
 
                 if (kv.Key == "*")
                 {
-                    this.m_defaultEventName = kv.Value;
+                    if (kv.Value == "*")
+                    {
+                        this.shouldPassThruTableMappings = true;
+                    }
+                    else
+                    {
+                        this.m_defaultEventName = kv.Value;
+                    }
                 }
                 else
                 {
@@ -204,14 +214,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             listKvp = logRecord.State as IReadOnlyList<KeyValuePair<string, object>>;
         }
 
-        var name = logRecord.CategoryName;
-
-        // If user configured explicit TableName, use it.
-        if (this.m_tableMappings == null || !this.m_tableMappings.TryGetValue(name, out var eventName))
-        {
-            eventName = this.m_defaultEventName;
-        }
-
         var buffer = m_buffer.Value;
         if (buffer == null)
         {
@@ -242,7 +244,51 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         var timestamp = logRecord.Timestamp;
         var cursor = 0;
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 3);
-        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, eventName);
+
+        var categoryName = logRecord.CategoryName;
+        string eventName = null;
+
+        // If user configured explicit TableName, use it.
+        if (this.m_tableMappings != null && this.m_tableMappings.TryGetValue(categoryName, out eventName))
+        {
+            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, eventName);
+        }
+        else if (!this.shouldPassThruTableMappings)
+        {
+            eventName = this.m_defaultEventName;
+            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, eventName);
+        }
+        else if (this.shouldPassThruTableMappings)
+        {
+            if (!rawNameToSanitizedName.TryGetValue(categoryName, out var sanitizedName))
+            {
+                if (categoryName.Length > 0)
+                {
+                    int cursorStartIdx = cursor;
+                    int validNameLength = 0;
+                    cursor = Sanitize(buffer, cursor, ref cursorStartIdx, ref validNameLength, categoryName);
+                    if (validNameLength > 0)
+                    {
+                        eventName = Encoding.UTF8.GetString(buffer, cursorStartIdx + 2, validNameLength);
+                    }
+                    else
+                    {
+                        cursor = MessagePackSerializer.SerializeNull(buffer, cursor);
+                    }
+                }
+
+                if (rawNameToSanitizedName.Count <= 1024)
+                {
+                    rawNameToSanitizedName.TryAdd(categoryName, eventName);
+                }
+            }
+            else
+            {
+                eventName = sanitizedName;
+                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, eventName);
+            }
+        }
+
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 1);
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 2);
         cursor = MessagePackSerializer.SerializeUtcDateTime(buffer, cursor, timestamp);
@@ -329,7 +375,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         cntFields += 1;
 
         cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "name");
-        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, name);
+        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, categoryName);
         cntFields += 1;
 
         bool hasEnvProperties = false;
@@ -442,6 +488,66 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             default:
                 return 1;
         }
+    }
+
+    private static int Sanitize(byte[] buffer, int cursor, ref int cursorStartIdx, ref int validNameLength, string categoryName)
+    {
+        if (categoryName.Length > (1 << 8) - 1)
+        {
+            // The size of categoryName should not be greater than 2^8 -1.
+            return cursor;
+        }
+
+        // Reserve 2 bytes for storing LIMIT_MAX_STR8_LENGTH_IN_BYTES and (byte)validNameLength -
+        // these 2 bytes will be back filled after iterating through categoryName.
+        cursor += 2;
+
+        // Special treatment for the first character.
+        var firstChar = categoryName[0];
+        if (firstChar >= 'A' && firstChar <= 'Z')
+        {
+            buffer[cursor++] = (byte)firstChar;
+            ++validNameLength;
+        }
+        else if (firstChar >= 'a' && firstChar <= 'z')
+        {
+            // If the first character in the resulting string is lower-case ALPHA,
+            // it will be converted to the corresponding upper-case.
+            buffer[cursor++] = (byte)(firstChar - 32);
+            ++validNameLength;
+        }
+        else
+        {
+            // Not a valid name - Part B name should follow PascalCase naming convention.
+            return cursor -= 2;
+        }
+
+        for (int i = 1; i < categoryName.Length; ++i)
+        {
+            if (validNameLength >= 49)
+            {
+                break;
+            }
+
+            var cur = categoryName[i];
+            if ((cur >= '0' && cur <= '9') || (cur >= 'A' && cur <= 'Z') || (cur >= 'a' && cur <= 'z'))
+            {
+                buffer[cursor++] = (byte)cur;
+                ++validNameLength;
+            }
+        }
+
+        if (validNameLength > 0)
+        {
+            // Backfilling MessagePack serialization protocol and valid category length to the startIdx of the cateoryName byte array.
+            MessagePackSerializer.BackFill(buffer, cursorStartIdx, validNameLength);
+        }
+        else
+        {
+            cursor -= 2;
+        }
+
+        return cursor;
     }
 }
 #endif
