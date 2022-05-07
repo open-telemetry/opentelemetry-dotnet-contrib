@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Throw exception when `TableNameMappings` contains a `null` value.
+[322](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/322)
+
 ## 1.2.6 [2022-Apr-21]
 
 * Set GenevaMetricExporter temporality preference back to Delta.
