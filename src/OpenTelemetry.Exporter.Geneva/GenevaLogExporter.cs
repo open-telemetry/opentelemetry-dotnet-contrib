@@ -248,6 +248,9 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         var categoryName = logRecord.CategoryName;
         string eventName = null;
 
+        IntPtr unmanagedArray = IntPtr.Zero;
+        int validNameLength = 0;
+
         // If user configured explicit TableName, use it.
         if (this.m_tableMappings != null && this.m_tableMappings.TryGetValue(categoryName, out eventName))
         {
@@ -265,11 +268,14 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
                 if (categoryName.Length > 0)
                 {
                     int cursorStartIdx = cursor;
-                    int validNameLength = 0;
                     cursor = Sanitize(buffer, cursor, ref cursorStartIdx, ref validNameLength, categoryName);
                     if (validNameLength > 0)
                     {
-                        eventName = Encoding.UTF8.GetString(buffer, cursorStartIdx + 2, validNameLength);
+                        unmanagedArray = Marshal.AllocHGlobal(validNameLength + 2);
+                        for (int i = 0; i < validNameLength + 2; i++)
+                        {
+                            Marshal.WriteByte(unmanagedArray + i, buffer[cursorStartIdx + i]);
+                        }
                     }
                     else
                     {
@@ -328,7 +334,15 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         }
 
         // Part A - core envelope
-        cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, eventName);
+        if (unmanagedArray != IntPtr.Zero)
+        {
+            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, unmanagedArray, validNameLength + 2);
+        }
+        else
+        {
+            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, eventName);
+        }
+
         cntFields += 1;
 
         cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Time, timestamp);

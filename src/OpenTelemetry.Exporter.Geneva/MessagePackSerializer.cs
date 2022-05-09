@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace OpenTelemetry.Exporter.Geneva;
@@ -455,6 +456,19 @@ internal static class MessagePackSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
+    public static int SerializeArrayPtr(byte[] buffer, int cursor, IntPtr ptr, int size)
+    {
+        for (int i = 0; i < size; ++i)
+        {
+            buffer[cursor++] = Marshal.ReadByte(ptr + i);
+        }
+
+        Marshal.FreeHGlobal(ptr);
+        return cursor;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int WriteMapHeader(byte[] buffer, int cursor, int count)
     {
         if (count <= LIMIT_MAX_FIX_MAP_COUNT)
@@ -524,7 +538,7 @@ internal static class MessagePackSerializer
         return SerializeTimestamp96(buffer, cursor, utc.Ticks);
     }
 
-    public static int Serialize(byte[] buffer, int cursor, object obj)
+    public static int Serialize(byte[] buffer, int cursor, object obj, int size = -1)
     {
         if (obj == null)
         {
@@ -561,6 +575,8 @@ internal static class MessagePackSerializer
                 return SerializeMap(buffer, cursor, v);
             case object[] v:
                 return SerializeArray(buffer, cursor, v);
+            case IntPtr ptr:
+                return SerializeArrayPtr(buffer, cursor, ptr, size);
             case DateTime v:
                 return SerializeUtcDateTime(buffer, cursor, v.ToUniversalTime());
             default:

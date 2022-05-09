@@ -75,7 +75,7 @@ where T : class
         [Schema.V40.PartA.Extensions.Os.Ver] = "env_os_ver",
     };
 
-    internal static int AddPartAField(byte[] buffer, int cursor, string name, object value)
+    internal static int AddPartAField(byte[] buffer, int cursor, string name, object value, int size = -1)
     {
         if (V40_PART_A_MAPPING.TryGetValue(name, out string replacementKey))
         {
@@ -86,7 +86,7 @@ where T : class
             cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, name);
         }
 
-        cursor = MessagePackSerializer.Serialize(buffer, cursor, value);
+        cursor = MessagePackSerializer.Serialize(buffer, cursor, value, size);
         return cursor;
     }
 }
