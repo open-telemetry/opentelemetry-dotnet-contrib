@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
@@ -40,8 +41,9 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
         /// <returns>
         /// True if the blob was created or else false.
         /// </returns>
-        public bool TryCreateBlob(byte[] buffer, int leasePeriodMilliseconds, out PersistentBlob blob)
+        public bool TryCreateBlob(byte[] buffer, int leasePeriodMilliseconds, [NotNullWhen(true)] out PersistentBlob? blob)
         {
+#pragma warning disable CA1031 // Do not catch general exception types
             try
             {
                 return this.OnTryCreateBlob(buffer, leasePeriodMilliseconds, out blob);
@@ -52,6 +54,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
                 blob = null;
                 return false;
             }
+#pragma warning restore CA1031 // Do not catch general exception types
         }
 
         /// <summary>
@@ -66,8 +69,9 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
         /// <returns>
         /// True if the blob was created or else false.
         /// </returns>
-        public bool TryCreateBlob(byte[] buffer, out PersistentBlob blob)
+        public bool TryCreateBlob(byte[] buffer, [NotNullWhen(true)] out PersistentBlob? blob)
         {
+#pragma warning disable CA1031 // Do not catch general exception types
             try
             {
                 return this.OnTryCreateBlob(buffer, out blob);
@@ -78,6 +82,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
                 blob = null;
                 return false;
             }
+#pragma warning restore CA1031 // Do not catch general exception types
         }
 
         /// <summary>
@@ -89,8 +94,9 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
         /// <returns>
         /// True if blob is present or else false.
         /// </returns>
-        public bool TryGetBlob(out PersistentBlob blob)
+        public bool TryGetBlob([NotNullWhen(true)] out PersistentBlob? blob)
         {
+#pragma warning disable CA1031 // Do not catch general exception types
             try
             {
                 return this.OnTryGetBlob(out blob);
@@ -101,6 +107,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
                 blob = null;
                 return false;
             }
+#pragma warning restore CA1031 // Do not catch general exception types
         }
 
         /// <summary>
@@ -111,6 +118,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
         /// </returns>
         public IEnumerable<PersistentBlob> GetBlobs()
         {
+#pragma warning disable CA1031 // Do not catch general exception types
             try
             {
                 return this.OnGetBlobs() ?? Enumerable.Empty<PersistentBlob>();
@@ -120,14 +128,15 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
                 // TODO: log exception
                 return Enumerable.Empty<PersistentBlob>();
             }
+#pragma warning restore CA1031 // Do not catch general exception types
         }
 
         protected abstract IEnumerable<PersistentBlob> OnGetBlobs();
 
-        protected abstract bool OnTryCreateBlob(byte[] buffer, int leasePeriodMilliseconds, out PersistentBlob blob);
+        protected abstract bool OnTryCreateBlob(byte[] buffer, int leasePeriodMilliseconds, [NotNullWhen(true)] out PersistentBlob? blob);
 
-        protected abstract bool OnTryCreateBlob(byte[] buffer, out PersistentBlob blob);
+        protected abstract bool OnTryCreateBlob(byte[] buffer, [NotNullWhen(true)] out PersistentBlob? blob);
 
-        protected abstract bool OnTryGetBlob(out PersistentBlob blob);
+        protected abstract bool OnTryGetBlob([NotNullWhen(true)] out PersistentBlob? blob);
     }
 }
