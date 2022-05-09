@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 
 namespace OpenTelemetry.Exporter.Geneva;
@@ -87,6 +88,21 @@ where T : class
         }
 
         cursor = MessagePackSerializer.Serialize(buffer, cursor, value, size);
+        return cursor;
+    }
+
+    internal static int AddPartAFieldSpan(byte[] buffer, int cursor, string name, Span<byte> value, int size = -1)
+    {
+        if (V40_PART_A_MAPPING.TryGetValue(name, out string replacementKey))
+        {
+            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, replacementKey);
+        }
+        else
+        {
+            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, name);
+        }
+
+        cursor = MessagePackSerializer.SerializeSpan(buffer, cursor, value, size);
         return cursor;
     }
 }

@@ -457,14 +457,13 @@ internal static class MessagePackSerializer
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
-    public static int SerializeArrayPtr(byte[] buffer, int cursor, IntPtr ptr, int size)
+    public static int SerializeArrayPtr(byte[] buffer, int cursor, Span<byte> ptr, int size)
     {
         for (int i = 0; i < size; ++i)
         {
-            buffer[cursor++] = Marshal.ReadByte(ptr + i);
+            buffer[cursor++] = ptr[i];
         }
 
-        Marshal.FreeHGlobal(ptr);
         return cursor;
     }
 
@@ -575,8 +574,6 @@ internal static class MessagePackSerializer
                 return SerializeMap(buffer, cursor, v);
             case object[] v:
                 return SerializeArray(buffer, cursor, v);
-            case IntPtr ptr:
-                return SerializeArrayPtr(buffer, cursor, ptr, size);
             case DateTime v:
                 return SerializeUtcDateTime(buffer, cursor, v.ToUniversalTime());
             default:
@@ -593,5 +590,10 @@ internal static class MessagePackSerializer
 
                 return SerializeUnicodeString(buffer, cursor, repr);
         }
+    }
+
+    public static int SerializeSpan(byte[] buffer, int cursor, Span<byte> obj, int size = -1)
+    {
+        return SerializeArrayPtr(buffer, cursor, obj, size);
     }
 }

@@ -248,7 +248,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         var categoryName = logRecord.CategoryName;
         string eventName = null;
 
-        IntPtr unmanagedArray = IntPtr.Zero;
+        Span<byte> data = stackalloc byte[0];
         int validNameLength = 0;
 
         // If user configured explicit TableName, use it.
@@ -261,37 +261,26 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             eventName = this.m_defaultEventName;
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, eventName);
         }
-        else if (this.shouldPassThruTableMappings)
+        else
         {
-            if (!rawNameToSanitizedName.TryGetValue(categoryName, out var sanitizedName))
+            if (categoryName.Length > 0)
             {
-                if (categoryName.Length > 0)
+                int cursorStartIdx = cursor;
+                cursor = Sanitize(buffer, cursor, ref cursorStartIdx, ref validNameLength, categoryName);
+                if (validNameLength > 0)
                 {
-                    int cursorStartIdx = cursor;
-                    cursor = Sanitize(buffer, cursor, ref cursorStartIdx, ref validNameLength, categoryName);
-                    if (validNameLength > 0)
+                    data = stackalloc byte[validNameLength + 2];
+                    for (int i = 0; i < validNameLength + 2; i++)
                     {
-                        unmanagedArray = Marshal.AllocHGlobal(validNameLength + 2);
-                        for (int i = 0; i < validNameLength + 2; i++)
-                        {
-                            Marshal.WriteByte(unmanagedArray + i, buffer[cursorStartIdx + i]);
-                        }
-                    }
-                    else
-                    {
-                        cursor = MessagePackSerializer.SerializeNull(buffer, cursor);
+                        // Can use this syntax:
+                        // https://docs.microsoft.com/en-us/dotnet/api/system.span-1.-ctor?view=net-6.0#system-span-1-ctor(-0()-system-int32-system-int32)
+                        data[i] = buffer[cursorStartIdx + i];
                     }
                 }
-
-                if (rawNameToSanitizedName.Count <= 1024)
+                else
                 {
-                    rawNameToSanitizedName.TryAdd(categoryName, eventName);
+                    cursor = MessagePackSerializer.SerializeNull(buffer, cursor);
                 }
-            }
-            else
-            {
-                eventName = sanitizedName;
-                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, eventName);
             }
         }
 
@@ -334,9 +323,9 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         }
 
         // Part A - core envelope
-        if (unmanagedArray != IntPtr.Zero)
+        if (!data.IsEmpty)
         {
-            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, unmanagedArray, validNameLength + 2);
+            cursor = AddPartAFieldSpan(buffer, cursor, Schema.V40.PartA.Name, data, validNameLength + 2);
         }
         else
         {
