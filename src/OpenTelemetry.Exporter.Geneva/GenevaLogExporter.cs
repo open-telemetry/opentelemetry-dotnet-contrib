@@ -16,7 +16,6 @@
 
 #if NETSTANDARD2_0 || NET461
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -45,7 +44,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
     };
 
     private readonly IDataTransport m_dataTransport;
-    private static readonly ConcurrentDictionary<string, string> rawNameToSanitizedName = new();
     private readonly bool shouldPassThruTableMappings;
     private bool isDisposed;
     private Func<object, string> convertToJson;
@@ -261,27 +259,26 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             eventName = this.m_defaultEventName;
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, eventName);
         }
-        else
+        else if (categoryName.Length > 0)
         {
-            if (categoryName.Length > 0)
+            int cursorStartIdx = cursor;
+            cursor = Sanitize(buffer, cursor, ref cursorStartIdx, ref validNameLength, categoryName);
+            if (validNameLength > 0)
             {
-                int cursorStartIdx = cursor;
-                cursor = Sanitize(buffer, cursor, ref cursorStartIdx, ref validNameLength, categoryName);
-                if (validNameLength > 0)
+                data = stackalloc byte[validNameLength + 2];
+                for (int i = 0; i < validNameLength + 2; i++)
                 {
-                    data = stackalloc byte[validNameLength + 2];
-                    for (int i = 0; i < validNameLength + 2; i++)
-                    {
-                        // Can use this syntax:
-                        // https://docs.microsoft.com/en-us/dotnet/api/system.span-1.-ctor?view=net-6.0#system-span-1-ctor(-0()-system-int32-system-int32)
-                        data[i] = buffer[cursorStartIdx + i];
-                    }
-                }
-                else
-                {
-                    cursor = MessagePackSerializer.SerializeNull(buffer, cursor);
+                    data[i] = buffer[cursorStartIdx + i];
                 }
             }
+            else
+            {
+                cursor = MessagePackSerializer.SerializeNull(buffer, cursor);
+            }
+        }
+        else
+        {
+            cursor = MessagePackSerializer.SerializeNull(buffer, cursor);
         }
 
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 1);
@@ -325,7 +322,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         // Part A - core envelope
         if (!data.IsEmpty)
         {
-            cursor = AddPartAFieldSpan(buffer, cursor, Schema.V40.PartA.Name, data, validNameLength + 2);
+            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, data, validNameLength + 2);
         }
         else
         {
@@ -544,7 +541,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         if (validNameLength > 0)
         {
             // Backfilling MessagePack serialization protocol and valid category length to the startIdx of the cateoryName byte array.
-            MessagePackSerializer.BackFill(buffer, cursorStartIdx, validNameLength);
+            MessagePackSerializer.WriteCategoryNameHeader(buffer, cursorStartIdx, validNameLength);
         }
         else
         {

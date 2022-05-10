@@ -209,6 +209,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
+        [Trait("Platform", "Any")]
         public void PassThruTableMappingsWhenTheRuleIsEnabled()
         {
             var userInitializedCategoryToTableNameMappings = new Dictionary<string, string>
@@ -221,9 +222,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
             var expectedCategoryToTableNameList = new List<KeyValuePair<string, string>>
             {
                 // The category name must match "^[A-Z][a-zA-Z0-9]*$"; any character that is not allowed will be removed.
-                new KeyValuePair<string, string>("Company.Customer", "CompanyCustomer"),
-
-                // testing caching code-path.
                 new KeyValuePair<string, string>("Company.Customer", "CompanyCustomer"),
 
                 new KeyValuePair<string, string>("Company-%-Customer*Region$##", "CompanyCustomerRegion"),
@@ -264,6 +262,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
             ThreadLocal<byte[]> m_buffer;
             object fluentdData;
             string actualTableName;
+            m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
 
             // Verify that the category table mappings specified by the users in the Geneva Configuration are mapped correctly.
             foreach (var mapping in userInitializedCategoryToTableNameMappings)
@@ -273,12 +272,13 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                     userInitializedTableMappingsLogger = loggerFactory.CreateLogger(mapping.Key);
                     userInitializedTableMappingsLogger.LogInformation("This information does not matter.");
                     Assert.Single(logRecordList);
-                    m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+
                     _ = exporter.SerializeLogRecord(logRecordList[0]);
                     fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
                     actualTableName = (fluentdData as object[])[0] as string;
                     userInitializedCategoryToTableNameMappings.TryGetValue(mapping.Key, out var expectedTableNme);
                     Assert.Equal(expectedTableNme, actualTableName);
+
                     logRecordList.Clear();
                 }
             }
@@ -289,18 +289,14 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 passThruTableMappingsLogger = loggerFactory.CreateLogger(mapping.Key);
                 passThruTableMappingsLogger.LogInformation("This information does not matter.");
                 Assert.Single(logRecordList);
-                m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+
                 _ = exporter.SerializeLogRecord(logRecordList[0]);
                 fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
                 actualTableName = (fluentdData as object[])[0] as string;
-
                 string expectedTableName = string.Empty;
-                if (expectedCategoryToTableNameList.Contains(new KeyValuePair<string, string>(mapping.Key, mapping.Value)))
-                {
-                    expectedTableName = mapping.Value;
-                }
-
+                expectedTableName = mapping.Value;
                 Assert.Equal(expectedTableName, actualTableName);
+
                 logRecordList.Clear();
             }
         }

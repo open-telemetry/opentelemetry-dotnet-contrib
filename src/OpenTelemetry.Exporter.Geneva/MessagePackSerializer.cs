@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace OpenTelemetry.Exporter.Geneva;
@@ -308,7 +307,7 @@ internal static class MessagePackSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void BackFill(byte[] buffer, int nameStartIdx, int validNameLength)
+    public static void WriteCategoryNameHeader(byte[] buffer, int nameStartIdx, int validNameLength)
     {
         buffer[nameStartIdx] = STR8;
         buffer[nameStartIdx + 1] = unchecked((byte)validNameLength);
@@ -457,11 +456,11 @@ internal static class MessagePackSerializer
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
-    public static int SerializeArrayPtr(byte[] buffer, int cursor, Span<byte> ptr, int size)
+    public static int SerializeSpan(byte[] buffer, int cursor, Span<byte> span, int size)
     {
         for (int i = 0; i < size; ++i)
         {
-            buffer[cursor++] = ptr[i];
+            buffer[cursor++] = span[i];
         }
 
         return cursor;
@@ -537,7 +536,7 @@ internal static class MessagePackSerializer
         return SerializeTimestamp96(buffer, cursor, utc.Ticks);
     }
 
-    public static int Serialize(byte[] buffer, int cursor, object obj, int size = -1)
+    public static int Serialize(byte[] buffer, int cursor, object obj)
     {
         if (obj == null)
         {
@@ -592,8 +591,8 @@ internal static class MessagePackSerializer
         }
     }
 
-    public static int SerializeSpan(byte[] buffer, int cursor, Span<byte> obj, int size = -1)
+    public static int Serialize(byte[] buffer, int cursor, Span<byte> span, int size)
     {
-        return SerializeArrayPtr(buffer, cursor, obj, size);
+        return SerializeSpan(buffer, cursor, span, size);
     }
 }
