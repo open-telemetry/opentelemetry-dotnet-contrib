@@ -543,10 +543,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             // Backfilling MessagePack serialization protocol and valid category length to the startIdx of the cateoryName byte array.
             MessagePackSerializer.WriteCategoryNameHeader(buffer, cursorStartIdx, validNameLength);
         }
-        else
-        {
-            cursor -= 2;
-        }
 
         return cursor;
     }
