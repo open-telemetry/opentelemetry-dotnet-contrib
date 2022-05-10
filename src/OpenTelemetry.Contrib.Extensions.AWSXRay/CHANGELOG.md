@@ -1,5 +1,10 @@
 # Changelog - OpenTelemetry.Contrib.Extensions.AWSXRay
 
+## Unreleased
+
+* Updated OTel SDK package version to 1.2.0
+* Update minimum support to net462
+
 ## 1.1.0 [2021-Sept-20]
 
 * Added AWS resource detectors ([#149](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/149))
