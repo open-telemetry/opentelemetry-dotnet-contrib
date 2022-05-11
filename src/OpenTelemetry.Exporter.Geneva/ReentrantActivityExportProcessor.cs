@@ -44,12 +44,10 @@ internal class ReentrantActivityExportProcessor : BaseExportProcessor<Activity>
 
     protected override void OnExport(Activity data)
     {
-        if (!data.Recorded)
+        if (data.Recorded)
         {
-            return;
+            this.exporter.Export(CreateBatch(data));
         }
-
-        this.exporter.Export(CreateBatch(data));
     }
 
     private static readonly Func<Activity, Batch<Activity>> CreateBatch;
