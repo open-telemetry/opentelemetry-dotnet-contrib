@@ -26,17 +26,8 @@ namespace OpenTelemetry.Exporter.Geneva;
 // we can get rid of this class.
 // This is currently only used in ETW export, where we know
 // that the underlying system is safe under concurrent calls.
-internal class ReentrantActivityExportProcessor : BaseExportProcessor<Activity>
+internal class ReentrantActivityExportProcessor : ReentrantExportProcessor<Activity>
 {
-    static ReentrantActivityExportProcessor()
-    {
-        var flags = BindingFlags.Instance | BindingFlags.NonPublic;
-        var ctor = typeof(Batch<Activity>).GetConstructor(flags, null, new Type[] { typeof(Activity) }, null);
-        var value = Expression.Parameter(typeof(Activity), null);
-        var lambda = Expression.Lambda<Func<Activity, Batch<Activity>>>(Expression.New(ctor, value), value);
-        CreateBatch = lambda.Compile();
-    }
-
     public ReentrantActivityExportProcessor(BaseExporter<Activity> exporter)
         : base(exporter)
     {
@@ -44,13 +35,9 @@ internal class ReentrantActivityExportProcessor : BaseExportProcessor<Activity>
 
     protected override void OnExport(Activity data)
     {
-        if (!data.Recorded)
+        if (data.Recorded)
         {
-            return;
+            base.OnExport(data);
         }
-
-        this.exporter.Export(CreateBatch(data));
     }
-
-    private static readonly Func<Activity, Batch<Activity>> CreateBatch;
 }
