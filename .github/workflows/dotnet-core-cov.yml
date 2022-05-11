@@ -31,7 +31,7 @@ jobs:
       run: dotnet build --configuration Release --no-restore
 
     - name: dotnet test
-      run: dotnet test --collect:"Code Coverage" --results-directory:"TestResults" --configuration Release --no-build --filter "Platform=Any|Platform=Windows" -- RunConfiguration.DisableAppDomain=true --logger:"console;verbosity=detailed"
+      run: dotnet test --collect:"Code Coverage" --results-directory:"TestResults" --configuration Release --no-build --filter "Platform=Any|Platform=Windows" -- RunConfiguration.DisableAppDomain=true
 
     - name: Process code coverage
       run: .\build\process-codecoverage.ps1
