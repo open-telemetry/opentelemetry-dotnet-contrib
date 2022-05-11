@@ -41,7 +41,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
             }
             catch (Exception ex)
             {
-                PersistentStorageAbstractionsEventSource.Log.Warning($"Reading a blob has failed.", ex);
+                PersistentStorageAbstractionsEventSource.Log.Warning($"Failed to rea the blob.", ex);
                 buffer = null;
                 return false;
             }
