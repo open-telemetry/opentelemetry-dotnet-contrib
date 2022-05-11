@@ -6,7 +6,7 @@
 [322](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/322)
 
 * TraceExporter bug fix to not export non-recorded Activities.
-[322](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/322)
+[352](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/352)
 
 ## 1.2.6 [2022-Apr-21]
 
