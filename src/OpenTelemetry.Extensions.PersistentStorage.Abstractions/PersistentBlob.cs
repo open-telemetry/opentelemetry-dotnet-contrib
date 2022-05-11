@@ -35,18 +35,18 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
         /// </returns>
         public bool TryRead([NotNullWhen(true)] out byte[]? buffer)
         {
-#pragma warning disable CA1031 // Do not catch general exception types
             try
             {
                 return this.OnTryRead(out buffer);
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception)
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 // TODO: log exception.
                 buffer = null;
                 return false;
             }
-#pragma warning restore CA1031 // Do not catch general exception types
         }
 
         /// <summary>
@@ -63,17 +63,17 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
         /// </returns>
         public bool TryWrite(byte[] buffer, int leasePeriodMilliseconds = 0)
         {
-#pragma warning disable CA1031 // Do not catch general exception types
             try
             {
                 return this.OnTryWrite(buffer, leasePeriodMilliseconds);
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception)
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 // TODO: log exception.
                 return false;
             }
-#pragma warning restore CA1031 // Do not catch general exception types
         }
 
         /// <summary>
@@ -87,17 +87,17 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
         /// </returns>
         public bool TryLease(int leasePeriodMilliseconds)
         {
-#pragma warning disable CA1031 // Do not catch general exception types
             try
             {
                 return this.OnTryLease(leasePeriodMilliseconds);
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception)
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 // TODO: log exception.
                 return false;
             }
-#pragma warning restore CA1031 // Do not catch general exception types
         }
 
         /// <summary>
@@ -108,17 +108,17 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
         /// </returns>
         public bool TryDelete()
         {
-#pragma warning disable CA1031 // Do not catch general exception types
             try
             {
                 return this.OnTryDelete();
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception)
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 // TODO: log exception.
                 return false;
             }
-#pragma warning restore CA1031 // Do not catch general exception types
         }
 
         protected abstract bool OnTryRead([NotNullWhen(true)] out byte[]? buffer);
