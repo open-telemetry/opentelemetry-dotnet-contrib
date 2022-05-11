@@ -65,7 +65,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources.Http
 
         public void Dispose()
         {
-            for (int tries = 0; tries < 3; tries++)
+            for (int tries = 0; ; tries++)
             {
                 try
                 {
