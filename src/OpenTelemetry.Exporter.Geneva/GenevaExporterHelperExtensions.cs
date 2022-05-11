@@ -48,7 +48,7 @@ public static class GenevaExporterHelperExtensions
         }
         else
         {
-            return builder.AddProcessor(new ReentrantExportProcessor<Activity>(exporter));
+            return builder.AddProcessor(new ReentrantActivityExportProcessor(exporter));
         }
     }
 }
