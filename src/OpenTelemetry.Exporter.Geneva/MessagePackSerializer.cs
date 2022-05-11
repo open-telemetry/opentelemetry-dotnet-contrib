@@ -307,7 +307,7 @@ internal static class MessagePackSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteCategoryNameHeader(byte[] buffer, int nameStartIdx, int validNameLength)
+    public static void WriteStr8Header(byte[] buffer, int nameStartIdx, int validNameLength)
     {
         buffer[nameStartIdx] = STR8;
         buffer[nameStartIdx + 1] = unchecked((byte)validNameLength);
@@ -455,18 +455,6 @@ internal static class MessagePackSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-
-    public static int SerializeSpan(byte[] buffer, int cursor, Span<byte> span, int size)
-    {
-        for (int i = 0; i < size; ++i)
-        {
-            buffer[cursor++] = span[i];
-        }
-
-        return cursor;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int WriteMapHeader(byte[] buffer, int cursor, int count)
     {
         if (count <= LIMIT_MAX_FIX_MAP_COUNT)
@@ -591,8 +579,13 @@ internal static class MessagePackSerializer
         }
     }
 
-    public static int Serialize(byte[] buffer, int cursor, Span<byte> span, int size)
+    public static int SerializeSpan(byte[] buffer, int cursor, Span<byte> span, int size)
     {
-        return SerializeSpan(buffer, cursor, span, size);
+        for (int i = 0; i < size; ++i)
+        {
+            buffer[cursor++] = span[i];
+        }
+
+        return cursor;
     }
 }

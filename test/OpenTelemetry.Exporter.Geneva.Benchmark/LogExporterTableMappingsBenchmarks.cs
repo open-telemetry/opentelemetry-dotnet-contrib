@@ -19,16 +19,19 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.Logging;
 
 /*
-Summary
-BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19044.1645 (21H2)
-Intel Xeon CPU E5-1650 v4 3.60GHz, 1 CPU, 12 logical and 6 physical cores
-.NET SDK=6.0.202
-  [Host]     : .NET Core 3.1.24 (CoreCLR 4.700.22.16002, CoreFX 4.700.22.17909), X64 RyuJIT
-  DefaultJob : .NET Core 3.1.24 (CoreCLR 4.700.22.16002, CoreFX 4.700.22.17909), X64 RyuJIT
-|                                          Method |     Mean |     Error |    StdDev |  Gen 0 | Allocated |
-|------------------------------------------------ |---------:|----------:|----------:|-------:|----------:|
-| CategoryTableNameMappingsDefinedInConfiguration | 1.560 us | 0.0307 us | 0.0673 us | 0.0324 |     256 B |
-|    PassThruTableNameMappingsWhenTheRuleIsEnbled | 1.573 us | 0.0314 us | 0.0574 us | 0.0324 |     256 B |
+// * Summary *
+
+BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
+11th Gen Intel Core i7-1185G7 3.00GHz, 1 CPU, 8 logical and 4 physical cores
+.NET SDK=6.0.300
+  [Host]     : .NET 6.0.5 (6.0.522.21309), X64 RyuJIT
+  DefaultJob : .NET 6.0.5 (6.0.522.21309), X64 RyuJIT
+
+
+|                                          Method |     Mean |   Error |  StdDev |  Gen 0 | Allocated |
+|------------------------------------------------ |---------:|--------:|--------:|-------:|----------:|
+| CategoryTableNameMappingsDefinedInConfiguration | 713.7 ns | 4.38 ns | 4.09 ns | 0.0401 |     256 B |
+|    PassThruTableNameMappingsWhenTheRuleIsEnbled | 751.7 ns | 3.68 ns | 3.07 ns | 0.0401 |     256 B |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark

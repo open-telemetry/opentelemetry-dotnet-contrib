@@ -102,7 +102,7 @@ where T : class
             cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, name);
         }
 
-        cursor = MessagePackSerializer.Serialize(buffer, cursor, span, size);
+        cursor = MessagePackSerializer.SerializeSpan(buffer, cursor, span, size);
         return cursor;
     }
 }

@@ -262,7 +262,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         else if (categoryName.Length > 0)
         {
             int cursorStartIdx = cursor;
-            cursor = Sanitize(buffer, cursor, ref cursorStartIdx, ref validNameLength, categoryName);
+            cursor = SanitizeCategoryName(buffer, cursor, ref cursorStartIdx, ref validNameLength, categoryName);
             if (validNameLength > 0)
             {
                 data = stackalloc byte[validNameLength + 2];
@@ -490,7 +490,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         }
     }
 
-    private static int Sanitize(byte[] buffer, int cursor, ref int cursorStartIdx, ref int validNameLength, string categoryName)
+    private static int SanitizeCategoryName(byte[] buffer, int cursor, ref int cursorStartIdx, ref int validNameLength, string categoryName)
     {
         if (categoryName.Length > (1 << 8) - 1)
         {
@@ -538,11 +538,8 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             }
         }
 
-        if (validNameLength > 0)
-        {
-            // Backfilling MessagePack serialization protocol and valid category length to the startIdx of the cateoryName byte array.
-            MessagePackSerializer.WriteCategoryNameHeader(buffer, cursorStartIdx, validNameLength);
-        }
+        // Backfilling MessagePack serialization protocol and valid category length to the startIdx of the cateoryName byte array.
+        MessagePackSerializer.WriteStr8Header(buffer, cursorStartIdx, validNameLength);
 
         return cursor;
     }
