@@ -246,7 +246,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         var categoryName = logRecord.CategoryName;
         string eventName = null;
 
-        Span<byte> data = stackalloc byte[0];
+        Span<byte> data = default;
         int validNameLength = 0;
 
         // If user configured explicit TableName, use it.
@@ -262,10 +262,10 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         else if (categoryName.Length > 0)
         {
             int cursorStartIdx = cursor;
-            cursor = SanitizeCategoryName(buffer, cursor, ref cursorStartIdx, ref validNameLength, categoryName);
+            cursor = SanitizeCategoryName(buffer, cursor, ref validNameLength, categoryName);
             if (validNameLength > 0)
             {
-                data = stackalloc byte[validNameLength + 2];
+                data = buffer.AsSpan().Slice(cursorStartIdx, validNameLength + 2);
                 for (int i = 0; i < validNameLength + 2; i++)
                 {
                     data[i] = buffer[cursorStartIdx + i];
@@ -490,11 +490,14 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         }
     }
 
-    private static int SanitizeCategoryName(byte[] buffer, int cursor, ref int cursorStartIdx, ref int validNameLength, string categoryName)
+    private static int SanitizeCategoryName(byte[] buffer, int cursor, ref int validNameLength, string categoryName)
     {
-        if (categoryName.Length > (1 << 8) - 1)
+        int cursorStartIdx = cursor;
+
+        const int maxStr8LengthInBytes = (1 << 8) - 1;
+        if (categoryName.Length > maxStr8LengthInBytes)
         {
-            // The size of categoryName should not be greater than 2^8 -1.
+            // The size of categoryName should not be greater than maxStr8LengthInBytes.
             return cursor;
         }
 
