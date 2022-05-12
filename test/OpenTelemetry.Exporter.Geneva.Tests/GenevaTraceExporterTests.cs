@@ -246,11 +246,16 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                         activity?.SetTag("clientRequestId", "58a37988-2c05-427a-891f-5e0e1266fcc5");
                         activity?.SetTag("foo", 1);
                         activity?.SetTag("bar", 2);
-                        activity?.SetStatus(Status.Error);
+                        activity?.SetStatus(Status.Error.WithDescription("Error description from OTel API"));
                     }
                 }
 
-                Assert.Equal(2, invocationCount);
+                using (var activity = source.StartActivity("TestActivityForSetStatusAPI"))
+                {
+                    activity?.SetStatus(ActivityStatusCode.Error, "Error description from .NET API");
+                }
+
+                Assert.Equal(3, invocationCount);
             }
             finally
             {
@@ -461,7 +466,22 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
             Assert.Equal(activity.StartTimeUtc, mapping["startTime"]);
 
             var activityStatusCode = activity.GetStatus().StatusCode;
-            Assert.Equal(activityStatusCode == StatusCode.Error ? false : true, mapping["success"]);
+
+            if (activity.Status == ActivityStatusCode.Error)
+            {
+                Assert.False((bool)mapping["success"]);
+                Assert.Equal(activity.StatusDescription, mapping["statusMessage"]);
+            }
+            else if (activityStatusCode == StatusCode.Error)
+            {
+                Assert.False((bool)mapping["success"]);
+                var activityStatusDesc = activity.GetStatus().Description;
+                Assert.Equal(activityStatusDesc, mapping["statusMessage"]);
+            }
+            else
+            {
+                Assert.True((bool)mapping["success"]);
+            }
 
             // Part B Span optional fields and Part C fields
             if (activity.ParentSpanId != default)
@@ -507,6 +527,11 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 else if (string.Equals(tag.Key, "otel.status_code", StringComparison.Ordinal))
                 {
                     // Status code check is already done when we check for "success" key in the mapping
+                    continue;
+                }
+                else if (string.Equals(tag.Key, "otel.status_description", StringComparison.Ordinal))
+                {
+                    // Status description check is already done when we check for "statusMessage" key in the mapping
                     continue;
                 }
                 else
