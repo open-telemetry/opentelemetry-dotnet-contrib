@@ -62,6 +62,12 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay
             this.WriteEvent(3, format, exception);
         }
 
+        [Event(4, Message = "Failed to validate certificate in format: '{0}', error: '{1}'.", Level = EventLevel.Warning)]
+        public void FailedToValidateCertificate(string format, string error)
+        {
+            this.WriteEvent(4, format, error);
+        }
+
         /// <summary>
         /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
         /// appropriate for diagnostics tracing.
