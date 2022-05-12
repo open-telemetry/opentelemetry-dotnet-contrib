@@ -1,5 +1,11 @@
 # Changelog - OpenTelemetry.Contrib.Instrumentation.AWS
 
+## Unreleased
+
+* Updated OTel SDK package version to 1.2.0
+* Update minimum full framework support to net462
+* Update AWSSDK.Core 3.5.1.24 -> 3.7.11.2
+
 ## 1.0.1 [2021-Feb-24]
 
 This is the first release for the `OpenTelemetry.Contrib.Instrumentation.AWS`

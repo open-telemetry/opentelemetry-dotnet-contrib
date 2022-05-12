@@ -28,7 +28,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
 {
     internal static class CustomResponses
     {
-#if NET452
+#if NET462
         public static void SetResponse(
             AmazonServiceClient client, string content, string requestId, bool isOK)
         {

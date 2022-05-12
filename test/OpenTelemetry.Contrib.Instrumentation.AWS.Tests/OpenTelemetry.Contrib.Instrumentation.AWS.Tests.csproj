@@ -2,17 +2,17 @@
 
   <PropertyGroup>
     <Description>Unit test project for AWS client instrumentation for OpenTelemetry</Description>
-    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
-    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net452</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkPkgVer)" />
     <PackageReference Include="xunit" Version="$(XUnitPkgVer)" />
-    <PackageReference Include="AWSSDK.Core" Version="3.5.1.24" />
-    <PackageReference Include="AWSSDK.SQS" Version="3.5.0.26" />
-    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.5.1.2" />
-    <PackageReference Include="Moq" Version="4.14.6" />
+    <PackageReference Include="AWSSDK.Core" Version="3.7.11.2" />
+    <PackageReference Include="AWSSDK.SQS" Version="3.7.2.55" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.3.34" />
+    <PackageReference Include="Moq" Version="$(MoqPkgVer)" />
     <PackageReference Condition="$([MSBuild]::IsOsPlatform('Windows'))" Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
@@ -24,7 +24,7 @@
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Instrumentation.AWS\OpenTelemetry.Contrib.Instrumentation.AWS.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net452'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
     <Compile Remove="Tools\CustomWebResponse.cs" />
     <Compile Remove="Tools\HttpResponseMessageBody.cs" />
     <Reference Include="System.Net.Http" />

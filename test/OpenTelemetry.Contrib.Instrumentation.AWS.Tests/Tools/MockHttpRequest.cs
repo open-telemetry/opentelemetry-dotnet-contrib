@@ -28,7 +28,7 @@ using Amazon.Runtime.Internal.Transform;
 
 namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
 {
-#if NET452
+#if NET462
     internal class MockHttpRequest : IHttpRequest<Stream>
     {
         private Stream requestStream = null;
