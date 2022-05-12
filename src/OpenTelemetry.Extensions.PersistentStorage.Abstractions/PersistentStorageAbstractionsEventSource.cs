@@ -28,16 +28,31 @@ namespace OpenTelemetry.Extensions.PersistentStorage
         private const string EventSourceName = "OpenTelemetry-Extensions-PersistentStorage-Abstractions";
 
         [NonEvent]
-        public void LogException(string message, Exception ex)
+        public void PersistentBlobException(string message, Exception ex)
         {
             if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
             {
-                this.LogException(message, ToInvariantString(ex));
+                this.PersistentBlobException(message, ToInvariantString(ex));
             }
         }
 
         [Event(1, Message = "{0} : {1}", Level = EventLevel.Error)]
-        public void LogException(string message, string ex)
+        public void PersistentBlobException(string message, string ex)
+        {
+            this.WriteEvent(1, message, ex);
+        }
+
+        [NonEvent]
+        public void PersistentBlobProviderException(string message, Exception ex)
+        {
+            if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
+            {
+                this.PersistentBlobProviderException(message, ToInvariantString(ex));
+            }
+        }
+
+        [Event(1, Message = "{0} : {1}", Level = EventLevel.Error)]
+        public void PersistentBlobProviderException(string message, string ex)
         {
             this.WriteEvent(1, message, ex);
         }
