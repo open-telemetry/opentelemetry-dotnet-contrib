@@ -15,7 +15,6 @@
 // </copyright>
 
 using System;
-using System.Diagnostics;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
@@ -48,7 +47,7 @@ public static class GenevaExporterHelperExtensions
         }
         else
         {
-            return builder.AddProcessor(new ReentrantExportProcessor<Activity>(exporter));
+            return builder.AddProcessor(new ReentrantActivityExportProcessor(exporter));
         }
     }
 }
