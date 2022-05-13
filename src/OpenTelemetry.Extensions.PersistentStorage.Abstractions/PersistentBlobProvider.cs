@@ -49,7 +49,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
             }
             catch (Exception ex)
             {
-                PersistentStorageAbstractionsEventSource.Log.PersistentBlobProviderException("Failed to create and lease the blob", ex);
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlobProvider), "Failed to create and lease the blob", ex);
                 blob = null;
                 return false;
             }
@@ -75,7 +75,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
             }
             catch (Exception ex)
             {
-                PersistentStorageAbstractionsEventSource.Log.PersistentBlobProviderException("Failed to create the blob", ex);
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlobProvider), "Failed to create the blob", ex);
                 blob = null;
                 return false;
             }
@@ -98,7 +98,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
             }
             catch (Exception ex)
             {
-                PersistentStorageAbstractionsEventSource.Log.PersistentBlobProviderException("Failed to get a single blob", ex);
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlobProvider), "Failed to get a single blob", ex);
                 blob = null;
                 return false;
             }
@@ -118,7 +118,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
             }
             catch (Exception ex)
             {
-                PersistentStorageAbstractionsEventSource.Log.PersistentBlobProviderException("Failed to get all the blobs", ex);
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlobProvider), "Failed to get all the blobs", ex);
                 return Enumerable.Empty<PersistentBlob>();
             }
         }

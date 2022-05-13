@@ -41,7 +41,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
             }
             catch (Exception ex)
             {
-                PersistentStorageAbstractionsEventSource.Log.PersistentBlobException("Failed to read the blob.", ex);
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlob), "Failed to read the blob.", ex);
                 buffer = null;
                 return false;
             }
@@ -67,7 +67,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
             }
             catch (Exception ex)
             {
-                PersistentStorageAbstractionsEventSource.Log.PersistentBlobException("Failed to write the blob", ex);
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlob), "Failed to write the blob", ex);
                 return false;
             }
         }
@@ -89,7 +89,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
             }
             catch (Exception ex)
             {
-                PersistentStorageAbstractionsEventSource.Log.PersistentBlobException("Failed to lease the blob", ex);
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlob), "Failed to lease the blob", ex);
                 return false;
             }
         }
@@ -108,7 +108,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
             }
             catch (Exception ex)
             {
-                PersistentStorageAbstractionsEventSource.Log.PersistentBlobException("Failed to delete the blob", ex);
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlob), "Failed to delete the blob", ex);
                 return false;
             }
         }
