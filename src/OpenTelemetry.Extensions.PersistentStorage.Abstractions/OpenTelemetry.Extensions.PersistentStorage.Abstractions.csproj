@@ -5,6 +5,7 @@
     <TargetFrameworks Condition="'$(Configuration)' == 'Debug'">$(TargetFrameworks);net6.0</TargetFrameworks> <!-- Added just to get proper nullable analysis in IDE -->
     <Description>OpenTelemetry Persistent Storage Abstractions</Description>
     <MinVerTagPrefix>Extensions.PersistentStorage.Abstractions-</MinVerTagPrefix>
+    <NoWarn>$(NoWarn),CA1031</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>
