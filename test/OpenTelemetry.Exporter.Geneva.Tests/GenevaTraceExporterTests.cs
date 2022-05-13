@@ -205,6 +205,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
                 // the ActivitySource used by other unit tests.
                 var sourceName = GetTestMethodName();
+                Action<Dictionary<object, object>> customChecksForActivity = null;
 
                 using var listener = new ActivityListener();
                 listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
@@ -213,7 +214,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 {
                     _ = exporter.SerializeActivity(activity);
                     object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
-                    this.AssertFluentdForwardModeForActivity(exporterOptions, fluentdData, activity, CS40_PART_B_MAPPING, dedicatedFields);
+                    this.AssertFluentdForwardModeForActivity(exporterOptions, fluentdData, activity, CS40_PART_B_MAPPING, dedicatedFields, customChecksForActivity);
                     invocationCount++;
                 };
                 ActivitySource.AddActivityListener(listener);
@@ -246,11 +247,28 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                         activity?.SetTag("clientRequestId", "58a37988-2c05-427a-891f-5e0e1266fcc5");
                         activity?.SetTag("foo", 1);
                         activity?.SetTag("bar", 2);
-                        activity?.SetStatus(Status.Error);
+                        activity?.SetStatus(Status.Error.WithDescription("Error description from OTel API"));
                     }
                 }
 
-                Assert.Equal(2, invocationCount);
+                using (var activity = source.StartActivity("TestActivityForSetStatusAPI"))
+                {
+                    activity?.SetStatus(ActivityStatusCode.Error, "Error description from .NET API");
+                }
+
+                // If the activity Status is set using both the OTel API and the .NET API, the `Status` and `StatusDescription` set by
+                // the .NET API is chosen
+                using (var activity = source.StartActivity("PreferStatusFromDotnetAPI"))
+                {
+                    activity?.SetStatus(Status.Error.WithDescription("Error description from OTel API"));
+                    activity?.SetStatus(ActivityStatusCode.Error, "Error description from .NET API");
+                    customChecksForActivity = mapping =>
+                    {
+                        Assert.Equal("Error description from .NET API", mapping["statusMessage"]);
+                    };
+                }
+
+                Assert.Equal(4, invocationCount);
             }
             finally
             {
@@ -397,7 +415,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
             return callingMethodName;
         }
 
-        private void AssertFluentdForwardModeForActivity(GenevaExporterOptions exporterOptions, object fluentdData, Activity activity, IReadOnlyDictionary<string, string> CS40_PART_B_MAPPING, IReadOnlyDictionary<string, object> dedicatedFields)
+        private void AssertFluentdForwardModeForActivity(GenevaExporterOptions exporterOptions, object fluentdData, Activity activity, IReadOnlyDictionary<string, string> CS40_PART_B_MAPPING, IReadOnlyDictionary<string, object> dedicatedFields, Action<Dictionary<object, object>> customChecksForActivity)
         {
             /* Fluentd Forward Mode:
             [
@@ -461,7 +479,22 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
             Assert.Equal(activity.StartTimeUtc, mapping["startTime"]);
 
             var activityStatusCode = activity.GetStatus().StatusCode;
-            Assert.Equal(activityStatusCode == StatusCode.Error ? false : true, mapping["success"]);
+
+            if (activity.Status == ActivityStatusCode.Error)
+            {
+                Assert.False((bool)mapping["success"]);
+                Assert.Equal(activity.StatusDescription, mapping["statusMessage"]);
+            }
+            else if (activityStatusCode == StatusCode.Error)
+            {
+                Assert.False((bool)mapping["success"]);
+                var activityStatusDesc = activity.GetStatus().Description;
+                Assert.Equal(activityStatusDesc, mapping["statusMessage"]);
+            }
+            else
+            {
+                Assert.True((bool)mapping["success"]);
+            }
 
             // Part B Span optional fields and Part C fields
             if (activity.ParentSpanId != default)
@@ -509,6 +542,11 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                     // Status code check is already done when we check for "success" key in the mapping
                     continue;
                 }
+                else if (string.Equals(tag.Key, "otel.status_description", StringComparison.Ordinal))
+                {
+                    // Status description check is already done when we check for "statusMessage" key in the mapping
+                    continue;
+                }
                 else
                 {
                     // If CustomFields are proivded, dedicatedFields will be populated
@@ -526,6 +564,8 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
 
             // Epilouge
             Assert.Equal("DateTime", timeFormat["TimeFormat"]);
+
+            customChecksForActivity?.Invoke(mapping);
         }
     }
 }
