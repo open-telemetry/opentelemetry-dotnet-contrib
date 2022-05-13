@@ -47,11 +47,9 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
             {
                 return this.OnTryCreateBlob(buffer, leasePeriodMilliseconds, out blob);
             }
-#pragma warning disable CA1031 // Do not catch general exception types
-            catch (Exception)
-#pragma warning restore CA1031 // Do not catch general exception types
+            catch (Exception ex)
             {
-                // TODO: log exception.
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlobProvider), "Failed to create and lease the blob", ex);
                 blob = null;
                 return false;
             }
@@ -75,11 +73,9 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
             {
                 return this.OnTryCreateBlob(buffer, out blob);
             }
-#pragma warning disable CA1031 // Do not catch general exception types
-            catch (Exception)
-#pragma warning restore CA1031 // Do not catch general exception types
+            catch (Exception ex)
             {
-                // TODO: log exception;
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlobProvider), "Failed to create the blob", ex);
                 blob = null;
                 return false;
             }
@@ -100,11 +96,9 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
             {
                 return this.OnTryGetBlob(out blob);
             }
-#pragma warning disable CA1031 // Do not catch general exception types
-            catch (Exception)
-#pragma warning restore CA1031 // Do not catch general exception types
+            catch (Exception ex)
             {
-                // TODO: log exception.
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlobProvider), "Failed to get a single blob", ex);
                 blob = null;
                 return false;
             }
@@ -122,11 +116,9 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
             {
                 return this.OnGetBlobs() ?? Enumerable.Empty<PersistentBlob>();
             }
-#pragma warning disable CA1031 // Do not catch general exception types
-            catch (Exception)
-#pragma warning restore CA1031 // Do not catch general exception types
+            catch (Exception ex)
             {
-                // TODO: log exception
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlobProvider), "Failed to get all the blobs", ex);
                 return Enumerable.Empty<PersistentBlob>();
             }
         }

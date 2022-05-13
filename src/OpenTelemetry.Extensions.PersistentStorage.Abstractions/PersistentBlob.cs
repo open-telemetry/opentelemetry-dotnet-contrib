@@ -39,11 +39,9 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
             {
                 return this.OnTryRead(out buffer);
             }
-#pragma warning disable CA1031 // Do not catch general exception types
-            catch (Exception)
-#pragma warning restore CA1031 // Do not catch general exception types
+            catch (Exception ex)
             {
-                // TODO: log exception.
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlob), "Failed to read the blob.", ex);
                 buffer = null;
                 return false;
             }
@@ -67,11 +65,9 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
             {
                 return this.OnTryWrite(buffer, leasePeriodMilliseconds);
             }
-#pragma warning disable CA1031 // Do not catch general exception types
-            catch (Exception)
-#pragma warning restore CA1031 // Do not catch general exception types
+            catch (Exception ex)
             {
-                // TODO: log exception.
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlob), "Failed to write the blob", ex);
                 return false;
             }
         }
@@ -91,11 +87,9 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
             {
                 return this.OnTryLease(leasePeriodMilliseconds);
             }
-#pragma warning disable CA1031 // Do not catch general exception types
-            catch (Exception)
-#pragma warning restore CA1031 // Do not catch general exception types
+            catch (Exception ex)
             {
-                // TODO: log exception.
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlob), "Failed to lease the blob", ex);
                 return false;
             }
         }
@@ -112,11 +106,9 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
             {
                 return this.OnTryDelete();
             }
-#pragma warning disable CA1031 // Do not catch general exception types
-            catch (Exception)
-#pragma warning restore CA1031 // Do not catch general exception types
+            catch (Exception ex)
             {
-                // TODO: log exception.
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlob), "Failed to delete the blob", ex);
                 return false;
             }
         }
