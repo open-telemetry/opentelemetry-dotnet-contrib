@@ -106,6 +106,7 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
             }
 
             dedicatedFields["otel.status_code"] = true;
+            dedicatedFields["otel.status_description"] = true;
             this.m_dedicatedFields = dedicatedFields;
         }
 
@@ -333,6 +334,9 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
         // Iteration #1 - Get those fields which become dedicated column
         // i.e all PartB fields and opt-in part c fields.
         bool hasEnvProperties = false;
+        bool isStatusSuccess = true;
+        string statusDescription = string.Empty;
+
         foreach (var entry in activity.TagObjects)
         {
             // TODO: check name collision
@@ -344,9 +348,14 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
             {
                 if (string.Equals(entry.Value.ToString(), "ERROR", StringComparison.Ordinal))
                 {
-                    MessagePackSerializer.SerializeBool(buffer, idxSuccessPatch, false);
+                    isStatusSuccess = false;
                 }
 
+                continue;
+            }
+            else if (string.Equals(entry.Key, "otel.status_description", StringComparison.Ordinal))
+            {
+                statusDescription = entry.Value.ToString();
                 continue;
             }
             else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
@@ -390,6 +399,34 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 
             cntFields += 1;
             MessagePackSerializer.WriteUInt16(buffer, idxMapSizeEnvPropertiesPatch, envPropertiesCount);
+        }
+
+        if (activity.Status != ActivityStatusCode.Unset)
+        {
+            if (activity.Status == ActivityStatusCode.Error)
+            {
+                MessagePackSerializer.SerializeBool(buffer, idxSuccessPatch, false);
+            }
+
+            if (!string.IsNullOrEmpty(activity.StatusDescription))
+            {
+                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "statusMessage");
+                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, activity.StatusDescription);
+                cntFields += 1;
+            }
+        }
+        else
+        {
+            if (!isStatusSuccess)
+            {
+                MessagePackSerializer.SerializeBool(buffer, idxSuccessPatch, false);
+                if (!string.IsNullOrEmpty(statusDescription))
+                {
+                    cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "statusMessage");
+                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, statusDescription);
+                    cntFields += 1;
+                }
+            }
         }
         #endregion
 
@@ -436,8 +473,6 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
         ["messaging.system"] = "messagingSystem",
         ["messaging.destination"] = "messagingDestination",
         ["messaging.url"] = "messagingUrl",
-
-        ["otel.status_description"] = "statusMessage",
     };
 
     private bool isDisposed;
