@@ -14,24 +14,23 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.Logging;
 
 /*
 // * Summary *
-
-BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
-11th Gen Intel Core i7-1185G7 3.00GHz, 1 CPU, 8 logical and 4 physical cores
-.NET SDK=6.0.300
+BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19044.1706 (21H2)
+Intel Xeon CPU E5-1650 v4 3.60GHz, 1 CPU, 12 logical and 6 physical cores
+.NET SDK=6.0.203
   [Host]     : .NET 6.0.5 (6.0.522.21309), X64 RyuJIT
   DefaultJob : .NET 6.0.5 (6.0.522.21309), X64 RyuJIT
-
-
-|                                          Method |     Mean |   Error |  StdDev |  Gen 0 | Allocated |
-|------------------------------------------------ |---------:|--------:|--------:|-------:|----------:|
-| CategoryTableNameMappingsDefinedInConfiguration | 713.7 ns | 4.38 ns | 4.09 ns | 0.0401 |     256 B |
-|    PassThruTableNameMappingsWhenTheRuleIsEnbled | 751.7 ns | 3.68 ns | 3.07 ns | 0.0401 |     256 B |
+|                                              Method |         Mean |      Error |     StdDev |   Gen 0 | Allocated |
+|---------------------------------------------------- |-------------:|-----------:|-----------:|--------:|----------:|
+|     CategoryTableNameMappingsDefinedInConfiguration |     1.159 us |  0.0232 us |  0.0430 us |  0.0324 |     256 B |
+|        PassThruTableNameMappingsWhenTheRuleIsEnbled |     1.188 us |  0.0236 us |  0.0330 us |  0.0324 |     256 B |
+| PassThruTableNameMappingsWhenTheRuleIsEnbledNoCache | 2,536.609 us | 49.7816 us | 97.0952 us | 62.5000 | 512,003 B |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark
@@ -42,6 +41,12 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
         private readonly ILoggerFactory loggerFactory;
         private readonly ILogger storeALogger;
         private readonly ILogger storeBLogger;
+
+        private static readonly int maxCapacity = 1000;
+        private static int sequenceSize = maxCapacity * 2;
+        private readonly List<ILogger> loggers = new(maxCapacity);
+        private Random random = new Random(97);
+        private int[] sequence = new int[sequenceSize];
 
         public LogExporterTableMappingsBenchmarks()
         {
@@ -70,6 +75,16 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
 
             this.storeALogger = this.loggerFactory.CreateLogger("Company.StoreA");
             this.storeBLogger = this.loggerFactory.CreateLogger("Company.StoreB");
+
+            for (int i = 0; i < maxCapacity; ++i)
+            {
+                this.loggers.Add(this.loggerFactory.CreateLogger("Company-%-Customer*Region$##" + (i + maxCapacity).ToString()));
+            }
+
+            for (int i = 0; i < sequenceSize; ++i)
+            {
+                this.sequence[i] = this.random.Next(0, maxCapacity);
+            }
         }
 
         [Benchmark]
@@ -82,6 +97,15 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
         public void PassThruTableNameMappingsWhenTheRuleIsEnbled()
         {
             this.storeBLogger.LogInformation("Hello from {storeName} {number}.", "Kyoto", 2);
+        }
+
+        [Benchmark]
+        public void PassThruTableNameMappingsWhenTheRuleIsEnbledNoCache()
+        {
+            for (int i = 0; i < this.sequence.Length; ++i)
+            {
+                this.loggers[this.sequence[i]].LogInformation("Hello from {storeName} {number}.", "Kyoto", 2);
+            }
         }
     }
 }
