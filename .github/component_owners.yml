@@ -16,6 +16,8 @@ components:
     - SergeyKanzhelev
   src/OpenTelemetry.Extensions/:
     - codeblanch
+  src/OpenTelemetry.Extensions.PersistentStorage.Abstractions/:
+    - vishweshbankwar
   src/OpenTelemetry.Extensions.PersistentStorage/:
     - vishweshbankwar
   src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
