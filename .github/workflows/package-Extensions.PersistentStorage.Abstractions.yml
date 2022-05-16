@@ -9,7 +9,7 @@ on:
         default: 'warning'
   push:
     tags:
-      - 'Extensions.PersistentStorage.Abstractions-*' # trigger when we create a tag with prefix "Extensions.PersistentStorage-"
+      - 'Extensions.PersistentStorage.Abstractions-*' # trigger when we create a tag with prefix "Extensions.PersistentStorage.Abstractions-"
 
 jobs:
   build-test-pack:
