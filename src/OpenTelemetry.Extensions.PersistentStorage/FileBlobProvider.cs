@@ -118,42 +118,24 @@ namespace OpenTelemetry.Extensions.PersistentStorage
 
         protected override bool OnTryCreateBlob(byte[] buffer, int leasePeriodMilliseconds, [NotNullWhen(true)] out PersistentBlob blob)
         {
-            try
+            blob = this.CreateFileBlob(buffer, leasePeriodMilliseconds);
+            if (blob == null)
             {
-                blob = this.GetFileBlobObject();
-                if (blob == null)
-                {
-                    return false;
-                }
-
-                return blob.TryWrite(buffer, leasePeriodMilliseconds);
-            }
-            catch (Exception ex)
-            {
-                PersistentStorageEventSource.Log.Warning("CreateBlob has failed.", ex);
-                blob = null;
                 return false;
             }
+
+            return true;
         }
 
         protected override bool OnTryCreateBlob(byte[] buffer, [NotNullWhen(true)] out PersistentBlob blob)
         {
-            try
+            blob = this.CreateFileBlob(buffer);
+            if (blob == null)
             {
-                blob = this.GetFileBlobObject();
-                if (blob == null)
-                {
-                    return false;
-                }
-
-                return blob.TryWrite(buffer);
-            }
-            catch (Exception ex)
-            {
-                PersistentStorageEventSource.Log.Warning("CreateBlob has failed.", ex);
-                blob = null;
                 return false;
             }
+
+            return true;
         }
 
         protected override bool OnTryGetBlob([NotNullWhen(true)] out PersistentBlob blob)
@@ -195,17 +177,32 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             return true;
         }
 
-        private PersistentBlob GetFileBlobObject()
+        private PersistentBlob CreateFileBlob(byte[] buffer, int leasePeriodMilliseconds = 0)
         {
             if (!this.CheckStorageSize())
             {
                 return null;
             }
 
-            var blobFilePath = Path.Combine(this.directoryPath, PersistentStorageHelper.GetUniqueFileName(".blob"));
-            var blob = new FileBlob(blobFilePath);
+            try
+            {
+                var blobFilePath = Path.Combine(this.directoryPath, PersistentStorageHelper.GetUniqueFileName(".blob"));
+                var blob = new FileBlob(blobFilePath);
 
-            return blob;
+                if (blob.TryWrite(buffer, leasePeriodMilliseconds))
+                {
+                    return blob;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                PersistentStorageEventSource.Log.Warning("CreateBlob has failed.", ex);
+                return null;
+            }
         }
     }
 }
