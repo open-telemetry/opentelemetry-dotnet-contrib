@@ -15,6 +15,7 @@
 		  - Initial Instana exporter for OpenTelemetry
 	</PackageReleaseNotes>
 	<Version>1.0.0-alpha</Version>
+	<MinVerTagPrefix>Exporter.Instana-</MinVerTagPrefix>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
