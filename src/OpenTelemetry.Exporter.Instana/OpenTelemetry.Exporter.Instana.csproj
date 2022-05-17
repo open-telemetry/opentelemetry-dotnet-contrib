@@ -2,19 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
-	<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-	<PackageId>OpenTelemetry.Exporter.Instana</PackageId>
 	<PackageTags>Instana Tracing APM</PackageTags>
-	<Copyright>Copyright 2019-</Copyright>
-	<Authors>Instana</Authors>
-	<Company>Instana GmbH</Company>
 	<Description>Instana .NET Exporter for OpenTelemetry</Description>
-	<Product>Instana .NET Exporter for OpenTelemetry</Product>
-	<PackageIcon>icon.png</PackageIcon>
-	<PackageReleaseNotes>
-		  - Initial Instana exporter for OpenTelemetry
-	</PackageReleaseNotes>
-	<Version>1.0.0-alpha</Version>
 	<MinVerTagPrefix>Exporter.Instana-</MinVerTagPrefix>
   </PropertyGroup>
 
