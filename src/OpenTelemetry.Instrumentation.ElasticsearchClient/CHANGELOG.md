@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Updated OTel SDK package version to 1.2.0
+* Update minimum full framework support to net462
+
 ## 1.0.0-beta.3
 
 * Going forward the NuGet package will be

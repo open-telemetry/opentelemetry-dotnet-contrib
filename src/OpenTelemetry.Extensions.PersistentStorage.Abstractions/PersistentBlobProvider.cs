@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
@@ -40,15 +41,15 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
         /// <returns>
         /// True if the blob was created or else false.
         /// </returns>
-        public bool TryCreateBlob(byte[] buffer, int leasePeriodMilliseconds, out PersistentBlob blob)
+        public bool TryCreateBlob(byte[] buffer, int leasePeriodMilliseconds, [NotNullWhen(true)] out PersistentBlob? blob)
         {
             try
             {
                 return this.OnTryCreateBlob(buffer, leasePeriodMilliseconds, out blob);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // TODO: log exception.
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlobProvider), "Failed to create and lease the blob", ex);
                 blob = null;
                 return false;
             }
@@ -66,15 +67,15 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
         /// <returns>
         /// True if the blob was created or else false.
         /// </returns>
-        public bool TryCreateBlob(byte[] buffer, out PersistentBlob blob)
+        public bool TryCreateBlob(byte[] buffer, [NotNullWhen(true)] out PersistentBlob? blob)
         {
             try
             {
                 return this.OnTryCreateBlob(buffer, out blob);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // TODO: log exception;
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlobProvider), "Failed to create the blob", ex);
                 blob = null;
                 return false;
             }
@@ -89,15 +90,15 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
         /// <returns>
         /// True if blob is present or else false.
         /// </returns>
-        public bool TryGetBlob(out PersistentBlob blob)
+        public bool TryGetBlob([NotNullWhen(true)] out PersistentBlob? blob)
         {
             try
             {
                 return this.OnTryGetBlob(out blob);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // TODO: log exception.
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlobProvider), "Failed to get a single blob", ex);
                 blob = null;
                 return false;
             }
@@ -115,19 +116,19 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
             {
                 return this.OnGetBlobs() ?? Enumerable.Empty<PersistentBlob>();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // TODO: log exception
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlobProvider), "Failed to get all the blobs", ex);
                 return Enumerable.Empty<PersistentBlob>();
             }
         }
 
         protected abstract IEnumerable<PersistentBlob> OnGetBlobs();
 
-        protected abstract bool OnTryCreateBlob(byte[] buffer, int leasePeriodMilliseconds, out PersistentBlob blob);
+        protected abstract bool OnTryCreateBlob(byte[] buffer, int leasePeriodMilliseconds, [NotNullWhen(true)] out PersistentBlob? blob);
 
-        protected abstract bool OnTryCreateBlob(byte[] buffer, out PersistentBlob blob);
+        protected abstract bool OnTryCreateBlob(byte[] buffer, [NotNullWhen(true)] out PersistentBlob? blob);
 
-        protected abstract bool OnTryGetBlob(out PersistentBlob blob);
+        protected abstract bool OnTryGetBlob([NotNullWhen(true)] out PersistentBlob? blob);
     }
 }
