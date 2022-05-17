@@ -1,4 +1,4 @@
-﻿// <copyright file="FileStorageTests.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="FileBlobProviderTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,70 +16,71 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using Xunit;
 
 namespace OpenTelemetry.Extensions.PersistentStorage.Tests
 {
-    public class FileStorageTests
+    public class FileBlobProviderTests
     {
         [Fact]
-        public void FileStorage_E2E_Test()
+        public void FileBlobProvider_E2E_Test()
         {
             var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-            using var storage = new FileStorage(testDirectory.FullName);
+            using var blobProvider = new FileBlobProvider(testDirectory.FullName);
 
             var data = Encoding.UTF8.GetBytes("Hello, World!");
 
             // Create blob.
-            IPersistentBlob blob1 = storage.CreateBlob(data);
+            blobProvider.TryCreateBlob(data, out var blob);
 
             // Get blob.
-            IPersistentBlob blob2 = storage.GetBlob();
+            blobProvider.TryGetBlob(out var singleBlob);
 
-            Assert.Single(storage.GetBlobs());
+            Assert.Single(blobProvider.GetBlobs());
 
             // Verify file name from both create blob and get blob are same.
-            Assert.Equal(((FileBlob)blob1).FullPath, ((FileBlob)blob2).FullPath);
+            Assert.Equal(((FileBlob)blob).FullPath, ((FileBlob)singleBlob).FullPath);
 
             // Validate if content in the blob is same as buffer data passed to create blob.
-            Assert.Equal(data, blob1.Read());
+            blob.TryRead(out var blobContent);
+            Assert.Equal(data, blobContent);
 
             testDirectory.Delete(true);
         }
 
         [Fact]
-        public void FileStorage_CreateBlobReturnsNullIfStorageIsFull()
+        public void FileBlobProvider_CreateBlobReturnsNullIfblobProviderIsFull()
         {
             var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-            using var storage = new FileStorage(testDirectory.FullName, 10000);
+            using var blobProvider = new FileBlobProvider(testDirectory.FullName, 10000);
 
             PersistentStorageHelper.UpdateDirectorySize(10000);
 
             var data = Encoding.UTF8.GetBytes("Hello, World!");
 
-            Assert.Null(storage.CreateBlob(data));
+            blobProvider.TryCreateBlob(data, out var blob);
+            Assert.Null(blob);
 
             testDirectory.Delete(true);
         }
 
         [Fact]
-        public void FileStorage_PathIsRequired()
+        public void FileBlobProvider_PathIsRequired()
         {
-            Assert.Throws<ArgumentNullException>(() => new FileStorage(null));
+            Assert.Throws<ArgumentNullException>(() => new FileBlobProvider(null));
         }
 
         [Fact]
-        public void FileStorage_TestRetentionPeriod()
+        public void FileBlobProvider_TestRetentionPeriod()
         {
             var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
             long maxSizeInBytes = 100000;
             int maintenancePeriodInMilliseconds = 3000;
             int retentionPeriodInMilliseconds = 2000;
             int writeTimeOutInMilliseconds = 1000;
-            using var storage = new FileStorage(
+            using var blobProvider = new FileBlobProvider(
                 testDirectory.FullName,
                 maxSizeInBytes,
                 maintenancePeriodInMilliseconds,
@@ -87,26 +88,26 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
                 writeTimeOutInMilliseconds);
 
             var data = Encoding.UTF8.GetBytes("Hello, World!");
-            var blob1 = (FileBlob)storage.CreateBlob(data);
+            blobProvider.TryCreateBlob(data, out var blob);
 
             // Wait for maintenance job to run
             Thread.Sleep(4000);
 
             // Blob will be deleted as retention period is 1 sec
-            Assert.False(File.Exists(blob1.FullPath));
+            Assert.False(File.Exists(((FileBlob)blob).FullPath));
 
             testDirectory.Delete(true);
         }
 
         [Fact]
-        public void FileStorage_TestWriteTimeoutPeriod()
+        public void FileBlobProvider_TestWriteTimeoutPeriod()
         {
             var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
             long maxSizeInBytes = 100000;
             int maintenancePeriodInMilliseconds = 3000;
             int retentionPeriodInMilliseconds = 2000;
             int writeTimeOutInMilliseconds = 1000;
-            using var storage = new FileStorage(
+            using var blobProvider = new FileBlobProvider(
                 testDirectory.FullName,
                 maxSizeInBytes,
                 maintenancePeriodInMilliseconds,
@@ -114,33 +115,33 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
                 writeTimeOutInMilliseconds);
 
             var data = Encoding.UTF8.GetBytes("Hello, World!");
-            var blob2 = (FileBlob)storage.CreateBlob(data);
+            blobProvider.TryCreateBlob(data, out var blob);
 
             // Mock write
-            File.Move(blob2.FullPath, blob2.FullPath + ".tmp");
+            File.Move(((FileBlob)blob).FullPath, ((FileBlob)blob).FullPath + ".tmp");
 
             // validate file moved successfully
-            Assert.True(File.Exists(blob2.FullPath + ".tmp"));
+            Assert.True(File.Exists(((FileBlob)blob).FullPath + ".tmp"));
 
             // Wait for maintenance job to run
             Thread.Sleep(4000);
 
             // tmp file will be deleted as write timeout period is 1 sec
-            Assert.False(File.Exists(blob2.FullPath + ".tmp"));
-            Assert.False(File.Exists(blob2.FullPath));
+            Assert.False(File.Exists(((FileBlob)blob).FullPath + ".tmp"));
+            Assert.False(File.Exists(((FileBlob)blob).FullPath));
 
             testDirectory.Delete(true);
         }
 
         [Fact]
-        public void FileStorageTests_TestLeaseExpiration()
+        public void FileBlobProviderTests_TestLeaseExpiration()
         {
             var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
             long maxSizeInBytes = 100000;
             int maintenancePeriodInMilliseconds = 3000;
             int retentionPeriodInMilliseconds = 2000;
             int writeTimeOutInMilliseconds = 1000;
-            using var storage = new FileStorage(
+            using var blobProvider = new FileBlobProvider(
                 testDirectory.FullName,
                 maxSizeInBytes,
                 maintenancePeriodInMilliseconds,
@@ -148,11 +149,11 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
                 writeTimeOutInMilliseconds);
 
             var data = Encoding.UTF8.GetBytes("Hello, World!");
-            var blob = (FileBlob)storage.CreateBlob(data);
-            var blobPath = blob.FullPath;
+            blobProvider.TryCreateBlob(data, out var blob);
+            var blobPath = ((FileBlob)blob).FullPath;
 
-            blob.Lease(1000);
-            var leasePath = blob.FullPath;
+            blob.TryLease(1000);
+            var leasePath = ((FileBlob)blob).FullPath;
             Assert.True(File.Exists(leasePath));
 
             // Wait for maintenance job to run

@@ -14,10 +14,10 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using System.IO;
 using System.Text;
 using System.Threading;
+using OpenTelemetry.Extensions.PersistentStorage.Abstractions;
 using Xunit;
 
 namespace OpenTelemetry.Extensions.PersistentStorage.Tests
@@ -28,16 +28,16 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
         public void FileBlobTests_E2E_Test()
         {
             var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-            IPersistentBlob blob = new FileBlob(testFile.FullName);
+            PersistentBlob blob = new FileBlob(testFile.FullName);
 
             var data = Encoding.UTF8.GetBytes("Hello, World!");
-            IPersistentBlob blob1 = blob.Write(data);
-            var blobContent = blob.Read();
+            blob.TryWrite(data);
+            blob.TryRead(out var blobContent);
 
-            Assert.Equal(testFile.FullName, ((FileBlob)blob1).FullPath);
+            Assert.Equal(testFile.FullName, ((FileBlob)blob).FullPath);
             Assert.Equal(data, blobContent);
 
-            blob1.Delete();
+            blob.TryDelete();
             Assert.False(testFile.Exists);
         }
 
@@ -45,16 +45,16 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
         public void FileBlobTests_Lease()
         {
             var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-            IPersistentBlob blob = new FileBlob(testFile.FullName);
+            PersistentBlob blob = new FileBlob(testFile.FullName);
 
             var data = Encoding.UTF8.GetBytes("Hello, World!");
             var leasePeriodMilliseconds = 1000;
-            IPersistentBlob blob1 = blob.Write(data);
-            IPersistentBlob leasedBlob = blob1.Lease(leasePeriodMilliseconds);
+            blob.TryWrite(data);
+            blob.TryLease(leasePeriodMilliseconds);
 
-            Assert.Contains(".lock", ((FileBlob)leasedBlob).FullPath);
+            Assert.Contains(".lock", ((FileBlob)blob).FullPath);
 
-            blob1.Delete();
+            blob.TryDelete();
             Assert.False(testFile.Exists);
         }
 
@@ -62,14 +62,14 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
         public void FileBlobTests_LeaseAfterDelete()
         {
             var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-            IPersistentBlob blob = new FileBlob(testFile.FullName);
+            PersistentBlob blob = new FileBlob(testFile.FullName);
 
             var data = Encoding.UTF8.GetBytes("Hello, World!");
-            blob.Write(data);
-            blob.Delete();
+            blob.TryWrite(data);
+            blob.TryDelete();
 
-            // Lease should return null
-            Assert.Null(blob.Lease(1000));
+            // Lease should return false
+            Assert.False(blob.TryLease(1000));
         }
 
         [Fact]
@@ -79,17 +79,17 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
             FileBlob blob1 = new FileBlob(testFile.FullName);
             FileBlob blob2 = new FileBlob(testFile.FullName);
             var data = Encoding.UTF8.GetBytes("Hello, World!");
-            blob1.Write(data);
-            var leasePeriodMilliseconds = 10000;
+            blob2.TryWrite(data);
 
             // Leased by another thread/process/object
-            blob2.Lease(leasePeriodMilliseconds);
+            blob2.TryLease(10000);
 
             // Read should fail as file is leased
-            Assert.Null(blob1.Read());
+            Assert.False(blob1.TryRead(out var blob));
+            Assert.Null(blob);
 
             // Clean up
-            blob2.Delete();
+            blob2.TryDelete();
         }
 
         [Fact]
@@ -99,17 +99,16 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
             FileBlob blob1 = new FileBlob(testFile.FullName);
             FileBlob blob2 = new FileBlob(testFile.FullName);
             var data = Encoding.UTF8.GetBytes("Hello, World!");
-            blob1.Write(data);
-            var leasePeriodMilliseconds = 10000;
+            blob1.TryWrite(data);
 
             // Leased by another thread/process/object
-            blob2.Lease(leasePeriodMilliseconds);
+            blob2.TryLease(10000);
 
             // Lease should fail as already leased
-            Assert.Null(blob1.Lease(10));
+            Assert.False(blob1.TryLease(10));
 
             // Clean up
-            blob2.Delete();
+            blob2.TryDelete();
         }
 
         [Fact]
@@ -118,9 +117,11 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
             var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
             FileBlob blob = new FileBlob(testFile.FullName);
 
-            blob.Delete();
+            var data = Encoding.UTF8.GetBytes("Hello, World!");
+            blob.TryWrite(data);
 
             // Assert
+            Assert.True(blob.TryDelete());
             Assert.False(testFile.Exists);
         }
 
@@ -130,24 +131,25 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
             var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
 
             // set maintenance job interval to 2 secs
-            using var storage = new FileStorage(testDirectory.FullName, 10, 2);
+            using var storage = new FileBlobProvider(testDirectory.FullName, 10, 2);
 
             var data = Encoding.UTF8.GetBytes("Hello, World!");
 
-            var blob = storage.CreateBlob(data);
+            storage.TryCreateBlob(data, out var blob);
 
             var leasePeriodMilliseconds = 1;
 
             // lease for 1 ms
-            blob.Lease(leasePeriodMilliseconds);
+            blob.TryLease(leasePeriodMilliseconds);
 
             // Wait for lease to expire and maintenance job to run
             Thread.Sleep(5000);
 
-            blob.Delete();
+            blob.TryDelete();
 
             // Assert
-            Assert.NotNull(storage.GetBlob());
+            storage.TryGetBlob(out var outputBlob);
+            Assert.NotNull(outputBlob);
 
             testDirectory.Delete(true);
         }
@@ -159,20 +161,20 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
             FileBlob blob = new FileBlob(testFile.FullName);
             var data = Encoding.UTF8.GetBytes("Hello, World!");
 
-            blob.Write(data);
+            blob.TryWrite(data);
 
             var leasePeriodMilliseconds = 10000;
-            blob.Lease(leasePeriodMilliseconds);
+            blob.TryLease(leasePeriodMilliseconds);
 
             var leaseTime = PersistentStorageHelper.GetDateTimeFromLeaseName(blob.FullPath);
 
-            Assert.NotNull(blob.Lease(10000));
+            Assert.True(blob.TryLease(leasePeriodMilliseconds));
 
             var newLeaseTime = PersistentStorageHelper.GetDateTimeFromLeaseName(blob.FullPath);
 
             Assert.NotEqual(leaseTime, newLeaseTime);
 
-            blob.Delete();
+            blob.TryDelete();
         }
 
         [Fact]
@@ -181,7 +183,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
             var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
             FileBlob blob = new FileBlob(testFile.FullName);
 
-            Assert.Null(blob.Write(null));
+            Assert.False(blob.TryWrite(null));
         }
     }
 }

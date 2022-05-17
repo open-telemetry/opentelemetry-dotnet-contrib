@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\Guard.cs" Link="Includes\Guard.cs" />
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Extensions.PersistentStorage.Abstractions\OpenTelemetry.Extensions.PersistentStorage.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>
