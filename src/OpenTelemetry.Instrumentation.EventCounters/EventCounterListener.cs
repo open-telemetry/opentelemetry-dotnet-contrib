@@ -41,7 +41,6 @@ namespace OpenTelemetry.Instrumentation.EventCounters
 
         public EventCounterListener()
         {
-           // this.options = options;
             this.meter = new Meter(InstrumentationName, InstrumentationVersion);
 
             this.isInitialized = true;
