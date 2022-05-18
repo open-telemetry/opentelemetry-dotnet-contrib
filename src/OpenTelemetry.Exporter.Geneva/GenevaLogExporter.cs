@@ -246,7 +246,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         var categoryName = logRecord.CategoryName;
         string eventName = null;
 
-        Span<byte> data = default;
+        Span<byte> tmpEventName = default;
         int validNameLength = 0;
 
         // If user configured explicit TableName, use it.
@@ -265,7 +265,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             cursor = SanitizeCategoryName(buffer, cursor, ref validNameLength, categoryName);
             if (validNameLength > 0)
             {
-                data = buffer.AsSpan().Slice(cursorStartIdx, validNameLength + 2);
+                tmpEventName = buffer.AsSpan().Slice(cursorStartIdx, validNameLength + 2);
             }
             else
             {
@@ -316,9 +316,9 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         }
 
         // Part A - core envelope
-        if (data != default)
+        if (tmpEventName != default)
         {
-            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, data, validNameLength + 2);
+            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, tmpEventName, validNameLength + 2);
         }
         else
         {
