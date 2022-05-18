@@ -33,8 +33,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\package-Exporter.Geneva.yml = .github\workflows\package-Exporter.Geneva.yml
 		.github\workflows\package-Exporter.Stackdriver.yml = .github\workflows\package-Exporter.Stackdriver.yml
 		.github\workflows\package-Extensions.AWSXRay.yml = .github\workflows\package-Extensions.AWSXRay.yml
-		.github\workflows\package-Extensions.PersistentStorage.yml = .github\workflows\package-Extensions.PersistentStorage.yml
 		.github\workflows\package-Extensions.PersistentStorage.Abstractions.yml = .github\workflows\package-Extensions.PersistentStorage.Abstractions.yml
+		.github\workflows\package-Extensions.PersistentStorage.yml = .github\workflows\package-Extensions.PersistentStorage.yml
 		.github\workflows\package-Extensions.yml = .github\workflows\package-Extensions.yml
 		.github\workflows\package-Instrumentation.AWS.yml = .github\workflows\package-Instrumentation.AWS.yml
 		.github\workflows\package-Instrumentation.AWSLambda.yml = .github\workflows\package-Instrumentation.AWSLambda.yml
@@ -184,6 +184,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Hangfire.Tests", "test\OpenTelemetry.Instrumentation.Hangfire.Tests\OpenTelemetry.Instrumentation.Hangfire.Tests.csproj", "{ED774FC3-C1C0-44CD-BA41-686C04BEB3E5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.PersistentStorage.Abstractions", "src\OpenTelemetry.Extensions.PersistentStorage.Abstractions\OpenTelemetry.Extensions.PersistentStorage.Abstractions.csproj", "{17E3936A-265A-4C9F-9DD5-4568F80E6D91}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.EventCounters.Tests", "test\OpenTelemetry.Instrumentation.EventCounters.Tests\OpenTelemetry.Instrumentation.EventCounters.Tests.csproj", "{2801A9AD-3229-45E0-9758-E108E2230DC7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.EventCounters", "src\OpenTelemetry.Instrumentation.EventCounters\OpenTelemetry.Instrumentation.EventCounters.csproj", "{7312465A-4903-425E-9DAA-44C641B94033}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -379,6 +383,14 @@ Global
 		{17E3936A-265A-4C9F-9DD5-4568F80E6D91}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{17E3936A-265A-4C9F-9DD5-4568F80E6D91}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{17E3936A-265A-4C9F-9DD5-4568F80E6D91}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2801A9AD-3229-45E0-9758-E108E2230DC7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2801A9AD-3229-45E0-9758-E108E2230DC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2801A9AD-3229-45E0-9758-E108E2230DC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2801A9AD-3229-45E0-9758-E108E2230DC7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7312465A-4903-425E-9DAA-44C641B94033}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7312465A-4903-425E-9DAA-44C641B94033}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7312465A-4903-425E-9DAA-44C641B94033}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7312465A-4903-425E-9DAA-44C641B94033}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -437,6 +449,8 @@ Global
 		{BE5FFBBB-D73F-4071-92F4-F1694881604F} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{ED774FC3-C1C0-44CD-BA41-686C04BEB3E5} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{17E3936A-265A-4C9F-9DD5-4568F80E6D91} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{2801A9AD-3229-45E0-9758-E108E2230DC7} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{7312465A-4903-425E-9DAA-44C641B94033} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
