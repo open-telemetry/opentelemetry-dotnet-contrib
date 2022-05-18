@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.Logging;
@@ -35,7 +36,7 @@ BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
 | PassThruTableNameMappingsWhenTheRuleIsEnbledNoCache | 825.8 ns | 15.78 ns | 15.49 ns | 0.0401 |     256 B |
 */
 
-namespace OpenTelemetry.Exporter.Geneva.Benchmark
+namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
 {
     [MemoryDiagnoser]
     public class LogExporterTableMappingsBenchmarks
@@ -77,7 +78,7 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
             this.storeALogger = this.loggerFactory.CreateLogger("Company.StoreA");
             this.storeBLogger = this.loggerFactory.CreateLogger("Company.StoreB");
 
-            for (int i = 0; i < maxCapacity; ++i)
+            for (var i = 0; i < maxCapacity; ++i)
             {
                 this.loggers.Add(this.loggerFactory.CreateLogger("Company-%-Customer*Region$##" + (i + maxCapacity).ToString()));
             }
