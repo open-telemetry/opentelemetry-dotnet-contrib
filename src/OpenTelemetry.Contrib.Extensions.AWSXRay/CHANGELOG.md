@@ -2,8 +2,12 @@
 
 ## 1.2.0 [2022-May-18]
 
-* Enhancement - AWSEKSResourceDetector - Validate ClusterName/ContainerID independently before adding it to the resource ([#205](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/205))
-* Fix - AWSEKSResourceDetector fails to detect resources due to exception "The SSL connection could not be established" ([#208](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/208)) 
+* Enhancement - AWSEKSResourceDetector - Validate ClusterName/ContainerID
+  independently before adding it to the resource
+  ([#205](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/205))
+* Fix - AWSEKSResourceDetector fails to detect resources due to exception
+  "The SSL connection could not be established"
+  ([#208](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/208))
 
 ## 1.1.0 [2021-Sept-20]
 
