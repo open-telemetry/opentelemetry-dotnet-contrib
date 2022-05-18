@@ -22,16 +22,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net461|AnyCPU'">
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-
-    <ItemGroup>
-        <None Include=".\icon.png" Link="icon.png">
-            <PackagePath></PackagePath>
-            <Pack>True</Pack>
-        </None>
-    </ItemGroup>
     
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="1.2.0" />
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+        <_Parameter1>OpenTelemetry.Exporter.Instana.Tests</_Parameter1>
+    </AssemblyAttribute>
   </ItemGroup>
 
 </Project>
