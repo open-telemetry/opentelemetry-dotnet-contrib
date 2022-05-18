@@ -25,9 +25,6 @@
     
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="1.2.0" />
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
-        <_Parameter1>OpenTelemetry.Exporter.Instana.Tests</_Parameter1>
-    </AssemblyAttribute>
   </ItemGroup>
 
 </Project>
