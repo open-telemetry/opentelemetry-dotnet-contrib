@@ -46,7 +46,6 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
         private readonly ILogger storeBLogger;
 
         private static readonly int maxCapacity = 1000;
-        private static int sequenceSize = maxCapacity * 2;
         private readonly List<ILogger> loggers = new(maxCapacity);
         private Random random = new Random(97);
 
