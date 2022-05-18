@@ -37,7 +37,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
             Assert.Equal(testFile.FullName, ((FileBlob)blob).FullPath);
             Assert.Equal(data, blobContent);
 
-            blob.TryDelete();
+            Assert.True(blob.TryDelete());
             Assert.False(testFile.Exists);
         }
 
@@ -54,7 +54,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
 
             Assert.Contains(".lock", ((FileBlob)blob).FullPath);
 
-            blob.TryDelete();
+            Assert.True(blob.TryDelete());
             Assert.False(testFile.Exists);
         }
 
@@ -65,8 +65,9 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
             PersistentBlob blob = new FileBlob(testFile.FullName);
 
             var data = Encoding.UTF8.GetBytes("Hello, World!");
-            blob.TryWrite(data);
-            blob.TryDelete();
+
+            Assert.True(blob.TryWrite(data));
+            Assert.True(blob.TryDelete());
 
             // Lease should return false
             Assert.False(blob.TryLease(1000));
@@ -79,10 +80,11 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
             FileBlob blob1 = new FileBlob(testFile.FullName);
             FileBlob blob2 = new FileBlob(testFile.FullName);
             var data = Encoding.UTF8.GetBytes("Hello, World!");
-            blob2.TryWrite(data);
+
+            Assert.True(blob2.TryWrite(data));
 
             // Leased by another thread/process/object
-            blob2.TryLease(10000);
+            Assert.True(blob2.TryLease(10000));
 
             // Read should fail as file is leased
             Assert.False(blob1.TryRead(out var blob));
@@ -99,16 +101,17 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
             FileBlob blob1 = new FileBlob(testFile.FullName);
             FileBlob blob2 = new FileBlob(testFile.FullName);
             var data = Encoding.UTF8.GetBytes("Hello, World!");
-            blob1.TryWrite(data);
+
+            Assert.True(blob1.TryWrite(data));
 
             // Leased by another thread/process/object
-            blob2.TryLease(10000);
+            Assert.True(blob2.TryLease(10000));
 
             // Lease should fail as already leased
             Assert.False(blob1.TryLease(10));
 
             // Clean up
-            blob2.TryDelete();
+            Assert.True(blob2.TryDelete());
         }
 
         [Fact]
@@ -118,7 +121,8 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
             FileBlob blob = new FileBlob(testFile.FullName);
 
             var data = Encoding.UTF8.GetBytes("Hello, World!");
-            blob.TryWrite(data);
+
+            Assert.True(blob.TryWrite(data));
 
             // Assert
             Assert.True(blob.TryDelete());
@@ -135,7 +139,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
 
             var data = Encoding.UTF8.GetBytes("Hello, World!");
 
-            storage.TryCreateBlob(data, out var blob);
+            Assert.True(storage.TryCreateBlob(data, out var blob));
 
             var leasePeriodMilliseconds = 1;
 
@@ -148,7 +152,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
             blob.TryDelete();
 
             // Assert
-            storage.TryGetBlob(out var outputBlob);
+            Assert.True(storage.TryGetBlob(out var outputBlob));
             Assert.NotNull(outputBlob);
 
             testDirectory.Delete(true);
@@ -161,10 +165,10 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
             FileBlob blob = new FileBlob(testFile.FullName);
             var data = Encoding.UTF8.GetBytes("Hello, World!");
 
-            blob.TryWrite(data);
+            Assert.True(blob.TryWrite(data));
 
             var leasePeriodMilliseconds = 10000;
-            blob.TryLease(leasePeriodMilliseconds);
+            Assert.True(blob.TryLease(leasePeriodMilliseconds));
 
             var leaseTime = PersistentStorageHelper.GetDateTimeFromLeaseName(blob.FullPath);
 
@@ -174,7 +178,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
 
             Assert.NotEqual(leaseTime, newLeaseTime);
 
-            blob.TryDelete();
+            Assert.True(blob.TryDelete());
         }
 
         [Fact]

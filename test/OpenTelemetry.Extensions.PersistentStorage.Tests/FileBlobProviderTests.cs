@@ -33,10 +33,10 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
             var data = Encoding.UTF8.GetBytes("Hello, World!");
 
             // Create blob.
-            blobProvider.TryCreateBlob(data, out var blob);
+            Assert.True(blobProvider.TryCreateBlob(data, out var blob));
 
             // Get blob.
-            blobProvider.TryGetBlob(out var singleBlob);
+            Assert.True(blobProvider.TryGetBlob(out var singleBlob));
 
             Assert.Single(blobProvider.GetBlobs());
 
@@ -44,7 +44,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
             Assert.Equal(((FileBlob)blob).FullPath, ((FileBlob)singleBlob).FullPath);
 
             // Validate if content in the blob is same as buffer data passed to create blob.
-            blob.TryRead(out var blobContent);
+            Assert.True(blob.TryRead(out var blobContent));
             Assert.Equal(data, blobContent);
 
             testDirectory.Delete(true);
@@ -60,7 +60,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
 
             var data = Encoding.UTF8.GetBytes("Hello, World!");
 
-            blobProvider.TryCreateBlob(data, out var blob);
+            Assert.False(blobProvider.TryCreateBlob(data, out var blob));
             Assert.Null(blob);
 
             testDirectory.Delete(true);
@@ -88,7 +88,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
                 writeTimeOutInMilliseconds);
 
             var data = Encoding.UTF8.GetBytes("Hello, World!");
-            blobProvider.TryCreateBlob(data, out var blob);
+            Assert.True(blobProvider.TryCreateBlob(data, out var blob));
 
             // Wait for maintenance job to run
             Thread.Sleep(4000);
@@ -115,7 +115,8 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
                 writeTimeOutInMilliseconds);
 
             var data = Encoding.UTF8.GetBytes("Hello, World!");
-            blobProvider.TryCreateBlob(data, out var blob);
+
+            Assert.True(blobProvider.TryCreateBlob(data, out var blob));
 
             // Mock write
             File.Move(((FileBlob)blob).FullPath, ((FileBlob)blob).FullPath + ".tmp");
@@ -149,7 +150,8 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
                 writeTimeOutInMilliseconds);
 
             var data = Encoding.UTF8.GetBytes("Hello, World!");
-            blobProvider.TryCreateBlob(data, out var blob);
+
+            Assert.True(blobProvider.TryCreateBlob(data, out var blob));
             var blobPath = ((FileBlob)blob).FullPath;
 
             blob.TryLease(1000);

@@ -141,6 +141,10 @@ namespace OpenTelemetry.Extensions.PersistentStorage
         protected override bool OnTryGetBlob([NotNullWhen(true)] out PersistentBlob blob)
         {
             blob = this.OnGetBlobs().FirstOrDefault();
+            if (blob == null)
+            {
+                return false;
+            }
 
             return true;
         }
