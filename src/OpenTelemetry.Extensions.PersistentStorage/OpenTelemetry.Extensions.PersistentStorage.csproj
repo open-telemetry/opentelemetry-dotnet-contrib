@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
     <Description>OpenTelemetry Persistent Storage</Description>
     <MinVerTagPrefix>Extensions.PersistentStorage-</MinVerTagPrefix>
   </PropertyGroup>
@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\Guard.cs" Link="Includes\Guard.cs" />
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Extensions.PersistentStorage.Abstractions\NotNullWhenAttribute.cs" Link="Includes\NotNullWhenAttribute.cs" />
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Extensions.PersistentStorage.Abstractions\OpenTelemetry.Extensions.PersistentStorage.Abstractions.csproj" />
   </ItemGroup>
 
