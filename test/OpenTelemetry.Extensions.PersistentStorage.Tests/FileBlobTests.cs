@@ -91,7 +91,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
             Assert.Null(blob);
 
             // Clean up
-            blob2.TryDelete();
+            Assert.True(blob2.TryDelete());
         }
 
         [Fact]
