@@ -74,4 +74,9 @@
     <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestActivityProcessor.cs" Link="Includes\TestActivityProcessor.cs" />
   </ItemGroup>
 
+  <PropertyGroup>
+      <StackExchangeRedisPkgVer>[2.1.58,3.0)</StackExchangeRedisPkgVer>
+      <MicrosoftExtensionsOptionsPkgVer>[3.1.0,)</MicrosoftExtensionsOptionsPkgVer>
+  </PropertyGroup>
+
 </Project>
