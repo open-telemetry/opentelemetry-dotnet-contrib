@@ -33,18 +33,18 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
             var data = Encoding.UTF8.GetBytes("Hello, World!");
 
             // Create blob.
-            Assert.True(blobProvider.TryCreateBlob(data, out var blob));
+            Assert.True(blobProvider.TryCreateBlob(data, out var blob1));
 
             // Get blob.
-            Assert.True(blobProvider.TryGetBlob(out var singleBlob));
+            Assert.True(blobProvider.TryGetBlob(out var blob2));
 
             Assert.Single(blobProvider.GetBlobs());
 
             // Verify file name from both create blob and get blob are same.
-            Assert.Equal(((FileBlob)blob).FullPath, ((FileBlob)singleBlob).FullPath);
+            Assert.Equal(((FileBlob)blob1).FullPath, ((FileBlob)blob2).FullPath);
 
             // Validate if content in the blob is same as buffer data passed to create blob.
-            Assert.True(blob.TryRead(out var blobContent));
+            Assert.True(blob1.TryRead(out var blobContent));
             Assert.Equal(data, blobContent);
 
             testDirectory.Delete(true);
