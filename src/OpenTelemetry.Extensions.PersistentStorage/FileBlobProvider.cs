@@ -128,7 +128,6 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             blob = this.CreateFileBlob(buffer);
 
             return blob != null;
-
         }
 
         protected override bool OnTryGetBlob([NotNullWhen(true)] out PersistentBlob blob)
