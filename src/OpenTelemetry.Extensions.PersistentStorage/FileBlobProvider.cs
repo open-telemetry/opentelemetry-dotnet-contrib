@@ -119,12 +119,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
         protected override bool OnTryCreateBlob(byte[] buffer, int leasePeriodMilliseconds, [NotNullWhen(true)] out PersistentBlob blob)
         {
             blob = this.CreateFileBlob(buffer, leasePeriodMilliseconds);
-            if (blob == null)
-            {
-                return false;
-            }
-
-            return true;
+            return blob != null;
         }
 
         protected override bool OnTryCreateBlob(byte[] buffer, [NotNullWhen(true)] out PersistentBlob blob)
