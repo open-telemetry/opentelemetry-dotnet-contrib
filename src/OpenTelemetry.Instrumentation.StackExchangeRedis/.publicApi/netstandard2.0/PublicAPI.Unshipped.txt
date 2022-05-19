@@ -1,3 +1,6 @@
+OpenTelemetry.Instrumentation.MultiTypePropertyFetcher<T>
+OpenTelemetry.Instrumentation.MultiTypePropertyFetcher<T>.Fetch(object obj) -> T
+OpenTelemetry.Instrumentation.MultiTypePropertyFetcher<T>.MultiTypePropertyFetcher(string propertyName) -> void
 OpenTelemetry.Instrumentation.StackExchangeRedis.StackExchangeRedisCallsInstrumentationOptions
 OpenTelemetry.Instrumentation.StackExchangeRedis.StackExchangeRedisCallsInstrumentationOptions.Enrich.get -> System.Action<System.Diagnostics.Activity, StackExchange.Redis.Profiling.IProfiledCommand>
 OpenTelemetry.Instrumentation.StackExchangeRedis.StackExchangeRedisCallsInstrumentationOptions.Enrich.set -> void
