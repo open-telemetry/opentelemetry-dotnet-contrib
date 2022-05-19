@@ -13,10 +13,13 @@ dotnet add package OpenTelemetry.Exporter.Instana
 
 ## Configuration
 
-The trace exporter is supported. 
+The trace exporter is supported.
 
-To report to Instana backend correct agent key and backend URL must be configured. These values can be configured by environment variables INSTANA_AGENT_KEY and  INSTANA_ENDPOINT_URL.
-Optionally backend communication timeout can be configured by environment variable INSTANA_TIMEOUT.
+To report to Instana backend correct agent key and backend URL must be configured.
+These values can be configured by environment variables INSTANA_AGENT_KEY 
+and  INSTANA_ENDPOINT_URL.
+Optionally backend communication timeout can be configured by environment 
+variable INSTANA_TIMEOUT.
 
 ### Enable Traces
 

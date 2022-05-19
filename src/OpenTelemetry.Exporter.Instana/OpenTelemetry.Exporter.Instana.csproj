@@ -22,7 +22,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net461|AnyCPU'">
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-    
+
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="1.2.0" />
   </ItemGroup>
