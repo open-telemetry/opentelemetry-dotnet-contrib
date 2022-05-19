@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Updated OTel SDK package version to 1.2.0
+  [#347](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/347)
+
 ## 1.0.0-beta.3
 
 * Going forward the NuGet package will be
