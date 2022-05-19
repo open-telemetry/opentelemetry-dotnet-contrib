@@ -91,6 +91,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
             Assert.True(blobProvider.TryCreateBlob(data, out var blob));
 
             // Wait for maintenance job to run
+            // TODO: reduce/eliminate sleep time
             Thread.Sleep(4000);
 
             // Blob will be deleted as retention period is 1 sec
@@ -125,6 +126,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
             Assert.True(File.Exists(((FileBlob)blob).FullPath + ".tmp"));
 
             // Wait for maintenance job to run
+            // TODO: reduce/eliminate sleep time
             Thread.Sleep(4000);
 
             // tmp file will be deleted as write timeout period is 1 sec
@@ -159,6 +161,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
             Assert.True(File.Exists(leasePath));
 
             // Wait for maintenance job to run
+            // TODO: reduce/eliminate sleep time
             Thread.Sleep(4000);
 
             // File name will be change to .blob
