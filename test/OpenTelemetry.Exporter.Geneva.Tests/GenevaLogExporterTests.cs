@@ -251,11 +251,13 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 new KeyValuePair<string, string>("company.Calendar", "CompanyCalendar"),
 
                 // After removing not allowed characters,
-                // if the resulting string is still an illegal Part B name, the data will get dropped on the floor.
+                // if the resulting string is still an illegal event name, the data will get dropped on the floor.
                 new KeyValuePair<string, string>("$&-.$~!!", null),
 
+                new KeyValuePair<string, string>("dlmwl3bvd84bxsx8wf700nx9rydrrhfewbxf82ceoo0h8rpla4", "Dlmwl3bvd84bxsx8wf700nx9rydrrhfewbxf82ceoo0h8rpla4"),
+
                 // If the resulting string is longer than 50 characters, only the first 50 characters will be taken.
-                new KeyValuePair<string, string>("Company.Customer.rsLiheLClHJasBOvM.XI4uW7iop6ghvwBzahfs", "CompanyCustomerrsLiheLClHJasBOvMXI4uW7iop6ghvwBza"),
+                new KeyValuePair<string, string>("Company.Customer.rsLiheLClHJasBOvM.XI4uW7iop6ghvwBzahfs", "CompanyCustomerrsLiheLClHJasBOvMXI4uW7iop6ghvwBzah"),
 
                 // The data will be dropped on the floor as the exporter cannot deduce a valid table name.
                 new KeyValuePair<string, string>("1.2", null),

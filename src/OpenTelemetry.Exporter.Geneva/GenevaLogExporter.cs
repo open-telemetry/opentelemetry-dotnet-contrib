@@ -31,6 +31,7 @@ namespace OpenTelemetry.Exporter.Geneva;
 public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
 {
     private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
+    private const int MaxNameCharCount = 50;
 
     private readonly IReadOnlyDictionary<string, object> m_customFields;
     private readonly string m_defaultEventName = "Log";
@@ -262,13 +263,14 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         else if (categoryName.Length > 0)
         {
             int cursorStartIdx = cursor;
-            cursor = SanitizeCategoryName(buffer, cursor, ref validNameLength, categoryName);
+            cursor = SerializeSanitizedCategoryName(buffer, cursor, ref validNameLength, categoryName);
             if (validNameLength > 0)
             {
                 tmpEventName = buffer.AsSpan().Slice(cursorStartIdx, validNameLength + 2);
             }
             else
             {
+                // Serializing null as categoryName could not be sanitized into a valid string.
                 cursor = MessagePackSerializer.SerializeNull(buffer, cursor);
             }
         }
@@ -486,16 +488,14 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         }
     }
 
-    private static int SanitizeCategoryName(byte[] buffer, int cursor, ref int validNameLength, string categoryName)
+    // This method would map the logger category to a table name which only contains alphanumeric values with the following additions:
+    // Any character that is not allowed will be removed.
+    // If the resulting string is longer than 50 characters, only the first 50 characters will be taken.
+    // If the first character in the resulting string is a lower-case alphabet, it will be converted to the corresponding upper-case.
+    // If the resulting string still does not comply with Rule, the category name will not be serialized.
+    private static int SerializeSanitizedCategoryName(byte[] buffer, int cursor, ref int validNameLength, string categoryName)
     {
         int cursorStartIdx = cursor;
-
-        const int maxStr8LengthInBytes = (1 << 8) - 1;
-        if (categoryName.Length > maxStr8LengthInBytes)
-        {
-            // The size of categoryName should not be greater than maxStr8LengthInBytes.
-            return cursor;
-        }
 
         // Reserve 2 bytes for storing LIMIT_MAX_STR8_LENGTH_IN_BYTES and (byte)validNameLength -
         // these 2 bytes will be back filled after iterating through categoryName.
@@ -510,21 +510,20 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         }
         else if (firstChar >= 'a' && firstChar <= 'z')
         {
-            // If the first character in the resulting string is lower-case ALPHA,
+            // If the first character in the resulting string is a lower-case alphabet,
             // it will be converted to the corresponding upper-case.
             buffer[cursor++] = (byte)(firstChar - 32);
             ++validNameLength;
         }
         else
         {
-            // Not a valid name - Part B name should follow PascalCase naming convention.
+            // Not a valid name.
             return cursor -= 2;
         }
 
-        const int maxNameCharCount = 50;
         for (int i = 1; i < categoryName.Length; ++i)
         {
-            if (validNameLength >= maxNameCharCount - 1)
+            if (validNameLength == MaxNameCharCount)
             {
                 break;
             }
