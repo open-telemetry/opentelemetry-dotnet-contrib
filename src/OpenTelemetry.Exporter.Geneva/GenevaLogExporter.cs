@@ -263,6 +263,8 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         else if (categoryName.Length > 0)
         {
             int cursorStartIdx = cursor;
+
+            // Sanitized category name has been serialized.
             cursor = SerializeSanitizedCategoryName(buffer, cursor, ref validNameLength, categoryName);
             if (validNameLength > 0)
             {
