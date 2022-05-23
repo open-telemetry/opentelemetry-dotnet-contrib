@@ -264,10 +264,10 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         {
             int cursorStartIdx = cursor;
 
-            // Sanitized category name has been serialized.
             cursor = SerializeSanitizedCategoryName(buffer, cursor, ref validNameLength, categoryName);
             if (validNameLength > 0)
             {
+                // Sanitized category name has been serialized.
                 tmpEventName = buffer.AsSpan().Slice(cursorStartIdx, validNameLength + 2);
             }
             else
@@ -531,14 +531,14 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             }
 
             var cur = categoryName[i];
-            if ((cur >= '0' && cur <= '9') || (cur >= 'A' && cur <= 'Z') || (cur >= 'a' && cur <= 'z'))
+            if ((cur >= 'a' && cur <= 'z') || (cur >= 'A' && cur <= 'Z') || (cur >= '0' && cur <= '9'))
             {
                 buffer[cursor++] = (byte)cur;
                 ++validNameLength;
             }
         }
 
-        // Backfilling MessagePack serialization protocol and valid category length to the startIdx of the cateoryName byte array.
+        // Backfilling MessagePack serialization protocol and valid category length to the startIdx of the categoryName byte array.
         MessagePackSerializer.WriteStr8Header(buffer, cursorStartIdx, validNameLength);
 
         return cursor;
