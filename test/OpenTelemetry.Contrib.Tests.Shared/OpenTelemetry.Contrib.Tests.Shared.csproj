@@ -6,7 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry" Version="1.1.0" />
+    <PackageReference Include="OpenTelemetry" Version="1.2.0" />
+    <PackageReference Include="xunit" Version="$(XUnitPkgVer)" />
   </ItemGroup>
 
 </Project>
