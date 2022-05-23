@@ -31,7 +31,7 @@ namespace OpenTelemetry.Exporter.Geneva;
 public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
 {
     private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
-    private const int MaxNameCharCount = 50;
+    private const int MaxSanitizedEventNameLength = 50;
 
     private readonly IReadOnlyDictionary<string, object> m_customFields;
     private readonly string m_defaultEventName = "Log";
@@ -247,8 +247,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         var categoryName = logRecord.CategoryName;
         string eventName = null;
 
-        Span<byte> tmpEventName = default;
-        int validNameLength = 0;
+        Span<byte> sanitizedEventName = default;
 
         // If user configured explicit TableName, use it.
         if (this.m_tableMappings != null && this.m_tableMappings.TryGetValue(categoryName, out eventName))
@@ -260,25 +259,25 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             eventName = this.m_defaultEventName;
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, eventName);
         }
-        else if (categoryName.Length > 0)
+        else
         {
             int cursorStartIdx = cursor;
 
-            cursor = SerializeSanitizedCategoryName(buffer, cursor, ref validNameLength, categoryName);
-            if (validNameLength > 0)
+            if (categoryName.Length > 0)
             {
-                // Sanitized category name has been serialized.
-                tmpEventName = buffer.AsSpan().Slice(cursorStartIdx, validNameLength + 2);
+                cursor = SerializeSanitizedCategoryName(buffer, cursor, categoryName);
             }
-            else
+
+            if (cursor == cursorStartIdx)
             {
                 // Serializing null as categoryName could not be sanitized into a valid string.
                 cursor = MessagePackSerializer.SerializeNull(buffer, cursor);
             }
-        }
-        else
-        {
-            cursor = MessagePackSerializer.SerializeNull(buffer, cursor);
+            else
+            {
+                // Sanitized category name has been serialized.
+                sanitizedEventName = buffer.AsSpan().Slice(cursorStartIdx, cursor - cursorStartIdx);
+            }
         }
 
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 1);
@@ -320,9 +319,9 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         }
 
         // Part A - core envelope
-        if (tmpEventName != default)
+        if (sanitizedEventName != default)
         {
-            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, tmpEventName, validNameLength + 2);
+            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, sanitizedEventName);
         }
         else
         {
@@ -495,13 +494,14 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
     // If the resulting string is longer than 50 characters, only the first 50 characters will be taken.
     // If the first character in the resulting string is a lower-case alphabet, it will be converted to the corresponding upper-case.
     // If the resulting string still does not comply with Rule, the category name will not be serialized.
-    private static int SerializeSanitizedCategoryName(byte[] buffer, int cursor, ref int validNameLength, string categoryName)
+    private static int SerializeSanitizedCategoryName(byte[] buffer, int cursor, string categoryName)
     {
         int cursorStartIdx = cursor;
 
         // Reserve 2 bytes for storing LIMIT_MAX_STR8_LENGTH_IN_BYTES and (byte)validNameLength -
         // these 2 bytes will be back filled after iterating through categoryName.
         cursor += 2;
+        int validNameLength = 0;
 
         // Special treatment for the first character.
         var firstChar = categoryName[0];
@@ -525,7 +525,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
 
         for (int i = 1; i < categoryName.Length; ++i)
         {
-            if (validNameLength == MaxNameCharCount)
+            if (validNameLength == MaxSanitizedEventNameLength)
             {
                 break;
             }
