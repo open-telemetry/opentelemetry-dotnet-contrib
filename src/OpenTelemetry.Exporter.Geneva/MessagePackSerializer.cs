@@ -307,6 +307,13 @@ internal static class MessagePackSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void WriteStr8Header(byte[] buffer, int nameStartIdx, int validNameLength)
+    {
+        buffer[nameStartIdx] = STR8;
+        buffer[nameStartIdx + 1] = unchecked((byte)validNameLength);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeAsciiString(byte[] buffer, int cursor, string value)
     {
         if (value == null)
@@ -570,5 +577,15 @@ internal static class MessagePackSerializer
 
                 return SerializeUnicodeString(buffer, cursor, repr);
         }
+    }
+
+    public static int SerializeSpan(byte[] buffer, int cursor, Span<byte> value)
+    {
+        for (int i = 0; i < value.Length; ++i)
+        {
+            buffer[cursor++] = value[i];
+        }
+
+        return cursor;
     }
 }
