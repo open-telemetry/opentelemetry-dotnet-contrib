@@ -34,6 +34,11 @@ namespace OpenTelemetry.Trace
                 return Status.Unset;
             }
 
+            if (httpStatusCode == 404)
+            {
+                return Status.Unset;
+            }
+
             return Status.Error;
         }
     }
