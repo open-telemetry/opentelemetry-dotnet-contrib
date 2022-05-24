@@ -91,7 +91,7 @@ where T : class
         return cursor;
     }
 
-    internal static int AddPartAField(byte[] buffer, int cursor, string name, Span<byte> span)
+    internal static int AddPartAField(byte[] buffer, int cursor, string name, Span<byte> value)
     {
         if (V40_PART_A_MAPPING.TryGetValue(name, out string replacementKey))
         {
@@ -102,7 +102,7 @@ where T : class
             cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, name);
         }
 
-        cursor = MessagePackSerializer.SerializeSpan(buffer, cursor, span);
+        cursor = MessagePackSerializer.SerializeSpan(buffer, cursor, value);
         return cursor;
     }
 }

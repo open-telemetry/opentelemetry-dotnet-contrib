@@ -579,11 +579,11 @@ internal static class MessagePackSerializer
         }
     }
 
-    public static int SerializeSpan(byte[] buffer, int cursor, Span<byte> span)
+    public static int SerializeSpan(byte[] buffer, int cursor, Span<byte> value)
     {
-        for (int i = 0; i < span.Length; ++i)
+        for (int i = 0; i < value.Length; ++i)
         {
-            buffer[cursor++] = span[i];
+            buffer[cursor++] = value[i];
         }
 
         return cursor;
