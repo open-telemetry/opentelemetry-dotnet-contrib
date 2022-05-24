@@ -319,7 +319,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         }
 
         // Part A - core envelope
-        if (sanitizedEventName != default)
+        if (sanitizedEventName.Length != 0)
         {
             cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, sanitizedEventName);
         }
