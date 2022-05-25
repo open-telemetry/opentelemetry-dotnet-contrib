@@ -171,7 +171,7 @@ Usually it is a good idea to use the latest version. Example:
 
   ```xml
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry" Version="1.2.0-rc3" />
+    <PackageReference Include="OpenTelemetry" Version="1.2.0" />
   </ItemGroup>
   ```
 
@@ -202,6 +202,12 @@ the `.github/workflows/` folder.
   [`PROJECT`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml#L18)
   value to "OpenTelemetry.Contrib.Foo.Bar".
 
+* Add an issue template in your PR. You can follow the existing issue templates,
+  e.g. [comp_extensions](./.github/ISSUE_TEMPLATE/comp_extensions.md). The
+  maintainer will help to create a new ["comp:"
+  label](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/labels?q=comp%3A)
+  once the PR is merged.
+
 * Add a README file for your project describing how to install and use your
   package. Every project's README file needs to have a link to the Nuget
   package. You can use the below snippet for reference:
@@ -215,5 +221,5 @@ the `.github/workflows/` folder.
 
 * When contributing a new project you are expected to assign either yourself or
 someone else who would take ownership for the component you are contributing.
-Please add the right onwer for your project in the
+Please add the right owner for your project in the
 [component_owners](./.github/component_owners.yml) file.

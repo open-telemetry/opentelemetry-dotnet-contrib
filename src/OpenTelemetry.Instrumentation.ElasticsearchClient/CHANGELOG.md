@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Updated OTel SDK package version to 1.2.0
+* Update minimum full framework support to net462
+* Requests that get an HTTP status code of 404 are not marked as an error span status
+
 ## 1.0.0-beta.3
 
 * Going forward the NuGet package will be

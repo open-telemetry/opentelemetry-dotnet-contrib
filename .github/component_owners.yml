@@ -5,16 +5,29 @@ components:
   src/OpenTelemetry.Contrib.Extensions.AWSXRay/:
     - srprash
     - lupengamzn
+  src/OpenTelemetry.Exporter.Geneva/:
+    - cijothomas
+    - codeblanch
+    - mic-max
+    - reyang
+    - utpilla
+    - Yun-Ting
+  src/OpenTelemetry.Exporter.Instana/:
+    - zivaninstana
   src/OpenTelemetry.Exporter.Stackdriver/:
     - SergeyKanzhelev
   src/OpenTelemetry.Extensions/:
     - codeblanch
+  src/OpenTelemetry.Extensions.PersistentStorage.Abstractions/:
+    - vishweshbankwar
   src/OpenTelemetry.Extensions.PersistentStorage/:
     - vishweshbankwar
   src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
     - ejsmith
   src/OpenTelemetry.Instrumentation.GrpcCore/:
     - pcwiese
+  src/OpenTelemetry.Instrumentation.Hangfire/:
+    - fred2u
   src/OpenTelemetry.Instrumentation.MassTransit/:
     - alexvaluyskiy
   src/OpenTelemetry.Instrumentation.MySqlData/:
@@ -23,12 +36,38 @@ components:
     - codeblanch
   src/OpenTelemetry.Instrumentation.Quartz/:
     - maldago
+  src/OpenTelemetry.Instrumentation.Runtime/:
+    - twenzel
+    - xiang17
   src/OpenTelemetry.Instrumentation.Wcf/:
     - codeblanch
 
   test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/:
     - srprash 
     - lupengamzn
+  test/OpenTelemetry.Exporter.Geneva.Benchmark/:
+    - cijothomas
+    - codeblanch
+    - mic-max
+    - reyang
+    - utpilla
+    - Yun-Ting
+  test/OpenTelemetry.Exporter.Geneva.Stress/:
+    - cijothomas
+    - codeblanch
+    - mic-max
+    - reyang
+    - utpilla
+    - Yun-Ting
+  test/OpenTelemetry.Exporter.Geneva.Tests/:
+    - cijothomas
+    - codeblanch
+    - mic-max
+    - reyang
+    - utpilla
+    - Yun-Ting
+  test/OpenTelemetry.Exporter.Instana.Tests/:
+    - zivaninstana
   test/OpenTelemetry.Exporter.Stackdriver.Tests/:
     - SergeyKanzhelev
   test/OpenTelemetry.Extensions.Tests/:
@@ -39,6 +78,8 @@ components:
     - ejsmith
   test/OpenTelemetry.Instrumentation.GrpcCore.Tests/:
     - pcwiese
+  test/OpenTelemetry.Instrumentation.Hangfire.Tests/:
+    - fred2u
   test/OpenTelemetry.Instrumentation.MassTransit.Tests/:
     - alexvaluyskiy
   test/OpenTelemetry.Instrumentation.MySqlData.Tests/:
@@ -47,5 +88,8 @@ components:
     - codeblanch
   test/OpenTelemetry.Instrumentation.Quartz.Tests/:
     - maldago
+  test/OpenTelemetry.Instrumentation.Runtime.Tests/:
+    - twenzel
+    - xiang17
   test/OpenTelemetry.Instrumentation.Wcf.Tests/:
     - codeblanch
