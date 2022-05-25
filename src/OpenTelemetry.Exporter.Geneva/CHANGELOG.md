@@ -15,6 +15,10 @@
 `StatusDescription`.
 [359](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/359)
 
+* Allow serialization of non-ASCII characters for
+`LogRecord.Exception.GetType().FullName`.
+[375](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/375)
+
 ## 1.2.6 [2022-Apr-21]
 
 * Set GenevaMetricExporter temporality preference back to Delta.

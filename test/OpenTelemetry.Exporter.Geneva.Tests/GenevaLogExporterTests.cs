@@ -929,6 +929,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
             Assert.Equal("DateTime", timeFormat["TimeFormat"]);
         }
 
+        // A custom exception class with non-ASCII character in the type name
         private class CustomExceptionû : Exception
         {
         }
