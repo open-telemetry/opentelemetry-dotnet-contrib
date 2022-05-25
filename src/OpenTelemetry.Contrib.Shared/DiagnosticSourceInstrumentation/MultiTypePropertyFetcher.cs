@@ -25,7 +25,7 @@ namespace OpenTelemetry.Instrumentation
     /// PropertyFetcher fetches a property from an object.
     /// </summary>
     /// <typeparam name="T">The type of the property being fetched.</typeparam>
-    public class MultiTypePropertyFetcher<T>
+    internal class MultiTypePropertyFetcher<T>
     {
         private readonly string propertyName;
         private readonly ConcurrentDictionary<Type, PropertyFetch> innerFetcher = new ConcurrentDictionary<Type, PropertyFetch>();

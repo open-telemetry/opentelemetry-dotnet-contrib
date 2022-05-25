@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* PassThru TableNameMappings using the logger category name.
+[345](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/345)
+
 * Throw exception when `TableNameMappings` contains a `null` value.
 [322](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/322)
 
