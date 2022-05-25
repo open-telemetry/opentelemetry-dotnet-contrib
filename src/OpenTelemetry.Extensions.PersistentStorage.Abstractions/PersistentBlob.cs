@@ -15,6 +15,7 @@
 // </copyright>
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
 {
@@ -32,15 +33,15 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
         /// <returns>
         /// True if read was successful or else false.
         /// </returns>
-        public bool TryRead(out byte[] buffer)
+        public bool TryRead([NotNullWhen(true)] out byte[]? buffer)
         {
             try
             {
                 return this.OnTryRead(out buffer);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // TODO: log exception.
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlob), "Failed to read the blob.", ex);
                 buffer = null;
                 return false;
             }
@@ -64,9 +65,9 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
             {
                 return this.OnTryWrite(buffer, leasePeriodMilliseconds);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // TODO: log exception.
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlob), "Failed to write the blob", ex);
                 return false;
             }
         }
@@ -86,9 +87,9 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
             {
                 return this.OnTryLease(leasePeriodMilliseconds);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // TODO: log exception.
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlob), "Failed to lease the blob", ex);
                 return false;
             }
         }
@@ -105,14 +106,14 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Abstractions
             {
                 return this.OnTryDelete();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // TODO: log exception.
+                PersistentStorageAbstractionsEventSource.Log.PersistentStorageAbstractionsException(nameof(PersistentBlob), "Failed to delete the blob", ex);
                 return false;
             }
         }
 
-        protected abstract bool OnTryRead(out byte[] buffer);
+        protected abstract bool OnTryRead([NotNullWhen(true)] out byte[]? buffer);
 
         protected abstract bool OnTryWrite(byte[] buffer, int leasePeriodMilliseconds = 0);
 

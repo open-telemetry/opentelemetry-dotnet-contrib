@@ -12,10 +12,14 @@ components:
     - reyang
     - utpilla
     - Yun-Ting
+  src/OpenTelemetry.Exporter.Instana/:
+    - zivaninstana
   src/OpenTelemetry.Exporter.Stackdriver/:
     - SergeyKanzhelev
   src/OpenTelemetry.Extensions/:
     - codeblanch
+  src/OpenTelemetry.Extensions.PersistentStorage.Abstractions/:
+    - vishweshbankwar
   src/OpenTelemetry.Extensions.PersistentStorage/:
     - vishweshbankwar
   src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
@@ -62,6 +66,8 @@ components:
     - reyang
     - utpilla
     - Yun-Ting
+  test/OpenTelemetry.Exporter.Instana.Tests/:
+    - zivaninstana
   test/OpenTelemetry.Exporter.Stackdriver.Tests/:
     - SergeyKanzhelev
   test/OpenTelemetry.Extensions.Tests/:

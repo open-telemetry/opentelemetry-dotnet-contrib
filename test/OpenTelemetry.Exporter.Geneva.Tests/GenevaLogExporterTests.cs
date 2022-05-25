@@ -62,6 +62,26 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                     TableNameMappings = new Dictionary<string, string> { ["*"] = "\u0418" },
                 });
             });
+
+            // Throw on null value - include key in exception message
+            var ex = Assert.Throws<ArgumentNullException>(() =>
+            {
+                new GenevaExporterOptions
+                {
+                    TableNameMappings = new Dictionary<string, string> { ["TestCategory"] = null },
+                };
+            });
+            Assert.Contains("TableNameMappings must not contain null values.", ex.Message);
+            Assert.Equal("TestCategory", ex.ParamName);
+
+            // Throw when TableNameMappings is null
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                new GenevaExporterOptions
+                {
+                    TableNameMappings = null,
+                };
+            });
         }
 
         [Theory]
@@ -205,6 +225,101 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 catch
                 {
                 }
+            }
+        }
+
+        [Fact]
+        [Trait("Platform", "Any")]
+        public void PassThruTableMappingsWhenTheRuleIsEnabled()
+        {
+            var userInitializedCategoryToTableNameMappings = new Dictionary<string, string>
+            {
+                ["Company.Store"] = "Store",
+                ["Company.Orders"] = "Orders",
+                ["*"] = "*",
+            };
+
+            var expectedCategoryToTableNameList = new List<KeyValuePair<string, string>>
+            {
+                // The category name must match "^[A-Z][a-zA-Z0-9]*$"; any character that is not allowed will be removed.
+                new KeyValuePair<string, string>("Company.Customer", "CompanyCustomer"),
+
+                new KeyValuePair<string, string>("Company-%-Customer*Region$##", "CompanyCustomerRegion"),
+
+                // If the first character in the resulting string is lower-case ALPHA,
+                // it will be converted to the corresponding upper-case.
+                new KeyValuePair<string, string>("company.Calendar", "CompanyCalendar"),
+
+                // After removing not allowed characters,
+                // if the resulting string is still an illegal event name, the data will get dropped on the floor.
+                new KeyValuePair<string, string>("$&-.$~!!", null),
+
+                new KeyValuePair<string, string>("dlmwl3bvd84bxsx8wf700nx9rydrrhfewbxf82ceoo0h8rpla4", "Dlmwl3bvd84bxsx8wf700nx9rydrrhfewbxf82ceoo0h8rpla4"),
+
+                // If the resulting string is longer than 50 characters, only the first 50 characters will be taken.
+                new KeyValuePair<string, string>("Company.Customer.rsLiheLClHJasBOvM.XI4uW7iop6ghvwBzahfs", "CompanyCustomerrsLiheLClHJasBOvMXI4uW7iop6ghvwBzah"),
+
+                // The data will be dropped on the floor as the exporter cannot deduce a valid table name.
+                new KeyValuePair<string, string>("1.2", null),
+            };
+
+            var logRecordList = new List<LogRecord>();
+            var exporterOptions = new GenevaExporterOptions
+            {
+                TableNameMappings = userInitializedCategoryToTableNameMappings,
+                ConnectionString = "EtwSession=OpenTelemetry",
+            };
+
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+            .AddOpenTelemetry(options =>
+            {
+                options.AddInMemoryExporter(logRecordList);
+            })
+            .AddFilter("*", LogLevel.Trace)); // Enable all LogLevels
+
+            // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
+            using var exporter = new GenevaLogExporter(exporterOptions);
+
+            ILogger passThruTableMappingsLogger, userInitializedTableMappingsLogger;
+            ThreadLocal<byte[]> m_buffer;
+            object fluentdData;
+            string actualTableName;
+            m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+
+            // Verify that the category table mappings specified by the users in the Geneva Configuration are mapped correctly.
+            foreach (var mapping in userInitializedCategoryToTableNameMappings)
+            {
+                if (mapping.Key != "*")
+                {
+                    userInitializedTableMappingsLogger = loggerFactory.CreateLogger(mapping.Key);
+                    userInitializedTableMappingsLogger.LogInformation("This information does not matter.");
+                    Assert.Single(logRecordList);
+
+                    _ = exporter.SerializeLogRecord(logRecordList[0]);
+                    fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+                    actualTableName = (fluentdData as object[])[0] as string;
+                    userInitializedCategoryToTableNameMappings.TryGetValue(mapping.Key, out var expectedTableNme);
+                    Assert.Equal(expectedTableNme, actualTableName);
+
+                    logRecordList.Clear();
+                }
+            }
+
+            // Verify that when the "*" = "*" were enabled, the correct table names were being deduced following the set of rules.
+            foreach (var mapping in expectedCategoryToTableNameList)
+            {
+                passThruTableMappingsLogger = loggerFactory.CreateLogger(mapping.Key);
+                passThruTableMappingsLogger.LogInformation("This information does not matter.");
+                Assert.Single(logRecordList);
+
+                _ = exporter.SerializeLogRecord(logRecordList[0]);
+                fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+                actualTableName = (fluentdData as object[])[0] as string;
+                string expectedTableName = string.Empty;
+                expectedTableName = mapping.Value;
+                Assert.Equal(expectedTableName, actualTableName);
+
+                logRecordList.Clear();
             }
         }
 

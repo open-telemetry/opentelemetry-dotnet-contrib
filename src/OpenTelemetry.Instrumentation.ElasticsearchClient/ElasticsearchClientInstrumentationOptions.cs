@@ -41,6 +41,11 @@ namespace OpenTelemetry.Instrumentation.ElasticsearchClient
         public bool SetDbStatementForRequest { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets a max length allowed for the db.statement attribute. Default value: 4096.
+        /// </summary>
+        public int MaxDbStatementLength { get; set; } = 4096;
+
+        /// <summary>
         /// Gets or sets an action to enrich an Activity.
         /// </summary>
         /// <remarks>
