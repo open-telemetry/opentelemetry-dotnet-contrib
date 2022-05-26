@@ -15,7 +15,9 @@
 // </copyright>
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using OpenTelemetry.Extensions.PersistentStorage.Abstractions;
 
 namespace OpenTelemetry.Extensions.PersistentStorage
 {
@@ -23,7 +25,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
     /// The <see cref="FileBlob"/> allows to save a blob
     /// in file storage.
     /// </summary>
-    public class FileBlob : IPersistentBlob
+    public class FileBlob : PersistentBlob
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="FileBlob"/>
@@ -37,23 +39,23 @@ namespace OpenTelemetry.Extensions.PersistentStorage
 
         public string FullPath { get; private set; }
 
-        /// <inheritdoc/>
-        public byte[] Read()
+        protected override bool OnTryRead([NotNullWhen(true)] out byte[] buffer)
         {
             try
             {
-                return File.ReadAllBytes(this.FullPath);
+                buffer = File.ReadAllBytes(this.FullPath);
             }
             catch (Exception ex)
             {
                 PersistentStorageEventSource.Log.Warning($"Reading a blob from file {this.FullPath} has failed.", ex);
+                buffer = null;
+                return false;
             }
 
-            return null;
+            return true;
         }
 
-        /// <inheritdoc/>
-        public IPersistentBlob Write(byte[] buffer, int leasePeriodMilliseconds = 0)
+        protected override bool OnTryWrite(byte[] buffer, int leasePeriodMilliseconds = 0)
         {
             string path = this.FullPath + ".tmp";
 
@@ -72,14 +74,13 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             catch (Exception ex)
             {
                 PersistentStorageEventSource.Log.Warning($"Writing a blob to file {path} has failed.", ex);
-                return null;
+                return false;
             }
 
-            return this;
+            return true;
         }
 
-        /// <inheritdoc/>
-        public IPersistentBlob Lease(int leasePeriodMilliseconds)
+        protected override bool OnTryLease(int leasePeriodMilliseconds)
         {
             var path = this.FullPath;
             var leaseTimestamp = DateTime.UtcNow + TimeSpan.FromMilliseconds(leasePeriodMilliseconds);
@@ -97,15 +98,15 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             catch (Exception ex)
             {
                 PersistentStorageEventSource.Log.Warning($"Acquiring a lease to file {this.FullPath} has failed.", ex);
-                return null;
+                return false;
             }
 
             this.FullPath = path;
-            return this;
+
+            return true;
         }
 
-        /// <inheritdoc/>
-        public void Delete()
+        protected override bool OnTryDelete()
         {
             try
             {
@@ -114,7 +115,10 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             catch (Exception ex)
             {
                 PersistentStorageEventSource.Log.Warning($"Deletion of file blob {this.FullPath} has failed.", ex);
+                return false;
             }
+
+            return true;
         }
     }
 }
