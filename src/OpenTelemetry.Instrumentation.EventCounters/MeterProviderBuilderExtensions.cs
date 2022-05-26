@@ -40,8 +40,7 @@ namespace OpenTelemetry.Metrics
             var options = new EventCounterMetricsOptions();
             configure?.Invoke(options);
 
-            EventCounterListener.EventCounterMetricsOptions = options;
-            var instrumentation = new EventCounterListener();
+            var instrumentation = new EventCounterListener(options);
             builder.AddMeter(EventCounterListener.InstrumentationName);
             return builder.AddInstrumentation(() => instrumentation);
         }

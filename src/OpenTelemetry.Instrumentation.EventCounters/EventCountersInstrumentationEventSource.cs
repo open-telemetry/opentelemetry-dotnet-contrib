@@ -32,25 +32,13 @@ namespace OpenTelemetry.Instrumentation.EventCounters
             this.WriteEvent(1, counterName, exception);
         }
 
-        [Event(4, Level = EventLevel.Warning, Message = @"Ignoring event written from EventSource: {0} as payload is not IDictionary to extract metrics.")]
+        [Event(2, Level = EventLevel.Warning, Message = @"Ignoring event written from EventSource: {0} as payload is not IDictionary to extract metrics.")]
         public void IgnoreEventWrittenAsEventPayloadNotParseable(string eventSourceName)
         {
             this.WriteEvent(4, eventSourceName);
         }
 
-        [Event(6, Level = EventLevel.Warning, Message = @"EventCounter actual interval of {0} secs is less than configured interval of {1} secs.")]
-        public void EventCounterRefreshIntervalLessThanConfigured(double actualInterval, int configuredInterval)
-        {
-            this.WriteEvent(6, actualInterval, configuredInterval);
-        }
-
-        [Event(7, Level = EventLevel.Warning, Message = @"EventCounter IntervalSec is 0. Using default interval. Counter Name: {0}.")]
-        public void EventCounterIntervalZero(string counterName)
-        {
-            this.WriteEvent(7, counterName);
-        }
-
-        [Event(8, Level = EventLevel.Warning, Message = @"EventCountersInstrumentation - {0} failed with exception: {1}.")]
+        [Event(3, Level = EventLevel.Warning, Message = @"EventCountersInstrumentation - {0} failed with exception: {1}.")]
         public void EventCountersInstrumentationWarning(string stage, string exceptionMessage)
         {
             this.WriteEvent(8, stage, exceptionMessage);

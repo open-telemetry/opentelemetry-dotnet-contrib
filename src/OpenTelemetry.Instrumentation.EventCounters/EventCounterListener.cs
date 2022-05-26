@@ -19,31 +19,31 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Diagnostics.Tracing;
-using System.Globalization;
 using System.Reflection;
 
 namespace OpenTelemetry.Instrumentation.EventCounters
 {
     internal class EventCounterListener : EventListener
     {
-        // EventSourceCreated can run before constructor, so constructor injection of the options dependency will not work.
-        // Using static to set options at host build time.
-        public static EventCounterMetricsOptions EventCounterMetricsOptions = new EventCounterMetricsOptions();
-
         internal static readonly AssemblyName AssemblyName = typeof(EventCounterListener).Assembly.GetName();
         internal static readonly string InstrumentationName = AssemblyName.Name;
         internal static readonly string InstrumentationVersion = AssemblyName.Version.ToString();
+
         private readonly bool isInitialized = false;
         private readonly Meter meter;
+        private readonly EventCounterMetricsOptions options;
         private readonly ConcurrentDictionary<MetricKey, Instrument> metricInstruments = new();
         private readonly ConcurrentDictionary<MetricKey, long> lastLongValue = new();
         private readonly ConcurrentDictionary<MetricKey, double> lastDoubleValue = new();
+        private readonly ConcurrentBag<EventSource> eventSources = new();
 
-        public EventCounterListener()
+        public EventCounterListener(EventCounterMetricsOptions options)
         {
             this.meter = new Meter(InstrumentationName, InstrumentationVersion);
+            this.options = options ?? throw new ArgumentNullException(nameof(options));
 
             this.isInitialized = true;
+            this.EnablePendingEventSources(); // Some OnEventSourceCreated may have fired before constructor, enable them
         }
 
         private enum InstrumentType
@@ -52,18 +52,21 @@ namespace OpenTelemetry.Instrumentation.EventCounters
             Counter,
         }
 
+        private Dictionary<string, string> EnableEventArgs => new Dictionary<string, string> { ["EventCounterIntervalSec"] = this.options.RefreshIntervalSecs.ToString(), };
+
         protected override void OnEventSourceCreated(EventSource source)
         {
             // TODO: Add Configuration options to selectively subscribe to EventCounters
-
             try
             {
-                var arguments = new Dictionary<string, string>
+                if (!this.isInitialized)
                 {
-                    ["EventCounterIntervalSec"] = EventCounterMetricsOptions.RefreshIntervalSecs.ToString(),
-                };
-
-                this.EnableEvents(source, EventLevel.Verbose, EventKeywords.All, arguments);
+                    this.eventSources.Add(source);
+                }
+                else
+                {
+                    this.EnableEvents(source, EventLevel.Verbose, EventKeywords.All, this.EnableEventArgs);
+                }
             }
             catch (Exception ex)
             {
@@ -100,9 +103,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters
             try
             {
                 bool calculateRate = false;
-                double actualValue = 0.0;
-                double actualInterval = 0.0;
-                double recordedValue = 0.0;
+                string actualValue = string.Empty;
 
                 string counterName = string.Empty;
                 string counterDisplayName = string.Empty;
@@ -123,43 +124,18 @@ namespace OpenTelemetry.Instrumentation.EventCounters
                     else if (key.Equals("Mean", StringComparison.OrdinalIgnoreCase))
                     {
                         instrumentType = InstrumentType.Counter;
+                        actualValue = payload.Value.ToString();
                     }
                     else if (key.Equals("Increment", StringComparison.OrdinalIgnoreCase))
                     {
                         // Increment indicates we have to calculate rate.
                         instrumentType = InstrumentType.Gauge;
                         calculateRate = true;
-                    }
-                    else if (key.Equals("IntervalSec", StringComparison.OrdinalIgnoreCase))
-                    {
-                        // Even though we configure 60 sec, we parse the actual duration from here. It'll be very close to the configured interval of 60.
-                        // If for some reason this value is 0, then we default to 60 sec.
-                        actualInterval = Convert.ToDouble(payload.Value, CultureInfo.InvariantCulture);
-                        if (actualInterval < EventCounterMetricsOptions.RefreshIntervalSecs)
-                        {
-                            EventCountersInstrumentationEventSource.Log.EventCounterRefreshIntervalLessThanConfigured(actualInterval, EventCounterMetricsOptions.RefreshIntervalSecs);
-                        }
+                        actualValue = payload.Value.ToString();
                     }
                 }
 
-                if (calculateRate)
-                {
-                    if (actualInterval > 0)
-                    {
-                        recordedValue = actualValue / actualInterval;
-                    }
-                    else
-                    {
-                        recordedValue = actualValue / EventCounterMetricsOptions.RefreshIntervalSecs;
-                        EventCountersInstrumentationEventSource.Log.EventCounterIntervalZero(counterName);
-                    }
-                }
-                else
-                {
-                    recordedValue = actualValue;
-                }
-
-                this.RecordMetric(eventSourceName, counterName, counterDisplayName, instrumentType, recordedValue);
+                this.RecordMetric(eventSourceName, counterName, counterDisplayName, instrumentType, actualValue, calculateRate);
             }
             catch (Exception ex)
             {
@@ -167,20 +143,20 @@ namespace OpenTelemetry.Instrumentation.EventCounters
             }
         }
 
-        private void RecordMetric(string eventSourceName, string counterName, string displayName, InstrumentType instrumentType, double recordedValue)
+        private void RecordMetric(string eventSourceName, string counterName, string displayName, InstrumentType instrumentType, string value, bool calculateRate)
         {
             var metricKey = new MetricKey(eventSourceName, counterName);
             var description = string.IsNullOrEmpty(displayName) ? counterName : displayName;
-            bool isLong = long.TryParse(recordedValue.ToString(), out long longValue);
-            bool isDouble = double.TryParse(recordedValue.ToString(), out double doubleValue);
+            bool isLong = long.TryParse(value, out long longValue);
+            bool isDouble = double.TryParse(value, out double doubleValue);
 
             if (isLong)
             {
-                this.lastLongValue[metricKey] = longValue;
+                this.lastLongValue[metricKey] = calculateRate ? longValue / this.options.RefreshIntervalSecs : longValue;
             }
             else if (isDouble)
             {
-                this.lastDoubleValue[metricKey] = doubleValue;
+                this.lastDoubleValue[metricKey] = calculateRate ? doubleValue / this.options.RefreshIntervalSecs : doubleValue;
             }
 
             switch (instrumentType)
@@ -223,6 +199,14 @@ namespace OpenTelemetry.Instrumentation.EventCounters
         private long ObserveLong(MetricKey key) => this.lastLongValue[key];
 
         private double ObserveDouble(MetricKey key) => this.lastDoubleValue[key];
+
+        private void EnablePendingEventSources()
+        {
+            foreach (var source in this.eventSources)
+            {
+                this.EnableEvents(source, EventLevel.Verbose, EventKeywords.All, this.EnableEventArgs);
+            }
+        }
 
         private class MetricKey
         {
