@@ -606,11 +606,11 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 logger.LogError(new InvalidOperationException("Oops! Food is spoiled!"), "Hello from {food} {price}.", "artichoke", 3.99);
 
                 // Exception with a non-ASCII character in its type name
-                logger.LogError(new CustomExceptionû(), "Hello from {food} {price}.", "artichoke", 3.99);
+                logger.LogError(new CustomException\u0418(), "Hello from {food} {price}.", "artichoke", 3.99);
 
                 var loggerWithDefaultCategory = loggerFactory.CreateLogger("DefaultCategory");
                 loggerWithDefaultCategory.LogInformation("Basic test");
-                loggerWithDefaultCategory.LogInformation("Basic testû"); // Include non-ASCII characters in the message
+                loggerWithDefaultCategory.LogInformation("\u0418"); // Include non-ASCII characters in the message
 
                 // logRecordList should have 14 logRecord entries as there were 14 Log calls
                 Assert.Equal(14, logRecordList.Count);
@@ -930,7 +930,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         // A custom exception class with non-ASCII character in the type name
-        private class CustomExceptionû : Exception
+        private class CustomException\u0418 : Exception
         {
         }
     }
