@@ -605,11 +605,15 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 logger.LogInformation("Hello World!"); // unstructured logging
                 logger.LogError(new InvalidOperationException("Oops! Food is spoiled!"), "Hello from {food} {price}.", "artichoke", 3.99);
 
+                // Exception with a non-ASCII character in its type name
+                logger.LogError(new CustomException\u0418(), "Hello from {food} {price}.", "artichoke", 3.99);
+
                 var loggerWithDefaultCategory = loggerFactory.CreateLogger("DefaultCategory");
                 loggerWithDefaultCategory.LogInformation("Basic test");
+                loggerWithDefaultCategory.LogInformation("\u0418"); // Include non-ASCII characters in the message
 
-                // logRecordList should have 12 logRecord entries as there were 12 Log calls
-                Assert.Equal(12, logRecordList.Count);
+                // logRecordList should have 14 logRecord entries as there were 14 Log calls
+                Assert.Equal(14, logRecordList.Count);
 
                 var m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
 
@@ -923,6 +927,11 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
 
             // Epilouge
             Assert.Equal("DateTime", timeFormat["TimeFormat"]);
+        }
+
+        // A custom exception class with non-ASCII character in the type name
+        private class CustomException\u0418 : Exception
+        {
         }
     }
 }

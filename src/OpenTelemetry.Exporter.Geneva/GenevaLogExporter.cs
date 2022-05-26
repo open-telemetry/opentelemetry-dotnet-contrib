@@ -354,7 +354,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         if (logRecord.Exception != null)
         {
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_ex_type");
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, logRecord.Exception.GetType().FullName);
+            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, logRecord.Exception.GetType().FullName);
             cntFields += 1;
 
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_ex_msg");
