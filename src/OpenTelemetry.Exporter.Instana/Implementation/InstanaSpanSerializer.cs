@@ -82,7 +82,7 @@ namespace OpenTelemetry.Exporter.Instana.Implementation
             await writer.WriteAsync(COMMA);
             await this.AppendPropertyAsync(DateToUnixMillis(instanaSpan.Ts), "ts", writer);
             await writer.WriteAsync(COMMA);
-            await this.AppendPropertyAsync(instanaSpan.D, "d", writer);
+            await this.AppendPropertyAsync((long)(instanaSpan.D / 10_000), "d", writer);
             await writer.WriteAsync(COMMA);
             await this.AppendObjectAsync(this.SerializeDataAsync, "data", instanaSpan, writer);
             await writer.WriteAsync(COMMA);
