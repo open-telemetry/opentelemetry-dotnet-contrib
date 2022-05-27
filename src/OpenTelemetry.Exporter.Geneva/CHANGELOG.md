@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-* PassThru TableNameMappings using the logger category name.
+## 1.3.0-beta.1 [2022-May-27]
+
+* Enable PassThru TableNameMappings using the logger category name.
 [345](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/345)
 
 * Throw exception when `TableNameMappings` contains a `null` value.
