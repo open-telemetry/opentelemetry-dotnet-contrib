@@ -16,7 +16,8 @@
 
 using System;
 using System.Diagnostics.Tracing;
-using System.Runtime.CompilerServices;
+using System.Globalization;
+using System.Threading;
 
 namespace OpenTelemetry.Extensions.PersistentStorage
 {
@@ -24,84 +25,45 @@ namespace OpenTelemetry.Extensions.PersistentStorage
     internal sealed class PersistentStorageEventSource : EventSource
     {
         public static PersistentStorageEventSource Log = new PersistentStorageEventSource();
-        private const string EventSourceName = "OpenTelemetry-Contrib-PersistentStorage";
+        private const string EventSourceName = "OpenTelemetry-Extensions-PersistentStorage";
 
         [NonEvent]
-        public void Critical(string message, object value = null)
+        public void PersistentStorageException(string className, string message, Exception ex)
         {
-            this.Write(EventLevel.Critical, message, value);
-        }
-
-        [NonEvent]
-        public void Error(string message, object value = null)
-        {
-            this.Write(EventLevel.Error, message, value);
-        }
-
-        [NonEvent]
-        public void Warning(string message, object value = null)
-        {
-            this.Write(EventLevel.Warning, message, value);
-        }
-
-        [NonEvent]
-        public void Informational(string message, object value = null)
-        {
-            this.Write(EventLevel.Informational, message, value);
-        }
-
-        [NonEvent]
-        public void Verbose(string message, object value = null)
-        {
-            this.Write(EventLevel.Verbose, message, value);
-        }
-
-        [Event(1, Message = "{0}", Level = EventLevel.Critical)]
-        public void WriteCritical(string message) => this.WriteEvent(1, message);
-
-        [Event(2, Message = "{0}", Level = EventLevel.Error)]
-        public void WriteError(string message) => this.WriteEvent(2, message);
-
-        [Event(3, Message = "{0}", Level = EventLevel.Warning)]
-        public void WriteWarning(string message) => this.WriteEvent(3, message);
-
-        [Event(4, Message = "{0}", Level = EventLevel.Informational)]
-        public void WriteInformational(string message) => this.WriteEvent(4, message);
-
-        [Event(5, Message = "{0}", Level = EventLevel.Verbose)]
-        public void WriteVerbose(string message) => this.WriteEvent(5, message);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static string GetMessage(object value)
-        {
-            return value is Exception exception ? exception.ToString() : value.ToString();
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Write(EventLevel eventLevel, string message, object value)
-        {
-            if (this.IsEnabled(eventLevel, (EventKeywords)(-1)))
+            if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
             {
-                var logMessage = value == null ? message : $"{message} - {GetMessage(value)}";
+                this.PersistentStorageException(className, message, ToInvariantString(ex));
+            }
+        }
 
-                switch (eventLevel)
-                {
-                    case EventLevel.Critical:
-                        this.WriteCritical(logMessage);
-                        break;
-                    case EventLevel.Error:
-                        this.WriteError(logMessage);
-                        break;
-                    case EventLevel.Informational:
-                        this.WriteInformational(logMessage);
-                        break;
-                    case EventLevel.Verbose:
-                        this.WriteVerbose(logMessage);
-                        break;
-                    case EventLevel.Warning:
-                        this.WriteWarning(logMessage);
-                        break;
-                }
+        [Event(1, Message = "{0}: {1}: {2}", Level = EventLevel.Error)]
+        public void PersistentStorageException(string className, string message, string ex)
+        {
+            this.WriteEvent(1, className, message, ex);
+        }
+
+        [Event(8, Message = "{0}: {1}", Level = EventLevel.Warning)]
+        public void PersistentStorageWarning(string className, string message)
+        {
+            this.WriteEvent(2, className, message);
+        }
+
+        /// <summary>
+        /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
+        /// appropriate for diagnostics tracing.
+        /// </summary>
+        private static string ToInvariantString(Exception exception)
+        {
+            var originalUICulture = Thread.CurrentThread.CurrentUICulture;
+
+            try
+            {
+                Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
+                return exception.ToString();
+            }
+            finally
+            {
+                Thread.CurrentThread.CurrentUICulture = originalUICulture;
             }
         }
     }
