@@ -163,7 +163,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
                 // TODO: check accuracy of size reporting.
                 PersistentStorageEventSource.Log.PersistentStorageWarning(
                     nameof(FileBlobProvider),
-                    $"Persistent storage max capacity has been reached. Currently at {size / 1024} KB. " + "Please consider increasing the value of storage max size in exporter config.");
+                    $"Persistent storage max capacity has been reached. Currently at {size / 1024} KB. Please consider increasing the value of storage max size in exporter config.");
                 return false;
             }
 
