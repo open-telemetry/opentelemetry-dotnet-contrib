@@ -17,10 +17,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using OpenTelemetry.Contrib.Extensions.Docker.Utils;
+using OpenTelemetry.Extensions.Docker.Utils;
 using OpenTelemetry.Resources;
 
-namespace OpenTelemetry.Contrib.Extensions.Docker.Resources
+namespace OpenTelemetry.Extensions.Docker.Resources
 {
     /// <summary>
     /// Resource detector for application running in Docker environment.
@@ -35,22 +35,26 @@ namespace OpenTelemetry.Contrib.Extensions.Docker.Resources
         /// <returns>Resource with key-value pairs of resource attributes.</returns>
         public Resource Detect()
         {
-            return new Resource(this.BuildResourceAttributes(this.ExtractContainerId(FILEPATH)));
+            return this.BuildResource(FILEPATH);
         }
 
         /// <summary>
-        /// Builds the resource attributes from Container Id.
+        /// Builds the resource attributes from Container Id in file path.
         /// </summary>
-        /// <param name="containerId">Container Id</param>
-        /// <returns>List of key-value pairs of resource attributes.</returns>
-        internal List<KeyValuePair<string, object>> BuildResourceAttributes(string containerId)
+        /// <param name="path">File path where container id exists.</param>
+        /// <returns>Returns Resource with list of key-value pairs of container resource attributes if container id exists else empty resource.</returns>
+        internal Resource BuildResource(string path)
         {
-            var resourceAttributes = new List<KeyValuePair<string, object>>()
-            {
-                new KeyValuePair<string, object>(DockerSemanticConventions.AttributeContainerID, containerId),
-            };
+            var containerId = this.ExtractContainerId(path);
 
-            return resourceAttributes;
+            if (string.IsNullOrEmpty(containerId))
+            {
+                return Resource.Empty;
+            }
+            else
+            {
+                return new Resource(new List<KeyValuePair<string, object>>() { new KeyValuePair<string, object>(DockerSemanticConventions.AttributeContainerID, containerId), });
+            }
         }
 
         /// <summary>
@@ -58,7 +62,7 @@ namespace OpenTelemetry.Contrib.Extensions.Docker.Resources
         /// </summary>
         /// <param name="path">cgroup path.</param>
         /// <returns>Container Id, Null if not found or exception being thrown.</returns>
-        internal string ExtractContainerId(string path)
+        private string ExtractContainerId(string path)
         {
             try
             {
@@ -78,7 +82,7 @@ namespace OpenTelemetry.Contrib.Extensions.Docker.Resources
             }
             catch (Exception ex)
             {
-                DockerEventSource.Log.ResourceAttributesExtractException($"{nameof(DockerResourceDetector)} : Failed to extract Container id from path", ex);
+                DockerExtensionsEventSource.Log.ResourceAttributesExtractException($"{nameof(DockerResourceDetector)} : Failed to extract Container id from path", ex);
             }
 
             return null;
@@ -89,7 +93,7 @@ namespace OpenTelemetry.Contrib.Extensions.Docker.Resources
         /// </summary>
         /// <param name="line">line read from cgroup file.</param>
         /// <returns>Container Id.</returns>
-        internal string GetIdFromLine(string line)
+        private string GetIdFromLine(string line)
         {
             // This cgroup output line should have the container id in it
             int lastSlashIndex = line.LastIndexOf('/');

@@ -6,7 +6,7 @@ the `TracerProvider` with the following example below.
 
 ```csharp
 using OpenTelemetry;
-using OpenTelemetry.Contrib.Extensions.Docker;
+using OpenTelemetry.Extensions.Docker;
 
 var tracerProvider = Sdk.CreateTracerProviderBuilder()
                         // other configurations

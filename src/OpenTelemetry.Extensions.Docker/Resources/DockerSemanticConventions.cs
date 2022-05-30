@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Contrib.Extensions.Docker.Resources
+namespace OpenTelemetry.Extensions.Docker.Resources
 {
     internal static class DockerSemanticConventions
     {

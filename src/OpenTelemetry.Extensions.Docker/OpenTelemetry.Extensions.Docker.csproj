@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>;net461;netstandard2.0</TargetFrameworks>
-    <Description>OpenTelemetry extensions for Docker</Description>
+    <Description>OpenTelemetry Extensions - Container Resource Detector from Docker environment.</Description>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="1.2.0-rc4" />

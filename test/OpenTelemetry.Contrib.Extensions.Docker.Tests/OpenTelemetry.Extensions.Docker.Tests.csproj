@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\OpenTelemetry.Contrib.Extensions.Docker\OpenTelemetry.Contrib.Extensions.Docker.csproj" />
+    <ProjectReference Include="..\..\src\OpenTelemetry.Contrib.Extensions.Docker\OpenTelemetry.Extensions.Docker.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,4 @@
-﻿// <copyright file="DockerEventSource.cs" company="OpenTelemetry Authors">
+﻿// <copyright file="DockerExtensionsEventSource.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,23 +19,23 @@ using System.Diagnostics.Tracing;
 using System.Globalization;
 using System.Threading;
 
-namespace OpenTelemetry.Contrib.Extensions.Docker
+namespace OpenTelemetry.Extensions.Docker
 {
-    [EventSource(Name = "OpenTelemetry-Docker")]
-    internal class DockerEventSource : EventSource
+    [EventSource(Name = "OpenTelemetry-Extensions-Docker")]
+    internal class DockerExtensionsEventSource : EventSource
     {
-        public static DockerEventSource Log = new DockerEventSource();
+        public static DockerExtensionsEventSource Log = new DockerExtensionsEventSource();
 
         [NonEvent]
         public void ResourceAttributesExtractException(string format, Exception ex)
         {
-            if (this.IsEnabled(EventLevel.Warning, (EventKeywords)(-1)))
+            if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
             {
                 this.FailedToExtractResourceAttributes(format, ToInvariantString(ex));
             }
         }
 
-        [Event(1, Message = "Failed to extract resource attributes in '{0}'.", Level = EventLevel.Warning)]
+        [Event(1, Message = "Failed to extract resource attributes in '{0}'.", Level = EventLevel.Error)]
         public void FailedToExtractResourceAttributes(string format, string exception)
         {
             this.WriteEvent(1, format, exception);

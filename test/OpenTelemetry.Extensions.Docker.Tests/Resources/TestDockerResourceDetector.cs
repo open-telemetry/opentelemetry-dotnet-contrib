@@ -14,16 +14,16 @@
 // limitations under the License.
 // </copyright>
 
+using System.IO;
 using System.Linq;
-using OpenTelemetry.Contrib.Extensions.Docker.Resources;
+using OpenTelemetry.Extensions.Docker.Resources;
+using OpenTelemetry.Resources;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Extensions.Docker.Tests.Resources
+namespace OpenTelemetry.Extensions.Docker.Tests.Resources
 {
     public class TestDockerResourceDetector
     {
-        private const string DOCKERSAMPLEFILEPATH = "Resources/SampleFile/testcgroup";
-
         // Invalid cgroup line
         private const string INVALIDCGROUPLINE =
       "13:name=systemd:/podruntime/docker/kubepods/ac679f8a8319c8cf7d38e1adf263bc08d23zzzz";
@@ -58,29 +58,55 @@ namespace OpenTelemetry.Contrib.Extensions.Docker.Tests.Resources
             "d86d75589bf6cc254f3e2cc29debdf85dde404998aa128997a819ff991827356";
 
         [Fact]
-        public void TestExtractResourceAttributes()
+        public void TestValidContainer()
         {
             var dockerResourceDetector = new DockerResourceDetector();
-            var resourceAttributes = dockerResourceDetector.BuildResourceAttributes(CONTAINERID).ToDictionary(x => x.Key, x => x.Value);
-            Assert.Equal(CONTAINERID, resourceAttributes[DockerSemanticConventions.AttributeContainerID]);
+
+            using (TempFile tempFile = new TempFile())
+            {
+                tempFile.Write(CGROUPLINEWITHPREFIX);
+                Assert.Equal(CONTAINERIDWITHPREFIXREMOVED, this.GetContainerId(dockerResourceDetector.BuildResource(tempFile.FilePath)));
+            }
+
+            using (TempFile tempFile = new TempFile())
+            {
+                tempFile.Write(CGROUPLINEWITHSUFFIX);
+                Assert.Equal(CONTAINERIDWITHSUFFIXREMOVED, this.GetContainerId(dockerResourceDetector.BuildResource(tempFile.FilePath)));
+            }
+
+            using (TempFile tempFile = new TempFile())
+            {
+                tempFile.Write(CGROUPLINEWITHPREFIXandSUFFIX);
+                Assert.Equal(CONTAINERIDWITHPREFIXANDSUFFIXREMOVED, this.GetContainerId(dockerResourceDetector.BuildResource(tempFile.FilePath)));
+            }
+
+            using (TempFile tempFile = new TempFile())
+            {
+                tempFile.Write(CGROUPLINE);
+                Assert.Equal(CONTAINERID, this.GetContainerId(dockerResourceDetector.BuildResource(tempFile.FilePath)));
+            }
         }
 
         [Fact]
-        public void TestExtractContainerId()
+        public void TestInvalidContainer()
         {
             var dockerResourceDetector = new DockerResourceDetector();
-            Assert.Equal("da261b882cd310e64ced2e31b938f9289261e4c7d59efb2d651ca2fe802b7764", dockerResourceDetector.ExtractContainerId(DOCKERSAMPLEFILEPATH));
+
+            // test invalid containerId (non-hex)
+            using (TempFile tempFile = new TempFile())
+            {
+                tempFile.Write(INVALIDCGROUPLINE);
+                Assert.Equal(dockerResourceDetector.BuildResource(tempFile.FilePath), Resource.Empty);
+            }
+
+            // test invalid file
+            Assert.Equal(dockerResourceDetector.BuildResource(Path.GetTempPath()), Resource.Empty);
         }
 
-        [Fact]
-        public void TestGetIdFromLine()
+        private string GetContainerId(Resource resource)
         {
-            var dockerResourceDetector = new DockerResourceDetector();
-            Assert.Null(dockerResourceDetector.GetIdFromLine(INVALIDCGROUPLINE));
-            Assert.Equal(CONTAINERIDWITHPREFIXREMOVED, dockerResourceDetector.GetIdFromLine(CGROUPLINEWITHPREFIX));
-            Assert.Equal(CONTAINERIDWITHSUFFIXREMOVED, dockerResourceDetector.GetIdFromLine(CGROUPLINEWITHSUFFIX));
-            Assert.Equal(CONTAINERIDWITHPREFIXANDSUFFIXREMOVED, dockerResourceDetector.GetIdFromLine(CGROUPLINEWITHPREFIXandSUFFIX));
-            Assert.Equal(CONTAINERID, dockerResourceDetector.GetIdFromLine(CGROUPLINE));
+            var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
+            return resourceAttributes[DockerSemanticConventions.AttributeContainerID]?.ToString();
         }
     }
 }
