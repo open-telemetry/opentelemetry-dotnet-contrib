@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-* PassThru TableNameMappings using the logger category name.
+## 1.3.0-beta.1 [2022-May-27]
+
+* Enable PassThru TableNameMappings using the logger category name.
 [345](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/345)
 
 * Throw exception when `TableNameMappings` contains a `null` value.
@@ -14,6 +16,10 @@
 * Add support for the native `Activity` properties `Status` and
 `StatusDescription`.
 [359](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/359)
+
+* Allow serialization of non-ASCII characters for
+`LogRecord.Exception.GetType().FullName`.
+[375](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/375)
 
 ## 1.2.6 [2022-Apr-21]
 

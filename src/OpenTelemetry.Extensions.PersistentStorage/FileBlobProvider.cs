@@ -1,4 +1,4 @@
-﻿// <copyright file="FileStorage.cs" company="OpenTelemetry Authors">
+// <copyright file="FileBlobProvider.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,18 +16,20 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Timers;
+using OpenTelemetry.Extensions.PersistentStorage.Abstractions;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Extensions.PersistentStorage
 {
     /// <summary>
-    /// Persistent file storage <see cref="FileStorage"/> allows to save data
+    /// Persistent file storage <see cref="FileBlobProvider"/> allows to save data
     /// as blobs in file storage.
     /// </summary>
-    public class FileStorage : IPersistentStorage, IDisposable
+    public class FileBlobProvider : PersistentBlobProvider, IDisposable
     {
         private readonly string directoryPath;
         private readonly long maxSizeInBytes;
@@ -37,7 +39,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
         private bool disposedValue;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FileStorage"/>
+        /// Initializes a new instance of the <see cref="FileBlobProvider"/>
         /// class.
         /// </summary>
         /// <param name="path">
@@ -60,7 +62,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
         /// Controls the timeout when writing a buffer to blob.
         /// Default is 1 minute.
         /// </param>
-        public FileStorage(
+        public FileBlobProvider(
             string path,
             long maxSizeInBytes = 52428800,
             int maintenancePeriodInMilliseconds = 120000,
@@ -100,8 +102,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             }
         }
 
-        /// <inheritdoc/>
-        public IEnumerable<IPersistentBlob> GetBlobs()
+        protected override IEnumerable<PersistentBlob> OnGetBlobs()
         {
             var retentionDeadline = DateTime.UtcNow - TimeSpan.FromMilliseconds(this.retentionPeriodInMilliseconds);
 
@@ -115,31 +116,25 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             }
         }
 
-        /// <inheritdoc/>
-        public IPersistentBlob GetBlob()
+        protected override bool OnTryCreateBlob(byte[] buffer, int leasePeriodMilliseconds, [NotNullWhen(true)] out PersistentBlob blob)
         {
-            return this.GetBlobs().FirstOrDefault();
+            blob = this.CreateFileBlob(buffer, leasePeriodMilliseconds);
+
+            return blob != null;
         }
 
-        /// <inheritdoc/>
-        public IPersistentBlob CreateBlob(byte[] buffer, int leasePeriodMilliseconds = 0)
+        protected override bool OnTryCreateBlob(byte[] buffer, [NotNullWhen(true)] out PersistentBlob blob)
         {
-            if (!this.CheckStorageSize())
-            {
-                return null;
-            }
+            blob = this.CreateFileBlob(buffer);
 
-            try
-            {
-                var blobFilePath = Path.Combine(this.directoryPath, PersistentStorageHelper.GetUniqueFileName(".blob"));
-                var blob = new FileBlob(blobFilePath);
-                return blob.Write(buffer, leasePeriodMilliseconds);
-            }
-            catch (Exception ex)
-            {
-                PersistentStorageEventSource.Log.Warning("CreateBlob has failed.", ex);
-                return null;
-            }
+            return blob != null;
+        }
+
+        protected override bool OnTryGetBlob([NotNullWhen(true)] out PersistentBlob blob)
+        {
+            blob = this.OnGetBlobs().FirstOrDefault();
+
+            return blob != null;
         }
 
         private void OnMaintenanceEvent(object source, ElapsedEventArgs e)
@@ -172,6 +167,34 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             }
 
             return true;
+        }
+
+        private PersistentBlob CreateFileBlob(byte[] buffer, int leasePeriodMilliseconds = 0)
+        {
+            if (!this.CheckStorageSize())
+            {
+                return null;
+            }
+
+            try
+            {
+                var blobFilePath = Path.Combine(this.directoryPath, PersistentStorageHelper.GetUniqueFileName(".blob"));
+                var blob = new FileBlob(blobFilePath);
+
+                if (blob.TryWrite(buffer, leasePeriodMilliseconds))
+                {
+                    return blob;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                PersistentStorageEventSource.Log.Warning("CreateBlob has failed.", ex);
+                return null;
+            }
         }
     }
 }

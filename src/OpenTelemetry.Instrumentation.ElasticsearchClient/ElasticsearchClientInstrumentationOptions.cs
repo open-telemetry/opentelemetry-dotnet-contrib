@@ -1,4 +1,4 @@
-﻿// <copyright file="ElasticsearchClientInstrumentationOptions.cs" company="OpenTelemetry Authors">
+// <copyright file="ElasticsearchClientInstrumentationOptions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,6 +39,11 @@ namespace OpenTelemetry.Instrumentation.ElasticsearchClient
         /// should add the request information as db.statement attribute tag. Default value: True.
         /// </summary>
         public bool SetDbStatementForRequest { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets a max length allowed for the db.statement attribute. Default value: 4096.
+        /// </summary>
+        public int MaxDbStatementLength { get; set; } = 4096;
 
         /// <summary>
         /// Gets or sets an action to enrich an Activity.

@@ -1,4 +1,4 @@
-﻿// <copyright file="ElasticsearchRequestPipelineDiagnosticListener.cs" company="OpenTelemetry Authors">
+// <copyright file="ElasticsearchRequestPipelineDiagnosticListener.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -144,7 +144,13 @@ namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Implementation
                 var debugInformation = this.debugInformationFetcher.Fetch(payload);
                 if (debugInformation != null && this.options.SetDbStatementForRequest)
                 {
-                    activity.SetTag(SemanticConventions.AttributeDbStatement, this.ParseAndFormatRequest(activity, debugInformation));
+                    var dbStatement = this.ParseAndFormatRequest(activity, debugInformation);
+                    if (dbStatement.Length > this.options.MaxDbStatementLength)
+                    {
+                        dbStatement = dbStatement.Substring(0, 4096);
+                    }
+
+                    activity.SetTag(SemanticConventions.AttributeDbStatement, dbStatement);
                 }
 
                 var originalException = this.originalExceptionFetcher.Fetch(payload);
@@ -254,14 +260,6 @@ namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Implementation
                 return debugInformation;
             }
 
-            string method = activity.GetTagValue(AttributeDbMethod).ToString();
-            string url = activity.GetTagValue(SemanticConventions.AttributeDbUrl).ToString();
-
-            if (method == "GET")
-            {
-                return $"GET {url}";
-            }
-
             var request = ParseRequest.Match(debugInformation);
             if (request.Success)
             {
@@ -285,7 +283,7 @@ namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Implementation
                     body = Encoding.UTF8.GetString(stream.ToArray());
                 }
 
-                return $"{method} {url}\r\n{body}";
+                return body;
             }
 
             return debugInformation;
