@@ -44,7 +44,7 @@ public class Program
                 .AddConsoleExporter()
                 .AddRedisInstrumentation(connection, options =>
                 {
-                        // changing flushinterval from 10s to 5s
+                    // changing flushinterval from 10s to 5s
                     options.FlushInterval = TimeSpan.FromSeconds(5);
                 })
                 .AddSource("redis-test")
