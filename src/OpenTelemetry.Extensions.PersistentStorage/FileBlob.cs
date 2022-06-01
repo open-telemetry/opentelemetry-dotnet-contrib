@@ -114,7 +114,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             }
             catch (Exception ex)
             {
-                PersistentStorageEventSource.Log.PersistentStorageException(nameof(FileBlob), $"Deletion of file blob has failed.", this.FullPath, ex);
+                PersistentStorageEventSource.Log.PersistentStorageException(nameof(FileBlob), "Deletion of file blob has failed.", this.FullPath, ex);
                 return false;
             }
 
