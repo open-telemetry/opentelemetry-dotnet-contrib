@@ -28,18 +28,18 @@ namespace OpenTelemetry.Extensions.PersistentStorage
         private const string EventSourceName = "OpenTelemetry-Extensions-PersistentStorage";
 
         [NonEvent]
-        public void PersistentStorageException(string className, string message, Exception ex)
+        public void PersistentStorageException(string className, string message, string path, Exception ex)
         {
             if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
             {
-                this.PersistentStorageException(className, message, ToInvariantString(ex));
+                this.PersistentStorageException(className, message, path, ToInvariantString(ex));
             }
         }
 
-        [Event(1, Message = "{0}: {1}: {2}", Level = EventLevel.Error)]
-        public void PersistentStorageException(string className, string message, string ex)
+        [Event(1, Message = "Exception occurred in {0}. Error Message: {1}. FilePath: '{2}'. Exception: {3}", Level = EventLevel.Error)]
+        public void PersistentStorageException(string className, string message, string path, string ex)
         {
-            this.WriteEvent(1, className, message, ex);
+            this.WriteEvent(1, className, message, path, ex);
         }
 
         [Event(8, Message = "{0}: {1}", Level = EventLevel.Warning)]

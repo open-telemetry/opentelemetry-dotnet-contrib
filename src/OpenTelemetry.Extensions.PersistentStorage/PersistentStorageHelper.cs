@@ -44,7 +44,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
                     }
                     catch (Exception ex)
                     {
-                        PersistentStorageEventSource.Log.PersistentStorageException(nameof(PersistentStorageHelper), $"Deletion of file {filePath} has failed.", ex);
+                        PersistentStorageEventSource.Log.PersistentStorageException(nameof(PersistentStorageHelper), "Deletion of expired blob has failed.", filePath, ex);
                     }
                 }
             }
@@ -67,7 +67,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
                     }
                     catch (Exception ex)
                     {
-                        PersistentStorageEventSource.Log.PersistentStorageException(nameof(PersistentStorageHelper), "File rename of {filePath} to {newFilePath} has failed.", ex);
+                        PersistentStorageEventSource.Log.PersistentStorageException(nameof(PersistentStorageHelper), "Removing the lease from file has failed", filePath, ex);
                     }
                 }
             }
@@ -92,7 +92,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
                     }
                     catch (Exception ex)
                     {
-                        PersistentStorageEventSource.Log.PersistentStorageException(nameof(PersistentStorageHelper), $"Deletion of file {filePath} has failed.", ex);
+                        PersistentStorageEventSource.Log.PersistentStorageException(nameof(PersistentStorageHelper), "Deletion of timed out file has failed.", filePath, ex);
                     }
                 }
             }
@@ -178,7 +178,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             }
             catch (Exception ex)
             {
-                PersistentStorageEventSource.Log.PersistentStorageException(nameof(PersistentStorageHelper), $"Error creating sub-directory {path}.", ex);
+                PersistentStorageEventSource.Log.PersistentStorageException(nameof(PersistentStorageHelper), "Error creating sub-directory.", path, ex);
             }
 
             directorySize = CalculateFolderSize(subdirectoryPath);
@@ -253,7 +253,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             }
             catch (Exception ex)
             {
-                PersistentStorageEventSource.Log.PersistentStorageException(nameof(PersistentStorageHelper), "Error calculating folder size.", ex);
+                PersistentStorageEventSource.Log.PersistentStorageException(nameof(PersistentStorageHelper), "Error calculating folder size.", path, ex);
             }
 
             return directorySize;
