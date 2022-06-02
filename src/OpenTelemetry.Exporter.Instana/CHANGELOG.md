@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 1.0.1 [2022-Jun-02]
+## 1.0.2 [2022-Jun-02]
 
 * Application is chrashing if environment variables are not defined
 [385](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/385)
