@@ -33,7 +33,10 @@ namespace OpenTelemetry.Exporter.Instana.Implementation
 
         public void Enqueue(InstanaSpan instanaSpan)
         {
-            this.spansQueue.Enqueue(instanaSpan);
+            if (this.transport.IsAvailable)
+            {
+                this.spansQueue.Enqueue(instanaSpan);
+            }
         }
 
         private async void TaskSpanSender()
