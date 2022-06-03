@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add support for exporting `ILogger` scopes.
+[390](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/390)
+
 ## 1.3.0-beta.1 [2022-May-27]
 
 * Enable PassThru TableNameMappings using the logger category name.
