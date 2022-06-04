@@ -23,19 +23,14 @@ namespace GettingStartedPrometheusGrafana;
 
 public class Program
 {
-    /*
-     * Setup redis service inside local docker.
-     * docker run --name opentelemetry-redis-test -d -p 6379:6379 redis
-     *
-     * If you face any issue with the first command, do the following ones:
-     * docker exec -it opentelemetry-redis-test sh
-     * redis-cli
-     * set bind 0.0.0.0
-     * save
-     */
-
     public static void Main()
     {
+        // Prerequisite:
+        /*
+         * Setup redis service inside local docker.
+         * docker run --name opentelemetry-redis-test -d -p 6379:6379 redis
+         */
+
         // connect to the redis server. The default port 6379 will be used.
         var connection = ConnectionMultiplexer.Connect("localhost");
 
@@ -56,45 +51,26 @@ public class Program
         var db = connection.GetDatabase();
 
         // Create a scoped activity. It will end automatically when using statement ends
-        using (activitySource.StartActivity("Main"))
+        using (var activity = activitySource.StartActivity("Main"))
         {
             Console.WriteLine("About to do a busy work");
-            for (var i = 0; i < 5; i++)
-            {
-                DoWork(db, activitySource);
-            }
+            DoWork(db, activity);
         }
     }
 
-    private static void DoWork(IDatabase db, ActivitySource activitySource)
+    private static void DoWork(IDatabase db, Activity activity)
     {
-        // Start another activity. If another activity was already started, it'll use that activity as the parent activity.
-        // In this example, the main method already started a activity, so that'll be the parent activity, and this will be
-        // a child activity.
-        using Activity activity = activitySource.StartActivity("DoWork");
         try
         {
             db.StringSet("key", "value " + DateTime.Now.ToLongDateString());
-
-            Console.WriteLine("Doing busy work");
             Thread.Sleep(1000);
 
             // run a command, in this case a GET
             var myVal = db.StringGet("key");
-
-            Console.WriteLine(myVal);
         }
         catch (ArgumentOutOfRangeException e)
         {
             activity.SetStatus(Status.Error.WithDescription(e.ToString()));
         }
-
-        // Annotate our activity to capture metadata about our operation
-        var attributes = new Dictionary<string, object>
-                {
-                    { "use", "demo" },
-                };
-        ActivityTagsCollection eventTags = new ActivityTagsCollection(attributes);
-        activity.AddEvent(new ActivityEvent("Invoking DoWork", default, eventTags));
     }
 }
