@@ -418,6 +418,44 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             cntFields += 1;
         }
 
+        ushort scopeDepth = 0;
+        int indexArrayLength = 0;
+        logRecord.ForEachScope(ProcessScope, (object)null);
+        void ProcessScope(LogRecordScope scope, object state)
+        {
+            if (++scopeDepth == 1)
+            {
+                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "scopes");
+                cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, ushort.MaxValue);
+                indexArrayLength = cursor - 2;
+            }
+
+            cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
+            int indexMapSizeScope = cursor - 2;
+            ushort keysCount = 0;
+
+            foreach (KeyValuePair<string, object> scopeItem in scope)
+            {
+                string key = "scope";
+                if (!string.IsNullOrEmpty(scopeItem.Key))
+                {
+                    key = scopeItem.Key;
+                }
+
+                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, key);
+                cursor = MessagePackSerializer.Serialize(buffer, cursor, scopeItem.Value);
+                keysCount++;
+            }
+
+            MessagePackSerializer.WriteUInt16(buffer, indexMapSizeScope, keysCount);
+        }
+
+        if (scopeDepth > 0)
+        {
+            MessagePackSerializer.WriteUInt16(buffer, indexArrayLength, scopeDepth);
+            cntFields += 1;
+        }
+
         if (hasEnvProperties)
         {
             // Iteration #2 - Get all "other" fields and collapse them into single field

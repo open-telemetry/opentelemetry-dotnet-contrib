@@ -42,6 +42,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\package-Instrumentation.Elasticsearch.yml = .github\workflows\package-Instrumentation.Elasticsearch.yml
 		.github\workflows\package-Instrumentation.EntityFrameworkCore.yml = .github\workflows\package-Instrumentation.EntityFrameworkCore.yml
 		.github\workflows\package-Instrumentation.GrpcCore.yml = .github\workflows\package-Instrumentation.GrpcCore.yml
+		.github\workflows\package-Instrumentation.Hangfire.yml = .github\workflows\package-Instrumentation.Hangfire.yml
 		.github\workflows\package-Instrumentation.MassTransit.yml = .github\workflows\package-Instrumentation.MassTransit.yml
 		.github\workflows\package-Instrumentation.MySqlData.yml = .github\workflows\package-Instrumentation.MySqlData.yml
 		.github\workflows\package-Instrumentation.Owin.yml = .github\workflows\package-Instrumentation.Owin.yml
