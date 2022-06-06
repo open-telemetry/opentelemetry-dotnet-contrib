@@ -23,6 +23,8 @@ namespace GettingStartedPrometheusGrafana;
 
 public class Program
 {
+    public static ActivitySource RedisActivitySource = new("redis-test");
+
     public static void Main()
     {
         // Prerequisite:
@@ -42,35 +44,15 @@ public class Program
                     // changing flushinterval from 10s to 5s
                     options.FlushInterval = TimeSpan.FromSeconds(5);
                 })
-                .AddSource("redis-test")
+                .AddSource(RedisActivitySource.Name)
                 .Build();
-
-        ActivitySource activitySource = new ActivitySource("redis-test");
 
         // select a database (by default, DB = 0)
         var db = connection.GetDatabase();
+        db.StringSet("key", "value " + DateTime.Now.ToLongDateString());
+        Thread.Sleep(1000);
 
-        // Create a scoped activity. It will end automatically when using statement ends
-        using (var activity = activitySource.StartActivity("Main"))
-        {
-            Console.WriteLine("About to do a busy work");
-            DoWork(db, activity);
-        }
-    }
-
-    private static void DoWork(IDatabase db, Activity activity)
-    {
-        try
-        {
-            db.StringSet("key", "value " + DateTime.Now.ToLongDateString());
-            Thread.Sleep(1000);
-
-            // run a command, in this case a GET
-            var myVal = db.StringGet("key");
-        }
-        catch (ArgumentOutOfRangeException e)
-        {
-            activity.SetStatus(Status.Error.WithDescription(e.ToString()));
-        }
+        // run a command, in this case a GET
+        var myVal = db.StringGet("key");
     }
 }
