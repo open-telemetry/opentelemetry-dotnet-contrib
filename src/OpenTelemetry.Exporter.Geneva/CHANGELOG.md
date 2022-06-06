@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* Add DI support for `GenevaMetricExporter`
+* Add DI support for `GenevaMetricExporter`.
 [397](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/397)
 
 ## 1.3.0-beta.2 [2022-Jun-03]
