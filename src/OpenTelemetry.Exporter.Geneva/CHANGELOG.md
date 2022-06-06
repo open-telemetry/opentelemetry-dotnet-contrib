@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* Supports OpenTelemetry.Extensions.Hosting based configuration for
+* Supports `OpenTelemetry.Extensions.Hosting` based configuration for
 `GenevaMetricExporter`.
 [397](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/397)
 
