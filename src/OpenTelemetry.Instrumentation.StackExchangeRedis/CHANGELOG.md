@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 1.0.0-rc9.4 (source code moved to contrib repo)
+
+Released 2022-Apr-15
+
+* From this version onwards, the source code for this package would be hosted in
+  the
+  [contrib](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/tree/main/src/OpenTelemetry.Instrumentation.StackExchangeRedis)
+  repo. The source code for this package before this version was hosted on the
+  [main](https://github.com/open-telemetry/opentelemetry-dotnet/tree/core-1.3.0/src/OpenTelemetry.Instrumentation.StackExchangeRedis)
+  repo.
+
 * Updated OTel API package version to 1.3.0
   [#396](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/396)
 
