@@ -4,7 +4,7 @@
 
 ## 1.0.0-rc9.4 (source code moved to contrib repo)
 
-Released 2022-Apr-15
+Released 2022-Jun-06
 
 * From this version onwards, the source code for this package would be hosted in
   the
