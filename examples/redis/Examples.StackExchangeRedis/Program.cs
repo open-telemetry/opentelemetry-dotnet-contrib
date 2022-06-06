@@ -23,8 +23,6 @@ namespace GettingStartedPrometheusGrafana;
 
 public class Program
 {
-    public static ActivitySource RedisActivitySource = new("redis-test");
-
     public static void Main()
     {
         // Prerequisite:
@@ -44,7 +42,6 @@ public class Program
                     // changing flushinterval from 10s to 5s
                     options.FlushInterval = TimeSpan.FromSeconds(5);
                 })
-                .AddSource(RedisActivitySource.Name)
                 .Build();
 
         // select a database (by default, DB = 0)
