@@ -3,7 +3,8 @@
 An example application that shows how to use
 `OpenTelemetry.Instrumentation.StackExchangeRedis` to capture traces of outgoing
 calls to Redis. You should see the following output on the Console when you run
-the program:
+this application (please look at the prerequisite for running the application in
+[Program.cs](./Program.cs):
 
 ```text
 Activity.TraceId:          f1a47baec558ebb97e57a6fb7d029a29
