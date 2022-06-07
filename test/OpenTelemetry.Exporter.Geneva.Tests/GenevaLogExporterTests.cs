@@ -323,6 +323,85 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
             }
         }
 
+        [Fact]
+        [Trait("Platform", "Linux")]
+        public void ExportILoggerScopes()
+        {
+            string path = GenerateTempFilePath();
+            var logRecordList = new List<LogRecord>();
+            try
+            {
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                using var server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+
+                using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(options =>
+                {
+                    options.IncludeScopes = true;
+                    options.AddGenevaLogExporter(options =>
+                    {
+                        options.ConnectionString = "Endpoint=unix:" + path;
+                        options.PrepopulatedFields = new Dictionary<string, object>
+                        {
+                            ["cloud.role"] = "BusyWorker",
+                            ["cloud.roleInstance"] = "CY1SCH030021417",
+                            ["cloud.roleVer"] = "9.0.15289.2",
+                        };
+                    });
+                    options.AddInMemoryExporter(logRecordList);
+                }));
+                using var serverSocket = server.Accept();
+                serverSocket.ReceiveTimeout = 10000;
+
+                // Create a test exporter to get MessagePack byte data for validation of the data received via Socket.
+                using var exporter = new GenevaLogExporter(new GenevaExporterOptions
+                {
+                    ConnectionString = "Endpoint=unix:" + path,
+                    PrepopulatedFields = new Dictionary<string, object>
+                    {
+                        ["cloud.role"] = "BusyWorker",
+                        ["cloud.roleInstance"] = "CY1SCH030021417",
+                        ["cloud.roleVer"] = "9.0.15289.2",
+                    },
+                });
+
+                // Emit a LogRecord and grab a copy of internal buffer for validation.
+                var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
+
+                using (logger.BeginScope("MyOuterScope"))
+                using (logger.BeginScope("MyInnerScope"))
+                using (logger.BeginScope(new List<KeyValuePair<string, object>> { new KeyValuePair<string, object>("MyKey", "MyValue") }))
+                {
+                    logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+                }
+
+                // logRecordList should have a singleLogRecord entry after the logger.LogInformation call
+                Assert.Single(logRecordList);
+
+                int messagePackDataSize;
+                messagePackDataSize = exporter.SerializeLogRecord(logRecordList[0]);
+
+                // Read the data sent via socket.
+                var receivedData = new byte[1024];
+                int receivedDataSize = serverSocket.Receive(receivedData);
+
+                // Validation
+                Assert.Equal(messagePackDataSize, receivedDataSize);
+            }
+            finally
+            {
+                try
+                {
+                    File.Delete(path);
+                }
+                catch
+                {
+                }
+            }
+        }
+
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
