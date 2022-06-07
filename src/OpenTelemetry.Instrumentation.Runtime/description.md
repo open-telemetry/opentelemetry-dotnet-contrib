@@ -11,10 +11,10 @@ the Unified Code for Units of Measure.
 The metrics in this section can be enabled by setting the
 `RuntimeMetricsOptions.IsGcEnabled` switch.
 
-| Name                                          | Description              | Units     | Instrument Type ([*](README.md#instrument-types)) | Value Type | Attribute Key(s) | Attribute Values |
-|-----------------------------------------------|--------------------------|-----------|---------------------------------------------------|------------|------------------|------------------|
-| process.runtime.dotnet.**gc.totalmemorysize** | Total allocated bytes    | `By`      | ObservableGauge                                   | `Int64`    |                  |                  |
-| process.runtime.dotnet.**gc.count**           | Garbage Collection count | `{times}` | ObservableCounter                                 | `Int64`    | gen              | gen0, gen1, gen2 |
+| Name                                          | Description              | Units     | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|-----------------------------------------------|--------------------------|-----------|-------------------|------------|------------------|------------------|
+| process.runtime.dotnet.**gc.totalmemorysize** | Total allocated bytes    | `By`      | ObservableGauge   | `Int64`    |                  |                  |
+| process.runtime.dotnet.**gc.count**           | Garbage Collection count | `{times}` | ObservableCounter | `Int64`    | gen              | gen0, gen1, gen2 |
 
 Question for .NET team: is GC.GetTotalMemory(false) always equal to the sum of
 GC.GetGCMemoryInfo().GenerationInfo[i].SizeAfterBytes (i from 0 to 4)?
@@ -32,10 +32,10 @@ of objects.
 
 ### Additional GC metrics only available for NETCOREAPP3_1_OR_GREATER
 
-| Name                                               | Description                                      | Units | Instrument Type ([*](README.md#instrument-types)) | Value Type          | Attribute Key(s) | Attribute Values |
-|----------------------------------------------------|--------------------------------------------------|-------|---------------------------------------------------|---------------------|------------------|------------------|
-| process.runtime.dotnet.**gc.allocated.bytes**      | Bytes allocated over the lifetime of the process | `By`  | ObservableCounter                                 | `Int64`             |                  |                  |
-| process.runtime.dotnet.**gc.fragmentation.ratio**  | GC fragmentation ratio                           | `1`   | ObservableGauge                                   | `Double`            |                  |                  |
+| Name                                              | Description                                      | Units | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|---------------------------------------------------|--------------------------------------------------|-------|-------------------|------------|------------------|------------------|
+| process.runtime.dotnet.**gc.allocated.bytes**     | Bytes allocated over the lifetime of the process | `By`  | ObservableCounter | `Int64`    |                  |                  |
+| process.runtime.dotnet.**gc.fragmentation.ratio** | GC fragmentation ratio                           | `1`   | ObservableGauge   | `Double`   |                  |                  |
 
 - [GC.GetTotalAllocatedBytes](https://docs.microsoft.com/dotnet/api/system.gc.gettotalallocatedbytes):
   Gets a count of the bytes allocated over the lifetime of the process. The returned
@@ -54,10 +54,10 @@ otherwise the value is `0`.
 
 ### Additional GC metrics only available for NET6_0_OR_GREATER
 
-| Name                                    | Description        | Units | Instrument Type ([*](README.md#instrument-types)) | Value Type | Attribute Key(s) | Attribute Values           |
-|-----------------------------------------|--------------------|-------|---------------------------------------------------|------------|------------------|----------------------------|
-| process.runtime.dotnet.**gc.committed** | GC Committed Bytes | `By`  | ObservableGauge                                   | `Int64`    |                  |                            |
-| process.runtime.dotnet.**gc.heapsize**  |                    | `By`  | ObservableGauge                                   | `Int64`    | gen              | gen0, gen1, gen2, loh, poh |
+| Name                                    | Description        | Units | Instrument Type | Value Type | Attribute Key(s) | Attribute Values           |
+|-----------------------------------------|--------------------|-------|-----------------|------------|------------------|----------------------------|
+| process.runtime.dotnet.**gc.committed** | GC Committed Bytes | `By`  | ObservableGauge | `Int64`    |                  |                            |
+| process.runtime.dotnet.**gc.heapsize**  |                    | `By`  | ObservableGauge | `Int64`    | gen              | gen0, gen1, gen2, loh, poh |
 
 - [GCMemoryInfo.TotalCommittedBytes](https://docs.microsoft.com/dotnet/api/system.gcmemoryinfo.totalcommittedbytes?view=net-6.0#system-gcmemoryinfo-totalcommittedbytes):
 Gets the total committed bytes of the managed heap.
@@ -73,11 +73,11 @@ The metrics in this section can be enabled by setting the
 
 These metrics are only available for NET6_0_OR_GREATER.
 
-| Name                                            | Description              | Units       | Instrument Type ([*](README.md#instrument-types)) | Value Type | Attribute Key(s) | Attribute Values |
-|-------------------------------------------------|--------------------------|-------------|---------------------------------------------------|------------|------------------|------------------|
-| process.runtime.dotnet.**il.bytes.jitted**      | IL Bytes Jitted          | `By`        | ObservableCounter                                 | `Int64`    |                  |                  |
-| process.runtime.dotnet.**methods.jitted.count** | Number of Methods Jitted | `{methods}` | ObservableCounter                                 | `Int64`    |                  |                  |
-| process.runtime.dotnet.**time.in.jit**          | Time spent in JIT        | `ms`        | ObservableCounter                                 | `Double`   |                  |                  |
+| Name                                            | Description              | Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|-------------------------------------------------|--------------------------|-------------|-------------------|------------|------------------|------------------|
+| process.runtime.dotnet.**il.bytes.jitted**      | IL Bytes Jitted          | `By`        | ObservableCounter | `Int64`    |                  |                  |
+| process.runtime.dotnet.**methods.jitted.count** | Number of Methods Jitted | `{methods}` | ObservableCounter | `Int64`    |                  |                  |
+| process.runtime.dotnet.**time.in.jit**          | Time spent in JIT        | `ms`        | ObservableCounter | `Double`   |                  |                  |
 
 [JitInfo.GetCompiledILBytes](https://docs.microsoft.com/dotnet/api/system.runtime.jitinfo.getcompiledilbytes?view=net-6.0#system-runtime-jitinfo-getcompiledilbytes(system-boolean)):
 Gets the number of bytes of intermediate language that have been compiled.
@@ -98,13 +98,13 @@ The metrics in this section can be enabled by setting the
 
 These metrics are only available for NETCOREAPP3_1_OR_GREATER.
 
-| Name                                                        | Description                          | Units       | Instrument Type ([*](README.md#instrument-types)) | Value Type | Attribute Key(s) | Attribute Values |
-|-------------------------------------------------------------|--------------------------------------|-------------|---------------------------------------------------|------------|------------------|------------------|
-| process.runtime.dotnet.**monitor.lock.contention.count**    | Monitor Lock Contention Count        | `{times}`   | ObservableCounter                                 | `Int64`    |                  |                  |
-| process.runtime.dotnet.**threadpool.thread.count**          | ThreadPool Thread Count              | `{threads}` | ObservableGauge                                   | `Int32`    |                  |                  |
-| process.runtime.dotnet.**threadpool.completed.items.count** | ThreadPool Completed Work Item Count | `{items}`   | ObservableCounter                                 | `Int64`    |                  |                  |
-| process.runtime.dotnet.**threadpool.queue.length**          | ThreadPool Queue Length              | `{items}`   | ObservableGauge                                   | `Int64`    |                  |                  |
-| process.runtime.dotnet.**active.timer.count**               | Number of Active Timers              | `{timers}`  | ObservableGauge                                   | `Int64`    |                  |                  |
+| Name                                                        | Description                          | Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|-------------------------------------------------------------|--------------------------------------|-------------|-------------------|------------|------------------|------------------|
+| process.runtime.dotnet.**monitor.lock.contention.count**    | Monitor Lock Contention Count        | `{times}`   | ObservableCounter | `Int64`    |                  |                  |
+| process.runtime.dotnet.**threadpool.thread.count**          | ThreadPool Thread Count              | `{threads}` | ObservableGauge   | `Int32`    |                  |                  |
+| process.runtime.dotnet.**threadpool.completed.items.count** | ThreadPool Completed Work Item Count | `{items}`   | ObservableCounter | `Int64`    |                  |                  |
+| process.runtime.dotnet.**threadpool.queue.length**          | ThreadPool Queue Length              | `{items}`   | ObservableGauge   | `Int64`    |                  |                  |
+| process.runtime.dotnet.**active.timer.count**               | Number of Active Timers              | `{timers}`  | ObservableGauge   | `Int64`    |                  |                  |
 
 - [Monitor.LockContentionCount](https://docs.microsoft.com/dotnet/api/system.threading.monitor.lockcontentioncount?view=netcore-3.1):
   Gets the number of times there was contention when trying to take the monitor's
@@ -124,13 +124,13 @@ These metrics are only available for NETCOREAPP3_1_OR_GREATER.
 The metrics in this section can be enabled by setting the
 `RuntimeMetricsOptions.IsProcessEnabled` switch.
 
-| Name                    | Description                            | Units          | Instrument Type ([*](README.md#instrument-types)) | Value Type | Attribute Key(s) | Attribute Values                            |
-|-------------------------|----------------------------------------|----------------|---------------------------------------------------|------------|------------------|---------------------------------------------|
-| process.cpu.utilization | CPU utilization of this process        | `1`            | ObservableGauge                                   | `Double`   |                  |                                             |
-| process.cpu.time        | Processor time of this process         | `s`            | ObservableCounter                                 | `Int64`    | type             | TotalProcessorTime, PrivilegedProcessorTime |
-| process.cpu.count       | The number of available logical CPUs   | `{processors}` | ObservableGauge                                   | `Int64`    |                  |                                             |
-| process.memory.usage    | The amount of physical memory in use   | `By`           | ObservableGauge                                   | `Int64`    |                  |                                             |
-| process.memory.virtual  | The amount of committed virtual memory | `By`           | ObservableGauge                                   | `Int64`    |                  |                                             |
+| Name                    | Description                            | Units          | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values                            |
+|-------------------------|----------------------------------------|----------------|-------------------|------------|------------------|---------------------------------------------|
+| process.cpu.utilization | CPU utilization of this process        | `1`            | ObservableGauge   | `Double`   |                  |                                             |
+| process.cpu.time        | Processor time of this process         | `s`            | ObservableCounter | `Int64`    | type             | TotalProcessorTime, PrivilegedProcessorTime |
+| process.cpu.count       | The number of available logical CPUs   | `{processors}` | ObservableGauge   | `Int64`    |                  |                                             |
+| process.memory.usage    | The amount of physical memory in use   | `By`           | ObservableGauge   | `Int64`    |                  |                                             |
+| process.memory.virtual  | The amount of committed virtual memory | `By`           | ObservableGauge   | `Int64`    |                  |                                             |
 
 - CPU utilization
   - [Process.TotalProcessorTime](https://docs.microsoft.com/dotnet/api/system.diagnostics.process.totalprocessortime)
@@ -167,9 +167,9 @@ usage for the process, or whether to include both.
 The metrics in this section can be enabled by setting the
 `RuntimeMetricsOptions.IsAssembliesEnabled` switch.
 
-| Name                                      | Description                 | Units          | Instrument Type ([*](README.md#instrument-types)) | Value Type | Attribute Key(s) | Attribute Values |
-|-------------------------------------------|-----------------------------|----------------|---------------------------------------------------|------------|------------------|------------------|
-| process.runtime.dotnet.**assembly.count** | Number of Assemblies Loaded | `{assemblies}` | ObservableCounter                                 | `Int64`    |                  |                  |
+| Name                                      | Description                 | Units          | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|-------------------------------------------|-----------------------------|----------------|-------------------|------------|------------------|------------------|
+| process.runtime.dotnet.**assembly.count** | Number of Assemblies Loaded | `{assemblies}` | ObservableCounter | `Int64`    |                  |                  |
 
 - [AppDomain.GetAssemblies](https://docs.microsoft.com/dotnet/api/system.appdomain.getassemblies):
   Gets the number of the assemblies that have been loaded into the execution context
@@ -180,9 +180,9 @@ The metrics in this section can be enabled by setting the
 The metrics in this section can be enabled by setting the
 `RuntimeMetricsOptions.IsExceptionCounterEnabled` switch.
 
-| Name                                       | Description                                | Units      | Instrument Type ([*](README.md#instrument-types)) | Value Type | Attribute Key(s) | Attribute Values |
-|--------------------------------------------|--------------------------------------------|------------|---------------------------------------------------|------------|------------------|------------------|
-| process.runtime.dotnet.**exception.count** | Number of exception thrown in managed code | `{timers}` | ObservableCounter                                 | `Int64`    |                  |                  |
+| Name                                       | Description                                | Units      | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|--------------------------------------------|--------------------------------------------|------------|-------------------|------------|------------------|------------------|
+| process.runtime.dotnet.**exception.count** | Number of exception thrown in managed code | `{timers}` | ObservableCounter | `Int64`    |                  |                  |
 
 - [AppDomain.FirstChanceException](https://docs.microsoft.com/dotnet/api/system.appdomain.firstchanceexception)
   Occurs when an exception is thrown in managed code, before the runtime searches
