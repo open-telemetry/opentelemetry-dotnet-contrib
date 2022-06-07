@@ -22,12 +22,29 @@ namespace OpenTelemetry.Exporter.Geneva;
 
 public static class GenevaMetricExporterExtensions
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "The objects should not be disposed.")]
+    /// <summary>
+    /// Adds <see cref="GenevaMetricExporter"/> to the <see cref="MeterProviderBuilder"/>.
+    /// </summary>
+    /// <param name="builder"><see cref="MeterProviderBuilder"/> builder to use.</param>
+    /// <param name="configure">Exporter configuration options.</param>
+    /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
     public static MeterProviderBuilder AddGenevaMetricExporter(this MeterProviderBuilder builder, Action<GenevaMetricExporterOptions> configure = null)
     {
         Guard.ThrowIfNull(builder);
 
-        var options = new GenevaMetricExporterOptions();
+        if (builder is IDeferredMeterProviderBuilder deferredMeterProviderBuilder)
+        {
+            return deferredMeterProviderBuilder.Configure((sp, builder) =>
+            {
+                AddGenevaMetricExporter(builder, sp.GetOptions<GenevaMetricExporterOptions>(), configure);
+            });
+        }
+
+        return AddGenevaMetricExporter(builder, new GenevaMetricExporterOptions(), configure);
+    }
+
+    private static MeterProviderBuilder AddGenevaMetricExporter(MeterProviderBuilder builder, GenevaMetricExporterOptions options, Action<GenevaMetricExporterOptions> configure = null)
+    {
         configure?.Invoke(options);
         return builder.AddReader(new PeriodicExportingMetricReader(new GenevaMetricExporter(options), options.MetricExportIntervalMilliseconds)
         { TemporalityPreference = MetricReaderTemporalityPreference.Delta });
