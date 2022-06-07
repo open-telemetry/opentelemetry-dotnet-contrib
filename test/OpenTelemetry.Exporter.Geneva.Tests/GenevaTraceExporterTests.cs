@@ -323,7 +323,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 catch (SocketException ex)
                 {
                     Assert.Contains("Cannot assign requested address", ex.Message);
-                };
+                }
             }
         }
 
