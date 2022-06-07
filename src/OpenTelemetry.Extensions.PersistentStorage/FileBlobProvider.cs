@@ -148,7 +148,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             }
             catch (Exception ex)
             {
-                PersistentStorageEventSource.Log.PersistentStorageException(nameof(FileBlobProvider), "Error creating directory", this.directoryPath, ex);
+                PersistentStorageEventSource.Log.PersistentStorageException(nameof(FileBlobProvider), $"Error creating directory {this.directoryPath}", ex);
                 return;
             }
 
@@ -193,7 +193,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             }
             catch (Exception ex)
             {
-                PersistentStorageEventSource.Log.PersistentStorageException(nameof(FileBlobProvider), "CreateBlob has failed", this.directoryPath, ex);
+                PersistentStorageEventSource.Log.CouldNotCreateFileBlob(ex);
                 return null;
             }
         }

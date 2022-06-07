@@ -47,7 +47,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             }
             catch (Exception ex)
             {
-                PersistentStorageEventSource.Log.PersistentStorageException(nameof(FileBlob), "Reading a blob from file has failed.", this.FullPath, ex);
+                PersistentStorageEventSource.Log.CouldNotReadFileBlob(this.FullPath, ex);
                 buffer = null;
                 return false;
             }
@@ -73,7 +73,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             }
             catch (Exception ex)
             {
-                PersistentStorageEventSource.Log.PersistentStorageException(nameof(FileBlob), "Writing a blob to file has failed.", path, ex);
+                PersistentStorageEventSource.Log.CouldNotWriteFileBlob(path, ex);
                 return false;
             }
 
@@ -97,7 +97,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             }
             catch (Exception ex)
             {
-                PersistentStorageEventSource.Log.PersistentStorageException(nameof(FileBlob), "Acquiring a lease to file has failed.", this.FullPath, ex);
+                PersistentStorageEventSource.Log.CouldNotLeaseFileBlob(this.FullPath, ex);
                 return false;
             }
 
@@ -114,7 +114,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             }
             catch (Exception ex)
             {
-                PersistentStorageEventSource.Log.PersistentStorageException(nameof(FileBlob), "Deletion of file blob has failed.", this.FullPath, ex);
+                PersistentStorageEventSource.Log.CouldNotDeleteFileBlob(this.FullPath, ex);
                 return false;
             }
 

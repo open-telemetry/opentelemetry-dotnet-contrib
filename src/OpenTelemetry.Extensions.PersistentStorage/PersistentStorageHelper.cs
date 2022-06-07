@@ -40,11 +40,11 @@ namespace OpenTelemetry.Extensions.PersistentStorage
                     try
                     {
                         File.Delete(filePath);
-                        PersistentStorageEventSource.Log.PersistentStorageWarning(nameof(PersistentStorageHelper), "Removing blob as retention deadline expired");
+                        PersistentStorageEventSource.Log.PersistentStorageInformation(nameof(PersistentStorageHelper), "Removing blob as retention deadline expired");
                     }
                     catch (Exception ex)
                     {
-                        PersistentStorageEventSource.Log.PersistentStorageException(nameof(PersistentStorageHelper), "Deletion of expired blob has failed.", filePath, ex);
+                        PersistentStorageEventSource.Log.CouldNotRemoveExpiredBlob(filePath, ex);
                     }
                 }
             }
@@ -67,7 +67,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
                     }
                     catch (Exception ex)
                     {
-                        PersistentStorageEventSource.Log.PersistentStorageException(nameof(PersistentStorageHelper), "Removing the lease from file has failed", filePath, ex);
+                        PersistentStorageEventSource.Log.CouldNotRemoveExpiredLease(filePath, newFilePath, ex);
                     }
                 }
             }
@@ -88,11 +88,11 @@ namespace OpenTelemetry.Extensions.PersistentStorage
                     {
                         File.Delete(filePath);
                         success = true;
-                        PersistentStorageEventSource.Log.PersistentStorageWarning(nameof(PersistentStorageHelper), "File write exceeded timeout. Dropping telemetry");
+                        PersistentStorageEventSource.Log.PersistentStorageInformation(nameof(PersistentStorageHelper), "File write exceeded timeout. Dropping telemetry");
                     }
                     catch (Exception ex)
                     {
-                        PersistentStorageEventSource.Log.PersistentStorageException(nameof(PersistentStorageHelper), "Deletion of timed out file has failed.", filePath, ex);
+                        PersistentStorageEventSource.Log.CouldNotRemoveTimedOutTmpFile(filePath, ex);
                     }
                 }
             }
@@ -178,7 +178,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             }
             catch (Exception ex)
             {
-                PersistentStorageEventSource.Log.PersistentStorageException(nameof(PersistentStorageHelper), "Error creating sub-directory.", path, ex);
+                PersistentStorageEventSource.Log.PersistentStorageException(nameof(PersistentStorageHelper), $"Error creating sub-directory {path}", ex);
             }
 
             directorySize = CalculateFolderSize(subdirectoryPath);
@@ -253,7 +253,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             }
             catch (Exception ex)
             {
-                PersistentStorageEventSource.Log.PersistentStorageException(nameof(PersistentStorageHelper), "Error calculating folder size.", path, ex);
+                PersistentStorageEventSource.Log.PersistentStorageException(nameof(PersistentStorageHelper), "Error calculating folder size", ex);
             }
 
             return directorySize;
