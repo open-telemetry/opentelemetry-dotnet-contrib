@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 1.0.0-rc9.4 (source code moved to contrib repo)
+## 1.0.0-rc9.5 (source code moved to contrib repo)
 
 Released 2022-Jun-06
 
@@ -13,8 +13,9 @@ Released 2022-Jun-06
   [main](https://github.com/open-telemetry/opentelemetry-dotnet/tree/core-1.3.0/src/OpenTelemetry.Instrumentation.StackExchangeRedis)
   repo.
 
-* Updated OTel API package version to 1.3.0
-  [#396](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/396)
+## 1.0.0-rc9.4
+
+Released 2022-Jun-03
 
 ## 1.0.0-rc9.3
 
