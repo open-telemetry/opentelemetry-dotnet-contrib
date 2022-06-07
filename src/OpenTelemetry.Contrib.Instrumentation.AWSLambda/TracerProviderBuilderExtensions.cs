@@ -14,6 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+using System;
+using OpenTelemetry.Contrib.Instrumentation.AWSLambda;
 using OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Resources;
@@ -29,10 +31,18 @@ namespace OpenTelemetry.Trace
         /// Add AWS Lambda configurations.
         /// </summary>
         /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+        /// <param name="configure"><see cref="AWSLambdaInstrumentationOptions"/>.</param>
         /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-        public static TracerProviderBuilder AddAWSLambdaConfigurations(this TracerProviderBuilder builder)
+        public static TracerProviderBuilder AddAWSLambdaConfigurations(
+            this TracerProviderBuilder builder,
+            Action<AWSLambdaInstrumentationOptions> configure = null)
         {
             Guard.ThrowIfNull(builder);
+
+            var options = new AWSLambdaInstrumentationOptions();
+            configure?.Invoke(options);
+
+            AWSLambdaWrapper.IgnoreAWSXRayPropagation = options.IgnoreAWSXRayPropagation;
 
             builder.AddSource(AWSLambdaUtils.ActivitySourceName);
             builder.SetResourceBuilder(ResourceBuilder
