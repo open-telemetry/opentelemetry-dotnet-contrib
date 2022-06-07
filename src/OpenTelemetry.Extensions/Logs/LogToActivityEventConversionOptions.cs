@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-#if NET461_OR_GREATER || NETSTANDARD2_0 || NET5_0_OR_GREATER
+#if NETFRAMEWORK || NETSTANDARD2_0_OR_GREATER || NET5_0_OR_GREATER
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
