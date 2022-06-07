@@ -145,7 +145,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 using (var activity = source.StartActivity("Baz"))
                 {
                     activity.SetStatus(Status.Ok);
-                } 
+                }
             }
         }
 
