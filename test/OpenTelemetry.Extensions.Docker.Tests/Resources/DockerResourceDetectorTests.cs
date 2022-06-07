@@ -1,4 +1,4 @@
-// <copyright file="TestDockerResourceDetector.cs" company="OpenTelemetry Authors">
+// <copyright file="DockerResourceDetectorTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,9 +20,9 @@ using OpenTelemetry.Extensions.Docker.Resources;
 using OpenTelemetry.Resources;
 using Xunit;
 
-namespace OpenTelemetry.Extensions.Docker.Tests.Resources
+namespace OpenTelemetry.Extensions.Docker.Tests
 {
-    public class TestDockerResourceDetector
+    public class DockerResourceDetectorTests
     {
         // Invalid cgroup line
         private const string INVALIDCGROUPLINE =

@@ -18,7 +18,7 @@ using System;
 using System.IO;
 using System.Threading;
 
-namespace OpenTelemetry.Extensions.Docker.Tests.Resources
+namespace OpenTelemetry.Extensions.Docker.Tests
 {
     internal class TempFile : IDisposable
     {

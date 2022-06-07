@@ -1,7 +1,9 @@
 # Changelog - OpenTelemetry.Extensions.Docker
 
-This is the first release for the `OpenTelemetry.Extensions.Docker`
-project. The project targets 1.2.0-rc4 of the [OpenTelemetry
+This is the first release for the `OpenTelemetry.Extensions.Docker` project.
+The release targets
+[OpenTelemetry.Extensions.Docker](https://www.nuget.org/packages/OpenTelemetry.Extensions.Docker/).
+The project targets 1.2.0 of the [OpenTelemetry
 SDK](https://www.nuget.org/packages/OpenTelemetry/).
 
 The Docker extensions include plugin to extract resource detectors

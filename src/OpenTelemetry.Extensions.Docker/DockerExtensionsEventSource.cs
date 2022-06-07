@@ -27,7 +27,7 @@ namespace OpenTelemetry.Extensions.Docker
         public static DockerExtensionsEventSource Log = new DockerExtensionsEventSource();
 
         [NonEvent]
-        public void ResourceAttributesExtractException(string format, Exception ex)
+        public void ExtractResourceAttributesException(string format, Exception ex)
         {
             if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
             {

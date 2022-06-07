@@ -82,7 +82,7 @@ namespace OpenTelemetry.Extensions.Docker.Resources
             }
             catch (Exception ex)
             {
-                DockerExtensionsEventSource.Log.ResourceAttributesExtractException($"{nameof(DockerResourceDetector)} : Failed to extract Container id from path", ex);
+                DockerExtensionsEventSource.Log.ExtractResourceAttributesException($"{nameof(DockerResourceDetector)} : Failed to extract Container id from path", ex);
             }
 
             return null;

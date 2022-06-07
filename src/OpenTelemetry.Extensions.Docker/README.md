@@ -18,13 +18,13 @@ the `TracerProvider` with the following example below.
 
 ```csharp
 using OpenTelemetry;
-using OpenTelemetry.Extensions.Docker;
+using OpenTelemetry.Extensions.Docker.Resources;
 
 var tracerProvider = Sdk.CreateTracerProviderBuilder()
                         // other configurations
                         .SetResourceBuilder(ResourceBuilder
-                            .CreateDefault()
-                            .AddDockerDetector())
+                            .CreateEmpty()
+                            .AddDetector(new DockerResourceDetector()))
                         .Build();
 ```
 
