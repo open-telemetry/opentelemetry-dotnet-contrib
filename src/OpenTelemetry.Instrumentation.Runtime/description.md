@@ -16,9 +16,11 @@ The metrics in this section can be enabled by setting the
 | process.runtime.dotnet.**gc.totalmemorysize** | Total allocated bytes    | `By`      | ObservableGauge                                   | `Int64`    |                  |                  |
 | process.runtime.dotnet.**gc.count**           | Garbage Collection count | `{times}` | ObservableCounter                                 | `Int64`    | gen              | gen0, gen1, gen2 |
 
-Question for .NET team: is GC.GetTotalMemory(false) always equal to the sum of GC.GetGCMemoryInfo().GenerationInfo[i].SizeAfterBytes (i from 0 to 4)?
+Question for .NET team: is GC.GetTotalMemory(false) always equal to the sum of
+GC.GetGCMemoryInfo().GenerationInfo[i].SizeAfterBytes (i from 0 to 4)?
 
-I need to decide whether it makes sense to include both of them in the memory/GC size metrics.
+I need to decide whether it makes sense to include both of them in the memory/GC
+size metrics.
 
 - [GC.GetTotalMemory](https://docs.microsoft.com/dotnet/api/system.gc.gettotalmemory):
 The number of bytes currently thought to be allocated.
@@ -152,11 +154,13 @@ The metrics in this section can be enabled by setting the
   active process.
 
 Question: EventCounter implementation exposes a metric named `working-set` with
-`Environment.WorkingSet`. Compared to `Process.GetCurrentProcess().WorkingSet64`
-property, which is more suitable for showing users the memory usage for the process?
+`Environment.WorkingSet`. Is it equal to `Process.GetCurrentProcess().WorkingSet64`
+property? I need to decide on which is more suitable for showing users the memory
+usage for the process, or whether to include both.
 
 - [Environment.WorkingSet](https://docs.microsoft.com/en-us/dotnet/api/system.environment.workingset?view=net-6.0):
-  A 64-bit signed integer containing the number of bytes of physical memory mapped to the process context.
+  A 64-bit signed integer containing the number of bytes of physical memory mapped
+  to the process context.
 
 ## Assemblies related metrics
 
@@ -187,7 +191,8 @@ The metrics in this section can be enabled by setting the
 ## Currently out of scope
 
 Regarding process.runtime.dotnet.**time-in-gc**: (DisplayName in [EventCounter implementation](https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/Diagnostics/Tracing/RuntimeEventSource.cs#L96)
-is "% Time in GC since last GC".) A new metric should replace it by calling a new API GC.GetTotalPauseDuration().
+is "% Time in GC since last GC".) A new metric should replace it by calling a new
+API GC.GetTotalPauseDuration().
 The new API is added in code but not available yet.
 It is targeted for 7.0.0 milestone in .NET Runtime repo.
 See [dotnet/runtime#65989](https://github.com/dotnet/runtime/issues/65989)
