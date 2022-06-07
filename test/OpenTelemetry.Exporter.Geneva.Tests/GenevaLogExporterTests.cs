@@ -33,7 +33,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
     public class GenevaLogExporterTests
     {
         [Fact]
-        [Trait("Platform", "Any")]
         public void BadArgs()
         {
             GenevaExporterOptions exporterOptions = null;
@@ -44,7 +43,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void SpecialChractersInTableNameMappings()
         {
             Assert.Throws<ArgumentException>(() =>
@@ -88,7 +86,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         [InlineData(null)]
         [InlineData("")]
         [InlineData(" ")]
-        [Trait("Platform", "Any")]
         public void InvalidConnectionString(string connectionString)
         {
             var exporterOptions = new GenevaExporterOptions() { ConnectionString = connectionString };
@@ -99,27 +96,31 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Windows")]
-        public void IncompatibleConnectionStringOnWindows()
+        public void IncompatibleConnectionString_Windows()
         {
-            var exporterOptions = new GenevaExporterOptions() { ConnectionString = "Endpoint=unix:" + @"C:\Users\user\AppData\Local\Temp\14tj4ac4.v2q" };
-            var exception = Assert.Throws<ArgumentException>(() =>
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                using var exporter = new GenevaLogExporter(exporterOptions);
-            });
-            Assert.Equal("Unix domain socket should not be used on Windows.", exception.Message);
+                var exporterOptions = new GenevaExporterOptions() { ConnectionString = "Endpoint=unix:" + @"C:\Users\user\AppData\Local\Temp\14tj4ac4.v2q" };
+                var exception = Assert.Throws<ArgumentException>(() =>
+                {
+                    using var exporter = new GenevaLogExporter(exporterOptions);
+                });
+                Assert.Equal("Unix domain socket should not be used on Windows.", exception.Message);
+            }
         }
 
         [Fact]
-        [Trait("Platform", "Linux")]
-        public void IncompatibleConnectionStringOnLinux()
+        public void IncompatibleConnectionString_Linux()
         {
-            var exporterOptions = new GenevaExporterOptions() { ConnectionString = "EtwSession=OpenTelemetry" };
-            var exception = Assert.Throws<ArgumentException>(() =>
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                using var exporter = new GenevaLogExporter(exporterOptions);
-            });
-            Assert.Equal("ETW cannot be used on non-Windows operating systems.", exception.Message);
+                var exporterOptions = new GenevaExporterOptions() { ConnectionString = "EtwSession=OpenTelemetry" };
+                var exception = Assert.Throws<ArgumentException>(() =>
+                {
+                    using var exporter = new GenevaLogExporter(exporterOptions);
+                });
+                Assert.Equal("ETW cannot be used on non-Windows operating systems.", exception.Message);
+            }
         }
 
         [Theory]
@@ -128,7 +129,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         [InlineData("categoryA", "TableA", "categoryB", "TableB")]
         [InlineData("categoryA", "TableA", "*", "CatchAll")]
         [InlineData(null)]
-        [Trait("Platform", "Any")]
         public void TableNameMappingTest(params string[] category)
         {
             // ARRANGE
@@ -229,7 +229,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void PassThruTableMappingsWhenTheRuleIsEnabled()
         {
             var userInitializedCategoryToTableNameMappings = new Dictionary<string, string>
@@ -326,7 +325,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        [Trait("Platform", "Any")]
         public void SerializationTestWithILoggerLogMethod(bool includeFormattedMessage)
         {
             // Dedicated test for the raw ILogger.Log method
@@ -508,7 +506,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         [InlineData(false, true, true)]
         [InlineData(true, false, true)]
         [InlineData(true, true, true)]
-        [Trait("Platform", "Any")]
         public void SerializationTestWithILoggerLogWithTemplates(bool hasTableNameMapping, bool hasCustomFields, bool parseStateValues)
         {
             string path = string.Empty;
@@ -638,58 +635,26 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Windows")]
-        public void SuccessfulExportOnWindows()
+        public void SuccessfulExport_Windows()
         {
-            var exporterOptions = new GenevaExporterOptions()
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                PrepopulatedFields = new Dictionary<string, object>
+                var exporterOptions = new GenevaExporterOptions()
                 {
-                    ["cloud.role"] = "BusyWorker",
-                    ["cloud.roleInstance"] = "CY1SCH030021417",
-                    ["cloud.roleVer"] = "9.0.15289.2",
-                },
-            };
-
-            using var loggerFactory = LoggerFactory.Create(builder => builder
-            .AddOpenTelemetry(options =>
-            {
-                options.AddGenevaLogExporter(options =>
-                {
-                    options.ConnectionString = "EtwSession=OpenTelemetry";
-                    options.PrepopulatedFields = new Dictionary<string, object>
+                    PrepopulatedFields = new Dictionary<string, object>
                     {
                         ["cloud.role"] = "BusyWorker",
                         ["cloud.roleInstance"] = "CY1SCH030021417",
                         ["cloud.roleVer"] = "9.0.15289.2",
-                    };
-                });
-            }));
-
-            var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
-
-            logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
-        }
-
-        [Fact]
-        [Trait("Platform", "Linux")]
-        public void SuccessfulExportOnLinux()
-        {
-            string path = GenerateTempFilePath();
-            var logRecordList = new List<LogRecord>();
-            try
-            {
-                var endpoint = new UnixDomainSocketEndPoint(path);
-                using var server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
-                server.Bind(endpoint);
-                server.Listen(1);
+                    },
+                };
 
                 using var loggerFactory = LoggerFactory.Create(builder => builder
                 .AddOpenTelemetry(options =>
                 {
                     options.AddGenevaLogExporter(options =>
                     {
-                        options.ConnectionString = "Endpoint=unix:" + path;
+                        options.ConnectionString = "EtwSession=OpenTelemetry";
                         options.PrepopulatedFields = new Dictionary<string, object>
                         {
                             ["cloud.role"] = "BusyWorker",
@@ -697,49 +662,85 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                             ["cloud.roleVer"] = "9.0.15289.2",
                         };
                     });
-                    options.AddInMemoryExporter(logRecordList);
                 }));
-                using var serverSocket = server.Accept();
-                serverSocket.ReceiveTimeout = 10000;
 
-                // Create a test exporter to get MessagePack byte data for validation of the data received via Socket.
-                using var exporter = new GenevaLogExporter(new GenevaExporterOptions
-                {
-                    ConnectionString = "Endpoint=unix:" + path,
-                    PrepopulatedFields = new Dictionary<string, object>
-                    {
-                        ["cloud.role"] = "BusyWorker",
-                        ["cloud.roleInstance"] = "CY1SCH030021417",
-                        ["cloud.roleVer"] = "9.0.15289.2",
-                    },
-                });
-
-                // Emit a LogRecord and grab a copy of internal buffer for validation.
                 var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
 
                 logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
-
-                // logRecordList should have a singleLogRecord entry after the logger.LogInformation call
-                Assert.Single(logRecordList);
-
-                int messagePackDataSize;
-                messagePackDataSize = exporter.SerializeLogRecord(logRecordList[0]);
-
-                // Read the data sent via socket.
-                var receivedData = new byte[1024];
-                int receivedDataSize = serverSocket.Receive(receivedData);
-
-                // Validation
-                Assert.Equal(messagePackDataSize, receivedDataSize);
             }
-            finally
+        }
+
+        [Fact]
+        public void SuccessfulExportOnLinux()
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
+                string path = GenerateTempFilePath();
+                var logRecordList = new List<LogRecord>();
                 try
                 {
-                    File.Delete(path);
+                    var endpoint = new UnixDomainSocketEndPoint(path);
+                    using var server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                    server.Bind(endpoint);
+                    server.Listen(1);
+
+                    using var loggerFactory = LoggerFactory.Create(builder => builder
+                    .AddOpenTelemetry(options =>
+                    {
+                        options.AddGenevaLogExporter(options =>
+                        {
+                            options.ConnectionString = "Endpoint=unix:" + path;
+                            options.PrepopulatedFields = new Dictionary<string, object>
+                            {
+                                ["cloud.role"] = "BusyWorker",
+                                ["cloud.roleInstance"] = "CY1SCH030021417",
+                                ["cloud.roleVer"] = "9.0.15289.2",
+                            };
+                        });
+                        options.AddInMemoryExporter(logRecordList);
+                    }));
+                    using var serverSocket = server.Accept();
+                    serverSocket.ReceiveTimeout = 10000;
+
+                    // Create a test exporter to get MessagePack byte data for validation of the data received via Socket.
+                    using var exporter = new GenevaLogExporter(new GenevaExporterOptions
+                    {
+                        ConnectionString = "Endpoint=unix:" + path,
+                        PrepopulatedFields = new Dictionary<string, object>
+                        {
+                            ["cloud.role"] = "BusyWorker",
+                            ["cloud.roleInstance"] = "CY1SCH030021417",
+                            ["cloud.roleVer"] = "9.0.15289.2",
+                        },
+                    });
+
+                    // Emit a LogRecord and grab a copy of internal buffer for validation.
+                    var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
+
+                    logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+
+                    // logRecordList should have a singleLogRecord entry after the logger.LogInformation call
+                    Assert.Single(logRecordList);
+
+                    int messagePackDataSize;
+                    messagePackDataSize = exporter.SerializeLogRecord(logRecordList[0]);
+
+                    // Read the data sent via socket.
+                    var receivedData = new byte[1024];
+                    int receivedDataSize = serverSocket.Receive(receivedData);
+
+                    // Validation
+                    Assert.Equal(messagePackDataSize, receivedDataSize);
                 }
-                catch
+                finally
                 {
+                    try
+                    {
+                        File.Delete(path);
+                    }
+                    catch
+                    {
+                    }
                 }
             }
         }

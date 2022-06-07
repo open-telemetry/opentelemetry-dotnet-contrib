@@ -35,7 +35,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
     public class GenevaMetricExporterTests
     {
         [Fact]
-        [Trait("Platform", "Any")]
         public void NullExporterOptions()
         {
             GenevaMetricExporterOptions exporterOptions = null;
@@ -46,7 +45,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         [InlineData(null)]
         [InlineData("")]
         [InlineData(" ")]
-        [Trait("Platform", "Any")]
         public void InvalidConnectionString(string connectionString)
         {
             var exporterOptions = new GenevaMetricExporterOptions() { ConnectionString = connectionString };
@@ -57,7 +55,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void ParseConnectionStringCorrectly()
         {
             string path = string.Empty;
@@ -101,7 +98,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        [Trait("Platform", "Any")]
         public void SuccessfulSerialization(bool testMaxLimits)
         {
             using var meter = new Meter("SuccessfulSerialization", "0.0.1");
@@ -263,7 +259,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void SuccessfulSerializationWithViews()
         {
             using var meter = new Meter("SuccessfulSerializationWithViews", "0.0.1");
@@ -457,126 +452,128 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Linux")]
         public void SuccessfulExportOnLinux()
         {
-            string path = GenerateTempFilePath();
-            var exportedItems = new List<Metric>();
-
-            using var meter = new Meter("SuccessfulExportOnLinux", "0.0.1");
-            var counter = meter.CreateCounter<long>("counter");
-
-            using var inMemoryMeter = new Meter("InMemoryExportOnLinux", "0.0.1");
-            var inMemoryCounter = inMemoryMeter.CreateCounter<long>("counter");
-
-            try
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                var endpoint = new UnixDomainSocketEndPoint(path);
-                using var server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
-                server.Bind(endpoint);
-                server.Listen(1);
+                string path = GenerateTempFilePath();
+                var exportedItems = new List<Metric>();
 
-                using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
-                {
-                    TemporalityPreference = MetricReaderTemporalityPreference.Delta,
-                };
+                using var meter = new Meter("SuccessfulExportOnLinux", "0.0.1");
+                var counter = meter.CreateCounter<long>("counter");
 
-                // Set up two different providers as only one Metric Processor is allowed.
-                // TODO: Simplify the setup when multiple Metric processors are allowed.
-                using var meterProvider = Sdk.CreateMeterProviderBuilder()
-                    .AddMeter("SuccessfulExportOnLinux")
-                    .AddGenevaMetricExporter(options =>
-                    {
-                        options.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
-                        options.MetricExportIntervalMilliseconds = 5000;
-                    })
-                    .Build();
+                using var inMemoryMeter = new Meter("InMemoryExportOnLinux", "0.0.1");
+                var inMemoryCounter = inMemoryMeter.CreateCounter<long>("counter");
 
-                using var inMemoryMeterProvider = Sdk.CreateMeterProviderBuilder()
-                    .AddMeter("InMemoryExportOnLinux")
-                    .AddReader(inMemoryReader)
-                    .Build();
-
-                using var serverSocket = server.Accept();
-                serverSocket.ReceiveTimeout = 15000;
-
-                // Create a test exporter to get byte data for validation of the data received via Socket.
-                var exporterOptions = new GenevaMetricExporterOptions() { ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace" };
-                using var exporter = new GenevaMetricExporter(exporterOptions);
-
-                // Emit a metric and grab a copy of internal buffer for validation.
-                counter.Add(
-                    123,
-                    new KeyValuePair<string, object>("tag1", "value1"),
-                    new KeyValuePair<string, object>("tag2", "value2"));
-
-                inMemoryCounter.Add(
-                    123,
-                    new KeyValuePair<string, object>("tag1", "value1"),
-                    new KeyValuePair<string, object>("tag2", "value2"));
-
-                // exportedItems list should have a single entry after the MetricReader.Collect call
-                inMemoryReader.Collect();
-
-                Assert.Single(exportedItems);
-
-                var metric = exportedItems[0];
-                var metricPointsEnumerator = metric.GetMetricPoints().GetEnumerator();
-                metricPointsEnumerator.MoveNext();
-                var metricPoint = metricPointsEnumerator.Current;
-                var metricDataValue = Convert.ToUInt64(metricPoint.GetSumLong());
-                var metricData = new MetricData { UInt64Value = metricDataValue };
-                var bodyLength = exporter.SerializeMetric(
-                    MetricEventType.ULongMetric,
-                    metric.Name,
-                    metricPoint.EndTime.ToFileTime(),
-                    metricPoint.Tags,
-                    metricData);
-
-                // Wait a little more than the ExportInterval for the exporter to export the data.
-                Task.Delay(5500).Wait();
-
-                // Read the data sent via socket.
-                var receivedData = new byte[1024];
-                int receivedDataSize = serverSocket.Receive(receivedData);
-
-                var fixedPayloadLength = (int)typeof(GenevaMetricExporter).GetField("fixedPayloadStartIndex", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter);
-
-                // The whole payload is sent to the Unix Domain Socket
-                // BinaryHeader (fixed payload) + variable payload which starts with MetricPayload
-                Assert.Equal(bodyLength + fixedPayloadLength, receivedDataSize);
-
-                var stream = new KaitaiStream(receivedData);
-                var data = new MetricsContract(stream);
-
-                Assert.Equal(metric.Name, data.Body.MetricName.Value);
-                Assert.Equal("OTelMonitoringAccount", data.Body.MetricAccount.Value);
-                Assert.Equal("OTelMetricNamespace", data.Body.MetricNamespace.Value);
-
-                var valueSection = data.Body.ValueSection as SingleUint64Value;
-                Assert.Equal(metricDataValue, valueSection.Value);
-
-                Assert.Equal(2, data.Body.NumDimensions);
-
-                int i = 0;
-                foreach (var tag in metricPoint.Tags)
-                {
-                    Assert.Equal(tag.Key, data.Body.DimensionsNames[i].Value);
-                    Assert.Equal(tag.Value, data.Body.DimensionsValues[i].Value);
-                    i++;
-                }
-
-                Assert.Equal((ushort)MetricEventType.ULongMetric, data.EventId);
-                Assert.Equal(bodyLength, data.LenBody);
-            }
-            finally
-            {
                 try
                 {
-                    File.Delete(path);
+                    var endpoint = new UnixDomainSocketEndPoint(path);
+                    using var server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                    server.Bind(endpoint);
+                    server.Listen(1);
+
+                    using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+                    {
+                        TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+                    };
+
+                    // Set up two different providers as only one Metric Processor is allowed.
+                    // TODO: Simplify the setup when multiple Metric processors are allowed.
+                    using var meterProvider = Sdk.CreateMeterProviderBuilder()
+                        .AddMeter("SuccessfulExportOnLinux")
+                        .AddGenevaMetricExporter(options =>
+                        {
+                            options.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+                            options.MetricExportIntervalMilliseconds = 5000;
+                        })
+                        .Build();
+
+                    using var inMemoryMeterProvider = Sdk.CreateMeterProviderBuilder()
+                        .AddMeter("InMemoryExportOnLinux")
+                        .AddReader(inMemoryReader)
+                        .Build();
+
+                    using var serverSocket = server.Accept();
+                    serverSocket.ReceiveTimeout = 15000;
+
+                    // Create a test exporter to get byte data for validation of the data received via Socket.
+                    var exporterOptions = new GenevaMetricExporterOptions() { ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace" };
+                    using var exporter = new GenevaMetricExporter(exporterOptions);
+
+                    // Emit a metric and grab a copy of internal buffer for validation.
+                    counter.Add(
+                        123,
+                        new KeyValuePair<string, object>("tag1", "value1"),
+                        new KeyValuePair<string, object>("tag2", "value2"));
+
+                    inMemoryCounter.Add(
+                        123,
+                        new KeyValuePair<string, object>("tag1", "value1"),
+                        new KeyValuePair<string, object>("tag2", "value2"));
+
+                    // exportedItems list should have a single entry after the MetricReader.Collect call
+                    inMemoryReader.Collect();
+
+                    Assert.Single(exportedItems);
+
+                    var metric = exportedItems[0];
+                    var metricPointsEnumerator = metric.GetMetricPoints().GetEnumerator();
+                    metricPointsEnumerator.MoveNext();
+                    var metricPoint = metricPointsEnumerator.Current;
+                    var metricDataValue = Convert.ToUInt64(metricPoint.GetSumLong());
+                    var metricData = new MetricData { UInt64Value = metricDataValue };
+                    var bodyLength = exporter.SerializeMetric(
+                        MetricEventType.ULongMetric,
+                        metric.Name,
+                        metricPoint.EndTime.ToFileTime(),
+                        metricPoint.Tags,
+                        metricData);
+
+                    // Wait a little more than the ExportInterval for the exporter to export the data.
+                    Task.Delay(5500).Wait();
+
+                    // Read the data sent via socket.
+                    var receivedData = new byte[1024];
+                    int receivedDataSize = serverSocket.Receive(receivedData);
+
+                    var fixedPayloadLength = (int)typeof(GenevaMetricExporter).GetField("fixedPayloadStartIndex", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter);
+
+                    // The whole payload is sent to the Unix Domain Socket
+                    // BinaryHeader (fixed payload) + variable payload which starts with MetricPayload
+                    Assert.Equal(bodyLength + fixedPayloadLength, receivedDataSize);
+
+                    var stream = new KaitaiStream(receivedData);
+                    var data = new MetricsContract(stream);
+
+                    Assert.Equal(metric.Name, data.Body.MetricName.Value);
+                    Assert.Equal("OTelMonitoringAccount", data.Body.MetricAccount.Value);
+                    Assert.Equal("OTelMetricNamespace", data.Body.MetricNamespace.Value);
+
+                    var valueSection = data.Body.ValueSection as SingleUint64Value;
+                    Assert.Equal(metricDataValue, valueSection.Value);
+
+                    Assert.Equal(2, data.Body.NumDimensions);
+
+                    int i = 0;
+                    foreach (var tag in metricPoint.Tags)
+                    {
+                        Assert.Equal(tag.Key, data.Body.DimensionsNames[i].Value);
+                        Assert.Equal(tag.Value, data.Body.DimensionsValues[i].Value);
+                        i++;
+                    }
+
+                    Assert.Equal((ushort)MetricEventType.ULongMetric, data.EventId);
+                    Assert.Equal(bodyLength, data.LenBody);
                 }
-                catch
+                finally
                 {
+                    try
+                    {
+                        File.Delete(path);
+                    }
+                    catch
+                    {
+                    }
                 }
             }
         }
