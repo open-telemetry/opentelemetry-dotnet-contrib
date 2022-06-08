@@ -266,8 +266,17 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
             var exporterOptions = new GenevaExporterOptions
             {
                 TableNameMappings = userInitializedCategoryToTableNameMappings,
-                ConnectionString = "EtwSession=OpenTelemetry",
             };
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                var path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+            }
 
             using var loggerFactory = LoggerFactory.Create(builder => builder
             .AddOpenTelemetry(options =>
