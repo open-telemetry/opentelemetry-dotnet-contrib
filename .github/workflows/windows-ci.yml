@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false  # ensures the entire test matrix is run, even if one permutation fails
       matrix:
-        version: [net461,netcoreapp3.1, net6.0]
+        version: [net461,netcoreapp3.1,net5.0,net6.0]
 
     steps:
     - uses: actions/checkout@v3
