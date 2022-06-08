@@ -31,11 +31,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         private static readonly ActivitySource AWSLambdaActivitySource = new(AWSLambdaUtils.ActivitySourceName);
 
         /// <summary>
-        /// Gets or sets a value indicating whether AWS X-Ray propagation is ignored.
-        /// </summary>
-        internal static bool IgnoreAWSXRayPropagation { get; set; }
-
-        /// <summary>
         /// Tracing wrapper for Lambda handler without Lambda context.
         /// </summary>
         /// <typeparam name="TInput">Input.</typeparam>
@@ -45,8 +40,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// <param name="input">Instance of input.</param>
         /// <param name="parentContext">
         /// The optional parent context <see cref="ActivityContext"/> used for Activity object creation.
-        /// If the parent context parametere is not provided then X-Ray propagation is used to extract the parent
-        /// if configuration flag <see cref="AWSLambdaInstrumentationOptions.IgnoreAWSXRayPropagation"/> is not set to true.
+        /// If the parent context parametere is not provided then X-Ray propagation is used to extract the parent.
         /// </param>
         /// <param name="tags">The optional tags list to initialize the created Activity object with.</param>
         /// <returns>Instance of output result.</returns>
@@ -69,8 +63,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// <param name="input">Instance of input.</param>
         /// <param name="parentContext">
         /// The optional parent context <see cref="ActivityContext"/> used for Activity object creation.
-        /// If the parent context parametere is not provided then X-Ray propagation is used to extract the parent
-        /// if configuration flag <see cref="AWSLambdaInstrumentationOptions.IgnoreAWSXRayPropagation"/> is not set to true.
+        /// If the parent context parametere is not provided then X-Ray propagation is used to extract the parent.
         /// </param>
         /// <param name="tags">The optional tags list to initialize the created Activity object with.</param>
         public static void Trace<TInput>(
@@ -92,8 +85,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// <param name="input">Instance of input.</param>
         /// <param name="parentContext">
         /// The optional parent context <see cref="ActivityContext"/> used for Activity object creation.
-        /// If the parent context parametere is not provided then X-Ray propagation is used to extract the parent
-        /// if configuration flag <see cref="AWSLambdaInstrumentationOptions.IgnoreAWSXRayPropagation"/> is not set to true.
+        /// If the parent context parametere is not provided then X-Ray propagation is used to extract the parent.
         /// </param>
         /// <param name="tags">The optional tags list to initialize the created Activity object with.</param>
         /// <returns>Task.</returns>
@@ -117,8 +109,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// <param name="input">Instance of input.</param>
         /// <param name="parentContext">
         /// The optional parent context <see cref="ActivityContext"/> used for Activity object creation.
-        /// If the parent context parametere is not provided then X-Ray propagation is used to extract the parent
-        /// if configuration flag <see cref="AWSLambdaInstrumentationOptions.IgnoreAWSXRayPropagation"/> is not set to true.
+        /// If the parent context parametere is not provided then X-Ray propagation is used to extract the parent.
         /// </param>
         /// <param name="tags">The optional tags list to initialize the created Activity object with.</param>
         /// <returns>Task of result.</returns>
@@ -129,7 +120,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             ActivityContext parentContext = default,
             IEnumerable<KeyValuePair<string, object>> tags = null)
         {
-            return await Intercept(tracerProvider, () => lambdaHandler(input), default, default, tags);
+            return await Intercept(tracerProvider, () => lambdaHandler(input), default, parentContext, tags);
         }
 
         /// <summary>
@@ -143,8 +134,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// <param name="context">Instance of lambda context.</param>
         /// <param name="parentContext">
         /// The optional parent context <see cref="ActivityContext"/> used for Activity object creation.
-        /// If the parent context parametere is not provided then X-Ray propagation is used to extract the parent
-        /// if configuration flag <see cref="AWSLambdaInstrumentationOptions.IgnoreAWSXRayPropagation"/> is not set to true.
+        /// If the parent context parametere is not provided then X-Ray propagation is used to extract the parent.
         /// </param>
         /// <param name="tags">The optional tags list to initialize the created Activity object with.</param>
         /// <returns>Instance of output result.</returns>
@@ -169,8 +159,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// <param name="context">Instance of lambda context.</param>
         /// <param name="parentContext">
         /// The optional parent context <see cref="ActivityContext"/> used for Activity object creation.
-        /// If the parent context parametere is not provided then X-Ray propagation is used to extract the parent
-        /// if configuration flag <see cref="AWSLambdaInstrumentationOptions.IgnoreAWSXRayPropagation"/> is not set to true.
+        /// If the parent context parametere is not provided then X-Ray propagation is used to extract the parent.
         /// </param>
         /// <param name="tags">The optional tags list to initialize the created Activity object with.</param>
         public static void Trace<TInput>(
@@ -194,8 +183,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// <param name="context">Instance of lambda context.</param>
         /// <param name="parentContext">
         /// The optional parent context <see cref="ActivityContext"/> used for Activity object creation.
-        /// If the parent context parametere is not provided then X-Ray propagation is used to extract the parent
-        /// if configuration flag <see cref="AWSLambdaInstrumentationOptions.IgnoreAWSXRayPropagation"/> is not set to true.
+        /// If the parent context parametere is not provided then X-Ray propagation is used to extract the parent.
         /// </param>
         /// <param name="tags">The optional tags list to initialize the created Activity object with.</param>
         /// <returns>Task.</returns>
@@ -221,8 +209,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// <param name="context">Instance of lambda context.</param>
         /// <param name="parentContext">
         /// The optional parent context <see cref="ActivityContext"/> used for Activity object creation.
-        /// If the parent context parametere is not provided then X-Ray propagation is used to extract the parent
-        /// if configuration flag <see cref="AWSLambdaInstrumentationOptions.IgnoreAWSXRayPropagation"/> is not set to true.
+        /// If the parent context parametere is not provided then X-Ray propagation is used to extract the parent.
         /// </param>
         /// <param name="tags">The optional tags list to initialize the created Activity object with.</param>
         /// <returns>Task of result.</returns>
@@ -338,7 +325,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             ActivityContext parentContext = default,
             IEnumerable<KeyValuePair<string, object>> tags = null)
         {
-            if (parentContext == default && !IgnoreAWSXRayPropagation)
+            if (parentContext == default)
             {
                 parentContext = AWSLambdaUtils.GetParentContext();
             }
