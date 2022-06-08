@@ -42,10 +42,10 @@ of objects.
 value does not include any native allocations. The value is an approximate count.
 
 - GC fragmentation ratio is calculated as:
-If `GC.GetGCMemoryInfo().HeapSizeBytes != 0`,
+If `gcMemoryInfo.HeapSizeBytes != 0`,
 the value is
-`GC.GetGCMemoryInfo().FragmentedBytes * 1.0d / GC.GetGCMemoryInfo().HeapSizeBytes`,
-otherwise the value is `0`.
+`gcMemoryInfo.FragmentedBytes * 1.0d / gcMemoryInfo.HeapSizeBytes`,
+otherwise the value is `0`, where `var gcMemoryInfo = GC.GetGCMemoryInfo()`.
 
   - [GCMemoryInfo.FragmentedBytes](https://docs.microsoft.com/dotnet/api/system.gcmemoryinfo.fragmentedbytes?view=netcore-3.1):
   Gets the total fragmentation when the last garbage collection occurred.
