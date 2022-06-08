@@ -124,13 +124,13 @@ These metrics are only available for NETCOREAPP3_1_OR_GREATER.
 The metrics in this section can be enabled by setting the
 `RuntimeMetricsOptions.IsProcessEnabled` switch.
 
-| Name                    | Description                            | Units          | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values                            |
-|-------------------------|----------------------------------------|----------------|-------------------|------------|------------------|---------------------------------------------|
-| process.cpu.utilization | CPU utilization of this process        | `1`            | ObservableGauge   | `Double`   |                  |                                             |
-| process.cpu.time        | Processor time of this process         | `s`            | ObservableCounter | `Int64`    | type             | TotalProcessorTime, PrivilegedProcessorTime |
-| process.cpu.count       | The number of available logical CPUs   | `{processors}` | ObservableGauge   | `Int64`    |                  |                                             |
-| process.memory.usage    | The amount of physical memory in use   | `By`           | ObservableGauge   | `Int64`    |                  |                                             |
-| process.memory.virtual  | The amount of committed virtual memory | `By`           | ObservableGauge   | `Int64`    |                  |                                             |
+| Name                    | Description                            | Units          | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|-------------------------|----------------------------------------|----------------|-------------------|------------|------------------|------------------|
+| process.cpu.utilization | CPU utilization of this process        | `1`            | ObservableGauge   | `Double`   |                  |                  |
+| process.cpu.time        | Processor time of this process         | `s`            | ObservableCounter | `Int64`    | type             | user, system     |
+| process.cpu.count       | The number of available logical CPUs   | `{processors}` | ObservableGauge   | `Int64`    |                  |                  |
+| process.memory.usage    | The amount of physical memory in use   | `By`           | ObservableGauge   | `Int64`    |                  |                  |
+| process.memory.virtual  | The amount of committed virtual memory | `By`           | ObservableGauge   | `Int64`    |                  |                  |
 
 - CPU utilization
   - [Process.TotalProcessorTime](https://docs.microsoft.com/dotnet/api/system.diagnostics.process.totalprocessortime)
@@ -139,8 +139,8 @@ The metrics in this section can be enabled by setting the
   [Process.StartTime](https://docs.microsoft.com/dotnet/api/system.diagnostics.process.starttime)))
 
 - CPU Time:
-  - [Process.TotalProcessorTime](https://docs.microsoft.com/dotnet/api/system.diagnostics.process.totalprocessortime):
-  Gets the total processor time for this process.
+  - [Process.UserProcessorTime](https://docs.microsoft.com/dotnet/api/system.diagnostics.process.userprocessortime):
+  Gets the user processor time for this process.
   - [Process.PrivilegedProcessorTime](https://docs.microsoft.com/dotnet/api/system.diagnostics.process.privilegedprocessortime):
   Gets the privileged processor time for this process.
 
