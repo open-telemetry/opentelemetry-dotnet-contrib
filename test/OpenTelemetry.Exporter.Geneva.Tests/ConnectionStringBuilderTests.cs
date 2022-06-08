@@ -22,7 +22,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
     public class ConnectionStringBuilderTests
     {
         [Fact]
-        [Trait("Platform", "Any")]
         public void ConnectionStringBuilder_constructor_Invalid_Input()
         {
             // null connection string
@@ -48,7 +47,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void ConnectionStringBuilder_constructor_Duplicated_Keys()
         {
             var builder = new ConnectionStringBuilder("Account=value1;Account=VALUE2");
@@ -56,7 +54,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void ConnectionStringBuilder_Protocol_No_Default_Value()
         {
             var builder = new ConnectionStringBuilder("key1=value1");
@@ -76,7 +73,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void ConnectionStringBuilder_EtwSession()
         {
             var builder = new ConnectionStringBuilder("EtwSession=OpenTelemetry");
@@ -91,7 +87,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void ConnectionStringBuilder_Endpoint_UnixDomainSocketPath()
         {
             var builder = new ConnectionStringBuilder("Endpoint=unix:/var/run/default_fluent.socket");
@@ -112,7 +107,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void ConnectionStringBuilder_TimeoutMilliseconds()
         {
             var builder = new ConnectionStringBuilder("TimeoutMilliseconds=10000");
@@ -141,7 +135,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void ConnectionStringBuilder_Endpoint_Udp()
         {
             var builder = new ConnectionStringBuilder("Endpoint=udp://localhost:11111");
@@ -168,7 +161,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void ConnectionStringBuilder_Endpoint_Tcp()
         {
             var builder = new ConnectionStringBuilder("Endpoint=tcp://localhost:33333");
@@ -195,7 +187,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void ConnectionStringBuilder_EtwSession_Endpoint_Both_Set()
         {
             var builder = new ConnectionStringBuilder("Endpoint=tcp://localhost:33333;EtwSession=OpenTelemetry");
@@ -209,7 +200,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void ConnectionStringBuilder_MonitoringAccount_No_Default_Value()
         {
             var builder = new ConnectionStringBuilder("key1=value1");
@@ -223,7 +213,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void ConnectionStringBuilder_Keywords_Are_Case_Sensitive()
         {
             var builder = new ConnectionStringBuilder("etwSession=OpenTelemetry");
