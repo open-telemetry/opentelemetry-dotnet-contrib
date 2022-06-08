@@ -14,8 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
-using OpenTelemetry.Contrib.Instrumentation.AWSLambda;
 using OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Resources;

@@ -15,6 +15,7 @@
 // </copyright>
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -28,6 +29,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
 {
     public class AWSLambdaWrapperTests
     {
+        private const string TraceId = "5759e988bd862e3fe1be46a994272793";
+        private const string XRayParentId = "53995c3f42cd8ad8";
+        private const string CustomParentId = "11195c3f42cd8222";
+
         private readonly SampleHandlers sampleHandlers;
         private readonly SampleLambdaContext sampleLambdaContext;
 
@@ -35,14 +40,16 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
         {
             this.sampleHandlers = new SampleHandlers();
             this.sampleLambdaContext = new SampleLambdaContext();
-            Environment.SetEnvironmentVariable("_X_AMZN_TRACE_ID", "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1");
+            Environment.SetEnvironmentVariable("_X_AMZN_TRACE_ID", $"Root=1-5759e988-bd862e3fe1be46a994272793;Parent={XRayParentId};Sampled=1");
             Environment.SetEnvironmentVariable("AWS_REGION", "us-east-1");
             Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_NAME", "testfunction");
             Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_VERSION", "latest");
         }
 
-        [Fact]
-        public void TestLambdaHandler()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void TestLambdaHandler(bool setCustomParent)
         {
             var processor = new Mock<BaseProcessor<Activity>>();
 
@@ -51,7 +58,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
                 .AddProcessor(processor.Object)
                 .Build())
             {
-                var result = AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncReturn, "TestStream", this.sampleLambdaContext);
+                var tags = CreateTags();
+                var parentContext = setCustomParent ? CreateParentContext() : default;
+                var result = AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncReturn, "TestStream", this.sampleLambdaContext, parentContext, tags);
                 var resource = tracerProvider.GetResource();
                 this.AssertResourceAttributes(resource);
             }
@@ -60,12 +69,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             Assert.Equal(6, processor.Invocations.Count);
 
             var activity = (Activity)processor.Invocations[1].Arguments[0];
-            this.AssertSpanProperties(activity);
+            this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
             this.AssertSpanAttributes(activity);
         }
 
-        [Fact]
-        public void TestLambdaHandlerNoReturn()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void TestLambdaHandlerNoReturn(bool setCustomParent)
         {
             var processor = new Mock<BaseProcessor<Activity>>();
 
@@ -74,7 +85,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
                 .AddProcessor(processor.Object)
                 .Build())
             {
-                AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncNoReturn, "TestStream", this.sampleLambdaContext);
+                var tags = CreateTags();
+                var parentContext = setCustomParent ? CreateParentContext() : default;
+                AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncNoReturn, "TestStream", this.sampleLambdaContext, parentContext, tags);
                 var resource = tracerProvider.GetResource();
                 this.AssertResourceAttributes(resource);
             }
@@ -83,12 +96,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             Assert.Equal(6, processor.Invocations.Count);
 
             var activity = (Activity)processor.Invocations[1].Arguments[0];
-            this.AssertSpanProperties(activity);
+            this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
             this.AssertSpanAttributes(activity);
         }
 
-        [Fact]
-        public async Task TestLambdaHandlerAsync()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task TestLambdaHandlerAsync(bool setCustomParent)
         {
             var processor = new Mock<BaseProcessor<Activity>>();
 
@@ -97,7 +112,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
                 .AddProcessor(processor.Object)
                 .Build())
             {
-                var result = await AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerAsyncReturn, "TestStream", this.sampleLambdaContext);
+                var tags = CreateTags();
+                var parentContext = setCustomParent ? CreateParentContext() : default;
+                var result = await AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerAsyncReturn, "TestStream", this.sampleLambdaContext, parentContext, tags);
                 var resource = tracerProvider.GetResource();
                 this.AssertResourceAttributes(resource);
             }
@@ -106,12 +123,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             Assert.Equal(6, processor.Invocations.Count);
 
             var activity = (Activity)processor.Invocations[1].Arguments[0];
-            this.AssertSpanProperties(activity);
+            this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
             this.AssertSpanAttributes(activity);
         }
 
-        [Fact]
-        public async Task TestLambdaHandlerAsyncNoReturn()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task TestLambdaHandlerAsyncNoReturn(bool setCustomParent)
         {
             var processor = new Mock<BaseProcessor<Activity>>();
 
@@ -120,7 +139,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
                 .AddProcessor(processor.Object)
                 .Build())
             {
-                await AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerAsyncNoReturn, "TestStream", this.sampleLambdaContext);
+                var tags = CreateTags();
+                var parentContext = setCustomParent ? CreateParentContext() : default;
+                await AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerAsyncNoReturn, "TestStream", this.sampleLambdaContext, parentContext, tags);
                 var resource = tracerProvider.GetResource();
                 this.AssertResourceAttributes(resource);
             }
@@ -129,12 +150,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             Assert.Equal(6, processor.Invocations.Count);
 
             var activity = (Activity)processor.Invocations[1].Arguments[0];
-            this.AssertSpanProperties(activity);
+            this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
             this.AssertSpanAttributes(activity);
         }
 
-        [Fact]
-        public void TestLambdaHandlerNoContext()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void TestLambdaHandlerNoContext(bool setCustomParent)
         {
             var processor = new Mock<BaseProcessor<Activity>>();
 
@@ -143,7 +166,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
                 .AddProcessor(processor.Object)
                 .Build())
             {
-                var result = AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncReturn, "TestStream");
+                var tags = CreateTags();
+                var parentContext = setCustomParent ? CreateParentContext() : default;
+                var result = AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncReturn, "TestStream", parentContext, tags);
                 var resource = tracerProvider.GetResource();
                 this.AssertResourceAttributes(resource);
             }
@@ -152,11 +177,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             Assert.Equal(6, processor.Invocations.Count);
 
             var activity = (Activity)processor.Invocations[1].Arguments[0];
-            this.AssertSpanProperties(activity);
+            this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         }
 
-        [Fact]
-        public void TestLambdaHandlerNoContextNoReturn()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void TestLambdaHandlerNoContextNoReturn(bool setCustomParent)
         {
             var processor = new Mock<BaseProcessor<Activity>>();
 
@@ -165,7 +192,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
                 .AddProcessor(processor.Object)
                 .Build())
             {
-                AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncNoReturn, "TestStream");
+                var tags = CreateTags();
+                var parentContext = setCustomParent ? CreateParentContext() : default;
+                AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncNoReturn, "TestStream", parentContext, tags);
                 var resource = tracerProvider.GetResource();
                 this.AssertResourceAttributes(resource);
             }
@@ -174,11 +203,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             Assert.Equal(6, processor.Invocations.Count);
 
             var activity = (Activity)processor.Invocations[1].Arguments[0];
-            this.AssertSpanProperties(activity);
+            this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         }
 
-        [Fact]
-        public async Task TestLambdaHandlerAsyncNoContext()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task TestLambdaHandlerAsyncNoContext(bool setCustomParent)
         {
             var processor = new Mock<BaseProcessor<Activity>>();
 
@@ -187,7 +218,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
                 .AddProcessor(processor.Object)
                 .Build())
             {
-                var result = await AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerAsyncReturn, "TestStream");
+                var tags = CreateTags();
+                var parentContext = setCustomParent ? CreateParentContext() : default;
+                var result = await AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerAsyncReturn, "TestStream", parentContext, tags);
                 var resource = tracerProvider.GetResource();
                 this.AssertResourceAttributes(resource);
             }
@@ -196,11 +229,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             Assert.Equal(6, processor.Invocations.Count);
 
             var activity = (Activity)processor.Invocations[1].Arguments[0];
-            this.AssertSpanProperties(activity);
+            this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         }
 
-        [Fact]
-        public async Task TestLambdaHandlerAsyncNoContextNoReturn()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task TestLambdaHandlerAsyncNoContextNoReturn(bool setCustomParent)
         {
             var processor = new Mock<BaseProcessor<Activity>>();
 
@@ -209,7 +244,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
                 .AddProcessor(processor.Object)
                 .Build())
             {
-                await AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerAsyncNoReturn, "TestStream");
+                var tags = CreateTags();
+                var parentContext = setCustomParent ? CreateParentContext() : default;
+                await AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerAsyncNoReturn, "TestStream", parentContext, tags);
                 var resource = tracerProvider.GetResource();
                 this.AssertResourceAttributes(resource);
             }
@@ -218,11 +255,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             Assert.Equal(6, processor.Invocations.Count);
 
             var activity = (Activity)processor.Invocations[1].Arguments[0];
-            this.AssertSpanProperties(activity);
+            this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         }
 
-        [Fact]
-        public void TestLambdaHandlerException()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void TestLambdaHandlerException(bool setCustomParent)
         {
             var processor = new Mock<BaseProcessor<Activity>>();
 
@@ -233,7 +272,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             {
                 try
                 {
-                    AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncNoReturnException, "TestException", this.sampleLambdaContext);
+                    var tags = CreateTags();
+                    var parentContext = setCustomParent ? CreateParentContext() : default;
+                    AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncNoReturnException, "TestException", this.sampleLambdaContext, parentContext, tags);
                 }
                 catch
                 {
@@ -246,7 +287,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             Assert.Equal(6, processor.Invocations.Count);
 
             var activity = (Activity)processor.Invocations[1].Arguments[0];
-            this.AssertSpanProperties(activity);
+            this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
             this.AssertSpanAttributes(activity);
             this.AssertSpanException(activity);
         }
@@ -275,10 +316,39 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             Assert.True(activities.Length == 0);
         }
 
-        private void AssertSpanProperties(Activity activity)
+        [Fact]
+        public void OnFunctionStart_NoParent_ActivityCreated()
         {
-            Assert.Equal("5759e988bd862e3fe1be46a994272793", activity.TraceId.ToHexString());
-            Assert.Equal("53995c3f42cd8ad8", activity.ParentSpanId.ToHexString());
+            Environment.SetEnvironmentVariable("_X_AMZN_TRACE_ID", null);
+
+            // var processor = new Mock<BaseProcessor<Activity>>();
+            Activity activity = null;
+            using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddAWSLambdaConfigurations()
+                .Build())
+            {
+                activity = AWSLambdaWrapper.OnFunctionStart();
+            }
+
+            Assert.NotNull(activity);
+        }
+
+        private static ActivityContext CreateParentContext()
+        {
+            var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
+            var parentId = ActivitySpanId.CreateFromString(CustomParentId.AsSpan());
+            return new ActivityContext(traceId, parentId, ActivityTraceFlags.Recorded);
+        }
+
+        private static IEnumerable<KeyValuePair<string, object>> CreateTags()
+        {
+            return new[] { new KeyValuePair<string, object>("TestTag", "TagValue"), };
+        }
+
+        private void AssertSpanProperties(Activity activity, string parentId)
+        {
+            Assert.Equal(TraceId, activity.TraceId.ToHexString());
+            Assert.Equal(parentId, activity.ParentSpanId.ToHexString());
             Assert.Equal(ActivityTraceFlags.Recorded, activity.ActivityTraceFlags);
             Assert.Equal(ActivityKind.Server, activity.Kind);
             Assert.Equal("testfunction", activity.DisplayName);
@@ -298,6 +368,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             Assert.Equal(this.sampleLambdaContext.AwsRequestId, activity.GetTagValue(AWSLambdaSemanticConventions.AttributeFaasExecution));
             Assert.Equal(this.sampleLambdaContext.InvokedFunctionArn, activity.GetTagValue(AWSLambdaSemanticConventions.AttributeFaasID));
             Assert.Equal("111111111111", activity.GetTagValue(AWSLambdaSemanticConventions.AttributeCloudAccountID));
+            Assert.Equal("TagValue", activity.GetTagValue("TestTag"));
         }
 
         private void AssertSpanException(Activity activity)

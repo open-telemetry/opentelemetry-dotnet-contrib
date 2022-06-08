@@ -224,6 +224,67 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             return await Intercept(tracerProvider, () => lambdaHandler(input, context), context, parentContext, tags);
         }
 
+        internal static Activity OnFunctionStart(
+            ILambdaContext context = null,
+            ActivityContext parentContext = default,
+            IEnumerable<KeyValuePair<string, object>> tags = null)
+        {
+            if (parentContext == default)
+            {
+                parentContext = AWSLambdaUtils.GetParentContext();
+            }
+
+            var activityName = AWSLambdaUtils.GetFunctionName(context);
+            var activity = AWSLambdaActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext, tags);
+            if (activity != null && context != null)
+            {
+                if (activity.IsAllDataRequested)
+                {
+                    if (context.AwsRequestId != null)
+                    {
+                        activity.SetTag(AWSLambdaSemanticConventions.AttributeFaasExecution, context.AwsRequestId);
+                    }
+
+                    var functionArn = context.InvokedFunctionArn;
+                    if (functionArn != null)
+                    {
+                        activity.SetTag(AWSLambdaSemanticConventions.AttributeFaasID, functionArn);
+
+                        var accountId = AWSLambdaUtils.GetAccountId(functionArn);
+                        if (accountId != null)
+                        {
+                            activity.SetTag(AWSLambdaSemanticConventions.AttributeCloudAccountID, accountId);
+                        }
+                    }
+                }
+            }
+
+            return activity;
+        }
+
+        private static void OnFunctionStop(Activity activity, TracerProvider tracerProvider)
+        {
+            if (activity != null)
+            {
+                activity.Stop();
+            }
+
+            // force flush before function quit in case of Lambda freeze.
+            tracerProvider.ForceFlush();
+        }
+
+        private static void OnException(Activity activity, Exception exception)
+        {
+            if (activity != null)
+            {
+                if (activity.IsAllDataRequested)
+                {
+                    activity.RecordException(exception);
+                    activity.SetStatus(Status.Error.WithDescription(exception.Message));
+                }
+            }
+        }
+
         private static TResult Intercept<TResult>(
             TracerProvider tracerProvider,
             Func<TResult> method,
@@ -317,67 +378,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             finally
             {
                 OnFunctionStop(lambdaActivity, tracerProvider);
-            }
-        }
-
-        private static Activity OnFunctionStart(
-            ILambdaContext context = null,
-            ActivityContext parentContext = default,
-            IEnumerable<KeyValuePair<string, object>> tags = null)
-        {
-            if (parentContext == default)
-            {
-                parentContext = AWSLambdaUtils.GetParentContext();
-            }
-
-            var activityName = AWSLambdaUtils.GetFunctionName(context);
-            var activity = AWSLambdaActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext, tags);
-            if (activity != null && context != null)
-            {
-                if (activity.IsAllDataRequested)
-                {
-                    if (context.AwsRequestId != null)
-                    {
-                        activity.SetTag(AWSLambdaSemanticConventions.AttributeFaasExecution, context.AwsRequestId);
-                    }
-
-                    var functionArn = context.InvokedFunctionArn;
-                    if (functionArn != null)
-                    {
-                        activity.SetTag(AWSLambdaSemanticConventions.AttributeFaasID, functionArn);
-
-                        var accountId = AWSLambdaUtils.GetAccountId(functionArn);
-                        if (accountId != null)
-                        {
-                            activity.SetTag(AWSLambdaSemanticConventions.AttributeCloudAccountID, accountId);
-                        }
-                    }
-                }
-            }
-
-            return activity;
-        }
-
-        private static void OnFunctionStop(Activity activity, TracerProvider tracerProvider)
-        {
-            if (activity != null)
-            {
-                activity.Stop();
-            }
-
-            // force flush before function quit in case of Lambda freeze.
-            tracerProvider.ForceFlush();
-        }
-
-        private static void OnException(Activity activity, Exception exception)
-        {
-            if (activity != null)
-            {
-                if (activity.IsAllDataRequested)
-                {
-                    activity.RecordException(exception);
-                    activity.SetStatus(Status.Error.WithDescription(exception.Message));
-                }
             }
         }
     }
