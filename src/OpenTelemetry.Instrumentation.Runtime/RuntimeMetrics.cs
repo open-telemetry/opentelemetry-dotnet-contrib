@@ -33,6 +33,8 @@ namespace OpenTelemetry.Instrumentation.Runtime
         internal static readonly AssemblyName AssemblyName = typeof(RuntimeMetrics).Assembly.GetName();
         internal static readonly string InstrumentationName = AssemblyName.Name;
         internal static readonly string InstrumentationVersion = AssemblyName.Version.ToString();
+        private static readonly string[] HeapNames = new string[] { "gen0", "gen1", "gen2", "loh", "poh" };
+        private static readonly int NumberOfGenerations = 3;
         private static string metricPrefix = "process.runtime.dotnet.";
         private readonly Meter meter;
 
@@ -47,9 +49,8 @@ namespace OpenTelemetry.Instrumentation.Runtime
             if (options.IsGcEnabled)
             {
                 this.meter.CreateObservableGauge($"{metricPrefix}gc.heap", () => GC.GetTotalMemory(false), "By", "GC Heap Size");
-                this.meter.CreateObservableGauge($"{metricPrefix}gen_0-gc.count", () => GC.CollectionCount(0), description: "Gen 0 GC Count");
-                this.meter.CreateObservableGauge($"{metricPrefix}gen_1-gc.count", () => GC.CollectionCount(1), description: "Gen 1 GC Count");
-                this.meter.CreateObservableGauge($"{metricPrefix}gen_2-gc.count", () => GC.CollectionCount(2), description: "Gen 2 GC Count");
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.count", () => GetGarbageCollectionCounts(), description: "GC Count for all generations");
+
 #if NETCOREAPP3_1_OR_GREATER
                 this.meter.CreateObservableCounter($"{metricPrefix}alloc.rate", () => GC.GetTotalAllocatedBytes(), "By", "Allocation Rate");
                 this.meter.CreateObservableCounter($"{metricPrefix}gc.fragmentation", GetFragmentation, description: "GC Fragmentation");
@@ -57,6 +58,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
 #if NET6_0_OR_GREATER
                 this.meter.CreateObservableCounter($"{metricPrefix}gc.committed", () => (double)(GC.GetGCMemoryInfo().TotalCommittedBytes / 1_000_000), "Mi", description: "GC Committed Bytes");
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.heapsize", () => GetGarbageCollectionHeapSizes(), "By", "Heap Size for all generations");
 #endif
             }
 
@@ -102,11 +104,36 @@ namespace OpenTelemetry.Instrumentation.Runtime
             this.meter?.Dispose();
         }
 
+        private static IEnumerable<Measurement<long>> GetGarbageCollectionCounts()
+        {
+            Measurement<long>[] measurements = new Measurement<long>[NumberOfGenerations];
+            for (int i = 0; i < measurements.Length; i++)
+            {
+                measurements[i] = new Measurement<long>(GC.CollectionCount(i), new KeyValuePair<string, object>("gen", HeapNames[i]));
+            }
+
+            return measurements;
+        }
+
 #if NETCOREAPP3_1_OR_GREATER
         private static double GetFragmentation()
         {
             var gcInfo = GC.GetGCMemoryInfo();
             return gcInfo.HeapSizeBytes != 0 ? gcInfo.FragmentedBytes * 100d / gcInfo.HeapSizeBytes : 0;
+        }
+#endif
+
+#if NET6_0_OR_GREATER
+        private static IEnumerable<Measurement<long>> GetGarbageCollectionHeapSizes()
+        {
+            var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
+            Measurement<long>[] measurements = new Measurement<long>[generationInfo.Length];
+            for (int i = 0; i < measurements.Length; i++)
+            {
+                measurements[i] = new Measurement<long>(generationInfo[i].SizeAfterBytes, new KeyValuePair<string, object>("gen", HeapNames[i]));
+            }
+
+            return measurements;
         }
 #endif
 
