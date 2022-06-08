@@ -92,7 +92,7 @@ namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Tests
             // Assert.Equal(expectedResource, searchActivity.GetResource());
         }
 
-        [Fact(Skip = "Borken unit test. https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/406")]
+        [Fact]
         public async Task CanCaptureGetByIdNotFound()
         {
             var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
@@ -437,7 +437,7 @@ namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Tests
             // Assert.Equal(expectedResource, searchActivity.GetResource());
         }
 
-        [Fact(Skip = "Borken unit test. https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/406")]
+        [Fact]
         public async Task CanCaptureSearchCallWithParseAndFormatRequestOption()
         {
             var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
