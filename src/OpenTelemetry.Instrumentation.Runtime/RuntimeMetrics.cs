@@ -107,7 +107,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
         private static IEnumerable<Measurement<long>> GetGarbageCollectionCounts()
         {
             Measurement<long>[] measurements = new Measurement<long>[NumberOfGenerations];
-            for (int i = 0; i < measurements.Length; i++)
+            for (int i = 0; i < measurements.Length; ++i)
             {
                 measurements[i] = new Measurement<long>(GC.CollectionCount(i), new KeyValuePair<string, object>("gen", HeapNames[i]));
             }
@@ -128,9 +128,16 @@ namespace OpenTelemetry.Instrumentation.Runtime
         {
             var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
             Measurement<long>[] measurements = new Measurement<long>[generationInfo.Length];
-            for (int i = 0; i < measurements.Length; i++)
+            int countOfDefaultHeapNames = Math.Min(measurements.Length, HeapNames.Length);
+            int i;
+            for (i = 0; i < countOfDefaultHeapNames; ++i)
             {
                 measurements[i] = new Measurement<long>(generationInfo[i].SizeAfterBytes, new KeyValuePair<string, object>("gen", HeapNames[i]));
+            }
+
+            for (; i < measurements.Length; ++i)
+            {
+                measurements[i] = new Measurement<long>(generationInfo[i].SizeAfterBytes, new KeyValuePair<string, object>("gen", $"Gen{i}"));
             }
 
             return measurements;
