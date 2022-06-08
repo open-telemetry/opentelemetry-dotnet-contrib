@@ -127,7 +127,7 @@ The metrics in this section can be enabled by setting the
 | Name                    | Description                            | Units          | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |-------------------------|----------------------------------------|----------------|-------------------|------------|------------------|------------------|
 | process.cpu.utilization | CPU utilization of this process        | `1`            | ObservableGauge   | `Double`   |                  |                  |
-| process.cpu.time        | Processor time of this process         | `s`            | ObservableCounter | `Int64`    | type             | user, system     |
+| process.cpu.time        | Processor time of this process         | `s`            | ObservableCounter | `Int64`    | state            | user, system     |
 | process.cpu.count       | The number of available logical CPUs   | `{processors}` | ObservableGauge   | `Int64`    |                  |                  |
 | process.memory.usage    | The amount of physical memory in use   | `By`           | ObservableGauge   | `Int64`    |                  |                  |
 | process.memory.virtual  | The amount of committed virtual memory | `By`           | ObservableGauge   | `Int64`    |                  |                  |
