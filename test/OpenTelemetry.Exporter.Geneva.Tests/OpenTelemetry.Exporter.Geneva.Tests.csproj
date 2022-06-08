@@ -1,9 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Unit test project for Geneva Exporters for OpenTelemetry</Description>
     <IsPackable>false</IsPackable>
-    <TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net6.0</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net461;net462;net47;net471;net472;net48</TargetFrameworks>
     <NoWarn>$(NoWarn),SA1311,SA1312,SA1313,SA1123,SA1202</NoWarn>
   </PropertyGroup>
@@ -16,16 +16,19 @@
     <PackageReference Include="KaitaiStruct.Runtime.CSharp" Version="0.9.0" />
     <!-- MessagePack 2.x doesn't support net452 and net46 so we have to stick with MessagePack 1.x -->
     <PackageReference Include="MessagePack" Version="1.9.11" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
     <!--KaitaiStruct.Runtime.CSharp which is used to deserialize metrics data is not a strong-named assembly.
     StrongNamer signs any unsigned assemblies present in the project dependencies -->
     <PackageReference Include="StrongNamer" Version="0.2.5" />
-    <PackageReference Include="xunit" Version="$(XUnitPkgVer)" />
-    <PackageReference Condition="$([MSBuild]::IsOsPlatform('Windows'))" Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
     <DotNetCliToolReference Include="dotnet-xunit" Version="$(DotNetXUnitCliVer)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkPkgVer)" />
+    <PackageReference Include="xunit" Version="$(XUnitPkgVer)" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
