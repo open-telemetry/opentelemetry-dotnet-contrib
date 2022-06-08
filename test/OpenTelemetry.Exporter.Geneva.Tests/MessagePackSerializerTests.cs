@@ -141,14 +141,12 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void MessagePackSerializer_Null()
         {
             this.MessagePackSerializer_TestSerialization(null);
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void MessagePackSerializer_Boolean()
         {
             this.MessagePackSerializer_TestSerialization(true);
@@ -156,7 +154,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void MessagePackSerializer_Int()
         {
             // 8 bits
@@ -223,7 +220,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void MessagePackSerializer_UInt()
         {
             // 8 bits
@@ -269,7 +265,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void MessagePackSerializer_Float()
         {
             this.MessagePackSerializer_TestSerialization(0.0f);
@@ -290,7 +285,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void MessagePackSerializer_SerializeAsciiString()
         {
             this.MessagePackSerializer_TestASCIIStringSerialization(null);
@@ -313,7 +307,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void MessagePackSerializer_SerializeUnicodeString()
         {
             this.MessagePackSerializer_TestUnicodeStringSerialization(null);
@@ -351,7 +344,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void MessagePackSerializer_Array()
         {
             this.MessagePackSerializer_TestSerialization((object[])null);
@@ -377,7 +369,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Any")]
         public void MessagePackSerializer_Map()
         {
             this.MessagePackSerializer_TestSerialization((Dictionary<string, object>)null);
