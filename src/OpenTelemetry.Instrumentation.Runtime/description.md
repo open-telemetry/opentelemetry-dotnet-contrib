@@ -77,7 +77,7 @@ These metrics are only available for NET6_0_OR_GREATER.
 |-------------------------------------------------|--------------------------|-------------|-------------------|------------|------------------|------------------|
 | process.runtime.dotnet.**il.bytes.jitted**      | IL Bytes Jitted          | `By`        | ObservableCounter | `Int64`    |                  |                  |
 | process.runtime.dotnet.**methods.jitted.count** | Number of Methods Jitted | `{methods}` | ObservableCounter | `Int64`    |                  |                  |
-| process.runtime.dotnet.**time.in.jit**          | Time spent in JIT        | `ns`        | ObservableCounter | `Double`   |                  |                  |
+| process.runtime.dotnet.**time.in.jit**          | Time spent in JIT        | `ns`        | ObservableCounter | `Int64`   |                  |                  |
 
 [JitInfo.GetCompiledILBytes](https://docs.microsoft.com/dotnet/api/system.runtime.jitinfo.getcompiledilbytes?view=net-6.0#system-runtime-jitinfo-getcompiledilbytes(system-boolean)):
 Gets the number of bytes of intermediate language that have been compiled.
