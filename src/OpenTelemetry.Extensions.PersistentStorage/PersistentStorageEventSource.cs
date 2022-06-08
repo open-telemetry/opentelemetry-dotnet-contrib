@@ -75,7 +75,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
         [NonEvent]
         public void CouldNotRemoveExpiredBlob(string filePath, Exception ex)
         {
-            if (this.IsEnabled(EventLevel.Informational, EventKeywords.All))
+            if (this.IsEnabled(EventLevel.Warning, EventKeywords.All))
             {
                 this.CouldNotRemoveExpiredBlob(filePath, ToInvariantString(ex));
             }
@@ -84,7 +84,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
         [NonEvent]
         public void CouldNotRemoveTimedOutTmpFile(string filePath, Exception ex)
         {
-            if (this.IsEnabled(EventLevel.Informational, EventKeywords.All))
+            if (this.IsEnabled(EventLevel.Warning, EventKeywords.All))
             {
                 this.CouldNotRemoveTimedOutTmpFile(filePath, ToInvariantString(ex));
             }
@@ -93,7 +93,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
         [NonEvent]
         public void CouldNotRemoveExpiredLease(string srcFilePath, string destFilePath, Exception ex)
         {
-            if (this.IsEnabled(EventLevel.Informational, EventKeywords.All))
+            if (this.IsEnabled(EventLevel.Warning, EventKeywords.All))
             {
                 this.CouldNotRemoveExpiredLease(srcFilePath, destFilePath, ToInvariantString(ex));
             }
@@ -102,7 +102,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
         [NonEvent]
         public void PersistentStorageException(string className, string message, Exception ex)
         {
-            if (this.IsEnabled(EventLevel.Informational, EventKeywords.All))
+            if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
             {
                 this.PersistentStorageException(className, message, ToInvariantString(ex));
             }
