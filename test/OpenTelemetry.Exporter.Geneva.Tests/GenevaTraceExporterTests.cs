@@ -285,7 +285,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        public void GenevaTraceExporter_Constructor_Missing_Linux()
+        public void GenevaTraceExporter_Constructor_Missing_Agent_Linux()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -309,6 +309,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 }
                 catch (SocketException ex)
                 {
+                    // There is no one to listent to the socket.
                     Assert.Contains("Cannot assign requested address", ex.Message);
                 }
 
@@ -322,6 +323,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 }
                 catch (SocketException ex)
                 {
+                    // There is no one to listent to the socket.
                     Assert.Contains("Cannot assign requested address", ex.Message);
                 }
             }

@@ -231,14 +231,18 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         [Fact]
         public void PassThruTableMappingsWhenTheRuleIsEnabled()
         {
-            var userInitializedCategoryToTableNameMappings = new Dictionary<string, string>
+            string path = string.Empty;
+            Socket server = null;
+            try
             {
-                ["Company.Store"] = "Store",
-                ["Company.Orders"] = "Orders",
-                ["*"] = "*",
-            };
+                var userInitializedCategoryToTableNameMappings = new Dictionary<string, string>
+                {
+                    ["Company.Store"] = "Store",
+                    ["Company.Orders"] = "Orders",
+                    ["*"] = "*",
+                };
 
-            var expectedCategoryToTableNameList = new List<KeyValuePair<string, string>>
+                var expectedCategoryToTableNameList = new List<KeyValuePair<string, string>>
             {
                 // The category name must match "^[A-Z][a-zA-Z0-9]*$"; any character that is not allowed will be removed.
                 new KeyValuePair<string, string>("Company.Customer", "CompanyCustomer"),
@@ -262,72 +266,88 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 new KeyValuePair<string, string>("1.2", null),
             };
 
-            var logRecordList = new List<LogRecord>();
-            var exporterOptions = new GenevaExporterOptions
-            {
-                TableNameMappings = userInitializedCategoryToTableNameMappings,
-            };
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
-            }
-            else
-            {
-                var path = GenerateTempFilePath();
-                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
-            }
-
-            using var loggerFactory = LoggerFactory.Create(builder => builder
-            .AddOpenTelemetry(options =>
-            {
-                options.AddInMemoryExporter(logRecordList);
-            })
-            .AddFilter("*", LogLevel.Trace)); // Enable all LogLevels
-
-            // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
-            using var exporter = new GenevaLogExporter(exporterOptions);
-
-            ILogger passThruTableMappingsLogger, userInitializedTableMappingsLogger;
-            ThreadLocal<byte[]> m_buffer;
-            object fluentdData;
-            string actualTableName;
-            m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
-
-            // Verify that the category table mappings specified by the users in the Geneva Configuration are mapped correctly.
-            foreach (var mapping in userInitializedCategoryToTableNameMappings)
-            {
-                if (mapping.Key != "*")
+                var logRecordList = new List<LogRecord>();
+                var exporterOptions = new GenevaExporterOptions
                 {
-                    userInitializedTableMappingsLogger = loggerFactory.CreateLogger(mapping.Key);
-                    userInitializedTableMappingsLogger.LogInformation("This information does not matter.");
+                    TableNameMappings = userInitializedCategoryToTableNameMappings,
+                };
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+                }
+                else
+                {
+                    path = GenerateTempFilePath();
+                    exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                    var endpoint = new UnixDomainSocketEndPoint(path);
+                    server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                    server.Bind(endpoint);
+                    server.Listen(1);
+                }
+
+                using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(options =>
+                {
+                    options.AddInMemoryExporter(logRecordList);
+                })
+                .AddFilter("*", LogLevel.Trace)); // Enable all LogLevels
+
+                // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
+                using var exporter = new GenevaLogExporter(exporterOptions);
+
+                ILogger passThruTableMappingsLogger, userInitializedTableMappingsLogger;
+                ThreadLocal<byte[]> m_buffer;
+                object fluentdData;
+                string actualTableName;
+                m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+
+                // Verify that the category table mappings specified by the users in the Geneva Configuration are mapped correctly.
+                foreach (var mapping in userInitializedCategoryToTableNameMappings)
+                {
+                    if (mapping.Key != "*")
+                    {
+                        userInitializedTableMappingsLogger = loggerFactory.CreateLogger(mapping.Key);
+                        userInitializedTableMappingsLogger.LogInformation("This information does not matter.");
+                        Assert.Single(logRecordList);
+
+                        _ = exporter.SerializeLogRecord(logRecordList[0]);
+                        fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+                        actualTableName = (fluentdData as object[])[0] as string;
+                        userInitializedCategoryToTableNameMappings.TryGetValue(mapping.Key, out var expectedTableNme);
+                        Assert.Equal(expectedTableNme, actualTableName);
+
+                        logRecordList.Clear();
+                    }
+                }
+
+                // Verify that when the "*" = "*" were enabled, the correct table names were being deduced following the set of rules.
+                foreach (var mapping in expectedCategoryToTableNameList)
+                {
+                    passThruTableMappingsLogger = loggerFactory.CreateLogger(mapping.Key);
+                    passThruTableMappingsLogger.LogInformation("This information does not matter.");
                     Assert.Single(logRecordList);
 
                     _ = exporter.SerializeLogRecord(logRecordList[0]);
                     fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
                     actualTableName = (fluentdData as object[])[0] as string;
-                    userInitializedCategoryToTableNameMappings.TryGetValue(mapping.Key, out var expectedTableNme);
-                    Assert.Equal(expectedTableNme, actualTableName);
+                    string expectedTableName = string.Empty;
+                    expectedTableName = mapping.Value;
+                    Assert.Equal(expectedTableName, actualTableName);
 
                     logRecordList.Clear();
                 }
             }
-
-            // Verify that when the "*" = "*" were enabled, the correct table names were being deduced following the set of rules.
-            foreach (var mapping in expectedCategoryToTableNameList)
+            finally
             {
-                passThruTableMappingsLogger = loggerFactory.CreateLogger(mapping.Key);
-                passThruTableMappingsLogger.LogInformation("This information does not matter.");
-                Assert.Single(logRecordList);
-
-                _ = exporter.SerializeLogRecord(logRecordList[0]);
-                fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
-                actualTableName = (fluentdData as object[])[0] as string;
-                string expectedTableName = string.Empty;
-                expectedTableName = mapping.Value;
-                Assert.Equal(expectedTableName, actualTableName);
-
-                logRecordList.Clear();
+                server?.Dispose();
+                try
+                {
+                    File.Delete(path);
+                }
+                catch
+                {
+                }
             }
         }
 
