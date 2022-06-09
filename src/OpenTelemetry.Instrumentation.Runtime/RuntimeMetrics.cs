@@ -47,6 +47,8 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
             if (options.IsGcEnabled)
             {
+                // TODO: Almost all the ObservableGauge should be ObservableUpDownCounter (except for CPU utilization and fragmentation.ratio.
+                // Replace them once ObservableUpDownCounter is available.
                 this.meter.CreateObservableGauge($"{metricPrefix}gc.heap", () => GC.GetTotalMemory(false), "By", "GC Heap Size");
                 this.meter.CreateObservableGauge($"{metricPrefix}gen_0-gc.count", () => GC.CollectionCount(0), description: "Gen 0 GC Count");
                 this.meter.CreateObservableGauge($"{metricPrefix}gen_1-gc.count", () => GC.CollectionCount(1), description: "Gen 1 GC Count");
