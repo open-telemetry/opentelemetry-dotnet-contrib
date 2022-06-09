@@ -33,6 +33,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
         internal static readonly AssemblyName AssemblyName = typeof(RuntimeMetrics).Assembly.GetName();
         internal static readonly string InstrumentationName = AssemblyName.Name;
         internal static readonly string InstrumentationVersion = AssemblyName.Version.ToString();
+        private const long NanosecondsPerTick = 100;
         private static string metricPrefix = "process.runtime.dotnet.";
         private readonly Meter meter;
 
@@ -65,7 +66,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
             {
                 this.meter.CreateObservableCounter($"{metricPrefix}il.bytes.jitted", () => System.Runtime.JitInfo.GetCompiledILBytes(), "By", description: "IL Bytes Jitted");
                 this.meter.CreateObservableCounter($"{metricPrefix}methods.jitted.count", () => System.Runtime.JitInfo.GetCompiledMethodCount(), description: "Number of Methods Jitted");
-                this.meter.CreateObservableGauge($"{metricPrefix}time.in.jit", () => System.Runtime.JitInfo.GetCompilationTime().Ticks * 100, "ns", description: "Time spent in JIT");
+                this.meter.CreateObservableGauge($"{metricPrefix}time.in.jit", () => System.Runtime.JitInfo.GetCompilationTime().Ticks * NanosecondsPerTick, "ns", description: "Time spent in JIT");
             }
 #endif
 
@@ -115,8 +116,8 @@ namespace OpenTelemetry.Instrumentation.Runtime
             var process = Process.GetCurrentProcess();
             return new[]
             {
-                new Measurement<long>(process.UserProcessorTime.Ticks * 100, new KeyValuePair<string, object>("state", "user")),
-                new Measurement<long>(process.PrivilegedProcessorTime.Ticks * 100, new KeyValuePair<string, object>("state", "system")),
+                new Measurement<long>(process.UserProcessorTime.Ticks * NanosecondsPerTick, new KeyValuePair<string, object>("state", "user")),
+                new Measurement<long>(process.PrivilegedProcessorTime.Ticks * NanosecondsPerTick, new KeyValuePair<string, object>("state", "system")),
             };
         }
     }
