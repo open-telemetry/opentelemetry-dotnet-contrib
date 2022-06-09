@@ -31,6 +31,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         private static readonly ActivitySource AWSLambdaActivitySource = new(AWSLambdaUtils.ActivitySourceName);
 
         /// <summary>
+        /// Gets or sets a value indicating whether AWS X-Ray propagation should be ignored. Default value is false.
+        /// The flag was introduced as a workaround of this issue:
+        /// the ActivitySource.StartActivity method returns null if sampling decision of DROP (Sampled=0).
+        /// Flag can be removed as soon as the bug https://github.com/open-telemetry/opentelemetry-dotnet/issues/3290 is resolved.
+        /// </summary>
+        internal static bool IgnoreAWSXRayPropagation { get; set; }
+
+        /// <summary>
         /// Tracing wrapper for Lambda handler without Lambda context.
         /// </summary>
         /// <typeparam name="TInput">Input.</typeparam>
@@ -229,7 +237,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             ActivityContext parentContext = default,
             IEnumerable<KeyValuePair<string, object>> tags = null)
         {
-            if (parentContext == default)
+            if (parentContext == default && !IgnoreAWSXRayPropagation)
             {
                 parentContext = AWSLambdaUtils.GetParentContext();
             }
