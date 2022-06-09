@@ -24,9 +24,6 @@ components:
     - vishweshbankwar
   src/OpenTelemetry.Extensions.PersistentStorage/:
     - vishweshbankwar
-  src/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule/:
-    - cijothomas
-    - utpilla
   src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
     - ejsmith
   src/OpenTelemetry.Instrumentation.GrpcCore/:
@@ -81,9 +78,6 @@ components:
     - swetharavichandrancisco
   test/OpenTelemetry.Extensions.PersistentStorage.Tests/:
     - vishweshbankwar
-  test/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests/:
-    - cijothomas
-    - utpilla
   test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/:
     - ejsmith
   test/OpenTelemetry.Instrumentation.GrpcCore.Tests/:

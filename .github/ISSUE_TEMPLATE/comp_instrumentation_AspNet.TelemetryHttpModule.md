@@ -4,7 +4,7 @@ about: Issue with OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule
 labels: comp:instrumentation.AspNet.TelemetryHttpModule
 ---
 
-# Issue with OpenTelemetry.Instrumentation.StackExchangeRedis
+# Issue with OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule
 
 List of [all OpenTelemetry NuGet
 packages](https://www.nuget.org/profiles/OpenTelemetry) and version that you are
