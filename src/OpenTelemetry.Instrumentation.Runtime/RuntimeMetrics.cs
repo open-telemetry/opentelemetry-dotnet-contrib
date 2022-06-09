@@ -35,6 +35,11 @@ namespace OpenTelemetry.Instrumentation.Runtime
         internal static readonly string InstrumentationVersion = AssemblyName.Version.ToString();
         private static readonly string[] HeapNames = new string[] { "gen0", "gen1", "gen2", "loh", "poh" };
         private static readonly int NumberOfGenerations = 3;
+        private static readonly Measurement<long>[] GarbageCollectionCountMeasurements = new Measurement<long>[NumberOfGenerations];
+#if NET6_0_OR_GREATER
+        private static readonly Measurement<long>[] HeapSizeMeasurements = new Measurement<long>[GC.GetGCMemoryInfo().GenerationInfo.Length];
+#endif
+        private static readonly Measurement<long>[] ProcessorTimeMeasurements = new Measurement<long>[2];
         private static string metricPrefix = "process.runtime.dotnet.";
         private readonly Meter meter;
 
@@ -84,7 +89,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
             if (options.IsProcessEnabled)
             {
-                this.meter.CreateObservableCounter("process.cpu.time", this.GetProcessorTimes, "s", "Processor time of this process");
+                this.meter.CreateObservableCounter("process.cpu.time", GetProcessorTimes, "ns", "Processor time of this process");
 
                 // Not yet official: https://github.com/open-telemetry/opentelemetry-specification/pull/2392
                 this.meter.CreateObservableGauge("process.cpu.count", () => Environment.ProcessorCount, description: "The number of available logical CPUs");
@@ -106,13 +111,12 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
         private static IEnumerable<Measurement<long>> GetGarbageCollectionCounts()
         {
-            Measurement<long>[] measurements = new Measurement<long>[NumberOfGenerations];
-            for (int i = 0; i < measurements.Length; ++i)
+            for (int i = 0; i < GarbageCollectionCountMeasurements.Length; ++i)
             {
-                measurements[i] = new Measurement<long>(GC.CollectionCount(i), new KeyValuePair<string, object>("gen", HeapNames[i]));
+                GarbageCollectionCountMeasurements[i] = new Measurement<long>(GC.CollectionCount(i), new KeyValuePair<string, object>("gen", HeapNames[i]));
             }
 
-            return measurements;
+            return GarbageCollectionCountMeasurements;
         }
 
 #if NETCOREAPP3_1_OR_GREATER
@@ -127,31 +131,25 @@ namespace OpenTelemetry.Instrumentation.Runtime
         private static IEnumerable<Measurement<long>> GetGarbageCollectionHeapSizes()
         {
             var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
-            Measurement<long>[] measurements = new Measurement<long>[generationInfo.Length];
-            int countOfDefaultHeapNames = Math.Min(measurements.Length, HeapNames.Length);
-            int i;
-            for (i = 0; i < countOfDefaultHeapNames; ++i)
+
+            // TODO: Confirm 1. that the number of heaps for garbage collection will not change, at least during the lifetime of a process.
+            // and 2. that there will not be more than 5 heaps, at least for the existing .NET version that is supported (net6.0).
+            Debug.Assert(generationInfo.Length <= HeapNames.Length, "There should not be more than 5 heaps");
+            for (int i = 0; i < HeapSizeMeasurements.Length; ++i)
             {
-                measurements[i] = new Measurement<long>(generationInfo[i].SizeAfterBytes, new KeyValuePair<string, object>("gen", HeapNames[i]));
+                HeapSizeMeasurements[i] = new Measurement<long>(generationInfo[i].SizeAfterBytes, new KeyValuePair<string, object>("gen", HeapNames[i]));
             }
 
-            for (; i < measurements.Length; ++i)
-            {
-                measurements[i] = new Measurement<long>(generationInfo[i].SizeAfterBytes, new KeyValuePair<string, object>("gen", $"Gen{i}"));
-            }
-
-            return measurements;
+            return HeapSizeMeasurements;
         }
 #endif
 
-        private IEnumerable<Measurement<double>> GetProcessorTimes()
+        private static IEnumerable<Measurement<long>> GetProcessorTimes()
         {
             var process = Process.GetCurrentProcess();
-            return new[]
-            {
-                new Measurement<double>(process.UserProcessorTime.TotalSeconds, new KeyValuePair<string, object>("state", "user")),
-                new Measurement<double>(process.PrivilegedProcessorTime.TotalSeconds, new KeyValuePair<string, object>("state", "system")),
-            };
+            ProcessorTimeMeasurements[0] = new Measurement<long>(process.UserProcessorTime.Ticks * 100, new KeyValuePair<string, object>("state", "user"));
+            ProcessorTimeMeasurements[1] = new Measurement<long>(process.PrivilegedProcessorTime.Ticks * 100, new KeyValuePair<string, object>("state", "system"));
+            return ProcessorTimeMeasurements;
         }
     }
 }
