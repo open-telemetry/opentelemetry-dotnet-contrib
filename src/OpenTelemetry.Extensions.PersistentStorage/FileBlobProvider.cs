@@ -148,7 +148,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             }
             catch (Exception ex)
             {
-                PersistentStorageEventSource.Log.Error($"Error creating directory {this.directoryPath}", ex);
+                PersistentStorageEventSource.Log.PersistentStorageException(nameof(FileBlobProvider), $"Error creating directory {this.directoryPath}", ex);
                 return;
             }
 
@@ -161,8 +161,9 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             if (size >= this.maxSizeInBytes)
             {
                 // TODO: check accuracy of size reporting.
-                PersistentStorageEventSource.Log.Warning($"Persistent storage max capacity has been reached. Currently at {size / 1024} KB. " +
-                                                "Please consider increasing the value of storage max size in exporter config.");
+                PersistentStorageEventSource.Log.PersistentStorageWarning(
+                    nameof(FileBlobProvider),
+                    $"Persistent storage max capacity has been reached. Currently at {size / 1024} KiB. Please consider increasing the value of storage max size in exporter config.");
                 return false;
             }
 
@@ -192,7 +193,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             }
             catch (Exception ex)
             {
-                PersistentStorageEventSource.Log.Warning("CreateBlob has failed.", ex);
+                PersistentStorageEventSource.Log.CouldNotCreateFileBlob(ex);
                 return null;
             }
         }
