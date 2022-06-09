@@ -16,7 +16,8 @@
 
 using System;
 using System.Diagnostics.Tracing;
-using System.Runtime.CompilerServices;
+using System.Globalization;
+using System.Threading;
 
 namespace OpenTelemetry.Extensions.PersistentStorage
 {
@@ -24,84 +25,171 @@ namespace OpenTelemetry.Extensions.PersistentStorage
     internal sealed class PersistentStorageEventSource : EventSource
     {
         public static PersistentStorageEventSource Log = new PersistentStorageEventSource();
-        private const string EventSourceName = "OpenTelemetry-Contrib-PersistentStorage";
+        private const string EventSourceName = "OpenTelemetry-Extensions-PersistentStorage";
 
         [NonEvent]
-        public void Critical(string message, object value = null)
+        public void CouldNotReadFileBlob(string filePath, Exception ex)
         {
-            this.Write(EventLevel.Critical, message, value);
-        }
-
-        [NonEvent]
-        public void Error(string message, object value = null)
-        {
-            this.Write(EventLevel.Error, message, value);
-        }
-
-        [NonEvent]
-        public void Warning(string message, object value = null)
-        {
-            this.Write(EventLevel.Warning, message, value);
-        }
-
-        [NonEvent]
-        public void Informational(string message, object value = null)
-        {
-            this.Write(EventLevel.Informational, message, value);
-        }
-
-        [NonEvent]
-        public void Verbose(string message, object value = null)
-        {
-            this.Write(EventLevel.Verbose, message, value);
-        }
-
-        [Event(1, Message = "{0}", Level = EventLevel.Critical)]
-        public void WriteCritical(string message) => this.WriteEvent(1, message);
-
-        [Event(2, Message = "{0}", Level = EventLevel.Error)]
-        public void WriteError(string message) => this.WriteEvent(2, message);
-
-        [Event(3, Message = "{0}", Level = EventLevel.Warning)]
-        public void WriteWarning(string message) => this.WriteEvent(3, message);
-
-        [Event(4, Message = "{0}", Level = EventLevel.Informational)]
-        public void WriteInformational(string message) => this.WriteEvent(4, message);
-
-        [Event(5, Message = "{0}", Level = EventLevel.Verbose)]
-        public void WriteVerbose(string message) => this.WriteEvent(5, message);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static string GetMessage(object value)
-        {
-            return value is Exception exception ? exception.ToString() : value.ToString();
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Write(EventLevel eventLevel, string message, object value)
-        {
-            if (this.IsEnabled(eventLevel, (EventKeywords)(-1)))
+            if (this.IsEnabled(EventLevel.Informational, EventKeywords.All))
             {
-                var logMessage = value == null ? message : $"{message} - {GetMessage(value)}";
+                this.CouldNotReadFileBlob(filePath, ToInvariantString(ex));
+            }
+        }
 
-                switch (eventLevel)
-                {
-                    case EventLevel.Critical:
-                        this.WriteCritical(logMessage);
-                        break;
-                    case EventLevel.Error:
-                        this.WriteError(logMessage);
-                        break;
-                    case EventLevel.Informational:
-                        this.WriteInformational(logMessage);
-                        break;
-                    case EventLevel.Verbose:
-                        this.WriteVerbose(logMessage);
-                        break;
-                    case EventLevel.Warning:
-                        this.WriteWarning(logMessage);
-                        break;
-                }
+        [NonEvent]
+        public void CouldNotWriteFileBlob(string filePath, Exception ex)
+        {
+            if (this.IsEnabled(EventLevel.Informational, EventKeywords.All))
+            {
+                this.CouldNotWriteFileBlob(filePath, ToInvariantString(ex));
+            }
+        }
+
+        [NonEvent]
+        public void CouldNotLeaseFileBlob(string filePath, Exception ex)
+        {
+            if (this.IsEnabled(EventLevel.Informational, EventKeywords.All))
+            {
+                this.CouldNotLeaseFileBlob(filePath, ToInvariantString(ex));
+            }
+        }
+
+        [NonEvent]
+        public void CouldNotDeleteFileBlob(string filePath, Exception ex)
+        {
+            if (this.IsEnabled(EventLevel.Informational, EventKeywords.All))
+            {
+                this.CouldNotDeleteFileBlob(filePath, ToInvariantString(ex));
+            }
+        }
+
+        [NonEvent]
+        public void CouldNotCreateFileBlob(Exception ex)
+        {
+            if (this.IsEnabled(EventLevel.Informational, EventKeywords.All))
+            {
+                this.CouldNotCreateFileBlob(ToInvariantString(ex));
+            }
+        }
+
+        [NonEvent]
+        public void CouldNotRemoveExpiredBlob(string filePath, Exception ex)
+        {
+            if (this.IsEnabled(EventLevel.Warning, EventKeywords.All))
+            {
+                this.CouldNotRemoveExpiredBlob(filePath, ToInvariantString(ex));
+            }
+        }
+
+        [NonEvent]
+        public void CouldNotRemoveTimedOutTmpFile(string filePath, Exception ex)
+        {
+            if (this.IsEnabled(EventLevel.Warning, EventKeywords.All))
+            {
+                this.CouldNotRemoveTimedOutTmpFile(filePath, ToInvariantString(ex));
+            }
+        }
+
+        [NonEvent]
+        public void CouldNotRemoveExpiredLease(string srcFilePath, string destFilePath, Exception ex)
+        {
+            if (this.IsEnabled(EventLevel.Warning, EventKeywords.All))
+            {
+                this.CouldNotRemoveExpiredLease(srcFilePath, destFilePath, ToInvariantString(ex));
+            }
+        }
+
+        [NonEvent]
+        public void PersistentStorageException(string className, string message, Exception ex)
+        {
+            if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
+            {
+                this.PersistentStorageException(className, message, ToInvariantString(ex));
+            }
+        }
+
+        [Event(1, Message = "Could not read blob from file '{0}'", Level = EventLevel.Informational)]
+        public void CouldNotReadFileBlob(string filePath, string ex)
+        {
+            this.WriteEvent(1, filePath, ex);
+        }
+
+        [Event(2, Message = "Could not write blob to file '{0}'", Level = EventLevel.Informational)]
+        public void CouldNotWriteFileBlob(string filePath, string ex)
+        {
+            this.WriteEvent(2, filePath, ex);
+        }
+
+        [Event(3, Message = "Could not acquire a lease on file '{0}'", Level = EventLevel.Informational)]
+        public void CouldNotLeaseFileBlob(string filePath, string ex)
+        {
+            this.WriteEvent(3, filePath, ex);
+        }
+
+        [Event(4, Message = "Could not delete file '{0}'", Level = EventLevel.Informational)]
+        public void CouldNotDeleteFileBlob(string filePath, string ex)
+        {
+            this.WriteEvent(4, filePath, ex);
+        }
+
+        [Event(5, Message = "Could not create file blob", Level = EventLevel.Informational)]
+        public void CouldNotCreateFileBlob(string ex)
+        {
+            this.WriteEvent(5, ex);
+        }
+
+        [Event(6, Message = "Could not remove expired blob '{0}'", Level = EventLevel.Warning)]
+        public void CouldNotRemoveExpiredBlob(string filePath, string ex)
+        {
+            this.WriteEvent(6, filePath, ex);
+        }
+
+        [Event(7, Message = "Could not remove timed out file '{0}'", Level = EventLevel.Warning)]
+        public void CouldNotRemoveTimedOutTmpFile(string filePath, string ex)
+        {
+            this.WriteEvent(7, filePath, ex);
+        }
+
+        [Event(8, Message = "Could not rename '{0}' to '{1}'", Level = EventLevel.Warning)]
+        public void CouldNotRemoveExpiredLease(string srcFilePath, string destFilePath, string ex)
+        {
+            this.WriteEvent(8, srcFilePath, destFilePath, ex);
+        }
+
+        [Event(9, Message = "{0}: Error Message: {1}. Exception: {3}", Level = EventLevel.Error)]
+        public void PersistentStorageException(string className, string message, string ex)
+        {
+            this.WriteEvent(9, className, message, ex);
+        }
+
+        [Event(10, Message = "{0}: Warning Message: {1}", Level = EventLevel.Warning)]
+        public void PersistentStorageWarning(string className, string message)
+        {
+            this.WriteEvent(10, className, message);
+        }
+
+        [Event(11, Message = "{0}: Message: {1}", Level = EventLevel.Informational)]
+        public void PersistentStorageInformation(string className, string message)
+        {
+            this.WriteEvent(11, className, message);
+        }
+
+        /// <summary>
+        /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
+        /// appropriate for diagnostics tracing.
+        /// </summary>
+        private static string ToInvariantString(Exception exception)
+        {
+            var originalUICulture = Thread.CurrentThread.CurrentUICulture;
+
+            try
+            {
+                Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
+                return exception.ToString();
+            }
+            finally
+            {
+                Thread.CurrentThread.CurrentUICulture = originalUICulture;
             }
         }
     }
