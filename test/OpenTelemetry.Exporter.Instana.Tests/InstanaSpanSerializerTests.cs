@@ -28,7 +28,7 @@ namespace OpenTelemetry.Exporter.Instana.Tests
     {
         private InstanaSpanSerializer instanaSpanSerializer = new InstanaSpanSerializer();
 
-        [Fact]
+        [Fact(Skip = "Borken unit test. https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/405")]
         public async Task SerializeToStreamWriterAsync()
         {
             InstanaSpan instanaSpan = InstanaSpanFactory.CreateSpan();
