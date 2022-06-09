@@ -76,7 +76,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
                 this.meter.CreateObservableGauge($"{metricPrefix}threadpool.thread.count", () => (long)ThreadPool.ThreadCount, description: "ThreadPool Thread Count");
                 this.meter.CreateObservableGauge($"{metricPrefix}threadpool.completed.items.count", () => ThreadPool.CompletedWorkItemCount, description: "ThreadPool Completed Work Item Count");
                 this.meter.CreateObservableGauge($"{metricPrefix}threadpool.queue.length", () => ThreadPool.PendingWorkItemCount, description: "ThreadPool Queue Length");
-                this.meter.CreateObservableCounter($"{metricPrefix}active.timer.count", () => Timer.ActiveCount, description: "Number of Active Timers");
+                this.meter.CreateObservableGauge($"{metricPrefix}active.timer.count", () => Timer.ActiveCount, description: "Number of Active Timers");
             }
 #endif
 
