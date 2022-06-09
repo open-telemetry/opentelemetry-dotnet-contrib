@@ -29,7 +29,7 @@ namespace OpenTelemetry.Exporter.Instana.Implementation
         private static readonly InstanaSpanSerializer InstanaSpanSerializer = new InstanaSpanSerializer();
         private static readonly MediaTypeHeaderValue MEDIAHEADER = new MediaTypeHeaderValue("application/json");
 
-        private static bool wasConfigured = false;
+        private static bool isConfigured = false;
         private static int backendTimeout = 0;
         private static string configuredEndpoint = string.Empty;
         private static string configuredAgentKey = string.Empty;
@@ -41,6 +41,11 @@ namespace OpenTelemetry.Exporter.Instana.Implementation
         static Transport()
         {
             Configure();
+        }
+
+        internal bool IsAvailable
+        {
+            get { return isConfigured && client != null; }
         }
 
         internal async Task SendSpansAsync(ConcurrentQueue<InstanaSpan> spanQueue)
@@ -87,7 +92,7 @@ namespace OpenTelemetry.Exporter.Instana.Implementation
 
         private static void Configure()
         {
-            if (wasConfigured)
+            if (isConfigured)
             {
                 return;
             }
@@ -97,11 +102,21 @@ namespace OpenTelemetry.Exporter.Instana.Implementation
                 configuredEndpoint = Environment.GetEnvironmentVariable(InstanaExporterConstants.ENVVAR_INSTANA_ENDPOINT_URL);
             }
 
+            if (string.IsNullOrEmpty(configuredEndpoint))
+            {
+                return;
+            }
+
             bundleUrl = configuredEndpoint + "/bundle";
 
             if (string.IsNullOrEmpty(configuredAgentKey))
             {
                 configuredAgentKey = Environment.GetEnvironmentVariable(InstanaExporterConstants.ENVVAR_INSTANA_AGENT_KEY);
+            }
+
+            if (string.IsNullOrEmpty(configuredAgentKey))
+            {
+                return;
             }
 
             if (backendTimeout == 0)
@@ -113,7 +128,7 @@ namespace OpenTelemetry.Exporter.Instana.Implementation
             }
 
             ConfigureBackendClient();
-            wasConfigured = true;
+            isConfigured = true;
         }
 
         private static void ConfigureBackendClient()

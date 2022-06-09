@@ -142,7 +142,7 @@ namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Tests
             Assert.NotEmpty(debugInfo);
             Assert.Contains("Successful (404) low level call", debugInfo);
 
-            Assert.Equal(Status.Error, searchActivity.GetStatus());
+            Assert.Equal(Status.Unset, searchActivity.GetStatus());
 
             // Assert.Equal(expectedResource, searchActivity.GetResource());
         }
@@ -485,8 +485,7 @@ namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Tests
             var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
             Assert.NotEmpty(debugInfo);
             Assert.Equal(
-                @"POST http://localhost:9200/customer/_search?pretty=true&error_trace=true&typed_keys=true
-{
+                @"{
   ""query"": {
     ""bool"": {
       ""must"": [
