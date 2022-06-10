@@ -33,7 +33,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
         internal static readonly AssemblyName AssemblyName = typeof(RuntimeMetrics).Assembly.GetName();
         internal static readonly string InstrumentationName = AssemblyName.Name;
         internal static readonly string InstrumentationVersion = AssemblyName.Version.ToString();
-        private static readonly string[] HeapNames = new string[] { "gen0", "gen1", "gen2", "loh", "poh" };
+        private static readonly string[] GenNames = new string[] { "gen0", "gen1", "gen2", "loh", "poh" };
         private static readonly int NumberOfGenerations = 3;
         private static string metricPrefix = "process.runtime.dotnet.";
         private readonly Meter meter;
@@ -108,7 +108,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
         {
             for (int i = 0; i < NumberOfGenerations; ++i)
             {
-                yield return new(GC.CollectionCount(i), new KeyValuePair<string, object>("gen", HeapNames[i]));
+                yield return new(GC.CollectionCount(i), new KeyValuePair<string, object>("gen", GenNames[i]));
             }
         }
 
@@ -126,10 +126,10 @@ namespace OpenTelemetry.Instrumentation.Runtime
             var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
 
             Measurement<long>[] measurements = new Measurement<long>[generationInfo.Length];
-            int maxSupportedLength = Math.Min(generationInfo.Length, HeapNames.Length);
+            int maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
             for (int i = 0; i < maxSupportedLength; ++i)
             {
-                measurements[i] = new(generationInfo[i].SizeAfterBytes, new KeyValuePair<string, object>("gen", HeapNames[i]));
+                measurements[i] = new(generationInfo[i].SizeAfterBytes, new KeyValuePair<string, object>("gen", GenNames[i]));
             }
 
             return measurements;
