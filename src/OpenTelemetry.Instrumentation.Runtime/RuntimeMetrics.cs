@@ -84,7 +84,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
             if (options.IsProcessEnabled)
             {
-                this.meter.CreateObservableCounter("process.cpu.time", GetProcessorTimes, "ns", "Processor time of this process");
+                this.meter.CreateObservableCounter("process.cpu.time", GetProcessorTimes, "s", "Processor time of this process");
 
                 // Not yet official: https://github.com/open-telemetry/opentelemetry-specification/pull/2392
                 this.meter.CreateObservableGauge("process.cpu.count", () => Environment.ProcessorCount, description: "The number of available logical CPUs");
@@ -136,11 +136,11 @@ namespace OpenTelemetry.Instrumentation.Runtime
         }
 #endif
 
-        private static IEnumerable<Measurement<long>> GetProcessorTimes()
+        private static IEnumerable<Measurement<double>> GetProcessorTimes()
         {
             var process = Process.GetCurrentProcess();
-            yield return new(process.UserProcessorTime.Ticks * 100, new KeyValuePair<string, object>("state", "user"));
-            yield return new(process.PrivilegedProcessorTime.Ticks * 100, new KeyValuePair<string, object>("state", "system"));
+            yield return new(process.UserProcessorTime.TotalSeconds, new KeyValuePair<string, object>("state", "user"));
+            yield return new(process.PrivilegedProcessorTime.TotalSeconds, new KeyValuePair<string, object>("state", "system"));
         }
     }
 }
