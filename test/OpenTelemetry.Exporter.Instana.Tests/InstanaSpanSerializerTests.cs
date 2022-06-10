@@ -28,28 +28,28 @@ namespace OpenTelemetry.Exporter.Instana.Tests
     {
         private InstanaSpanSerializer instanaSpanSerializer = new InstanaSpanSerializer();
 
-        [Fact(Skip = "Borken unit test. https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/405")]
+        [Fact]
         public async Task SerializeToStreamWriterAsync()
         {
-            InstanaSpan instanaSpan = InstanaSpanFactory.CreateSpan();
-            instanaSpan.F = new OpenTelemetry.Exporter.Instana.Implementation.From() { E = "12345", H = "localhost" };
-            instanaSpan.N = "otel";
-            instanaSpan.T = "hexNumberT1234";
-            instanaSpan.S = "hexNumberS1234";
-            instanaSpan.P = "hexNumberP1234";
-            instanaSpan.Ec = 1;
-            instanaSpan.D = 123456;
-            instanaSpan.Lt = "hexNumberLT1234567890123";
-            instanaSpan.Tp = true;
-            instanaSpan.Data.Tags = new Dictionary<string, string>();
-            instanaSpan.Data.Tags["tag1Key"] = "tag1Vale";
-            instanaSpan.Data.Tags["tag2Key"] = "tag2Vale";
-            instanaSpan.Data.data = new Dictionary<string, object>();
-            instanaSpan.Data.data["data1Key"] = "data1Vale";
-            instanaSpan.Data.data["data2Key"] = "data2Vale";
-            instanaSpan.Data.Events = new List<OpenTelemetry.Exporter.Instana.Implementation.SpanEvent>()
+            InstanaSpan instanaOtelSpan = InstanaSpanFactory.CreateSpan();
+            instanaOtelSpan.F = new Implementation.From() { E = "12345", H = "localhost" };
+            instanaOtelSpan.N = "otel";
+            instanaOtelSpan.T = "hexNumberT1234";
+            instanaOtelSpan.S = "hexNumberS1234";
+            instanaOtelSpan.P = "hexNumberP1234";
+            instanaOtelSpan.Ec = 1;
+            instanaOtelSpan.D = 123456;
+            instanaOtelSpan.Lt = "hexNumberLT1234567890123";
+            instanaOtelSpan.Tp = true;
+            instanaOtelSpan.Data.Tags = new Dictionary<string, string>();
+            instanaOtelSpan.Data.Tags["tag1Key"] = "tag1Vale";
+            instanaOtelSpan.Data.Tags["tag2Key"] = "tag2Vale";
+            instanaOtelSpan.Data.data = new Dictionary<string, object>();
+            instanaOtelSpan.Data.data["data1Key"] = "data1Vale";
+            instanaOtelSpan.Data.data["data2Key"] = "data2Vale";
+            instanaOtelSpan.Data.Events = new List<Implementation.SpanEvent>()
             {
-                new OpenTelemetry.Exporter.Instana.Implementation.SpanEvent()
+                new Implementation.SpanEvent()
             {
                 Name = "testEvent", Ts = 111111,
                 Tags = new Dictionary<string, string>() { { "eventTagKey", "eventTagValue" } },
@@ -66,7 +66,7 @@ namespace OpenTelemetry.Exporter.Instana.Tests
             {
                 using (StreamWriter writer = new StreamWriter(sendBuffer))
                 {
-                    await this.instanaSpanSerializer.SerializeToStreamWriterAsync(instanaSpan, writer);
+                    await this.instanaSpanSerializer.SerializeToStreamWriterAsync(instanaOtelSpan, writer);
                     await writer.FlushAsync();
                     long length = sendBuffer.Position;
                     sendBuffer.Position = 0;
@@ -84,22 +84,22 @@ namespace OpenTelemetry.Exporter.Instana.Tests
             }
 
             Assert.NotNull(span);
-            Assert.Equal(instanaSpan.S, span.S);
-            Assert.Equal(instanaSpan.T, span.T);
-            Assert.Equal(instanaSpan.P, span.P);
-            Assert.Equal(instanaSpan.N, span.N);
-            Assert.Equal(instanaSpan.F.E, span.F.E);
-            Assert.Equal(instanaSpan.Ec, span.Ec);
-            Assert.Equal(instanaSpan.D, span.D);
-            Assert.Equal(instanaSpan.Lt, span.Lt);
-            Assert.Equal(instanaSpan.Data.Tags["tag1Key"], span.Data.Tags["tag1Key"]);
-            Assert.Equal(instanaSpan.Data.Tags["tag2Key"], span.Data.Tags["tag2Key"]);
-            Assert.Equal(instanaSpan.Data.data["data1Key"], span.Data.data["data1Key"]);
-            Assert.Equal(instanaSpan.Data.data["data2Key"], span.Data.data["data2Key"]);
-            Assert.Equal(instanaSpan.Data.Events[0].Name, span.Data.Events[0].Name);
-            Assert.Equal(instanaSpan.Data.Events[0].Tags["eventTagKey"], span.Data.Events[0].Tags["eventTagKey"]);
-            Assert.Equal(instanaSpan.Data.Events[1].Name, span.Data.Events[1].Name);
-            Assert.Equal(instanaSpan.Data.Events[1].Tags["eventTag2Key"], span.Data.Events[1].Tags["eventTag2Key"]);
+            Assert.Equal(instanaOtelSpan.S, span.S);
+            Assert.Equal(instanaOtelSpan.T, span.T);
+            Assert.Equal(instanaOtelSpan.P, span.P);
+            Assert.Equal(instanaOtelSpan.N, span.N);
+            Assert.Equal(instanaOtelSpan.F.E, span.F.E);
+            Assert.Equal(instanaOtelSpan.Ec, span.Ec);
+            Assert.Equal(instanaOtelSpan.D / 10_000, span.D);
+            Assert.Equal(instanaOtelSpan.Lt, span.Lt);
+            Assert.Equal(instanaOtelSpan.Data.Tags["tag1Key"], span.Data.Tags["tag1Key"]);
+            Assert.Equal(instanaOtelSpan.Data.Tags["tag2Key"], span.Data.Tags["tag2Key"]);
+            Assert.Equal(instanaOtelSpan.Data.data["data1Key"], span.Data.data["data1Key"]);
+            Assert.Equal(instanaOtelSpan.Data.data["data2Key"], span.Data.data["data2Key"]);
+            Assert.Equal(instanaOtelSpan.Data.Events[0].Name, span.Data.Events[0].Name);
+            Assert.Equal(instanaOtelSpan.Data.Events[0].Tags["eventTagKey"], span.Data.Events[0].Tags["eventTagKey"]);
+            Assert.Equal(instanaOtelSpan.Data.Events[1].Name, span.Data.Events[1].Name);
+            Assert.Equal(instanaOtelSpan.Data.Events[1].Tags["eventTag2Key"], span.Data.Events[1].Tags["eventTag2Key"]);
         }
     }
 }
