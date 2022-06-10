@@ -58,7 +58,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
 #if NET6_0_OR_GREATER
                 this.meter.CreateObservableCounter($"{metricPrefix}gc.committed", () => (double)(GC.GetGCMemoryInfo().TotalCommittedBytes / 1_000_000), "Mi", description: "GC Committed Bytes");
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.heapsize", () => GetGarbageCollectionHeapSizes(), "By", "Heap Size for all generations");
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.heapsize", () => GetGarbageCollectionHeapSizes(), "By", "Heap size for all generations");
 #endif
             }
 
