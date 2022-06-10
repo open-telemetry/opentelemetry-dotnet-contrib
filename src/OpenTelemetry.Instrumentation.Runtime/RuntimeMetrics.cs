@@ -125,10 +125,9 @@ namespace OpenTelemetry.Instrumentation.Runtime
         {
             var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
 
-            // TODO: Confirm that there will not be more than 5 heaps, at least for the existing .NET version that is supported (net6.0).
             Measurement<long>[] measurements = new Measurement<long>[generationInfo.Length];
-            Debug.Assert(generationInfo.Length <= HeapNames.Length, "There should not be more than 5 generations");
-            for (int i = 0; i < generationInfo.Length; ++i)
+            int maxSupportedLength = Math.Min(generationInfo.Length, HeapNames.Length);
+            for (int i = 0; i < maxSupportedLength; ++i)
             {
                 measurements[i] = new(generationInfo[i].SizeAfterBytes, new KeyValuePair<string, object>("gen", HeapNames[i]));
             }
