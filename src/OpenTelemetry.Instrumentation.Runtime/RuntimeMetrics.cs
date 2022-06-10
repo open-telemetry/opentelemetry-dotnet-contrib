@@ -35,11 +35,6 @@ namespace OpenTelemetry.Instrumentation.Runtime
         internal static readonly string InstrumentationVersion = AssemblyName.Version.ToString();
         private static readonly string[] HeapNames = new string[] { "gen0", "gen1", "gen2", "loh", "poh" };
         private static readonly int NumberOfGenerations = 3;
-        private static readonly Measurement<long>[] GarbageCollectionCountMeasurements = new Measurement<long>[NumberOfGenerations];
-#if NET6_0_OR_GREATER
-        private static readonly Measurement<long>[] HeapSizeMeasurements = new Measurement<long>[GC.GetGCMemoryInfo().GenerationInfo.Length];
-#endif
-        private static readonly Measurement<long>[] ProcessorTimeMeasurements = new Measurement<long>[2];
         private static string metricPrefix = "process.runtime.dotnet.";
         private readonly Meter meter;
 
@@ -111,12 +106,10 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
         private static IEnumerable<Measurement<long>> GetGarbageCollectionCounts()
         {
-            for (int i = 0; i < GarbageCollectionCountMeasurements.Length; ++i)
+            for (int i = 0; i < NumberOfGenerations; ++i)
             {
-                GarbageCollectionCountMeasurements[i] = new Measurement<long>(GC.CollectionCount(i), new KeyValuePair<string, object>("gen", HeapNames[i]));
+                yield return new(GC.CollectionCount(i), new KeyValuePair<string, object>("gen", HeapNames[i]));
             }
-
-            return GarbageCollectionCountMeasurements;
         }
 
 #if NETCOREAPP3_1_OR_GREATER
@@ -132,24 +125,23 @@ namespace OpenTelemetry.Instrumentation.Runtime
         {
             var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
 
-            // TODO: Confirm 1. that the number of heaps for garbage collection will not change, at least during the lifetime of a process.
-            // and 2. that there will not be more than 5 heaps, at least for the existing .NET version that is supported (net6.0).
+            // TODO: Confirm that there will not be more than 5 heaps, at least for the existing .NET version that is supported (net6.0).
+            Measurement<long>[] measurements = new Measurement<long>[generationInfo.Length];
             Debug.Assert(generationInfo.Length <= HeapNames.Length, "There should not be more than 5 heaps");
-            for (int i = 0; i < HeapSizeMeasurements.Length; ++i)
+            for (int i = 0; i < generationInfo.Length; ++i)
             {
-                HeapSizeMeasurements[i] = new Measurement<long>(generationInfo[i].SizeAfterBytes, new KeyValuePair<string, object>("gen", HeapNames[i]));
+                measurements[i] = new(generationInfo[i].SizeAfterBytes, new KeyValuePair<string, object>("gen", HeapNames[i]));
             }
 
-            return HeapSizeMeasurements;
+            return measurements;
         }
 #endif
 
         private static IEnumerable<Measurement<long>> GetProcessorTimes()
         {
             var process = Process.GetCurrentProcess();
-            ProcessorTimeMeasurements[0] = new Measurement<long>(process.UserProcessorTime.Ticks * 100, new KeyValuePair<string, object>("state", "user"));
-            ProcessorTimeMeasurements[1] = new Measurement<long>(process.PrivilegedProcessorTime.Ticks * 100, new KeyValuePair<string, object>("state", "system"));
-            return ProcessorTimeMeasurements;
+            yield return new(process.UserProcessorTime.Ticks * 100, new KeyValuePair<string, object>("state", "user"));
+            yield return new(process.PrivilegedProcessorTime.Ticks * 100, new KeyValuePair<string, object>("state", "system"));
         }
     }
 }
