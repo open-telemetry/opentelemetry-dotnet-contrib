@@ -3,9 +3,10 @@
 [![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Extensions.PersistentStorage.svg)](https://www.nuget.org/packages/OpenTelemetry.Extensions.PersistentStorage)
 [![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Extensions.PersistentStorage.svg)](https://www.nuget.org/packages/OpenTelemetry.Extensions.PersistentStorage)
 
-This package provides file based implementation of persistent storage
-abstractions. It is an experimental component which can be used by OpenTelemetry
-Exporters to provide reliable data delivery.
+This package provides file based implementation of
+[persistent-storage-abstractions](../OpenTelemetry.Extensions.PersistentStorage.Abstractions/README.md#Persistent-Storage-Abstractions)
+It is an experimental component which can be used by OpenTelemetry Exporters to
+provide reliable data delivery.
 
 ## Installation
 
@@ -22,7 +23,7 @@ using var fileBlobProvider = new FileBlobProvider("test");
 ```
 
 Following is the complete list of configurable options that can be used to set
-up BlobProvider:
+up FileBlobProvider:
 
 * `path`: Sets folder location where blobs are stored.
 
@@ -45,9 +46,9 @@ blob. Default is 1 minute.
 ### CreateBlob
 
 `TryCreateBlob(byte[] buffer, out PersistentBlob blob)` or `TryCreateBlob(byte[]
-buffer, int leasePeriodMilliseconds = 0, out PersistentBlob blob)` method can be
-used to store data on disk in case of failures. The file stored will have
-`.blob` extension. If acquiring lease, the file will have `.lock` extension.
+buffer, int leasePeriodMilliseconds = 0, out PersistentBlob blob)` can be used
+to store data on disk in case of failures. The file stored will have `.blob`
+extension. If acquiring lease, the file will have `.lock` extension.
 
 ```csharp
 // Try create blob without acquiring lease
@@ -87,8 +88,8 @@ blob.TryLease(1000);
 
 ### Read
 
-Once the lease is acquired on the blob, the data can be read using `TryRead(out
-var data)` method.
+Once the lease is acquired on the blob, the data can be read using
+`TryRead(out var data)` method.
 
 ```csharp
 blob.TryRead(out var data);
@@ -110,7 +111,7 @@ using var fileBlobProvider = new FileBlobProvider("test");
 var data = Encoding.UTF8.GetBytes("Hello, World!");
 
 // Create blob.
-fileBlobProvider.TryCreateBlob(data, out var blob);
+fileBlobProvider.TryCreateBlob(data, out var createdBlob);
 
 // List all blobs.
 foreach (var blobItem in fileBlobProvider.GetBlobs())
@@ -118,17 +119,23 @@ foreach (var blobItem in fileBlobProvider.GetBlobs())
     Console.WriteLine(((FileBlob)blobItem).FullPath);
 }
 
-// Get blob.
-if(fileBlobProvider.TryGetBlob(out var blob))
+// Get single blob.
+if (fileBlobProvider.TryGetBlob(out var blob))
 {
     // Lease before reading
     if (blob.TryLease(1000))
     {
         // Read
-        blob.TryRead(out var data);
+        if (blob.TryRead(out var outputData))
+        {
+            Console.WriteLine(Encoding.UTF8.GetString(outputData));
+        }
 
         // Delete
-        blob.TryDelete();
+        if (blob.TryDelete())
+        {
+            Console.WriteLine("Successfully deleted the blob");
+        }
     }
 }
 ```
