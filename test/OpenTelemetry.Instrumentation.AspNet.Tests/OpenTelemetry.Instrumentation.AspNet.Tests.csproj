@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Description>Unit test project for OpenTelemetry ASP.NET instrumentation</Description>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
@@ -36,5 +36,5 @@
     <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestEventListener.cs" Link="Includes\TestEventListener.cs" />
     <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\InMemoryEventListener.cs" Link="Includes\InMemoryEventListener.cs" />
   </ItemGroup>
-  
+
 </Project>
