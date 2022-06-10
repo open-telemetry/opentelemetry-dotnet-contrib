@@ -2,8 +2,6 @@
 
 # Each component identified by its path prefix has a list of users
 components:
-  src/OpenTelemetry.Extensions.Docker/:
-    - swetharavichandrancisco
   src/OpenTelemetry.Contrib.Extensions.AWSXRay/:
     - srprash
     - lupengamzn
@@ -20,6 +18,8 @@ components:
     - SergeyKanzhelev
   src/OpenTelemetry.Extensions/:
     - codeblanch
+  src/OpenTelemetry.Extensions.Docker/:
+    - swetharavichandrancisco
   src/OpenTelemetry.Extensions.PersistentStorage.Abstractions/:
     - vishweshbankwar
   src/OpenTelemetry.Extensions.PersistentStorage/:
@@ -68,14 +68,14 @@ components:
     - reyang
     - utpilla
     - Yun-Ting
-  test/OpenTelemetry.Extensions.Docker.Tests/:
-    - swetharavichandrancisco
   test/OpenTelemetry.Exporter.Instana.Tests/:
     - zivaninstana
   test/OpenTelemetry.Exporter.Stackdriver.Tests/:
     - SergeyKanzhelev
   test/OpenTelemetry.Extensions.Tests/:
     - codeblanch
+  test/OpenTelemetry.Extensions.Docker.Tests/:
+    - swetharavichandrancisco
   test/OpenTelemetry.Extensions.PersistentStorage.Tests/:
     - vishweshbankwar
   test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/:
