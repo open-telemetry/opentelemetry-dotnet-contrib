@@ -33,8 +33,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters
         private readonly Meter meter;
         private readonly EventCounterMetricsOptions options;
         private readonly ConcurrentDictionary<MetricKey, Instrument> metricInstruments = new();
-        private readonly ConcurrentDictionary<MetricKey, long> lastLongValue = new();
-        private readonly ConcurrentDictionary<MetricKey, double> lastDoubleValue = new();
+        private readonly ConcurrentDictionary<MetricKey, double> lastValue = new();
         private readonly ConcurrentBag<EventSource> eventSources = new();
 
         public EventCounterListener(EventCounterMetricsOptions options)
@@ -48,11 +47,11 @@ namespace OpenTelemetry.Instrumentation.EventCounters
 
         private enum InstrumentType
         {
-            Gauge,
-            Counter,
+            ObservableGauge,
+            ObservableCounter,
         }
 
-        private Dictionary<string, string> EnableEventArgs => new Dictionary<string, string> { ["EventCounterIntervalSec"] = this.options.RefreshIntervalSecs.ToString(), };
+        private Dictionary<string, string> EnableEventArgs => new() { ["EventCounterIntervalSec"] = this.options.RefreshIntervalSecs.ToString(), };
 
         protected override void OnEventSourceCreated(EventSource source)
         {
@@ -103,11 +102,11 @@ namespace OpenTelemetry.Instrumentation.EventCounters
             try
             {
                 bool calculateRate = false;
-                string actualValue = string.Empty;
+                double actualValue = 0;
 
                 string counterName = string.Empty;
                 string counterDisplayName = string.Empty;
-                InstrumentType instrumentType = InstrumentType.Counter;
+                InstrumentType instrumentType = InstrumentType.ObservableGauge;
 
                 foreach (KeyValuePair<string, object> payload in eventPayload)
                 {
@@ -123,15 +122,15 @@ namespace OpenTelemetry.Instrumentation.EventCounters
                     }
                     else if (key.Equals("Mean", StringComparison.OrdinalIgnoreCase))
                     {
-                        instrumentType = InstrumentType.Counter;
-                        actualValue = payload.Value.ToString();
+                        instrumentType = InstrumentType.ObservableGauge;
+                        actualValue = Convert.ToDouble(payload.Value);
                     }
                     else if (key.Equals("Increment", StringComparison.OrdinalIgnoreCase))
                     {
                         // Increment indicates we have to calculate rate.
-                        instrumentType = InstrumentType.Gauge;
+                        instrumentType = InstrumentType.ObservableCounter;
                         calculateRate = true;
-                        actualValue = payload.Value.ToString();
+                        actualValue = Convert.ToDouble(payload.Value);
                     }
                 }
 
@@ -143,62 +142,33 @@ namespace OpenTelemetry.Instrumentation.EventCounters
             }
         }
 
-        private void RecordMetric(string eventSourceName, string counterName, string displayName, InstrumentType instrumentType, string value, bool calculateRate)
+        private void RecordMetric(string eventSourceName, string counterName, string displayName, InstrumentType instrumentType, double value, bool calculateRate)
         {
             var metricKey = new MetricKey(eventSourceName, counterName);
             var description = string.IsNullOrEmpty(displayName) ? counterName : displayName;
-            bool isLong = long.TryParse(value, out long longValue);
-            bool isDouble = double.TryParse(value, out double doubleValue);
-
-            if (isLong)
-            {
-                this.lastLongValue[metricKey] = calculateRate ? longValue / this.options.RefreshIntervalSecs : longValue;
-            }
-            else if (isDouble)
-            {
-                this.lastDoubleValue[metricKey] = calculateRate ? doubleValue / this.options.RefreshIntervalSecs : doubleValue;
-            }
-
+            this.lastValue[metricKey] = calculateRate ? value / this.options.RefreshIntervalSecs : value;
             switch (instrumentType)
             {
-                case InstrumentType.Counter when isLong:
-
+                case InstrumentType.ObservableCounter:
                     if (!this.metricInstruments.ContainsKey(metricKey))
                     {
-                        this.metricInstruments[metricKey] = this.meter.CreateObservableCounter<long>(counterName, () => this.ObserveLong(metricKey), description: description);
+                        this.metricInstruments[metricKey] = this.meter.CreateObservableCounter(counterName, () => this.ObserveDouble(metricKey), description: description);
                     }
 
                     break;
 
-                case InstrumentType.Counter when isDouble:
-                    if (!this.metricInstruments.ContainsKey(metricKey))
-                    {
-                        this.metricInstruments[metricKey] = this.meter.CreateObservableCounter<double>(counterName, () => this.ObserveDouble(metricKey), description: description);
-                    }
-
-                    break;
-
-                case InstrumentType.Gauge when isLong:
-                    if (!this.metricInstruments.ContainsKey(metricKey))
-                    {
-                        this.metricInstruments[metricKey] = this.meter.CreateObservableGauge<long>(counterName, () => this.ObserveLong(metricKey), description: description);
-                    }
-
-                    break;
-                case InstrumentType.Gauge when isDouble:
+                case InstrumentType.ObservableGauge:
 
                     if (!this.metricInstruments.TryGetValue(metricKey, out Instrument instrument))
                     {
-                        this.metricInstruments[metricKey] = this.meter.CreateObservableGauge<double>(counterName, () => this.ObserveDouble(metricKey), description: description);
+                        this.metricInstruments[metricKey] = this.meter.CreateObservableGauge(counterName, () => this.ObserveDouble(metricKey), description: description);
                     }
 
                     break;
             }
         }
 
-        private long ObserveLong(MetricKey key) => this.lastLongValue[key];
-
-        private double ObserveDouble(MetricKey key) => this.lastDoubleValue[key];
+        private double ObserveDouble(MetricKey key) => this.lastValue[key];
 
         private void EnablePendingEventSources()
         {

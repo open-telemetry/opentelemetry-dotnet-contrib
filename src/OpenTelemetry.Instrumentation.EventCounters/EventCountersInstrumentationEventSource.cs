@@ -24,7 +24,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters
     [EventSource(Name = "OpenTelemetry-Instrumentation-EventCounters")]
     internal class EventCountersInstrumentationEventSource : EventSource
     {
-        public static readonly EventCountersInstrumentationEventSource Log = new EventCountersInstrumentationEventSource();
+        public static readonly EventCountersInstrumentationEventSource Log = new();
 
         [Event(1, Message = "Error occurred while processing eventCounter, EventCounter: {0}, Exception: {2}", Level = EventLevel.Error)]
         public void ErrorEventCounter(string counterName, string exception)
