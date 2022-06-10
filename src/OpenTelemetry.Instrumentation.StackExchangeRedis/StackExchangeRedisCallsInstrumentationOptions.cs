@@ -44,5 +44,10 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis
         /// <para><see cref="IProfiledCommand"/>: the profiled redis command from which additional information can be extracted to enrich the activity.</para>
         /// </remarks>
         public Action<Activity, IProfiledCommand> Enrich { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not the <see cref="StackExchangeRedisCallsInstrumentation"/> should enrich Activity with <see cref="ActivityEvent"/> entries about the Redis command processing/lifetime. Defaults to <see cref="bool">true</see>.
+        /// </summary>
+        public bool EnrichActivityWithEvents { get; set; } = true;
     }
 }
