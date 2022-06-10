@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+* Added the EnrichActivityWithEvents option to StackExchangeRedisCallsInstrumentationOptions to be able to disable adding
+  ActivityEvents (Enqueued, Sent, ResponseReceived) for Redis commands to Activities since there is no way to clear these
+  after they have been added. This defaults to true to maintain current functionality.
 
 ## 1.0.0-rc9.5 (source code moved to contrib repo)
 
