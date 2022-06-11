@@ -78,7 +78,7 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
             Assert.Equal(4, exportedItems.Count);
 
             var cpuTimeMetric = exportedItems.First(i => i.Name == "process.cpu.time");
-            var sumReceived = GetLongSum(cpuTimeMetric);
+            var sumReceived = GetDoubleSum(cpuTimeMetric);
             Assert.True(sumReceived > 0);
 
             var cpuCountMetric = exportedItems.First(i => i.Name == "process.cpu.count");
@@ -89,6 +89,25 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
 
             var virtualMemoryMetric = exportedItems.First(i => i.Name == "process.memory.virtual");
             Assert.True(GetLongSum(virtualMemoryMetric) > 0);
+        }
+
+        private static double GetDoubleSum(Metric metric)
+        {
+            double sum = 0;
+
+            foreach (ref readonly var metricPoint in metric.GetMetricPoints())
+            {
+                if (metric.MetricType.IsSum())
+                {
+                    sum += metricPoint.GetSumDouble();
+                }
+                else
+                {
+                    sum += metricPoint.GetGaugeLastValueDouble();
+                }
+            }
+
+            return sum;
         }
 
         private static double GetLongSum(Metric metric)
