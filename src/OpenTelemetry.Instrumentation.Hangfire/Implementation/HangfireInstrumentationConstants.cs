@@ -23,5 +23,8 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
 
         public const string ActivityName = "JOB";
         public const string ActivityKey = "opentelemetry_activity_key";
+
+        public const string TraceParentKey = "opentelemetry_trace_parent";
+        public const string TraceStateKey = "opentelemetry_trace_state";
     }
 }
