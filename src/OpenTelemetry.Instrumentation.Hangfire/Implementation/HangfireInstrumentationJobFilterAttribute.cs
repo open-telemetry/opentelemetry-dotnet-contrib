@@ -14,11 +14,10 @@
 // limitations under the License.
 // </copyright>
 
-using Hangfire.Client;
-
 namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
 {
     using System.Diagnostics;
+    using global::Hangfire.Client;
     using global::Hangfire.Common;
     using global::Hangfire.Server;
 
