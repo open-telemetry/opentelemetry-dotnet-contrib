@@ -405,7 +405,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                     logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
                 }
 
-                var serializedData = new byte[65360];
+                byte[] serializedData;
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     var m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
@@ -414,6 +414,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 else
                 {
                     // Read the data sent via socket.
+                    serializedData = new byte[65360];
                     _ = receiverSocket.Receive(serializedData);
                 }
 
