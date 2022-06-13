@@ -405,8 +405,19 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                     logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
                 }
 
-                var m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
-                object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+                var serializedData = new byte[65360];
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    var m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+                    serializedData = m_buffer.Value;
+                }
+                else
+                {
+                    // Read the data sent via socket.
+                    _ = receiverSocket.Receive(serializedData);
+                }
+
+                object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(serializedData, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
                 var signal = (fluentdData as object[])[0] as string;
                 var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
                 var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
