@@ -352,17 +352,35 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         }
 
         [Fact]
-        [Trait("Platform", "Linux")]
-        public void ExportILoggerScopes()
+        public void SerializeILoggerScopes()
         {
-            string path = GenerateTempFilePath();
+            string path = string.Empty;
+            Socket senderSocket = null;
+            Socket receiverSocket = null;
             var logRecordList = new List<LogRecord>();
             try
             {
-                var endpoint = new UnixDomainSocketEndPoint(path);
-                using var server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
-                server.Bind(endpoint);
-                server.Listen(1);
+                var exporterOptions = new GenevaExporterOptions();
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+                }
+                else
+                {
+                    path = GenerateTempFilePath();
+                    exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                    var endpoint = new UnixDomainSocketEndPoint(path);
+                    senderSocket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                    senderSocket.Bind(endpoint);
+                    senderSocket.Listen(1);
+
+                    receiverSocket = senderSocket.Accept();
+                    receiverSocket.ReceiveTimeout = 10000;
+                }
+
+                // Use a BatchExportProcessor for InMemoryExporter to buffer scopes
+                var inMemoryExporter = new BatchLogRecordExportProcessor(new InMemoryExporter<LogRecord>(logRecordList));
 
                 using var loggerFactory = LoggerFactory.Create(builder => builder
                 .AddOpenTelemetry(options =>
@@ -370,56 +388,45 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                     options.IncludeScopes = true;
                     options.AddGenevaLogExporter(options =>
                     {
-                        options.ConnectionString = "Endpoint=unix:" + path;
-                        options.PrepopulatedFields = new Dictionary<string, object>
-                        {
-                            ["cloud.role"] = "BusyWorker",
-                            ["cloud.roleInstance"] = "CY1SCH030021417",
-                            ["cloud.roleVer"] = "9.0.15289.2",
-                        };
+                        options.ConnectionString = exporterOptions.ConnectionString;
                     });
-                    options.AddInMemoryExporter(logRecordList);
+                    options.AddProcessor(inMemoryExporter);
                 }));
-                using var serverSocket = server.Accept();
-                serverSocket.ReceiveTimeout = 10000;
 
-                // Create a test exporter to get MessagePack byte data for validation of the data received via Socket.
-                using var exporter = new GenevaLogExporter(new GenevaExporterOptions
-                {
-                    ConnectionString = "Endpoint=unix:" + path,
-                    PrepopulatedFields = new Dictionary<string, object>
-                    {
-                        ["cloud.role"] = "BusyWorker",
-                        ["cloud.roleInstance"] = "CY1SCH030021417",
-                        ["cloud.roleVer"] = "9.0.15289.2",
-                    },
-                });
+                // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
+                using var exporter = new GenevaLogExporter(exporterOptions);
 
                 // Emit a LogRecord and grab a copy of internal buffer for validation.
                 var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
 
                 using (logger.BeginScope("MyOuterScope"))
                 using (logger.BeginScope("MyInnerScope"))
+                using (logger.BeginScope("MyInnerInnerScope with {name} and {age} of custom", "John Doe", 35))
                 using (logger.BeginScope(new List<KeyValuePair<string, object>> { new KeyValuePair<string, object>("MyKey", "MyValue") }))
                 {
                     logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
                 }
 
+                inMemoryExporter.ForceFlush();
+
                 // logRecordList should have a singleLogRecord entry after the logger.LogInformation call
                 Assert.Single(logRecordList);
+                var logRecord = logRecordList[0];
 
-                int messagePackDataSize;
-                messagePackDataSize = exporter.SerializeLogRecord(logRecordList[0]);
+                var m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+                _ = exporter.SerializeLogRecord(logRecordList[0]);
+                object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+                var signal = (fluentdData as object[])[0] as string;
+                var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
+                var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
+                var serializedScopes = mapping["scopes"] as object[];
 
-                // Read the data sent via socket.
-                var receivedData = new byte[1024];
-                int receivedDataSize = serverSocket.Receive(receivedData);
-
-                // Validation
-                Assert.Equal(messagePackDataSize, receivedDataSize);
+                Assert.Equal(4, serializedScopes.Length);
             }
             finally
             {
+                senderSocket?.Dispose();
+                receiverSocket?.Dispose();
                 try
                 {
                     File.Delete(path);
