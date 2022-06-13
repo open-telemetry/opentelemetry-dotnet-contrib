@@ -3,10 +3,10 @@
 [![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Extensions.PersistentStorage.svg)](https://www.nuget.org/packages/OpenTelemetry.Extensions.PersistentStorage)
 [![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Extensions.PersistentStorage.svg)](https://www.nuget.org/packages/OpenTelemetry.Extensions.PersistentStorage)
 
-This package provides file based implementation of
+This package provides an implementation of
 [persistent-storage-abstractions](../OpenTelemetry.Extensions.PersistentStorage.Abstractions/README.md#Persistent-Storage-Abstractions)
-It is an experimental component which can be used by OpenTelemetry Exporters to
-provide reliable data delivery.
+based on local file system. This component can be used by OpenTelemetry
+exporters to improve the reliability of data delivery.
 
 ## Installation
 
@@ -19,7 +19,7 @@ dotnet add package OpenTelemetry.Extensions.PersistentStorage
 ### Setup FileBlobProvider
 
 ```csharp
-using var fileBlobProvider = new FileBlobProvider("test");
+using var persistentBlobProvider = new FileBlobProvider("test");
 ```
 
 Following is the complete list of configurable options that can be used to set
@@ -52,10 +52,10 @@ extension. If acquiring lease, the file will have `.lock` extension.
 
 ```csharp
 // Try create blob without acquiring lease
-fileBlobProvider.TryCreateBlob(data, out var blob);
+persistentBlobProvider.TryCreateBlob(data, out var blob);
 
 // Try create blob and acquire lease
-fileBlobProvider.TryCreateBlob(data, 1000, out var blob);
+persistentBlobProvider.TryCreateBlob(data, 1000, out var blob);
 ```
 
 ### GetBlob and GetBlobs
@@ -66,10 +66,10 @@ extension.
 
 ```csharp
 // Get single blob from storage.
-fileBlobProvider.GetBlob(out var blob);
+persistentBlobProvider.GetBlob(out var blob);
 
 // List all blobs.
-foreach (var blobItem in fileBlobProvider.GetBlobs())
+foreach (var blobItem in persistentBlobProvider.GetBlobs())
 {
     Console.WriteLine(((FileBlob)blobItem).FullPath);
 }
@@ -106,21 +106,21 @@ blob.TryDelete();
 ## Example
 
 ```csharp
-using var fileBlobProvider = new FileBlobProvider("test");
+using var persistentBlobProvider = new FileBlobProvider("test");
 
 var data = Encoding.UTF8.GetBytes("Hello, World!");
 
 // Create blob.
-fileBlobProvider.TryCreateBlob(data, out var createdBlob);
+persistentBlobProvider.TryCreateBlob(data, out var createdBlob);
 
 // List all blobs.
-foreach (var blobItem in fileBlobProvider.GetBlobs())
+foreach (var blobItem in persistentBlobProvider.GetBlobs())
 {
     Console.WriteLine(((FileBlob)blobItem).FullPath);
 }
 
 // Get single blob.
-if (fileBlobProvider.TryGetBlob(out var blob))
+if (persistentBlobProvider.TryGetBlob(out var blob))
 {
     // Lease before reading
     if (blob.TryLease(1000))
