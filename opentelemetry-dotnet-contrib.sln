@@ -39,6 +39,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\package-Extensions.PersistentStorage.yml = .github\workflows\package-Extensions.PersistentStorage.yml
 		.github\workflows\package-Extensions.yml = .github\workflows\package-Extensions.yml
 		.github\workflows\package-Instrumentation.AspNet.TelemetryHttpModule.yml = .github\workflows\package-Instrumentation.AspNet.TelemetryHttpModule.yml
+		.github\workflows\package-Instrumentation.AspNet.yml = .github\workflows\package-Instrumentation.AspNet.yml
 		.github\workflows\package-Instrumentation.AWS.yml = .github\workflows\package-Instrumentation.AWS.yml
 		.github\workflows\package-Instrumentation.AWSLambda.yml = .github\workflows\package-Instrumentation.AWSLambda.yml
 		.github\workflows\package-Instrumentation.Elasticsearch.yml = .github\workflows\package-Instrumentation.Elasticsearch.yml
@@ -211,6 +212,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule", "src\OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule\OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.csproj", "{EC83D37A-3704-4515-8EE8-4D007CD9E0A8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests", "test\OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests\OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests.csproj", "{969425CE-CB8F-462C-9126-597FC5B33E27}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.AspNet", "src\OpenTelemetry.Instrumentation.AspNet\OpenTelemetry.Instrumentation.AspNet.csproj", "{582B70B5-0067-4D9A-ABF2-623F502BE9A9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.AspNet.Tests", "test\OpenTelemetry.Instrumentation.AspNet.Tests\OpenTelemetry.Instrumentation.AspNet.Tests.csproj", "{F8629D9B-27C2-4B79-9EF7-DDE7E08CDD72}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -442,6 +447,14 @@ Global
 		{969425CE-CB8F-462C-9126-597FC5B33E27}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{969425CE-CB8F-462C-9126-597FC5B33E27}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{969425CE-CB8F-462C-9126-597FC5B33E27}.Release|Any CPU.Build.0 = Release|Any CPU
+		{582B70B5-0067-4D9A-ABF2-623F502BE9A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{582B70B5-0067-4D9A-ABF2-623F502BE9A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{582B70B5-0067-4D9A-ABF2-623F502BE9A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{582B70B5-0067-4D9A-ABF2-623F502BE9A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8629D9B-27C2-4B79-9EF7-DDE7E08CDD72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8629D9B-27C2-4B79-9EF7-DDE7E08CDD72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8629D9B-27C2-4B79-9EF7-DDE7E08CDD72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8629D9B-27C2-4B79-9EF7-DDE7E08CDD72}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -510,6 +523,8 @@ Global
 		{DD471BEE-65B3-4D72-8A67-92F9C8E93CC1} = {D8F9AEAC-6ACA-484E-81A5-9CEBEDBC3422}
 		{EC83D37A-3704-4515-8EE8-4D007CD9E0A8} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{969425CE-CB8F-462C-9126-597FC5B33E27} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{582B70B5-0067-4D9A-ABF2-623F502BE9A9} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{F8629D9B-27C2-4B79-9EF7-DDE7E08CDD72} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
