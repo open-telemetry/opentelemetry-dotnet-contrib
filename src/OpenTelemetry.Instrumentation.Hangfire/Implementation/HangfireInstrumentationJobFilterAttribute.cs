@@ -16,13 +16,18 @@
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
 {
+    using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
+    using Context.Propagation;
     using global::Hangfire.Client;
     using global::Hangfire.Common;
     using global::Hangfire.Server;
 
     internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, IServerFilter, IClientFilter
     {
+        private static readonly TextMapPropagator Propagator = Propagators.DefaultTextMapPropagator;
+
         public void OnPerforming(PerformingContext performingContext)
         {
             // Short-circuit if nobody is listening
@@ -31,12 +36,16 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
                 return;
             }
 
-            var traceParent = performingContext.GetJobParameter<string>(HangfireInstrumentationConstants.TraceParentKey);
-            var traceState = performingContext.GetJobParameter<string>(HangfireInstrumentationConstants.TraceStateKey);
-            ActivityContext.TryParse(traceParent, traceState, out var parentContext);
+            var activityContextData = performingContext.GetJobParameter<Dictionary<string, string>>(HangfireInstrumentationConstants.ActivityContextKey);
+            ActivityContext parentContext = default;
+            if (activityContextData is not null)
+            {
+                var propagationContext = Propagator.Extract(new PropagationContext(default, Baggage.Current), activityContextData, ExtractActivityProperties);
+                parentContext = propagationContext.ActivityContext;
+            }
 
             var activity = HangfireInstrumentation.ActivitySource
-                .StartActivity(HangfireInstrumentationConstants.ActivityName, ActivityKind.Internal, parentContext: parentContext);
+                .StartActivity(HangfireInstrumentationConstants.ActivityName, ActivityKind.Internal, parentContext);
 
             if (activity != null)
             {
@@ -79,15 +88,29 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
                 return;
             }
 
-            creatingContext.SetJobParameter(HangfireInstrumentationConstants.TraceParentKey, Activity.Current.Id);
-            if (!string.IsNullOrWhiteSpace(Activity.Current.TraceStateString))
+            ActivityContext contextToInject = default;
+            if (Activity.Current != null)
             {
-                creatingContext.SetJobParameter(HangfireInstrumentationConstants.TraceStateKey, Activity.Current.TraceStateString);
+                contextToInject = Activity.Current.Context;
             }
+
+            var activityContextData = new Dictionary<string, string>();
+            Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), activityContextData, InjectActivityProperties);
+            creatingContext.SetJobParameter(HangfireInstrumentationConstants.ActivityContextKey, activityContextData);
         }
 
         public void OnCreated(CreatedContext filterContext)
         {
+        }
+
+        private static void InjectActivityProperties(IDictionary<string, string> jobParams, string key, string value)
+        {
+            jobParams[key] = value;
+        }
+
+        private static IEnumerable<string> ExtractActivityProperties(Dictionary<string, string> telemetryData, string key)
+        {
+            return telemetryData.ContainsKey(key) ? new[] { telemetryData[key] } : Enumerable.Empty<string>();
         }
     }
 }
