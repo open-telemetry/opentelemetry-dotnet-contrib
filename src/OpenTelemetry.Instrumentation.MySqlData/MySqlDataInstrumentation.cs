@@ -84,6 +84,9 @@ namespace OpenTelemetry.Instrumentation.MySqlData
                         this.ErrorExecuteCommand(this.GetMySqlErrorException(args[2]));
                         break;
                     case MySqlTraceEventType.QueryNormalized:
+                        // Should use QueryNormalized event when it exists. Because cmdText in QueryOpened event is incomplete when cmdText.length>300
+                        // args: [driverId, threadId, normalized_query]
+                        this.OverwriteDbStatement(this.GetCommand(args[0], args[2]));
                         break;
                     default:
                         MySqlDataInstrumentationEventSource.Log.UnknownMySqlTraceEventType(id, string.Format(format, args));
@@ -121,6 +124,28 @@ namespace OpenTelemetry.Instrumentation.MySqlData
                     activity.SetTag(SemanticConventions.AttributeDbName, command.ConnectionStringBuilder.Database);
 
                     this.AddConnectionLevelDetailsToActivity(command.ConnectionStringBuilder, activity);
+                }
+            }
+        }
+
+        private void OverwriteDbStatement(MySqlDataTraceCommand command)
+        {
+            var activity = Activity.Current;
+            if (activity == null)
+            {
+                return;
+            }
+
+            if (activity.Source != MySqlActivitySourceHelper.ActivitySource)
+            {
+                return;
+            }
+
+            if (activity.IsAllDataRequested)
+            {
+                if (this.options.SetDbStatement)
+                {
+                    activity.SetTag(SemanticConventions.AttributeDbStatement, command.SqlText);
                 }
             }
         }
