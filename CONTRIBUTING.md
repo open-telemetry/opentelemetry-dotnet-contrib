@@ -221,5 +221,7 @@ the `.github/workflows/` folder.
 
 * When contributing a new project you are expected to assign either yourself or
 someone else who would take ownership for the component you are contributing.
-Please add the right owner for your project in the
-[component_owners](./.github/component_owners.yml) file.
+Please add the right owner(s) for your project in the
+[component_owners](./.github/component_owners.yml) file. The owner must be a
+[member of the OpenTelemetry GitHub
+organization](https://github.com/open-telemetry/community/blob/main/community-membership.md#member).
