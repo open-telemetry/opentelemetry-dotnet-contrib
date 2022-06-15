@@ -45,7 +45,6 @@ Gets the total committed bytes of the managed heap.
 
 - [GC.GetGCMemoryInfo().GenerationInfo[i].SizeAfterBytes](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo):
 Represents the size in bytes of a generation on exit of the GC reported in GCMemoryInfo.
-(The number of generations `i` is limited by [GC.MaxGeneration](https://docs.microsoft.com/dotnet/api/system.gc.maxgeneration))
 
 ## JIT Compiler related metrics
 
