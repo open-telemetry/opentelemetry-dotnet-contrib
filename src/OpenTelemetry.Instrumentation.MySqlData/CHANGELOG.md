@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+* Fix incomplete db.statement when the length>300
 
 ## 1.0.0-beta.2
 
