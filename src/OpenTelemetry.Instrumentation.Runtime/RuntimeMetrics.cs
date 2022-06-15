@@ -38,6 +38,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
         private static readonly int NumberOfGenerations = 3;
         private static string metricPrefix = "process.runtime.dotnet.";
         private readonly Meter meter;
+        private long exceptionCount;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RuntimeMetrics"/> class.
@@ -98,6 +99,12 @@ namespace OpenTelemetry.Instrumentation.Runtime
             if (options.IsAssembliesEnabled)
             {
                 this.meter.CreateObservableCounter($"{metricPrefix}assembly.count", () => (long)AppDomain.CurrentDomain.GetAssemblies().Length, description: "Number of Assemblies Loaded.");
+            }
+
+            if (options.IsExceptionsEnabled)
+            {
+                AppDomain.CurrentDomain.FirstChanceException += (source, e) => ++this.exceptionCount;
+                this.meter.CreateObservableCounter($"{metricPrefix}exception.count", () => this.exceptionCount, description: "Number of exceptions thrown.");
             }
         }
 

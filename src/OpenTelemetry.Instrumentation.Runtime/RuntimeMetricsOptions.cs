@@ -51,6 +51,11 @@ namespace OpenTelemetry.Instrumentation.Runtime
         public bool? AssembliesEnabled { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether exception metrics should be collected.
+        /// </summary>
+        public bool? ExceptionsEnabled { get; set; }
+
+        /// <summary>
         /// Gets a value indicating whether all metrics are enabled.
         /// </summary>
         internal bool IsAllEnabled => this.GcEnabled == null
@@ -61,7 +66,8 @@ namespace OpenTelemetry.Instrumentation.Runtime
         && this.ThreadingEnabled == null
 #endif
         && this.ProcessEnabled == null
-        && this.AssembliesEnabled == null;
+        && this.AssembliesEnabled == null
+        && this.ExceptionsEnabled == null;
 
         /// <summary>
         /// Gets a value indicating whether garbage collection metrics is enabled.
@@ -91,5 +97,10 @@ namespace OpenTelemetry.Instrumentation.Runtime
         /// Gets a value indicating whether assembly metrics is enabled.
         /// </summary>
         internal bool IsAssembliesEnabled => this.AssembliesEnabled == true || this.IsAllEnabled;
+
+        /// <summary>
+        /// Gets a value indicating whether exception metrics is enabled.
+        /// </summary>
+        internal bool IsExceptionsEnabled => this.ExceptionsEnabled == true || this.IsAllEnabled;
     }
 }
