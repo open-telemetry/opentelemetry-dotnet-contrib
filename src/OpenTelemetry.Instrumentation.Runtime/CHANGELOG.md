@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add `exception.counter` in Runtime metrics
+  ([#431](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/431))
+
 ## 0.2.0-alpha.1
 
 * Updated OTel SDK package version to 1.3.0
