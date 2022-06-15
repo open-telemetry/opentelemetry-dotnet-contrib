@@ -13,18 +13,7 @@ The metrics in this section can be enabled by setting the
 
 | Name                                          | Description              | Units     | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |-----------------------------------------------|--------------------------|-----------|-------------------|------------|------------------|------------------|
-| process.runtime.dotnet.**gc.totalmemorysize** | Total allocated bytes    | `By`      | ObservableGauge   | `Int64`    |                  |                  |
 | process.runtime.dotnet.**gc.count**           | Garbage Collection count | `{times}` | ObservableCounter | `Int64`    | gen              | gen0, gen1, gen2 |
-
-Question for .NET team: is GC.GetTotalMemory(false) always equal to the sum of
-GC.GetGCMemoryInfo().GenerationInfo[i].SizeAfterBytes (i from 0 to 4)?
-
-I need to decide whether it makes sense to include both of them in the memory/GC
-size metrics.
-
-- [GC.GetTotalMemory](https://docs.microsoft.com/dotnet/api/system.gc.gettotalmemory):
-The number of bytes currently thought to be allocated.
-It does not wait for garbage collection to occur before returning.
 
 - [GC.CollectionCount](https://docs.microsoft.com/dotnet/api/system.gc.collectioncount):
 The number of times garbage collection has occurred for the specified generation
