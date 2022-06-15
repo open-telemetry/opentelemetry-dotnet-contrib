@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
 		<OutputType>Exe</OutputType>
@@ -9,7 +9,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
-		<PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="1.2.0-rc2" />
+		<PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="[5.0.0,)" />
 		<PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.4" />
 	</ItemGroup>
