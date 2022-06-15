@@ -108,7 +108,6 @@ The metrics in this section can be enabled by setting the
 |-------------------------|----------------------------------------|----------------|-------------------|------------|------------------|------------------|
 | process.cpu.utilization | CPU utilization of this process        | `1`            | ObservableGauge   | `Double`   |                  |                  |
 | process.cpu.time        | Processor time of this process         | `s`            | ObservableCounter | `Int64`    | state            | user, system     |
-| process.cpu.count       | The number of available logical CPUs   | `{processors}` | ObservableGauge   | `Int64`    |                  |                  |
 | process.memory.usage    | The amount of physical memory in use   | `By`           | ObservableGauge   | `Int64`    |                  |                  |
 | process.memory.virtual  | The amount of committed virtual memory | `By`           | ObservableGauge   | `Int64`    |                  |                  |
 
@@ -124,8 +123,6 @@ The metrics in this section can be enabled by setting the
   - [Process.PrivilegedProcessorTime](https://docs.microsoft.com/dotnet/api/system.diagnostics.process.privilegedprocessortime):
   Gets the privileged processor time for this process.
 
-- [Environment.ProcessorCount](https://docs.microsoft.com/dotnet/api/system.environment.processorcount):
-  Gets the number of processors available to the current process.
 - Memory usage: [Process.GetCurrentProcess().WorkingSet64](https://docs.microsoft.com/dotnet/api/system.diagnostics.process.workingset64):
   Gets the amount of physical memory, in bytes, allocated for the currently
   active process.
