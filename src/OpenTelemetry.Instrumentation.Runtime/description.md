@@ -144,9 +144,9 @@ usage for the process, or whether to include both.
 The metrics in this section can be enabled by setting the
 `RuntimeMetricsOptions.IsAssembliesEnabled` switch.
 
-| Name                                      | Description                 | Units          | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|-------------------------------------------|-----------------------------|----------------|-------------------|------------|------------------|------------------|
-| process.runtime.dotnet.**assembly.count** | Number of Assemblies Loaded | `{assemblies}` | ObservableCounter | `Int64`    |                  |                  |
+| Name                                      | Description                 | Units          | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
+|-------------------------------------------|-----------------------------|----------------|-----------------|------------|------------------|------------------|
+| process.runtime.dotnet.**assembly.count** | Number of Assemblies Loaded | `{assemblies}` | ObservableGauge | `Int64`    |                  |                  |
 
 - [AppDomain.GetAssemblies](https://docs.microsoft.com/dotnet/api/system.appdomain.getassemblies):
   Gets the number of the assemblies that have been loaded into the execution context
