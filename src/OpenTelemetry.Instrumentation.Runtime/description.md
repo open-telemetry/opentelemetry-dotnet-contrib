@@ -21,25 +21,17 @@ of objects.
 
 ### Additional GC metrics only available for NETCOREAPP3_1_OR_GREATER
 
-| Name                                              | Description                                      | Units | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|---------------------------------------------------|--------------------------------------------------|-------|-------------------|------------|------------------|------------------|
-| process.runtime.dotnet.**gc.allocated.bytes**     | Bytes allocated over the lifetime of the process | `By`  | ObservableCounter | `Int64`    |                  |                  |
-| process.runtime.dotnet.**gc.fragmentation.ratio** | GC fragmentation ratio                           | `1`   | ObservableGauge   | `Double`   |                  |                  |
+| Name                                             | Description                                      | Units | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values           |
+|--------------------------------------------------|--------------------------------------------------|-------|-------------------|------------|------------------|----------------------------|
+| process.runtime.dotnet.**gc.allocated.bytes**    | Bytes allocated over the lifetime of the process | `By`  | ObservableCounter | `Int64`    |                  |                            |
+| process.runtime.dotnet.**gc.fragmentation.size** | GC fragmentation size                            | `By`  | ObservableGauge   | `Int64`    | gen              | gen0, gen1, gen2, loh, poh |
 
 - [GC.GetTotalAllocatedBytes](https://docs.microsoft.com/dotnet/api/system.gc.gettotalallocatedbytes):
   Gets a count of the bytes allocated over the lifetime of the process. The returned
 value does not include any native allocations. The value is an approximate count.
 
-- GC fragmentation ratio is calculated as:
-If `gcMemoryInfo.HeapSizeBytes != 0`,
-the value is
-`gcMemoryInfo.FragmentedBytes * 1.0d / gcMemoryInfo.HeapSizeBytes`,
-otherwise the value is `0`, where `var gcMemoryInfo = GC.GetGCMemoryInfo()`.
-
-  - [GCMemoryInfo.FragmentedBytes](https://docs.microsoft.com/dotnet/api/system.gcmemoryinfo.fragmentedbytes?view=netcore-3.1):
-  Gets the total fragmentation when the last garbage collection occurred.
-  - [GCMemoryInfo.HeapSizeBytes](https://docs.microsoft.com/dotnet/api/system.gcmemoryinfo.heapsizebytes?view=netcore-3.1#system-gcmemoryinfo-heapsizebytes):
-  Gets the total heap size when the last garbage collection occurred.
+  - [GCGenerationInfo.FragmentationAfterBytes Property](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo.fragmentationafterbytes#system-gcgenerationinfo-fragmentationafterbytes)
+  Gets the fragmentation in bytes on exit from the reported collection.
 
 ### Additional GC metrics only available for NET6_0_OR_GREATER
 
