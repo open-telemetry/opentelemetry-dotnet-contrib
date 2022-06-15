@@ -26,13 +26,14 @@
     <MicrosoftCodeAnalysisNetAnalyzersPkgVer>[6.0.0]</MicrosoftCodeAnalysisNetAnalyzersPkgVer>
     <MicrosoftCodeCoveragePkgVer>[16.7.1]</MicrosoftCodeCoveragePkgVer>
     <MicrosoftExtensionsHostingAbstractionsPkgVer>[2.1.0,5.0)</MicrosoftExtensionsHostingAbstractionsPkgVer>
+    <MicrosoftExtensionsOptionsPkgVer>[3.1.0,)</MicrosoftExtensionsOptionsPkgVer>
     <MicrosoftNETFrameworkReferenceAssembliesPkgVer>[1.0.0,2.0)</MicrosoftNETFrameworkReferenceAssembliesPkgVer>
     <MicrosoftOwinPkgVer>[4.1.1]</MicrosoftOwinPkgVer>
     <MicrosoftPublicApiAnalyzersPkgVer>[3.3.2]</MicrosoftPublicApiAnalyzersPkgVer>
     <MicrosoftSourceLinkGitHubPkgVer>[1.0.0,2.0)</MicrosoftSourceLinkGitHubPkgVer>
-    <StyleCopAnalyzersPkgVer>[1.2.0-beta.354,2.0)</StyleCopAnalyzersPkgVer>
+    <OpenTelemetryExporterInMemoryPkgVer>1.3.0</OpenTelemetryExporterInMemoryPkgVer>
     <StackExchangeRedisPkgVer>[2.1.58,3.0)</StackExchangeRedisPkgVer>
-    <MicrosoftExtensionsOptionsPkgVer>[3.1.0,)</MicrosoftExtensionsOptionsPkgVer>
+    <StyleCopAnalyzersPkgVer>[1.2.0-beta.354,2.0)</StyleCopAnalyzersPkgVer>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' != 'net5.0' and '$(TargetFramework)' != 'netstandard2.1'">
