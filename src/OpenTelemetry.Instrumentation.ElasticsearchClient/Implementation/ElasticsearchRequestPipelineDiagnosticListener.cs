@@ -145,9 +145,9 @@ namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Implementation
                 if (debugInformation != null && this.options.SetDbStatementForRequest)
                 {
                     var dbStatement = this.ParseAndFormatRequest(activity, debugInformation);
-                    if (dbStatement.Length > this.options.MaxDbStatementLength)
+                    if (this.options.MaxDbStatementLength > 0 && dbStatement.Length > this.options.MaxDbStatementLength)
                     {
-                        dbStatement = dbStatement.Substring(0, 4096);
+                        dbStatement = dbStatement.Substring(0, this.options.MaxDbStatementLength);
                     }
 
                     activity.SetTag(SemanticConventions.AttributeDbStatement, dbStatement);
