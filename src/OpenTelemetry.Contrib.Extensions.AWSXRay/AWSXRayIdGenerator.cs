@@ -18,7 +18,6 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Threading;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
@@ -38,16 +37,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay
         private static readonly DateTime EpochStart = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private static readonly long UnixEpochMicroseconds = EpochStart.Ticks / TicksPerMicrosecond;
         private static readonly Random Global = new Random();
-        private static readonly ThreadLocal<Random> Local = new ThreadLocal<Random>(() =>
-        {
-            int seed;
-            lock (Global)
-            {
-                seed = Global.Next();
-            }
-
-            return new Random(seed);
-        });
+        private static object randLock = new object();
 
         internal static void ReplaceTraceId(Sampler sampler = null)
         {
@@ -129,11 +119,17 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay
             Guard.ThrowIfOutOfRange(digits, min: 0);
 
             byte[] bytes = new byte[digits / 2];
-            NextBytes(bytes);
-            string hexNumber = string.Concat(bytes.Select(x => x.ToString("x2", CultureInfo.InvariantCulture)).ToArray());
-            if (digits % 2 != 0)
+
+            string hexNumber;
+
+            lock (randLock)
             {
-                hexNumber += Next(16).ToString("x", CultureInfo.InvariantCulture);
+                NextBytes(bytes);
+                hexNumber = string.Concat(bytes.Select(x => x.ToString("x2", CultureInfo.InvariantCulture)).ToArray());
+                if (digits % 2 != 0)
+                {
+                    hexNumber += Next(16).ToString("x", CultureInfo.InvariantCulture);
+                }
             }
 
             return hexNumber;
@@ -145,7 +141,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay
         /// <param name="buffer">An array of bytes to contain random numbers.</param>
         private static void NextBytes(byte[] buffer)
         {
-            Local.Value.NextBytes(buffer);
+            Global.NextBytes(buffer);
         }
 
         /// <summary>
@@ -155,7 +151,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay
         /// <returns>A 32-bit signed integer that is greater than or equal to 0, and less than maxValue.</returns>
         private static int Next(int maxValue)
         {
-            return Local.Value.Next(maxValue);
+            return Global.Next(maxValue);
         }
 
         private static ActivitySamplingResult ComputeRootActivitySamplingResult(
