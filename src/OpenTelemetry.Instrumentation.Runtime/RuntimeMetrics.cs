@@ -19,9 +19,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Reflection;
-#if NETCOREAPP3_1_OR_GREATER
 using System.Threading;
-#endif
 
 namespace OpenTelemetry.Instrumentation.Runtime
 {
@@ -103,7 +101,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
             if (options.IsExceptionsEnabled)
             {
-                AppDomain.CurrentDomain.FirstChanceException += (source, e) => ++this.exceptionCount;
+                AppDomain.CurrentDomain.FirstChanceException += (source, e) => Interlocked.Increment(ref this.exceptionCount);
                 this.meter.CreateObservableCounter($"{metricPrefix}exception.count", () => this.exceptionCount, description: "Number of exceptions thrown.");
             }
         }
