@@ -38,6 +38,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
     private readonly IReadOnlyDictionary<string, object> m_prepopulatedFields;
     private readonly List<string> m_prepopulatedFieldKeys;
     private static readonly ThreadLocal<byte[]> m_buffer = new ThreadLocal<byte[]>(() => null);
+    private static readonly ThreadLocal<ExporterStateForScopes> exporterState = new(() => new ExporterStateForScopes());
     private readonly byte[] m_bufferEpilogue;
     private static readonly string[] logLevels = new string[7]
     {
@@ -418,20 +419,24 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             cntFields += 1;
         }
 
-        ushort scopeDepth = 0;
-        int indexArrayLength = 0;
-        logRecord.ForEachScope(ProcessScope, (object)null);
-        void ProcessScope(LogRecordScope scope, object state)
+        var state = exporterState.Value;
+        state.ScopeDepth = 0;
+        state.IndexForArrayLength = 0;
+        state.Cursor = cursor;
+        state.Buffer = buffer;
+
+        logRecord.ForEachScope(ProcessScope, state);
+        void ProcessScope(LogRecordScope scope, ExporterStateForScopes state)
         {
-            if (++scopeDepth == 1)
+            if (++state.ScopeDepth == 1)
             {
-                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "scopes");
-                cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, ushort.MaxValue);
-                indexArrayLength = cursor - 2;
+                state.Cursor = MessagePackSerializer.SerializeAsciiString(state.Buffer, state.Cursor, "scopes");
+                state.Cursor = MessagePackSerializer.WriteArrayHeader(state.Buffer, state.Cursor, ushort.MaxValue);
+                state.IndexForArrayLength = state.Cursor - 2;
             }
 
-            cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
-            int indexMapSizeScope = cursor - 2;
+            state.Cursor = MessagePackSerializer.WriteMapHeader(state.Buffer, state.Cursor, ushort.MaxValue);
+            int indexForMapSize = state.Cursor - 2;
             ushort keysCount = 0;
 
             foreach (KeyValuePair<string, object> scopeItem in scope)
@@ -442,17 +447,18 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
                     key = scopeItem.Key;
                 }
 
-                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, key);
-                cursor = MessagePackSerializer.Serialize(buffer, cursor, scopeItem.Value);
+                state.Cursor = MessagePackSerializer.SerializeUnicodeString(state.Buffer, state.Cursor, key);
+                state.Cursor = MessagePackSerializer.Serialize(state.Buffer, state.Cursor, scopeItem.Value);
                 keysCount++;
             }
 
-            MessagePackSerializer.WriteUInt16(buffer, indexMapSizeScope, keysCount);
+            MessagePackSerializer.WriteUInt16(state.Buffer, indexForMapSize, keysCount);
         }
 
-        if (scopeDepth > 0)
+        if (state.ScopeDepth > 0)
         {
-            MessagePackSerializer.WriteUInt16(buffer, indexArrayLength, scopeDepth);
+            MessagePackSerializer.WriteUInt16(buffer, state.IndexForArrayLength, state.ScopeDepth);
+            cursor = state.Cursor;
             cntFields += 1;
         }
 
@@ -580,6 +586,14 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         MessagePackSerializer.WriteStr8Header(buffer, cursorStartIdx, validNameLength);
 
         return cursor;
+    }
+
+    private class ExporterStateForScopes
+    {
+        internal ushort ScopeDepth;
+        internal int IndexForArrayLength;
+        internal int Cursor;
+        internal byte[] Buffer;
     }
 }
 #endif
