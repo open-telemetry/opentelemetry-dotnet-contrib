@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* Add `exception.counter` in Runtime metrics
+* Add `exception.count` in Runtime metrics
   ([#431](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/431))
 
 ## 0.2.0-alpha.1
