@@ -426,34 +426,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         state.Buffer = buffer;
 
         logRecord.ForEachScope(ProcessScope, state);
-        void ProcessScope(LogRecordScope scope, ExporterStateForScopes state)
-        {
-            if (++state.ScopeDepth == 1)
-            {
-                state.Cursor = MessagePackSerializer.SerializeAsciiString(state.Buffer, state.Cursor, "scopes");
-                state.Cursor = MessagePackSerializer.WriteArrayHeader(state.Buffer, state.Cursor, ushort.MaxValue);
-                state.IndexForArrayLength = state.Cursor - 2;
-            }
-
-            state.Cursor = MessagePackSerializer.WriteMapHeader(state.Buffer, state.Cursor, ushort.MaxValue);
-            int indexForMapSize = state.Cursor - 2;
-            ushort keysCount = 0;
-
-            foreach (KeyValuePair<string, object> scopeItem in scope)
-            {
-                string key = "scope";
-                if (!string.IsNullOrEmpty(scopeItem.Key))
-                {
-                    key = scopeItem.Key;
-                }
-
-                state.Cursor = MessagePackSerializer.SerializeUnicodeString(state.Buffer, state.Cursor, key);
-                state.Cursor = MessagePackSerializer.Serialize(state.Buffer, state.Cursor, scopeItem.Value);
-                keysCount++;
-            }
-
-            MessagePackSerializer.WriteUInt16(state.Buffer, indexForMapSize, keysCount);
-        }
 
         if (state.ScopeDepth > 0)
         {
@@ -595,5 +567,34 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         internal int Cursor;
         internal byte[] Buffer;
     }
+
+    private static readonly Action<LogRecordScope, ExporterStateForScopes> ProcessScope = (scope, state) =>
+    {
+        if (++state.ScopeDepth == 1)
+        {
+            state.Cursor = MessagePackSerializer.SerializeAsciiString(state.Buffer, state.Cursor, "scopes");
+            state.Cursor = MessagePackSerializer.WriteArrayHeader(state.Buffer, state.Cursor, ushort.MaxValue);
+            state.IndexForArrayLength = state.Cursor - 2;
+        }
+
+        state.Cursor = MessagePackSerializer.WriteMapHeader(state.Buffer, state.Cursor, ushort.MaxValue);
+        int indexForMapSize = state.Cursor - 2;
+        ushort keysCount = 0;
+
+        foreach (KeyValuePair<string, object> scopeItem in scope)
+        {
+            string key = "scope";
+            if (!string.IsNullOrEmpty(scopeItem.Key))
+            {
+                key = scopeItem.Key;
+            }
+
+            state.Cursor = MessagePackSerializer.SerializeUnicodeString(state.Buffer, state.Cursor, key);
+            state.Cursor = MessagePackSerializer.Serialize(state.Buffer, state.Cursor, scopeItem.Value);
+            keysCount++;
+        }
+
+        MessagePackSerializer.WriteUInt16(state.Buffer, indexForMapSize, keysCount);
+    };
 }
 #endif
