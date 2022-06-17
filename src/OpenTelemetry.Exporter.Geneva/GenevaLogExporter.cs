@@ -427,6 +427,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
 
         logRecord.ForEachScope(ProcessScope, state);
 
+        // logRecord has scopes
         if (state.ScopeDepth > 0)
         {
             MessagePackSerializer.WriteUInt16(buffer, state.IndexForArrayLength, state.ScopeDepth);
