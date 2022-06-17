@@ -101,8 +101,11 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
             if (options.IsExceptionsEnabled)
             {
-                AppDomain.CurrentDomain.FirstChanceException += (source, e) => Interlocked.Increment(ref this.exceptionCount);
-                this.meter.CreateObservableCounter($"{metricPrefix}exception.count", () => this.exceptionCount, description: "Number of exceptions thrown.");
+                var exceptionCounter = this.meter.CreateCounter<long>($"{metricPrefix}exception.count", description: "Number of exceptions thrown.");
+                AppDomain.CurrentDomain.FirstChanceException += (source, e) =>
+                {
+                    exceptionCounter.Add(1);
+                };
             }
         }
 
