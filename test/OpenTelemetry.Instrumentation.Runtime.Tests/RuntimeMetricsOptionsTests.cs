@@ -32,6 +32,7 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
 #if NETCOREAPP3_1_OR_GREATER
             Assert.True(options.IsThreadingEnabled);
 #endif
+            Assert.True(options.IsCpuEnabled);
             Assert.True(options.IsProcessEnabled);
             Assert.True(options.IsAssembliesEnabled);
             Assert.True(options.IsAllEnabled);
@@ -49,6 +50,26 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
 #if NETCOREAPP3_1_OR_GREATER
             Assert.False(options.IsThreadingEnabled);
 #endif
+            Assert.False(options.IsCpuEnabled);
+            Assert.False(options.IsProcessEnabled);
+            Assert.False(options.IsAssembliesEnabled);
+            Assert.False(options.IsAllEnabled);
+        }
+
+
+        [Fact]
+        public void Enable_Cpu_Only()
+        {
+            var options = new RuntimeMetricsOptions { CpuEnabled = true };
+
+            Assert.False(options.IsGcEnabled);
+#if NET6_0_OR_GREATER
+            Assert.False(options.IsJitEnabled);
+#endif
+            Assert.True(options.IsCpuEnabled);
+#if NETCOREAPP3_1_OR_GREATER
+            Assert.False(options.IsThreadingEnabled);
+#endif
             Assert.False(options.IsProcessEnabled);
             Assert.False(options.IsAssembliesEnabled);
             Assert.False(options.IsAllEnabled);
@@ -62,6 +83,7 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
 
             Assert.False(options.IsGcEnabled);
             Assert.True(options.IsJitEnabled);
+            Assert.False(options.IsCpuEnabled);
             Assert.False(options.IsThreadingEnabled);
             Assert.False(options.IsProcessEnabled);
             Assert.False(options.IsAssembliesEnabled);
@@ -81,6 +103,7 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
 #endif
             Assert.True(options.IsThreadingEnabled);
             Assert.False(options.IsProcessEnabled);
+            Assert.False(options.IsCpuEnabled);
             Assert.False(options.IsAssembliesEnabled);
             Assert.False(options.IsAllEnabled);
         }
@@ -99,6 +122,7 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
             Assert.False(options.IsThreadingEnabled);
 #endif
             Assert.True(options.IsProcessEnabled);
+            Assert.False(options.IsCpuEnabled);
             Assert.False(options.IsAssembliesEnabled);
             Assert.False(options.IsAllEnabled);
         }
@@ -116,6 +140,7 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
             Assert.False(options.IsThreadingEnabled);
 #endif
             Assert.False(options.IsProcessEnabled);
+            Assert.False(options.IsCpuEnabled);
             Assert.True(options.IsAssembliesEnabled);
             Assert.False(options.IsAllEnabled);
         }
@@ -133,6 +158,7 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
             Assert.False(options.IsThreadingEnabled);
 #endif
             Assert.True(options.IsProcessEnabled);
+            Assert.False(options.IsCpuEnabled);
             Assert.False(options.IsAssembliesEnabled);
             Assert.False(options.IsAllEnabled);
         }

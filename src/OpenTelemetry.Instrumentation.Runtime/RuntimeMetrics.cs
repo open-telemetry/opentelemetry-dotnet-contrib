@@ -25,6 +25,7 @@ using System.Threading;
 
 namespace OpenTelemetry.Instrumentation.Runtime
 {
+
     /// <summary>
     /// .NET runtime instrumentation.
     /// </summary>
@@ -38,6 +39,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
         private static readonly int NumberOfGenerations = 3;
         private static string metricPrefix = "process.runtime.dotnet.";
         private readonly Meter meter;
+        private CpuCollector CpuCollector { get; set;}
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RuntimeMetrics"/> class.
@@ -46,6 +48,14 @@ namespace OpenTelemetry.Instrumentation.Runtime
         public RuntimeMetrics(RuntimeMetricsOptions options)
         {
             this.meter = new Meter(InstrumentationName, InstrumentationVersion);
+
+            if(options.IsCpuEnabled){
+                CpuCollector = new CpuCollector(options);
+
+                this.meter.CreateObservableGauge<double>($"{metricPrefix}cpu.total", () => CpuCollector.Record.TotalCpuUsed, "%", "Total CPU Percentage Used");
+                this.meter.CreateObservableGauge<double>($"{metricPrefix}cpu.privilage", () => CpuCollector.Record.PrivilegedCpuUsed, "%", "Privileged CPU Percentage Used");
+                this.meter.CreateObservableGauge<double>($"{metricPrefix}cpu.user", () => CpuCollector.Record.UserCpuUsed, "%", "User CPU Percentage Used");
+            }
 
             if (options.IsGcEnabled)
             {
@@ -105,6 +115,8 @@ namespace OpenTelemetry.Instrumentation.Runtime
         public void Dispose()
         {
             this.meter?.Dispose();
+
+            CpuCollector?.Dispose();
         }
 
         private static IEnumerable<Measurement<long>> GetGarbageCollectionCounts()

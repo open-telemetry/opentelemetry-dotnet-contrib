@@ -43,6 +43,9 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
 
                      options.JitEnabled = true;
 #endif
+
+                     options.CpuEnabled = true;
+
                      options.AssembliesEnabled = true;
                  })
                  .AddInMemoryExporter(exportedItems)

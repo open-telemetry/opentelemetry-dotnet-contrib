@@ -41,6 +41,16 @@ namespace OpenTelemetry.Instrumentation.Runtime
 #endif
 
         /// <summary>
+        /// Gets or sets a value indicating whether CPU metrics should be collected.
+        /// </summary>
+        public bool? CpuEnabled { get; set; }
+
+        /// <summary>
+        /// Set CPU collect interval, default value is 1s
+        /// </summary>
+        public int? CpuCollectInterval { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether process metrics should be collected.
         /// </summary>
         public bool? ProcessEnabled { get; set; }
@@ -61,7 +71,13 @@ namespace OpenTelemetry.Instrumentation.Runtime
         && this.ThreadingEnabled == null
 #endif
         && this.ProcessEnabled == null
+        && this.CpuEnabled == null
         && this.AssembliesEnabled == null;
+
+        /// <summary>
+        /// Gets a value indicating whether CPU collection metrics is enabled.
+        /// </summary>
+        internal bool IsCpuEnabled => this.CpuEnabled == true || this.IsAllEnabled;
 
         /// <summary>
         /// Gets a value indicating whether garbage collection metrics is enabled.
