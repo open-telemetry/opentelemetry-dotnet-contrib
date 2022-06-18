@@ -30,7 +30,7 @@ internal class ExporterEventSource : EventSource
     private const int EVENT_ID_METRIC = 3; // Failed to send Metric
     private const int EVENT_ID_ERROR = 4; // Other common exporter exceptions
 
-    [Event(EVENT_ID_TRACE, Message = "Exporter failed to send SpanData. Exception: {0}", Level = EventLevel.Error)]
+    [Event(EVENT_ID_TRACE, Message = "Exporter failed to send trace data. Exception: {0}", Level = EventLevel.Error)]
     public void FailedToSendTraceData(Exception ex)
     {
         if (Log.IsEnabled(EventLevel.Error, EventKeywords.All))
@@ -57,7 +57,7 @@ internal class ExporterEventSource : EventSource
         }
     }
 
-    [Event(EVENT_ID_METRIC, Message = "Exporter failed to send MetricData. Data will not be sent. MonitoringAccount = {0} MetricNamespace = {1}, MetricName = {2}, Message: {3}", Level = EventLevel.Error)]
+    [Event(EVENT_ID_METRIC, Message = "Exporter failed to send metric data. Data will not be sent. MonitoringAccount = {0} MetricNamespace = {1}, MetricName = {2}, Message: {3}", Level = EventLevel.Error)]
     public void FailedToSendMetricData(string monitoringAccount, string metricNamespace, string metricName, Exception ex)
     {
         if (Log.IsEnabled(EventLevel.Error, EventKeywords.All))
