@@ -17,7 +17,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
+using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
 
 namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
@@ -61,6 +63,21 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             return activityContext;
         }
 
+        internal static ActivityContext ExtractParentContext<TInput>(TInput input)
+        {
+            ActivityContext parentContext = default;
+            if (input is APIGatewayProxyRequest request)
+            {
+                var propagationContext = Propagators.DefaultTextMapPropagator.Extract(default, request, GetHeaderValues);
+                if (propagationContext != default)
+                {
+                    parentContext = propagationContext.ActivityContext;
+                }
+            }
+
+            return parentContext;
+        }
+
         internal static string GetCloudProvider()
         {
             return CloudProvider;
@@ -100,6 +117,36 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             return null;
         }
 
+        internal static IEnumerable<KeyValuePair<string, object>> GetFunctionDefaultTags<TInput>(TInput input, ILambdaContext context)
+        {
+            var trigger = "other";
+            if (input is APIGatewayProxyRequest)
+            {
+                trigger = "http";
+            }
+
+            var tags = new List<KeyValuePair<string, object>>
+            {
+                new(AWSLambdaSemanticConventions.AttributeFaasTrigger, trigger),
+            };
+
+            if (context == null)
+            {
+                return tags;
+            }
+
+            tags.Add(new(AWSLambdaSemanticConventions.AttributeFaasName, context.FunctionName));
+            tags.Add(new(AWSLambdaSemanticConventions.AttributeFaasID, context.InvokedFunctionArn));
+
+            var functionParts = context.InvokedFunctionArn?.Split(':');
+            if (functionParts != null && functionParts.Length >= 5)
+            {
+                tags.Add(new(AWSLambdaSemanticConventions.AttributeCloudAccountID, functionParts[4]));
+            }
+
+            return tags;
+        }
+
         private static ActivityContext ParseXRayTraceHeader(string rawHeader)
         {
             var xrayPropagator = new AWSXRayPropagator();
@@ -111,6 +158,17 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
 
             var propagationContext = xrayPropagator.Extract(default, carrier, Getter);
             return propagationContext.ActivityContext;
+        }
+
+        private static IEnumerable<string> GetHeaderValues(APIGatewayProxyRequest request, string name)
+        {
+            if (request.MultiValueHeaders != null &&
+                request.MultiValueHeaders.TryGetValue(name, out var values))
+            {
+                return values;
+            }
+
+            return null;
         }
     }
 }
