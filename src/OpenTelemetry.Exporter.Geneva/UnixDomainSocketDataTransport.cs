@@ -66,11 +66,11 @@ internal class UnixDomainSocketDataTransport : IDataTransport, IDisposable
         catch (SocketException ex)
         {
             // SocketException from Socket.Send
-            ExporterEventSource.Log.ExporterException(ex);
+            ExporterEventSource.Log.ExporterException("UDS Send failed.", ex);
         }
         catch (Exception ex)
         {
-            ExporterEventSource.Log.ExporterException(ex);
+            ExporterEventSource.Log.ExporterException("UDS Send failed.", ex);
         }
     }
 
@@ -91,7 +91,7 @@ internal class UnixDomainSocketDataTransport : IDataTransport, IDisposable
         }
         catch (Exception ex)
         {
-            ExporterEventSource.Log.ExporterException(ex);
+            ExporterEventSource.Log.ExporterException("UDS Connect failed.", ex);
 
             // Re-throw the exception to
             // 1. fail fast in Geneva exporter contructor, or
