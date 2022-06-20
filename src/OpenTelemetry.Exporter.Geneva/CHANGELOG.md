@@ -6,6 +6,9 @@
 `GenevaMetricExporter`.
 [397](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/397)
 
+* Update OTel SDK version to `1.3.0`.
+[427](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/427)
+
 ## 1.3.0-beta.2 [2022-Jun-03]
 
 * Add support for exporting `ILogger` scopes.
