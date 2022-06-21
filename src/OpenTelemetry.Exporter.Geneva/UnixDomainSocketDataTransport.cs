@@ -63,14 +63,10 @@ internal class UnixDomainSocketDataTransport : IDataTransport, IDisposable
 
             this.socket.Send(data, size, SocketFlags.None);
         }
-        catch (SocketException ex)
+        catch (Exception)
         {
-            // SocketException from Socket.Send
-            ExporterEventSource.Log.ExporterException("UDS Send failed.", ex);
-        }
-        catch (Exception ex)
-        {
-            ExporterEventSource.Log.ExporterException("UDS Send failed.", ex);
+            // Re-throw the exception so that Export method catches it and sets the ExportResult correctly.
+            throw;
         }
     }
 
