@@ -1,9 +1,10 @@
 # Changelog - OpenTelemetry.Extensions.PersistentStorage
 
-## Unreleased
+## 1.0.0-alpha.4
 
-* [Update implementation to use
-  Opentelemetry.Extensions.PersistentStorage.Abstractions](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/363)
+* Update implementation to use
+  Opentelemetry.Extensions.PersistentStorage.Abstractions.
+  [363](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/363)
 
 ## 1.0.0-alpha.3
 
