@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-#if NETSTANDARD2_0 || NET461
 using System;
 using OpenTelemetry;
 using OpenTelemetry.Exporter.Geneva;
@@ -42,4 +41,3 @@ public static class GenevaLoggingExtensions
         }
     }
 }
-#endif
