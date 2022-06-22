@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
     <Description>OpenTelemetry Persistent Storage</Description>
     <MinVerTagPrefix>Extensions.PersistentStorage-</MinVerTagPrefix>
   </PropertyGroup>
