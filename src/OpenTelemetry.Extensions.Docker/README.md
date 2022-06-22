@@ -31,7 +31,7 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 The resource detectors will record the following metadata based on where
 your application is running:
 
-- **DockerResourceDetector**: container id.
+- **DockerResourceDetector**: container.id.
 
 ## References
 

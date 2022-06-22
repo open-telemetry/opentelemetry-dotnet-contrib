@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Update a few metrics to be in sync of doc updates for `gc.heap`,
+  `gc.fragmentation.ratio`, `time.in.jit`, `process.cpu.count` and `assembly.count`
+  ([#430](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/430))
+
 ## 0.2.0-alpha.1
 
 * Updated OTel SDK package version to 1.3.0
