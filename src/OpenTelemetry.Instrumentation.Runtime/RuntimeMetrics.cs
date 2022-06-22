@@ -50,17 +50,16 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
             if (options.IsGcEnabled)
             {
-                // TODO: Almost all the ObservableGauge should be ObservableUpDownCounter (except for CPU utilization and fragmentation.ratio.
+                // TODO: Almost all the ObservableGauge should be ObservableUpDownCounter (except for CPU utilization).
                 // Replace them once ObservableUpDownCounter is available.
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.heap", () => GC.GetTotalMemory(false), "By", "GC Heap Size.");
                 this.meter.CreateObservableGauge($"{metricPrefix}gc.count", () => GetGarbageCollectionCounts(), description: "GC Count for all generations.");
 
 #if NETCOREAPP3_1_OR_GREATER
                 this.meter.CreateObservableCounter($"{metricPrefix}gc.allocated.bytes", () => GC.GetTotalAllocatedBytes(), "By", "Allocation Rate.");
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.fragmentation.ratio", GetFragmentation, description: "GC Fragmentation.");
 #endif
 
 #if NET6_0_OR_GREATER
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.fragmentation.size", GetFragmentationSizes, description: "GC fragmentation.");
                 this.meter.CreateObservableGauge($"{metricPrefix}gc.committed", () => GC.GetGCMemoryInfo().TotalCommittedBytes, "By", description: "GC Committed Bytes.");
                 this.meter.CreateObservableGauge($"{metricPrefix}gc.heapsize", () => GetGarbageCollectionHeapSizes(), "By", "Heap size for all generations.");
 #endif
@@ -71,7 +70,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
             {
                 this.meter.CreateObservableCounter($"{metricPrefix}il.bytes.jitted", () => System.Runtime.JitInfo.GetCompiledILBytes(), "By", description: "IL Bytes Jitted.");
                 this.meter.CreateObservableCounter($"{metricPrefix}methods.jitted.count", () => System.Runtime.JitInfo.GetCompiledMethodCount(), description: "Number of Methods Jitted.");
-                this.meter.CreateObservableGauge($"{metricPrefix}time.in.jit", () => System.Runtime.JitInfo.GetCompilationTime().Ticks * NanosecondsPerTick, "ns", description: "Time spent in JIT.");
+                this.meter.CreateObservableCounter($"{metricPrefix}time.in.jit", () => System.Runtime.JitInfo.GetCompilationTime().Ticks * NanosecondsPerTick, "ns", description: "Time spent in JIT.");
             }
 #endif
 
@@ -88,7 +87,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
             if (options.IsAssembliesEnabled)
             {
-                this.meter.CreateObservableCounter($"{metricPrefix}assembly.count", () => (long)AppDomain.CurrentDomain.GetAssemblies().Length, description: "Number of Assemblies Loaded.");
+                this.meter.CreateObservableGauge($"{metricPrefix}assembly.count", () => (long)AppDomain.CurrentDomain.GetAssemblies().Length, description: "Number of Assemblies Loaded.");
             }
         }
 
@@ -106,15 +105,20 @@ namespace OpenTelemetry.Instrumentation.Runtime
             }
         }
 
-#if NETCOREAPP3_1_OR_GREATER
-        private static double GetFragmentation()
-        {
-            var gcInfo = GC.GetGCMemoryInfo();
-            return gcInfo.HeapSizeBytes != 0 ? gcInfo.FragmentedBytes * 1.0d / gcInfo.HeapSizeBytes : 0;
-        }
-#endif
-
 #if NET6_0_OR_GREATER
+        private static IEnumerable<Measurement<long>> GetFragmentationSizes()
+        {
+            var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
+            Measurement<long>[] measurements = new Measurement<long>[generationInfo.Length];
+            int maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
+            for (int i = 0; i < maxSupportedLength; ++i)
+            {
+                measurements[i] = new(generationInfo[i].FragmentationAfterBytes, new KeyValuePair<string, object>("gen", GenNames[i]));
+            }
+
+            return measurements;
+        }
+
         private static IEnumerable<Measurement<long>> GetGarbageCollectionHeapSizes()
         {
             var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
