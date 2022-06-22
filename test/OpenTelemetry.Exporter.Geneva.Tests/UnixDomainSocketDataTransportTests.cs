@@ -163,10 +163,10 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
 
                     Console.WriteLine("Destroyed server.");
 
-                    Console.WriteLine("Client will fail during Send, but shouldn't throw exception.");
-                    dataTransport.Send(data, data.Length);
-                    Console.WriteLine("Client will fail during reconnect, but shouldn't throw exception.");
-                    dataTransport.Send(data, data.Length);
+                    Console.WriteLine("Client will fail during Send, and should throw an Exception");
+                    Assert.ThrowsAny<Exception>(() => dataTransport.Send(data, data.Length));
+                    Console.WriteLine("Client will fail during Reconnect, and should throw an Exception");
+                    Assert.ThrowsAny<Exception>(() => dataTransport.Send(data, data.Length));
 
                     using var server2 = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
                     server2.Bind(endpoint);
