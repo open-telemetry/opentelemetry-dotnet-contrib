@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Update a few metrics to be in sync of doc updates for `gc.heap`,
+  `gc.fragmentation.ratio`, `time.in.jit`, `process.cpu.count` and `assembly.count`
+  ([#430](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/430))
 * Add `exception.count` in Runtime metrics
   ([#431](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/431))
 

@@ -75,14 +75,11 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
 
             meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
-            Assert.Equal(4, exportedItems.Count);
+            Assert.Equal(3, exportedItems.Count);
 
             var cpuTimeMetric = exportedItems.First(i => i.Name == "process.cpu.time");
             var sumReceived = GetDoubleSum(cpuTimeMetric);
             Assert.True(sumReceived > 0);
-
-            var cpuCountMetric = exportedItems.First(i => i.Name == "process.cpu.count");
-            Assert.Equal(Environment.ProcessorCount, (int)GetLongSum(cpuCountMetric));
 
             var memoryMetric = exportedItems.First(i => i.Name == "process.memory.usage");
             Assert.True(GetLongSum(memoryMetric) > 0);
