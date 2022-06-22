@@ -164,7 +164,7 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation
                 var send = enqueued.Add(command.EnqueuedToSending);
                 var response = send.Add(command.SentToResponse);
 
-                if (options.EnrichActivityWithEvents)
+                if (options.EnrichActivityWithTimingEvents)
                 {
                     activity.AddEvent(new ActivityEvent("Enqueued", enqueued));
                     activity.AddEvent(new ActivityEvent("Sent", send));

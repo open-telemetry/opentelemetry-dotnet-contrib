@@ -48,6 +48,6 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis
         /// <summary>
         /// Gets or sets a value indicating whether or not the <see cref="StackExchangeRedisCallsInstrumentation"/> should enrich Activity with <see cref="ActivityEvent"/> entries about the Redis command processing/lifetime. Defaults to <see cref="bool">true</see>.
         /// </summary>
-        public bool EnrichActivityWithEvents { get; set; } = true;
+        public bool EnrichActivityWithTimingEvents { get; set; } = true;
     }
 }
