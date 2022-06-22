@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 1.0.0-rc9.5 (source code moved to contrib repo)
+
+Released 2022-Jun-21
+
+* From this version onwards, the source code for this package would be hosted in
+  the
+  [contrib](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/tree/main/src/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule)
+  repo. The source code for this package before this version was hosted on the
+  [main](https://github.com/open-telemetry/opentelemetry-dotnet/tree/core-1.3.0/src/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule)
+  repo.
+
 ## 1.0.0-rc9.4
 
 Released 2022-Jun-03
@@ -10,8 +21,9 @@ Released 2022-Jun-03
 
 Released 2022-Apr-15
 
-* Removes .NET Framework 4.6.1. The minimum .NET Framework
-  version supported is .NET 4.6.2. ([#3190](https://github.com/open-telemetry/opentelemetry-dotnet/issues/3190))
+* Removes .NET Framework 4.6.1. The minimum .NET Framework version supported is
+  .NET 4.6.2.
+  ([#3190](https://github.com/open-telemetry/opentelemetry-dotnet/issues/3190))
 
 ## 1.0.0-rc9.2
 
