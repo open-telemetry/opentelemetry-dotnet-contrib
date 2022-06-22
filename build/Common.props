@@ -31,7 +31,8 @@
     <MicrosoftOwinPkgVer>[4.1.1]</MicrosoftOwinPkgVer>
     <MicrosoftPublicApiAnalyzersPkgVer>[3.3.2]</MicrosoftPublicApiAnalyzersPkgVer>
     <MicrosoftSourceLinkGitHubPkgVer>[1.0.0,2.0)</MicrosoftSourceLinkGitHubPkgVer>
-    <OpenTelemetryExporterInMemoryPkgVer>1.3.0</OpenTelemetryExporterInMemoryPkgVer>
+    <OpenTelemetryApiPkgVer>[1.3.0,2.0)</OpenTelemetryApiPkgVer>
+    <OpenTelemetryExporterInMemoryPkgVer>$(OpenTelemetryApiPkgVer)</OpenTelemetryExporterInMemoryPkgVer>
     <StackExchangeRedisPkgVer>[2.1.58,3.0)</StackExchangeRedisPkgVer>
     <StyleCopAnalyzersPkgVer>[1.2.0-beta.354,2.0)</StyleCopAnalyzersPkgVer>
   </PropertyGroup>
