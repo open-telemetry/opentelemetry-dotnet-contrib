@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 #if NETCOREAPP3_1_OR_GREATER
@@ -33,7 +32,9 @@ namespace OpenTelemetry.Instrumentation.Runtime
         internal static readonly AssemblyName AssemblyName = typeof(RuntimeMetrics).Assembly.GetName();
         internal static readonly string InstrumentationName = AssemblyName.Name;
         internal static readonly string InstrumentationVersion = AssemblyName.Version.ToString();
+#if NET6_0_OR_GREATER
         private const long NanosecondsPerTick = 100;
+#endif
         private static readonly string[] GenNames = new string[] { "gen0", "gen1", "gen2", "loh", "poh" };
         private static readonly int NumberOfGenerations = 3;
         private static string metricPrefix = "process.runtime.dotnet.";
@@ -84,13 +85,6 @@ namespace OpenTelemetry.Instrumentation.Runtime
             }
 #endif
 
-            if (options.IsProcessEnabled)
-            {
-                this.meter.CreateObservableCounter("process.cpu.time", GetProcessorTimes, "s", "Processor time of this process.");
-                this.meter.CreateObservableGauge("process.memory.usage", () => Process.GetCurrentProcess().WorkingSet64, "By", "The amount of physical memory in use.");
-                this.meter.CreateObservableGauge("process.memory.virtual", () => Process.GetCurrentProcess().VirtualMemorySize64, "By", "The amount of committed virtual memory.");
-            }
-
             if (options.IsAssembliesEnabled)
             {
                 this.meter.CreateObservableGauge($"{metricPrefix}assembly.count", () => (long)AppDomain.CurrentDomain.GetAssemblies().Length, description: "Number of Assemblies Loaded.");
@@ -139,12 +133,5 @@ namespace OpenTelemetry.Instrumentation.Runtime
             return measurements;
         }
 #endif
-
-        private static IEnumerable<Measurement<double>> GetProcessorTimes()
-        {
-            var process = Process.GetCurrentProcess();
-            yield return new(process.UserProcessorTime.TotalSeconds, new KeyValuePair<string, object>("state", "user"));
-            yield return new(process.PrivilegedProcessorTime.TotalSeconds, new KeyValuePair<string, object>("state", "system"));
-        }
     }
 }
