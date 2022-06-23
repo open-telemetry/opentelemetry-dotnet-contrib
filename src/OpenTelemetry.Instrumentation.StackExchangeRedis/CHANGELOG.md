@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+
 * Added the EnrichActivityWithTimingEvents option to
   StackExchangeRedisCallsInstrumentationOptions to be able to disable adding
   ActivityEvents (Enqueued, Sent, ResponseReceived) for Redis commands to
