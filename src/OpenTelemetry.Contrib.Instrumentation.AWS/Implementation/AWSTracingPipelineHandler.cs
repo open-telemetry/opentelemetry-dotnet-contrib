@@ -131,11 +131,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation
                     activity.SetTag(AWSSemanticConventions.AttributeAWSRegion, region ?? AWSSDKUtils.DetermineRegion(client.ServiceURL));
                 }
 
-                if (AWSServiceHelper.IsDbService(service))
-                {
-                    activity.SetTag(SemanticConventions.AttributeDbSystem, AWSSemanticConventions.AttributeValueDynamoDb);
-                }
-
                 this.AddRequestSpecificInformation(activity, requestContext, service);
             }
 
@@ -187,10 +182,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation
 
         private void AddRequestSpecificInformation(Activity activity, IRequestContext requestContext, string service)
         {
-            AmazonWebServiceRequest request = requestContext.OriginalRequest;
-
             if (AWSServiceHelper.ServiceParameterMap.TryGetValue(service, out string parameter))
             {
+                AmazonWebServiceRequest request = requestContext.OriginalRequest;
+
                 var property = request.GetType().GetProperty(parameter);
                 if (property != null)
                 {
@@ -199,6 +194,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation
                         activity.SetTag(attribute, property.GetValue(request));
                     }
                 }
+            }
+
+            if (AWSServiceHelper.IsDynamoDbService(service))
+            {
+                activity.SetTag(SemanticConventions.AttributeDbSystem, AWSSemanticConventions.AttributeValueDynamoDb);
             }
         }
 

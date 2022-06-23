@@ -48,7 +48,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation
             return operationName;
         }
 
-        internal static bool IsDbService(string service)
+        internal static bool IsDynamoDbService(string service)
             => DynamoDbService.Equals(service, StringComparison.OrdinalIgnoreCase);
     }
 }
