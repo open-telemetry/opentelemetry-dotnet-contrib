@@ -19,8 +19,6 @@ using OpenTelemetry;
 using OpenTelemetry.Trace;
 using StackExchange.Redis;
 
-namespace GettingStartedPrometheusGrafana;
-
 public class Program
 {
     public static void Main()
