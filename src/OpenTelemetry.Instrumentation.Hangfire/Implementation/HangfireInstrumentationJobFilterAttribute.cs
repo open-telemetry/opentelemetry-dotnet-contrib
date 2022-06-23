@@ -83,7 +83,7 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
         public void OnCreating(CreatingContext creatingContext)
         {
             // Short-circuit if nobody is listening
-            if (!HangfireInstrumentation.ActivitySource.HasListeners() || Activity.Current?.Id is null)
+            if (!HangfireInstrumentation.ActivitySource.HasListeners())
             {
                 return;
             }
