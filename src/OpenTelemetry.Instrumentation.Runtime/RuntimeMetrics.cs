@@ -121,7 +121,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
             {
                 // gen0 collection has never happened before,
                 // do not report the measurements as GC doesn't have this information yet
-                return new Measurement<long>[] { };
+                return Array.Empty<Measurement<long>>();
             }
 
             var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
@@ -141,7 +141,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
             {
                 // gen0 collection has never happened before,
                 // do not report the measurements as GC doesn't have this information yet
-                return new Measurement<long>[] { };
+                return Array.Empty<Measurement<long>>();
             }
 
             var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
