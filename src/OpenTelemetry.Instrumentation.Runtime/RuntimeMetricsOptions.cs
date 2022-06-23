@@ -41,14 +41,14 @@ namespace OpenTelemetry.Instrumentation.Runtime
 #endif
 
         /// <summary>
-        /// Gets or sets a value indicating whether process metrics should be collected.
-        /// </summary>
-        public bool? ProcessEnabled { get; set; }
-
-        /// <summary>
         /// Gets or sets a value indicating whether assembly metrics should be collected.
         /// </summary>
         public bool? AssembliesEnabled { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether exception count metrics should be collected.
+        /// </summary>
+        public bool? ExceptionCountEnabled { get; set; }
 
         /// <summary>
         /// Gets a value indicating whether all metrics are enabled.
@@ -60,8 +60,8 @@ namespace OpenTelemetry.Instrumentation.Runtime
 #if NETCOREAPP3_1_OR_GREATER
         && this.ThreadingEnabled == null
 #endif
-        && this.ProcessEnabled == null
-        && this.AssembliesEnabled == null;
+        && this.AssembliesEnabled == null
+        && this.ExceptionCountEnabled == null;
 
         /// <summary>
         /// Gets a value indicating whether garbage collection metrics is enabled.
@@ -83,13 +83,13 @@ namespace OpenTelemetry.Instrumentation.Runtime
 #endif
 
         /// <summary>
-        /// Gets a value indicating whether process metrics is enabled.
-        /// </summary>
-        internal bool IsProcessEnabled => this.ProcessEnabled == true || this.IsAllEnabled;
-
-        /// <summary>
         /// Gets a value indicating whether assembly metrics is enabled.
         /// </summary>
         internal bool IsAssembliesEnabled => this.AssembliesEnabled == true || this.IsAllEnabled;
+
+        /// <summary>
+        /// Gets a value indicating whether exception count metrics is enabled.
+        /// </summary>
+        internal bool IsExceptionCountEnabled => this.ExceptionCountEnabled == true || this.IsAllEnabled;
     }
 }
