@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 #if NETCOREAPP3_1_OR_GREATER
@@ -33,7 +32,9 @@ namespace OpenTelemetry.Instrumentation.Runtime
         internal static readonly AssemblyName AssemblyName = typeof(RuntimeMetrics).Assembly.GetName();
         internal static readonly string InstrumentationName = AssemblyName.Name;
         internal static readonly string InstrumentationVersion = AssemblyName.Version.ToString();
+#if NET6_0_OR_GREATER
         private const long NanosecondsPerTick = 100;
+#endif
         private static readonly string[] GenNames = new string[] { "gen0", "gen1", "gen2", "loh", "poh" };
         private static readonly int NumberOfGenerations = 3;
         private static string metricPrefix = "process.runtime.dotnet.";
@@ -49,17 +50,16 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
             if (options.IsGcEnabled)
             {
-                // TODO: Almost all the ObservableGauge should be ObservableUpDownCounter (except for CPU utilization and fragmentation.ratio.
+                // TODO: Almost all the ObservableGauge should be ObservableUpDownCounter (except for CPU utilization).
                 // Replace them once ObservableUpDownCounter is available.
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.heap", () => GC.GetTotalMemory(false), "By", "GC Heap Size.");
                 this.meter.CreateObservableGauge($"{metricPrefix}gc.count", () => GetGarbageCollectionCounts(), description: "GC Count for all generations.");
 
 #if NETCOREAPP3_1_OR_GREATER
                 this.meter.CreateObservableCounter($"{metricPrefix}gc.allocated.bytes", () => GC.GetTotalAllocatedBytes(), "By", "Allocation Rate.");
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.fragmentation.ratio", GetFragmentation, description: "GC Fragmentation.");
 #endif
 
 #if NET6_0_OR_GREATER
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.fragmentation.size", GetFragmentationSizes, description: "GC fragmentation.");
                 this.meter.CreateObservableGauge($"{metricPrefix}gc.committed", () => GC.GetGCMemoryInfo().TotalCommittedBytes, "By", description: "GC Committed Bytes.");
                 this.meter.CreateObservableGauge($"{metricPrefix}gc.heapsize", () => GetGarbageCollectionHeapSizes(), "By", "Heap size for all generations.");
 #endif
@@ -70,7 +70,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
             {
                 this.meter.CreateObservableCounter($"{metricPrefix}il.bytes.jitted", () => System.Runtime.JitInfo.GetCompiledILBytes(), "By", description: "IL Bytes Jitted.");
                 this.meter.CreateObservableCounter($"{metricPrefix}methods.jitted.count", () => System.Runtime.JitInfo.GetCompiledMethodCount(), description: "Number of Methods Jitted.");
-                this.meter.CreateObservableGauge($"{metricPrefix}time.in.jit", () => System.Runtime.JitInfo.GetCompilationTime().Ticks * NanosecondsPerTick, "ns", description: "Time spent in JIT.");
+                this.meter.CreateObservableCounter($"{metricPrefix}time.in.jit", () => System.Runtime.JitInfo.GetCompilationTime().Ticks * NanosecondsPerTick, "ns", description: "Time spent in JIT.");
             }
 #endif
 
@@ -85,19 +85,18 @@ namespace OpenTelemetry.Instrumentation.Runtime
             }
 #endif
 
-            if (options.IsProcessEnabled)
-            {
-                this.meter.CreateObservableCounter("process.cpu.time", GetProcessorTimes, "s", "Processor time of this process.");
-
-                // Not yet official: https://github.com/open-telemetry/opentelemetry-specification/pull/2392
-                this.meter.CreateObservableGauge("process.cpu.count", () => (long)Environment.ProcessorCount, description: "The number of available logical CPUs.");
-                this.meter.CreateObservableGauge("process.memory.usage", () => Process.GetCurrentProcess().WorkingSet64, "By", "The amount of physical memory in use.");
-                this.meter.CreateObservableGauge("process.memory.virtual", () => Process.GetCurrentProcess().VirtualMemorySize64, "By", "The amount of committed virtual memory.");
-            }
-
             if (options.IsAssembliesEnabled)
             {
-                this.meter.CreateObservableCounter($"{metricPrefix}assembly.count", () => (long)AppDomain.CurrentDomain.GetAssemblies().Length, description: "Number of Assemblies Loaded.");
+                this.meter.CreateObservableGauge($"{metricPrefix}assembly.count", () => (long)AppDomain.CurrentDomain.GetAssemblies().Length, description: "Number of Assemblies Loaded.");
+            }
+
+            if (options.IsExceptionCountEnabled)
+            {
+                var exceptionCounter = this.meter.CreateCounter<long>($"{metricPrefix}exception.count", description: "Number of exceptions thrown.");
+                AppDomain.CurrentDomain.FirstChanceException += (source, e) =>
+                {
+                    exceptionCounter.Add(1);
+                };
             }
         }
 
@@ -115,15 +114,20 @@ namespace OpenTelemetry.Instrumentation.Runtime
             }
         }
 
-#if NETCOREAPP3_1_OR_GREATER
-        private static double GetFragmentation()
-        {
-            var gcInfo = GC.GetGCMemoryInfo();
-            return gcInfo.HeapSizeBytes != 0 ? gcInfo.FragmentedBytes * 1.0d / gcInfo.HeapSizeBytes : 0;
-        }
-#endif
-
 #if NET6_0_OR_GREATER
+        private static IEnumerable<Measurement<long>> GetFragmentationSizes()
+        {
+            var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
+            Measurement<long>[] measurements = new Measurement<long>[generationInfo.Length];
+            int maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
+            for (int i = 0; i < maxSupportedLength; ++i)
+            {
+                measurements[i] = new(generationInfo[i].FragmentationAfterBytes, new KeyValuePair<string, object>("gen", GenNames[i]));
+            }
+
+            return measurements;
+        }
+
         private static IEnumerable<Measurement<long>> GetGarbageCollectionHeapSizes()
         {
             var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
@@ -138,12 +142,5 @@ namespace OpenTelemetry.Instrumentation.Runtime
             return measurements;
         }
 #endif
-
-        private static IEnumerable<Measurement<double>> GetProcessorTimes()
-        {
-            var process = Process.GetCurrentProcess();
-            yield return new(process.UserProcessorTime.TotalSeconds, new KeyValuePair<string, object>("state", "user"));
-            yield return new(process.PrivilegedProcessorTime.TotalSeconds, new KeyValuePair<string, object>("state", "system"));
-        }
     }
 }

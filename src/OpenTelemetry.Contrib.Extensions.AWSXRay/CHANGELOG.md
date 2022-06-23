@@ -1,5 +1,11 @@
 # Changelog - OpenTelemetry.Contrib.Extensions.AWSXRay
 
+## 1.3.0 [TBD]
+
+* Enhancement - AWSXRayIdGenerator - Generate X-Ray IDs with global Random
+  instance instead of recreating with ThreadLocal
+  ([#380](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/380))
+
 ## 1.2.0 [2022-May-18]
 
 * Enhancement - AWSEKSResourceDetector - Validate ClusterName/ContainerID
