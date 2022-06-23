@@ -89,6 +89,15 @@ namespace OpenTelemetry.Instrumentation.Runtime
             {
                 this.meter.CreateObservableGauge($"{metricPrefix}assembly.count", () => (long)AppDomain.CurrentDomain.GetAssemblies().Length, description: "Number of Assemblies Loaded.");
             }
+
+            if (options.IsExceptionCountEnabled)
+            {
+                var exceptionCounter = this.meter.CreateCounter<long>($"{metricPrefix}exception.count", description: "Number of exceptions thrown.");
+                AppDomain.CurrentDomain.FirstChanceException += (source, e) =>
+                {
+                    exceptionCounter.Add(1);
+                };
+            }
         }
 
         /// <inheritdoc/>

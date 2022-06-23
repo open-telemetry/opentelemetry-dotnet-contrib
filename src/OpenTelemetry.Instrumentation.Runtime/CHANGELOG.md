@@ -7,6 +7,8 @@
   ([#430](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/430))
 * Remove Process related metrics from .NET Runtime metrics
   ([#446](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/446))
+* Add `exception.count` in Runtime metrics
+  ([#431](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/431))
 
 ## 0.2.0-alpha.1
 
