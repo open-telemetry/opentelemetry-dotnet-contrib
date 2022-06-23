@@ -117,6 +117,13 @@ namespace OpenTelemetry.Instrumentation.Runtime
 #if NET6_0_OR_GREATER
         private static IEnumerable<Measurement<long>> GetFragmentationSizes()
         {
+            if (GC.CollectionCount(0) == 0)
+            {
+                // gen0 collection has never happened before,
+                // do not report the measurements as GC doesn't have this information yet
+                return new Measurement<long>[] { };
+            }
+
             var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
             Measurement<long>[] measurements = new Measurement<long>[generationInfo.Length];
             int maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
@@ -130,8 +137,14 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
         private static IEnumerable<Measurement<long>> GetGarbageCollectionHeapSizes()
         {
-            var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
+            if (GC.CollectionCount(0) == 0)
+            {
+                // gen0 collection has never happened before,
+                // do not report the measurements as GC doesn't have this information yet
+                return new Measurement<long>[] { };
+            }
 
+            var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
             Measurement<long>[] measurements = new Measurement<long>[generationInfo.Length];
             int maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
             for (int i = 0; i < maxSupportedLength; ++i)
