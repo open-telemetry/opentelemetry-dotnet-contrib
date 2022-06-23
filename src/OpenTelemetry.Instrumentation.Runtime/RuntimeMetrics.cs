@@ -37,7 +37,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
 #endif
         private static readonly string[] GenNames = new string[] { "gen0", "gen1", "gen2", "loh", "poh" };
         private static readonly int NumberOfGenerations = 3;
-        private static bool isGcInfoAvailable = false;
+        private static bool isGcInfoAvailable;
         private static string metricPrefix = "process.runtime.dotnet.";
         private readonly Meter meter;
 
