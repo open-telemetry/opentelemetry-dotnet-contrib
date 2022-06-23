@@ -37,6 +37,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
 #endif
         private static readonly string[] GenNames = new string[] { "gen0", "gen1", "gen2", "loh", "poh" };
         private static readonly int NumberOfGenerations = 3;
+        private static bool isGcInfoAvailable = false;
         private static string metricPrefix = "process.runtime.dotnet.";
         private readonly Meter meter;
 
@@ -100,6 +101,24 @@ namespace OpenTelemetry.Instrumentation.Runtime
             }
         }
 
+        private static bool IsGcInfoAvailable
+        {
+            get
+            {
+                if (isGcInfoAvailable)
+                {
+                    return true;
+                }
+
+                if (GC.CollectionCount(0) > 0)
+                {
+                    isGcInfoAvailable = true;
+                }
+
+                return isGcInfoAvailable;
+            }
+        }
+
         /// <inheritdoc/>
         public void Dispose()
         {
@@ -117,9 +136,8 @@ namespace OpenTelemetry.Instrumentation.Runtime
 #if NET6_0_OR_GREATER
         private static IEnumerable<Measurement<long>> GetFragmentationSizes()
         {
-            if (GC.CollectionCount(0) == 0)
+            if (!IsGcInfoAvailable)
             {
-                // gen0 collection has never happened before,
                 // do not report the measurements as GC doesn't have this information yet
                 return Array.Empty<Measurement<long>>();
             }
@@ -137,9 +155,8 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
         private static IEnumerable<Measurement<long>> GetGarbageCollectionHeapSizes()
         {
-            if (GC.CollectionCount(0) == 0)
+            if (!IsGcInfoAvailable)
             {
-                // gen0 collection has never happened before,
                 // do not report the measurements as GC doesn't have this information yet
                 return Array.Empty<Measurement<long>>();
             }
