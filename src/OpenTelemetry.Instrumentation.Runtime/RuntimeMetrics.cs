@@ -78,7 +78,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
 #if NETCOREAPP3_1_OR_GREATER
             if (options.IsThreadingEnabled)
             {
-                this.meter.CreateObservableGauge($"{metricPrefix}monitor.lock_contention.count", () => Monitor.LockContentionCount, description: "The number of times there was contention when trying to take the lock on System.Threading.Monitor since the process start.");
+                this.meter.CreateObservableGauge($"{metricPrefix}monitor.lock_contention.count", () => Monitor.LockContentionCount, description: "The number of times there was contention when trying to acquire a monitor lock since the process start. Monitor locks are commonly acquired by using the lock keyword in C#, or by calling Monitor.Enter() and Monitor.TryEnter()");
 
                 this.meter.CreateObservableGauge($"{metricPrefix}thread_pool.threads.count", () => (long)ThreadPool.ThreadCount, description: "The number of thread pool threads that currently exist.");
                 this.meter.CreateObservableGauge($"{metricPrefix}thread_pool.completed_items.count", () => ThreadPool.CompletedWorkItemCount, description: "The number of work items that have been processed by the thread pool since the process start.");
