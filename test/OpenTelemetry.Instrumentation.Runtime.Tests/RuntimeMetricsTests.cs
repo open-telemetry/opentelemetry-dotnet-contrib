@@ -32,15 +32,16 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
             using var meterProvider = Sdk.CreateMeterProviderBuilder()
                  .AddRuntimeMetrics(options =>
                  {
-                     options.GcEnabled = true;
+                     options.GcMetricOption = Options.GcMetricOptions.All;
 #if NETCOREAPP3_1_OR_GREATER
-                     options.ThreadingEnabled = true;
+                     options.ThreadingMetricOption = Options.ThreadingMetricOptions.All;
 #endif
 #if NET6_0_OR_GREATER
 
-                     options.JitEnabled = true;
+                     options.JitMetricOption = Options.JitMetricOptions.All;
 #endif
-                     options.AssembliesEnabled = true;
+                     options.AssemblyMetricOption = Options.AssemblyMetricOptions.All;
+                     options.ExceptionMetricOption = Options.ExceptionMetricOptions.All;
                  })
                  .AddInMemoryExporter(exportedItems)
                 .Build();

@@ -25,44 +25,47 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
         {
             var options = new RuntimeMetricsOptions();
 
-            Assert.True(options.IsGcEnabled);
+            Assert.True(options.GetGcOption == Options.GcMetricOptions.All);
 #if NET6_0_OR_GREATER
-            Assert.True(options.IsJitEnabled);
+            Assert.True(options.GetJitOption == Options.JitMetricOptions.All);
 #endif
 #if NETCOREAPP3_1_OR_GREATER
-            Assert.True(options.IsThreadingEnabled);
+            Assert.True(options.GetThreadingOption == Options.ThreadingMetricOptions.All);
 #endif
-            Assert.True(options.IsAssembliesEnabled);
-            Assert.True(options.IsAllEnabled);
+            Assert.True(options.GetAssemblyOption == Options.AssemblyMetricOptions.All);
+            Assert.True(options.GetExceptionOption == Options.ExceptionMetricOptions.All);
+            Assert.True(options.IsDefault);
         }
 
         [Fact]
         public void Enable_Gc_Only()
         {
-            var options = new RuntimeMetricsOptions { GcEnabled = true };
+            var options = new RuntimeMetricsOptions { GcMetricOption = Options.GcMetricOptions.All };
 
-            Assert.True(options.IsGcEnabled);
+            Assert.True(options.GetGcOption == Options.GcMetricOptions.All);
 #if NET6_0_OR_GREATER
-            Assert.False(options.IsJitEnabled);
+            Assert.True(options.GetJitOption == Options.JitMetricOptions.None);
 #endif
 #if NETCOREAPP3_1_OR_GREATER
-            Assert.False(options.IsThreadingEnabled);
+            Assert.True(options.GetThreadingOption == Options.ThreadingMetricOptions.None);
 #endif
-            Assert.False(options.IsAssembliesEnabled);
-            Assert.False(options.IsAllEnabled);
+            Assert.True(options.GetAssemblyOption == Options.AssemblyMetricOptions.None);
+            Assert.True(options.GetExceptionOption == Options.ExceptionMetricOptions.None);
+            Assert.False(options.IsDefault);
         }
 
 #if NET6_0_OR_GREATER
         [Fact]
         public void Enable_Jit_Only()
         {
-            var options = new RuntimeMetricsOptions { JitEnabled = true };
+            var options = new RuntimeMetricsOptions { JitMetricOption = Options.JitMetricOptions.All };
 
-            Assert.False(options.IsGcEnabled);
-            Assert.True(options.IsJitEnabled);
-            Assert.False(options.IsThreadingEnabled);
-            Assert.False(options.IsAssembliesEnabled);
-            Assert.False(options.IsAllEnabled);
+            Assert.True(options.GetGcOption == Options.GcMetricOptions.None);
+            Assert.True(options.GetJitOption == Options.JitMetricOptions.All);
+            Assert.True(options.GetThreadingOption == Options.ThreadingMetricOptions.None);
+            Assert.True(options.GetAssemblyOption == Options.AssemblyMetricOptions.None);
+            Assert.True(options.GetExceptionOption == Options.ExceptionMetricOptions.None);
+            Assert.False(options.IsDefault);
         }
 #endif
 
@@ -70,48 +73,68 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
         [Fact]
         public void Enable_Threading_Only()
         {
-            var options = new RuntimeMetricsOptions { ThreadingEnabled = true };
+            var options = new RuntimeMetricsOptions { ThreadingMetricOption = Options.ThreadingMetricOptions.All };
 
-            Assert.False(options.IsGcEnabled);
+            Assert.True(options.GetGcOption == Options.GcMetricOptions.None);
 #if NET6_0_OR_GREATER
-            Assert.False(options.IsJitEnabled);
+            Assert.True(options.GetJitOption == Options.JitMetricOptions.None);
 #endif
-            Assert.True(options.IsThreadingEnabled);
-            Assert.False(options.IsAssembliesEnabled);
-            Assert.False(options.IsAllEnabled);
+            Assert.True(options.GetThreadingOption == Options.ThreadingMetricOptions.All);
+            Assert.True(options.GetAssemblyOption == Options.AssemblyMetricOptions.None);
+            Assert.True(options.GetExceptionOption == Options.ExceptionMetricOptions.None);
+            Assert.False(options.IsDefault);
         }
 #endif
 
         [Fact]
         public void Enable_Assemblies_Only()
         {
-            var options = new RuntimeMetricsOptions { AssembliesEnabled = true };
+            var options = new RuntimeMetricsOptions { AssemblyMetricOption = Options.AssemblyMetricOptions.All };
 
-            Assert.False(options.IsGcEnabled);
+            Assert.True(options.GetGcOption == Options.GcMetricOptions.None);
 #if NET6_0_OR_GREATER
-            Assert.False(options.IsJitEnabled);
+            Assert.True(options.GetJitOption == Options.JitMetricOptions.None);
 #endif
 #if NETCOREAPP3_1_OR_GREATER
-            Assert.False(options.IsThreadingEnabled);
+            Assert.True(options.GetThreadingOption == Options.ThreadingMetricOptions.None);
 #endif
-            Assert.True(options.IsAssembliesEnabled);
-            Assert.False(options.IsAllEnabled);
+            Assert.True(options.GetAssemblyOption == Options.AssemblyMetricOptions.All);
+            Assert.True(options.GetExceptionOption == Options.ExceptionMetricOptions.None);
+            Assert.False(options.IsDefault);
+        }
+
+        [Fact]
+        public void Enable_Exceptions_Only()
+        {
+            var options = new RuntimeMetricsOptions { ExceptionMetricOption = Options.ExceptionMetricOptions.All };
+
+            Assert.True(options.GetGcOption == Options.GcMetricOptions.None);
+#if NET6_0_OR_GREATER
+            Assert.True(options.GetJitOption == Options.JitMetricOptions.None);
+#endif
+#if NETCOREAPP3_1_OR_GREATER
+            Assert.True(options.GetThreadingOption == Options.ThreadingMetricOptions.None);
+#endif
+            Assert.True(options.GetAssemblyOption == Options.AssemblyMetricOptions.None);
+            Assert.True(options.GetExceptionOption == Options.ExceptionMetricOptions.All);
+            Assert.False(options.IsDefault);
         }
 
         [Fact]
         public void Enable_Multiple()
         {
-            var options = new RuntimeMetricsOptions { GcEnabled = true, AssembliesEnabled = true };
+            var options = new RuntimeMetricsOptions { GcMetricOption = Options.GcMetricOptions.All, AssemblyMetricOption = Options.AssemblyMetricOptions.All };
 
-            Assert.True(options.IsGcEnabled);
+            Assert.True(options.GetGcOption == Options.GcMetricOptions.All);
 #if NET6_0_OR_GREATER
-            Assert.False(options.IsJitEnabled);
+            Assert.True(options.GetJitOption == Options.JitMetricOptions.None);
 #endif
 #if NETCOREAPP3_1_OR_GREATER
-            Assert.False(options.IsThreadingEnabled);
+            Assert.True(options.GetThreadingOption == Options.ThreadingMetricOptions.None);
 #endif
-            Assert.True(options.IsAssembliesEnabled);
-            Assert.False(options.IsAllEnabled);
+            Assert.True(options.GetAssemblyOption == Options.AssemblyMetricOptions.All);
+            Assert.True(options.GetExceptionOption == Options.ExceptionMetricOptions.None);
+            Assert.False(options.IsDefault);
         }
     }
 }

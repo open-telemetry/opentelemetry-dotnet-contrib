@@ -36,11 +36,12 @@ namespace OpenTelemetry.Instrumentation.Runtime.Options
 #if NETCOREAPP3_1_OR_GREATER
             | AllocatedBytes
 #endif
-
 #if NET6_0_OR_GREATER
             | CommitedBytes | HeapSize | FragmentationSize
 #endif
+#pragma warning disable SA1001 // Commas should be spaced correctly
             ,
+#pragma warning restore SA1001 // Commas should be spaced correctly
 
         /// <summary>
         /// Set flag for whether to collect metrics for garbage collection count.

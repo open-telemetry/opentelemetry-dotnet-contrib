@@ -22,6 +22,8 @@ using System.Reflection;
 using System.Threading;
 #endif
 
+using OpenTelemetry.Instrumentation.Runtime.Options;
+
 namespace OpenTelemetry.Instrumentation.Runtime
 {
     /// <summary>
@@ -49,49 +51,87 @@ namespace OpenTelemetry.Instrumentation.Runtime
         {
             this.meter = new Meter(InstrumentationName, InstrumentationVersion);
 
-            if (options.IsGcEnabled)
+            if ((options.GetGcOption & GcMetricOptions.Count) != 0)
             {
                 // TODO: Almost all the ObservableGauge should be ObservableUpDownCounter (except for CPU utilization).
                 // Replace them once ObservableUpDownCounter is available.
                 this.meter.CreateObservableGauge($"{metricPrefix}gc.count", () => GetGarbageCollectionCounts(), description: "GC Count for all generations.");
-
-#if NETCOREAPP3_1_OR_GREATER
-                this.meter.CreateObservableCounter($"{metricPrefix}gc.allocated.bytes", () => GC.GetTotalAllocatedBytes(), "By", "Allocation Rate.");
-#endif
-
-#if NET6_0_OR_GREATER
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.committed", () => GetGarbageCollectionCommittedBytes(), "By", description: "GC Committed Bytes.");
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.heapsize", () => GetGarbageCollectionHeapSizes(), "By", "Heap size for all generations.");
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.fragmentation.size", GetFragmentationSizes, description: "GC fragmentation.");
-#endif
             }
 
+#if NETCOREAPP3_1_OR_GREATER
+            if ((options.GetGcOption & GcMetricOptions.AllocatedBytes) != 0)
+            {
+                this.meter.CreateObservableCounter($"{metricPrefix}gc.allocated.bytes", () => GC.GetTotalAllocatedBytes(), "By", "Allocation Rate.");
+            }
+#endif
+
 #if NET6_0_OR_GREATER
-            if (options.IsJitEnabled)
+            if ((options.GetGcOption & GcMetricOptions.CommitedBytes) != 0)
+            {
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.committed", () => GetGarbageCollectionCommittedBytes(), "By", description: "GC Committed Bytes.");
+            }
+
+            if ((options.GetGcOption & GcMetricOptions.HeapSize) != 0)
+            {
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.heapsize", () => GetGarbageCollectionHeapSizes(), "By", "Heap size for all generations.");
+            }
+
+            if ((options.GetGcOption & GcMetricOptions.FragmentationSize) != 0)
+            {
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.fragmentation.size", GetFragmentationSizes, description: "GC fragmentation.");
+            }
+#endif
+
+#if NET6_0_OR_GREATER
+            if ((options.GetJitOption & JitMetricOptions.TotalBytes) != 0)
             {
                 this.meter.CreateObservableCounter($"{metricPrefix}il.bytes.jitted", () => System.Runtime.JitInfo.GetCompiledILBytes(), "By", description: "IL Bytes Jitted.");
+            }
+
+            if ((options.GetJitOption & JitMetricOptions.MethodCount) != 0)
+            {
                 this.meter.CreateObservableCounter($"{metricPrefix}methods.jitted.count", () => System.Runtime.JitInfo.GetCompiledMethodCount(), description: "Number of Methods Jitted.");
+            }
+
+            if ((options.GetJitOption & JitMetricOptions.ProcessingTime) != 0)
+            {
                 this.meter.CreateObservableCounter($"{metricPrefix}time.in.jit", () => System.Runtime.JitInfo.GetCompilationTime().Ticks * NanosecondsPerTick, "ns", description: "Time spent in JIT.");
             }
 #endif
 
 #if NETCOREAPP3_1_OR_GREATER
-            if (options.IsThreadingEnabled)
+            if ((options.GetThreadingOption & ThreadingMetricOptions.MonitorLockContentionCount) != 0)
             {
                 this.meter.CreateObservableGauge($"{metricPrefix}monitor.lock.contention.count", () => Monitor.LockContentionCount, description: "Monitor Lock Contention Count.");
+            }
+
+            if ((options.GetThreadingOption & ThreadingMetricOptions.ThreadPoolThreadCount) != 0)
+            {
                 this.meter.CreateObservableGauge($"{metricPrefix}threadpool.thread.count", () => (long)ThreadPool.ThreadCount, description: "ThreadPool Thread Count.");
+            }
+
+            if ((options.GetThreadingOption & ThreadingMetricOptions.ThreadPoolCompletedWorkItemCount) != 0)
+            {
                 this.meter.CreateObservableGauge($"{metricPrefix}threadpool.completed.items.count", () => ThreadPool.CompletedWorkItemCount, description: "ThreadPool Completed Work Item Count.");
+            }
+
+            if ((options.GetThreadingOption & ThreadingMetricOptions.ThreadPoolPendingWorkItemCount) != 0)
+            {
                 this.meter.CreateObservableGauge($"{metricPrefix}threadpool.queue.length", () => ThreadPool.PendingWorkItemCount, description: "ThreadPool Queue Length.");
+            }
+
+            if ((options.GetThreadingOption & ThreadingMetricOptions.ActiveTimerCount) != 0)
+            {
                 this.meter.CreateObservableGauge($"{metricPrefix}active.timer.count", () => Timer.ActiveCount, description: "Number of Active Timers.");
             }
 #endif
 
-            if (options.IsAssembliesEnabled)
+            if ((options.GetAssemblyOption & AssemblyMetricOptions.Count) != 0)
             {
                 this.meter.CreateObservableGauge($"{metricPrefix}assembly.count", () => (long)AppDomain.CurrentDomain.GetAssemblies().Length, description: "Number of Assemblies Loaded.");
             }
 
-            if (options.IsExceptionCountEnabled)
+            if ((options.GetExceptionOption & ExceptionMetricOptions.Count) != 0)
             {
                 var exceptionCounter = this.meter.CreateCounter<long>($"{metricPrefix}exception.count", description: "Number of exceptions thrown.");
                 AppDomain.CurrentDomain.FirstChanceException += (source, e) =>
