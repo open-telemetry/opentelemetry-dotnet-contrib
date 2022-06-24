@@ -69,31 +69,33 @@ namespace OpenTelemetry.Instrumentation.Runtime
 #if NET6_0_OR_GREATER
             if (options.IsJitEnabled)
             {
-                this.meter.CreateObservableCounter($"{metricPrefix}il.bytes.jitted", () => System.Runtime.JitInfo.GetCompiledILBytes(), "By", description: "IL Bytes Jitted.");
-                this.meter.CreateObservableCounter($"{metricPrefix}methods.jitted.count", () => System.Runtime.JitInfo.GetCompiledMethodCount(), description: "Number of Methods Jitted.");
-                this.meter.CreateObservableCounter($"{metricPrefix}time.in.jit", () => System.Runtime.JitInfo.GetCompilationTime().Ticks * NanosecondsPerTick, "ns", description: "Time spent in JIT.");
+                this.meter.CreateObservableCounter($"{metricPrefix}jit.il_compiled", () => System.Runtime.JitInfo.GetCompiledILBytes(), unit: "By", description: "Count of bytes of intermediate language that have been compiled since the process start.");
+                this.meter.CreateObservableCounter($"{metricPrefix}jit.methods_compiled", () => System.Runtime.JitInfo.GetCompiledMethodCount(), description: "Count of methods that have been compiled since the process start.");
+                this.meter.CreateObservableCounter($"{metricPrefix}jit.compilation_time", () => System.Runtime.JitInfo.GetCompilationTime().Ticks * NanosecondsPerTick, unit: "ns", description: "The amount of time the JIT compiler has spent compiling methods since the process start.");
             }
 #endif
 
 #if NETCOREAPP3_1_OR_GREATER
             if (options.IsThreadingEnabled)
             {
-                this.meter.CreateObservableGauge($"{metricPrefix}monitor.lock.contention.count", () => Monitor.LockContentionCount, description: "Monitor Lock Contention Count.");
-                this.meter.CreateObservableGauge($"{metricPrefix}threadpool.thread.count", () => (long)ThreadPool.ThreadCount, description: "ThreadPool Thread Count.");
-                this.meter.CreateObservableGauge($"{metricPrefix}threadpool.completed.items.count", () => ThreadPool.CompletedWorkItemCount, description: "ThreadPool Completed Work Item Count.");
-                this.meter.CreateObservableGauge($"{metricPrefix}threadpool.queue.length", () => ThreadPool.PendingWorkItemCount, description: "ThreadPool Queue Length.");
-                this.meter.CreateObservableGauge($"{metricPrefix}active.timer.count", () => Timer.ActiveCount, description: "Number of Active Timers.");
+                this.meter.CreateObservableGauge($"{metricPrefix}monitor.lock_contention.count", () => Monitor.LockContentionCount, description: "The number of times there was contention when trying to take the lock on System.Threading.Monitor since the process start.");
+
+                this.meter.CreateObservableGauge($"{metricPrefix}thread_pool.threads.count", () => (long)ThreadPool.ThreadCount, description: "The number of thread pool threads that currently exist.");
+                this.meter.CreateObservableGauge($"{metricPrefix}thread_pool.completed_items.count", () => ThreadPool.CompletedWorkItemCount, description: "The number of work items that have been processed by the thread pool since the process start.");
+                this.meter.CreateObservableGauge($"{metricPrefix}thread_pool.queue.length", () => ThreadPool.PendingWorkItemCount, description: "The number of work items that are currently queued to be processed by the thread pool.");
+
+                this.meter.CreateObservableGauge($"{metricPrefix}timer.count", () => Timer.ActiveCount, description: "The number of System.Threading.Timer instances that are currently active. An active timer is registered to tick at some point in the future, and has not yet been canceled.");
             }
 #endif
 
             if (options.IsAssembliesEnabled)
             {
-                this.meter.CreateObservableGauge($"{metricPrefix}assembly.count", () => (long)AppDomain.CurrentDomain.GetAssemblies().Length, description: "Number of Assemblies Loaded.");
+                this.meter.CreateObservableGauge($"{metricPrefix}assembly.count", () => (long)AppDomain.CurrentDomain.GetAssemblies().Length, description: "The number of assemblies that are currently loaded into the execution context of the application domain.");
             }
 
             if (options.IsExceptionCountEnabled)
             {
-                var exceptionCounter = this.meter.CreateCounter<long>($"{metricPrefix}exception.count", description: "Number of exceptions thrown.");
+                var exceptionCounter = this.meter.CreateCounter<long>($"{metricPrefix}exception.count", description: "Count of exceptions that have been thrown in managed code in the current application domain, since the observation started.");
                 AppDomain.CurrentDomain.FirstChanceException += (source, e) =>
                 {
                     exceptionCounter.Add(1);
