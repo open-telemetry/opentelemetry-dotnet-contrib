@@ -138,7 +138,6 @@ namespace OpenTelemetry.Instrumentation.Runtime
         {
             if (!IsGcInfoAvailable)
             {
-                // do not report the measurements as GC doesn't have this information yet
                 return Array.Empty<Measurement<long>>();
             }
 
@@ -157,7 +156,6 @@ namespace OpenTelemetry.Instrumentation.Runtime
         {
             if (!IsGcInfoAvailable)
             {
-                // do not report the measurements as GC doesn't have this information yet
                 return Array.Empty<Measurement<long>>();
             }
 
@@ -168,7 +166,6 @@ namespace OpenTelemetry.Instrumentation.Runtime
         {
             if (!IsGcInfoAvailable)
             {
-                // do not report the measurements as GC doesn't have this information yet
                 return Array.Empty<Measurement<long>>();
             }
 
