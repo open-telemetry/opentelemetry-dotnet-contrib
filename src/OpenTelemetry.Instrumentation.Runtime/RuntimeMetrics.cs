@@ -90,7 +90,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
             if (options.IsAssembliesEnabled)
             {
-                this.meter.CreateObservableGauge($"{metricPrefix}assembly.count", () => (long)AppDomain.CurrentDomain.GetAssemblies().Length, description: "The number of assemblies that are currently loaded into the execution context of the application domain.");
+                this.meter.CreateObservableGauge($"{metricPrefix}assembly.count", () => (long)AppDomain.CurrentDomain.GetAssemblies().Length, description: "The number of .NET assemblies that are currently loaded.");
             }
 
             if (options.IsExceptionCountEnabled)
