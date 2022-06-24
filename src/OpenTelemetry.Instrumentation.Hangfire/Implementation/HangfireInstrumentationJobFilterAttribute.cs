@@ -26,8 +26,6 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
 
     internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, IServerFilter, IClientFilter
     {
-        private static readonly TextMapPropagator Propagator = Propagators.DefaultTextMapPropagator;
-
         public void OnPerforming(PerformingContext performingContext)
         {
             // Short-circuit if nobody is listening
@@ -40,7 +38,7 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
             ActivityContext parentContext = default;
             if (activityContextData is not null)
             {
-                var propagationContext = Propagator.Extract(new PropagationContext(default, Baggage.Current), activityContextData, ExtractActivityProperties);
+                var propagationContext = Propagators.DefaultTextMapPropagator.Extract(new PropagationContext(default, Baggage.Current), activityContextData, ExtractActivityProperties);
                 parentContext = propagationContext.ActivityContext;
             }
 
@@ -95,7 +93,7 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
             }
 
             var activityContextData = new Dictionary<string, string>();
-            Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), activityContextData, InjectActivityProperties);
+            Propagators.DefaultTextMapPropagator.Inject(new PropagationContext(contextToInject, Baggage.Current), activityContextData, InjectActivityProperties);
             creatingContext.SetJobParameter(HangfireInstrumentationConstants.ActivityContextKey, activityContextData);
         }
 
