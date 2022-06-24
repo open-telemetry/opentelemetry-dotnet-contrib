@@ -51,18 +51,21 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
             if (options.IsGcEnabled)
             {
-                // TODO: Almost all the ObservableGauge should be ObservableUpDownCounter (except for CPU utilization).
-                // Replace them once ObservableUpDownCounter is available.
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.count", () => GetGarbageCollectionCounts(), description: "GC Count for all generations.");
+                this.meter.CreateObservableCounter($"{metricPrefix}gc.count", () => GetGarbageCollectionCounts(), description: "Number of times garbage collection has occurred since process start.");
 
 #if NETCOREAPP3_1_OR_GREATER
-                this.meter.CreateObservableCounter($"{metricPrefix}gc.allocated.bytes", () => GC.GetTotalAllocatedBytes(), "By", "Allocation Rate.");
+                this.meter.CreateObservableCounter($"{metricPrefix}gc.allocated", () => GC.GetTotalAllocatedBytes(), unit: "By", description: "Count of the bytes allocated since the process start, this does not include any native allocations.");
 #endif
 
 #if NET6_0_OR_GREATER
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.committed", () => GetGarbageCollectionCommittedBytes(), "By", description: "GC Committed Bytes.");
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.heapsize", () => GetGarbageCollectionHeapSizes(), "By", "Heap size for all generations.");
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.fragmentation.size", GetFragmentationSizes, description: "GC fragmentation.");
+                // TODO: change to ObservableUpDownCounter
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.committed", () => GetGarbageCollectionCommittedBytes(), unit: "By", description: "The committed bytes of the managed heap, as observed during the latest garbage collection. If garbage collection hasn't occurred yet, the value will be unavailable.");
+
+                // TODO: change to ObservableUpDownCounter
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.heap_size", () => GetGarbageCollectionHeapSizes(), unit: "By", description: "The heap size (including fragmentation), as observed during the latest garbage collection. If garbage collection hasn't occurred yet, the value will be unavailable.");
+
+                // TODO: change to ObservableUpDownCounter
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.fragmentation.size", GetFragmentationSizes, unit: "By", description: "The heap fragmentation, as observed during the latest garbage collection. If garbage collection hasn't occurred yet, the value will be unavailable.");
 #endif
             }
 
@@ -78,16 +81,26 @@ namespace OpenTelemetry.Instrumentation.Runtime
 #if NETCOREAPP3_1_OR_GREATER
             if (options.IsThreadingEnabled)
             {
+                // TODO: change to ObservableUpDownCounter
                 this.meter.CreateObservableGauge($"{metricPrefix}monitor.lock.contention.count", () => Monitor.LockContentionCount, description: "Monitor Lock Contention Count.");
+
+                // TODO: change to ObservableUpDownCounter
                 this.meter.CreateObservableGauge($"{metricPrefix}threadpool.thread.count", () => (long)ThreadPool.ThreadCount, description: "ThreadPool Thread Count.");
+
+                // TODO: change to ObservableUpDownCounter
                 this.meter.CreateObservableGauge($"{metricPrefix}threadpool.completed.items.count", () => ThreadPool.CompletedWorkItemCount, description: "ThreadPool Completed Work Item Count.");
+
+                // TODO: change to ObservableUpDownCounter
                 this.meter.CreateObservableGauge($"{metricPrefix}threadpool.queue.length", () => ThreadPool.PendingWorkItemCount, description: "ThreadPool Queue Length.");
+
+                // TODO: change to ObservableUpDownCounter
                 this.meter.CreateObservableGauge($"{metricPrefix}active.timer.count", () => Timer.ActiveCount, description: "Number of Active Timers.");
             }
 #endif
 
             if (options.IsAssembliesEnabled)
             {
+                // TODO: change to ObservableUpDownCounter
                 this.meter.CreateObservableGauge($"{metricPrefix}assembly.count", () => (long)AppDomain.CurrentDomain.GetAssemblies().Length, description: "Number of Assemblies Loaded.");
             }
 
