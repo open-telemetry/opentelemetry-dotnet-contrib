@@ -60,9 +60,9 @@ namespace OpenTelemetry.Instrumentation.Runtime
 #endif
 
 #if NET6_0_OR_GREATER
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.fragmentation.size", GetFragmentationSizes, description: "GC fragmentation.");
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.committed", () => GC.GetGCMemoryInfo().TotalCommittedBytes, "By", description: "GC Committed Bytes.");
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.committed", () => GetGarbageCollectionCommittedBytes(), "By", description: "GC Committed Bytes.");
                 this.meter.CreateObservableGauge($"{metricPrefix}gc.heapsize", () => GetGarbageCollectionHeapSizes(), "By", "Heap size for all generations.");
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.fragmentation.size", GetFragmentationSizes, description: "GC fragmentation.");
 #endif
             }
 
@@ -151,6 +151,17 @@ namespace OpenTelemetry.Instrumentation.Runtime
             }
 
             return measurements;
+        }
+
+        private static IEnumerable<Measurement<long>> GetGarbageCollectionCommittedBytes()
+        {
+            if (!IsGcInfoAvailable)
+            {
+                // do not report the measurements as GC doesn't have this information yet
+                return Array.Empty<Measurement<long>>();
+            }
+
+            return new Measurement<long>[] { new(GC.GetGCMemoryInfo().TotalCommittedBytes) };
         }
 
         private static IEnumerable<Measurement<long>> GetGarbageCollectionHeapSizes()
