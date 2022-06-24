@@ -37,6 +37,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
 #endif
         private static readonly string[] GenNames = new string[] { "gen0", "gen1", "gen2", "loh", "poh" };
         private static readonly int NumberOfGenerations = 3;
+        private static bool isGcInfoAvailable;
         private static string metricPrefix = "process.runtime.dotnet.";
         private readonly Meter meter;
 
@@ -59,9 +60,9 @@ namespace OpenTelemetry.Instrumentation.Runtime
 #endif
 
 #if NET6_0_OR_GREATER
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.fragmentation.size", GetFragmentationSizes, description: "GC fragmentation.");
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.committed", () => GC.GetGCMemoryInfo().TotalCommittedBytes, "By", description: "GC Committed Bytes.");
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.committed", () => GetGarbageCollectionCommittedBytes(), "By", description: "GC Committed Bytes.");
                 this.meter.CreateObservableGauge($"{metricPrefix}gc.heapsize", () => GetGarbageCollectionHeapSizes(), "By", "Heap size for all generations.");
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.fragmentation.size", GetFragmentationSizes, description: "GC fragmentation.");
 #endif
             }
 
@@ -100,6 +101,24 @@ namespace OpenTelemetry.Instrumentation.Runtime
             }
         }
 
+        private static bool IsGcInfoAvailable
+        {
+            get
+            {
+                if (isGcInfoAvailable)
+                {
+                    return true;
+                }
+
+                if (GC.CollectionCount(0) > 0)
+                {
+                    isGcInfoAvailable = true;
+                }
+
+                return isGcInfoAvailable;
+            }
+        }
+
         /// <inheritdoc/>
         public void Dispose()
         {
@@ -117,6 +136,11 @@ namespace OpenTelemetry.Instrumentation.Runtime
 #if NET6_0_OR_GREATER
         private static IEnumerable<Measurement<long>> GetFragmentationSizes()
         {
+            if (!IsGcInfoAvailable)
+            {
+                return Array.Empty<Measurement<long>>();
+            }
+
             var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
             Measurement<long>[] measurements = new Measurement<long>[generationInfo.Length];
             int maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
@@ -128,10 +152,24 @@ namespace OpenTelemetry.Instrumentation.Runtime
             return measurements;
         }
 
+        private static IEnumerable<Measurement<long>> GetGarbageCollectionCommittedBytes()
+        {
+            if (!IsGcInfoAvailable)
+            {
+                return Array.Empty<Measurement<long>>();
+            }
+
+            return new Measurement<long>[] { new(GC.GetGCMemoryInfo().TotalCommittedBytes) };
+        }
+
         private static IEnumerable<Measurement<long>> GetGarbageCollectionHeapSizes()
         {
-            var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
+            if (!IsGcInfoAvailable)
+            {
+                return Array.Empty<Measurement<long>>();
+            }
 
+            var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
             Measurement<long>[] measurements = new Measurement<long>[generationInfo.Length];
             int maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
             for (int i = 0; i < maxSupportedLength; ++i)
