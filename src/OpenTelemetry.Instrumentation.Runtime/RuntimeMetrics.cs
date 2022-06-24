@@ -54,7 +54,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
                 this.meter.CreateObservableCounter($"{metricPrefix}gc.count", () => GetGarbageCollectionCounts(), description: "Number of times garbage collection has occurred since process start.");
 
 #if NETCOREAPP3_1_OR_GREATER
-                this.meter.CreateObservableCounter($"{metricPrefix}gc.allocated", () => GC.GetTotalAllocatedBytes(), unit: "By", description: "Count of the bytes allocated since the process start, this does not include any native allocations.");
+                this.meter.CreateObservableCounter($"{metricPrefix}gc.allocated", () => GC.GetTotalAllocatedBytes(), unit: "By", description: "Count of the bytes allocated on the managed GC heap since the process start. .NET objects are allocated from this heap. Object allocations from unmanaged languages such as C/C++ do not use this heap.");
 #endif
 
 #if NET6_0_OR_GREATER
