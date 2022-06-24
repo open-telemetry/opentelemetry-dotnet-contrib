@@ -51,21 +51,21 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
             if (options.IsGcEnabled)
             {
-                this.meter.CreateObservableCounter($"{metricPrefix}gc.count", () => GetGarbageCollectionCounts(), description: "Number of times garbage collection has occurred since process start.");
+                this.meter.CreateObservableCounter($"{metricPrefix}gc.collections.count", () => GetGarbageCollectionCounts(), description: "Number of times garbage collection has occurred since process start.");
 
 #if NETCOREAPP3_1_OR_GREATER
-                this.meter.CreateObservableCounter($"{metricPrefix}gc.allocated", () => GC.GetTotalAllocatedBytes(), unit: "By", description: "Count of the bytes allocated on the managed GC heap since the process start. .NET objects are allocated from this heap. Object allocations from unmanaged languages such as C/C++ do not use this heap.");
+                this.meter.CreateObservableCounter($"{metricPrefix}gc.allocations.size", () => GC.GetTotalAllocatedBytes(), unit: "By", description: "Count of the bytes allocated on the managed GC heap since the process start. .NET objects are allocated from this heap. Object allocations from unmanaged languages such as C/C++ do not use this heap.");
 #endif
 
 #if NET6_0_OR_GREATER
                 // TODO: change to ObservableUpDownCounter
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.committed", () => GetGarbageCollectionCommittedBytes(), unit: "By", description: "The amount of committed virtual memory for the managed GC heap, as observed during the latest garbage collection. Committed virtual memory may be larger than the heap size because it includes both memory for storing existing objects (the heap size) and some extra memory that is ready to handle newly allocated objects in the future. If garbage collection has not occurred yet, the value will be unavailable.");
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.committed_memory.size", () => GetGarbageCollectionCommittedBytes(), unit: "By", description: "The amount of committed virtual memory for the managed GC heap, as observed during the latest garbage collection. Committed virtual memory may be larger than the heap size because it includes both memory for storing existing objects (the heap size) and some extra memory that is ready to handle newly allocated objects in the future. If garbage collection has not occurred yet, the value will be unavailable.");
 
                 // TODO: change to ObservableUpDownCounter
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.heap_size", () => GetGarbageCollectionHeapSizes(), unit: "By", description: "The heap size (including fragmentation), as observed during the latest garbage collection. If garbage collection has not occurred yet, the value will be unavailable.");
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.heap.size", () => GetGarbageCollectionHeapSizes(), unit: "By", description: "The heap size (including fragmentation), as observed during the latest garbage collection. If garbage collection has not occurred yet, the value will be unavailable.");
 
                 // TODO: change to ObservableUpDownCounter
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.fragmentation_size", GetFragmentationSizes, unit: "By", description: "The heap fragmentation, as observed during the latest garbage collection. If garbage collection has not occurred yet, the value will be unavailable.");
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.heap.fragmentation.size", GetFragmentationSizes, unit: "By", description: "The heap fragmentation, as observed during the latest garbage collection. If garbage collection has not occurred yet, the value will be unavailable.");
 #endif
             }
 
