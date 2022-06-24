@@ -30,7 +30,7 @@ public class Program
             })
             .Build();
 
-        GC.Collect(0);
+        // GC.Collect(0);
         Console.WriteLine(".NET Runtime metrics are available at http://localhost:9464/metrics, press any key to exit...");
         Console.ReadKey(false);
     }
