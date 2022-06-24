@@ -65,7 +65,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
                 this.meter.CreateObservableGauge($"{metricPrefix}gc.heap_size", () => GetGarbageCollectionHeapSizes(), unit: "By", description: "The heap size (including fragmentation), as observed during the latest garbage collection. If garbage collection has not occurred yet, the value will be unavailable.");
 
                 // TODO: change to ObservableUpDownCounter
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.fragmentation.size", GetFragmentationSizes, unit: "By", description: "The heap fragmentation, as observed during the latest garbage collection. If garbage collection has not occurred yet, the value will be unavailable.");
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.fragmentation_size", GetFragmentationSizes, unit: "By", description: "The heap fragmentation, as observed during the latest garbage collection. If garbage collection has not occurred yet, the value will be unavailable.");
 #endif
             }
 
