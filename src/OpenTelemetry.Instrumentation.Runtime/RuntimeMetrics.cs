@@ -59,13 +59,13 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
 #if NET6_0_OR_GREATER
                 // TODO: change to ObservableUpDownCounter
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.committed", () => GetGarbageCollectionCommittedBytes(), unit: "By", description: "The committed bytes of the managed heap, as observed during the latest garbage collection. If garbage collection hasn't occurred yet, the value will be unavailable.");
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.committed", () => GetGarbageCollectionCommittedBytes(), unit: "By", description: "The committed bytes of the managed heap, as observed during the latest garbage collection. If garbage collection has not occurred yet, the value will be unavailable.");
 
                 // TODO: change to ObservableUpDownCounter
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.heap_size", () => GetGarbageCollectionHeapSizes(), unit: "By", description: "The heap size (including fragmentation), as observed during the latest garbage collection. If garbage collection hasn't occurred yet, the value will be unavailable.");
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.heap_size", () => GetGarbageCollectionHeapSizes(), unit: "By", description: "The heap size (including fragmentation), as observed during the latest garbage collection. If garbage collection has not occurred yet, the value will be unavailable.");
 
                 // TODO: change to ObservableUpDownCounter
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.fragmentation.size", GetFragmentationSizes, unit: "By", description: "The heap fragmentation, as observed during the latest garbage collection. If garbage collection hasn't occurred yet, the value will be unavailable.");
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.fragmentation.size", GetFragmentationSizes, unit: "By", description: "The heap fragmentation, as observed during the latest garbage collection. If garbage collection has not occurred yet, the value will be unavailable.");
 #endif
             }
 
