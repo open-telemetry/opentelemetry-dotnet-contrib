@@ -140,9 +140,15 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
         private static IEnumerable<Measurement<long>> GetGarbageCollectionCounts()
         {
-            for (int i = 0; i < NumberOfGenerations; ++i)
+            long collectionsFromHigherGeneration = 0;
+
+            for (int gen = NumberOfGenerations - 1; gen >= 0; --gen)
             {
-                yield return new(GC.CollectionCount(i), new KeyValuePair<string, object>("gen", GenNames[i]));
+                long collectionsFromThisGeneration = GC.CollectionCount(gen);
+
+                yield return new(collectionsFromThisGeneration - collectionsFromHigherGeneration, new KeyValuePair<string, object>("gen", GenNames[gen]));
+
+                collectionsFromHigherGeneration = collectionsFromThisGeneration;
             }
         }
 
