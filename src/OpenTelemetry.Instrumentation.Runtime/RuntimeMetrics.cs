@@ -51,18 +51,21 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
             if (options.IsGcEnabled)
             {
-                // TODO: Almost all the ObservableGauge should be ObservableUpDownCounter (except for CPU utilization).
-                // Replace them once ObservableUpDownCounter is available.
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.count", () => GetGarbageCollectionCounts(), description: "GC Count for all generations.");
+                this.meter.CreateObservableCounter($"{metricPrefix}gc.collections.count", () => GetGarbageCollectionCounts(), description: "Number of times garbage collection has occurred since process start.");
 
 #if NETCOREAPP3_1_OR_GREATER
-                this.meter.CreateObservableCounter($"{metricPrefix}gc.allocated.bytes", () => GC.GetTotalAllocatedBytes(), "By", "Allocation Rate.");
+                this.meter.CreateObservableCounter($"{metricPrefix}gc.allocations.size", () => GC.GetTotalAllocatedBytes(), unit: "By", description: "Count of the bytes allocated on the managed GC heap since the process start. .NET objects are allocated from this heap. Object allocations from unmanaged languages such as C/C++ do not use this heap.");
 #endif
 
 #if NET6_0_OR_GREATER
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.committed", () => GetGarbageCollectionCommittedBytes(), "By", description: "GC Committed Bytes.");
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.heapsize", () => GetGarbageCollectionHeapSizes(), "By", "Heap size for all generations.");
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.fragmentation.size", GetFragmentationSizes, description: "GC fragmentation.");
+                // TODO: change to ObservableUpDownCounter
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.committed_memory.size", () => GetGarbageCollectionCommittedBytes(), unit: "By", description: "The amount of committed virtual memory for the managed GC heap, as observed during the latest garbage collection. Committed virtual memory may be larger than the heap size because it includes both memory for storing existing objects (the heap size) and some extra memory that is ready to handle newly allocated objects in the future. The value will be unavailable until garbage collection has occurred.");
+
+                // TODO: change to ObservableUpDownCounter
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.heap.size", () => GetGarbageCollectionHeapSizes(), unit: "By", description: "The heap size (including fragmentation), as observed during the latest garbage collection. The value will be unavailable until garbage collection has occurred.");
+
+                // TODO: change to ObservableUpDownCounter
+                this.meter.CreateObservableGauge($"{metricPrefix}gc.heap.fragmentation.size", GetFragmentationSizes, unit: "By", description: "The heap fragmentation, as observed during the latest garbage collection. The value will be unavailable until garbage collection has occurred.");
 #endif
             }
 
@@ -78,18 +81,26 @@ namespace OpenTelemetry.Instrumentation.Runtime
 #if NETCOREAPP3_1_OR_GREATER
             if (options.IsThreadingEnabled)
             {
+                // TODO: change to ObservableUpDownCounter
                 this.meter.CreateObservableGauge($"{metricPrefix}monitor.lock_contention.count", () => Monitor.LockContentionCount, description: "The number of times there was contention when trying to acquire a monitor lock since the process start. Monitor locks are commonly acquired by using the lock keyword in C#, or by calling Monitor.Enter() and Monitor.TryEnter()");
 
+                // TODO: change to ObservableUpDownCounter
                 this.meter.CreateObservableGauge($"{metricPrefix}thread_pool.threads.count", () => (long)ThreadPool.ThreadCount, description: "The number of thread pool threads that currently exist.");
+
+                // TODO: change to ObservableUpDownCounter
                 this.meter.CreateObservableGauge($"{metricPrefix}thread_pool.completed_items.count", () => ThreadPool.CompletedWorkItemCount, description: "The number of work items that have been processed by the thread pool since the process start.");
+
+                // TODO: change to ObservableUpDownCounter
                 this.meter.CreateObservableGauge($"{metricPrefix}thread_pool.queue.length", () => ThreadPool.PendingWorkItemCount, description: "The number of work items that are currently queued to be processed by the thread pool.");
 
+                // TODO: change to ObservableUpDownCounter
                 this.meter.CreateObservableGauge($"{metricPrefix}timer.count", () => Timer.ActiveCount, description: "The number of timer instances that are currently active. Timers can be created by many sources such as System.Threading.Timer, Task.Delay, or the timeout in a CancellationSource. An active timer is registered to tick at some point in the future and has not yet been canceled.");
             }
 #endif
 
             if (options.IsAssembliesEnabled)
             {
+                // TODO: change to ObservableUpDownCounter
                 this.meter.CreateObservableGauge($"{metricPrefix}assembly.count", () => (long)AppDomain.CurrentDomain.GetAssemblies().Length, description: "The number of .NET assemblies that are currently loaded.");
             }
 
