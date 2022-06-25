@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 0.3.0-alpha.1
+## 1.0.0-beta.1
 
 * Update a few metrics to be in sync of doc updates for `gc.heap`,
   `gc.fragmentation.ratio`, `time.in.jit`, `process.cpu.count` and `assembly.count`
