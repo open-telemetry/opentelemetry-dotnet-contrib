@@ -72,9 +72,9 @@ namespace OpenTelemetry.Instrumentation.Runtime
 #if NET6_0_OR_GREATER
             if (options.IsJitEnabled)
             {
-                this.meter.CreateObservableCounter($"{metricPrefix}jit.il_compiled.size", () => System.Runtime.JitInfo.GetCompiledILBytes(), unit: "By", description: "Count of bytes of intermediate language that have been compiled since the process start.");
-                this.meter.CreateObservableCounter($"{metricPrefix}jit.methods_compiled.count", () => System.Runtime.JitInfo.GetCompiledMethodCount(), description: "The number of times the JIT compiler was invoked to compile a method since the process start. The JIT compiler may be invoked multiple times for the same method to compile with different generic parameters, or because tiered compilation requested different optimization settings.");
-                this.meter.CreateObservableCounter($"{metricPrefix}jit.compilation_time", () => System.Runtime.JitInfo.GetCompilationTime().Ticks * NanosecondsPerTick, unit: "ns", description: "The amount of time the JIT compiler has spent compiling methods since the process start.");
+                this.meter.CreateObservableCounter($"{metricPrefix}jit.il_compiled.size", () => System.Runtime.JitInfo.GetCompiledILBytes(), unit: "By", description: "Count of bytes of intermediate language that have been compiled since the process start. The value will be zero under ahead-of-time (AOT) compilation mode.");
+                this.meter.CreateObservableCounter($"{metricPrefix}jit.methods_compiled.count", () => System.Runtime.JitInfo.GetCompiledMethodCount(), description: "The number of times the JIT compiler compiled a method since the process start. The JIT compiler may be invoked multiple times for the same method to compile with different generic parameters, or because tiered compilation requested different optimization settings. The value will be zero under ahead-of-time (AOT) compilation mode.");
+                this.meter.CreateObservableCounter($"{metricPrefix}jit.compilation_time", () => System.Runtime.JitInfo.GetCompilationTime().Ticks * NanosecondsPerTick, unit: "ns", description: "The amount of time the JIT compiler has spent compiling methods since the process start. The value will be zero under ahead-of-time (AOT) compilation mode.");
             }
 #endif
 
