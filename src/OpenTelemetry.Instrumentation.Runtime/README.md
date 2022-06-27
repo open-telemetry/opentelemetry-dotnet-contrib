@@ -57,7 +57,8 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
     .Build();
 ```
 
-Refer to [Program.cs](../../examples/runtime-instrumentation/Program.cs) for a complete demo.
+Refer to [Program.cs](../../examples/runtime-instrumentation/Program.cs) for a
+complete demo.
 
 ## Troubleshooting
 
