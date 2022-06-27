@@ -31,7 +31,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
     /// <summary>
     /// .NET runtime instrumentation.
     /// </summary>
-    internal class RuntimeMetrics : IDisposable
+    internal class RuntimeMetrics
     {
         internal static readonly AssemblyName AssemblyName = typeof(RuntimeMetrics).Assembly.GetName();
         internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
@@ -194,7 +194,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
         /// Initializes a new instance of the <see cref="RuntimeMetrics"/> class.
         /// </summary>
         /// <param name="options">The options to define the metrics.</param>
-        public RuntimeMetrics(RuntimeMetricsOptions options)
+        public RuntimeMetrics(RuntimeInstrumentOptions options)
         {
         }
 
@@ -214,12 +214,6 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
                 return isGcInfoAvailable;
             }
-        }
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            MeterInstance?.Dispose();
         }
 
         private static IEnumerable<Measurement<long>> GetGarbageCollectionCounts()
