@@ -182,7 +182,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
             var exceptionCounter = MeterInstance.CreateCounter<long>(
                 $"{metricPrefix}exception.count",
-                description: "Count of exceptions that have been thrown in managed code, since the observation started.");
+                description: "Count of exceptions that have been thrown in managed code, since the observation started. The value will be unavailable until an exception has been thrown after OpenTelemetry.Instrumentation.Runtime initialization.");
 
             AppDomain.CurrentDomain.FirstChanceException += (source, e) =>
             {
