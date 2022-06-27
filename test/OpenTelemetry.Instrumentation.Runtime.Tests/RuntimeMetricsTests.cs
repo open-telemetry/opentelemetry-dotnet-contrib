@@ -30,7 +30,7 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
         {
             var exportedItems = new List<Metric>();
             using var meterProvider = Sdk.CreateMeterProviderBuilder()
-                 .AddRuntimeInstrumentation()
+                 .AddRuntimeMetrics()
                  .AddInMemoryExporter(exportedItems)
                 .Build();
 
