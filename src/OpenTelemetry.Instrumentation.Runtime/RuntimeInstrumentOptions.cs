@@ -1,4 +1,4 @@
-// <copyright file="RuntimeMetricsOptions.cs" company="OpenTelemetry Authors">
+// <copyright file="RuntimeInstrumentOptions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
     /// <summary>
     /// Options to define the runtime metrics.
     /// </summary>
-    public class RuntimeMetricsOptions
+    public class RuntimeInstrumentOptions
     {
         /*
                 /// <summary>
