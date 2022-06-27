@@ -10,19 +10,19 @@ collect telemetry about runtime behavior.
 
 ## Steps to enable OpenTelemetry.Instrumentation.Runtime
 
-### Step 1: Install Package
+### Step 1: Install package
 
 Add a reference to the
 [`OpenTelemetry.Instrumentation.Runtime`](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Runtime)
-package. Also, add any other instrumentations & exporters you will need.
+package.
 
 ```shell
 dotnet add package OpenTelemetry.Instrumentation.Runtime
 ```
 
-### Step 2: Enable Runtime Instrumentation at application startup
+### Step 2: Enable runtime instrumentation
 
-Runtime instrumentation must be enabled at application startup. This is
+Runtime instrumentation should be enabled at application startup. This is
 typically done in the `ConfigureServices` of your `Startup` class. The example
 below enables this instrumentation by using an extension method on
 `IServiceCollection`. This extension method requires adding the package
@@ -42,7 +42,7 @@ using OpenTelemetry.Metrics;
 public void ConfigureServices(IServiceCollection services)
 {
     services.AddOpenTelemetryMetrics((builder) => builder
-        .AddRuntimeMetrics()
+        .AddRuntimeInstrumentation()
         .AddPrometheusExporter()
     );
 }
@@ -52,25 +52,12 @@ Or configure directly:
 
 ```csharp
 using var meterProvider = Sdk.CreateMeterProviderBuilder()
-    .AddRuntimeMetrics()
+    .AddRuntimeInstrumentation()
+    .AddPrometheusExporter()
     .Build();
 ```
 
-## Advanced configuration
-
-By default all available runtime metrics will be added. It's also possible to
-specify only the required metrics:
-
-```csharp
-using var meterProvider = Sdk.CreateMeterProviderBuilder()
-    .AddRuntimeMetrics(options => options
-    {
-        options.GcEnabled = true;
-        options.ThreadingEnabled = true;
-        options.MemoryEnabled = true;
-     })
-    .Build();
-```
+Refer to [Program.cs](../../examples/runtime-instrumentation/Program.cs) for a complete demo.
 
 ## Troubleshooting
 
@@ -83,6 +70,4 @@ for instructions on seeing these internal logs.
 
 ## References
 
-* [Introduction to ASP.NET
-  Core](https://docs.microsoft.com/aspnet/core/introduction-to-aspnet-core)
 * [OpenTelemetry Project](https://opentelemetry.io/)
