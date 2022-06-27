@@ -21,6 +21,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
     /// </summary>
     public class RuntimeMetricsOptions
     {
+/*
         /// <summary>
         /// Gets or sets a value indicating whether garbage collection metrics should be collected.
         /// </summary>
@@ -91,5 +92,6 @@ namespace OpenTelemetry.Instrumentation.Runtime
         /// Gets a value indicating whether exception count metrics is enabled.
         /// </summary>
         internal bool IsExceptionCountEnabled => this.ExceptionCountEnabled == true || this.IsAllEnabled;
+*/
     }
 }

@@ -41,7 +41,7 @@ namespace OpenTelemetry.Metrics
             configure?.Invoke(options);
 
             var instrumentation = new RuntimeMetrics(options);
-            builder.AddMeter(RuntimeMetrics.InstrumentationName);
+            builder.AddMeter(RuntimeMetrics.MeterInstance.Name);
             return builder.AddInstrumentation(() => instrumentation);
         }
     }
