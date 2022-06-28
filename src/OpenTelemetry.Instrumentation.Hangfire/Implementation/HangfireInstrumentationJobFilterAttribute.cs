@@ -38,8 +38,9 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
             ActivityContext parentContext = default;
             if (activityContextData is not null)
             {
-                var propagationContext = Propagators.DefaultTextMapPropagator.Extract(new PropagationContext(default, Baggage.Current), activityContextData, ExtractActivityProperties);
+                var propagationContext = Propagators.DefaultTextMapPropagator.Extract(default, activityContextData, ExtractActivityProperties);
                 parentContext = propagationContext.ActivityContext;
+                Baggage.Current = propagationContext.Baggage;
             }
 
             var activity = HangfireInstrumentation.ActivitySource
