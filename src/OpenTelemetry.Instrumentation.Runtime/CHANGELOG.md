@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.0.0-beta.1
+
+Major redesign of the runtime instrumentation. Renamed metrics to be more user-friendly
+and better logical grouping. Removed the process related metrics which are not
+.NET Runtime specific.
+
 ## 0.2.0-alpha.1
 
 * Updated OTel SDK package version to 1.3.0

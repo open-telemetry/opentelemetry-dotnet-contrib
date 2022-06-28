@@ -198,7 +198,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                 }
                 catch (Exception ex)
                 {
-                    ExporterEventSource.Log.FailedToSendMetricData(this.metricNamespace, metric.Name, ex.Message); // TODO: preallocate exception or no exception
+                    ExporterEventSource.Log.FailedToSendMetricData(this.monitoringAccount, this.metricNamespace, metric.Name, ex); // TODO: preallocate exception or no exception
                     result = ExportResult.Failure;
                 }
             }
@@ -222,7 +222,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
             }
             catch (Exception ex)
             {
-                ExporterEventSource.Log.ExporterException(ex);
+                ExporterEventSource.Log.ExporterException("GenevaMetricExporter Dispose failed.", ex);
             }
         }
 
