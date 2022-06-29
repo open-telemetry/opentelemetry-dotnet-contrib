@@ -68,7 +68,9 @@ complete demo.
 |-------------------------------------------------|----------------------------------------------------------------------|-----------|-------------------|------------|------------------|------------------|
 | process.runtime.dotnet.**gc.collections.count** | Number of times garbage collection has occurred since process start. | `{times}` | ObservableCounter | `Int64`    | gen              | gen0, gen1, gen2 |
 
-Note: Each dimension doesn't include the collection counts for the higher generation.
+Note: Collecting a generation means collecting objects in that generation and all
+its younger generations. However, each dimension for this metrics doesn't include
+the collection counts for the lower generation.
 e.g. count for gen1 is `GC.CollectionCount(1) - GC.CollectionCount(0)`.
 
 The API called in this section is:
