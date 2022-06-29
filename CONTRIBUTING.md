@@ -137,8 +137,10 @@ and the new feature doesn't fit it.
 
 ### How to request for release of package
 
-Submit a PR with `CHANGELOG.md` file reflecting the version to be released.
-Also, tag the maintainers of this repository who can release the package.
+Submit a PR with `CHANGELOG.md` file reflecting the version to be released along
+with the date. Refer to this
+[file](./src/OpenTelemetry.Exporter.Geneva/CHANGELOG.md) for an example. Also,
+tag the maintainers of this repository who can release the package.
 
 ## Style Guide
 
