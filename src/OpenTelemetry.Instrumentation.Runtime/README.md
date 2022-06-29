@@ -73,7 +73,7 @@ e.g. count for gen1 is `GC.CollectionCount(1) - GC.CollectionCount(0)`.
 
 The API called in this section is:
 
-- [GC.CollectionCount](https://docs.microsoft.com/dotnet/api/system.gc.collectioncount):
+* [GC.CollectionCount](https://docs.microsoft.com/dotnet/api/system.gc.collectioncount):
   The number of times garbage collection has occurred for the specified generation
 of objects.
 
@@ -85,7 +85,7 @@ of objects.
 
 The API called in this section is:
 
-- [GC.GetTotalAllocatedBytes](https://docs.microsoft.com/dotnet/api/system.gc.gettotalallocatedbytes):
+* [GC.GetTotalAllocatedBytes](https://docs.microsoft.com/dotnet/api/system.gc.gettotalallocatedbytes):
   Gets a count of the bytes allocated over the lifetime of the process. The returned
 value does not include any native allocations. The value is an approximate count.
 
@@ -103,13 +103,13 @@ to all the `ObservableGauge` below.
 
 The APIs called in this section are:
 
-- [GCMemoryInfo.TotalCommittedBytes](https://docs.microsoft.com/dotnet/api/system.gcmemoryinfo.totalcommittedbytes?view=net-6.0#system-gcmemoryinfo-totalcommittedbytes):
+* [GCMemoryInfo.TotalCommittedBytes](https://docs.microsoft.com/dotnet/api/system.gcmemoryinfo.totalcommittedbytes?view=net-6.0#system-gcmemoryinfo-totalcommittedbytes):
   Gets the total committed bytes of the managed heap.
 
-- [GC.GetGCMemoryInfo().GenerationInfo[i].SizeAfterBytes](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo):
+* [GC.GetGCMemoryInfo().GenerationInfo[i].SizeAfterBytes](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo):
 Represents the size in bytes of a generation on exit of the GC reported in GCMemoryInfo.
 
-- [GCGenerationInfo.FragmentationAfterBytes Property](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo.fragmentationafterbytes#system-gcgenerationinfo-fragmentationafterbytes)
+* [GCGenerationInfo.FragmentationAfterBytes Property](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo.fragmentationafterbytes#system-gcgenerationinfo-fragmentationafterbytes)
   Gets the fragmentation in bytes on exit from the reported collection.
 
 ### JIT Compiler related metrics
@@ -124,14 +124,14 @@ These metrics are only available when targeting .NET6 or later.
 
 The APIs called in this section are:
 
-- [JitInfo.GetCompiledILBytes](https://docs.microsoft.com/dotnet/api/system.runtime.jitinfo.getcompiledilbytes?view=net-6.0#system-runtime-jitinfo-getcompiledilbytes(system-boolean)):
+* [JitInfo.GetCompiledILBytes](https://docs.microsoft.com/dotnet/api/system.runtime.jitinfo.getcompiledilbytes?view=net-6.0#system-runtime-jitinfo-getcompiledilbytes(system-boolean)):
   Gets the number of bytes of intermediate language that have been compiled.
 The scope of this value is global. The same applies for other JIT related metrics.
 
-- [JitInfo.GetCompiledMethodCount](https://docs.microsoft.com/dotnet/api/system.runtime.jitinfo.getcompiledmethodcount?view=net-6.0#system-runtime-jitinfo-getcompiledmethodcount(system-boolean)):
+* [JitInfo.GetCompiledMethodCount](https://docs.microsoft.com/dotnet/api/system.runtime.jitinfo.getcompiledmethodcount?view=net-6.0#system-runtime-jitinfo-getcompiledmethodcount(system-boolean)):
   Gets the number of methods that have been compiled.
 
-- [JitInfo.GetCompilationTime](https://docs.microsoft.com/dotnet/api/system.runtime.jitinfo.getcompilationtime?view=net-6.0#system-runtime-jitinfo-getcompilationtime(system-boolean)):
+* [JitInfo.GetCompilationTime](https://docs.microsoft.com/dotnet/api/system.runtime.jitinfo.getcompilationtime?view=net-6.0#system-runtime-jitinfo-getcompilationtime(system-boolean)):
   Gets the amount of time the JIT Compiler has spent compiling methods.
 
 ### Threading related metrics
@@ -148,16 +148,16 @@ These metrics are only available when targeting .NET Core 3.1 or later.
 
 The APIs called in this section are:
 
-- [Monitor.LockContentionCount](https://docs.microsoft.com/dotnet/api/system.threading.monitor.lockcontentioncount?view=netcore-3.1):
+* [Monitor.LockContentionCount](https://docs.microsoft.com/dotnet/api/system.threading.monitor.lockcontentioncount?view=netcore-3.1):
   Gets the number of times there was contention when trying to take the monitor's
   lock.
-- [ThreadPool.ThreadCount](https://docs.microsoft.com/dotnet/api/system.threading.threadpool.threadcount?view=netcore-3.1):
+* [ThreadPool.ThreadCount](https://docs.microsoft.com/dotnet/api/system.threading.threadpool.threadcount?view=netcore-3.1):
   Gets the number of thread pool threads that currently exist.
-- [ThreadPool.CompletedWorkItemCount](https://docs.microsoft.com/dotnet/api/system.threading.threadpool.completedworkitemcount?view=netcore-3.1):
+* [ThreadPool.CompletedWorkItemCount](https://docs.microsoft.com/dotnet/api/system.threading.threadpool.completedworkitemcount?view=netcore-3.1):
   Gets the number of work items that have been processed so far.
-- [ThreadPool.PendingWorkItemCount](https://docs.microsoft.com/dotnet/api/system.threading.threadpool.pendingworkitemcount?view=netcore-3.1):
+* [ThreadPool.PendingWorkItemCount](https://docs.microsoft.com/dotnet/api/system.threading.threadpool.pendingworkitemcount?view=netcore-3.1):
   Gets the number of work items that are currently queued to be processed.
-- [Timer.ActiveCount](https://docs.microsoft.com/dotnet/api/system.threading.timer.activecount?view=netcore-3.1):
+* [Timer.ActiveCount](https://docs.microsoft.com/dotnet/api/system.threading.timer.activecount?view=netcore-3.1):
   Gets the number of timers that are currently active. An active timer is registered
   to tick at some point in the future, and has not yet been canceled.
 
@@ -169,7 +169,7 @@ The APIs called in this section are:
 
 The API called in this section is:
 
-- [AppDomain.GetAssemblies](https://docs.microsoft.com/dotnet/api/system.appdomain.getassemblies):
+* [AppDomain.GetAssemblies](https://docs.microsoft.com/dotnet/api/system.appdomain.getassemblies):
   Gets the number of the assemblies that have been loaded into the execution context
   of this application domain.
 
@@ -181,7 +181,7 @@ The API called in this section is:
 
 The API called in this section is:
 
-- [AppDomain.FirstChanceException](https://docs.microsoft.com/dotnet/api/system.appdomain.firstchanceexception)
+* [AppDomain.FirstChanceException](https://docs.microsoft.com/dotnet/api/system.appdomain.firstchanceexception)
   Occurs when an exception is thrown in managed code, before the runtime searches
   the call stack for an exception handler in the application domain.
 
