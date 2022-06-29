@@ -30,25 +30,13 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
         {
             var exportedItems = new List<Metric>();
             using var meterProvider = Sdk.CreateMeterProviderBuilder()
-                 .AddRuntimeMetrics(options =>
-                 {
-                     options.GcEnabled = true;
-#if NETCOREAPP3_1_OR_GREATER
-                     options.ThreadingEnabled = true;
-#endif
-#if NET6_0_OR_GREATER
-
-                     options.JitEnabled = true;
-#endif
-                     options.AssembliesEnabled = true;
-                 })
+                 .AddRuntimeInstrumentation()
                  .AddInMemoryExporter(exportedItems)
                 .Build();
 
             meterProvider.ForceFlush(MaxTimeToAllowForFlush);
             Assert.True(exportedItems.Count > 1);
-            var metric1 = exportedItems[0];
-            Assert.StartsWith(MetricPrefix, metric1.Name);
+            Assert.StartsWith(MetricPrefix, exportedItems[0].Name);
         }
     }
 }
