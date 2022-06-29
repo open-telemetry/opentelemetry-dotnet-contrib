@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.0-rc9.6
 
 * Added the EnrichActivityWithTimingEvents option to
   StackExchangeRedisCallsInstrumentationOptions to be able to disable adding
