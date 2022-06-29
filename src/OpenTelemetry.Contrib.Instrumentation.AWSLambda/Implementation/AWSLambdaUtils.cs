@@ -65,17 +65,23 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
 
         internal static ActivityContext ExtractParentContext<TInput>(TInput input)
         {
-            ActivityContext parentContext = default;
-            if (input is APIGatewayProxyRequest request)
+            PropagationContext propagationContext = default;
+            switch (input)
             {
-                var propagationContext = Propagators.DefaultTextMapPropagator.Extract(default, request, GetHeaderValues);
-                if (propagationContext != default)
-                {
-                    parentContext = propagationContext.ActivityContext;
-                }
+                case APIGatewayProxyRequest apiGatewayProxyRequest:
+                    propagationContext = Propagators.DefaultTextMapPropagator.Extract(default, apiGatewayProxyRequest, GetHeaderValues);
+                    break;
+                case APIGatewayHttpApiV2ProxyRequest apiGatewayHttpApiV2ProxyRequest:
+                    propagationContext = Propagators.DefaultTextMapPropagator.Extract(default, apiGatewayHttpApiV2ProxyRequest, GetHeaderValues);
+                    break;
             }
 
-            return parentContext;
+            if (propagationContext != default)
+            {
+                return propagationContext.ActivityContext;
+            }
+
+            return default;
         }
 
         internal static string GetCloudProvider()
@@ -120,7 +126,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         internal static IEnumerable<KeyValuePair<string, object>> GetFunctionDefaultTags<TInput>(TInput input, ILambdaContext context)
         {
             var trigger = "other";
-            if (input is APIGatewayProxyRequest)
+            if (input is APIGatewayProxyRequest || input is APIGatewayHttpApiV2ProxyRequest)
             {
                 trigger = "http";
             }
@@ -166,6 +172,21 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
                 request.MultiValueHeaders.TryGetValue(name, out var values))
             {
                 return values;
+            }
+
+            return null;
+        }
+
+        private static IEnumerable<string> GetHeaderValues(APIGatewayHttpApiV2ProxyRequest request, string name)
+        {
+            if (request.Headers != null &&
+                request.Headers.TryGetValue(name, out var header))
+            {
+                // Multiple values for the same header will be separated by a comma.
+                if (!string.IsNullOrEmpty(header))
+                {
+                    return header.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+                }
             }
 
             return null;
