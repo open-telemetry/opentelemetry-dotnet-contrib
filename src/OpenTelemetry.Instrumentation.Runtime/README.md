@@ -181,7 +181,12 @@ The API used to retrieve the value is:
 |--------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|-------------------|------------|------------------|------------------|
 | process.runtime.dotnet.**exception.count** | Count of exceptions that have been thrown in managed code, since the observation started. The value will be unavailable until an exception has been thrown after OpenTelemetry.Instrumentation.Runtime initialization. | `{timers}` | ObservableCounter | `Int64`    |                  |                  |
 
-The API used to retrieve the value is:
+Note: The value is tracked by calling a counter whenever an AppDomain.FirstChanceException
+event occurs. The observation starts when the Runtime instrumentation library is
+initialized, so the value will be unavailable until the an exception has been
+thrown after the initialization.
+
+Relevant API:
 
 * [AppDomain.FirstChanceException](https://docs.microsoft.com/dotnet/api/system.appdomain.firstchanceexception)
   Occurs when an exception is thrown in managed code, before the runtime searches
