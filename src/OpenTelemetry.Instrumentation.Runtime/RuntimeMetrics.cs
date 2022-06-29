@@ -147,7 +147,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
             MeterInstance.CreateObservableGauge(
                 $"{metricPrefix}monitor.lock_contention.count",
                 () => Monitor.LockContentionCount,
-                description: "The number of times there was contention when trying to acquire a monitor lock since the process start. Monitor locks are commonly acquired by using the lock keyword in C#, or by calling Monitor.Enter() and Monitor.TryEnter()");
+                description: "The number of times there was contention when trying to acquire a monitor lock since the process start. Monitor locks are commonly acquired by using the lock keyword in C#, or by calling Monitor.Enter() and Monitor.TryEnter().");
 
             // TODO: change to ObservableUpDownCounter
             MeterInstance.CreateObservableGauge(

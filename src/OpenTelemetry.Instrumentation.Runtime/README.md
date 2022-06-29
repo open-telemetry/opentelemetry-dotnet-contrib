@@ -86,9 +86,9 @@ value does not include any native allocations. The value is an approximate count
 
 | Name                                    | Description        | Units | Instrument Type | Value Type | Attribute Key(s) | Attribute Values           |
 |-----------------------------------------|--------------------|-------|-----------------|------------|------------------|----------------------------|
-| process.runtime.dotnet.**gc.committed_memory.size** | GC Committed Bytes | `By`  | ObservableGauge | `Int64`    |                  |                            |
-| process.runtime.dotnet.**gc.heap.size**  |                    | `By`  | ObservableGauge | `Int64`    | gen              | gen0, gen1, gen2, loh, poh |
-| process.runtime.dotnet.**gc.heap.fragmentation.size** | GC fragmentation size                            | `By`  | ObservableGauge   | `Int64`    | gen              | gen0, gen1, gen2, loh, poh |
+| process.runtime.dotnet.**gc.committed_memory.size** | The amount of committed virtual memory for the managed GC heap, as observed during the latest garbage collection. Committed virtual memory may be larger than the heap size because it includes both memory for storing existing objects (the heap size) and some extra memory that is ready to handle newly allocated objects in the future. The value will be unavailable until garbage collection has occurred. | `By`  | ObservableGauge | `Int64`    |                  |                            |
+| process.runtime.dotnet.**gc.heap.size**  | The heap size (including fragmentation), as observed during the latest garbage collection. The value will be unavailable until garbage collection has occurred. | `By`  | ObservableGauge | `Int64`    | gen              | gen0, gen1, gen2, loh, poh |
+| process.runtime.dotnet.**gc.heap.fragmentation.size** | The heap fragmentation, as observed during the latest garbage collection. The value will be unavailable until garbage collection has occurred. | `By`  | ObservableGauge   | `Int64`    | gen              | gen0, gen1, gen2, loh, poh |
 
 - [GCMemoryInfo.TotalCommittedBytes](https://docs.microsoft.com/dotnet/api/system.gcmemoryinfo.totalcommittedbytes?view=net-6.0#system-gcmemoryinfo-totalcommittedbytes):
   Gets the total committed bytes of the managed heap.
@@ -105,9 +105,9 @@ These metrics are only available when targeting .NET6 or later.
 
 | Name                                            | Description              | Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |-------------------------------------------------|--------------------------|-------------|-------------------|------------|------------------|------------------|
-| process.runtime.dotnet.**jit.il_compiled.size**      | IL Bytes Jitted          | `By`        | ObservableCounter | `Int64`    |                  |                  |
-| process.runtime.dotnet.**jit.methods_compiled.count** | Number of Methods Jitted | `{methods}` | ObservableCounter | `Int64`    |                  |                  |
-| process.runtime.dotnet.**jit.compilation_time**          | Time spent in JIT        | `ns`        | ObservableCounter | `Int64`   |                  |                  |
+| process.runtime.dotnet.**jit.il_compiled.size**      | Count of bytes of intermediate language that have been compiled since the process start. The value will be zero under ahead-of-time (AOT) compilation mode.          | `By`        | ObservableCounter | `Int64`    |                  |                  |
+| process.runtime.dotnet.**jit.methods_compiled.count** | The number of times the JIT compiler compiled a method since the process start. The JIT compiler may be invoked multiple times for the same method to compile with different generic parameters, or because tiered compilation requested different optimization settings. The value will be zero under ahead-of-time (AOT) compilation mode. | `{methods}` | ObservableCounter | `Int64`    |                  |                  |
+| process.runtime.dotnet.**jit.compilation_time**          | The amount of time the JIT compiler has spent compiling methods since the process start. The value will be zero under ahead-of-time (AOT) compilation mode. | `ns`        | ObservableCounter | `Int64`   |                  |                  |
 
 - [JitInfo.GetCompiledILBytes](https://docs.microsoft.com/dotnet/api/system.runtime.jitinfo.getcompiledilbytes?view=net-6.0#system-runtime-jitinfo-getcompiledilbytes(system-boolean)):
   Gets the number of bytes of intermediate language that have been compiled.
@@ -125,11 +125,11 @@ These metrics are only available when targeting .NET Core 3.1 or later.
 
 | Name                                                        | Description                          | Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |-------------------------------------------------------------|--------------------------------------|-------------|-------------------|------------|------------------|------------------|
-| process.runtime.dotnet.**monitor.lock_contention.count**    | Monitor Lock Contention Count        | `{times}`   | ObservableCounter | `Int64`    |                  |                  |
-| process.runtime.dotnet.**thread_pool.threads.count**          | ThreadPool Thread Count              | `{threads}` | ObservableGauge   | `Int32`    |                  |                  |
-| process.runtime.dotnet.**thread_pool.completed_items.count** | ThreadPool Completed Work Item Count | `{items}`   | ObservableCounter | `Int64`    |                  |                  |
-| process.runtime.dotnet.**thread_pool.queue.length**          | ThreadPool Queue Length              | `{items}`   | ObservableGauge   | `Int64`    |                  |                  |
-| process.runtime.dotnet.**timer.count**               | Number of Active Timers              | `{timers}`  | ObservableGauge   | `Int64`    |                  |                  |
+| process.runtime.dotnet.**monitor.lock_contention.count**    | The number of times there was contention when trying to acquire a monitor lock since the process start. Monitor locks are commonly acquired by using the lock keyword in C#, or by calling Monitor.Enter() and Monitor.TryEnter(). | `{times}`   | ObservableCounter | `Int64`    |                  |                  |
+| process.runtime.dotnet.**thread_pool.threads.count**          | The number of thread pool threads that currently exist. | `{threads}` | ObservableGauge   | `Int32`    |                  |                  |
+| process.runtime.dotnet.**thread_pool.completed_items.count** | The number of work items that have been processed by the thread pool since the process start. | `{items}`   | ObservableCounter | `Int64`    |                  |                  |
+| process.runtime.dotnet.**thread_pool.queue.length**          | The number of work items that are currently queued to be processed by the thread pool. | `{items}`   | ObservableGauge   | `Int64`    |                  |                  |
+| process.runtime.dotnet.**timer.count**               | The number of timer instances that are currently active. Timers can be created by many sources such as System.Threading.Timer, Task.Delay, or the timeout in a CancellationSource. An active timer is registered to tick at some point in the future and has not yet been canceled. | `{timers}`  | ObservableGauge   | `Int64`    |                  |                  |
 
 - [Monitor.LockContentionCount](https://docs.microsoft.com/dotnet/api/system.threading.monitor.lockcontentioncount?view=netcore-3.1):
   Gets the number of times there was contention when trying to take the monitor's
@@ -148,7 +148,7 @@ These metrics are only available when targeting .NET Core 3.1 or later.
 
 | Name                                      | Description                 | Units          | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
 |-------------------------------------------|-----------------------------|----------------|-----------------|------------|------------------|------------------|
-| process.runtime.dotnet.**assembly.count** | Number of Assemblies Loaded | `{assemblies}` | ObservableGauge | `Int64`    |                  |                  |
+| process.runtime.dotnet.**assembly.count** | The number of .NET assemblies that are currently loaded. | `{assemblies}` | ObservableGauge | `Int64`    |                  |                  |
 
 - [AppDomain.GetAssemblies](https://docs.microsoft.com/dotnet/api/system.appdomain.getassemblies):
   Gets the number of the assemblies that have been loaded into the execution context
@@ -158,7 +158,7 @@ These metrics are only available when targeting .NET Core 3.1 or later.
 
 | Name                                       | Description                                | Units      | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |--------------------------------------------|--------------------------------------------|------------|-------------------|------------|------------------|------------------|
-| process.runtime.dotnet.**exception.count** | Number of exception thrown in managed code | `{timers}` | ObservableCounter | `Int64`    |                  |                  |
+| process.runtime.dotnet.**exception.count** | Count of exceptions that have been thrown in managed code, since the observation started. The value will be unavailable until an exception has been thrown after OpenTelemetry.Instrumentation.Runtime initialization. | `{timers}` | ObservableCounter | `Int64`    |                  |                  |
 
 - [AppDomain.FirstChanceException](https://docs.microsoft.com/dotnet/api/system.appdomain.firstchanceexception)
   Occurs when an exception is thrown in managed code, before the runtime searches
