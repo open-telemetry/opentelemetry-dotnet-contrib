@@ -109,7 +109,7 @@ The APIs used to retrieve the values are:
   Gets the total committed bytes of the managed heap.
 
 * [GC.GetGCMemoryInfo().GenerationInfo[i].SizeAfterBytes](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo):
-Represents the size in bytes of a generation on exit of the GC reported in GCMemoryInfo.
+  Represents the size in bytes of a generation on exit of the GC reported in GCMemoryInfo.
 
 * [GCGenerationInfo.FragmentationAfterBytes Property](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo.fragmentationafterbytes#system-gcgenerationinfo-fragmentationafterbytes)
   Gets the fragmentation in bytes on exit from the reported collection.
@@ -177,9 +177,9 @@ The API used to retrieve the value is:
 
 ### Exception counter metric
 
-| Name                                       | Description                                                                                                                                                                                                            | Units      | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|--------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|-------------------|------------|------------------|------------------|
-| process.runtime.dotnet.**exception.count** | Count of exceptions that have been thrown in managed code, since the observation started. The value will be unavailable until an exception has been thrown after OpenTelemetry.Instrumentation.Runtime initialization. | `{timers}` | ObservableCounter | `Int64`    |                  |                  |
+| Name                                       | Description                                                                                                                                                                                                            | Units          | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|--------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|-------------------|------------|------------------|------------------|
+| process.runtime.dotnet.**exception.count** | Count of exceptions that have been thrown in managed code, since the observation started. The value will be unavailable until an exception has been thrown after OpenTelemetry.Instrumentation.Runtime initialization. | `{exceptions}` | ObservableCounter | `Int64`    |                  |                  |
 
 Note: The value is tracked by calling a counter whenever an AppDomain.FirstChanceException
 event occurs. The observation starts when the Runtime instrumentation library is
