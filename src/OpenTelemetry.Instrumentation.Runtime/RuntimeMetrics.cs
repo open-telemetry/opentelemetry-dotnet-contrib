@@ -143,8 +143,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
 #endif
 
 #if NETCOREAPP3_1_OR_GREATER
-           // TODO: change to ObservableUpDownCounter
-            MeterInstance.CreateObservableGauge(
+            MeterInstance.CreateObservableCounter(
                 $"{metricPrefix}monitor.lock_contention.count",
                 () => Monitor.LockContentionCount,
                 description: "The number of times there was contention when trying to acquire a monitor lock since the process start. Monitor locks are commonly acquired by using the lock keyword in C#, or by calling Monitor.Enter() and Monitor.TryEnter()");
@@ -155,8 +154,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
                 () => (long)ThreadPool.ThreadCount,
                 description: "The number of thread pool threads that currently exist.");
 
-            // TODO: change to ObservableUpDownCounter
-            MeterInstance.CreateObservableGauge(
+            MeterInstance.CreateObservableCounter(
                 $"{metricPrefix}thread_pool.completed_items.count",
                 () => ThreadPool.CompletedWorkItemCount,
                 description: "The number of work items that have been processed by the thread pool since the process start.");
