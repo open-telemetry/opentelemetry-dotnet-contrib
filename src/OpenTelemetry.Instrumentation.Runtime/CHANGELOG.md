@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0 [2022-Jun-30]
+
+Use 1.0.0-rc.1 as 1.0.0.
+
 ## 1.0.0-rc.1
 
 Major refactor of the runtime instrumentation. Renamed API signature and metrics.
