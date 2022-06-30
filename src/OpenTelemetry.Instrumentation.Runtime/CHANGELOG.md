@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.0.0-rc.1
+
+Major refactor of the runtime instrumentation. Renamed API signature and metrics.
+Removed the options to turn off certain metrics.
+
 ## 1.0.0-beta.1
 
 Major redesign of the runtime instrumentation. Renamed metrics to be more user-friendly
