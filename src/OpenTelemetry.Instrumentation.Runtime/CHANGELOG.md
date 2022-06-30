@@ -4,6 +4,8 @@
 
 ## 1.0.0-rc.1
 
+Released 2022-Jun-29
+
 Major refactor of the runtime instrumentation. Renamed API signature and metrics.
 Removed the options to turn off certain metrics.
 
