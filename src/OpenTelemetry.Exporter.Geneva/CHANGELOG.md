@@ -20,12 +20,16 @@ by throwing any exception caught by `UnixDomainSocketDataTransport.Send` so that
 `ExportResult.Failure`.
 [444](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/444)
 
-## 1.3.0-beta.2 [2022-Jun-03]
+## 1.3.0-beta.2
+
+Released 2022-Jun-03
 
 * Add support for exporting `ILogger` scopes.
 [390](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/390)
 
-## 1.3.0-beta.1 [2022-May-27]
+## 1.3.0-beta.1
+
+Released 2022-May-27
 
 * Enable PassThru TableNameMappings using the logger category name.
 [345](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/345)
@@ -44,12 +48,16 @@ by throwing any exception caught by `UnixDomainSocketDataTransport.Send` so that
 `LogRecord.Exception.GetType().FullName`.
 [375](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/375)
 
-## 1.2.6 [2022-Apr-21]
+## 1.2.6
+
+Released 2022-Apr-21
 
 * Set GenevaMetricExporter temporality preference back to Delta.
 [323](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/323)
 
-## 1.2.5 [2022-Apr-20] Broken
+## 1.2.5 Broken
+
+Released 2022-Apr-20
 
 Note: This release was broken due to the GenevaMetricExporter using a
 TemporalityPreference of Cumulative instead of Delta, it has been unlisted from
@@ -60,7 +68,9 @@ is the PR that introduced this bug to GenevaMetricExporterExtensions.cs
 * Update OTel SDK version to `1.2.0`.
 [319](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/319)
 
-## 1.2.4 [2022-Apr-20] Broken
+## 1.2.4 Broken
+
+Released 2022-Apr-20
 
 This is the first release of the `OpenTelemetry.Exporter.Geneva` project. Note:
 This release was broken due to using OpenTelemetry 1.2.0-rc5. Therefore, it has
