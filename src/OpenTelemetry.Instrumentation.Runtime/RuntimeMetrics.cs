@@ -56,7 +56,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
             MeterInstance.CreateObservableCounter(
                 $"{metricPrefix}gc.allocations.size",
                 () => GC.GetTotalAllocatedBytes(),
-                unit: "By",
+                unit: "bytes",
                 description: "Count of the bytes allocated on the managed GC heap since the process start. .NET objects are allocated from this heap. Object allocations from unmanaged languages such as C/C++ do not use this heap.");
 #endif
 
@@ -73,7 +73,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
                     return new Measurement<long>[] { new(GC.GetGCMemoryInfo().TotalCommittedBytes) };
                 },
-                unit: "By",
+                unit: "bytes",
                 description: "The amount of committed virtual memory for the managed GC heap, as observed during the latest garbage collection. Committed virtual memory may be larger than the heap size because it includes both memory for storing existing objects (the heap size) and some extra memory that is ready to handle newly allocated objects in the future. The value will be unavailable until garbage collection has occurred.");
 
             // TODO: change to ObservableUpDownCounter
@@ -96,7 +96,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
                     return measurements;
                 },
-                unit: "By",
+                unit: "bytes",
                 description: "The heap size (including fragmentation), as observed during the latest garbage collection. The value will be unavailable until garbage collection has occurred.");
 
             // TODO: change to ObservableUpDownCounter
@@ -119,7 +119,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
                     return measurements;
                 },
-                unit: "By",
+                unit: "bytes",
                 description: "The heap fragmentation, as observed during the latest garbage collection. The value will be unavailable until garbage collection has occurred.");
 #endif
 
@@ -127,7 +127,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
             MeterInstance.CreateObservableCounter(
                 $"{metricPrefix}jit.il_compiled.size",
                 () => JitInfo.GetCompiledILBytes(),
-                unit: "By",
+                unit: "bytes",
                 description: "Count of bytes of intermediate language that have been compiled since the process start. The value will be zero under ahead-of-time (AOT) compilation mode.");
 
             MeterInstance.CreateObservableCounter(
@@ -143,8 +143,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
 #endif
 
 #if NETCOREAPP3_1_OR_GREATER
-           // TODO: change to ObservableUpDownCounter
-            MeterInstance.CreateObservableGauge(
+            MeterInstance.CreateObservableCounter(
                 $"{metricPrefix}monitor.lock_contention.count",
                 () => Monitor.LockContentionCount,
                 description: "The number of times there was contention when trying to acquire a monitor lock since the process start. Monitor locks are commonly acquired by using the lock keyword in C#, or by calling Monitor.Enter() and Monitor.TryEnter()");
@@ -155,8 +154,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
                 () => (long)ThreadPool.ThreadCount,
                 description: "The number of thread pool threads that currently exist.");
 
-            // TODO: change to ObservableUpDownCounter
-            MeterInstance.CreateObservableGauge(
+            MeterInstance.CreateObservableCounter(
                 $"{metricPrefix}thread_pool.completed_items.count",
                 () => ThreadPool.CompletedWorkItemCount,
                 description: "The number of work items that have been processed by the thread pool since the process start.");
