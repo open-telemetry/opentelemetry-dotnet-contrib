@@ -19,7 +19,7 @@ Released 2022-May-18
 
 ## 1.1.0
 
-Released 2021-Sept-20
+Released 2021-Sep-20
 
 * Added AWS resource detectors ([#149](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/149))
 * Updated OTel SDK package version to 1.1.0
