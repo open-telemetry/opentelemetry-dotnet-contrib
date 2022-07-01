@@ -64,9 +64,9 @@ complete demo.
 
 ### GC related metrics
 
-| Name                                            | Description                                                          | Units     | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|-------------------------------------------------|----------------------------------------------------------------------|-----------|-------------------|------------|------------------|------------------|
-| process.runtime.dotnet.**gc.collections.count** | Number of garbage collections that have occurred since process start. | `{collections}` | ObservableCounter | `Int64`    | generation              | gen0, gen1, gen2 |
+| Name                                            | Description                                                           | Units           | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|-------------------------------------------------|-----------------------------------------------------------------------|-----------------|-------------------|------------|------------------|------------------|
+| process.runtime.dotnet.**gc.collections.count** | Number of garbage collections that have occurred since process start. | `{collections}` | ObservableCounter | `Int64`    | generation       | gen0, gen1, gen2 |
 
 Note: Collecting a generation means collecting objects in that generation and all
 its younger generations. However, each dimension for this metrics doesn't include
@@ -81,8 +81,8 @@ of objects.
 
 #### Additional GC metrics only available when targeting .NET Core 3.1 or later
 
-| Name                                           | Description                                                                                                                                                                                             | Units   | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------|-------------------|------------|------------------|------------------|
+| Name                                           | Description                                                                                                                                                                                         | Units   | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------|-------------------|------------|------------------|------------------|
 | process.runtime.dotnet.**gc.allocations.size** | Count of bytes allocated on the managed GC heap since the process start. .NET objects are allocated from this heap. Object allocations from unmanaged languages such as C/C++ do not use this heap. | `bytes` | ObservableCounter | `Int64`    |                  |                  |
 
 The API used to retrieve the value is:
@@ -96,8 +96,8 @@ value does not include any native allocations. The value is an approximate count
 | Name                                                  | Description                                                                                                                                                                                                                                                                                                                                                                                                        | Units   | Instrument Type | Value Type | Attribute Key(s) | Attribute Values           |
 |-------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------|-----------------|------------|------------------|----------------------------|
 | process.runtime.dotnet.**gc.committed_memory.size**   | The amount of committed virtual memory for the managed GC heap, as observed during the latest garbage collection. Committed virtual memory may be larger than the heap size because it includes both memory for storing existing objects (the heap size) and some extra memory that is ready to handle newly allocated objects in the future. The value will be unavailable until garbage collection has occurred. | `bytes` | ObservableGauge | `Int64`    |                  |                            |
-| process.runtime.dotnet.**gc.heap.size**               | The heap size (including fragmentation), as observed during the latest garbage collection. The value will be unavailable until garbage collection has occurred.                                                                                                                                                                                                                                                    | `bytes` | ObservableGauge | `Int64`    | generation              | gen0, gen1, gen2, loh, poh |
-| process.runtime.dotnet.**gc.heap.fragmentation.size** | The heap fragmentation, as observed during the latest garbage collection. The value will be unavailable until garbage collection has occurred.                                                                                                                                                                                                                                                                     | `bytes` | ObservableGauge | `Int64`    | generation              | gen0, gen1, gen2, loh, poh |
+| process.runtime.dotnet.**gc.heap.size**               | The heap size (including fragmentation), as observed during the latest garbage collection. The value will be unavailable until garbage collection has occurred.                                                                                                                                                                                                                                                    | `bytes` | ObservableGauge | `Int64`    | generation       | gen0, gen1, gen2, loh, poh |
+| process.runtime.dotnet.**gc.heap.fragmentation.size** | The heap fragmentation, as observed during the latest garbage collection. The value will be unavailable until garbage collection has occurred.                                                                                                                                                                                                                                                                     | `bytes` | ObservableGauge | `Int64`    | generation       | gen0, gen1, gen2, loh, poh |
 
 Note: `ObservableGauge` should be changed to `ObservableUpDownCounter` once available,
 as `ObservableUpDownCounter` is the best fit of instrument type. The same applies
@@ -118,11 +118,11 @@ The APIs used to retrieve the values are:
 
 These metrics are only available when targeting .NET6 or later.
 
-| Name                                                  | Description                                                                                                                                                                                                                                                                                                                                  | Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|-------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|-------------------|------------|------------------|------------------|
+| Name                                                  | Description                                                                                                                                                                                                                                                               | Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|-------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|-------------------|------------|------------------|------------------|
 | process.runtime.dotnet.**jit.il_compiled.size**       | Count of bytes of intermediate language that have been compiled since the process start.                                                                                                                                                                                  | `bytes`     | ObservableCounter | `Int64`    |                  |                  |
 | process.runtime.dotnet.**jit.methods_compiled.count** | The number of times the JIT compiler compiled a method since the process start. The JIT compiler may be invoked multiple times for the same method to compile with different generic parameters, or because tiered compilation requested different optimization settings. | `{methods}` | ObservableCounter | `Int64`    |                  |                  |
-| process.runtime.dotnet.**jit.compilation_time**       | The amount of time the JIT compiler has spent compiling methods since the process start.                                                                                                                                                                               | `ns`        | ObservableCounter | `Int64`    |                  |                  |
+| process.runtime.dotnet.**jit.compilation_time**       | The amount of time the JIT compiler has spent compiling methods since the process start.                                                                                                                                                                                  | `ns`        | ObservableCounter | `Int64`    |                  |                  |
 
 The APIs used to retrieve the values are:
 
@@ -165,8 +165,8 @@ The APIs used to retrieve the values are:
 
 ### Assemblies related metrics
 
-| Name                                      | Description                                              | Units          | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
-|-------------------------------------------|----------------------------------------------------------|----------------|-----------------|------------|------------------|------------------|
+| Name                                        | Description                                              | Units          | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
+|---------------------------------------------|----------------------------------------------------------|----------------|-----------------|------------|------------------|------------------|
 | process.runtime.dotnet.**assemblies.count** | The number of .NET assemblies that are currently loaded. | `{assemblies}` | ObservableGauge | `Int64`    |                  |                  |
 
 The API used to retrieve the value is:
@@ -177,8 +177,8 @@ The API used to retrieve the value is:
 
 ### Exception counter metric
 
-| Name                                       | Description                                                                                                                                                                                                            | Units          | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|--------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|-------------------|------------|------------------|------------------|
+| Name                                        | Description                                                                                                                                                                                                            | Units          | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|---------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|-------------------|------------|------------------|------------------|
 | process.runtime.dotnet.**exceptions.count** | Count of exceptions that have been thrown in managed code, since the observation started. The value will be unavailable until an exception has been thrown after OpenTelemetry.Instrumentation.Runtime initialization. | `{exceptions}` | ObservableCounter | `Int64`    |                  |                  |
 
 Note: The value is tracked by calling a counter whenever an AppDomain.FirstChanceException
