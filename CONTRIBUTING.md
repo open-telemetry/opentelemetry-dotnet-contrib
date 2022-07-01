@@ -138,8 +138,16 @@ and the new feature doesn't fit it.
 ### How to request for release of package
 
 * Submit a PR with `CHANGELOG.md` file reflecting the version to be released
-along with the date in the following format `[yyyy-MMM-dd`]`. For example:
-"1.2.0-beta.2 [2022-May-15]".
+along with the date in the following format `yyyy-MMM-dd`.
+
+For example:
+
+```text
+## 1.2.0-beta.2
+
+Released 2022-Jun-21
+```
+
 * Tag the maintainers of this repository
 (@open-telemetry/dotnet-contrib-maintainers) who can release the package.
 
