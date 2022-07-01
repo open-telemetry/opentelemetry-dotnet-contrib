@@ -50,14 +50,14 @@ namespace OpenTelemetry.Instrumentation.Runtime
             MeterInstance.CreateObservableCounter(
                 $"{metricPrefix}gc.collections.count",
                 () => GetGarbageCollectionCounts(),
-                description: "Number of times garbage collection has occurred since process start.");
+                description: "Number of garbage collections that have occurred since process start.");
 
 #if NETCOREAPP3_1_OR_GREATER
             MeterInstance.CreateObservableCounter(
                 $"{metricPrefix}gc.allocations.size",
                 () => GC.GetTotalAllocatedBytes(),
                 unit: "bytes",
-                description: "Count of the bytes allocated on the managed GC heap since the process start. .NET objects are allocated from this heap. Object allocations from unmanaged languages such as C/C++ do not use this heap.");
+                description: "Count of bytes allocated on the managed GC heap since the process start. .NET objects are allocated from this heap. Object allocations from unmanaged languages such as C/C++ do not use this heap.");
 #endif
 
 #if NET6_0_OR_GREATER
@@ -91,7 +91,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
                     int maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
                     for (int i = 0; i < maxSupportedLength; ++i)
                     {
-                        measurements[i] = new(generationInfo[i].SizeAfterBytes, new KeyValuePair<string, object>("gen", GenNames[i]));
+                        measurements[i] = new(generationInfo[i].SizeAfterBytes, new KeyValuePair<string, object>("generation", GenNames[i]));
                     }
 
                     return measurements;
@@ -114,7 +114,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
                     int maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
                     for (int i = 0; i < maxSupportedLength; ++i)
                     {
-                        measurements[i] = new(generationInfo[i].FragmentationAfterBytes, new KeyValuePair<string, object>("gen", GenNames[i]));
+                        measurements[i] = new(generationInfo[i].FragmentationAfterBytes, new KeyValuePair<string, object>("generation", GenNames[i]));
                     }
 
                     return measurements;
@@ -128,18 +128,18 @@ namespace OpenTelemetry.Instrumentation.Runtime
                 $"{metricPrefix}jit.il_compiled.size",
                 () => JitInfo.GetCompiledILBytes(),
                 unit: "bytes",
-                description: "Count of bytes of intermediate language that have been compiled since the process start. The value will be zero under ahead-of-time (AOT) compilation mode.");
+                description: "Count of bytes of intermediate language that have been compiled since the process start.");
 
             MeterInstance.CreateObservableCounter(
                 $"{metricPrefix}jit.methods_compiled.count",
                 () => JitInfo.GetCompiledMethodCount(),
-                description: "The number of times the JIT compiler compiled a method since the process start. The JIT compiler may be invoked multiple times for the same method to compile with different generic parameters, or because tiered compilation requested different optimization settings. The value will be zero under ahead-of-time (AOT) compilation mode.");
+                description: "The number of times the JIT compiler compiled a method since the process start. The JIT compiler may be invoked multiple times for the same method to compile with different generic parameters, or because tiered compilation requested different optimization settings.");
 
             MeterInstance.CreateObservableCounter(
                 $"{metricPrefix}jit.compilation_time",
                 () => JitInfo.GetCompilationTime().Ticks * NanosecondsPerTick,
                 unit: "ns",
-                description: "The amount of time the JIT compiler has spent compiling methods since the process start. The value will be zero under ahead-of-time (AOT) compilation mode.");
+                description: "The amount of time the JIT compiler has spent compiling methods since the process start.");
 #endif
 
 #if NETCOREAPP3_1_OR_GREATER
@@ -176,12 +176,12 @@ namespace OpenTelemetry.Instrumentation.Runtime
 
             // TODO: change to ObservableUpDownCounter
             MeterInstance.CreateObservableGauge(
-                $"{metricPrefix}assembly.count",
+                $"{metricPrefix}assemblies.count",
                 () => (long)AppDomain.CurrentDomain.GetAssemblies().Length,
                 description: "The number of .NET assemblies that are currently loaded.");
 
             var exceptionCounter = MeterInstance.CreateCounter<long>(
-                $"{metricPrefix}exception.count",
+                $"{metricPrefix}exceptions.count",
                 description: "Count of exceptions that have been thrown in managed code, since the observation started. The value will be unavailable until an exception has been thrown after OpenTelemetry.Instrumentation.Runtime initialization.");
 
             AppDomain.CurrentDomain.FirstChanceException += (source, e) =>
@@ -224,7 +224,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
             {
                 long collectionsFromThisGeneration = GC.CollectionCount(gen);
 
-                yield return new(collectionsFromThisGeneration - collectionsFromHigherGeneration, new KeyValuePair<string, object>("gen", GenNames[gen]));
+                yield return new(collectionsFromThisGeneration - collectionsFromHigherGeneration, new KeyValuePair<string, object>("generation", GenNames[gen]));
 
                 collectionsFromHigherGeneration = collectionsFromThisGeneration;
             }
