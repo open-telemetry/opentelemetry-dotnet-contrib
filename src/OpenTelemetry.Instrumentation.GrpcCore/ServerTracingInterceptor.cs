@@ -166,7 +166,7 @@ namespace OpenTelemetry.Instrumentation.GrpcCore
                 for (var i = 0; i < metadata.Count; i++)
                 {
                     var entry = metadata[i];
-                    if (string.Equals(entry.Key, key, StringComparison.OrdinalIgnoreCase))
+                   if (string.Equals(entry.Key, key, StringComparison.OrdinalIgnoreCase))
                     {
                         return new string[1] { entry.Value };
                     }
