@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+
 * Make the context propagation extraction case insensitive.
   ([#483](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/483))
 
