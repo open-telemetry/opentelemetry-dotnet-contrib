@@ -1,10 +1,7 @@
 # Changelog
 
 ## Unreleased
-  
-## 1.0.0-beta6
-
-* Fix issue -propagation type is not case insensitive
+* Make the context propagation extraction case insensitive.
   ([#483](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/483))
 
 ## 1.0.0-beta.5
