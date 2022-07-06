@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+* Update the `ActivitySource` name used to the assembly name: `OpenTelemetry.Instrumentation.StackExchangeRedis`
+[#485](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/485)
+
 ## 1.0.0-rc9.6
 
 Released 2022-Jun-29
