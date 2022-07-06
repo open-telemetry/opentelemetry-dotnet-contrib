@@ -10,7 +10,7 @@ this application (please look at the prerequisite for running the application in
 Activity.TraceId:          f1a47baec558ebb97e57a6fb7d029a29
 Activity.SpanId:           d0abf2503ad3d1b6
 Activity.TraceFlags:           Recorded
-Activity.ActivitySourceName: OpenTelemetry.StackExchange.Redis
+Activity.ActivitySourceName: OpenTelemetry.Instrumentation.StackExchangeRedis
 Activity.DisplayName: SET
 Activity.Kind:        Client
 Activity.StartTime:   2022-06-06T22:17:40.8927802Z
@@ -33,7 +33,7 @@ Resource associated with Activity:
 Activity.TraceId:          0db37d796826693e23b17e3b082356a4
 Activity.SpanId:           cd01d518b8b5cfa2
 Activity.TraceFlags:           Recorded
-Activity.ActivitySourceName: OpenTelemetry.StackExchange.Redis
+Activity.ActivitySourceName: OpenTelemetry.Instrumentation.StackExchangeRedis
 Activity.DisplayName: GET
 Activity.Kind:        Client
 Activity.StartTime:   2022-06-06T22:17:41.9223474Z
