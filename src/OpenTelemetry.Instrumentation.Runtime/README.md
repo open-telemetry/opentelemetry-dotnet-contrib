@@ -105,13 +105,13 @@ to all the `ObservableGauge` below.
 
 The APIs used to retrieve the values are:
 
-* [GCMemoryInfo.TotalCommittedBytes](https://docs.microsoft.com/dotnet/api/system.gcmemoryinfo.totalcommittedbytes?view=net-6.0#system-gcmemoryinfo-totalcommittedbytes):
+* [GCMemoryInfo.TotalCommittedBytes](https://docs.microsoft.com/dotnet/api/system.gcmemoryinfo.totalcommittedbytes):
   Gets the total committed bytes of the managed heap.
 
 * [GC.GetGCMemoryInfo().GenerationInfo[i].SizeAfterBytes](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo):
   Represents the size in bytes of a generation on exit of the GC reported in GCMemoryInfo.
 
-* [GCGenerationInfo.FragmentationAfterBytes Property](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo.fragmentationafterbytes#system-gcgenerationinfo-fragmentationafterbytes)
+* [GCGenerationInfo.FragmentationAfterBytes Property](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo.fragmentationafterbytes)
   Gets the fragmentation in bytes on exit from the reported collection.
 
 ### JIT Compiler related metrics
@@ -126,14 +126,14 @@ These metrics are only available when targeting .NET6 or later.
 
 The APIs used to retrieve the values are:
 
-* [JitInfo.GetCompiledILBytes](https://docs.microsoft.com/dotnet/api/system.runtime.jitinfo.getcompiledilbytes?view=net-6.0#system-runtime-jitinfo-getcompiledilbytes(system-boolean)):
+* [JitInfo.GetCompiledILBytes](https://docs.microsoft.com/dotnet/api/system.runtime.jitinfo.getcompiledilbytes):
   Gets the number of bytes of intermediate language that have been compiled.
 The scope of this value is global. The same applies for other JIT related metrics.
 
-* [JitInfo.GetCompiledMethodCount](https://docs.microsoft.com/dotnet/api/system.runtime.jitinfo.getcompiledmethodcount?view=net-6.0#system-runtime-jitinfo-getcompiledmethodcount(system-boolean)):
+* [JitInfo.GetCompiledMethodCount](https://docs.microsoft.com/dotnet/api/system.runtime.jitinfo.getcompiledmethodcount):
   Gets the number of methods that have been compiled.
 
-* [JitInfo.GetCompilationTime](https://docs.microsoft.com/dotnet/api/system.runtime.jitinfo.getcompilationtime?view=net-6.0#system-runtime-jitinfo-getcompilationtime(system-boolean)):
+* [JitInfo.GetCompilationTime](https://docs.microsoft.com/dotnet/api/system.runtime.jitinfo.getcompilationtime):
   Gets the amount of time the JIT Compiler has spent compiling methods.
 
 ### Threading related metrics
@@ -150,16 +150,16 @@ These metrics are only available when targeting .NET Core 3.1 or later.
 
 The APIs used to retrieve the values are:
 
-* [Monitor.LockContentionCount](https://docs.microsoft.com/dotnet/api/system.threading.monitor.lockcontentioncount?view=netcore-3.1):
+* [Monitor.LockContentionCount](https://docs.microsoft.com/dotnet/api/system.threading.monitor.lockcontentioncount):
   Gets the number of times there was contention when trying to take the monitor's
   lock.
-* [ThreadPool.ThreadCount](https://docs.microsoft.com/dotnet/api/system.threading.threadpool.threadcount?view=netcore-3.1):
+* [ThreadPool.ThreadCount](https://docs.microsoft.com/dotnet/api/system.threading.threadpool.threadcount):
   Gets the number of thread pool threads that currently exist.
-* [ThreadPool.CompletedWorkItemCount](https://docs.microsoft.com/dotnet/api/system.threading.threadpool.completedworkitemcount?view=netcore-3.1):
+* [ThreadPool.CompletedWorkItemCount](https://docs.microsoft.com/dotnet/api/system.threading.threadpool.completedworkitemcount):
   Gets the number of work items that have been processed so far.
-* [ThreadPool.PendingWorkItemCount](https://docs.microsoft.com/dotnet/api/system.threading.threadpool.pendingworkitemcount?view=netcore-3.1):
+* [ThreadPool.PendingWorkItemCount](https://docs.microsoft.com/dotnet/api/system.threading.threadpool.pendingworkitemcount):
   Gets the number of work items that are currently queued to be processed.
-* [Timer.ActiveCount](https://docs.microsoft.com/dotnet/api/system.threading.timer.activecount?view=netcore-3.1):
+* [Timer.ActiveCount](https://docs.microsoft.com/dotnet/api/system.threading.timer.activecount):
   Gets the number of timers that are currently active. An active timer is registered
   to tick at some point in the future, and has not yet been canceled.
 
