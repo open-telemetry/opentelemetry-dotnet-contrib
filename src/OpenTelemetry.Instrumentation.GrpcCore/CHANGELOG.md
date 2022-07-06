@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Make the context propagation extraction case insensitive.
+  ([#483](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/483))
+
 ## 1.0.0-beta.5
 
 * Switched Grpc.Core package dependency to Grpc.Core.Api in the same range.
