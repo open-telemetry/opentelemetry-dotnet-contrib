@@ -21,6 +21,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Microsoft.TraceLoggingDynamic;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva
@@ -32,7 +33,6 @@ namespace OpenTelemetry.Exporter.Geneva
             Guard.ThrowIfNull(options);
             Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
-            var partAName = "Span";
             if (options.TableNameMappings != null
                 && options.TableNameMappings.TryGetValue("Span", out var customTableName))
             {
@@ -46,7 +46,7 @@ namespace OpenTelemetry.Exporter.Geneva
                     throw new ArgumentException("The \"{customTableName}\" provided for TableNameMappings option contains non-ASCII characters", customTableName);
                 }
 
-                partAName = customTableName;
+                this.partAName = customTableName;
             }
 
             var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
@@ -58,21 +58,8 @@ namespace OpenTelemetry.Exporter.Geneva
                         throw new ArgumentException("ETW cannot be used on non-Windows operating systems.");
                     }
 
-                    this.m_dataTransport = new EtwDataTransport(connectionStringBuilder.EtwSession);
+                    this.eventProvider = new EventProvider(connectionStringBuilder.EtwSession);
                     break;
-                case TransportProtocol.Unix:
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    {
-                        throw new ArgumentException("Unix domain socket should not be used on Windows.");
-                    }
-
-                    var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
-                    this.m_dataTransport = new UnixDomainSocketDataTransport(unixDomainSocketPath);
-                    break;
-                case TransportProtocol.Tcp:
-                    throw new ArgumentException("TCP transport is not supported yet.");
-                case TransportProtocol.Udp:
-                    throw new ArgumentException("UDP transport is not supported yet.");
                 default:
                     throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
             }
@@ -123,52 +110,8 @@ namespace OpenTelemetry.Exporter.Geneva
                 { "TimeFormat": "DateTime" }
             ]
             */
-            cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 3);
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, partAName);
-            cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 1);
-            cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 2);
 
-            // timestamp
-            cursor = MessagePackSerializer.WriteTimestamp96Header(buffer, cursor);
-            this.m_idxTimestampPatch = cursor;
-            cursor += 12; // reserve 12 bytes for the timestamp
-
-            cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue); // Note: always use Map16 for perf consideration
-            this.m_idxMapSizePatch = cursor - 2;
-
-            this.m_cntPrepopulatedFields = 0;
-
-            // TODO: Do we support PartB as well?
-            // Part A - core envelope
-            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, partAName);
-            this.m_cntPrepopulatedFields += 1;
-
-            foreach (var entry in options.PrepopulatedFields)
-            {
-                var value = entry.Value;
-                switch (value)
-                {
-                    case bool vb:
-                    case byte vui8:
-                    case sbyte vi8:
-                    case short vi16:
-                    case ushort vui16:
-                    case int vi32:
-                    case uint vui32:
-                    case long vi64:
-                    case ulong vui64:
-                    case float vf:
-                    case double vd:
-                    case string vs:
-                        break;
-                    default:
-                        value = options.ConvertToJson(value);
-                        break;
-                }
-
-                cursor = AddPartAField(buffer, cursor, entry.Key, value);
-                this.m_cntPrepopulatedFields += 1;
-            }
+            this.prepopulatedFields = options.PrepopulatedFields;
 
             this.m_bufferPrologue = new byte[cursor - 0];
             Buffer.BlockCopy(buffer, 0, this.m_bufferPrologue, 0, cursor - 0);
@@ -191,18 +134,25 @@ namespace OpenTelemetry.Exporter.Geneva
             // }
 
             var result = ExportResult.Success;
-            foreach (var activity in batch)
+            if (this.eventProvider.IsEnabled())
             {
-                try
+                foreach (var activity in batch)
                 {
-                    var cursor = this.SerializeActivity(activity);
-                    this.m_dataTransport.Send(this.m_buffer.Value, cursor - 0);
+                    try
+                    {
+                        this.SerializeActivity(activity);
+                        this.eventProvider.Write(this.eventBuilder.Value);
+                    }
+                    catch (Exception ex)
+                    {
+                        ExporterEventSource.Log.FailedToSendTraceData(ex); // TODO: preallocate exception or no exception
+                        result = ExportResult.Failure;
+                    }
                 }
-                catch (Exception ex)
-                {
-                    ExporterEventSource.Log.FailedToSendTraceData(ex); // TODO: preallocate exception or no exception
-                    result = ExportResult.Failure;
-                }
+            }
+            else
+            {
+                return ExportResult.Failure;
             }
 
             return result;
@@ -219,7 +169,8 @@ namespace OpenTelemetry.Exporter.Geneva
             {
                 try
                 {
-                    (this.m_dataTransport as IDisposable)?.Dispose();
+                    this.eventProvider.Dispose();
+                    this.eventBuilder.Dispose();
                     this.m_buffer.Dispose();
                 }
                 catch (Exception ex)
@@ -232,13 +183,86 @@ namespace OpenTelemetry.Exporter.Geneva
             base.Dispose(disposing);
         }
 
-        internal bool IsUsingUnixDomainSocket
-        {
-            get => this.m_dataTransport is UnixDomainSocketDataTransport;
-        }
-
         internal int SerializeActivity(Activity activity)
         {
+            var eb = this.eventBuilder.Value;
+
+            eb.Reset(this.partAName);
+            eb.AddUInt16("__csver__", 1024, EventOutType.Hex);
+
+            var partAFieldsCount = this.prepopulatedFields.Count + 4;
+
+            var dtBegin = activity.StartTimeUtc;
+            var tsBegin = dtBegin.Ticks;
+            var tsEnd = tsBegin + activity.Duration.Ticks;
+            var dtEnd = new DateTime(tsEnd);
+
+            eb.AddStruct("PartA", (byte)partAFieldsCount);
+            eb.AddCountedString("name", this.partAName);
+            eb.AddFileTime("time", dtEnd, EventOutType.DateTimeUtc);
+            eb.AddCountedString("name", this.partAName);
+            eb.AddCountedString("ext_dt_traceId", activity.Context.TraceId.ToHexString());
+            eb.AddCountedString("ext_dt_spanId", activity.Context.SpanId.ToHexString());
+
+            foreach (var entry in this.prepopulatedFields)
+            {
+                V40_PART_A_MAPPING.TryGetValue(entry.Key, out string replacementKey);
+                var key = replacementKey ?? entry.Key;
+                var value = entry.Value;
+                switch (value)
+                {
+                    case bool vb:
+                        eb.AddBool32(key, vb ? 1 : 0, EventOutType.Boolean);
+                        break;
+                    case byte vui8:
+                        eb.AddUInt8(key, vui8);
+                        break;
+                    case sbyte vi8:
+                        eb.AddInt8(key, vi8);
+                        break;
+                    case short vi16:
+                        eb.AddInt16(key, vi16);
+                        break;
+                    case ushort vui16:
+                        eb.AddUInt16(key, vui16);
+                        break;
+                    case int vi32:
+                        eb.AddInt32(key, vi32);
+                        break;
+                    case uint vui32:
+                        eb.AddUInt32(key, vui32);
+                        break;
+                    case long vi64:
+                        eb.AddInt64(key, vi64);
+                        break;
+                    case ulong vui64:
+                        eb.AddUInt64(key, vui64);
+                        break;
+                    case float vf:
+                        eb.AddFloat32(key, vf);
+                        break;
+                    case double vd:
+                        eb.AddFloat64(key, vd);
+                        break;
+                    case string vs:
+                        eb.AddCountedString(key, vs);
+                        break;
+                    default:
+                        eb.AddCountedString(key, value.ToString());
+                        break;
+                }
+
+                cursor = AddPartAField(buffer, cursor, entry.Key, value);
+                this.m_cntPrepopulatedFields += 1;
+            }
+
+            eb.AddUnicodeString("Substring", "1234567890", 0, 5);
+            eb.AddStruct("struct1", 2, 0xFE00000);
+            eb.AddUInt8("nested1", 1);
+            eb.AddStruct("struct2", 1);
+            eb.AddUInt8("nested2", 2);
+            eb.AddUInt8("Test", 100);
+
             var buffer = this.m_buffer.Value;
             if (buffer == null)
             {
@@ -249,10 +273,6 @@ namespace OpenTelemetry.Exporter.Geneva
 
             var cursor = this.m_bufferPrologue.Length;
             var cntFields = this.m_cntPrepopulatedFields;
-            var dtBegin = activity.StartTimeUtc;
-            var tsBegin = dtBegin.Ticks;
-            var tsEnd = tsBegin + activity.Duration.Ticks;
-            var dtEnd = new DateTime(tsEnd);
 
             MessagePackSerializer.WriteTimestamp96(buffer, this.m_idxTimestampPatch, tsEnd);
 
@@ -446,19 +466,25 @@ namespace OpenTelemetry.Exporter.Geneva
 
         private readonly byte[] m_bufferEpilogue;
 
-        private readonly ushort m_cntPrepopulatedFields;
+        private readonly byte m_cntPrepopulatedFields;
 
         private readonly int m_idxTimestampPatch;
 
         private readonly int m_idxMapSizePatch;
 
-        private readonly IDataTransport m_dataTransport;
+        private readonly string partAName = "Span";
 
         private readonly IReadOnlyDictionary<string, object> m_customFields;
 
         private readonly IReadOnlyDictionary<string, object> m_dedicatedFields;
 
+        private readonly IReadOnlyDictionary<string, object> prepopulatedFields;
+
         private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
+
+        private readonly EventProvider eventProvider;
+
+        private readonly ThreadLocal<EventBuilder> eventBuilder = new ThreadLocal<EventBuilder>(() => new());
 
         private static readonly IReadOnlyDictionary<string, string> CS40_PART_B_MAPPING = new Dictionary<string, string>
         {
