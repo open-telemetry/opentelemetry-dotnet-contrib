@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -183,14 +182,14 @@ namespace OpenTelemetry.Exporter.Geneva
             base.Dispose(disposing);
         }
 
-        internal int SerializeActivity(Activity activity)
+        internal void SerializeActivity(Activity activity)
         {
             var eb = this.eventBuilder.Value;
 
             eb.Reset(this.partAName);
             eb.AddUInt16("__csver__", 1024, EventOutType.Hex);
 
-            var partAFieldsCount = this.prepopulatedFields.Count + 4;
+            var partAFieldsCount = this.prepopulatedFields.Count + 4; // Four fields: name, time, ext_dt_traceId, ext_dt_spanId
 
             var dtBegin = activity.StartTimeUtc;
             var tsBegin = dtBegin.Ticks;
@@ -200,7 +199,6 @@ namespace OpenTelemetry.Exporter.Geneva
             eb.AddStruct("PartA", (byte)partAFieldsCount);
             eb.AddCountedString("name", this.partAName);
             eb.AddFileTime("time", dtEnd, EventOutType.DateTimeUtc);
-            eb.AddCountedString("name", this.partAName);
             eb.AddCountedString("ext_dt_traceId", activity.Context.TraceId.ToHexString());
             eb.AddCountedString("ext_dt_spanId", activity.Context.SpanId.ToHexString());
 
@@ -251,18 +249,14 @@ namespace OpenTelemetry.Exporter.Geneva
                         eb.AddCountedString(key, value.ToString());
                         break;
                 }
-
-                cursor = AddPartAField(buffer, cursor, entry.Key, value);
-                this.m_cntPrepopulatedFields += 1;
             }
 
-            eb.AddUnicodeString("Substring", "1234567890", 0, 5);
-            eb.AddStruct("struct1", 2, 0xFE00000);
-            eb.AddUInt8("nested1", 1);
-            eb.AddStruct("struct2", 1);
-            eb.AddUInt8("nested2", 2);
-            eb.AddUInt8("Test", 100);
+            eb.AddStruct("PartB", 3);
+            eb.AddCountedString("name", activity.DisplayName);
+            eb.AddInt32("kind", (int)activity.Kind);
+            eb.AddFileTime("startTime", dtBegin, EventOutType.DateTimeUtc);
 
+/*
             var buffer = this.m_buffer.Value;
             if (buffer == null)
             {
@@ -273,26 +267,6 @@ namespace OpenTelemetry.Exporter.Geneva
 
             var cursor = this.m_bufferPrologue.Length;
             var cntFields = this.m_cntPrepopulatedFields;
-
-            MessagePackSerializer.WriteTimestamp96(buffer, this.m_idxTimestampPatch, tsEnd);
-
-            #region Part A - core envelope
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_time");
-            cursor = MessagePackSerializer.SerializeUtcDateTime(buffer, cursor, dtEnd);
-            cntFields += 1;
-            #endregion
-
-            #region Part A - dt extension
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_dt_traceId");
-
-            // Note: ToHexString returns the pre-calculated hex representation without allocation
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, activity.Context.TraceId.ToHexString());
-            cntFields += 1;
-
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_dt_spanId");
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, activity.Context.SpanId.ToHexString());
-            cntFields += 1;
-            #endregion
 
             #region Part B Span - required fields
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "name");
@@ -456,6 +430,7 @@ namespace OpenTelemetry.Exporter.Geneva
             cursor += this.m_bufferEpilogue.Length;
 
             return cursor;
+*/
         }
 
         private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
