@@ -74,7 +74,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
                     return new Measurement<long>[] { new(GC.GetGCMemoryInfo().TotalCommittedBytes) };
                 },
                 unit: "bytes",
-                description: "The amount of committed virtual memory for the managed GC heap, as observed during the latest garbage collection. Committed virtual memory may be larger than the heap size because it includes both memory for storing existing objects (the heap size) and some extra memory that is ready to handle newly allocated objects in the future. The value will be unavailable until garbage collection has occurred.");
+                description: "The amount of committed virtual memory for the managed GC heap, as observed during the latest garbage collection. Committed virtual memory may be larger than the heap size because it includes both memory for storing existing objects (the heap size) and some extra memory that is ready to handle newly allocated objects in the future. The value will be unavailable until atleast one garbage collection has occurred.");
 
             // TODO: change to ObservableUpDownCounter
             MeterInstance.CreateObservableGauge(
@@ -97,7 +97,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
                     return measurements;
                 },
                 unit: "bytes",
-                description: "The heap size (including fragmentation), as observed during the latest garbage collection. The value will be unavailable until garbage collection has occurred.");
+                description: "The heap size (including fragmentation), as observed during the latest garbage collection. The value will be unavailable until atleast one garbage collection has occurred.");
 
             // TODO: change to ObservableUpDownCounter
             MeterInstance.CreateObservableGauge(
@@ -120,7 +120,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
                     return measurements;
                 },
                 unit: "bytes",
-                description: "The heap fragmentation, as observed during the latest garbage collection. The value will be unavailable until garbage collection has occurred.");
+                description: "The heap fragmentation, as observed during the latest garbage collection. The value will be unavailable until atleast one garbage collection has occurred.");
 #endif
 
 #if NET6_0_OR_GREATER
