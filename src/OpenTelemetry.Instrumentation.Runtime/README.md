@@ -177,13 +177,13 @@ The API used to retrieve the value is:
 
 ### Exception counter metric
 
-| Name                                        | Description                                                                                                                                                                                                            | Units          | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|---------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|-------------------|------------|------------------|------------------|
-| process.runtime.dotnet.**exceptions.count** | Count of exceptions that have been thrown in managed code, since the observation started. The value will be unavailable until an exception has been thrown after OpenTelemetry.Instrumentation.Runtime initialization. | `{exceptions}` | ObservableCounter | `Int64`    |                  |                  |
+| Name                                        | Description                                                                                                                                                                                                            | Units          | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
+|---------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|-----------------|------------|------------------|------------------|
+| process.runtime.dotnet.**exceptions.count** | Count of exceptions that have been thrown in managed code, since the observation started. The value will be unavailable until an exception has been thrown after OpenTelemetry.Instrumentation.Runtime initialization. | `{exceptions}` | Counter         | `Int64`    |                  |                  |
 
-Note: The value is tracked by calling a counter whenever an AppDomain.FirstChanceException
+Note: The value is tracked by incrementing a counter whenever an AppDomain.FirstChanceException
 event occurs. The observation starts when the Runtime instrumentation library is
-initialized, so the value will be unavailable until the an exception has been
+initialized, so the value will be unavailable until an exception has been
 thrown after the initialization.
 
 Relevant API:
