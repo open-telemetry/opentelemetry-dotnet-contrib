@@ -28,5 +28,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation
 
         public const string AttributeHttpStatusCode = "http.status_code";
         public const string AttributeHttpResponseContentLength = "http.response_content_length";
+
+        public const string AttributeValueDynamoDb = "dynamodb";
     }
 }

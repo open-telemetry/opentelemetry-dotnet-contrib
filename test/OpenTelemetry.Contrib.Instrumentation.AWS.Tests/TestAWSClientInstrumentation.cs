@@ -179,6 +179,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
             Assert.Equal("Scan", Utils.GetTagValue(ddb_activity, "aws.operation"));
             Assert.Equal("us-east-1", Utils.GetTagValue(ddb_activity, "aws.region"));
             Assert.Equal("SampleProduct", Utils.GetTagValue(ddb_activity, "aws.table_name"));
+            Assert.Equal("dynamodb", Utils.GetTagValue(ddb_activity, "db.system"));
         }
 
         private void ValidateSqsActivityTags(Activity sqs_activity)
