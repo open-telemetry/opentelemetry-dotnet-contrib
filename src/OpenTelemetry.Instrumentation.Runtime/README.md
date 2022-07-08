@@ -120,6 +120,11 @@ to all the `ObservableGauge` below.
 
 Note: This metric is only available when targeting .NET6 or later.
 
+The API used to retrieve the value is:
+
+* [GCMemoryInfo.TotalCommittedBytes](https://docs.microsoft.com/dotnet/api/system.gcmemoryinfo.totalcommittedbytes):
+  Gets the total committed bytes of the managed heap.
+
 #### process.runtime.dotnet.**gc.heap.size**
 
 | Units   | Instrument Type | Value Type | Attribute Key(s) | Attribute Values           |
@@ -132,6 +137,11 @@ has occurred.
 
 Note: This metric is only available when targeting .NET6 or later.
 
+The API used to retrieve the value is:
+
+* [GC.GetGCMemoryInfo().GenerationInfo[i].SizeAfterBytes](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo):
+  Represents the size in bytes of a generation on exit of the GC reported in GCMemoryInfo.
+
 #### process.runtime.dotnet.**gc.heap.fragmentation.size**
 
 | Units   | Instrument Type | Value Type | Attribute Key(s) | Attribute Values           |
@@ -143,13 +153,7 @@ The value will be unavailable until garbage collection has occurred.
 
 Note: This metric is only available when targeting .NET6 or later.
 
-The APIs used to retrieve the values are:
-
-* [GCMemoryInfo.TotalCommittedBytes](https://docs.microsoft.com/dotnet/api/system.gcmemoryinfo.totalcommittedbytes):
-  Gets the total committed bytes of the managed heap.
-
-* [GC.GetGCMemoryInfo().GenerationInfo[i].SizeAfterBytes](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo):
-  Represents the size in bytes of a generation on exit of the GC reported in GCMemoryInfo.
+The API used to retrieve the value is:
 
 * [GCGenerationInfo.FragmentationAfterBytes Property](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo.fragmentationafterbytes)
   Gets the fragmentation in bytes on exit from the reported collection.
@@ -158,11 +162,34 @@ The APIs used to retrieve the values are:
 
 These metrics are only available when targeting .NET6 or later.
 
-| Name                                                  | Description                                                                                                                                                                                                                                                               | Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|-------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|-------------------|------------|------------------|------------------|
-| process.runtime.dotnet.**jit.il_compiled.size**       | Count of bytes of intermediate language that have been compiled since the process start.                                                                                                                                                                                  | `bytes`     | ObservableCounter | `Int64`    |                  |                  |
-| process.runtime.dotnet.**jit.methods_compiled.count** | The number of times the JIT compiler compiled a method since the process start. The JIT compiler may be invoked multiple times for the same method to compile with different generic parameters, or because tiered compilation requested different optimization settings. | `{methods}` | ObservableCounter | `Int64`    |                  |                  |
-| process.runtime.dotnet.**jit.compilation_time**       | The amount of time the JIT compiler has spent compiling methods since the process start.                                                                                                                                                                                  | `ns`        | ObservableCounter | `Int64`    |                  |                  |
+#### process.runtime.dotnet.**jit.il_compiled.size**
+
+| Units   | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|---------|-------------------|------------|------------------|------------------|
+| `bytes` | ObservableCounter | `Int64`    |                  |                  |
+
+Description: Count of bytes of intermediate language that have been compiled since
+the process start.
+
+#### process.runtime.dotnet.**jit.methods_compiled.count**
+
+| Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|-------------|-------------------|------------|------------------|------------------|
+| `{methods}` | ObservableCounter | `Int64`    |                  |                  |
+
+Description: The number of times the JIT compiler compiled a method since the process
+start.  The JIT compiler may be invoked multiple times for the same method to compile
+with different generic parameters, or because tiered compilation requested different
+optimization settings.
+
+#### process.runtime.dotnet.**jit.compilation_time**
+
+| Units | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|-------|-------------------|------------|------------------|------------------|
+| `ns`  | ObservableCounter | `Int64`    |                  |                  |
+
+Description: The amount of time the JIT compiler has spent compiling methods since
+the process start.
 
 The APIs used to retrieve the values are:
 
@@ -180,13 +207,52 @@ The scope of this value is global. The same applies for other JIT related metric
 
 These metrics are only available when targeting .NET Core 3.1 or later.
 
-| Name                                                         | Description                                                                                                                                                                                                                                                                         | Units                      | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|--------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------|-------------------|------------|------------------|------------------|
-| process.runtime.dotnet.**monitor.lock_contention.count**     | The number of times there was contention when trying to acquire a monitor lock since the process start. Monitor locks are commonly acquired by using the lock keyword in C#, or by calling Monitor.Enter() and Monitor.TryEnter().                                                  | `{contended_acquisitions}` | ObservableCounter | `Int64`    |                  |                  |
-| process.runtime.dotnet.**thread_pool.threads.count**         | The number of thread pool threads that currently exist.                                                                                                                                                                                                                             | `{threads}`                | ObservableGauge   | `Int32`    |                  |                  |
-| process.runtime.dotnet.**thread_pool.completed_items.count** | The number of work items that have been processed by the thread pool since the process start.                                                                                                                                                                                       | `{items}`                  | ObservableCounter | `Int64`    |                  |                  |
-| process.runtime.dotnet.**thread_pool.queue.length**          | The number of work items that are currently queued to be processed by the thread pool.                                                                                                                                                                                              | `{items}`                  | ObservableGauge   | `Int64`    |                  |                  |
-| process.runtime.dotnet.**timer.count**                       | The number of timer instances that are currently active. Timers can be created by many sources such as System.Threading.Timer, Task.Delay, or the timeout in a CancellationSource. An active timer is registered to tick at some point in the future and has not yet been canceled. | `{timers}`                 | ObservableGauge   | `Int64`    |                  |                  |
+#### process.runtime.dotnet.**monitor.lock_contention.count**
+
+| Units                      | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|----------------------------|-------------------|------------|------------------|------------------|
+| `{contended_acquisitions}` | ObservableCounter | `Int64`    |                  |                  |
+
+Description: The number of times there was contention when trying to acquire a
+monitor lock since the process start. Monitor locks are commonly acquired by using
+the lock keyword in C#, or by calling Monitor.Enter() and Monitor.TryEnter().
+
+#### process.runtime.dotnet.**thread_pool.threads.count**
+
+| Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|-------------|-------------------|------------|------------------|------------------|
+| `{threads}` | ObservableGauge   | `Int32`    |                  |                  |
+
+Description: The number of thread pool threads that currently exist.
+
+#### process.runtime.dotnet.**thread_pool.completed_items.count**
+
+| Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|-------------|-------------------|------------|------------------|------------------|
+| `{items}`   | ObservableCounter | `Int64`    |                  |                  |
+
+Description: The number of work items that have been processed by the thread pool
+since the process start.
+
+#### process.runtime.dotnet.**thread_pool.queue.length**
+
+| Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|-------------|-------------------|------------|------------------|------------------|
+| `{items}`   | ObservableGauge   | `Int64`    |                  |                  |
+
+Description: The number of work items that are currently queued to be processed
+by the thread pool.
+
+#### process.runtime.dotnet.**timer.count**
+
+| Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|-------------|-------------------|------------|------------------|------------------|
+| `{timers}`  | ObservableGauge   | `Int64`    |                  |                  |
+
+Description: The number of timer instances that are currently active. Timers can
+be created by many sources such as System.Threading.Timer, Task.Delay, or the
+timeout in a CancellationSource. An active timer is registered to tick at some
+point in the future and has not yet been canceled.
 
 The APIs used to retrieve the values are:
 
@@ -205,9 +271,13 @@ The APIs used to retrieve the values are:
 
 ### Assemblies related metrics
 
-| Name                                        | Description                                              | Units          | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
-|---------------------------------------------|----------------------------------------------------------|----------------|-----------------|------------|------------------|------------------|
-| process.runtime.dotnet.**assemblies.count** | The number of .NET assemblies that are currently loaded. | `{assemblies}` | ObservableGauge | `Int64`    |                  |                  |
+#### process.runtime.dotnet.**assemblies.count**
+
+| Units          | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
+|----------------|-----------------|------------|------------------|------------------|
+| `{assemblies}` | ObservableGauge | `Int64`    |                  |                  |
+
+Description: The number of .NET assemblies that are currently loaded.
 
 The API used to retrieve the value is:
 
@@ -217,9 +287,15 @@ The API used to retrieve the value is:
 
 ### Exception counter metric
 
-| Name                                        | Description                                                                                                                                                                                                            | Units          | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
-|---------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|-----------------|------------|------------------|------------------|
-| process.runtime.dotnet.**exceptions.count** | Count of exceptions that have been thrown in managed code, since the observation started. The value will be unavailable until an exception has been thrown after OpenTelemetry.Instrumentation.Runtime initialization. | `{exceptions}` | Counter         | `Int64`    |                  |                  |
+#### process.runtime.dotnet.**exceptions.count**
+
+| Units          | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
+|----------------|-----------------|------------|------------------|------------------|
+| `{exceptions}` | Counter         | `Int64`    |                  |                  |
+
+Description: Count of exceptions that have been thrown in managed code, since the
+observation started. The value will be unavailable until an exception has been
+thrown after OpenTelemetry.Instrumentation.Runtime initialization.
 
 Note: The value is tracked by incrementing a counter whenever an AppDomain.FirstChanceException
 event occurs. The observation starts when the Runtime instrumentation library is
