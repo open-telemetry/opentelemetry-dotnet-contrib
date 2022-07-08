@@ -1,4 +1,4 @@
-﻿// <copyright file="EventCounterListenerTests.cs" company="OpenTelemetry Authors">
+// <copyright file="EventCounterListenerTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -182,22 +182,15 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
         private static double GetActualValue(Metric metric)
         {
             double sum = 0;
-            Console.WriteLine("MetricPoints  " + metric.Name + metric.MetricType);
             foreach (ref readonly var metricPoint in metric.GetMetricPoints())
             {
-                Console.WriteLine("IsSum " + metric.MetricType.IsSum());
-
                 if (metric.MetricType.IsSum())
                 {
                     sum += metricPoint.GetSumDouble();
-
-                    Console.WriteLine("MetricPoint - sumd: " + metricPoint.GetSumDouble());
                 }
                 else
                 {
                     sum += metricPoint.GetGaugeLastValueDouble();
-
-                    Console.WriteLine("MetricPoint - guaged: " + metricPoint.GetGaugeLastValueDouble());
                 }
             }
 

@@ -1,5 +1,11 @@
 # Changelog - OpenTelemetry.Extensions.PersistentStorage
 
+## 1.0.0-alpha.4
+
+* Update implementation to use
+  Opentelemetry.Extensions.PersistentStorage.Abstractions.
+  [363](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/363)
+
 ## 1.0.0-alpha.3
 
 * Going forward the NuGet package will be

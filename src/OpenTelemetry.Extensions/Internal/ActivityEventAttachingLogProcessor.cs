@@ -1,4 +1,4 @@
-﻿// <copyright file="ActivityEventAttachingLogProcessor.cs" company="OpenTelemetry Authors">
+// <copyright file="ActivityEventAttachingLogProcessor.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-#if NET461_OR_GREATER || NETSTANDARD2_0 || NET5_0_OR_GREATER
+#if NET462_OR_GREATER || NETSTANDARD2_0 || NET5_0_OR_GREATER
 using System;
 using System.Diagnostics;
 using OpenTelemetry.Internal;

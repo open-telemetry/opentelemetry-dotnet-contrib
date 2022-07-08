@@ -1,4 +1,4 @@
-﻿// <copyright file="GenevaTraceExporter.cs" company="OpenTelemetry Authors">
+// <copyright file="GenevaTraceExporter.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -200,7 +200,7 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
             }
             catch (Exception ex)
             {
-                ExporterEventSource.Log.ExporterException(ex); // TODO: preallocate exception or no exception
+                ExporterEventSource.Log.FailedToSendTraceData(ex); // TODO: preallocate exception or no exception
                 result = ExportResult.Failure;
             }
         }
@@ -224,7 +224,7 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
             }
             catch (Exception ex)
             {
-                ExporterEventSource.Log.ExporterException(ex);
+                ExporterEventSource.Log.ExporterException("GenevaTraceExporter Dispose failed.", ex);
             }
         }
 

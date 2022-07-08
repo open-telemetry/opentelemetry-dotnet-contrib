@@ -1,4 +1,4 @@
-﻿// <copyright file="SpanHelper.cs" company="OpenTelemetry Authors">
+// <copyright file="SpanHelper.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
+
+using System.Diagnostics;
 
 namespace OpenTelemetry.Trace
 {
@@ -30,6 +32,29 @@ namespace OpenTelemetry.Trace
         public static Status ResolveSpanStatusForHttpStatusCode(int httpStatusCode)
         {
             if (httpStatusCode >= 100 && httpStatusCode <= 399)
+            {
+                return Status.Unset;
+            }
+
+            if (httpStatusCode == 404)
+            {
+                return Status.Unset;
+            }
+
+            return Status.Error;
+        }
+
+        /// <summary>
+        /// Helper method that populates span properties from http status code according
+        /// to https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md#status.
+        /// </summary>
+        /// <param name="kind">The span kind.</param>
+        /// <param name="httpStatusCode">Http status code.</param>
+        /// <returns>Resolved span <see cref="Status"/> for the Http status code.</returns>
+        public static Status ResolveSpanStatusForHttpStatusCode(ActivityKind kind, int httpStatusCode)
+        {
+            var upperBound = kind == ActivityKind.Client ? 399 : 499;
+            if (httpStatusCode >= 100 && httpStatusCode <= upperBound)
             {
                 return Status.Unset;
             }
