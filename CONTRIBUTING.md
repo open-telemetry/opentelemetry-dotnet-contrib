@@ -208,11 +208,13 @@ the main branch. The workflow file should be named as
 
   You can copy one of the [existing workflow
   files](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Instrumentation.AspNet.yml)
-  and replace the
+  and replace the workflow
+  [`name`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Instrumentation.AspNet.yml#L1)
+  with "Pack OpenTelemetry.Instrumentation.FooBar",
   [`tags`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Instrumentation.AspNet.yml#L12)
-  value to "Instrumentation.FooBar-*" and
+  with "Instrumentation.FooBar-*" and
   [`PROJECT`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Instrumentation.AspNet.yml#L18)
-  value to "OpenTelemetry.Instrumentation.FooBar".
+  with "OpenTelemetry.Instrumentation.FooBar".
 
 * Add an issue template in your PR. You can follow the existing issue templates,
   e.g. [comp_extensions](./.github/ISSUE_TEMPLATE/comp_extensions.md). The
