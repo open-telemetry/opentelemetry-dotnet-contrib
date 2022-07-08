@@ -137,8 +137,19 @@ and the new feature doesn't fit it.
 
 ### How to request for release of package
 
-Submit a PR with `CHANGELOG.md` file reflecting the version to be released.
-Also, tag the maintainers of this repository who can release the package.
+* Submit a PR with `CHANGELOG.md` file reflecting the version to be released
+along with the date in the following format `yyyy-MMM-dd`.
+
+For example:
+
+```text
+## 1.2.0-beta.2
+
+Released 2022-Jun-21
+```
+
+* Tag the maintainers of this repository
+(@open-telemetry/dotnet-contrib-maintainers) who can release the package.
 
 ## Style Guide
 
@@ -180,27 +191,30 @@ Usually it is a good idea to use the latest version. Example:
 MinVer will assign the version to your project based on the tag prefix specified
 by you. To ensure your project is versioned appropriately, specify a
 `<MinVerTagPrefix>` property in your project file. If your project is named as
-"OpenTelemetry.Contrib.Foo.Bar", the MinVerTagPrefix must be "Foo.Bar-".
-Example:
+"OpenTelemetry.Instrumentation.FooBar", the MinVerTagPrefix must be
+"Instrumentation.FooBar-". Example:
 
   ```xml
   <PropertyGroup>
-    <MinVerTagPrefix>Foo.Bar-</MinVerTagPrefix>
+    <MinVerTagPrefix>Instrumentation.FooBar-</MinVerTagPrefix>
   </PropertyGroup>
   ```
 
 * To build and release your project as nuget, you must provide a GitHub workflow
-to be triggered when a tag with prefix "Foo.Bar-" is pushed to the main branch.
-The workflow file should be named as `package-Foo.Bar.yml` and to be placed in
-the `.github/workflows/` folder.
+to be triggered when a tag with prefix "Instrumentation.FooBar-" is pushed to
+the main branch. The workflow file should be named as
+`package-Instrumentation.FooBar.yml` and to be placed in the
+`.github/workflows/` folder.
 
   You can copy one of the [existing workflow
-  files](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml)
-  and replace the
-  [`tags`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml#L12)
-  value to "Foo.Bar-*" and
-  [`PROJECT`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml#L18)
-  value to "OpenTelemetry.Contrib.Foo.Bar".
+  files](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Instrumentation.AspNet.yml)
+  and replace the workflow
+  [`name`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Instrumentation.AspNet.yml#L1)
+  with "Pack OpenTelemetry.Instrumentation.FooBar",
+  [`tags`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Instrumentation.AspNet.yml#L12)
+  with "Instrumentation.FooBar-*" and
+  [`PROJECT`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Instrumentation.AspNet.yml#L18)
+  with "OpenTelemetry.Instrumentation.FooBar".
 
 * Add an issue template in your PR. You can follow the existing issue templates,
   e.g. [comp_extensions](./.github/ISSUE_TEMPLATE/comp_extensions.md). The

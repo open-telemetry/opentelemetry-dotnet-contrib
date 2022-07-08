@@ -1,6 +1,8 @@
 # Changelog - OpenTelemetry.Contrib.Instrumentation.AWSLambda
 
-## 1.1.0-beta1 [2021-May-26]
+## 1.1.0-beta1
+
+Released 2021-May-26
 
 This is the first release for the `OpenTelemetry.Contrib.Instrumentation.AWSLambda`
 project. The project targets v1.1.0-beta1 of the [OpenTelemetry
