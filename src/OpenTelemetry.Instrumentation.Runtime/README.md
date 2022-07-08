@@ -111,8 +111,8 @@ Description: The amount of committed virtual memory for the managed GC heap, as
 observed during the latest garbage collection. Committed virtual memory may be
 larger than the heap size because it includes both memory for storing existing
 objects (the heap size) and some extra memory that is ready to handle newly
-allocated objects in the future. The value will be unavailable until garbage
-collection has occurred.
+allocated objects in the future. The value will be unavailable until at least one
+garbage collection has occurred.
 
 Note: `ObservableGauge` should be changed to `ObservableUpDownCounter` once available,
 as `ObservableUpDownCounter` is the best fit of instrument type. The same applies
@@ -132,8 +132,8 @@ The API used to retrieve the value is:
 | `bytes` | ObservableGauge | `Int64`    | generation       | gen0, gen1, gen2, loh, poh |
 
 Description: The heap size (including fragmentation), as observed during the
-latest garbage collection. The value will be unavailable until garbage collection
-has occurred.
+latest garbage collection. The value will be unavailable until at least one
+garbage collection has occurred.
 
 Note: This metric is only available when targeting .NET6 or later.
 
@@ -149,7 +149,7 @@ The API used to retrieve the value is:
 | `bytes` | ObservableGauge | `Int64`    | generation       | gen0, gen1, gen2, loh, poh |
 
 Description: The heap fragmentation, as observed during the latest garbage collection.
-The value will be unavailable until garbage collection has occurred.
+The value will be unavailable until at least one garbage collection has occurred.
 
 Note: This metric is only available when targeting .NET6 or later.
 
