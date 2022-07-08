@@ -87,7 +87,7 @@ of objects.
 
 | Units   | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |---------|-------------------|------------|------------------|------------------|
-| `bytes` | ObservableCounter | `Int64`    |                  |                  |
+| `bytes` | ObservableCounter | `Int64`    | No Attributes    | N/A              |
 
 Description: Count of bytes allocated on the managed GC heap since the process start.
 .NET objects are allocated from this heap. Object allocations from unmanaged languages
@@ -105,7 +105,7 @@ value does not include any native allocations. The value is an approximate count
 
 | Units   | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
 |---------|-----------------|------------|------------------|------------------|
-| `bytes` | ObservableGauge | `Int64`    |                  |                  |
+| `bytes` | ObservableGauge | `Int64`    | No Attributes    | N/A              |
 
 Description: The amount of committed virtual memory for the managed GC heap, as
 observed during the latest garbage collection. Committed virtual memory may be
@@ -166,7 +166,7 @@ These metrics are only available when targeting .NET6 or later.
 
 | Units   | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |---------|-------------------|------------|------------------|------------------|
-| `bytes` | ObservableCounter | `Int64`    |                  |                  |
+| `bytes` | ObservableCounter | `Int64`    | No Attributes    | N/A              |
 
 Description: Count of bytes of intermediate language that have been compiled since
 the process start.
@@ -175,7 +175,7 @@ the process start.
 
 | Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |-------------|-------------------|------------|------------------|------------------|
-| `{methods}` | ObservableCounter | `Int64`    |                  |                  |
+| `{methods}` | ObservableCounter | `Int64`    | No Attributes    | N/A              |
 
 Description: The number of times the JIT compiler compiled a method since the process
 start.  The JIT compiler may be invoked multiple times for the same method to compile
@@ -186,7 +186,7 @@ optimization settings.
 
 | Units | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |-------|-------------------|------------|------------------|------------------|
-| `ns`  | ObservableCounter | `Int64`    |                  |                  |
+| `ns`  | ObservableCounter | `Int64`    | No Attributes    | N/A              |
 
 Description: The amount of time the JIT compiler has spent compiling methods since
 the process start.
@@ -211,7 +211,7 @@ These metrics are only available when targeting .NET Core 3.1 or later.
 
 | Units                      | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |----------------------------|-------------------|------------|------------------|------------------|
-| `{contended_acquisitions}` | ObservableCounter | `Int64`    |                  |                  |
+| `{contended_acquisitions}` | ObservableCounter | `Int64`    | No Attributes    | N/A              |
 
 Description: The number of times there was contention when trying to acquire a
 monitor lock since the process start. Monitor locks are commonly acquired by using
@@ -221,7 +221,7 @@ the lock keyword in C#, or by calling Monitor.Enter() and Monitor.TryEnter().
 
 | Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |-------------|-------------------|------------|------------------|------------------|
-| `{threads}` | ObservableGauge   | `Int32`    |                  |                  |
+| `{threads}` | ObservableGauge   | `Int32`    | No Attributes    | N/A              |
 
 Description: The number of thread pool threads that currently exist.
 
@@ -229,7 +229,7 @@ Description: The number of thread pool threads that currently exist.
 
 | Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |-------------|-------------------|------------|------------------|------------------|
-| `{items}`   | ObservableCounter | `Int64`    |                  |                  |
+| `{items}`   | ObservableCounter | `Int64`    | No Attributes    | N/A              |
 
 Description: The number of work items that have been processed by the thread pool
 since the process start.
@@ -238,7 +238,7 @@ since the process start.
 
 | Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |-------------|-------------------|------------|------------------|------------------|
-| `{items}`   | ObservableGauge   | `Int64`    |                  |                  |
+| `{items}`   | ObservableGauge   | `Int64`    | No Attributes    | N/A              |
 
 Description: The number of work items that are currently queued to be processed
 by the thread pool.
@@ -247,7 +247,7 @@ by the thread pool.
 
 | Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |-------------|-------------------|------------|------------------|------------------|
-| `{timers}`  | ObservableGauge   | `Int64`    |                  |                  |
+| `{timers}`  | ObservableGauge   | `Int64`    | No Attributes    | N/A              |
 
 Description: The number of timer instances that are currently active. Timers can
 be created by many sources such as System.Threading.Timer, Task.Delay, or the
@@ -275,7 +275,7 @@ The APIs used to retrieve the values are:
 
 | Units          | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
 |----------------|-----------------|------------|------------------|------------------|
-| `{assemblies}` | ObservableGauge | `Int64`    |                  |                  |
+| `{assemblies}` | ObservableGauge | `Int64`    | No Attributes    | N/A              |
 
 Description: The number of .NET assemblies that are currently loaded.
 
@@ -291,7 +291,7 @@ The API used to retrieve the value is:
 
 | Units          | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
 |----------------|-----------------|------------|------------------|------------------|
-| `{exceptions}` | Counter         | `Int64`    |                  |                  |
+| `{exceptions}` | Counter         | `Int64`    | No Attributes    | N/A              |
 
 Description: Count of exceptions that have been thrown in managed code, since the
 observation started. The value will be unavailable until an exception has been
