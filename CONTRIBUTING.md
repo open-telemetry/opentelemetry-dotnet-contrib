@@ -191,27 +191,28 @@ Usually it is a good idea to use the latest version. Example:
 MinVer will assign the version to your project based on the tag prefix specified
 by you. To ensure your project is versioned appropriately, specify a
 `<MinVerTagPrefix>` property in your project file. If your project is named as
-"OpenTelemetry.Contrib.Foo.Bar", the MinVerTagPrefix must be "Foo.Bar-".
-Example:
+"OpenTelemetry.Instrumentation.FooBar", the MinVerTagPrefix must be
+"Instrumentation.FooBar-". Example:
 
   ```xml
   <PropertyGroup>
-    <MinVerTagPrefix>Foo.Bar-</MinVerTagPrefix>
+    <MinVerTagPrefix>Instrumentation.FooBar-</MinVerTagPrefix>
   </PropertyGroup>
   ```
 
 * To build and release your project as nuget, you must provide a GitHub workflow
-to be triggered when a tag with prefix "Foo.Bar-" is pushed to the main branch.
-The workflow file should be named as `package-Foo.Bar.yml` and to be placed in
-the `.github/workflows/` folder.
+to be triggered when a tag with prefix "Instrumentation.FooBar-" is pushed to
+the main branch. The workflow file should be named as
+`package-Instrumentation.FooBar.yml` and to be placed in the
+`.github/workflows/` folder.
 
   You can copy one of the [existing workflow
-  files](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml)
+  files](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Instrumentation.AspNet.yml)
   and replace the
-  [`tags`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml#L12)
-  value to "Foo.Bar-*" and
-  [`PROJECT`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Extensions.AWSXRay.yml#L18)
-  value to "OpenTelemetry.Contrib.Foo.Bar".
+  [`tags`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Instrumentation.AspNet.yml#L12)
+  value to "Instrumentation.FooBar-*" and
+  [`PROJECT`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Instrumentation.AspNet.yml#L18)
+  value to "OpenTelemetry.Instrumentation.FooBar".
 
 * Add an issue template in your PR. You can follow the existing issue templates,
   e.g. [comp_extensions](./.github/ISSUE_TEMPLATE/comp_extensions.md). The
