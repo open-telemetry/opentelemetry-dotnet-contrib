@@ -66,9 +66,9 @@ complete demo.
 
 #### process.runtime.dotnet.**gc.collections.count**
 
-| Name                                            | Units           | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|-------------------------------------------------|-----------------|-------------------|------------|------------------|------------------|
-| process.runtime.dotnet.**gc.collections.count** | `{collections}` | ObservableCounter | `Int64`    | generation       | gen0, gen1, gen2 |
+| Units           | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|-----------------|-------------------|------------|------------------|------------------|
+| `{collections}` | ObservableCounter | `Int64`    | generation       | gen0, gen1, gen2 |
 
 Description: Number of garbage collections that have occurred since process start.
 
@@ -85,9 +85,9 @@ of objects.
 
 #### process.runtime.dotnet.**gc.allocations.size**
 
-| Name                                           | Units   | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|------------------------------------------------|---------|-------------------|------------|------------------|------------------|
-| process.runtime.dotnet.**gc.allocations.size** | `bytes` | ObservableCounter | `Int64`    |                  |                  |
+| Units   | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|---------|-------------------|------------|------------------|------------------|
+| `bytes` | ObservableCounter | `Int64`    |                  |                  |
 
 Description: Count of bytes allocated on the managed GC heap since the process start.
 .NET objects are allocated from this heap. Object allocations from unmanaged languages
@@ -103,9 +103,9 @@ value does not include any native allocations. The value is an approximate count
 
 #### process.runtime.dotnet.**gc.committed_memory.size**
 
-| Name                                                | Units   | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
-|-----------------------------------------------------|---------|-----------------|------------|------------------|------------------|
-| process.runtime.dotnet.**gc.committed_memory.size** | `bytes` | ObservableGauge | `Int64`    |                  |                  |
+| Units   | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
+|---------|-----------------|------------|------------------|------------------|
+| `bytes` | ObservableGauge | `Int64`    |                  |                  |
 
 Description: The amount of committed virtual memory for the managed GC heap, as
 observed during the latest garbage collection. Committed virtual memory may be
@@ -122,9 +122,9 @@ Note: This metric is only available when targeting .NET6 or later.
 
 #### process.runtime.dotnet.**gc.heap.size**
 
-| Name                                                  | Units   | Instrument Type | Value Type | Attribute Key(s) | Attribute Values           |
-|-------------------------------------------------------|---------|-----------------|------------|------------------|----------------------------|
-| process.runtime.dotnet.**gc.heap.size**               | `bytes` | ObservableGauge | `Int64`    | generation       | gen0, gen1, gen2, loh, poh |
+| Units   | Instrument Type | Value Type | Attribute Key(s) | Attribute Values           |
+|---------|-----------------|------------|------------------|----------------------------|
+| `bytes` | ObservableGauge | `Int64`    | generation       | gen0, gen1, gen2, loh, poh |
 
 Description: The heap size (including fragmentation), as observed during the
 latest garbage collection. The value will be unavailable until garbage collection
@@ -134,9 +134,9 @@ Note: This metric is only available when targeting .NET6 or later.
 
 #### process.runtime.dotnet.**gc.heap.fragmentation.size**
 
-| Name                                                  | Units   | Instrument Type | Value Type | Attribute Key(s) | Attribute Values           |
-|-------------------------------------------------------|---------|-----------------|------------|------------------|----------------------------|
-| process.runtime.dotnet.**gc.heap.fragmentation.size** | `bytes` | ObservableGauge | `Int64`    | generation       | gen0, gen1, gen2, loh, poh |
+| Units   | Instrument Type | Value Type | Attribute Key(s) | Attribute Values           |
+|---------|-----------------|------------|------------------|----------------------------|
+| `bytes` | ObservableGauge | `Int64`    | generation       | gen0, gen1, gen2, loh, poh |
 
 Description: The heap fragmentation, as observed during the latest garbage collection.
 The value will be unavailable until garbage collection has occurred.
