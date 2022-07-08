@@ -120,7 +120,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
                     return measurements;
                 },
                 unit: "bytes",
-                description: "The heap fragmentation, as observed during the latest garbage collection. The value will be unavailable until atleast one garbage collection has occurred.");
+                description: "The heap fragmentation, as observed during the latest garbage collection. The value will be unavailable until at least one garbage collection has occurred.");
 #endif
 
 #if NET6_0_OR_GREATER
