@@ -76,7 +76,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
                 unit: "bytes",
                 description: "The amount of committed virtual memory for the managed GC heap, as observed during the latest garbage collection. Committed virtual memory may be larger than the heap size because it includes both memory for storing existing objects (the heap size) and some extra memory that is ready to handle newly allocated objects in the future. The value will be unavailable until at least one garbage collection has occurred.");
 
-            // TODO: GC.GetGCMemoryInfo().GenerationInfo[i].SizeAfterBytes is better but it has a bug in .NET 6. See context in https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/496
+            // GC.GetGCMemoryInfo().GenerationInfo[i].SizeAfterBytes is better but it has a bug in .NET 6. See context in https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/496
             Func<int, ulong> getGenerationSize = null;
             bool isCodeRunningOnBuggyRuntimeVersion = Environment.Version.Major == 6;
             if (isCodeRunningOnBuggyRuntimeVersion)
