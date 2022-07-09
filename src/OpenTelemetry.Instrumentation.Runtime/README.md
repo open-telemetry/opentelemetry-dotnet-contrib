@@ -110,7 +110,7 @@ The APIs used to retrieve the values are:
 
 * Heap size is retrieved with an internal method `GC.GetGenerationSize`,
 which is how the [well-known EventCounters](https://docs.microsoft.com/en-us/dotnet/core/diagnostics/available-counters)
-retrieves the values.
+retrieve the values.
 See source code [here](https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/Diagnostics/Tracing/RuntimeEventSource.cs#L110-L114).
 
 * [GCGenerationInfo.FragmentationAfterBytes Property](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo.fragmentationafterbytes)
