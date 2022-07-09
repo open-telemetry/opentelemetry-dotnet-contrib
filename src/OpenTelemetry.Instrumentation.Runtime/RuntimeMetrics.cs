@@ -88,7 +88,8 @@ namespace OpenTelemetry.Instrumentation.Runtime
                 }
             }
 
-            if (!isCodeRunningOnBuggyRuntimeVersion || getGenerationSize != null)  // Either Environment.Version > 6 or (it's 6 but internal API GC.GetGenerationSize is valid)
+            // Either Environment.Version is not 6 or (it's 6 but internal API GC.GetGenerationSize is valid)
+            if (!isCodeRunningOnBuggyRuntimeVersion || getGenerationSize != null)
             {
                 // TODO: change to ObservableUpDownCounter
                 MeterInstance.CreateObservableGauge(
