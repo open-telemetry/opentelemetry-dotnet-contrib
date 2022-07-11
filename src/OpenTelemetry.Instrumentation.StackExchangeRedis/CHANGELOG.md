@@ -2,6 +2,34 @@
 
 ## Unreleased
 
+* Update the `ActivitySource` name used to the assembly name: `OpenTelemetry.Instrumentation.StackExchangeRedis`
+[#485](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/485)
+
+## 1.0.0-rc9.6
+
+Released 2022-Jun-29
+
+* Added the EnrichActivityWithTimingEvents option to
+  StackExchangeRedisCallsInstrumentationOptions to be able to disable adding
+  ActivityEvents (Enqueued, Sent, ResponseReceived) for Redis commands to
+  Activities since there is no way to clear these after they have been added.
+  This defaults to true to maintain current functionality.
+
+## 1.0.0-rc9.5 (source code moved to contrib repo)
+
+Released 2022-Jun-06
+
+* From this version onwards, the source code for this package would be hosted in
+  the
+  [contrib](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/tree/main/src/OpenTelemetry.Instrumentation.StackExchangeRedis)
+  repo. The source code for this package before this version was hosted on the
+  [main](https://github.com/open-telemetry/opentelemetry-dotnet/tree/core-1.3.0/src/OpenTelemetry.Instrumentation.StackExchangeRedis)
+  repo.
+
+## 1.0.0-rc9.4
+
+Released 2022-Jun-03
+
 ## 1.0.0-rc9.3
 
 Released 2022-Apr-15

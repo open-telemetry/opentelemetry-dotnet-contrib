@@ -1,7 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
+    <TargetFrameworks Condition="'$(Configuration)' == 'Debug'">$(TargetFrameworks);net6.0</TargetFrameworks> <!-- Added just to get proper nullable analysis in IDE -->
     <Description>OpenTelemetry Persistent Storage</Description>
     <MinVerTagPrefix>Extensions.PersistentStorage-</MinVerTagPrefix>
   </PropertyGroup>

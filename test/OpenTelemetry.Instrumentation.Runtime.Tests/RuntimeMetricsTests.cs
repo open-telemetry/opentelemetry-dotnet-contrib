@@ -14,9 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using OpenTelemetry.Metrics;
 using Xunit;
 
@@ -32,101 +30,13 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
         {
             var exportedItems = new List<Metric>();
             using var meterProvider = Sdk.CreateMeterProviderBuilder()
-                 .AddRuntimeMetrics(options =>
-                 {
-                     options.GcEnabled = true;
-#if NETCOREAPP3_1_OR_GREATER
-                     options.ThreadingEnabled = true;
-#endif
-                     options.ProcessEnabled = true;
-#if NET6_0_OR_GREATER
-
-                     options.JitEnabled = true;
-#endif
-                     options.AssembliesEnabled = true;
-                 })
+                 .AddRuntimeInstrumentation()
                  .AddInMemoryExporter(exportedItems)
                 .Build();
 
             meterProvider.ForceFlush(MaxTimeToAllowForFlush);
             Assert.True(exportedItems.Count > 1);
-            var metric1 = exportedItems[0];
-            Assert.StartsWith(MetricPrefix, metric1.Name);
-        }
-
-        [Fact]
-        public void ProcessMetricsAreCaptured()
-        {
-            var exportedItems = new List<Metric>();
-
-            using var meterProvider = Sdk.CreateMeterProviderBuilder()
-                 .AddRuntimeMetrics(options =>
-                 {
-                     options.ProcessEnabled = true;
-                 })
-                 .AddInMemoryExporter(exportedItems)
-                .Build();
-
-            // simple CPU spinning
-            var spinDuration = DateTime.UtcNow.AddMilliseconds(10);
-            while (DateTime.UtcNow < spinDuration)
-            {
-            }
-
-            meterProvider.ForceFlush(MaxTimeToAllowForFlush);
-
-            Assert.Equal(4, exportedItems.Count);
-
-            var cpuTimeMetric = exportedItems.First(i => i.Name == "process.cpu.time");
-            var sumReceived = GetDoubleSum(cpuTimeMetric);
-            Assert.True(sumReceived > 0);
-
-            var cpuCountMetric = exportedItems.First(i => i.Name == "process.cpu.count");
-            Assert.Equal(Environment.ProcessorCount, (int)GetLongSum(cpuCountMetric));
-
-            var memoryMetric = exportedItems.First(i => i.Name == "process.memory.usage");
-            Assert.True(GetLongSum(memoryMetric) > 0);
-
-            var virtualMemoryMetric = exportedItems.First(i => i.Name == "process.memory.virtual");
-            Assert.True(GetLongSum(virtualMemoryMetric) > 0);
-        }
-
-        private static double GetDoubleSum(Metric metric)
-        {
-            double sum = 0;
-
-            foreach (ref readonly var metricPoint in metric.GetMetricPoints())
-            {
-                if (metric.MetricType.IsSum())
-                {
-                    sum += metricPoint.GetSumDouble();
-                }
-                else
-                {
-                    sum += metricPoint.GetGaugeLastValueDouble();
-                }
-            }
-
-            return sum;
-        }
-
-        private static double GetLongSum(Metric metric)
-        {
-            double sum = 0;
-
-            foreach (ref readonly var metricPoint in metric.GetMetricPoints())
-            {
-                if (metric.MetricType.IsSum())
-                {
-                    sum += metricPoint.GetSumLong();
-                }
-                else
-                {
-                    sum += metricPoint.GetGaugeLastValueLong();
-                }
-            }
-
-            return sum;
+            Assert.StartsWith(MetricPrefix, exportedItems[0].Name);
         }
     }
 }

@@ -1,12 +1,12 @@
-# Persistent Storage Interface and Implementation
+# Persistent Storage file based implementation
 
 [![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Extensions.PersistentStorage.svg)](https://www.nuget.org/packages/OpenTelemetry.Extensions.PersistentStorage)
 [![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Extensions.PersistentStorage.svg)](https://www.nuget.org/packages/OpenTelemetry.Extensions.PersistentStorage)
 
-This package provides both the interface and implementation of persistent
-storage. It is an experimental component which can be used by OpenTelemetry
-Exporters to provide reliable data delivery. Eventually this component should
-get splitted into the abstract interface and concrete implementations.
+This package provides an implementation of
+[persistent-storage-abstractions](../OpenTelemetry.Extensions.PersistentStorage.Abstractions/README.md#Persistent-Storage-Abstractions)
+based on local file system. This component can be used by OpenTelemetry
+exporters to improve the reliability of data delivery.
 
 ## Installation
 
@@ -16,18 +16,18 @@ dotnet add package OpenTelemetry.Extensions.PersistentStorage
 
 ## Basic Usage
 
-### Setup Storage
+### Setup FileBlobProvider
 
 ```csharp
-using var storage = new FileStorage("test");
+using var persistentBlobProvider = new FileBlobProvider("test");
 ```
 
 Following is the complete list of configurable options that can be used to set
-up storage:
+up FileBlobProvider:
 
-* `path`: Sets file storage folder location where blobs are stored.
+* `path`: Sets folder location where blobs are stored.
 
-* `maxSizeInBytes`: Maximum allowed storage folder size. Default is 50 MB.
+* `maxSizeInBytes`: Maximum allowed folder size. Default is 50 MB.
 
 * `maintenancePeriodInMilliseconds`: Maintenance event runs at specified interval.
 Default is 2 minutes. Maintenance event performs the following tasks:
@@ -45,29 +45,31 @@ blob. Default is 1 minute.
 
 ### CreateBlob
 
-`CreateBlob(byte[] buffer, int leasePeriodMilliseconds = 0)` method can be used
+`TryCreateBlob(byte[] buffer, out PersistentBlob blob)` or `TryCreateBlob(byte[]
+buffer, int leasePeriodMilliseconds = 0, out PersistentBlob blob)` can be used
 to store data on disk in case of failures. The file stored will have `.blob`
 extension. If acquiring lease, the file will have `.lock` extension.
 
 ```csharp
-IPersistentBlob blob = storage.CreateBlob(data);
+// Try create blob without acquiring lease
+persistentBlobProvider.TryCreateBlob(data, out var blob);
 
-// Create blob and acquire lease
-IPersistentBlob blob = storage.CreateBlob(data, 10);
+// Try create blob and acquire lease
+persistentBlobProvider.TryCreateBlob(data, 1000, out var blob);
 ```
 
 ### GetBlob and GetBlobs
 
-`GetBlob` can be used to read single blob or `GetBlobs` can be used to get list
+`TryGetBlob` can be used to read single blob or `GetBlobs` can be used to get list
 of all blobs stored on disk. The result will only include files with `.blob`
 extension.
 
 ```csharp
 // Get single blob from storage.
-IPersistentBlob blob1 = storage.GetBlob();
+persistentBlobProvider.GetBlob(out var blob);
 
 // List all blobs.
-foreach (var blobItem in storage.GetBlobs())
+foreach (var blobItem in persistentBlobProvider.GetBlobs())
 {
     Console.WriteLine(((FileBlob)blobItem).FullPath);
 }
@@ -75,64 +77,65 @@ foreach (var blobItem in storage.GetBlobs())
 
 ### Lease
 
-When reading data back from disk, `Lease(int leasePeriodMilliseconds)` method
+When reading data back from disk, `TryLease(int leasePeriodMilliseconds)` method
 should be used first to acquire lease on blob. This prevents it to be read
 concurrently, until the lease period expires. Leasing a blob changes the file
 extension to `.lock`.
 
 ```csharp
-IPersistentBlob blob2 = blob1.Lease(10);
+blob.TryLease(1000);
 ```
 
 ### Read
 
-Once the lease is acquired on the blob, the data can be read using `Read`
-method.
+Once the lease is acquired on the blob, the data can be read using
+`TryRead(out var data)` method.
 
 ```csharp
-byte[] data =  blob2.Read();
+blob.TryRead(out var data);
 ```
 
 ### Delete
 
-`Delete` method can be used to delete the blob.
+`TryDelete` method can be used to delete the blob.
 
 ```csharp
-blob2.Delete();
+blob.TryDelete();
 ```
 
 ## Example
 
 ```csharp
-using var storage = new FileStorage("test");
+using var persistentBlobProvider = new FileBlobProvider("test");
 
 var data = Encoding.UTF8.GetBytes("Hello, World!");
 
 // Create blob.
-IPersistentBlob blob1 = storage.CreateBlob(data);
+persistentBlobProvider.TryCreateBlob(data, out var createdBlob);
 
 // List all blobs.
-foreach (var blobItem in storage.GetBlobs())
+foreach (var blobItem in persistentBlobProvider.GetBlobs())
 {
     Console.WriteLine(((FileBlob)blobItem).FullPath);
 }
 
-// Get blob.
-IPersistentBlob blob2 = storage.GetBlob();
-
-if(blob2 != null)
+// Get single blob.
+if (persistentBlobProvider.TryGetBlob(out var blob))
 {
     // Lease before reading
-    IPersistentBlob blob3 = blob2.Lease(10);
-
-    // Check if the lease is acquired
-    if (blob3 != null)
+    if (blob.TryLease(1000))
     {
         // Read
-        System.Text.Encoding.UTF8.GetString(blob3.Read());
+        if (blob.TryRead(out var outputData))
+        {
+            Console.WriteLine(Encoding.UTF8.GetString(outputData));
+        }
 
         // Delete
-        blob3.Delete();
+        if (blob.TryDelete())
+        {
+            Console.WriteLine("Successfully deleted the blob");
+        }
     }
 }
 ```

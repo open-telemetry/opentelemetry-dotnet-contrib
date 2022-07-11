@@ -31,17 +31,17 @@ namespace OpenTelemetry.Metrics
         /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
         /// <param name="configure">Runtime metrics options.</param>
         /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
-        public static MeterProviderBuilder AddRuntimeMetrics(
+        public static MeterProviderBuilder AddRuntimeInstrumentation(
             this MeterProviderBuilder builder,
-            Action<RuntimeMetricsOptions> configure = null)
+            Action<RuntimeInstrumentOptions> configure = null)
         {
             Guard.ThrowIfNull(builder);
 
-            var options = new RuntimeMetricsOptions();
+            var options = new RuntimeInstrumentOptions();
             configure?.Invoke(options);
 
             var instrumentation = new RuntimeMetrics(options);
-            builder.AddMeter(RuntimeMetrics.InstrumentationName);
+            builder.AddMeter(RuntimeMetrics.MeterInstance.Name);
             return builder.AddInstrumentation(() => instrumentation);
         }
     }

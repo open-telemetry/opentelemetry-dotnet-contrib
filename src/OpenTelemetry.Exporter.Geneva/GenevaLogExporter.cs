@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-#if NETSTANDARD2_0 || NET461
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -161,7 +160,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             }
             catch (Exception ex)
             {
-                ExporterEventSource.Log.ExporterException(ex); // TODO: preallocate exception or no exception
+                ExporterEventSource.Log.FailedToSendLogData(ex); // TODO: preallocate exception or no exception
                 result = ExportResult.Failure;
             }
         }
@@ -186,7 +185,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             }
             catch (Exception ex)
             {
-                ExporterEventSource.Log.ExporterException(ex);
+                ExporterEventSource.Log.ExporterException("GenevaLogExporter Dispose failed.", ex);
             }
         }
 
@@ -583,4 +582,3 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         return cursor;
     }
 }
-#endif
