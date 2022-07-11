@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add TCP transport support.
+[499](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/499)
+
 ## 1.3.0-beta.2 [2022-Jun-03]
 
 * Add support for exporting `ILogger` scopes.
