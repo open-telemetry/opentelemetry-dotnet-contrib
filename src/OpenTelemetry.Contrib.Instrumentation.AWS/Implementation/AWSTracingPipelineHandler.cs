@@ -37,18 +37,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation
             carrier[name] = value;
         };
 
-        private static readonly Dictionary<string, string> ServiceParameterMap = new Dictionary<string, string>()
-        {
-            { "DynamoDBv2", "TableName" },
-            { "SQS", "QueueUrl" },
-        };
-
-        private static readonly Dictionary<string, string> ParameterAttributeMap = new Dictionary<string, string>()
-        {
-            { "TableName", AWSSemanticConventions.AttributeAWSDynamoTableName },
-            { "QueueUrl", AWSSemanticConventions.AttributeAWSSQSQueueUrl },
-        };
-
         private static readonly ActivitySource AWSSDKActivitySource = new ActivitySource(ActivitySourceName);
 
         private readonly AWSClientInstrumentationOptions options;
@@ -117,8 +105,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation
             Activity activity = null;
 
             var requestContext = executionContext.RequestContext;
-            var service = this.GetAWSServiceName(requestContext);
-            var operation = this.GetAWSOperationName(requestContext);
+            var service = AWSServiceHelper.GetAWSServiceName(requestContext);
+            var operation = AWSServiceHelper.GetAWSOperationName(requestContext);
 
             activity = AWSSDKActivitySource.StartActivity(service + "." + operation, ActivityKind.Client);
 
@@ -192,36 +180,25 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation
             }
         }
 
-        private string GetAWSServiceName(IRequestContext requestContext)
-        {
-            string serviceName = string.Empty;
-            serviceName = Utils.RemoveAmazonPrefixFromServiceName(requestContext.Request.ServiceName);
-            return serviceName;
-        }
-
-        private string GetAWSOperationName(IRequestContext requestContext)
-        {
-            string operationName = string.Empty;
-            string completeRequestName = requestContext.OriginalRequest.GetType().Name;
-            string suffix = "Request";
-            operationName = Utils.RemoveSuffix(completeRequestName, suffix);
-            return operationName;
-        }
-
         private void AddRequestSpecificInformation(Activity activity, IRequestContext requestContext, string service)
         {
-            AmazonWebServiceRequest request = requestContext.OriginalRequest;
-
-            if (ServiceParameterMap.TryGetValue(service, out string parameter))
+            if (AWSServiceHelper.ServiceParameterMap.TryGetValue(service, out string parameter))
             {
+                AmazonWebServiceRequest request = requestContext.OriginalRequest;
+
                 var property = request.GetType().GetProperty(parameter);
                 if (property != null)
                 {
-                    if (ParameterAttributeMap.TryGetValue(parameter, out string attribute))
+                    if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out string attribute))
                     {
                         activity.SetTag(attribute, property.GetValue(request));
                     }
                 }
+            }
+
+            if (AWSServiceHelper.IsDynamoDbService(service))
+            {
+                activity.SetTag(SemanticConventions.AttributeDbSystem, AWSSemanticConventions.AttributeValueDynamoDb);
             }
         }
 

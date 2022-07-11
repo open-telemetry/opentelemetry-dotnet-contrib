@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-beta.3
+
+Released 2022-Jun-29
+
 * Fix incomplete db.statement when the length>300
   [(#424)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/424)
 

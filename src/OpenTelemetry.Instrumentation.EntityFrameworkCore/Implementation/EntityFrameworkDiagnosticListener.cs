@@ -25,9 +25,6 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation
     {
         internal const string DiagnosticSourceName = "Microsoft.EntityFrameworkCore";
 
-        internal const string ActivitySourceName = "OpenTelemetry.EntityFrameworkCore";
-        internal const string ActivityName = ActivitySourceName + ".Execute";
-
         internal const string EntityFrameworkCoreCommandCreated = "Microsoft.EntityFrameworkCore.Database.Command.CommandCreated";
         internal const string EntityFrameworkCoreCommandExecuting = "Microsoft.EntityFrameworkCore.Database.Command.CommandExecuting";
         internal const string EntityFrameworkCoreCommandExecuted = "Microsoft.EntityFrameworkCore.Database.Command.CommandExecuted";
@@ -37,6 +34,9 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation
         internal const string AttributeDbSystem = "db.system";
         internal const string AttributeDbName = "db.name";
         internal const string AttributeDbStatement = "db.statement";
+
+        internal static readonly string ActivitySourceName = typeof(EntityFrameworkDiagnosticListener).Assembly.GetName().Name;
+        internal static readonly string ActivityName = ActivitySourceName + ".Execute";
 
         private static readonly Version Version = typeof(EntityFrameworkDiagnosticListener).Assembly.GetName().Version;
 #pragma warning disable SA1202 // Elements should be ordered by access <- In this case, Version MUST come before SqlClientActivitySource otherwise null ref exception is thrown.
