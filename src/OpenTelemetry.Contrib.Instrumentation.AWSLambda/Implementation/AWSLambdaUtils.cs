@@ -96,12 +96,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
 
         internal static string GetFunctionName(ILambdaContext context = null)
         {
-            if (context != null)
-            {
-                return context.FunctionName;
-            }
-
-            return Environment.GetEnvironmentVariable(FunctionName);
+            return context?.FunctionName ?? Environment.GetEnvironmentVariable(FunctionName);
         }
 
         internal static string GetFunctionVersion()
@@ -123,7 +118,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             return null;
         }
 
-        internal static IEnumerable<KeyValuePair<string, object>> GetFunctionDefaultTags<TInput>(TInput input, ILambdaContext context)
+        internal static string GetFaasTrigger<TInput>(TInput input)
         {
             var trigger = "other";
             if (input is APIGatewayProxyRequest || input is APIGatewayHttpApiV2ProxyRequest)
@@ -131,23 +126,42 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
                 trigger = "http";
             }
 
+            return trigger;
+        }
+
+        internal static IEnumerable<KeyValuePair<string, object>> GetFunctionDefaultTags<TInput>(TInput input, ILambdaContext context)
+        {
             var tags = new List<KeyValuePair<string, object>>
             {
-                new(AWSLambdaSemanticConventions.AttributeFaasTrigger, trigger),
+                new(AWSLambdaSemanticConventions.AttributeFaasTrigger, GetFaasTrigger(input)),
             };
+
+            var functionName = GetFunctionName(context);
+            if (functionName != null)
+            {
+                tags.Add(new(AWSLambdaSemanticConventions.AttributeFaasName, functionName));
+            }
 
             if (context == null)
             {
                 return tags;
             }
 
-            tags.Add(new(AWSLambdaSemanticConventions.AttributeFaasName, context.FunctionName));
-            tags.Add(new(AWSLambdaSemanticConventions.AttributeFaasID, context.InvokedFunctionArn));
-
-            var functionParts = context.InvokedFunctionArn?.Split(':');
-            if (functionParts != null && functionParts.Length >= 5)
+            if (context.AwsRequestId != null)
             {
-                tags.Add(new(AWSLambdaSemanticConventions.AttributeCloudAccountID, functionParts[4]));
+                tags.Add(new(AWSLambdaSemanticConventions.AttributeFaasExecution, context.AwsRequestId));
+            }
+
+            var functionArn = context.InvokedFunctionArn;
+            if (functionArn != null)
+            {
+                tags.Add(new(AWSLambdaSemanticConventions.AttributeFaasID, functionArn));
+
+                var accountId = GetAccountId(functionArn);
+                if (accountId != null)
+                {
+                    tags.Add(new(AWSLambdaSemanticConventions.AttributeCloudAccountID, accountId));
+                }
             }
 
             return tags;
