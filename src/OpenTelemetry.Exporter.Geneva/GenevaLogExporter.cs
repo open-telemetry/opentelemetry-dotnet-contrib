@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -106,7 +107,8 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
                 this.m_dataTransport = new UnixDomainSocketDataTransport(unixDomainSocketPath);
                 break;
             case TransportProtocol.Tcp:
-                throw new ArgumentException("TCP transport is not supported yet.");
+                this.m_dataTransport = new TcpDataTransport(connectionStringBuilder.Host, connectionStringBuilder.Port);
+                break;
             case TransportProtocol.Udp:
                 throw new ArgumentException("UDP transport is not supported yet.");
             default:
