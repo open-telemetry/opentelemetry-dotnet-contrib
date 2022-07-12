@@ -1,4 +1,4 @@
-// <copyright file="HangfireInstrumentationConstants.cs" company="OpenTelemetry Authors">
+// <copyright file="Food.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,15 +14,17 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
-{
-    internal static class HangfireInstrumentationConstants
-    {
-        public const string JobIdTag = "job.id";
-        public const string JobCreatedAtTag = "job.createdat";
+using Microsoft.Extensions.Logging;
 
-        public const string ActivityName = "JOB";
-        public const string ActivityKey = "opentelemetry_activity_key";
-        public const string ActivityContextKey = "opentelemetry_activity_context";
+namespace OpenTelemetry.Exporter.Geneva.Benchmark
+{
+    public static partial class Food
+    {
+        [LoggerMessage(
+            EventId = 0,
+            Level = LogLevel.Information,
+            Message = "Hello from {food} {price}.")]
+        public static partial void SayHello(
+            ILogger logger, string food, double price);
     }
 }
