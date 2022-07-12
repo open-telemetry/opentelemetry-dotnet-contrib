@@ -209,49 +209,7 @@ namespace OpenTelemetry.Exporter.Geneva
             {
                 V40_PART_A_TLD_MAPPING.TryGetValue(entry.Key, out string replacementKey);
                 var key = replacementKey ?? entry.Key;
-                var value = entry.Value;
-                switch (value)
-                {
-                    case bool vb:
-                        eb.AddBool32(key, vb ? 1 : 0, EventOutType.Boolean);
-                        break;
-                    case byte vui8:
-                        eb.AddUInt8(key, vui8);
-                        break;
-                    case sbyte vi8:
-                        eb.AddInt8(key, vi8);
-                        break;
-                    case short vi16:
-                        eb.AddInt16(key, vi16);
-                        break;
-                    case ushort vui16:
-                        eb.AddUInt16(key, vui16);
-                        break;
-                    case int vi32:
-                        eb.AddInt32(key, vi32);
-                        break;
-                    case uint vui32:
-                        eb.AddUInt32(key, vui32);
-                        break;
-                    case long vi64:
-                        eb.AddInt64(key, vi64);
-                        break;
-                    case ulong vui64:
-                        eb.AddUInt64(key, vui64);
-                        break;
-                    case float vf:
-                        eb.AddFloat32(key, vf);
-                        break;
-                    case double vd:
-                        eb.AddFloat64(key, vd);
-                        break;
-                    case string vs:
-                        eb.AddCountedString(key, vs);
-                        break;
-                    default:
-                        eb.AddCountedString(key, value.ToString());
-                        break;
-                }
+                this.Serialize(eb, key, entry.Value);
             }
 
             int hasValidParentId = 0;
@@ -266,7 +224,7 @@ namespace OpenTelemetry.Exporter.Geneva
 
             int cntPartBFieldsFromTags = 0;
             int cntPartCFieldsFromTags = 0;
-            bool hasEnvProperties = false;
+            int hasEnvProperties = 0;
             int isStatusSuccess = 1;
             string statusDescription = string.Empty;
 
@@ -298,7 +256,7 @@ namespace OpenTelemetry.Exporter.Geneva
                 }
                 else
                 {
-                    hasEnvProperties = true;
+                    hasEnvProperties = 1;
                     continue;
                 }
             }
@@ -315,21 +273,8 @@ namespace OpenTelemetry.Exporter.Geneva
                     statusDescription = activity.StatusDescription;
                 }
             }
-            else
-            {
-                if (isStatusSuccess == 0)
-                {
-                    MessagePackSerializer.SerializeBool(buffer, idxSuccessPatch, false);
-                    if (!string.IsNullOrEmpty(statusDescription))
-                    {
-                        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "statusMessage");
-                        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, statusDescription);
-                        cntFields += 1;
-                    }
-                }
-            }
 
-            var partBFieldsCount = 5 + hasValidParentId + cntLinks + cntPartBFieldsFromTags; // Five fields: _typeName, name, kind, startTime, success
+            var partBFieldsCount = 5 + hasValidParentId + isStatusSuccess + cntLinks + cntPartBFieldsFromTags; // Five fields: _typeName, name, kind, startTime, success
             eb.AddStruct("PartB", (byte)partBFieldsCount);
             eb.AddCountedString("_typeName", "Span");
             eb.AddCountedString("name", activity.DisplayName);
@@ -342,25 +287,88 @@ namespace OpenTelemetry.Exporter.Geneva
                 eb.AddCountedString("parentId", strParentId);
             }
 
-            if (links.Any())
+            if (isStatusSuccess == 0)
             {
-                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "links");
-                cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, ushort.MaxValue); // Note: always use Array16 for perf consideration
-                var idxLinkPatch = cursor - 2;
-                ushort cntLink = 0;
+                eb.AddCountedString("statusMessage", statusDescription);
+            }
+
+            if (cntLinks > 0)
+            {
                 foreach (var link in links)
                 {
-                    cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, 2);
-                    cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "toTraceId");
-                    cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, link.Context.TraceId.ToHexString());
-                    cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "toSpanId");
-                    cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, link.Context.SpanId.ToHexString());
-                    cntLink += 1;
+                }
+            }
+
+            if (cntPartBFieldsFromTags > 0)
+            {
+                foreach (var entry in activity.TagObjects)
+                {
+                    // TODO: check name collision
+                    if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string replacementKey))
+                    {
+                        this.Serialize(eb, entry.Key, entry.Value);
+                    }
+                } 
+            }
+
+            var partCFieldsCount = cntPartCFieldsFromTags + hasEnvProperties;
+            eb.AddStruct("PartC", (byte)partCFieldsCount);
+
+            foreach (var entry in activity.TagObjects)
+            {
+                if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
+                {
+                    // TODO: the above null check can be optimized and avoided inside foreach.
+                    cntPartCFieldsFromTags++;
+                }
+            }
+
+            if (hasEnvProperties == 1)
+            {
+                // Iteration #2 - Get all "other" fields and collapse them into single field
+                // named "env_properties".
+                ushort envPropertiesCount = 0;
+                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_properties");
+                cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
+                int idxMapSizeEnvPropertiesPatch = cursor - 2;
+
+                foreach (var entry in activity.TagObjects)
+                {
+                    // TODO: check name collision
+                    if (this.m_dedicatedFields.ContainsKey(entry.Key))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
+                        cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
+                        envPropertiesCount += 1;
+                    }
                 }
 
-                MessagePackSerializer.WriteUInt16(buffer, idxLinkPatch, cntLink);
                 cntFields += 1;
+                MessagePackSerializer.WriteUInt16(buffer, idxMapSizeEnvPropertiesPatch, envPropertiesCount);
             }
+
+            // if (links.Any())
+            // {
+            //    cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "links");
+            //    cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, ushort.MaxValue); // Note: always use Array16 for perf consideration
+            //    var idxLinkPatch = cursor - 2;
+            //    ushort cntLink = 0;
+            //    foreach (var link in links)
+            //    {
+            //        cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, 2);
+            //        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "toTraceId");
+            //        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, link.Context.TraceId.ToHexString());
+            //        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "toSpanId");
+            //        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, link.Context.SpanId.ToHexString());
+            //        cntLink += 1;
+            //    }
+            //    MessagePackSerializer.WriteUInt16(buffer, idxLinkPatch, cntLink);
+            //    cntFields += 1;
+            // }
 
             /*
                         cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "success");
@@ -543,7 +551,7 @@ namespace OpenTelemetry.Exporter.Geneva
 
         private readonly ThreadLocal<EventBuilder> eventBuilder = new ThreadLocal<EventBuilder>(() => new());
 
-        internal static readonly IReadOnlyDictionary<string, string> V40_PART_A_TLD_MAPPING = new Dictionary<string, string>
+        private static readonly IReadOnlyDictionary<string, string> V40_PART_A_TLD_MAPPING = new Dictionary<string, string>
         {
             // Part A
             [Schema.V40.PartA.IKey] = "iKey",
@@ -580,5 +588,51 @@ namespace OpenTelemetry.Exporter.Geneva
         };
 
         private bool isDisposed;
+
+        private void Serialize(EventBuilder eb, string key, object value)
+        {
+            switch (value)
+            {
+                case bool vb:
+                    eb.AddBool32(key, vb ? 1 : 0, EventOutType.Boolean);
+                    break;
+                case byte vui8:
+                    eb.AddUInt8(key, vui8);
+                    break;
+                case sbyte vi8:
+                    eb.AddInt8(key, vi8);
+                    break;
+                case short vi16:
+                    eb.AddInt16(key, vi16);
+                    break;
+                case ushort vui16:
+                    eb.AddUInt16(key, vui16);
+                    break;
+                case int vi32:
+                    eb.AddInt32(key, vi32);
+                    break;
+                case uint vui32:
+                    eb.AddUInt32(key, vui32);
+                    break;
+                case long vi64:
+                    eb.AddInt64(key, vi64);
+                    break;
+                case ulong vui64:
+                    eb.AddUInt64(key, vui64);
+                    break;
+                case float vf:
+                    eb.AddFloat32(key, vf);
+                    break;
+                case double vd:
+                    eb.AddFloat64(key, vd);
+                    break;
+                case string vs:
+                    eb.AddCountedString(key, vs);
+                    break;
+                default:
+                    eb.AddCountedString(key, value.ToString());
+                    break;
+            }
+        }
     }
 }
