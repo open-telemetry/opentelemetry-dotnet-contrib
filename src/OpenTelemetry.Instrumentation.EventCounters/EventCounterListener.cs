@@ -150,20 +150,11 @@ namespace OpenTelemetry.Instrumentation.EventCounters
             switch (instrumentType)
             {
                 case InstrumentType.ObservableCounter:
-                    if (!this.metricInstruments.ContainsKey(metricKey))
-                    {
-                        this.metricInstruments.TryAdd(metricKey, this.meter.CreateObservableCounter(counterName, () => this.ObserveDouble(metricKey), description: description));
-                    }
-
+                    this.metricInstruments.TryAdd(metricKey, this.meter.CreateObservableCounter(counterName, () => this.ObserveDouble(metricKey), description: description));
                     break;
 
                 case InstrumentType.ObservableGauge:
-
-                    if (!this.metricInstruments.TryGetValue(metricKey, out Instrument instrument))
-                    {
-                        this.metricInstruments[metricKey] = this.meter.CreateObservableGauge(counterName, () => this.ObserveDouble(metricKey), description: description);
-                    }
-
+                    this.metricInstruments.TryAdd(metricKey, this.meter.CreateObservableGauge(counterName, () => this.ObserveDouble(metricKey), description: description));
                     break;
             }
         }
