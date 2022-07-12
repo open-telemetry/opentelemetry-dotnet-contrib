@@ -104,10 +104,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
                 var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
                 this.m_dataTransport = new UnixDomainSocketDataTransport(unixDomainSocketPath);
                 break;
-            case TransportProtocol.Tcp:
-                throw new ArgumentException("TCP transport is not supported yet.");
-            case TransportProtocol.Udp:
-                throw new ArgumentException("UDP transport is not supported yet.");
             default:
                 throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
         }
