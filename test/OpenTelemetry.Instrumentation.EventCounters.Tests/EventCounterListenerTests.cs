@@ -27,9 +27,9 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
         private MeterProvider meterProvider;
 
         [Fact]
-        public async Task SystemMetricsAreCaptured()
+        public void SystemMetricsAreCaptured()
         {
-            var metricItems = new List<Metric>();
+            var metricItems = new List<MetricSnapshot>();
 
             this.meterProvider = Sdk.CreateMeterProviderBuilder()
                  .AddEventCounterMetrics(options =>
@@ -39,7 +39,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
                  .AddInMemoryExporter(metricItems)
                 .Build();
 
-            await Task.Delay(2000);
+            Task.Delay(1500).Wait();
             this.meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
             this.meterProvider.Dispose();
@@ -47,11 +47,11 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
             Assert.True(metricItems.Count > 1);
         }
 
-        [Fact(Skip = "Unstable")]
-        public async Task TestEventCounterMetricsAreCaptured()
+        [Fact]
+        public void TestEventCounterMetricsAreCaptured()
         {
             const int refreshIntervalSeconds = 1;
-            var metricItems = new List<Metric>();
+            var metricItems = new List<MetricSnapshot>();
             this.meterProvider = Sdk.CreateMeterProviderBuilder()
                  .AddEventCounterMetrics(options =>
                  {
@@ -64,7 +64,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
             TestEventCounter.Log.SampleCounter2(expected[1]);
 
             // Wait a little bit over the refresh interval seconds
-            await Task.Delay((refreshIntervalSeconds * 1000) + 300);
+            Task.Delay((refreshIntervalSeconds * 1000) + 300).Wait();
 
             this.meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
@@ -80,11 +80,11 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
             Assert.Equal(expected[1], GetActualValue(counter2));
         }
 
-        [Fact(Skip = "Unstable")]
-        public async Task TestIncrementingEventCounterMetricsAreCaptured()
+        [Fact]
+        public void TestIncrementingEventCounterMetricsAreCaptured()
         {
             const int refreshIntervalSeconds = 1;
-            var metricItems = new List<Metric>();
+            var metricItems = new List<MetricSnapshot>();
             this.meterProvider = Sdk.CreateMeterProviderBuilder()
                  .AddEventCounterMetrics(options =>
                  {
@@ -98,7 +98,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
             TestIncrementingEventCounter.Log.SampleCounter1(1);
 
             // Wait a little bit over the refresh interval seconds
-            await Task.Delay((refreshIntervalSeconds * 1000) + 300);
+            Task.Delay((refreshIntervalSeconds * 1000) + 300).Wait();
 
             this.meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
@@ -110,10 +110,10 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
             Assert.Equal(3, GetActualValue(counter));
         }
 
-        [Fact(Skip = "Unstable")]
-        public async Task TestPollingCounterMetricsAreCaptured()
+        [Fact]
+        public void TestPollingCounterMetricsAreCaptured()
         {
-            var metricItems = new List<Metric>();
+            var metricItems = new List<MetricSnapshot>();
             const int refreshIntervalSeconds = 1;
 
             this.meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -128,7 +128,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
             TestPollingEventCounter.CreateSingleton(() => ++i * 10);
 
             var duration = (refreshIntervalSeconds * 2 * 1000) + 300; // Wait for two refresh intervals to call the valueProvider twice
-            await Task.Delay(duration);
+            Task.Delay(duration).Wait();
 
             this.meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
@@ -142,10 +142,10 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
             Assert.Equal(expected, GetActualValue(pollingCounter));
         }
 
-        [Fact(Skip = "Unstable")]
-        public async Task TestIncrementingPollingCounterMetrics()
+        [Fact]
+        public void TestIncrementingPollingCounterMetrics()
         {
-            var metricItems = new List<Metric>();
+            var metricItems = new List<MetricSnapshot>();
             const int refreshIntervalSeconds = 1;
 
             this.meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -161,7 +161,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
             TestIncrementingPollingCounter.CreateSingleton(() => i++);
 
             var duration = (refreshIntervalSeconds * 2 * 1000) + 300; // Wait for two refresh intervals to call the valueProvider twice
-            await Task.Delay(duration);
+            Task.Delay(duration).Wait();
 
             this.meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
@@ -177,14 +177,14 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
         /// <summary>
         /// Event Counters are always Sum or Mean and are always record with `float`.
         /// </summary>
-        /// <param name="metric">Metric to Aggregate.</param>
+        /// <param name="metricSnapshot">Metric to Aggregate.</param>
         /// <returns>The Aggregated value. </returns>
-        private static double GetActualValue(Metric metric)
+        private static double GetActualValue(MetricSnapshot metricSnapshot)
         {
             double sum = 0;
-            foreach (ref readonly var metricPoint in metric.GetMetricPoints())
+            foreach (var metricPoint in metricSnapshot.MetricPoints)
             {
-                if (metric.MetricType.IsSum())
+                if (metricSnapshot.MetricType.IsSum())
                 {
                     sum += metricPoint.GetSumDouble();
                 }

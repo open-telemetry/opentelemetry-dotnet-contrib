@@ -1,4 +1,5 @@
 # This file is used by .github/workflows/assign-reviewers.yml
+# Please add the entries in alphabetically sorted order
 
 # Each component identified by its path prefix has a list of users
 components:
@@ -26,6 +27,8 @@ components:
     - vishweshbankwar
   src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
     - ejsmith
+  src/OpenTelemetry.Instrumentation.EventCounters/:
+    - hananiel
   src/OpenTelemetry.Instrumentation.GrpcCore/:
     - pcwiese
   src/OpenTelemetry.Instrumentation.Hangfire/:
@@ -43,8 +46,6 @@ components:
     - xiang17
   src/OpenTelemetry.Instrumentation.Wcf/:
     - codeblanch
-  src/OpenTelemetry.Instrumentation.EventCounters/:
-    - hananiel
   test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/:
     - srprash 
     - lupengamzn
@@ -81,6 +82,8 @@ components:
     - vishweshbankwar
   test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/:
     - ejsmith
+  test/OpenTelemetry.Instrumentation.EventCounters.Tests/:
+    - hananiel
   test/OpenTelemetry.Instrumentation.GrpcCore.Tests/:
     - pcwiese
   test/OpenTelemetry.Instrumentation.Hangfire.Tests/:
@@ -98,5 +101,3 @@ components:
     - xiang17
   test/OpenTelemetry.Instrumentation.Wcf.Tests/:
     - codeblanch
-  test/OpenTelemetry.Instrumentation.EventCounters.Tests/:
-    - hananiel
