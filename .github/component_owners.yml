@@ -43,7 +43,8 @@ components:
     - xiang17
   src/OpenTelemetry.Instrumentation.Wcf/:
     - codeblanch
-
+  src/OpenTelemetry.Instrumentation.EventCounters/:
+    - hananiel
   test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/:
     - srprash 
     - lupengamzn
@@ -97,3 +98,5 @@ components:
     - xiang17
   test/OpenTelemetry.Instrumentation.Wcf.Tests/:
     - codeblanch
+  test/OpenTelemetry.Instrumentation.EventCounters.Tests/:
+    - hananiel

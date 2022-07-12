@@ -75,7 +75,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters
 
         protected override void OnEventWritten(EventWrittenEventArgs eventData)
         {
-            if (!this.isInitialized || !eventData.EventName.Equals("EventCounters"))
+            if (!eventData.EventName.Equals("EventCounters") || !this.isInitialized)
             {
                 return;
             }
@@ -152,7 +152,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters
                 case InstrumentType.ObservableCounter:
                     if (!this.metricInstruments.ContainsKey(metricKey))
                     {
-                        this.metricInstruments[metricKey] = this.meter.CreateObservableCounter(counterName, () => this.ObserveDouble(metricKey), description: description);
+                        this.metricInstruments.TryAdd(metricKey, this.meter.CreateObservableCounter(counterName, () => this.ObserveDouble(metricKey), description: description));
                     }
 
                     break;

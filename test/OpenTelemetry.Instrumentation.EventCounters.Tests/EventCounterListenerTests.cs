@@ -64,7 +64,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
             TestEventCounter.Log.SampleCounter2(expected[1]);
 
             // Wait a little bit over the refresh interval seconds
-            await Task.Delay((refreshIntervalSeconds * 1000) + 200);
+            await Task.Delay((refreshIntervalSeconds * 1000) + 300);
 
             this.meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
@@ -98,7 +98,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
             TestIncrementingEventCounter.Log.SampleCounter1(1);
 
             // Wait a little bit over the refresh interval seconds
-            await Task.Delay((refreshIntervalSeconds * 1000) + 200);
+            await Task.Delay((refreshIntervalSeconds * 1000) + 300);
 
             this.meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
@@ -127,7 +127,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
             int i = 0;
             TestPollingEventCounter.CreateSingleton(() => ++i * 10);
 
-            var duration = (refreshIntervalSeconds * 2 * 1000) + 200; // Wait for two refresh intervals to call the valueProvider twice
+            var duration = (refreshIntervalSeconds * 2 * 1000) + 300; // Wait for two refresh intervals to call the valueProvider twice
             await Task.Delay(duration);
 
             this.meterProvider.ForceFlush(MaxTimeToAllowForFlush);
@@ -160,7 +160,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
 
             TestIncrementingPollingCounter.CreateSingleton(() => i++);
 
-            var duration = (refreshIntervalSeconds * 2 * 1000) + 200; // Wait for two refresh intervals to call the valueProvider twice
+            var duration = (refreshIntervalSeconds * 2 * 1000) + 300; // Wait for two refresh intervals to call the valueProvider twice
             await Task.Delay(duration);
 
             this.meterProvider.ForceFlush(MaxTimeToAllowForFlush);

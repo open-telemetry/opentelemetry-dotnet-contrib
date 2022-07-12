@@ -8,8 +8,8 @@ which republishes EventCounters using Metrics Api.
 ### Step 1: Install Package
 
 Add a reference to the
-[`OpenTelemetry.Contrib.Instrumentation.EventCounters`](https://www.nuget.org/packages/OpenTelemetry.Contrib.Instrumentation.EventCounters)
-package. Also, add any other instrumentations & exporters you will need.
+[`OpenTelemetry.Instrumentation.EventCounters`](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EventCounters)
+package. Also, add any other instrumentation & exporters you will need.
 
 ```shell
 dotnet add package OpenTelemetry.Instrumentation.EventCounters
@@ -28,7 +28,6 @@ to the application.
 ```csharp
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
-using OpenTelemetry.Instrumentation.EventCounters;
 
 namespace DotnetMetrics;
 
@@ -37,14 +36,33 @@ public class Program
     public static void Main(string[] args)
     {
         using var meterprovider = Sdk.CreateMeterProviderBuilder()
-                .AddEventCounters(options =>
+                .AddEventCounterMetrics(options =>
                 {
-                   options.RefreshIntervalSecs = 55;
+                   options.RefreshIntervalSecs = 5;
                 })
                 .AddConsoleExporter()
                 .Build();
     }
 }
+```
+
+Console Output:
+
+```
+
+Export cpu-usage, CPU Usage, Meter: OpenTelemetry.Instrumentation.EventCounters/0.0.0.0
+(2022-07-12T16:40:37.2639447Z, 2022-07-12T16:40:42.2533747Z] DoubleGauge
+Value: 0
+
+Export working-set, Working Set, Meter: OpenTelemetry.Instrumentation.EventCounters/0.0.0.0
+(2022-07-12T16:40:37.2666398Z, 2022-07-12T16:40:42.2534452Z] DoubleGauge
+Value: 38
+
+Export gc-heap-size, GC Heap Size, Meter: OpenTelemetry.Instrumentation.EventCounters/0.0.0.0
+(2022-07-12T16:40:37.2667389Z, 2022-07-12T16:40:42.2534456Z] DoubleGauge
+Value: 7
+
+
 ```
 
 ## References
