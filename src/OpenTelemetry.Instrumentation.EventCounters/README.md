@@ -48,7 +48,7 @@ public class Program
 
 Console Output:
 
-```
+```console
 
 Export cpu-usage, CPU Usage, Meter: OpenTelemetry.Instrumentation.EventCounters/0.0.0.0
 (2022-07-12T16:40:37.2639447Z, 2022-07-12T16:40:42.2533747Z] DoubleGauge
