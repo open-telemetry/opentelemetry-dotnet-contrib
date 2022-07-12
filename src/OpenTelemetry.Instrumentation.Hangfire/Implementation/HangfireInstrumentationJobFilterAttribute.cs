@@ -19,10 +19,10 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using Context.Propagation;
     using global::Hangfire.Client;
     using global::Hangfire.Common;
     using global::Hangfire.Server;
+    using OpenTelemetry.Context.Propagation;
 
     internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, IServerFilter, IClientFilter
     {
