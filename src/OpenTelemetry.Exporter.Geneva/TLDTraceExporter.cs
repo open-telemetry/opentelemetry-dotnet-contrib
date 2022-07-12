@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -110,6 +111,8 @@ namespace OpenTelemetry.Exporter.Geneva
             ]
             */
 
+            var fields = options.PrepopulatedFields.ToDictionary(item => item.Key, item => item.Value);
+            fields.Remove(".ver");
             this.prepopulatedFields = options.PrepopulatedFields;
 
             this.m_bufferPrologue = new byte[cursor - 0];
@@ -204,7 +207,7 @@ namespace OpenTelemetry.Exporter.Geneva
 
             foreach (var entry in this.prepopulatedFields)
             {
-                V40_PART_A_MAPPING.TryGetValue(entry.Key, out string replacementKey);
+                V40_PART_A_TLD_MAPPING.TryGetValue(entry.Key, out string replacementKey);
                 var key = replacementKey ?? entry.Key;
                 var value = entry.Value;
                 switch (value)
@@ -251,54 +254,94 @@ namespace OpenTelemetry.Exporter.Geneva
                 }
             }
 
-            eb.AddStruct("PartB", 3);
-            eb.AddCountedString("name", activity.DisplayName);
-            eb.AddInt32("kind", (int)activity.Kind);
-            eb.AddFileTime("startTime", dtBegin, EventOutType.DateTimeUtc);
-
-/*
-            var buffer = this.m_buffer.Value;
-            if (buffer == null)
-            {
-                buffer = new byte[BUFFER_SIZE]; // TODO: handle OOM
-                Buffer.BlockCopy(this.m_bufferPrologue, 0, buffer, 0, this.m_bufferPrologue.Length);
-                this.m_buffer.Value = buffer;
-            }
-
-            var cursor = this.m_bufferPrologue.Length;
-            var cntFields = this.m_cntPrepopulatedFields;
-
-            #region Part B Span - required fields
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "name");
-            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, activity.DisplayName);
-            cntFields += 1;
-
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "kind");
-            cursor = MessagePackSerializer.SerializeInt32(buffer, cursor, (int)activity.Kind);
-            cntFields += 1;
-
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "startTime");
-            cursor = MessagePackSerializer.SerializeUtcDateTime(buffer, cursor, dtBegin);
-            cntFields += 1;
-
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "success");
-            cursor = MessagePackSerializer.SerializeBool(buffer, cursor, true);
-            var idxSuccessPatch = cursor - 1;
-            cntFields += 1;
-            #endregion
-
-            #region Part B Span optional fields and Part C fields
+            int hasValidParentId = 0;
             var strParentId = activity.ParentSpanId.ToHexString();
-
-            // Note: this should be blazing fast since Object.ReferenceEquals(strParentId, INVALID_SPAN_ID) == true
-            if (!string.Equals(strParentId, INVALID_SPAN_ID, StringComparison.Ordinal))
+            if (!ReferenceEquals(strParentId, INVALID_SPAN_ID))
             {
-                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "parentId");
-                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, strParentId);
-                cntFields += 1;
+                hasValidParentId++;
             }
 
             var links = activity.Links;
+            var cntLinks = links.Count();
+
+            int cntPartBFieldsFromTags = 0;
+            int cntPartCFieldsFromTags = 0;
+            bool hasEnvProperties = false;
+            int isStatusSuccess = 1;
+            string statusDescription = string.Empty;
+
+            foreach (var entry in activity.TagObjects)
+            {
+                // TODO: check name collision
+                if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string replacementKey))
+                {
+                    cntPartBFieldsFromTags++;
+                }
+                else if (string.Equals(entry.Key, "otel.status_code", StringComparison.Ordinal))
+                {
+                    if (string.Equals(entry.Value.ToString(), "ERROR", StringComparison.Ordinal))
+                    {
+                        isStatusSuccess = 0;
+                    }
+
+                    continue;
+                }
+                else if (string.Equals(entry.Key, "otel.status_description", StringComparison.Ordinal))
+                {
+                    statusDescription = entry.Value.ToString();
+                    continue;
+                }
+                else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
+                {
+                    // TODO: the above null check can be optimized and avoided inside foreach.
+                    cntPartCFieldsFromTags++;
+                }
+                else
+                {
+                    hasEnvProperties = true;
+                    continue;
+                }
+            }
+
+            if (activity.Status != ActivityStatusCode.Unset)
+            {
+                if (activity.Status == ActivityStatusCode.Error)
+                {
+                    isStatusSuccess = 0;
+                }
+
+                if (!string.IsNullOrEmpty(activity.StatusDescription))
+                {
+                    statusDescription = activity.StatusDescription;
+                }
+            }
+            else
+            {
+                if (isStatusSuccess == 0)
+                {
+                    MessagePackSerializer.SerializeBool(buffer, idxSuccessPatch, false);
+                    if (!string.IsNullOrEmpty(statusDescription))
+                    {
+                        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "statusMessage");
+                        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, statusDescription);
+                        cntFields += 1;
+                    }
+                }
+            }
+
+            var partBFieldsCount = 5 + hasValidParentId + cntLinks + cntPartBFieldsFromTags; // Five fields: _typeName, name, kind, startTime, success
+            eb.AddStruct("PartB", (byte)partBFieldsCount);
+            eb.AddCountedString("_typeName", "Span");
+            eb.AddCountedString("name", activity.DisplayName);
+            eb.AddInt32("kind", (int)activity.Kind);
+            eb.AddFileTime("startTime", dtBegin, EventOutType.DateTimeUtc);
+            eb.AddBool32("success", isStatusSuccess, EventOutType.Boolean);
+
+            if (hasValidParentId == 1)
+            {
+                eb.AddCountedString("parentId", strParentId);
+            }
+
             if (links.Any())
             {
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "links");
@@ -319,118 +362,157 @@ namespace OpenTelemetry.Exporter.Geneva
                 cntFields += 1;
             }
 
-            // TODO: The current approach is to iterate twice over TagObjects so that all
-            // env_properties can be added the very end. This avoids speculating the size
-            // and preallocating a separate buffer for it.
-            // Alternates include static allocation and iterate once.
-            // The TODO: here is to measure perf and change to alternate, if required.
-
-            // Iteration #1 - Get those fields which become dedicated column
-            // i.e all PartB fields and opt-in part c fields.
-            bool hasEnvProperties = false;
-            bool isStatusSuccess = true;
-            string statusDescription = string.Empty;
-
-            foreach (var entry in activity.TagObjects)
-            {
-                // TODO: check name collision
-                if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string replacementKey))
-                {
-                    cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, replacementKey);
-                }
-                else if (string.Equals(entry.Key, "otel.status_code", StringComparison.Ordinal))
-                {
-                    if (string.Equals(entry.Value.ToString(), "ERROR", StringComparison.Ordinal))
-                    {
-                        isStatusSuccess = false;
-                    }
-
-                    continue;
-                }
-                else if (string.Equals(entry.Key, "otel.status_description", StringComparison.Ordinal))
-                {
-                    statusDescription = entry.Value.ToString();
-                    continue;
-                }
-                else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
-                {
-                    // TODO: the above null check can be optimized and avoided inside foreach.
-                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
-                }
-                else
-                {
-                    hasEnvProperties = true;
-                    continue;
-                }
-
-                cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
-                cntFields += 1;
-            }
-
-            if (hasEnvProperties)
-            {
-                // Iteration #2 - Get all "other" fields and collapse them into single field
-                // named "env_properties".
-                ushort envPropertiesCount = 0;
-                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_properties");
-                cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
-                int idxMapSizeEnvPropertiesPatch = cursor - 2;
-
-                foreach (var entry in activity.TagObjects)
-                {
-                    // TODO: check name collision
-                    if (this.m_dedicatedFields.ContainsKey(entry.Key))
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
-                        cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
-                        envPropertiesCount += 1;
-                    }
-                }
-
-                cntFields += 1;
-                MessagePackSerializer.WriteUInt16(buffer, idxMapSizeEnvPropertiesPatch, envPropertiesCount);
-            }
-
-            if (activity.Status != ActivityStatusCode.Unset)
-            {
-                if (activity.Status == ActivityStatusCode.Error)
-                {
-                    MessagePackSerializer.SerializeBool(buffer, idxSuccessPatch, false);
-                }
-
-                if (!string.IsNullOrEmpty(activity.StatusDescription))
-                {
-                    cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "statusMessage");
-                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, activity.StatusDescription);
-                    cntFields += 1;
-                }
-            }
-            else
-            {
-                if (!isStatusSuccess)
-                {
-                    MessagePackSerializer.SerializeBool(buffer, idxSuccessPatch, false);
-                    if (!string.IsNullOrEmpty(statusDescription))
-                    {
-                        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "statusMessage");
-                        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, statusDescription);
+            /*
+                        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "success");
+                        cursor = MessagePackSerializer.SerializeBool(buffer, cursor, true);
+                        var idxSuccessPatch = cursor - 1;
                         cntFields += 1;
-                    }
-                }
-            }
-            #endregion
+                        #endregion
 
-            MessagePackSerializer.WriteUInt16(buffer, this.m_idxMapSizePatch, cntFields);
+                        #region Part B Span optional fields and Part C fields
+                        var strParentId = activity.ParentSpanId.ToHexString();
 
-            Buffer.BlockCopy(this.m_bufferEpilogue, 0, buffer, cursor, this.m_bufferEpilogue.Length);
-            cursor += this.m_bufferEpilogue.Length;
+                        // Note: this should be blazing fast since Object.ReferenceEquals(strParentId, INVALID_SPAN_ID) == true
+                        if (!string.Equals(strParentId, INVALID_SPAN_ID, StringComparison.Ordinal))
+                        {
+                            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "parentId");
+                            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, strParentId);
+                            cntFields += 1;
+                        }
 
-            return cursor;
-*/
+                        var links = activity.Links;
+                        if (links.Any())
+                        {
+                            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "links");
+                            cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, ushort.MaxValue); // Note: always use Array16 for perf consideration
+                            var idxLinkPatch = cursor - 2;
+                            ushort cntLink = 0;
+                            foreach (var link in links)
+                            {
+                                cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, 2);
+                                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "toTraceId");
+                                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, link.Context.TraceId.ToHexString());
+                                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "toSpanId");
+                                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, link.Context.SpanId.ToHexString());
+                                cntLink += 1;
+                            }
+
+                            MessagePackSerializer.WriteUInt16(buffer, idxLinkPatch, cntLink);
+                            cntFields += 1;
+                        }
+
+                        // TODO: The current approach is to iterate twice over TagObjects so that all
+                        // env_properties can be added the very end. This avoids speculating the size
+                        // and preallocating a separate buffer for it.
+                        // Alternates include static allocation and iterate once.
+                        // The TODO: here is to measure perf and change to alternate, if required.
+
+                        // Iteration #1 - Get those fields which become dedicated column
+                        // i.e all PartB fields and opt-in part c fields.
+                        bool hasEnvProperties = false;
+                        bool isStatusSuccess = true;
+                        string statusDescription = string.Empty;
+
+                        foreach (var entry in activity.TagObjects)
+                        {
+                            // TODO: check name collision
+                            if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string replacementKey))
+                            {
+                                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, replacementKey);
+                            }
+                            else if (string.Equals(entry.Key, "otel.status_code", StringComparison.Ordinal))
+                            {
+                                if (string.Equals(entry.Value.ToString(), "ERROR", StringComparison.Ordinal))
+                                {
+                                    isStatusSuccess = false;
+                                }
+
+                                continue;
+                            }
+                            else if (string.Equals(entry.Key, "otel.status_description", StringComparison.Ordinal))
+                            {
+                                statusDescription = entry.Value.ToString();
+                                continue;
+                            }
+                            else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
+                            {
+                                // TODO: the above null check can be optimized and avoided inside foreach.
+                                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
+                            }
+                            else
+                            {
+                                hasEnvProperties = true;
+                                continue;
+                            }
+
+                            cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
+                            cntFields += 1;
+                        }
+
+                        if (hasEnvProperties)
+                        {
+                            // Iteration #2 - Get all "other" fields and collapse them into single field
+                            // named "env_properties".
+                            ushort envPropertiesCount = 0;
+                            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_properties");
+                            cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
+                            int idxMapSizeEnvPropertiesPatch = cursor - 2;
+
+                            foreach (var entry in activity.TagObjects)
+                            {
+                                // TODO: check name collision
+                                if (this.m_dedicatedFields.ContainsKey(entry.Key))
+                                {
+                                    continue;
+                                }
+                                else
+                                {
+                                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
+                                    cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
+                                    envPropertiesCount += 1;
+                                }
+                            }
+
+                            cntFields += 1;
+                            MessagePackSerializer.WriteUInt16(buffer, idxMapSizeEnvPropertiesPatch, envPropertiesCount);
+                        }
+
+                        if (activity.Status != ActivityStatusCode.Unset)
+                        {
+                            if (activity.Status == ActivityStatusCode.Error)
+                            {
+                                MessagePackSerializer.SerializeBool(buffer, idxSuccessPatch, false);
+                            }
+
+                            if (!string.IsNullOrEmpty(activity.StatusDescription))
+                            {
+                                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "statusMessage");
+                                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, activity.StatusDescription);
+                                cntFields += 1;
+                            }
+                        }
+                        else
+                        {
+                            if (!isStatusSuccess)
+                            {
+                                MessagePackSerializer.SerializeBool(buffer, idxSuccessPatch, false);
+                                if (!string.IsNullOrEmpty(statusDescription))
+                                {
+                                    cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "statusMessage");
+                                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, statusDescription);
+                                    cntFields += 1;
+                                }
+                            }
+                        }
+                        #endregion
+
+                        MessagePackSerializer.WriteUInt16(buffer, this.m_idxMapSizePatch, cntFields);
+
+                        Buffer.BlockCopy(this.m_bufferEpilogue, 0, buffer, cursor, this.m_bufferEpilogue.Length);
+                        cursor += this.m_bufferEpilogue.Length;
+
+                        return cursor;
+            */
         }
 
         private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
@@ -460,6 +542,27 @@ namespace OpenTelemetry.Exporter.Geneva
         private readonly EventProvider eventProvider;
 
         private readonly ThreadLocal<EventBuilder> eventBuilder = new ThreadLocal<EventBuilder>(() => new());
+
+        internal static readonly IReadOnlyDictionary<string, string> V40_PART_A_TLD_MAPPING = new Dictionary<string, string>
+        {
+            // Part A
+            [Schema.V40.PartA.IKey] = "iKey",
+            [Schema.V40.PartA.Name] = "name",
+            [Schema.V40.PartA.Time] = "time",
+
+            // Part A Application Extension
+            [Schema.V40.PartA.Extensions.App.Id] = "ext_app_id",
+            [Schema.V40.PartA.Extensions.App.Ver] = "ext_app_ver",
+
+            // Part A Cloud Extension
+            [Schema.V40.PartA.Extensions.Cloud.Role] = "ext_cloud_role",
+            [Schema.V40.PartA.Extensions.Cloud.RoleInstance] = "ext_cloud_roleInstance",
+            [Schema.V40.PartA.Extensions.Cloud.RoleVer] = "ext_cloud_roleVer",
+
+            // Part A Os extension
+            [Schema.V40.PartA.Extensions.Os.Name] = "ext_os_name",
+            [Schema.V40.PartA.Extensions.Os.Ver] = "ext_os_ver",
+        };
 
         private static readonly IReadOnlyDictionary<string, string> CS40_PART_B_MAPPING = new Dictionary<string, string>
         {
