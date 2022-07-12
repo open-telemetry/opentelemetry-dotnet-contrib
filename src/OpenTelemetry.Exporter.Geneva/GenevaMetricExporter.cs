@@ -85,10 +85,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                 var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
                 this.metricDataTransport = new MetricUnixDataTransport(unixDomainSocketPath);
                 break;
-            case TransportProtocol.Tcp:
-                throw new ArgumentException("TCP transport is not supported yet.");
-            case TransportProtocol.Udp:
-                throw new ArgumentException("UDP transport is not supported yet.");
             case TransportProtocol.Unspecified:
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
