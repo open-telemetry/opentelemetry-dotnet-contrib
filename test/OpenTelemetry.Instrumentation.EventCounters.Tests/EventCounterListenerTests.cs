@@ -47,7 +47,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
             Assert.True(metricItems.Count > 1);
         }
 
-        [Fact]
+        [Fact(Skip = "Unstable")]
         public async Task TestEventCounterMetricsAreCaptured()
         {
             const int refreshIntervalSeconds = 1;
@@ -80,7 +80,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
             Assert.Equal(expected[1], GetActualValue(counter2));
         }
 
-        [Fact]
+        [Fact(Skip = "Unstable")]
         public async Task TestIncrementingEventCounterMetricsAreCaptured()
         {
             const int refreshIntervalSeconds = 1;
@@ -110,7 +110,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
             Assert.Equal(3, GetActualValue(counter));
         }
 
-        [Fact]
+        [Fact(Skip = "Unstable")]
         public async Task TestPollingCounterMetricsAreCaptured()
         {
             var metricItems = new List<Metric>();
@@ -142,7 +142,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
             Assert.Equal(expected, GetActualValue(pollingCounter));
         }
 
-        [Fact]
+        [Fact(Skip = "Unstable")]
         public async Task TestIncrementingPollingCounterMetrics()
         {
             var metricItems = new List<Metric>();
