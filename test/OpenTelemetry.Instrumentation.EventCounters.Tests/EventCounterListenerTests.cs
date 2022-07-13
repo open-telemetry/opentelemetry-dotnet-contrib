@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using OpenTelemetry.Metrics;
@@ -24,7 +25,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
     public class EventCounterListenerTests
     {
         private const int MaxTimeToAllowForFlush = 10000;
-        private const int MaxRetries = 10;
+        private const int MaxRetries = 30;
         private MeterProvider meterProvider;
 
         [Fact]
@@ -87,7 +88,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
             Assert.NotNull(counter2);
             Assert.Equal(MetricType.DoubleGauge, counter1.MetricType); // EventCounter CounterType is `Mean`
 
-            Assert.Equal(expected[0], GetActualValue(counter1));
+            Assert.True(Math.Abs(expected[0] - GetActualValue(counter1)) < .001, $"Expected value doesn't match after {MaxRetries - retries}");
             Assert.Equal(expected[1], GetActualValue(counter2));
         }
 
