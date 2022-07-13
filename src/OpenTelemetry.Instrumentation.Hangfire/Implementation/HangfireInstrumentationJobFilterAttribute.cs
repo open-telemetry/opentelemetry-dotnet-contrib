@@ -16,11 +16,15 @@
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
 {
+    using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
+    using global::Hangfire.Client;
     using global::Hangfire.Common;
     using global::Hangfire.Server;
+    using OpenTelemetry.Context.Propagation;
 
-    internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, IServerFilter
+    internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, IServerFilter, IClientFilter
     {
         public void OnPerforming(PerformingContext performingContext)
         {
@@ -30,8 +34,17 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
                 return;
             }
 
+            var activityContextData = performingContext.GetJobParameter<Dictionary<string, string>>(HangfireInstrumentationConstants.ActivityContextKey);
+            ActivityContext parentContext = default;
+            if (activityContextData is not null)
+            {
+                var propagationContext = Propagators.DefaultTextMapPropagator.Extract(default, activityContextData, ExtractActivityProperties);
+                parentContext = propagationContext.ActivityContext;
+                Baggage.Current = propagationContext.Baggage;
+            }
+
             var activity = HangfireInstrumentation.ActivitySource
-                .StartActivity(HangfireInstrumentationConstants.ActivityName, ActivityKind.Internal, parentContext: default);
+                .StartActivity(HangfireInstrumentationConstants.ActivityName, ActivityKind.Internal, parentContext);
 
             if (activity != null)
             {
@@ -64,6 +77,39 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
 
                 activity.Dispose();
             }
+        }
+
+        public void OnCreating(CreatingContext creatingContext)
+        {
+            // Short-circuit if nobody is listening
+            if (!HangfireInstrumentation.ActivitySource.HasListeners())
+            {
+                return;
+            }
+
+            ActivityContext contextToInject = default;
+            if (Activity.Current != null)
+            {
+                contextToInject = Activity.Current.Context;
+            }
+
+            var activityContextData = new Dictionary<string, string>();
+            Propagators.DefaultTextMapPropagator.Inject(new PropagationContext(contextToInject, Baggage.Current), activityContextData, InjectActivityProperties);
+            creatingContext.SetJobParameter(HangfireInstrumentationConstants.ActivityContextKey, activityContextData);
+        }
+
+        public void OnCreated(CreatedContext filterContext)
+        {
+        }
+
+        private static void InjectActivityProperties(IDictionary<string, string> jobParams, string key, string value)
+        {
+            jobParams[key] = value;
+        }
+
+        private static IEnumerable<string> ExtractActivityProperties(Dictionary<string, string> telemetryData, string key)
+        {
+            return telemetryData.ContainsKey(key) ? new[] { telemetryData[key] } : Enumerable.Empty<string>();
         }
     }
 }

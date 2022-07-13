@@ -1,4 +1,4 @@
-// <copyright file="HangfireInstrumentationConstants.cs" company="OpenTelemetry Authors">
+// <copyright file="EventCounterMetricsOptions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,15 +14,16 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
+namespace OpenTelemetry.Instrumentation.EventCounters
 {
-    internal static class HangfireInstrumentationConstants
+    /// <summary>
+    /// EventCounterMetrics Options.
+    /// </summary>
+    public class EventCounterMetricsOptions
     {
-        public const string JobIdTag = "job.id";
-        public const string JobCreatedAtTag = "job.createdat";
-
-        public const string ActivityName = "JOB";
-        public const string ActivityKey = "opentelemetry_activity_key";
-        public const string ActivityContextKey = "opentelemetry_activity_context";
+        /// <summary>
+        /// Gets or sets the subscription interval in seconds.
+        /// </summary>
+        public int RefreshIntervalSecs { get; set; } = 60;
     }
 }
