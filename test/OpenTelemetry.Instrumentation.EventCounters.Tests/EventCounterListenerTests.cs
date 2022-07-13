@@ -75,6 +75,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
                 this.meterProvider.ForceFlush(MaxTimeToAllowForFlush);
                 counter1 = metricItems.Find(m => m.Name == "mycountername1");
                 counter2 = metricItems.Find(m => m.Name == "mycountername2");
+
                 if (counter1 != null && GetActualValue(counter1) > 0)
                 {
                     break;
