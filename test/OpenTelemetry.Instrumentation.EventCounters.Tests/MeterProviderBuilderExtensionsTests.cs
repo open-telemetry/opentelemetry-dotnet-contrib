@@ -1,4 +1,4 @@
-// <copyright file="TestExporter.cs" company="OpenTelemetry Authors">
+// <copyright file="MeterProviderBuilderExtensionsTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,28 +13,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
+
 using System;
-using OpenTelemetry.Internal;
+using OpenTelemetry.Metrics;
+using Xunit;
 
-namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Tests.Shared
+namespace OpenTelemetry.Instrumentation.EventCounters.Tests
 {
-    internal class TestExporter<T> : BaseExporter<T>
-        where T : class
+    public class MeterProviderBuilderExtensionsTests
     {
-        private readonly Action<Batch<T>> processBatchAction;
-
-        public TestExporter(Action<Batch<T>> processBatchAction)
+        [Fact]
+        public void Throws_Exception_When_Builder_Is_Null()
         {
-            Guard.ThrowIfNull(processBatchAction);
+            MeterProviderBuilder builder = null;
 
-            this.processBatchAction = processBatchAction;
-        }
-
-        public override ExportResult Export(in Batch<T> batch)
-        {
-            this.processBatchAction(batch);
-
-            return ExportResult.Success;
+            Func<object> action = () => builder.AddEventCounterMetrics();
+            Assert.Throws<ArgumentNullException>(action);
         }
     }
 }
