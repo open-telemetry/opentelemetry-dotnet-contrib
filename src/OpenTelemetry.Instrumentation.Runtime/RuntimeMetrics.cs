@@ -99,28 +99,27 @@ namespace OpenTelemetry.Instrumentation.Runtime
                 unit: "bytes",
                 description: "The heap size (including fragmentation), as observed during the latest garbage collection. The value will be unavailable until at least one garbage collection has occurred.");
 
-            // TODO: change to ObservableUpDownCounter
-            MeterInstance.CreateObservableGauge(
-                $"{metricPrefix}gc.heap.fragmentation.size",
-                () =>
-                {
-                    if (!IsGcInfoAvailable)
-                    {
-                        return Array.Empty<Measurement<long>>();
-                    }
-
-                    var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
-                    Measurement<long>[] measurements = new Measurement<long>[generationInfo.Length];
-                    int maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
-                    for (int i = 0; i < maxSupportedLength; ++i)
-                    {
-                        measurements[i] = new(generationInfo[i].FragmentationAfterBytes, new KeyValuePair<string, object>("generation", GenNames[i]));
-                    }
-
-                    return measurements;
-                },
-                unit: "bytes",
-                description: "The heap fragmentation, as observed during the latest garbage collection. The value will be unavailable until at least one garbage collection has occurred.");
+            // TODO: Uncomment this for .NET 7 where the bug is fixed. See context in https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/496
+            //// TODO: change to ObservableUpDownCounter
+            // MeterInstance.CreateObservableGauge(
+            //    $"{metricPrefix}gc.heap.fragmentation.size",
+            //    () =>
+            //    {
+            //        if (!IsGcInfoAvailable)
+            //        {
+            //            return Array.Empty<Measurement<long>>();
+            //        }
+            //        var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
+            //        Measurement<long>[] measurements = new Measurement<long>[generationInfo.Length];
+            //        int maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
+            //        for (int i = 0; i < maxSupportedLength; ++i)
+            //        {
+            //            measurements[i] = new(generationInfo[i].FragmentationAfterBytes, new KeyValuePair<string, object>("generation", GenNames[i]));
+            //        }
+            //        return measurements;
+            //    },
+            //    unit: "bytes",
+            //    description: "The heap fragmentation, as observed during the latest garbage collection. The value will be unavailable until at least one garbage collection has occurred.");
 #endif
 
 #if NET6_0_OR_GREATER
