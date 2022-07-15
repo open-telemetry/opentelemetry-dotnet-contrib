@@ -64,7 +64,7 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
 
 #if NETCOREAPP3_1_OR_GREATER
             var lockContentionCountMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.monitor.lock_contention.count");
-            Assert.True(GetLongSum(lockContentionCountMetric) == 0);
+            Assert.True(GetLongSum(lockContentionCountMetric) >= 0);
 
             var threadCountMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.thread_pool.threads.count");
             Assert.True(GetLongSum(threadCountMetric) > 0);
