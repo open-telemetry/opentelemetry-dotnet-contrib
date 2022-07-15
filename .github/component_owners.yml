@@ -5,6 +5,8 @@ components:
   src/OpenTelemetry.Contrib.Extensions.AWSXRay/:
     - srprash
     - lupengamzn
+  src/OpenTelemetry.Contrib.Instrumentation.AWS/:
+    - srprash
   src/OpenTelemetry.Exporter.Geneva/:
     - cijothomas
     - codeblanch
@@ -43,10 +45,13 @@ components:
     - xiang17
   src/OpenTelemetry.Instrumentation.Wcf/:
     - codeblanch
-
+  src/OpenTelemetry.Instrumentation.EventCounters/:
+    - hananiel
   test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/:
-    - srprash 
+    - srprash
     - lupengamzn
+  test/OpenTelemetry.Contrib.Instrumentation.AWS.Tests/:
+    - srprash
   test/OpenTelemetry.Exporter.Geneva.Benchmark/:
     - cijothomas
     - codeblanch
@@ -97,3 +102,5 @@ components:
     - xiang17
   test/OpenTelemetry.Instrumentation.Wcf.Tests/:
     - codeblanch
+  test/OpenTelemetry.Instrumentation.EventCounters.Tests/:
+    - hananiel
