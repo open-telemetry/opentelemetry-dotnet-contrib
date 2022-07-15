@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Remove gc.heap.fragmentation.size metrics due to buggy API on .NET 6
+  ([#509](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/509))
+
 ## 1.0.0-rc.1
 
 Released 2022-Jun-29
