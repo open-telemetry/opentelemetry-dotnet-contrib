@@ -161,9 +161,6 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
                 case double vd:
                 case string vs:
                     break;
-                default:
-                    value = options.ConvertToJson(value);
-                    break;
             }
 
             cursor = AddPartAField(buffer, cursor, entry.Key, value);
