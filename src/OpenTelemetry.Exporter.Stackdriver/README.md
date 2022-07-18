@@ -3,14 +3,14 @@
 [![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.Stackdriver.svg)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Stackdriver)
 [![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Exporter.Stackdriver.svg)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Stackdriver)
 
-**NOTE: This exporter is not affiliated with or officially supported by Google.**
+**NOTE: This exporter is not affiliated with or officially supported by
+Google.**
 
 This sample assumes your code authenticates to Stackdriver APIs using [service
 account][gcp-auth] with credentials stored in environment variable
 GOOGLE_APPLICATION_CREDENTIALS. When you run on [GAE][GAE], [GKE][GKE] or
 locally with gcloud sdk installed - this is typically the case. There is also a
-constructor for specifying path to the service account credential. See
-[sample][stackdriver-sample] for details.
+constructor for specifying path to the service account credential.
 
 1. Add [Stackdriver Exporter
    package][OpenTelemetry-exporter-stackdriver-myget-url] reference.
@@ -18,7 +18,6 @@ constructor for specifying path to the service account credential. See
 3. Enable [Stackdriver Monitoring][stackdriver-monitoring-setup] API.
 4. Instantiate a new instance of `StackdriverExporter` with your Google Cloud's
    ProjectId
-5. See [sample][stackdriver-sample] for example use.
 
 ## Installation
 
@@ -64,3 +63,11 @@ metricExporter.Start();
 * [GAE](https://cloud.google.com/appengine/docs/flexible/dotnet/quickstart)
 * [GKE](https://codelabs.developers.google.com/codelabs/cloud-kubernetes-aspnetcore/index.html)
 * [gcp-auth](https://cloud.google.com/docs/authentication/getting-started)
+
+[stackdriver-trace-setup]: https://cloud.google.com/trace/docs/setup/
+[stackdriver-monitoring-setup]:
+    https://cloud.google.com/monitoring/api/enable-api
+[GAE]: https://cloud.google.com/appengine/docs/flexible/dotnet/quickstart
+[GKE]:
+    https://codelabs.developers.google.com/codelabs/cloud-kubernetes-aspnetcore/index.html
+[gcp-auth]: https://cloud.google.com/docs/authentication/getting-started
