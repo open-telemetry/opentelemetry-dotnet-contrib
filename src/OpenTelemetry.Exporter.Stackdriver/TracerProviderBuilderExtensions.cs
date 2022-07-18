@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-using OpenTelemetry.Contrib.Exporter.Stackdriver;
+using OpenTelemetry.Exporter.Stackdriver;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Trace
