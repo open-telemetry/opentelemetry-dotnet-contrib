@@ -71,3 +71,5 @@ metricExporter.Start();
 [GKE]:
     https://codelabs.developers.google.com/codelabs/cloud-kubernetes-aspnetcore/index.html
 [gcp-auth]: https://cloud.google.com/docs/authentication/getting-started
+[OpenTelemetry-exporter-stackdriver-myget-url]:
+    https://www.nuget.org/packages/OpenTelemetry.Exporter.Stackdriver
