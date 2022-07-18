@@ -8,17 +8,17 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="MySql.Data" Version="6.10.7"/>
-        <PackageReference Include="OpenTelemetry.Api" Version="1.1.0"/>
+        <PackageReference Include="MySql.Data" Version="6.10.7" />
+        <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryApiPkgVer)" />
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\SemanticConventions.cs" Link="Includes\SemanticConventions.cs"/>
-        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\IActivityEnumerator.cs" Link="Includes\IActivityEnumerator.cs"/>
-        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs"/>
-        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\EnumerationHelper.cs" Link="Includes\EnumerationHelper.cs"/>
-        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\SpanAttributeConstants.cs" Link="Includes\SpanAttributeConstants.cs"/>
-        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\StatusHelper.cs" Link="Includes\StatusHelper.cs"/>
+        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
+        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\IActivityEnumerator.cs" Link="Includes\IActivityEnumerator.cs" />
+        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs" />
+        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\EnumerationHelper.cs" Link="Includes\EnumerationHelper.cs" />
+        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\SpanAttributeConstants.cs" Link="Includes\SpanAttributeConstants.cs" />
+        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\StatusHelper.cs" Link="Includes\StatusHelper.cs" />
         <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\Guard.cs" Link="Includes\Guard.cs" />
     </ItemGroup>
 
