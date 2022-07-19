@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Change API for GC Heap Size for .NET 6 where the API has a bug
+  ([#495](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/495))
+
 ## 1.0.0-rc.1
 
 Released 2022-Jun-29
