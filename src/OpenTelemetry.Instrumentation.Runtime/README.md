@@ -113,6 +113,11 @@ The APIs used to retrieve the values are:
 
 * [GC.GetGCMemoryInfo().GenerationInfo[i].SizeAfterBytes](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo):
   Represents the size in bytes of a generation on exit of the GC reported in GCMemoryInfo.
+  Note that this API on .NET 6 has a [bug](https://github.com/dotnet/runtime/pull/60309).
+  For .NET 6, heap size is retrieved with an internal method `GC.GetGenerationSize`,
+  which is how the [well-known EventCounters](https://docs.microsoft.com/en-us/dotnet/core/diagnostics/available-counters)
+  retrieve the values.
+  See source code [here](https://github.com/dotnet/runtime/blob/b4dd16b4418de9b3af08ae85f0f3653e55dc420a/src/libraries/System.Private.CoreLib/src/System/Diagnostics/Tracing/RuntimeEventSource.cs#L110-L114).
 
 * [GCGenerationInfo.FragmentationAfterBytes Property](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo.fragmentationafterbytes)
   Gets the fragmentation in bytes on exit from the reported collection.

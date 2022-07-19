@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Change API for GC Heap Size for .NET 6 where the API has a bug
+  ([#495](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/495))
 * Remove gc.heap.fragmentation.size metrics due to buggy API on .NET 6
   ([#509](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/509))
 
