@@ -103,6 +103,9 @@ Note: `ObservableGauge` should be changed to `ObservableUpDownCounter` once avai
 as `ObservableUpDownCounter` is the best fit of instrument type. The same applies
 to all the `ObservableGauge` below.
 
+Note: `gc.heap.fragmentation.size` metrics is removed for .NET 6 because of a
+[bug](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/496).
+
 The APIs used to retrieve the values are:
 
 * [GCMemoryInfo.TotalCommittedBytes](https://docs.microsoft.com/dotnet/api/system.gcmemoryinfo.totalcommittedbytes):
