@@ -121,6 +121,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
                     unit: "bytes",
                     description: "The heap size (including fragmentation), as observed during the latest garbage collection. The value will be unavailable until at least one garbage collection has occurred.");
             }
+#endif
 
 #if NET7_0_OR_GREATER
             // TODO: Not valid until .NET 7 where the bug is fixed. See context in https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/496
