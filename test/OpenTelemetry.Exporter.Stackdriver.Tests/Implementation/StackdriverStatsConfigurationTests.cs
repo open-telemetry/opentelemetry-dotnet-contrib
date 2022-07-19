@@ -15,10 +15,10 @@
 // </copyright>
 
 using System;
-using OpenTelemetry.Contrib.Exporter.Stackdriver.Implementation;
+using OpenTelemetry.Exporter.Stackdriver.Implementation;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Tests
+namespace OpenTelemetry.Exporter.Stackdriver.Tests
 {
     public class StackdriverStatsConfigurationTests
     {

@@ -1,4 +1,4 @@
-// <copyright file="HangfireInstrumentationConstants.cs" company="OpenTelemetry Authors">
+// <copyright file="MeterProviderBuilderExtensionsTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,15 +14,21 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
-{
-    internal static class HangfireInstrumentationConstants
-    {
-        public const string JobIdTag = "job.id";
-        public const string JobCreatedAtTag = "job.createdat";
+using System;
+using OpenTelemetry.Metrics;
+using Xunit;
 
-        public const string ActivityName = "JOB";
-        public const string ActivityKey = "opentelemetry_activity_key";
-        public const string ActivityContextKey = "opentelemetry_activity_context";
+namespace OpenTelemetry.Instrumentation.EventCounters.Tests
+{
+    public class MeterProviderBuilderExtensionsTests
+    {
+        [Fact]
+        public void Throws_Exception_When_Builder_Is_Null()
+        {
+            MeterProviderBuilder builder = null;
+
+            Func<object> action = () => builder.AddEventCounterMetrics();
+            Assert.Throws<ArgumentNullException>(action);
+        }
     }
 }
