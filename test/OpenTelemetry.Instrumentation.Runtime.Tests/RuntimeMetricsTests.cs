@@ -16,6 +16,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using OpenTelemetry.Metrics;
 using Xunit;
 
@@ -49,7 +50,7 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
 #endif
 
 #if NET6_0_OR_GREATER
-            // Supposedly to pass if no garbage collection occurred before. However it did, which is out of control of the code.
+            // Supposedly to pass if no garbage collection occurred before. However one occurred, which is out of control of the code.
             //Assert.False(exportedItems.Exists(i => i.Name == "process.runtime.dotnet.gc.committed_memory.size"));
             //Assert.False(exportedItems.Exists(i => i.Name == "process.runtime.dotnet.gc.heap.size"));
 #endif
@@ -91,8 +92,6 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
                 .Build();
 
             meterProvider.ForceFlush(MaxTimeToAllowForFlush);
-            Assert.True(exportedItems.Count > 1);
-            Assert.StartsWith(MetricPrefix, exportedItems[0].Name);
 
             var jitCompiledSizeMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.jit.il_compiled.size");
             Assert.True(GetLongSum(jitCompiledSizeMetric) > 0);
@@ -116,8 +115,6 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
                 .Build();
 
             meterProvider.ForceFlush(MaxTimeToAllowForFlush);
-            Assert.True(exportedItems.Count > 1);
-            Assert.StartsWith(MetricPrefix, exportedItems[0].Name);
 
             var lockContentionCountMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.monitor.lock_contention.count");
             Assert.True(GetLongSum(lockContentionCountMetric) >= 0);
@@ -131,8 +128,23 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
             var queueLengthMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.thread_pool.queue.length");
             Assert.True(GetLongSum(queueLengthMetric) == 0);
 
+            // Create 10 timers to bump timer.count metrics.
+            int timerCount = 10;
+            TimerCallback timerCallback = _ => { };
+            List<Timer> timers = new List<Timer>();
+            for (int i = 0; i < timerCount; i++)
+            {
+                Timer timer = new Timer(timerCallback, null, 1000, 250);
+                timers.Add(timer);
+            }
+            meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+
             var timerCountMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.timer.count");
-            Assert.True(GetLongSum(timerCountMetric) > 0);
+            Assert.True(GetLongSum(timerCountMetric) >= timerCount);
+            for (int i = 0; i < timers.Count; i++)
+            {
+                timers[i].Dispose();
+            }
         }
 #endif
 
