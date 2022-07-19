@@ -303,9 +303,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
                     case double vd:
                     case string vs:
                         break;
-                    default:
-                        value = this.convertToJson(value);
-                        break;
                 }
 
                 cursor = AddPartAField(buffer, cursor, key, value);
