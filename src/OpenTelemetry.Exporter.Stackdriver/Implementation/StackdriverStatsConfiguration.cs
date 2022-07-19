@@ -18,7 +18,7 @@ using System;
 using Google.Api;
 using Google.Apis.Auth.OAuth2;
 
-namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Implementation
+namespace OpenTelemetry.Exporter.Stackdriver.Implementation
 {
     /// <summary>
     /// Configuration for exporting stats into Stackdriver.

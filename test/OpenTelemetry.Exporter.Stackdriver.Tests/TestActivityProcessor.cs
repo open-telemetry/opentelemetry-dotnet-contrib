@@ -16,9 +16,8 @@
 
 using System;
 using System.Diagnostics;
-using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Tests
+namespace OpenTelemetry.Exporter.Stackdriver.Tests
 {
     public class TestActivityProcessor : BaseProcessor<Activity>, IDisposable
     {
