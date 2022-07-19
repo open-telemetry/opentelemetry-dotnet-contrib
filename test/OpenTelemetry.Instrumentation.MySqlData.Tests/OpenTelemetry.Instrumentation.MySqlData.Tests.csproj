@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -16,7 +16,7 @@
         </PackageReference>
         <DotNetCliToolReference Include="dotnet-xunit" Version="$(DotNetXUnitCliVer)" />
         <PackageReference Include="MySql.Data" Version="6.10.7" />
-        <PackageReference Include="OpenTelemetry" Version="1.1.0" />
+        <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryPkgVer)" />
     </ItemGroup>
 
     <ItemGroup>
