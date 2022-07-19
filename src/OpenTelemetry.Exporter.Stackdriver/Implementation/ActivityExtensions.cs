@@ -21,7 +21,7 @@ using Google.Cloud.Trace.V2;
 using Google.Protobuf.WellKnownTypes;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Implementation
+namespace OpenTelemetry.Exporter.Stackdriver.Implementation
 {
     internal static class ActivityExtensions
     {

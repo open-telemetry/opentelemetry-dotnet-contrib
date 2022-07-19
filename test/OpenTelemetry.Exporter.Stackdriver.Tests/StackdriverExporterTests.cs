@@ -22,14 +22,13 @@ using Google.Api.Gax.Grpc;
 using Google.Cloud.Trace.V2;
 using Grpc.Core;
 using Moq;
-using OpenTelemetry.Exporter;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 using Xunit;
 using Status = Grpc.Core.Status;
 
-namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Tests
+namespace OpenTelemetry.Exporter.Stackdriver.Tests
 {
     public class StackdriverExporterTests
     {
