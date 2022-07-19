@@ -51,8 +51,8 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
 
 #if NET6_0_OR_GREATER
             // Supposedly to pass if no garbage collection occurred before. However one occurred, which is out of control of the code.
-            //Assert.False(exportedItems.Exists(i => i.Name == "process.runtime.dotnet.gc.committed_memory.size"));
-            //Assert.False(exportedItems.Exists(i => i.Name == "process.runtime.dotnet.gc.heap.size"));
+            // Assert.False(exportedItems.Exists(i => i.Name == "process.runtime.dotnet.gc.committed_memory.size"));
+            // Assert.False(exportedItems.Exists(i => i.Name == "process.runtime.dotnet.gc.heap.size"));
 #endif
 
             var assembliesCountMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.assemblies.count");
@@ -137,6 +137,7 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
                 Timer timer = new Timer(timerCallback, null, 1000, 250);
                 timers.Add(timer);
             }
+
             meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
             var timerCountMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.timer.count");
