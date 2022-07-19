@@ -16,7 +16,7 @@
 
 using System;
 
-namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Implementation
+namespace OpenTelemetry.Exporter.Stackdriver.Implementation
 {
     internal class Constants
     {
