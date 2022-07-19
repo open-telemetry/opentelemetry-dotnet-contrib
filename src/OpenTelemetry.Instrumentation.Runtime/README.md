@@ -66,7 +66,7 @@ complete demo.
 
 #### process.runtime.dotnet.**gc.collections.count**
 
-Description: Number of garbage collections that have occurred since process start.
+Number of garbage collections that have occurred since process start.
 
 Note: Collecting a generation means collecting objects in that generation and all
 its younger generations. However, each dimension for this metrics doesn't include
@@ -85,7 +85,7 @@ of objects.
 
 #### process.runtime.dotnet.**gc.allocations.size**
 
-Description: Count of bytes allocated on the managed GC heap since the process start.
+Count of bytes allocated on the managed GC heap since the process start.
 .NET objects are allocated from this heap. Object allocations from unmanaged languages
 such as C/C++ do not use this heap.
 
@@ -103,7 +103,7 @@ value does not include any native allocations. The value is an approximate count
 
 #### process.runtime.dotnet.**gc.committed_memory.size**
 
-Description: The amount of committed virtual memory for the managed GC heap, as
+The amount of committed virtual memory for the managed GC heap, as
 observed during the latest garbage collection. Committed virtual memory may be
 larger than the heap size because it includes both memory for storing existing
 objects (the heap size) and some extra memory that is ready to handle newly
@@ -127,7 +127,7 @@ The API used to retrieve the value is:
 
 #### process.runtime.dotnet.**gc.heap.size**
 
-Description: The heap size (including fragmentation), as observed during the
+The heap size (including fragmentation), as observed during the
 latest garbage collection. The value will be unavailable until at least one
 garbage collection has occurred.
 
@@ -149,7 +149,7 @@ The API used to retrieve the value is:
 
 #### process.runtime.dotnet.**gc.heap.fragmentation.size**
 
-Description: The heap fragmentation, as observed during the latest garbage collection.
+The heap fragmentation, as observed during the latest garbage collection.
 The value will be unavailable until at least one garbage collection has occurred.
 
 Note: This metric is only available when targeting .NET6 or later.
@@ -169,7 +169,7 @@ These metrics are only available when targeting .NET6 or later.
 
 #### process.runtime.dotnet.**jit.il_compiled.size**
 
-Description: Count of bytes of intermediate language that have been compiled since
+Count of bytes of intermediate language that have been compiled since
 the process start.
 
 | Units   | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
@@ -178,7 +178,7 @@ the process start.
 
 #### process.runtime.dotnet.**jit.methods_compiled.count**
 
-Description: The number of times the JIT compiler compiled a method since the process
+The number of times the JIT compiler compiled a method since the process
 start.  The JIT compiler may be invoked multiple times for the same method to compile
 with different generic parameters, or because tiered compilation requested different
 optimization settings.
@@ -189,7 +189,7 @@ optimization settings.
 
 #### process.runtime.dotnet.**jit.compilation_time**
 
-Description: The amount of time the JIT compiler has spent compiling methods since
+The amount of time the JIT compiler has spent compiling methods since
 the process start.
 
 | Units | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
@@ -214,7 +214,7 @@ These metrics are only available when targeting .NET Core 3.1 or later.
 
 #### process.runtime.dotnet.**monitor.lock_contention.count**
 
-Description: The number of times there was contention when trying to acquire a
+The number of times there was contention when trying to acquire a
 monitor lock since the process start. Monitor locks are commonly acquired by using
 the lock keyword in C#, or by calling Monitor.Enter() and Monitor.TryEnter().
 
@@ -224,7 +224,7 @@ the lock keyword in C#, or by calling Monitor.Enter() and Monitor.TryEnter().
 
 #### process.runtime.dotnet.**thread_pool.threads.count**
 
-Description: The number of thread pool threads that currently exist.
+The number of thread pool threads that currently exist.
 
 | Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |-------------|-------------------|------------|------------------|------------------|
@@ -232,7 +232,7 @@ Description: The number of thread pool threads that currently exist.
 
 #### process.runtime.dotnet.**thread_pool.completed_items.count**
 
-Description: The number of work items that have been processed by the thread pool
+The number of work items that have been processed by the thread pool
 since the process start.
 
 | Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
@@ -241,7 +241,7 @@ since the process start.
 
 #### process.runtime.dotnet.**thread_pool.queue.length**
 
-Description: The number of work items that are currently queued to be processed
+The number of work items that are currently queued to be processed
 by the thread pool.
 
 | Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
@@ -250,7 +250,7 @@ by the thread pool.
 
 #### process.runtime.dotnet.**timer.count**
 
-Description: The number of timer instances that are currently active. Timers can
+The number of timer instances that are currently active. Timers can
 be created by many sources such as System.Threading.Timer, Task.Delay, or the
 timeout in a CancellationSource. An active timer is registered to tick at some
 point in the future and has not yet been canceled.
@@ -278,7 +278,7 @@ The APIs used to retrieve the values are:
 
 #### process.runtime.dotnet.**assemblies.count**
 
-Description: The number of .NET assemblies that are currently loaded.
+The number of .NET assemblies that are currently loaded.
 
 | Units          | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
 |----------------|-----------------|------------|------------------|------------------|
@@ -294,7 +294,7 @@ The API used to retrieve the value is:
 
 #### process.runtime.dotnet.**exceptions.count**
 
-Description: Count of exceptions that have been thrown in managed code, since the
+Count of exceptions that have been thrown in managed code, since the
 observation started. The value will be unavailable until an exception has been
 thrown after OpenTelemetry.Instrumentation.Runtime initialization.
 
