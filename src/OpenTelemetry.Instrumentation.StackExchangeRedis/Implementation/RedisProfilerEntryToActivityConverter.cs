@@ -189,7 +189,7 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation
 
         /// <summary>
         /// Creates getter for a field defined in private or internal type
-        /// repesented with classType variable.
+        /// represented with classType variable.
         /// </summary>
         private static Func<object, TField> CreateFieldGetter<TField>(Type classType, string fieldName, BindingFlags flags)
         {
