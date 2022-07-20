@@ -199,7 +199,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
                 // Multiple values for the same header will be separated by a comma.
                 if (!string.IsNullOrEmpty(header))
                 {
-                    return header.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+                    return header.Split(',');
                 }
             }
 
