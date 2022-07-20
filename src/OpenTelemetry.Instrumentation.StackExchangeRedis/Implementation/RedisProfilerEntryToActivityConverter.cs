@@ -92,7 +92,7 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation
 
             activity.SetEndTime(command.CommandCreated + command.ElapsedTime);
 
-            if (activity.IsAllDataRequested == true)
+            if (activity.IsAllDataRequested)
             {
                 // see https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md
 
