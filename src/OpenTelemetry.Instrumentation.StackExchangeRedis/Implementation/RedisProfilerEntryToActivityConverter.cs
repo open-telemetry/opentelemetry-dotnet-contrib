@@ -31,7 +31,6 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation
         {
             var redisAssembly = typeof(IProfiledCommand).Assembly;
             Type profiledCommandType = redisAssembly.GetType("StackExchange.Redis.Profiling.ProfiledCommand");
-            Type messageType = redisAssembly.GetType("StackExchange.Redis.Message");
             Type scriptMessageType = redisAssembly.GetType("StackExchange.Redis.RedisDatabase+ScriptEvalMessage");
 
             var messageDelegate = CreateFieldGetter<object>(profiledCommandType, "Message", BindingFlags.NonPublic | BindingFlags.Instance);
