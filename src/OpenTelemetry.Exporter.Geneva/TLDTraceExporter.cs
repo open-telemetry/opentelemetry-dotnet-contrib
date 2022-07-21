@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -97,31 +98,9 @@ namespace OpenTelemetry.Exporter.Geneva
                 this.m_dedicatedFields = dedicatedFields;
             }
 
-            var buffer = new byte[BUFFER_SIZE];
-
-            var cursor = 0;
-
-            /* Fluentd Forward Mode:
-            [
-                "Span",
-                [
-                    [ <timestamp>, { "env_ver": "4.0", ... } ]
-                ],
-                { "TimeFormat": "DateTime" }
-            ]
-            */
-
             var fields = options.PrepopulatedFields.ToDictionary(item => item.Key, item => item.Value);
             fields.Remove(".ver");
             this.prepopulatedFields = options.PrepopulatedFields;
-
-            this.m_bufferPrologue = new byte[cursor - 0];
-            Buffer.BlockCopy(buffer, 0, this.m_bufferPrologue, 0, cursor - 0);
-
-            cursor = MessagePackSerializer.Serialize(buffer, 0, new Dictionary<string, object> { { "TimeFormat", "DateTime" } });
-
-            this.m_bufferEpilogue = new byte[cursor - 0];
-            Buffer.BlockCopy(buffer, 0, this.m_bufferEpilogue, 0, cursor - 0);
         }
 
         public override ExportResult Export(in Batch<Activity> batch)
@@ -171,9 +150,8 @@ namespace OpenTelemetry.Exporter.Geneva
             {
                 try
                 {
-                    this.eventProvider.Dispose();
+                    this.eventProvider?.Dispose();
                     this.eventBuilder.Dispose();
-                    this.m_buffer.Dispose();
                 }
                 catch (Exception ex)
                 {
@@ -220,7 +198,7 @@ namespace OpenTelemetry.Exporter.Geneva
             }
 
             var links = activity.Links;
-            var cntLinks = links.Count();
+            var hasLinks = links.Any() ? 1 : 0;
 
             int cntPartBFieldsFromTags = 0;
             int cntPartCFieldsFromTags = 0;
@@ -274,7 +252,12 @@ namespace OpenTelemetry.Exporter.Geneva
                 }
             }
 
-            var partBFieldsCount = 5 + hasValidParentId + isStatusSuccess + cntLinks + cntPartBFieldsFromTags; // Five fields: _typeName, name, kind, startTime, success
+            var partBFieldsCount = 5 + hasValidParentId + hasLinks + cntPartBFieldsFromTags; // Five fields: _typeName, name, kind, startTime, success
+            if (isStatusSuccess == 0)
+            {
+                partBFieldsCount++; // we export statusMessage only when status is not successful
+            }
+
             eb.AddStruct("PartB", (byte)partBFieldsCount);
             eb.AddCountedString("_typeName", "Span");
             eb.AddCountedString("name", activity.DisplayName);
@@ -292,11 +275,17 @@ namespace OpenTelemetry.Exporter.Geneva
                 eb.AddCountedString("statusMessage", statusDescription);
             }
 
-            if (cntLinks > 0)
+            if (hasLinks == 1)
             {
+                var keyValuePairs = this.keyValuePairs.Value;
+                keyValuePairs.Clear();
                 foreach (var link in links)
                 {
+                    keyValuePairs.Add(new("toTraceId", link.Context.TraceId.ToHexString()));
+                    keyValuePairs.Add(new("toSpanId", link.Context.SpanId.ToHexString()));
                 }
+
+                eb.AddCountedString("links", JsonSerializer.SerializeMap(keyValuePairs));
             }
 
             if (cntPartBFieldsFromTags > 0)
@@ -308,7 +297,7 @@ namespace OpenTelemetry.Exporter.Geneva
                     {
                         this.Serialize(eb, entry.Key, entry.Value);
                     }
-                } 
+                }
             }
 
             var partCFieldsCount = cntPartCFieldsFromTags + hasEnvProperties;
@@ -316,10 +305,23 @@ namespace OpenTelemetry.Exporter.Geneva
 
             foreach (var entry in activity.TagObjects)
             {
-                if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
+                // TODO: check name collision
+                if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string replacementKey))
+                {
+                    continue;
+                }
+                else if (string.Equals(entry.Key, "otel.status_code", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+                else if (string.Equals(entry.Key, "otel.status_description", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+                else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
                 {
                     // TODO: the above null check can be optimized and avoided inside foreach.
-                    cntPartCFieldsFromTags++;
+                    this.Serialize(eb, entry.Key, entry.Value);
                 }
             }
 
@@ -327,11 +329,8 @@ namespace OpenTelemetry.Exporter.Geneva
             {
                 // Iteration #2 - Get all "other" fields and collapse them into single field
                 // named "env_properties".
-                ushort envPropertiesCount = 0;
-                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_properties");
-                cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
-                int idxMapSizeEnvPropertiesPatch = cursor - 2;
-
+                var keyValuePairs = this.keyValuePairs.Value;
+                keyValuePairs.Clear();
                 foreach (var entry in activity.TagObjects)
                 {
                     // TODO: check name collision
@@ -341,201 +340,13 @@ namespace OpenTelemetry.Exporter.Geneva
                     }
                     else
                     {
-                        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
-                        cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
-                        envPropertiesCount += 1;
+                        keyValuePairs.Add(new(entry.Key, entry.Value));
                     }
                 }
 
-                cntFields += 1;
-                MessagePackSerializer.WriteUInt16(buffer, idxMapSizeEnvPropertiesPatch, envPropertiesCount);
+                eb.AddCountedString("env_properties", JsonSerializer.SerializeMap(keyValuePairs));
             }
-
-            // if (links.Any())
-            // {
-            //    cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "links");
-            //    cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, ushort.MaxValue); // Note: always use Array16 for perf consideration
-            //    var idxLinkPatch = cursor - 2;
-            //    ushort cntLink = 0;
-            //    foreach (var link in links)
-            //    {
-            //        cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, 2);
-            //        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "toTraceId");
-            //        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, link.Context.TraceId.ToHexString());
-            //        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "toSpanId");
-            //        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, link.Context.SpanId.ToHexString());
-            //        cntLink += 1;
-            //    }
-            //    MessagePackSerializer.WriteUInt16(buffer, idxLinkPatch, cntLink);
-            //    cntFields += 1;
-            // }
-
-            /*
-                        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "success");
-                        cursor = MessagePackSerializer.SerializeBool(buffer, cursor, true);
-                        var idxSuccessPatch = cursor - 1;
-                        cntFields += 1;
-                        #endregion
-
-                        #region Part B Span optional fields and Part C fields
-                        var strParentId = activity.ParentSpanId.ToHexString();
-
-                        // Note: this should be blazing fast since Object.ReferenceEquals(strParentId, INVALID_SPAN_ID) == true
-                        if (!string.Equals(strParentId, INVALID_SPAN_ID, StringComparison.Ordinal))
-                        {
-                            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "parentId");
-                            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, strParentId);
-                            cntFields += 1;
-                        }
-
-                        var links = activity.Links;
-                        if (links.Any())
-                        {
-                            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "links");
-                            cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, ushort.MaxValue); // Note: always use Array16 for perf consideration
-                            var idxLinkPatch = cursor - 2;
-                            ushort cntLink = 0;
-                            foreach (var link in links)
-                            {
-                                cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, 2);
-                                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "toTraceId");
-                                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, link.Context.TraceId.ToHexString());
-                                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "toSpanId");
-                                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, link.Context.SpanId.ToHexString());
-                                cntLink += 1;
-                            }
-
-                            MessagePackSerializer.WriteUInt16(buffer, idxLinkPatch, cntLink);
-                            cntFields += 1;
-                        }
-
-                        // TODO: The current approach is to iterate twice over TagObjects so that all
-                        // env_properties can be added the very end. This avoids speculating the size
-                        // and preallocating a separate buffer for it.
-                        // Alternates include static allocation and iterate once.
-                        // The TODO: here is to measure perf and change to alternate, if required.
-
-                        // Iteration #1 - Get those fields which become dedicated column
-                        // i.e all PartB fields and opt-in part c fields.
-                        bool hasEnvProperties = false;
-                        bool isStatusSuccess = true;
-                        string statusDescription = string.Empty;
-
-                        foreach (var entry in activity.TagObjects)
-                        {
-                            // TODO: check name collision
-                            if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string replacementKey))
-                            {
-                                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, replacementKey);
-                            }
-                            else if (string.Equals(entry.Key, "otel.status_code", StringComparison.Ordinal))
-                            {
-                                if (string.Equals(entry.Value.ToString(), "ERROR", StringComparison.Ordinal))
-                                {
-                                    isStatusSuccess = false;
-                                }
-
-                                continue;
-                            }
-                            else if (string.Equals(entry.Key, "otel.status_description", StringComparison.Ordinal))
-                            {
-                                statusDescription = entry.Value.ToString();
-                                continue;
-                            }
-                            else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
-                            {
-                                // TODO: the above null check can be optimized and avoided inside foreach.
-                                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
-                            }
-                            else
-                            {
-                                hasEnvProperties = true;
-                                continue;
-                            }
-
-                            cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
-                            cntFields += 1;
-                        }
-
-                        if (hasEnvProperties)
-                        {
-                            // Iteration #2 - Get all "other" fields and collapse them into single field
-                            // named "env_properties".
-                            ushort envPropertiesCount = 0;
-                            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_properties");
-                            cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
-                            int idxMapSizeEnvPropertiesPatch = cursor - 2;
-
-                            foreach (var entry in activity.TagObjects)
-                            {
-                                // TODO: check name collision
-                                if (this.m_dedicatedFields.ContainsKey(entry.Key))
-                                {
-                                    continue;
-                                }
-                                else
-                                {
-                                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
-                                    cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
-                                    envPropertiesCount += 1;
-                                }
-                            }
-
-                            cntFields += 1;
-                            MessagePackSerializer.WriteUInt16(buffer, idxMapSizeEnvPropertiesPatch, envPropertiesCount);
-                        }
-
-                        if (activity.Status != ActivityStatusCode.Unset)
-                        {
-                            if (activity.Status == ActivityStatusCode.Error)
-                            {
-                                MessagePackSerializer.SerializeBool(buffer, idxSuccessPatch, false);
-                            }
-
-                            if (!string.IsNullOrEmpty(activity.StatusDescription))
-                            {
-                                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "statusMessage");
-                                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, activity.StatusDescription);
-                                cntFields += 1;
-                            }
-                        }
-                        else
-                        {
-                            if (!isStatusSuccess)
-                            {
-                                MessagePackSerializer.SerializeBool(buffer, idxSuccessPatch, false);
-                                if (!string.IsNullOrEmpty(statusDescription))
-                                {
-                                    cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "statusMessage");
-                                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, statusDescription);
-                                    cntFields += 1;
-                                }
-                            }
-                        }
-                        #endregion
-
-                        MessagePackSerializer.WriteUInt16(buffer, this.m_idxMapSizePatch, cntFields);
-
-                        Buffer.BlockCopy(this.m_bufferEpilogue, 0, buffer, cursor, this.m_bufferEpilogue.Length);
-                        cursor += this.m_bufferEpilogue.Length;
-
-                        return cursor;
-            */
         }
-
-        private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
-
-        private readonly ThreadLocal<byte[]> m_buffer = new ThreadLocal<byte[]>(() => null);
-
-        private readonly byte[] m_bufferPrologue;
-
-        private readonly byte[] m_bufferEpilogue;
-
-        private readonly byte m_cntPrepopulatedFields;
-
-        private readonly int m_idxTimestampPatch;
-
-        private readonly int m_idxMapSizePatch;
 
         private readonly string partAName = "Span";
 
@@ -550,6 +361,8 @@ namespace OpenTelemetry.Exporter.Geneva
         private readonly EventProvider eventProvider;
 
         private readonly ThreadLocal<EventBuilder> eventBuilder = new ThreadLocal<EventBuilder>(() => new());
+
+        private readonly ThreadLocal<List<KeyValuePair<string, object>>> keyValuePairs = new(() => new());
 
         private static readonly IReadOnlyDictionary<string, string> V40_PART_A_TLD_MAPPING = new Dictionary<string, string>
         {
@@ -629,8 +442,63 @@ namespace OpenTelemetry.Exporter.Geneva
                 case string vs:
                     eb.AddCountedString(key, vs);
                     break;
+                case DateTime vdt:
+                    eb.AddFileTime(key, vdt, EventOutType.DateTimeUtc);
+                    break;
+                case IEnumerable<KeyValuePair<string, object>> vmap:
+                    eb.AddCountedString(key, JsonSerializer.SerializeMap(vmap));
+                    break;
+
+                // TODO: case bool[]
+                // TODO: case obj[]
+                case byte[] vui8array:
+                    eb.AddUInt8Array(key, vui8array);
+                    break;
+                case sbyte[] vi8array:
+                    eb.AddInt8Array(key, vi8array);
+                    break;
+                case short[] vi16array:
+                    eb.AddInt16Array(key, vi16array);
+                    break;
+                case ushort[] vui16array:
+                    eb.AddUInt16Array(key, vui16array);
+                    break;
+                case int[] vi32array:
+                    eb.AddInt32Array(key, vi32array);
+                    break;
+                case uint[] vui32array:
+                    eb.AddUInt32Array(key, vui32array);
+                    break;
+                case long[] vi64array:
+                    eb.AddInt64Array(key, vi64array);
+                    break;
+                case ulong[] vui64array:
+                    eb.AddUInt64Array(key, vui64array);
+                    break;
+                case float[] vfarray:
+                    eb.AddFloat32Array(key, vfarray);
+                    break;
+                case double[] vdarray:
+                    eb.AddFloat64Array(key, vdarray);
+                    break;
+                case string[] vsarray:
+                    eb.AddCountedStringArray(key, vsarray);
+                    break;
+                case DateTime[] vdtarray:
+                    eb.AddFileTimeArray(key, vdtarray, EventOutType.DateTimeUtc);
+                    break;
                 default:
-                    eb.AddCountedString(key, value.ToString());
+                    string repr;
+                    try
+                    {
+                        repr = Convert.ToString(value, CultureInfo.InvariantCulture);
+                    }
+                    catch
+                    {
+                        repr = $"ERROR: type {value.GetType().FullName} is not supported";
+                    }
+
+                    eb.AddCountedString(key, repr);
                     break;
             }
         }
