@@ -157,6 +157,8 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
                 case double vd:
                 case string vs:
                     break;
+                default:
+                    value = value.ToString();
             }
 
             cursor = AddPartAField(buffer, cursor, entry.Key, value);
