@@ -49,12 +49,6 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
             Assert.True(GetLongSum(gcAllocationSizeMetric) > 0);
 #endif
 
-#if NET6_0_OR_GREATER
-            // Supposedly to pass if no garbage collection occurred before. However one occurred, which is out of control of the code.
-            // Assert.False(exportedItems.Exists(i => i.Name == "process.runtime.dotnet.gc.committed_memory.size"));
-            // Assert.False(exportedItems.Exists(i => i.Name == "process.runtime.dotnet.gc.heap.size"));
-#endif
-
             var assembliesCountMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.assemblies.count");
             Assert.True(GetLongSum(assembliesCountMetric) > 0);
         }
