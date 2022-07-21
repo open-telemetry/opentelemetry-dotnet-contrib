@@ -633,7 +633,7 @@ namespace Microsoft.TraceLoggingDynamic
     /// - InvalidOperationException if an Add method would require a buffer to grow
     ///   larger than 64KB.
     /// - OutOfMemoryException if EventBuilder buffer growth fails.
-    /// 
+    ///
     /// EventBuilder will silently allow you to build events that cannot be written
     /// or decoded:
     ///
@@ -2017,9 +2017,9 @@ namespace Microsoft.TraceLoggingDynamic
         /// the event's Keyword. Then when collecting events, if the collector only
         /// wants "networking" events then the collector could ask ETW to deliver
         /// only the events that have bit 0x1 set in the Keyword.
-        /// 
+        ///
         /// The upper 16 bits of a keyword are reserved for definition by Microsoft.
-        /// 
+        ///
         /// All providers should define keyword and all events should have at least
         /// one keyword bit set. Events with no keyword bits set will usually bypass
         /// keyword-based filtering, causing problems for event processing.
@@ -2059,7 +2059,7 @@ namespace Microsoft.TraceLoggingDynamic
 
     /// <summary>
     /// Event field formatting hint. Used by EventBuilder's Add methods.
-    /// 
+    ///
     /// Every ETW field has an InType (base field type) and an OutType (formatting
     /// hint). OutType may be ignored by event decoders, and not all OutTypes are valid
     /// for all InTypes. For example, the Boolean OutType is a valid hint only for fields
@@ -2084,9 +2084,9 @@ namespace Microsoft.TraceLoggingDynamic
         /// Suggests that the field be formatted as a string. For example, applying
         /// OutType=String to a UInt8 field will cause the field to be treated as an ANSI
         /// code page character instead of as an unsigned decimal integer.
-        /// 
+        ///
         /// String is meaningful when applied to fields of type Int8, UInt8, UInt16.
-        /// 
+        ///
         /// String is the default OutType for fields of type UnicodeString, AnsiString,
         /// CountedString, CountedAnsiString, Sid.
         /// </summary>
@@ -2094,19 +2094,19 @@ namespace Microsoft.TraceLoggingDynamic
 
         /// <summary>
         /// Suggests that the field be formatted as a boolean (true/false).
-        /// 
+        ///
         /// Boolean is meaningful when applied to fields of type UInt8.
-        /// 
+        ///
         /// Boolean is the default OutType for fields of type Bool32.
         /// </summary>
         Boolean,
 
         /// <summary>
         /// Suggests that the field be formatted as hexadecimal.
-        /// 
+        ///
         /// Hex is meaningful when applied to fields of type UInt8, UInt16, UInt32,
         /// UInt64.
-        /// 
+        ///
         /// Hex is the default OutType for fields of type HexInt32, HexInt64, Binary,
         /// CountedBinary.
         /// </summary>
@@ -2114,42 +2114,42 @@ namespace Microsoft.TraceLoggingDynamic
 
         /// <summary>
         /// Suggests that the field be formatted as a process identifier.
-        /// 
+        ///
         /// Pid is meaningful when applied to fields of type UInt32.
         /// </summary>
         Pid,
 
         /// <summary>
         /// Suggests that the field be formatted as a thread identifier.
-        /// 
+        ///
         /// Tid is meaningful when applied to fields of type UInt32.
         /// </summary>
         Tid,
 
         /// <summary>
         /// Suggests that the field be formatted as a big-endian TCP/UDP port.
-        /// 
+        ///
         /// Port is meaningful when applied to fields of type UInt16.
         /// </summary>
         Port,
 
         /// <summary>
         /// Suggests that the field be formatted as an IPv4 address (dotted quad).
-        /// 
+        ///
         /// IPv4 is meaningful when applied to fields of type UInt32.
         /// </summary>
         IPv4,
 
         /// <summary>
         /// Suggests that the field be formatted as an IPv6 address.
-        /// 
+        ///
         /// IPv6 is meaningful when applied to fields of type Binary, CountedBinary.
         /// </summary>
         IPv6,
 
         /// <summary>
         /// Suggests that the field be formatted as a sockaddr.
-        /// 
+        ///
         /// SocketAddress is meaningful when applied to fields of type Binary,
         /// CountedBinary.
         /// </summary>
@@ -2157,10 +2157,10 @@ namespace Microsoft.TraceLoggingDynamic
 
         /// <summary>
         /// Suggests that the field be formatted as XML text.
-        /// 
+        ///
         /// Xml is meaningful when applied to fields of type UnicodeString, AnsiString,
         /// CountedString, CountedAnsiString.
-        /// 
+        ///
         /// Note that When Xml is applied to an AnsiString or CountedAnsiString field,
         /// it implies that the field is encoded as UTF-8.
         /// </summary>
@@ -2171,7 +2171,7 @@ namespace Microsoft.TraceLoggingDynamic
         ///
         /// Json is meaningful when applied to fields of type UnicodeString, AnsiString,
         /// CountedString, CountedAnsiString.
-        /// 
+        ///
         /// Note that When Json is applied to an AnsiString or CountedAnsiString field,
         /// it implies that the field is encoded as UTF-8.
         /// </summary>
@@ -2179,21 +2179,21 @@ namespace Microsoft.TraceLoggingDynamic
 
         /// <summary>
         /// Suggests that the field be formatted as a WIN32 result code.
-        /// 
+        ///
         /// Win32Error is meaningful when applied to fields of type UInt32, HexInt32.
         /// </summary>
         Win32Error,
 
         /// <summary>
         /// Suggests that the field be formatted as an NTSTATUS result code.
-        /// 
+        ///
         /// NtStatus is meaningful when applied to fields of type UInt32, HexInt32.
         /// </summary>
         NtStatus,
 
         /// <summary>
         /// Suggests that the field be formatted as an HRESULT result code.
-        /// 
+        ///
         /// HResult is meaningful when applied to fields of type Int32
         /// (NOT for use with UInt32 or HexInt32).
         /// </summary>
@@ -2201,21 +2201,21 @@ namespace Microsoft.TraceLoggingDynamic
 
         /// <summary>
         /// Suggests that the field be formatted as a date/time.
-        /// 
+        ///
         /// FileTime is the default OutType for fields of type FileTime, SystemTime.
         /// </summary>
         FileTime,
 
         /// <summary>
         /// Suggests that the field be formatted as a signed decimal integer.
-        /// 
+        ///
         /// Signed is the default OutType for fields of type Int8, Int16, Int32, Int64.
         /// </summary>
         Signed,
 
         /// <summary>
         /// Suggests that the field be formatted as an unsigned decimal integer.
-        /// 
+        ///
         /// Unsigned is the default OutType for fields of type UInt8, UInt16, UInt32,
         /// UInt64.
         /// </summary>
@@ -2223,7 +2223,7 @@ namespace Microsoft.TraceLoggingDynamic
 
         /// <summary>
         /// Suggests that the field be formatted as a locale-invariant date/time.
-        /// 
+        ///
         /// CultureInsensitiveDateTime is meaningful when applied to fields of type
         /// FileTime, SystemTime.
         /// </summary>
@@ -2231,7 +2231,7 @@ namespace Microsoft.TraceLoggingDynamic
 
         /// <summary>
         /// Suggests that the field be formatted as UTF-8 text.
-        /// 
+        ///
         /// Utf8 is meaningful when applied to fields of type AnsiString,
         /// CountedAnsiString.
         /// </summary>
@@ -2240,7 +2240,7 @@ namespace Microsoft.TraceLoggingDynamic
         /// <summary>
         /// Suggests that the field be formatted as a PKCS-7 message followed by optional
         /// TraceLogging-style event decoding information.
-        /// 
+        ///
         /// Pkcs7WithTypeInfo is meaningful when applied to fields of type Binary,
         /// CountedBinary.
         /// </summary>
@@ -2249,7 +2249,7 @@ namespace Microsoft.TraceLoggingDynamic
         /// <summary>
         /// Suggests that the field be formatted as an address within the running process
         /// that could potentially be decoded as a symbol.
-        /// 
+        ///
         /// CodePointer is meaningful when applied to fields of type UInt32, UInt64,
         /// HexInt32, HexInt64.
         /// </summary>
@@ -2257,7 +2257,7 @@ namespace Microsoft.TraceLoggingDynamic
 
         /// <summary>
         /// Suggests that the field be formatted as a UTC date/time.
-        /// 
+        ///
         /// DateTimeUtc is meaningful when applied to fields of type FileTime,
         /// SystemTime.
         /// </summary>
