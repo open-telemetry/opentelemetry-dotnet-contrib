@@ -303,6 +303,9 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
                     case double vd:
                     case string vs:
                         break;
+                    default:
+                        value = value.ToString();
+                        break;
                 }
 
                 cursor = AddPartAField(buffer, cursor, key, value);
