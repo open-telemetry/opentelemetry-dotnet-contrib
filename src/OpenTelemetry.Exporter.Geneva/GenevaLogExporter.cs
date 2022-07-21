@@ -46,7 +46,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
     private readonly IDataTransport m_dataTransport;
     private readonly bool shouldPassThruTableMappings;
     private bool isDisposed;
-    private Func<object, string> convertToJson;
 
     public GenevaLogExporter(GenevaExporterOptions options)
     {
@@ -108,7 +107,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
                 throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
         }
 
-        this.convertToJson = options.ConvertToJson;
 
         if (options.PrepopulatedFields != null)
         {
