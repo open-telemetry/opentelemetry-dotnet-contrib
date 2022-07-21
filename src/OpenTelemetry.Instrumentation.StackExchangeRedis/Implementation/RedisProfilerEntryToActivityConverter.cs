@@ -31,7 +31,6 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation
         {
             var redisAssembly = typeof(IProfiledCommand).Assembly;
             Type profiledCommandType = redisAssembly.GetType("StackExchange.Redis.Profiling.ProfiledCommand");
-            Type messageType = redisAssembly.GetType("StackExchange.Redis.Message");
             Type scriptMessageType = redisAssembly.GetType("StackExchange.Redis.RedisDatabase+ScriptEvalMessage");
 
             var messageDelegate = CreateFieldGetter<object>(profiledCommandType, "Message", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -93,7 +92,7 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation
 
             activity.SetEndTime(command.CommandCreated + command.ElapsedTime);
 
-            if (activity.IsAllDataRequested == true)
+            if (activity.IsAllDataRequested)
             {
                 // see https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md
 
@@ -189,7 +188,7 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation
 
         /// <summary>
         /// Creates getter for a field defined in private or internal type
-        /// repesented with classType variable.
+        /// represented with classType variable.
         /// </summary>
         private static Func<object, TField> CreateFieldGetter<TField>(Type classType, string fieldName, BindingFlags flags)
         {
