@@ -122,23 +122,29 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
             var queueLengthMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.thread_pool.queue.length");
             Assert.True(GetLongSum(queueLengthMetric) == 0);
 
-            // Create 10 timers to bump timer.count metrics.
-            int timerCount = 10;
-            TimerCallback timerCallback = _ => { };
             List<Timer> timers = new List<Timer>();
-            for (int i = 0; i < timerCount; i++)
+            try
             {
-                Timer timer = new Timer(timerCallback, null, 1000, 250);
-                timers.Add(timer);
+                // Create 10 timers to bump timer.count metrics.
+                int timerCount = 10;
+                TimerCallback timerCallback = _ => { };
+                for (int i = 0; i < timerCount; i++)
+                {
+                    Timer timer = new Timer(timerCallback, null, 1000, 250);
+                    timers.Add(timer);
+                }
+
+                meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+
+                var timerCountMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.timer.count");
+                Assert.True(GetLongSum(timerCountMetric) >= timerCount);
             }
-
-            meterProvider.ForceFlush(MaxTimeToAllowForFlush);
-
-            var timerCountMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.timer.count");
-            Assert.True(GetLongSum(timerCountMetric) >= timerCount);
-            for (int i = 0; i < timers.Count; i++)
+            finally
             {
-                timers[i].Dispose();
+                for (int i = 0; i < timers.Count; i++)
+                {
+                    timers[i].Dispose();
+                }
             }
         }
 #endif
