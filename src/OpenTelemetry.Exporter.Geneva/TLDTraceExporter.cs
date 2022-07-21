@@ -152,6 +152,7 @@ namespace OpenTelemetry.Exporter.Geneva
                 {
                     this.eventProvider?.Dispose();
                     this.eventBuilder.Dispose();
+                    this.keyValuePairs.Dispose();
                 }
                 catch (Exception ex)
                 {

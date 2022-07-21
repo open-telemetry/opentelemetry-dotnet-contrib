@@ -1,0 +1,2 @@
+OpenTelemetry.Exporter.Geneva.TLDTraceExporterExtensions
+static OpenTelemetry.Exporter.Geneva.TLDTraceExporterExtensions.AddTLDTraceExporter(this OpenTelemetry.Trace.TracerProviderBuilder builder, System.Action<OpenTelemetry.Exporter.Geneva.GenevaExporterOptions> configure) -> OpenTelemetry.Trace.TracerProviderBuilder

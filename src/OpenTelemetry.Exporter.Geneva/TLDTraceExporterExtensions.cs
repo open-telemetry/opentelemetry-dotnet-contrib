@@ -19,7 +19,7 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Exporter.Geneva
 {
-    internal static class TLDTraceExporterExtensions
+    public static class TLDTraceExporterExtensions
     {
         public static TracerProviderBuilder AddTLDTraceExporter(this TracerProviderBuilder builder, Action<GenevaExporterOptions> configure)
         {

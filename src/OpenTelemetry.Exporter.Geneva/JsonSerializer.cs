@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -169,33 +170,50 @@ namespace OpenTelemetry.Exporter.Geneva
             {
                 case bool v:
                     return WriteString(buffer, cursor, v ? "true" : "false");
-
-                // case byte v:
-                // case sbyte v:
-                case short v:
-                    return WriteString(buffer, cursor, v.ToString(CultureInfo.InvariantCulture));
-                case ushort v:
-                    return WriteString(buffer, cursor, v.ToString(CultureInfo.InvariantCulture));
-                case int v:
-                    return WriteString(buffer, cursor, v.ToString(CultureInfo.InvariantCulture));
-                case uint v:
-                    return WriteString(buffer, cursor, v.ToString(CultureInfo.InvariantCulture));
-                case long v:
-                    return WriteString(buffer, cursor, v.ToString(CultureInfo.InvariantCulture));
-                case ulong v:
-                    return WriteString(buffer, cursor, v.ToString(CultureInfo.InvariantCulture));
-                case float v:
-                    return WriteString(buffer, cursor, v.ToString(CultureInfo.InvariantCulture));
-                case double v:
-                    return WriteString(buffer, cursor, v.ToString(CultureInfo.InvariantCulture));
+                case byte:
+                case sbyte:
+                case short:
+                case ushort:
+                case int:
+                case uint:
+                case long:
+                case ulong:
+                case float:
+                case double:
+                case DateTime:
+                    return WriteString(buffer, cursor, Convert.ToString(obj, CultureInfo.InvariantCulture));
+                case bool[] vbarray:
+                    return SerializeArray(buffer, cursor, vbarray);
+                case byte[] vui8array:
+                    return SerializeArray(buffer, cursor, vui8array);
+                case sbyte[] vi8array:
+                    return SerializeArray(buffer, cursor, vi8array);
+                case short[] vi16array:
+                    return SerializeArray(buffer, cursor, vi16array);
+                case ushort[] vui16array:
+                    return SerializeArray(buffer, cursor, vui16array);
+                case int[] vi32array:
+                    return SerializeArray(buffer, cursor, vi32array);
+                case uint[] vui32array:
+                    return SerializeArray(buffer, cursor, vui32array);
+                case long[] vi64array:
+                    return SerializeArray(buffer, cursor, vi64array);
+                case ulong[] vui64array:
+                    return SerializeArray(buffer, cursor, vui64array);
+                case float[] vfarray:
+                    return SerializeArray(buffer, cursor, vfarray);
+                case double[] vdarray:
+                    return SerializeArray(buffer, cursor, vdarray);
+                case string[] vsarray:
+                    return SerializeArray(buffer, cursor, vsarray);
+                case DateTime[] vdtarray:
+                    return SerializeArray(buffer, cursor, vdtarray);
                 case string v:
                     return SerializeString(buffer, cursor, v);
-                case IDictionary<string, object> v:
+                case IEnumerable<KeyValuePair<string, object>> v:
                     return SerializeMap(buffer, cursor, v);
                 case object[] v:
                     return SerializeArray(buffer, cursor, v);
-
-                // case DateTime v:
                 default:
                     return SerializeString(buffer, cursor, $"ERROR: type {obj.GetType().FullName} is not supported");
             }
