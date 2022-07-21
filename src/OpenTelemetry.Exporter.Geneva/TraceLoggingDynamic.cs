@@ -93,6 +93,9 @@ namespace Microsoft.TraceLoggingDynamic
     /// </summary>
     ///
 
+#pragma warning disable CA5350
+#pragma warning disable CA5392
+
     internal sealed class EventProvider
         : CriticalFinalizerObject
         , IDisposable
