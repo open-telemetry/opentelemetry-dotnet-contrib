@@ -6,8 +6,9 @@
 
 Released 2022-Jul-19
 
-* Add description for metrics in README.md and refined some metrics names and
-  descriptions ([#475](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/475))
+* Refined some metrics names (assembly.count->assemblies.count, exception.count->
+  exceptions.count, attribute name: gen->generation) and descriptions
+  ([#475](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/475))
 * Change API for GC Heap Size for .NET 6 where the API has a bug
   ([#495](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/495))
 * Remove gc.heap.fragmentation.size metrics due to buggy API on .NET 6
