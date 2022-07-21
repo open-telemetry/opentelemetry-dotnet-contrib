@@ -55,7 +55,7 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
 
 #if NET6_0_OR_GREATER
         [Fact]
-        public void RuntimeMetrics_GcAvailableAfterFirst()
+        public void GcMetricsTest()
         {
             var exportedItems = new List<Metric>();
             using var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -77,7 +77,7 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
 
 #if NET6_0_OR_GREATER
         [Fact]
-        public void RuntimeMetrics_JitRelatedMetrics()
+        public void JitRelatedMetricsTest()
         {
             var exportedItems = new List<Metric>();
             using var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -100,7 +100,7 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
 
 #if NETCOREAPP3_1_OR_GREATER
         [Fact]
-        public void RuntimeMetrics_ThreadingRelatedMetrics()
+        public void ThreadingRelatedMetricsTest()
         {
             var exportedItems = new List<Metric>();
             using var meterProvider = Sdk.CreateMeterProviderBuilder()
