@@ -68,9 +68,9 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
                  .AddInMemoryExporter(exportedItems)
                 .Build();
 
-            meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+            GC.Collect(1);
 
-            System.GC.Collect(1);
+            meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
             var gcCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.collections.count");
             Assert.NotNull(gcCountMetric);
