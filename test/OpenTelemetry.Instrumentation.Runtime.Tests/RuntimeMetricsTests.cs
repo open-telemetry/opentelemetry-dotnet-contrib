@@ -58,7 +58,6 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
             Assert.True(GetValue(exceptionsCountMetric) >= 1);
         }
 
-#if NET6_0_OR_GREATER
         [Fact]
         public void GcMetricsTest()
         {
@@ -80,13 +79,14 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
             Assert.NotNull(gcAllocationSizeMetric);
 #endif
 
+#if NET6_0_OR_GREATER
             var gcCommittedMemorySizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.committed_memory.size");
             Assert.NotNull(gcCommittedMemorySizeMetric);
 
             var gcHeapSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.heap.size");
             Assert.NotNull(gcHeapSizeMetric);
-        }
 #endif
+        }
 
 #if NET6_0_OR_GREATER
         [Fact]
