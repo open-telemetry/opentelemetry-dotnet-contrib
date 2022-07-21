@@ -149,7 +149,7 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
 
                 meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
-                var timerCountMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.timer.count");
+                var timerCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.timer.count");
                 Assert.True(GetValue(timerCountMetric) >= timerCount);
             }
             finally
@@ -164,6 +164,7 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
 
         private static double GetValue(Metric metric)
         {
+            Assert.NotNull(metric);
             double sum = 0;
 
             foreach (ref readonly var metricPoint in metric.GetMetricPoints())
