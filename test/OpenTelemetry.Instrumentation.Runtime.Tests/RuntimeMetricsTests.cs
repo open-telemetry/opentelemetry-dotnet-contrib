@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -40,17 +41,8 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
             Assert.True(exportedItems.Count > 1);
             Assert.StartsWith(MetricPrefix, exportedItems[0].Name);
 
-            var gcCountMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.gc.collections.count");
-            var sumReceived = GetLongSum(gcCountMetric);
-            Assert.True(sumReceived >= 0);
-
-#if NETCOREAPP3_1_OR_GREATER
-            var gcAllocationSizeMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.gc.allocations.size");
-            Assert.True(GetLongSum(gcAllocationSizeMetric) > 0);
-#endif
-
-            var assembliesCountMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.assemblies.count");
-            Assert.True(GetLongSum(assembliesCountMetric) > 0);
+            var assembliesCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.assemblies.count");
+            Assert.NotNull(assembliesCountMetric);
         }
 
 #if NET6_0_OR_GREATER
@@ -67,11 +59,19 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
 
             System.GC.Collect(1);
 
-            var gcCommittedMemorySizeMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.gc.committed_memory.size");
-            Assert.True(GetLongSum(gcCommittedMemorySizeMetric) > 0);
+            var gcCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.collections.count");
+            Assert.NotNull(gcCountMetric);
 
-            var gcHeapSizeMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.gc.heap.size");
-            Assert.True(GetLongSum(gcHeapSizeMetric) > 0);
+#if NETCOREAPP3_1_OR_GREATER
+            var gcAllocationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.allocations.size");
+            Assert.NotNull(gcAllocationSizeMetric);
+#endif
+
+            var gcCommittedMemorySizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.committed_memory.size");
+            Assert.NotNull(gcCommittedMemorySizeMetric);
+
+            var gcHeapSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.heap.size");
+            Assert.NotNull(gcHeapSizeMetric);
         }
 #endif
 
@@ -87,14 +87,14 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
 
             meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
-            var jitCompiledSizeMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.jit.il_compiled.size");
-            Assert.True(GetLongSum(jitCompiledSizeMetric) > 0);
+            var jitCompiledSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.jit.il_compiled.size");
+            Assert.NotNull(jitCompiledSizeMetric);
 
-            var jitMethodsCompiledCountMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.jit.methods_compiled.count");
-            Assert.True(GetLongSum(jitMethodsCompiledCountMetric) > 0);
+            var jitMethodsCompiledCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.jit.methods_compiled.count");
+            Assert.NotNull(jitMethodsCompiledCountMetric);
 
-            var jitCompilationTimeMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.jit.compilation_time");
-            Assert.True(GetLongSum(jitCompilationTimeMetric) > 0);
+            var jitCompilationTimeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.jit.compilation_time");
+            Assert.NotNull(jitCompilationTimeMetric);
         }
 #endif
 
@@ -110,17 +110,17 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
 
             meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
-            var lockContentionCountMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.monitor.lock_contention.count");
-            Assert.True(GetLongSum(lockContentionCountMetric) >= 0);
+            var lockContentionCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.monitor.lock_contention.count");
+            Assert.NotNull(lockContentionCountMetric);
 
-            var threadCountMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.thread_pool.threads.count");
-            Assert.True(GetLongSum(threadCountMetric) > 0);
+            var threadCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.thread_pool.threads.count");
+            Assert.NotNull(threadCountMetric);
 
-            var completedItemsCountMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.thread_pool.completed_items.count");
-            Assert.True(GetLongSum(completedItemsCountMetric) > 0);
+            var completedItemsCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.thread_pool.completed_items.count");
+            Assert.NotNull(completedItemsCountMetric);
 
-            var queueLengthMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.thread_pool.queue.length");
-            Assert.True(GetLongSum(queueLengthMetric) == 0);
+            var queueLengthMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.thread_pool.queue.length");
+            Assert.NotNull(queueLengthMetric);
 
             List<Timer> timers = new List<Timer>();
             try
@@ -137,7 +137,7 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
                 meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
                 var timerCountMetric = exportedItems.First(i => i.Name == "process.runtime.dotnet.timer.count");
-                Assert.True(GetLongSum(timerCountMetric) >= timerCount);
+                Assert.True(GetValue(timerCountMetric) >= timerCount);
             }
             finally
             {
@@ -149,7 +149,7 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
         }
 #endif
 
-        private static double GetLongSum(Metric metric)
+        private static double GetValue(Metric metric)
         {
             double sum = 0;
 
@@ -162,6 +162,7 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
                 else
                 {
                     sum += metricPoint.GetGaugeLastValueLong();
+                    break;
                 }
             }
 
