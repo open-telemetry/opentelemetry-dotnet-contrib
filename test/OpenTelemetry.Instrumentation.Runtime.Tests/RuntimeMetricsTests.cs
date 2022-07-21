@@ -37,12 +37,25 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
                  .AddInMemoryExporter(exportedItems)
                 .Build();
 
+            // The process.runtime.dotnet.exception.count metrics are only available after an exception has been thrown post OpenTelemetry.Instrumentation.Runtime initialization.
+            try
+            {
+                throw new Exception("Oops!");
+            }
+            catch (Exception)
+            {
+                // swallow the exception
+            }
+
             meterProvider.ForceFlush(MaxTimeToAllowForFlush);
             Assert.True(exportedItems.Count > 1);
             Assert.StartsWith(MetricPrefix, exportedItems[0].Name);
 
             var assembliesCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.assemblies.count");
             Assert.NotNull(assembliesCountMetric);
+
+            var exceptionsCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.exceptions.count");
+            Assert.True(GetValue(exceptionsCountMetric) >= 1);
         }
 
 #if NET6_0_OR_GREATER
