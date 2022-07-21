@@ -105,7 +105,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 using var tracerProvider = Sdk.CreateTracerProviderBuilder()
                     .SetSampler(new AlwaysOnSampler())
                     .AddSource(sourceName)
-                    .AddTLDTraceExporter(options =>
+                    .AddGenevaTraceExporter(options =>
                     {
                         options.ConnectionString = "EtwSession=OpenTelemetry";
                         options.PrepopulatedFields = new Dictionary<string, object>
@@ -118,12 +118,33 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                     .Build();
 
                 var source = new ActivitySource(sourceName);
-                using (var activity = source.StartActivity("SayHello"))
+                using (var parent = source.StartActivity("HttpIn", ActivityKind.Server))
                 {
-                    activity?.SetTag("foo", 1);
-                    activity?.SetTag("bar", "Hello, World!");
-                    activity?.SetTag("baz", new int[] { 1, 2, 3 });
-                    activity?.SetStatus(ActivityStatusCode.Ok);
+                    parent?.SetTag("http.method", "GET");
+                    parent?.SetTag("http.url", "https://localhost/wiki/Rabbit");
+                    using (var child = source.StartActivity("HttpOut", ActivityKind.Client))
+                    {
+                        child?.SetTag("http.method", "GET");
+                        child?.SetTag("http.url", "https://www.wikipedia.org/wiki/Rabbit");
+                        child?.SetTag("http.status_code", 404);
+                    }
+
+                    parent?.SetTag("http.status_code", 200);
+                }
+
+                var link = new ActivityLink(new ActivityContext(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded));
+                using (var activity = source.StartActivity("Foo", ActivityKind.Internal, null, null, new ActivityLink[] { link }))
+                {
+                }
+
+                using (var activity = source.StartActivity("Bar"))
+                {
+                    activity.SetStatus(Status.Error);
+                }
+
+                using (var activity = source.StartActivity("Baz"))
+                {
+                    activity.SetStatus(Status.Ok);
                 }
             }
         }
@@ -380,6 +401,42 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                     catch
                     {
                     }
+                }
+            }
+        }
+
+        [Fact]
+        public void TLDTraceExporter_Success_Windows()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+                // the ActivitySource used by other unit tests.
+                var sourceName = GetTestMethodName();
+
+                // TODO: Setup a mock or spy for eventLogger to assert that eventLogger.LogInformationalEvent is actually called.
+                using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                    .SetSampler(new AlwaysOnSampler())
+                    .AddSource(sourceName)
+                    .AddTLDTraceExporter(options =>
+                    {
+                        options.ConnectionString = "EtwSession=OpenTelemetry";
+                        options.PrepopulatedFields = new Dictionary<string, object>
+                        {
+                            ["cloud.role"] = "BusyWorker",
+                            ["cloud.roleInstance"] = "CY1SCH030021417",
+                            ["cloud.roleVer"] = "9.0.15289.2",
+                        };
+                    })
+                    .Build();
+
+                var source = new ActivitySource(sourceName);
+                using (var activity = source.StartActivity("SayHello"))
+                {
+                    activity?.SetTag("foo", 1);
+                    activity?.SetTag("bar", "Hello, World!");
+                    activity?.SetTag("baz", new int[] { 1, 2, 3 });
+                    activity?.SetStatus(ActivityStatusCode.Ok);
                 }
             }
         }
