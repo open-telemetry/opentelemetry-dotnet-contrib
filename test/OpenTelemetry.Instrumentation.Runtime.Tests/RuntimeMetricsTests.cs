@@ -85,6 +85,12 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
 
             var gcHeapSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.heap.size");
             Assert.NotNull(gcHeapSizeMetric);
+
+            if (Environment.Version.Major >= 7)
+            {
+                var gcHeapFragmentationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.heap.fragmentation.size");
+                Assert.NotNull(gcHeapFragmentationSizeMetric);
+            }
 #endif
         }
 
