@@ -107,7 +107,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
                 throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
         }
 
-
         if (options.PrepopulatedFields != null)
         {
             this.m_prepopulatedFieldKeys = new List<string>();
