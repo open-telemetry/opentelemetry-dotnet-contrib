@@ -1963,7 +1963,7 @@ namespace Microsoft.TraceLoggingDynamic
     /// Supplies details that will be recorded with an event.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public struct EventDescriptor
+    internal struct EventDescriptor
     {
         /// <summary>
         /// Supplies a unique identifier for this event. Set Id and Version to 0 if the
@@ -2044,7 +2044,7 @@ namespace Microsoft.TraceLoggingDynamic
     /// <summary>
     /// Provides advanced options that can be configured when registering a provider.
     /// </summary>
-    public struct EventProviderOptions
+    internal struct EventProviderOptions
     {
         /// <summary>
         /// If specified, the provider will be registered as belonging to the specified
@@ -2063,7 +2063,7 @@ namespace Microsoft.TraceLoggingDynamic
     /// with InType UInt8 and InType Bool32. Check the "inTypes" list in winmeta.xml
     /// to determine what OutTypes are valid for each InType.
     /// </summary>
-    public enum EventOutType : byte
+    internal enum EventOutType : byte
     {
         /// <summary>
         /// Requests normal (default) formatting for the field. For example, a UInt32
@@ -2266,7 +2266,7 @@ namespace Microsoft.TraceLoggingDynamic
     /// value is more severe. Used in filtering, e.g. a consumer might only record events
     /// at Warning or higher severity (i.e. Warning or lower numerical value).
     /// </summary>
-    public enum EventLevel : byte
+    internal enum EventLevel : byte
     {
         LogAlways,
         Critical,
@@ -2282,7 +2282,7 @@ namespace Microsoft.TraceLoggingDynamic
     /// indicates the beginning of an activity, and the End opcode indicates the end of
     /// an activity. Most events default to Info (0).
     /// </summary>
-    public enum EventOpcode : byte
+    internal enum EventOpcode : byte
     {
         Info,
         Start,
