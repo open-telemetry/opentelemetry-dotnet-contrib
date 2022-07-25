@@ -4,7 +4,7 @@
 
 ## 1.0.0-rc.3
 
-Released 2022-Jul-21
+Released 2022-Jul-25
 
 * Add gc.heap.fragmentation.size back for .NET 7 and later
   ([#524](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/524))
