@@ -44,15 +44,7 @@ public class GenevaMetricExporterOptions
 
         set
         {
-            if (value < 0)
-            {
-                throw new ArgumentException($"MetricExportIntervalMilliseconds: {value} should be a greater than 0 integer.");
-            }
-
-            if (value > 60000)
-            {
-                throw new ArgumentException($"MetricExportIntervalMilliseconds: {value} exceeds 60 seconds, which is the maximum allowed limit.");
-            }
+            Guard.ThrowIfOutOfRange(value, min: 1000);
 
             this._metricExporterIntervalMilliseconds = value;
         }

@@ -73,27 +73,20 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
         [Fact]
         public void InvalidMetricExportInterval()
         {
-            var negativeInputMetricExportIntervalMillisecondsException = Assert.Throws<ArgumentException>(() =>
+            var negativeInputMetricExportIntervalMillisecondsException = Assert.Throws<ArgumentOutOfRangeException>(() =>
             {
                 var exporterOptions = new GenevaMetricExporterOptions
                 {
-                    MetricExportIntervalMilliseconds = -1000,
+                    MetricExportIntervalMilliseconds = 500,
                 };
             });
 
-            var negativeInputExpectedErrorMessage = "MetricExportIntervalMilliseconds: -1000 should be a greater than 0 integer.";
+#if NET6_0 || NETCOREAPP3_1_OR_GREATER
+            var negativeInputExpectedErrorMessage = "Must be in the range: [1000, 2147483647] (Parameter 'value')\r\nActual value was 500.";
+#else
+            var negativeInputExpectedErrorMessage = "Must be in the range: [1000, 2147483647]\r\nParameter name: value\r\nActual value was 500.";
+#endif
             Assert.Equal(negativeInputExpectedErrorMessage, negativeInputMetricExportIntervalMillisecondsException.Message);
-
-            var invalidMetricExportIntervalMillisecondsException = Assert.Throws<ArgumentException>(() =>
-            {
-                var exporterOptions = new GenevaMetricExporterOptions
-                {
-                    MetricExportIntervalMilliseconds = 60001,
-                };
-            });
-
-            var expectedErrorMessage = "MetricExportIntervalMilliseconds: 60001 exceeds 60 seconds, which is the maximum allowed limit.";
-            Assert.Equal(expectedErrorMessage, invalidMetricExportIntervalMillisecondsException.Message);
         }
     }
 }
