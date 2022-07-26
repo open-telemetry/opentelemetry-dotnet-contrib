@@ -142,26 +142,6 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
         foreach (var entry in options.PrepopulatedFields)
         {
             var value = entry.Value;
-            switch (value)
-            {
-                case bool vb:
-                case byte vui8:
-                case sbyte vi8:
-                case short vi16:
-                case ushort vui16:
-                case int vi32:
-                case uint vui32:
-                case long vi64:
-                case ulong vui64:
-                case float vf:
-                case double vd:
-                case string vs:
-                    break;
-                default:
-                    value = value.ToString();
-                    break;
-            }
-
             cursor = AddPartAField(buffer, cursor, entry.Key, value);
             this.m_cntPrepopulatedFields += 1;
         }
