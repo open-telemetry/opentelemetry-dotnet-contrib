@@ -27,7 +27,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
     /// </summary>
     internal static class AWSLambdaUtils
     {
-        internal static string ActivitySourceName = typeof(AWSLambdaUtils).Assembly.GetName().Name;
+        internal static string ActivitySourceName =
+            typeof(AWSLambdaUtils).Assembly.GetName().Name.Replace(".Contrib", string.Empty);
+
         private const string CloudProvider = "aws";
         private const string AWSRegion = "AWS_REGION";
         private const string AWSXRayLambdaTraceHeaderKey = "_X_AMZN_TRACE_ID";
