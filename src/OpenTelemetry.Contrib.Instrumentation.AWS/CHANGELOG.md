@@ -1,5 +1,11 @@
 # Changelog - OpenTelemetry.Contrib.Instrumentation.AWS
 
+## Unreleased
+
+* Update the `ActivitySource` name to the assembly name:
+  `OpenTelemetry.Instrumentation.AWS`
+  [#535](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/535)
+
 ## 1.0.1
 
 Released 2021-Feb-24
