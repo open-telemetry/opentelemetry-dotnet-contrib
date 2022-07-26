@@ -78,7 +78,7 @@ namespace OpenTelemetry.Trace
             TracerProviderBuilder builder,
             IConnectionMultiplexer connection,
             StackExchangeRedisCallsInstrumentationOptions options,
-            Action<StackExchangeRedisCallsInstrumentationOptions> configure = null)
+            Action<StackExchangeRedisCallsInstrumentationOptions> configure)
         {
             configure?.Invoke(options);
 
