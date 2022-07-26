@@ -66,6 +66,7 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis
             this.drainThread = new Thread(this.DrainEntries)
             {
                 Name = "OpenTelemetry.Redis",
+                IsBackground = true,
             };
             this.drainThread.Start();
 
