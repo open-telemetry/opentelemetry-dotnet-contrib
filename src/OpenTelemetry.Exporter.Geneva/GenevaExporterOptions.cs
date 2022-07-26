@@ -88,7 +88,7 @@ public class GenevaExporterOptions
             var copy = new Dictionary<string, object>(value.Count + 1) { [Schema.V40.PartA.Ver] = schemaVersion };
             foreach (var entry in value)
             {
-                var val = entry.Value;   
+                var val = entry.Value;
                 switch (val)
                 {
                     case bool vb:
