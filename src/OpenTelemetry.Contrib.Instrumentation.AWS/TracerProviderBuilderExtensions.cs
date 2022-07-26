@@ -42,7 +42,7 @@ namespace OpenTelemetry.Trace
             configure?.Invoke(awsClientOptions);
 
             new AWSClientsInstrumentation(awsClientOptions);
-            builder.AddSource("Amazon.AWS.AWSClientInstrumentation");
+            builder.AddSource(typeof(TracerProviderBuilderExtensions).Assembly.GetName().Name);
             return builder;
         }
     }

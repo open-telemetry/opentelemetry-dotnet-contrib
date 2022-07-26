@@ -29,7 +29,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation
 {
     internal class AWSTracingPipelineHandler : PipelineHandler
     {
-        internal const string ActivitySourceName = "Amazon.AWS.AWSClientInstrumentation";
+        internal static string ActivitySourceName = typeof(AWSTracingPipelineHandler).Assembly.GetName().Name;
 
         private static readonly AWSXRayPropagator AwsPropagator = new AWSXRayPropagator();
         private static readonly Action<IDictionary<string, string>, string, string> Setter = (carrier, name, value) =>
