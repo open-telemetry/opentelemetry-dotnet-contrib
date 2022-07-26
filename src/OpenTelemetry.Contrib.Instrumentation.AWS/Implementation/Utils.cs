@@ -21,6 +21,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation
 {
     internal class Utils
     {
+        internal static string ActivitySourceName =
+            typeof(AWSTracingPipelineHandler).Assembly.GetName().Name.Replace(".Contrib", string.Empty);
+
         internal static object GetTagValue(Activity activity, string tagName)
         {
             foreach (KeyValuePair<string, object> tag in activity.TagObjects)
