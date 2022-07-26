@@ -2,10 +2,23 @@
 
 ## Unreleased
 
+## 1.0.0-beta.3
+
+Released 2022-Jul-22
+
 * Updated OTel SDK package version to 1.2.0
 * Updated minimum full framework support to net462
 * Update Google.Cloud.Monitoring.V3 2.1.0 -> 2.6.0
 * Update Google.Cloud.Monitoring.V3 2.0.0 -> 2.3.0
+
+* Rename the namespaces to remove the word `Contrib` from them:
+  1. `OpenTelemetry.Contrib.Exporter.Stackdriver` ->
+     `OpenTelemetry.Exporter.Stackdriver`
+  2. `OpenTelemetry.Contrib.Exporter.Stackdriver.Implementation` ->
+     `OpenTelemetry.Exporter.Stackdriver.Implementation`
+  3. `OpenTelemetry.Contrib.Exporter.Stackdriver.Utils` ->
+  `OpenTelemetry.Exporter.Stackdriver.Utils`
+  [(#513)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/513)
 
 ## 1.0.0-beta.2
 
