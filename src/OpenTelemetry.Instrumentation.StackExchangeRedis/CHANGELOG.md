@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-rc9.7
+
+Released 2022-Jul-25
+
 * Update the `ActivitySource` name used to the assembly name: `OpenTelemetry.Instrumentation.StackExchangeRedis`.
 ([#485](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/485))
 * Drain thread is marked as background. It allows to close the application
