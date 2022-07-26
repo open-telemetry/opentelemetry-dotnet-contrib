@@ -1,5 +1,11 @@
 # Changelog - OpenTelemetry.Contrib.Instrumentation.AWSLambda
 
+## Unreleased
+
+* Update the `ActivitySource` name to the assembly name:
+  `OpenTelemetry.Contrib.Instrumentation.AWSLambda`
+  [#534](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/534)
+
 ## 1.1.0-beta1
 
 Released 2021-May-26
