@@ -107,7 +107,7 @@ public class GenevaExporterOptions
                     default:
                         throw new ArgumentException($"Type: {entry.Value.GetType()} is not supported. Only bool, byte, sbyte, short, ushort, int, uint, long, ulong, float, double, and string are the supported types for PrepopulatedFields values.");
                 }
-                
+
                 copy[entry.Key] = val; // shallow copy
             }
 
