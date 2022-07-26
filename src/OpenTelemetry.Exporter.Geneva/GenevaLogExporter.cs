@@ -285,26 +285,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             {
                 var key = this.m_prepopulatedFieldKeys[i];
                 var value = this.m_prepopulatedFields[key];
-                switch (value)
-                {
-                    case bool vb:
-                    case byte vui8:
-                    case sbyte vi8:
-                    case short vi16:
-                    case ushort vui16:
-                    case int vi32:
-                    case uint vui32:
-                    case long vi64:
-                    case ulong vui64:
-                    case float vf:
-                    case double vd:
-                    case string vs:
-                        break;
-                    default:
-                        value = value.ToString();
-                        break;
-                }
-
                 cursor = AddPartAField(buffer, cursor, key, value);
                 cntFields += 1;
             }
