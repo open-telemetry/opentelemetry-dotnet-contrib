@@ -53,6 +53,19 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                     ConnectionString = null,
                 });
             });
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
+                {
+                    ConnectionString = new[]
+                    {
+                        'j',
+                        '\u006A',
+                        '\x006A',
+                        (char)106,
+                    }.ToString(),
+                });
+            });
         }
 
         [Fact]
