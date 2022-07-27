@@ -77,7 +77,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
             {
                 var exporterOptions = new GenevaMetricExporterOptions
                 {
-                    MetricExportIntervalMilliseconds = 500,
+                    MetricExportIntervalMilliseconds = 999,
                 };
             });
 
