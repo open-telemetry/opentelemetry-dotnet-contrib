@@ -114,6 +114,4 @@ public class GenevaExporterOptions
             this._fields = copy;
         }
     }
-
-    internal Func<object, string> ConvertToJson = obj => "ERROR: GenevaExporterOptions.ConvertToJson not configured.";
 }
