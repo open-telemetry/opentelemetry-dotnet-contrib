@@ -69,5 +69,27 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
             expectedErrorMessage = $"Value provided for the dimension: DimensionKey exceeds the maximum allowed limit of {GenevaMetricExporter.MaxDimensionValueSize} characters for dimension value.";
             Assert.Equal(expectedErrorMessage, invalidDimensionValueException.Message);
         }
+
+        [Fact]
+        public void MetricExportIntervalValidationTest()
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+            {
+                var exporterOptions = new GenevaMetricExporterOptions
+                {
+                    MetricExportIntervalMilliseconds = 500,
+                };
+            });
+
+            var exception = Record.Exception(() =>
+            {
+                var exporterOptions = new GenevaMetricExporterOptions
+                {
+                    MetricExportIntervalMilliseconds = 1000,
+                };
+            });
+
+            Assert.Null(exception);
+        }
     }
 }

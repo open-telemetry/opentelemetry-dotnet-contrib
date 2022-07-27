@@ -200,8 +200,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.Pe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.Instana", "src\OpenTelemetry.Exporter.Instana\OpenTelemetry.Exporter.Instana.csproj", "{BD3C6377-6F8D-47D6-9710-1681ED4E6772}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.Instana.Tests", "test\OpenTelemetry.Exporter.Instana.Tests\OpenTelemetry.Exporter.Instana.Tests.csproj", "{77E7DDB9-32CF-450E-B596-E893149D07DD}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.StackExchangeRedis", "src\OpenTelemetry.Instrumentation.StackExchangeRedis\OpenTelemetry.Instrumentation.StackExchangeRedis.csproj", "{14BAEC26-CCD1-44B5-94D7-F219057B0B4D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.StackExchangeRedis.Tests", "test\OpenTelemetry.Instrumentation.StackExchangeRedis.Tests\OpenTelemetry.Instrumentation.StackExchangeRedis.Tests.csproj", "{2AD0F8EB-B7C8-4E87-8090-25BE190A0BD4}"
@@ -434,10 +432,6 @@ Global
 		{BD3C6377-6F8D-47D6-9710-1681ED4E6772}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BD3C6377-6F8D-47D6-9710-1681ED4E6772}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BD3C6377-6F8D-47D6-9710-1681ED4E6772}.Release|Any CPU.Build.0 = Release|Any CPU
-		{77E7DDB9-32CF-450E-B596-E893149D07DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{77E7DDB9-32CF-450E-B596-E893149D07DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{77E7DDB9-32CF-450E-B596-E893149D07DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{77E7DDB9-32CF-450E-B596-E893149D07DD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{14BAEC26-CCD1-44B5-94D7-F219057B0B4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{14BAEC26-CCD1-44B5-94D7-F219057B0B4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{14BAEC26-CCD1-44B5-94D7-F219057B0B4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -543,7 +537,6 @@ Global
 		{ED774FC3-C1C0-44CD-BA41-686C04BEB3E5} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{17E3936A-265A-4C9F-9DD5-4568F80E6D91} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{BD3C6377-6F8D-47D6-9710-1681ED4E6772} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
-		{77E7DDB9-32CF-450E-B596-E893149D07DD} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{14BAEC26-CCD1-44B5-94D7-F219057B0B4D} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{2AD0F8EB-B7C8-4E87-8090-25BE190A0BD4} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{D8F9AEAC-6ACA-484E-81A5-9CEBEDBC3422} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
