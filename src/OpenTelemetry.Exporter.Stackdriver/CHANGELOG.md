@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-beta.3
+
+Released 2022-Jul-22
+
 * Updated OTel SDK package version to 1.2.0
 * Updated minimum full framework support to net462
 * Update Google.Cloud.Monitoring.V3 2.1.0 -> 2.6.0
