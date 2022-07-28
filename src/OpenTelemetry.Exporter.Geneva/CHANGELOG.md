@@ -31,6 +31,10 @@ values.
 will not accept a value less than 1000.
 [527](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/527)
 
+* Remove support for exporting `ILogger` scopes that was added in `1.3.0-beta.2`
+version
+[541](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/541)
+
 ## 1.3.0-beta.2
 
 Released 2022-Jun-03
