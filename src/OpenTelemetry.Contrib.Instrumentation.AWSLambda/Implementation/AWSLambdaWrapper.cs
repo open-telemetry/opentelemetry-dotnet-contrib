@@ -31,9 +31,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
 
         /// <summary>
         /// Gets or sets a value indicating whether AWS X-Ray propagation should be ignored. Default value is false.
-        /// The flag was introduced as a workaround of this issue:
-        /// the ActivitySource.StartActivity method returns null if sampling decision of DROP (Sampled=0).
-        /// Flag can be removed as soon as the bug https://github.com/open-telemetry/opentelemetry-dotnet/issues/3290 is resolved.
         /// </summary>
         internal static bool IgnoreAWSXRayPropagation { get; set; }
 
@@ -196,7 +193,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
                 }
             }
 
-            var tags = AWSLambdaUtils.GetFunctionDefaultTags(input, context);
+            var tags = AWSLambdaUtils.GetFunctionTags(input, context);
             var activityName = AWSLambdaUtils.GetFunctionName(context) ?? "<Unknown>";
             var activity = AWSLambdaActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext, tags);
 
@@ -211,7 +208,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             }
 
             // force flush before function quit in case of Lambda freeze.
-            tracerProvider.ForceFlush();
+            tracerProvider?.ForceFlush();
         }
 
         private static void OnException(Activity activity, Exception exception)
