@@ -85,7 +85,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
             // Supported types for PrepopulatedFields should not throw an exception
             var exception = Record.Exception(() =>
             {
-                using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
+                new GenevaExporterOptions
                 {
                     ConnectionString = "EtwSession=OpenTelemetry",
                     PrepopulatedFields = new Dictionary<string, object>
@@ -103,7 +103,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                         ["double"] = double.MaxValue,
                         ["string"] = string.Empty,
                     },
-                });
+                };
             });
 
             Assert.Null(exception);
