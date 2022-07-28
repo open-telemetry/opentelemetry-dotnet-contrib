@@ -276,17 +276,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
         }
 
         [Fact]
-        public void OnFunctionStart_NoSampledAndXRayPropagationIgnored_ActivityCreated()
+        public void OnFunctionStart_NoSampledAndAwsXRayContextExtractionDisabled_ActivityCreated()
         {
             Environment.SetEnvironmentVariable("_X_AMZN_TRACE_ID", $"Root=1-5759e988-bd862e3fe1be46a994272793;Parent={XRayParentId};Sampled=0");
-
             Activity activity = null;
 
-            // The IgnoreAWSXRayPropagation flag was introduced as a workaround of this issue:
-            // the ActivitySource.StartActivity method returns null if sampling decision of DROP (Sampled=0).
-            // Flag can be removed as soon as the bug https://github.com/open-telemetry/opentelemetry-dotnet/issues/3290 is resolved.
             using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .AddAWSLambdaConfigurations(c => c.IgnoreAWSXRayPropagation = true)
+                .AddAWSLambdaConfigurations(c => c.DisableAwsXRayContextExtraction = true)
                 .Build())
             {
                 activity = AWSLambdaWrapper.OnFunctionStart("test-input", new Mock<ILambdaContext>().Object);

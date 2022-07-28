@@ -22,8 +22,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda
     public class AWSLambdaInstrumentationOptions
     {
         /// <summary>
-        /// Gets or sets a value indicating whether AWS X-Ray propagation should be ignored.
+        /// Gets or sets a value indicating whether AWS X-Ray context extraction should be disabled.
         /// </summary>
-        public bool IgnoreAWSXRayPropagation { get; set; }
+        public bool DisableAwsXRayContextExtraction { get; set; }
     }
 }

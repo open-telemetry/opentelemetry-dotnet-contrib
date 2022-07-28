@@ -42,7 +42,7 @@ namespace OpenTelemetry.Trace
             var options = new AWSLambdaInstrumentationOptions();
             configure?.Invoke(options);
 
-            AWSLambdaWrapper.IgnoreAWSXRayPropagation = options.IgnoreAWSXRayPropagation;
+            AWSLambdaWrapper.DisableAwsXRayContextExtraction = options.DisableAwsXRayContextExtraction;
 
             builder.AddSource(AWSLambdaUtils.ActivitySourceName);
             builder.SetResourceBuilder(ResourceBuilder

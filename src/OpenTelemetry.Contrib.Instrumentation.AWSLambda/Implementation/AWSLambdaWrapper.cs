@@ -32,7 +32,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// <summary>
         /// Gets or sets a value indicating whether AWS X-Ray propagation should be ignored. Default value is false.
         /// </summary>
-        internal static bool IgnoreAWSXRayPropagation { get; set; }
+        internal static bool DisableAwsXRayContextExtraction { get; set; }
 
         /// <summary>
         /// Tracing wrapper for Lambda handler.
@@ -187,7 +187,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             if (parentContext == default)
             {
                 parentContext = AWSLambdaUtils.ExtractParentContext(input);
-                if (parentContext == default && !IgnoreAWSXRayPropagation)
+                if (parentContext == default && !DisableAwsXRayContextExtraction)
                 {
                     parentContext = AWSLambdaUtils.GetParentContext();
                 }
