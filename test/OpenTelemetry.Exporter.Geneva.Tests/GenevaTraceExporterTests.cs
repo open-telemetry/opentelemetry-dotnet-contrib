@@ -55,7 +55,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
             });
 
             // null value in the PrepopulatedFields
-            Assert.Throws<ArgumentException>(() =>
+            Assert.Throws<ArgumentNullException>(() =>
             {
                 using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
                 {
