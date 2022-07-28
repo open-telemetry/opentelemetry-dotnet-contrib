@@ -56,7 +56,6 @@ components:
   test/OpenTelemetry.Contrib.Instrumentation.AWS.Tests/:
     - srprash
   test/OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests/:
-    - srprash
     - rypdal
     - Oberon00
   test/OpenTelemetry.Exporter.Geneva.Benchmark/:
