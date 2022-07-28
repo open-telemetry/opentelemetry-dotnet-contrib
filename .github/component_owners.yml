@@ -8,7 +8,6 @@ components:
   src/OpenTelemetry.Contrib.Instrumentation.AWS/:
     - srprash
   src/OpenTelemetry.Contrib.Instrumentation.AWSLambda/:
-    - srprash
     - rypdal
     - Oberon00
   src/OpenTelemetry.Exporter.Geneva/:
