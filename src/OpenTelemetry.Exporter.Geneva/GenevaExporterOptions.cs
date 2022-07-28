@@ -88,12 +88,35 @@ public class GenevaExporterOptions
             var copy = new Dictionary<string, object>(value.Count + 1) { [Schema.V40.PartA.Ver] = schemaVersion };
             foreach (var entry in value)
             {
-                copy[entry.Key] = entry.Value; // shallow copy
+                var val = entry.Value;
+                switch (val)
+                {
+                    case bool vb:
+                    case byte vui8:
+                    case sbyte vi8:
+                    case short vi16:
+                    case ushort vui16:
+                    case int vi32:
+                    case uint vui32:
+                    case long vi64:
+                    case ulong vui64:
+                    case float vf:
+                    case double vd:
+                    case string vs:
+                        break;
+                    default:
+                        if (entry.Value == null)
+                        {
+                            throw new ArgumentNullException(entry.Key, $"{nameof(this.PrepopulatedFields)} must not contain null values.");
+                        }
+
+                        throw new ArgumentException($"Type `{entry.Value.GetType()}` (key = `{entry.Key}`) is not allowed. Only bool, byte, sbyte, short, ushort, int, uint, long, ulong, float, double, and string are supported.");
+                }
+
+                copy[entry.Key] = val; // shallow copy
             }
 
             this._fields = copy;
         }
     }
-
-    internal Func<object, string> ConvertToJson = obj => "ERROR: GenevaExporterOptions.ConvertToJson not configured.";
 }
