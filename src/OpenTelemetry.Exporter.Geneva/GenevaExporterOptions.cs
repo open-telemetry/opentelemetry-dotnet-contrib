@@ -105,7 +105,12 @@ public class GenevaExporterOptions
                     case string vs:
                         break;
                     default:
-                        throw new ArgumentException($"Type: {entry.Value.GetType()} is not supported. Only bool, byte, sbyte, short, ushort, int, uint, long, ulong, float, double, and string are the supported types for PrepopulatedFields values.");
+                        if (entry.Value == null)
+                        {
+                            throw new ArgumentNullException(entry.Key, $"{nameof(this.PrepopulatedFields)} must not contain null values.");
+                        }
+
+                        throw new ArgumentException($"Type `{entry.Value.GetType()}` (key = `{entry.Key}`) is not allowed. Only bool, byte, sbyte, short, ushort, int, uint, long, ulong, float, double, and string are supported.");
                 }
 
                 copy[entry.Key] = val; // shallow copy
