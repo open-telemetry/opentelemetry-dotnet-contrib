@@ -20,6 +20,17 @@ by throwing any exception caught by `UnixDomainSocketDataTransport.Send` so that
 `ExportResult.Failure`.
 [444](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/444)
 
+* The option `PrepopulatedFields` of `GenevaExporterOptions` will only support
+values of type: `bool`, `byte`, `sbyte`, `short`, `ushort`, `int`, `uint`,
+`long`, `ulong`, `float`, `double`, and `string`. It will also not accept `null`
+values.
+[514](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/514)
+[537](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/537)
+
+* The option `MetricExportIntervalMilliseconds` of `GenevaMetricExporterOptions`
+will not accept a value less than 1000.
+[527](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/527)
+
 ## 1.3.0-beta.2
 
 Released 2022-Jun-03
