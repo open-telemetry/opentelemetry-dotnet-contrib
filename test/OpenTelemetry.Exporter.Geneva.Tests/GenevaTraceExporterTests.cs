@@ -54,6 +54,19 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 });
             });
 
+            // null value in the PrepopulatedFields
+            Assert.Throws<ArgumentException>(() =>
+            {
+                using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
+                {
+                    ConnectionString = "EtwSession=OpenTelemetry",
+                    PrepopulatedFields = new Dictionary<string, object>
+                    {
+                        ["cloud.roleVer"] = null,
+                    },
+                });
+            });
+
             // unsupported types(char) for PrepopulatedFields
             Assert.Throws<ArgumentException>(() =>
             {
