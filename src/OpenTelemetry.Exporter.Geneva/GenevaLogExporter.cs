@@ -46,7 +46,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
     private readonly IDataTransport m_dataTransport;
     private readonly bool shouldPassThruTableMappings;
     private bool isDisposed;
-    private Func<object, string> convertToJson;
 
     public GenevaLogExporter(GenevaExporterOptions options)
     {
@@ -107,8 +106,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             default:
                 throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
         }
-
-        this.convertToJson = options.ConvertToJson;
 
         if (options.PrepopulatedFields != null)
         {
@@ -288,26 +285,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             {
                 var key = this.m_prepopulatedFieldKeys[i];
                 var value = this.m_prepopulatedFields[key];
-                switch (value)
-                {
-                    case bool vb:
-                    case byte vui8:
-                    case sbyte vi8:
-                    case short vi16:
-                    case ushort vui16:
-                    case int vi32:
-                    case uint vui32:
-                    case long vi64:
-                    case ulong vui64:
-                    case float vf:
-                    case double vd:
-                    case string vs:
-                        break;
-                    default:
-                        value = this.convertToJson(value);
-                        break;
-                }
-
                 cursor = AddPartAField(buffer, cursor, key, value);
                 cntFields += 1;
             }
