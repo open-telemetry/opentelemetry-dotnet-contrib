@@ -21,7 +21,7 @@ components:
   src/OpenTelemetry.Extensions/:
     - codeblanch
   src/OpenTelemetry.Extensions.Docker/:
-    - swetharavichandrancisco
+    - iskiselev
   src/OpenTelemetry.Extensions.PersistentStorage.Abstractions/:
     - vishweshbankwar
   src/OpenTelemetry.Extensions.PersistentStorage/:
