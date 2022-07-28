@@ -107,7 +107,7 @@ public class GenevaExporterOptions
                     default:
                         if (entry.Value == null)
                         {
-                            throw new ArgumentException($"Null is not allowed (key = `{entry.Key}`).");
+                            throw new ArgumentNullException(entry.Key, $"{nameof(this.PrepopulatedFields)} must not contain null values.");
                         }
 
                         throw new ArgumentException($"Type `{entry.Value.GetType()}` (key = `{entry.Key}`) is not allowed. Only bool, byte, sbyte, short, ushort, int, uint, long, ulong, float, double, and string are supported.");
