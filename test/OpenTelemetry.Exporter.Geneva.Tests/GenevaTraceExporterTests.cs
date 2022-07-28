@@ -81,6 +81,32 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                     },
                 });
             });
+
+            // Supported types for PrepopulatedFields should not throw an exception
+            var exception = Record.Exception(() =>
+            {
+                new GenevaExporterOptions
+                {
+                    ConnectionString = "EtwSession=OpenTelemetry",
+                    PrepopulatedFields = new Dictionary<string, object>
+                    {
+                        ["bool"] = true,
+                        ["byte"] = byte.MaxValue,
+                        ["sbyte"] = sbyte.MaxValue,
+                        ["short"] = short.MaxValue,
+                        ["ushort"] = ushort.MaxValue,
+                        ["int"] = int.MaxValue,
+                        ["uint"] = uint.MaxValue,
+                        ["long"] = long.MaxValue,
+                        ["ulong"] = ulong.MaxValue,
+                        ["float"] = float.MaxValue,
+                        ["double"] = double.MaxValue,
+                        ["string"] = string.Empty,
+                    },
+                };
+            });
+
+            Assert.Null(exception);
         }
 
         [Fact]
