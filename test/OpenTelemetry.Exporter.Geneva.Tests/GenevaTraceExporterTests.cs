@@ -24,6 +24,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -429,11 +430,16 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
 
                     // Emit trace and grab a copy of internal buffer for validation.
                     var source = new ActivitySource(sourceName);
-                    int messagePackDataSize;
-                    using (var activity = source.StartActivity("Foo", ActivityKind.Internal))
+                    int messagePackDataSize = 0;
+
+                    // Create activity on a different thread to test for multithreading scenarios
+                    Task.Run(() =>
                     {
-                        messagePackDataSize = exporter.SerializeActivity(activity);
-                    }
+                        using (var activity = source.StartActivity("Foo", ActivityKind.Internal))
+                        {
+                            messagePackDataSize = exporter.SerializeActivity(activity);
+                        }
+                    });
 
                     // Read the data sent via socket.
                     var receivedData = new byte[1024];
