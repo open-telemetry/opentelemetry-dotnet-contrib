@@ -46,7 +46,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// <param name="parentContext">
         /// The optional parent context <see cref="ActivityContext"/> is used for Activity object creation.
         /// If no parent context provided, incoming request is used to extract one.
-        /// If parent is not extracted from incoming request then X-Ray propagation is used to extract one.
+        /// If parent is not extracted from incoming request then X-Ray propagation is used to extract one
+        /// unless X-Ray propagation is disabled in the configuration for this wrapper.
         /// </param>
         /// <returns>Instance of output result.</returns>
         public static TResult Trace<TInput, TResult>(
@@ -73,7 +74,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// <param name="parentContext">
         /// The optional parent context <see cref="ActivityContext"/> is used for Activity object creation.
         /// If no parent context provided, incoming request is used to extract one.
-        /// If parent is not extracted from incoming request then X-Ray propagation is used to extract one.
+        /// If parent is not extracted from incoming request then X-Ray propagation is used to extract one
+        /// unless X-Ray propagation is disabled in the configuration for this wrapper.
         /// </param>
         public static void Trace<TInput>(
             TracerProvider tracerProvider,
@@ -97,10 +99,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// <param name="parentContext">
         /// The optional parent context <see cref="ActivityContext"/> is used for Activity object creation.
         /// If no parent context provided, incoming request is used to extract one.
-        /// If parent is not extracted from incoming request then X-Ray propagation is used to extract one.
+        /// If parent is not extracted from incoming request then X-Ray propagation is used to extract one
+        /// unless X-Ray propagation is disabled in the configuration for this wrapper.
         /// </param>
         /// <returns>Task.</returns>
-        public static async Task Trace<TInput>(
+        public static Task Trace<TInput>(
             TracerProvider tracerProvider,
             Func<TInput, ILambdaContext, Task> lambdaHandler,
             TInput input,
@@ -108,7 +111,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             ActivityContext parentContext = default)
         {
             Func<Task> action = async () => await lambdaHandler(input, context);
-            await TraceInternalAsync(tracerProvider, action, input, context, parentContext);
+            return TraceInternalAsync(tracerProvider, action, input, context, parentContext);
         }
 
         /// <summary>
@@ -123,7 +126,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// <param name="parentContext">
         /// The optional parent context <see cref="ActivityContext"/> is used for Activity object creation.
         /// If no parent context provided, incoming request is used to extract one.
-        /// If parent is not extracted from incoming request then X-Ray propagation is used to extract one.
+        /// If parent is not extracted from incoming request then X-Ray propagation is used to extract one
+        /// unless X-Ray propagation is disabled in the configuration for this wrapper.
         /// </param>
         /// <returns>Task of result.</returns>
         public static async Task<TResult> Trace<TInput, TResult>(
@@ -148,7 +152,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// <param name="parentContext">
         /// The optional parent context <see cref="ActivityContext"/> is used for Activity object creation.
         /// If no parent context provided, incoming request is used to extract one.
-        /// If parent is not extracted from incoming request then X-Ray propagation is used to extract one.
+        /// If parent is not extracted from incoming request then X-Ray propagation is used to extract one
+        /// unless X-Ray propagation is disabled in the configuration for this wrapper.
         /// </param>
         public static void Trace(
             TracerProvider tracerProvider,
@@ -169,17 +174,18 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// <param name="parentContext">
         /// The optional parent context <see cref="ActivityContext"/> is used for Activity object creation.
         /// If no parent context provided, incoming request is used to extract one.
-        /// If parent is not extracted from incoming request then X-Ray propagation is used to extract one.
+        /// If parent is not extracted from incoming request then X-Ray propagation is used to extract one
+        /// unless X-Ray propagation is disabled in the configuration for this wrapper.
         /// </param>
         /// <returns>Task.</returns>
-        public static async Task Trace(
+        public static Task Trace(
             TracerProvider tracerProvider,
             Func<ILambdaContext, Task> lambdaHandler,
             ILambdaContext context,
             ActivityContext parentContext = default)
         {
             Func<Task> action = async () => await lambdaHandler(context);
-            await TraceInternalAsync<object>(tracerProvider, action, null, context, parentContext);
+            return TraceInternalAsync<object>(tracerProvider, action, null, context, parentContext);
         }
 
         internal static Activity OnFunctionStart<TInput>(TInput input, ILambdaContext context, ActivityContext parentContext = default)
