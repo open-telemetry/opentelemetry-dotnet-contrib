@@ -351,6 +351,117 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
             }
         }
 
+        [Fact]
+        public void SerializeILoggerScopes()
+        {
+            string path = string.Empty;
+            Socket senderSocket = null;
+            Socket receiverSocket = null;
+            try
+            {
+                var exporterOptions = new GenevaExporterOptions();
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+                }
+                else
+                {
+                    path = GenerateTempFilePath();
+                    exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                    var endpoint = new UnixDomainSocketEndPoint(path);
+                    senderSocket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                    senderSocket.Bind(endpoint);
+                    senderSocket.Listen(1);
+                }
+
+                using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(options =>
+                {
+                    options.IncludeScopes = true;
+                    options.AddGenevaLogExporter(options =>
+                    {
+                        options.ConnectionString = exporterOptions.ConnectionString;
+                    });
+                }));
+
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    receiverSocket = senderSocket.Accept();
+                    receiverSocket.ReceiveTimeout = 10000;
+                }
+
+                // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
+                using var exporter = new GenevaLogExporter(exporterOptions);
+
+                // Emit a LogRecord and grab a copy of internal buffer for validation.
+                var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
+
+                using (logger.BeginScope("MyOuterScope"))
+                using (logger.BeginScope("MyInnerScope"))
+                using (logger.BeginScope("MyInnerInnerScope with {name} and {age} of custom", "John Doe", 35))
+                using (logger.BeginScope(new List<KeyValuePair<string, object>> { new KeyValuePair<string, object>("MyKey", "MyValue") }))
+                {
+                    logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+                }
+
+                byte[] serializedData;
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    var m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+                    serializedData = m_buffer.Value;
+                }
+                else
+                {
+                    // Read the data sent via socket.
+                    serializedData = new byte[65360];
+                    _ = receiverSocket.Receive(serializedData);
+                }
+
+                object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(serializedData, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+                var signal = (fluentdData as object[])[0] as string;
+                var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
+                var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
+                var serializedScopes = mapping["scopes"] as object[];
+
+                Assert.Equal(4, serializedScopes.Length);
+
+                // Test 1st scope
+                var scope = serializedScopes[0] as ICollection<KeyValuePair<object, object>>;
+                Assert.Single(scope);
+                Assert.Contains(new KeyValuePair<object, object>("scope", "MyOuterScope"), scope);
+
+                // Test 2nd scope
+                scope = serializedScopes[1] as ICollection<KeyValuePair<object, object>>;
+                Assert.Single(scope);
+                Assert.Contains(new KeyValuePair<object, object>("scope", "MyInnerScope"), scope);
+
+                // Test 3rd scope
+                scope = serializedScopes[2] as ICollection<KeyValuePair<object, object>>;
+                Assert.Equal(3, scope.Count);
+                Assert.Contains(new KeyValuePair<object, object>("name", "John Doe"), scope);
+                Assert.Contains(new KeyValuePair<object, object>("age", (byte)35), scope);
+                Assert.Contains(new KeyValuePair<object, object>("{OriginalFormat}", "MyInnerInnerScope with {name} and {age} of custom"), scope);
+
+                // Test 4th scope
+                scope = serializedScopes[3] as ICollection<KeyValuePair<object, object>>;
+                Assert.Single(scope);
+                Assert.Contains(new KeyValuePair<object, object>("MyKey", "MyValue"), scope);
+            }
+            finally
+            {
+                senderSocket?.Dispose();
+                receiverSocket?.Dispose();
+                try
+                {
+                    File.Delete(path);
+                }
+                catch
+                {
+                }
+            }
+        }
+
         [Theory]
         [InlineData(true)]
         [InlineData(false)]

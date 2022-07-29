@@ -19,57 +19,56 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Instrumentation
+namespace OpenTelemetry.Instrumentation;
+
+internal class DiagnosticSourceListener : IObserver<KeyValuePair<string, object>>
 {
-    internal class DiagnosticSourceListener : IObserver<KeyValuePair<string, object>>
+    private readonly ListenerHandler handler;
+
+    public DiagnosticSourceListener(ListenerHandler handler)
     {
-        private readonly ListenerHandler handler;
+        Guard.ThrowIfNull(handler);
 
-        public DiagnosticSourceListener(ListenerHandler handler)
+        this.handler = handler;
+    }
+
+    public void OnCompleted()
+    {
+    }
+
+    public void OnError(Exception error)
+    {
+    }
+
+    public void OnNext(KeyValuePair<string, object> value)
+    {
+        if (!this.handler.SupportsNullActivity && Activity.Current == null)
         {
-            Guard.ThrowIfNull(handler);
-
-            this.handler = handler;
+            return;
         }
 
-        public void OnCompleted()
+        try
         {
+            if (value.Key.EndsWith("Start", StringComparison.Ordinal))
+            {
+                this.handler.OnStartActivity(Activity.Current, value.Value);
+            }
+            else if (value.Key.EndsWith("Stop", StringComparison.Ordinal))
+            {
+                this.handler.OnStopActivity(Activity.Current, value.Value);
+            }
+            else if (value.Key.EndsWith("Exception", StringComparison.Ordinal))
+            {
+                this.handler.OnException(Activity.Current, value.Value);
+            }
+            else
+            {
+                this.handler.OnCustom(value.Key, Activity.Current, value.Value);
+            }
         }
-
-        public void OnError(Exception error)
+        catch (Exception ex)
         {
-        }
-
-        public void OnNext(KeyValuePair<string, object> value)
-        {
-            if (!this.handler.SupportsNullActivity && Activity.Current == null)
-            {
-                return;
-            }
-
-            try
-            {
-                if (value.Key.EndsWith("Start", StringComparison.Ordinal))
-                {
-                    this.handler.OnStartActivity(Activity.Current, value.Value);
-                }
-                else if (value.Key.EndsWith("Stop", StringComparison.Ordinal))
-                {
-                    this.handler.OnStopActivity(Activity.Current, value.Value);
-                }
-                else if (value.Key.EndsWith("Exception", StringComparison.Ordinal))
-                {
-                    this.handler.OnException(Activity.Current, value.Value);
-                }
-                else
-                {
-                    this.handler.OnCustom(value.Key, Activity.Current, value.Value);
-                }
-            }
-            catch (Exception ex)
-            {
-                InstrumentationEventSource.Log.UnknownErrorProcessingEvent(this.handler?.SourceName, value.Key, ex);
-            }
+            InstrumentationEventSource.Log.UnknownErrorProcessingEvent(this.handler?.SourceName, value.Key, ex);
         }
     }
 }
