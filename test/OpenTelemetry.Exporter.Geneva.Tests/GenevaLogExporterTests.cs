@@ -879,7 +879,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                     Task.Run(() =>
                     {
                         logger.LogInformation("Hello from another thread {food} {price}.", "artichoke", 3.99);
-                    });
+                    }).Wait();
 
                     // logRecordList should have a singleLogRecord entry after the logger.LogInformation call
                     Assert.Single(logRecordList);

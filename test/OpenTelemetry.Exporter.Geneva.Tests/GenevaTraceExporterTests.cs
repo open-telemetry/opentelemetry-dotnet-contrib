@@ -451,7 +451,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                         {
                             messagePackDataSize = exporter.SerializeActivity(activity);
                         }
-                    });
+                    }).Wait();
 
                     receivedDataSize = serverSocket.Receive(receivedData);
                     Assert.Equal(messagePackDataSize, receivedDataSize);
