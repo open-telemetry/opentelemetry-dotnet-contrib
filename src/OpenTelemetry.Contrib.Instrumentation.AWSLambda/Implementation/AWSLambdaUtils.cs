@@ -48,7 +48,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             return new string[0];
         };
 
-        internal static ActivityContext GetParentContext()
+        internal static ActivityContext GetXRayParentContext()
         {
             // Currently get trace header from Lambda runtime environment variable
             // https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html#configuration-envvars-runtime

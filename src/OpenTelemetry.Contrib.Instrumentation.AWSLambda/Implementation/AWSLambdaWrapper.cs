@@ -195,7 +195,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
                 parentContext = AWSLambdaUtils.ExtractParentContext(input);
                 if (parentContext == default && !DisableAwsXRayContextExtraction)
                 {
-                    parentContext = AWSLambdaUtils.GetParentContext();
+                    parentContext = AWSLambdaUtils.GetXRayParentContext();
                 }
             }
 
