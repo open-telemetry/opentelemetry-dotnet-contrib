@@ -873,9 +873,9 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                     // Validation
                     Assert.Equal(messagePackDataSize, receivedDataSize);
 
-                    // Emit log on a different thread to test for multithreading scenarios
                     logRecordList.Clear();
 
+                    // Emit log on a different thread to test for multithreading scenarios
                     Task.Run(() =>
                     {
                         logger.LogInformation("Hello from another thread {food} {price}.", "artichoke", 3.99);
