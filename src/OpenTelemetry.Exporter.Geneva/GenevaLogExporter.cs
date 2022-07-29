@@ -46,7 +46,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
     private readonly IDataTransport m_dataTransport;
     private readonly bool shouldPassThruTableMappings;
     private bool isDisposed;
-    private Func<object, string> convertToJson;
 
     public GenevaLogExporter(GenevaExporterOptions options)
     {
@@ -107,8 +106,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             default:
                 throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
         }
-
-        this.convertToJson = options.ConvertToJson;
 
         if (options.PrepopulatedFields != null)
         {
@@ -288,26 +285,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             {
                 var key = this.m_prepopulatedFieldKeys[i];
                 var value = this.m_prepopulatedFields[key];
-                switch (value)
-                {
-                    case bool vb:
-                    case byte vui8:
-                    case sbyte vi8:
-                    case short vi16:
-                    case ushort vui16:
-                    case int vi32:
-                    case uint vui32:
-                    case long vi64:
-                    case ulong vui64:
-                    case float vf:
-                    case double vd:
-                    case string vs:
-                        break;
-                    default:
-                        value = this.convertToJson(value);
-                        break;
-                }
-
                 cursor = AddPartAField(buffer, cursor, key, value);
                 cntFields += 1;
             }
@@ -410,44 +387,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         {
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "body");
             cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, logRecord.FormattedMessage);
-            cntFields += 1;
-        }
-
-        ushort scopeDepth = 0;
-        int indexArrayLength = 0;
-        logRecord.ForEachScope(ProcessScope, (object)null);
-        void ProcessScope(LogRecordScope scope, object state)
-        {
-            if (++scopeDepth == 1)
-            {
-                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "scopes");
-                cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, ushort.MaxValue);
-                indexArrayLength = cursor - 2;
-            }
-
-            cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
-            int indexMapSizeScope = cursor - 2;
-            ushort keysCount = 0;
-
-            foreach (KeyValuePair<string, object> scopeItem in scope)
-            {
-                string key = "scope";
-                if (!string.IsNullOrEmpty(scopeItem.Key))
-                {
-                    key = scopeItem.Key;
-                }
-
-                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, key);
-                cursor = MessagePackSerializer.Serialize(buffer, cursor, scopeItem.Value);
-                keysCount++;
-            }
-
-            MessagePackSerializer.WriteUInt16(buffer, indexMapSizeScope, keysCount);
-        }
-
-        if (scopeDepth > 0)
-        {
-            MessagePackSerializer.WriteUInt16(buffer, indexArrayLength, scopeDepth);
             cntFields += 1;
         }
 
