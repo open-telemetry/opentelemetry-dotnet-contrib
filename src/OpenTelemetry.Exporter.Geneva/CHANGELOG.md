@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.4.0.beta.1
+
+Released 2022-Jul-29
+
+* Add support for exporting `ILogger` scopes.
+[545](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/545)
+
 ## 1.3.0
 
 Released 2022-Jul-28
