@@ -95,7 +95,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// <param name="tracerProvider">TracerProvider passed in.</param>
         /// <param name="lambdaHandler">Lambda handler function passed in.</param>
         /// <param name="input">Instance of input.</param>
-        /// <param name="context">Instance of lambda context.</param>
+        /// <param name="context">Lambda context (optional, but strongly recommended).</param>
         /// <param name="parentContext">
         /// The optional parent context <see cref="ActivityContext"/> is used for Activity object creation.
         /// If no parent context provided, incoming request is used to extract one.
