@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using OpenTelemetry.Context.Propagation;
@@ -161,9 +162,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             var items = functionArn.Split(':');
             if (items.Length >= 8)
             {
-                var result = new string[7];
-                Array.Copy(items, result, 7);
-                faasId = string.Join(":", result);
+                faasId = string.Join(":", items.Take(7));
             }
 
             return faasId;
