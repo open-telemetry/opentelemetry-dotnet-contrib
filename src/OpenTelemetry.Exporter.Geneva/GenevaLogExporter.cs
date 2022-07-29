@@ -132,7 +132,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             this.m_customFields = customFields;
         }
 
-        _ = MessagePackSerializer.Serialize(m_bufferEpilogue, 0, new Dictionary<string, object> { { "TimeFormat", "DateTime" } });
+        _ = MessagePackSerializer.Serialize(s_bufferEpilogue, 0, new Dictionary<string, object> { { "TimeFormat", "DateTime" } });
 
         var buffer = new byte[BUFFER_SIZE];
         m_buffer.Value = buffer;
@@ -421,8 +421,8 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         }
 
         MessagePackSerializer.WriteUInt16(buffer, idxMapSizePatch, cntFields);
-        Buffer.BlockCopy(m_bufferEpilogue, 0, buffer, cursor, m_bufferEpilogue.Length);
-        cursor += m_bufferEpilogue.Length;
+        Buffer.BlockCopy(s_bufferEpilogue, 0, buffer, cursor, s_bufferEpilogue.Length);
+        cursor += s_bufferEpilogue.Length;
         return cursor;
     }
 

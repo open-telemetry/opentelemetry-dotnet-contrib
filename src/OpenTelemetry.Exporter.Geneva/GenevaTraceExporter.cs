@@ -149,7 +149,7 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
         this.bufferPrologueLength = cursor;
         this.m_buffer.Value = buffer;
 
-        _ = MessagePackSerializer.Serialize(m_bufferEpilogue, 0, new Dictionary<string, object> { { "TimeFormat", "DateTime" } });
+        _ = MessagePackSerializer.Serialize(s_bufferEpilogue, 0, new Dictionary<string, object> { { "TimeFormat", "DateTime" } });
     }
 
     public override ExportResult Export(in Batch<Activity> batch)
@@ -399,8 +399,8 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 
         MessagePackSerializer.WriteUInt16(buffer, this.m_idxMapSizePatch, cntFields);
 
-        Buffer.BlockCopy(m_bufferEpilogue, 0, buffer, cursor, m_bufferEpilogue.Length);
-        cursor += m_bufferEpilogue.Length;
+        Buffer.BlockCopy(s_bufferEpilogue, 0, buffer, cursor, s_bufferEpilogue.Length);
+        cursor += s_bufferEpilogue.Length;
 
         return cursor;
     }
@@ -411,7 +411,7 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 
     private readonly int bufferPrologueLength;
 
-    private static readonly byte[] m_bufferEpilogue = new byte[25]; // This size was determined by precomputing the number of bytes required to serialize the epilogue.
+    private static readonly byte[] s_bufferEpilogue = new byte[25]; // This size was determined by precomputing the number of bytes required to serialize the epilogue.
 
     private readonly ushort m_cntPrepopulatedFields;
 
