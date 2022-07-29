@@ -1,12 +1,11 @@
-# Changelog - OpenTelemetry.Extensions.Docker
+# Changelog
 
-This is the first release for the `OpenTelemetry.Extensions.Docker` project.
-The release targets
-[OpenTelemetry.Extensions.Docker](https://www.nuget.org/packages/OpenTelemetry.Extensions.Docker/).
-The project targets 1.2.0 of the [OpenTelemetry
-SDK](https://www.nuget.org/packages/OpenTelemetry/).
+## Unreleased
 
-The Docker extensions include plugin to extract resource detectors
-from docker environment (container id). For more details,
-please refer to the
-[README](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/src/OpenTelemetry.Extensions.Docker/README.md)
+## 1.0.0-beta.1
+
+* Targets 1.2.0 of the OpenTelemetry-SDK, net6.0 build added.
+[432](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/432)
+
+* Initial release of `OpenTelemetry.Extensions.Docker` project
+[206](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/206)
