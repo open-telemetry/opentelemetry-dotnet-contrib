@@ -24,7 +24,7 @@
     -->
     <MinVerPkgVer>[2.4.0,3.0)</MinVerPkgVer>
     <MicrosoftCodeAnalysisNetAnalyzersPkgVer>[6.0.0]</MicrosoftCodeAnalysisNetAnalyzersPkgVer>
-    <MicrosoftCodeCoveragePkgVer>[16.7.1]</MicrosoftCodeCoveragePkgVer>
+    <MicrosoftCodeCoveragePkgVer>[16.11.0]</MicrosoftCodeCoveragePkgVer>
     <MicrosoftExtensionsHostingAbstractionsPkgVer>[2.1.0,5.0)</MicrosoftExtensionsHostingAbstractionsPkgVer>
     <MicrosoftExtensionsOptionsPkgVer>[3.1.0,)</MicrosoftExtensionsOptionsPkgVer>
     <MicrosoftNETFrameworkReferenceAssembliesPkgVer>[1.0.0,2.0)</MicrosoftNETFrameworkReferenceAssembliesPkgVer>
