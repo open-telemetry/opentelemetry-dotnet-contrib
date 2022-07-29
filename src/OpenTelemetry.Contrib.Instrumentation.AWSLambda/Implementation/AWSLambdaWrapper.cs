@@ -200,7 +200,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             }
 
             var tags = AWSLambdaUtils.GetFunctionTags(input, context);
-            var activityName = AWSLambdaUtils.GetFunctionName(context) ?? "<Unknown>";
+            var activityName = AWSLambdaUtils.GetFunctionName(context) ?? "AWS Lambda Invoke";
             var activity = AWSLambdaActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext, tags);
 
             return activity;
