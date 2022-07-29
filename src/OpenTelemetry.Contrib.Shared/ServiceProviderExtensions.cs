@@ -18,30 +18,29 @@
 using Microsoft.Extensions.Options;
 #endif
 
-namespace System
+namespace System;
+
+/// <summary>
+/// Extension methods for OpenTelemetry dependency injection support.
+/// </summary>
+internal static class ServiceProviderExtensions
 {
     /// <summary>
-    /// Extension methods for OpenTelemetry dependency injection support.
+    /// Get options from the supplied <see cref="IServiceProvider"/>.
     /// </summary>
-    internal static class ServiceProviderExtensions
+    /// <typeparam name="T">Options type.</typeparam>
+    /// <param name="serviceProvider"><see cref="IServiceProvider"/>.</param>
+    /// <returns>Options instance.</returns>
+    public static T GetOptions<T>(this IServiceProvider serviceProvider)
+        where T : class, new()
     {
-        /// <summary>
-        /// Get options from the supplied <see cref="IServiceProvider"/>.
-        /// </summary>
-        /// <typeparam name="T">Options type.</typeparam>
-        /// <param name="serviceProvider"><see cref="IServiceProvider"/>.</param>
-        /// <returns>Options instance.</returns>
-        public static T GetOptions<T>(this IServiceProvider serviceProvider)
-            where T : class, new()
-        {
 #if NETFRAMEWORK || NETSTANDARD2_0_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-            IOptions<T> options = (IOptions<T>)serviceProvider.GetService(typeof(IOptions<T>));
+        IOptions<T> options = (IOptions<T>)serviceProvider.GetService(typeof(IOptions<T>));
 
-            // Note: options could be null if user never invoked services.AddOptions().
-            return options?.Value ?? new T();
+        // Note: options could be null if user never invoked services.AddOptions().
+        return options?.Value ?? new T();
 #else
-            return new T();
+        return new T();
 #endif
-        }
     }
 }
