@@ -146,13 +146,10 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
             this.m_cntPrepopulatedFields += 1;
         }
 
-        this.m_bufferPrologue = new byte[cursor - 0];
-        Buffer.BlockCopy(buffer, 0, this.m_bufferPrologue, 0, cursor - 0);
+        this.bufferPrologueLength = cursor;
+        this.m_buffer.Value = buffer;
 
-        cursor = MessagePackSerializer.Serialize(buffer, 0, new Dictionary<string, object> { { "TimeFormat", "DateTime" } });
-
-        this.m_bufferEpilogue = new byte[cursor - 0];
-        Buffer.BlockCopy(buffer, 0, this.m_bufferEpilogue, 0, cursor - 0);
+        _ = MessagePackSerializer.Serialize(m_bufferEpilogue, 0, new Dictionary<string, object> { { "TimeFormat", "DateTime" } });
     }
 
     public override ExportResult Export(in Batch<Activity> batch)
@@ -216,14 +213,8 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
     internal int SerializeActivity(Activity activity)
     {
         var buffer = this.m_buffer.Value;
-        if (buffer == null)
-        {
-            buffer = new byte[BUFFER_SIZE]; // TODO: handle OOM
-            Buffer.BlockCopy(this.m_bufferPrologue, 0, buffer, 0, this.m_bufferPrologue.Length);
-            this.m_buffer.Value = buffer;
-        }
 
-        var cursor = this.m_bufferPrologue.Length;
+        var cursor = this.bufferPrologueLength;
         var cntFields = this.m_cntPrepopulatedFields;
         var dtBegin = activity.StartTimeUtc;
         var tsBegin = dtBegin.Ticks;
@@ -408,19 +399,19 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 
         MessagePackSerializer.WriteUInt16(buffer, this.m_idxMapSizePatch, cntFields);
 
-        Buffer.BlockCopy(this.m_bufferEpilogue, 0, buffer, cursor, this.m_bufferEpilogue.Length);
-        cursor += this.m_bufferEpilogue.Length;
+        Buffer.BlockCopy(m_bufferEpilogue, 0, buffer, cursor, m_bufferEpilogue.Length);
+        cursor += m_bufferEpilogue.Length;
 
         return cursor;
     }
 
     private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
 
-    private readonly ThreadLocal<byte[]> m_buffer = new ThreadLocal<byte[]>(() => null);
+    private readonly ThreadLocal<byte[]> m_buffer = new ThreadLocal<byte[]>();
 
-    private readonly byte[] m_bufferPrologue;
+    private readonly int bufferPrologueLength;
 
-    private readonly byte[] m_bufferEpilogue;
+    private static readonly byte[] m_bufferEpilogue = new byte[25]; // This size was determined by precomputing the number of bytes required to serialize the epilogue.
 
     private readonly ushort m_cntPrepopulatedFields;
 

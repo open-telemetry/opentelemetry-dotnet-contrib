@@ -36,8 +36,8 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
     private readonly string m_defaultEventName = "Log";
     private readonly IReadOnlyDictionary<string, object> m_prepopulatedFields;
     private readonly List<string> m_prepopulatedFieldKeys;
-    private static readonly ThreadLocal<byte[]> m_buffer = new ThreadLocal<byte[]>(() => null);
-    private readonly byte[] m_bufferEpilogue;
+    private static readonly ThreadLocal<byte[]> m_buffer = new ThreadLocal<byte[]>();
+    private static readonly byte[] m_bufferEpilogue = new byte[25]; // This size was determined by precomputing the number of bytes required to serialize the epilogue.
     private static readonly string[] logLevels = new string[7]
     {
         "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None",
@@ -132,10 +132,10 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             this.m_customFields = customFields;
         }
 
+        _ = MessagePackSerializer.Serialize(m_bufferEpilogue, 0, new Dictionary<string, object> { { "TimeFormat", "DateTime" } });
+
         var buffer = new byte[BUFFER_SIZE];
-        var cursor = MessagePackSerializer.Serialize(buffer, 0, new Dictionary<string, object> { { "TimeFormat", "DateTime" } });
-        this.m_bufferEpilogue = new byte[cursor - 0];
-        Buffer.BlockCopy(buffer, 0, this.m_bufferEpilogue, 0, cursor - 0);
+        m_buffer.Value = buffer;
     }
 
     private readonly IReadOnlyDictionary<string, string> m_tableMappings;
@@ -206,11 +206,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         }
 
         var buffer = m_buffer.Value;
-        if (buffer == null)
-        {
-            buffer = new byte[BUFFER_SIZE]; // TODO: handle OOM
-            m_buffer.Value = buffer;
-        }
 
         /* Fluentd Forward Mode:
         [
@@ -426,8 +421,8 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         }
 
         MessagePackSerializer.WriteUInt16(buffer, idxMapSizePatch, cntFields);
-        Buffer.BlockCopy(this.m_bufferEpilogue, 0, buffer, cursor, this.m_bufferEpilogue.Length);
-        cursor += this.m_bufferEpilogue.Length;
+        Buffer.BlockCopy(m_bufferEpilogue, 0, buffer, cursor, m_bufferEpilogue.Length);
+        cursor += m_bufferEpilogue.Length;
         return cursor;
     }
 
