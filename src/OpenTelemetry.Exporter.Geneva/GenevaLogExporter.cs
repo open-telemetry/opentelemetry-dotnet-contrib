@@ -37,7 +37,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
     private readonly IReadOnlyDictionary<string, object> m_prepopulatedFields;
     private readonly List<string> m_prepopulatedFieldKeys;
     private static readonly ThreadLocal<byte[]> m_buffer = new ThreadLocal<byte[]>();
-    private static readonly byte[] m_bufferEpilogue = new byte[25]; // This size was determined by precomputing the number of bytes required to serialize the epilogue.
+    private static readonly byte[] s_bufferEpilogue = new byte[25]; // This size was determined by precomputing the number of bytes required to serialize the epilogue.
     private static readonly string[] logLevels = new string[7]
     {
         "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None",
