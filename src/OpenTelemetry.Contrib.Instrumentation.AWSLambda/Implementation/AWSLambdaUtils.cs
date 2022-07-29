@@ -157,7 +157,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             var faasId = functionArn;
 
             // According to faas.id description https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/instrumentation/aws-lambda.md#all-triggers
-            // the 8th part of arn (version, see https://docs.aws.amazon.com/lambda/latest/dg/configuration-versions.html#versioning-versions-using)
+            // the 8th part of arn (function version or alias, see https://docs.aws.amazon.com/lambda/latest/dg/lambda-api-permissions-ref.html)
             // should not be included into faas.id
             var items = functionArn.Split(':');
             if (items.Length >= 8)
@@ -209,7 +209,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
                 request.Headers.TryGetValue(name, out var header))
             {
                 // Multiple values for the same header will be separated by a comma.
-                return header.Split(',');
+                return header?.Split(',');
             }
 
             return null;
