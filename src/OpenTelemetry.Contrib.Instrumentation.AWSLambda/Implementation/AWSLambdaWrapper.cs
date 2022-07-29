@@ -175,7 +175,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// The optional parent context <see cref="ActivityContext"/> is used for Activity object creation.
         /// If no parent context provided, incoming request is used to extract one.
         /// If parent is not extracted from incoming request then X-Ray propagation is used to extract one
-        /// unless X-Ray propagation is disabled in the configuration for this wrapper.
+        /// unless X-Ray propagation is disabled in the configuration.
         /// </param>
         /// <returns>Task.</returns>
         public static Task Trace(
