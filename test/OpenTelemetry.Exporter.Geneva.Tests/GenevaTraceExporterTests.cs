@@ -414,7 +414,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                         })
                         .Build();
                     using Socket serverSocket = server.Accept();
-                    serverSocket.ReceiveTimeout = 10000;
 
                     // Create a test exporter to get MessagePack byte data for validation of the data received via Socket.
                     var exporter = new GenevaTraceExporter(new GenevaExporterOptions
@@ -431,7 +430,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                     // Emit trace and grab a copy of internal buffer for validation.
                     var source = new ActivitySource(sourceName);
                     int messagePackDataSize;
-
                     using (var activity = source.StartActivity("Foo", ActivityKind.Internal))
                     {
                         messagePackDataSize = exporter.SerializeActivity(activity);
