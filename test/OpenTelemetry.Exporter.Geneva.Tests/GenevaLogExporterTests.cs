@@ -24,6 +24,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 using Xunit;
@@ -857,7 +858,11 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                     // Emit a LogRecord and grab a copy of internal buffer for validation.
                     var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
 
-                    logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+                    // Emit log on a different thread to test for multithreading scenarios
+                    Task.Run(() =>
+                    {
+                        logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+                    });
 
                     // logRecordList should have a singleLogRecord entry after the logger.LogInformation call
                     Assert.Single(logRecordList);
