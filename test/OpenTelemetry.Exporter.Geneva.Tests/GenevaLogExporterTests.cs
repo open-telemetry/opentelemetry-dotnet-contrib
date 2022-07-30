@@ -876,10 +876,12 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                     logRecordList.Clear();
 
                     // Emit log on a different thread to test for multithreading scenarios
-                    Task.Run(() =>
+                    var thread = new Thread(() =>
                     {
                         logger.LogInformation("Hello from another thread {food} {price}.", "artichoke", 3.99);
-                    }).Wait();
+                    });
+                    thread.Start();
+                    thread.Join();
 
                     // logRecordList should have a singleLogRecord entry after the logger.LogInformation call
                     Assert.Single(logRecordList);

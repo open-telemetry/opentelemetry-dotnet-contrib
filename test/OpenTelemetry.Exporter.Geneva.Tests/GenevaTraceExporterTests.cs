@@ -445,13 +445,15 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                     Assert.Equal(messagePackDataSize, receivedDataSize);
 
                     // Create activity on a different thread to test for multithreading scenarios
-                    Task.Run(() =>
+                    var thread = new Thread(() =>
                     {
                         using (var activity = source.StartActivity("ActivityFromAnotherThread", ActivityKind.Internal))
                         {
                             messagePackDataSize = exporter.SerializeActivity(activity);
                         }
-                    }).Wait();
+                    });
+                    thread.Start();
+                    thread.Join();
 
                     receivedDataSize = serverSocket.Receive(receivedData);
                     Assert.Equal(messagePackDataSize, receivedDataSize);
