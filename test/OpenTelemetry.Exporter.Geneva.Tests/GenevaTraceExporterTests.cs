@@ -24,6 +24,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -414,6 +415,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                         })
                         .Build();
                     using Socket serverSocket = server.Accept();
+                    serverSocket.ReceiveTimeout = 10000;
 
                     // Create a test exporter to get MessagePack byte data for validation of the data received via Socket.
                     var exporter = new GenevaTraceExporter(new GenevaExporterOptions
@@ -429,7 +431,8 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
 
                     // Emit trace and grab a copy of internal buffer for validation.
                     var source = new ActivitySource(sourceName);
-                    int messagePackDataSize;
+                    int messagePackDataSize = 0;
+
                     using (var activity = source.StartActivity("Foo", ActivityKind.Internal))
                     {
                         messagePackDataSize = exporter.SerializeActivity(activity);
@@ -440,6 +443,20 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                     int receivedDataSize = serverSocket.Receive(receivedData);
 
                     // Validation
+                    Assert.Equal(messagePackDataSize, receivedDataSize);
+
+                    // Create activity on a different thread to test for multithreading scenarios
+                    var thread = new Thread(() =>
+                    {
+                        using (var activity = source.StartActivity("ActivityFromAnotherThread", ActivityKind.Internal))
+                        {
+                            messagePackDataSize = exporter.SerializeActivity(activity);
+                        }
+                    });
+                    thread.Start();
+                    thread.Join();
+
+                    receivedDataSize = serverSocket.Receive(receivedData);
                     Assert.Equal(messagePackDataSize, receivedDataSize);
                 }
                 catch (Exception)
