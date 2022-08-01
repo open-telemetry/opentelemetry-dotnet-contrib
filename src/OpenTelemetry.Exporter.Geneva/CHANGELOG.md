@@ -4,6 +4,8 @@
 
 ## 1.4.0-beta.1
 
+Released 2022-Aug-01
+
 ## 1.3.1-alpha.0.5 (unlisted due to incorrect version)
 
 Released 2022-Jul-29
