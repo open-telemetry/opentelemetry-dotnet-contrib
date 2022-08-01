@@ -4,6 +4,7 @@
     <Description>dotnet runtime instrumentation for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);runtime</PackageTags>
     <MinVerTagPrefix>Instrumentation.Runtime-</MinVerTagPrefix>
+    <EnablePublicApi>true</EnablePublicApi>
   </PropertyGroup>
 
   <ItemGroup>
