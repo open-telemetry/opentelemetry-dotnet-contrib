@@ -1,4 +1,4 @@
-// <copyright file="RuntimeInstrumentOptionsTests.cs" company="OpenTelemetry Authors">
+// <copyright file="RuntimeInstrumentationOptionsTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,11 +14,9 @@
 // limitations under the License.
 // </copyright>
 
-using Xunit;
-
 namespace OpenTelemetry.Instrumentation.Runtime.Tests
 {
-    public class RuntimeInstrumentOptionsTests
+    public class RuntimeInstrumentationOptionsTests
     {
         /*
                 [Fact]
