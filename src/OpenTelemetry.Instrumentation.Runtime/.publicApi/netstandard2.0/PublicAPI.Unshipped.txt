@@ -1,1 +1,2 @@
+OpenTelemetry.Metrics.MeterProviderBuilderExtensions
 static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddRuntimeInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder builder, System.Action<OpenTelemetry.Instrumentation.Runtime.RuntimeInstrumentOptions> configure = null) -> OpenTelemetry.Metrics.MeterProviderBuilder
