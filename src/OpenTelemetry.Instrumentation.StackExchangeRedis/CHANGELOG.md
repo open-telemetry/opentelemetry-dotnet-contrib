@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Remove Microsoft.Extensions.Options from OpenTelemetry.Instrumentation.StackExchangeRedis.csproj
 
 ## 1.0.0-rc9.7
 
