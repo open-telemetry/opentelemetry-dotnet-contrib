@@ -41,11 +41,6 @@ public class Program
             })
             .Build();
 
-        var keyValuePairs = new List<KeyValuePair<string, object>>();
-        keyValuePairs.Add(new("first", 1));
-        keyValuePairs.Add(new("second", new double[] { 1.1, 2.5, 3.4 }));
-        keyValuePairs.Add(new("third", DateTime.UtcNow));
-
         var linkedTraceId = ActivityTraceId.CreateFromString("e8ea7e9ac72de94e91fabc613f9686b2".AsSpan());
         var linkedSpanId = ActivitySpanId.CreateFromString("888915b6286b9c41".AsSpan());
 
@@ -64,7 +59,6 @@ public class Program
         activity?.SetTag("foo", 1);
         activity?.SetTag("bar", 2);
         activity?.SetTag("baz", new int[] { 1, 2, 3 });
-        activity?.SetTag("keyValuePairs", keyValuePairs);
 
         using var activityWithLinks = Source.StartActivity(
                 "ActivityWithLinks",

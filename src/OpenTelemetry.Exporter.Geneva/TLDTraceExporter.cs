@@ -345,9 +345,12 @@ namespace OpenTelemetry.Exporter.Geneva
                     }
                 }
 
-                eb.AddCountedString("env_properties", JsonSerializer.SerializeMap(keyValuePairs));
+                var serializedEnvProperties = JsonSerializer.SerializeMap(keyValuePairs);
+                eb.AddCountedString("env_properties", serializedEnvProperties, 0, Math.Min(serializedEnvProperties.Length, StringLengthLimit));
             }
         }
+
+        private const int StringLengthLimit = (1 << 14) - 1; // 16 * 1024 - 1 = 16383
 
         private readonly string partAName = "Span";
 
@@ -441,13 +444,10 @@ namespace OpenTelemetry.Exporter.Geneva
                     eb.AddFloat64(key, vd);
                     break;
                 case string vs:
-                    eb.AddCountedString(key, vs);
+                    eb.AddCountedString(key, vs, 0, Math.Min(vs.Length, StringLengthLimit));
                     break;
                 case DateTime vdt:
                     eb.AddFileTime(key, vdt, EventOutType.DateTimeUtc);
-                    break;
-                case IEnumerable<KeyValuePair<string, object>> vmap:
-                    eb.AddCountedString(key, JsonSerializer.SerializeMap(vmap));
                     break;
 
                 // TODO: case bool[]
@@ -499,7 +499,7 @@ namespace OpenTelemetry.Exporter.Geneva
                         repr = $"ERROR: type {value.GetType().FullName} is not supported";
                     }
 
-                    eb.AddCountedString(key, repr);
+                    eb.AddCountedString(key, repr, 0, Math.Min(repr.Length, StringLengthLimit));
                     break;
             }
         }
