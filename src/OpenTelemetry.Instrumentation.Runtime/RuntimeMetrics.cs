@@ -219,7 +219,7 @@ namespace OpenTelemetry.Instrumentation.Runtime
         /// Initializes a new instance of the <see cref="RuntimeMetrics"/> class.
         /// </summary>
         /// <param name="options">The options to define the metrics.</param>
-        public RuntimeMetrics(RuntimeInstrumentOptions options)
+        public RuntimeMetrics(RuntimeInstrumentationOptions options)
         {
         }
 
