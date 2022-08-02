@@ -317,15 +317,6 @@ Relevant API:
   Occurs when an exception is thrown in managed code, before the runtime searches
   the call stack for an exception handler in the application domain.
 
-## Troubleshooting
-
-This component uses an
-[EventSource](https://docs.microsoft.com/dotnet/api/system.diagnostics.tracing.eventsource)
-with the name "OpenTelemetry-Instrumentation-Runtime" for its internal
-logging. Please refer to [SDK
-troubleshooting](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/src/OpenTelemetry#troubleshooting)
-for instructions on seeing these internal logs.
-
 ## References
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
