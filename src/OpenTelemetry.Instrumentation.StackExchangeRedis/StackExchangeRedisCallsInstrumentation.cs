@@ -25,127 +25,127 @@ using OpenTelemetry.Trace;
 using StackExchange.Redis;
 using StackExchange.Redis.Profiling;
 
-namespace OpenTelemetry.Instrumentation.StackExchangeRedis
+namespace OpenTelemetry.Instrumentation.StackExchangeRedis;
+
+/// <summary>
+/// Redis calls instrumentation.
+/// </summary>
+internal class StackExchangeRedisCallsInstrumentation : IDisposable
 {
-    /// <summary>
-    /// Redis calls instrumentation.
-    /// </summary>
-    internal class StackExchangeRedisCallsInstrumentation : IDisposable
+    internal const string RedisDatabaseIndexKeyName = "db.redis.database_index";
+    internal const string RedisFlagsKeyName = "db.redis.flags";
+    internal static readonly string ActivitySourceName = typeof(StackExchangeRedisCallsInstrumentation).Assembly.GetName().Name;
+    internal static readonly string ActivityName = ActivitySourceName + ".Execute";
+    internal static readonly Version Version = typeof(StackExchangeRedisCallsInstrumentation).Assembly.GetName().Version;
+    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version.ToString());
+    internal static readonly IEnumerable<KeyValuePair<string, object>> CreationTags = new[]
     {
-        internal const string RedisDatabaseIndexKeyName = "db.redis.database_index";
-        internal const string RedisFlagsKeyName = "db.redis.flags";
-        internal static readonly string ActivitySourceName = typeof(StackExchangeRedisCallsInstrumentation).Assembly.GetName().Name;
-        internal static readonly string ActivityName = ActivitySourceName + ".Execute";
-        internal static readonly Version Version = typeof(StackExchangeRedisCallsInstrumentation).Assembly.GetName().Version;
-        internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version.ToString());
-        internal static readonly IEnumerable<KeyValuePair<string, object>> CreationTags = new[]
+        new KeyValuePair<string, object>(SemanticConventions.AttributeDbSystem, "redis"),
+    };
+
+    internal readonly ConcurrentDictionary<(ActivityTraceId TraceId, ActivitySpanId SpanId), (Activity Activity, ProfilingSession Session)> Cache
+        = new();
+
+    private readonly StackExchangeRedisCallsInstrumentationOptions options;
+    private readonly EventWaitHandle stopHandle = new(false, EventResetMode.ManualReset);
+    private readonly Thread drainThread;
+
+    private readonly ProfilingSession defaultSession = new();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StackExchangeRedisCallsInstrumentation"/> class.
+    /// </summary>
+    /// <param name="connection"><see cref="IConnectionMultiplexer"/> to instrument.</param>
+    /// <param name="options">Configuration options for redis instrumentation.</param>
+    public StackExchangeRedisCallsInstrumentation(IConnectionMultiplexer connection, StackExchangeRedisCallsInstrumentationOptions options)
+    {
+        Guard.ThrowIfNull(connection);
+
+        this.options = options ?? new StackExchangeRedisCallsInstrumentationOptions();
+
+        this.drainThread = new Thread(this.DrainEntries)
         {
-            new KeyValuePair<string, object>(SemanticConventions.AttributeDbSystem, "redis"),
+            Name = "OpenTelemetry.Redis",
+            IsBackground = true,
         };
+        this.drainThread.Start();
 
-        internal readonly ConcurrentDictionary<(ActivityTraceId TraceId, ActivitySpanId SpanId), (Activity Activity, ProfilingSession Session)> Cache
-            = new();
+        connection.RegisterProfiler(this.GetProfilerSessionsFactory());
+    }
 
-        private readonly StackExchangeRedisCallsInstrumentationOptions options;
-        private readonly EventWaitHandle stopHandle = new(false, EventResetMode.ManualReset);
-        private readonly Thread drainThread;
-
-        private readonly ProfilingSession defaultSession = new();
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="StackExchangeRedisCallsInstrumentation"/> class.
-        /// </summary>
-        /// <param name="connection"><see cref="IConnectionMultiplexer"/> to instrument.</param>
-        /// <param name="options">Configuration options for redis instrumentation.</param>
-        public StackExchangeRedisCallsInstrumentation(IConnectionMultiplexer connection, StackExchangeRedisCallsInstrumentationOptions options)
+    /// <summary>
+    /// Returns session for the Redis calls recording.
+    /// </summary>
+    /// <returns>Session associated with the current span context to record Redis calls.</returns>
+    public Func<ProfilingSession> GetProfilerSessionsFactory()
+    {
+        return () =>
         {
-            Guard.ThrowIfNull(connection);
-
-            this.options = options ?? new StackExchangeRedisCallsInstrumentationOptions();
-
-            this.drainThread = new Thread(this.DrainEntries)
+            if (this.stopHandle.WaitOne(0))
             {
-                Name = "OpenTelemetry.Redis",
-            };
-            this.drainThread.Start();
+                return null;
+            }
 
-            connection.RegisterProfiler(this.GetProfilerSessionsFactory());
-        }
+            Activity parent = Activity.Current;
 
-        /// <summary>
-        /// Returns session for the Redis calls recording.
-        /// </summary>
-        /// <returns>Session associated with the current span context to record Redis calls.</returns>
-        public Func<ProfilingSession> GetProfilerSessionsFactory()
-        {
-            return () =>
+            // If no parent use the default session.
+            if (parent == null || parent.IdFormat != ActivityIdFormat.W3C)
             {
-                if (this.stopHandle.WaitOne(0))
-                {
-                    return null;
-                }
+                return this.defaultSession;
+            }
 
-                Activity parent = Activity.Current;
+            // Try to reuse a session for all activities created under the same TraceId+SpanId.
+            var cacheKey = (parent.TraceId, parent.SpanId);
+            if (!this.Cache.TryGetValue(cacheKey, out var session))
+            {
+                session = (parent, new ProfilingSession());
+                this.Cache.TryAdd(cacheKey, session);
+            }
 
-                // If no parent use the default session.
-                if (parent == null || parent.IdFormat != ActivityIdFormat.W3C)
-                {
-                    return this.defaultSession;
-                }
+            return session.Session;
+        };
+    }
 
-                // Try to reuse a session for all activities created under the same TraceId+SpanId.
-                var cacheKey = (parent.TraceId, parent.SpanId);
-                if (!this.Cache.TryGetValue(cacheKey, out var session))
-                {
-                    session = (parent, new ProfilingSession());
-                    this.Cache.TryAdd(cacheKey, session);
-                }
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.stopHandle.Set();
+        this.drainThread.Join();
 
-                return session.Session;
-            };
-        }
+        this.Flush();
 
-        /// <inheritdoc/>
-        public void Dispose()
+        this.stopHandle.Dispose();
+    }
+
+    internal void Flush()
+    {
+        RedisProfilerEntryToActivityConverter.DrainSession(null, this.defaultSession.FinishProfiling(), this.options);
+
+        foreach (var entry in this.Cache)
         {
-            this.stopHandle.Set();
-            this.drainThread.Join();
+            var parent = entry.Value.Activity;
+            if (parent.Duration == TimeSpan.Zero)
+            {
+                // Activity is still running, don't drain.
+                continue;
+            }
+
+            ProfilingSession session = entry.Value.Session;
+            RedisProfilerEntryToActivityConverter.DrainSession(parent, session.FinishProfiling(), this.options);
+            this.Cache.TryRemove((entry.Key.TraceId, entry.Key.SpanId), out _);
+        }
+    }
+
+    private void DrainEntries(object state)
+    {
+        while (true)
+        {
+            if (this.stopHandle.WaitOne(this.options.FlushInterval))
+            {
+                break;
+            }
 
             this.Flush();
-
-            this.stopHandle.Dispose();
-        }
-
-        internal void Flush()
-        {
-            RedisProfilerEntryToActivityConverter.DrainSession(null, this.defaultSession.FinishProfiling(), this.options);
-
-            foreach (var entry in this.Cache)
-            {
-                var parent = entry.Value.Activity;
-                if (parent.Duration == TimeSpan.Zero)
-                {
-                    // Activity is still running, don't drain.
-                    continue;
-                }
-
-                ProfilingSession session = entry.Value.Session;
-                RedisProfilerEntryToActivityConverter.DrainSession(parent, session.FinishProfiling(), this.options);
-                this.Cache.TryRemove((entry.Key.TraceId, entry.Key.SpanId), out _);
-            }
-        }
-
-        private void DrainEntries(object state)
-        {
-            while (true)
-            {
-                if (this.stopHandle.WaitOne(this.options.FlushInterval))
-                {
-                    break;
-                }
-
-                this.Flush();
-            }
         }
     }
 }

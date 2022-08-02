@@ -24,6 +24,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -53,6 +54,60 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                     ConnectionString = null,
                 });
             });
+
+            // null value in the PrepopulatedFields
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
+                {
+                    ConnectionString = "EtwSession=OpenTelemetry",
+                    PrepopulatedFields = new Dictionary<string, object>
+                    {
+                        ["cloud.roleVer"] = null,
+                    },
+                });
+            });
+
+            // unsupported types(char) for PrepopulatedFields
+            Assert.Throws<ArgumentException>(() =>
+            {
+                using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
+                {
+                    ConnectionString = "EtwSession=OpenTelemetry",
+                    PrepopulatedFields = new Dictionary<string, object>
+                    {
+                        ["cloud.role"] = "BusyWorker",
+                        ["cloud.roleInstance"] = "CY1SCH030021417",
+                        ["cloud.roleVer"] = (char)106,
+                    },
+                });
+            });
+
+            // Supported types for PrepopulatedFields should not throw an exception
+            var exception = Record.Exception(() =>
+            {
+                new GenevaExporterOptions
+                {
+                    ConnectionString = "EtwSession=OpenTelemetry",
+                    PrepopulatedFields = new Dictionary<string, object>
+                    {
+                        ["bool"] = true,
+                        ["byte"] = byte.MaxValue,
+                        ["sbyte"] = sbyte.MaxValue,
+                        ["short"] = short.MaxValue,
+                        ["ushort"] = ushort.MaxValue,
+                        ["int"] = int.MaxValue,
+                        ["uint"] = uint.MaxValue,
+                        ["long"] = long.MaxValue,
+                        ["ulong"] = ulong.MaxValue,
+                        ["float"] = float.MaxValue,
+                        ["double"] = double.MaxValue,
+                        ["string"] = string.Empty,
+                    },
+                };
+            });
+
+            Assert.Null(exception);
         }
 
         [Fact]
@@ -360,6 +415,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                         })
                         .Build();
                     using Socket serverSocket = server.Accept();
+                    serverSocket.ReceiveTimeout = 10000;
 
                     // Create a test exporter to get MessagePack byte data for validation of the data received via Socket.
                     var exporter = new GenevaTraceExporter(new GenevaExporterOptions
@@ -375,7 +431,8 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
 
                     // Emit trace and grab a copy of internal buffer for validation.
                     var source = new ActivitySource(sourceName);
-                    int messagePackDataSize;
+                    int messagePackDataSize = 0;
+
                     using (var activity = source.StartActivity("Foo", ActivityKind.Internal))
                     {
                         messagePackDataSize = exporter.SerializeActivity(activity);
@@ -386,6 +443,20 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                     int receivedDataSize = serverSocket.Receive(receivedData);
 
                     // Validation
+                    Assert.Equal(messagePackDataSize, receivedDataSize);
+
+                    // Create activity on a different thread to test for multithreading scenarios
+                    var thread = new Thread(() =>
+                    {
+                        using (var activity = source.StartActivity("ActivityFromAnotherThread", ActivityKind.Internal))
+                        {
+                            messagePackDataSize = exporter.SerializeActivity(activity);
+                        }
+                    });
+                    thread.Start();
+                    thread.Join();
+
+                    receivedDataSize = serverSocket.Receive(receivedData);
                     Assert.Equal(messagePackDataSize, receivedDataSize);
                 }
                 catch (Exception)
