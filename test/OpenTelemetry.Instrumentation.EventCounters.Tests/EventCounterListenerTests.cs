@@ -24,14 +24,13 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
     public class EventCounterListenerTests
     {
         private const int MaxTimeToAllowForFlush = 10000;
-        private MeterProvider meterProvider;
 
         [Fact]
         public void SystemMetricsAreCaptured()
         {
             var metricItems = new List<MetricSnapshot>();
 
-            this.meterProvider = Sdk.CreateMeterProviderBuilder()
+            using var meterProvider = Sdk.CreateMeterProviderBuilder()
                  .AddEventCounterMetrics(options =>
                  {
                      options.RefreshIntervalSecs = 1;
@@ -40,9 +39,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
                 .Build();
 
             Task.Delay(1500).Wait();
-            this.meterProvider.ForceFlush(MaxTimeToAllowForFlush);
-
-            this.meterProvider.Dispose();
+            meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
             Assert.True(metricItems.Count > 1);
         }
@@ -52,7 +49,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
         {
             const int refreshIntervalSeconds = 1;
             var metricItems = new List<MetricSnapshot>();
-            this.meterProvider = Sdk.CreateMeterProviderBuilder()
+            using var meterProvider = Sdk.CreateMeterProviderBuilder()
                  .AddEventCounterMetrics(options =>
                  {
                      options.RefreshIntervalSecs = 1;
@@ -66,9 +63,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
             // Wait a little bit over the refresh interval seconds
             Task.Delay((refreshIntervalSeconds * 1000) + 300).Wait();
 
-            this.meterProvider.ForceFlush(MaxTimeToAllowForFlush);
-
-            this.meterProvider.Dispose();
+            meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
             var counter1 = metricItems.Find(m => m.Name == "mycountername1");
             var counter2 = metricItems.Find(m => m.Name == "mycountername2");
@@ -85,7 +80,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
         {
             const int refreshIntervalSeconds = 1;
             var metricItems = new List<MetricSnapshot>();
-            this.meterProvider = Sdk.CreateMeterProviderBuilder()
+            using var meterProvider = Sdk.CreateMeterProviderBuilder()
                  .AddEventCounterMetrics(options =>
                  {
                      options.RefreshIntervalSecs = 1;
@@ -100,9 +95,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
             // Wait a little bit over the refresh interval seconds
             Task.Delay((refreshIntervalSeconds * 1000) + 300).Wait();
 
-            this.meterProvider.ForceFlush(MaxTimeToAllowForFlush);
-
-            this.meterProvider.Dispose();
+            meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
             var counter = metricItems.Find(m => m.Name == TestIncrementingEventCounter.CounterName);
             Assert.NotNull(counter);
@@ -116,7 +109,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
             var metricItems = new List<MetricSnapshot>();
             const int refreshIntervalSeconds = 1;
 
-            this.meterProvider = Sdk.CreateMeterProviderBuilder()
+            using var meterProvider = Sdk.CreateMeterProviderBuilder()
                  .AddEventCounterMetrics(options =>
                  {
                      options.RefreshIntervalSecs = refreshIntervalSeconds;
@@ -130,9 +123,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
             var duration = (refreshIntervalSeconds * 2 * 1000) + 300; // Wait for two refresh intervals to call the valueProvider twice
             Task.Delay(duration).Wait();
 
-            this.meterProvider.ForceFlush(MaxTimeToAllowForFlush);
-
-            this.meterProvider.Dispose();
+            meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
             var pollingCounter = metricItems.Find(m => m.Name == TestPollingEventCounter.CounterName);
             Assert.NotNull(pollingCounter);
@@ -148,7 +139,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
             var metricItems = new List<MetricSnapshot>();
             const int refreshIntervalSeconds = 1;
 
-            this.meterProvider = Sdk.CreateMeterProviderBuilder()
+            using var meterProvider = Sdk.CreateMeterProviderBuilder()
                  .AddEventCounterMetrics(options =>
                  {
                      options.RefreshIntervalSecs = refreshIntervalSeconds;
@@ -163,9 +154,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests
             var duration = (refreshIntervalSeconds * 2 * 1000) + 300; // Wait for two refresh intervals to call the valueProvider twice
             Task.Delay(duration).Wait();
 
-            this.meterProvider.ForceFlush(MaxTimeToAllowForFlush);
-
-            this.meterProvider.Dispose();
+            meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
             var pollingCounter = metricItems.Find(m => m.Name == TestIncrementingPollingCounter.CounterName);
             Assert.NotNull(pollingCounter);
