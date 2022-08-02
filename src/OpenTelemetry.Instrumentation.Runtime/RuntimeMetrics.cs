@@ -39,9 +39,9 @@ namespace OpenTelemetry.Instrumentation.Runtime
 #if NET6_0_OR_GREATER
         private const long NanosecondsPerTick = 100;
 #endif
+        private const int NumberOfGenerations = 3;
 
         private static readonly string[] GenNames = new string[] { "gen0", "gen1", "gen2", "loh", "poh" };
-        private static readonly int NumberOfGenerations = 3;
         private static bool isGcInfoAvailable;
         private static string metricPrefix = "process.runtime.dotnet.";
 
