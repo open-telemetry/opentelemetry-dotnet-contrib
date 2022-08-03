@@ -298,8 +298,8 @@ Relevant API:
 
 ## Troubleshooting
 
-If a metric is missing, review the doc to see if the metric is available in the
-.NET version you are running.
+If a metric is missing, review the [list of metrics](#Metrics) to see if the
+metric is available in the .NET version you are running.
 
 Some GC related metrics are unavailable until at least one garbage collection
 has occurred.
