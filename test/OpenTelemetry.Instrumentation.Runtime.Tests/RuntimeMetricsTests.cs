@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using OpenTelemetry.Metrics;
 using Xunit;
 
@@ -127,6 +128,16 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
                  .AddInMemoryExporter(exportedItems)
                 .Build();
 
+            // Bump the count for `thread_pool.completed_items.count` metric
+            int taskCount = 50;
+            List<Task> tasks = new List<Task>();
+            for (int i = 0; i < taskCount; i++)
+            {
+                tasks.Add(Task.Run(() => { Console.Write("Hi"); }));
+            }
+
+            Task.WaitAll(tasks.ToArray());
+
             meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
             var lockContentionCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.monitor.lock_contention.count");
@@ -136,7 +147,7 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests
             Assert.NotNull(threadCountMetric);
 
             var completedItemsCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.thread_pool.completed_items.count");
-            Assert.NotNull(completedItemsCountMetric);
+            Assert.True(GetValue(completedItemsCountMetric) >= taskCount);
 
             var queueLengthMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.thread_pool.queue.length");
             Assert.NotNull(queueLengthMetric);
