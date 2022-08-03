@@ -4,7 +4,7 @@
 
 ## 1.0.0
 
-Released 2022-Aug-02
+Released 2022-Aug-03
 
 * Rename `RuntimeInstrumentOptions` to `RuntimeInstrumentationOptions`
   ([#556](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/556))
