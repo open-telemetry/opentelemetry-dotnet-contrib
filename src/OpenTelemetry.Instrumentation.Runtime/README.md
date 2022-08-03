@@ -298,7 +298,7 @@ Relevant API:
 
 ## Troubleshooting
 
-If a metric is missing, review the [list of metrics](#Metrics) to see if the
+If a metric is missing, review the [list of metrics](#metrics) to see if the
 metric is available in the .NET version you are running.
 
 Some GC related metrics are unavailable until at least one garbage collection
