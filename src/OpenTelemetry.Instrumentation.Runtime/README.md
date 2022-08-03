@@ -23,7 +23,7 @@ dotnet add package OpenTelemetry.Instrumentation.Runtime
 ### Step 2: Enable runtime instrumentation
 
 Runtime instrumentation should be enabled at application startup using the
-`AddRuntimeInstrumentation` extension:
+`AddRuntimeInstrumentation` extension on `MeterProviderBuilder`:
 
 ```csharp
 using var meterProvider = Sdk.CreateMeterProviderBuilder()
