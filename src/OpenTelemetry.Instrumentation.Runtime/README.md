@@ -37,7 +37,7 @@ complete demo.
 
 Additionally, this examples sets up the OpenTelemetry Prometheus exporter, which
 requires adding the package
-[`OpenTelemetry.Exporter.Prometheus`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Prometheus/README.md)
+[`OpenTelemetry.Exporter.Prometheus`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Prometheus.AspNetCore/README.md)
 to the application.
 
 ## Metrics
