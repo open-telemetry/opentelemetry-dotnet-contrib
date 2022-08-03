@@ -22,34 +22,8 @@ dotnet add package OpenTelemetry.Instrumentation.Runtime
 
 ### Step 2: Enable runtime instrumentation
 
-Runtime instrumentation should be enabled at application startup.
-
-#### For ASP.NET Core applications
-
-The example below enables this instrumentation by using an extension method on
-`IServiceCollection`. This extension method requires adding the package
-[`OpenTelemetry.Extensions.Hosting`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Extensions.Hosting/README.md)
-to the application. This ensures the instrumentation is disposed when the host
-is shutdown.
-
-Additionally, this examples sets up the OpenTelemetry Prometheus exporter, which
-requires adding the package
-[`OpenTelemetry.Exporter.Prometheus`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Prometheus/README.md)
-to the application.
-
-```csharp
-using OpenTelemetry.Metrics;
-
-builder.Services.AddOpenTelemetryMetrics(options =>
-{
-    options.AddRuntimeInstrumentation();
-    options.AddPrometheusExporter();
-});
-```
-
-#### For general purpose applications
-
-Configure directly:
+Runtime instrumentation should be enabled at application startup using the
+`AddRuntimeInstrumentation` extension:
 
 ```csharp
 using var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -60,6 +34,11 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
 
 Refer to [Program.cs](../../examples/runtime-instrumentation/Program.cs) for a
 complete demo.
+
+Additionally, this examples sets up the OpenTelemetry Prometheus exporter, which
+requires adding the package
+[`OpenTelemetry.Exporter.Prometheus`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Prometheus/README.md)
+to the application.
 
 ## Metrics
 
