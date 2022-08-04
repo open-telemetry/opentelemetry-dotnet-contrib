@@ -16,12 +16,11 @@
 
 using System.Runtime.Serialization;
 
-namespace OpenTelemetry.Instrumentation.Wcf.Tests
+namespace OpenTelemetry.Instrumentation.Wcf.Tests;
+
+[DataContract]
+public class ServiceRequest
 {
-    [DataContract]
-    public class ServiceRequest
-    {
-        [DataMember]
-        public string Payload { get; set; }
-    }
+    [DataMember]
+    public string Payload { get; set; }
 }
