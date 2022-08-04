@@ -18,29 +18,28 @@ using System;
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry
+namespace OpenTelemetry;
+
+/// <summary>
+/// EventSource implementation for OpenTelemetry SDK extensions implementation.
+/// </summary>
+[EventSource(Name = "OpenTelemetry-Extensions")]
+internal class OpenTelemetryExtensionsEventSource : EventSource
 {
-    /// <summary>
-    /// EventSource implementation for OpenTelemetry SDK extensions implementation.
-    /// </summary>
-    [EventSource(Name = "OpenTelemetry-Extensions")]
-    internal class OpenTelemetryExtensionsEventSource : EventSource
+    public static OpenTelemetryExtensionsEventSource Log = new OpenTelemetryExtensionsEventSource();
+
+    [NonEvent]
+    public void LogProcessorException(string @event, Exception ex)
     {
-        public static OpenTelemetryExtensionsEventSource Log = new OpenTelemetryExtensionsEventSource();
-
-        [NonEvent]
-        public void LogProcessorException(string @event, Exception ex)
+        if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
         {
-            if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
-            {
-                this.LogProcessorException(@event, ex.ToInvariantString());
-            }
+            this.LogProcessorException(@event, ex.ToInvariantString());
         }
+    }
 
-        [Event(1, Message = "Unknown error in LogProcessor event '{0}': '{1}'.", Level = EventLevel.Error)]
-        public void LogProcessorException(string @event, string exception)
-        {
-            this.WriteEvent(1, @event, exception);
-        }
+    [Event(1, Message = "Unknown error in LogProcessor event '{0}': '{1}'.", Level = EventLevel.Error)]
+    public void LogProcessorException(string @event, string exception)
+    {
+        this.WriteEvent(1, @event, exception);
     }
 }
