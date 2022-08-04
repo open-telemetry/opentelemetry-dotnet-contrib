@@ -71,7 +71,6 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
             this.exporter = new GenevaTraceExporter(new GenevaExporterOptions
             {
                 ConnectionString = "EtwSession=OpenTelemetry",
-                CustomFields = new List<string> { "azureResourceProvider", "clientRequestId" },
                 PrepopulatedFields = new Dictionary<string, object>
                 {
                     ["cloud.role"] = "BusyWorker",
