@@ -22,33 +22,8 @@ dotnet add package OpenTelemetry.Instrumentation.Runtime
 
 ### Step 2: Enable runtime instrumentation
 
-Runtime instrumentation should be enabled at application startup. This is
-typically done in the `ConfigureServices` of your `Startup` class. The example
-below enables this instrumentation by using an extension method on
-`IServiceCollection`. This extension method requires adding the package
-[`OpenTelemetry.Extensions.Hosting`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Extensions.Hosting/README.md)
-to the application. This ensures the instrumentation is disposed when the host
-is shutdown.
-
-Additionally, this examples sets up the OpenTelemetry Prometheus exporter, which
-requires adding the package
-[`OpenTelemetry.Exporter.Prometheus`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Prometheus/README.md)
-to the application.
-
-```csharp
-using Microsoft.Extensions.DependencyInjection;
-using OpenTelemetry.Metrics;
-
-public void ConfigureServices(IServiceCollection services)
-{
-    services.AddOpenTelemetryMetrics((builder) => builder
-        .AddRuntimeInstrumentation()
-        .AddPrometheusExporter()
-    );
-}
-```
-
-Or configure directly:
+Runtime instrumentation should be enabled at application startup using the
+`AddRuntimeInstrumentation` extension on `MeterProviderBuilder`:
 
 ```csharp
 using var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -59,6 +34,11 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
 
 Refer to [Program.cs](../../examples/runtime-instrumentation/Program.cs) for a
 complete demo.
+
+Additionally, this examples sets up the OpenTelemetry Prometheus exporter, which
+requires adding the package
+[`OpenTelemetry.Exporter.Prometheus`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Prometheus.HttpListener/README.md)
+to the application.
 
 ## Metrics
 
@@ -318,12 +298,11 @@ Relevant API:
 
 ## Troubleshooting
 
-This component uses an
-[EventSource](https://docs.microsoft.com/dotnet/api/system.diagnostics.tracing.eventsource)
-with the name "OpenTelemetry-Instrumentation-Runtime" for its internal
-logging. Please refer to [SDK
-troubleshooting](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/src/OpenTelemetry#troubleshooting)
-for instructions on seeing these internal logs.
+If a metric is missing, review the [list of metrics](#metrics) to see if the
+metric is available in the .NET version you are running.
+
+Some GC related metrics are unavailable until at least one garbage collection
+has occurred.
 
 ## References
 
