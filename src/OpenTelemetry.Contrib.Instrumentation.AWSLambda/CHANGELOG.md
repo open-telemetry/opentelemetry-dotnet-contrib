@@ -1,5 +1,22 @@
 # Changelog - OpenTelemetry.Contrib.Instrumentation.AWSLambda
 
+## Unreleased
+
+* Added public option `AWSLambdaInstrumentationOptions.DisableAwsXRayContextExtraction`.
+* Extended public API of the `AWSLambdaWrapper`: added optional parent
+  context (`ActivityContext`) to all `Trace` methods.
+* Enhanced parent extraction: if the parent context is not provided
+  then it can be extracted from the incoming request for certain types of the request.
+  If the parent is not extracted from the incoming request then it can be extracted
+  from the AWS X-Ray tracing header if AWS X-Ray context extraction
+  is not disabled (`DisableAwsXRayContextExtraction`).
+* Changed behaviour of the `OnFunctionStart` method: Activity is created even
+  if the parent context is not defined.
+* Breaking change: `AWSLambdaWrapper.Trace` overloads without `ILambdaContext` argument
+  have been completely removed.
+* Added two new `AWSLambdaWrapper.Trace` overloads without generic input arguments.
+  ([#408](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/408))
+
 ## 1.1.0-beta1
 
 Released 2021-May-26
