@@ -14,27 +14,26 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.Quartz
+namespace OpenTelemetry.Instrumentation.Quartz;
+
+/// <summary>
+/// Quartz diagnostic source operation name constants.
+/// </summary>
+public static class OperationName
 {
     /// <summary>
-    /// Quartz diagnostic source operation name constants.
+    /// Quartz Job category constants.
     /// </summary>
-    public static class OperationName
+    public static class Job
     {
         /// <summary>
-        /// Quartz Job category constants.
+        /// Quartz job execute diagnostic source operation name.
         /// </summary>
-        public static class Job
-        {
-            /// <summary>
-            /// Quartz job execute diagnostic source operation name.
-            /// </summary>
-            public const string Execute = "Quartz.Job.Execute";
+        public const string Execute = "Quartz.Job.Execute";
 
-            /// <summary>
-            /// Quartz job veto diagnostic source operation name.
-            /// </summary>
-            public const string Veto = "Quartz.Job.Veto";
-        }
+        /// <summary>
+        /// Quartz job veto diagnostic source operation name.
+        /// </summary>
+        public const string Veto = "Quartz.Job.Veto";
     }
 }
