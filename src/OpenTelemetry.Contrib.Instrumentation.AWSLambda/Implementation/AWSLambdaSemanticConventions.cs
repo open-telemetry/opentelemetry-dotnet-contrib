@@ -28,5 +28,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         public const string AttributeFaasID = "faas.id";
         public const string AttributeFaasName = "faas.name";
         public const string AttributeFaasVersion = "faas.version";
+        public const string AttributeFaasTrigger = "faas.trigger";
     }
 }
