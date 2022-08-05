@@ -18,21 +18,21 @@
 using System;
 using System.ServiceModel.Configuration;
 
-namespace OpenTelemetry.Instrumentation.Wcf
-{
-    /// <summary>
-    /// A <see cref="BehaviorExtensionElement"/> for registering <see cref="TelemetryServiceBehavior"/> on a service through configuration.
-    /// </summary>
-    public class TelemetryServiceBehaviorExtensionElement : BehaviorExtensionElement
-    {
-        /// <inheritdoc/>
-        public override Type BehaviorType => typeof(TelemetryServiceBehavior);
+namespace OpenTelemetry.Instrumentation.Wcf;
 
-        /// <inheritdoc/>
-        protected override object CreateBehavior()
-        {
-            return new TelemetryServiceBehavior();
-        }
+/// <summary>
+/// A <see cref="BehaviorExtensionElement"/> for registering <see cref="TelemetryServiceBehavior"/> on a service through configuration.
+/// </summary>
+public class TelemetryServiceBehaviorExtensionElement : BehaviorExtensionElement
+{
+    /// <inheritdoc/>
+    public override Type BehaviorType => typeof(TelemetryServiceBehavior);
+
+    /// <inheritdoc/>
+    protected override object CreateBehavior()
+    {
+        return new TelemetryServiceBehavior();
     }
 }
+
 #endif
