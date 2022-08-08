@@ -85,7 +85,7 @@ namespace OpenTelemetry.Exporter.Stackdriver.Implementation
                     {
                         activity.Tags?.ToDictionary(
                                         s => s.Key,
-                                        s => s.Value?.ToAttributeValue()),
+                                        s => s.Value.ToAttributeValue()),
                     },
                 };
             }
@@ -128,7 +128,7 @@ namespace OpenTelemetry.Exporter.Stackdriver.Implementation
             return ret;
         }
 
-        public static AttributeValue ToAttributeValue(this object av)
+        public static AttributeValue ToAttributeValue(this object? av)
         {
             switch (av)
             {
@@ -146,6 +146,8 @@ namespace OpenTelemetry.Exporter.Stackdriver.Implementation
                     {
                         StringValue = new TruncatableString() { Value = d.ToString() },
                     };
+                case null:
+                    return new AttributeValue();
                 default:
                     return new AttributeValue()
                     {

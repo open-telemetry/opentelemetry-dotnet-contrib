@@ -105,7 +105,11 @@ namespace OpenTelemetry.Exporter.Stackdriver
 
             foreach (var activity in batchActivity)
             {
-                batchSpansRequest.Spans.Add(activity.ToSpan(this.googleCloudProjectId.ProjectId));
+                // It should never happen that the time has no correct kind, only if OpenTelemetry is used incorrectly.
+                if (activity.StartTimeUtc.Kind == DateTimeKind.Utc)
+                {
+                    batchSpansRequest.Spans.Add(activity.ToSpan(this.googleCloudProjectId.ProjectId));
+                }
             }
 
             // avoid cancelling here: this is no return point: if we reached this point

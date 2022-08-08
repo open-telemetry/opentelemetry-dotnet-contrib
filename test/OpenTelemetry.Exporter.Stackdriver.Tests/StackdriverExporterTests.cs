@@ -107,7 +107,7 @@ namespace OpenTelemetry.Exporter.Stackdriver.Tests
 
             for (int i = 0; i < 10; i++)
             {
-                using Activity activity = source.StartActivity("Test Activity");
+                using Activity activity = CreateTestActivity();
                 processor.OnEnd(activity);
             }
 
@@ -147,7 +147,50 @@ namespace OpenTelemetry.Exporter.Stackdriver.Tests
 
             for (int i = 0; i < 10; i++)
             {
-                using Activity activity = source.StartActivity("Test Activity");
+                using Activity activity = CreateTestActivity();
+                processor.OnEnd(activity);
+            }
+
+            processor.Shutdown();
+
+            var batch = new Batch<Activity>(exportedItems.ToArray(), exportedItems.Count);
+            RunTest(batch);
+
+            void RunTest(Batch<Activity> batch)
+            {
+                exception = Record.Exception(() =>
+                {
+                    result = activityExporter.Export(batch);
+                });
+            }
+
+            Assert.Null(exception);
+            Assert.StrictEqual(ExportResult.Success, result);
+            traceClientMock.VerifyAll();
+        }
+
+        [Fact]
+        public void StackdriverExporter_TraceClientDoesNotTrow_ExportResultSuccess_InvalidDateTime()
+        {
+            Exception exception = null;
+            ExportResult result = ExportResult.Failure;
+            var exportedItems = new List<Activity>();
+            const string ActivitySourceName = "stackdriver.test";
+            var source = new ActivitySource(ActivitySourceName);
+            var traceClientMock = new Mock<TraceServiceClient>(MockBehavior.Strict);
+            traceClientMock.Setup(x =>
+                    x.BatchWriteSpans(It.IsAny<BatchWriteSpansRequest>(), It.IsAny<CallSettings>()))
+                .Verifiable($"{nameof(TraceServiceClient.BatchWriteSpans)} was never called");
+            var activityExporter = new StackdriverTraceExporter("test", traceClientMock.Object);
+
+            var processor = new BatchActivityExportProcessor(new InMemoryExporter<Activity>(exportedItems));
+
+            for (int i = 0; i < 10; i++)
+            {
+                using Activity activity = source.CreateActivity("Test", ActivityKind.Internal);
+
+                // Activity is recorded but has no correct start date.
+                activity.ActivityTraceFlags = ActivityTraceFlags.Recorded;
                 processor.OnEnd(activity);
             }
 
@@ -184,7 +227,7 @@ namespace OpenTelemetry.Exporter.Stackdriver.Tests
 
             var parentSpanId = ActivitySpanId.CreateFromBytes(new byte[] { 12, 23, 34, 45, 56, 67, 78, 89 });
 
-            var attributes = new Dictionary<string, object>
+            var attributes = new Dictionary<string, object?>
             {
                 { "stringKey", "value" },
                 { "longKey", 1L },
@@ -192,6 +235,7 @@ namespace OpenTelemetry.Exporter.Stackdriver.Tests
                 { "doubleKey", 1D },
                 { "doubleKey2", 1F },
                 { "boolKey", true },
+                { "nullKey", null },
             };
             if (additionalAttributes != null)
             {
@@ -224,7 +268,7 @@ namespace OpenTelemetry.Exporter.Stackdriver.Tests
             var activitySource = new ActivitySource(nameof(CreateTestActivity));
 
             var tags = setAttributes ?
-                    attributes.Select(kvp => new KeyValuePair<string, object>(kvp.Key, kvp.Value.ToString()))
+                    attributes.Select(kvp => new KeyValuePair<string, object>(kvp.Key, kvp.Value?.ToString()))
                     : null;
             var links = addLinks ?
                     new[]
