@@ -24,6 +24,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 using Xunit;
@@ -870,6 +871,23 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                     int receivedDataSize = serverSocket.Receive(receivedData);
 
                     // Validation
+                    Assert.Equal(messagePackDataSize, receivedDataSize);
+
+                    logRecordList.Clear();
+
+                    // Emit log on a different thread to test for multithreading scenarios
+                    var thread = new Thread(() =>
+                    {
+                        logger.LogInformation("Hello from another thread {food} {price}.", "artichoke", 3.99);
+                    });
+                    thread.Start();
+                    thread.Join();
+
+                    // logRecordList should have a singleLogRecord entry after the logger.LogInformation call
+                    Assert.Single(logRecordList);
+
+                    messagePackDataSize = exporter.SerializeLogRecord(logRecordList[0]);
+                    receivedDataSize = serverSocket.Receive(receivedData);
                     Assert.Equal(messagePackDataSize, receivedDataSize);
                 }
                 finally

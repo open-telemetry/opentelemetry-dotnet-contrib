@@ -18,22 +18,21 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Threading.Tasks;
 
-namespace OpenTelemetry.Instrumentation.Wcf.Tests
+namespace OpenTelemetry.Instrumentation.Wcf.Tests;
+
+public class ServiceClient : ClientBase<IServiceContract>, IServiceContract
 {
-    public class ServiceClient : ClientBase<IServiceContract>, IServiceContract
+    public ServiceClient(Binding binding, EndpointAddress remoteAddress)
+        : base(binding, remoteAddress)
     {
-        public ServiceClient(Binding binding, EndpointAddress remoteAddress)
-            : base(binding, remoteAddress)
-        {
-        }
-
-        public Task<ServiceResponse> ExecuteAsync(ServiceRequest request)
-            => this.Channel.ExecuteAsync(request);
-
-        public Task<ServiceResponse> ExecuteWithEmptyActionNameAsync(ServiceRequest request)
-            => this.Channel.ExecuteWithEmptyActionNameAsync(request);
-
-        public void ExecuteWithOneWay(ServiceRequest request)
-            => this.Channel.ExecuteWithOneWay(request);
     }
+
+    public Task<ServiceResponse> ExecuteAsync(ServiceRequest request)
+        => this.Channel.ExecuteAsync(request);
+
+    public Task<ServiceResponse> ExecuteWithEmptyActionNameAsync(ServiceRequest request)
+        => this.Channel.ExecuteWithEmptyActionNameAsync(request);
+
+    public void ExecuteWithOneWay(ServiceRequest request)
+        => this.Channel.ExecuteWithOneWay(request);
 }

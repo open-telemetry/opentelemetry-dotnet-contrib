@@ -19,33 +19,32 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.ServiceModel.Channels;
 
-namespace OpenTelemetry.Instrumentation.Wcf
+namespace OpenTelemetry.Instrumentation.Wcf;
+
+/// <summary>
+/// WCF instrumentation.
+/// </summary>
+internal static class WcfInstrumentationActivitySource
 {
-    /// <summary>
-    /// WCF instrumentation.
-    /// </summary>
-    internal static class WcfInstrumentationActivitySource
-    {
-        public const string ActivitySourceName = "OpenTelemetry.WCF";
-        public const string IncomingRequestActivityName = ActivitySourceName + ".IncomingRequest";
-        public const string OutgoingRequestActivityName = ActivitySourceName + ".OutgoingRequest";
+    public const string ActivitySourceName = "OpenTelemetry.WCF";
+    public const string IncomingRequestActivityName = ActivitySourceName + ".IncomingRequest";
+    public const string OutgoingRequestActivityName = ActivitySourceName + ".OutgoingRequest";
 
-        private static readonly Version Version = typeof(WcfInstrumentationActivitySource).Assembly.GetName().Version;
+    private static readonly Version Version = typeof(WcfInstrumentationActivitySource).Assembly.GetName().Version;
 
-        public static ActivitySource ActivitySource { get; } = new ActivitySource(ActivitySourceName, Version.ToString());
+    public static ActivitySource ActivitySource { get; } = new ActivitySource(ActivitySourceName, Version.ToString());
 
-        public static Func<Message, string, IEnumerable<string>> MessageHeaderValuesGetter { get; }
-            = (request, name) =>
-            {
-                var headerIndex = request.Headers.FindHeader(name, "https://www.w3.org/TR/trace-context/");
-                return headerIndex < 0
-                    ? null
-                    : new[] { request.Headers.GetHeader<string>(headerIndex) };
-            };
+    public static Func<Message, string, IEnumerable<string>> MessageHeaderValuesGetter { get; }
+        = (request, name) =>
+        {
+            var headerIndex = request.Headers.FindHeader(name, "https://www.w3.org/TR/trace-context/");
+            return headerIndex < 0
+                ? null
+                : new[] { request.Headers.GetHeader<string>(headerIndex) };
+        };
 
-        public static Action<Message, string, string> MessageHeaderValueSetter { get; }
-            = (request, name, value) => request.Headers.Add(MessageHeader.CreateHeader(name, "https://www.w3.org/TR/trace-context/", value, false));
+    public static Action<Message, string, string> MessageHeaderValueSetter { get; }
+        = (request, name, value) => request.Headers.Add(MessageHeader.CreateHeader(name, "https://www.w3.org/TR/trace-context/", value, false));
 
-        public static WcfInstrumentationOptions Options { get; set; }
-    }
+    public static WcfInstrumentationOptions Options { get; set; }
 }
