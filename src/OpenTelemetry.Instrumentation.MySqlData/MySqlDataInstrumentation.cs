@@ -20,231 +20,230 @@ using System.Diagnostics;
 using MySql.Data.MySqlClient;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Instrumentation.MySqlData
+namespace OpenTelemetry.Instrumentation.MySqlData;
+
+/// <summary>
+/// MySql.Data instrumentation.
+/// </summary>
+internal class MySqlDataInstrumentation : DefaultTraceListener
 {
-    /// <summary>
-    /// MySql.Data instrumentation.
-    /// </summary>
-    internal class MySqlDataInstrumentation : DefaultTraceListener
+    private readonly ConcurrentDictionary<long, MySqlConnectionStringBuilder> dbConn = new ConcurrentDictionary<long, MySqlConnectionStringBuilder>();
+
+    private readonly MySqlDataInstrumentationOptions options;
+
+    public MySqlDataInstrumentation(MySqlDataInstrumentationOptions options = null)
     {
-        private readonly ConcurrentDictionary<long, MySqlConnectionStringBuilder> dbConn = new ConcurrentDictionary<long, MySqlConnectionStringBuilder>();
+        this.options = options ?? new MySqlDataInstrumentationOptions();
+        MySqlTrace.Listeners.Clear();
+        MySqlTrace.Listeners.Add(this);
+        MySqlTrace.Switch.Level = SourceLevels.Information;
+        MySqlTrace.QueryAnalysisEnabled = true;
+    }
 
-        private readonly MySqlDataInstrumentationOptions options;
-
-        public MySqlDataInstrumentation(MySqlDataInstrumentationOptions options = null)
+    /// <inheritdoc />
+    public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
+    {
+        try
         {
-            this.options = options ?? new MySqlDataInstrumentationOptions();
-            MySqlTrace.Listeners.Clear();
-            MySqlTrace.Listeners.Add(this);
-            MySqlTrace.Switch.Level = SourceLevels.Information;
-            MySqlTrace.QueryAnalysisEnabled = true;
-        }
-
-        /// <inheritdoc />
-        public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
-        {
-            try
+            switch ((MySqlTraceEventType)id)
             {
-                switch ((MySqlTraceEventType)id)
-                {
-                    case MySqlTraceEventType.ConnectionOpened:
-                        // args: [driverId, connStr, threadId]
-                        var driverId = (long)args[0];
-                        var connStr = args[1].ToString();
-                        this.dbConn[driverId] = new MySqlConnectionStringBuilder(connStr);
-                        break;
-                    case MySqlTraceEventType.ConnectionClosed:
-                        break;
-                    case MySqlTraceEventType.QueryOpened:
-                        // args: [driverId, threadId, cmdText]
-                        this.BeforeExecuteCommand(this.GetCommand(args[0], args[2]));
-                        break;
-                    case MySqlTraceEventType.ResultOpened:
-                        break;
-                    case MySqlTraceEventType.ResultClosed:
-                        break;
-                    case MySqlTraceEventType.QueryClosed:
-                        // args: [driverId]
-                        this.AfterExecuteCommand();
-                        break;
-                    case MySqlTraceEventType.StatementPrepared:
-                        break;
-                    case MySqlTraceEventType.StatementExecuted:
-                        break;
-                    case MySqlTraceEventType.StatementClosed:
-                        break;
-                    case MySqlTraceEventType.NonQuery:
-                        break;
-                    case MySqlTraceEventType.UsageAdvisorWarning:
-                        break;
-                    case MySqlTraceEventType.Warning:
-                        break;
-                    case MySqlTraceEventType.Error:
-                        // args: [driverId, exNumber, exMessage]
-                        this.ErrorExecuteCommand(this.GetMySqlErrorException(args[2]));
-                        break;
-                    case MySqlTraceEventType.QueryNormalized:
-                        // Should use QueryNormalized event when it exists. Because cmdText in QueryOpened event is incomplete when cmdText.length>300
-                        // args: [driverId, threadId, normalized_query]
-                        this.OverwriteDbStatement(this.GetCommand(args[0], args[2]));
-                        break;
-                    default:
-                        MySqlDataInstrumentationEventSource.Log.UnknownMySqlTraceEventType(id, string.Format(format, args));
-                        break;
-                }
-            }
-            catch (Exception e)
-            {
-                MySqlDataInstrumentationEventSource.Log.ErrorTraceEvent(id, string.Format(format, args), e.ToString());
+                case MySqlTraceEventType.ConnectionOpened:
+                    // args: [driverId, connStr, threadId]
+                    var driverId = (long)args[0];
+                    var connStr = args[1].ToString();
+                    this.dbConn[driverId] = new MySqlConnectionStringBuilder(connStr);
+                    break;
+                case MySqlTraceEventType.ConnectionClosed:
+                    break;
+                case MySqlTraceEventType.QueryOpened:
+                    // args: [driverId, threadId, cmdText]
+                    this.BeforeExecuteCommand(this.GetCommand(args[0], args[2]));
+                    break;
+                case MySqlTraceEventType.ResultOpened:
+                    break;
+                case MySqlTraceEventType.ResultClosed:
+                    break;
+                case MySqlTraceEventType.QueryClosed:
+                    // args: [driverId]
+                    this.AfterExecuteCommand();
+                    break;
+                case MySqlTraceEventType.StatementPrepared:
+                    break;
+                case MySqlTraceEventType.StatementExecuted:
+                    break;
+                case MySqlTraceEventType.StatementClosed:
+                    break;
+                case MySqlTraceEventType.NonQuery:
+                    break;
+                case MySqlTraceEventType.UsageAdvisorWarning:
+                    break;
+                case MySqlTraceEventType.Warning:
+                    break;
+                case MySqlTraceEventType.Error:
+                    // args: [driverId, exNumber, exMessage]
+                    this.ErrorExecuteCommand(this.GetMySqlErrorException(args[2]));
+                    break;
+                case MySqlTraceEventType.QueryNormalized:
+                    // Should use QueryNormalized event when it exists. Because cmdText in QueryOpened event is incomplete when cmdText.length>300
+                    // args: [driverId, threadId, normalized_query]
+                    this.OverwriteDbStatement(this.GetCommand(args[0], args[2]));
+                    break;
+                default:
+                    MySqlDataInstrumentationEventSource.Log.UnknownMySqlTraceEventType(id, string.Format(format, args));
+                    break;
             }
         }
-
-        private void BeforeExecuteCommand(MySqlDataTraceCommand command)
+        catch (Exception e)
         {
-            var activity = MySqlActivitySourceHelper.ActivitySource.StartActivity(
-                MySqlActivitySourceHelper.ActivityName,
-                ActivityKind.Client,
-                Activity.Current?.Context ?? default(ActivityContext),
-                MySqlActivitySourceHelper.CreationTags);
-            if (activity == null)
+            MySqlDataInstrumentationEventSource.Log.ErrorTraceEvent(id, string.Format(format, args), e.ToString());
+        }
+    }
+
+    private void BeforeExecuteCommand(MySqlDataTraceCommand command)
+    {
+        var activity = MySqlActivitySourceHelper.ActivitySource.StartActivity(
+            MySqlActivitySourceHelper.ActivityName,
+            ActivityKind.Client,
+            Activity.Current?.Context ?? default(ActivityContext),
+            MySqlActivitySourceHelper.CreationTags);
+        if (activity == null)
+        {
+            return;
+        }
+
+        if (activity.IsAllDataRequested)
+        {
+            if (this.options.SetDbStatement)
             {
-                return;
+                activity.SetTag(SemanticConventions.AttributeDbStatement, command.SqlText);
             }
 
+            if (command.ConnectionStringBuilder != null)
+            {
+                activity.DisplayName = command.ConnectionStringBuilder.Database;
+                activity.SetTag(SemanticConventions.AttributeDbName, command.ConnectionStringBuilder.Database);
+
+                this.AddConnectionLevelDetailsToActivity(command.ConnectionStringBuilder, activity);
+            }
+        }
+    }
+
+    private void OverwriteDbStatement(MySqlDataTraceCommand command)
+    {
+        var activity = Activity.Current;
+        if (activity == null)
+        {
+            return;
+        }
+
+        if (activity.Source != MySqlActivitySourceHelper.ActivitySource)
+        {
+            return;
+        }
+
+        if (activity.IsAllDataRequested)
+        {
+            if (this.options.SetDbStatement)
+            {
+                activity.SetTag(SemanticConventions.AttributeDbStatement, command.SqlText);
+            }
+        }
+    }
+
+    private void AfterExecuteCommand()
+    {
+        var activity = Activity.Current;
+        if (activity == null)
+        {
+            return;
+        }
+
+        if (activity.Source != MySqlActivitySourceHelper.ActivitySource)
+        {
+            return;
+        }
+
+        try
+        {
             if (activity.IsAllDataRequested)
             {
-                if (this.options.SetDbStatement)
-                {
-                    activity.SetTag(SemanticConventions.AttributeDbStatement, command.SqlText);
-                }
-
-                if (command.ConnectionStringBuilder != null)
-                {
-                    activity.DisplayName = command.ConnectionStringBuilder.Database;
-                    activity.SetTag(SemanticConventions.AttributeDbName, command.ConnectionStringBuilder.Database);
-
-                    this.AddConnectionLevelDetailsToActivity(command.ConnectionStringBuilder, activity);
-                }
+                activity.SetStatus(Status.Unset);
             }
         }
-
-        private void OverwriteDbStatement(MySqlDataTraceCommand command)
+        finally
         {
-            var activity = Activity.Current;
-            if (activity == null)
-            {
-                return;
-            }
+            activity.Stop();
+        }
+    }
 
-            if (activity.Source != MySqlActivitySourceHelper.ActivitySource)
-            {
-                return;
-            }
+    private void ErrorExecuteCommand(Exception exception)
+    {
+        var activity = Activity.Current;
+        if (activity == null)
+        {
+            return;
+        }
 
+        if (activity.Source != MySqlActivitySourceHelper.ActivitySource)
+        {
+            return;
+        }
+
+        try
+        {
             if (activity.IsAllDataRequested)
             {
-                if (this.options.SetDbStatement)
+                activity.SetStatus(Status.Error.WithDescription(exception.Message));
+                if (this.options.RecordException)
                 {
-                    activity.SetTag(SemanticConventions.AttributeDbStatement, command.SqlText);
+                    activity.RecordException(exception);
                 }
             }
         }
-
-        private void AfterExecuteCommand()
+        finally
         {
-            var activity = Activity.Current;
-            if (activity == null)
-            {
-                return;
-            }
+            activity.Stop();
+        }
+    }
 
-            if (activity.Source != MySqlActivitySourceHelper.ActivitySource)
-            {
-                return;
-            }
-
-            try
-            {
-                if (activity.IsAllDataRequested)
-                {
-                    activity.SetStatus(Status.Unset);
-                }
-            }
-            finally
-            {
-                activity.Stop();
-            }
+    private MySqlDataTraceCommand GetCommand(object driverIdObj, object cmd)
+    {
+        var command = new MySqlDataTraceCommand();
+        if (this.dbConn.TryGetValue((long)driverIdObj, out var database))
+        {
+            command.ConnectionStringBuilder = database;
         }
 
-        private void ErrorExecuteCommand(Exception exception)
+        command.SqlText = cmd == null ? string.Empty : cmd.ToString();
+        return command;
+    }
+
+    private Exception GetMySqlErrorException(object errorMsg)
+    {
+        return new Exception($"{errorMsg}");
+    }
+
+    private void AddConnectionLevelDetailsToActivity(MySqlConnectionStringBuilder dataSource, Activity sqlActivity)
+    {
+        if (!this.options.EnableConnectionLevelAttributes)
         {
-            var activity = Activity.Current;
-            if (activity == null)
-            {
-                return;
-            }
-
-            if (activity.Source != MySqlActivitySourceHelper.ActivitySource)
-            {
-                return;
-            }
-
-            try
-            {
-                if (activity.IsAllDataRequested)
-                {
-                    activity.SetStatus(Status.Error.WithDescription(exception.Message));
-                    if (this.options.RecordException)
-                    {
-                        activity.RecordException(exception);
-                    }
-                }
-            }
-            finally
-            {
-                activity.Stop();
-            }
+            sqlActivity.SetTag(SemanticConventions.AttributePeerService, dataSource.Server);
         }
-
-        private MySqlDataTraceCommand GetCommand(object driverIdObj, object cmd)
+        else
         {
-            var command = new MySqlDataTraceCommand();
-            if (this.dbConn.TryGetValue((long)driverIdObj, out var database))
+            var uriHostNameType = Uri.CheckHostName(dataSource.Server);
+
+            if (uriHostNameType == UriHostNameType.IPv4 || uriHostNameType == UriHostNameType.IPv6)
             {
-                command.ConnectionStringBuilder = database;
-            }
-
-            command.SqlText = cmd == null ? string.Empty : cmd.ToString();
-            return command;
-        }
-
-        private Exception GetMySqlErrorException(object errorMsg)
-        {
-            return new Exception($"{errorMsg}");
-        }
-
-        private void AddConnectionLevelDetailsToActivity(MySqlConnectionStringBuilder dataSource, Activity sqlActivity)
-        {
-            if (!this.options.EnableConnectionLevelAttributes)
-            {
-                sqlActivity.SetTag(SemanticConventions.AttributePeerService, dataSource.Server);
+                sqlActivity.SetTag(SemanticConventions.AttributeNetPeerIp, dataSource.Server);
             }
             else
             {
-                var uriHostNameType = Uri.CheckHostName(dataSource.Server);
-
-                if (uriHostNameType == UriHostNameType.IPv4 || uriHostNameType == UriHostNameType.IPv6)
-                {
-                    sqlActivity.SetTag(SemanticConventions.AttributeNetPeerIp, dataSource.Server);
-                }
-                else
-                {
-                    sqlActivity.SetTag(SemanticConventions.AttributeNetPeerName, dataSource.Server);
-                }
-
-                sqlActivity.SetTag(SemanticConventions.AttributeNetPeerPort, dataSource.Port);
-                sqlActivity.SetTag(SemanticConventions.AttributeDbUser, dataSource.UserID);
+                sqlActivity.SetTag(SemanticConventions.AttributeNetPeerName, dataSource.Server);
             }
+
+            sqlActivity.SetTag(SemanticConventions.AttributeNetPeerPort, dataSource.Port);
+            sqlActivity.SetTag(SemanticConventions.AttributeDbUser, dataSource.UserID);
         }
     }
 }
