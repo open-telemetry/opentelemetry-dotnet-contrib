@@ -18,31 +18,30 @@ using System;
 using OpenTelemetry.Instrumentation.Owin;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Trace
+namespace OpenTelemetry.Trace;
+
+/// <summary>
+/// Extension methods to simplify registering of OWIN request instrumentation.
+/// </summary>
+public static class TracerProviderBuilderExtensions
 {
     /// <summary>
-    /// Extension methods to simplify registering of OWIN request instrumentation.
+    /// Enables the incoming requests automatic data collection for OWIN.
     /// </summary>
-    public static class TracerProviderBuilderExtensions
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="configureOwinInstrumentationOptions">OWIN Request configuration options.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddOwinInstrumentation(
+        this TracerProviderBuilder builder,
+        Action<OwinInstrumentationOptions> configureOwinInstrumentationOptions = null)
     {
-        /// <summary>
-        /// Enables the incoming requests automatic data collection for OWIN.
-        /// </summary>
-        /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-        /// <param name="configureOwinInstrumentationOptions">OWIN Request configuration options.</param>
-        /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-        public static TracerProviderBuilder AddOwinInstrumentation(
-            this TracerProviderBuilder builder,
-            Action<OwinInstrumentationOptions> configureOwinInstrumentationOptions = null)
-        {
-            Guard.ThrowIfNull(builder);
+        Guard.ThrowIfNull(builder);
 
-            var owinOptions = new OwinInstrumentationOptions();
-            configureOwinInstrumentationOptions?.Invoke(owinOptions);
+        var owinOptions = new OwinInstrumentationOptions();
+        configureOwinInstrumentationOptions?.Invoke(owinOptions);
 
-            OwinInstrumentationActivitySource.Options = owinOptions;
+        OwinInstrumentationActivitySource.Options = owinOptions;
 
-            return builder.AddSource(OwinInstrumentationActivitySource.ActivitySourceName);
-        }
+        return builder.AddSource(OwinInstrumentationActivitySource.ActivitySourceName);
     }
 }
