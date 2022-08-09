@@ -17,17 +17,16 @@
 using System;
 using System.Diagnostics;
 
-namespace OpenTelemetry.Instrumentation.Owin
+namespace OpenTelemetry.Instrumentation.Owin;
+
+internal static class OwinInstrumentationActivitySource
 {
-    internal static class OwinInstrumentationActivitySource
-    {
-        public const string ActivitySourceName = "OpenTelemetry.OWIN";
-        public const string IncomingRequestActivityName = ActivitySourceName + ".IncomingRequest";
+    public const string ActivitySourceName = "OpenTelemetry.OWIN";
+    public const string IncomingRequestActivityName = ActivitySourceName + ".IncomingRequest";
 
-        private static readonly Version Version = typeof(OwinInstrumentationActivitySource).Assembly.GetName().Version;
+    private static readonly Version Version = typeof(OwinInstrumentationActivitySource).Assembly.GetName().Version;
 
-        public static ActivitySource ActivitySource { get; } = new ActivitySource(ActivitySourceName, Version.ToString());
+    public static ActivitySource ActivitySource { get; } = new ActivitySource(ActivitySourceName, Version.ToString());
 
-        public static OwinInstrumentationOptions Options { get; set; }
-    }
+    public static OwinInstrumentationOptions Options { get; set; }
 }

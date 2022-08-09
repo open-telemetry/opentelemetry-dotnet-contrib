@@ -19,76 +19,75 @@ using System.Diagnostics.Tracing;
 using System.Globalization;
 using System.Threading;
 
-namespace OpenTelemetry.Instrumentation.Owin
+namespace OpenTelemetry.Instrumentation.Owin;
+
+/// <summary>
+/// EventSource events emitted from the project.
+/// </summary>
+[EventSource(Name = "OpenTelemetry-Instrumentation-Owin")]
+internal sealed class OwinInstrumentationEventSource : EventSource
 {
-    /// <summary>
-    /// EventSource events emitted from the project.
-    /// </summary>
-    [EventSource(Name = "OpenTelemetry-Instrumentation-Owin")]
-    internal sealed class OwinInstrumentationEventSource : EventSource
+    public static OwinInstrumentationEventSource Log { get; } = new OwinInstrumentationEventSource();
+
+    [NonEvent]
+    public void RequestFilterException(Exception ex)
     {
-        public static OwinInstrumentationEventSource Log { get; } = new OwinInstrumentationEventSource();
-
-        [NonEvent]
-        public void RequestFilterException(Exception ex)
+        if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
         {
-            if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
-            {
-                this.RequestFilterException(ToInvariantString(ex));
-            }
+            this.RequestFilterException(ToInvariantString(ex));
         }
+    }
 
-        [Event(EventIds.RequestIsFilteredOut, Message = "Request is filtered out.", Level = EventLevel.Verbose)]
-        public void RequestIsFilteredOut()
+    [Event(EventIds.RequestIsFilteredOut, Message = "Request is filtered out.", Level = EventLevel.Verbose)]
+    public void RequestIsFilteredOut()
+    {
+        this.WriteEvent(EventIds.RequestIsFilteredOut);
+    }
+
+    [Event(EventIds.RequestFilterException, Message = "InstrumentationFilter threw exception. Request will not be collected. Exception {0}.", Level = EventLevel.Error)]
+    public void RequestFilterException(string exception)
+    {
+        this.WriteEvent(EventIds.RequestFilterException, exception);
+    }
+
+    [NonEvent]
+    public void EnrichmentException(Exception exception)
+    {
+        if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
         {
-            this.WriteEvent(EventIds.RequestIsFilteredOut);
+            this.EnrichmentException(ToInvariantString(exception));
         }
+    }
 
-        [Event(EventIds.RequestFilterException, Message = "InstrumentationFilter threw exception. Request will not be collected. Exception {0}.", Level = EventLevel.Error)]
-        public void RequestFilterException(string exception)
+    [Event(EventIds.EnrichmentException, Message = "Enrichment threw exception. Exception {0}.", Level = EventLevel.Error)]
+    public void EnrichmentException(string exception)
+    {
+        this.WriteEvent(EventIds.EnrichmentException, exception);
+    }
+
+    /// <summary>
+    /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
+    /// appropriate for diagnostics tracing.
+    /// </summary>
+    private static string ToInvariantString(Exception exception)
+    {
+        var originalUICulture = Thread.CurrentThread.CurrentUICulture;
+
+        try
         {
-            this.WriteEvent(EventIds.RequestFilterException, exception);
+            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
+            return exception.ToString();
         }
-
-        [NonEvent]
-        public void EnrichmentException(Exception exception)
+        finally
         {
-            if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
-            {
-                this.EnrichmentException(ToInvariantString(exception));
-            }
+            Thread.CurrentThread.CurrentUICulture = originalUICulture;
         }
+    }
 
-        [Event(EventIds.EnrichmentException, Message = "Enrichment threw exception. Exception {0}.", Level = EventLevel.Error)]
-        public void EnrichmentException(string exception)
-        {
-            this.WriteEvent(EventIds.EnrichmentException, exception);
-        }
-
-        /// <summary>
-        /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
-        /// appropriate for diagnostics tracing.
-        /// </summary>
-        private static string ToInvariantString(Exception exception)
-        {
-            var originalUICulture = Thread.CurrentThread.CurrentUICulture;
-
-            try
-            {
-                Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-                return exception.ToString();
-            }
-            finally
-            {
-                Thread.CurrentThread.CurrentUICulture = originalUICulture;
-            }
-        }
-
-        private class EventIds
-        {
-            public const int RequestIsFilteredOut = 1;
-            public const int RequestFilterException = 2;
-            public const int EnrichmentException = 3;
-        }
+    private class EventIds
+    {
+        public const int RequestIsFilteredOut = 1;
+        public const int RequestFilterException = 2;
+        public const int EnrichmentException = 3;
     }
 }
