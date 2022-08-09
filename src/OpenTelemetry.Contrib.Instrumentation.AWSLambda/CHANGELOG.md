@@ -4,7 +4,7 @@
 
 * Updated the `ActivitySource` name to the assembly name:
   `OpenTelemetry.Instrumentation.AWSLambda`
-  [#534](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/534)
+  ([#534](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/534))
 * Added public option `AWSLambdaInstrumentationOptions.DisableAwsXRayContextExtraction`.
 * Extended public API of the `AWSLambdaWrapper`: added optional parent
   context (`ActivityContext`) to all `Trace` methods.
