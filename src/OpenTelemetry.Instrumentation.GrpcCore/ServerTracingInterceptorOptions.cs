@@ -14,29 +14,28 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.GrpcCore
+using System;
+using OpenTelemetry.Context.Propagation;
+
+namespace OpenTelemetry.Instrumentation.GrpcCore;
+
+/// <summary>
+/// Options for the ServerTracingInterceptor.
+/// </summary>
+public class ServerTracingInterceptorOptions
 {
-    using System;
-    using OpenTelemetry.Context.Propagation;
+    /// <summary>
+    /// Gets or sets a value indicating whether or not to record individual message events.
+    /// </summary>
+    public bool RecordMessageEvents { get; set; } = false;
 
     /// <summary>
-    /// Options for the ServerTracingInterceptor.
+    /// Gets the propagator.
     /// </summary>
-    public class ServerTracingInterceptorOptions
-    {
-        /// <summary>
-        /// Gets or sets a value indicating whether or not to record individual message events.
-        /// </summary>
-        public bool RecordMessageEvents { get; set; } = false;
+    public TextMapPropagator Propagator { get; internal set; } = Propagators.DefaultTextMapPropagator;
 
-        /// <summary>
-        /// Gets the propagator.
-        /// </summary>
-        public TextMapPropagator Propagator { get; internal set; } = Propagators.DefaultTextMapPropagator;
-
-        /// <summary>
-        /// Gets or sets a custom identfier used during unit testing.
-        /// </summary>
-        internal Guid ActivityIdentifierValue { get; set; }
-    }
+    /// <summary>
+    /// Gets or sets a custom identfier used during unit testing.
+    /// </summary>
+    internal Guid ActivityIdentifierValue { get; set; }
 }

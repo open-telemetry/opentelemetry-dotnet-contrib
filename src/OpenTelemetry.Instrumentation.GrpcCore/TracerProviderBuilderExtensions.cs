@@ -14,27 +14,26 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Trace
+using OpenTelemetry.Instrumentation.GrpcCore;
+using OpenTelemetry.Internal;
+
+namespace OpenTelemetry.Trace;
+
+/// <summary>
+/// OpenTelemetry builder extensions to simplify registration of Grpc.Core based interceptors.
+/// </summary>
+public static class TracerProviderBuilderExtensions
 {
-    using OpenTelemetry.Instrumentation.GrpcCore;
-    using OpenTelemetry.Internal;
-
     /// <summary>
-    /// OpenTelemetry builder extensions to simplify registration of Grpc.Core based interceptors.
+    /// Configures OpenTelemetry to listen for the Activities created by the client and server interceptors.
     /// </summary>
-    public static class TracerProviderBuilderExtensions
+    /// <param name="builder">The builder.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddGrpcCoreInstrumentation(
+        this TracerProviderBuilder builder)
     {
-        /// <summary>
-        /// Configures OpenTelemetry to listen for the Activities created by the client and server interceptors.
-        /// </summary>
-        /// <param name="builder">The builder.</param>
-        /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-        public static TracerProviderBuilder AddGrpcCoreInstrumentation(
-            this TracerProviderBuilder builder)
-        {
-            Guard.ThrowIfNull(builder);
+        Guard.ThrowIfNull(builder);
 
-            return builder.AddSource(GrpcCoreInstrumentation.ActivitySourceName);
-        }
+        return builder.AddSource(GrpcCoreInstrumentation.ActivitySourceName);
     }
 }
