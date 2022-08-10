@@ -16,18 +16,17 @@
 
 using System;
 
-namespace OpenTelemetry.Instrumentation.Hangfire.Tests
-{
-    public class TestJob
-    {
-        public void Execute()
-        {
-            return;
-        }
+namespace OpenTelemetry.Instrumentation.Hangfire.Tests;
 
-        public void ThrowException()
-        {
-            throw new Exception();
-        }
+public class TestJob
+{
+    public void Execute()
+    {
+        return;
+    }
+
+    public void ThrowException()
+    {
+        throw new Exception();
     }
 }
