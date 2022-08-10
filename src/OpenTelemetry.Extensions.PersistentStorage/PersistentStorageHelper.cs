@@ -179,6 +179,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage
             catch (Exception ex)
             {
                 PersistentStorageEventSource.Log.PersistentStorageException(nameof(PersistentStorageHelper), $"Error creating sub-directory {path}", ex);
+                throw ex;
             }
 
             directorySize = CalculateFolderSize(subdirectoryPath);
