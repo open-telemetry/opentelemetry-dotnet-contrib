@@ -14,10 +14,9 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.MassTransit.Tests
+namespace OpenTelemetry.Instrumentation.MassTransit.Tests;
+
+public class TestMessage
 {
-    public class TestMessage
-    {
-        public string Text;
-    }
+    public string Text;
 }
