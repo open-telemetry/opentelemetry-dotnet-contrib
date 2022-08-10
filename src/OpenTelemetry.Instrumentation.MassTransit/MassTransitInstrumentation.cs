@@ -17,31 +17,30 @@
 using System;
 using OpenTelemetry.Instrumentation.MassTransit.Implementation;
 
-namespace OpenTelemetry.Instrumentation.MassTransit
+namespace OpenTelemetry.Instrumentation.MassTransit;
+
+internal class MassTransitInstrumentation : IDisposable
 {
-    internal class MassTransitInstrumentation : IDisposable
+    internal const string MassTransitDiagnosticListenerName = "MassTransit";
+
+    private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MassTransitInstrumentation"/> class.
+    /// </summary>
+    /// <param name="options">Instrumentation options.</param>
+    public MassTransitInstrumentation(MassTransitInstrumentationOptions options)
     {
-        internal const string MassTransitDiagnosticListenerName = "MassTransit";
+        this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(
+            name => new MassTransitDiagnosticListener(name, options),
+            listener => listener.Name == MassTransitDiagnosticListenerName,
+            null);
+        this.diagnosticSourceSubscriber.Subscribe();
+    }
 
-        private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MassTransitInstrumentation"/> class.
-        /// </summary>
-        /// <param name="options">Instrumentation options.</param>
-        public MassTransitInstrumentation(MassTransitInstrumentationOptions options)
-        {
-            this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(
-                name => new MassTransitDiagnosticListener(name, options),
-                listener => listener.Name == MassTransitDiagnosticListenerName,
-                null);
-            this.diagnosticSourceSubscriber.Subscribe();
-        }
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            this.diagnosticSourceSubscriber?.Dispose();
-        }
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.diagnosticSourceSubscriber?.Dispose();
     }
 }

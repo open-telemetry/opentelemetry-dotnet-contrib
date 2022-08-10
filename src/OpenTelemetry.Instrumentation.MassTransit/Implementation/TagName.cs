@@ -14,27 +14,26 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.MassTransit.Implementation
+namespace OpenTelemetry.Instrumentation.MassTransit.Implementation;
+
+internal class TagName
 {
-    internal class TagName
-    {
-        public const string SpanKind = "span.kind";
+    public const string SpanKind = "span.kind";
 
-        public const string PeerAddress = "peer.address";
-        public const string PeerHost = "peer.host";
-        public const string PeerService = "peer.service";
-        public const string SourceHostMachine = "source-host-machine";
+    public const string PeerAddress = "peer.address";
+    public const string PeerHost = "peer.host";
+    public const string PeerService = "peer.service";
+    public const string SourceHostMachine = "source-host-machine";
 
-        public const string MessageId = "message-id";
-        public const string ConversationId = "conversation-id";
-        public const string CorrelationId = "correlation-id";
-        public const string InitiatorId = "initiator-id";
+    public const string MessageId = "message-id";
+    public const string ConversationId = "conversation-id";
+    public const string CorrelationId = "correlation-id";
+    public const string InitiatorId = "initiator-id";
 
-        public const string ConsumerType = "consumer-type";
-        public const string MessageTypes = "message-types";
+    public const string ConsumerType = "consumer-type";
+    public const string MessageTypes = "message-types";
 
-        public const string DestinationAddress = "destination-address";
-        public const string SourceAddress = "source-address";
-        public const string InputAddress = "input-address";
-    }
+    public const string DestinationAddress = "destination-address";
+    public const string SourceAddress = "source-address";
+    public const string InputAddress = "input-address";
 }
