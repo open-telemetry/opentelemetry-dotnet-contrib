@@ -174,7 +174,7 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
         [Fact]
         public void FileBlobProvider_ValidPathIsRequired()
         {
-            Assert.Throws<DirectoryNotFoundException>(() => new FileBlobProvider("E:\\invalidpath"));
+            Assert.Throws<DirectoryNotFoundException>(() => new FileBlobProvider("Invalid:\\invalidpath"));
         }
     }
 }
