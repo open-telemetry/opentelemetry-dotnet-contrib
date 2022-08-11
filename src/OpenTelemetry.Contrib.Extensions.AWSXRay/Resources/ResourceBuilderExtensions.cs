@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Resources
@@ -38,7 +37,7 @@ namespace OpenTelemetry.Resources
 
             if (resourceAttributes != null)
             {
-                resourceBuilder.AddAttributes(resourceAttributes);
+                resourceBuilder.AddAttributes(resourceAttributes.Attributes);
             }
 
             return resourceBuilder;

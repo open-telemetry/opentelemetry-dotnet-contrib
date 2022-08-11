@@ -31,7 +31,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources
             Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_VERSION", "latest");
 
             var lambdaResourceDetector = new AWSLambdaResourceDetector();
-            var resourceAttributes = lambdaResourceDetector.Detect().ToDictionary(x => x.Key, x => x.Value);
+            var resourceAttributes = lambdaResourceDetector.Detect().Attributes.ToDictionary(x => x.Key, x => x.Value);
 
             Assert.Equal("aws", resourceAttributes[AWSSemanticConventions.AttributeCloudProvider]);
             Assert.Equal("aws_lambda", resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform]);

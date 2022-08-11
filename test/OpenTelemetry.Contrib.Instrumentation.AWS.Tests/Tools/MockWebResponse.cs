@@ -26,7 +26,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
 {
     internal class MockWebResponse
     {
-#if NET452
+#if NET462
         public static HttpWebResponse CreateFromResource(string resourceName)
         {
             var rawResponse = Utils.GetResourceText(resourceName);

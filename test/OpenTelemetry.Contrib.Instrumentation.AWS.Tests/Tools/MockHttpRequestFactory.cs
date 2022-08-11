@@ -22,7 +22,7 @@ using Amazon.Runtime;
 
 namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
 {
-#if NET452
+#if NET462
     internal class MockHttpRequestFactory : IHttpRequestFactory<Stream>
     {
         public Action GetResponseAction { get; set; }
