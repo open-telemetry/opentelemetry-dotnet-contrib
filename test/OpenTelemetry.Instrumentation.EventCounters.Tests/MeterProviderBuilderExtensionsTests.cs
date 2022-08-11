@@ -18,17 +18,16 @@ using System;
 using OpenTelemetry.Metrics;
 using Xunit;
 
-namespace OpenTelemetry.Instrumentation.EventCounters.Tests
-{
-    public class MeterProviderBuilderExtensionsTests
-    {
-        [Fact]
-        public void Throws_Exception_When_Builder_Is_Null()
-        {
-            MeterProviderBuilder builder = null;
+namespace OpenTelemetry.Instrumentation.EventCounters.Tests;
 
-            Func<object> action = () => builder.AddEventCounterMetrics();
-            Assert.Throws<ArgumentNullException>(action);
-        }
+public class MeterProviderBuilderExtensionsTests
+{
+    [Fact]
+    public void Throws_Exception_When_Builder_Is_Null()
+    {
+        MeterProviderBuilder builder = null;
+
+        Func<object> action = () => builder.AddEventCounterMetrics();
+        Assert.Throws<ArgumentNullException>(action);
     }
 }
