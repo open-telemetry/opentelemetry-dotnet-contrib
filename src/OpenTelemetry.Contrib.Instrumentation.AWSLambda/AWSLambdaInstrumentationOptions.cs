@@ -1,4 +1,4 @@
-// <copyright file="EventCounterMetricsOptions.cs" company="OpenTelemetry Authors">
+// <copyright file="AWSLambdaInstrumentationOptions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,15 +14,16 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.EventCounters;
-
-/// <summary>
-/// EventCounterMetrics Options.
-/// </summary>
-public class EventCounterMetricsOptions
+namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda
 {
     /// <summary>
-    /// Gets or sets the subscription interval in seconds.
+    /// AWS lambda instrumentation options.
     /// </summary>
-    public int RefreshIntervalSecs { get; set; } = 60;
+    public class AWSLambdaInstrumentationOptions
+    {
+        /// <summary>
+        /// Gets or sets a value indicating whether AWS X-Ray context extraction should be disabled.
+        /// </summary>
+        public bool DisableAwsXRayContextExtraction { get; set; }
+    }
 }

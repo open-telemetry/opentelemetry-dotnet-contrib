@@ -13,36 +13,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
+
 #if NETFRAMEWORK
 using System;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Dispatcher;
 using System.Threading;
 
-namespace OpenTelemetry.Instrumentation.Wcf.Tests.Tools
+namespace OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
+
+internal class ErrorHandler : IErrorHandler
 {
-    internal class ErrorHandler : IErrorHandler
+    private readonly EventWaitHandle handle;
+    private readonly Action<Exception> log;
+
+    public ErrorHandler(EventWaitHandle handle, Action<Exception> log)
     {
-        private readonly EventWaitHandle handle;
-        private readonly Action<Exception> log;
+        this.handle = handle;
+        this.log = log;
+    }
 
-        public ErrorHandler(EventWaitHandle handle, Action<Exception> log)
-        {
-            this.handle = handle;
-            this.log = log;
-        }
+    public bool HandleError(Exception error)
+    {
+        this.log(error);
+        this.handle.Set();
 
-        public bool HandleError(Exception error)
-        {
-            this.log(error);
-            this.handle.Set();
+        return true;
+    }
 
-            return true;
-        }
-
-        public void ProvideFault(Exception error, MessageVersion version, ref Message fault)
-        {
-        }
+    public void ProvideFault(Exception error, MessageVersion version, ref Message fault)
+    {
     }
 }
+
 #endif
