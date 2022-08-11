@@ -19,63 +19,62 @@ using System.Diagnostics.Tracing;
 using System.Globalization;
 using System.Threading;
 
-namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation
+namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
+
+[EventSource(Name = "OpenTelemetry-Instrumentation-EntityFrameworkCore")]
+internal class EntityFrameworkInstrumentationEventSource : EventSource
 {
-    [EventSource(Name = "OpenTelemetry-Instrumentation-EntityFrameworkCore")]
-    internal class EntityFrameworkInstrumentationEventSource : EventSource
+    public static EntityFrameworkInstrumentationEventSource Log = new EntityFrameworkInstrumentationEventSource();
+
+    [NonEvent]
+    public void UnknownErrorProcessingEvent(string handlerName, string eventName, Exception ex)
     {
-        public static EntityFrameworkInstrumentationEventSource Log = new EntityFrameworkInstrumentationEventSource();
-
-        [NonEvent]
-        public void UnknownErrorProcessingEvent(string handlerName, string eventName, Exception ex)
+        if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
         {
-            if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
-            {
-                this.UnknownErrorProcessingEvent(handlerName, eventName, ToInvariantString(ex));
-            }
+            this.UnknownErrorProcessingEvent(handlerName, eventName, ToInvariantString(ex));
         }
+    }
 
-        [Event(1, Message = "Unknown error processing event '{1}' from handler '{0}', Exception: {2}", Level = EventLevel.Error)]
-        public void UnknownErrorProcessingEvent(string handlerName, string eventName, string ex)
+    [Event(1, Message = "Unknown error processing event '{1}' from handler '{0}', Exception: {2}", Level = EventLevel.Error)]
+    public void UnknownErrorProcessingEvent(string handlerName, string eventName, string ex)
+    {
+        this.WriteEvent(1, handlerName, eventName, ex);
+    }
+
+    [Event(2, Message = "Current Activity is NULL the '{0}' callback. Span will not be recorded.", Level = EventLevel.Warning)]
+    public void NullActivity(string eventName)
+    {
+        this.WriteEvent(2, eventName);
+    }
+
+    [Event(3, Message = "Payload is NULL in event '{1}' from handler '{0}', span will not be recorded.", Level = EventLevel.Warning)]
+    public void NullPayload(string handlerName, string eventName)
+    {
+        this.WriteEvent(3, handlerName, eventName);
+    }
+
+    [Event(4, Message = "Payload is invalid in event '{1}' from handler '{0}', span will not be recorded.", Level = EventLevel.Warning)]
+    public void InvalidPayload(string handlerName, string eventName)
+    {
+        this.WriteEvent(4, handlerName, eventName);
+    }
+
+    /// <summary>
+    /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
+    /// appropriate for diagnostics tracing.
+    /// </summary>
+    private static string ToInvariantString(Exception exception)
+    {
+        var originalUICulture = Thread.CurrentThread.CurrentUICulture;
+
+        try
         {
-            this.WriteEvent(1, handlerName, eventName, ex);
+            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
+            return exception.ToString();
         }
-
-        [Event(2, Message = "Current Activity is NULL the '{0}' callback. Span will not be recorded.", Level = EventLevel.Warning)]
-        public void NullActivity(string eventName)
+        finally
         {
-            this.WriteEvent(2, eventName);
-        }
-
-        [Event(3, Message = "Payload is NULL in event '{1}' from handler '{0}', span will not be recorded.", Level = EventLevel.Warning)]
-        public void NullPayload(string handlerName, string eventName)
-        {
-            this.WriteEvent(3, handlerName, eventName);
-        }
-
-        [Event(4, Message = "Payload is invalid in event '{1}' from handler '{0}', span will not be recorded.", Level = EventLevel.Warning)]
-        public void InvalidPayload(string handlerName, string eventName)
-        {
-            this.WriteEvent(4, handlerName, eventName);
-        }
-
-        /// <summary>
-        /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
-        /// appropriate for diagnostics tracing.
-        /// </summary>
-        private static string ToInvariantString(Exception exception)
-        {
-            var originalUICulture = Thread.CurrentThread.CurrentUICulture;
-
-            try
-            {
-                Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-                return exception.ToString();
-            }
-            finally
-            {
-                Thread.CurrentThread.CurrentUICulture = originalUICulture;
-            }
+            Thread.CurrentThread.CurrentUICulture = originalUICulture;
         }
     }
 }
