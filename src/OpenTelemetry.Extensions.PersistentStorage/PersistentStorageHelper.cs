@@ -161,25 +161,17 @@ namespace OpenTelemetry.Extensions.PersistentStorage
         internal static string CreateSubdirectory(string path)
         {
             string subdirectoryPath = string.Empty;
-
-            try
-            {
-                string baseDirectory = string.Empty;
+            string baseDirectory = string.Empty;
 #if !NETSTANDARD
-                baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
 #else
-                baseDirectory = AppContext.BaseDirectory;
+            baseDirectory = AppContext.BaseDirectory;
 #endif
 
-                string appIdentity = Environment.UserName + "@" + Path.Combine(baseDirectory, Process.GetCurrentProcess().ProcessName);
-                string subdirectoryName = GetSHA256Hash(appIdentity);
-                subdirectoryPath = Path.Combine(path, subdirectoryName);
-                Directory.CreateDirectory(subdirectoryPath);
-            }
-            catch (Exception ex)
-            {
-                PersistentStorageEventSource.Log.PersistentStorageException(nameof(PersistentStorageHelper), $"Error creating sub-directory {path}", ex);
-            }
+            string appIdentity = Environment.UserName + "@" + Path.Combine(baseDirectory, Process.GetCurrentProcess().ProcessName);
+            string subdirectoryName = GetSHA256Hash(appIdentity);
+            subdirectoryPath = Path.Combine(path, subdirectoryName);
+            Directory.CreateDirectory(subdirectoryPath);
 
             directorySize = CalculateFolderSize(subdirectoryPath);
             return subdirectoryPath;
