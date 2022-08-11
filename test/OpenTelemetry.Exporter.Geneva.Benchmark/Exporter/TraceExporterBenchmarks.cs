@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using BenchmarkDotNet.Attributes;
@@ -22,18 +21,16 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
 /*
-BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19044.1415 (21H2)
-AMD Ryzen 9 3900X, 1 CPU, 24 logical and 12 physical cores
-.NET SDK=6.0.101
-  [Host]     : .NET 5.0.12 (5.0.1221.52207), X64 RyuJIT
-  DefaultJob : .NET 5.0.12 (5.0.1221.52207), X64 RyuJIT
+BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
+Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
+.NET SDK=7.0.100-preview.6.22352.1
+  [Host]     : .NET 6.0.8 (6.0.822.36306), X64 RyuJIT
+  DefaultJob : .NET 6.0.8 (6.0.822.36306), X64 RyuJIT
 
-|                    Method |      Mean |    Error |   StdDev |  Gen 0 | Allocated |
-|-------------------------- |----------:|---------:|---------:|-------:|----------:|
-|      CreateBoringActivity |  16.05 ns | 0.053 ns | 0.049 ns |      - |         - |
-|     CreateTediousActivity | 509.26 ns | 2.105 ns | 1.969 ns | 0.0486 |     408 B |
-| CreateInterestingActivity | 959.87 ns | 6.014 ns | 5.625 ns | 0.0477 |     408 B |
-|         SerializeActivity | 506.55 ns | 3.862 ns | 3.612 ns | 0.0095 |      80 B |
+|            Method |     Mean |    Error |   StdDev |  Gen 0 | Allocated |
+|------------------ |---------:|---------:|---------:|-------:|----------:|
+|    ExportActivity | 687.2 ns | 13.73 ns | 20.55 ns | 0.0648 |     408 B |
+| SerializeActivity | 392.3 ns |  4.87 ns |  4.32 ns | 0.0062 |      40 B |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark
@@ -41,12 +38,11 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
     [MemoryDiagnoser]
     public class TraceExporterBenchmarks
     {
-        private readonly Random r = new Random();
         private readonly Activity activity;
         private readonly GenevaTraceExporter exporter;
-        private readonly ActivitySource sourceBoring = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark.Boring");
-        private readonly ActivitySource sourceTedious = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark.Tedious");
-        private readonly ActivitySource sourceInteresting = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark.Interesting");
+        private readonly ActivitySource sourceTestData = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark.TestData");
+        private readonly ActivitySource activitySource = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark");
+        private readonly TracerProvider tracerProvider;
 
         public TraceExporterBenchmarks()
         {
@@ -56,11 +52,11 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
             {
                 ActivityStarted = null,
                 ActivityStopped = null,
-                ShouldListenTo = (activitySource) => activitySource.Name == this.sourceTedious.Name,
+                ShouldListenTo = (activitySource) => activitySource.Name == this.sourceTestData.Name,
                 Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded,
             });
 
-            using (var tedious = this.sourceTedious.StartActivity("Benchmark"))
+            using (var tedious = this.sourceTestData.StartActivity("Benchmark"))
             {
                 this.activity = tedious;
                 this.activity?.SetTag("tagString", "value");
@@ -79,9 +75,9 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
                 },
             });
 
-            Sdk.CreateTracerProviderBuilder()
+            this.tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .SetSampler(new AlwaysOnSampler())
-                .AddSource(this.sourceInteresting.Name)
+                .AddSource(this.activitySource.Name)
                 .AddGenevaTraceExporter(options =>
                 {
                     options.ConnectionString = "EtwSession=OpenTelemetry";
@@ -96,30 +92,26 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
         }
 
         [Benchmark]
-        public void CreateBoringActivity()
-        {
-            // this activity won't be created as there is no listener
-            using var activity = this.sourceBoring.StartActivity("Benchmark");
-        }
-
-        [Benchmark]
-        public void CreateTediousActivity()
-        {
-            // this activity will be created and feed into an ActivityListener that simply drops everything on the floor
-            using var activity = this.sourceTedious.StartActivity("Benchmark");
-        }
-
-        [Benchmark]
-        public void CreateInterestingActivity()
+        public void ExportActivity()
         {
             // this activity will be created and feed into the actual Geneva exporter
-            using var activity = this.sourceInteresting.StartActivity("Benchmark");
+            using var activity = this.activitySource.StartActivity("Benchmark");
         }
 
         [Benchmark]
         public void SerializeActivity()
         {
             this.exporter.SerializeActivity(this.activity);
+        }
+
+        [GlobalCleanup]
+        public void Cleanup()
+        {
+            this.activity.Dispose();
+            this.sourceTestData.Dispose();
+            this.activitySource.Dispose();
+            this.exporter.Dispose();
+            this.tracerProvider.Dispose();
         }
     }
 }
