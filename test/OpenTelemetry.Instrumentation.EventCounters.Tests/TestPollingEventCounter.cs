@@ -17,21 +17,20 @@
 using System;
 using System.Diagnostics.Tracing;
 
-namespace OpenTelemetry.Instrumentation.EventCounters.Tests
+namespace OpenTelemetry.Instrumentation.EventCounters.Tests;
+
+[EventSource(Name = "OpenTelemetry.Instrumentation.EventCounters.Tests.TestPollingEventCounter")]
+public sealed class TestPollingEventCounter : EventSource
 {
-    [EventSource(Name = "OpenTelemetry.Instrumentation.EventCounters.Tests.TestPollingEventCounter")]
-    public sealed class TestPollingEventCounter : EventSource
+    public const string CounterName = "TestPollingCounter";
+
+    private PollingCounter pollingCounter;
+
+    private TestPollingEventCounter(Func<double> provider)
     {
-        public const string CounterName = "TestPollingCounter";
-
-        private PollingCounter pollingCounter;
-
-        private TestPollingEventCounter(Func<double> provider)
-        {
-            this.pollingCounter = new PollingCounter(CounterName, this, provider);
-        }
-
-        // define the singleton instance of the event source
-        public static TestPollingEventCounter CreateSingleton(Func<double> provider) => new(provider);
+        this.pollingCounter = new PollingCounter(CounterName, this, provider);
     }
+
+    // define the singleton instance of the event source
+    public static TestPollingEventCounter CreateSingleton(Func<double> provider) => new(provider);
 }
