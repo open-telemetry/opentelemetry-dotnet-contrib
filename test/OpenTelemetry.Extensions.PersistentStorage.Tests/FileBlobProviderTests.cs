@@ -170,5 +170,11 @@ namespace OpenTelemetry.Extensions.PersistentStorage.Tests
 
             testDirectory.Delete(true);
         }
+
+        [Fact]
+        public void FileBlobProvider_ValidPathIsRequired()
+        {
+            Assert.Throws<DirectoryNotFoundException>(() => new FileBlobProvider("E:\\invalidpath"));
+        }
     }
 }
