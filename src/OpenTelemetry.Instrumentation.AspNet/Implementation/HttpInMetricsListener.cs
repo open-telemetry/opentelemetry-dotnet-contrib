@@ -20,35 +20,34 @@ using System.Diagnostics.Metrics;
 using System.Web;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Instrumentation.AspNet.Implementation
+namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
+
+internal sealed class HttpInMetricsListener : IDisposable
 {
-    internal sealed class HttpInMetricsListener : IDisposable
+    private readonly Histogram<double> httpServerDuration;
+
+    public HttpInMetricsListener(Meter meter)
     {
-        private readonly Histogram<double> httpServerDuration;
+        this.httpServerDuration = meter.CreateHistogram<double>("http.server.duration", "ms", "measures the duration of the inbound HTTP request");
+        TelemetryHttpModule.Options.OnRequestStoppedCallback += this.OnStopActivity;
+    }
 
-        public HttpInMetricsListener(Meter meter)
+    public void Dispose()
+    {
+        TelemetryHttpModule.Options.OnRequestStoppedCallback -= this.OnStopActivity;
+    }
+
+    private void OnStopActivity(Activity activity, HttpContext context)
+    {
+        // TODO: This is just a minimal set of attributes. See the spec for additional attributes:
+        // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/http-metrics.md#http-server
+        var tags = new TagList
         {
-            this.httpServerDuration = meter.CreateHistogram<double>("http.server.duration", "ms", "measures the duration of the inbound HTTP request");
-            TelemetryHttpModule.Options.OnRequestStoppedCallback += this.OnStopActivity;
-        }
+            { SemanticConventions.AttributeHttpMethod, context.Request.HttpMethod },
+            { SemanticConventions.AttributeHttpScheme, context.Request.Url.Scheme },
+            { SemanticConventions.AttributeHttpStatusCode, context.Response.StatusCode },
+        };
 
-        public void Dispose()
-        {
-            TelemetryHttpModule.Options.OnRequestStoppedCallback -= this.OnStopActivity;
-        }
-
-        private void OnStopActivity(Activity activity, HttpContext context)
-        {
-            // TODO: This is just a minimal set of attributes. See the spec for additional attributes:
-            // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/http-metrics.md#http-server
-            var tags = new TagList
-            {
-                { SemanticConventions.AttributeHttpMethod, context.Request.HttpMethod },
-                { SemanticConventions.AttributeHttpScheme, context.Request.Url.Scheme },
-                { SemanticConventions.AttributeHttpStatusCode, context.Response.StatusCode },
-            };
-
-            this.httpServerDuration.Record(activity.Duration.TotalMilliseconds, tags);
-        }
+        this.httpServerDuration.Record(activity.Duration.TotalMilliseconds, tags);
     }
 }

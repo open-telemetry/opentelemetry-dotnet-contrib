@@ -18,32 +18,31 @@ using System;
 using OpenTelemetry.Instrumentation.AspNet;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Trace
+namespace OpenTelemetry.Trace;
+
+/// <summary>
+/// Extension methods to simplify registering of ASP.NET request instrumentation.
+/// </summary>
+public static class TracerProviderBuilderExtensions
 {
     /// <summary>
-    /// Extension methods to simplify registering of ASP.NET request instrumentation.
+    /// Enables the incoming requests automatic data collection for ASP.NET.
     /// </summary>
-    public static class TracerProviderBuilderExtensions
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="configureAspNetInstrumentationOptions">ASP.NET Request configuration options.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddAspNetInstrumentation(
+        this TracerProviderBuilder builder,
+        Action<AspNetInstrumentationOptions> configureAspNetInstrumentationOptions = null)
     {
-        /// <summary>
-        /// Enables the incoming requests automatic data collection for ASP.NET.
-        /// </summary>
-        /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-        /// <param name="configureAspNetInstrumentationOptions">ASP.NET Request configuration options.</param>
-        /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-        public static TracerProviderBuilder AddAspNetInstrumentation(
-            this TracerProviderBuilder builder,
-            Action<AspNetInstrumentationOptions> configureAspNetInstrumentationOptions = null)
-        {
-            Guard.ThrowIfNull(builder);
+        Guard.ThrowIfNull(builder);
 
-            var aspnetOptions = new AspNetInstrumentationOptions();
-            configureAspNetInstrumentationOptions?.Invoke(aspnetOptions);
+        var aspnetOptions = new AspNetInstrumentationOptions();
+        configureAspNetInstrumentationOptions?.Invoke(aspnetOptions);
 
-            builder.AddInstrumentation(() => new AspNetInstrumentation(aspnetOptions));
-            builder.AddSource(TelemetryHttpModule.AspNetSourceName);
+        builder.AddInstrumentation(() => new AspNetInstrumentation(aspnetOptions));
+        builder.AddSource(TelemetryHttpModule.AspNetSourceName);
 
-            return builder;
-        }
+        return builder;
     }
 }

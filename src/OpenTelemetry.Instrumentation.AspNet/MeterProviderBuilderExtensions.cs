@@ -17,26 +17,25 @@
 using OpenTelemetry.Instrumentation.AspNet;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Metrics
+namespace OpenTelemetry.Metrics;
+
+/// <summary>
+/// Extension methods to simplify registering of ASP.NET request instrumentation.
+/// </summary>
+public static class MeterProviderBuilderExtensions
 {
     /// <summary>
-    /// Extension methods to simplify registering of ASP.NET request instrumentation.
+    /// Enables the incoming requests automatic data collection for ASP.NET.
     /// </summary>
-    public static class MeterProviderBuilderExtensions
+    /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
+    /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
+    public static MeterProviderBuilder AddAspNetInstrumentation(
+        this MeterProviderBuilder builder)
     {
-        /// <summary>
-        /// Enables the incoming requests automatic data collection for ASP.NET.
-        /// </summary>
-        /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
-        /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
-        public static MeterProviderBuilder AddAspNetInstrumentation(
-            this MeterProviderBuilder builder)
-        {
-            Guard.ThrowIfNull(builder);
+        Guard.ThrowIfNull(builder);
 
-            var instrumentation = new AspNetMetrics();
-            builder.AddMeter(AspNetMetrics.InstrumentationName);
-            return builder.AddInstrumentation(() => instrumentation);
-        }
+        var instrumentation = new AspNetMetrics();
+        builder.AddMeter(AspNetMetrics.InstrumentationName);
+        return builder.AddInstrumentation(() => instrumentation);
     }
 }
