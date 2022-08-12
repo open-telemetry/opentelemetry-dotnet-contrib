@@ -18,15 +18,14 @@ using System;
 using OpenTelemetry.Trace;
 using Xunit;
 
-namespace OpenTelemetry.Instrumentation.AspNet.Tests
+namespace OpenTelemetry.Instrumentation.AspNet.Tests;
+
+public class BasicTests
 {
-    public class BasicTests
+    [Fact]
+    public void AddAspNetInstrumentation_BadArgs()
     {
-        [Fact]
-        public void AddAspNetInstrumentation_BadArgs()
-        {
-            TracerProviderBuilder builder = null;
-            Assert.Throws<ArgumentNullException>(() => builder.AddAspNetInstrumentation());
-        }
+        TracerProviderBuilder builder = null;
+        Assert.Throws<ArgumentNullException>(() => builder.AddAspNetInstrumentation());
     }
 }
