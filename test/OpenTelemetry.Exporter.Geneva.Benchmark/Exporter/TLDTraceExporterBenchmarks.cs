@@ -29,8 +29,8 @@ Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
 
 |            Method |      Mean |     Error |    StdDev |  Gen 0 | Allocated |
 |------------------ |----------:|----------:|----------:|-------:|----------:|
-|    ExportActivity | 11.204 us | 0.2211 us | 0.4759 us | 0.1526 |   1,016 B |
-| SerializeActivity |  1.310 us | 0.0258 us | 0.0371 us | 0.0210 |     136 B |
+|    ExportActivity | 11.231 us | 0.2235 us | 0.4253 us | 0.1526 |   1,016 B |
+| SerializeActivity |  1.253 us | 0.0126 us | 0.0118 us | 0.0210 |     136 B |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
@@ -59,10 +59,9 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
             using (var testActivity = this.sourceTestData.StartActivity("Benchmark"))
             {
                 this.activity = testActivity;
-                this.activity?.SetTag("foo", 1);
-                this.activity?.SetTag("bar", "Hello, World!");
-                this.activity?.SetTag("baz", new int[] { 1, 2, 3 });
-                this.activity?.SetStatus(ActivityStatusCode.Ok);
+                this.activity?.SetTag("tagString", "value");
+                this.activity?.SetTag("tagInt", 100);
+                this.activity?.SetStatus(Status.Error);
             }
 
             this.exporter = new TLDTraceExporter(new GenevaExporterOptions()
