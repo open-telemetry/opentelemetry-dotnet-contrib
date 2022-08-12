@@ -16,6 +16,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using OpenTelemetry.Trace;
@@ -57,10 +58,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             ILambdaContext context,
             ActivityContext parentContext = default)
         {
-            TResult result = default;
-            Action action = () => result = lambdaHandler(input, context);
-            TraceInternal(tracerProvider, action, input, context, parentContext);
-            return result;
+            return TraceInternal(tracerProvider, lambdaHandler, input, context, parentContext);
         }
 
         /// <summary>
@@ -84,8 +82,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             ILambdaContext context,
             ActivityContext parentContext = default)
         {
-            Action action = () => lambdaHandler(input, context);
-            TraceInternal(tracerProvider, action, input, context, parentContext);
+            Func<TInput, ILambdaContext, object> func = (input, context) =>
+            {
+                lambdaHandler(input, context);
+                return null;
+            };
+            TraceInternal(tracerProvider, func, input, context, parentContext);
         }
 
         /// <summary>
@@ -110,8 +112,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             ILambdaContext context,
             ActivityContext parentContext = default)
         {
-            Func<Task> action = async () => await lambdaHandler(input, context);
-            return TraceInternalAsync(tracerProvider, action, input, context, parentContext);
+            Func<TInput, ILambdaContext, Task<object>> func = async (input, context) =>
+            {
+                await lambdaHandler(input, context);
+                return Task.FromResult<object>(null);
+            };
+            return TraceInternalAsync(tracerProvider, func, input, context, parentContext);
         }
 
         /// <summary>
@@ -130,17 +136,14 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// unless X-Ray propagation is disabled in the configuration for this wrapper.
         /// </param>
         /// <returns>Task of result.</returns>
-        public static async Task<TResult> Trace<TInput, TResult>(
+        public static Task<TResult> Trace<TInput, TResult>(
             TracerProvider tracerProvider,
             Func<TInput, ILambdaContext, Task<TResult>> lambdaHandler,
             TInput input,
             ILambdaContext context,
             ActivityContext parentContext = default)
         {
-            TResult result = default;
-            Func<Task> action = async () => result = await lambdaHandler(input, context);
-            await TraceInternalAsync(tracerProvider, action, input, context, parentContext);
-            return result;
+            return TraceInternalAsync(tracerProvider, lambdaHandler, input, context, parentContext);
         }
 
         /// <summary>
@@ -161,8 +164,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             ILambdaContext context,
             ActivityContext parentContext = default)
         {
-            Action action = () => lambdaHandler(context);
-            TraceInternal<object>(tracerProvider, action, null, context, parentContext);
+            Func<object, ILambdaContext, object> func = (_, context) =>
+            {
+                lambdaHandler(context);
+                return null;
+            };
+            TraceInternal(tracerProvider, func, null, context, parentContext);
         }
 
         /// <summary>
@@ -184,8 +191,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             ILambdaContext context,
             ActivityContext parentContext = default)
         {
-            Func<Task> action = async () => await lambdaHandler(context);
-            return TraceInternalAsync<object>(tracerProvider, action, null, context, parentContext);
+            Func<object, ILambdaContext, Task<object>> func = async (_, context) =>
+            {
+                await lambdaHandler(context);
+                return Task.FromResult<object>(null);
+            };
+            return TraceInternalAsync(tracerProvider, func, null, context, parentContext);
         }
 
         internal static Activity OnFunctionStart<TInput>(TInput input, ILambdaContext context, ActivityContext parentContext = default)
@@ -199,9 +210,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
                 }
             }
 
-            var tags = AWSLambdaUtils.GetFunctionTags(input, context);
+            var functionTags = AWSLambdaUtils.GetFunctionTags(input, context);
+            var httpTags = HttpSemanticConventions.GetHttpTags(input);
+
+            // We assume that functionTags and httpTags have no intersection.
             var activityName = AWSLambdaUtils.GetFunctionName(context) ?? "AWS Lambda Invoke";
-            var activity = AWSLambdaActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext, tags);
+            var activity = AWSLambdaActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext, functionTags.Union(httpTags));
 
             return activity;
         }
@@ -229,51 +243,55 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             }
         }
 
-        private static void TraceInternal<TInput>(
+        private static TResult TraceInternal<TInput, TResult>(
             TracerProvider tracerProvider,
-            Action handler,
+            Func<TInput, ILambdaContext, TResult> handler,
             TInput input,
             ILambdaContext context,
             ActivityContext parentContext = default)
         {
-            var lambdaActivity = OnFunctionStart(input, context, parentContext);
+            var activity = OnFunctionStart(input, context, parentContext);
             try
             {
-                handler();
+                var result = handler(input, context);
+                HttpSemanticConventions.SetHttpTagsFromRequest(activity, result);
+                return result;
             }
             catch (Exception ex)
             {
-                OnException(lambdaActivity, ex);
+                OnException(activity, ex);
 
                 throw;
             }
             finally
             {
-                OnFunctionStop(lambdaActivity, tracerProvider);
+                OnFunctionStop(activity, tracerProvider);
             }
         }
 
-        private static async Task TraceInternalAsync<TInput>(
+        private static async Task<TResult> TraceInternalAsync<TInput, TResult>(
             TracerProvider tracerProvider,
-            Func<Task> handlerAsync,
+            Func<TInput, ILambdaContext, Task<TResult>> handlerAsync,
             TInput input,
             ILambdaContext context,
             ActivityContext parentContext = default)
         {
-            var lambdaActivity = OnFunctionStart(input, context, parentContext);
+            var activity = OnFunctionStart(input, context, parentContext);
             try
             {
-                await handlerAsync();
+                var result = await handlerAsync(input, context);
+                HttpSemanticConventions.SetHttpTagsFromRequest(activity, result);
+                return result;
             }
             catch (Exception ex)
             {
-                OnException(lambdaActivity, ex);
+                OnException(activity, ex);
 
                 throw;
             }
             finally
             {
-                OnFunctionStop(lambdaActivity, tracerProvider);
+                OnFunctionStop(activity, tracerProvider);
             }
         }
     }

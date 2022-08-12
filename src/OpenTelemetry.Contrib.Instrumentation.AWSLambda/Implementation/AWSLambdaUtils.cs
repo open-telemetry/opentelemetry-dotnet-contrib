@@ -168,16 +168,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             return faasId;
         }
 
-        private static string GetFaasTrigger<TInput>(TInput input)
-        {
-            var trigger = "other";
-            if (input is APIGatewayProxyRequest || input is APIGatewayHttpApiV2ProxyRequest)
-            {
-                trigger = "http";
-            }
+        private static string GetFaasTrigger<TInput>(TInput input) =>
+            IsHttpRequest(input) ? "http" : "other";
 
-            return trigger;
-        }
+        private static bool IsHttpRequest<TInput>(TInput input) =>
+            input is APIGatewayProxyRequest || input is APIGatewayHttpApiV2ProxyRequest;
 
         private static ActivityContext ParseXRayTraceHeader(string rawHeader)
         {
@@ -198,6 +193,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
                 request.MultiValueHeaders.TryGetValue(name, out var values))
             {
                 return values;
+            }
+            else if (request.Headers != null &&
+                     request.Headers.TryGetValue(name, out var value))
+            {
+                return new[] { value };
             }
 
             return null;
