@@ -7,15 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Contrib.Extensions.AWSXRay" Version="1.0.1" />
     <PackageReference Include="AWSSDK.Core" Version="3.7.12.20" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\Guard.cs" Link="Includes\Guard.cs" />
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\OpenTelemetry.Contrib.Extensions.AWSXRay\OpenTelemetry.Contrib.Extensions.AWSXRay.csproj" />
   </ItemGroup>
 </Project>
