@@ -17,24 +17,23 @@
 using System;
 using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 
-namespace OpenTelemetry.Instrumentation.EntityFrameworkCore
+namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
+
+internal class EntityFrameworkInstrumentation : IDisposable
 {
-    internal class EntityFrameworkInstrumentation : IDisposable
+    private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
+
+    public EntityFrameworkInstrumentation(EntityFrameworkInstrumentationOptions options = null)
     {
-        private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
+        this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(
+            name => new EntityFrameworkDiagnosticListener(name, options),
+            listener => listener.Name == EntityFrameworkDiagnosticListener.DiagnosticSourceName,
+            null);
+        this.diagnosticSourceSubscriber.Subscribe();
+    }
 
-        public EntityFrameworkInstrumentation(EntityFrameworkInstrumentationOptions options = null)
-        {
-            this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(
-               name => new EntityFrameworkDiagnosticListener(name, options),
-               listener => listener.Name == EntityFrameworkDiagnosticListener.DiagnosticSourceName,
-               null);
-            this.diagnosticSourceSubscriber.Subscribe();
-        }
-
-        public void Dispose()
-        {
-            this.diagnosticSourceSubscriber?.Dispose();
-        }
+    public void Dispose()
+    {
+        this.diagnosticSourceSubscriber?.Dispose();
     }
 }

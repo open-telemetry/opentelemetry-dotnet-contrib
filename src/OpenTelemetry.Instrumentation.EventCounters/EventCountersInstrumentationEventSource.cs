@@ -16,32 +16,31 @@
 
 using System.Diagnostics.Tracing;
 
-namespace OpenTelemetry.Instrumentation.EventCounters
+namespace OpenTelemetry.Instrumentation.EventCounters;
+
+/// <summary>
+/// EventSource events emitted from the project.
+/// </summary>
+[EventSource(Name = "OpenTelemetry-Instrumentation-EventCounters")]
+internal class EventCountersInstrumentationEventSource : EventSource
 {
-    /// <summary>
-    /// EventSource events emitted from the project.
-    /// </summary>
-    [EventSource(Name = "OpenTelemetry-Instrumentation-EventCounters")]
-    internal class EventCountersInstrumentationEventSource : EventSource
+    public static readonly EventCountersInstrumentationEventSource Log = new();
+
+    [Event(1, Message = "Error occurred while processing eventCounter, EventCounter: {0}, Exception: {2}", Level = EventLevel.Error)]
+    public void ErrorEventCounter(string counterName, string exception)
     {
-        public static readonly EventCountersInstrumentationEventSource Log = new();
+        this.WriteEvent(1, counterName, exception);
+    }
 
-        [Event(1, Message = "Error occurred while processing eventCounter, EventCounter: {0}, Exception: {2}", Level = EventLevel.Error)]
-        public void ErrorEventCounter(string counterName, string exception)
-        {
-            this.WriteEvent(1, counterName, exception);
-        }
+    [Event(2, Level = EventLevel.Warning, Message = @"Ignoring event written from EventSource: {0} as payload is not IDictionary to extract metrics.")]
+    public void IgnoreEventWrittenAsEventPayloadNotParseable(string eventSourceName)
+    {
+        this.WriteEvent(4, eventSourceName);
+    }
 
-        [Event(2, Level = EventLevel.Warning, Message = @"Ignoring event written from EventSource: {0} as payload is not IDictionary to extract metrics.")]
-        public void IgnoreEventWrittenAsEventPayloadNotParseable(string eventSourceName)
-        {
-            this.WriteEvent(4, eventSourceName);
-        }
-
-        [Event(3, Level = EventLevel.Warning, Message = @"EventCountersInstrumentation - {0} failed with exception: {1}.")]
-        public void EventCountersInstrumentationWarning(string stage, string exceptionMessage)
-        {
-            this.WriteEvent(8, stage, exceptionMessage);
-        }
+    [Event(3, Level = EventLevel.Warning, Message = @"EventCountersInstrumentation - {0} failed with exception: {1}.")]
+    public void EventCountersInstrumentationWarning(string stage, string exceptionMessage)
+    {
+        this.WriteEvent(8, stage, exceptionMessage);
     }
 }

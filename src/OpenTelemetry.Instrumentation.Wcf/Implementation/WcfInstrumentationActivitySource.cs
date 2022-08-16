@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 using System.ServiceModel.Channels;
 
 namespace OpenTelemetry.Instrumentation.Wcf;
@@ -26,11 +27,12 @@ namespace OpenTelemetry.Instrumentation.Wcf;
 /// </summary>
 internal static class WcfInstrumentationActivitySource
 {
-    public const string ActivitySourceName = "OpenTelemetry.WCF";
-    public const string IncomingRequestActivityName = ActivitySourceName + ".IncomingRequest";
-    public const string OutgoingRequestActivityName = ActivitySourceName + ".OutgoingRequest";
+    internal static readonly AssemblyName AssemblyName = typeof(WcfInstrumentationActivitySource).Assembly.GetName();
+    internal static readonly string ActivitySourceName = AssemblyName.Name;
+    internal static readonly string IncomingRequestActivityName = ActivitySourceName + ".IncomingRequest";
+    internal static readonly string OutgoingRequestActivityName = ActivitySourceName + ".OutgoingRequest";
 
-    private static readonly Version Version = typeof(WcfInstrumentationActivitySource).Assembly.GetName().Version;
+    private static readonly Version Version = AssemblyName.Version;
 
     public static ActivitySource ActivitySource { get; } = new ActivitySource(ActivitySourceName, Version.ToString());
 

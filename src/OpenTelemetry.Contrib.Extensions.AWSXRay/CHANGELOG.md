@@ -1,6 +1,6 @@
 # Changelog - OpenTelemetry.Contrib.Extensions.AWSXRay
 
-## 1.3.0 [TBD]
+## Unreleased
 
 * Enhancement - AWSXRayIdGenerator - Generate X-Ray IDs with global Random
   instance instead of recreating with ThreadLocal
