@@ -17,187 +17,188 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+#if NETCOREAPP3_1_OR_GREATER
 using System.Threading;
 using System.Threading.Tasks;
+#endif
 using OpenTelemetry.Metrics;
 using Xunit;
 
-namespace OpenTelemetry.Instrumentation.Runtime.Tests
+namespace OpenTelemetry.Instrumentation.Runtime.Tests;
+
+public class RuntimeMetricsTests
 {
-    public class RuntimeMetricsTests
+    private const int MaxTimeToAllowForFlush = 10000;
+    private const string MetricPrefix = "process.runtime.dotnet.";
+
+    [Fact]
+    public void RuntimeMetricsAreCaptured()
     {
-        private const int MaxTimeToAllowForFlush = 10000;
-        private const string MetricPrefix = "process.runtime.dotnet.";
+        var exportedItems = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddRuntimeInstrumentation()
+            .AddInMemoryExporter(exportedItems)
+            .Build();
 
-        [Fact]
-        public void RuntimeMetricsAreCaptured()
+        // The process.runtime.dotnet.exception.count metrics are only available after an exception has been thrown post OpenTelemetry.Instrumentation.Runtime initialization.
+        try
         {
-            var exportedItems = new List<Metric>();
-            using var meterProvider = Sdk.CreateMeterProviderBuilder()
-                 .AddRuntimeInstrumentation()
-                 .AddInMemoryExporter(exportedItems)
-                .Build();
-
-            // The process.runtime.dotnet.exception.count metrics are only available after an exception has been thrown post OpenTelemetry.Instrumentation.Runtime initialization.
-            try
-            {
-                throw new Exception("Oops!");
-            }
-            catch (Exception)
-            {
-                // swallow the exception
-            }
-
-            meterProvider.ForceFlush(MaxTimeToAllowForFlush);
-            Assert.True(exportedItems.Count > 1);
-            Assert.StartsWith(MetricPrefix, exportedItems[0].Name);
-
-            var assembliesCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.assemblies.count");
-            Assert.NotNull(assembliesCountMetric);
-
-            var exceptionsCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.exceptions.count");
-            Assert.True(GetValue(exceptionsCountMetric) >= 1);
+            throw new Exception("Oops!");
+        }
+        catch (Exception)
+        {
+            // swallow the exception
         }
 
-        [Fact]
-        public void GcMetricsTest()
-        {
-            var exportedItems = new List<Metric>();
-            using var meterProvider = Sdk.CreateMeterProviderBuilder()
-                 .AddRuntimeInstrumentation()
-                 .AddInMemoryExporter(exportedItems)
-                .Build();
+        meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+        Assert.True(exportedItems.Count > 1);
+        Assert.StartsWith(MetricPrefix, exportedItems[0].Name);
 
-            GC.Collect(1);
+        var assembliesCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.assemblies.count");
+        Assert.NotNull(assembliesCountMetric);
 
-            meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+        var exceptionsCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.exceptions.count");
+        Assert.True(GetValue(exceptionsCountMetric) >= 1);
+    }
 
-            var gcCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.collections.count");
-            Assert.NotNull(gcCountMetric);
+    [Fact]
+    public void GcMetricsTest()
+    {
+        var exportedItems = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddRuntimeInstrumentation()
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        GC.Collect(1);
+
+        meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+
+        var gcCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.collections.count");
+        Assert.NotNull(gcCountMetric);
 
 #if NETCOREAPP3_1_OR_GREATER
-            var gcAllocationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.allocations.size");
-            Assert.NotNull(gcAllocationSizeMetric);
+        var gcAllocationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.allocations.size");
+        Assert.NotNull(gcAllocationSizeMetric);
 #endif
 
 #if NET6_0_OR_GREATER
-            var gcCommittedMemorySizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.committed_memory.size");
-            Assert.NotNull(gcCommittedMemorySizeMetric);
+        var gcCommittedMemorySizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.committed_memory.size");
+        Assert.NotNull(gcCommittedMemorySizeMetric);
 
-            var gcHeapSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.heap.size");
-            Assert.NotNull(gcHeapSizeMetric);
+        var gcHeapSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.heap.size");
+        Assert.NotNull(gcHeapSizeMetric);
 
-            if (Environment.Version.Major >= 7)
-            {
-                var gcHeapFragmentationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.heap.fragmentation.size");
-                Assert.NotNull(gcHeapFragmentationSizeMetric);
-            }
-#endif
+        if (Environment.Version.Major >= 7)
+        {
+            var gcHeapFragmentationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.heap.fragmentation.size");
+            Assert.NotNull(gcHeapFragmentationSizeMetric);
         }
+#endif
+    }
 
 #if NET6_0_OR_GREATER
-        [Fact]
-        public void JitRelatedMetricsTest()
-        {
-            var exportedItems = new List<Metric>();
-            using var meterProvider = Sdk.CreateMeterProviderBuilder()
-                 .AddRuntimeInstrumentation()
-                 .AddInMemoryExporter(exportedItems)
-                .Build();
+    [Fact]
+    public void JitRelatedMetricsTest()
+    {
+        var exportedItems = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+             .AddRuntimeInstrumentation()
+             .AddInMemoryExporter(exportedItems)
+            .Build();
 
-            meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+        meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
-            var jitCompiledSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.jit.il_compiled.size");
-            Assert.NotNull(jitCompiledSizeMetric);
+        var jitCompiledSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.jit.il_compiled.size");
+        Assert.NotNull(jitCompiledSizeMetric);
 
-            var jitMethodsCompiledCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.jit.methods_compiled.count");
-            Assert.NotNull(jitMethodsCompiledCountMetric);
+        var jitMethodsCompiledCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.jit.methods_compiled.count");
+        Assert.NotNull(jitMethodsCompiledCountMetric);
 
-            var jitCompilationTimeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.jit.compilation_time");
-            Assert.NotNull(jitCompilationTimeMetric);
-        }
+        var jitCompilationTimeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.jit.compilation_time");
+        Assert.NotNull(jitCompilationTimeMetric);
+    }
 #endif
 
 #if NETCOREAPP3_1_OR_GREATER
-        [Fact]
-        public void ThreadingRelatedMetricsTest()
+    [Fact]
+    public void ThreadingRelatedMetricsTest()
+    {
+        var exportedItems = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddRuntimeInstrumentation()
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        // Bump the count for `thread_pool.completed_items.count` metric
+        int taskCount = 50;
+        List<Task> tasks = new List<Task>();
+        for (int i = 0; i < taskCount; i++)
         {
-            var exportedItems = new List<Metric>();
-            using var meterProvider = Sdk.CreateMeterProviderBuilder()
-                 .AddRuntimeInstrumentation()
-                 .AddInMemoryExporter(exportedItems)
-                .Build();
+            tasks.Add(Task.Run(() => { Console.Write("Hi"); }));
+        }
 
-            // Bump the count for `thread_pool.completed_items.count` metric
-            int taskCount = 50;
-            List<Task> tasks = new List<Task>();
-            for (int i = 0; i < taskCount; i++)
+        Task.WaitAll(tasks.ToArray());
+
+        meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+
+        var lockContentionCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.monitor.lock_contention.count");
+        Assert.NotNull(lockContentionCountMetric);
+
+        var threadCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.thread_pool.threads.count");
+        Assert.NotNull(threadCountMetric);
+
+        var completedItemsCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.thread_pool.completed_items.count");
+        Assert.True(GetValue(completedItemsCountMetric) >= taskCount);
+
+        var queueLengthMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.thread_pool.queue.length");
+        Assert.NotNull(queueLengthMetric);
+
+        List<Timer> timers = new List<Timer>();
+        try
+        {
+            // Create 10 timers to bump timer.count metrics.
+            int timerCount = 10;
+            TimerCallback timerCallback = _ => { };
+            for (int i = 0; i < timerCount; i++)
             {
-                tasks.Add(Task.Run(() => { Console.Write("Hi"); }));
+                Timer timer = new Timer(timerCallback, null, 1000, 250);
+                timers.Add(timer);
             }
-
-            Task.WaitAll(tasks.ToArray());
 
             meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
-            var lockContentionCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.monitor.lock_contention.count");
-            Assert.NotNull(lockContentionCountMetric);
-
-            var threadCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.thread_pool.threads.count");
-            Assert.NotNull(threadCountMetric);
-
-            var completedItemsCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.thread_pool.completed_items.count");
-            Assert.True(GetValue(completedItemsCountMetric) >= taskCount);
-
-            var queueLengthMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.thread_pool.queue.length");
-            Assert.NotNull(queueLengthMetric);
-
-            List<Timer> timers = new List<Timer>();
-            try
+            var timerCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.timer.count");
+            Assert.True(GetValue(timerCountMetric) >= timerCount);
+        }
+        finally
+        {
+            for (int i = 0; i < timers.Count; i++)
             {
-                // Create 10 timers to bump timer.count metrics.
-                int timerCount = 10;
-                TimerCallback timerCallback = _ => { };
-                for (int i = 0; i < timerCount; i++)
-                {
-                    Timer timer = new Timer(timerCallback, null, 1000, 250);
-                    timers.Add(timer);
-                }
-
-                meterProvider.ForceFlush(MaxTimeToAllowForFlush);
-
-                var timerCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.timer.count");
-                Assert.True(GetValue(timerCountMetric) >= timerCount);
-            }
-            finally
-            {
-                for (int i = 0; i < timers.Count; i++)
-                {
-                    timers[i].Dispose();
-                }
+                timers[i].Dispose();
             }
         }
+    }
 #endif
 
-        private static double GetValue(Metric metric)
+    private static double GetValue(Metric metric)
+    {
+        Assert.NotNull(metric);
+        double sum = 0;
+
+        foreach (ref readonly var metricPoint in metric.GetMetricPoints())
         {
-            Assert.NotNull(metric);
-            double sum = 0;
-
-            foreach (ref readonly var metricPoint in metric.GetMetricPoints())
+            if (metric.MetricType.IsSum())
             {
-                if (metric.MetricType.IsSum())
-                {
-                    sum += metricPoint.GetSumLong();
-                }
-                else
-                {
-                    sum += metricPoint.GetGaugeLastValueLong();
-                    break;
-                }
+                sum += metricPoint.GetSumLong();
             }
-
-            return sum;
+            else
+            {
+                sum += metricPoint.GetGaugeLastValueLong();
+                break;
+            }
         }
+
+        return sum;
     }
 }
