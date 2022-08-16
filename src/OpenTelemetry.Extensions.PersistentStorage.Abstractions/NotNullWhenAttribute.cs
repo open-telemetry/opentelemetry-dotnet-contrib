@@ -15,19 +15,18 @@
 // </copyright>
 
 #if NETSTANDARD2_0 || NET462
-namespace System.Diagnostics.CodeAnalysis
-{
-    [AttributeUsage(AttributeTargets.All)]
-    internal sealed class NotNullWhenAttribute : Attribute
-    {
-        /// <summary>Initializes a new instance of the <see cref="NotNullWhenAttribute"/> class.Initializes the attribute with the specified return value condition.</summary>
-        /// <param name="returnValue">
-        /// The return value condition. If the method returns this value, the associated parameter will not be null.
-        /// </param>
-        public NotNullWhenAttribute(bool returnValue) => this.ReturnValue = returnValue;
+namespace System.Diagnostics.CodeAnalysis;
 
-        /// <summary>Gets a value indicating whether gets the return value condition.</summary>
-        public bool ReturnValue { get; }
-    }
+[AttributeUsage(AttributeTargets.All)]
+internal sealed class NotNullWhenAttribute : Attribute
+{
+    /// <summary>Initializes a new instance of the <see cref="NotNullWhenAttribute"/> class.Initializes the attribute with the specified return value condition.</summary>
+    /// <param name="returnValue">
+    /// The return value condition. If the method returns this value, the associated parameter will not be null.
+    /// </param>
+    public NotNullWhenAttribute(bool returnValue) => this.ReturnValue = returnValue;
+
+    /// <summary>Gets a value indicating whether gets the return value condition.</summary>
+    public bool ReturnValue { get; }
 }
 #endif

@@ -19,46 +19,45 @@ using System.Diagnostics.Tracing;
 using System.Globalization;
 using System.Threading;
 
-namespace OpenTelemetry.Extensions.PersistentStorage
+namespace OpenTelemetry.Extensions.PersistentStorage;
+
+[EventSource(Name = EventSourceName)]
+internal sealed class PersistentStorageAbstractionsEventSource : EventSource
 {
-    [EventSource(Name = EventSourceName)]
-    internal sealed class PersistentStorageAbstractionsEventSource : EventSource
+    public static PersistentStorageAbstractionsEventSource Log = new PersistentStorageAbstractionsEventSource();
+    private const string EventSourceName = "OpenTelemetry-Extensions-PersistentStorage-Abstractions";
+
+    [NonEvent]
+    public void PersistentStorageAbstractionsException(string className, string message, Exception ex)
     {
-        public static PersistentStorageAbstractionsEventSource Log = new PersistentStorageAbstractionsEventSource();
-        private const string EventSourceName = "OpenTelemetry-Extensions-PersistentStorage-Abstractions";
-
-        [NonEvent]
-        public void PersistentStorageAbstractionsException(string className, string message, Exception ex)
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
-            if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
-            {
-                this.PersistentStorageAbstractionsException(className, message, ToInvariantString(ex));
-            }
+            this.PersistentStorageAbstractionsException(className, message, ToInvariantString(ex));
         }
+    }
 
-        [Event(1, Message = "{0}: {1}: {2}", Level = EventLevel.Error)]
-        public void PersistentStorageAbstractionsException(string className, string message, string ex)
+    [Event(1, Message = "{0}: {1}: {2}", Level = EventLevel.Error)]
+    public void PersistentStorageAbstractionsException(string className, string message, string ex)
+    {
+        this.WriteEvent(1, className, message, ex);
+    }
+
+    /// <summary>
+    /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
+    /// appropriate for diagnostics tracing.
+    /// </summary>
+    private static string ToInvariantString(Exception exception)
+    {
+        var originalUICulture = Thread.CurrentThread.CurrentUICulture;
+
+        try
         {
-            this.WriteEvent(1, className, message, ex);
+            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
+            return exception.ToString();
         }
-
-        /// <summary>
-        /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
-        /// appropriate for diagnostics tracing.
-        /// </summary>
-        private static string ToInvariantString(Exception exception)
+        finally
         {
-            var originalUICulture = Thread.CurrentThread.CurrentUICulture;
-
-            try
-            {
-                Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-                return exception.ToString();
-            }
-            finally
-            {
-                Thread.CurrentThread.CurrentUICulture = originalUICulture;
-            }
+            Thread.CurrentThread.CurrentUICulture = originalUICulture;
         }
     }
 }
