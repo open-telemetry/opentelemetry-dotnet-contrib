@@ -23,115 +23,114 @@ using Google.Cloud.Trace.V2;
 using Grpc.Core;
 using OpenTelemetry.Exporter.Stackdriver.Implementation;
 
-namespace OpenTelemetry.Exporter.Stackdriver
+namespace OpenTelemetry.Exporter.Stackdriver;
+
+/// <summary>
+/// Exports a group of spans to Stackdriver.
+/// </summary>
+public class StackdriverTraceExporter : BaseExporter<Activity>
 {
-    /// <summary>
-    /// Exports a group of spans to Stackdriver.
-    /// </summary>
-    public class StackdriverTraceExporter : BaseExporter<Activity>
+    private static readonly string StackdriverExportVersion;
+    private static readonly string OpenTelemetryExporterVersion;
+
+    private readonly Google.Api.Gax.ResourceNames.ProjectName googleCloudProjectId;
+    private readonly TraceServiceSettings traceServiceSettings;
+    private readonly TraceServiceClient traceServiceClient;
+
+    static StackdriverTraceExporter()
     {
-        private static readonly string StackdriverExportVersion;
-        private static readonly string OpenTelemetryExporterVersion;
-
-        private readonly Google.Api.Gax.ResourceNames.ProjectName googleCloudProjectId;
-        private readonly TraceServiceSettings traceServiceSettings;
-        private readonly TraceServiceClient traceServiceClient;
-
-        static StackdriverTraceExporter()
+        try
         {
-            try
-            {
-                var assemblyPackageVersion = typeof(StackdriverTraceExporter).GetTypeInfo().Assembly.GetCustomAttributes<AssemblyInformationalVersionAttribute>().First().InformationalVersion;
-                StackdriverExportVersion = assemblyPackageVersion;
-            }
-            catch (Exception)
-            {
-                StackdriverExportVersion = $"{Constants.PackagVersionUndefined}";
-            }
-
-            try
-            {
-                OpenTelemetryExporterVersion = Assembly.GetCallingAssembly().GetName().Version.ToString();
-            }
-            catch (Exception)
-            {
-                OpenTelemetryExporterVersion = $"{Constants.PackagVersionUndefined}";
-            }
+            var assemblyPackageVersion = typeof(StackdriverTraceExporter).GetTypeInfo().Assembly.GetCustomAttributes<AssemblyInformationalVersionAttribute>().First().InformationalVersion;
+            StackdriverExportVersion = assemblyPackageVersion;
+        }
+        catch (Exception)
+        {
+            StackdriverExportVersion = $"{Constants.PackagVersionUndefined}";
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="StackdriverTraceExporter"/> class.
-        /// </summary>
-        /// <param name="projectId">Project ID to send telemetry to.</param>
-        public StackdriverTraceExporter(string projectId)
+        try
         {
-            this.googleCloudProjectId = new Google.Api.Gax.ResourceNames.ProjectName(projectId);
+            OpenTelemetryExporterVersion = Assembly.GetCallingAssembly().GetName().Version.ToString();
+        }
+        catch (Exception)
+        {
+            OpenTelemetryExporterVersion = $"{Constants.PackagVersionUndefined}";
+        }
+    }
 
-            // Set header mutation for every outgoing API call to Stackdriver so the BE knows
-            // which version of OC client is calling it as well as which version of the exporter
-            var callSettings = CallSettings.FromHeaderMutation(StackdriverCallHeaderAppender);
-            this.traceServiceSettings = new TraceServiceSettings { CallSettings = callSettings };
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StackdriverTraceExporter"/> class.
+    /// </summary>
+    /// <param name="projectId">Project ID to send telemetry to.</param>
+    public StackdriverTraceExporter(string projectId)
+    {
+        this.googleCloudProjectId = new Google.Api.Gax.ResourceNames.ProjectName(projectId);
+
+        // Set header mutation for every outgoing API call to Stackdriver so the BE knows
+        // which version of OC client is calling it as well as which version of the exporter
+        var callSettings = CallSettings.FromHeaderMutation(StackdriverCallHeaderAppender);
+        this.traceServiceSettings = new TraceServiceSettings { CallSettings = callSettings };
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StackdriverTraceExporter"/> class.
+    /// Only used internally for tests.
+    /// </summary>
+    /// <param name="projectId">Project ID to send telemetry to.</param>
+    /// <param name="traceServiceClient">TraceServiceClient instance to use.</param>
+    [ExcludeFromCodeCoverage]
+    internal StackdriverTraceExporter(string projectId, TraceServiceClient traceServiceClient)
+        : this(projectId)
+    {
+        this.traceServiceClient = traceServiceClient;
+    }
+
+    /// <inheritdoc/>
+    public override ExportResult Export(in Batch<Activity> batchActivity)
+    {
+        TraceServiceClient traceWriter = this.traceServiceClient;
+        if (this.traceServiceClient == null)
+        {
+            traceWriter = new TraceServiceClientBuilder
+            {
+                Settings = this.traceServiceSettings,
+            }.Build();
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="StackdriverTraceExporter"/> class.
-        /// Only used internally for tests.
-        /// </summary>
-        /// <param name="projectId">Project ID to send telemetry to.</param>
-        /// <param name="traceServiceClient">TraceServiceClient instance to use.</param>
-        [ExcludeFromCodeCoverage]
-        internal StackdriverTraceExporter(string projectId, TraceServiceClient traceServiceClient)
-            : this(projectId)
+        var batchSpansRequest = new BatchWriteSpansRequest
         {
-            this.traceServiceClient = traceServiceClient;
+            ProjectName = this.googleCloudProjectId,
+        };
+
+        foreach (var activity in batchActivity)
+        {
+            batchSpansRequest.Spans.Add(activity.ToSpan(this.googleCloudProjectId.ProjectId));
         }
 
-        /// <inheritdoc/>
-        public override ExportResult Export(in Batch<Activity> batchActivity)
+        // avoid cancelling here: this is no return point: if we reached this point
+        // and cancellation is requested, it's better if we try to finish sending spans rather than drop it
+        try
         {
-            TraceServiceClient traceWriter = this.traceServiceClient;
-            if (this.traceServiceClient == null)
-            {
-                traceWriter = new TraceServiceClientBuilder
-                {
-                    Settings = this.traceServiceSettings,
-                }.Build();
-            }
+            traceWriter.BatchWriteSpans(batchSpansRequest);
+        }
+        catch (Exception ex)
+        {
+            ExporterStackdriverEventSource.Log.ExportMethodException(ex);
 
-            var batchSpansRequest = new BatchWriteSpansRequest
-            {
-                ProjectName = this.googleCloudProjectId,
-            };
-
-            foreach (var activity in batchActivity)
-            {
-                batchSpansRequest.Spans.Add(activity.ToSpan(this.googleCloudProjectId.ProjectId));
-            }
-
-            // avoid cancelling here: this is no return point: if we reached this point
-            // and cancellation is requested, it's better if we try to finish sending spans rather than drop it
-            try
-            {
-                traceWriter.BatchWriteSpans(batchSpansRequest);
-            }
-            catch (Exception ex)
-            {
-                ExporterStackdriverEventSource.Log.ExportMethodException(ex);
-
-                return ExportResult.Failure;
-            }
-
-            return ExportResult.Success;
+            return ExportResult.Failure;
         }
 
-        /// <summary>
-        /// Appends OpenTelemetry headers for every outgoing request to Stackdriver Backend.
-        /// </summary>
-        /// <param name="metadata">The metadata that is sent with every outgoing http request.</param>
-        private static void StackdriverCallHeaderAppender(Metadata metadata)
-        {
-            metadata.Add("AGENT_LABEL_KEY", "g.co/agent");
-            metadata.Add("AGENT_LABEL_VALUE_STRING", $"{OpenTelemetryExporterVersion}; stackdriver-exporter {StackdriverExportVersion}");
-        }
+        return ExportResult.Success;
+    }
+
+    /// <summary>
+    /// Appends OpenTelemetry headers for every outgoing request to Stackdriver Backend.
+    /// </summary>
+    /// <param name="metadata">The metadata that is sent with every outgoing http request.</param>
+    private static void StackdriverCallHeaderAppender(Metadata metadata)
+    {
+        metadata.Add("AGENT_LABEL_KEY", "g.co/agent");
+        metadata.Add("AGENT_LABEL_VALUE_STRING", $"{OpenTelemetryExporterVersion}; stackdriver-exporter {StackdriverExportVersion}");
     }
 }
