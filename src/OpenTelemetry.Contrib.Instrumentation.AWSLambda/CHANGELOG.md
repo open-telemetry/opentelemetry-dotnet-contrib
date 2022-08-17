@@ -5,18 +5,20 @@
 ## 2.0.0
 
 * BREAKING (behavior): Update the `ActivitySource` name to not include `Contrib`.
-  The new activity source name is `OpenTelemetry.Instrumentation.AWSLambda`.
+  The new activity source name is `OpenTelemetry.Instrumentation.AWSLambda`
   ([#534](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/534))
 * Rewrite of parent context handling and related changes
   ([#408](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/408)):
-  * BREAKING (API): Remove `AWSLambdaWrapper.Trace` overloads without `ILambdaContext` parameter.
-  * BREAKING (behavior): Add automatic parent extraction from HTTP triggers (API Gateway Proxy events),
-    using the configured global textmap propagator.
-  * BREAKING (behavior): An activity is now also created if no parent context could be extracted
-    (previously this package would only create activities if a valid parent span context could be extracted
-     with X-Ray)
+  * BREAKING (API): Remove `AWSLambdaWrapper.Trace` overloads
+    without `ILambdaContext` parameter.
+  * BREAKING (behavior): Add automatic parent extraction from HTTP triggers
+  * (API Gateway Proxy events), using the configured global textmap propagator.
+  * BREAKING (behavior): An activity is now also created if no parent context
+    could be extracted (previously this package would only create activities if
+    a valid parent span context could be extracted with X-Ray).
   * Add optional parent context (`ActivityContext`) to `AWSLambdaWrapper.Trace`.
-  * Add `AWSLambdaInstrumentationOptions.DisableAwsXRayContextExtraction` initialization option.
+  * Add `AWSLambdaInstrumentationOptions.DisableAwsXRayContextExtraction`
+    initialization option.
   * Add `AWSLambdaWrapper.Trace` overloads without generic input arguments.
 
 ## 1.1.0-beta1
