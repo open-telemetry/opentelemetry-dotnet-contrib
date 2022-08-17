@@ -2,23 +2,22 @@
 
 ## Unreleased
 
-* Updated the `ActivitySource` name to the assembly name:
-  `OpenTelemetry.Instrumentation.AWSLambda`
+## 2.0.0
+
+* BREAKING (behavior): Update the `ActivitySource` name to not include `Contrib`.
+  The new activity source name is `OpenTelemetry.Instrumentation.AWSLambda`.
   ([#534](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/534))
-* Added public option `AWSLambdaInstrumentationOptions.DisableAwsXRayContextExtraction`.
-* Extended public API of the `AWSLambdaWrapper`: added optional parent
-  context (`ActivityContext`) to all `Trace` methods.
-* Enhanced parent extraction: if the parent context is not provided
-  then it can be extracted from the incoming request for certain types of the request.
-  If the parent is not extracted from the incoming request then it can be extracted
-  from the AWS X-Ray tracing header if AWS X-Ray context extraction
-  is not disabled (`DisableAwsXRayContextExtraction`).
-* Changed behaviour of the `OnFunctionStart` method: Activity is created even
-  if the parent context is not defined.
-* Breaking change: `AWSLambdaWrapper.Trace` overloads without `ILambdaContext` argument
-  have been completely removed.
-* Added two new `AWSLambdaWrapper.Trace` overloads without generic input arguments.
-  ([#408](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/408))
+* Rewrite of parent context handling and related changes
+  ([#408](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/408)):
+  * BREAKING (API): Remove `AWSLambdaWrapper.Trace` overloads without `ILambdaContext` parameter.
+  * BREAKING (behavior): Add automatic parent extraction from HTTP triggers (API Gateway Proxy events),
+    using the configured global textmap propagator.
+  * BREAKING (behavior): An activity is now also created if no parent context could be extracted
+    (previously this package would only create activities if a valid parent span context could be extracted
+     with X-Ray)
+  * Add optional parent context (`ActivityContext`) to `AWSLambdaWrapper.Trace`.
+  * Add `AWSLambdaInstrumentationOptions.DisableAwsXRayContextExtraction` initialization option.
+  * Add `AWSLambdaWrapper.Trace` overloads without generic input arguments.
 
 ## 1.1.0-beta1
 
