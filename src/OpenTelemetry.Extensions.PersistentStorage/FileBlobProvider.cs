@@ -62,6 +62,27 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
     /// Controls the timeout when writing a buffer to blob.
     /// Default is 1 minute.
     /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// path is null.
+    /// </exception>
+    /// <exception cref="DirectoryNotFoundException">
+    /// invalid path.
+    /// </exception>
+    /// <exception cref="PathTooLongException">
+    /// path exceeds system defined maximum length.
+    /// </exception>
+    /// <exception cref="UnauthorizedAccessException">
+    /// insufficient priviledges for provided path.
+    /// </exception>
+    /// <exception cref="NotSupportedException">
+    /// path contains a colon character (:) that is not part of a drive label ("C:\").
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// path contains invalid characters.
+    /// </exception>
+    /// <exception cref="IOException">
+    /// path is either file or network name is not known.
+    /// </exception>
     public FileBlobProvider(
         string path,
         long maxSizeInBytes = 52428800,
