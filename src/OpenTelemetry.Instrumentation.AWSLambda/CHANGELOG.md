@@ -3,6 +3,8 @@
 ## Unreleased
 
 * Breaking change: Rename package to OpenTelemetry.Instrumentation.AWSLambda (remove ".Contrib")
+* Breaking change: Move public class AWSLambdaWrapper out of Implementation subnamespace.
+* Add version to ActivitySource
 * Updated the `ActivitySource` name to the assembly name:
   `OpenTelemetry.Instrumentation.AWSLambda`
   ([#534](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/534))
