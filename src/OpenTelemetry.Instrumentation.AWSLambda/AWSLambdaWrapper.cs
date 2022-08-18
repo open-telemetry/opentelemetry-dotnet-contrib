@@ -16,6 +16,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
@@ -30,7 +31,10 @@ namespace OpenTelemetry.Instrumentation.AWSLambda
     public class AWSLambdaWrapper
     {
         private static readonly AssemblyName AssemblyName = typeof(AWSLambdaWrapper).Assembly.GetName();
+
+        [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1202:ElementsMustBeOrderedByAccess", Justification = "Initialization order.")]
         internal static readonly string ActivitySourceName = AssemblyName.Name;
+
         private static readonly Version Version = AssemblyName.Version;
         private static readonly ActivitySource AWSLambdaActivitySource = new(ActivitySourceName, Version.ToString());
 

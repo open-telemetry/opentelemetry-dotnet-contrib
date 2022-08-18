@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-* Breaking change: Rename package to OpenTelemetry.Instrumentation.AWSLambda (remove ".Contrib")
+* Breaking change: Rename package to OpenTelemetry.Instrumentation.AWSLambda
+  (remove ".Contrib").
 * Breaking change: Move public class AWSLambdaWrapper out of Implementation subnamespace.
 * Add version to ActivitySource
 * Updated the `ActivitySource` name to the assembly name:
