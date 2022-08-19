@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net462;netcoreapp3.1;net6.0</TargetFrameworks>
+    <Description>dotnet process instrumentation for OpenTelemetry .NET</Description>
+    <PackageTags>$(PackageTags);process</PackageTags>
+    <MinVerTagPrefix>Instrumentation.Process-</MinVerTagPrefix>
+    <EnableAnalysis>true</EnableAnalysis>
+    <EnablePublicApi>true</EnablePublicApi>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryApiPkgVer)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\Guard.cs" Link="Includes\Guard.cs" />
+  </ItemGroup>
+
+</Project>
