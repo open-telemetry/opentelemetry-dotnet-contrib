@@ -14,10 +14,9 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Extensions.Docker.Resources
+namespace OpenTelemetry.Extensions.Docker.Resources;
+
+internal static class DockerSemanticConventions
 {
-    internal static class DockerSemanticConventions
-    {
-        public const string AttributeContainerID = "container.id";
-    }
+    public const string AttributeContainerID = "container.id";
 }
