@@ -14,12 +14,11 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.Wcf
-{
-    internal sealed class ActionMetadata
-    {
-        public string ContractName { get; set; }
+namespace OpenTelemetry.Instrumentation.Wcf;
 
-        public string OperationName { get; set; }
-    }
+internal sealed class ActionMetadata
+{
+    public string ContractName { get; set; }
+
+    public string OperationName { get; set; }
 }

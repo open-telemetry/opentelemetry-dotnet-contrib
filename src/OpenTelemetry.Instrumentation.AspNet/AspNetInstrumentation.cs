@@ -17,28 +17,27 @@
 using System;
 using OpenTelemetry.Instrumentation.AspNet.Implementation;
 
-namespace OpenTelemetry.Instrumentation.AspNet
+namespace OpenTelemetry.Instrumentation.AspNet;
+
+/// <summary>
+/// Asp.Net Requests instrumentation.
+/// </summary>
+internal sealed class AspNetInstrumentation : IDisposable
 {
+    private readonly HttpInListener httpInListener;
+
     /// <summary>
-    /// Asp.Net Requests instrumentation.
+    /// Initializes a new instance of the <see cref="AspNetInstrumentation"/> class.
     /// </summary>
-    internal sealed class AspNetInstrumentation : IDisposable
+    /// <param name="options">Configuration options for ASP.NET instrumentation.</param>
+    public AspNetInstrumentation(AspNetInstrumentationOptions options)
     {
-        private readonly HttpInListener httpInListener;
+        this.httpInListener = new HttpInListener(options);
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AspNetInstrumentation"/> class.
-        /// </summary>
-        /// <param name="options">Configuration options for ASP.NET instrumentation.</param>
-        public AspNetInstrumentation(AspNetInstrumentationOptions options)
-        {
-            this.httpInListener = new HttpInListener(options);
-        }
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            this.httpInListener?.Dispose();
-        }
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.httpInListener?.Dispose();
     }
 }

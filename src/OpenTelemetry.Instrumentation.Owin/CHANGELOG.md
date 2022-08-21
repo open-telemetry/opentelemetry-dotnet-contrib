@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Changed activity source name from `OpenTelemetry.OWIN`
+  to `OpenTelemetry.Instrumentation.Owin`
+  ([#572](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/572))
+
 ## 1.0.0-rc.2
 
 * Going forward the NuGet package will be
