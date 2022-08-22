@@ -1,6 +1,6 @@
 # Changelog - OpenTelemetry.Extensions.PersistentStorage
 
-## Unreleased
+## 1.0.0-beta.1
 
 * Invalid path or permissions issues will now result in `FileBlobProvider`
   initialization failure by throwing exception.
