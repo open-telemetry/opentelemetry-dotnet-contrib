@@ -18,18 +18,17 @@ using System;
 using System.Diagnostics;
 using OpenTelemetry.Resources;
 
-namespace OpenTelemetry.Exporter.Instana
-{
-    internal class InstanaExporterHelper : IInstanaExporterHelper
-    {
-        public Resource GetParentProviderResource(BaseExporter<Activity> otelExporter)
-        {
-            return otelExporter.ParentProvider.GetResource();
-        }
+namespace OpenTelemetry.Exporter.Instana;
 
-        public bool IsWindows()
-        {
-            return Environment.OSVersion.Platform == PlatformID.Win32NT;
-        }
+internal class InstanaExporterHelper : IInstanaExporterHelper
+{
+    public Resource GetParentProviderResource(BaseExporter<Activity> otelExporter)
+    {
+        return otelExporter.ParentProvider.GetResource();
+    }
+
+    public bool IsWindows()
+    {
+        return Environment.OSVersion.Platform == PlatformID.Win32NT;
     }
 }

@@ -16,12 +16,11 @@
 
 using System.Threading.Tasks;
 
-namespace OpenTelemetry.Exporter.Instana.Implementation.Processors
-{
-    internal interface IActivityProcessor
-    {
-        IActivityProcessor NextProcessor { get; set; }
+namespace OpenTelemetry.Exporter.Instana.Implementation.Processors;
 
-        Task ProcessAsync(System.Diagnostics.Activity activity, InstanaSpan instanaSpan);
-    }
+internal interface IActivityProcessor
+{
+    IActivityProcessor NextProcessor { get; set; }
+
+    Task ProcessAsync(System.Diagnostics.Activity activity, InstanaSpan instanaSpan);
 }
