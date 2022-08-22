@@ -205,7 +205,7 @@ by you. To ensure your project is versioned appropriately, specify a
 to be triggered when a tag with prefix "Instrumentation.FooBar-" is pushed to
 the main branch. The workflow file should be named as
 `package-Instrumentation.FooBar.yml` and to be placed in the
-`.github/workflows/publish-packages` folder.
+`.github/workflows/publish-packages/` folder.
 
   You can copy one of the [existing workflow
   files](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/publish-packages/package-Instrumentation.AspNet.yml)
