@@ -306,6 +306,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests
             Assert.Equal(ActivityKind.Server, activity.Kind);
             Assert.Equal("testfunction", activity.DisplayName);
             Assert.Equal("OpenTelemetry.Instrumentation.AWSLambda", activity.Source.Name);
+
             // Version should consist of four decimals separated by dots.
             Assert.Matches(@"^\d+(\.\d+){3}$", activity.Source.Version);
         }
