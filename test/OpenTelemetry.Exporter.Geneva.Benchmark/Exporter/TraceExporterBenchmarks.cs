@@ -130,5 +130,15 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark
                 return ExportResult.Success;
             }
         }
+
+        [GlobalCleanup]
+        public void Cleanup()
+        {
+            this.activity.Dispose();
+            this.sourceTestData.Dispose();
+            this.activitySource.Dispose();
+            this.exporter.Dispose();
+            this.tracerProvider.Dispose();
+        }
     }
 }
