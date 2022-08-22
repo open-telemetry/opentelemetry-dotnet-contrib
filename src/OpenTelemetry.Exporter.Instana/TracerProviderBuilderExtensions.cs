@@ -17,27 +17,26 @@
 using System;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Exporter.Instana
+namespace OpenTelemetry.Exporter.Instana;
+
+/// <summary>
+/// Todo.
+/// </summary>
+public static class TracerProviderBuilderExtensions
 {
     /// <summary>
-    /// Todo.
+    /// Instana test provider builder extension.
     /// </summary>
-    public static class TracerProviderBuilderExtensions
+    /// <param name="options">Test provider builder.</param>
+    /// <returns>todo.</returns>
+    /// <exception cref="ArgumentNullException">Test provider builder is null.</exception>
+    public static TracerProviderBuilder AddInstanaExporter(this TracerProviderBuilder options)
     {
-        /// <summary>
-        /// Instana test provider builder extension.
-        /// </summary>
-        /// <param name="options">Test provider builder.</param>
-        /// <returns>todo.</returns>
-        /// <exception cref="ArgumentNullException">Test provider builder is null.</exception>
-        public static TracerProviderBuilder AddInstanaExporter(this TracerProviderBuilder options)
+        if (options == null)
         {
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            return options.AddProcessor(new BatchActivityExportProcessor(new InstanaExporter()));
+            throw new ArgumentNullException(nameof(options));
         }
+
+        return options.AddProcessor(new BatchActivityExportProcessor(new InstanaExporter()));
     }
 }
