@@ -14,6 +14,8 @@ Released 2022-Aug-23
 
 ## 1.0.0-rc.6
 
+Released 2022-Mar-17
+
 * Going forward the NuGet package will be
   [`OpenTelemetry.Instrumentation.Wcf`](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Wcf).
   Older versions will remain at
@@ -43,16 +45,22 @@ Released 2022-Aug-23
 
 ## 1.0.0-rc5
 
+Released 2022-Feb-05
+
 * Fixed an `ArgumentNullException` setting `Activity`.`DisplayName` when
   processing service requests with empty actions
   ([#170](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/170))
 
 ## 1.0.0-rc4
 
+Released 2021-Oct-22
+
 * Removed `Propagator` property on `WcfInstrumentationOptions`
   ([#163](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/163))
 
 ## 1.0.0-rc3
+
+Released 2021-Sep-13
 
 * Added `TelemetryServiceBehavior`. **Breaking change** (config update
   required): Renamed `TelemetryBehaviourExtensionElement` ->
@@ -64,6 +72,8 @@ Released 2022-Aug-23
   ([#153](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/153))
 
 ## 1.0.0-rc2
+
+Released 2021-Jun-16
 
 * Updated OTel SDK package version to 1.1.0-beta1
   ([#100](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/100))
