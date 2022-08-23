@@ -44,6 +44,8 @@ components:
     - moonheart
   src/OpenTelemetry.Instrumentation.Owin/:
     - codeblanch
+  src/OpenTelemetry.Instrumentation.Process/:
+    - Yun-Ting
   src/OpenTelemetry.Instrumentation.Quartz/:
     - maldago
   src/OpenTelemetry.Instrumentation.Runtime/:
