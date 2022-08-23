@@ -27,8 +27,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\assign-reviewers.yml = .github\workflows\assign-reviewers.yml
 		.github\workflows\codeql-analysis.yml = .github\workflows\codeql-analysis.yml
 		.github\workflows\dotnet-core-cov.yml = .github\workflows\dotnet-core-cov.yml
+		.github\workflows\dotnet-format-md.yml = .github\workflows\dotnet-format-md.yml
 		.github\workflows\dotnet-format.yml = .github\workflows\dotnet-format.yml
 		.github\workflows\integration.yml = .github\workflows\integration.yml
+		.github\workflows\linux-ci-md.yml = .github\workflows\linux-ci-md.yml
 		.github\workflows\linux-ci.yml = .github\workflows\linux-ci.yml
 		.github\workflows\markdownlint.yml = .github\workflows\markdownlint.yml
 		.github\workflows\package-Exporter.Geneva.yml = .github\workflows\package-Exporter.Geneva.yml
@@ -57,6 +59,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\package-Instrumentation.Wcf.yml = .github\workflows\package-Instrumentation.Wcf.yml
 		.github\workflows\sanitycheck.yml = .github\workflows\sanitycheck.yml
 		.github\workflows\stale.yml = .github\workflows\stale.yml
+		.github\workflows\windows-ci-md.yml = .github\workflows\windows-ci-md.yml
 		.github\workflows\windows-ci.yml = .github\workflows\windows-ci.yml
 	EndProjectSection
 EndProject

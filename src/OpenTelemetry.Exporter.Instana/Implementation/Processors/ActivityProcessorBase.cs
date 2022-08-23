@@ -18,36 +18,35 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace OpenTelemetry.Exporter.Instana.Implementation.Processors
-{
-    internal abstract class ActivityProcessorBase : IActivityProcessor
-    {
-        public IActivityProcessor NextProcessor { get; set; }
+namespace OpenTelemetry.Exporter.Instana.Implementation.Processors;
 
-        public virtual async Task ProcessAsync(Activity activity, InstanaSpan instanaSpan)
+internal abstract class ActivityProcessorBase : IActivityProcessor
+{
+    public IActivityProcessor NextProcessor { get; set; }
+
+    public virtual async Task ProcessAsync(Activity activity, InstanaSpan instanaSpan)
+    {
+        if (this.NextProcessor != null)
         {
-            if (this.NextProcessor != null)
-            {
-                await this.NextProcessor.ProcessAsync(activity, instanaSpan);
-            }
+            await this.NextProcessor.ProcessAsync(activity, instanaSpan);
+        }
+    }
+
+    protected virtual void PreProcess(Activity activity, InstanaSpan instanaSpan)
+    {
+        if (instanaSpan.TransformInfo == null)
+        {
+            instanaSpan.TransformInfo = new InstanaSpanTransformInfo();
         }
 
-        protected virtual void PreProcess(Activity activity, InstanaSpan instanaSpan)
+        if (instanaSpan.Data == null)
         {
-            if (instanaSpan.TransformInfo == null)
+            instanaSpan.Data = new Data()
             {
-                instanaSpan.TransformInfo = new InstanaSpanTransformInfo();
-            }
-
-            if (instanaSpan.Data == null)
-            {
-                instanaSpan.Data = new Data()
-                {
-                    data = new Dictionary<string, object>(),
-                    Events = new List<SpanEvent>(8),
-                    Tags = new Dictionary<string, string>(),
-                };
-            }
+                data = new Dictionary<string, object>(),
+                Events = new List<SpanEvent>(8),
+                Tags = new Dictionary<string, string>(),
+            };
         }
     }
 }
