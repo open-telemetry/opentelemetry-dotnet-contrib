@@ -22,178 +22,177 @@ using OpenTelemetry.Exporter.Instana.Implementation;
 using OpenTelemetry.Exporter.Instana.Implementation.Processors;
 using OpenTelemetry.Resources;
 
-namespace OpenTelemetry.Exporter.Instana
+namespace OpenTelemetry.Exporter.Instana;
+
+internal class InstanaExporter : BaseExporter<Activity>
 {
-    internal class InstanaExporter : BaseExporter<Activity>
+    private readonly IActivityProcessor activityProcessor;
+    private string name;
+    private ISpanSender spanSender = new SpanSender();
+    private IInstanaExporterHelper instanaExporterHelper = new InstanaExporterHelper();
+    private bool shutdownCalled = false;
+
+    public InstanaExporter(string name = "InstanaExporter", IActivityProcessor activityProcessor = null)
     {
-        private readonly IActivityProcessor activityProcessor;
-        private string name;
-        private ISpanSender spanSender = new SpanSender();
-        private IInstanaExporterHelper instanaExporterHelper = new InstanaExporterHelper();
-        private bool shutdownCalled = false;
+        this.name = name;
 
-        public InstanaExporter(string name = "InstanaExporter", IActivityProcessor activityProcessor = null)
+        if (activityProcessor != null)
         {
-            this.name = name;
-
-            if (activityProcessor != null)
+            this.activityProcessor = activityProcessor;
+        }
+        else
+        {
+            this.activityProcessor = new DefaultActivityProcessor
             {
-                this.activityProcessor = activityProcessor;
-            }
-            else
-            {
-                this.activityProcessor = new DefaultActivityProcessor
+                NextProcessor = new TagsActivityProcessor
                 {
-                    NextProcessor = new TagsActivityProcessor
+                    NextProcessor = new EventsActivityProcessor
                     {
-                        NextProcessor = new EventsActivityProcessor
-                        {
-                            NextProcessor = new ErrorActivityProcessor(),
-                        },
+                        NextProcessor = new ErrorActivityProcessor(),
                     },
-                };
-            }
+                },
+            };
+        }
+    }
+
+    internal ISpanSender SpanSender
+    {
+        get { return this.spanSender; }
+        set { this.spanSender = value; }
+    }
+
+    internal IInstanaExporterHelper InstanaExporterHelper
+    {
+        get { return this.instanaExporterHelper; }
+        set { this.instanaExporterHelper = value; }
+    }
+
+    public override ExportResult Export(in Batch<Activity> batch)
+    {
+        if (this.shutdownCalled)
+        {
+            return ExportResult.Failure;
         }
 
-        internal ISpanSender SpanSender
+        From from = null;
+        if (this.instanaExporterHelper.IsWindows())
         {
-            get { return this.spanSender; }
-            set { this.spanSender = value; }
+            from = new From() { E = Process.GetCurrentProcess().Id.ToString() };
         }
 
-        internal IInstanaExporterHelper InstanaExporterHelper
+        string serviceName = this.ExtractServiceName(ref from);
+
+        foreach (var activity in batch)
         {
-            get { return this.instanaExporterHelper; }
-            set { this.instanaExporterHelper = value; }
+            if (activity == null)
+            {
+                continue;
+            }
+
+            InstanaSpan span = this.ParseActivityAsync(activity, serviceName, from).Result;
+            this.spanSender.Enqueue(span);
         }
 
-        public override ExportResult Export(in Batch<Activity> batch)
+        return ExportResult.Success;
+    }
+
+    protected override bool OnShutdown(int timeoutMilliseconds)
+    {
+        if (!this.shutdownCalled)
         {
-            if (this.shutdownCalled)
-            {
-                return ExportResult.Failure;
-            }
+            this.shutdownCalled = true;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
 
-            From from = null;
-            if (this.instanaExporterHelper.IsWindows())
-            {
-                from = new From() { E = Process.GetCurrentProcess().Id.ToString() };
-            }
+    protected override bool OnForceFlush(int timeoutMilliseconds)
+    {
+        return base.OnForceFlush(timeoutMilliseconds);
+    }
 
-            string serviceName = this.ExtractServiceName(ref from);
-
-            foreach (var activity in batch)
+    private string ExtractServiceName(ref From from)
+    {
+        string serviceName = null;
+        string serviceId = null;
+        string processId = null;
+        string hostId = null;
+        var resource = this.instanaExporterHelper.GetParentProviderResource(this);
+        if (resource != Resource.Empty && resource.Attributes?.Count() > 0)
+        {
+            foreach (var resourceAttribute in resource.Attributes)
             {
-                if (activity == null)
+                if (resourceAttribute.Key.Equals("service.name", StringComparison.OrdinalIgnoreCase)
+                    && resourceAttribute.Value is string servName
+                    && !string.IsNullOrEmpty(servName))
                 {
-                    continue;
+                    serviceName = servName;
                 }
 
-                InstanaSpan span = this.ParseActivityAsync(activity, serviceName, from).Result;
-                this.spanSender.Enqueue(span);
-            }
-
-            return ExportResult.Success;
-        }
-
-        protected override bool OnShutdown(int timeoutMilliseconds)
-        {
-            if (!this.shutdownCalled)
-            {
-                this.shutdownCalled = true;
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        protected override bool OnForceFlush(int timeoutMilliseconds)
-        {
-            return base.OnForceFlush(timeoutMilliseconds);
-        }
-
-        private string ExtractServiceName(ref From from)
-        {
-            string serviceName = null;
-            string serviceId = null;
-            string processId = null;
-            string hostId = null;
-            var resource = this.instanaExporterHelper.GetParentProviderResource(this);
-            if (resource != Resource.Empty && resource.Attributes?.Count() > 0)
-            {
-                foreach (var resourceAttribute in resource.Attributes)
+                if (from == null)
                 {
-                    if (resourceAttribute.Key.Equals("service.name", StringComparison.OrdinalIgnoreCase)
-                        && resourceAttribute.Value is string servName
-                        && !string.IsNullOrEmpty(servName))
+                    if (resourceAttribute.Key.Equals("service.instance.id", StringComparison.OrdinalIgnoreCase))
                     {
-                        serviceName = servName;
+                        serviceId = resourceAttribute.Value.ToString();
                     }
-
-                    if (from == null)
+                    else if (resourceAttribute.Key.Equals("process.pid", StringComparison.OrdinalIgnoreCase))
                     {
-                        if (resourceAttribute.Key.Equals("service.instance.id", StringComparison.OrdinalIgnoreCase))
-                        {
-                            serviceId = resourceAttribute.Value.ToString();
-                        }
-                        else if (resourceAttribute.Key.Equals("process.pid", StringComparison.OrdinalIgnoreCase))
-                        {
-                            processId = resourceAttribute.Value.ToString();
-                        }
-                        else if (resourceAttribute.Key.Equals("host.id", StringComparison.OrdinalIgnoreCase))
-                        {
-                            hostId = resourceAttribute.Value.ToString();
-                        }
+                        processId = resourceAttribute.Value.ToString();
+                    }
+                    else if (resourceAttribute.Key.Equals("host.id", StringComparison.OrdinalIgnoreCase))
+                    {
+                        hostId = resourceAttribute.Value.ToString();
                     }
                 }
             }
-
-            if (from == null)
-            {
-                from = new From();
-                if (!string.IsNullOrEmpty(processId))
-                {
-                    from.E = processId;
-                }
-                else if (!string.IsNullOrEmpty(serviceId))
-                {
-                    from.E = serviceId;
-                }
-
-                if (!string.IsNullOrEmpty(hostId))
-                {
-                    from.H = hostId;
-                }
-            }
-
-            return serviceName;
         }
 
-        private async Task<InstanaSpan> ParseActivityAsync(Activity activity, string serviceName = null, From from = null)
+        if (from == null)
         {
-            InstanaSpan instanaSpan = InstanaSpanFactory.CreateSpan();
-
-            await this.activityProcessor.ProcessAsync(activity, instanaSpan);
-
-            if (!string.IsNullOrEmpty(serviceName))
+            from = new From();
+            if (!string.IsNullOrEmpty(processId))
             {
-                instanaSpan.Data.data[InstanaExporterConstants.SERVICE_FIELD] = serviceName;
+                from.E = processId;
+            }
+            else if (!string.IsNullOrEmpty(serviceId))
+            {
+                from.E = serviceId;
             }
 
-            instanaSpan.Data.data[InstanaExporterConstants.OPERATION_FIELD] = activity.DisplayName;
-            if (!string.IsNullOrEmpty(activity.TraceStateString))
+            if (!string.IsNullOrEmpty(hostId))
             {
-                instanaSpan.Data.data[InstanaExporterConstants.TRACE_STATE_FIELD] = activity.TraceStateString;
+                from.H = hostId;
             }
-
-            if (from != null)
-            {
-                instanaSpan.F = from;
-            }
-
-            return instanaSpan;
         }
+
+        return serviceName;
+    }
+
+    private async Task<InstanaSpan> ParseActivityAsync(Activity activity, string serviceName = null, From from = null)
+    {
+        InstanaSpan instanaSpan = InstanaSpanFactory.CreateSpan();
+
+        await this.activityProcessor.ProcessAsync(activity, instanaSpan);
+
+        if (!string.IsNullOrEmpty(serviceName))
+        {
+            instanaSpan.Data.data[InstanaExporterConstants.SERVICE_FIELD] = serviceName;
+        }
+
+        instanaSpan.Data.data[InstanaExporterConstants.OPERATION_FIELD] = activity.DisplayName;
+        if (!string.IsNullOrEmpty(activity.TraceStateString))
+        {
+            instanaSpan.Data.data[InstanaExporterConstants.TRACE_STATE_FIELD] = activity.TraceStateString;
+        }
+
+        if (from != null)
+        {
+            instanaSpan.F = from;
+        }
+
+        return instanaSpan;
     }
 }

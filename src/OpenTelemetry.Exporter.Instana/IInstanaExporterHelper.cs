@@ -17,12 +17,11 @@
 using System.Diagnostics;
 using OpenTelemetry.Resources;
 
-namespace OpenTelemetry.Exporter.Instana
-{
-    internal interface IInstanaExporterHelper
-    {
-        bool IsWindows();
+namespace OpenTelemetry.Exporter.Instana;
 
-        Resource GetParentProviderResource(BaseExporter<Activity> otelExporter);
-    }
+internal interface IInstanaExporterHelper
+{
+    bool IsWindows();
+
+    Resource GetParentProviderResource(BaseExporter<Activity> otelExporter);
 }

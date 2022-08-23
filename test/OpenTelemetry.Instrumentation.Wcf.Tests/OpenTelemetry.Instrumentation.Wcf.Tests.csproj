@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Unit test project for OpenTelemetry WCF instrumentation</Description>
@@ -27,7 +27,7 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.0.0-rc9.2" />
-    <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="1.2.0-rc5" />
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
   </ItemGroup>
 
   <ItemGroup>
