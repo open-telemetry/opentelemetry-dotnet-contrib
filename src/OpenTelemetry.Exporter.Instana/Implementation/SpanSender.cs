@@ -16,44 +16,43 @@
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
-namespace OpenTelemetry.Exporter.Instana.Implementation
+namespace OpenTelemetry.Exporter.Instana.Implementation;
+
+internal class SpanSender : ISpanSender
 {
-    internal class SpanSender : ISpanSender
+    private readonly Task queueSenderTask;
+    private readonly Transport transport = new Transport();
+    private readonly ConcurrentQueue<InstanaSpan> spansQueue = new ConcurrentQueue<InstanaSpan>();
+
+    public SpanSender()
     {
-        private readonly Task queueSenderTask;
-        private readonly Transport transport = new Transport();
-        private readonly ConcurrentQueue<InstanaSpan> spansQueue = new ConcurrentQueue<InstanaSpan>();
+        // create a task that will send a batch of spans every second at least
+        this.queueSenderTask = new Task(this.TaskSpanSender, TaskCreationOptions.LongRunning);
+        this.queueSenderTask.Start();
+    }
 
-        public SpanSender()
+    public void Enqueue(InstanaSpan instanaSpan)
+    {
+        if (this.transport.IsAvailable)
         {
-            // create a task that will send a batch of spans every second at least
-            this.queueSenderTask = new Task(this.TaskSpanSender, TaskCreationOptions.LongRunning);
-            this.queueSenderTask.Start();
+            this.spansQueue.Enqueue(instanaSpan);
         }
+    }
 
-        public void Enqueue(InstanaSpan instanaSpan)
+    private async void TaskSpanSender()
+    {
+        // this will be an infinite loop
+        while (true)
         {
-            if (this.transport.IsAvailable)
+            // check if we can send spans
+            if (this.spansQueue.TryPeek(out InstanaSpan dummySpan))
             {
-                this.spansQueue.Enqueue(instanaSpan);
+                // actually send spans
+                await this.transport.SendSpansAsync(this.spansQueue);
             }
-        }
 
-        private async void TaskSpanSender()
-        {
-            // this will be an infinite loop
-            while (true)
-            {
-                // check if we can send spans
-                if (this.spansQueue.TryPeek(out InstanaSpan dummySpan))
-                {
-                    // actually send spans
-                    await this.transport.SendSpansAsync(this.spansQueue);
-                }
-
-                // rest for a while
-                await Task.Delay(1000);
-            }
+            // rest for a while
+            await Task.Delay(1000);
         }
     }
 }

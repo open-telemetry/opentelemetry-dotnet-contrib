@@ -17,23 +17,22 @@
 using OpenTelemetry.Exporter.Instana.Implementation;
 using Xunit;
 
-namespace OpenTelemetry.Exporter.Instana.Tests
+namespace OpenTelemetry.Exporter.Instana.Tests;
+
+public class InstanaSpanFactoryTests
 {
-    public class InstanaSpanFactoryTests
+    private InstanaSpanFactory instanaSpanFactory = new InstanaSpanFactory();
+
+    [Fact]
+    public void CreateSpan()
     {
-        private InstanaSpanFactory instanaSpanFactory = new InstanaSpanFactory();
+        InstanaSpan instanaSpan = InstanaSpanFactory.CreateSpan();
 
-        [Fact]
-        public void CreateSpan()
-        {
-            OpenTelemetry.Exporter.Instana.Implementation.InstanaSpan instanaSpan = InstanaSpanFactory.CreateSpan();
-
-            Assert.NotNull(instanaSpan);
-            Assert.NotNull(instanaSpan.TransformInfo);
-            Assert.NotNull(instanaSpan.Data);
-            Assert.Empty(instanaSpan.Data.data);
-            Assert.Empty(instanaSpan.Data.Tags);
-            Assert.Empty(instanaSpan.Data.Events);
-        }
+        Assert.NotNull(instanaSpan);
+        Assert.NotNull(instanaSpan.TransformInfo);
+        Assert.NotNull(instanaSpan.Data);
+        Assert.Empty(instanaSpan.Data.data);
+        Assert.Empty(instanaSpan.Data.Tags);
+        Assert.Empty(instanaSpan.Data.Events);
     }
 }

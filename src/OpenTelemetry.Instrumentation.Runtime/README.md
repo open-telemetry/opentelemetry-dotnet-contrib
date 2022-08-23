@@ -1,4 +1,4 @@
-# DotNet Runtime Instrumentation for OpenTelemetry .NET
+# Runtime Instrumentation for OpenTelemetry .NET
 
 [![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Runtime.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Runtime)
 [![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Runtime.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Runtime)
