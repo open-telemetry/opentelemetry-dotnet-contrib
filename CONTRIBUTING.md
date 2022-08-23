@@ -121,10 +121,11 @@ Open a pull request against the main `opentelemetry-dotnet-contrib` repo.
 
 A PR is considered to be **ready to merge** when:
 
-* It has received approval from
+* It has received an approval either from one of the
   [Approvers](https://github.com/open-telemetry/community/blob/master/community-membership.md#approver)
   /
-  [Maintainers](https://github.com/open-telemetry/community/blob/master/community-membership.md#maintainer).
+  [Maintainers](https://github.com/open-telemetry/community/blob/master/community-membership.md#maintainer)
+  or the respective component owner.
 * Major feedbacks are resolved.
 * It has been open for review for at least one working day. This gives people
   reasonable time to review.
@@ -204,16 +205,16 @@ by you. To ensure your project is versioned appropriately, specify a
 to be triggered when a tag with prefix "Instrumentation.FooBar-" is pushed to
 the main branch. The workflow file should be named as
 `package-Instrumentation.FooBar.yml` and to be placed in the
-`.github/workflows/` folder.
+`.github/workflows/publish-packages/` folder.
 
   You can copy one of the [existing workflow
-  files](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Instrumentation.AspNet.yml)
+  files](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/publish-packages/package-Instrumentation.AspNet.yml)
   and replace the workflow
-  [`name`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Instrumentation.AspNet.yml#L1)
+  [`name`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/publish-packages/package-Instrumentation.AspNet.yml#L1)
   with "Pack OpenTelemetry.Instrumentation.FooBar",
-  [`tags`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Instrumentation.AspNet.yml#L12)
+  [`tags`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/publish-packages/package-Instrumentation.AspNet.yml#L12)
   with "Instrumentation.FooBar-*" and
-  [`PROJECT`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Instrumentation.AspNet.yml#L18)
+  [`PROJECT`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/publish-packages/package-Instrumentation.AspNet.yml#L18)
   with "OpenTelemetry.Instrumentation.FooBar".
 
 * Add an issue template in your PR. You can follow the existing issue templates,
