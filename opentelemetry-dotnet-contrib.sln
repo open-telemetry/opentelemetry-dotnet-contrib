@@ -33,6 +33,30 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\linux-ci-md.yml = .github\workflows\linux-ci-md.yml
 		.github\workflows\linux-ci.yml = .github\workflows\linux-ci.yml
 		.github\workflows\markdownlint.yml = .github\workflows\markdownlint.yml
+		.github\workflows\package-Exporter.Geneva.yml = .github\workflows\package-Exporter.Geneva.yml
+		.github\workflows\package-Exporter.Instana.yml = .github\workflows\package-Exporter.Instana.yml
+		.github\workflows\package-Exporter.Stackdriver.yml = .github\workflows\package-Exporter.Stackdriver.yml
+		.github\workflows\package-Extensions.AWSXRay.yml = .github\workflows\package-Extensions.AWSXRay.yml
+		.github\workflows\package-Extensions.Docker.yml = .github\workflows\package-Extensions.Docker.yml
+		.github\workflows\package-Extensions.PersistentStorage.Abstractions.yml = .github\workflows\package-Extensions.PersistentStorage.Abstractions.yml
+		.github\workflows\package-Extensions.PersistentStorage.yml = .github\workflows\package-Extensions.PersistentStorage.yml
+		.github\workflows\package-Extensions.yml = .github\workflows\package-Extensions.yml
+		.github\workflows\package-Instrumentation.AspNet.TelemetryHttpModule.yml = .github\workflows\package-Instrumentation.AspNet.TelemetryHttpModule.yml
+		.github\workflows\package-Instrumentation.AspNet.yml = .github\workflows\package-Instrumentation.AspNet.yml
+		.github\workflows\package-Instrumentation.AWS.yml = .github\workflows\package-Instrumentation.AWS.yml
+		.github\workflows\package-Instrumentation.AWSLambda.yml = .github\workflows\package-Instrumentation.AWSLambda.yml
+		.github\workflows\package-Instrumentation.Elasticsearch.yml = .github\workflows\package-Instrumentation.Elasticsearch.yml
+		.github\workflows\package-Instrumentation.EntityFrameworkCore.yml = .github\workflows\package-Instrumentation.EntityFrameworkCore.yml
+		.github\workflows\package-Instrumentation.EventCounters.yml = .github\workflows\package-Instrumentation.EventCounters.yml
+		.github\workflows\package-Instrumentation.GrpcCore.yml = .github\workflows\package-Instrumentation.GrpcCore.yml
+		.github\workflows\package-Instrumentation.Hangfire.yml = .github\workflows\package-Instrumentation.Hangfire.yml
+		.github\workflows\package-Instrumentation.MassTransit.yml = .github\workflows\package-Instrumentation.MassTransit.yml
+		.github\workflows\package-Instrumentation.MySqlData.yml = .github\workflows\package-Instrumentation.MySqlData.yml
+		.github\workflows\package-Instrumentation.Owin.yml = .github\workflows\package-Instrumentation.Owin.yml
+		.github\workflows\package-Instrumentation.Quartz.yml = .github\workflows\package-Instrumentation.Quartz.yml
+		.github\workflows\package-Instrumentation.Runtime.yml = .github\workflows\package-Instrumentation.Runtime.yml
+		.github\workflows\package-Instrumentation.StackExchangeRedis.yml = .github\workflows\package-Instrumentation.StackExchangeRedis.yml
+		.github\workflows\package-Instrumentation.Wcf.yml = .github\workflows\package-Instrumentation.Wcf.yml
 		.github\workflows\sanitycheck.yml = .github\workflows\sanitycheck.yml
 		.github\workflows\stale.yml = .github\workflows\stale.yml
 		.github\workflows\windows-ci-md.yml = .github\workflows\windows-ci-md.yml
@@ -208,34 +232,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.EventCounters", "src\OpenTelemetry.Instrumentation.EventCounters\OpenTelemetry.Instrumentation.EventCounters.csproj", "{AE12EFB7-4B1A-46B8-B89A-0375252B10B1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.EventCounters.Tests", "test\OpenTelemetry.Instrumentation.EventCounters.Tests\OpenTelemetry.Instrumentation.EventCounters.Tests.csproj", "{DDA355A3-4D75-4F45-9A5E-E93C3EFB9896}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "publish-packages", "publish-packages", "{312FD546-F83E-4BD5-9BAE-FF90C7343D24}"
-	ProjectSection(SolutionItems) = preProject
-		.github\workflows\publish-packages\package-Exporter.Geneva.yml = .github\workflows\publish-packages\package-Exporter.Geneva.yml
-		.github\workflows\publish-packages\package-Exporter.Instana.yml = .github\workflows\publish-packages\package-Exporter.Instana.yml
-		.github\workflows\publish-packages\package-Exporter.Stackdriver.yml = .github\workflows\publish-packages\package-Exporter.Stackdriver.yml
-		.github\workflows\publish-packages\package-Extensions.AWSXRay.yml = .github\workflows\publish-packages\package-Extensions.AWSXRay.yml
-		.github\workflows\publish-packages\package-Extensions.Docker.yml = .github\workflows\publish-packages\package-Extensions.Docker.yml
-		.github\workflows\publish-packages\package-Extensions.PersistentStorage.Abstractions.yml = .github\workflows\publish-packages\package-Extensions.PersistentStorage.Abstractions.yml
-		.github\workflows\publish-packages\package-Extensions.PersistentStorage.yml = .github\workflows\publish-packages\package-Extensions.PersistentStorage.yml
-		.github\workflows\publish-packages\package-Extensions.yml = .github\workflows\publish-packages\package-Extensions.yml
-		.github\workflows\publish-packages\package-Instrumentation.AspNet.TelemetryHttpModule.yml = .github\workflows\publish-packages\package-Instrumentation.AspNet.TelemetryHttpModule.yml
-		.github\workflows\publish-packages\package-Instrumentation.AspNet.yml = .github\workflows\publish-packages\package-Instrumentation.AspNet.yml
-		.github\workflows\publish-packages\package-Instrumentation.AWS.yml = .github\workflows\publish-packages\package-Instrumentation.AWS.yml
-		.github\workflows\publish-packages\package-Instrumentation.AWSLambda.yml = .github\workflows\publish-packages\package-Instrumentation.AWSLambda.yml
-		.github\workflows\publish-packages\package-Instrumentation.Elasticsearch.yml = .github\workflows\publish-packages\package-Instrumentation.Elasticsearch.yml
-		.github\workflows\publish-packages\package-Instrumentation.EntityFrameworkCore.yml = .github\workflows\publish-packages\package-Instrumentation.EntityFrameworkCore.yml
-		.github\workflows\publish-packages\package-Instrumentation.EventCounters.yml = .github\workflows\publish-packages\package-Instrumentation.EventCounters.yml
-		.github\workflows\publish-packages\package-Instrumentation.GrpcCore.yml = .github\workflows\publish-packages\package-Instrumentation.GrpcCore.yml
-		.github\workflows\publish-packages\package-Instrumentation.Hangfire.yml = .github\workflows\publish-packages\package-Instrumentation.Hangfire.yml
-		.github\workflows\publish-packages\package-Instrumentation.MassTransit.yml = .github\workflows\publish-packages\package-Instrumentation.MassTransit.yml
-		.github\workflows\publish-packages\package-Instrumentation.MySqlData.yml = .github\workflows\publish-packages\package-Instrumentation.MySqlData.yml
-		.github\workflows\publish-packages\package-Instrumentation.Owin.yml = .github\workflows\publish-packages\package-Instrumentation.Owin.yml
-		.github\workflows\publish-packages\package-Instrumentation.Quartz.yml = .github\workflows\publish-packages\package-Instrumentation.Quartz.yml
-		.github\workflows\publish-packages\package-Instrumentation.Runtime.yml = .github\workflows\publish-packages\package-Instrumentation.Runtime.yml
-		.github\workflows\publish-packages\package-Instrumentation.StackExchangeRedis.yml = .github\workflows\publish-packages\package-Instrumentation.StackExchangeRedis.yml
-		.github\workflows\publish-packages\package-Instrumentation.Wcf.yml = .github\workflows\publish-packages\package-Instrumentation.Wcf.yml
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -566,7 +562,6 @@ Global
 		{9FF9B46A-AD93-4B3F-92DA-6FDCC98FEA91} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
 		{AE12EFB7-4B1A-46B8-B89A-0375252B10B1} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{DDA355A3-4D75-4F45-9A5E-E93C3EFB9896} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
-		{312FD546-F83E-4BD5-9BAE-FF90C7343D24} = {43CAFE52-F329-4431-87DA-7FEE1454D9A9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
