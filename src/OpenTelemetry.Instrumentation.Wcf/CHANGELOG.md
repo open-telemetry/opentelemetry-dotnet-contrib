@@ -4,6 +4,8 @@
 
 ## 1.0.0-rc.7
 
+Released 2022-Aug-23
+
 * Updated OTel SDK package version to 1.3.0
   ([#569](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/569))
 * Changed activity source name from `OpenTelemetry.WCF`
