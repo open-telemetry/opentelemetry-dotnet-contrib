@@ -1,12 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Description>Unit test project for OpenTelemetry Hangfire instrumentation</Description>
-    <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
-    <SignAssembly>false</SignAssembly>
+    <TargetFrameworks>netcoreapp3.1;net6.0</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
   </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="Hangfire.Core" Version="1.7.28" />
-    <PackageReference Include="Hangfire.MemoryStorage" Version="1.7.0" />
+    <PackageReference Include="coverlet.collector" Version="$(CoverletCollectorPkgVer)" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkPkgVer)" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
     <PackageReference Include="xunit" Version="$(XUnitPkgVer)" />
@@ -16,7 +16,9 @@
     </PackageReference>
     <DotNetCliToolReference Include="dotnet-xunit" Version="$(DotNetXUnitCliVer)" />
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Hangfire\OpenTelemetry.Instrumentation.Hangfire.csproj" />
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Process\OpenTelemetry.Instrumentation.Process.csproj" />
   </ItemGroup>
+
 </Project>

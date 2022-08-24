@@ -27,8 +27,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\assign-reviewers.yml = .github\workflows\assign-reviewers.yml
 		.github\workflows\codeql-analysis.yml = .github\workflows\codeql-analysis.yml
 		.github\workflows\dotnet-core-cov.yml = .github\workflows\dotnet-core-cov.yml
+		.github\workflows\dotnet-format-md.yml = .github\workflows\dotnet-format-md.yml
 		.github\workflows\dotnet-format.yml = .github\workflows\dotnet-format.yml
 		.github\workflows\integration.yml = .github\workflows\integration.yml
+		.github\workflows\linux-ci-md.yml = .github\workflows\linux-ci-md.yml
 		.github\workflows\linux-ci.yml = .github\workflows\linux-ci.yml
 		.github\workflows\markdownlint.yml = .github\workflows\markdownlint.yml
 		.github\workflows\package-Exporter.Geneva.yml = .github\workflows\package-Exporter.Geneva.yml
@@ -57,6 +59,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\package-Instrumentation.Wcf.yml = .github\workflows\package-Instrumentation.Wcf.yml
 		.github\workflows\sanitycheck.yml = .github\workflows\sanitycheck.yml
 		.github\workflows\stale.yml = .github\workflows\stale.yml
+		.github\workflows\windows-ci-md.yml = .github\workflows\windows-ci-md.yml
 		.github\workflows\windows-ci.yml = .github\workflows\windows-ci.yml
 	EndProjectSection
 EndProject
@@ -225,6 +228,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.EventCounters", "src\OpenTelemetry.Instrumentation.EventCounters\OpenTelemetry.Instrumentation.EventCounters.csproj", "{AE12EFB7-4B1A-46B8-B89A-0375252B10B1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.EventCounters.Tests", "test\OpenTelemetry.Instrumentation.EventCounters.Tests\OpenTelemetry.Instrumentation.EventCounters.Tests.csproj", "{DDA355A3-4D75-4F45-9A5E-E93C3EFB9896}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Process", "src\OpenTelemetry.Instrumentation.Process\OpenTelemetry.Instrumentation.Process.csproj", "{F811262D-D78A-4C4A-8A31-FFC458164BF2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Process.Tests", "test\OpenTelemetry.Instrumentation.Process.Tests\OpenTelemetry.Instrumentation.Process.Tests.csproj", "{61421ACF-5F90-491B-AFB3-14EF12CCA255}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.AWSLambda.Tests", "test\OpenTelemetry.Instrumentation.AWSLambda.Tests\OpenTelemetry.Instrumentation.AWSLambda.Tests.csproj", "{0F18B7C8-B192-4236-9578-7AD02BFC7128}"
 EndProject
@@ -476,6 +483,14 @@ Global
 		{DDA355A3-4D75-4F45-9A5E-E93C3EFB9896}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DDA355A3-4D75-4F45-9A5E-E93C3EFB9896}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DDA355A3-4D75-4F45-9A5E-E93C3EFB9896}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F811262D-D78A-4C4A-8A31-FFC458164BF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F811262D-D78A-4C4A-8A31-FFC458164BF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F811262D-D78A-4C4A-8A31-FFC458164BF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F811262D-D78A-4C4A-8A31-FFC458164BF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61421ACF-5F90-491B-AFB3-14EF12CCA255}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61421ACF-5F90-491B-AFB3-14EF12CCA255}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61421ACF-5F90-491B-AFB3-14EF12CCA255}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61421ACF-5F90-491B-AFB3-14EF12CCA255}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0F18B7C8-B192-4236-9578-7AD02BFC7128}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0F18B7C8-B192-4236-9578-7AD02BFC7128}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F18B7C8-B192-4236-9578-7AD02BFC7128}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -557,6 +572,8 @@ Global
 		{9FF9B46A-AD93-4B3F-92DA-6FDCC98FEA91} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
 		{AE12EFB7-4B1A-46B8-B89A-0375252B10B1} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{DDA355A3-4D75-4F45-9A5E-E93C3EFB9896} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{F811262D-D78A-4C4A-8A31-FFC458164BF2} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{61421ACF-5F90-491B-AFB3-14EF12CCA255} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{0F18B7C8-B192-4236-9578-7AD02BFC7128} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{B40B975E-78B2-4712-8B4D-BADA67DF0C0A} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 	EndGlobalSection

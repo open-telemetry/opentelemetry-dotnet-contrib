@@ -1,4 +1,4 @@
-name: Pack OpenTelemetry.Instrumentation.EventCounters
+name: Pack OpenTelemetry.Instrumentation.Process
 
 on:
   workflow_dispatch:
@@ -9,13 +9,13 @@ on:
         default: 'warning'
   push:
     tags:
-      - 'Instrumentation.EventCounters-*' # trigger when we create a tag with prefix "Instrumentation.EventCounters-"
+      - 'Instrumentation.Process-*' # trigger when we create a tag with prefix "Instrumentation.Process-"
 
 jobs:
   build-test-pack:
     runs-on: ${{ matrix.os }}
     env:
-      PROJECT: OpenTelemetry.Instrumentation.EventCounters
+      PROJECT: OpenTelemetry.Instrumentation.Process
 
     strategy:
       matrix:

@@ -1,4 +1,4 @@
-// <copyright file="ISpanSender.cs" company="OpenTelemetry Authors">
+// <copyright file="ProcessInstrumentationOptions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,9 +14,11 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Exporter.Instana.Implementation;
+namespace OpenTelemetry.Instrumentation.Process;
 
-internal interface ISpanSender
+/// <summary>
+/// Options to define the process metrics.
+/// </summary>
+public class ProcessInstrumentationOptions
 {
-    void Enqueue(InstanaSpan instanaSpan);
 }
