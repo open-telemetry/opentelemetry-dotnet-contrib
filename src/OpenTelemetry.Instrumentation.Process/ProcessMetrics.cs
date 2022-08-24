@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using Diagnostics = System.Diagnostics;
@@ -42,6 +43,13 @@ internal class ProcessMetrics
             () => Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64,
             unit: "bytes",
             description: "The amount of virtual memory allocated for the current process.");
+
+        // TODO: change to ObservableUpDownCounter
+        MeterInstance.CreateObservableGauge(
+            $"{MetricPrefix}cpu.utilization",
+            () => Diagnostics.Process.GetCurrentProcess().TotalProcessorTime.TotalMilliseconds / (Environment.ProcessorCount * (DateTime.Now - Diagnostics.Process.GetCurrentProcess().StartTime).Milliseconds),
+            unit: "1",
+            description: "The total processor time divided by the elapsed time since the process start and the number of CPUs available to the current process.");
     }
 
     /// <summary>
