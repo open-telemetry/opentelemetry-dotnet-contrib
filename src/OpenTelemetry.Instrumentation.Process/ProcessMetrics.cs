@@ -31,15 +31,15 @@ internal class ProcessMetrics
     {
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
-            $"{MetricPrefix}physical.memory.usage",
-            () => (long)Diagnostics.Process.GetCurrentProcess().WorkingSet64,
+            $"{MetricPrefix}memory.usage.physical",
+            () => Diagnostics.Process.GetCurrentProcess().WorkingSet64,
             unit: "bytes",
             description: "The amount of physical memory allocated for the current process.");
 
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
-            $"{MetricPrefix}virtual.memory.usage",
-            () => (long)Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64,
+            $"{MetricPrefix}memory.usage.virtual",
+            () => Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64,
             unit: "bytes",
             description: "The amount of virtual memory allocated for the current process.");
     }

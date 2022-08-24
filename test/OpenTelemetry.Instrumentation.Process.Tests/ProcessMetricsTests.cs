@@ -40,10 +40,10 @@ public class ProcessMetricsTests
         Assert.StartsWith(MetricPrefix, exportedItems[0].Name);
         Assert.StartsWith(MetricPrefix, exportedItems[1].Name);
 
-        var metric1 = exportedItems.FirstOrDefault(i => i.Name == "process.dotnet.physical.memory.usage");
-        Assert.NotNull(metric1);
+        var physicalMemorymetric = exportedItems.FirstOrDefault(i => i.Name == "process.dotnet.memory.usage.physical");
+        Assert.NotNull(physicalMemorymetric);
 
-        var metric2 = exportedItems.FirstOrDefault(i => i.Name == "process.dotnet.virtual.memory.usage");
-        Assert.NotNull(metric2);
+        var virtualMemorymetric = exportedItems.FirstOrDefault(i => i.Name == "process.dotnet.memory.usage.virtual");
+        Assert.NotNull(virtualMemorymetric);
     }
 }
