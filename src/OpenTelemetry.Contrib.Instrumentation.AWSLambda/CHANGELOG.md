@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 2.0.0
+## 2.0.0-beta1
 
 * BREAKING (behavior): Update the `ActivitySource` name to not include `Contrib`.
   The new activity source name is `OpenTelemetry.Instrumentation.AWSLambda`
