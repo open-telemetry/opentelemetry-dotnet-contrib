@@ -103,7 +103,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// unless X-Ray propagation is disabled in the configuration for this wrapper.
         /// </param>
         /// <returns>Task.</returns>
-        public static Task Trace<TInput>(
+        public static Task TraceAsync<TInput>(
             TracerProvider tracerProvider,
             Func<TInput, ILambdaContext, Task> lambdaHandler,
             TInput input,
@@ -130,7 +130,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// unless X-Ray propagation is disabled in the configuration for this wrapper.
         /// </param>
         /// <returns>Task of result.</returns>
-        public static async Task<TResult> Trace<TInput, TResult>(
+        public static async Task<TResult> TraceAsync<TInput, TResult>(
             TracerProvider tracerProvider,
             Func<TInput, ILambdaContext, Task<TResult>> lambdaHandler,
             TInput input,
@@ -178,7 +178,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// unless X-Ray propagation is disabled in the configuration.
         /// </param>
         /// <returns>Task.</returns>
-        public static Task Trace(
+        public static Task TraceAsync(
             TracerProvider tracerProvider,
             Func<ILambdaContext, Task> lambdaHandler,
             ILambdaContext context,
