@@ -121,10 +121,11 @@ Open a pull request against the main `opentelemetry-dotnet-contrib` repo.
 
 A PR is considered to be **ready to merge** when:
 
-* It has received approval from
+* It has received an approval either from one of the
   [Approvers](https://github.com/open-telemetry/community/blob/master/community-membership.md#approver)
   /
-  [Maintainers](https://github.com/open-telemetry/community/blob/master/community-membership.md#maintainer).
+  [Maintainers](https://github.com/open-telemetry/community/blob/master/community-membership.md#maintainer)
+  or the respective component owner.
 * Major feedbacks are resolved.
 * It has been open for review for at least one working day. This gives people
   reasonable time to review.

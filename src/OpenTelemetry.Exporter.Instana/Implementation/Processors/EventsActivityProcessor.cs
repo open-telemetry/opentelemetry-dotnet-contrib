@@ -18,40 +18,39 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace OpenTelemetry.Exporter.Instana.Implementation.Processors
+namespace OpenTelemetry.Exporter.Instana.Implementation.Processors;
+
+internal class EventsActivityProcessor : ActivityProcessorBase, IActivityProcessor
 {
-    internal class EventsActivityProcessor : ActivityProcessorBase, IActivityProcessor
+    public override async Task ProcessAsync(Activity activity, InstanaSpan instanaSpan)
     {
-        public override async Task ProcessAsync(Activity activity, InstanaSpan instanaSpan)
+        this.PreProcess(activity, instanaSpan);
+
+        foreach (var activityEvent in activity.Events)
         {
-            this.PreProcess(activity, instanaSpan);
-
-            foreach (var activityEvent in activity.Events)
+            if (activityEvent.Name == InstanaExporterConstants.EXCEPTION_FIELD)
             {
-                if (activityEvent.Name == InstanaExporterConstants.EXCEPTION_FIELD)
-                {
-                    instanaSpan.TransformInfo.HasExceptionEvent = true;
-                }
-
-                var spanEvent = new SpanEvent
-                {
-                    Name = activityEvent.Name,
-                    Ts = activityEvent.Timestamp.Ticks,
-                    Tags = new Dictionary<string, string>(),
-                };
-
-                foreach (var eventTag in activityEvent.Tags)
-                {
-                    if (eventTag.Value != null)
-                    {
-                        spanEvent.Tags[eventTag.Key] = eventTag.Value.ToString();
-                    }
-                }
-
-                instanaSpan.Data.Events.Add(spanEvent);
+                instanaSpan.TransformInfo.HasExceptionEvent = true;
             }
 
-            await base.ProcessAsync(activity, instanaSpan);
+            var spanEvent = new SpanEvent
+            {
+                Name = activityEvent.Name,
+                Ts = activityEvent.Timestamp.Ticks,
+                Tags = new Dictionary<string, string>(),
+            };
+
+            foreach (var eventTag in activityEvent.Tags)
+            {
+                if (eventTag.Value != null)
+                {
+                    spanEvent.Tags[eventTag.Key] = eventTag.Value.ToString();
+                }
+            }
+
+            instanaSpan.Data.Events.Add(spanEvent);
         }
+
+        await base.ProcessAsync(activity, instanaSpan);
     }
 }
