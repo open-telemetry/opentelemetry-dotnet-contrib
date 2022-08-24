@@ -19,106 +19,105 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using OpenTelemetry.Extensions.PersistentStorage.Abstractions;
 
-namespace OpenTelemetry.Extensions.PersistentStorage
+namespace OpenTelemetry.Extensions.PersistentStorage;
+
+/// <summary>
+/// The <see cref="FileBlob"/> allows to save a blob
+/// in file storage.
+/// </summary>
+public class FileBlob : PersistentBlob
 {
     /// <summary>
-    /// The <see cref="FileBlob"/> allows to save a blob
-    /// in file storage.
+    /// Initializes a new instance of the <see cref="FileBlob"/>
+    /// class.
     /// </summary>
-    public class FileBlob : PersistentBlob
+    /// <param name="fullPath">Absolute file path of the blob.</param>
+    public FileBlob(string fullPath)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FileBlob"/>
-        /// class.
-        /// </summary>
-        /// <param name="fullPath">Absolute file path of the blob.</param>
-        public FileBlob(string fullPath)
+        this.FullPath = fullPath;
+    }
+
+    public string FullPath { get; private set; }
+
+    protected override bool OnTryRead([NotNullWhen(true)] out byte[] buffer)
+    {
+        try
         {
-            this.FullPath = fullPath;
+            buffer = File.ReadAllBytes(this.FullPath);
+        }
+        catch (Exception ex)
+        {
+            PersistentStorageEventSource.Log.CouldNotReadFileBlob(this.FullPath, ex);
+            buffer = null;
+            return false;
         }
 
-        public string FullPath { get; private set; }
+        return true;
+    }
 
-        protected override bool OnTryRead([NotNullWhen(true)] out byte[] buffer)
+    protected override bool OnTryWrite(byte[] buffer, int leasePeriodMilliseconds = 0)
+    {
+        string path = this.FullPath + ".tmp";
+
+        try
         {
-            try
+            PersistentStorageHelper.WriteAllBytes(path, buffer);
+
+            if (leasePeriodMilliseconds > 0)
             {
-                buffer = File.ReadAllBytes(this.FullPath);
-            }
-            catch (Exception ex)
-            {
-                PersistentStorageEventSource.Log.CouldNotReadFileBlob(this.FullPath, ex);
-                buffer = null;
-                return false;
+                var timestamp = DateTime.UtcNow + TimeSpan.FromMilliseconds(leasePeriodMilliseconds);
+                this.FullPath += $"@{timestamp:yyyy-MM-ddTHHmmss.fffffffZ}.lock";
             }
 
-            return true;
+            File.Move(path, this.FullPath);
+        }
+        catch (Exception ex)
+        {
+            PersistentStorageEventSource.Log.CouldNotWriteFileBlob(path, ex);
+            return false;
         }
 
-        protected override bool OnTryWrite(byte[] buffer, int leasePeriodMilliseconds = 0)
+        return true;
+    }
+
+    protected override bool OnTryLease(int leasePeriodMilliseconds)
+    {
+        var path = this.FullPath;
+        var leaseTimestamp = DateTime.UtcNow + TimeSpan.FromMilliseconds(leasePeriodMilliseconds);
+        if (path.EndsWith(".lock", StringComparison.OrdinalIgnoreCase))
         {
-            string path = this.FullPath + ".tmp";
-
-            try
-            {
-                PersistentStorageHelper.WriteAllBytes(path, buffer);
-
-                if (leasePeriodMilliseconds > 0)
-                {
-                    var timestamp = DateTime.UtcNow + TimeSpan.FromMilliseconds(leasePeriodMilliseconds);
-                    this.FullPath += $"@{timestamp:yyyy-MM-ddTHHmmss.fffffffZ}.lock";
-                }
-
-                File.Move(path, this.FullPath);
-            }
-            catch (Exception ex)
-            {
-                PersistentStorageEventSource.Log.CouldNotWriteFileBlob(path, ex);
-                return false;
-            }
-
-            return true;
+            path = path.Substring(0, path.LastIndexOf('@'));
         }
 
-        protected override bool OnTryLease(int leasePeriodMilliseconds)
+        path += $"@{leaseTimestamp:yyyy-MM-ddTHHmmss.fffffffZ}.lock";
+
+        try
         {
-            var path = this.FullPath;
-            var leaseTimestamp = DateTime.UtcNow + TimeSpan.FromMilliseconds(leasePeriodMilliseconds);
-            if (path.EndsWith(".lock", StringComparison.OrdinalIgnoreCase))
-            {
-                path = path.Substring(0, path.LastIndexOf('@'));
-            }
-
-            path += $"@{leaseTimestamp:yyyy-MM-ddTHHmmss.fffffffZ}.lock";
-
-            try
-            {
-                File.Move(this.FullPath, path);
-            }
-            catch (Exception ex)
-            {
-                PersistentStorageEventSource.Log.CouldNotLeaseFileBlob(this.FullPath, ex);
-                return false;
-            }
-
-            this.FullPath = path;
-
-            return true;
+            File.Move(this.FullPath, path);
+        }
+        catch (Exception ex)
+        {
+            PersistentStorageEventSource.Log.CouldNotLeaseFileBlob(this.FullPath, ex);
+            return false;
         }
 
-        protected override bool OnTryDelete()
-        {
-            try
-            {
-                PersistentStorageHelper.RemoveFile(this.FullPath);
-            }
-            catch (Exception ex)
-            {
-                PersistentStorageEventSource.Log.CouldNotDeleteFileBlob(this.FullPath, ex);
-                return false;
-            }
+        this.FullPath = path;
 
-            return true;
+        return true;
+    }
+
+    protected override bool OnTryDelete()
+    {
+        try
+        {
+            PersistentStorageHelper.RemoveFile(this.FullPath);
         }
+        catch (Exception ex)
+        {
+            PersistentStorageEventSource.Log.CouldNotDeleteFileBlob(this.FullPath, ex);
+            return false;
+        }
+
+        return true;
     }
 }

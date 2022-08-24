@@ -21,161 +21,160 @@ using Grpc.Core;
 using OpenTelemetry.Context.Propagation;
 using Xunit;
 
-namespace OpenTelemetry.Instrumentation.GrpcCore.Test
+namespace OpenTelemetry.Instrumentation.GrpcCore.Test;
+
+/// <summary>
+/// Grpc Core server interceptor tests.
+/// </summary>
+public class GrpcCoreServerInterceptorTests
 {
     /// <summary>
-    /// Grpc Core server interceptor tests.
+    /// Validates a successful UnaryServerHandler call.
     /// </summary>
-    public class GrpcCoreServerInterceptorTests
+    /// <returns>A task.</returns>
+    [Fact]
+    public async Task UnaryServerHandlerSuccess()
     {
-        /// <summary>
-        /// Validates a successful UnaryServerHandler call.
-        /// </summary>
-        /// <returns>A task.</returns>
-        [Fact]
-        public async Task UnaryServerHandlerSuccess()
+        await this.TestHandlerSuccess(FoobarService.MakeUnaryAsyncRequest).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Validates a failed UnaryServerHandler call.
+    /// </summary>
+    /// <returns>A task.</returns>
+    [Fact]
+    public async Task UnaryServerHandlerFail()
+    {
+        await this.TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Validates a successful ClientStreamingServerHandler call.
+    /// </summary>
+    /// <returns>A task.</returns>
+    [Fact]
+    public async Task ClientStreamingServerHandlerSuccess()
+    {
+        await this.TestHandlerSuccess(FoobarService.MakeClientStreamingRequest).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Validates a failed ClientStreamingServerHandler call.
+    /// </summary>
+    /// <returns>A task.</returns>
+    [Fact]
+    public async Task ClientStreamingServerHandlerFail()
+    {
+        await this.TestHandlerFailure(FoobarService.MakeClientStreamingRequest).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Validates a successful ServerStreamingServerHandler call.
+    /// </summary>
+    /// <returns>A task.</returns>
+    [Fact]
+    public async Task ServerStreamingServerHandlerSuccess()
+    {
+        await this.TestHandlerSuccess(FoobarService.MakeServerStreamingRequest).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Validates a failed ServerStreamingServerHandler call.
+    /// </summary>
+    /// <returns>A task.</returns>
+    [Fact]
+    public async Task ServerStreamingServerHandlerFail()
+    {
+        await this.TestHandlerFailure(FoobarService.MakeServerStreamingRequest).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Validates a successful DuplexStreamingServerHandler call.
+    /// </summary>
+    /// <returns>A task.</returns>
+    [Fact]
+    public async Task DuplexStreamingServerHandlerSuccess()
+    {
+        await this.TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Validates a failed DuplexStreamingServerHandler call.
+    /// </summary>
+    /// <returns>A task.</returns>
+    [Fact]
+    public async Task DuplexStreamingServerHandlerFail()
+    {
+        await this.TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// A common method to test server interceptor handler success.
+    /// </summary>
+    /// <param name="clientRequestFunc">The specific client request function.</param>
+    /// <param name="additionalMetadata">The additional metadata, if any.</param>
+    /// <returns>A Task.</returns>
+    private async Task TestHandlerSuccess(Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc, Metadata additionalMetadata = null)
+    {
+        // starts the server with the server interceptor
+        var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), RecordMessageEvents = true, ActivityIdentifierValue = Guid.NewGuid() };
+        using var server = FoobarService.Start(new ServerTracingInterceptor(interceptorOptions));
+
+        // No parent Activity, no context from header
+        using (var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue))
         {
-            await this.TestHandlerSuccess(FoobarService.MakeUnaryAsyncRequest).ConfigureAwait(false);
+            var client = FoobarService.ConstructRpcClient(server.UriString);
+            await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false);
+
+            var activity = activityListener.Activity;
+            GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
+            Assert.Equal(default, activity.ParentSpanId);
         }
 
-        /// <summary>
-        /// Validates a failed UnaryServerHandler call.
-        /// </summary>
-        /// <returns>A task.</returns>
-        [Fact]
-        public async Task UnaryServerHandlerFail()
+        // No parent Activity, context from header
+        using (var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue))
         {
-            await this.TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Validates a successful ClientStreamingServerHandler call.
-        /// </summary>
-        /// <returns>A task.</returns>
-        [Fact]
-        public async Task ClientStreamingServerHandlerSuccess()
-        {
-            await this.TestHandlerSuccess(FoobarService.MakeClientStreamingRequest).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Validates a failed ClientStreamingServerHandler call.
-        /// </summary>
-        /// <returns>A task.</returns>
-        [Fact]
-        public async Task ClientStreamingServerHandlerFail()
-        {
-            await this.TestHandlerFailure(FoobarService.MakeClientStreamingRequest).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Validates a successful ServerStreamingServerHandler call.
-        /// </summary>
-        /// <returns>A task.</returns>
-        [Fact]
-        public async Task ServerStreamingServerHandlerSuccess()
-        {
-            await this.TestHandlerSuccess(FoobarService.MakeServerStreamingRequest).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Validates a failed ServerStreamingServerHandler call.
-        /// </summary>
-        /// <returns>A task.</returns>
-        [Fact]
-        public async Task ServerStreamingServerHandlerFail()
-        {
-            await this.TestHandlerFailure(FoobarService.MakeServerStreamingRequest).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Validates a successful DuplexStreamingServerHandler call.
-        /// </summary>
-        /// <returns>A task.</returns>
-        [Fact]
-        public async Task DuplexStreamingServerHandlerSuccess()
-        {
-            await this.TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Validates a failed DuplexStreamingServerHandler call.
-        /// </summary>
-        /// <returns>A task.</returns>
-        [Fact]
-        public async Task DuplexStreamingServerHandlerFail()
-        {
-            await this.TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// A common method to test server interceptor handler success.
-        /// </summary>
-        /// <param name="clientRequestFunc">The specific client request function.</param>
-        /// <param name="additionalMetadata">The additional metadata, if any.</param>
-        /// <returns>A Task.</returns>
-        private async Task TestHandlerSuccess(Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc, Metadata additionalMetadata = null)
-        {
-            // starts the server with the server interceptor
-            var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), RecordMessageEvents = true, ActivityIdentifierValue = Guid.NewGuid() };
-            using var server = FoobarService.Start(new ServerTracingInterceptor(interceptorOptions));
-
-            // No parent Activity, no context from header
-            using (var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue))
-            {
-                var client = FoobarService.ConstructRpcClient(server.UriString);
-                await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false);
-
-                var activity = activityListener.Activity;
-                GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
-                Assert.Equal(default, activity.ParentSpanId);
-            }
-
-            // No parent Activity, context from header
-            using (var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue))
-            {
-                var client = FoobarService.ConstructRpcClient(
-                    server.UriString,
-                    additionalMetadata: new List<Metadata.Entry>
-                    {
-                        new Metadata.Entry("traceparent", FoobarService.DefaultTraceparentWithSampling),
-                    });
-
-                await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false);
-
-                var activity = activityListener.Activity;
-                GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
-                Assert.Equal(FoobarService.DefaultParentFromTraceparentHeader.SpanId, activity.ParentSpanId);
-            }
-        }
-
-        /// <summary>
-        /// A common method to test server interceptor handler failure.
-        /// </summary>
-        /// <param name="clientRequestFunc">The specific client request function.</param>
-        /// <param name="additionalMetadata">The additional metadata, if any.</param>
-        /// <returns>A Task.</returns>
-        private async Task TestHandlerFailure(Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc, Metadata additionalMetadata = null)
-        {
-            // starts the server with the server interceptor
-            var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), ActivityIdentifierValue = Guid.NewGuid() };
-            using var server = FoobarService.Start(new ServerTracingInterceptor(interceptorOptions));
-
-            using var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue);
             var client = FoobarService.ConstructRpcClient(
                 server.UriString,
                 additionalMetadata: new List<Metadata.Entry>
                 {
                     new Metadata.Entry("traceparent", FoobarService.DefaultTraceparentWithSampling),
-                    new Metadata.Entry(FoobarService.RequestHeaderFailWithStatusCode, StatusCode.ResourceExhausted.ToString()),
-                    new Metadata.Entry(FoobarService.RequestHeaderErrorDescription, "fubar"),
                 });
 
-            await Assert.ThrowsAsync<RpcException>(async () => await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false));
+            await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false);
 
             var activity = activityListener.Activity;
-            GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.ResourceExhausted, interceptorOptions.RecordMessageEvents);
+            GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
             Assert.Equal(FoobarService.DefaultParentFromTraceparentHeader.SpanId, activity.ParentSpanId);
         }
+    }
+
+    /// <summary>
+    /// A common method to test server interceptor handler failure.
+    /// </summary>
+    /// <param name="clientRequestFunc">The specific client request function.</param>
+    /// <param name="additionalMetadata">The additional metadata, if any.</param>
+    /// <returns>A Task.</returns>
+    private async Task TestHandlerFailure(Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc, Metadata additionalMetadata = null)
+    {
+        // starts the server with the server interceptor
+        var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), ActivityIdentifierValue = Guid.NewGuid() };
+        using var server = FoobarService.Start(new ServerTracingInterceptor(interceptorOptions));
+
+        using var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue);
+        var client = FoobarService.ConstructRpcClient(
+            server.UriString,
+            additionalMetadata: new List<Metadata.Entry>
+            {
+                new Metadata.Entry("traceparent", FoobarService.DefaultTraceparentWithSampling),
+                new Metadata.Entry(FoobarService.RequestHeaderFailWithStatusCode, StatusCode.ResourceExhausted.ToString()),
+                new Metadata.Entry(FoobarService.RequestHeaderErrorDescription, "fubar"),
+            });
+
+        await Assert.ThrowsAsync<RpcException>(async () => await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false));
+
+        var activity = activityListener.Activity;
+        GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.ResourceExhausted, interceptorOptions.RecordMessageEvents);
+        Assert.Equal(FoobarService.DefaultParentFromTraceparentHeader.SpanId, activity.ParentSpanId);
     }
 }

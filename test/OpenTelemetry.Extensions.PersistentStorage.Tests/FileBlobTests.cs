@@ -20,174 +20,173 @@ using System.Threading;
 using OpenTelemetry.Extensions.PersistentStorage.Abstractions;
 using Xunit;
 
-namespace OpenTelemetry.Extensions.PersistentStorage.Tests
+namespace OpenTelemetry.Extensions.PersistentStorage.Tests;
+
+public class FileBlobTests
 {
-    public class FileBlobTests
+    [Fact]
+    public void FileBlobTests_E2E_Test()
     {
-        [Fact]
-        public void FileBlobTests_E2E_Test()
-        {
-            var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-            PersistentBlob blob = new FileBlob(testFile.FullName);
+        var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
+        PersistentBlob blob = new FileBlob(testFile.FullName);
 
-            var data = Encoding.UTF8.GetBytes("Hello, World!");
-            blob.TryWrite(data);
-            blob.TryRead(out var blobContent);
+        var data = Encoding.UTF8.GetBytes("Hello, World!");
+        blob.TryWrite(data);
+        blob.TryRead(out var blobContent);
 
-            Assert.Equal(testFile.FullName, ((FileBlob)blob).FullPath);
-            Assert.Equal(data, blobContent);
+        Assert.Equal(testFile.FullName, ((FileBlob)blob).FullPath);
+        Assert.Equal(data, blobContent);
 
-            Assert.True(blob.TryDelete());
-            Assert.False(testFile.Exists);
-        }
+        Assert.True(blob.TryDelete());
+        Assert.False(testFile.Exists);
+    }
 
-        [Fact]
-        public void FileBlobTests_Lease()
-        {
-            var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-            PersistentBlob blob = new FileBlob(testFile.FullName);
+    [Fact]
+    public void FileBlobTests_Lease()
+    {
+        var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
+        PersistentBlob blob = new FileBlob(testFile.FullName);
 
-            var data = Encoding.UTF8.GetBytes("Hello, World!");
-            var leasePeriodMilliseconds = 1000;
-            blob.TryWrite(data);
-            blob.TryLease(leasePeriodMilliseconds);
+        var data = Encoding.UTF8.GetBytes("Hello, World!");
+        var leasePeriodMilliseconds = 1000;
+        blob.TryWrite(data);
+        blob.TryLease(leasePeriodMilliseconds);
 
-            Assert.Contains(".lock", ((FileBlob)blob).FullPath);
+        Assert.Contains(".lock", ((FileBlob)blob).FullPath);
 
-            Assert.True(blob.TryDelete());
-            Assert.False(testFile.Exists);
-        }
+        Assert.True(blob.TryDelete());
+        Assert.False(testFile.Exists);
+    }
 
-        [Fact]
-        public void FileBlobTests_LeaseAfterDelete()
-        {
-            var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-            PersistentBlob blob = new FileBlob(testFile.FullName);
+    [Fact]
+    public void FileBlobTests_LeaseAfterDelete()
+    {
+        var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
+        PersistentBlob blob = new FileBlob(testFile.FullName);
 
-            var data = Encoding.UTF8.GetBytes("Hello, World!");
+        var data = Encoding.UTF8.GetBytes("Hello, World!");
 
-            Assert.True(blob.TryWrite(data));
-            Assert.True(blob.TryDelete());
+        Assert.True(blob.TryWrite(data));
+        Assert.True(blob.TryDelete());
 
-            // Lease should return false
-            Assert.False(blob.TryLease(1000));
-        }
+        // Lease should return false
+        Assert.False(blob.TryLease(1000));
+    }
 
-        [Fact]
-        public void FileBlobTests_ReadFailsOnAlreadyLeasedFile()
-        {
-            var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-            FileBlob blob1 = new FileBlob(testFile.FullName);
-            FileBlob blob2 = new FileBlob(testFile.FullName);
-            var data = Encoding.UTF8.GetBytes("Hello, World!");
+    [Fact]
+    public void FileBlobTests_ReadFailsOnAlreadyLeasedFile()
+    {
+        var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
+        FileBlob blob1 = new FileBlob(testFile.FullName);
+        FileBlob blob2 = new FileBlob(testFile.FullName);
+        var data = Encoding.UTF8.GetBytes("Hello, World!");
 
-            Assert.True(blob2.TryWrite(data));
+        Assert.True(blob2.TryWrite(data));
 
-            // Leased by another thread/process/object
-            Assert.True(blob2.TryLease(10000));
+        // Leased by another thread/process/object
+        Assert.True(blob2.TryLease(10000));
 
-            // Read should fail as file is leased
-            Assert.False(blob1.TryRead(out var blob));
-            Assert.Null(blob);
+        // Read should fail as file is leased
+        Assert.False(blob1.TryRead(out var blob));
+        Assert.Null(blob);
 
-            // Clean up
-            Assert.True(blob2.TryDelete());
-        }
+        // Clean up
+        Assert.True(blob2.TryDelete());
+    }
 
-        [Fact]
-        public void FileBlobTests_LeaseFailsOnAlreadyLeasedFileByOtherObject()
-        {
-            var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-            FileBlob blob1 = new FileBlob(testFile.FullName);
-            FileBlob blob2 = new FileBlob(testFile.FullName);
-            var data = Encoding.UTF8.GetBytes("Hello, World!");
+    [Fact]
+    public void FileBlobTests_LeaseFailsOnAlreadyLeasedFileByOtherObject()
+    {
+        var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
+        FileBlob blob1 = new FileBlob(testFile.FullName);
+        FileBlob blob2 = new FileBlob(testFile.FullName);
+        var data = Encoding.UTF8.GetBytes("Hello, World!");
 
-            Assert.True(blob1.TryWrite(data));
+        Assert.True(blob1.TryWrite(data));
 
-            // Leased by another thread/process/object
-            Assert.True(blob2.TryLease(10000));
+        // Leased by another thread/process/object
+        Assert.True(blob2.TryLease(10000));
 
-            // Lease should fail as already leased
-            Assert.False(blob1.TryLease(10));
+        // Lease should fail as already leased
+        Assert.False(blob1.TryLease(10));
 
-            // Clean up
-            Assert.True(blob2.TryDelete());
-        }
+        // Clean up
+        Assert.True(blob2.TryDelete());
+    }
 
-        [Fact]
-        public void FileBlobTests_Delete()
-        {
-            var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-            FileBlob blob = new FileBlob(testFile.FullName);
+    [Fact]
+    public void FileBlobTests_Delete()
+    {
+        var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
+        FileBlob blob = new FileBlob(testFile.FullName);
 
-            var data = Encoding.UTF8.GetBytes("Hello, World!");
+        var data = Encoding.UTF8.GetBytes("Hello, World!");
 
-            Assert.True(blob.TryWrite(data));
+        Assert.True(blob.TryWrite(data));
 
-            // Assert
-            Assert.True(blob.TryDelete());
-            Assert.False(testFile.Exists);
-        }
+        // Assert
+        Assert.True(blob.TryDelete());
+        Assert.False(testFile.Exists);
+    }
 
-        [Fact(Skip = "Unstable")]
-        public void FileBlobTests_DeleteFailsAfterLeaseIsExpired()
-        {
-            var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
+    [Fact(Skip = "Unstable")]
+    public void FileBlobTests_DeleteFailsAfterLeaseIsExpired()
+    {
+        var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
 
-            // set maintenance job interval to 2 secs
-            using var storage = new FileBlobProvider(testDirectory.FullName, 10, 2);
+        // set maintenance job interval to 2 secs
+        using var storage = new FileBlobProvider(testDirectory.FullName, 10, 2);
 
-            var data = Encoding.UTF8.GetBytes("Hello, World!");
+        var data = Encoding.UTF8.GetBytes("Hello, World!");
 
-            Assert.True(storage.TryCreateBlob(data, out var blob));
+        Assert.True(storage.TryCreateBlob(data, out var blob));
 
-            var leasePeriodMilliseconds = 1;
+        var leasePeriodMilliseconds = 1;
 
-            // lease for 1 ms
-            blob.TryLease(leasePeriodMilliseconds);
+        // lease for 1 ms
+        blob.TryLease(leasePeriodMilliseconds);
 
-            // Wait for lease to expire and maintenance job to run
-            Thread.Sleep(5000);
+        // Wait for lease to expire and maintenance job to run
+        Thread.Sleep(5000);
 
-            blob.TryDelete();
+        blob.TryDelete();
 
-            // Assert
-            Assert.True(storage.TryGetBlob(out var outputBlob));
-            Assert.NotNull(outputBlob);
+        // Assert
+        Assert.True(storage.TryGetBlob(out var outputBlob));
+        Assert.NotNull(outputBlob);
 
-            testDirectory.Delete(true);
-        }
+        testDirectory.Delete(true);
+    }
 
-        [Fact(Skip = "Unstable")]
-        public void FileBlobTests_LeaseTimeIsUpdatedWhenLeasingAlreadyLeasedFile()
-        {
-            var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-            FileBlob blob = new FileBlob(testFile.FullName);
-            var data = Encoding.UTF8.GetBytes("Hello, World!");
+    [Fact(Skip = "Unstable")]
+    public void FileBlobTests_LeaseTimeIsUpdatedWhenLeasingAlreadyLeasedFile()
+    {
+        var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
+        FileBlob blob = new FileBlob(testFile.FullName);
+        var data = Encoding.UTF8.GetBytes("Hello, World!");
 
-            Assert.True(blob.TryWrite(data));
+        Assert.True(blob.TryWrite(data));
 
-            var leasePeriodMilliseconds = 10000;
-            Assert.True(blob.TryLease(leasePeriodMilliseconds));
+        var leasePeriodMilliseconds = 10000;
+        Assert.True(blob.TryLease(leasePeriodMilliseconds));
 
-            var leaseTime = PersistentStorageHelper.GetDateTimeFromLeaseName(blob.FullPath);
+        var leaseTime = PersistentStorageHelper.GetDateTimeFromLeaseName(blob.FullPath);
 
-            Assert.True(blob.TryLease(leasePeriodMilliseconds));
+        Assert.True(blob.TryLease(leasePeriodMilliseconds));
 
-            var newLeaseTime = PersistentStorageHelper.GetDateTimeFromLeaseName(blob.FullPath);
+        var newLeaseTime = PersistentStorageHelper.GetDateTimeFromLeaseName(blob.FullPath);
 
-            Assert.NotEqual(leaseTime, newLeaseTime);
+        Assert.NotEqual(leaseTime, newLeaseTime);
 
-            Assert.True(blob.TryDelete());
-        }
+        Assert.True(blob.TryDelete());
+    }
 
-        [Fact]
-        public void FileBlobTests_FailedWrite()
-        {
-            var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-            FileBlob blob = new FileBlob(testFile.FullName);
+    [Fact]
+    public void FileBlobTests_FailedWrite()
+    {
+        var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
+        FileBlob blob = new FileBlob(testFile.FullName);
 
-            Assert.False(blob.TryWrite(null));
-        }
+        Assert.False(blob.TryWrite(null));
     }
 }

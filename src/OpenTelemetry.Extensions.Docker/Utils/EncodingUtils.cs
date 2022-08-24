@@ -17,21 +17,20 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace OpenTelemetry.Extensions.Docker.Utils
+namespace OpenTelemetry.Extensions.Docker.Utils;
+
+internal class EncodingUtils
 {
-    internal class EncodingUtils
+    /// <summary>
+    /// Checks if the string is valid hex.
+    /// </summary>
+    /// <param name="hexString">string.</param>
+    /// <returns>true if valid else false.</returns>
+    public static bool IsValidHexString(IEnumerable<char> hexString)
     {
-        /// <summary>
-        /// Checks if the string is valid hex.
-        /// </summary>
-        /// <param name="hexString">string.</param>
-        /// <returns>true if valid else false.</returns>
-        public static bool IsValidHexString(IEnumerable<char> hexString)
-        {
-            return hexString.Select(currentCharacter =>
-                        (currentCharacter >= '0' && currentCharacter <= '9') ||
-                        (currentCharacter >= 'a' && currentCharacter <= 'f') ||
-                        (currentCharacter >= 'A' && currentCharacter <= 'F')).All(isHexCharacter => isHexCharacter);
-        }
+        return hexString.Select(currentCharacter =>
+            (currentCharacter >= '0' && currentCharacter <= '9') ||
+            (currentCharacter >= 'a' && currentCharacter <= 'f') ||
+            (currentCharacter >= 'A' && currentCharacter <= 'F')).All(isHexCharacter => isHexCharacter);
     }
 }

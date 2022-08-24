@@ -18,35 +18,34 @@ using System;
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Instrumentation.MassTransit.Implementation
+namespace OpenTelemetry.Instrumentation.MassTransit.Implementation;
+
+/// <summary>
+/// EventSource events emitted from the project.
+/// </summary>
+[EventSource(Name = "OpenTelemetry-Instrumentation-MassTransit")]
+internal class MassTransitInstrumentationEventSource : EventSource
 {
-    /// <summary>
-    /// EventSource events emitted from the project.
-    /// </summary>
-    [EventSource(Name = "OpenTelemetry-Instrumentation-MassTransit")]
-    internal class MassTransitInstrumentationEventSource : EventSource
+    public static MassTransitInstrumentationEventSource Log = new MassTransitInstrumentationEventSource();
+
+    [Event(1, Message = "Request is filtered out.", Level = EventLevel.Verbose)]
+    public void RequestIsFilteredOut(string eventName)
     {
-        public static MassTransitInstrumentationEventSource Log = new MassTransitInstrumentationEventSource();
+        this.WriteEvent(1, eventName);
+    }
 
-        [Event(1, Message = "Request is filtered out.", Level = EventLevel.Verbose)]
-        public void RequestIsFilteredOut(string eventName)
+    [NonEvent]
+    public void EnrichmentException(Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
         {
-            this.WriteEvent(1, eventName);
+            this.EnrichmentException(ex.ToInvariantString());
         }
+    }
 
-        [NonEvent]
-        public void EnrichmentException(Exception ex)
-        {
-            if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
-            {
-                this.EnrichmentException(ex.ToInvariantString());
-            }
-        }
-
-        [Event(2, Message = "Enrich threw exception. Exception {0}.", Level = EventLevel.Error)]
-        public void EnrichmentException(string exception)
-        {
-            this.WriteEvent(2, exception);
-        }
+    [Event(2, Message = "Enrich threw exception. Exception {0}.", Level = EventLevel.Error)]
+    public void EnrichmentException(string exception)
+    {
+        this.WriteEvent(2, exception);
     }
 }

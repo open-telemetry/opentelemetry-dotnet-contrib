@@ -19,35 +19,34 @@ using System.Diagnostics.Metrics;
 using System.Reflection;
 using OpenTelemetry.Instrumentation.AspNet.Implementation;
 
-namespace OpenTelemetry.Instrumentation.AspNet
+namespace OpenTelemetry.Instrumentation.AspNet;
+
+/// <summary>
+/// Asp.Net Requests instrumentation.
+/// </summary>
+internal class AspNetMetrics : IDisposable
 {
+    internal static readonly AssemblyName AssemblyName = typeof(HttpInMetricsListener).Assembly.GetName();
+    internal static readonly string InstrumentationName = AssemblyName.Name;
+    internal static readonly string InstrumentationVersion = AssemblyName.Version.ToString();
+
+    private readonly Meter meter;
+
+    private readonly HttpInMetricsListener httpInMetricsListener;
+
     /// <summary>
-    /// Asp.Net Requests instrumentation.
+    /// Initializes a new instance of the <see cref="AspNetMetrics"/> class.
     /// </summary>
-    internal class AspNetMetrics : IDisposable
+    public AspNetMetrics()
     {
-        internal static readonly AssemblyName AssemblyName = typeof(HttpInMetricsListener).Assembly.GetName();
-        internal static readonly string InstrumentationName = AssemblyName.Name;
-        internal static readonly string InstrumentationVersion = AssemblyName.Version.ToString();
+        this.meter = new Meter(InstrumentationName, InstrumentationVersion);
+        this.httpInMetricsListener = new HttpInMetricsListener(this.meter);
+    }
 
-        private readonly Meter meter;
-
-        private readonly HttpInMetricsListener httpInMetricsListener;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AspNetMetrics"/> class.
-        /// </summary>
-        public AspNetMetrics()
-        {
-            this.meter = new Meter(InstrumentationName, InstrumentationVersion);
-            this.httpInMetricsListener = new HttpInMetricsListener(this.meter);
-        }
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            this.meter?.Dispose();
-            this.httpInMetricsListener?.Dispose();
-        }
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.meter?.Dispose();
+        this.httpInMetricsListener?.Dispose();
     }
 }

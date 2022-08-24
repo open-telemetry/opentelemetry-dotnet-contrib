@@ -16,25 +16,24 @@
 
 using System.Diagnostics.Tracing;
 
-namespace OpenTelemetry.Instrumentation.EventCounters.Tests
+namespace OpenTelemetry.Instrumentation.EventCounters.Tests;
+
+[EventSource(Name = "OpenTelemetry.Instrumentation.EventCounters.Tests.TestIncrementingEventCounter")]
+public sealed class TestIncrementingEventCounter : EventSource
 {
-    [EventSource(Name = "OpenTelemetry.Instrumentation.EventCounters.Tests.TestIncrementingEventCounter")]
-    public sealed class TestIncrementingEventCounter : EventSource
+    public const string CounterName = "IncrementingEventCounter";
+
+    // define the singleton instance of the event source
+    public static TestIncrementingEventCounter Log = new();
+    private IncrementingEventCounter incrementingEventCounter;
+
+    private TestIncrementingEventCounter()
     {
-        public const string CounterName = "IncrementingEventCounter";
+        this.incrementingEventCounter = new IncrementingEventCounter(CounterName, this);
+    }
 
-        // define the singleton instance of the event source
-        public static TestIncrementingEventCounter Log = new();
-        private IncrementingEventCounter incrementingEventCounter;
-
-        private TestIncrementingEventCounter()
-        {
-            this.incrementingEventCounter = new IncrementingEventCounter(CounterName, this);
-        }
-
-        public void SampleCounter1(float counterValue)
-        {
-            this.incrementingEventCounter.Increment(counterValue);
-        }
+    public void SampleCounter1(float counterValue)
+    {
+        this.incrementingEventCounter.Increment(counterValue);
     }
 }
