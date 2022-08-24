@@ -17,6 +17,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using BenchmarkDotNet.Attributes;
+using Microsoft.TraceLoggingDynamic;
 using OpenTelemetry.Trace;
 
 /*
@@ -27,10 +28,10 @@ Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
   DefaultJob : .NET 6.0.8 (6.0.822.36306), X64 RyuJIT
 
 
-|            Method |      Mean |     Error |    StdDev |  Gen 0 | Allocated |
-|------------------ |----------:|----------:|----------:|-------:|----------:|
-|    ExportActivity | 11.231 us | 0.2235 us | 0.4253 us | 0.1526 |   1,016 B |
-| SerializeActivity |  1.253 us | 0.0126 us | 0.0118 us | 0.0210 |     136 B |
+|            Method |     Mean |     Error |    StdDev |  Gen 0 | Allocated |
+|------------------ |---------:|----------:|----------:|-------:|----------:|
+|    ExportActivity | 1.512 us | 0.0089 us | 0.0084 us | 0.0114 |      80 B |
+| SerializeActivity | 1.090 us | 0.0047 us | 0.0041 us | 0.0114 |      80 B |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
@@ -39,24 +40,28 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
     public class TLDTraceExporterBenchmarks
     {
         private readonly Activity activity;
+        private readonly Batch<Activity> batch;
         private readonly TLDTraceExporter exporter;
-        private readonly ActivitySource sourceTestData = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark.TestData");
         private readonly ActivitySource activitySource = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark");
-        private readonly TracerProvider tracerProvider;
+        private static readonly EventProvider eventProvider = new("TLDTraceExporterBenchmarks");
 
         public TLDTraceExporterBenchmarks()
         {
             Activity.DefaultIdFormat = ActivityIdFormat.W3C;
 
-            ActivitySource.AddActivityListener(new ActivityListener
+            this.batch = this.CreateBatch();
+
+            using var activityListener = new ActivityListener
             {
                 ActivityStarted = null,
                 ActivityStopped = null,
-                ShouldListenTo = (activitySource) => activitySource.Name == this.sourceTestData.Name,
+                ShouldListenTo = (activitySource) => activitySource.Name == this.activitySource.Name,
                 Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded,
-            });
+            };
 
-            using (var testActivity = this.sourceTestData.StartActivity("Benchmark"))
+            ActivitySource.AddActivityListener(activityListener);
+
+            using (var testActivity = this.activitySource.StartActivity("Benchmark"))
             {
                 this.activity = testActivity;
                 this.activity?.SetTag("tagString", "value");
@@ -74,28 +79,12 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
                     ["cloud.roleVer"] = "9.0.15289.2",
                 },
             });
-
-            this.tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new AlwaysOnSampler())
-                .AddSource(this.activitySource.Name)
-                .AddTLDTraceExporter(options =>
-                {
-                    options.ConnectionString = "EtwSession=OpenTelemetry";
-                    options.PrepopulatedFields = new Dictionary<string, object>
-                    {
-                        ["cloud.role"] = "BusyWorker",
-                        ["cloud.roleInstance"] = "CY1SCH030021417",
-                        ["cloud.roleVer"] = "9.0.15289.2",
-                    };
-                })
-                .Build();
         }
 
         [Benchmark]
         public void ExportActivity()
         {
-            // this activity will be created and feed into the actual Geneva exporter
-            using var activity = this.activitySource.StartActivity("Benchmark");
+            this.exporter.Export(this.batch);
         }
 
         [Benchmark]
@@ -108,10 +97,39 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
         public void Cleanup()
         {
             this.activity.Dispose();
-            this.sourceTestData.Dispose();
+            this.batch.Dispose();
             this.activitySource.Dispose();
             this.exporter.Dispose();
-            this.tracerProvider.Dispose();
+        }
+
+        private Batch<Activity> CreateBatch()
+        {
+            using var batchGeneratorExporter = new BatchGeneratorExporter();
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new AlwaysOnSampler())
+                .AddSource(this.activitySource.Name)
+                .AddProcessor(new SimpleActivityExportProcessor(batchGeneratorExporter))
+                .Build();
+
+            using (var activity = this.activitySource.StartActivity("Benchmark"))
+            {
+                activity.SetTag("tagString", "value");
+                activity.SetTag("tagInt", 100);
+                activity.SetStatus(Status.Error);
+            }
+
+            return batchGeneratorExporter.Batch;
+        }
+
+        private class BatchGeneratorExporter : BaseExporter<Activity>
+        {
+            public Batch<Activity> Batch { get; set; }
+
+            public override ExportResult Export(in Batch<Activity> batch)
+            {
+                this.Batch = batch;
+                return ExportResult.Success;
+            }
         }
     }
 }

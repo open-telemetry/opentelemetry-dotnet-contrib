@@ -98,9 +98,23 @@ namespace OpenTelemetry.Exporter.Geneva
                 this.m_dedicatedFields = dedicatedFields;
             }
 
-            var fields = options.PrepopulatedFields.ToDictionary(item => item.Key, item => item.Value);
-            fields.Remove(".ver");
-            this.prepopulatedFields = options.PrepopulatedFields;
+            if (options.PrepopulatedFields != null)
+            {
+                this.prepopulatedFieldsKeys = new List<string>();
+                var tempPrepopulatedFields = new Dictionary<string, object>(options.PrepopulatedFields.Count - 1, StringComparer.Ordinal);
+                foreach (var kv in options.PrepopulatedFields)
+                {
+                    if (kv.Key == Schema.V40.PartA.Ver)
+                    {
+                        continue;
+                    }
+
+                    tempPrepopulatedFields[kv.Key] = kv.Value;
+                    this.prepopulatedFieldsKeys.Add(kv.Key);
+                }
+
+                this.prepopulatedFields = tempPrepopulatedFields;
+            }
         }
 
         public override ExportResult Export(in Batch<Activity> batch)
@@ -171,7 +185,7 @@ namespace OpenTelemetry.Exporter.Geneva
             eb.Reset(this.partAName);
             eb.AddUInt16("__csver__", 1024, EventOutType.Hex);
 
-            var partAFieldsCount = this.prepopulatedFields.Count + 4; // Four fields: name, time, ext_dt_traceId, ext_dt_spanId
+            var partAFieldsCount = (this.prepopulatedFieldsKeys != null ? this.prepopulatedFieldsKeys.Count : 0) + 4; // Four fields: name, time, ext_dt_traceId, ext_dt_spanId
 
             var dtBegin = activity.StartTimeUtc;
             var tsBegin = dtBegin.Ticks;
@@ -184,11 +198,16 @@ namespace OpenTelemetry.Exporter.Geneva
             eb.AddCountedString("ext_dt_traceId", activity.Context.TraceId.ToHexString());
             eb.AddCountedString("ext_dt_spanId", activity.Context.SpanId.ToHexString());
 
-            foreach (var entry in this.prepopulatedFields)
+            if (this.prepopulatedFieldsKeys != null)
             {
-                V40_PART_A_TLD_MAPPING.TryGetValue(entry.Key, out string replacementKey);
-                var key = replacementKey ?? entry.Key;
-                this.Serialize(eb, key, entry.Value);
+                for (int i = 0; i < this.prepopulatedFieldsKeys.Count; i++)
+                {
+                    var key = this.prepopulatedFieldsKeys[i];
+                    var value = this.prepopulatedFields[key];
+                    V40_PART_A_TLD_MAPPING.TryGetValue(key, out string replacementKey);
+                    var keyToSerialize = replacementKey ?? key;
+                    this.Serialize(eb, keyToSerialize, value);
+                }
             }
 
             int hasValidParentId = 0;
@@ -359,6 +378,8 @@ namespace OpenTelemetry.Exporter.Geneva
         private readonly IReadOnlyDictionary<string, object> m_dedicatedFields;
 
         private readonly IReadOnlyDictionary<string, object> prepopulatedFields;
+
+        private readonly List<string> prepopulatedFieldsKeys;
 
         private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
 
