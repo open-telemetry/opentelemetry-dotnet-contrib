@@ -28,7 +28,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda
     /// <summary>
     /// Wrapper class for AWS Lambda handlers.
     /// </summary>
-    public class AWSLambdaWrapper
+    public static class AWSLambdaWrapper
     {
         private static readonly AssemblyName AssemblyName = typeof(AWSLambdaWrapper).Assembly.GetName();
 
