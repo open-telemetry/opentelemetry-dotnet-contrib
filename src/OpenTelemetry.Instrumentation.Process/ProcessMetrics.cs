@@ -16,6 +16,7 @@
 
 using System.Diagnostics.Metrics;
 using System.Reflection;
+using Diagnostics = System.Diagnostics;
 
 namespace OpenTelemetry.Instrumentation.Process;
 
@@ -23,7 +24,7 @@ internal class ProcessMetrics
 {
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
     internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
-    private static readonly System.Diagnostics.Process CurrentProcess = System.Diagnostics.Process.GetCurrentProcess();
+    private static readonly Diagnostics.Process CurrentProcess = Diagnostics.Process.GetCurrentProcess();
 
     static ProcessMetrics()
     {
