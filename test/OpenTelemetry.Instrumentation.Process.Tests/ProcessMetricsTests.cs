@@ -27,6 +27,7 @@ public class ProcessMetricsTests
     [Fact]
     public void ProcessMetricsAreCaptured()
     {
+        string metricPrefix = "process.runtime.dotnet.";
         var exportedItems = new List<Metric>();
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddProcessInstrumentation()
@@ -36,13 +37,9 @@ public class ProcessMetricsTests
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
         Assert.True(exportedItems.Count == 2);
-        Assert.StartsWith("process", exportedItems[0].Name);
-        Assert.StartsWith("process", exportedItems[1].Name);
-
-        var physicalMemoryMetric = exportedItems.FirstOrDefault(i => i.Name == "process.memory.usage");
+        var physicalMemoryMetric = exportedItems.FirstOrDefault(i => i.Name == $"{metricPrefix}memory.usage");
         Assert.NotNull(physicalMemoryMetric);
-
-        var virtualMemoryMetric = exportedItems.FirstOrDefault(i => i.Name == "process.memory.virtual");
+        var virtualMemoryMetric = exportedItems.FirstOrDefault(i => i.Name == $"{metricPrefix}memory.virtual");
         Assert.NotNull(virtualMemoryMetric);
     }
 }
