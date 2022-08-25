@@ -25,17 +25,16 @@ internal class ProcessMetrics
 {
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
     internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
-
-    private const string MetricPrefix = "process.dotnet.";
+    private static readonly Diagnostics.Process CurrentProcess = Diagnostics.Process.GetCurrentProcess();
 
     static ProcessMetrics()
     {
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
-            $"{MetricPrefix}memory.usage.physical",
-            () => Diagnostics.Process.GetCurrentProcess().WorkingSet64,
-            unit: "bytes",
-            description: "The amount of physical memory allocated for the current process.");
+            "process.memory.usage",
+            () => CurrentProcess.WorkingSet64,
+            unit: "By",
+            description: "The amount of physical memory in use.");
 
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
@@ -51,6 +50,7 @@ internal class ProcessMetrics
             unit: "1",
             description: "The total processor time divided by the elapsed time since the process start and the number of CPUs available to the current process.");
     }
+
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessMetrics"/> class.

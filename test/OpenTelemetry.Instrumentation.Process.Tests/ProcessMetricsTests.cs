@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
+
 using System.Collections.Generic;
 using System.Linq;
 using OpenTelemetry.Metrics;
@@ -23,7 +24,6 @@ namespace OpenTelemetry.Instrumentation.Process.Tests;
 public class ProcessMetricsTests
 {
     private const int MaxTimeToAllowForFlush = 10000;
-    private const string MetricPrefix = "process.dotnet.";
 
     [Fact]
     public void ProcessMetricsAreCaptured()
@@ -37,13 +37,9 @@ public class ProcessMetricsTests
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
         Assert.True(exportedItems.Count == 2);
-        Assert.StartsWith(MetricPrefix, exportedItems[0].Name);
-        Assert.StartsWith(MetricPrefix, exportedItems[1].Name);
-
-        var physicalMemorymetric = exportedItems.FirstOrDefault(i => i.Name == "process.dotnet.memory.usage.physical");
-        Assert.NotNull(physicalMemorymetric);
-
-        var virtualMemorymetric = exportedItems.FirstOrDefault(i => i.Name == "process.dotnet.memory.usage.virtual");
-        Assert.NotNull(virtualMemorymetric);
+        var physicalMemoryMetric = exportedItems.FirstOrDefault(i => i.Name == "process.memory.usage");
+        Assert.NotNull(physicalMemoryMetric);
+        var virtualMemoryMetric = exportedItems.FirstOrDefault(i => i.Name == "process.memory.virtual");
+        Assert.NotNull(virtualMemoryMetric);
     }
 }
