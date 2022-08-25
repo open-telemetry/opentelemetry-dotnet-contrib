@@ -23,22 +23,20 @@ internal class ProcessMetrics
 {
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
     internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
-
-    private const string MetricPrefix = "process.";
     private static readonly System.Diagnostics.Process CurrentProcess = System.Diagnostics.Process.GetCurrentProcess();
 
     static ProcessMetrics()
     {
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
-            $"{MetricPrefix}memory.usage",
+            "process.memory.usage",
             () => CurrentProcess.WorkingSet64,
             unit: "By",
             description: "The amount of physical memory in use.");
 
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
-            $"{MetricPrefix}memory.virtual",
+            "process.memory.virtual",
             () => CurrentProcess.VirtualMemorySize64,
             unit: "By",
             description: "The amount of committed virtual memory.");
