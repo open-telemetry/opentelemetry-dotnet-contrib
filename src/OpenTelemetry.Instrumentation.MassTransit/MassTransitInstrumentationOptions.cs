@@ -1,4 +1,4 @@
-﻿// <copyright file="MassTransitInstrumentationOptions.cs" company="OpenTelemetry Authors">
+// <copyright file="MassTransitInstrumentationOptions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,27 +16,26 @@
 
 using System.Collections.Generic;
 
-namespace OpenTelemetry.Instrumentation.MassTransit
+namespace OpenTelemetry.Instrumentation.MassTransit;
+
+/// <summary>
+/// Options for <see cref="MassTransitInstrumentation"/>.
+/// </summary>
+public class MassTransitInstrumentationOptions
 {
     /// <summary>
-    /// Options for <see cref="MassTransitInstrumentation"/>.
+    /// Default traced operations.
     /// </summary>
-    public class MassTransitInstrumentationOptions
+    public static readonly IEnumerable<string> DefaultTracedOperations = new string[]
     {
-        /// <summary>
-        /// Default traced operations.
-        /// </summary>
-        public static readonly IEnumerable<string> DefaultTracedOperations = new string[]
-        {
-            OperationName.Transport.Send,
-            OperationName.Transport.Receive,
-            OperationName.Consumer.Consume,
-            OperationName.Consumer.Handle,
-        };
+        OperationName.Transport.Send,
+        OperationName.Transport.Receive,
+        OperationName.Consumer.Consume,
+        OperationName.Consumer.Handle,
+    };
 
-        /// <summary>
-        /// Gets or sets traced operations set.
-        /// </summary>
-        public HashSet<string> TracedOperations { get; set; } = new HashSet<string>(DefaultTracedOperations);
-    }
+    /// <summary>
+    /// Gets or sets traced operations set.
+    /// </summary>
+    public HashSet<string> TracedOperations { get; set; } = new HashSet<string>(DefaultTracedOperations);
 }

@@ -1,4 +1,4 @@
-﻿// <copyright file="TracerProviderBuilderExtensions.cs" company="OpenTelemetry Authors">
+// <copyright file="TracerProviderBuilderExtensions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,33 +19,32 @@ using OpenTelemetry.Instrumentation.EntityFrameworkCore;
 using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Trace
+namespace OpenTelemetry.Trace;
+
+/// <summary>
+/// Extension methods to simplify registering of dependency instrumentation.
+/// </summary>
+public static class TracerProviderBuilderExtensions
 {
     /// <summary>
-    /// Extension methods to simplify registering of dependency instrumentation.
+    /// Enables Microsoft.EntityFrameworkCore instrumentation.
     /// </summary>
-    public static class TracerProviderBuilderExtensions
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="configureOptions">EntityFrameworkCore configuration options.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddEntityFrameworkCoreInstrumentation(
+        this TracerProviderBuilder builder,
+        Action<EntityFrameworkInstrumentationOptions> configureOptions = null)
     {
-        /// <summary>
-        /// Enables Microsoft.EntityFrameworkCore instrumentation.
-        /// </summary>
-        /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-        /// <param name="configureOptions">EntityFrameworkCore configuration options.</param>
-        /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-        public static TracerProviderBuilder AddEntityFrameworkCoreInstrumentation(
-            this TracerProviderBuilder builder,
-            Action<EntityFrameworkInstrumentationOptions> configureOptions = null)
-        {
-            Guard.ThrowIfNull(builder);
+        Guard.ThrowIfNull(builder);
 
-            var options = new EntityFrameworkInstrumentationOptions();
-            configureOptions?.Invoke(options);
+        var options = new EntityFrameworkInstrumentationOptions();
+        configureOptions?.Invoke(options);
 
-            builder.AddInstrumentation(() => new EntityFrameworkInstrumentation(options));
+        builder.AddInstrumentation(() => new EntityFrameworkInstrumentation(options));
 
-            builder.AddSource(EntityFrameworkDiagnosticListener.ActivitySourceName);
+        builder.AddSource(EntityFrameworkDiagnosticListener.ActivitySourceName);
 
-            return builder;
-        }
+        return builder;
     }
 }

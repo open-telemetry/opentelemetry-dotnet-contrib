@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkPkgVer)" />
     <PackageReference Include="xunit" Version="$(XUnitPkgVer)" />
-    <PackageReference Include="Moq" Version="4.14.6" />
+    <PackageReference Include="Moq" Version="$(MoqPkgVer)" />
     <PackageReference Condition="$([MSBuild]::IsOsPlatform('Windows'))" Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
@@ -30,6 +30,10 @@
     <Compile Remove="Resources\TestAWSEKSResourceDetector.cs" />
     <Compile Remove="Resources\TestAWSLambdaResourceDetector.cs" />
     <Compile Remove="Resources\TestResourceBuilderExtensions.cs" />
+    <Compile Remove="Resources\Http\CertificateUploader.cs" />
+    <Compile Remove="Resources\Http\TestHandler.cs" />
+    <Compile Remove="Resources\Http\TestServerCertificateValidationProvider.cs" />
+
   </ItemGroup>
 
   <ItemGroup>

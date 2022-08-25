@@ -1,4 +1,4 @@
-﻿// <copyright file="ExceptionExtensions.cs" company="OpenTelemetry Authors">
+// <copyright file="ExceptionExtensions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,29 +18,28 @@ using System;
 using System.Globalization;
 using System.Threading;
 
-namespace OpenTelemetry.Internal
-{
-    internal static class ExceptionExtensions
-    {
-        /// <summary>
-        /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
-        /// appropriate for diagnostics tracing.
-        /// </summary>
-        /// <param name="exception">Exception to convert to string.</param>
-        /// <returns>Exception as string with no culture.</returns>
-        public static string ToInvariantString(this Exception exception)
-        {
-            var originalUICulture = Thread.CurrentThread.CurrentUICulture;
+namespace OpenTelemetry.Internal;
 
-            try
-            {
-                Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-                return exception.ToString();
-            }
-            finally
-            {
-                Thread.CurrentThread.CurrentUICulture = originalUICulture;
-            }
+internal static class ExceptionExtensions
+{
+    /// <summary>
+    /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
+    /// appropriate for diagnostics tracing.
+    /// </summary>
+    /// <param name="exception">Exception to convert to string.</param>
+    /// <returns>Exception as string with no culture.</returns>
+    public static string ToInvariantString(this Exception exception)
+    {
+        var originalUICulture = Thread.CurrentThread.CurrentUICulture;
+
+        try
+        {
+            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
+            return exception.ToString();
+        }
+        finally
+        {
+            Thread.CurrentThread.CurrentUICulture = originalUICulture;
         }
     }
 }

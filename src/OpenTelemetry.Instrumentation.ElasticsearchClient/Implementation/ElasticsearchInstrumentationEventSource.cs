@@ -1,4 +1,4 @@
-﻿// <copyright file="ElasticsearchInstrumentationEventSource.cs" company="OpenTelemetry Authors">
+// <copyright file="ElasticsearchInstrumentationEventSource.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,35 +18,34 @@ using System;
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Implementation
+namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Implementation;
+
+/// <summary>
+/// EventSource events emitted from the project.
+/// </summary>
+[EventSource(Name = "OpenTelemetry-Instrumentation-Elasticsearch")]
+internal class ElasticsearchInstrumentationEventSource : EventSource
 {
-    /// <summary>
-    /// EventSource events emitted from the project.
-    /// </summary>
-    [EventSource(Name = "OpenTelemetry-Instrumentation-Elasticsearch")]
-    internal class ElasticsearchInstrumentationEventSource : EventSource
+    public static ElasticsearchInstrumentationEventSource Log = new ElasticsearchInstrumentationEventSource();
+
+    [Event(1, Message = "Payload is NULL in event '{1}' from handler '{0}', span will not be recorded.", Level = EventLevel.Warning)]
+    public void NullPayload(string handlerName, string eventName)
     {
-        public static ElasticsearchInstrumentationEventSource Log = new ElasticsearchInstrumentationEventSource();
+        this.WriteEvent(1, handlerName, eventName);
+    }
 
-        [Event(1, Message = "Payload is NULL in event '{1}' from handler '{0}', span will not be recorded.", Level = EventLevel.Warning)]
-        public void NullPayload(string handlerName, string eventName)
+    [NonEvent]
+    public void EnrichmentException(Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
         {
-            this.WriteEvent(1, handlerName, eventName);
+            this.EnrichmentException(ex.ToInvariantString());
         }
+    }
 
-        [NonEvent]
-        public void EnrichmentException(Exception ex)
-        {
-            if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
-            {
-                this.EnrichmentException(ex.ToInvariantString());
-            }
-        }
-
-        [Event(2, Message = "Enrichment threw exception. Exception {0}.", Level = EventLevel.Error)]
-        public void EnrichmentException(string exception)
-        {
-            this.WriteEvent(2, exception);
-        }
+    [Event(2, Message = "Enrichment threw exception. Exception {0}.", Level = EventLevel.Error)]
+    public void EnrichmentException(string exception)
+    {
+        this.WriteEvent(2, exception);
     }
 }

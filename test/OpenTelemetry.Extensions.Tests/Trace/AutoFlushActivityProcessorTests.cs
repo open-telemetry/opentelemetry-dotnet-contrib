@@ -1,4 +1,4 @@
-﻿// <copyright file="AutoFlushActivityProcessorTests.cs" company="OpenTelemetry Authors">
+// <copyright file="AutoFlushActivityProcessorTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,62 +21,61 @@ using Moq.Protected;
 using OpenTelemetry.Trace;
 using Xunit;
 
-namespace OpenTelemetry.Extensions.Tests.Trace
+namespace OpenTelemetry.Extensions.Tests.Trace;
+
+public class AutoFlushActivityProcessorTests
 {
-    public class AutoFlushActivityProcessorTests
+    [Fact]
+    public void AutoFlushActivityProcessor_FlushAfterLocalServerSideRootSpans_EndMatchingSpan_Flush()
     {
-        [Fact]
-        public void AutoFlushActivityProcessor_FlushAfterLocalServerSideRootSpans_EndMatchingSpan_Flush()
-        {
-            var mockExporting = new Mock<BaseProcessor<Activity>>();
+        var mockExporting = new Mock<BaseProcessor<Activity>>();
 
-            using var provider = Sdk.CreateTracerProviderBuilder()
-                .AddProcessor(mockExporting.Object)
-                .AddAutoFlushActivityProcessor(a => a.Parent == null && (a.Kind == ActivityKind.Server || a.Kind == ActivityKind.Consumer), 5000)
-                .AddSource("foo")
-                .Build();
+        using var provider = Sdk.CreateTracerProviderBuilder()
+            .AddProcessor(mockExporting.Object)
+            .AddAutoFlushActivityProcessor(a => a.Parent == null && (a.Kind == ActivityKind.Server || a.Kind == ActivityKind.Consumer), 5000)
+            .AddSource("foo")
+            .Build();
 
-            using var source = new ActivitySource("foo");
-            using var activity = source.StartActivity("name", ActivityKind.Server);
-            activity.Dispose();
+        using var source = new ActivitySource("foo");
+        using var activity = source.StartActivity("name", ActivityKind.Server);
+        activity.Dispose();
 
-            mockExporting.Protected().Verify("OnForceFlush", Times.Once(), 5_000);
-        }
+        mockExporting.Protected().Verify("OnForceFlush", Times.Once(), 5_000);
+    }
 
-        [Fact]
-        public void AutoFlushActivityProcessor_FlushAfterLocalServerSideRootSpans_EndNonMatchingSpan_DoesNothing()
-        {
-            var mockExporting = new Mock<BaseProcessor<Activity>>();
+    [Fact]
+    public void AutoFlushActivityProcessor_FlushAfterLocalServerSideRootSpans_EndNonMatchingSpan_DoesNothing()
+    {
+        var mockExporting = new Mock<BaseProcessor<Activity>>();
 
-            using var provider = Sdk.CreateTracerProviderBuilder()
-                .AddProcessor(mockExporting.Object)
-                .AddAutoFlushActivityProcessor(a => a.Parent == null && (a.Kind == ActivityKind.Server || a.Kind == ActivityKind.Consumer))
-                .AddSource("foo")
-                .Build();
+        using var provider = Sdk.CreateTracerProviderBuilder()
+            .AddProcessor(mockExporting.Object)
+            .AddAutoFlushActivityProcessor(a => a.Parent == null && (a.Kind == ActivityKind.Server || a.Kind == ActivityKind.Consumer))
+            .AddSource("foo")
+            .Build();
 
-            using var source = new ActivitySource("foo");
-            using var activity = source.StartActivity("name", ActivityKind.Client);
-            activity.Dispose();
+        using var source = new ActivitySource("foo");
+        using var activity = source.StartActivity("name", ActivityKind.Client);
+        activity.Dispose();
 
-            mockExporting.Protected().Verify("OnForceFlush", Times.Never(), It.IsAny<int>());
-        }
+        mockExporting.Protected().Verify("OnForceFlush", Times.Never(), It.IsAny<int>());
+    }
 
-        [Fact]
-        public void AutoFlushActivityProcessor_PredicateThrows_DoesNothing()
-        {
-            var mockExporting = new Mock<BaseProcessor<Activity>>();
+    [Fact]
+    public void AutoFlushActivityProcessor_PredicateThrows_DoesNothing()
+    {
+        var mockExporting = new Mock<BaseProcessor<Activity>>();
 
-            using var provider = Sdk.CreateTracerProviderBuilder()
-                .AddProcessor(mockExporting.Object)
-                .AddAutoFlushActivityProcessor(_ => throw new Exception("Predicate throws an exception."))
-                .AddSource("foo")
-                .Build();
+        using var provider = Sdk.CreateTracerProviderBuilder()
+            .AddProcessor(mockExporting.Object)
+            .AddAutoFlushActivityProcessor(_ => throw new Exception("Predicate throws an exception."))
+            .AddSource("foo")
+            .Build();
 
-            using var source = new ActivitySource("foo");
-            using var activity = source.StartActivity("name", ActivityKind.Server);
-            activity.Dispose();
+        using var source = new ActivitySource("foo");
+        using var activity = source.StartActivity("name", ActivityKind.Server);
+        activity.Dispose();
 
-            mockExporting.Protected().Verify("OnForceFlush", Times.Never(), 5_000);
-        }
+        mockExporting.Protected().Verify("OnForceFlush", Times.Never(), 5_000);
     }
 }

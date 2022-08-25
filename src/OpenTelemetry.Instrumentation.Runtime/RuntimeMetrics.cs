@@ -1,4 +1,4 @@
-﻿// <copyright file="RuntimeMetrics.cs" company="OpenTelemetry Authors">
+// <copyright file="RuntimeMetrics.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,108 +16,242 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 #if NETCOREAPP3_1_OR_GREATER
 using System.Threading;
 #endif
 
-namespace OpenTelemetry.Instrumentation.Runtime
+#if NET6_0_OR_GREATER
+using JitInfo = System.Runtime.JitInfo;
+#endif
+
+namespace OpenTelemetry.Instrumentation.Runtime;
+
+/// <summary>
+/// .NET runtime instrumentation.
+/// </summary>
+internal class RuntimeMetrics
 {
-    /// <summary>
-    /// .NET runtime instrumentation.
-    /// </summary>
-    internal class RuntimeMetrics : IDisposable
+    internal static readonly AssemblyName AssemblyName = typeof(RuntimeMetrics).Assembly.GetName();
+    internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
+
+#if NET6_0_OR_GREATER
+    private const long NanosecondsPerTick = 100;
+#endif
+    private const int NumberOfGenerations = 3;
+    private const string MetricPrefix = "process.runtime.dotnet.";
+
+    private static readonly string[] GenNames = new string[] { "gen0", "gen1", "gen2", "loh", "poh" };
+    private static bool isGcInfoAvailable;
+
+    static RuntimeMetrics()
     {
-        internal static readonly AssemblyName AssemblyName = typeof(RuntimeMetrics).Assembly.GetName();
-        internal static readonly string InstrumentationName = AssemblyName.Name;
-        internal static readonly string InstrumentationVersion = AssemblyName.Version.ToString();
-        private static string metricPrefix = "process.runtime.dotnet.";
-        private readonly Meter meter;
+        MeterInstance.CreateObservableCounter(
+            $"{MetricPrefix}gc.collections.count",
+            () => GetGarbageCollectionCounts(),
+            description: "Number of garbage collections that have occurred since process start.");
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RuntimeMetrics"/> class.
-        /// </summary>
-        /// <param name="options">The options to define the metrics.</param>
-        public RuntimeMetrics(RuntimeMetricsOptions options)
-        {
-            this.meter = new Meter(InstrumentationName, InstrumentationVersion);
-
-            if (options.IsGcEnabled)
-            {
-                this.meter.CreateObservableGauge($"{metricPrefix}gc.heap", () => GC.GetTotalMemory(false), "By", "GC Heap Size");
-                this.meter.CreateObservableGauge($"{metricPrefix}gen_0-gc.count", () => GC.CollectionCount(0), description: "Gen 0 GC Count");
-                this.meter.CreateObservableGauge($"{metricPrefix}gen_1-gc.count", () => GC.CollectionCount(1), description: "Gen 1 GC Count");
-                this.meter.CreateObservableGauge($"{metricPrefix}gen_2-gc.count", () => GC.CollectionCount(2), description: "Gen 2 GC Count");
 #if NETCOREAPP3_1_OR_GREATER
-                this.meter.CreateObservableCounter($"{metricPrefix}alloc.rate", () => GC.GetTotalAllocatedBytes(), "By", "Allocation Rate");
-                this.meter.CreateObservableCounter($"{metricPrefix}gc.fragmentation", GetFragmentation, description: "GC Fragmentation");
+        MeterInstance.CreateObservableCounter(
+            $"{MetricPrefix}gc.allocations.size",
+            () => GC.GetTotalAllocatedBytes(),
+            unit: "bytes",
+            description: "Count of bytes allocated on the managed GC heap since the process start. .NET objects are allocated from this heap. Object allocations from unmanaged languages such as C/C++ do not use this heap.");
 #endif
 
 #if NET6_0_OR_GREATER
-                this.meter.CreateObservableCounter($"{metricPrefix}gc.committed", () => (double)(GC.GetGCMemoryInfo().TotalCommittedBytes / 1_000_000), "Mi", description: "GC Committed Bytes");
-#endif
+        // TODO: change to ObservableUpDownCounter
+        MeterInstance.CreateObservableGauge(
+            $"{MetricPrefix}gc.committed_memory.size",
+            () =>
+            {
+                if (!IsGcInfoAvailable)
+                {
+                    return Array.Empty<Measurement<long>>();
+                }
+
+                return new Measurement<long>[] { new(GC.GetGCMemoryInfo().TotalCommittedBytes) };
+            },
+            unit: "bytes",
+            description: "The amount of committed virtual memory for the managed GC heap, as observed during the latest garbage collection. Committed virtual memory may be larger than the heap size because it includes both memory for storing existing objects (the heap size) and some extra memory that is ready to handle newly allocated objects in the future. The value will be unavailable until at least one garbage collection has occurred.");
+
+        // GC.GetGCMemoryInfo().GenerationInfo[i].SizeAfterBytes is better but it has a bug in .NET 6. See context in https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/496
+        Func<int, ulong> getGenerationSize = null;
+        bool isCodeRunningOnBuggyRuntimeVersion = Environment.Version.Major == 6;
+        if (isCodeRunningOnBuggyRuntimeVersion)
+        {
+            MethodInfo mi = typeof(GC).GetMethod("GetGenerationSize", BindingFlags.NonPublic | BindingFlags.Static);
+            if (mi != null)
+            {
+                getGenerationSize = mi.CreateDelegate<Func<int, ulong>>();
             }
+        }
+
+        // Either Environment.Version is not 6 or (it's 6 but internal API GC.GetGenerationSize is valid)
+        if (!isCodeRunningOnBuggyRuntimeVersion || getGenerationSize != null)
+        {
+            // TODO: change to ObservableUpDownCounter
+            MeterInstance.CreateObservableGauge(
+                $"{MetricPrefix}gc.heap.size",
+                () =>
+                {
+                    if (!IsGcInfoAvailable)
+                    {
+                        return Array.Empty<Measurement<long>>();
+                    }
+
+                    var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
+                    Measurement<long>[] measurements = new Measurement<long>[generationInfo.Length];
+                    int maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
+                    for (int i = 0; i < maxSupportedLength; ++i)
+                    {
+                        if (isCodeRunningOnBuggyRuntimeVersion)
+                        {
+                            measurements[i] = new((long)getGenerationSize(i), new KeyValuePair<string, object>("generation", GenNames[i]));
+                        }
+                        else
+                        {
+                            measurements[i] = new(generationInfo[i].SizeAfterBytes, new KeyValuePair<string, object>("generation", GenNames[i]));
+                        }
+                    }
+
+                    return measurements;
+                },
+                unit: "bytes",
+                description: "The heap size (including fragmentation), as observed during the latest garbage collection. The value will be unavailable until at least one garbage collection has occurred.");
+        }
+
+        // Not valid until .NET 7 where the bug in the API is fixed. See context in https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/496
+        if (Environment.Version.Major >= 7)
+        {
+            // TODO: change to ObservableUpDownCounter
+            MeterInstance.CreateObservableGauge(
+                $"{MetricPrefix}gc.heap.fragmentation.size",
+                () =>
+                {
+                    if (!IsGcInfoAvailable)
+                    {
+                        return Array.Empty<Measurement<long>>();
+                    }
+
+                    var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
+                    Measurement<long>[] measurements = new Measurement<long>[generationInfo.Length];
+                    int maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
+                    for (int i = 0; i < maxSupportedLength; ++i)
+                    {
+                        measurements[i] = new(generationInfo[i].FragmentationAfterBytes, new KeyValuePair<string, object>("generation", GenNames[i]));
+                    }
+
+                    return measurements;
+                },
+                unit: "bytes",
+                description: "The heap fragmentation, as observed during the latest garbage collection. The value will be unavailable until at least one garbage collection has occurred.");
+        }
+#endif
 
 #if NET6_0_OR_GREATER
-            if (options.IsJitEnabled)
-            {
-                this.meter.CreateObservableCounter($"{metricPrefix}il.bytes.jitted", () => System.Runtime.JitInfo.GetCompiledILBytes(), "By", description: "IL Bytes Jitted");
-                this.meter.CreateObservableCounter($"{metricPrefix}methods.jitted.count", () => System.Runtime.JitInfo.GetCompiledMethodCount(), description: "Number of Methods Jitted");
-                this.meter.CreateObservableGauge($"{metricPrefix}time.in.jit", () => System.Runtime.JitInfo.GetCompilationTime().TotalMilliseconds, "ms", description: "Time spent in JIT");
-            }
+        MeterInstance.CreateObservableCounter(
+            $"{MetricPrefix}jit.il_compiled.size",
+            () => JitInfo.GetCompiledILBytes(),
+            unit: "bytes",
+            description: "Count of bytes of intermediate language that have been compiled since the process start.");
+
+        MeterInstance.CreateObservableCounter(
+            $"{MetricPrefix}jit.methods_compiled.count",
+            () => JitInfo.GetCompiledMethodCount(),
+            description: "The number of times the JIT compiler compiled a method since the process start. The JIT compiler may be invoked multiple times for the same method to compile with different generic parameters, or because tiered compilation requested different optimization settings.");
+
+        MeterInstance.CreateObservableCounter(
+            $"{MetricPrefix}jit.compilation_time",
+            () => JitInfo.GetCompilationTime().Ticks * NanosecondsPerTick,
+            unit: "ns",
+            description: "The amount of time the JIT compiler has spent compiling methods since the process start.");
 #endif
 
 #if NETCOREAPP3_1_OR_GREATER
-            if (options.IsThreadingEnabled)
-            {
-                this.meter.CreateObservableGauge($"{metricPrefix}monitor.lock.contention.count", () => Monitor.LockContentionCount, description: "Monitor Lock Contention Count");
-                this.meter.CreateObservableCounter($"{metricPrefix}threadpool.thread.count", () => ThreadPool.ThreadCount, description: "ThreadPool Thread Count");
-                this.meter.CreateObservableGauge($"{metricPrefix}threadpool.completed.items.count", () => ThreadPool.CompletedWorkItemCount, description: "ThreadPool Completed Work Item Count");
-                this.meter.CreateObservableCounter($"{metricPrefix}threadpool.queue.length", () => ThreadPool.PendingWorkItemCount, description: "ThreadPool Queue Length");
-                this.meter.CreateObservableCounter($"{metricPrefix}active.timer.count", () => Timer.ActiveCount, description: "Number of Active Timers");
-            }
+        MeterInstance.CreateObservableCounter(
+            $"{MetricPrefix}monitor.lock_contention.count",
+            () => Monitor.LockContentionCount,
+            description: "The number of times there was contention when trying to acquire a monitor lock since the process start. Monitor locks are commonly acquired by using the lock keyword in C#, or by calling Monitor.Enter() and Monitor.TryEnter().");
+
+        // TODO: change to ObservableUpDownCounter
+        MeterInstance.CreateObservableGauge(
+            $"{MetricPrefix}thread_pool.threads.count",
+            () => (long)ThreadPool.ThreadCount,
+            description: "The number of thread pool threads that currently exist.");
+
+        MeterInstance.CreateObservableCounter(
+            $"{MetricPrefix}thread_pool.completed_items.count",
+            () => ThreadPool.CompletedWorkItemCount,
+            description: "The number of work items that have been processed by the thread pool since the process start.");
+
+        // TODO: change to ObservableUpDownCounter
+        MeterInstance.CreateObservableGauge(
+            $"{MetricPrefix}thread_pool.queue.length",
+            () => ThreadPool.PendingWorkItemCount,
+            description: "The number of work items that are currently queued to be processed by the thread pool.");
+
+        // TODO: change to ObservableUpDownCounter
+        MeterInstance.CreateObservableGauge(
+            $"{MetricPrefix}timer.count",
+            () => Timer.ActiveCount,
+            description: "The number of timer instances that are currently active. Timers can be created by many sources such as System.Threading.Timer, Task.Delay, or the timeout in a CancellationSource. An active timer is registered to tick at some point in the future and has not yet been canceled.");
 #endif
 
-            if (options.IsProcessEnabled)
-            {
-                this.meter.CreateObservableCounter("process.cpu.time", this.GetProcessorTimes, "s", "Processor time of this process");
+        // TODO: change to ObservableUpDownCounter
+        MeterInstance.CreateObservableGauge(
+            $"{MetricPrefix}assemblies.count",
+            () => (long)AppDomain.CurrentDomain.GetAssemblies().Length,
+            description: "The number of .NET assemblies that are currently loaded.");
 
-                // Not yet official: https://github.com/open-telemetry/opentelemetry-specification/pull/2392
-                this.meter.CreateObservableGauge("process.cpu.count", () => Environment.ProcessorCount, description: "The number of available logical CPUs");
-                this.meter.CreateObservableGauge("process.memory.usage", () => Process.GetCurrentProcess().WorkingSet64, "By", "The amount of physical memory in use");
-                this.meter.CreateObservableGauge("process.memory.virtual", () => Process.GetCurrentProcess().VirtualMemorySize64, "By", "The amount of committed virtual memory");
+        var exceptionCounter = MeterInstance.CreateCounter<long>(
+            $"{MetricPrefix}exceptions.count",
+            description: "Count of exceptions that have been thrown in managed code, since the observation started. The value will be unavailable until an exception has been thrown after OpenTelemetry.Instrumentation.Runtime initialization.");
+
+        AppDomain.CurrentDomain.FirstChanceException += (source, e) =>
+        {
+            exceptionCounter.Add(1);
+        };
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RuntimeMetrics"/> class.
+    /// </summary>
+    /// <param name="options">The options to define the metrics.</param>
+    public RuntimeMetrics(RuntimeInstrumentationOptions options)
+    {
+    }
+
+    private static bool IsGcInfoAvailable
+    {
+        get
+        {
+            if (isGcInfoAvailable)
+            {
+                return true;
             }
 
-            if (options.IsAssembliesEnabled)
+            if (GC.CollectionCount(0) > 0)
             {
-                this.meter.CreateObservableCounter($"{metricPrefix}assembly.count", () => AppDomain.CurrentDomain.GetAssemblies().Length, description: "Number of Assemblies Loaded");
+                isGcInfoAvailable = true;
             }
-        }
 
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            this.meter?.Dispose();
+            return isGcInfoAvailable;
         }
+    }
 
-#if NETCOREAPP3_1_OR_GREATER
-        private static double GetFragmentation()
-        {
-            var gcInfo = GC.GetGCMemoryInfo();
-            return gcInfo.HeapSizeBytes != 0 ? gcInfo.FragmentedBytes * 100d / gcInfo.HeapSizeBytes : 0;
-        }
-#endif
+    private static IEnumerable<Measurement<long>> GetGarbageCollectionCounts()
+    {
+        long collectionsFromHigherGeneration = 0;
 
-        private IEnumerable<Measurement<double>> GetProcessorTimes()
+        for (int gen = NumberOfGenerations - 1; gen >= 0; --gen)
         {
-            var process = Process.GetCurrentProcess();
-            return new[]
-            {
-                new Measurement<double>(process.UserProcessorTime.TotalSeconds, new KeyValuePair<string, object>("state", "user")),
-                new Measurement<double>(process.PrivilegedProcessorTime.TotalSeconds, new KeyValuePair<string, object>("state", "system")),
-            };
+            long collectionsFromThisGeneration = GC.CollectionCount(gen);
+
+            yield return new(collectionsFromThisGeneration - collectionsFromHigherGeneration, new KeyValuePair<string, object>("generation", GenNames[gen]));
+
+            collectionsFromHigherGeneration = collectionsFromThisGeneration;
         }
     }
 }

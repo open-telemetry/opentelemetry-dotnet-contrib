@@ -1,4 +1,4 @@
-﻿// <copyright file="TracerProviderBuilderExtensions.cs" company="OpenTelemetry Authors">
+// <copyright file="TracerProviderBuilderExtensions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,33 +19,32 @@ using OpenTelemetry.Instrumentation.ElasticsearchClient;
 using OpenTelemetry.Instrumentation.ElasticsearchClient.Implementation;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Trace
+namespace OpenTelemetry.Trace;
+
+/// <summary>
+/// Extension methods to simplify registering of dependency instrumentation.
+/// </summary>
+public static class TracerProviderBuilderExtensions
 {
     /// <summary>
-    /// Extension methods to simplify registering of dependency instrumentation.
+    /// Enables Elasticsearch client Instrumentation.
     /// </summary>
-    public static class TracerProviderBuilderExtensions
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="configure">Elasticsearch client configuration options.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddElasticsearchClientInstrumentation(
+        this TracerProviderBuilder builder,
+        Action<ElasticsearchClientInstrumentationOptions> configure = null)
     {
-        /// <summary>
-        /// Enables Elasticsearch client Instrumentation.
-        /// </summary>
-        /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-        /// <param name="configure">Elasticsearch client configuration options.</param>
-        /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-        public static TracerProviderBuilder AddElasticsearchClientInstrumentation(
-            this TracerProviderBuilder builder,
-            Action<ElasticsearchClientInstrumentationOptions> configure = null)
-        {
-            Guard.ThrowIfNull(builder);
+        Guard.ThrowIfNull(builder);
 
-            var elasticsearchClientOptions = new ElasticsearchClientInstrumentationOptions();
-            configure?.Invoke(elasticsearchClientOptions);
+        var elasticsearchClientOptions = new ElasticsearchClientInstrumentationOptions();
+        configure?.Invoke(elasticsearchClientOptions);
 
-            builder.AddInstrumentation(() => new ElasticsearchClientInstrumentation(elasticsearchClientOptions));
-            builder.AddSource(ElasticsearchRequestPipelineDiagnosticListener.ActivitySourceName);
-            builder.AddLegacySource("CallElasticsearch");
+        builder.AddInstrumentation(() => new ElasticsearchClientInstrumentation(elasticsearchClientOptions));
+        builder.AddSource(ElasticsearchRequestPipelineDiagnosticListener.ActivitySourceName);
+        builder.AddLegacySource("CallElasticsearch");
 
-            return builder;
-        }
+        return builder;
     }
 }

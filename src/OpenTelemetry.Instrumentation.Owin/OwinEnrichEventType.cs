@@ -1,4 +1,4 @@
-﻿// <copyright file="OwinEnrichEventType.cs" company="OpenTelemetry Authors">
+// <copyright file="OwinEnrichEventType.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,21 +16,20 @@
 
 using System.Diagnostics;
 
-namespace OpenTelemetry.Instrumentation.Owin
+namespace OpenTelemetry.Instrumentation.Owin;
+
+/// <summary>
+/// Describes the possible events fired when enriching an <see cref="Activity"/>.
+/// </summary>
+public enum OwinEnrichEventType
 {
     /// <summary>
-    /// Describes the possible events fired when enriching an <see cref="Activity"/>.
+    /// Begin request.
     /// </summary>
-    public enum OwinEnrichEventType
-    {
-        /// <summary>
-        /// Begin request.
-        /// </summary>
-        BeginRequest,
+    BeginRequest,
 
-        /// <summary>
-        /// End request.
-        /// </summary>
-        EndRequest,
-    }
+    /// <summary>
+    /// End request.
+    /// </summary>
+    EndRequest,
 }

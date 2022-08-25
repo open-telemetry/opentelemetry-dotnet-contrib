@@ -1,4 +1,4 @@
-﻿// <copyright file="TelemetryContractBehaviorAttribute.cs" company="OpenTelemetry Authors">
+// <copyright file="TelemetryContractBehaviorAttribute.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,47 +19,45 @@ using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
 
-namespace OpenTelemetry.Instrumentation.Wcf
-{
+namespace OpenTelemetry.Instrumentation.Wcf;
 #if NETFRAMEWORK
-    /// <summary>
-    /// An <see cref="IContractBehavior"/> <see cref="Attribute"/> to add the
-    /// <see cref="TelemetryDispatchMessageInspector"/> to service operations
-    /// and <see cref="TelemetryClientMessageInspector"/> to client operations
-    /// programmatically.
-    /// </summary>
+/// <summary>
+/// An <see cref="IContractBehavior"/> <see cref="Attribute"/> to add the
+/// <see cref="TelemetryDispatchMessageInspector"/> to service operations
+/// and <see cref="TelemetryClientMessageInspector"/> to client operations
+/// programmatically.
+/// </summary>
 #else
-    /// <summary>
-    /// An <see cref="IContractBehavior"/> <see cref="Attribute"/> to add the
-    /// <see cref="TelemetryClientMessageInspector"/> to client operations
-    /// programmatically.
-    /// </summary>
+/// <summary>
+/// An <see cref="IContractBehavior"/> <see cref="Attribute"/> to add the
+/// <see cref="TelemetryClientMessageInspector"/> to client operations
+/// programmatically.
+/// </summary>
 #endif
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    public sealed class TelemetryContractBehaviorAttribute : Attribute, IContractBehavior
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
+public sealed class TelemetryContractBehaviorAttribute : Attribute, IContractBehavior
+{
+    /// <inheritdoc />
+    public void AddBindingParameters(ContractDescription contractDescription, ServiceEndpoint endpoint, BindingParameterCollection bindingParameters)
     {
-        /// <inheritdoc />
-        public void AddBindingParameters(ContractDescription contractDescription, ServiceEndpoint endpoint, BindingParameterCollection bindingParameters)
-        {
-        }
+    }
 
-        /// <inheritdoc />
-        public void ApplyClientBehavior(ContractDescription contractDescription, ServiceEndpoint endpoint, ClientRuntime clientRuntime)
-        {
-            TelemetryEndpointBehavior.ApplyClientBehaviorToClientRuntime(clientRuntime);
-        }
+    /// <inheritdoc />
+    public void ApplyClientBehavior(ContractDescription contractDescription, ServiceEndpoint endpoint, ClientRuntime clientRuntime)
+    {
+        TelemetryEndpointBehavior.ApplyClientBehaviorToClientRuntime(clientRuntime);
+    }
 
-        /// <inheritdoc />
-        public void ApplyDispatchBehavior(ContractDescription contractDescription, ServiceEndpoint endpoint, DispatchRuntime dispatchRuntime)
-        {
+    /// <inheritdoc />
+    public void ApplyDispatchBehavior(ContractDescription contractDescription, ServiceEndpoint endpoint, DispatchRuntime dispatchRuntime)
+    {
 #if NETFRAMEWORK
-            TelemetryEndpointBehavior.ApplyDispatchBehaviorToEndpoint(dispatchRuntime.EndpointDispatcher);
+        TelemetryEndpointBehavior.ApplyDispatchBehaviorToEndpoint(dispatchRuntime.EndpointDispatcher);
 #endif
-        }
+    }
 
-        /// <inheritdoc />
-        public void Validate(ContractDescription contractDescription, ServiceEndpoint endpoint)
-        {
-        }
+    /// <inheritdoc />
+    public void Validate(ContractDescription contractDescription, ServiceEndpoint endpoint)
+    {
     }
 }

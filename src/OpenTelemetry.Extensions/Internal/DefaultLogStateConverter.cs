@@ -1,4 +1,4 @@
-﻿// <copyright file="DefaultLogStateConverter.cs" company="OpenTelemetry Authors">
+// <copyright file="DefaultLogStateConverter.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,52 +14,51 @@
 // limitations under the License.
 // </copyright>
 
-#if NET461_OR_GREATER || NETSTANDARD2_0 || NET5_0_OR_GREATER
+#if NET462_OR_GREATER || NETSTANDARD2_0 || NET5_0_OR_GREATER
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace OpenTelemetry.Logs
-{
-    internal static class DefaultLogStateConverter
-    {
-        public static void ConvertState(ActivityTagsCollection tags, IReadOnlyList<KeyValuePair<string, object>> state)
-        {
-            for (int i = 0; i < state.Count; i++)
-            {
-                KeyValuePair<string, object> stateItem = state[i];
+namespace OpenTelemetry.Logs;
 
-                object value = stateItem.Value;
-                if (value != null)
+internal static class DefaultLogStateConverter
+{
+    public static void ConvertState(ActivityTagsCollection tags, IReadOnlyList<KeyValuePair<string, object>> state)
+    {
+        for (int i = 0; i < state.Count; i++)
+        {
+            KeyValuePair<string, object> stateItem = state[i];
+
+            object value = stateItem.Value;
+            if (value != null)
+            {
+                if (string.IsNullOrEmpty(stateItem.Key))
                 {
-                    if (string.IsNullOrEmpty(stateItem.Key))
-                    {
-                        tags["state"] = value;
-                    }
-                    else
-                    {
-                        tags[$"state.{stateItem.Key}"] = value;
-                    }
+                    tags["state"] = value;
+                }
+                else
+                {
+                    tags[$"state.{stateItem.Key}"] = value;
                 }
             }
         }
+    }
 
-        public static void ConvertScope(ActivityTagsCollection tags, int depth, LogRecordScope scope)
+    public static void ConvertScope(ActivityTagsCollection tags, int depth, LogRecordScope scope)
+    {
+        string prefix = $"scope[{depth}]";
+
+        foreach (KeyValuePair<string, object> scopeItem in scope)
         {
-            string prefix = $"scope[{depth}]";
-
-            foreach (KeyValuePair<string, object> scopeItem in scope)
+            object value = scopeItem.Value;
+            if (value != null)
             {
-                object value = scopeItem.Value;
-                if (value != null)
+                if (string.IsNullOrEmpty(scopeItem.Key))
                 {
-                    if (string.IsNullOrEmpty(scopeItem.Key))
-                    {
-                        tags[prefix] = value;
-                    }
-                    else
-                    {
-                        tags[$"{prefix}.{scopeItem.Key}"] = value;
-                    }
+                    tags[prefix] = value;
+                }
+                else
+                {
+                    tags[$"{prefix}.{scopeItem.Key}"] = value;
                 }
             }
         }

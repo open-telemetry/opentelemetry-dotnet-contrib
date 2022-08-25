@@ -1,4 +1,4 @@
-﻿// <copyright file="HangfireInstrumentationJobFilterAttribute.cs" company="OpenTelemetry Authors">
+// <copyright file="HangfireInstrumentationJobFilterAttribute.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,56 +14,101 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.Hangfire.Implementation
+namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
+
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using global::Hangfire.Client;
+using global::Hangfire.Common;
+using global::Hangfire.Server;
+using OpenTelemetry.Context.Propagation;
+
+internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, IServerFilter, IClientFilter
 {
-    using System.Diagnostics;
-    using global::Hangfire.Common;
-    using global::Hangfire.Server;
-
-    internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, IServerFilter
+    public void OnPerforming(PerformingContext performingContext)
     {
-        public void OnPerforming(PerformingContext performingContext)
+        // Short-circuit if nobody is listening
+        if (!HangfireInstrumentation.ActivitySource.HasListeners())
         {
-            // Short-circuit if nobody is listening
-            if (!HangfireInstrumentation.ActivitySource.HasListeners())
-            {
-                return;
-            }
-
-            var activity = HangfireInstrumentation.ActivitySource
-                .StartActivity(HangfireInstrumentationConstants.ActivityName, ActivityKind.Internal, parentContext: default);
-
-            if (activity != null)
-            {
-                activity.DisplayName = $"JOB {performingContext.BackgroundJob.Job.Type.Name}.{performingContext.BackgroundJob.Job.Method.Name}";
-
-                if (activity.IsAllDataRequested)
-                {
-                    activity.SetTag(HangfireInstrumentationConstants.JobIdTag, performingContext.BackgroundJob.Id);
-                    activity.SetTag(HangfireInstrumentationConstants.JobCreatedAtTag, performingContext.BackgroundJob.CreatedAt.ToString("O"));
-                }
-
-                performingContext.Items.Add(HangfireInstrumentationConstants.ActivityKey, activity);
-            }
+            return;
         }
 
-        public void OnPerformed(PerformedContext performedContext)
+        var activityContextData = performingContext.GetJobParameter<Dictionary<string, string>>(HangfireInstrumentationConstants.ActivityContextKey);
+        ActivityContext parentContext = default;
+        if (activityContextData is not null)
         {
-            // Short-circuit if nobody is listening
-            if (!HangfireInstrumentation.ActivitySource.HasListeners() || !performedContext.Items.ContainsKey(HangfireInstrumentationConstants.ActivityKey))
-            {
-                return;
-            }
-
-            if (performedContext.Items[HangfireInstrumentationConstants.ActivityKey] is Activity activity)
-            {
-                if (performedContext.Exception != null)
-                {
-                    activity.SetStatus(ActivityStatusCode.Error, performedContext.Exception.Message);
-                }
-
-                activity.Dispose();
-            }
+            var propagationContext = Propagators.DefaultTextMapPropagator.Extract(default, activityContextData, ExtractActivityProperties);
+            parentContext = propagationContext.ActivityContext;
+            Baggage.Current = propagationContext.Baggage;
         }
+
+        var activity = HangfireInstrumentation.ActivitySource
+            .StartActivity(HangfireInstrumentationConstants.ActivityName, ActivityKind.Internal, parentContext);
+
+        if (activity != null)
+        {
+            activity.DisplayName = $"JOB {performingContext.BackgroundJob.Job.Type.Name}.{performingContext.BackgroundJob.Job.Method.Name}";
+
+            if (activity.IsAllDataRequested)
+            {
+                activity.SetTag(HangfireInstrumentationConstants.JobIdTag, performingContext.BackgroundJob.Id);
+                activity.SetTag(HangfireInstrumentationConstants.JobCreatedAtTag, performingContext.BackgroundJob.CreatedAt.ToString("O"));
+            }
+
+            performingContext.Items.Add(HangfireInstrumentationConstants.ActivityKey, activity);
+        }
+    }
+
+    public void OnPerformed(PerformedContext performedContext)
+    {
+        // Short-circuit if nobody is listening
+        if (!HangfireInstrumentation.ActivitySource.HasListeners() || !performedContext.Items.ContainsKey(HangfireInstrumentationConstants.ActivityKey))
+        {
+            return;
+        }
+
+        if (performedContext.Items[HangfireInstrumentationConstants.ActivityKey] is Activity activity)
+        {
+            if (performedContext.Exception != null)
+            {
+                activity.SetStatus(ActivityStatusCode.Error, performedContext.Exception.Message);
+            }
+
+            activity.Dispose();
+        }
+    }
+
+    public void OnCreating(CreatingContext creatingContext)
+    {
+        // Short-circuit if nobody is listening
+        if (!HangfireInstrumentation.ActivitySource.HasListeners())
+        {
+            return;
+        }
+
+        ActivityContext contextToInject = default;
+        if (Activity.Current != null)
+        {
+            contextToInject = Activity.Current.Context;
+        }
+
+        var activityContextData = new Dictionary<string, string>();
+        Propagators.DefaultTextMapPropagator.Inject(new PropagationContext(contextToInject, Baggage.Current), activityContextData, InjectActivityProperties);
+        creatingContext.SetJobParameter(HangfireInstrumentationConstants.ActivityContextKey, activityContextData);
+    }
+
+    public void OnCreated(CreatedContext filterContext)
+    {
+    }
+
+    private static void InjectActivityProperties(IDictionary<string, string> jobParams, string key, string value)
+    {
+        jobParams[key] = value;
+    }
+
+    private static IEnumerable<string> ExtractActivityProperties(Dictionary<string, string> telemetryData, string key)
+    {
+        return telemetryData.ContainsKey(key) ? new[] { telemetryData[key] } : Enumerable.Empty<string>();
     }
 }

@@ -1,4 +1,4 @@
-﻿// <copyright file="GenevaMetricExporterOptions.cs" company="OpenTelemetry Authors">
+// <copyright file="GenevaMetricExporterOptions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,7 @@ namespace OpenTelemetry.Exporter.Geneva;
 public class GenevaMetricExporterOptions
 {
     private IReadOnlyDictionary<string, object> _prepopulatedMetricDimensions;
+    private int _metricExporterIntervalMilliseconds = 20000;
 
     /// <summary>
     /// Gets or sets the ConnectionString which contains semicolon separated list of key-value pairs.
@@ -34,7 +35,20 @@ public class GenevaMetricExporterOptions
     /// <summary>
     /// Gets or sets the metric export interval in milliseconds. The default value is 20000.
     /// </summary>
-    public int MetricExportIntervalMilliseconds { get; set; } = 20000;
+    public int MetricExportIntervalMilliseconds
+    {
+        get
+        {
+            return this._metricExporterIntervalMilliseconds;
+        }
+
+        set
+        {
+            Guard.ThrowIfOutOfRange(value, min: 1000);
+
+            this._metricExporterIntervalMilliseconds = value;
+        }
+    }
 
     /// <summary>
     /// Gets or sets the pre-populated dimensions for all the metrics exported by the exporter.

@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+* Updated OTel SDK package version to 1.3.0
+  ([#508](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/508))
+
+## 1.0.0-beta.3
+
+Released 2022-Jun-29
+
+* Fix incomplete db.statement when the length>300
+  [(#424)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/424)
+
 ## 1.0.0-beta.2
 
 * Going forward the NuGet package will be

@@ -1,4 +1,4 @@
-﻿// <copyright file="TracerProviderBuilderExtensions.cs" company="OpenTelemetry Authors">
+// <copyright file="TracerProviderBuilderExtensions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+using System;
+using OpenTelemetry.Contrib.Instrumentation.AWSLambda;
 using OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Resources;
@@ -29,10 +31,18 @@ namespace OpenTelemetry.Trace
         /// Add AWS Lambda configurations.
         /// </summary>
         /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+        /// <param name="configure">AWS lambda instrumentation options.</param>
         /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-        public static TracerProviderBuilder AddAWSLambdaConfigurations(this TracerProviderBuilder builder)
+        public static TracerProviderBuilder AddAWSLambdaConfigurations(
+            this TracerProviderBuilder builder,
+            Action<AWSLambdaInstrumentationOptions> configure = null)
         {
             Guard.ThrowIfNull(builder);
+
+            var options = new AWSLambdaInstrumentationOptions();
+            configure?.Invoke(options);
+
+            AWSLambdaWrapper.DisableAwsXRayContextExtraction = options.DisableAwsXRayContextExtraction;
 
             builder.AddSource(AWSLambdaUtils.ActivitySourceName);
             builder.SetResourceBuilder(ResourceBuilder

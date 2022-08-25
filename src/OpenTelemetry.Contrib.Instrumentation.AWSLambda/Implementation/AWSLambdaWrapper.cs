@@ -1,4 +1,4 @@
-﻿// <copyright file="AWSLambdaWrapper.cs" company="OpenTelemetry Authors">
+// <copyright file="AWSLambdaWrapper.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,60 +27,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
     /// </summary>
     public class AWSLambdaWrapper
     {
-        private static readonly ActivitySource AWSLambdaActivitySource = new ActivitySource(AWSLambdaUtils.ActivitySourceName);
+        private static readonly ActivitySource AWSLambdaActivitySource = new(AWSLambdaUtils.ActivitySourceName);
 
         /// <summary>
-        /// Tracing wrapper for Lambda handler without Lambda context.
+        /// Gets or sets a value indicating whether AWS X-Ray propagation should be ignored. Default value is false.
         /// </summary>
-        /// <typeparam name="TInput">Input.</typeparam>
-        /// <typeparam name="TResult">Output result.</typeparam>
-        /// <param name="tracerProvider">TracerProvider passed in.</param>
-        /// <param name="lambdaHandler">Lambda handler function passed in.</param>
-        /// <param name="input">Instance of input.</param>
-        /// <returns>Instance of output result.</returns>
-        public static TResult Trace<TInput, TResult>(TracerProvider tracerProvider, Func<TInput, TResult> lambdaHandler, TInput input)
-        {
-            return Intercept(tracerProvider, () => lambdaHandler(input));
-        }
-
-        /// <summary>
-        /// Tracing wrapper for Lambda handler without Lambda context.
-        /// </summary>
-        /// <typeparam name="TInput">Input.</typeparam>
-        /// <param name="tracerProvider">TracerProvider passed in.</param>
-        /// <param name="lambdaHandler">Lambda handler function passed in.</param>
-        /// <param name="input">Instance of input.</param>
-        public static void Trace<TInput>(TracerProvider tracerProvider, Action<TInput> lambdaHandler, TInput input)
-        {
-            Intercept(tracerProvider, () => lambdaHandler(input));
-        }
-
-        /// <summary>
-        /// Tracing wrapper for async Lambda handler without Lambda context.
-        /// </summary>
-        /// <typeparam name="TInput">Input.</typeparam>
-        /// <param name="tracerProvider">TracerProvider passed in.</param>
-        /// <param name="lambdaHandler">Lambda handler function passed in.</param>
-        /// <param name="input">Instance of input.</param>
-        /// <returns>Task.</returns>
-        public static async Task Trace<TInput>(TracerProvider tracerProvider, Func<TInput, Task> lambdaHandler, TInput input)
-        {
-            await Intercept(tracerProvider, () => lambdaHandler(input));
-        }
-
-        /// <summary>
-        /// Tracing wrapper for async Lambda handler without Lambda context.
-        /// </summary>
-        /// <typeparam name="TInput">Input.</typeparam>
-        /// <typeparam name="TResult">Output result.</typeparam>
-        /// <param name="tracerProvider">TracerProvider passed in.</param>
-        /// <param name="lambdaHandler">Lambda handler function passed in.</param>
-        /// <param name="input">Instance of input.</param>
-        /// <returns>Task of result.</returns>
-        public static async Task<TResult> Trace<TInput, TResult>(TracerProvider tracerProvider, Func<TInput, Task<TResult>> lambdaHandler, TInput input)
-        {
-            return await Intercept(tracerProvider, () => lambdaHandler(input));
-        }
+        internal static bool DisableAwsXRayContextExtraction { get; set; }
 
         /// <summary>
         /// Tracing wrapper for Lambda handler.
@@ -91,10 +43,24 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// <param name="lambdaHandler">Lambda handler function passed in.</param>
         /// <param name="input">Instance of input.</param>
         /// <param name="context">Instance of lambda context.</param>
+        /// <param name="parentContext">
+        /// The optional parent context <see cref="ActivityContext"/> is used for Activity object creation.
+        /// If no parent context provided, incoming request is used to extract one.
+        /// If parent is not extracted from incoming request then X-Ray propagation is used to extract one
+        /// unless X-Ray propagation is disabled in the configuration for this wrapper.
+        /// </param>
         /// <returns>Instance of output result.</returns>
-        public static TResult Trace<TInput, TResult>(TracerProvider tracerProvider, Func<TInput, ILambdaContext, TResult> lambdaHandler, TInput input, ILambdaContext context)
+        public static TResult Trace<TInput, TResult>(
+            TracerProvider tracerProvider,
+            Func<TInput, ILambdaContext, TResult> lambdaHandler,
+            TInput input,
+            ILambdaContext context,
+            ActivityContext parentContext = default)
         {
-            return Intercept(tracerProvider, () => lambdaHandler(input, context), context);
+            TResult result = default;
+            Action action = () => result = lambdaHandler(input, context);
+            TraceInternal(tracerProvider, action, input, context, parentContext);
+            return result;
         }
 
         /// <summary>
@@ -105,9 +71,21 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// <param name="lambdaHandler">Lambda handler function passed in.</param>
         /// <param name="input">Instance of input.</param>
         /// <param name="context">Instance of lambda context.</param>
-        public static void Trace<TInput>(TracerProvider tracerProvider, Action<TInput, ILambdaContext> lambdaHandler, TInput input, ILambdaContext context)
+        /// <param name="parentContext">
+        /// The optional parent context <see cref="ActivityContext"/> is used for Activity object creation.
+        /// If no parent context provided, incoming request is used to extract one.
+        /// If parent is not extracted from incoming request then X-Ray propagation is used to extract one
+        /// unless X-Ray propagation is disabled in the configuration for this wrapper.
+        /// </param>
+        public static void Trace<TInput>(
+            TracerProvider tracerProvider,
+            Action<TInput, ILambdaContext> lambdaHandler,
+            TInput input,
+            ILambdaContext context,
+            ActivityContext parentContext = default)
         {
-            Intercept(tracerProvider, () => lambdaHandler(input, context), context);
+            Action action = () => lambdaHandler(input, context);
+            TraceInternal(tracerProvider, action, input, context, parentContext);
         }
 
         /// <summary>
@@ -117,11 +95,23 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// <param name="tracerProvider">TracerProvider passed in.</param>
         /// <param name="lambdaHandler">Lambda handler function passed in.</param>
         /// <param name="input">Instance of input.</param>
-        /// <param name="context">Instance of lambda context.</param>
+        /// <param name="context">Lambda context (optional, but strongly recommended).</param>
+        /// <param name="parentContext">
+        /// The optional parent context <see cref="ActivityContext"/> is used for Activity object creation.
+        /// If no parent context provided, incoming request is used to extract one.
+        /// If parent is not extracted from incoming request then X-Ray propagation is used to extract one
+        /// unless X-Ray propagation is disabled in the configuration for this wrapper.
+        /// </param>
         /// <returns>Task.</returns>
-        public static async Task Trace<TInput>(TracerProvider tracerProvider, Func<TInput, ILambdaContext, Task> lambdaHandler, TInput input, ILambdaContext context)
+        public static Task Trace<TInput>(
+            TracerProvider tracerProvider,
+            Func<TInput, ILambdaContext, Task> lambdaHandler,
+            TInput input,
+            ILambdaContext context,
+            ActivityContext parentContext = default)
         {
-            await Intercept(tracerProvider, () => lambdaHandler(input, context), context);
+            Func<Task> action = async () => await lambdaHandler(input, context);
+            return TraceInternalAsync(tracerProvider, action, input, context, parentContext);
         }
 
         /// <summary>
@@ -133,121 +123,85 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// <param name="lambdaHandler">Lambda handler function passed in.</param>
         /// <param name="input">Instance of input.</param>
         /// <param name="context">Instance of lambda context.</param>
+        /// <param name="parentContext">
+        /// The optional parent context <see cref="ActivityContext"/> is used for Activity object creation.
+        /// If no parent context provided, incoming request is used to extract one.
+        /// If parent is not extracted from incoming request then X-Ray propagation is used to extract one
+        /// unless X-Ray propagation is disabled in the configuration for this wrapper.
+        /// </param>
         /// <returns>Task of result.</returns>
-        public static async Task<TResult> Trace<TInput, TResult>(TracerProvider tracerProvider, Func<TInput, ILambdaContext, Task<TResult>> lambdaHandler, TInput input, ILambdaContext context)
+        public static async Task<TResult> Trace<TInput, TResult>(
+            TracerProvider tracerProvider,
+            Func<TInput, ILambdaContext, Task<TResult>> lambdaHandler,
+            TInput input,
+            ILambdaContext context,
+            ActivityContext parentContext = default)
         {
-            return await Intercept(tracerProvider, () => lambdaHandler(input, context), context);
+            TResult result = default;
+            Func<Task> action = async () => result = await lambdaHandler(input, context);
+            await TraceInternalAsync(tracerProvider, action, input, context, parentContext);
+            return result;
         }
 
-        private static TResult Intercept<TResult>(TracerProvider tracerProvider, Func<TResult> method, ILambdaContext context = null)
+        /// <summary>
+        /// Tracing wrapper for Lambda handler.
+        /// </summary>
+        /// <param name="tracerProvider">TracerProvider passed in.</param>
+        /// <param name="lambdaHandler">Lambda handler function passed in.</param>
+        /// <param name="context">Instance of lambda context.</param>
+        /// <param name="parentContext">
+        /// The optional parent context <see cref="ActivityContext"/> is used for Activity object creation.
+        /// If no parent context provided, incoming request is used to extract one.
+        /// If parent is not extracted from incoming request then X-Ray propagation is used to extract one
+        /// unless X-Ray propagation is disabled in the configuration for this wrapper.
+        /// </param>
+        public static void Trace(
+            TracerProvider tracerProvider,
+            Action<ILambdaContext> lambdaHandler,
+            ILambdaContext context,
+            ActivityContext parentContext = default)
         {
-            var lambdaActivity = OnFunctionStart(context);
-            try
-            {
-                return method();
-            }
-            catch (Exception ex)
-            {
-                OnException(lambdaActivity, ex);
-
-                throw;
-            }
-            finally
-            {
-                OnFunctionStop(lambdaActivity, tracerProvider);
-            }
+            Action action = () => lambdaHandler(context);
+            TraceInternal<object>(tracerProvider, action, null, context, parentContext);
         }
 
-        private static void Intercept(TracerProvider tracerProvider, Action method, ILambdaContext context = null)
+        /// <summary>
+        /// Tracing wrapper for async Lambda handler.
+        /// </summary>
+        /// <param name="tracerProvider">TracerProvider passed in.</param>
+        /// <param name="lambdaHandler">Lambda handler function passed in.</param>
+        /// <param name="context">Instance of lambda context.</param>
+        /// <param name="parentContext">
+        /// The optional parent context <see cref="ActivityContext"/> is used for Activity object creation.
+        /// If no parent context provided, incoming request is used to extract one.
+        /// If parent is not extracted from incoming request then X-Ray propagation is used to extract one
+        /// unless X-Ray propagation is disabled in the configuration.
+        /// </param>
+        /// <returns>Task.</returns>
+        public static Task Trace(
+            TracerProvider tracerProvider,
+            Func<ILambdaContext, Task> lambdaHandler,
+            ILambdaContext context,
+            ActivityContext parentContext = default)
         {
-            var lambdaActivity = OnFunctionStart(context);
-            try
-            {
-                method();
-            }
-            catch (Exception ex)
-            {
-                OnException(lambdaActivity, ex);
-
-                throw;
-            }
-            finally
-            {
-                OnFunctionStop(lambdaActivity, tracerProvider);
-            }
+            Func<Task> action = async () => await lambdaHandler(context);
+            return TraceInternalAsync<object>(tracerProvider, action, null, context, parentContext);
         }
 
-        private static async Task<TResult> Intercept<TResult>(TracerProvider tracerProvider, Func<Task<TResult>> method, ILambdaContext context = null)
+        internal static Activity OnFunctionStart<TInput>(TInput input, ILambdaContext context, ActivityContext parentContext = default)
         {
-            var lambdaActivity = OnFunctionStart(context);
-            try
+            if (parentContext == default)
             {
-                return await method();
-            }
-            catch (Exception ex)
-            {
-                OnException(lambdaActivity, ex);
-
-                throw;
-            }
-            finally
-            {
-                OnFunctionStop(lambdaActivity, tracerProvider);
-            }
-        }
-
-        private static async Task Intercept(TracerProvider tracerProvider, Func<Task> method, ILambdaContext context = null)
-        {
-            var lambdaActivity = OnFunctionStart(context);
-            try
-            {
-                await method();
-            }
-            catch (Exception ex)
-            {
-                OnException(lambdaActivity, ex);
-
-                throw;
-            }
-            finally
-            {
-                OnFunctionStop(lambdaActivity, tracerProvider);
-            }
-        }
-
-        private static Activity OnFunctionStart(ILambdaContext context = null)
-        {
-            Activity activity = null;
-
-            var parentContext = AWSLambdaUtils.GetParentContext();
-            if (parentContext != default)
-            {
-                var activityName = AWSLambdaUtils.GetFunctionName(context);
-                activity = AWSLambdaActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext);
-
-                if (activity != null && context != null)
+                parentContext = AWSLambdaUtils.ExtractParentContext(input);
+                if (parentContext == default && !DisableAwsXRayContextExtraction)
                 {
-                    if (activity.IsAllDataRequested)
-                    {
-                        if (context.AwsRequestId != null)
-                        {
-                            activity.SetTag(AWSLambdaSemanticConventions.AttributeFaasExecution, context.AwsRequestId);
-                        }
-
-                        var functionArn = context.InvokedFunctionArn;
-                        if (functionArn != null)
-                        {
-                            activity.SetTag(AWSLambdaSemanticConventions.AttributeFaasID, functionArn);
-
-                            var accountId = AWSLambdaUtils.GetAccountId(functionArn);
-                            if (accountId != null)
-                            {
-                                activity.SetTag(AWSLambdaSemanticConventions.AttributeCloudAccountID, accountId);
-                            }
-                        }
-                    }
+                    parentContext = AWSLambdaUtils.GetXRayParentContext();
                 }
             }
+
+            var tags = AWSLambdaUtils.GetFunctionTags(input, context);
+            var activityName = AWSLambdaUtils.GetFunctionName(context) ?? "AWS Lambda Invoke";
+            var activity = AWSLambdaActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext, tags);
 
             return activity;
         }
@@ -260,7 +214,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             }
 
             // force flush before function quit in case of Lambda freeze.
-            tracerProvider.ForceFlush();
+            tracerProvider?.ForceFlush();
         }
 
         private static void OnException(Activity activity, Exception exception)
@@ -272,6 +226,54 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
                     activity.RecordException(exception);
                     activity.SetStatus(Status.Error.WithDescription(exception.Message));
                 }
+            }
+        }
+
+        private static void TraceInternal<TInput>(
+            TracerProvider tracerProvider,
+            Action handler,
+            TInput input,
+            ILambdaContext context,
+            ActivityContext parentContext = default)
+        {
+            var lambdaActivity = OnFunctionStart(input, context, parentContext);
+            try
+            {
+                handler();
+            }
+            catch (Exception ex)
+            {
+                OnException(lambdaActivity, ex);
+
+                throw;
+            }
+            finally
+            {
+                OnFunctionStop(lambdaActivity, tracerProvider);
+            }
+        }
+
+        private static async Task TraceInternalAsync<TInput>(
+            TracerProvider tracerProvider,
+            Func<Task> handlerAsync,
+            TInput input,
+            ILambdaContext context,
+            ActivityContext parentContext = default)
+        {
+            var lambdaActivity = OnFunctionStart(input, context, parentContext);
+            try
+            {
+                await handlerAsync();
+            }
+            catch (Exception ex)
+            {
+                OnException(lambdaActivity, ex);
+
+                throw;
+            }
+            finally
+            {
+                OnFunctionStop(lambdaActivity, tracerProvider);
             }
         }
     }

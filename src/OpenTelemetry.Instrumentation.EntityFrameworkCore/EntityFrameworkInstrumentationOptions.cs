@@ -1,4 +1,4 @@
-﻿// <copyright file="EntityFrameworkInstrumentationOptions.cs" company="OpenTelemetry Authors">
+// <copyright file="EntityFrameworkInstrumentationOptions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,21 +17,20 @@
 using System.Data;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Instrumentation.EntityFrameworkCore
+namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
+
+/// <summary>
+/// Options for <see cref="EntityFrameworkInstrumentation"/>.
+/// </summary>
+public class EntityFrameworkInstrumentationOptions
 {
     /// <summary>
-    /// Options for <see cref="EntityFrameworkInstrumentation"/>.
+    /// Gets or sets a value indicating whether or not the <see cref="EntityFrameworkInstrumentation"/> should add the names of <see cref="CommandType.StoredProcedure"/> commands as the <see cref="SemanticConventions.AttributeDbStatement"/> tag. Default value: True.
     /// </summary>
-    public class EntityFrameworkInstrumentationOptions
-    {
-        /// <summary>
-        /// Gets or sets a value indicating whether or not the <see cref="EntityFrameworkInstrumentation"/> should add the names of <see cref="CommandType.StoredProcedure"/> commands as the <see cref="SemanticConventions.AttributeDbStatement"/> tag. Default value: True.
-        /// </summary>
-        public bool SetDbStatementForStoredProcedure { get; set; } = true;
+    public bool SetDbStatementForStoredProcedure { get; set; } = true;
 
-        /// <summary>
-        /// Gets or sets a value indicating whether or not the <see cref="EntityFrameworkInstrumentation"/> should add the text of <see cref="CommandType.Text"/> commands as the <see cref="SemanticConventions.AttributeDbStatement"/> tag. Default value: False.
-        /// </summary>
-        public bool SetDbStatementForText { get; set; } = false;
-    }
+    /// <summary>
+    /// Gets or sets a value indicating whether or not the <see cref="EntityFrameworkInstrumentation"/> should add the text of <see cref="CommandType.Text"/> commands as the <see cref="SemanticConventions.AttributeDbStatement"/> tag. Default value: False.
+    /// </summary>
+    public bool SetDbStatementForText { get; set; } = false;
 }

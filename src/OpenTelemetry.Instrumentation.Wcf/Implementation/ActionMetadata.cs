@@ -1,4 +1,4 @@
-﻿// <copyright file="ActionMetadata.cs" company="OpenTelemetry Authors">
+// <copyright file="ActionMetadata.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,12 +14,11 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.Wcf
-{
-    internal sealed class ActionMetadata
-    {
-        public string ContractName { get; set; }
+namespace OpenTelemetry.Instrumentation.Wcf;
 
-        public string OperationName { get; set; }
-    }
+internal sealed class ActionMetadata
+{
+    public string ContractName { get; set; }
+
+    public string OperationName { get; set; }
 }

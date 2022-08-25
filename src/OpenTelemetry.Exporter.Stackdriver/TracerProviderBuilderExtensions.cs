@@ -1,4 +1,4 @@
-﻿// <copyright file="TracerProviderBuilderExtensions.cs" company="OpenTelemetry Authors">
+// <copyright file="TracerProviderBuilderExtensions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,31 +14,30 @@
 // limitations under the License.
 // </copyright>
 
-using OpenTelemetry.Contrib.Exporter.Stackdriver;
+using OpenTelemetry.Exporter.Stackdriver;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Trace
+namespace OpenTelemetry.Trace;
+
+/// <summary>
+/// Extension methods to simplify registering a Stackdriver exporter.
+/// </summary>
+public static class TracerProviderBuilderExtensions
 {
     /// <summary>
-    /// Extension methods to simplify registering a Stackdriver exporter.
+    /// Registers a Stackdriver exporter that will receive <see cref="System.Diagnostics.Activity"/> instances.
     /// </summary>
-    public static class TracerProviderBuilderExtensions
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> builder to use.</param>
+    /// <param name="projectId">Project ID to send telemetry to.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder UseStackdriverExporter(
+        this TracerProviderBuilder builder,
+        string projectId)
     {
-        /// <summary>
-        /// Registers a Stackdriver exporter that will receive <see cref="System.Diagnostics.Activity"/> instances.
-        /// </summary>
-        /// <param name="builder"><see cref="TracerProviderBuilder"/> builder to use.</param>
-        /// <param name="projectId">Project ID to send telemetry to.</param>
-        /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-        public static TracerProviderBuilder UseStackdriverExporter(
-            this TracerProviderBuilder builder,
-            string projectId)
-        {
-            Guard.ThrowIfNull(builder);
+        Guard.ThrowIfNull(builder);
 
-            var activityExporter = new StackdriverTraceExporter(projectId);
+        var activityExporter = new StackdriverTraceExporter(projectId);
 
-            return builder.AddProcessor(new BatchActivityExportProcessor(activityExporter));
-        }
+        return builder.AddProcessor(new BatchActivityExportProcessor(activityExporter));
     }
 }

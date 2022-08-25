@@ -1,4 +1,4 @@
-﻿// <copyright file="InMemoryConnectionWithDownstreamActivity.cs" company="OpenTelemetry Authors">
+// <copyright file="InMemoryConnectionWithDownstreamActivity.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,19 +19,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Elasticsearch.Net;
 
-namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Tests
+namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Tests;
+
+public class InMemoryConnectionWithDownstreamActivity : InMemoryConnection
 {
-    public class InMemoryConnectionWithDownstreamActivity : InMemoryConnection
+    internal static readonly ActivitySource ActivitySource = new ActivitySource("Downstream");
+    internal static readonly ActivitySource NestedActivitySource = new ActivitySource("NestedDownstream");
+
+    public override Task<TResponse> RequestAsync<TResponse>(RequestData requestData, CancellationToken cancellationToken)
     {
-        internal static readonly ActivitySource ActivitySource = new ActivitySource("Downstream");
-        internal static readonly ActivitySource NestedActivitySource = new ActivitySource("NestedDownstream");
+        using var a1 = ActivitySource.StartActivity("downstream");
+        using var a2 = NestedActivitySource.StartActivity("nested-downstream");
 
-        public override Task<TResponse> RequestAsync<TResponse>(RequestData requestData, CancellationToken cancellationToken)
-        {
-            using var a1 = ActivitySource.StartActivity("downstream");
-            using var a2 = NestedActivitySource.StartActivity("nested-downstream");
-
-            return base.RequestAsync<TResponse>(requestData, cancellationToken);
-        }
+        return base.RequestAsync<TResponse>(requestData, cancellationToken);
     }
 }

@@ -1,4 +1,4 @@
-﻿// <copyright file="GenevaExporterHelperExtensions.cs" company="OpenTelemetry Authors">
+// <copyright file="GenevaExporterHelperExtensions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,6 @@
 // </copyright>
 
 using System;
-using System.Diagnostics;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
@@ -48,7 +47,7 @@ public static class GenevaExporterHelperExtensions
         }
         else
         {
-            return builder.AddProcessor(new ReentrantExportProcessor<Activity>(exporter));
+            return builder.AddProcessor(new ReentrantActivityExportProcessor(exporter));
         }
     }
 }

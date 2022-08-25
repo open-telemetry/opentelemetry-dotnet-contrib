@@ -1,4 +1,4 @@
-﻿// <copyright file="Customer.cs" company="OpenTelemetry Authors">
+// <copyright file="Customer.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,12 +14,11 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Tests
-{
-    public class Customer
-    {
-        public string Id { get; set; }
+namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Tests;
 
-        public string Name { get; set; }
-    }
+public class Customer
+{
+    public string Id { get; set; }
+
+    public string Name { get; set; }
 }

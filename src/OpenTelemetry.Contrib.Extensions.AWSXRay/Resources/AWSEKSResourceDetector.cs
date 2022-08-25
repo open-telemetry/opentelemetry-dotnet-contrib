@@ -1,4 +1,4 @@
-﻿// <copyright file="AWSEKSResourceDetector.cs" company="OpenTelemetry Authors">
+// <copyright file="AWSEKSResourceDetector.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,8 +17,8 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Http;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Models;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
@@ -41,13 +41,15 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
         public IEnumerable<KeyValuePair<string, object>> Detect()
         {
             var credentials = this.GetEKSCredentials(AWSEKSCredentialPath);
-            if (credentials == null || !this.IsEKSProcess(credentials))
+            var httpClientHandler = Handler.Create(AWSEKSCertificatePath);
+
+            if (credentials == null || !this.IsEKSProcess(credentials, httpClientHandler))
             {
                 return null;
             }
 
             return this.ExtractResourceAttributes(
-                this.GetEKSClusterName(credentials),
+                this.GetEKSClusterName(credentials, httpClientHandler),
                 this.GetEKSContainerId(AWSEKSMetadataFilePath));
         }
 
@@ -125,11 +127,11 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
             return ResourceDetectorUtils.DeserializeFromString<AWSEKSClusterInformationModel>(response);
         }
 
-        private string GetEKSClusterName(string credentials)
+        private string GetEKSClusterName(string credentials, HttpClientHandler httpClientHandler)
         {
             try
             {
-                var clusterInfo = this.GetEKSClusterInfo(credentials);
+                var clusterInfo = this.GetEKSClusterInfo(credentials, httpClientHandler);
                 return this.DeserializeResponse(clusterInfo)?.Data?.ClusterName;
             }
             catch (Exception ex)
@@ -140,12 +142,11 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
             return null;
         }
 
-        private bool IsEKSProcess(string credentials)
+        private bool IsEKSProcess(string credentials, HttpClientHandler httpClientHandler)
         {
             string awsAuth = null;
             try
             {
-                var httpClientHandler = this.CreateHttpClientHandler();
                 awsAuth = ResourceDetectorUtils.SendOutRequest(AWSAuthUrl, "GET", new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler).Result;
             }
             catch (Exception ex)
@@ -156,17 +157,9 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
             return !string.IsNullOrEmpty(awsAuth);
         }
 
-        private string GetEKSClusterInfo(string credentials)
+        private string GetEKSClusterInfo(string credentials, HttpClientHandler httpClientHandler)
         {
-            var httpClientHandler = this.CreateHttpClientHandler();
             return ResourceDetectorUtils.SendOutRequest(AWSClusterInfoUrl, "GET", new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler).Result;
-        }
-
-        private HttpClientHandler CreateHttpClientHandler()
-        {
-            var httpClientHandler = new HttpClientHandler();
-            httpClientHandler.ClientCertificates.Add(new X509Certificate2(AWSEKSCertificatePath));
-            return httpClientHandler;
         }
     }
 }

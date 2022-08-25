@@ -1,4 +1,4 @@
-﻿// <copyright file="AWSLambdaUtils.cs" company="OpenTelemetry Authors">
+// <copyright file="AWSLambdaUtils.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
+using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
 
 namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
@@ -27,7 +30,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
     /// </summary>
     internal static class AWSLambdaUtils
     {
-        internal const string ActivitySourceName = "Amazon.AWS.AWSLambdaInstrumentation";
+        internal static string ActivitySourceName =
+            typeof(AWSLambdaUtils).Assembly.GetName().Name.Replace(".Contrib", string.Empty);
+
         private const string CloudProvider = "aws";
         private const string AWSRegion = "AWS_REGION";
         private const string AWSXRayLambdaTraceHeaderKey = "_X_AMZN_TRACE_ID";
@@ -45,7 +50,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             return new string[0];
         };
 
-        internal static ActivityContext GetParentContext()
+        internal static ActivityContext GetXRayParentContext()
         {
             // Currently get trace header from Lambda runtime environment variable
             // https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html#configuration-envvars-runtime
@@ -61,6 +66,22 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             return activityContext;
         }
 
+        internal static ActivityContext ExtractParentContext<TInput>(TInput input)
+        {
+            PropagationContext propagationContext = default;
+            switch (input)
+            {
+                case APIGatewayProxyRequest apiGatewayProxyRequest:
+                    propagationContext = Propagators.DefaultTextMapPropagator.Extract(default, apiGatewayProxyRequest, GetHeaderValues);
+                    break;
+                case APIGatewayHttpApiV2ProxyRequest apiGatewayHttpApiV2ProxyRequest:
+                    propagationContext = Propagators.DefaultTextMapPropagator.Extract(default, apiGatewayHttpApiV2ProxyRequest, GetHeaderValues);
+                    break;
+            }
+
+            return propagationContext.ActivityContext;
+        }
+
         internal static string GetCloudProvider()
         {
             return CloudProvider;
@@ -73,12 +94,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
 
         internal static string GetFunctionName(ILambdaContext context = null)
         {
-            if (context != null)
-            {
-                return context.FunctionName;
-            }
-
-            return Environment.GetEnvironmentVariable(FunctionName);
+            return context?.FunctionName ?? Environment.GetEnvironmentVariable(FunctionName);
         }
 
         internal static string GetFunctionVersion()
@@ -86,7 +102,45 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             return Environment.GetEnvironmentVariable(FunctionVersion);
         }
 
-        internal static string GetAccountId(string functionArn)
+        internal static IEnumerable<KeyValuePair<string, object>> GetFunctionTags<TInput>(TInput input, ILambdaContext context)
+        {
+            var tags = new List<KeyValuePair<string, object>>
+            {
+                new(AWSLambdaSemanticConventions.AttributeFaasTrigger, GetFaasTrigger(input)),
+            };
+
+            var functionName = GetFunctionName(context);
+            if (functionName != null)
+            {
+                tags.Add(new(AWSLambdaSemanticConventions.AttributeFaasName, functionName));
+            }
+
+            if (context == null)
+            {
+                return tags;
+            }
+
+            if (context.AwsRequestId != null)
+            {
+                tags.Add(new(AWSLambdaSemanticConventions.AttributeFaasExecution, context.AwsRequestId));
+            }
+
+            var functionArn = context.InvokedFunctionArn;
+            if (functionArn != null)
+            {
+                tags.Add(new(AWSLambdaSemanticConventions.AttributeFaasID, GetFaasId(functionArn)));
+
+                var accountId = GetAccountId(functionArn);
+                if (accountId != null)
+                {
+                    tags.Add(new(AWSLambdaSemanticConventions.AttributeCloudAccountID, accountId));
+                }
+            }
+
+            return tags;
+        }
+
+        private static string GetAccountId(string functionArn)
         {
             // The fifth item of function arn: https://github.com/open-telemetry/opentelemetry-specification/blob/86aeab1e0a7e6c67be09c7f15ff25063ee6d2b5c/specification/trace/semantic_conventions/instrumentation/aws-lambda.md#all-triggers
             // Function arn format - arn:aws:lambda:<region>:<account-id>:function:<function-name>
@@ -100,6 +154,33 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             return null;
         }
 
+        private static string GetFaasId(string functionArn)
+        {
+            var faasId = functionArn;
+
+            // According to faas.id description https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/instrumentation/aws-lambda.md#all-triggers
+            // the 8th part of arn (function version or alias, see https://docs.aws.amazon.com/lambda/latest/dg/lambda-api-permissions-ref.html)
+            // should not be included into faas.id
+            var items = functionArn.Split(':');
+            if (items.Length >= 8)
+            {
+                faasId = string.Join(":", items.Take(7));
+            }
+
+            return faasId;
+        }
+
+        private static string GetFaasTrigger<TInput>(TInput input)
+        {
+            var trigger = "other";
+            if (input is APIGatewayProxyRequest || input is APIGatewayHttpApiV2ProxyRequest)
+            {
+                trigger = "http";
+            }
+
+            return trigger;
+        }
+
         private static ActivityContext ParseXRayTraceHeader(string rawHeader)
         {
             var xrayPropagator = new AWSXRayPropagator();
@@ -111,6 +192,29 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
 
             var propagationContext = xrayPropagator.Extract(default, carrier, Getter);
             return propagationContext.ActivityContext;
+        }
+
+        private static IEnumerable<string> GetHeaderValues(APIGatewayProxyRequest request, string name)
+        {
+            if (request.MultiValueHeaders != null &&
+                request.MultiValueHeaders.TryGetValue(name, out var values))
+            {
+                return values;
+            }
+
+            return null;
+        }
+
+        private static IEnumerable<string> GetHeaderValues(APIGatewayHttpApiV2ProxyRequest request, string name)
+        {
+            if (request.Headers != null &&
+                request.Headers.TryGetValue(name, out var header))
+            {
+                // Multiple values for the same header will be separated by a comma.
+                return header?.Split(',');
+            }
+
+            return null;
         }
     }
 }

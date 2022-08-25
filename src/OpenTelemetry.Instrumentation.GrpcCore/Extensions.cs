@@ -1,4 +1,4 @@
-﻿// <copyright file="Extensions.cs" company="OpenTelemetry Authors">
+// <copyright file="Extensions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,34 +14,33 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.GrpcCore
-{
-    using System;
+using System;
 
+namespace OpenTelemetry.Instrumentation.GrpcCore;
+
+/// <summary>
+/// Other useful extensions.
+/// </summary>
+internal static class Extensions
+{
     /// <summary>
-    /// Other useful extensions.
+    /// Builds an Action comprised of two calls to Dispose with best effort execution for the second disposable.
     /// </summary>
-    internal static class Extensions
+    /// <param name="first">The first.</param>
+    /// <param name="second">The second.</param>
+    /// <returns>An Action.</returns>
+    internal static Action WithBestEffortDispose(this IDisposable first, IDisposable second)
     {
-        /// <summary>
-        /// Builds an Action comprised of two calls to Dispose with best effort execution for the second disposable.
-        /// </summary>
-        /// <param name="first">The first.</param>
-        /// <param name="second">The second.</param>
-        /// <returns>An Action.</returns>
-        internal static Action WithBestEffortDispose(this IDisposable first, IDisposable second)
+        return () =>
         {
-            return () =>
+            try
             {
-                try
-                {
-                    first.Dispose();
-                }
-                finally
-                {
-                    second.Dispose();
-                }
-            };
-        }
+                first.Dispose();
+            }
+            finally
+            {
+                second.Dispose();
+            }
+        };
     }
 }

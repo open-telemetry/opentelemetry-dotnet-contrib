@@ -1,4 +1,4 @@
-﻿// <copyright file="MeterProviderBuilderExtensions.cs" company="OpenTelemetry Authors">
+// <copyright file="MeterProviderBuilderExtensions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,31 +18,30 @@ using System;
 using OpenTelemetry.Instrumentation.Runtime;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Metrics
+namespace OpenTelemetry.Metrics;
+
+/// <summary>
+/// Extension methods to simplify registering of dependency instrumentation.
+/// </summary>
+public static class MeterProviderBuilderExtensions
 {
     /// <summary>
-    /// Extension methods to simplify registering of dependency instrumentation.
+    /// Enables runtime instrumentation.
     /// </summary>
-    public static class MeterProviderBuilderExtensions
+    /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
+    /// <param name="configure">Runtime metrics options.</param>
+    /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
+    public static MeterProviderBuilder AddRuntimeInstrumentation(
+        this MeterProviderBuilder builder,
+        Action<RuntimeInstrumentationOptions> configure = null)
     {
-        /// <summary>
-        /// Enables runtime instrumentation.
-        /// </summary>
-        /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
-        /// <param name="configure">Runtime metrics options.</param>
-        /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
-        public static MeterProviderBuilder AddRuntimeMetrics(
-            this MeterProviderBuilder builder,
-            Action<RuntimeMetricsOptions> configure = null)
-        {
-            Guard.ThrowIfNull(builder);
+        Guard.ThrowIfNull(builder);
 
-            var options = new RuntimeMetricsOptions();
-            configure?.Invoke(options);
+        var options = new RuntimeInstrumentationOptions();
+        configure?.Invoke(options);
 
-            var instrumentation = new RuntimeMetrics(options);
-            builder.AddMeter(RuntimeMetrics.InstrumentationName);
-            return builder.AddInstrumentation(() => instrumentation);
-        }
+        var instrumentation = new RuntimeMetrics(options);
+        builder.AddMeter(RuntimeMetrics.MeterInstance.Name);
+        return builder.AddInstrumentation(() => instrumentation);
     }
 }

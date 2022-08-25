@@ -1,4 +1,4 @@
-﻿// <copyright file="IServiceContract.cs" company="OpenTelemetry Authors">
+// <copyright file="IServiceContract.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,18 +17,17 @@
 using System.ServiceModel;
 using System.Threading.Tasks;
 
-namespace OpenTelemetry.Instrumentation.Wcf.Tests
+namespace OpenTelemetry.Instrumentation.Wcf.Tests;
+
+[ServiceContract(Namespace = "http://opentelemetry.io/", Name = "Service", SessionMode = SessionMode.Allowed)]
+public interface IServiceContract
 {
-    [ServiceContract(Namespace = "http://opentelemetry.io/", Name = "Service", SessionMode = SessionMode.Allowed)]
-    public interface IServiceContract
-    {
-        [OperationContract]
-        Task<ServiceResponse> ExecuteAsync(ServiceRequest request);
+    [OperationContract]
+    Task<ServiceResponse> ExecuteAsync(ServiceRequest request);
 
-        [OperationContract(Action = "")]
-        Task<ServiceResponse> ExecuteWithEmptyActionNameAsync(ServiceRequest request);
+    [OperationContract(Action = "")]
+    Task<ServiceResponse> ExecuteWithEmptyActionNameAsync(ServiceRequest request);
 
-        [OperationContract(IsOneWay = true)]
-        void ExecuteWithOneWay(ServiceRequest request);
-    }
+    [OperationContract(IsOneWay = true)]
+    void ExecuteWithOneWay(ServiceRequest request);
 }

@@ -1,4 +1,4 @@
-﻿// <copyright file="MySqlDataInstrumentationEventSource.cs" company="OpenTelemetry Authors">
+// <copyright file="MySqlDataInstrumentationEventSource.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,26 +16,25 @@
 
 using System.Diagnostics.Tracing;
 
-namespace OpenTelemetry.Instrumentation.MySqlData
+namespace OpenTelemetry.Instrumentation.MySqlData;
+
+/// <summary>
+/// EventSource events emitted from the project.
+/// </summary>
+[EventSource(Name = "OpenTelemetry-Instrumentation-MySqlData")]
+internal class MySqlDataInstrumentationEventSource : EventSource
 {
-    /// <summary>
-    /// EventSource events emitted from the project.
-    /// </summary>
-    [EventSource(Name = "OpenTelemetry-Instrumentation-MySqlData")]
-    internal class MySqlDataInstrumentationEventSource : EventSource
+    public static readonly MySqlDataInstrumentationEventSource Log = new MySqlDataInstrumentationEventSource();
+
+    [Event(1, Message = "Unknown MySqlTraceEventType: {0}, Message {1}", Level = EventLevel.Error)]
+    public void UnknownMySqlTraceEventType(int mysqlEventId, string message)
     {
-        public static readonly MySqlDataInstrumentationEventSource Log = new MySqlDataInstrumentationEventSource();
+        this.WriteEvent(1, mysqlEventId, message);
+    }
 
-        [Event(1, Message = "Unknown MySqlTraceEventType: {0}, Message {1}", Level = EventLevel.Error)]
-        public void UnknownMySqlTraceEventType(int mysqlEventId, string message)
-        {
-            this.WriteEvent(1, mysqlEventId, message);
-        }
-
-        [Event(2, Message = "Error accured while processing trace event, MySqlTraceEventType: {0}, Message {1}, Exception: {2}", Level = EventLevel.Error)]
-        public void ErrorTraceEvent(int mysqlEventId, string message, string exception)
-        {
-            this.WriteEvent(1, mysqlEventId, message, exception);
-        }
+    [Event(2, Message = "Error accured while processing trace event, MySqlTraceEventType: {0}, Message {1}, Exception: {2}", Level = EventLevel.Error)]
+    public void ErrorTraceEvent(int mysqlEventId, string message, string exception)
+    {
+        this.WriteEvent(1, mysqlEventId, message, exception);
     }
 }

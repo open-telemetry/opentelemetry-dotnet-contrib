@@ -1,4 +1,4 @@
-﻿// <copyright file="IActivityEnumerator.cs" company="OpenTelemetry Authors">
+// <copyright file="IActivityEnumerator.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,19 +16,18 @@
 
 using System.Diagnostics;
 
-namespace OpenTelemetry.Trace
+namespace OpenTelemetry.Trace;
+
+/// <summary>
+/// An interface used to perform zero-allocation enumeration of <see cref="Activity"/> elements. Implementation must be a struct.
+/// </summary>
+/// <typeparam name="T">Enumerated item type.</typeparam>
+internal interface IActivityEnumerator<T>
 {
     /// <summary>
-    /// An interface used to perform zero-allocation enumeration of <see cref="Activity"/> elements. Implementation must be a struct.
+    /// Called for each <see cref="Activity"/> item while the enumeration is executing.
     /// </summary>
-    /// <typeparam name="T">Enumerated item type.</typeparam>
-    internal interface IActivityEnumerator<T>
-    {
-        /// <summary>
-        /// Called for each <see cref="Activity"/> item while the enumeration is executing.
-        /// </summary>
-        /// <param name="item">Enumeration item.</param>
-        /// <returns><see langword="true"/> to continue the enumeration of records or <see langword="false"/> to stop (break) the enumeration.</returns>
-        bool ForEach(T item);
-    }
+    /// <param name="item">Enumeration item.</param>
+    /// <returns><see langword="true"/> to continue the enumeration of records or <see langword="false"/> to stop (break) the enumeration.</returns>
+    bool ForEach(T item);
 }

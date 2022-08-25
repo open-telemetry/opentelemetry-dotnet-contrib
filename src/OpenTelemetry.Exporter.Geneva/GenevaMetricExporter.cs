@@ -1,4 +1,4 @@
-﻿// <copyright file="GenevaMetricExporter.cs" company="OpenTelemetry Authors">
+// <copyright file="GenevaMetricExporter.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -85,10 +85,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                 var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
                 this.metricDataTransport = new MetricUnixDataTransport(unixDomainSocketPath);
                 break;
-            case TransportProtocol.Tcp:
-                throw new ArgumentException("TCP transport is not supported yet.");
-            case TransportProtocol.Udp:
-                throw new ArgumentException("UDP transport is not supported yet.");
             case TransportProtocol.Unspecified:
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
@@ -198,7 +194,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                 }
                 catch (Exception ex)
                 {
-                    ExporterEventSource.Log.FailedToSendMetricData(this.metricNamespace, metric.Name, ex.Message); // TODO: preallocate exception or no exception
+                    ExporterEventSource.Log.FailedToSendMetricData(this.monitoringAccount, this.metricNamespace, metric.Name, ex); // TODO: preallocate exception or no exception
                     result = ExportResult.Failure;
                 }
             }
@@ -222,7 +218,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
             }
             catch (Exception ex)
             {
-                ExporterEventSource.Log.ExporterException(ex);
+                ExporterEventSource.Log.ExporterException("GenevaMetricExporter Dispose failed.", ex);
             }
         }
 

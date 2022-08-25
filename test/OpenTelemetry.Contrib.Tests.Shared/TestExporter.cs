@@ -1,4 +1,4 @@
-﻿// <copyright file="TestExporter.cs" company="OpenTelemetry Authors">
+// <copyright file="TestExporter.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,23 +16,22 @@
 
 using System;
 
-namespace OpenTelemetry.Tests
+namespace OpenTelemetry.Tests;
+
+internal class TestExporter<T> : BaseExporter<T>
+    where T : class
 {
-    internal class TestExporter<T> : BaseExporter<T>
-        where T : class
+    private readonly Action<Batch<T>> processBatchAction;
+
+    public TestExporter(Action<Batch<T>> processBatchAction)
     {
-        private readonly Action<Batch<T>> processBatchAction;
+        this.processBatchAction = processBatchAction ?? throw new ArgumentNullException(nameof(processBatchAction));
+    }
 
-        public TestExporter(Action<Batch<T>> processBatchAction)
-        {
-            this.processBatchAction = processBatchAction ?? throw new ArgumentNullException(nameof(processBatchAction));
-        }
+    public override ExportResult Export(in Batch<T> batch)
+    {
+        this.processBatchAction(batch);
 
-        public override ExportResult Export(in Batch<T> batch)
-        {
-            this.processBatchAction(batch);
-
-            return ExportResult.Success;
-        }
+        return ExportResult.Success;
     }
 }

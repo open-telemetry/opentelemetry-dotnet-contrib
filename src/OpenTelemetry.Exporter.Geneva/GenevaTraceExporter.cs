@@ -1,4 +1,4 @@
-﻿// <copyright file="GenevaTraceExporter.cs" company="OpenTelemetry Authors">
+// <copyright file="GenevaTraceExporter.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -69,10 +69,6 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
                 var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
                 this.m_dataTransport = new UnixDomainSocketDataTransport(unixDomainSocketPath);
                 break;
-            case TransportProtocol.Tcp:
-                throw new ArgumentException("TCP transport is not supported yet.");
-            case TransportProtocol.Udp:
-                throw new ArgumentException("UDP transport is not supported yet.");
             default:
                 throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
         }
@@ -106,6 +102,7 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
             }
 
             dedicatedFields["otel.status_code"] = true;
+            dedicatedFields["otel.status_description"] = true;
             this.m_dedicatedFields = dedicatedFields;
         }
 
@@ -145,26 +142,6 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
         foreach (var entry in options.PrepopulatedFields)
         {
             var value = entry.Value;
-            switch (value)
-            {
-                case bool vb:
-                case byte vui8:
-                case sbyte vi8:
-                case short vi16:
-                case ushort vui16:
-                case int vi32:
-                case uint vui32:
-                case long vi64:
-                case ulong vui64:
-                case float vf:
-                case double vd:
-                case string vs:
-                    break;
-                default:
-                    value = options.ConvertToJson(value);
-                    break;
-            }
-
             cursor = AddPartAField(buffer, cursor, entry.Key, value);
             this.m_cntPrepopulatedFields += 1;
         }
@@ -199,7 +176,7 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
             }
             catch (Exception ex)
             {
-                ExporterEventSource.Log.ExporterException(ex); // TODO: preallocate exception or no exception
+                ExporterEventSource.Log.FailedToSendTraceData(ex); // TODO: preallocate exception or no exception
                 result = ExportResult.Failure;
             }
         }
@@ -223,7 +200,7 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
             }
             catch (Exception ex)
             {
-                ExporterEventSource.Log.ExporterException(ex);
+                ExporterEventSource.Log.ExporterException("GenevaTraceExporter Dispose failed.", ex);
             }
         }
 
@@ -333,6 +310,9 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
         // Iteration #1 - Get those fields which become dedicated column
         // i.e all PartB fields and opt-in part c fields.
         bool hasEnvProperties = false;
+        bool isStatusSuccess = true;
+        string statusDescription = string.Empty;
+
         foreach (var entry in activity.TagObjects)
         {
             // TODO: check name collision
@@ -344,9 +324,14 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
             {
                 if (string.Equals(entry.Value.ToString(), "ERROR", StringComparison.Ordinal))
                 {
-                    MessagePackSerializer.SerializeBool(buffer, idxSuccessPatch, false);
+                    isStatusSuccess = false;
                 }
 
+                continue;
+            }
+            else if (string.Equals(entry.Key, "otel.status_description", StringComparison.Ordinal))
+            {
+                statusDescription = entry.Value.ToString();
                 continue;
             }
             else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
@@ -390,6 +375,34 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 
             cntFields += 1;
             MessagePackSerializer.WriteUInt16(buffer, idxMapSizeEnvPropertiesPatch, envPropertiesCount);
+        }
+
+        if (activity.Status != ActivityStatusCode.Unset)
+        {
+            if (activity.Status == ActivityStatusCode.Error)
+            {
+                MessagePackSerializer.SerializeBool(buffer, idxSuccessPatch, false);
+            }
+
+            if (!string.IsNullOrEmpty(activity.StatusDescription))
+            {
+                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "statusMessage");
+                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, activity.StatusDescription);
+                cntFields += 1;
+            }
+        }
+        else
+        {
+            if (!isStatusSuccess)
+            {
+                MessagePackSerializer.SerializeBool(buffer, idxSuccessPatch, false);
+                if (!string.IsNullOrEmpty(statusDescription))
+                {
+                    cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "statusMessage");
+                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, statusDescription);
+                    cntFields += 1;
+                }
+            }
         }
         #endregion
 
@@ -436,8 +449,6 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
         ["messaging.system"] = "messagingSystem",
         ["messaging.destination"] = "messagingDestination",
         ["messaging.url"] = "messagingUrl",
-
-        ["otel.status_description"] = "statusMessage",
     };
 
     private bool isDisposed;

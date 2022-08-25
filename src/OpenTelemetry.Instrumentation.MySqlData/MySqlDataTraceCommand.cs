@@ -1,4 +1,4 @@
-﻿// <copyright file="MySqlDataTraceCommand.cs" company="OpenTelemetry Authors">
+// <copyright file="MySqlDataTraceCommand.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,15 +16,14 @@
 
 using MySql.Data.MySqlClient;
 
-namespace OpenTelemetry.Instrumentation.MySqlData
-{
-    /// <summary>
-    /// Informations of current executing command.
-    /// </summary>
-    internal class MySqlDataTraceCommand
-    {
-        public MySqlConnectionStringBuilder ConnectionStringBuilder { get; set; }
+namespace OpenTelemetry.Instrumentation.MySqlData;
 
-        public string SqlText { get; set; }
-    }
+/// <summary>
+/// Information of current executing command.
+/// </summary>
+internal class MySqlDataTraceCommand
+{
+    public MySqlConnectionStringBuilder ConnectionStringBuilder { get; set; }
+
+    public string SqlText { get; set; }
 }

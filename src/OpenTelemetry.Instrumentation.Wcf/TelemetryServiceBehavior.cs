@@ -1,4 +1,4 @@
-﻿// <copyright file="TelemetryServiceBehavior.cs" company="OpenTelemetry Authors">
+// <copyright file="TelemetryServiceBehavior.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,43 +14,40 @@
 // limitations under the License.
 // </copyright>
 
-#pragma warning disable IDE0005 // Using directive is unnecessary.
+#if NETFRAMEWORK
 using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
-#pragma warning restore IDE0005 // Using directive is unnecessary.
 
-namespace OpenTelemetry.Instrumentation.Wcf
+namespace OpenTelemetry.Instrumentation.Wcf;
+
+/// <summary>
+/// An <see cref="IServiceBehavior"/> implementation to add the
+/// <see cref="TelemetryDispatchMessageInspector"/> to service operations.
+/// </summary>
+public class TelemetryServiceBehavior : IServiceBehavior
 {
-#if NETFRAMEWORK
-    /// <summary>
-    /// An <see cref="IServiceBehavior"/> implementation to add the
-    /// <see cref="TelemetryDispatchMessageInspector"/> to service operations.
-    /// </summary>
-    public class TelemetryServiceBehavior : IServiceBehavior
+    /// <inheritdoc />
+    public void AddBindingParameters(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase, System.Collections.ObjectModel.Collection<ServiceEndpoint> endpoints, System.ServiceModel.Channels.BindingParameterCollection bindingParameters)
     {
-        /// <inheritdoc />
-        public void AddBindingParameters(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase, System.Collections.ObjectModel.Collection<ServiceEndpoint> endpoints, System.ServiceModel.Channels.BindingParameterCollection bindingParameters)
-        {
-        }
+    }
 
-        /// <inheritdoc/>
-        public void ApplyDispatchBehavior(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
+    /// <inheritdoc/>
+    public void ApplyDispatchBehavior(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
+    {
+        foreach (var channelDispatcherBase in serviceHostBase.ChannelDispatchers)
         {
-            foreach (var channelDispatcherBase in serviceHostBase.ChannelDispatchers)
+            var channelDispatcher = (ChannelDispatcher)channelDispatcherBase;
+            foreach (var endpointDispatcher in channelDispatcher.Endpoints)
             {
-                var channelDispatcher = (ChannelDispatcher)channelDispatcherBase;
-                foreach (var endpointDispatcher in channelDispatcher.Endpoints)
-                {
-                    TelemetryEndpointBehavior.ApplyDispatchBehaviorToEndpoint(endpointDispatcher);
-                }
+                TelemetryEndpointBehavior.ApplyDispatchBehaviorToEndpoint(endpointDispatcher);
             }
         }
-
-        /// <inheritdoc/>
-        public void Validate(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
-        {
-        }
     }
-#endif
+
+    /// <inheritdoc/>
+    public void Validate(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
+    {
+    }
 }
+#endif

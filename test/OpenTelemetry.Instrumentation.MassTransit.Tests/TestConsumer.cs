@@ -1,4 +1,4 @@
-﻿// <copyright file="TestConsumer.cs" company="OpenTelemetry Authors">
+// <copyright file="TestConsumer.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,13 +17,12 @@
 using System.Threading.Tasks;
 using MassTransit;
 
-namespace OpenTelemetry.Instrumentation.MassTransit.Tests
+namespace OpenTelemetry.Instrumentation.MassTransit.Tests;
+
+public class TestConsumer : IConsumer<TestMessage>
 {
-    public class TestConsumer : IConsumer<TestMessage>
+    public Task Consume(ConsumeContext<TestMessage> context)
     {
-        public Task Consume(ConsumeContext<TestMessage> context)
-        {
-            return Task.CompletedTask;
-        }
+        return Task.CompletedTask;
     }
 }

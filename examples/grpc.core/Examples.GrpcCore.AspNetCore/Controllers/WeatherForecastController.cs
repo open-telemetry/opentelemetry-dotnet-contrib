@@ -1,4 +1,4 @@
-﻿// <copyright file="WeatherForecastController.cs" company="OpenTelemetry Authors">
+// <copyright file="WeatherForecastController.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,38 +20,37 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Examples.GrpcCore.AspNetCore.Controllers
+namespace Examples.GrpcCore.AspNetCore.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+public class WeatherForecastController : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class WeatherForecastController : ControllerBase
+    private static readonly string[] Summaries = new[]
     {
-        private static readonly string[] Summaries = new[]
+        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching",
+    };
+
+    private readonly Echo.EchoClient echoClient;
+
+    public WeatherForecastController(Echo.EchoClient echoClient)
+    {
+        this.echoClient = echoClient;
+    }
+
+    [HttpGet]
+    public async Task<IEnumerable<WeatherForecast>> Get()
+    {
+        var echoCall = this.echoClient.EchoAsync(new EchoRequest { Message = "Hello" });
+        var echoResponse = await echoCall.ResponseAsync.ConfigureAwait(false);
+
+        var rng = new Random();
+        return Enumerable.Range(1, 5).Select(index => new WeatherForecast
         {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching",
-        };
-
-        private readonly Echo.EchoClient echoClient;
-
-        public WeatherForecastController(Echo.EchoClient echoClient)
-        {
-            this.echoClient = echoClient;
-        }
-
-        [HttpGet]
-        public async Task<IEnumerable<WeatherForecast>> Get()
-        {
-            var echoCall = this.echoClient.EchoAsync(new EchoRequest { Message = "Hello" });
-            var echoResponse = await echoCall.ResponseAsync.ConfigureAwait(false);
-
-            var rng = new Random();
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = rng.Next(-20, 55),
-                Summary = Summaries[rng.Next(Summaries.Length)],
-            })
+            Date = DateTime.Now.AddDays(index),
+            TemperatureC = rng.Next(-20, 55),
+            Summary = Summaries[rng.Next(Summaries.Length)],
+        })
             .ToArray();
-        }
     }
 }

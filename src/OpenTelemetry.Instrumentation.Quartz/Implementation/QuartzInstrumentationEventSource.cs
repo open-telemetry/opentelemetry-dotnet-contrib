@@ -1,4 +1,4 @@
-﻿// <copyright file="QuartzInstrumentationEventSource.cs" company="OpenTelemetry Authors">
+// <copyright file="QuartzInstrumentationEventSource.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,41 +18,40 @@ using System;
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Instrumentation.Quartz.Implementation
+namespace OpenTelemetry.Instrumentation.Quartz.Implementation;
+
+/// <summary>
+/// EventSource events emitted from the project.
+/// </summary>
+[EventSource(Name = "OpenTelemetry-Instrumentation-Quartz")]
+internal class QuartzInstrumentationEventSource : EventSource
 {
-    /// <summary>
-    /// EventSource events emitted from the project.
-    /// </summary>
-    [EventSource(Name = "OpenTelemetry-Instrumentation-Quartz")]
-    internal class QuartzInstrumentationEventSource : EventSource
+    public static readonly QuartzInstrumentationEventSource Log = new QuartzInstrumentationEventSource();
+
+    [Event(1, Message = "Payload is NULL in event '{1}' from handler '{0}', span will not be recorded.", Level = EventLevel.Warning)]
+    public void NullPayload(string handlerName, string eventName)
     {
-        public static readonly QuartzInstrumentationEventSource Log = new QuartzInstrumentationEventSource();
+        this.WriteEvent(1, handlerName, eventName);
+    }
 
-        [Event(1, Message = "Payload is NULL in event '{1}' from handler '{0}', span will not be recorded.", Level = EventLevel.Warning)]
-        public void NullPayload(string handlerName, string eventName)
-        {
-            this.WriteEvent(1, handlerName, eventName);
-        }
+    [Event(2, Message = "Request is filtered out.", Level = EventLevel.Verbose)]
+    public void OperationIsFilteredOut(string eventName)
+    {
+        this.WriteEvent(2, eventName);
+    }
 
-        [Event(2, Message = "Request is filtered out.", Level = EventLevel.Verbose)]
-        public void OperationIsFilteredOut(string eventName)
+    [NonEvent]
+    public void EnrichmentException(Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
         {
-            this.WriteEvent(2, eventName);
+            this.EnrichmentException(ex.ToInvariantString());
         }
+    }
 
-        [NonEvent]
-        public void EnrichmentException(Exception ex)
-        {
-            if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
-            {
-                this.EnrichmentException(ex.ToInvariantString());
-            }
-        }
-
-        [Event(3, Message = "Enrich threw exception. Exception {0}.", Level = EventLevel.Error)]
-        public void EnrichmentException(string exception)
-        {
-            this.WriteEvent(3, exception);
-        }
+    [Event(3, Message = "Enrich threw exception. Exception {0}.", Level = EventLevel.Error)]
+    public void EnrichmentException(string exception)
+    {
+        this.WriteEvent(3, exception);
     }
 }

@@ -1,4 +1,4 @@
-﻿// <copyright file="StatusRequest.cs" company="OpenTelemetry Authors">
+// <copyright file="StatusRequest.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,12 +16,11 @@
 
 using System.Runtime.Serialization;
 
-namespace Examples.Wcf
+namespace Examples.Wcf;
+
+[DataContract]
+public class StatusRequest
 {
-    [DataContract]
-    public class StatusRequest
-    {
-        [DataMember]
-        public string Status { get; set; }
-    }
+    [DataMember]
+    public string Status { get; set; }
 }

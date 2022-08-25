@@ -1,4 +1,4 @@
-﻿// <copyright file="Program.cs" company="OpenTelemetry Authors">
+// <copyright file="Program.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,93 +24,93 @@ using System.Threading.Tasks;
 using CommandLine;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Exporter.Geneva.Stress
+namespace OpenTelemetry.Exporter.Geneva.Stress;
+
+internal class Program
 {
-    internal class Program
+    private static volatile bool s_bContinue = true;
+    private static long s_nEvents = 0;
+
+    private static ActivitySource source = new ActivitySource("OpenTelemetry.Exporter.Geneva.Stress");
+
+    private static int Main(string[] args)
     {
-        private static volatile bool s_bContinue = true;
-        private static long s_nEvents = 0;
+        return Parser.Default.ParseArguments<WindowsOptions, LinuxOptions, ServerOptions, ExporterCreationOptions>(args)
+            .MapResult(
+                (WindowsOptions options) => EntryPoint(InitTraces, RunTraces),
+                (LinuxOptions options) => RunLinux(options),
+                (ServerOptions options) => RunServer(options),
+                (ExporterCreationOptions options) => RunExporterCreation(),
+                errs => 1);
 
-        private static ActivitySource source = new ActivitySource("OpenTelemetry.Exporter.Geneva.Stress");
+        // return EntryPoint(InitMetrics, RunMetrics);
+    }
 
-        private static int Main(string[] args)
+    [Verb("Windows", HelpText = "Run stress test on Windows.")]
+    private class WindowsOptions
+    {
+    }
+
+    [Verb("Linux", HelpText = "Run stress test on Linux.")]
+    private class LinuxOptions
+    {
+        [Option('p', "path", Default = "/var/run/default_fluent.socket", HelpText = "Specify a path for Unix domain socket.")]
+        public string Path { get; set; }
+    }
+
+    [Verb("server", HelpText = "Start a dummy server on Linux.")]
+    private class ServerOptions
+    {
+        [Option('p', "path", HelpText = "Specify a path for Unix domain socket.", Required = true)]
+        public string Path { get; set; }
+    }
+
+    [Verb("ExporterCreation", HelpText = "Validate exporter dispose behavior")]
+    private class ExporterCreationOptions
+    {
+    }
+
+    private static int RunExporterCreation()
+    {
+        var options = new GenevaExporterOptions()
         {
-            return Parser.Default.ParseArguments<WindowsOptions, LinuxOptions, ServerOptions, ExporterCreationOptions>(args)
-                .MapResult(
-                    (WindowsOptions options) => EntryPoint(InitTraces, RunTraces),
-                    (LinuxOptions options) => RunLinux(options),
-                    (ServerOptions options) => RunServer(options),
-                    (ExporterCreationOptions options) => RunExporterCreation(),
-                    errs => 1);
-
-            // return EntryPoint(InitMetrics, RunMetrics);
-        }
-
-        [Verb("Windows", HelpText = "Run stress test on Windows.")]
-        private class WindowsOptions
-        {
-        }
-
-        [Verb("Linux", HelpText = "Run stress test on Linux.")]
-        private class LinuxOptions
-        {
-            [Option('p', "path", Default = "/var/run/default_fluent.socket", HelpText = "Specify a path for Unix domain socket.")]
-            public string Path { get; set; }
-        }
-
-        [Verb("server", HelpText = "Start a dummy server on Linux.")]
-        private class ServerOptions
-        {
-            [Option('p', "path", HelpText = "Specify a path for Unix domain socket.", Required = true)]
-            public string Path { get; set; }
-        }
-
-        [Verb("ExporterCreation", HelpText = "Validate exporter dispose behavior")]
-        private class ExporterCreationOptions
-        {
-        }
-
-        private static int RunExporterCreation()
-        {
-            var options = new GenevaExporterOptions()
+            ConnectionString = "EtwSession=OpenTelemetry",
+            PrepopulatedFields = new Dictionary<string, object>
             {
-                ConnectionString = "EtwSession=OpenTelemetry",
-                PrepopulatedFields = new Dictionary<string, object>
-                {
-                    ["ver"] = "4.0",
-                    ["cloud.role"] = "BusyWorker",
-                    ["cloud.roleInstance"] = "CY1SCH030021417",
-                    ["cloud.roleVer"] = "9.0.15289.2",
-                },
-            };
+                ["ver"] = "4.0",
+                ["cloud.role"] = "BusyWorker",
+                ["cloud.roleInstance"] = "CY1SCH030021417",
+                ["cloud.roleVer"] = "9.0.15289.2",
+            },
+        };
 
-            for (var i = 0; i < 300000; ++i)
-            {
-                using var dataTransport = new EtwDataTransport("OpenTelemetry");
-            }
-
-            return 0;
+        for (var i = 0; i < 300000; ++i)
+        {
+            using var dataTransport = new EtwDataTransport("OpenTelemetry");
         }
 
-        private static int RunLinux(LinuxOptions options)
-        {
-            return EntryPoint(() => InitTracesOnLinux(options.Path), RunTraces);
-        }
+        return 0;
+    }
 
-        private static int RunServer(ServerOptions options)
-        {
-            var server = new DummyServer(options.Path);
-            server.Start();
-            return 0;
-        }
+    private static int RunLinux(LinuxOptions options)
+    {
+        return EntryPoint(() => InitTracesOnLinux(options.Path), RunTraces);
+    }
 
-        private static int EntryPoint(Action init, Action run)
-        {
-            init();
+    private static int RunServer(ServerOptions options)
+    {
+        var server = new DummyServer(options.Path);
+        server.Start();
+        return 0;
+    }
 
-            var statistics = new long[Environment.ProcessorCount];
-            Parallel.Invoke(
-                () =>
+    private static int EntryPoint(Action init, Action run)
+    {
+        init();
+
+        var statistics = new long[Environment.ProcessorCount];
+        Parallel.Invoke(
+            () =>
             {
                 Console.WriteLine("Running, press <Esc> to stop...");
                 var watch = new Stopwatch();
@@ -138,7 +138,7 @@ namespace OpenTelemetry.Exporter.Geneva.Stress
                     Console.Title = string.Format("Loops: {0:n0}, Loops/Second: {1:n0}", nEvents, nEventPerSecond);
                 }
             },
-                () =>
+            () =>
             {
                 Parallel.For(0, statistics.Length, (i) =>
                 {
@@ -150,54 +150,53 @@ namespace OpenTelemetry.Exporter.Geneva.Stress
                     }
                 });
             });
-            return 0;
-        }
+        return 0;
+    }
 
-        private static void InitTraces()
-        {
-            Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new AlwaysOnSampler())
-                .AddSource("OpenTelemetry.Exporter.Geneva.Stress")
-                .AddGenevaTraceExporter(options =>
-                {
-                    options.ConnectionString = "EtwSession=OpenTelemetry";
-                    options.PrepopulatedFields = new Dictionary<string, object>
-                    {
-                        ["cloud.role"] = "BusyWorker",
-                        ["cloud.roleInstance"] = "CY1SCH030021417",
-                        ["cloud.roleVer"] = "9.0.15289.2",
-                    };
-                })
-                .Build();
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void RunTraces()
-        {
-            using (var activity = source.StartActivity("Stress"))
+    private static void InitTraces()
+    {
+        Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new AlwaysOnSampler())
+            .AddSource("OpenTelemetry.Exporter.Geneva.Stress")
+            .AddGenevaTraceExporter(options =>
             {
-                activity?.SetTag("http.method", "GET");
-                activity?.SetTag("http.url", "https://www.wikipedia.org/wiki/Rabbit");
-                activity?.SetTag("http.status_code", 200);
-            }
-        }
-
-        private static void InitTracesOnLinux(string path)
-        {
-            Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new AlwaysOnSampler())
-                .AddSource("OpenTelemetry.Exporter.Geneva.Stress")
-                .AddGenevaTraceExporter(options =>
+                options.ConnectionString = "EtwSession=OpenTelemetry";
+                options.PrepopulatedFields = new Dictionary<string, object>
                 {
-                    options.ConnectionString = "Endpoint=unix:" + path;
-                    options.PrepopulatedFields = new Dictionary<string, object>
-                    {
-                        ["cloud.role"] = "BusyWorker",
-                        ["cloud.roleInstance"] = "CY1SCH030021417",
-                        ["cloud.roleVer"] = "9.0.15289.2",
-                    };
-                })
-                .Build();
+                    ["cloud.role"] = "BusyWorker",
+                    ["cloud.roleInstance"] = "CY1SCH030021417",
+                    ["cloud.roleVer"] = "9.0.15289.2",
+                };
+            })
+            .Build();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void RunTraces()
+    {
+        using (var activity = source.StartActivity("Stress"))
+        {
+            activity?.SetTag("http.method", "GET");
+            activity?.SetTag("http.url", "https://www.wikipedia.org/wiki/Rabbit");
+            activity?.SetTag("http.status_code", 200);
         }
+    }
+
+    private static void InitTracesOnLinux(string path)
+    {
+        Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new AlwaysOnSampler())
+            .AddSource("OpenTelemetry.Exporter.Geneva.Stress")
+            .AddGenevaTraceExporter(options =>
+            {
+                options.ConnectionString = "Endpoint=unix:" + path;
+                options.PrepopulatedFields = new Dictionary<string, object>
+                {
+                    ["cloud.role"] = "BusyWorker",
+                    ["cloud.roleInstance"] = "CY1SCH030021417",
+                    ["cloud.roleVer"] = "9.0.15289.2",
+                };
+            })
+            .Build();
     }
 }

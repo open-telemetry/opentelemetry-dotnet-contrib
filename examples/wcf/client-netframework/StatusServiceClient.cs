@@ -1,4 +1,4 @@
-﻿// <copyright file="StatusServiceClient.cs" company="OpenTelemetry Authors">
+// <copyright file="StatusServiceClient.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,28 +17,27 @@
 using System.ServiceModel;
 using System.Threading.Tasks;
 
-namespace Examples.Wcf.Client
+namespace Examples.Wcf.Client;
+
+public class StatusServiceClient : ClientBase<IStatusServiceContract>, IStatusServiceContract
 {
-    public class StatusServiceClient : ClientBase<IStatusServiceContract>, IStatusServiceContract
+    public StatusServiceClient(string name)
+        : base(name)
     {
-        public StatusServiceClient(string name)
-            : base(name)
-        {
-        }
+    }
 
-        public Task<StatusResponse> PingAsync(StatusRequest request)
-            => this.Channel.PingAsync(request);
+    public Task<StatusResponse> PingAsync(StatusRequest request)
+        => this.Channel.PingAsync(request);
 
-        public Task OpenAsync()
-        {
-            ICommunicationObject communicationObject = this;
-            return Task.Factory.FromAsync(communicationObject.BeginOpen, communicationObject.EndOpen, null);
-        }
+    public Task OpenAsync()
+    {
+        ICommunicationObject communicationObject = this;
+        return Task.Factory.FromAsync(communicationObject.BeginOpen, communicationObject.EndOpen, null);
+    }
 
-        public Task CloseAsync()
-        {
-            ICommunicationObject communicationObject = this;
-            return Task.Factory.FromAsync(communicationObject.BeginClose, communicationObject.EndClose, null);
-        }
+    public Task CloseAsync()
+    {
+        ICommunicationObject communicationObject = this;
+        return Task.Factory.FromAsync(communicationObject.BeginClose, communicationObject.EndClose, null);
     }
 }

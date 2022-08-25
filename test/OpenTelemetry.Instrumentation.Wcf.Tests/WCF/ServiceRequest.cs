@@ -1,4 +1,4 @@
-﻿// <copyright file="ServiceRequest.cs" company="OpenTelemetry Authors">
+// <copyright file="ServiceRequest.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,12 +16,11 @@
 
 using System.Runtime.Serialization;
 
-namespace OpenTelemetry.Instrumentation.Wcf.Tests
+namespace OpenTelemetry.Instrumentation.Wcf.Tests;
+
+[DataContract]
+public class ServiceRequest
 {
-    [DataContract]
-    public class ServiceRequest
-    {
-        [DataMember]
-        public string Payload { get; set; }
-    }
+    [DataMember]
+    public string Payload { get; set; }
 }

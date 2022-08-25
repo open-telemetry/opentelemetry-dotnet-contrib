@@ -1,4 +1,4 @@
-﻿// <copyright file="TestMessage.cs" company="OpenTelemetry Authors">
+// <copyright file="TestMessage.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,10 +14,9 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.MassTransit.Tests
+namespace OpenTelemetry.Instrumentation.MassTransit.Tests;
+
+public class TestMessage
 {
-    public class TestMessage
-    {
-        public string Text;
-    }
+    public string Text;
 }

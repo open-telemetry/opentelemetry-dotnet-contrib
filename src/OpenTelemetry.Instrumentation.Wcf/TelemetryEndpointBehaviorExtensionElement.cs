@@ -1,4 +1,4 @@
-﻿// <copyright file="TelemetryEndpointBehaviorExtensionElement.cs" company="OpenTelemetry Authors">
+// <copyright file="TelemetryEndpointBehaviorExtensionElement.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,21 +18,21 @@
 using System;
 using System.ServiceModel.Configuration;
 
-namespace OpenTelemetry.Instrumentation.Wcf
-{
-    /// <summary>
-    /// A <see cref="BehaviorExtensionElement"/> for registering <see cref="TelemetryEndpointBehavior"/> on a service endpoint through configuration.
-    /// </summary>
-    public class TelemetryEndpointBehaviorExtensionElement : BehaviorExtensionElement
-    {
-        /// <inheritdoc/>
-        public override Type BehaviorType => typeof(TelemetryEndpointBehavior);
+namespace OpenTelemetry.Instrumentation.Wcf;
 
-        /// <inheritdoc/>
-        protected override object CreateBehavior()
-        {
-            return new TelemetryEndpointBehavior();
-        }
+/// <summary>
+/// A <see cref="BehaviorExtensionElement"/> for registering <see cref="TelemetryEndpointBehavior"/> on a service endpoint through configuration.
+/// </summary>
+public class TelemetryEndpointBehaviorExtensionElement : BehaviorExtensionElement
+{
+    /// <inheritdoc/>
+    public override Type BehaviorType => typeof(TelemetryEndpointBehavior);
+
+    /// <inheritdoc/>
+    protected override object CreateBehavior()
+    {
+        return new TelemetryEndpointBehavior();
     }
 }
+
 #endif

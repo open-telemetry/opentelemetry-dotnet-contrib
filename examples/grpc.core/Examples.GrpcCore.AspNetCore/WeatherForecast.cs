@@ -1,4 +1,4 @@
-﻿// <copyright file="WeatherForecast.cs" company="OpenTelemetry Authors">
+// <copyright file="WeatherForecast.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,16 +16,15 @@
 
 using System;
 
-namespace Examples.GrpcCore.AspNetCore
+namespace Examples.GrpcCore.AspNetCore;
+
+public class WeatherForecast
 {
-    public class WeatherForecast
-    {
-        public DateTime Date { get; set; }
+    public DateTime Date { get; set; }
 
-        public int TemperatureC { get; set; }
+    public int TemperatureC { get; set; }
 
-        public int TemperatureF => 32 + (int)(this.TemperatureC / 0.5556);
+    public int TemperatureF => 32 + (int)(this.TemperatureC / 0.5556);
 
-        public string Summary { get; set; }
-    }
+    public string Summary { get; set; }
 }

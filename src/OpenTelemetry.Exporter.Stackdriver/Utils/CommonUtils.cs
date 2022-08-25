@@ -1,4 +1,4 @@
-﻿// <copyright file="CommonUtils.cs" company="OpenTelemetry Authors">
+// <copyright file="CommonUtils.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,36 +16,35 @@
 
 using System.Collections.Generic;
 
-namespace OpenTelemetry.Contrib.Exporter.Stackdriver.Utils
+namespace OpenTelemetry.Exporter.Stackdriver.Utils;
+
+/// <summary>
+/// Common Utility Methods that are not metrics/trace specific.
+/// </summary>
+public static class CommonUtils
 {
     /// <summary>
-    /// Common Utility Methods that are not metrics/trace specific.
+    /// Divide the source list into batches of lists of given size.
     /// </summary>
-    public static class CommonUtils
+    /// <typeparam name="T">The type of the list.</typeparam>
+    /// <param name="source">The list.</param>
+    /// <param name="size">Size of the batch.</param>
+    /// <returns><see cref="IEnumerable{T}"/>.</returns>
+    public static IEnumerable<IEnumerable<T>> Partition<T>(this IEnumerable<T> source, int size)
     {
-        /// <summary>
-        /// Divide the source list into batches of lists of given size.
-        /// </summary>
-        /// <typeparam name="T">The type of the list.</typeparam>
-        /// <param name="source">The list.</param>
-        /// <param name="size">Size of the batch.</param>
-        /// <returns><see cref="IEnumerable{T}"/>.</returns>
-        public static IEnumerable<IEnumerable<T>> Partition<T>(this IEnumerable<T> source, int size)
+        using var enumerator = source.GetEnumerator();
+        while (enumerator.MoveNext())
         {
-            using var enumerator = source.GetEnumerator();
-            while (enumerator.MoveNext())
-            {
-                yield return WalkPartition(enumerator, size - 1);
-            }
+            yield return WalkPartition(enumerator, size - 1);
         }
+    }
 
-        private static IEnumerable<T> WalkPartition<T>(IEnumerator<T> source, int size)
+    private static IEnumerable<T> WalkPartition<T>(IEnumerator<T> source, int size)
+    {
+        yield return source.Current;
+        for (var i = 0; i < size && source.MoveNext(); i++)
         {
             yield return source.Current;
-            for (var i = 0; i < size && source.MoveNext(); i++)
-            {
-                yield return source.Current;
-            }
         }
     }
 }

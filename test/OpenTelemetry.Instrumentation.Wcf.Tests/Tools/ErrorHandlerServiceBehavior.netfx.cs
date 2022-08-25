@@ -1,4 +1,4 @@
-﻿// <copyright file="ErrorHandlerServiceBehavior.netfx.cs" company="OpenTelemetry Authors">
+// <copyright file="ErrorHandlerServiceBehavior.netfx.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
+
 #if NETFRAMEWORK
 using System;
 using System.Collections.ObjectModel;
@@ -22,34 +23,34 @@ using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
 using System.Threading;
 
-namespace OpenTelemetry.Instrumentation.Wcf.Tests.Tools
+namespace OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
+
+internal class ErrorHandlerServiceBehavior : IServiceBehavior
 {
-    internal class ErrorHandlerServiceBehavior : IServiceBehavior
+    private readonly EventWaitHandle handle;
+    private readonly Action<Exception> action;
+
+    public ErrorHandlerServiceBehavior(EventWaitHandle handle, Action<Exception> action)
     {
-        private readonly EventWaitHandle handle;
-        private readonly Action<Exception> action;
+        this.handle = handle;
+        this.action = action;
+    }
 
-        public ErrorHandlerServiceBehavior(EventWaitHandle handle, Action<Exception> action)
-        {
-            this.handle = handle;
-            this.action = action;
-        }
+    public void AddBindingParameters(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase, Collection<ServiceEndpoint> endpoints, BindingParameterCollection bindingParameters)
+    {
+    }
 
-        public void AddBindingParameters(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase, Collection<ServiceEndpoint> endpoints, BindingParameterCollection bindingParameters)
+    public void ApplyDispatchBehavior(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
+    {
+        foreach (ChannelDispatcher dispatcher in serviceHostBase.ChannelDispatchers)
         {
-        }
-
-        public void ApplyDispatchBehavior(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
-        {
-            foreach (ChannelDispatcher dispatcher in serviceHostBase.ChannelDispatchers)
-            {
-                dispatcher.ErrorHandlers.Add(new ErrorHandler(this.handle, this.action));
-            }
-        }
-
-        public void Validate(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
-        {
+            dispatcher.ErrorHandlers.Add(new ErrorHandler(this.handle, this.action));
         }
     }
+
+    public void Validate(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
+    {
+    }
 }
+
 #endif

@@ -1,4 +1,4 @@
-﻿// <copyright file="OwinInstrumentationActivitySource.cs" company="OpenTelemetry Authors">
+// <copyright file="OwinInstrumentationActivitySource.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,18 +16,19 @@
 
 using System;
 using System.Diagnostics;
+using System.Reflection;
 
-namespace OpenTelemetry.Instrumentation.Owin
+namespace OpenTelemetry.Instrumentation.Owin;
+
+internal static class OwinInstrumentationActivitySource
 {
-    internal static class OwinInstrumentationActivitySource
-    {
-        public const string ActivitySourceName = "OpenTelemetry.OWIN";
-        public const string IncomingRequestActivityName = ActivitySourceName + ".IncomingRequest";
+    internal static readonly AssemblyName AssemblyName = typeof(OwinInstrumentationActivitySource).Assembly.GetName();
+    internal static readonly string ActivitySourceName = AssemblyName.Name;
+    internal static readonly string IncomingRequestActivityName = ActivitySourceName + ".IncomingRequest";
 
-        private static readonly Version Version = typeof(OwinInstrumentationActivitySource).Assembly.GetName().Version;
+    private static readonly Version Version = AssemblyName.Version;
 
-        public static ActivitySource ActivitySource { get; } = new ActivitySource(ActivitySourceName, Version.ToString());
+    public static ActivitySource ActivitySource { get; } = new ActivitySource(ActivitySourceName, Version.ToString());
 
-        public static OwinInstrumentationOptions Options { get; set; }
-    }
+    public static OwinInstrumentationOptions Options { get; set; }
 }

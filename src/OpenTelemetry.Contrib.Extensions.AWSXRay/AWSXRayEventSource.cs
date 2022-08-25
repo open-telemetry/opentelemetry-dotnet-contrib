@@ -1,4 +1,4 @@
-﻿// <copyright file="AWSXRayEventSource.cs" company="OpenTelemetry Authors">
+// <copyright file="AWSXRayEventSource.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,6 +60,12 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay
         public void FailedToExtractResourceAttributes(string format, string exception)
         {
             this.WriteEvent(3, format, exception);
+        }
+
+        [Event(4, Message = "Failed to validate certificate in format: '{0}', error: '{1}'.", Level = EventLevel.Warning)]
+        public void FailedToValidateCertificate(string format, string error)
+        {
+            this.WriteEvent(4, format, error);
         }
 
         /// <summary>

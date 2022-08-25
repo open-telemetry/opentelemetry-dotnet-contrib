@@ -1,4 +1,4 @@
-﻿// <copyright file="FileBlob.cs" company="OpenTelemetry Authors">
+// <copyright file="FileBlob.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,106 +15,109 @@
 // </copyright>
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using OpenTelemetry.Extensions.PersistentStorage.Abstractions;
 
-namespace OpenTelemetry.Extensions.PersistentStorage
+namespace OpenTelemetry.Extensions.PersistentStorage;
+
+/// <summary>
+/// The <see cref="FileBlob"/> allows to save a blob
+/// in file storage.
+/// </summary>
+public class FileBlob : PersistentBlob
 {
     /// <summary>
-    /// The <see cref="FileBlob"/> allows to save a blob
-    /// in file storage.
+    /// Initializes a new instance of the <see cref="FileBlob"/>
+    /// class.
     /// </summary>
-    public class FileBlob : IPersistentBlob
+    /// <param name="fullPath">Absolute file path of the blob.</param>
+    public FileBlob(string fullPath)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FileBlob"/>
-        /// class.
-        /// </summary>
-        /// <param name="fullPath">Absolute file path of the blob.</param>
-        public FileBlob(string fullPath)
+        this.FullPath = fullPath;
+    }
+
+    public string FullPath { get; private set; }
+
+    protected override bool OnTryRead([NotNullWhen(true)] out byte[] buffer)
+    {
+        try
         {
-            this.FullPath = fullPath;
+            buffer = File.ReadAllBytes(this.FullPath);
+        }
+        catch (Exception ex)
+        {
+            PersistentStorageEventSource.Log.CouldNotReadFileBlob(this.FullPath, ex);
+            buffer = null;
+            return false;
         }
 
-        public string FullPath { get; private set; }
+        return true;
+    }
 
-        /// <inheritdoc/>
-        public byte[] Read()
+    protected override bool OnTryWrite(byte[] buffer, int leasePeriodMilliseconds = 0)
+    {
+        string path = this.FullPath + ".tmp";
+
+        try
         {
-            try
+            PersistentStorageHelper.WriteAllBytes(path, buffer);
+
+            if (leasePeriodMilliseconds > 0)
             {
-                return File.ReadAllBytes(this.FullPath);
-            }
-            catch (Exception ex)
-            {
-                PersistentStorageEventSource.Log.Warning($"Reading a blob from file {this.FullPath} has failed.", ex);
+                var timestamp = DateTime.UtcNow + TimeSpan.FromMilliseconds(leasePeriodMilliseconds);
+                this.FullPath += $"@{timestamp:yyyy-MM-ddTHHmmss.fffffffZ}.lock";
             }
 
-            return null;
+            File.Move(path, this.FullPath);
+        }
+        catch (Exception ex)
+        {
+            PersistentStorageEventSource.Log.CouldNotWriteFileBlob(path, ex);
+            return false;
         }
 
-        /// <inheritdoc/>
-        public IPersistentBlob Write(byte[] buffer, int leasePeriodMilliseconds = 0)
+        return true;
+    }
+
+    protected override bool OnTryLease(int leasePeriodMilliseconds)
+    {
+        var path = this.FullPath;
+        var leaseTimestamp = DateTime.UtcNow + TimeSpan.FromMilliseconds(leasePeriodMilliseconds);
+        if (path.EndsWith(".lock", StringComparison.OrdinalIgnoreCase))
         {
-            string path = this.FullPath + ".tmp";
-
-            try
-            {
-                PersistentStorageHelper.WriteAllBytes(path, buffer);
-
-                if (leasePeriodMilliseconds > 0)
-                {
-                    var timestamp = DateTime.UtcNow + TimeSpan.FromMilliseconds(leasePeriodMilliseconds);
-                    this.FullPath += $"@{timestamp:yyyy-MM-ddTHHmmss.fffffffZ}.lock";
-                }
-
-                File.Move(path, this.FullPath);
-            }
-            catch (Exception ex)
-            {
-                PersistentStorageEventSource.Log.Warning($"Writing a blob to file {path} has failed.", ex);
-                return null;
-            }
-
-            return this;
+            path = path.Substring(0, path.LastIndexOf('@'));
         }
 
-        /// <inheritdoc/>
-        public IPersistentBlob Lease(int leasePeriodMilliseconds)
+        path += $"@{leaseTimestamp:yyyy-MM-ddTHHmmss.fffffffZ}.lock";
+
+        try
         {
-            var path = this.FullPath;
-            var leaseTimestamp = DateTime.UtcNow + TimeSpan.FromMilliseconds(leasePeriodMilliseconds);
-            if (path.EndsWith(".lock", StringComparison.OrdinalIgnoreCase))
-            {
-                path = path.Substring(0, path.LastIndexOf('@'));
-            }
-
-            path += $"@{leaseTimestamp:yyyy-MM-ddTHHmmss.fffffffZ}.lock";
-
-            try
-            {
-                File.Move(this.FullPath, path);
-            }
-            catch (Exception ex)
-            {
-                PersistentStorageEventSource.Log.Warning($"Acquiring a lease to file {this.FullPath} has failed.", ex);
-                return null;
-            }
-
-            this.FullPath = path;
-            return this;
+            File.Move(this.FullPath, path);
+        }
+        catch (Exception ex)
+        {
+            PersistentStorageEventSource.Log.CouldNotLeaseFileBlob(this.FullPath, ex);
+            return false;
         }
 
-        /// <inheritdoc/>
-        public void Delete()
+        this.FullPath = path;
+
+        return true;
+    }
+
+    protected override bool OnTryDelete()
+    {
+        try
         {
-            try
-            {
-                PersistentStorageHelper.RemoveFile(this.FullPath);
-            }
-            catch (Exception ex)
-            {
-                PersistentStorageEventSource.Log.Warning($"Deletion of file blob {this.FullPath} has failed.", ex);
-            }
+            PersistentStorageHelper.RemoveFile(this.FullPath);
         }
+        catch (Exception ex)
+        {
+            PersistentStorageEventSource.Log.CouldNotDeleteFileBlob(this.FullPath, ex);
+            return false;
+        }
+
+        return true;
     }
 }

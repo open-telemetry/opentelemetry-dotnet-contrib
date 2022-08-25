@@ -1,4 +1,4 @@
-﻿// <copyright file="TestJobExecutionExceptionJob.cs" company="OpenTelemetry Authors">
+// <copyright file="TestJobExecutionExceptionJob.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,13 +17,12 @@
 using System.Threading.Tasks;
 using Quartz;
 
-namespace OpenTelemetry.Instrumentation.Quartz.Tests
+namespace OpenTelemetry.Instrumentation.Quartz.Tests;
+
+public class TestJobExecutionExceptionJob : IJob
 {
-    public class TestJobExecutionExceptionJob : IJob
+    public Task Execute(IJobExecutionContext context)
     {
-        public Task Execute(IJobExecutionContext context)
-        {
-            throw new JobExecutionException("Catch me if you can!");
-        }
+        throw new JobExecutionException("Catch me if you can!");
     }
 }

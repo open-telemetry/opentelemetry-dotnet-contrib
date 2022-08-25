@@ -1,4 +1,4 @@
-﻿// <copyright file="ApplicationInsightsSampler.cs" company="OpenTelemetry Authors">
+// <copyright file="ApplicationInsightsSampler.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,64 +17,63 @@ using System;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Extensions.AzureMonitor
+namespace OpenTelemetry.Extensions.AzureMonitor;
+
+/// <summary>
+/// Sample configurable for OpenTelemetry exporters for compatibility
+/// with Application Insight SDKs.
+/// </summary>
+public class ApplicationInsightsSampler : Sampler
 {
+    private readonly float samplingRatio;
+
     /// <summary>
-    /// Sample configurable for OpenTelemetry exporters for compatibility
-    /// with Application Insight SDKs.
+    /// Initializes a new instance of the <see cref="ApplicationInsightsSampler"/> class.
     /// </summary>
-    public class ApplicationInsightsSampler : Sampler
+    /// <param name="samplingRatio">Ratio of telemetry that should be sampled.</param>
+    public ApplicationInsightsSampler(float samplingRatio)
     {
-        private readonly float samplingRatio;
+        // Ensure passed ratio is between 0 and 1, inclusive
+        Guard.ThrowIfOutOfRange((double)samplingRatio, min: 0.0, max: 1.0);
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ApplicationInsightsSampler"/> class.
-        /// </summary>
-        /// <param name="samplingRatio">Ratio of telemetry that should be sampled.</param>
-        public ApplicationInsightsSampler(float samplingRatio)
+        this.samplingRatio = samplingRatio;
+        this.Description = "ApplicationInsightsSampler{" + samplingRatio + "}";
+    }
+
+    /// <summary>
+    /// Computational method using the DJB2 Hash algorithm to decide whether to sample
+    /// a given telemetry item, based on its Trace Id.
+    /// </summary>
+    /// <param name="samplingParameters">Parameters of telemetry item used to make sampling decision.</param>
+    /// <returns>Returns whether or not we should sample telemetry in the form of a <see cref="SamplingResult"/> class.</returns>
+    public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
+    {
+        double sampleScore = DJB2SampleScore(samplingParameters.TraceId.ToHexString().ToLowerInvariant());
+        return new SamplingResult(sampleScore < this.samplingRatio);
+    }
+
+    private static double DJB2SampleScore(string traceIdHex)
+    {
+        // Calculate DJB2 hash code from hex-converted TraceId
+        int hash = 5381;
+
+        for (int i = 0; i < traceIdHex.Length; i++)
         {
-            // Ensure passed ratio is between 0 and 1, inclusive
-            Guard.ThrowIfOutOfRange((double)samplingRatio, min: 0.0, max: 1.0);
-
-            this.samplingRatio = samplingRatio;
-            this.Description = "ApplicationInsightsSampler{" + samplingRatio + "}";
+            hash = ((hash << 5) + hash) + (int)traceIdHex[i];
         }
 
-        /// <summary>
-        /// Computational method using the DJB2 Hash algorithm to decide whether to sample
-        /// a given telemetry item, based on its Trace Id.
-        /// </summary>
-        /// <param name="samplingParameters">Parameters of telemetry item used to make sampling decision.</param>
-        /// <returns>Returns whether or not we should sample telemetry in the form of a <see cref="SamplingResult"/> class.</returns>
-        public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
+        // Take the absolute value of the hash
+        if (hash == int.MinValue)
         {
-            double sampleScore = DJB2SampleScore(samplingParameters.TraceId.ToHexString().ToLowerInvariant());
-            return new SamplingResult(sampleScore < this.samplingRatio);
+            hash = int.MaxValue;
+        }
+        else
+        {
+            hash = Math.Abs(hash);
         }
 
-        private static double DJB2SampleScore(string traceIdHex)
-        {
-            // Calculate DJB2 hash code from hex-converted TraceId
-            int hash = 5381;
-
-            for (int i = 0; i < traceIdHex.Length; i++)
-            {
-                hash = ((hash << 5) + hash) + (int)traceIdHex[i];
-            }
-
-            // Take the absolute value of the hash
-            if (hash == int.MinValue)
-            {
-                hash = int.MaxValue;
-            }
-            else
-            {
-                hash = Math.Abs(hash);
-            }
-
-            // Divide by MaxValue for value between 0 and 1 for sampling score
-            double samplingScore = (double)hash / int.MaxValue;
-            return samplingScore;
-        }
+        // Divide by MaxValue for value between 0 and 1 for sampling score
+        double samplingScore = (double)hash / int.MaxValue;
+        return samplingScore;
     }
 }

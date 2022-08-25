@@ -1,4 +1,4 @@
-﻿// <copyright file="IStatusServiceContract.cs" company="OpenTelemetry Authors">
+// <copyright file="IStatusServiceContract.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,12 +17,11 @@
 using System.ServiceModel;
 using System.Threading.Tasks;
 
-namespace Examples.Wcf
+namespace Examples.Wcf;
+
+[ServiceContract(Namespace = "http://opentelemetry.io/", Name = "StatusService", SessionMode = SessionMode.Allowed)]
+public interface IStatusServiceContract
 {
-    [ServiceContract(Namespace = "http://opentelemetry.io/", Name = "StatusService", SessionMode = SessionMode.Allowed)]
-    public interface IStatusServiceContract
-    {
-        [OperationContract]
-        Task<StatusResponse> PingAsync(StatusRequest request);
-    }
+    [OperationContract]
+    Task<StatusResponse> PingAsync(StatusRequest request);
 }

@@ -1,4 +1,4 @@
-﻿// <copyright file="UnixDomainSocketDataTransportTests.cs" company="OpenTelemetry Authors">
+// <copyright file="UnixDomainSocketDataTransportTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,15 +18,17 @@ using System;
 using System.IO;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Xunit;
 
-namespace OpenTelemetry.Exporter.Geneva.Tests
+namespace OpenTelemetry.Exporter.Geneva.Tests;
+
+public class UnixDomainSocketDataTransportTests
 {
-    public class UnixDomainSocketDataTransportTests
+    [Fact]
+    public void UnixDomainSocketDataTransport_Success_Linux()
     {
-        [Fact]
-        [Trait("Platform", "Linux")]
-        public void UnixDomainSocketDataTransport_Success()
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             string path = GetRandomFilePath();
             var endpoint = new UnixDomainSocketEndPoint(path);
@@ -62,10 +64,12 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 }
             }
         }
+    }
 
-        [Fact]
-        [Trait("Platform", "Linux")]
-        public void UnixDomainSocketDataTransport_SendTimesOutIfSocketBufferFull()
+    [Fact]
+    public void UnixDomainSocketDataTransport_SendTimesOutIfSocketBufferFull_Linux()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             string path = GetRandomFilePath();
             var endpoint = new UnixDomainSocketEndPoint(path);
@@ -110,10 +114,12 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 }
             }
         }
+    }
 
-        [Fact]
-        [Trait("Platform", "Linux")]
-        public void UnixDomainSocketDataTransport_ServerRestart()
+    [Fact]
+    public void UnixDomainSocketDataTransport_ServerRestart_Linux()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             Console.WriteLine("Test starts.");
             string path = GetRandomFilePath();
@@ -157,10 +163,10 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
 
                 Console.WriteLine("Destroyed server.");
 
-                Console.WriteLine("Client will fail during Send, but shouldn't throw exception.");
-                dataTransport.Send(data, data.Length);
-                Console.WriteLine("Client will fail during reconnect, but shouldn't throw exception.");
-                dataTransport.Send(data, data.Length);
+                Console.WriteLine("Client will fail during Send, and should throw an Exception");
+                Assert.ThrowsAny<Exception>(() => dataTransport.Send(data, data.Length));
+                Console.WriteLine("Client will fail during Reconnect, and should throw an Exception");
+                Assert.ThrowsAny<Exception>(() => dataTransport.Send(data, data.Length));
 
                 using var server2 = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
                 server2.Bind(endpoint);
@@ -195,16 +201,16 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                 }
             }
         }
+    }
 
-        private static string GetRandomFilePath()
+    private static string GetRandomFilePath()
+    {
+        while (true)
         {
-            while (true)
+            string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            if (!File.Exists(path))
             {
-                string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-                if (!File.Exists(path))
-                {
-                    return path;
-                }
+                return path;
             }
         }
     }

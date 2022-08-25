@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Description>OpenTelemetry Hangfire Instrumentation</Description>
@@ -8,9 +8,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Hangfire.Core" Version="[1.7.0,1.8.0)" />
-    <PackageReference Include="OpenTelemetry.Api" Version="1.2.0-rc4" />
+    <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryApiPkgVer)" />
   </ItemGroup>
-
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\Guard.cs" Link="Includes\Guard.cs" />
   </ItemGroup>

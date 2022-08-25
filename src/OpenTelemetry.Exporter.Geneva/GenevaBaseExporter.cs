@@ -1,4 +1,4 @@
-﻿// <copyright file="GenevaBaseExporter.cs" company="OpenTelemetry Authors">
+// <copyright file="GenevaBaseExporter.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 
 namespace OpenTelemetry.Exporter.Geneva;
@@ -87,6 +88,21 @@ where T : class
         }
 
         cursor = MessagePackSerializer.Serialize(buffer, cursor, value);
+        return cursor;
+    }
+
+    internal static int AddPartAField(byte[] buffer, int cursor, string name, Span<byte> value)
+    {
+        if (V40_PART_A_MAPPING.TryGetValue(name, out string replacementKey))
+        {
+            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, replacementKey);
+        }
+        else
+        {
+            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, name);
+        }
+
+        cursor = MessagePackSerializer.SerializeSpan(buffer, cursor, value);
         return cursor;
     }
 }

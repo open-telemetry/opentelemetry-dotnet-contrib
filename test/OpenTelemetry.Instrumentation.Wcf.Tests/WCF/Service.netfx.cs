@@ -1,4 +1,4 @@
-﻿// <copyright file="Service.netfx.cs" company="OpenTelemetry Authors">
+// <copyright file="Service.netfx.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,41 +13,42 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
+
 #if NETFRAMEWORK
 using System.ServiceModel;
 using System.Threading.Tasks;
 
-namespace OpenTelemetry.Instrumentation.Wcf.Tests
+namespace OpenTelemetry.Instrumentation.Wcf.Tests;
+
+[ServiceBehavior(
+    Namespace = "http://opentelemetry.io/",
+    ConcurrencyMode = ConcurrencyMode.Multiple,
+    InstanceContextMode = InstanceContextMode.Single,
+    UseSynchronizationContext = false,
+    Name = "Service")]
+public class Service : IServiceContract
 {
-    [ServiceBehavior(
-        Namespace = "http://opentelemetry.io/",
-        ConcurrencyMode = ConcurrencyMode.Multiple,
-        InstanceContextMode = InstanceContextMode.Single,
-        UseSynchronizationContext = false,
-        Name = "Service")]
-    public class Service : IServiceContract
+    public Task<ServiceResponse> ExecuteAsync(ServiceRequest request)
     {
-        public Task<ServiceResponse> ExecuteAsync(ServiceRequest request)
-        {
-            return Task.FromResult(
-                new ServiceResponse
-                {
-                    Payload = $"RSP: {request.Payload}",
-                });
-        }
+        return Task.FromResult(
+            new ServiceResponse
+            {
+                Payload = $"RSP: {request.Payload}",
+            });
+    }
 
-        public Task<ServiceResponse> ExecuteWithEmptyActionNameAsync(ServiceRequest request)
-        {
-            return Task.FromResult(
-               new ServiceResponse
-               {
-                   Payload = $"RSP: {request.Payload}",
-               });
-        }
+    public Task<ServiceResponse> ExecuteWithEmptyActionNameAsync(ServiceRequest request)
+    {
+        return Task.FromResult(
+            new ServiceResponse
+            {
+                Payload = $"RSP: {request.Payload}",
+            });
+    }
 
-        public void ExecuteWithOneWay(ServiceRequest request)
-        {
-        }
+    public void ExecuteWithOneWay(ServiceRequest request)
+    {
     }
 }
+
 #endif

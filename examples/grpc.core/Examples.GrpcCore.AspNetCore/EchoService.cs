@@ -1,4 +1,4 @@
-﻿// <copyright file="EchoService.cs" company="OpenTelemetry Authors">
+// <copyright file="EchoService.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,17 +17,16 @@
 using System.Threading.Tasks;
 using Grpc.Core;
 
-namespace Examples.GrpcCore.AspNetCore
+namespace Examples.GrpcCore.AspNetCore;
+
+/// <summary>
+/// Simple implementation of the echo service.
+/// </summary>
+internal class EchoService : Echo.EchoBase
 {
-    /// <summary>
-    /// Simple implementation of the echo service.
-    /// </summary>
-    internal class EchoService : Echo.EchoBase
+    /// <inheritdoc/>
+    public override Task<EchoResponse> Echo(EchoRequest request, ServerCallContext context)
     {
-        /// <inheritdoc/>
-        public override Task<EchoResponse> Echo(EchoRequest request, ServerCallContext context)
-        {
-            return Task.FromResult(new EchoResponse { Message = request.Message });
-        }
+        return Task.FromResult(new EchoResponse { Message = request.Message });
     }
 }

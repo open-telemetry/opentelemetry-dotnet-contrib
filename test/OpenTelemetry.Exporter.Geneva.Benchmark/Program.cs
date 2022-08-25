@@ -1,4 +1,4 @@
-﻿// <copyright file="Program.cs" company="OpenTelemetry Authors">
+// <copyright file="Program.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,10 +16,9 @@
 
 using BenchmarkDotNet.Running;
 
-namespace OpenTelemetry.Exporter.Geneva.Benchmark
+namespace OpenTelemetry.Exporter.Geneva.Benchmark;
+
+internal class Program
 {
-    internal class Program
-    {
-        private static void Main(string[] args) => BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
-    }
+    private static void Main(string[] args) => BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
 }

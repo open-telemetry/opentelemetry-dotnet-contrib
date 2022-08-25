@@ -1,4 +1,4 @@
-﻿// <copyright file="OperationName.cs" company="OpenTelemetry Authors">
+// <copyright file="OperationName.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,43 +14,42 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.MassTransit
+namespace OpenTelemetry.Instrumentation.MassTransit;
+
+/// <summary>
+/// MassTransit diagnostic source operation name constants.
+/// </summary>
+public static class OperationName
 {
     /// <summary>
-    /// MassTransit diagnostic source operation name constants.
+    /// MassTransit Transport category constants.
     /// </summary>
-    public static class OperationName
+    public static class Transport
     {
         /// <summary>
-        /// MassTransit Transport category constants.
+        /// MassTransit send diagnostic source operation name.
         /// </summary>
-        public static class Transport
-        {
-            /// <summary>
-            /// MassTransit send diagnostic source operation name.
-            /// </summary>
-            public const string Send = "MassTransit.Transport.Send";
-
-            /// <summary>
-            /// MassTransit receive diagnostic source operation name.
-            /// </summary>
-            public const string Receive = "MassTransit.Transport.Receive";
-        }
+        public const string Send = "MassTransit.Transport.Send";
 
         /// <summary>
-        /// MassTransit Consumer category constants.
+        /// MassTransit receive diagnostic source operation name.
         /// </summary>
-        public static class Consumer
-        {
-            /// <summary>
-            /// MassTransit consume diagnostic source operation name.
-            /// </summary>
-            public const string Consume = "MassTransit.Consumer.Consume";
+        public const string Receive = "MassTransit.Transport.Receive";
+    }
 
-            /// <summary>
-            /// MassTransit handle diagnostic source operation name.
-            /// </summary>
-            public const string Handle = "MassTransit.Consumer.Handle";
-        }
+    /// <summary>
+    /// MassTransit Consumer category constants.
+    /// </summary>
+    public static class Consumer
+    {
+        /// <summary>
+        /// MassTransit consume diagnostic source operation name.
+        /// </summary>
+        public const string Consume = "MassTransit.Consumer.Consume";
+
+        /// <summary>
+        /// MassTransit handle diagnostic source operation name.
+        /// </summary>
+        public const string Handle = "MassTransit.Consumer.Handle";
     }
 }

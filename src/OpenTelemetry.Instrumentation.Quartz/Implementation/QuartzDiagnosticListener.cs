@@ -1,4 +1,4 @@
-﻿// <copyright file="QuartzDiagnosticListener.cs" company="OpenTelemetry Authors">
+// <copyright file="QuartzDiagnosticListener.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,123 +22,122 @@ using System.Reflection;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Instrumentation.Quartz.Implementation
+namespace OpenTelemetry.Instrumentation.Quartz.Implementation;
+
+internal sealed class QuartzDiagnosticListener : ListenerHandler
 {
-    internal sealed class QuartzDiagnosticListener : ListenerHandler
+    internal static readonly AssemblyName AssemblyName = typeof(QuartzDiagnosticListener).Assembly.GetName();
+    internal static readonly string ActivitySourceName = AssemblyName.Name;
+    internal static readonly Version Version = AssemblyName.Version;
+    internal static readonly ActivitySource ActivitySource = new ActivitySource(ActivitySourceName, Version.ToString());
+    internal readonly PropertyFetcher<object> JobDetailsPropertyFetcher = new PropertyFetcher<object>("JobDetail");
+
+    private readonly QuartzInstrumentationOptions options;
+
+    public QuartzDiagnosticListener(string sourceName, QuartzInstrumentationOptions options)
+        : base(sourceName)
     {
-        internal static readonly AssemblyName AssemblyName = typeof(QuartzDiagnosticListener).Assembly.GetName();
-        internal static readonly string ActivitySourceName = AssemblyName.Name;
-        internal static readonly Version Version = AssemblyName.Version;
-        internal static readonly ActivitySource ActivitySource = new ActivitySource(ActivitySourceName, Version.ToString());
-        internal readonly PropertyFetcher<object> JobDetailsPropertyFetcher = new PropertyFetcher<object>("JobDetail");
+        Guard.ThrowIfNull(options);
 
-        private readonly QuartzInstrumentationOptions options;
+        this.options = options;
+    }
 
-        public QuartzDiagnosticListener(string sourceName, QuartzInstrumentationOptions options)
-            : base(sourceName)
+    public override void OnStartActivity(Activity activity, object payload)
+    {
+        if (activity.IsAllDataRequested)
         {
-            Guard.ThrowIfNull(options);
-
-            this.options = options;
-        }
-
-        public override void OnStartActivity(Activity activity, object payload)
-        {
-            if (activity.IsAllDataRequested)
+            if (!this.options.TracedOperations.Contains(activity.OperationName))
             {
-                if (!this.options.TracedOperations.Contains(activity.OperationName))
-                {
-                    QuartzInstrumentationEventSource.Log.OperationIsFilteredOut(activity.OperationName);
-                    activity.IsAllDataRequested = false;
-                    return;
-                }
+                QuartzInstrumentationEventSource.Log.OperationIsFilteredOut(activity.OperationName);
+                activity.IsAllDataRequested = false;
+                return;
+            }
 
-                activity.DisplayName = this.GetDisplayName(activity);
+            activity.DisplayName = this.GetDisplayName(activity);
 
-                ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
-                ActivityInstrumentationHelper.SetKindProperty(activity, this.GetActivityKind(activity));
+            ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
+            ActivityInstrumentationHelper.SetKindProperty(activity, this.GetActivityKind(activity));
 
-                try
-                {
-                    this.JobDetailsPropertyFetcher.TryFetch(payload, out var jobDetails);
-                    this.options.Enrich?.Invoke(activity, "OnStartActivity", jobDetails);
-                }
-                catch (Exception ex)
-                {
-                    QuartzInstrumentationEventSource.Log.EnrichmentException(ex);
-                }
+            try
+            {
+                this.JobDetailsPropertyFetcher.TryFetch(payload, out var jobDetails);
+                this.options.Enrich?.Invoke(activity, "OnStartActivity", jobDetails);
+            }
+            catch (Exception ex)
+            {
+                QuartzInstrumentationEventSource.Log.EnrichmentException(ex);
             }
         }
+    }
 
-        public override void OnStopActivity(Activity activity, object payload)
+    public override void OnStopActivity(Activity activity, object payload)
+    {
+        if (activity.IsAllDataRequested)
         {
-            if (activity.IsAllDataRequested)
+            try
             {
-                try
-                {
-                    this.JobDetailsPropertyFetcher.TryFetch(payload, out var jobDetails);
-                    this.options.Enrich?.Invoke(activity, "OnStopActivity", jobDetails);
-                }
-                catch (Exception ex)
-                {
-                    QuartzInstrumentationEventSource.Log.EnrichmentException(ex);
-                }
+                this.JobDetailsPropertyFetcher.TryFetch(payload, out var jobDetails);
+                this.options.Enrich?.Invoke(activity, "OnStopActivity", jobDetails);
+            }
+            catch (Exception ex)
+            {
+                QuartzInstrumentationEventSource.Log.EnrichmentException(ex);
             }
         }
+    }
 
-        public override void OnException(Activity activity, object payload)
+    public override void OnException(Activity activity, object payload)
+    {
+        if (activity.IsAllDataRequested)
         {
-            if (activity.IsAllDataRequested)
+            var exc = payload as Exception;
+            if (exc == null)
             {
-                var exc = payload as Exception;
-                if (exc == null)
-                {
-                    QuartzInstrumentationEventSource.Log.NullPayload(nameof(QuartzDiagnosticListener), nameof(this.OnStopActivity));
-                    return;
-                }
+                QuartzInstrumentationEventSource.Log.NullPayload(nameof(QuartzDiagnosticListener), nameof(this.OnStopActivity));
+                return;
+            }
 
-                if (this.options.RecordException)
-                {
-                    activity.RecordException(exc);
-                }
+            if (this.options.RecordException)
+            {
+                activity.RecordException(exc);
+            }
 
-                activity.SetStatus(Status.Error.WithDescription(exc.Message));
+            activity.SetStatus(Status.Error.WithDescription(exc.Message));
 
-                try
-                {
-                    this.options.Enrich?.Invoke(activity, "OnException", exc);
-                }
-                catch (Exception ex)
-                {
-                    QuartzInstrumentationEventSource.Log.EnrichmentException(ex);
-                }
+            try
+            {
+                this.options.Enrich?.Invoke(activity, "OnException", exc);
+            }
+            catch (Exception ex)
+            {
+                QuartzInstrumentationEventSource.Log.EnrichmentException(ex);
             }
         }
+    }
 
-        private string GetDisplayName(Activity activity)
+    private string GetDisplayName(Activity activity)
+    {
+        return activity.OperationName switch
         {
-            return activity.OperationName switch
-            {
-                OperationName.Job.Execute => $"execute {this.GetTag(activity.Tags, TagName.JobName)}",
-                OperationName.Job.Veto => $"veto {this.GetTag(activity.Tags, TagName.JobName)}",
-                _ => activity.DisplayName,
-            };
-        }
+            OperationName.Job.Execute => $"execute {this.GetTag(activity.Tags, TagName.JobName)}",
+            OperationName.Job.Veto => $"veto {this.GetTag(activity.Tags, TagName.JobName)}",
+            _ => activity.DisplayName,
+        };
+    }
 
-        private ActivityKind GetActivityKind(Activity activity)
+    private ActivityKind GetActivityKind(Activity activity)
+    {
+        return activity.OperationName switch
         {
-            return activity.OperationName switch
-            {
-                OperationName.Job.Execute => ActivityKind.Internal,
-                OperationName.Job.Veto => ActivityKind.Internal,
-                _ => activity.Kind,
-            };
-        }
+            OperationName.Job.Execute => ActivityKind.Internal,
+            OperationName.Job.Veto => ActivityKind.Internal,
+            _ => activity.Kind,
+        };
+    }
 
-        private string GetTag(IEnumerable<KeyValuePair<string, string>> tags, string tagName)
-        {
-            var tag = tags.SingleOrDefault(kv => kv.Key == tagName);
-            return tag.Value;
-        }
+    private string GetTag(IEnumerable<KeyValuePair<string, string>> tags, string tagName)
+    {
+        var tag = tags.SingleOrDefault(kv => kv.Key == tagName);
+        return tag.Value;
     }
 }
