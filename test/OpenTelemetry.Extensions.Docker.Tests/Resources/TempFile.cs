@@ -18,49 +18,48 @@ using System;
 using System.IO;
 using System.Threading;
 
-namespace OpenTelemetry.Extensions.Docker.Tests
+namespace OpenTelemetry.Extensions.Docker.Tests;
+
+internal class TempFile : IDisposable
 {
-    internal class TempFile : IDisposable
+    private string filePath;
+
+    public TempFile()
     {
-        private string filePath;
+        this.filePath = Path.GetTempFileName();
+    }
 
-        public TempFile()
-        {
-            this.filePath = Path.GetTempFileName();
-        }
+    public string FilePath
+    {
+        get { return this.filePath; }
+        set { this.filePath = value; }
+    }
 
-        public string FilePath
+    public void Write(string data)
+    {
+        using (FileStream stream = new FileStream(this.filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite | FileShare.Delete))
         {
-            get { return this.filePath; }
-            set { this.filePath = value; }
-        }
-
-        public void Write(string data)
-        {
-            using (FileStream stream = new FileStream(this.filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite | FileShare.Delete))
+            using (StreamWriter sw = new StreamWriter(stream))
             {
-                using (StreamWriter sw = new StreamWriter(stream))
-                {
-                    sw.Write(data);
-                }
+                sw.Write(data);
             }
         }
+    }
 
-        public void Dispose()
+    public void Dispose()
+    {
+        for (int tries = 0; ; tries++)
         {
-            for (int tries = 0; ; tries++)
+            try
             {
-                try
-                {
-                    File.Delete(this.filePath);
-                    return;
-                }
-                catch (IOException) when (tries < 3)
-                {
-                    // the file is unavailable because it is: still being written to or being processed by another thread
-                    // sleep for sometime before deleting
-                    Thread.Sleep(1000);
-                }
+                File.Delete(this.filePath);
+                return;
+            }
+            catch (IOException) when (tries < 3)
+            {
+                // the file is unavailable because it is: still being written to or being processed by another thread
+                // sleep for sometime before deleting
+                Thread.Sleep(1000);
             }
         }
     }

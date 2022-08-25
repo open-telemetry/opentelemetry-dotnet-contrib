@@ -17,7 +17,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using BenchmarkDotNet.Attributes;
-using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
 /*
@@ -34,101 +33,100 @@ Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
 | SerializeActivity | 387.4 ns | 7.22 ns | 7.09 ns | 0.0062 |      40 B |
 */
 
-namespace OpenTelemetry.Exporter.Geneva.Benchmark
+namespace OpenTelemetry.Exporter.Geneva.Benchmark;
+
+[MemoryDiagnoser]
+public class TraceExporterBenchmarks
 {
-    [MemoryDiagnoser]
-    public class TraceExporterBenchmarks
+    private readonly Activity activity;
+    private readonly Batch<Activity> batch;
+    private readonly GenevaTraceExporter exporter;
+    private readonly ActivitySource activitySource = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark");
+
+    public TraceExporterBenchmarks()
     {
-        private readonly Activity activity;
-        private readonly Batch<Activity> batch;
-        private readonly GenevaTraceExporter exporter;
-        private readonly ActivitySource activitySource = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark");
+        Activity.DefaultIdFormat = ActivityIdFormat.W3C;
 
-        public TraceExporterBenchmarks()
+        this.batch = this.CreateBatch();
+
+        using var activityListener = new ActivityListener
         {
-            Activity.DefaultIdFormat = ActivityIdFormat.W3C;
+            ActivityStarted = null,
+            ActivityStopped = null,
+            ShouldListenTo = (activitySource) => activitySource.Name == this.activitySource.Name,
+            Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded,
+        };
 
-            this.batch = this.CreateBatch();
+        ActivitySource.AddActivityListener(activityListener);
 
-            using var activityListener = new ActivityListener
-            {
-                ActivityStarted = null,
-                ActivityStopped = null,
-                ShouldListenTo = (activitySource) => activitySource.Name == this.activitySource.Name,
-                Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded,
-            };
-
-            ActivitySource.AddActivityListener(activityListener);
-
-            using (var testActivity = this.activitySource.StartActivity("Benchmark"))
-            {
-                this.activity = testActivity;
-                this.activity?.SetTag("tagString", "value");
-                this.activity?.SetTag("tagInt", 100);
-                this.activity?.SetStatus(Status.Error);
-            }
-
-            this.exporter = new GenevaTraceExporter(new GenevaExporterOptions
-            {
-                ConnectionString = "EtwSession=OpenTelemetry",
-                PrepopulatedFields = new Dictionary<string, object>
-                {
-                    ["cloud.role"] = "BusyWorker",
-                    ["cloud.roleInstance"] = "CY1SCH030021417",
-                    ["cloud.roleVer"] = "9.0.15289.2",
-                },
-            });
+        using (var testActivity = this.activitySource.StartActivity("Benchmark"))
+        {
+            this.activity = testActivity;
+            this.activity?.SetTag("tagString", "value");
+            this.activity?.SetTag("tagInt", 100);
+            this.activity?.SetStatus(Status.Error);
         }
 
-        [Benchmark]
-        public void ExportActivity()
+        this.exporter = new GenevaTraceExporter(new GenevaExporterOptions
         {
-            this.exporter.Export(this.batch);
-        }
-
-        [Benchmark]
-        public void SerializeActivity()
-        {
-            this.exporter.SerializeActivity(this.activity);
-        }
-
-        [GlobalCleanup]
-        public void Cleanup()
-        {
-            this.activity.Dispose();
-            this.activitySource.Dispose();
-            this.batch.Dispose();
-            this.exporter.Dispose();
-        }
-
-        private Batch<Activity> CreateBatch()
-        {
-            using var batchGeneratorExporter = new BatchGeneratorExporter();
-            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new AlwaysOnSampler())
-                .AddSource(this.activitySource.Name)
-                .AddProcessor(new SimpleActivityExportProcessor(batchGeneratorExporter))
-                .Build();
-
-            using (var activity = this.activitySource.StartActivity("Benchmark"))
+            ConnectionString = "EtwSession=OpenTelemetry",
+            PrepopulatedFields = new Dictionary<string, object>
             {
-                activity.SetTag("tagString", "value");
-                activity.SetTag("tagInt", 100);
-                activity.SetStatus(Status.Error);
-            }
+                ["cloud.role"] = "BusyWorker",
+                ["cloud.roleInstance"] = "CY1SCH030021417",
+                ["cloud.roleVer"] = "9.0.15289.2",
+            },
+        });
+    }
 
-            return batchGeneratorExporter.Batch;
+    [Benchmark]
+    public void ExportActivity()
+    {
+        this.exporter.Export(this.batch);
+    }
+
+    [Benchmark]
+    public void SerializeActivity()
+    {
+        this.exporter.SerializeActivity(this.activity);
+    }
+
+    [GlobalCleanup]
+    public void Cleanup()
+    {
+        this.activity.Dispose();
+        this.activitySource.Dispose();
+        this.batch.Dispose();
+        this.exporter.Dispose();
+    }
+
+    private Batch<Activity> CreateBatch()
+    {
+        using var batchGeneratorExporter = new BatchGeneratorExporter();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new AlwaysOnSampler())
+            .AddSource(this.activitySource.Name)
+            .AddProcessor(new SimpleActivityExportProcessor(batchGeneratorExporter))
+            .Build();
+
+        using (var activity = this.activitySource.StartActivity("Benchmark"))
+        {
+            activity.SetTag("tagString", "value");
+            activity.SetTag("tagInt", 100);
+            activity.SetStatus(Status.Error);
         }
 
-        private class BatchGeneratorExporter : BaseExporter<Activity>
-        {
-            public Batch<Activity> Batch { get; set; }
+        return batchGeneratorExporter.Batch;
+    }
 
-            public override ExportResult Export(in Batch<Activity> batch)
-            {
-                this.Batch = batch;
-                return ExportResult.Success;
-            }
+    private class BatchGeneratorExporter : BaseExporter<Activity>
+    {
+        public Batch<Activity> Batch { get; set; }
+
+        public override ExportResult Export(in Batch<Activity> batch)
+        {
+            this.Batch = batch;
+            return ExportResult.Success;
         }
     }
 }
