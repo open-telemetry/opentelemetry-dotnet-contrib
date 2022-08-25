@@ -28,6 +28,8 @@ internal class ProcessMetrics
 
     static ProcessMetrics()
     {
+        CurrentProcess.Refresh();
+
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
             "process.memory.usage",
