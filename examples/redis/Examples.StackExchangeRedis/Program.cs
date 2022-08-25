@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System.Diagnostics;
 using OpenTelemetry;
 using OpenTelemetry.Trace;
 using StackExchange.Redis;
@@ -37,7 +36,7 @@ public class Program
                 .AddConsoleExporter()
                 .AddRedisInstrumentation(connection, options =>
                 {
-                    // changing flushinterval from 10s to 5s
+                    // changing flush interval from 10s to 5s
                     options.FlushInterval = TimeSpan.FromSeconds(5);
                 })
                 .Build();

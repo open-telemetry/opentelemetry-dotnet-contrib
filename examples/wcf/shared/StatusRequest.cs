@@ -16,12 +16,11 @@
 
 using System.Runtime.Serialization;
 
-namespace Examples.Wcf
+namespace Examples.Wcf;
+
+[DataContract]
+public class StatusRequest
 {
-    [DataContract]
-    public class StatusRequest
-    {
-        [DataMember]
-        public string Status { get; set; }
-    }
+    [DataMember]
+    public string Status { get; set; }
 }
