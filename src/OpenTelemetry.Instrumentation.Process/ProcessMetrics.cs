@@ -26,6 +26,8 @@ internal class ProcessMetrics
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
     internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
 
+    private static readonly string[] CpuStates = new string[] { "system", "user", "wait" };
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessMetrics"/> class.
     /// </summary>
@@ -95,13 +97,12 @@ internal class ProcessMetrics
         public Measurement<int>[] GetProcessorCpuTimeWithBreakdown()
         {
             Measurement<int>[] measurements = new Measurement<int>[3];
-            string[] cpuStates = new string[] { "system", "user", "wait" };
             var priviledgedCpuTime = this.currentProcess.PrivilegedProcessorTime.Seconds;
             var userCpuTime = this.currentProcess.UserProcessorTime.Seconds;
 
-            measurements[0] = new(priviledgedCpuTime, new KeyValuePair<string, object>("state", cpuStates[0]));
-            measurements[1] = new(userCpuTime, new KeyValuePair<string, object>("state", cpuStates[1]));
-            measurements[2] = new(this.currentProcess.TotalProcessorTime.Seconds - priviledgedCpuTime - userCpuTime, new KeyValuePair<string, object>("state", cpuStates[2]));
+            measurements[0] = new(priviledgedCpuTime, new KeyValuePair<string, object>("state", CpuStates[0]));
+            measurements[1] = new(userCpuTime, new KeyValuePair<string, object>("state", CpuStates[1]));
+            measurements[2] = new(this.currentProcess.TotalProcessorTime.Seconds - priviledgedCpuTime - userCpuTime, new KeyValuePair<string, object>("state", CpuStates[2]));
 
             return measurements;
         }
