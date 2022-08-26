@@ -23,7 +23,7 @@ public class ProcessInstrumentationOptions
 {
     /// <summary>
     /// Gets the flag indicating whether Cpu time should be further broken down by its states.
-    /// The Cpu state could be one of the following type: system, user, wait.
+    /// The Cpu state could be one of the following type: system, user, or wait.
     /// </summary>
-    public bool? CpuStatesEnabled { get; }
+    public bool? CpuStatesEnabled { get; } = false;
 }
