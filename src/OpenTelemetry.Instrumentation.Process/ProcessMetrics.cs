@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using Diagnostics = System.Diagnostics;
@@ -46,6 +47,23 @@ internal class ProcessMetrics
             () => InstrumentsValues.GetVirtualMemoryUsage(),
             unit: "By",
             description: "The amount of committed virtual memory.");
+
+        if (options.CpuStatesEnabled == false)
+        {
+            MeterInstance.CreateObservableCounter(
+            $"process.cpu.time",
+            () => InstrumentsValues.GetProcessorCpuTime(),
+            unit: "s",
+            description: "Total CPU seconds.");
+        }
+        else
+        {
+            MeterInstance.CreateObservableCounter(
+            $"process.cpu.time",
+            () => InstrumentsValues.GetProcessorCpuTimeWithBreakdown(),
+            unit: "s",
+            description: "Total CPU seconds broken down by different states.");
+        }
     }
 
     private class InstrumentsValues
@@ -57,6 +75,13 @@ internal class ProcessMetrics
             CurrentProcess.Refresh();
         }
 
+        private enum CPUState
+        {
+            System,
+            User,
+            Wait,
+        }
+
         public static long GetMemoryUsage()
         {
             return CurrentProcess.WorkingSet64;
@@ -65,6 +90,25 @@ internal class ProcessMetrics
         public static long GetVirtualMemoryUsage()
         {
             return CurrentProcess.VirtualMemorySize64;
+        }
+
+        public static long GetProcessorCpuTime()
+        {
+            return CurrentProcess.TotalProcessorTime.Seconds;
+        }
+
+        // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md#metric-instruments
+        public static Measurement<long>[] GetProcessorCpuTimeWithBreakdown()
+        {
+            Measurement<long>[] measurements = new Measurement<long>[3];
+            var priviledgedCpuTime = CurrentProcess.PrivilegedProcessorTime.Seconds;
+            var userCpuTime = CurrentProcess.UserProcessorTime.Seconds;
+
+            measurements[(int)CPUState.System] = new(priviledgedCpuTime, new KeyValuePair<string, object>("state", CPUState.System.ToString()));
+            measurements[(int)CPUState.User] = new(userCpuTime, new KeyValuePair<string, object>("state", CPUState.User.ToString()));
+            measurements[(int)CPUState.Wait] = new(CurrentProcess.TotalProcessorTime.Seconds - priviledgedCpuTime - userCpuTime, new KeyValuePair<string, object>("state", CPUState.Wait.ToString()));
+
+            return measurements;
         }
     }
 }

@@ -21,5 +21,9 @@ namespace OpenTelemetry.Instrumentation.Process;
 /// </summary>
 public class ProcessInstrumentationOptions
 {
-    public bool? ExpandOnCpuStates { get; set; }
+    /// <summary>
+    /// Gets the flag indicating whether Cpu time should be further broken down by its states.
+    /// The Cpu state could be one of the following type: system, user, wait.
+    /// </summary>
+    public bool? CpuStatesEnabled { get; }
 }
