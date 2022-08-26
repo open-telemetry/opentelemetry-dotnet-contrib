@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
@@ -93,22 +92,23 @@ internal class ProcessMetrics
             return this.currentProcess.VirtualMemorySize64;
         }
 
-        public long GetProcessorCpuTime()
+        public int GetProcessorCpuTime()
         {
             return this.currentProcess.TotalProcessorTime.Seconds;
         }
 
         // See spec:
         // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md#metric-instruments
-        public Measurement<long>[] GetProcessorCpuTimeWithBreakdown()
+        public Measurement<int>[] GetProcessorCpuTimeWithBreakdown()
         {
-            Measurement<long>[] measurements = new Measurement<long>[Enum.GetNames(typeof(CpuState)).Length];
+            Measurement<int>[] measurements = new Measurement<int>[3];
+            string[] cpuStates = new string[] { "system", "user", "wait" };
             var priviledgedCpuTime = this.currentProcess.PrivilegedProcessorTime.Seconds;
             var userCpuTime = this.currentProcess.UserProcessorTime.Seconds;
 
-            measurements[(int)CpuState.System] = new(priviledgedCpuTime, new KeyValuePair<string, object>("state", CpuState.System.ToString()));
-            measurements[(int)CpuState.User] = new(userCpuTime, new KeyValuePair<string, object>("state", CpuState.User.ToString()));
-            measurements[(int)CpuState.Wait] = new(this.currentProcess.TotalProcessorTime.Seconds - priviledgedCpuTime - userCpuTime, new KeyValuePair<string, object>("state", CpuState.Wait.ToString()));
+            measurements[0] = new(priviledgedCpuTime, new KeyValuePair<string, object>("state", cpuStates[0]));
+            measurements[1] = new(userCpuTime, new KeyValuePair<string, object>("state", cpuStates[1]));
+            measurements[2] = new(this.currentProcess.TotalProcessorTime.Seconds - priviledgedCpuTime - userCpuTime, new KeyValuePair<string, object>("state", cpuStates[2]));
 
             return measurements;
         }
