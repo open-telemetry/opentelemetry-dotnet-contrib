@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-using System;
+using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using Diagnostics = System.Diagnostics;
@@ -29,6 +29,62 @@ internal class ProcessMetrics
 
     static ProcessMetrics()
     {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ProcessMetrics"/> class.
+    /// </summary>
+    /// <param name="options">The options to define the metrics.</param>
+    public ProcessMetrics(ProcessInstrumentationOptions options)
+    {
+        // TODO: change to ObservableUpDownCounter
+        // MeterInstance.CreateObservableGauge(
+        //    $"process.cpu.utilization",
+        //    () => CurrentProcess.TotalProcessorTime.TotalMilliseconds / (Environment.ProcessorCount * (DateTime.Now - CurrentProcess.StartTime).Milliseconds),
+        //    unit: "1",
+        //    description: "Difference in process.cpu.time since the last measurement, divided by the elapsed time and number of CPUs available to the process.");
+
+        // What type should be used for the label?
+        // labels
+        // state, if specified, SHOULD be one of: system, user, wait. A process SHOULD be characterized either by data points with no state labels, or only data points with state labels.
+        // IEnumberable,
+        // List<Measurement<long>>
+        // wait time = totalprocessortime - Process.PrivilegedProcessorTime - Process.userProcessorTime
+
+        if (options.ExpandOnCpuStates == true)
+        {
+           MeterInstance.CreateObservableCounter(
+           $"process.cpu.time",
+           () =>
+           {
+               Measurement<long>[] measurements = new Measurement<long>[3];
+
+               CurrentProcess.Refresh();
+               var priviledgedCpuTime = CurrentProcess.PrivilegedProcessorTime.Seconds;
+               var userCpuTime = CurrentProcess.PrivilegedProcessorTime.Seconds;
+
+               measurements[(int)CPUState.System] = new(priviledgedCpuTime, new KeyValuePair<string, object>("state", CPUState.System.ToString()));
+               measurements[(int)CPUState.User] = new(userCpuTime, new KeyValuePair<string, object>("state", CPUState.User.ToString()));
+               measurements[(int)CPUState.Wait] = new(CurrentProcess.TotalProcessorTime.Seconds - priviledgedCpuTime - userCpuTime, new KeyValuePair<string, object>("state", CPUState.Wait.ToString()));
+
+               return measurements;
+           },
+           unit: "s",
+           description: "Total CPU seconds broken down by different states.");
+        }
+        else
+        {
+           MeterInstance.CreateObservableCounter(
+           $"process.cpu.time",
+           () =>
+           {
+               CurrentProcess.Refresh();
+               return CurrentProcess.TotalProcessorTime.Seconds;
+           },
+           unit: "s",
+           description: "Total CPU seconds broken down by different states.");
+        }
+
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
             "process.memory.usage",
@@ -38,25 +94,17 @@ internal class ProcessMetrics
 
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
-            $"{MetricPrefix}memory.usage.virtual",
-            () => Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64,
-            unit: "bytes",
-            description: "The amount of virtual memory allocated for the current process.");
+            "process.memory.virtual",
+            () => CurrentProcess.VirtualMemorySize64,
+            unit: "By",
+            description: "The amount of committed virtual memory.");
 
-        // TODO: change to ObservableUpDownCounter
-        MeterInstance.CreateObservableGauge(
-            $"{MetricPrefix}cpu.utilization",
-            () => Diagnostics.Process.GetCurrentProcess().TotalProcessorTime.TotalMilliseconds / (Environment.ProcessorCount * (DateTime.Now - Diagnostics.Process.GetCurrentProcess().StartTime).Milliseconds),
-            unit: "1",
-            description: "The total processor time divided by the elapsed time since the process start and the number of CPUs available to the current process.");
     }
 
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ProcessMetrics"/> class.
-    /// </summary>
-    /// <param name="options">The options to define the metrics.</param>
-    public ProcessMetrics(ProcessInstrumentationOptions options)
+    private enum CPUState
     {
+        System,
+        User,
+        Wait,
     }
 }

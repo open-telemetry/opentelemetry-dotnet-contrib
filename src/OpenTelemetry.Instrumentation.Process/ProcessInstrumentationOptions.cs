@@ -21,4 +21,5 @@ namespace OpenTelemetry.Instrumentation.Process;
 /// </summary>
 public class ProcessInstrumentationOptions
 {
+    public bool? ExpandOnCpuStates { get; set; }
 }
