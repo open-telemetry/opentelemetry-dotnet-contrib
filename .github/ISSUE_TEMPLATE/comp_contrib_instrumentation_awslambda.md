@@ -1,7 +1,7 @@
 ---
 name: OpenTelemetry.Instrumentation.AWSLambda
 about: Issue with OpenTelemetry.Instrumentation.AWSLambda
-labels: comp:contrib.instrumentation.awslambda
+labels: comp:instrumentation.awslambda
 ---
 
 # Issue with OpenTelemetry.Instrumentation.AWSLambda
