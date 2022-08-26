@@ -119,7 +119,6 @@ internal class ProcessMetrics
             () => CurrentProcess.VirtualMemorySize64,
             unit: "By",
             description: "The amount of committed virtual memory.");
-
     }
 
     private enum CPUState
