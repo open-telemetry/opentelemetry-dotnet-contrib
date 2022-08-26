@@ -29,6 +29,27 @@ internal class ProcessMetrics
 
     static ProcessMetrics()
     {
+        // TODO: change to ObservableUpDownCounter
+        MeterInstance.CreateObservableGauge(
+            "process.memory.usage",
+            () =>
+            {
+                CurrentProcess.Refresh();
+                return CurrentProcess.WorkingSet64;
+            },
+            unit: "By",
+            description: "The amount of physical memory in use.");
+
+        // TODO: change to ObservableUpDownCounter
+        MeterInstance.CreateObservableGauge(
+            "process.memory.virtual",
+            () =>
+            {
+                CurrentProcess.Refresh();
+                return CurrentProcess.VirtualMemorySize64;
+            },
+            unit: "By",
+            description: "The amount of committed virtual memory.");
     }
 
     /// <summary>
