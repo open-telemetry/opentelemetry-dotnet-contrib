@@ -25,7 +25,11 @@ internal class ProcessMetrics
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
     internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
 
-    static ProcessMetrics()
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ProcessMetrics"/> class.
+    /// </summary>
+    /// <param name="options">The options to define the metrics.</param>
+    public ProcessMetrics(ProcessInstrumentationOptions options)
     {
         InstrumentsValues values = new InstrumentsValues();
 
@@ -42,14 +46,6 @@ internal class ProcessMetrics
             () => InstrumentsValues.GetVirtualMemoryUsage(),
             unit: "By",
             description: "The amount of committed virtual memory.");
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ProcessMetrics"/> class.
-    /// </summary>
-    /// <param name="options">The options to define the metrics.</param>
-    public ProcessMetrics(ProcessInstrumentationOptions options)
-    {
     }
 
     private class InstrumentsValues
