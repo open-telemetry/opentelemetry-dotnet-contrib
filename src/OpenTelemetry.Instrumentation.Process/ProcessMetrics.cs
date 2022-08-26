@@ -29,7 +29,7 @@ internal class ProcessMetrics
     /// Initializes a new instance of the <see cref="ProcessMetrics"/> class.
     /// </summary>
     /// <param name="options">The options to define the metrics.</param>
-    public ProcessMetrics(ProcessInstrumentationOptions options)
+    public ProcessMetrics(ProcessInstrumentationOptions? options)
     {
         InstrumentsValues values = new InstrumentsValues();
 
