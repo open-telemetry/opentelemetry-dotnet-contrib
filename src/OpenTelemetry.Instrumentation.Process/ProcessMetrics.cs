@@ -75,13 +75,6 @@ internal class ProcessMetrics
             this.currentProcess.Refresh();
         }
 
-        private enum CpuState
-        {
-            System,
-            User,
-            Wait,
-        }
-
         public long GetMemoryUsage()
         {
             return this.currentProcess.WorkingSet64;
