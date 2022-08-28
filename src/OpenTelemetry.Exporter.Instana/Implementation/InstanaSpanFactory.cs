@@ -15,25 +15,24 @@
 // </copyright>
 using System.Collections.Generic;
 
-namespace OpenTelemetry.Exporter.Instana.Implementation
+namespace OpenTelemetry.Exporter.Instana.Implementation;
+
+internal class InstanaSpanFactory
 {
-    internal class InstanaSpanFactory
+    internal static InstanaSpan CreateSpan()
     {
-        internal static InstanaSpan CreateSpan()
+        InstanaSpan instanaSpan = new InstanaSpan
         {
-            InstanaSpan instanaSpan = new InstanaSpan
+            Data = new Data()
             {
-                Data = new Data()
-                {
-                    data = new Dictionary<string, object>(),
-                    Tags = new Dictionary<string, string>(),
-                    Events = new List<SpanEvent>(8),
-                },
+                data = new Dictionary<string, object>(),
+                Tags = new Dictionary<string, string>(),
+                Events = new List<SpanEvent>(8),
+            },
 
-                TransformInfo = new InstanaSpanTransformInfo(),
-            };
+            TransformInfo = new InstanaSpanTransformInfo(),
+        };
 
-            return instanaSpan;
-        }
+        return instanaSpan;
     }
 }
