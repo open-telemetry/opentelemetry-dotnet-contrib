@@ -36,12 +36,14 @@ public class ProcessMetricsTests
 
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
-        Assert.True(exportedItems.Count == 3);
+        Assert.True(exportedItems.Count == 4);
         var physicalMemoryMetric = exportedItems.FirstOrDefault(i => i.Name == "process.memory.usage");
         Assert.NotNull(physicalMemoryMetric);
         var virtualMemoryMetric = exportedItems.FirstOrDefault(i => i.Name == "process.memory.virtual");
         Assert.NotNull(virtualMemoryMetric);
-        var processCpuTimeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.time");
-        Assert.NotNull(processCpuTimeMetric);
+        var cpuTimeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.time");
+        Assert.NotNull(cpuTimeMetric);
+        var cpuUtilizationMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.utilization");
+        Assert.NotNull(cpuUtilizationMetric);
     }
 }
