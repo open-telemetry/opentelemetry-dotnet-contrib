@@ -16,6 +16,7 @@
 
 using System.Diagnostics.Metrics;
 using System.Reflection;
+using Diagnostics = System.Diagnostics;
 
 namespace OpenTelemetry.Instrumentation.Process;
 
@@ -23,9 +24,31 @@ internal class ProcessMetrics
 {
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
     internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
+    private static readonly Diagnostics.Process CurrentProcess = Diagnostics.Process.GetCurrentProcess();
 
     static ProcessMetrics()
     {
+        // TODO: change to ObservableUpDownCounter
+        MeterInstance.CreateObservableGauge(
+            "process.memory.usage",
+            () =>
+            {
+                CurrentProcess.Refresh();
+                return CurrentProcess.WorkingSet64;
+            },
+            unit: "By",
+            description: "The amount of physical memory in use.");
+
+        // TODO: change to ObservableUpDownCounter
+        MeterInstance.CreateObservableGauge(
+            "process.memory.virtual",
+            () =>
+            {
+                CurrentProcess.Refresh();
+                return CurrentProcess.VirtualMemorySize64;
+            },
+            unit: "By",
+            description: "The amount of committed virtual memory.");
     }
 
     /// <summary>
