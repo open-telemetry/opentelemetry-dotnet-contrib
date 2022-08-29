@@ -16,7 +16,7 @@
 
 using System.Collections.Generic;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
+namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
 {
     internal static class AWSLambdaResourceDetector
     {
