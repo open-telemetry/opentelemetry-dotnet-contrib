@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using Diagnostics = System.Diagnostics;
@@ -26,13 +25,7 @@ internal class ProcessMetrics
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
     internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
 
-    private static readonly string[] CpuStates = new string[] { "system", "user", "wait" };
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ProcessMetrics"/> class.
-    /// </summary>
-    /// <param name="options">The options to define the metrics.</param>
-    public ProcessMetrics(ProcessInstrumentationOptions? options)
+    static ProcessMetrics()
     {
         InstrumentsValues values = new InstrumentsValues();
 
@@ -50,22 +43,19 @@ internal class ProcessMetrics
             unit: "By",
             description: "The amount of committed virtual memory.");
 
-        if (options.CpuStatesEnabled == false)
-        {
-            MeterInstance.CreateObservableCounter(
-            $"process.cpu.time",
-            () => values.GetProcessorCpuTime(),
-            unit: "s",
-            description: "Total CPU seconds.");
-        }
-        else
-        {
-            MeterInstance.CreateObservableCounter(
-            $"process.cpu.time",
-            () => values.GetProcessorCpuTimeWithBreakdown(),
-            unit: "s",
-            description: "Total CPU seconds broken down by different states.");
-        }
+        MeterInstance.CreateObservableCounter(
+        $"process.cpu.time",
+        () => values.GetProcessorCpuTime(),
+        unit: "s",
+        description: "Total CPU seconds.");
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ProcessMetrics"/> class.
+    /// </summary>
+    /// <param name="options">The options to define the metrics.</param>
+    public ProcessMetrics(ProcessInstrumentationOptions options)
+    {
     }
 
     private class InstrumentsValues
@@ -87,24 +77,11 @@ internal class ProcessMetrics
             return this.currentProcess.VirtualMemorySize64;
         }
 
-        public int GetProcessorCpuTime()
-        {
-            return this.currentProcess.TotalProcessorTime.Seconds;
-        }
-
         // See spec:
         // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md#metric-instruments
-        public Measurement<int>[] GetProcessorCpuTimeWithBreakdown()
+        public double GetProcessorCpuTime()
         {
-            Measurement<int>[] measurements = new Measurement<int>[3];
-            var priviledgedCpuTime = this.currentProcess.PrivilegedProcessorTime.Seconds;
-            var userCpuTime = this.currentProcess.UserProcessorTime.Seconds;
-
-            measurements[0] = new(priviledgedCpuTime, new KeyValuePair<string, object>("state", CpuStates[0]));
-            measurements[1] = new(userCpuTime, new KeyValuePair<string, object>("state", CpuStates[1]));
-            measurements[2] = new(this.currentProcess.TotalProcessorTime.Seconds - priviledgedCpuTime - userCpuTime, new KeyValuePair<string, object>("state", CpuStates[2]));
-
-            return measurements;
+            return this.currentProcess.TotalProcessorTime.TotalSeconds;
         }
     }
 }
