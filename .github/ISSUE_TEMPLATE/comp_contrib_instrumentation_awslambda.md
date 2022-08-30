@@ -1,10 +1,10 @@
 ---
-name: OpenTelemetry.Contrib.Instrumentation.AWSLambda
-about: Issue with OpenTelemetry.Contrib.Instrumentation.AWSLambda
-labels: comp:contrib.instrumentation.awslambda
+name: OpenTelemetry.Instrumentation.AWSLambda
+about: Issue with OpenTelemetry.Instrumentation.AWSLambda
+labels: comp:instrumentation.awslambda
 ---
 
-# Issue with OpenTelemetry.Contrib.Instrumentation.AWSLambda
+# Issue with OpenTelemetry.Instrumentation.AWSLambda
 
 List of [all OpenTelemetry NuGet
 packages](https://www.nuget.org/profiles/OpenTelemetry) and version that you are

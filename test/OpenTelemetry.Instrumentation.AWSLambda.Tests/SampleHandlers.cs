@@ -18,7 +18,7 @@ using System;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
+namespace OpenTelemetry.Instrumentation.AWSLambda.Tests
 {
     public class SampleHandlers
     {

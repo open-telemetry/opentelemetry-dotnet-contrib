@@ -14,8 +14,32 @@
 // limitations under the License.
 // </copyright>
 
+using System.Collections.Generic;
+using System.Linq;
+using OpenTelemetry.Metrics;
+using Xunit;
+
 namespace OpenTelemetry.Instrumentation.Process.Tests;
 
 public class ProcessMetricsTests
 {
+    private const int MaxTimeToAllowForFlush = 10000;
+
+    [Fact]
+    public void ProcessMetricsAreCaptured()
+    {
+        var exportedItems = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddProcessInstrumentation()
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+
+        Assert.True(exportedItems.Count == 2);
+        var physicalMemoryMetric = exportedItems.FirstOrDefault(i => i.Name == "process.memory.usage");
+        Assert.NotNull(physicalMemoryMetric);
+        var virtualMemoryMetric = exportedItems.FirstOrDefault(i => i.Name == "process.memory.virtual");
+        Assert.NotNull(virtualMemoryMetric);
+    }
 }
