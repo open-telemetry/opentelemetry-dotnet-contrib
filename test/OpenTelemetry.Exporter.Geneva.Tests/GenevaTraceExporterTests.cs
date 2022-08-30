@@ -475,53 +475,53 @@ public class GenevaTraceExporterTests
         }
     }
 
-        [Fact]
-        public void TLDTraceExporter_Success_Windows()
+    [Fact]
+    public void TLDTraceExporter_Success_Windows()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
-                // the ActivitySource used by other unit tests.
-                var sourceName = GetTestMethodName();
+            // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+            // the ActivitySource used by other unit tests.
+            var sourceName = GetTestMethodName();
 
-                // TODO: Setup a mock or spy for eventLogger to assert that eventLogger.LogInformationalEvent is actually called.
-                using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                    .SetSampler(new AlwaysOnSampler())
-                    .AddSource(sourceName)
-                    .AddTLDTraceExporter(options =>
+            // TODO: Setup a mock or spy for eventLogger to assert that eventLogger.LogInformationalEvent is actually called.
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new AlwaysOnSampler())
+                .AddSource(sourceName)
+                .AddTLDTraceExporter(options =>
+                {
+                    options.ConnectionString = "EtwSession=OpenTelemetry";
+                    options.PrepopulatedFields = new Dictionary<string, object>
                     {
-                        options.ConnectionString = "EtwSession=OpenTelemetry";
-                        options.PrepopulatedFields = new Dictionary<string, object>
-                        {
-                            ["cloud.role"] = "BusyWorker",
-                            ["cloud.roleInstance"] = "CY1SCH030021417",
-                            ["cloud.roleVer"] = "9.0.15289.2",
-                        };
-                    })
-                    .Build();
+                        ["cloud.role"] = "BusyWorker",
+                        ["cloud.roleInstance"] = "CY1SCH030021417",
+                        ["cloud.roleVer"] = "9.0.15289.2",
+                    };
+                })
+                .Build();
 
-                var source = new ActivitySource(sourceName);
-                using (var activity = source.StartActivity("SayHello"))
-                {
-                    activity?.SetTag("foo", 1);
-                    activity?.SetTag("bar", "Hello, World!");
-                    activity?.SetTag("baz", new int[] { 1, 2, 3 });
-                    activity?.SetStatus(ActivityStatusCode.Ok);
-                }
-            }
-        }
-
-        private static string GetRandomFilePath()
-        {
-            while (true)
+            var source = new ActivitySource(sourceName);
+            using (var activity = source.StartActivity("SayHello"))
             {
-                string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-                if (!File.Exists(path))
-                {
-                    return path;
-                }
+                activity?.SetTag("foo", 1);
+                activity?.SetTag("bar", "Hello, World!");
+                activity?.SetTag("baz", new int[] { 1, 2, 3 });
+                activity?.SetStatus(ActivityStatusCode.Ok);
             }
         }
+    }
+
+    private static string GetRandomFilePath()
+    {
+        while (true)
+        {
+            string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            if (!File.Exists(path))
+            {
+                return path;
+            }
+        }
+    }
 
     private static string GetTestMethodName([CallerMemberName] string callingMethodName = "")
     {
