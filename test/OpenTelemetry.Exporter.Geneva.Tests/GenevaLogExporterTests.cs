@@ -948,7 +948,7 @@ public class GenevaLogExporterTests
             // This is treated as structured logging as the state can be converted to IReadOnlyList<KeyValuePair<string, object>>
             logger.Log<object>(
                 logLevel: LogLevel.Information,
-                eventId : default,
+                eventId: default,
                 state: null,
                 exception: new Exception("Exception Message"),
                 formatter: null);
@@ -1022,7 +1022,7 @@ public class GenevaLogExporterTests
             // This is treated as structured logging as the state can be converted to IReadOnlyList<KeyValuePair<string, object>>
             logger.Log<object>(
                 logLevel: LogLevel.Information,
-                eventId : new EventId(1, "logger-event-name"),
+                eventId: new EventId(1, "logger-event-name"),
                 state: null,
                 exception: null,
                 formatter: null);
@@ -1036,7 +1036,7 @@ public class GenevaLogExporterTests
             var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
             var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
             var eventId = GetField(fluentdData, "eventId");
-            Assert.Equal((byte) 1, eventId);
+            Assert.Equal((byte)1, eventId);
         }
         finally
         {
