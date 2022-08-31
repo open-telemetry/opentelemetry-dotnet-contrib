@@ -32,7 +32,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests;
 
 public class GenevaLogExporterTests
 {
-    [Fact]
+        [Fact]
     public void BadArgs()
     {
         GenevaExporterOptions exporterOptions = null;
@@ -898,6 +898,155 @@ public class GenevaLogExporterTests
                 catch
                 {
                 }
+            }
+        }
+    }
+
+    [Fact]
+    public void SerializationTestForException()
+    {
+        // ARRANGE
+        string path = string.Empty;
+        Socket server = null;
+        var logRecordList = new List<LogRecord>();
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions();
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(options =>
+                {
+                    options.AddGenevaLogExporter(options =>
+                    {
+                        options.ConnectionString = exporterOptions.ConnectionString;
+                    });
+                    options.AddInMemoryExporter(logRecordList);
+                })
+                .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
+
+            // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
+            using var exporter = new GenevaLogExporter(exporterOptions);
+
+            // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
+            var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
+
+            // ACT
+            // This is treated as structured logging as the state can be converted to IReadOnlyList<KeyValuePair<string, object>>
+            logger.Log<object>(
+                logLevel: LogLevel.Information,
+                eventId : default,
+                state: null,
+                exception: new Exception("Exception Message"),
+                formatter: null);
+
+            // VALIDATE
+            Assert.Single(logRecordList);
+            var m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+            _ = exporter.SerializeLogRecord(logRecordList[0]);
+            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            var exceptionType = GetField(fluentdData, "env_ex_type");
+            var exceptionMessage = GetField(fluentdData, "env_ex_msg");
+            Assert.Equal("System.Exception", exceptionType);
+            Assert.Equal("Exception Message", exceptionMessage);
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Fact]
+    public void SerializationTestForEventId()
+    {
+        // ARRANGE
+        string path = string.Empty;
+        Socket server = null;
+        var logRecordList = new List<LogRecord>();
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions();
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(options =>
+                {
+                    options.AddGenevaLogExporter(options =>
+                    {
+                        options.ConnectionString = exporterOptions.ConnectionString;
+                    });
+                    options.AddInMemoryExporter(logRecordList);
+                })
+                .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
+
+            // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
+            using var exporter = new GenevaLogExporter(exporterOptions);
+
+            // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
+            var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
+
+            // ACT
+            // This is treated as structured logging as the state can be converted to IReadOnlyList<KeyValuePair<string, object>>
+            logger.Log<object>(
+                logLevel: LogLevel.Information,
+                eventId : new EventId(1, "logger-event-name"),
+                state: null,
+                exception: null,
+                formatter: null);
+
+            // VALIDATE
+            Assert.Single(logRecordList);
+            var m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+            _ = exporter.SerializeLogRecord(logRecordList[0]);
+            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+
+            var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
+            var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
+            var eventId = GetField(fluentdData, "eventId");
+            Assert.Equal((byte) 1, eventId);
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
             }
         }
     }
