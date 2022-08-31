@@ -20,12 +20,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Moq;
-using OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation;
+using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
+namespace OpenTelemetry.Instrumentation.AWSLambda.Tests
 {
     public class AWSLambdaWrapperTests
     {
@@ -305,6 +305,10 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
             Assert.Equal(ActivityTraceFlags.Recorded, activity.ActivityTraceFlags);
             Assert.Equal(ActivityKind.Server, activity.Kind);
             Assert.Equal("testfunction", activity.DisplayName);
+            Assert.Equal("OpenTelemetry.Instrumentation.AWSLambda", activity.Source.Name);
+
+            // Version should consist of four decimals separated by dots.
+            Assert.Matches(@"^\d+(\.\d+){3}$", activity.Source.Version);
         }
 
         private void AssertResourceAttributes(Resource resource)
