@@ -71,39 +71,39 @@ public class LogSerializationTests
         string path = string.Empty;
         try
         {
-        var logRecordList = new List<LogRecord>();
-        using var loggerFactory = LoggerFactory.Create(builder => builder
-                .AddOpenTelemetry(options =>
-                {
-                    options.AddInMemoryExporter(logRecordList);
-                })
-                .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
+            var logRecordList = new List<LogRecord>();
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                    .AddOpenTelemetry(options =>
+                    {
+                        options.AddInMemoryExporter(logRecordList);
+                    })
+                    .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
 
-        var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
-        doLog(logger);
+            var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
+            doLog(logger);
 
-        Assert.Single(logRecordList);
-        var exporterOptions = new GenevaExporterOptions();
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
-        }
-        else
-        {
-            path = GenerateTempFilePath();
-            exporterOptions.ConnectionString = "Endpoint=unix:" + path;
-            var endpoint = new UnixDomainSocketEndPoint(path);
-            server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
-            server.Bind(endpoint);
-            server.Listen(1);
-        }
+            Assert.Single(logRecordList);
+            var exporterOptions = new GenevaExporterOptions();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
 
-        using var exporter = new GenevaLogExporter(exporterOptions);
-        var m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
-        _ = exporter.SerializeLogRecord(logRecordList[0]);
-        object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            using var exporter = new GenevaLogExporter(exporterOptions);
+            var m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+            _ = exporter.SerializeLogRecord(logRecordList[0]);
+            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
 
-        return GetFields(fluentdData);
+            return GetFields(fluentdData);
         }
         finally
         {
