@@ -32,7 +32,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests;
 
 public class GenevaLogExporterTests
 {
-        [Fact]
+    [Fact]
     public void BadArgs()
     {
         GenevaExporterOptions exporterOptions = null;
