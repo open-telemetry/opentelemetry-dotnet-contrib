@@ -41,7 +41,7 @@ public static class MeterProviderBuilderExtensions
         configure?.Invoke(options);
 
         var instrumentation = new EventCounterListener(options);
-        builder.AddMeter(options.MeterName);
+        builder.AddMeter(EventCounterListener.MeterInstance.Name);
         return builder.AddInstrumentation(() => instrumentation);
     }
 }
