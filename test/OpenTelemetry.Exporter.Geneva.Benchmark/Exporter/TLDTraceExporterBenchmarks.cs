@@ -28,10 +28,10 @@ Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
   DefaultJob : .NET 6.0.8 (6.0.822.36306), X64 RyuJIT
 
 
-|            Method |     Mean |     Error |    StdDev |  Gen 0 | Allocated |
-|------------------ |---------:|----------:|----------:|-------:|----------:|
-|    ExportActivity | 1.512 us | 0.0089 us | 0.0084 us | 0.0114 |      80 B |
-| SerializeActivity | 1.090 us | 0.0047 us | 0.0041 us | 0.0114 |      80 B |
+|            Method |       Mean |    Error |   StdDev |  Gen 0 | Allocated |
+|------------------ |-----------:|---------:|---------:|-------:|----------:|
+|    ExportActivity | 1,282.8 ns | 12.59 ns | 11.77 ns | 0.0114 |      80 B |
+| SerializeActivity |   876.0 ns |  3.30 ns |  2.92 ns | 0.0124 |      80 B |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter

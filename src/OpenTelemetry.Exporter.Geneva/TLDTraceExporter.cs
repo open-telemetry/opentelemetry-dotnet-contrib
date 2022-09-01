@@ -185,16 +185,16 @@ namespace OpenTelemetry.Exporter.Geneva
             eb.Reset(this.partAName);
             eb.AddUInt16("__csver__", 1024, EventOutType.Hex);
 
-            var partAFieldsCount = (this.prepopulatedFieldsKeys != null ? this.prepopulatedFieldsKeys.Count : 0) + 4; // Four fields: name, time, ext_dt_traceId, ext_dt_spanId
+            var partAFieldsCount = (this.prepopulatedFieldsKeys != null ? this.prepopulatedFieldsKeys.Count : 0) + 3; // Four fields: time, ext_dt_traceId, ext_dt_spanId
 
             var dtBegin = activity.StartTimeUtc;
             var tsBegin = dtBegin.Ticks;
             var tsEnd = tsBegin + activity.Duration.Ticks;
             var dtEnd = new DateTime(tsEnd);
 
+            // TODO: Do we need to serialize name?
             eb.AddStruct("PartA", (byte)partAFieldsCount);
-            eb.AddCountedString("name", this.partAName);
-            eb.AddFileTime("time", dtEnd, EventOutType.DateTimeUtc);
+            eb.AddFileTime("time", dtEnd);
             eb.AddCountedString("ext_dt_traceId", activity.Context.TraceId.ToHexString());
             eb.AddCountedString("ext_dt_spanId", activity.Context.SpanId.ToHexString());
 
@@ -223,7 +223,7 @@ namespace OpenTelemetry.Exporter.Geneva
             int cntPartBFieldsFromTags = 0;
             int cntPartCFieldsFromTags = 0;
             int hasEnvProperties = 0;
-            int isStatusSuccess = 1;
+            byte isStatusSuccess = 1;
             string statusDescription = string.Empty;
 
             foreach (var entry in activity.TagObjects)
@@ -280,10 +280,10 @@ namespace OpenTelemetry.Exporter.Geneva
 
             eb.AddStruct("PartB", (byte)partBFieldsCount);
             eb.AddCountedString("_typeName", "Span");
-            eb.AddCountedString("name", activity.DisplayName);
-            eb.AddInt32("kind", (int)activity.Kind);
-            eb.AddFileTime("startTime", dtBegin, EventOutType.DateTimeUtc);
-            eb.AddBool32("success", isStatusSuccess, EventOutType.Boolean);
+            eb.AddCountedAnsiString("name", activity.DisplayName, Encoding.UTF8);
+            eb.AddUInt8("kind", (byte)activity.Kind);
+            eb.AddFileTime("startTime", dtBegin);
+            eb.AddUInt8("success", isStatusSuccess, EventOutType.Boolean);
 
             if (hasValidParentId == 1)
             {
@@ -292,7 +292,7 @@ namespace OpenTelemetry.Exporter.Geneva
 
             if (isStatusSuccess == 0)
             {
-                eb.AddCountedString("statusMessage", statusDescription);
+                eb.AddCountedAnsiString("statusMessage", statusDescription, Encoding.UTF8);
             }
 
             if (hasLinks == 1)
@@ -365,7 +365,7 @@ namespace OpenTelemetry.Exporter.Geneva
                 }
 
                 var serializedEnvProperties = JsonSerializer.SerializeMap(keyValuePairs);
-                eb.AddCountedString("env_properties", serializedEnvProperties, 0, Math.Min(serializedEnvProperties.Length, StringLengthLimit));
+                eb.AddCountedAnsiString("env_properties", serializedEnvProperties, Encoding.UTF8, 0, Math.Min(serializedEnvProperties.Length, StringLengthLimit));
             }
         }
 
@@ -385,7 +385,7 @@ namespace OpenTelemetry.Exporter.Geneva
 
         private readonly EventProvider eventProvider;
 
-        private readonly ThreadLocal<EventBuilder> eventBuilder = new ThreadLocal<EventBuilder>(() => new());
+        private readonly ThreadLocal<EventBuilder> eventBuilder = new ThreadLocal<EventBuilder>(() => new(Encoding.ASCII));
 
         private readonly ThreadLocal<List<KeyValuePair<string, object>>> keyValuePairs = new(() => new());
 
@@ -465,10 +465,10 @@ namespace OpenTelemetry.Exporter.Geneva
                     eb.AddFloat64(key, vd);
                     break;
                 case string vs:
-                    eb.AddCountedString(key, vs, 0, Math.Min(vs.Length, StringLengthLimit));
+                    eb.AddCountedAnsiString(key, vs, Encoding.UTF8, 0, Math.Min(vs.Length, StringLengthLimit));
                     break;
                 case DateTime vdt:
-                    eb.AddFileTime(key, vdt, EventOutType.DateTimeUtc);
+                    eb.AddFileTime(key, vdt);
                     break;
 
                 // TODO: case bool[]
@@ -507,7 +507,7 @@ namespace OpenTelemetry.Exporter.Geneva
                     eb.AddCountedStringArray(key, vsarray);
                     break;
                 case DateTime[] vdtarray:
-                    eb.AddFileTimeArray(key, vdtarray, EventOutType.DateTimeUtc);
+                    eb.AddFileTimeArray(key, vdtarray);
                     break;
                 default:
                     string repr;
@@ -520,7 +520,7 @@ namespace OpenTelemetry.Exporter.Geneva
                         repr = $"ERROR: type {value.GetType().FullName} is not supported";
                     }
 
-                    eb.AddCountedString(key, repr, 0, Math.Min(repr.Length, StringLengthLimit));
+                    eb.AddCountedAnsiString(key, repr, Encoding.UTF8, 0, Math.Min(repr.Length, StringLengthLimit));
                     break;
             }
         }
