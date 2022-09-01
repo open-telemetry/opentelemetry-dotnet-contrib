@@ -171,12 +171,14 @@ public class EventCounterListenerTests
     private static double GetActualValue(Metric metric)
     {
         double sum = 0;
+
         foreach (ref readonly var metricPoint in metric.GetMetricPoints())
         {
             sum += metric.MetricType.IsSum()
                 ? metricPoint.GetSumDouble()
                 : metricPoint.GetGaugeLastValueDouble();
         }
+
         return sum;
     }
 }
