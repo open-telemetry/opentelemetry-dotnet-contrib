@@ -14,7 +14,11 @@
 // limitations under the License.
 // </copyright>
 
+using System.Collections.Generic;
+
 namespace OpenTelemetry.Instrumentation.EventCounters;
+
+// TODO: rename EventCounterListenerOptions ??
 
 /// <summary>
 /// EventCounterMetrics Options.
@@ -25,4 +29,19 @@ public class EventCounterMetricsOptions
     /// Gets or sets the subscription interval in seconds.
     /// </summary>
     public int RefreshIntervalSecs { get; set; } = 60;
+
+    /// <summary>
+    /// Gets or sets the names of <c>EventSource</c>s to listen to.
+    /// </summary>
+    public HashSet<string> Sources { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the name of <c>EventCounters</c> to listen to.
+    /// </summary>
+    public HashSet<string> Names { get; set; } = new() { "EventCounters" };
+
+    /// <summary>
+    /// Gets the arguments object used for the EventListener.EnableEvents function.
+    /// </summary>
+    public Dictionary<string, string> EnableEventsArguments => new() { { "EventCounterIntervalSec", this.RefreshIntervalSecs.ToString() } };
 }

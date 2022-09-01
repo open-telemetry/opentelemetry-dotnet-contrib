@@ -15,6 +15,7 @@
 // </copyright>
 
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.Threading.Tasks;
 using OpenTelemetry.Metrics;
 using Xunit;
@@ -23,15 +24,15 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests;
 
 public class EventCounterListenerTests
 {
-    private const int MaxTimeToAllowForFlush = 10000;
-    private MeterProvider meterProvider;
+    private const int Delay = 1200;
 
     [Fact]
-    public async Task SystemMetricsAreCaptured()
+    public async Task NoMetricsByDefault()
     {
-        var metricItems = new List<Metric>();
+        // Arrange
+        List<Metric> metricItems = new();
 
-        this.meterProvider = Sdk.CreateMeterProviderBuilder()
+        var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCounterMetrics(options =>
             {
                 options.RefreshIntervalSecs = 1;
@@ -39,161 +40,143 @@ public class EventCounterListenerTests
             .AddInMemoryExporter(metricItems)
             .Build();
 
-        await Task.Delay(2000);
-        this.meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+        metricItems.Clear();
 
-        this.meterProvider.Dispose();
+        // Act
+        await Task.Delay(Delay);
+        meterProvider.ForceFlush();
 
-        Assert.True(metricItems.Count > 1);
+        // Assert
+        Assert.Empty(metricItems);
     }
 
-    [Fact(Skip = "Unstable")]
-    public async Task TestEventCounterMetricsAreCaptured()
+    [Fact]
+    public async Task EventCounter()
     {
-        const int refreshIntervalSeconds = 1;
-        var metricItems = new List<Metric>();
-        this.meterProvider = Sdk.CreateMeterProviderBuilder()
+        // Arrange
+        List<Metric> metricItems = new();
+        EventSource source = new("source-a");
+        EventCounter counter = new("counter", source);
+
+        var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCounterMetrics(options =>
             {
                 options.RefreshIntervalSecs = 1;
+                options.Sources.Add(source.Name);
             })
             .AddInMemoryExporter(metricItems)
             .Build();
-        var expected = new[] { 100.3F, 200.1F };
-        TestEventCounter.Log.SampleCounter1(expected[0]);
-        TestEventCounter.Log.SampleCounter2(expected[1]);
 
-        // Wait a little bit over the refresh interval seconds
-        await Task.Delay((refreshIntervalSeconds * 1000) + 300);
+        // Act
+        counter.WriteMetric(1997.0202);
+        await Task.Delay(Delay);
+        meterProvider.ForceFlush();
 
-        this.meterProvider.ForceFlush(MaxTimeToAllowForFlush);
-
-        this.meterProvider.Dispose();
-
-        var counter1 = metricItems.Find(m => m.Name == "mycountername1");
-        var counter2 = metricItems.Find(m => m.Name == "mycountername2");
-        Assert.NotNull(counter1);
-        Assert.NotNull(counter2);
-        Assert.Equal(MetricType.DoubleGauge, counter1.MetricType); // EventCounter CounterType is `Mean`
-
-        Assert.Equal(expected[0], GetActualValue(counter1));
-        Assert.Equal(expected[1], GetActualValue(counter2));
+        // Assert
+        var metric = metricItems.Find(x => x.Name == "counter");
+        Assert.NotNull(metric);
+        Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
+        Assert.Equal(1997.0202, GetActualValue(metric));
     }
 
-    [Fact(Skip = "Unstable")]
-    public async Task TestIncrementingEventCounterMetricsAreCaptured()
+    [Fact]
+    public async Task IncrementingEventCounter()
     {
-        const int refreshIntervalSeconds = 1;
-        var metricItems = new List<Metric>();
-        this.meterProvider = Sdk.CreateMeterProviderBuilder()
+        // Arrange
+        List<Metric> metricItems = new();
+        EventSource source = new("source-b");
+        IncrementingEventCounter incCounter = new("inc-counter", source);
+
+        var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCounterMetrics(options =>
             {
                 options.RefreshIntervalSecs = 1;
+                options.Sources.Add(source.Name);
             })
             .AddInMemoryExporter(metricItems)
             .Build();
 
-        TestIncrementingEventCounter.Log.SampleCounter1(1);
-        TestIncrementingEventCounter.Log.SampleCounter1(1);
-        TestIncrementingEventCounter.Log.SampleCounter1(1);
+        // Act
+        incCounter.Increment(1);
+        incCounter.Increment(1);
+        incCounter.Increment(1);
+        await Task.Delay(Delay);
+        meterProvider.ForceFlush();
 
-        // Wait a little bit over the refresh interval seconds
-        await Task.Delay((refreshIntervalSeconds * 1000) + 300);
-
-        this.meterProvider.ForceFlush(MaxTimeToAllowForFlush);
-
-        this.meterProvider.Dispose();
-
-        var counter = metricItems.Find(m => m.Name == TestIncrementingEventCounter.CounterName);
-        Assert.NotNull(counter);
-        Assert.Equal(MetricType.DoubleSum, counter.MetricType); // EventCounter CounterType is `Sum`
-        Assert.Equal(3, GetActualValue(counter));
+        // Assert
+        var metric = metricItems.Find(x => x.Name == "inc-counter");
+        Assert.NotNull(metric);
+        Assert.Equal(MetricType.DoubleSum, metric.MetricType);
+        Assert.Equal(3, GetActualValue(metric));
     }
 
-    [Fact(Skip = "Unstable")]
-    public async Task TestPollingCounterMetricsAreCaptured()
+    [Fact]
+    public async Task PollingCounter()
     {
-        var metricItems = new List<Metric>();
-        const int refreshIntervalSeconds = 1;
-
-        this.meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddEventCounterMetrics(options =>
-            {
-                options.RefreshIntervalSecs = refreshIntervalSeconds;
-            })
-            .AddInMemoryExporter(metricItems)
-            .Build();
-
+        // Arrange
         int i = 0;
-        TestPollingEventCounter.CreateSingleton(() => ++i * 10);
+        List<Metric> metricItems = new();
+        EventSource source = new("source-c");
+        PollingCounter pollCounter = new("poll-counter", source, () => ++i * 10);
 
-        var duration = (refreshIntervalSeconds * 2 * 1000) + 300; // Wait for two refresh intervals to call the valueProvider twice
-        await Task.Delay(duration);
-
-        this.meterProvider.ForceFlush(MaxTimeToAllowForFlush);
-
-        this.meterProvider.Dispose();
-
-        var pollingCounter = metricItems.Find(m => m.Name == TestPollingEventCounter.CounterName);
-        Assert.NotNull(pollingCounter);
-        Assert.Equal(MetricType.DoubleGauge, pollingCounter.MetricType); // Polling Counter is EventCounter CounterType of `Mean`
-
-        var expected = i * 10; // The last recorded `Mean` value
-        Assert.Equal(expected, GetActualValue(pollingCounter));
-    }
-
-    [Fact(Skip = "Unstable")]
-    public async Task TestIncrementingPollingCounterMetrics()
-    {
-        var metricItems = new List<Metric>();
-        const int refreshIntervalSeconds = 1;
-
-        this.meterProvider = Sdk.CreateMeterProviderBuilder()
+        var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCounterMetrics(options =>
             {
-                options.RefreshIntervalSecs = refreshIntervalSeconds;
+                options.RefreshIntervalSecs = 1;
+                options.Sources.Add(source.Name);
             })
             .AddInMemoryExporter(metricItems)
             .Build();
 
-        int i = 1;
+        // Act
+        await Task.Delay(Delay * 2);
+        meterProvider.ForceFlush();
 
-        TestIncrementingPollingCounter.CreateSingleton(() => i++);
-
-        var duration = (refreshIntervalSeconds * 2 * 1000) + 300; // Wait for two refresh intervals to call the valueProvider twice
-        await Task.Delay(duration);
-
-        this.meterProvider.ForceFlush(MaxTimeToAllowForFlush);
-
-        this.meterProvider.Dispose();
-
-        var pollingCounter = metricItems.Find(m => m.Name == TestIncrementingPollingCounter.CounterName);
-        Assert.NotNull(pollingCounter);
-        Assert.Equal(MetricType.DoubleSum, pollingCounter.MetricType); // Polling Counter is EventCounter CounterType of `Sum`
-
-        Assert.Equal(1, GetActualValue(pollingCounter));
+        // Assert
+        var metric = metricItems.Find(x => x.Name == "poll-counter");
+        Assert.NotNull(metric);
+        Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
+        Assert.Equal(20, GetActualValue(metric));
     }
 
-    /// <summary>
-    /// Event Counters are always Sum or Mean and are always record with `float`.
-    /// </summary>
-    /// <param name="metric">Metric to Aggregate.</param>
-    /// <returns>The Aggregated value. </returns>
+    [Fact]
+    public async Task IncrementingPollingCounter()
+    {
+        // Arrange
+        int i = 1;
+        List<Metric> metricItems = new();
+        EventSource source = new("source-d");
+        IncrementingPollingCounter incPollCounter = new("inc-poll-counter", source, () => i++);
+
+        var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddEventCounterMetrics(options =>
+            {
+                options.RefreshIntervalSecs = 1;
+                options.Sources.Add(source.Name);
+            })
+            .AddInMemoryExporter(metricItems)
+            .Build();
+
+        // Act
+        await Task.Delay(Delay * 2);
+        meterProvider.ForceFlush();
+
+        // Assert
+        var metric = metricItems.Find(x => x.Name == "inc-poll-counter");
+        Assert.NotNull(metric);
+        Assert.Equal(MetricType.DoubleSum, metric.MetricType);
+        Assert.Equal(1, GetActualValue(metric));
+    }
+
     private static double GetActualValue(Metric metric)
     {
         double sum = 0;
         foreach (ref readonly var metricPoint in metric.GetMetricPoints())
         {
-            if (metric.MetricType.IsSum())
-            {
-                sum += metricPoint.GetSumDouble();
-            }
-            else
-            {
-                sum += metricPoint.GetGaugeLastValueDouble();
-            }
+            sum += metric.MetricType.IsSum()
+                ? metricPoint.GetSumDouble()
+                : metricPoint.GetGaugeLastValueDouble();
         }
-
         return sum;
     }
 }

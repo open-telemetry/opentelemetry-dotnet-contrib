@@ -23,167 +23,71 @@ using System.Reflection;
 
 namespace OpenTelemetry.Instrumentation.EventCounters;
 
+/// <summary>
+/// .NET EventCounters Instrumentation.
+/// </summary>
 internal class EventCounterListener : EventListener
 {
     internal static readonly AssemblyName AssemblyName = typeof(EventCounterListener).Assembly.GetName();
-    internal static readonly string InstrumentationName = AssemblyName.Name;
-    internal static readonly string InstrumentationVersion = AssemblyName.Version.ToString();
+    internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
 
-    private readonly bool isInitialized = false;
-    private readonly Meter meter;
+    // TODO: make these static?
     private readonly EventCounterMetricsOptions options;
-    private readonly ConcurrentDictionary<MetricKey, Instrument> metricInstruments = new();
-    private readonly ConcurrentDictionary<MetricKey, double> lastValue = new();
-    private readonly ConcurrentBag<EventSource> eventSources = new();
+    private readonly ConcurrentBag<EventSource> preInitEventSources = new();
+    private readonly ConcurrentDictionary<Tuple<string, string>, Instrument> instruments = new();
+    private readonly ConcurrentDictionary<Tuple<string, string>, double> values = new();
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EventCounterListener"/> class.
+    /// </summary>
+    /// <param name="options">The options to define the metrics.</param>
     public EventCounterListener(EventCounterMetricsOptions options)
     {
-        this.meter = new Meter(InstrumentationName, InstrumentationVersion);
-        this.options = options ?? throw new ArgumentNullException(nameof(options));
+        this.options = options;
 
-        this.isInitialized = true;
-        this.EnablePendingEventSources(); // Some OnEventSourceCreated may have fired before constructor, enable them
+        while (this.preInitEventSources.TryTake(out EventSource source))
+        {
+            if (this.options.Sources.Contains(source.Name))
+            {
+                this.EnableEvents(source, EventLevel.LogAlways, EventKeywords.None, this.options.EnableEventsArguments);
+            }
+        }
+
+        this.preInitEventSources = null;
     }
 
-    private enum InstrumentType
-    {
-        ObservableGauge,
-        ObservableCounter,
-    }
-
-    private Dictionary<string, string> EnableEventArgs => new() { ["EventCounterIntervalSec"] = this.options.RefreshIntervalSecs.ToString(), };
-
+    /// <inheritdoc />
     protected override void OnEventSourceCreated(EventSource source)
     {
-        // TODO: Add Configuration options to selectively subscribe to EventCounters
-        try
+        if (this.preInitEventSources != null)
         {
-            if (!this.isInitialized)
-            {
-                this.eventSources.Add(source);
-            }
-            else
-            {
-                this.EnableEvents(source, EventLevel.Verbose, EventKeywords.All, this.EnableEventArgs);
-            }
+            this.preInitEventSources.Add(source);
         }
-        catch (Exception ex)
+        else if (this.options.Sources.Contains(source.Name))
         {
-            EventCountersInstrumentationEventSource.Log.ErrorEventCounter(source.Name, ex.Message);
+            this.EnableEvents(source, EventLevel.LogAlways, EventKeywords.None, this.options.EnableEventsArguments);
         }
     }
 
+    /// <inheritdoc />
     protected override void OnEventWritten(EventWrittenEventArgs eventData)
     {
-        if (!eventData.EventName.Equals("EventCounters") || !this.isInitialized)
+        if (this.preInitEventSources != null || !this.options.Names.Contains(eventData.EventName))
         {
             return;
         }
 
-        try
-        {
-            if (eventData.Payload.Count > 0 && eventData.Payload[0] is IDictionary<string, object> eventPayload)
-            {
-                this.ExtractAndPostMetric(eventData.EventSource.Name, eventPayload);
-            }
-            else
-            {
-                EventCountersInstrumentationEventSource.Log.IgnoreEventWrittenAsEventPayloadNotParseable(eventData.EventSource.Name);
-            }
-        }
-        catch (Exception ex)
-        {
-            EventCountersInstrumentationEventSource.Log.ErrorEventCounter(eventData.EventName, ex.ToString());
-        }
-    }
+        var payload = eventData.Payload[0] as IDictionary<string, object>;
+        var name = payload["Name"].ToString();
+        var isGauge = payload.ContainsKey("Mean");
+        Tuple<string, string> metricKey = new(eventData.EventSource.Name, name);
 
-    private void ExtractAndPostMetric(string eventSourceName, IDictionary<string, object> eventPayload)
-    {
-        try
-        {
-            bool calculateRate = false;
-            double actualValue = 0;
+        this.values[metricKey] = isGauge
+            ? Convert.ToDouble(payload["Mean"])
+            : Convert.ToDouble(payload["Increment"]) / this.options.RefreshIntervalSecs;
 
-            string counterName = string.Empty;
-            string counterDisplayName = string.Empty;
-            InstrumentType instrumentType = InstrumentType.ObservableGauge;
-
-            foreach (KeyValuePair<string, object> payload in eventPayload)
-            {
-                var key = payload.Key;
-                if (key.Equals("Name", StringComparison.OrdinalIgnoreCase))
-                {
-                    counterName = payload.Value.ToString();
-                }
-                else
-                if (key.Equals("DisplayName", StringComparison.OrdinalIgnoreCase))
-                {
-                    counterDisplayName = payload.Value.ToString();
-                }
-                else if (key.Equals("Mean", StringComparison.OrdinalIgnoreCase))
-                {
-                    instrumentType = InstrumentType.ObservableGauge;
-                    actualValue = Convert.ToDouble(payload.Value);
-                }
-                else if (key.Equals("Increment", StringComparison.OrdinalIgnoreCase))
-                {
-                    // Increment indicates we have to calculate rate.
-                    instrumentType = InstrumentType.ObservableCounter;
-                    calculateRate = true;
-                    actualValue = Convert.ToDouble(payload.Value);
-                }
-            }
-
-            this.RecordMetric(eventSourceName, counterName, counterDisplayName, instrumentType, actualValue, calculateRate);
-        }
-        catch (Exception ex)
-        {
-            EventCountersInstrumentationEventSource.Log.EventCountersInstrumentationWarning("ExtractMetric", ex.Message);
-        }
-    }
-
-    private void RecordMetric(string eventSourceName, string counterName, string displayName, InstrumentType instrumentType, double value, bool calculateRate)
-    {
-        var metricKey = new MetricKey(eventSourceName, counterName);
-        var description = string.IsNullOrEmpty(displayName) ? counterName : displayName;
-        this.lastValue[metricKey] = calculateRate ? value / this.options.RefreshIntervalSecs : value;
-        switch (instrumentType)
-        {
-            case InstrumentType.ObservableCounter:
-                this.metricInstruments.TryAdd(metricKey, this.meter.CreateObservableCounter(counterName, () => this.ObserveDouble(metricKey), description: description));
-                break;
-
-            case InstrumentType.ObservableGauge:
-                this.metricInstruments.TryAdd(metricKey, this.meter.CreateObservableGauge(counterName, () => this.ObserveDouble(metricKey), description: description));
-                break;
-        }
-    }
-
-    private double ObserveDouble(MetricKey key) => this.lastValue[key];
-
-    private void EnablePendingEventSources()
-    {
-        foreach (var source in this.eventSources)
-        {
-            this.EnableEvents(source, EventLevel.Verbose, EventKeywords.All, this.EnableEventArgs);
-        }
-    }
-
-    private class MetricKey
-    {
-        public MetricKey(string eventSourceName, string counterName)
-        {
-            this.EventSourceName = eventSourceName;
-            this.CounterName = counterName;
-        }
-
-        public string EventSourceName { get; private set; }
-
-        public string CounterName { get; private set; }
-
-        public override int GetHashCode() => (this.EventSourceName, this.CounterName).GetHashCode();
-
-        public override bool Equals(object obj) =>
-            obj is MetricKey nextKey && this.EventSourceName == nextKey.EventSourceName && this.CounterName == nextKey.CounterName;
+        _ = this.instruments.TryAdd(
+            metricKey,
+            isGauge ? MeterInstance.CreateObservableGauge(name, () => this.values[metricKey]) : MeterInstance.CreateObservableCounter(name, () => this.values[metricKey]));
     }
 }
