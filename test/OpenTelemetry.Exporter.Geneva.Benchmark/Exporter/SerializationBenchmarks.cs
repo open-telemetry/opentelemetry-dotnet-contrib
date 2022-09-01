@@ -15,6 +15,7 @@
 // </copyright>
 
 using System;
+using System.Text;
 using BenchmarkDotNet.Attributes;
 using Microsoft.TraceLoggingDynamic;
 
@@ -28,13 +29,13 @@ Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
 
 |                    Method |     Mean |    Error |   StdDev | Allocated |
 |-------------------------- |---------:|---------:|---------:|----------:|
-|       TLD_SerializeUInt32 | 39.55 ns | 0.155 ns | 0.145 ns |         - |
-|   MsgPack_SerializeUInt32 | 10.39 ns | 0.073 ns | 0.069 ns |         - |
-|       TLD_SerializeString | 59.26 ns | 0.636 ns | 0.595 ns |         - |
-|   MsgPack_SerializeString | 19.04 ns | 0.048 ns | 0.040 ns |         - |
-|     TLD_SerializeDateTime | 62.31 ns | 0.245 ns | 0.229 ns |         - |
-| MsgPack_SerializeDateTime | 36.38 ns | 0.222 ns | 0.186 ns |         - |
-|                 TLD_Reset | 21.11 ns | 0.030 ns | 0.025 ns |         - |
+|        TLD_SerializeUInt8 | 31.09 ns | 0.203 ns | 0.190 ns |         - |
+|    MsgPack_SerializeUInt8 | 10.87 ns | 0.042 ns | 0.039 ns |         - |
+|       TLD_SerializeString | 36.81 ns | 0.168 ns | 0.131 ns |         - |
+|   MsgPack_SerializeString | 19.69 ns | 0.054 ns | 0.048 ns |         - |
+|     TLD_SerializeDateTime | 54.22 ns | 0.378 ns | 0.353 ns |         - |
+| MsgPack_SerializeDateTime | 36.95 ns | 0.172 ns | 0.161 ns |         - |
+|                 TLD_Reset | 16.43 ns | 0.045 ns | 0.040 ns |         - |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
@@ -42,31 +43,21 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
     [MemoryDiagnoser]
     public class SerializationBenchmarks
     {
-        private readonly EventBuilder eventBuilder = new();
-        private readonly EventBuilder eventBuilderForWrite = new();
-        private readonly EventProvider eventProvider = new("OpenTelemetry");
+        private readonly EventBuilder eventBuilder = new(Encoding.ASCII);
         private readonly byte[] buffer = new byte[65360];
 
-        public SerializationBenchmarks()
-        {
-            this.eventBuilderForWrite.AddUInt16("__csver__", 1024, EventOutType.Hex);
-            this.eventBuilderForWrite.AddCountedString("String", "text");
-            this.eventBuilderForWrite.AddUInt32("Number", 123);
-            this.eventBuilderForWrite.AddFileTime("time", DateTime.UtcNow, EventOutType.DateTimeUtc);
-        }
-
         [Benchmark]
-        public void TLD_SerializeUInt32()
+        public void TLD_SerializeUInt8()
         {
-            this.eventBuilder.AddUInt32("Number", 123);
+            this.eventBuilder.AddUInt8("Number", 123);
             this.eventBuilder.Reset("test");
         }
 
         [Benchmark]
-        public void MsgPack_SerializeUInt32()
+        public void MsgPack_SerializeUInt8()
         {
             var cursor = MessagePackSerializer.SerializeAsciiString(this.buffer, 0, "Number");
-            MessagePackSerializer.SerializeUInt32(this.buffer, cursor, 123);
+            MessagePackSerializer.SerializeUInt8(this.buffer, cursor, 123);
         }
 
         [Benchmark]
@@ -86,7 +77,7 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
         [Benchmark]
         public void TLD_SerializeDateTime()
         {
-            this.eventBuilder.AddFileTime("time", DateTime.UtcNow, EventOutType.DateTimeUtc);
+            this.eventBuilder.AddFileTime("time", DateTime.UtcNow);
             this.eventBuilder.Reset("test");
         }
 
