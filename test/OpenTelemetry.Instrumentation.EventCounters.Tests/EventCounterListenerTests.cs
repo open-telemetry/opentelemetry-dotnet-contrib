@@ -33,14 +33,12 @@ public class EventCounterListenerTests
         List<Metric> metricItems = new();
 
         var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddEventCounterMetrics(options =>
+            .AddEventCounterListener(options =>
             {
                 options.RefreshIntervalSecs = 1;
             })
             .AddInMemoryExporter(metricItems)
             .Build();
-
-        metricItems.Clear();
 
         // Act
         await Task.Delay(Delay);
@@ -59,7 +57,7 @@ public class EventCounterListenerTests
         EventCounter counter = new("counter", source);
 
         var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddEventCounterMetrics(options =>
+            .AddEventCounterListener(options =>
             {
                 options.RefreshIntervalSecs = 1;
                 options.Sources.Add(source.Name);
@@ -88,7 +86,7 @@ public class EventCounterListenerTests
         IncrementingEventCounter incCounter = new("inc-counter", source);
 
         var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddEventCounterMetrics(options =>
+            .AddEventCounterListener(options =>
             {
                 options.RefreshIntervalSecs = 1;
                 options.Sources.Add(source.Name);
@@ -120,7 +118,7 @@ public class EventCounterListenerTests
         PollingCounter pollCounter = new("poll-counter", source, () => ++i * 10);
 
         var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddEventCounterMetrics(options =>
+            .AddEventCounterListener(options =>
             {
                 options.RefreshIntervalSecs = 1;
                 options.Sources.Add(source.Name);
@@ -149,7 +147,7 @@ public class EventCounterListenerTests
         IncrementingPollingCounter incPollCounter = new("inc-poll-counter", source, () => i++);
 
         var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddEventCounterMetrics(options =>
+            .AddEventCounterListener(options =>
             {
                 options.RefreshIntervalSecs = 1;
                 options.Sources.Add(source.Name);

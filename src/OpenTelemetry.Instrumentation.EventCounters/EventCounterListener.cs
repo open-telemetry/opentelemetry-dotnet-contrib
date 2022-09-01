@@ -32,7 +32,7 @@ internal class EventCounterListener : EventListener
     internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
 
     // TODO: make these static?
-    private readonly EventCounterMetricsOptions options;
+    private readonly EventCounterListenerOptions options;
     private readonly ConcurrentBag<EventSource> preInitEventSources = new();
     private readonly ConcurrentDictionary<Tuple<string, string>, Instrument> instruments = new();
     private readonly ConcurrentDictionary<Tuple<string, string>, double> values = new();
@@ -41,7 +41,7 @@ internal class EventCounterListener : EventListener
     /// Initializes a new instance of the <see cref="EventCounterListener"/> class.
     /// </summary>
     /// <param name="options">The options to define the metrics.</param>
-    public EventCounterListener(EventCounterMetricsOptions options)
+    public EventCounterListener(EventCounterListenerOptions options)
     {
         this.options = options;
 
