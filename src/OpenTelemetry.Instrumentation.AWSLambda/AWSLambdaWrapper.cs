@@ -16,18 +16,27 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
+using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
+namespace OpenTelemetry.Instrumentation.AWSLambda
 {
     /// <summary>
     /// Wrapper class for AWS Lambda handlers.
     /// </summary>
-    public class AWSLambdaWrapper
+    public static class AWSLambdaWrapper
     {
-        private static readonly ActivitySource AWSLambdaActivitySource = new(AWSLambdaUtils.ActivitySourceName);
+        private static readonly AssemblyName AssemblyName = typeof(AWSLambdaWrapper).Assembly.GetName();
+
+        [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1202:ElementsMustBeOrderedByAccess", Justification = "Initialization order.")]
+        internal static readonly string ActivitySourceName = AssemblyName.Name;
+
+        private static readonly Version Version = AssemblyName.Version;
+        private static readonly ActivitySource AWSLambdaActivitySource = new(ActivitySourceName, Version.ToString());
 
         /// <summary>
         /// Gets or sets a value indicating whether AWS X-Ray propagation should be ignored. Default value is false.

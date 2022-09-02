@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-#if NET462_OR_GREATER || NETSTANDARD2_0 || NET5_0_OR_GREATER
 using System;
 using System.Diagnostics;
 using OpenTelemetry.Internal;
@@ -50,4 +49,3 @@ public static class OpenTelemetryLoggingExtensions
 #pragma warning restore CA2000 // Dispose objects before losing scope
     }
 }
-#endif
