@@ -5,7 +5,7 @@ This repo contains SDK to instrument Lambda handler to create incoming span.
 ## Installation
 
 ```shell
-dotnet add package OpenTelemetry.Contrib.Instrumentation.AWSLambda
+dotnet add package OpenTelemetry.Instrumentation.AWSLambda
 ```
 
 ## Configuration

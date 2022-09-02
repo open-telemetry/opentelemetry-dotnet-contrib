@@ -19,45 +19,44 @@ using System.Diagnostics.Tracing;
 using System.Globalization;
 using System.Threading;
 
-namespace OpenTelemetry.Extensions.Docker
+namespace OpenTelemetry.Extensions.Docker;
+
+[EventSource(Name = "OpenTelemetry-Extensions-Docker")]
+internal class DockerExtensionsEventSource : EventSource
 {
-    [EventSource(Name = "OpenTelemetry-Extensions-Docker")]
-    internal class DockerExtensionsEventSource : EventSource
+    public static DockerExtensionsEventSource Log = new DockerExtensionsEventSource();
+
+    [NonEvent]
+    public void ExtractResourceAttributesException(string format, Exception ex)
     {
-        public static DockerExtensionsEventSource Log = new DockerExtensionsEventSource();
-
-        [NonEvent]
-        public void ExtractResourceAttributesException(string format, Exception ex)
+        if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
         {
-            if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
-            {
-                this.FailedToExtractResourceAttributes(format, ToInvariantString(ex));
-            }
+            this.FailedToExtractResourceAttributes(format, ToInvariantString(ex));
         }
+    }
 
-        [Event(1, Message = "Failed to extract resource attributes in '{0}'.", Level = EventLevel.Error)]
-        public void FailedToExtractResourceAttributes(string format, string exception)
+    [Event(1, Message = "Failed to extract resource attributes in '{0}'.", Level = EventLevel.Error)]
+    public void FailedToExtractResourceAttributes(string format, string exception)
+    {
+        this.WriteEvent(1, format, exception);
+    }
+
+    /// <summary>
+    /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
+    /// appropriate for diagnostics tracing.
+    /// </summary>
+    private static string ToInvariantString(Exception exception)
+    {
+        var originalUICulture = Thread.CurrentThread.CurrentUICulture;
+
+        try
         {
-            this.WriteEvent(1, format, exception);
+            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
+            return exception.ToString();
         }
-
-        /// <summary>
-        /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
-        /// appropriate for diagnostics tracing.
-        /// </summary>
-        private static string ToInvariantString(Exception exception)
+        finally
         {
-            var originalUICulture = Thread.CurrentThread.CurrentUICulture;
-
-            try
-            {
-                Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-                return exception.ToString();
-            }
-            finally
-            {
-                Thread.CurrentThread.CurrentUICulture = originalUICulture;
-            }
+            Thread.CurrentThread.CurrentUICulture = originalUICulture;
         }
     }
 }

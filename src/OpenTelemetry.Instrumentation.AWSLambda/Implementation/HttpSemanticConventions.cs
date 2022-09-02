@@ -19,7 +19,7 @@ using System.Diagnostics;
 using Amazon.Lambda.APIGatewayEvents;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
+namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
 {
     internal class HttpSemanticConventions
     {

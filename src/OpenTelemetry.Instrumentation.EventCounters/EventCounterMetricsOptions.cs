@@ -14,16 +14,15 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.EventCounters
+namespace OpenTelemetry.Instrumentation.EventCounters;
+
+/// <summary>
+/// EventCounterMetrics Options.
+/// </summary>
+public class EventCounterMetricsOptions
 {
     /// <summary>
-    /// EventCounterMetrics Options.
+    /// Gets or sets the subscription interval in seconds.
     /// </summary>
-    public class EventCounterMetricsOptions
-    {
-        /// <summary>
-        /// Gets or sets the subscription interval in seconds.
-        /// </summary>
-        public int RefreshIntervalSecs { get; set; } = 60;
-    }
+    public int RefreshIntervalSecs { get; set; } = 60;
 }

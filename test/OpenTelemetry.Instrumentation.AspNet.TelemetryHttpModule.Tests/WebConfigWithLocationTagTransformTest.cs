@@ -19,16 +19,16 @@ using System.Xml.Linq;
 using Microsoft.Web.XmlTransform;
 using Xunit;
 
-namespace OpenTelemetry.Instrumentation.AspNet.Tests
-{
-    public class WebConfigWithLocationTagTransformTest
-    {
-        private const string InstallConfigTransformationResourceName = "OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests.Resources.web.config.install.xdt";
+namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 
-        [Fact]
-        public void VerifyInstallationWhenNonGlobalLocationTagExists()
-        {
-            const string OriginalWebConfigContent = @"
+public class WebConfigWithLocationTagTransformTest
+{
+    private const string InstallConfigTransformationResourceName = "OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests.Resources.web.config.install.xdt";
+
+    [Fact]
+    public void VerifyInstallationWhenNonGlobalLocationTagExists()
+    {
+        const string OriginalWebConfigContent = @"
                     <configuration>
                       <location path=""a.aspx"">
                         <system.webServer>
@@ -39,7 +39,7 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests
                       </location>
                     </configuration>";
 
-            const string ExpectedWebConfigContent = @"
+        const string ExpectedWebConfigContent = @"
                     <configuration>
                       <location path=""a.aspx"">
                         <system.webServer>
@@ -62,14 +62,14 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests
                       </system.webServer>
                     </configuration>";
 
-            var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-            this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
-        }
+        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+    }
 
-        [Fact]
-        public void VerifyInstallationWhenGlobalAndNonGlobalLocationTagExists()
-        {
-            const string OriginalWebConfigContent = @"
+    [Fact]
+    public void VerifyInstallationWhenGlobalAndNonGlobalLocationTagExists()
+    {
+        const string OriginalWebConfigContent = @"
                     <configuration>
                         <location path=""a.aspx"">
                             <system.webServer>
@@ -92,7 +92,7 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests
                         </location>
                     </configuration>";
 
-            const string ExpectedWebConfigContent = @"
+        const string ExpectedWebConfigContent = @"
                     <configuration>
                         <location path=""a.aspx"">
                             <system.webServer>
@@ -121,14 +121,14 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests
                         <system.webServer></system.webServer>
                     </configuration>";
 
-            var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-            this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
-        }
+        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+    }
 
-        [Fact]
-        public void VerifyInstallationToLocationTagWithDotPathAndExistingModules()
-        {
-            const string OriginalWebConfigContent = @"
+    [Fact]
+    public void VerifyInstallationToLocationTagWithDotPathAndExistingModules()
+    {
+        const string OriginalWebConfigContent = @"
                     <configuration>
                         <location path=""."">
                             <system.web>
@@ -146,7 +146,7 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests
                         </system.webServer>
                     </configuration>";
 
-            const string ExpectedWebConfigContent = @"
+        const string ExpectedWebConfigContent = @"
                     <configuration>
                       <location path=""."">
                         <system.web>
@@ -168,14 +168,14 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests
                       <system.web></system.web>
                     </configuration>";
 
-            var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-            this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
-        }
+        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+    }
 
-        [Fact]
-        public void VerifyInstallationToLocationTagWithEmptyPathAndExistingModules()
-        {
-            const string OriginalWebConfigContent = @"
+    [Fact]
+    public void VerifyInstallationToLocationTagWithEmptyPathAndExistingModules()
+    {
+        const string OriginalWebConfigContent = @"
                     <configuration>
                         <location>
                             <system.web>
@@ -191,7 +191,7 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests
                         </location>
                     </configuration>";
 
-            const string ExpectedWebConfigContent = @"
+        const string ExpectedWebConfigContent = @"
                     <configuration>
                       <location>
                         <system.web>
@@ -213,14 +213,14 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests
                       <system.webServer></system.webServer>
                     </configuration>";
 
-            var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-            this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
-        }
+        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+    }
 
-        [Fact]
-        public void VerifyInstallationToLocationTagWithDotPathWithNoModules()
-        {
-            const string OriginalWebConfigContent = @"
+    [Fact]
+    public void VerifyInstallationToLocationTagWithDotPathWithNoModules()
+    {
+        const string OriginalWebConfigContent = @"
                     <configuration>
                         <location path=""."">
                             <system.web>
@@ -234,7 +234,7 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests
                         </system.webServer>
                     </configuration>";
 
-            const string ExpectedWebConfigContent = @"
+        const string ExpectedWebConfigContent = @"
                     <configuration>
                       <location path=""."">
                         <system.web>
@@ -256,14 +256,14 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests
                       </system.webServer>
                     </configuration>";
 
-            var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-            this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
-        }
+        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+    }
 
-        [Fact]
-        public void VerifyInstallationToLocationTagWithEmptyPathWithNoModules()
-        {
-            const string OriginalWebConfigContent = @"
+    [Fact]
+    public void VerifyInstallationToLocationTagWithEmptyPathWithNoModules()
+    {
+        const string OriginalWebConfigContent = @"
                     <configuration>
                         <location>
                             <system.web>
@@ -273,7 +273,7 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests
                         </location>
                     </configuration>";
 
-            const string ExpectedWebConfigContent = @"
+        const string ExpectedWebConfigContent = @"
                     <configuration>
                       <location>
                         <system.web>
@@ -295,14 +295,14 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests
                       </system.webServer>
                     </configuration>";
 
-            var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-            this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
-        }
+        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+    }
 
-        [Fact]
-        public void VerifyInstallationToLocationTagWithDotPathWithGlobalModules()
-        {
-            const string OriginalWebConfigContent = @"
+    [Fact]
+    public void VerifyInstallationToLocationTagWithDotPathWithGlobalModules()
+    {
+        const string OriginalWebConfigContent = @"
                     <configuration>
                         <location path=""."">
                             <system.web>
@@ -322,7 +322,7 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests
                         </system.webServer>
                     </configuration>";
 
-            const string ExpectedWebConfigContent = @"
+        const string ExpectedWebConfigContent = @"
                     <configuration>
                       <location path=""."">
                         <system.web>
@@ -346,14 +346,14 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests
                       </system.webServer>
                     </configuration>";
 
-            var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-            this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
-        }
+        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+    }
 
-        [Fact]
-        public void VerifyInstallationToLocationTagWithEmptyPathWithGlobalModules()
-        {
-            const string OriginalWebConfigContent = @"
+    [Fact]
+    public void VerifyInstallationToLocationTagWithEmptyPathWithGlobalModules()
+    {
+        const string OriginalWebConfigContent = @"
                     <configuration>
                         <location>
                         </location>
@@ -369,7 +369,7 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests
                         </system.webServer>
                     </configuration>";
 
-            const string ExpectedWebConfigContent = @"
+        const string ExpectedWebConfigContent = @"
                     <configuration>
                       <location>
                       </location>
@@ -389,51 +389,50 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests
                       </system.webServer>
                     </configuration>";
 
-            var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-            this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
-        }
+        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+    }
 
-        private XDocument ApplyInstallTransformation(string originalConfiguration, string resourceName)
-        {
-            return this.ApplyTransformation(originalConfiguration, resourceName);
-        }
+    private XDocument ApplyInstallTransformation(string originalConfiguration, string resourceName)
+    {
+        return this.ApplyTransformation(originalConfiguration, resourceName);
+    }
 
-        private XDocument ApplyUninstallTransformation(string originalConfiguration, string resourceName)
-        {
-            return this.ApplyTransformation(originalConfiguration, resourceName);
-        }
+    private XDocument ApplyUninstallTransformation(string originalConfiguration, string resourceName)
+    {
+        return this.ApplyTransformation(originalConfiguration, resourceName);
+    }
 
-        private void VerifyTransformation(string expectedConfigContent, XDocument transformedWebConfig)
-        {
-            Assert.True(
-                XNode.DeepEquals(
-                    transformedWebConfig.FirstNode,
-                    XDocument.Parse(expectedConfigContent).FirstNode));
-        }
+    private void VerifyTransformation(string expectedConfigContent, XDocument transformedWebConfig)
+    {
+        Assert.True(
+            XNode.DeepEquals(
+                transformedWebConfig.FirstNode,
+                XDocument.Parse(expectedConfigContent).FirstNode));
+    }
 
-        private XDocument ApplyTransformation(string originalConfiguration, string transformationResourceName)
+    private XDocument ApplyTransformation(string originalConfiguration, string transformationResourceName)
+    {
+        XDocument result;
+        Stream stream = null;
+        try
         {
-            XDocument result;
-            Stream stream = null;
-            try
+            stream = typeof(WebConfigTransformTest).Assembly.GetManifestResourceStream(transformationResourceName);
+            var document = new XmlTransformableDocument();
+            using var transformation = new XmlTransformation(stream, null);
+            stream = null;
+            document.LoadXml(originalConfiguration);
+            transformation.Apply(document);
+            result = XDocument.Parse(document.OuterXml);
+        }
+        finally
+        {
+            if (stream != null)
             {
-                stream = typeof(WebConfigTransformTest).Assembly.GetManifestResourceStream(transformationResourceName);
-                var document = new XmlTransformableDocument();
-                using var transformation = new XmlTransformation(stream, null);
-                stream = null;
-                document.LoadXml(originalConfiguration);
-                transformation.Apply(document);
-                result = XDocument.Parse(document.OuterXml);
+                stream.Dispose();
             }
-            finally
-            {
-                if (stream != null)
-                {
-                    stream.Dispose();
-                }
-            }
-
-            return result;
         }
+
+        return result;
     }
 }

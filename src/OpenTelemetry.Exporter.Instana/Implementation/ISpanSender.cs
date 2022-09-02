@@ -14,10 +14,9 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Exporter.Instana.Implementation
+namespace OpenTelemetry.Exporter.Instana.Implementation;
+
+internal interface ISpanSender
 {
-    internal interface ISpanSender
-    {
-        void Enqueue(InstanaSpan instanaSpan);
-    }
+    void Enqueue(InstanaSpan instanaSpan);
 }

@@ -18,31 +18,30 @@ using System;
 using OpenTelemetry.Instrumentation.EventCounters;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Metrics
+namespace OpenTelemetry.Metrics;
+
+/// <summary>
+/// Extension methods to simplify registering of dependency instrumentation.
+/// </summary>
+public static class MeterProviderBuilderExtensions
 {
     /// <summary>
-    /// Extension methods to simplify registering of dependency instrumentation.
+    /// Enables EventCounter instrumentation.
     /// </summary>
-    public static class MeterProviderBuilderExtensions
+    /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
+    /// <param name="configure">Runtime metrics options.</param>
+    /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
+    public static MeterProviderBuilder AddEventCounterMetrics(
+        this MeterProviderBuilder builder,
+        Action<EventCounterMetricsOptions> configure = null)
     {
-        /// <summary>
-        /// Enables EventCounter instrumentation.
-        /// </summary>
-        /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
-        /// <param name="configure">Runtime metrics options.</param>
-        /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
-        public static MeterProviderBuilder AddEventCounterMetrics(
-            this MeterProviderBuilder builder,
-            Action<EventCounterMetricsOptions> configure = null)
-        {
-            Guard.ThrowIfNull(builder);
+        Guard.ThrowIfNull(builder);
 
-            var options = new EventCounterMetricsOptions();
-            configure?.Invoke(options);
+        var options = new EventCounterMetricsOptions();
+        configure?.Invoke(options);
 
-            var instrumentation = new EventCounterListener(options);
-            builder.AddMeter(EventCounterListener.InstrumentationName);
-            return builder.AddInstrumentation(() => instrumentation);
-        }
+        var instrumentation = new EventCounterListener(options);
+        builder.AddMeter(EventCounterListener.InstrumentationName);
+        return builder.AddInstrumentation(() => instrumentation);
     }
 }

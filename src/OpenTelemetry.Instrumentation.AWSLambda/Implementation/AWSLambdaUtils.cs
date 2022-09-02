@@ -23,14 +23,13 @@ using Amazon.Lambda.Core;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
+namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
 {
     /// <summary>
     /// Class for getting AWS Lambda related attributes.
     /// </summary>
     internal static class AWSLambdaUtils
     {
-        internal const string ActivitySourceName = "Amazon.AWS.AWSLambdaInstrumentation";
         private const string CloudProvider = "aws";
         private const string AWSRegion = "AWS_REGION";
         private const string AWSXRayLambdaTraceHeaderKey = "_X_AMZN_TRACE_ID";

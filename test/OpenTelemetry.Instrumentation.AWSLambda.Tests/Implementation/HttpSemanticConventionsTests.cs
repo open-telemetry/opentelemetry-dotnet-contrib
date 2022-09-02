@@ -17,10 +17,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using Amazon.Lambda.APIGatewayEvents;
-using OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation;
+using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests.Implementation
+namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
 {
     public class HttpSemanticConventionsTests
     {
