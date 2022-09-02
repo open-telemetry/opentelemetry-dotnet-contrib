@@ -15,17 +15,22 @@
 // </copyright>
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Amazon.Lambda.APIGatewayEvents;
+using Moq;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
+using OpenTelemetry.Trace;
 using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
 {
     public class HttpSemanticConventionsTests
     {
+        private static readonly ActivitySource TestActivitySource = new("TestActivitySource");
+
         [Fact]
-        public void GetHttpTags_APIGatewayProxyRequest_CorrectTags()
+        public void GetHttpTags_APIGatewayProxyRequest_ReturnsCorrectTags()
         {
             var request = new APIGatewayProxyRequest
             {
@@ -39,15 +44,88 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
                 HttpMethod = "GET",
             };
 
-            var tags = HttpSemanticConventions.GetHttpTags(request);
+            var actualTags = HttpSemanticConventions.GetHttpTags(request);
 
-            Assert.NotNull(tags);
-            Assert.Equal(5, tags.Count());
-            Assert.Contains(new KeyValuePair<string, object>("http.scheme", "https"), tags);
-            Assert.Contains(new KeyValuePair<string, object>("http.target", "/path/test"), tags);
-            Assert.Contains(new KeyValuePair<string, object>("net.host.name", "localhost"), tags);
-            Assert.Contains(new KeyValuePair<string, object>("net.host.port", "8080"), tags);
-            Assert.Contains(new KeyValuePair<string, object>("http.method", "GET"), tags);
+            var expectedTags = new Dictionary<string, object>
+            {
+                { "http.scheme", "https" },
+                { "http.target", "/path/test" },
+                { "net.host.name", "localhost" },
+                { "net.host.port", "8080" },
+                { "http.method", "GET" },
+            };
+
+            AssertTags(expectedTags, actualTags);
+        }
+
+        [Fact]
+        public void GetHttpTags_APIGatewayHttpApiV2ProxyRequest_ReturnsCorrectTags()
+        {
+            var request = new APIGatewayHttpApiV2ProxyRequest
+            {
+                Headers = new Dictionary<string, string>
+                {
+                    { "x-forwarded-proto",  "https" },
+                    { "x-forwarded-port", "8080" },
+                    { "host", "localhost" },
+                },
+                RequestContext = new APIGatewayHttpApiV2ProxyRequest.ProxyRequestContext
+                {
+                    Http = new APIGatewayHttpApiV2ProxyRequest.HttpDescription
+                    {
+                        Path = "/path/test",
+                        Method = "GET",
+                    },
+                },
+            };
+
+            var actualTags = HttpSemanticConventions.GetHttpTags(request);
+
+            var expectedTags = new Dictionary<string, object>
+            {
+                { "http.scheme", "https" },
+                { "http.target", "/path/test" },
+                { "net.host.name", "localhost" },
+                { "net.host.port", "8080" },
+                { "http.method", "GET" },
+            };
+
+            AssertTags(expectedTags, actualTags);
+        }
+
+        [Fact]
+        public void SetHttpTagsFromResult_APIGatewayProxyResponse_SetsCorrectTags()
+        {
+            var response = new APIGatewayProxyResponse
+            {
+                StatusCode = 200,
+            };
+            var activityProcessor = new Mock<BaseProcessor<Activity>>();
+
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddProcessor(activityProcessor.Object)
+                .AddSource("TestActivitySource")
+                .Build();
+
+            using var activity = TestActivitySource.StartActivity("TestActivity");
+
+            HttpSemanticConventions.SetHttpTagsFromResult(activity, response);
+
+            var expectedTags = new Dictionary<string, string>
+            {
+                { "http.status_code", "200" },
+            };
+            AssertTags(expectedTags, activity.Tags);
+        }
+
+        private static void AssertTags<TKey, TValue>(IReadOnlyDictionary<TKey, TValue> expectedTags, IEnumerable<KeyValuePair<TKey, TValue>> actualTags)
+        {
+            Assert.NotNull(actualTags);
+            Assert.Equal(expectedTags.Count, actualTags.Count());
+            foreach (var tag in expectedTags)
+            {
+                Assert.Contains(new KeyValuePair<TKey, TValue>(tag.Key, tag.Value), actualTags);
+            }
         }
     }
 }

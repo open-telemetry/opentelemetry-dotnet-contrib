@@ -65,15 +65,15 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
             return tags;
         }
 
-        internal static void SetHttpTagsFromRequest<TResult>(Activity activity, TResult result)
+        internal static void SetHttpTagsFromResult<TResult>(Activity activity, TResult result)
         {
             switch (result)
             {
                 case APIGatewayProxyResponse response:
-                    activity.SetTag(SemanticConventions.AttributeHttpStatusCode, response.StatusCode);
+                    activity.SetTag(SemanticConventions.AttributeHttpStatusCode, response.StatusCode.ToString());
                     break;
                 case APIGatewayHttpApiV2ProxyResponse responseV2:
-                    activity.SetTag(SemanticConventions.AttributeHttpStatusCode, responseV2.StatusCode);
+                    activity.SetTag(SemanticConventions.AttributeHttpStatusCode, responseV2.StatusCode.ToString());
                     break;
             }
         }

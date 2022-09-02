@@ -263,7 +263,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda
             try
             {
                 var result = handler(input, context);
-                HttpSemanticConventions.SetHttpTagsFromRequest(activity, result);
+                HttpSemanticConventions.SetHttpTagsFromResult(activity, result);
                 return result;
             }
             catch (Exception ex)
@@ -289,7 +289,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda
             try
             {
                 var result = await handlerAsync(input, context);
-                HttpSemanticConventions.SetHttpTagsFromRequest(activity, result);
+                HttpSemanticConventions.SetHttpTagsFromResult(activity, result);
                 return result;
             }
             catch (Exception ex)
