@@ -167,6 +167,7 @@ namespace OpenTelemetry.Exporter.Geneva
                     this.eventProvider?.Dispose();
                     this.eventBuilder.Dispose();
                     this.keyValuePairs.Dispose();
+                    this.partCFields.Dispose();
                 }
                 catch (Exception ex)
                 {
@@ -210,28 +211,51 @@ namespace OpenTelemetry.Exporter.Geneva
                 }
             }
 
-            int hasValidParentId = 0;
+            byte partBFieldsCount = 5;
+            var partBFieldsCountPatch = eb.AddStruct("PartB", partBFieldsCount); // We at least have five fields in PartB: _typeName, name, kind, startTime, success
+            eb.AddCountedString("_typeName", "Span");
+            eb.AddCountedAnsiString("name", activity.DisplayName, Encoding.UTF8);
+            eb.AddUInt8("kind", (byte)activity.Kind);
+            eb.AddFileTime("startTime", dtBegin);
+
             var strParentId = activity.ParentSpanId.ToHexString();
-            if (!ReferenceEquals(strParentId, INVALID_SPAN_ID))
+
+            // Note: this should be blazing fast since Object.ReferenceEquals(strParentId, INVALID_SPAN_ID) == true
+            if (!string.Equals(strParentId, INVALID_SPAN_ID, StringComparison.Ordinal))
             {
-                hasValidParentId++;
+                eb.AddCountedString("parentId", strParentId);
+                partBFieldsCount++;
             }
 
             var links = activity.Links;
-            var hasLinks = links.Any() ? 1 : 0;
+            if (links.Any())
+            {
+                var keyValuePairs = this.keyValuePairs.Value;
+                keyValuePairs.Clear();
+                foreach (var link in links)
+                {
+                    keyValuePairs.Add(new("toTraceId", link.Context.TraceId.ToHexString()));
+                    keyValuePairs.Add(new("toSpanId", link.Context.SpanId.ToHexString()));
+                }
 
-            int cntPartBFieldsFromTags = 0;
-            int cntPartCFieldsFromTags = 0;
-            int hasEnvProperties = 0;
+                eb.AddCountedString("links", JsonSerializer.SerializeMap(keyValuePairs));
+                partBFieldsCount++;
+            }
+
+            byte hasEnvProperties = 0;
             byte isStatusSuccess = 1;
             string statusDescription = string.Empty;
+
+            int partCFieldsCountFromTags = 0;
+            var partCFields = this.partCFields.Value;
 
             foreach (var entry in activity.TagObjects)
             {
                 // TODO: check name collision
                 if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string replacementKey))
                 {
-                    cntPartBFieldsFromTags++;
+                    this.Serialize(eb, entry.Key, entry.Value);
+                    partBFieldsCount++;
                 }
                 else if (string.Equals(entry.Key, "otel.status_code", StringComparison.Ordinal))
                 {
@@ -250,7 +274,8 @@ namespace OpenTelemetry.Exporter.Geneva
                 else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
                 {
                     // TODO: the above null check can be optimized and avoided inside foreach.
-                    cntPartCFieldsFromTags++;
+                    partCFields[partCFieldsCountFromTags] = new(entry.Key, entry.Value);
+                    partCFieldsCountFromTags++;
                 }
                 else
                 {
@@ -268,81 +293,30 @@ namespace OpenTelemetry.Exporter.Geneva
 
                 if (!string.IsNullOrEmpty(activity.StatusDescription))
                 {
-                    statusDescription = activity.StatusDescription;
+                    eb.AddCountedAnsiString("statusMessage", statusDescription, Encoding.UTF8);
+                    partBFieldsCount++;
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(activity.StatusDescription))
+                {
+                    eb.AddCountedAnsiString("statusMessage", statusDescription, Encoding.UTF8);
+                    partBFieldsCount++;
                 }
             }
 
-            var partBFieldsCount = 5 + hasValidParentId + hasLinks + cntPartBFieldsFromTags; // Five fields: _typeName, name, kind, startTime, success
-            if (isStatusSuccess == 0)
-            {
-                partBFieldsCount++; // we export statusMessage only when status is not successful
-            }
-
-            eb.AddStruct("PartB", (byte)partBFieldsCount);
-            eb.AddCountedString("_typeName", "Span");
-            eb.AddCountedAnsiString("name", activity.DisplayName, Encoding.UTF8);
-            eb.AddUInt8("kind", (byte)activity.Kind);
-            eb.AddFileTime("startTime", dtBegin);
+            // Do not increment partBFieldsCount here as the field "success" has already been accounted for
             eb.AddUInt8("success", isStatusSuccess, EventOutType.Boolean);
 
-            if (hasValidParentId == 1)
-            {
-                eb.AddCountedString("parentId", strParentId);
-            }
+            eb.SetStructFieldCount(partBFieldsCountPatch, partBFieldsCount);
 
-            if (isStatusSuccess == 0)
-            {
-                eb.AddCountedAnsiString("statusMessage", statusDescription, Encoding.UTF8);
-            }
-
-            if (hasLinks == 1)
-            {
-                var keyValuePairs = this.keyValuePairs.Value;
-                keyValuePairs.Clear();
-                foreach (var link in links)
-                {
-                    keyValuePairs.Add(new("toTraceId", link.Context.TraceId.ToHexString()));
-                    keyValuePairs.Add(new("toSpanId", link.Context.SpanId.ToHexString()));
-                }
-
-                eb.AddCountedString("links", JsonSerializer.SerializeMap(keyValuePairs));
-            }
-
-            if (cntPartBFieldsFromTags > 0)
-            {
-                foreach (var entry in activity.TagObjects)
-                {
-                    // TODO: check name collision
-                    if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string replacementKey))
-                    {
-                        this.Serialize(eb, entry.Key, entry.Value);
-                    }
-                }
-            }
-
-            var partCFieldsCount = cntPartCFieldsFromTags + hasEnvProperties;
+            var partCFieldsCount = partCFieldsCountFromTags + hasEnvProperties;
             eb.AddStruct("PartC", (byte)partCFieldsCount);
 
-            foreach (var entry in activity.TagObjects)
+            for (int i = 0; i < partCFieldsCountFromTags; i++)
             {
-                // TODO: check name collision
-                if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string replacementKey))
-                {
-                    continue;
-                }
-                else if (string.Equals(entry.Key, "otel.status_code", StringComparison.Ordinal))
-                {
-                    continue;
-                }
-                else if (string.Equals(entry.Key, "otel.status_description", StringComparison.Ordinal))
-                {
-                    continue;
-                }
-                else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
-                {
-                    // TODO: the above null check can be optimized and avoided inside foreach.
-                    this.Serialize(eb, entry.Key, entry.Value);
-                }
+                this.Serialize(eb, partCFields[i].Key, partCFields[i].Value);
             }
 
             if (hasEnvProperties == 1)
@@ -388,6 +362,8 @@ namespace OpenTelemetry.Exporter.Geneva
         private readonly ThreadLocal<EventBuilder> eventBuilder = new ThreadLocal<EventBuilder>(() => new(Encoding.ASCII));
 
         private readonly ThreadLocal<List<KeyValuePair<string, object>>> keyValuePairs = new(() => new());
+
+        private readonly ThreadLocal<KeyValuePair<string, object>[]> partCFields = new(() => new KeyValuePair<string, object>[120]); // This is used to temporarily store the PartC fields from tags
 
         private static readonly IReadOnlyDictionary<string, string> V40_PART_A_TLD_MAPPING = new Dictionary<string, string>
         {

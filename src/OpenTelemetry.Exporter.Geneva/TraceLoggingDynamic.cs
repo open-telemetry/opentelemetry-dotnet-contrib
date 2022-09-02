@@ -92,7 +92,6 @@ namespace Microsoft.TraceLoggingDynamic
     /// Dispose().
     /// </summary>
 
-
 #pragma warning disable CA5350
 #pragma warning disable CA5392
 

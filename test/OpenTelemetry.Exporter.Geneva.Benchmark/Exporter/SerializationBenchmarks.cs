@@ -27,15 +27,18 @@ Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
   DefaultJob : .NET 6.0.8 (6.0.822.36306), X64 RyuJIT
 
 
-|                    Method |     Mean |    Error |   StdDev | Allocated |
-|-------------------------- |---------:|---------:|---------:|----------:|
-|        TLD_SerializeUInt8 | 31.09 ns | 0.203 ns | 0.190 ns |         - |
-|    MsgPack_SerializeUInt8 | 10.87 ns | 0.042 ns | 0.039 ns |         - |
-|       TLD_SerializeString | 36.81 ns | 0.168 ns | 0.131 ns |         - |
-|   MsgPack_SerializeString | 19.69 ns | 0.054 ns | 0.048 ns |         - |
-|     TLD_SerializeDateTime | 54.22 ns | 0.378 ns | 0.353 ns |         - |
-| MsgPack_SerializeDateTime | 36.95 ns | 0.172 ns | 0.161 ns |         - |
-|                 TLD_Reset | 16.43 ns | 0.045 ns | 0.040 ns |         - |
+|                         Method |     Mean |    Error |   StdDev | Allocated |
+|------------------------------- |---------:|---------:|---------:|----------:|
+|             TLD_SerializeUInt8 | 30.41 ns | 0.136 ns | 0.127 ns |         - |
+|         MsgPack_SerializeUInt8 | 10.82 ns | 0.057 ns | 0.048 ns |         - |
+|       TLD_SerializeAsciiString | 35.99 ns | 0.281 ns | 0.235 ns |         - |
+|   MsgPack_SerializeAsciiString | 19.62 ns | 0.407 ns | 0.418 ns |         - |
+|  TLD_SerializeUnicodeSubString | 46.31 ns | 0.405 ns | 0.379 ns |         - |
+|     TLD_SerializeUnicodeString | 46.70 ns | 0.343 ns | 0.320 ns |         - |
+| MsgPack_SerializeUnicodeString | 24.36 ns | 0.172 ns | 0.144 ns |         - |
+|          TLD_SerializeDateTime | 54.17 ns | 0.492 ns | 0.436 ns |         - |
+|      MsgPack_SerializeDateTime | 39.84 ns | 0.592 ns | 0.495 ns |         - |
+|                      TLD_Reset | 16.82 ns | 0.155 ns | 0.145 ns |         - |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
@@ -43,14 +46,15 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
     [MemoryDiagnoser]
     public class SerializationBenchmarks
     {
+        private const int StringLengthLimit = (1 << 14) - 1;
         private readonly EventBuilder eventBuilder = new(Encoding.ASCII);
         private readonly byte[] buffer = new byte[65360];
 
         [Benchmark]
         public void TLD_SerializeUInt8()
         {
-            this.eventBuilder.AddUInt8("Number", 123);
             this.eventBuilder.Reset("test");
+            this.eventBuilder.AddUInt8("Number", 123);
         }
 
         [Benchmark]
@@ -61,24 +65,45 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
         }
 
         [Benchmark]
-        public void TLD_SerializeString()
+        public void TLD_SerializeAsciiString()
         {
-            this.eventBuilder.AddCountedString("name", "Span");
             this.eventBuilder.Reset("test");
+            this.eventBuilder.AddCountedString("name", "Span");
         }
 
         [Benchmark]
-        public void MsgPack_SerializeString()
+        public void MsgPack_SerializeAsciiString()
         {
             var cursor = MessagePackSerializer.SerializeAsciiString(this.buffer, 0, "name");
             MessagePackSerializer.SerializeAsciiString(this.buffer, cursor, "Span");
         }
 
         [Benchmark]
+        public void TLD_SerializeUnicodeSubString()
+        {
+            this.eventBuilder.Reset("test");
+            this.eventBuilder.AddCountedAnsiString("name", "Span", Encoding.UTF8, 0, Math.Min("Span".Length, StringLengthLimit));
+        }
+
+        [Benchmark]
+        public void TLD_SerializeUnicodeString()
+        {
+            this.eventBuilder.Reset("test");
+            this.eventBuilder.AddCountedAnsiString("name", "Span", Encoding.UTF8);
+        }
+
+        [Benchmark]
+        public void MsgPack_SerializeUnicodeString()
+        {
+            var cursor = MessagePackSerializer.SerializeAsciiString(this.buffer, 0, "name");
+            MessagePackSerializer.SerializeUnicodeString(this.buffer, cursor, "Span");
+        }
+
+        [Benchmark]
         public void TLD_SerializeDateTime()
         {
-            this.eventBuilder.AddFileTime("time", DateTime.UtcNow);
             this.eventBuilder.Reset("test");
+            this.eventBuilder.AddFileTime("time", DateTime.UtcNow);
         }
 
         [Benchmark]

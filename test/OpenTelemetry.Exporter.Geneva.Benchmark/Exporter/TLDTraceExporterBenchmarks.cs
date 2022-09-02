@@ -17,7 +17,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using BenchmarkDotNet.Attributes;
-using Microsoft.TraceLoggingDynamic;
 using OpenTelemetry.Trace;
 
 /*
@@ -28,10 +27,12 @@ Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
   DefaultJob : .NET 6.0.8 (6.0.822.36306), X64 RyuJIT
 
 
-|            Method |       Mean |    Error |   StdDev |  Gen 0 | Allocated |
-|------------------ |-----------:|---------:|---------:|-------:|----------:|
-|    ExportActivity | 1,282.8 ns | 12.59 ns | 11.77 ns | 0.0114 |      80 B |
-| SerializeActivity |   876.0 ns |  3.30 ns |  2.92 ns | 0.0124 |      80 B |
+|                    Method |       Mean |    Error |   StdDev |  Gen 0 | Allocated |
+|-------------------------- |-----------:|---------:|---------:|-------:|----------:|
+| MsgPack_SerializeActivity |   372.1 ns |  3.11 ns |  2.76 ns | 0.0062 |      40 B |
+|     TLD_SerializeActivity |   766.4 ns |  9.50 ns |  8.88 ns | 0.0057 |      40 B |
+|    MsgPack_ExportActivity |   800.9 ns | 15.69 ns | 17.44 ns | 0.0057 |      40 B |
+|        TLD_ExportActivity | 1,172.9 ns |  7.24 ns |  6.42 ns | 0.0057 |      40 B |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
@@ -41,9 +42,9 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
     {
         private readonly Activity activity;
         private readonly Batch<Activity> batch;
-        private readonly TLDTraceExporter exporter;
+        private readonly GenevaTraceExporter msgPackExporter;
+        private readonly TLDTraceExporter tldExporter;
         private readonly ActivitySource activitySource = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark");
-        private static readonly EventProvider eventProvider = new("TLDTraceExporterBenchmarks");
 
         public TLDTraceExporterBenchmarks()
         {
@@ -69,7 +70,18 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
                 this.activity?.SetStatus(Status.Error);
             }
 
-            this.exporter = new TLDTraceExporter(new GenevaExporterOptions()
+            this.msgPackExporter = new GenevaTraceExporter(new GenevaExporterOptions
+            {
+                ConnectionString = "EtwSession=OpenTelemetry",
+                PrepopulatedFields = new Dictionary<string, object>
+                {
+                    ["cloud.role"] = "BusyWorker",
+                    ["cloud.roleInstance"] = "CY1SCH030021417",
+                    ["cloud.roleVer"] = "9.0.15289.2",
+                },
+            });
+
+            this.tldExporter = new TLDTraceExporter(new GenevaExporterOptions()
             {
                 ConnectionString = "EtwSession=OpenTelemetry",
                 PrepopulatedFields = new Dictionary<string, object>
@@ -82,15 +94,27 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
         }
 
         [Benchmark]
-        public void ExportActivity()
+        public void MsgPack_SerializeActivity()
         {
-            this.exporter.Export(this.batch);
+            this.msgPackExporter.SerializeActivity(this.activity);
         }
 
         [Benchmark]
-        public void SerializeActivity()
+        public void TLD_SerializeActivity()
         {
-            this.exporter.SerializeActivity(this.activity);
+            this.tldExporter.SerializeActivity(this.activity);
+        }
+
+        [Benchmark]
+        public void MsgPack_ExportActivity()
+        {
+            this.msgPackExporter.Export(this.batch);
+        }
+
+        [Benchmark]
+        public void TLD_ExportActivity()
+        {
+            this.tldExporter.Export(this.batch);
         }
 
         [GlobalCleanup]
@@ -99,7 +123,7 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
             this.activity.Dispose();
             this.batch.Dispose();
             this.activitySource.Dispose();
-            this.exporter.Dispose();
+            this.tldExporter.Dispose();
         }
 
         private Batch<Activity> CreateBatch()
