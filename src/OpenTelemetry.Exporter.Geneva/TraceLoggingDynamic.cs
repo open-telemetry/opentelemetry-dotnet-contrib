@@ -1731,7 +1731,7 @@ namespace Microsoft.TraceLoggingDynamic
         }
 
         /// <summary>
-        /// Resets the number of logical fields in the specified structure.
+        /// Advanced: Resets the number of logical fields in the specified structure.
         /// </summary>
         /// <param name="metadataPosition">
         /// The position of the metadata field within the structure. This value is
@@ -1750,6 +1750,58 @@ namespace Microsoft.TraceLoggingDynamic
 
             var meta = this.metadata.data;
             meta[metadataPosition] = (byte)((meta[metadataPosition] & 0x80) | (fieldCount & 0x7F));
+        }
+
+        /// <summary>
+        /// Advanced: Extracts the raw data for the fields currently in the builder.
+        /// This can be used to add a group of fields to a builder with AppendRawFields.
+        /// </summary>
+        /// <returns>Raw data that can be used with AppendRawFields</returns>
+        public Tuple<byte[], byte[]> GetRawFields()
+        {
+            // Find start of first field.
+            int metaPos = 2; // Skip space reserved for metadata size.
+
+            // Skip past tags.
+            for (; ; metaPos += 1)
+            {
+                Debug.Assert(metaPos < this.metadata.Size);
+                if ((this.metadata.data[metaPos] & 0x80) == 0)
+                {
+                    metaPos += 1;
+                    break;
+                }
+            }
+
+            // Skip past event name.
+            int fieldStart = 1 + Array.IndexOf<byte>(this.metadata.data, 0, metaPos, this.metadata.Size - metaPos);
+            Debug.Assert(fieldStart > 0);
+
+            var dataSize = this.data.Size;
+            var dataCopy = new byte[dataSize];
+            Array.Copy(this.data.data, 0, dataCopy, 0, dataSize);
+
+            var metaSize = this.metadata.Size - fieldStart;
+            var metaCopy = new byte[metaSize];
+            Array.Copy(this.metadata.data, fieldStart, metaCopy, 0, metaSize);
+
+            return new Tuple<byte[], byte[]>(dataCopy, metaCopy);
+        }
+
+        /// <summary>
+        /// Advanced: Appends raw data and metadata to the builder. This can be used with
+        /// the data from GetRawFields.
+        /// </summary>
+        /// <param name="rawFields">Data from GetRawFields</param>
+        public void AppendRawFields(Tuple<byte[], byte[]> rawFields)
+        {
+            var rawData = rawFields.Item1;
+            int dataPos = this.data.ReserveSpaceFor(rawData.Length);
+            Buffer.BlockCopy(rawData, 0, this.data.data, dataPos, rawData.Length);
+
+            var rawMeta = rawFields.Item2;
+            int metaPos = this.metadata.ReserveSpaceFor(rawMeta.Length);
+            Buffer.BlockCopy(rawMeta, 0, this.metadata.data, metaPos, rawMeta.Length);
         }
 
         /// <summary>

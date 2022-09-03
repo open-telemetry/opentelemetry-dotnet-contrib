@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -100,20 +101,28 @@ namespace OpenTelemetry.Exporter.Geneva
 
             if (options.PrepopulatedFields != null)
             {
-                this.prepopulatedFieldsKeys = new List<string>();
-                var tempPrepopulatedFields = new Dictionary<string, object>(options.PrepopulatedFields.Count - 1, StringComparer.Ordinal);
-                foreach (var kv in options.PrepopulatedFields)
+                var prePopulatedFieldsCount = (byte)(options.PrepopulatedFields.Count - 1); // PrepopulatedFields option has the key ".ver" added to it which is not needed for TLD
+                this.partAFieldsCount += prePopulatedFieldsCount;
+
+                var eb = this.eventBuilder.Value;
+                eb.Reset(this.partAName);
+
+                foreach (var entry in options.PrepopulatedFields)
                 {
-                    if (kv.Key == Schema.V40.PartA.Ver)
+                    var key = entry.Key;
+                    var value = entry.Value;
+
+                    if (entry.Key == Schema.V40.PartA.Ver)
                     {
                         continue;
                     }
 
-                    tempPrepopulatedFields[kv.Key] = kv.Value;
-                    this.prepopulatedFieldsKeys.Add(kv.Key);
-                }
+                    V40_PART_A_TLD_MAPPING.TryGetValue(key, out string replacementKey);
+                    var keyToSerialize = replacementKey ?? key;
+                    this.Serialize(eb, keyToSerialize, value);
 
-                this.prepopulatedFields = tempPrepopulatedFields;
+                    this.repeatedPartAFields = eb.GetRawFields();
+                }
             }
         }
 
@@ -186,29 +195,18 @@ namespace OpenTelemetry.Exporter.Geneva
             eb.Reset(this.partAName);
             eb.AddUInt16("__csver__", 1024, EventOutType.Hex);
 
-            var partAFieldsCount = (this.prepopulatedFieldsKeys != null ? this.prepopulatedFieldsKeys.Count : 0) + 3; // Four fields: time, ext_dt_traceId, ext_dt_spanId
-
             var dtBegin = activity.StartTimeUtc;
             var tsBegin = dtBegin.Ticks;
             var tsEnd = tsBegin + activity.Duration.Ticks;
             var dtEnd = new DateTime(tsEnd);
 
-            // TODO: Do we need to serialize name?
-            eb.AddStruct("PartA", (byte)partAFieldsCount);
+            eb.AddStruct("PartA", this.partAFieldsCount);
             eb.AddFileTime("time", dtEnd);
             eb.AddCountedString("ext_dt_traceId", activity.Context.TraceId.ToHexString());
             eb.AddCountedString("ext_dt_spanId", activity.Context.SpanId.ToHexString());
-
-            if (this.prepopulatedFieldsKeys != null)
+            if (this.repeatedPartAFields != null)
             {
-                for (int i = 0; i < this.prepopulatedFieldsKeys.Count; i++)
-                {
-                    var key = this.prepopulatedFieldsKeys[i];
-                    var value = this.prepopulatedFields[key];
-                    V40_PART_A_TLD_MAPPING.TryGetValue(key, out string replacementKey);
-                    var keyToSerialize = replacementKey ?? key;
-                    this.Serialize(eb, keyToSerialize, value);
-                }
+                eb.AppendRawFields(this.repeatedPartAFields);
             }
 
             byte partBFieldsCount = 5;
@@ -347,19 +345,19 @@ namespace OpenTelemetry.Exporter.Geneva
 
         private readonly string partAName = "Span";
 
+        private readonly byte partAFieldsCount = 3; // At least three fields: time, ext_dt_traceId, ext_dt_spanId
+
         private readonly IReadOnlyDictionary<string, object> m_customFields;
 
         private readonly IReadOnlyDictionary<string, object> m_dedicatedFields;
 
-        private readonly IReadOnlyDictionary<string, object> prepopulatedFields;
-
-        private readonly List<string> prepopulatedFieldsKeys;
+        private readonly Tuple<byte[], byte[]> repeatedPartAFields;
 
         private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
 
         private readonly EventProvider eventProvider;
 
-        private readonly ThreadLocal<EventBuilder> eventBuilder = new ThreadLocal<EventBuilder>(() => new(Encoding.ASCII));
+        private readonly ThreadLocal<EventBuilder> eventBuilder = new ThreadLocal<EventBuilder>(() => new(UncheckedASCIIEncoding.SharedInstance));
 
         private readonly ThreadLocal<List<KeyValuePair<string, object>>> keyValuePairs = new(() => new());
 
@@ -403,6 +401,7 @@ namespace OpenTelemetry.Exporter.Geneva
 
         private bool isDisposed;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Serialize(EventBuilder eb, string key, object value)
         {
             switch (value)

@@ -29,16 +29,16 @@ Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
 
 |                         Method |     Mean |    Error |   StdDev | Allocated |
 |------------------------------- |---------:|---------:|---------:|----------:|
-|             TLD_SerializeUInt8 | 30.41 ns | 0.136 ns | 0.127 ns |         - |
-|         MsgPack_SerializeUInt8 | 10.82 ns | 0.057 ns | 0.048 ns |         - |
-|       TLD_SerializeAsciiString | 35.99 ns | 0.281 ns | 0.235 ns |         - |
-|   MsgPack_SerializeAsciiString | 19.62 ns | 0.407 ns | 0.418 ns |         - |
-|  TLD_SerializeUnicodeSubString | 46.31 ns | 0.405 ns | 0.379 ns |         - |
-|     TLD_SerializeUnicodeString | 46.70 ns | 0.343 ns | 0.320 ns |         - |
-| MsgPack_SerializeUnicodeString | 24.36 ns | 0.172 ns | 0.144 ns |         - |
-|          TLD_SerializeDateTime | 54.17 ns | 0.492 ns | 0.436 ns |         - |
-|      MsgPack_SerializeDateTime | 39.84 ns | 0.592 ns | 0.495 ns |         - |
-|                      TLD_Reset | 16.82 ns | 0.155 ns | 0.145 ns |         - |
+|             TLD_SerializeUInt8 | 23.40 ns | 0.142 ns | 0.126 ns |         - |
+|         MsgPack_SerializeUInt8 | 10.83 ns | 0.031 ns | 0.029 ns |         - |
+|       TLD_SerializeAsciiString | 31.15 ns | 0.043 ns | 0.038 ns |         - |
+|   MsgPack_SerializeAsciiString | 23.85 ns | 0.040 ns | 0.031 ns |         - |
+|  TLD_SerializeUnicodeSubString | 43.14 ns | 0.067 ns | 0.062 ns |         - |
+|     TLD_SerializeUnicodeString | 43.57 ns | 0.081 ns | 0.076 ns |         - |
+| MsgPack_SerializeUnicodeString | 27.78 ns | 0.017 ns | 0.015 ns |         - |
+|          TLD_SerializeDateTime | 49.22 ns | 0.027 ns | 0.024 ns |         - |
+|      MsgPack_SerializeDateTime | 35.95 ns | 0.051 ns | 0.043 ns |         - |
+|                      TLD_Reset | 12.40 ns | 0.006 ns | 0.005 ns |         - |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
@@ -47,7 +47,9 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
     public class SerializationBenchmarks
     {
         private const int StringLengthLimit = (1 << 14) - 1;
-        private readonly EventBuilder eventBuilder = new(Encoding.ASCII);
+        private const string Key = "ext_dt_traceId";
+        private const string Value = "e8ea7e9ac72de94e91fabc613f9686b2";
+        private readonly EventBuilder eventBuilder = new(UncheckedASCIIEncoding.SharedInstance);
         private readonly byte[] buffer = new byte[65360];
 
         [Benchmark]
@@ -68,35 +70,35 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
         public void TLD_SerializeAsciiString()
         {
             this.eventBuilder.Reset("test");
-            this.eventBuilder.AddCountedString("name", "Span");
+            this.eventBuilder.AddCountedString(Key, Value);
         }
 
         [Benchmark]
         public void MsgPack_SerializeAsciiString()
         {
-            var cursor = MessagePackSerializer.SerializeAsciiString(this.buffer, 0, "name");
-            MessagePackSerializer.SerializeAsciiString(this.buffer, cursor, "Span");
+            var cursor = MessagePackSerializer.SerializeAsciiString(this.buffer, 0, Key);
+            MessagePackSerializer.SerializeAsciiString(this.buffer, cursor, Value);
         }
 
         [Benchmark]
         public void TLD_SerializeUnicodeSubString()
         {
             this.eventBuilder.Reset("test");
-            this.eventBuilder.AddCountedAnsiString("name", "Span", Encoding.UTF8, 0, Math.Min("Span".Length, StringLengthLimit));
+            this.eventBuilder.AddCountedAnsiString(Key, Value, Encoding.UTF8, 0, Math.Min(Value.Length, StringLengthLimit));
         }
 
         [Benchmark]
         public void TLD_SerializeUnicodeString()
         {
             this.eventBuilder.Reset("test");
-            this.eventBuilder.AddCountedAnsiString("name", "Span", Encoding.UTF8);
+            this.eventBuilder.AddCountedAnsiString(Key, Value, Encoding.UTF8);
         }
 
         [Benchmark]
         public void MsgPack_SerializeUnicodeString()
         {
-            var cursor = MessagePackSerializer.SerializeAsciiString(this.buffer, 0, "name");
-            MessagePackSerializer.SerializeUnicodeString(this.buffer, cursor, "Span");
+            var cursor = MessagePackSerializer.SerializeAsciiString(this.buffer, 0, Key);
+            MessagePackSerializer.SerializeUnicodeString(this.buffer, cursor, Value);
         }
 
         [Benchmark]
