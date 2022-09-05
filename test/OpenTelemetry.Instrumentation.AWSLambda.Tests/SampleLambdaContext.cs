@@ -17,7 +17,7 @@
 using System;
 using Amazon.Lambda.Core;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests
+namespace OpenTelemetry.Instrumentation.AWSLambda.Tests
 {
     public class SampleLambdaContext : ILambdaContext
     {

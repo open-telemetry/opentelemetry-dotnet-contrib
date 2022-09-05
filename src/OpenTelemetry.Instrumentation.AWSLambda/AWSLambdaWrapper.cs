@@ -16,18 +16,27 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
+using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
+namespace OpenTelemetry.Instrumentation.AWSLambda
 {
     /// <summary>
     /// Wrapper class for AWS Lambda handlers.
     /// </summary>
-    public class AWSLambdaWrapper
+    public static class AWSLambdaWrapper
     {
-        private static readonly ActivitySource AWSLambdaActivitySource = new(AWSLambdaUtils.ActivitySourceName);
+        private static readonly AssemblyName AssemblyName = typeof(AWSLambdaWrapper).Assembly.GetName();
+
+        [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1202:ElementsMustBeOrderedByAccess", Justification = "Initialization order.")]
+        internal static readonly string ActivitySourceName = AssemblyName.Name;
+
+        private static readonly Version Version = AssemblyName.Version;
+        private static readonly ActivitySource AWSLambdaActivitySource = new(ActivitySourceName, Version.ToString());
 
         /// <summary>
         /// Gets or sets a value indicating whether AWS X-Ray propagation should be ignored. Default value is false.
@@ -91,6 +100,28 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         }
 
         /// <summary>
+        /// Tracing wrapper for Lambda handler.
+        /// </summary>
+        /// <param name="tracerProvider">TracerProvider passed in.</param>
+        /// <param name="lambdaHandler">Lambda handler function passed in.</param>
+        /// <param name="context">Instance of lambda context.</param>
+        /// <param name="parentContext">
+        /// The optional parent context <see cref="ActivityContext"/> is used for Activity object creation.
+        /// If no parent context provided, incoming request is used to extract one.
+        /// If parent is not extracted from incoming request then X-Ray propagation is used to extract one
+        /// unless X-Ray propagation is disabled in the configuration for this wrapper.
+        /// </param>
+        public static void Trace(
+            TracerProvider tracerProvider,
+            Action<ILambdaContext> lambdaHandler,
+            ILambdaContext context,
+            ActivityContext parentContext = default)
+        {
+            Action action = () => lambdaHandler(context);
+            TraceInternal<object>(tracerProvider, action, null, context, parentContext);
+        }
+
+        /// <summary>
         /// Tracing wrapper for async Lambda handler.
         /// </summary>
         /// <typeparam name="TInput">Input.</typeparam>
@@ -105,7 +136,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// unless X-Ray propagation is disabled in the configuration for this wrapper.
         /// </param>
         /// <returns>Task.</returns>
-        public static Task Trace<TInput>(
+        public static Task TraceAsync<TInput>(
             TracerProvider tracerProvider,
             Func<TInput, ILambdaContext, Task> lambdaHandler,
             TInput input,
@@ -132,7 +163,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// unless X-Ray propagation is disabled in the configuration for this wrapper.
         /// </param>
         /// <returns>Task of result.</returns>
-        public static async Task<TResult> Trace<TInput, TResult>(
+        public static async Task<TResult> TraceAsync<TInput, TResult>(
             TracerProvider tracerProvider,
             Func<TInput, ILambdaContext, Task<TResult>> lambdaHandler,
             TInput input,
@@ -143,28 +174,6 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
             Func<Task> action = async () => result = await lambdaHandler(input, context);
             await TraceInternalAsync(tracerProvider, action, input, context, parentContext);
             return result;
-        }
-
-        /// <summary>
-        /// Tracing wrapper for Lambda handler.
-        /// </summary>
-        /// <param name="tracerProvider">TracerProvider passed in.</param>
-        /// <param name="lambdaHandler">Lambda handler function passed in.</param>
-        /// <param name="context">Instance of lambda context.</param>
-        /// <param name="parentContext">
-        /// The optional parent context <see cref="ActivityContext"/> is used for Activity object creation.
-        /// If no parent context provided, incoming request is used to extract one.
-        /// If parent is not extracted from incoming request then X-Ray propagation is used to extract one
-        /// unless X-Ray propagation is disabled in the configuration for this wrapper.
-        /// </param>
-        public static void Trace(
-            TracerProvider tracerProvider,
-            Action<ILambdaContext> lambdaHandler,
-            ILambdaContext context,
-            ActivityContext parentContext = default)
-        {
-            Action action = () => lambdaHandler(context);
-            TraceInternal<object>(tracerProvider, action, null, context, parentContext);
         }
 
         /// <summary>
@@ -180,7 +189,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation
         /// unless X-Ray propagation is disabled in the configuration.
         /// </param>
         /// <returns>Task.</returns>
-        public static Task Trace(
+        public static Task TraceAsync(
             TracerProvider tracerProvider,
             Func<ILambdaContext, Task> lambdaHandler,
             ILambdaContext context,
