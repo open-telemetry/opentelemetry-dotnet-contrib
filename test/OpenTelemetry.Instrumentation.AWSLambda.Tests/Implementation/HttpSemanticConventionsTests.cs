@@ -27,8 +27,6 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
 {
     public class HttpSemanticConventionsTests
     {
-        private static readonly ActivitySource TestActivitySource = new("TestActivitySource");
-
         [Fact]
         public void GetHttpTags_APIGatewayProxyRequest_ReturnsCorrectTags()
         {
@@ -107,7 +105,34 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
                 .AddSource("TestActivitySource")
                 .Build();
 
-            using var activity = TestActivitySource.StartActivity("TestActivity");
+            using var testActivitySource = new ActivitySource("TestActivitySource");
+            using var activity = testActivitySource.StartActivity("TestActivity");
+
+            HttpSemanticConventions.SetHttpTagsFromResult(activity, response);
+
+            var expectedTags = new Dictionary<string, string>
+            {
+                { "http.status_code", "200" },
+            };
+            AssertTags(expectedTags, activity.Tags);
+        }
+
+        [Fact]
+        public void SetHttpTagsFromResult_APIGatewayHttpApiV2ProxyResponse_SetsCorrectTags()
+        {
+            var response = new APIGatewayHttpApiV2ProxyResponse
+            {
+                StatusCode = 200,
+            };
+            var activityProcessor = new Mock<BaseProcessor<Activity>>();
+
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddProcessor(activityProcessor.Object)
+                .AddSource("TestActivitySource")
+                .Build();
+
+            using var testActivitySource = new ActivitySource("TestActivitySource");
+            using var activity = testActivitySource.StartActivity("TestActivity");
 
             HttpSemanticConventions.SetHttpTagsFromResult(activity, response);
 
