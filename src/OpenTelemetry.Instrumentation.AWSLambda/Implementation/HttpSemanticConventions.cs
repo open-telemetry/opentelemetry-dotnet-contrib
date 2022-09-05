@@ -16,6 +16,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Amazon.Lambda.APIGatewayEvents;
 using OpenTelemetry.Trace;
 
@@ -25,7 +26,6 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
     {
         // x-forwarded-... headres are described here https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/x-forwarded-headers.html
         private const string HeaderXForwardedProto = "x-forwarded-proto";
-        private const string HeaderXForwardedPort = "x-forwarded-port";
         private const string HeaderHost = "host";
 
         internal static IEnumerable<KeyValuePair<string, object>> GetHttpTags<TInput>(TInput input)
@@ -43,15 +43,15 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
                 case APIGatewayProxyRequest request:
                     httpScheme = GetHeaderValue(request, HeaderXForwardedProto);
                     httpTarget = request.Path;
-                    hostName = GetHeaderValue(request, HeaderHost);
-                    hostPort = GetHeaderValue(request, HeaderXForwardedPort);
+                    var hostHeader = GetHeaderValue(request, HeaderHost);
+                    (hostName, hostPort) = GetHostAndPort(hostHeader);
                     httpMethod = request.HttpMethod;
                     break;
                 case APIGatewayHttpApiV2ProxyRequest requestV2:
                     httpScheme = GetHeaderValue(requestV2, HeaderXForwardedProto);
                     httpTarget = requestV2?.RequestContext.Http?.Path;
-                    hostName = GetHeaderValue(requestV2, HeaderHost);
-                    hostPort = GetHeaderValue(requestV2, HeaderXForwardedPort);
+                    var hostHeaderV2 = GetHeaderValue(requestV2, HeaderHost);
+                    (hostName, hostPort) = GetHostAndPort(hostHeaderV2);
                     httpMethod = requestV2?.RequestContext?.Http?.Method;
                     break;
             }
@@ -75,6 +75,26 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
                 case APIGatewayHttpApiV2ProxyResponse responseV2:
                     activity.SetTag(SemanticConventions.AttributeHttpStatusCode, responseV2.StatusCode.ToString());
                     break;
+            }
+        }
+
+        internal static (string Host, string Port) GetHostAndPort(string hostHeaders)
+        {
+            if (hostHeaders == null)
+            {
+                return (null, null);
+            }
+
+            // In case of multiple headres we consider only the 1st.
+            var hostHeader = hostHeaders.Split(',').First();
+            var hostAndPort = hostHeader.Split(':');
+            if (hostAndPort.Length > 1)
+            {
+                return (hostAndPort[0], hostAndPort[1]);
+            }
+            else
+            {
+                return (hostAndPort[0], null);
             }
         }
 

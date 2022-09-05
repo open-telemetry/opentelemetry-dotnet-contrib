@@ -35,8 +35,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
                 MultiValueHeaders = new Dictionary<string, IList<string>>
                 {
                     { "x-forwarded-proto", new List<string> { "https" } },
-                    { "x-forwarded-port", new List<string> { "8080" } },
-                    { "host", new List<string> { "localhost" } },
+                    { "host", new List<string> { "localhost:1234" } },
                 },
                 Path = "/path/test",
                 HttpMethod = "GET",
@@ -49,7 +48,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
                 { "http.scheme", "https" },
                 { "http.target", "/path/test" },
                 { "net.host.name", "localhost" },
-                { "net.host.port", "8080" },
+                { "net.host.port", "1234" },
                 { "http.method", "GET" },
             };
 
@@ -64,8 +63,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
                 Headers = new Dictionary<string, string>
                 {
                     { "x-forwarded-proto",  "https" },
-                    { "x-forwarded-port", "8080" },
-                    { "host", "localhost" },
+                    { "host", "localhost:1234" },
                 },
                 RequestContext = new APIGatewayHttpApiV2ProxyRequest.ProxyRequestContext
                 {
@@ -84,7 +82,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
                 { "http.scheme", "https" },
                 { "http.target", "/path/test" },
                 { "net.host.name", "localhost" },
-                { "net.host.port", "8080" },
+                { "net.host.port", "1234" },
                 { "http.method", "GET" },
             };
 
@@ -141,6 +139,20 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
                 { "http.status_code", "200" },
             };
             AssertTags(expectedTags, activity.Tags);
+        }
+
+        [Theory]
+        [InlineData(null, null, null)]
+        [InlineData("", "", null)]
+        [InlineData("localhost:4321", "localhost", "4321")]
+        [InlineData("localhost:4321, myhost.com:9876", "localhost", "4321")]
+        [InlineData("localhost", "localhost", null)]
+        public void GetHostAndPort_HostHeader_ReturnsCorrectHostAndPort(string hostHeader, string expectedHost, string expectedPort)
+        {
+            (var host, var port) = HttpSemanticConventions.GetHostAndPort(hostHeader);
+
+            Assert.Equal(expectedHost, host);
+            Assert.Equal(expectedPort, port);
         }
 
         private static void AssertTags<TKey, TValue>(IReadOnlyDictionary<TKey, TValue> expectedTags, IEnumerable<KeyValuePair<TKey, TValue>> actualTags)
