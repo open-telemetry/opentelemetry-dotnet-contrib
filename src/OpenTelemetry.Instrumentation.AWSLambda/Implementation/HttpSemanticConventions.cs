@@ -49,7 +49,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
                     break;
                 case APIGatewayHttpApiV2ProxyRequest requestV2:
                     httpScheme = GetHeaderValue(requestV2, HeaderXForwardedProto);
-                    httpTarget = requestV2?.RequestContext.Http?.Path;
+                    httpTarget = requestV2?.RequestContext?.Http?.Path;
                     var hostHeaderV2 = GetHeaderValue(requestV2, HeaderHost);
                     (hostName, hostPort) = GetHostAndPort(hostHeaderV2);
                     httpMethod = requestV2?.RequestContext?.Http?.Method;
