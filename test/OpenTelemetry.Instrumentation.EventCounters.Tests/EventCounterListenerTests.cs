@@ -24,7 +24,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests;
 
 public class EventCounterListenerTests
 {
-    private const int Delay = 1400;
+    private const int Delay = 1200;
 
     [Fact(Skip = "Other tests metrics are being exported here")]
     public async Task NoMetricsByDefault()

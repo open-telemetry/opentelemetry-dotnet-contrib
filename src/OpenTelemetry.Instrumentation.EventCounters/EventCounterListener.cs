@@ -31,7 +31,6 @@ internal class EventCounterListener : EventListener
     internal static readonly AssemblyName AssemblyName = typeof(EventCounterListener).Assembly.GetName();
     internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
 
-    // TODO: make these static?
     private readonly EventCounterListenerOptions options;
     private readonly ConcurrentBag<EventSource> preInitEventSources = new();
     private readonly ConcurrentDictionary<Tuple<string, string>, Instrument> instruments = new();
@@ -52,14 +51,12 @@ internal class EventCounterListener : EventListener
                 this.EnableEvents(source, EventLevel.LogAlways, EventKeywords.None, this.options.EnableEventsArguments);
             }
         }
-
-        this.preInitEventSources = null;
     }
 
     /// <inheritdoc />
     protected override void OnEventSourceCreated(EventSource source)
     {
-        if (this.preInitEventSources != null)
+        if (this.options == null)
         {
             this.preInitEventSources.Add(source);
         }
@@ -72,7 +69,7 @@ internal class EventCounterListener : EventListener
     /// <inheritdoc />
     protected override void OnEventWritten(EventWrittenEventArgs eventData)
     {
-        if (this.preInitEventSources != null || !this.options.Names.Contains(eventData.EventName))
+        if (this.options == null || !this.options.Names.Contains(eventData.EventName))
         {
             return;
         }
