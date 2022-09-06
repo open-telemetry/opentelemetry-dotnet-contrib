@@ -1,4 +1,4 @@
-name: Pack OpenTelemetry.Contrib.Instrumentation.AWSLambda
+name: Pack OpenTelemetry.Instrumentation.AWSLambda
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ jobs:
   build-test-pack:
     runs-on: ${{ matrix.os }}
     env:
-      PROJECT: OpenTelemetry.Contrib.Instrumentation.AWSLambda
+      PROJECT: OpenTelemetry.Instrumentation.AWSLambda
 
     strategy:
       matrix:

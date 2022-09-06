@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWSLambda
+namespace OpenTelemetry.Instrumentation.AWSLambda
 {
     /// <summary>
     /// AWS lambda instrumentation options.
