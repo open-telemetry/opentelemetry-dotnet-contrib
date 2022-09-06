@@ -25,8 +25,8 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
     internal class HttpSemanticConventions
     {
         // x-forwarded-... headres are described here https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/x-forwarded-headers.html
-        private const string HeaderXForwardedProto = "x-forwarded-proto";
-        private const string HeaderHost = "host";
+        private const string HeaderXForwardedProto = "X-Forwarded-Proto";
+        private const string HeaderHost = "Host";
 
         internal static IEnumerable<KeyValuePair<string, object>> GetHttpTags<TInput>(TInput input)
         {

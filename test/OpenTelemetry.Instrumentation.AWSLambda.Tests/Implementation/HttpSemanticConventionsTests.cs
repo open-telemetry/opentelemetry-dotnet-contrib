@@ -34,8 +34,8 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
             {
                 MultiValueHeaders = new Dictionary<string, IList<string>>
                 {
-                    { "x-forwarded-proto", new List<string> { "https" } },
-                    { "host", new List<string> { "localhost:1234" } },
+                    { "X-Forwarded-Proto", new List<string> { "https" } },
+                    { "Host", new List<string> { "localhost:1234" } },
                 },
                 Path = "/path/test",
                 HttpMethod = "GET",
@@ -62,8 +62,8 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
             {
                 Headers = new Dictionary<string, string>
                 {
-                    { "x-forwarded-proto",  "https" },
-                    { "host", "localhost:1234" },
+                    { "X-Forwarded-Proto",  "https" },
+                    { "Host", "localhost:1234" },
                 },
                 RequestContext = new APIGatewayHttpApiV2ProxyRequest.ProxyRequestContext
                 {
