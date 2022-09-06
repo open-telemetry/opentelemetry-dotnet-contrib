@@ -120,7 +120,7 @@ internal static class ActivityExtensions
                 {
                     link.Tags.ToDictionary(
                         att => att.Key,
-                        att => att.Value.ToAttributeValue()),
+                        att => att.Value?.ToAttributeValue()),
                 },
             };
         }
@@ -128,7 +128,7 @@ internal static class ActivityExtensions
         return ret;
     }
 
-    public static AttributeValue ToAttributeValue(this object av)
+    public static AttributeValue ToAttributeValue(this object? av)
     {
         switch (av)
         {
@@ -146,6 +146,8 @@ internal static class ActivityExtensions
                 {
                     StringValue = new TruncatableString() { Value = d.ToString() },
                 };
+            case null:
+                return new AttributeValue();
             default:
                 return new AttributeValue()
                 {
