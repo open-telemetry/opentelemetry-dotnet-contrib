@@ -22,11 +22,11 @@ dotnet add package OpenTelemetry.Instrumentation.EventCounters
 ### Step 2: Enable EventCounters Instrumentation
 
 EventCounters instrumentation should be enabled at application startup using the
-`AddEventCounterListener` extension on the `MeterProviderBuilder`:
+`AddEventCountersInstrumentation` extension on the `MeterProviderBuilder`:
 
 ```csharp
 using var meterProvider = Sdk.CreateMeterProviderBuilder()
-    .AddEventCounterListener(options => {
+    .AddEventCountersInstrumentation(options => {
         options.RefreshIntervalSecs = 1;
         options.Sources.Add("MyEventSourceName");
     })

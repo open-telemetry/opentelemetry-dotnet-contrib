@@ -1,4 +1,4 @@
-// <copyright file="EventCounterListenerOptions.cs" company="OpenTelemetry Authors">
+// <copyright file="EventCountersInstrumentationOptions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters;
 /// <summary>
 /// EventCounterListener Options.
 /// </summary>
-public class EventCounterListenerOptions
+public class EventCountersInstrumentationOptions
 {
     /// <summary>
     /// Gets or sets the subscription interval in seconds.

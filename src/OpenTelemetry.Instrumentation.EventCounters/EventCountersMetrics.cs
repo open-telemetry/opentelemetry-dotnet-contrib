@@ -1,4 +1,4 @@
-// <copyright file="EventCounterListener.cs" company="OpenTelemetry Authors">
+// <copyright file="EventCountersMetrics.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,21 +26,21 @@ namespace OpenTelemetry.Instrumentation.EventCounters;
 /// <summary>
 /// .NET EventCounters Instrumentation.
 /// </summary>
-internal class EventCounterListener : EventListener
+internal class EventCountersMetrics : EventListener
 {
-    internal static readonly AssemblyName AssemblyName = typeof(EventCounterListener).Assembly.GetName();
+    internal static readonly AssemblyName AssemblyName = typeof(EventCountersMetrics).Assembly.GetName();
     internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
 
-    private readonly EventCounterListenerOptions options;
+    private readonly EventCountersInstrumentationOptions options;
     private readonly ConcurrentBag<EventSource> preInitEventSources = new();
     private readonly ConcurrentDictionary<Tuple<string, string>, Instrument> instruments = new();
     private readonly ConcurrentDictionary<Tuple<string, string>, double> values = new();
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="EventCounterListener"/> class.
+    /// Initializes a new instance of the <see cref="EventCountersMetrics"/> class.
     /// </summary>
     /// <param name="options">The options to define the metrics.</param>
-    public EventCounterListener(EventCounterListenerOptions options)
+    public EventCountersMetrics(EventCountersInstrumentationOptions options)
     {
         this.options = options;
 
