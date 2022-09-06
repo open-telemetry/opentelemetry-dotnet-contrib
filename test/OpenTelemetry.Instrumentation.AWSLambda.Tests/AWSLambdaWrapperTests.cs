@@ -137,7 +137,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests
                 .Build())
             {
                 var parentContext = setCustomParent ? CreateParentContext() : default;
-                var result = await AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerAsyncInputAndReturn, "TestStream", this.sampleLambdaContext, parentContext);
+                var result = await AWSLambdaWrapper.TraceAsync(tracerProvider, this.sampleHandlers.SampleHandlerAsyncInputAndReturn, "TestStream", this.sampleLambdaContext, parentContext);
                 var resource = tracerProvider.GetResource();
                 this.AssertResourceAttributes(resource);
             }
@@ -163,7 +163,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests
                 .Build())
             {
                 var parentContext = setCustomParent ? CreateParentContext() : default;
-                await AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerAsyncInputAndNoReturn, "TestStream", this.sampleLambdaContext, parentContext);
+                await AWSLambdaWrapper.TraceAsync(tracerProvider, this.sampleHandlers.SampleHandlerAsyncInputAndNoReturn, "TestStream", this.sampleLambdaContext, parentContext);
                 var resource = tracerProvider.GetResource();
                 this.AssertResourceAttributes(resource);
             }
@@ -189,7 +189,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests
                 .Build())
             {
                 var parentContext = setCustomParent ? CreateParentContext() : default;
-                await AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerAsyncNoInputAndNoReturn, this.sampleLambdaContext, parentContext);
+                await AWSLambdaWrapper.TraceAsync(tracerProvider, this.sampleHandlers.SampleHandlerAsyncNoInputAndNoReturn, this.sampleLambdaContext, parentContext);
                 var resource = tracerProvider.GetResource();
                 this.AssertResourceAttributes(resource);
             }
