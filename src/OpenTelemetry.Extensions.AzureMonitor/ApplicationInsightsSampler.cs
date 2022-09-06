@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 using System;
+using System.Collections.Generic;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
@@ -26,6 +27,8 @@ namespace OpenTelemetry.Extensions.AzureMonitor;
 public class ApplicationInsightsSampler : Sampler
 {
     private readonly float samplingRatio;
+    private readonly SamplingResult dropSamplingResult;
+    private readonly SamplingResult recordAndSampleSamplingResult;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ApplicationInsightsSampler"/> class.
@@ -38,6 +41,14 @@ public class ApplicationInsightsSampler : Sampler
 
         this.samplingRatio = samplingRatio;
         this.Description = "ApplicationInsightsSampler{" + samplingRatio + "}";
+        var sampleRate = (int)Math.Round(samplingRatio * 100);
+        this.dropSamplingResult = new SamplingResult(false);
+        this.recordAndSampleSamplingResult = new SamplingResult(
+            SamplingDecision.RecordAndSample,
+            new Dictionary<string, object>
+                {
+                    { "sampleRate", sampleRate },
+                });
     }
 
     /// <summary>
@@ -48,8 +59,26 @@ public class ApplicationInsightsSampler : Sampler
     /// <returns>Returns whether or not we should sample telemetry in the form of a <see cref="SamplingResult"/> class.</returns>
     public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
     {
+        if (this.samplingRatio == 0)
+        {
+            return this.dropSamplingResult;
+        }
+
+        if (this.samplingRatio == 1)
+        {
+            return this.recordAndSampleSamplingResult;
+        }
+
         double sampleScore = DJB2SampleScore(samplingParameters.TraceId.ToHexString().ToLowerInvariant());
-        return new SamplingResult(sampleScore < this.samplingRatio);
+
+        if (sampleScore < this.samplingRatio)
+        {
+            return this.recordAndSampleSamplingResult;
+        }
+        else
+        {
+            return this.dropSamplingResult;
+        }
     }
 
     private static double DJB2SampleScore(string traceIdHex)
