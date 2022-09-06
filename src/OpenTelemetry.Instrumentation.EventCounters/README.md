@@ -1,7 +1,11 @@
-# Event counter instrumentation for OpenTelemetry
+# Event Counters Instrumentation for OpenTelemetry .NET
 
-This is an [Instrumentation Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library),
-which republishes EventCounters using Metrics Api.
+[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.EventCounters.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EventCounters)
+[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.EventCounters.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EventCounters)
+
+This is an
+[Instrumentation Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library)
+, which **republishes EventCounters using Metrics Api.**
 
 ## Steps to enable OpenTelemetry.Instrumentation.EventCounters
 
@@ -9,61 +13,61 @@ which republishes EventCounters using Metrics Api.
 
 Add a reference to the
 [`OpenTelemetry.Instrumentation.EventCounters`](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EventCounters)
-package. Also, add any other instrumentation & exporters you will need.
+package.
 
 ```shell
 dotnet add package OpenTelemetry.Instrumentation.EventCounters
 ```
 
-### Step 2: Enable EventCounters Instrumentation at application startup
+### Step 2: Enable EventCounters Instrumentation
 
-EventCounters instrumentation must be enabled at application startup.
-
-The following example demonstrates adding EventCounter events to a
-console application. This example also sets up the OpenTelemetry Console
-exporter, which requires adding the package
-[`OpenTelemetry.Exporter.Console`](https://www.nuget.org/packages/OpenTelemetry.Exporter.Console)
-to the application.
+EventCounters instrumentation should be enabled at application startup using the
+`AddEventCounterListener` extension on the `MeterProviderBuilder`:
 
 ```csharp
-using OpenTelemetry;
-using OpenTelemetry.Metrics;
-
-namespace DotnetMetrics;
-
-public class Program
-{
-    public static void Main(string[] args)
-    {
-        using var meterprovider = Sdk.CreateMeterProviderBuilder()
-                .AddEventCounterMetrics(options =>
-                {
-                   options.RefreshIntervalSecs = 5;
-                })
-                .AddConsoleExporter()
-                .Build();
-    }
+using var meterProvider = Sdk.CreateMeterProviderBuilder()
+    .AddEventCounterListener(options => {
+        options.RefreshIntervalSecs = 1;
+        options.Sources.Add("MyEventSourceName");
+    })
+    .AddPrometheusExporter()
+    .Build();
 }
 ```
 
-Console Output:
+Additionally, this examples sets up the OpenTelemetry Prometheus exporter, which
+requires adding the package
+[`OpenTelemetry.Exporter.Prometheus`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Prometheus.HttpListener/README.md)
+to the application.
 
-```console
+### Step 3: Create EventCounters
 
-Export cpu-usage, CPU Usage, Meter: OpenTelemetry.Instrumentation.EventCounters/0.0.0.0
-(2022-07-12T16:40:37.2639447Z, 2022-07-12T16:40:42.2533747Z] DoubleGauge
-Value: 0
+Learn about
+[EventCounters in .NET](https://docs.microsoft.com/en-us/dotnet/core/diagnostics/event-counters)
+.
 
-Export working-set, Working Set, Meter: OpenTelemetry.Instrumentation.EventCounters/0.0.0.0
-(2022-07-12T16:40:37.2666398Z, 2022-07-12T16:40:42.2534452Z] DoubleGauge
-Value: 38
+```csharp
+EventSource eventSource = new("MyEventSource");
 
-Export gc-heap-size, GC Heap Size, Meter: OpenTelemetry.Instrumentation.EventCounters/0.0.0.0
-(2022-07-12T16:40:37.2667389Z, 2022-07-12T16:40:42.2534456Z] DoubleGauge
-Value: 7
+EventCounter eventCounter = new("MyEventCounterName", eventSource);
+eventCounter.WriteMetric(0);
+eventCounter.WriteMetric(1000);
 
-
+PollingCounter pollingCounter = new("MyPollingCounterName", eventSource, () => new Random().NextDouble());
 ```
+
+There are some
+[Well-known EventCounters in .NET](https://docs.microsoft.com/en-us/dotnet/core/diagnostics/available-counters)
+that are filtered out by this library.
+For these counters, use either the `OpenTelemetry.Instrumentation.Process` or
+`OpenTelemetry.Instrumentation.Runtime` instrumentation libraries.
+
+## Notes
+
+The metrics will only be available after `EventCounterIntervalSec` seconds.
+Before that nothing will be exported, if anything is present at the Prometheus
+metrics endpoint it is from a prior execution. This is more evident when using
+longer polling intervals.
 
 ## References
 
