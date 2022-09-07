@@ -15,10 +15,8 @@
 // </copyright>
 
 using System;
-using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Reflection;
-using System.Threading.Tasks;
 using Diagnostics = System.Diagnostics;
 
 namespace OpenTelemetry.Instrumentation.Process;
@@ -27,41 +25,38 @@ internal class ProcessMetrics
 {
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
     internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
-    private const int MeasurementWindowInSeconds = 1;
 
     static ProcessMetrics()
     {
-        InstrumentsValues values = new InstrumentsValues();
-
         // Refer to the spec for instrument details:
         // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md#metric-instruments
 
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
             "process.memory.usage",
-            () => values.GetMemoryUsage(),
+            () => InstrumentsValues.GetMemoryUsage(),
             unit: "By",
             description: "The amount of physical memory in use by the current process.");
 
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
             "process.memory.virtual",
-            () => values.GetVirtualMemoryUsage(),
+            () => InstrumentsValues.GetVirtualMemoryUsage(),
             unit: "By",
             description: "The amount of committed virtual memory by the current process.");
 
         MeterInstance.CreateObservableCounter(
             $"process.cpu.time",
-            () => values.GetCpuTime(),
+            () => InstrumentsValues.GetCpuTime(),
             unit: "s",
             description: "The amount of time that the current process has actively used a CPU to perform computations.");
 
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
             $"process.cpu.utilization",
-            () => values.GetCpuUtilization(MeasurementWindowInSeconds).Result,
+            () => InstrumentsValues.GetCpuUtilization(),
             unit: "s",
-            description: "Difference in process.cpu.time since the last measurement, divided by the elapsed time and number of CPUs available to the current process.");
+            description: "Difference in process.cpu.time since the last measurement (collection of observerble instruments from MetricReader), divided by the elapsed time and number of CPUs available to the current process.");
     }
 
     /// <summary>
@@ -72,41 +67,44 @@ internal class ProcessMetrics
     {
     }
 
-    private class InstrumentsValues
+    private static class InstrumentsValues
     {
-        private readonly Diagnostics.Process currentProcess = Diagnostics.Process.GetCurrentProcess();
+        private const int TicksPerSecond = 10 * 7;
+        private static readonly Diagnostics.Process CurrentProcess = Diagnostics.Process.GetCurrentProcess();
+        private static DateTime lastMeasurementTimestamp = CurrentProcess.StartTime;
+        private static double lastMeasurementCpuTime;
+        private static double currentMeasurementCpuTime;
 
-        public InstrumentsValues()
+        static InstrumentsValues()
         {
-            this.currentProcess.Refresh();
+            CurrentProcess.Refresh();
         }
 
-        public long GetMemoryUsage()
+        internal static long GetMemoryUsage()
         {
-            return this.currentProcess.WorkingSet64;
+            return CurrentProcess.WorkingSet64;
         }
 
-        public long GetVirtualMemoryUsage()
+        internal static long GetVirtualMemoryUsage()
         {
-            return this.currentProcess.VirtualMemorySize64;
+            return CurrentProcess.VirtualMemorySize64;
         }
 
-        public double GetCpuTime()
+        internal static double GetCpuTime()
         {
-            return this.currentProcess.TotalProcessorTime.TotalSeconds;
+            currentMeasurementCpuTime = CurrentProcess.TotalProcessorTime.Ticks * TicksPerSecond;
+            return currentMeasurementCpuTime;
         }
 
-        public async Task<double> GetCpuUtilization(int measurementWindowInSeconds)
+        internal static double GetCpuUtilization()
         {
-            var startCpuTime = this.currentProcess.TotalProcessorTime.TotalSeconds;
-            Stopwatch timer = Stopwatch.StartNew();
+            var elapsedTime = (DateTime.Now - lastMeasurementTimestamp).Ticks * TicksPerSecond;
+            var deltaInCpuTime = currentMeasurementCpuTime - lastMeasurementCpuTime;
 
-            await Task.Delay(measurementWindowInSeconds * 1000).ConfigureAwait(false);
+            lastMeasurementTimestamp = DateTime.Now;
+            lastMeasurementCpuTime = currentMeasurementCpuTime;
 
-            var endCpuTime = this.currentProcess.TotalProcessorTime.TotalSeconds;
-            timer.Stop();
-
-            return (endCpuTime - startCpuTime) / (Environment.ProcessorCount * (timer.ElapsedMilliseconds / 1000));
+            return deltaInCpuTime / (Environment.ProcessorCount * elapsedTime);
         }
     }
 }
