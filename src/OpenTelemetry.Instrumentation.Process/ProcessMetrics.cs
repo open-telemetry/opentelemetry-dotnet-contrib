@@ -80,12 +80,12 @@ internal class ProcessMetrics
             CurrentProcess.Refresh();
         }
 
-        internal static long GetMemoryUsage()
+        internal static double GetMemoryUsage()
         {
             return CurrentProcess.WorkingSet64;
         }
 
-        internal static long GetVirtualMemoryUsage()
+        internal static double GetVirtualMemoryUsage()
         {
             return CurrentProcess.VirtualMemorySize64;
         }
