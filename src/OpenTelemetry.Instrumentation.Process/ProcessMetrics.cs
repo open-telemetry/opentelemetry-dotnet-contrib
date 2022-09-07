@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using Diagnostics = System.Diagnostics;
@@ -24,31 +25,27 @@ internal class ProcessMetrics
 {
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
     internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
-    private static readonly Diagnostics.Process CurrentProcess = Diagnostics.Process.GetCurrentProcess();
 
     static ProcessMetrics()
     {
+        // Refer to the spec for instrument details:
+        // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md#metric-instruments
+
+        InstrumentsValues values = new InstrumentsValues(() => (-1, -1));
+
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
             "process.memory.usage",
-            () =>
-            {
-                CurrentProcess.Refresh();
-                return CurrentProcess.WorkingSet64;
-            },
+            () => values.GetMemoryUsage(),
             unit: "By",
-            description: "The amount of physical memory in use.");
+            description: "The amount of physical memory in use by the current process.");
 
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
             "process.memory.virtual",
-            () =>
-            {
-                CurrentProcess.Refresh();
-                return CurrentProcess.VirtualMemorySize64;
-            },
+            () => values.GetVirtualMemoryUsage(),
             unit: "By",
-            description: "The amount of committed virtual memory.");
+            description: "The amount of committed virtual memory by the current process.");
     }
 
     /// <summary>
@@ -57,5 +54,48 @@ internal class ProcessMetrics
     /// <param name="options">The options to define the metrics.</param>
     public ProcessMetrics(ProcessInstrumentationOptions options)
     {
+    }
+
+    private class InstrumentsValues
+    {
+        private readonly Diagnostics.Process currentProcess = Diagnostics.Process.GetCurrentProcess();
+
+        private double? memoryUsage;
+        private double? virtualMemoryUsage;
+
+        public InstrumentsValues(Func<(double MemoryUsage, double VirtualMemoryUsage)> readValues)
+        {
+            this.memoryUsage = null;
+            this.virtualMemoryUsage = null;
+
+            this.currentProcess.Refresh();
+            this.UpdateValues = readValues;
+        }
+
+        private Func<(double MemoryUsage, double VirtualMemoryUsage)> UpdateValues { get; set; }
+
+        public double GetMemoryUsage()
+        {
+            if (!this.memoryUsage.HasValue)
+            {
+                (this.memoryUsage, this.virtualMemoryUsage) = this.UpdateValues();
+            }
+
+            var value = this.currentProcess.WorkingSet64;
+            this.memoryUsage = null;
+            return value;
+        }
+
+        public double GetVirtualMemoryUsage()
+        {
+            if (!this.virtualMemoryUsage.HasValue)
+            {
+                (this.memoryUsage, this.virtualMemoryUsage) = this.UpdateValues();
+            }
+
+            var value = this.currentProcess.VirtualMemorySize64;
+            this.virtualMemoryUsage = null;
+            return value;
+        }
     }
 }
