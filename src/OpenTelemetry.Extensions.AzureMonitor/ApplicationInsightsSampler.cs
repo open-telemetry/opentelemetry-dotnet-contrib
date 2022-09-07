@@ -26,9 +26,9 @@ namespace OpenTelemetry.Extensions.AzureMonitor;
 /// </summary>
 public class ApplicationInsightsSampler : Sampler
 {
-    private readonly float samplingRatio;
-    private readonly SamplingResult dropSamplingResult;
+    private static readonly SamplingResult DropSamplingResult = new(false);
     private readonly SamplingResult recordAndSampleSamplingResult;
+    private readonly float samplingRatio;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ApplicationInsightsSampler"/> class.
@@ -42,7 +42,6 @@ public class ApplicationInsightsSampler : Sampler
         this.samplingRatio = samplingRatio;
         this.Description = "ApplicationInsightsSampler{" + samplingRatio + "}";
         var sampleRate = (int)Math.Round(samplingRatio * 100);
-        this.dropSamplingResult = new SamplingResult(false);
         this.recordAndSampleSamplingResult = new SamplingResult(
             SamplingDecision.RecordAndSample,
             new Dictionary<string, object>
@@ -61,7 +60,7 @@ public class ApplicationInsightsSampler : Sampler
     {
         if (this.samplingRatio == 0)
         {
-            return this.dropSamplingResult;
+            return DropSamplingResult;
         }
 
         if (this.samplingRatio == 1)
@@ -77,7 +76,7 @@ public class ApplicationInsightsSampler : Sampler
         }
         else
         {
-            return this.dropSamplingResult;
+            return DropSamplingResult;
         }
     }
 
