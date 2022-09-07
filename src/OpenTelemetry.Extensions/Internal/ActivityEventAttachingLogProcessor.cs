@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-#if NET462_OR_GREATER || NETSTANDARD2_0 || NET5_0_OR_GREATER
 using System;
 using System.Diagnostics;
 using OpenTelemetry.Internal;
@@ -109,4 +108,3 @@ internal sealed class ActivityEventAttachingLogProcessor : BaseProcessor<LogReco
         public int Depth { get; set; }
     }
 }
-#endif

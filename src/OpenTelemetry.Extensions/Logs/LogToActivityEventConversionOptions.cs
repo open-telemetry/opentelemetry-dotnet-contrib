@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-#if NET462_OR_GREATER || NETSTANDARD2_0 || NET5_0_OR_GREATER
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -36,4 +35,3 @@ public class LogToActivityEventConversionOptions
     /// </summary>
     public Action<ActivityTagsCollection, int, LogRecordScope> ScopeConverter { get; set; } = DefaultLogStateConverter.ConvertScope;
 }
-#endif

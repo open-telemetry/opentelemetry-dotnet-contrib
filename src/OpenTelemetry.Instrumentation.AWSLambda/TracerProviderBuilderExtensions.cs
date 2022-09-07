@@ -15,12 +15,12 @@
 // </copyright>
 
 using System;
-using OpenTelemetry.Contrib.Instrumentation.AWSLambda;
-using OpenTelemetry.Contrib.Instrumentation.AWSLambda.Implementation;
+using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Trace
+namespace OpenTelemetry.Instrumentation.AWSLambda
 {
     /// <summary>
     /// Extension class for TracerProviderBuilder.
@@ -44,7 +44,7 @@ namespace OpenTelemetry.Trace
 
             AWSLambdaWrapper.DisableAwsXRayContextExtraction = options.DisableAwsXRayContextExtraction;
 
-            builder.AddSource(AWSLambdaUtils.ActivitySourceName);
+            builder.AddSource(AWSLambdaWrapper.ActivitySourceName);
             builder.SetResourceBuilder(ResourceBuilder
                 .CreateEmpty()
                 .AddService(AWSLambdaUtils.GetFunctionName(), null, null, false)

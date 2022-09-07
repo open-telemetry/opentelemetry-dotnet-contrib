@@ -1,7 +1,12 @@
-# Changelog - OpenTelemetry.Contrib.Instrumentation.AWSLambda
+# Changelog - OpenTelemetry.Instrumentation.AWSLambda
 
 ## Unreleased
 
+* Breaking change: Rename package to OpenTelemetry.Instrumentation.AWSLambda
+  (remove ".Contrib") ([#593](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/593))
+* Breaking change: Move public class AWSLambdaWrapper out of Implementation subnamespace
+  ([#593](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/593))
+* Add version to ActivitySource ([#593](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/593))
 * Updated the `ActivitySource` name to the assembly name:
   `OpenTelemetry.Instrumentation.AWSLambda`
   ([#534](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/534))
@@ -30,4 +35,4 @@ SDK](https://www.nuget.org/packages/OpenTelemetry/).
 
 The AWSLambda library includes extension and tracing APIs to configure resource detector
 and generate incoming AWS Lambda OTel span. For more details, please refer to the
-[README](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/src/OpenTelemetry.Contrib.Instrumentation.AWSLambda/README.md)
+[README](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/Instrumentation.AWSLambda-1.1.0-beta1/src/OpenTelemetry.Contrib.Instrumentation.AWSLambda/README.md)
