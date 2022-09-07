@@ -40,12 +40,16 @@ Maintainers
 * [Alan West](https://github.com/alanwest), New Relic
 * [Cijo Thomas](https://github.com/cijothomas), Microsoft
 * [Mikel Blanchard](https://github.com/CodeBlanch), Microsoft
-* [Prashant Srivastava](https://github.com/srprash), AWS
-* [Sergey Kanzhelev](https://github.com/SergeyKanzhelev), Google
 * [Utkarsh Umesan Pillai](https://github.com/utpilla), Microsoft
 
 *Find more about the maintainer role in [community
 repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#maintainer).*
+
+[Emeritus
+Maintainer/Approver/Triager](https://github.com/open-telemetry/community/blob/main/community-membership.md#emeritus-maintainerapprovertriager):
+
+* [Prashant Srivastava](https://github.com/srprash), AWS
+* [Sergey Kanzhelev](https://github.com/SergeyKanzhelev), Google
 
 Even though, anybody can contribute, there are benefits of being a member of our
 community. See to the [community membership
