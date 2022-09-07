@@ -31,32 +31,34 @@ internal class ProcessMetrics
         // Refer to the spec for instrument details:
         // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md#metric-instruments
 
+        InstrumentsValues values = new InstrumentsValues(() => (-1, -1, -1, -1));
+
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
             "process.memory.usage",
-            () => InstrumentsValues.GetMemoryUsage(),
+            () => values.GetMemoryUsage(),
             unit: "By",
             description: "The amount of physical memory in use by the current process.");
 
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
             "process.memory.virtual",
-            () => InstrumentsValues.GetVirtualMemoryUsage(),
+            () => values.GetVirtualMemoryUsage(),
             unit: "By",
             description: "The amount of committed virtual memory by the current process.");
 
         MeterInstance.CreateObservableCounter(
             $"process.cpu.time",
-            () => InstrumentsValues.GetCpuTime(),
+            () => values.GetCpuTime(),
             unit: "s",
             description: "The amount of time that the current process has actively used a CPU to perform computations.");
 
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
             $"process.cpu.utilization",
-            () => InstrumentsValues.GetCpuUtilization(),
+            () => values.GetCpuUtilization(),
             unit: "s",
-            description: "Difference in process.cpu.time since the last measurement (collection of observerble instruments from MetricReader), divided by the elapsed time and number of CPUs available to the current process.");
+            description: "Difference in process.cpu.time since the last collection of observerble instruments from the MetricReader, divided by the elapsed time multiply by the number of CPUs available to the current process.");
     }
 
     /// <summary>
@@ -67,44 +69,85 @@ internal class ProcessMetrics
     {
     }
 
-    private static class InstrumentsValues
+    private class InstrumentsValues
     {
         private const int TicksPerSecond = 10 * 7;
-        private static readonly Diagnostics.Process CurrentProcess = Diagnostics.Process.GetCurrentProcess();
-        private static DateTime lastMeasurementTimestamp = CurrentProcess.StartTime;
-        private static double lastMeasurementCpuTime;
-        private static double currentMeasurementCpuTime;
+        private readonly Diagnostics.Process currentProcess = Diagnostics.Process.GetCurrentProcess();
 
-        static InstrumentsValues()
+        private double? memoryUsage;
+        private double? virtualMemoryUsage;
+        private double? cpuTime;
+        private double? cpuUtlization;
+
+        private DateTime lastCollectionTimestamp = DateTime.Now;
+        private double lastCollectionCpuTime;
+
+        public InstrumentsValues(Func<(double MemoryUsage, double VirtualMemoryUsage, double CpuTime, double CpuUtilization)> readValues)
         {
-            CurrentProcess.Refresh();
+            this.memoryUsage = null;
+            this.virtualMemoryUsage = null;
+            this.cpuTime = null;
+            this.cpuUtlization = null;
+
+            this.currentProcess.Refresh();
+            this.UpdateValues = readValues;
         }
 
-        internal static double GetMemoryUsage()
+        private Func<(double MemoryUsage, double VirtualMemoryUsage, double CpuTime, double CpuUtilization)> UpdateValues { get; set; }
+
+        public double GetMemoryUsage()
         {
-            return CurrentProcess.WorkingSet64;
+            if (!this.memoryUsage.HasValue)
+            {
+                (this.memoryUsage, this.virtualMemoryUsage, this.cpuTime, this.cpuUtlization) = this.UpdateValues();
+            }
+
+            var value = this.currentProcess.WorkingSet64;
+            this.memoryUsage = null;
+            return value;
         }
 
-        internal static double GetVirtualMemoryUsage()
+        public double GetVirtualMemoryUsage()
         {
-            return CurrentProcess.VirtualMemorySize64;
+            if (!this.virtualMemoryUsage.HasValue)
+            {
+                (this.memoryUsage, this.virtualMemoryUsage, this.cpuTime, this.cpuUtlization) = this.UpdateValues();
+            }
+
+            var value = this.currentProcess.VirtualMemorySize64;
+            this.virtualMemoryUsage = null;
+            return value;
         }
 
-        internal static double GetCpuTime()
+        public double GetCpuTime()
         {
-            currentMeasurementCpuTime = CurrentProcess.TotalProcessorTime.Ticks * TicksPerSecond;
-            return currentMeasurementCpuTime;
+            if (!this.cpuTime.HasValue)
+            {
+                (this.memoryUsage, this.virtualMemoryUsage, this.cpuTime, this.cpuUtlization) = this.UpdateValues();
+            }
+
+            var value = this.currentProcess.TotalProcessorTime.Ticks * TicksPerSecond;
+            this.cpuTime = null;
+            return value;
         }
 
-        internal static double GetCpuUtilization()
+        public double GetCpuUtilization()
         {
-            var elapsedTime = (DateTime.Now - lastMeasurementTimestamp).Ticks * TicksPerSecond;
-            var deltaInCpuTime = currentMeasurementCpuTime - lastMeasurementCpuTime;
+            if (!this.cpuUtlization.HasValue)
+            {
+                (this.memoryUsage, this.virtualMemoryUsage, this.cpuTime, this.cpuUtlization) = this.UpdateValues();
+            }
 
-            lastMeasurementTimestamp = DateTime.Now;
-            lastMeasurementCpuTime = currentMeasurementCpuTime;
+            var elapsedTime = (DateTime.Now - this.lastCollectionTimestamp).Ticks * TicksPerSecond;
+            var currentCpuTime = this.currentProcess.TotalProcessorTime.Ticks * TicksPerSecond;
+            var deltaInCpuTime = currentCpuTime - this.lastCollectionCpuTime;
 
-            return deltaInCpuTime / (Environment.ProcessorCount * elapsedTime);
+            this.lastCollectionTimestamp = DateTime.Now;
+            this.lastCollectionCpuTime = currentCpuTime;
+
+            var value = deltaInCpuTime / (Environment.ProcessorCount * elapsedTime);
+            this.cpuUtlization = null;
+            return value;
         }
     }
 }
