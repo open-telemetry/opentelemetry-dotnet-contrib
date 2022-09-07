@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using Diagnostics = System.Diagnostics;
@@ -24,31 +25,40 @@ internal class ProcessMetrics
 {
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
     internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
-    private static readonly Diagnostics.Process CurrentProcess = Diagnostics.Process.GetCurrentProcess();
 
     static ProcessMetrics()
     {
+        // Refer to the spec for instrument details:
+        // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md#metric-instruments
+
+        InstrumentsValues values = new InstrumentsValues(() => (-1, -1, -1, -1));
+
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
             "process.memory.usage",
-            () =>
-            {
-                CurrentProcess.Refresh();
-                return CurrentProcess.WorkingSet64;
-            },
+            () => values.GetMemoryUsage(),
             unit: "By",
-            description: "The amount of physical memory in use.");
+            description: "The amount of physical memory in use by the current process.");
 
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
             "process.memory.virtual",
-            () =>
-            {
-                CurrentProcess.Refresh();
-                return CurrentProcess.VirtualMemorySize64;
-            },
+            () => values.GetVirtualMemoryUsage(),
             unit: "By",
-            description: "The amount of committed virtual memory.");
+            description: "The amount of committed virtual memory by the current process.");
+
+        MeterInstance.CreateObservableCounter(
+            $"process.cpu.time",
+            () => values.GetCpuTime(),
+            unit: "s",
+            description: "The amount of time that the current process has actively used a CPU to perform computations.");
+
+        // TODO: change to ObservableUpDownCounter
+        MeterInstance.CreateObservableGauge(
+            $"process.cpu.utilization",
+            () => values.GetCpuUtilization(),
+            unit: "s",
+            description: "Difference in process.cpu.time since the last collection of observerble instruments from the MetricReader, divided by the elapsed time multiply by the number of CPUs available to the current process.");
     }
 
     /// <summary>
@@ -57,5 +67,87 @@ internal class ProcessMetrics
     /// <param name="options">The options to define the metrics.</param>
     public ProcessMetrics(ProcessInstrumentationOptions options)
     {
+    }
+
+    private class InstrumentsValues
+    {
+        private const int TicksPerSecond = 10 * 7;
+        private readonly Diagnostics.Process currentProcess = Diagnostics.Process.GetCurrentProcess();
+
+        private double? memoryUsage;
+        private double? virtualMemoryUsage;
+        private double? cpuTime;
+        private double? cpuUtlization;
+
+        private DateTime lastCollectionTimestamp = DateTime.Now;
+        private double lastCollectionCpuTime;
+
+        public InstrumentsValues(Func<(double MemoryUsage, double VirtualMemoryUsage, double CpuTime, double CpuUtilization)> readValues)
+        {
+            this.memoryUsage = null;
+            this.virtualMemoryUsage = null;
+            this.cpuTime = null;
+            this.cpuUtlization = null;
+
+            this.currentProcess.Refresh();
+            this.UpdateValues = readValues;
+        }
+
+        private Func<(double MemoryUsage, double VirtualMemoryUsage, double CpuTime, double CpuUtilization)> UpdateValues { get; set; }
+
+        public double GetMemoryUsage()
+        {
+            if (!this.memoryUsage.HasValue)
+            {
+                (this.memoryUsage, this.virtualMemoryUsage, this.cpuTime, this.cpuUtlization) = this.UpdateValues();
+            }
+
+            var value = this.currentProcess.WorkingSet64;
+            this.memoryUsage = null;
+            return value;
+        }
+
+        public double GetVirtualMemoryUsage()
+        {
+            if (!this.virtualMemoryUsage.HasValue)
+            {
+                (this.memoryUsage, this.virtualMemoryUsage, this.cpuTime, this.cpuUtlization) = this.UpdateValues();
+            }
+
+            var value = this.currentProcess.VirtualMemorySize64;
+            this.virtualMemoryUsage = null;
+            return value;
+        }
+
+        public double GetCpuTime()
+        {
+            if (!this.cpuTime.HasValue)
+            {
+                (this.memoryUsage, this.virtualMemoryUsage, this.cpuTime, this.cpuUtlization) = this.UpdateValues();
+            }
+
+            var value = this.currentProcess.TotalProcessorTime.Ticks * TicksPerSecond;
+            this.cpuTime = null;
+            return value;
+        }
+
+        public double GetCpuUtilization()
+        {
+            if (!this.cpuUtlization.HasValue)
+            {
+                (this.memoryUsage, this.virtualMemoryUsage, this.cpuTime, this.cpuUtlization) = this.UpdateValues();
+            }
+
+            var elapsedTime = (DateTime.Now - this.lastCollectionTimestamp).Ticks * TicksPerSecond;
+            var currentCpuTime = this.currentProcess.TotalProcessorTime.Ticks * TicksPerSecond;
+            var deltaInCpuTime = currentCpuTime - this.lastCollectionCpuTime;
+
+            this.lastCollectionTimestamp = DateTime.Now;
+            this.lastCollectionCpuTime = currentCpuTime;
+
+            var value = deltaInCpuTime / (Environment.ProcessorCount * elapsedTime);
+            this.cpuUtlization = null;
+            return value;
+        }
     }
 }
