@@ -107,7 +107,7 @@ public class StackdriverExporterTests
 
         for (int i = 0; i < 10; i++)
         {
-            using Activity activity = source.StartActivity("Test Activity");
+            using Activity activity = CreateTestActivity();
             processor.OnEnd(activity);
         }
 
@@ -147,7 +147,7 @@ public class StackdriverExporterTests
 
         for (int i = 0; i < 10; i++)
         {
-            using Activity activity = source.StartActivity("Test Activity");
+            using Activity activity = CreateTestActivity();
             processor.OnEnd(activity);
         }
 
@@ -192,6 +192,7 @@ public class StackdriverExporterTests
             { "doubleKey", 1D },
             { "doubleKey2", 1F },
             { "boolKey", true },
+            { "nullKey", null },
         };
         if (additionalAttributes != null)
         {
@@ -224,7 +225,7 @@ public class StackdriverExporterTests
         var activitySource = new ActivitySource(nameof(CreateTestActivity));
 
         var tags = setAttributes ?
-            attributes.Select(kvp => new KeyValuePair<string, object>(kvp.Key, kvp.Value.ToString()))
+            attributes.Where(x => x.Value != null).Select(kvp => new KeyValuePair<string, object>(kvp.Key, kvp.Value.ToString()))
             : null;
         var links = addLinks ?
             new[]

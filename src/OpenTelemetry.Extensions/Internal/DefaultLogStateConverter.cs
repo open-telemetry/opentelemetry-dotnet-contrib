@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-#if NET462_OR_GREATER || NETSTANDARD2_0 || NET5_0_OR_GREATER
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -64,4 +63,3 @@ internal static class DefaultLogStateConverter
         }
     }
 }
-#endif
