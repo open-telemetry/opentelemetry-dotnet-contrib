@@ -22,8 +22,6 @@
   if the parent context is not defined.
 * Breaking change: `AWSLambdaWrapper.Trace` overloads without `ILambdaContext` argument
   have been completely removed.
-* Added two new `AWSLambdaWrapper.Trace` overloads without generic input arguments.
-  ([#408](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/408))
 
 ## 1.1.0-beta1
 
