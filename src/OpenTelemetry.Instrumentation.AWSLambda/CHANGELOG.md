@@ -2,9 +2,11 @@
 
 ## Unreleased
 
-## 2.0.0-beta1
+## 1.1.0-beta2
 
 Release PR: [#590](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/590)
+
+This is the first release with the new package name `OpenTelemetry.Instrumentation.AWSLambda`.
 
 * BREAKING (API, behavior): Rename package to OpenTelemetry.Instrumentation.AWSLambda
   (remove ".Contrib") ([#593](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/593)).
