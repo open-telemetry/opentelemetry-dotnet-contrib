@@ -34,33 +34,33 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
 
             string httpScheme = null;
             string httpTarget = null;
+            string httpMethod = null;
             string hostName = null;
             string hostPort = null;
-            string httpMethod = null;
 
             switch (input)
             {
                 case APIGatewayProxyRequest request:
                     httpScheme = GetHeaderValue(request, HeaderXForwardedProto);
                     httpTarget = request.Path;
-                    var hostHeader = GetHeaderValue(request, HeaderHost);
-                    (hostName, hostPort) = GetHostAndPort(hostHeader);
                     httpMethod = request.HttpMethod;
+                    var hostHeader = GetHeaderValue(request, HeaderHost);
+                    (hostName, hostPort) = GetHostAndPort(httpScheme, hostHeader);
                     break;
                 case APIGatewayHttpApiV2ProxyRequest requestV2:
                     httpScheme = GetHeaderValue(requestV2, HeaderXForwardedProto);
                     httpTarget = requestV2?.RequestContext?.Http?.Path;
-                    var hostHeaderV2 = GetHeaderValue(requestV2, HeaderHost);
-                    (hostName, hostPort) = GetHostAndPort(hostHeaderV2);
                     httpMethod = requestV2?.RequestContext?.Http?.Method;
+                    var hostHeaderV2 = GetHeaderValue(requestV2, HeaderHost);
+                    (hostName, hostPort) = GetHostAndPort(httpScheme, hostHeaderV2);
                     break;
             }
 
             tags.AddStringTagIfNotNull(SemanticConventions.AttributeHttpScheme, httpScheme);
             tags.AddStringTagIfNotNull(SemanticConventions.AttributeHttpTarget, httpTarget);
+            tags.AddStringTagIfNotNull(SemanticConventions.AttributeHttpMethod, httpMethod);
             tags.AddStringTagIfNotNull(SemanticConventions.AttributeNetHostName, hostName);
             tags.AddStringTagIfNotNull(SemanticConventions.AttributeNetHostPort, hostPort);
-            tags.AddStringTagIfNotNull(SemanticConventions.AttributeHttpMethod, httpMethod);
 
             return tags;
         }
@@ -78,7 +78,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
             }
         }
 
-        internal static (string Host, string Port) GetHostAndPort(string hostHeaders)
+        internal static (string Host, string Port) GetHostAndPort(string httpScheme, string hostHeaders)
         {
             if (hostHeaders == null)
             {
@@ -94,7 +94,18 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
             }
             else
             {
-                return (hostAndPort[0], null);
+                string defaultPort = null;
+                switch (httpScheme)
+                {
+                    case "http":
+                        defaultPort = "80";
+                        break;
+                    case "https":
+                        defaultPort = "443";
+                        break;
+                }
+
+                return (hostAndPort[0], defaultPort);
             }
         }
 

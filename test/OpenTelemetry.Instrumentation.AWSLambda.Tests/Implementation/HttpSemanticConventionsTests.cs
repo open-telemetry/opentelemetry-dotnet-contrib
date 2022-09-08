@@ -142,14 +142,16 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
         }
 
         [Theory]
-        [InlineData(null, null, null)]
-        [InlineData("", "", null)]
-        [InlineData("localhost:4321", "localhost", "4321")]
-        [InlineData("localhost:4321, myhost.com:9876", "localhost", "4321")]
-        [InlineData("localhost", "localhost", null)]
-        public void GetHostAndPort_HostHeader_ReturnsCorrectHostAndPort(string hostHeader, string expectedHost, string expectedPort)
+        [InlineData(null, null, null, null)]
+        [InlineData("", "", "", null)]
+        [InlineData(null, "localhost:4321", "localhost", "4321")]
+        [InlineData(null, "localhost:4321, myhost.com:9876", "localhost", "4321")]
+        [InlineData(null, "localhost", "localhost", null)]
+        [InlineData("http", "localhost", "localhost", "80")]
+        [InlineData("https", "localhost", "localhost", "443")]
+        public void GetHostAndPort_HostHeader_ReturnsCorrectHostAndPort(string httpSchema, string hostHeader, string expectedHost, string expectedPort)
         {
-            (var host, var port) = HttpSemanticConventions.GetHostAndPort(hostHeader);
+            (var host, var port) = HttpSemanticConventions.GetHostAndPort(httpSchema, hostHeader);
 
             Assert.Equal(expectedHost, host);
             Assert.Equal(expectedPort, port);
