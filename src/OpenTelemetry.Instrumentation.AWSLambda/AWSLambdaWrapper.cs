@@ -43,6 +43,8 @@ namespace OpenTelemetry.Instrumentation.AWSLambda
         /// </summary>
         internal static bool DisableAwsXRayContextExtraction { get; set; }
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+
         /// <summary>
         /// Tracing wrapper for Lambda handler.
         /// </summary>
@@ -151,6 +153,8 @@ namespace OpenTelemetry.Instrumentation.AWSLambda
             await TraceInternalAsync(tracerProvider, action, input, context, parentContext);
             return result;
         }
+
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         internal static Activity OnFunctionStart<TInput>(TInput input, ILambdaContext context, ActivityContext parentContext = default)
         {
