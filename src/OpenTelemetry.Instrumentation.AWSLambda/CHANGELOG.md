@@ -28,7 +28,6 @@ This is the first release with the new package name `OpenTelemetry.Instrumentati
   * Add optional parent context (`ActivityContext`) to `AWSLambdaWrapper.Trace`.
   * Add `AWSLambdaInstrumentationOptions.DisableAwsXRayContextExtraction`
     initialization option.
-  * Add `AWSLambdaWrapper.Trace` overloads without generic input arguments.
 * Add version to ActivitySource ([#593](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/593))
 
 ## 1.1.0-beta1
