@@ -29,7 +29,6 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests;
 public class RuntimeMetricsTests
 {
     private const int MaxTimeToAllowForFlush = 10000;
-    private const string MetricPrefix = "process.runtime.dotnet.";
 
     [Fact]
     public void RuntimeMetricsAreCaptured()
@@ -52,7 +51,6 @@ public class RuntimeMetricsTests
 
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
         Assert.True(exportedItems.Count > 1);
-        Assert.StartsWith(MetricPrefix, exportedItems[0].Name);
 
         var assembliesCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.assemblies.count");
         Assert.NotNull(assembliesCountMetric);
