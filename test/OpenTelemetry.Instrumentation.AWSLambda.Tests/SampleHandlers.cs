@@ -20,15 +20,10 @@ using Amazon.Lambda.Core;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Tests
 {
-    public class SampleHandlers
+    internal class SampleHandlers
     {
         // Action<TInput, ILambdaContext>
         public void SampleHandlerSyncInputAndNoReturn(string str, ILambdaContext context)
-        {
-        }
-
-        // Action<ILambdaContext>
-        public void SampleHandlerSyncNoInputAndNoReturn(ILambdaContext context)
         {
         }
 
@@ -49,12 +44,6 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests
         {
             await Task.Delay(10);
             return str;
-        }
-
-        // Func<ILambdaContext, Task>
-        public async Task SampleHandlerAsyncNoInputAndNoReturn(ILambdaContext context)
-        {
-            await Task.Delay(10);
         }
 
         public void SampleHandlerSyncNoReturnException(string str, ILambdaContext context)
