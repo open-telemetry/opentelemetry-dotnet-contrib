@@ -101,32 +101,6 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public void TraceSyncWithNoInputAndNoReturn(bool setCustomParent)
-        {
-            var processor = new Mock<BaseProcessor<Activity>>();
-
-            using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .AddAWSLambdaConfigurations()
-                .AddProcessor(processor.Object)
-                .Build())
-            {
-                var parentContext = setCustomParent ? CreateParentContext() : default;
-                AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncNoInputAndNoReturn, this.sampleLambdaContext, parentContext);
-                var resource = tracerProvider.GetResource();
-                this.AssertResourceAttributes(resource);
-            }
-
-            // SetParentProvider -> OnStart -> OnEnd -> OnForceFlush -> OnShutdown -> Dispose
-            Assert.Equal(6, processor.Invocations.Count);
-
-            var activity = (Activity)processor.Invocations[1].Arguments[0];
-            this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
-            this.AssertSpanAttributes(activity);
-        }
-
-        [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
         public async Task TraceAsyncWithInputAndReturn(bool setCustomParent)
         {
             var processor = new Mock<BaseProcessor<Activity>>();
@@ -137,7 +111,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests
                 .Build())
             {
                 var parentContext = setCustomParent ? CreateParentContext() : default;
-                var result = await AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerAsyncInputAndReturn, "TestStream", this.sampleLambdaContext, parentContext);
+                var result = await AWSLambdaWrapper.TraceAsync(tracerProvider, this.sampleHandlers.SampleHandlerAsyncInputAndReturn, "TestStream", this.sampleLambdaContext, parentContext);
                 var resource = tracerProvider.GetResource();
                 this.AssertResourceAttributes(resource);
             }
@@ -163,33 +137,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests
                 .Build())
             {
                 var parentContext = setCustomParent ? CreateParentContext() : default;
-                await AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerAsyncInputAndNoReturn, "TestStream", this.sampleLambdaContext, parentContext);
-                var resource = tracerProvider.GetResource();
-                this.AssertResourceAttributes(resource);
-            }
-
-            // SetParentProvider -> OnStart -> OnEnd -> OnForceFlush -> OnShutdown -> Dispose
-            Assert.Equal(6, processor.Invocations.Count);
-
-            var activity = (Activity)processor.Invocations[1].Arguments[0];
-            this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
-            this.AssertSpanAttributes(activity);
-        }
-
-        [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task TraceAsyncWithNoInputAndNoReturn(bool setCustomParent)
-        {
-            var processor = new Mock<BaseProcessor<Activity>>();
-
-            using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .AddAWSLambdaConfigurations()
-                .AddProcessor(processor.Object)
-                .Build())
-            {
-                var parentContext = setCustomParent ? CreateParentContext() : default;
-                await AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerAsyncNoInputAndNoReturn, this.sampleLambdaContext, parentContext);
+                await AWSLambdaWrapper.TraceAsync(tracerProvider, this.sampleHandlers.SampleHandlerAsyncInputAndNoReturn, "TestStream", this.sampleLambdaContext, parentContext);
                 var resource = tracerProvider.GetResource();
                 this.AssertResourceAttributes(resource);
             }
