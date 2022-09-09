@@ -40,7 +40,6 @@ internal class RuntimeMetrics
     private const long NanosecondsPerTick = 100;
 #endif
     private const int NumberOfGenerations = 3;
-    private const string MetricPrefix = "process.runtime.dotnet.";
 
     private static readonly string[] GenNames = new string[] { "gen0", "gen1", "gen2", "loh", "poh" };
     private static bool isGcInfoAvailable;
@@ -48,13 +47,13 @@ internal class RuntimeMetrics
     static RuntimeMetrics()
     {
         MeterInstance.CreateObservableCounter(
-            $"{MetricPrefix}gc.collections.count",
+            "process.runtime.dotnet.gc.collections.count",
             () => GetGarbageCollectionCounts(),
             description: "Number of garbage collections that have occurred since process start.");
 
 #if NETCOREAPP3_1_OR_GREATER
         MeterInstance.CreateObservableCounter(
-            $"{MetricPrefix}gc.allocations.size",
+            "process.runtime.dotnet.gc.allocations.size",
             () => GC.GetTotalAllocatedBytes(),
             unit: "bytes",
             description: "Count of bytes allocated on the managed GC heap since the process start. .NET objects are allocated from this heap. Object allocations from unmanaged languages such as C/C++ do not use this heap.");
@@ -63,7 +62,7 @@ internal class RuntimeMetrics
 #if NET6_0_OR_GREATER
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
-            $"{MetricPrefix}gc.committed_memory.size",
+            "process.runtime.dotnet.gc.committed_memory.size",
             () =>
             {
                 if (!IsGcInfoAvailable)
@@ -93,7 +92,7 @@ internal class RuntimeMetrics
         {
             // TODO: change to ObservableUpDownCounter
             MeterInstance.CreateObservableGauge(
-                $"{MetricPrefix}gc.heap.size",
+                "process.runtime.dotnet.gc.heap.size",
                 () =>
                 {
                     if (!IsGcInfoAvailable)
@@ -127,7 +126,7 @@ internal class RuntimeMetrics
         {
             // TODO: change to ObservableUpDownCounter
             MeterInstance.CreateObservableGauge(
-                $"{MetricPrefix}gc.heap.fragmentation.size",
+                "process.runtime.dotnet.gc.heap.fragmentation.size",
                 () =>
                 {
                     if (!IsGcInfoAvailable)
@@ -152,18 +151,18 @@ internal class RuntimeMetrics
 
 #if NET6_0_OR_GREATER
         MeterInstance.CreateObservableCounter(
-            $"{MetricPrefix}jit.il_compiled.size",
+            "process.runtime.dotnet.jit.il_compiled.size",
             () => JitInfo.GetCompiledILBytes(),
             unit: "bytes",
             description: "Count of bytes of intermediate language that have been compiled since the process start.");
 
         MeterInstance.CreateObservableCounter(
-            $"{MetricPrefix}jit.methods_compiled.count",
+            "process.runtime.dotnet.jit.methods_compiled.count",
             () => JitInfo.GetCompiledMethodCount(),
             description: "The number of times the JIT compiler compiled a method since the process start. The JIT compiler may be invoked multiple times for the same method to compile with different generic parameters, or because tiered compilation requested different optimization settings.");
 
         MeterInstance.CreateObservableCounter(
-            $"{MetricPrefix}jit.compilation_time",
+            "process.runtime.dotnet.jit.compilation_time",
             () => JitInfo.GetCompilationTime().Ticks * NanosecondsPerTick,
             unit: "ns",
             description: "The amount of time the JIT compiler has spent compiling methods since the process start.");
@@ -171,42 +170,42 @@ internal class RuntimeMetrics
 
 #if NETCOREAPP3_1_OR_GREATER
         MeterInstance.CreateObservableCounter(
-            $"{MetricPrefix}monitor.lock_contention.count",
+            "process.runtime.dotnet.monitor.lock_contention.count",
             () => Monitor.LockContentionCount,
             description: "The number of times there was contention when trying to acquire a monitor lock since the process start. Monitor locks are commonly acquired by using the lock keyword in C#, or by calling Monitor.Enter() and Monitor.TryEnter().");
 
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
-            $"{MetricPrefix}thread_pool.threads.count",
+            "process.runtime.dotnet.thread_pool.threads.count",
             () => (long)ThreadPool.ThreadCount,
             description: "The number of thread pool threads that currently exist.");
 
         MeterInstance.CreateObservableCounter(
-            $"{MetricPrefix}thread_pool.completed_items.count",
+            "process.runtime.dotnet.thread_pool.completed_items.count",
             () => ThreadPool.CompletedWorkItemCount,
             description: "The number of work items that have been processed by the thread pool since the process start.");
 
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
-            $"{MetricPrefix}thread_pool.queue.length",
+            "process.runtime.dotnet.thread_pool.queue.length",
             () => ThreadPool.PendingWorkItemCount,
             description: "The number of work items that are currently queued to be processed by the thread pool.");
 
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
-            $"{MetricPrefix}timer.count",
+            "process.runtime.dotnet.timer.count",
             () => Timer.ActiveCount,
             description: "The number of timer instances that are currently active. Timers can be created by many sources such as System.Threading.Timer, Task.Delay, or the timeout in a CancellationSource. An active timer is registered to tick at some point in the future and has not yet been canceled.");
 #endif
 
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
-            $"{MetricPrefix}assemblies.count",
+            "process.runtime.dotnet.assemblies.count",
             () => (long)AppDomain.CurrentDomain.GetAssemblies().Length,
             description: "The number of .NET assemblies that are currently loaded.");
 
         var exceptionCounter = MeterInstance.CreateCounter<long>(
-            $"{MetricPrefix}exceptions.count",
+            "process.runtime.dotnet.exceptions.count",
             description: "Count of exceptions that have been thrown in managed code, since the observation started. The value will be unavailable until an exception has been thrown after OpenTelemetry.Instrumentation.Runtime initialization.");
 
         AppDomain.CurrentDomain.FirstChanceException += (source, e) =>
