@@ -16,6 +16,7 @@
 
 using System.Diagnostics.Metrics;
 using System.Reflection;
+using System.Threading;
 using Diagnostics = System.Diagnostics;
 
 namespace OpenTelemetry.Instrumentation.Process;
@@ -24,7 +25,10 @@ internal class ProcessMetrics
 {
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
     internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
-    private static readonly Diagnostics.Process CurrentProcess = Diagnostics.Process.GetCurrentProcess();
+
+    private static readonly ThreadLocal<long?> WorkingSet64 = new(() => null);
+    private static readonly ThreadLocal<long?> VirtualMemory64 = new(() => null);
+    private static readonly ThreadLocal<Diagnostics.Process> CurrentProcess = new(() => Diagnostics.Process.GetCurrentProcess());
 
     static ProcessMetrics()
     {
@@ -33,8 +37,14 @@ internal class ProcessMetrics
             "process.memory.usage",
             () =>
             {
-                CurrentProcess.Refresh();
-                return CurrentProcess.WorkingSet64;
+                if (WorkingSet64.Value == null)
+                {
+                    GetMetricValues();
+                }
+
+                var result = WorkingSet64.Value.Value;
+                WorkingSet64.Value = null;
+                return result;
             },
             unit: "By",
             description: "The amount of physical memory in use.");
@@ -44,11 +54,25 @@ internal class ProcessMetrics
             "process.memory.virtual",
             () =>
             {
-                CurrentProcess.Refresh();
-                return CurrentProcess.VirtualMemorySize64;
+                if (VirtualMemory64.Value == null)
+                {
+                    GetMetricValues();
+                }
+
+                var result = VirtualMemory64.Value.Value;
+                VirtualMemory64.Value = null;
+                return result;
             },
             unit: "By",
             description: "The amount of committed virtual memory.");
+    }
+
+    private static void GetMetricValues()
+    {
+        var process = CurrentProcess.Value;
+        process.Refresh();
+        WorkingSet64.Value = process.WorkingSet64;
+        VirtualMemory64.Value = process.VirtualMemorySize64;
     }
 
     /// <summary>
