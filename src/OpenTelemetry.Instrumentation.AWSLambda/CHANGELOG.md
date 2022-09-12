@@ -21,7 +21,7 @@ This is the first release with the new package name `OpenTelemetry.Instrumentati
   * BREAKING (API): Remove `AWSLambdaWrapper.Trace` overloads
     without `ILambdaContext` parameter.
   * BREAKING (behavior): Add automatic parent extraction from HTTP triggers
-  * (API Gateway Proxy events), using the configured global textmap propagator.
+    (API Gateway Proxy events), using the configured global textmap propagator.
   * BREAKING (behavior): An activity is now also created if no parent context
     could be extracted (previously this package would only create activities if
     a valid parent span context could be extracted with X-Ray).
