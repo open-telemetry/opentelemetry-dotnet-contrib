@@ -8,10 +8,10 @@ Release PR: [#590](https://github.com/open-telemetry/opentelemetry-dotnet-contri
 
 This is the first release with the new package name `OpenTelemetry.Instrumentation.AWSLambda`.
 
-* BREAKING (API, behavior): Rename package to OpenTelemetry.Instrumentation.AWSLambda
-  (remove ".Contrib") ([#593](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/593)).
+* BREAKING (API, behavior): Rename package to `OpenTelemetry.Instrumentation.AWSLambda`
+  (remove `.Contrib`) ([#593](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/593)).
   This also affects the `ActivitySource` name (superseding [#534](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/534)).
-* BREAKING (API): Move public class AWSLambdaWrapper out of Implementation subnamespace
+* BREAKING (API): Move public class `AWSLambdaWrapper` out of `Implementation` subnamespace
   ([#593](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/593))
 * BREAKING (API): Rename overloads of `AWSLambdaWrapper.Trace` that take an async
   handler to `TraceAsync`, to emphasize that they (usually) need to be awaited.
@@ -28,7 +28,7 @@ This is the first release with the new package name `OpenTelemetry.Instrumentati
   * Add optional parent context (`ActivityContext`) to `AWSLambdaWrapper.Trace`.
   * Add `AWSLambdaInstrumentationOptions.DisableAwsXRayContextExtraction`
     initialization option.
-* Add version to ActivitySource ([#593](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/593))
+* Add version to `ActivitySource` ([#593](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/593))
 
 ## 1.1.0-beta1
 
