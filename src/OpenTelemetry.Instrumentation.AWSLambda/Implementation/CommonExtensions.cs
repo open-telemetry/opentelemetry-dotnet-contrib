@@ -38,7 +38,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
             return false;
         }
 
-        internal static void AddStringTagIfNotNull(this List<KeyValuePair<string, object>> tags, string tagName, string tagValue)
+        internal static void AddTagIfNotNull(this List<KeyValuePair<string, object>> tags, string tagName, object tagValue)
         {
             if (tagValue != null)
             {

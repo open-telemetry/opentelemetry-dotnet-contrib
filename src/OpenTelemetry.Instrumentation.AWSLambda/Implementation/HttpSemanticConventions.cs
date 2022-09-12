@@ -36,7 +36,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
             string httpTarget = null;
             string httpMethod = null;
             string hostName = null;
-            string hostPort = null;
+            int? hostPort = null;
 
             switch (input)
             {
@@ -56,11 +56,11 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
                     break;
             }
 
-            tags.AddStringTagIfNotNull(SemanticConventions.AttributeHttpScheme, httpScheme);
-            tags.AddStringTagIfNotNull(SemanticConventions.AttributeHttpTarget, httpTarget);
-            tags.AddStringTagIfNotNull(SemanticConventions.AttributeHttpMethod, httpMethod);
-            tags.AddStringTagIfNotNull(SemanticConventions.AttributeNetHostName, hostName);
-            tags.AddStringTagIfNotNull(SemanticConventions.AttributeNetHostPort, hostPort);
+            tags.AddTagIfNotNull(SemanticConventions.AttributeHttpScheme, httpScheme);
+            tags.AddTagIfNotNull(SemanticConventions.AttributeHttpTarget, httpTarget);
+            tags.AddTagIfNotNull(SemanticConventions.AttributeHttpMethod, httpMethod);
+            tags.AddTagIfNotNull(SemanticConventions.AttributeNetHostName, hostName);
+            tags.AddTagIfNotNull(SemanticConventions.AttributeNetHostPort, hostPort);
 
             return tags;
         }
@@ -78,7 +78,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
             }
         }
 
-        internal static (string Host, string Port) GetHostAndPort(string httpScheme, string hostHeaders)
+        internal static (string Host, int? Port) GetHostAndPort(string httpScheme, string hostHeaders)
         {
             if (hostHeaders == null)
             {
@@ -90,18 +90,18 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
             var hostAndPort = hostHeader.Split(':');
             if (hostAndPort.Length > 1)
             {
-                return (hostAndPort[0], hostAndPort[1]);
+                return (hostAndPort[0], int.Parse(hostAndPort[1]));
             }
             else
             {
-                string defaultPort = null;
+                int? defaultPort = null;
                 switch (httpScheme)
                 {
                     case "http":
-                        defaultPort = "80";
+                        defaultPort = 80;
                         break;
                     case "https":
-                        defaultPort = "443";
+                        defaultPort = 443;
                         break;
                 }
 

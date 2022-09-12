@@ -48,7 +48,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
                 { "http.scheme", "https" },
                 { "http.target", "/path/test" },
                 { "net.host.name", "localhost" },
-                { "net.host.port", "1234" },
+                { "net.host.port", 1234 },
                 { "http.method", "GET" },
             };
 
@@ -82,7 +82,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
                 { "http.scheme", "https" },
                 { "http.target", "/path/test" },
                 { "net.host.name", "localhost" },
-                { "net.host.port", "1234" },
+                { "net.host.port", 1234 },
                 { "http.method", "GET" },
             };
 
@@ -144,12 +144,12 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
         [Theory]
         [InlineData(null, null, null, null)]
         [InlineData("", "", "", null)]
-        [InlineData(null, "localhost:4321", "localhost", "4321")]
-        [InlineData(null, "localhost:4321, myhost.com:9876", "localhost", "4321")]
+        [InlineData(null, "localhost:4321", "localhost", 4321)]
+        [InlineData(null, "localhost:4321, myhost.com:9876", "localhost", 4321)]
         [InlineData(null, "localhost", "localhost", null)]
-        [InlineData("http", "localhost", "localhost", "80")]
-        [InlineData("https", "localhost", "localhost", "443")]
-        public void GetHostAndPort_HostHeader_ReturnsCorrectHostAndPort(string httpSchema, string hostHeader, string expectedHost, string expectedPort)
+        [InlineData("http", "localhost", "localhost", 80)]
+        [InlineData("https", "localhost", "localhost", 443)]
+        public void GetHostAndPort_HostHeader_ReturnsCorrectHostAndPort(string httpSchema, string hostHeader, string expectedHost, int? expectedPort)
         {
             (var host, var port) = HttpSemanticConventions.GetHostAndPort(httpSchema, hostHeader);
 
