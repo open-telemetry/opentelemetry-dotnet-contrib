@@ -26,7 +26,7 @@ public class EventCountersInstrumentationOptions
     /// <summary>
     /// Gets or sets the subscription interval in seconds.
     /// </summary>
-    public int RefreshIntervalSecs { get; set; } = 60;
+    public int RefreshIntervalSecs { get; set; } = 1;
 
     /// <summary>
     /// Gets or sets the names of <c>EventSource</c>s to listen to.

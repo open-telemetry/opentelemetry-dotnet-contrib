@@ -33,10 +33,7 @@ public class EventCounterListenerTests
         List<Metric> metricItems = new();
 
         var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddEventCountersInstrumentation(options =>
-            {
-                options.RefreshIntervalSecs = 1;
-            })
+            .AddEventCountersInstrumentation()
             .AddInMemoryExporter(metricItems)
             .Build();
 
@@ -59,7 +56,6 @@ public class EventCounterListenerTests
         var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
             {
-                options.RefreshIntervalSecs = 1;
                 options.Sources.Add(source.Name);
             })
             .AddInMemoryExporter(metricItems)
@@ -88,7 +84,6 @@ public class EventCounterListenerTests
         var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
             {
-                options.RefreshIntervalSecs = 1;
                 options.Sources.Add(source.Name);
             })
             .AddInMemoryExporter(metricItems)
@@ -120,7 +115,6 @@ public class EventCounterListenerTests
         var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
             {
-                options.RefreshIntervalSecs = 1;
                 options.Sources.Add(source.Name);
             })
             .AddInMemoryExporter(metricItems)
@@ -149,7 +143,6 @@ public class EventCounterListenerTests
         var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
             {
-                options.RefreshIntervalSecs = 1;
                 options.Sources.Add(source.Name);
             })
             .AddInMemoryExporter(metricItems)
