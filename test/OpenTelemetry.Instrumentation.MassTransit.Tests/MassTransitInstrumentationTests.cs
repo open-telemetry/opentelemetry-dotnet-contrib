@@ -274,7 +274,7 @@ public class MassTransitInstrumentationTests
     }
 
     [Fact]
-    public async Task ShouldMapMassTransitTagsWhenIntrumentationIsSuppressed()
+    public async Task ShouldMapMassTransitTagsWhenInstrumentationIsSuppressed()
     {
         var activityProcessor = new Mock<BaseProcessor<Activity>>();
         using (Sdk.CreateTracerProviderBuilder()
@@ -304,19 +304,19 @@ public class MassTransitInstrumentationTests
             Assert.NotNull(expectedMessageContext);
         }
 
-        // Since instrumentation is suppressed, activiy is not emitted
+        // Since instrumentation is suppressed, activity is not emitted
         Assert.Equal(3, activityProcessor.Invocations.Count); // SetParentProvider + OnShutdown + Dispose
 
         // Processor.OnStart and Processor.OnEnd are not called
-        Assert.DoesNotContain(activityProcessor.Invocations, invo => invo.Method.Name == nameof(activityProcessor.Object.OnStart));
-        Assert.DoesNotContain(activityProcessor.Invocations, invo => invo.Method.Name == nameof(activityProcessor.Object.OnEnd));
+        Assert.DoesNotContain(activityProcessor.Invocations, invocation => invocation.Method.Name == nameof(activityProcessor.Object.OnStart));
+        Assert.DoesNotContain(activityProcessor.Invocations, invocation => invocation.Method.Name == nameof(activityProcessor.Object.OnEnd));
     }
 
     [Theory]
     [InlineData(SamplingDecision.Drop, false)]
     [InlineData(SamplingDecision.RecordOnly, true)]
     [InlineData(SamplingDecision.RecordAndSample, true)]
-    public async Task ShouldMapMassTransitTagsWhenIntrumentationWhenSampled(SamplingDecision samplingDecision, bool isActivityExpected)
+    public async Task ShouldMapMassTransitTagsWhenInstrumentationWhenSampled(SamplingDecision samplingDecision, bool isActivityExpected)
     {
         var activityProcessor = new Mock<BaseProcessor<Activity>>();
         using (Sdk.CreateTracerProviderBuilder()
@@ -346,8 +346,8 @@ public class MassTransitInstrumentationTests
             Assert.NotNull(expectedMessageContext);
         }
 
-        Assert.Equal(isActivityExpected, activityProcessor.Invocations.Any(invo => invo.Method.Name == nameof(activityProcessor.Object.OnStart)));
-        Assert.Equal(isActivityExpected, activityProcessor.Invocations.Any(invo => invo.Method.Name == nameof(activityProcessor.Object.OnEnd)));
+        Assert.Equal(isActivityExpected, activityProcessor.Invocations.Any(invocation => invocation.Method.Name == nameof(activityProcessor.Object.OnStart)));
+        Assert.Equal(isActivityExpected, activityProcessor.Invocations.Any(invocation => invocation.Method.Name == nameof(activityProcessor.Object.OnEnd)));
     }
 
     private IEnumerable<Activity> GetActivitiesFromInvocationsByOperationName(IEnumerable<IInvocation> invocations, string operationName)
