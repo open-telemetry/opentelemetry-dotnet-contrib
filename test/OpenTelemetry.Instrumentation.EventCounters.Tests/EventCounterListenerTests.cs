@@ -56,7 +56,7 @@ public class EventCounterListenerTests
         var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
             {
-                options.Sources.Add(source.Name);
+                options.AddCounters(source.Name);
             })
             .AddInMemoryExporter(metricItems)
             .Build();
@@ -84,7 +84,7 @@ public class EventCounterListenerTests
         var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
             {
-                options.Sources.Add(source.Name);
+                options.AddCounters(source.Name);
             })
             .AddInMemoryExporter(metricItems)
             .Build();
@@ -115,7 +115,7 @@ public class EventCounterListenerTests
         var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
             {
-                options.Sources.Add(source.Name);
+                options.AddCounters(source.Name);
             })
             .AddInMemoryExporter(metricItems)
             .Build();
@@ -143,7 +143,7 @@ public class EventCounterListenerTests
         var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
             {
-                options.Sources.Add(source.Name);
+                options.AddCounters(source.Name);
             })
             .AddInMemoryExporter(metricItems)
             .Build();

@@ -23,23 +23,34 @@ namespace OpenTelemetry.Instrumentation.EventCounters;
 /// </summary>
 public class EventCountersInstrumentationOptions
 {
+    private readonly HashSet<string> eventSourceNames = new();
+
     /// <summary>
     /// Gets or sets the subscription interval in seconds.
     /// </summary>
     public int RefreshIntervalSecs { get; set; } = 1;
 
     /// <summary>
-    /// Gets or sets the names of <c>EventSource</c>s to listen to.
-    /// </summary>
-    public HashSet<string> Sources { get; set; } = new();
-
-    /// <summary>
-    /// Gets or sets the name of <c>EventCounters</c> to listen to.
-    /// </summary>
-    public HashSet<string> Names { get; set; } = new() { "EventCounters" };
-
-    /// <summary>
     /// Gets the arguments object used for the EventListener.EnableEvents function.
     /// </summary>
     public Dictionary<string, string> EnableEventsArguments => new() { { "EventCounterIntervalSec", this.RefreshIntervalSecs.ToString() } };
+
+    /// <summary>
+    /// Listens to EventCounters from the given EventSource name.
+    /// </summary>
+    /// <param name="eventSourceName">The EventSource name.</param>
+    public void AddCounters(string eventSourceName)
+    {
+        this.eventSourceNames.Add(eventSourceName);
+    }
+
+    /// <summary>
+    /// Returns whether or not an EventSource should be enabled on the EventListener.
+    /// </summary>
+    /// <param name="eventSourceName">The EventSource name.</param>
+    /// <returns><c>true</c> when an EventSource with the name <paramref name="eventSourceName"/> should be enabled.</returns>
+    public bool ShouldListenToSource(string eventSourceName)
+    {
+        return this.eventSourceNames.Contains(eventSourceName);
+    }
 }

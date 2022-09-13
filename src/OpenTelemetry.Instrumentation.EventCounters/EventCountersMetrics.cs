@@ -46,7 +46,7 @@ internal class EventCountersMetrics : EventListener
 
         while (this.preInitEventSources.TryTake(out EventSource source))
         {
-            if (this.options.Sources.Contains(source.Name))
+            if (this.options.ShouldListenToSource(source.Name))
             {
                 this.EnableEvents(source, EventLevel.LogAlways, EventKeywords.None, this.options.EnableEventsArguments);
             }
@@ -60,7 +60,7 @@ internal class EventCountersMetrics : EventListener
         {
             this.preInitEventSources.Add(source);
         }
-        else if (this.options.Sources.Contains(source.Name))
+        else if (this.options.ShouldListenToSource(source.Name))
         {
             this.EnableEvents(source, EventLevel.LogAlways, EventKeywords.None, this.options.EnableEventsArguments);
         }
@@ -69,7 +69,7 @@ internal class EventCountersMetrics : EventListener
     /// <inheritdoc />
     protected override void OnEventWritten(EventWrittenEventArgs eventData)
     {
-        if (this.options == null || !this.options.Names.Contains(eventData.EventName))
+        if (this.options == null)
         {
             return;
         }
@@ -79,6 +79,14 @@ internal class EventCountersMetrics : EventListener
         var isGauge = payload.ContainsKey("Mean");
         Tuple<string, string> metricKey = new(eventData.EventSource.Name, name);
 
+        /*if (isGauge)
+        {
+            this.values[metricKey] = Convert.ToDouble(payload["Mean"]);
+        }
+        else
+        {
+            this.values[metricKey] += Convert.ToDouble(payload["Increment"]) / this.options.RefreshIntervalSecs;
+        }*/
         this.values[metricKey] = isGauge
             ? Convert.ToDouble(payload["Mean"])
             : Convert.ToDouble(payload["Increment"]) / this.options.RefreshIntervalSecs;
