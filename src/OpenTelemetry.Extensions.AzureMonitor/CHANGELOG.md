@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0-beta.2
+
+Released 2022-Sept-12
+
+* Replaced  TargetFrameworks from `net461` and `net6.0` to `netstandard2.0`.
+* Changed `sampleRate` attribute type to `float`.
+
 ## 1.0.0-beta.1
 
 Released 2022-Sept-12
