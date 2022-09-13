@@ -56,12 +56,6 @@ eventCounter.WriteMetric(1000);
 PollingCounter pollingCounter = new("MyPollingCounterName", eventSource, () => new Random().NextDouble());
 ```
 
-There are some
-[Well-known EventCounters in .NET](https://docs.microsoft.com/en-us/dotnet/core/diagnostics/available-counters)
-that are filtered out by this library.
-For these counters, use either the `OpenTelemetry.Instrumentation.Process` or
-`OpenTelemetry.Instrumentation.Runtime` instrumentation libraries.
-
 ## Notes
 
 The metrics will only be available after `EventCounterIntervalSec` seconds.
