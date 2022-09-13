@@ -5,7 +5,9 @@
 Released 2022-Sept-12
 
 * Replaced  TargetFrameworks from `net461` and `net6.0` to `netstandard2.0`.
+  ([#633](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/633))
 * Changed `sampleRate` attribute type to `float`.
+  ([#633](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/633))
 
 ## 1.0.0-beta.1
 
