@@ -41,7 +41,7 @@ public class ApplicationInsightsSampler : Sampler
 
         this.samplingRatio = samplingRatio;
         this.Description = "ApplicationInsightsSampler{" + samplingRatio + "}";
-        var sampleRate = (int)Math.Round(samplingRatio * 100);
+        var sampleRate = (float)Math.Round(samplingRatio * 100);
         this.recordAndSampleSamplingResult = new SamplingResult(
             SamplingDecision.RecordAndSample,
             new Dictionary<string, object>
