@@ -22,7 +22,7 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.EventCounters.Tests;
 
-public class EventCounterListenerTests
+public class EventCountersMetricsTests
 {
     private const int Delay = 1200;
 
@@ -156,7 +156,7 @@ public class EventCounterListenerTests
         var metric = metricItems.Find(x => x.Name == "inc-poll-counter");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleSum, metric.MetricType);
-        Assert.Equal(1, GetActualValue(metric));
+        Assert.Equal(2, GetActualValue(metric));
     }
 
     private static double GetActualValue(Metric metric)
