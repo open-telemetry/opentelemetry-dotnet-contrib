@@ -5,14 +5,14 @@
 ## 1.1.0-beta.2
 
 Release PR: [#590](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/590)
-& [#???](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/???).
+& [#639](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/639).
 
 This is the first release with the new package name `OpenTelemetry.Instrumentation.AWSLambda`.
 
 * BREAKING (API, behavior): Rename package to `OpenTelemetry.Instrumentation.AWSLambda`
   (remove `.Contrib`) ([#593](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/593)).
   This also affects the `ActivitySource` name (superseding [#534](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/534)).
-* Pre-release version numbering scheme changed from `.betaN` to `beta.N` ([#???](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/???))
+* Pre-release version numbering scheme changed from `.betaN` to `beta.N` ([#639](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/639))
 * BREAKING (API): Move public class `AWSLambdaWrapper` out of `Implementation` subnamespace
   ([#593](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/593))
 * BREAKING (API): Rename overloads of `AWSLambdaWrapper.Trace` that take an async
