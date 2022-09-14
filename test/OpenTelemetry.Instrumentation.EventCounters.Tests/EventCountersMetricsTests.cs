@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Threading.Tasks;
@@ -158,15 +157,6 @@ public class EventCountersMetricsTests
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleSum, metric.MetricType);
         Assert.Equal(2, GetActualValue(metric));
-    }
-
-    [Fact]
-    public void MultipleInstrumentation()
-    {
-        Assert.Throws<NotSupportedException>(() => Sdk.CreateMeterProviderBuilder()
-            .AddEventCountersInstrumentation()
-            .AddEventCountersInstrumentation()
-            .Build());
     }
 
     private static double GetActualValue(Metric metric)
