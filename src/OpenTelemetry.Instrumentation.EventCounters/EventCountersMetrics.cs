@@ -31,49 +31,30 @@ internal class EventCountersMetrics : EventListener
     internal static readonly AssemblyName AssemblyName = typeof(EventCountersMetrics).Assembly.GetName();
     internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
 
-    private readonly EventCountersInstrumentationOptions options;
-    private readonly ConcurrentBag<EventSource> preInitEventSources = new();
     private readonly ConcurrentDictionary<Tuple<string, string>, Instrument> instruments = new();
     private readonly ConcurrentDictionary<Tuple<string, string>, double> values = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EventCountersMetrics"/> class.
     /// </summary>
-    /// <param name="options">The options to define the metrics.</param>
-    public EventCountersMetrics(EventCountersInstrumentationOptions options)
+    public EventCountersMetrics()
     {
-        this.options = options;
-
-        while (this.preInitEventSources.TryTake(out EventSource source))
-        {
-            if (this.options.ShouldListenToSource(source.Name))
-            {
-                this.EnableEvents(source, EventLevel.LogAlways, EventKeywords.None, this.options.EnableEventsArguments);
-            }
-        }
     }
+
+    public static EventCountersInstrumentationOptions Options { get; set; }
 
     /// <inheritdoc />
     protected override void OnEventSourceCreated(EventSource source)
     {
-        if (this.options == null)
+        if (Options.ShouldListenToSource(source.Name))
         {
-            this.preInitEventSources.Add(source);
-        }
-        else if (this.options.ShouldListenToSource(source.Name))
-        {
-            this.EnableEvents(source, EventLevel.LogAlways, EventKeywords.None, this.options.EnableEventsArguments);
+            this.EnableEvents(source, EventLevel.LogAlways, EventKeywords.None, Options.EnableEventsArguments);
         }
     }
 
     /// <inheritdoc />
     protected override void OnEventWritten(EventWrittenEventArgs eventData)
     {
-        if (this.options == null)
-        {
-            return;
-        }
-
         var payload = eventData.Payload[0] as IDictionary<string, object>;
         var name = payload["Name"].ToString();
         var isGauge = payload.ContainsKey("Mean");

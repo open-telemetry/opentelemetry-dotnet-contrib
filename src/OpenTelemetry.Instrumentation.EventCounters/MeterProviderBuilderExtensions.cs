@@ -36,11 +36,17 @@ public static class MeterProviderBuilderExtensions
         Action<EventCountersInstrumentationOptions> configure = null)
     {
         Guard.ThrowIfNull(builder);
+        if (EventCountersMetrics.Options != null)
+        {
+            throw new NotSupportedException($"EventCounters instrumentation has already been registed and doesn't support multiple registrations.");
+        }
 
         var options = new EventCountersInstrumentationOptions();
         configure?.Invoke(options);
 
-        var instrumentation = new EventCountersMetrics(options);
+        EventCountersMetrics.Options = options;
+
+        var instrumentation = new EventCountersMetrics();
         builder.AddMeter(EventCountersMetrics.MeterInstance.Name);
         return builder.AddInstrumentation(() => instrumentation);
     }
