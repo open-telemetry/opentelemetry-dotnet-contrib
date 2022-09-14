@@ -79,17 +79,15 @@ internal class EventCountersMetrics : EventListener
         var isGauge = payload.ContainsKey("Mean");
         Tuple<string, string> metricKey = new(eventData.EventSource.Name, name);
 
-        /*if (isGauge)
+        if (isGauge)
         {
             this.values[metricKey] = Convert.ToDouble(payload["Mean"]);
         }
         else
         {
-            this.values[metricKey] += Convert.ToDouble(payload["Increment"]) / this.options.RefreshIntervalSecs;
-        }*/
-        this.values[metricKey] = isGauge
-            ? Convert.ToDouble(payload["Mean"])
-            : Convert.ToDouble(payload["Increment"]) / this.options.RefreshIntervalSecs;
+            _ = this.values.TryAdd(metricKey, 0);
+            this.values[metricKey] += Convert.ToDouble(payload["Increment"]);
+        }
 
         _ = this.instruments.TryAdd(
             metricKey,
