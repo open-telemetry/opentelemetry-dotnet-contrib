@@ -5,6 +5,7 @@
     <PackageTags>$(PackageTags);distributed-tracing;MassTransit</PackageTags>
     <MinVerTagPrefix>Instrumentation.MassTransit-</MinVerTagPrefix>
     <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
+    <EnablePublicApi>true</EnablePublicApi>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryPkgVer)" />
