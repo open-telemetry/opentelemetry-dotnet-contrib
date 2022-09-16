@@ -18,44 +18,43 @@ using System.Security.Cryptography.X509Certificates;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Http;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources.Http
+namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources.Http;
+
+public class TestServerCertificateValidationProvider
 {
-    public class TestServerCertificateValidationProvider
+    private const string INVALIDCRTNAME = "invalidcert";
+
+    [Fact]
+    public void TestValidCertificate()
     {
-        private const string INVALIDCRTNAME = "invalidcert";
-
-        [Fact]
-        public void TestValidCertificate()
+        using (CertificateUploader certificateUploader = new CertificateUploader())
         {
-            using (CertificateUploader certificateUploader = new CertificateUploader())
-            {
-                certificateUploader.Create();
+            certificateUploader.Create();
 
-                // Loads the certificate to the trusted collection from the file
-                ServerCertificateValidationProvider serverCertificateValidationProvider =
-                        ServerCertificateValidationProvider.FromCertificateFile(certificateUploader.FilePath);
-
-                // Validates if the certificate loaded into the trusted collection.
-                Assert.True(serverCertificateValidationProvider.IsCertificateLoaded);
-
-                var certificate = new X509Certificate2(certificateUploader.FilePath);
-                X509Chain chain = new X509Chain();
-                chain.Build(certificate);
-
-                // validates if certificate is valid
-                Assert.True(serverCertificateValidationProvider.ValidationCallback(null, certificate, chain, System.Net.Security.SslPolicyErrors.None));
-            }
-        }
-
-        [Fact]
-        public void TestInValidCertificate()
-        {
             // Loads the certificate to the trusted collection from the file
             ServerCertificateValidationProvider serverCertificateValidationProvider =
-                    ServerCertificateValidationProvider.FromCertificateFile(INVALIDCRTNAME);
+                ServerCertificateValidationProvider.FromCertificateFile(certificateUploader.FilePath);
 
-            // Validates if the certificate file loaded.
-            Assert.False(serverCertificateValidationProvider.IsCertificateLoaded);
+            // Validates if the certificate loaded into the trusted collection.
+            Assert.True(serverCertificateValidationProvider.IsCertificateLoaded);
+
+            var certificate = new X509Certificate2(certificateUploader.FilePath);
+            X509Chain chain = new X509Chain();
+            chain.Build(certificate);
+
+            // validates if certificate is valid
+            Assert.True(serverCertificateValidationProvider.ValidationCallback(null, certificate, chain, System.Net.Security.SslPolicyErrors.None));
         }
+    }
+
+    [Fact]
+    public void TestInValidCertificate()
+    {
+        // Loads the certificate to the trusted collection from the file
+        ServerCertificateValidationProvider serverCertificateValidationProvider =
+            ServerCertificateValidationProvider.FromCertificateFile(INVALIDCRTNAME);
+
+        // Validates if the certificate file loaded.
+        Assert.False(serverCertificateValidationProvider.IsCertificateLoaded);
     }
 }

@@ -22,107 +22,106 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using Amazon.Runtime.Internal.Transform;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
+namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests;
+
+internal class CustomWebResponse : IWebResponseData
 {
-    internal class CustomWebResponse : IWebResponseData
+    private HttpResponseMessageBody response;
+    private string[] headerNames;
+    private Dictionary<string, string> headers;
+    private HashSet<string> headerNamesSet;
+
+    public CustomWebResponse(HttpResponseMessage response)
+        : this(response, null, false)
     {
-        private HttpResponseMessageBody response;
-        private string[] headerNames;
-        private Dictionary<string, string> headers;
-        private HashSet<string> headerNamesSet;
+    }
 
-        public CustomWebResponse(HttpResponseMessage response)
-            : this(response, null, false)
+    public CustomWebResponse(HttpResponseMessage responseMsg, HttpClient httpClient, bool disposeClient)
+    {
+        this.response = new HttpResponseMessageBody(responseMsg, httpClient, disposeClient);
+
+        this.StatusCode = responseMsg.StatusCode;
+        this.IsSuccessStatusCode = responseMsg.IsSuccessStatusCode;
+        this.ContentLength = responseMsg.Content.Headers.ContentLength ?? 0;
+        this.CopyHeaderValues(responseMsg);
+    }
+
+    public HttpStatusCode StatusCode { get; private set; }
+
+    public bool IsSuccessStatusCode { get; private set; }
+
+    public string ContentType { get; private set; }
+
+    public long ContentLength { get; private set; }
+
+    public IHttpResponseBody ResponseBody
+    {
+        get { return this.response; }
+    }
+
+    public static IWebResponseData GenerateWebResponse(HttpResponseMessage response)
+    {
+        return new CustomWebResponse(response);
+    }
+
+    public string GetHeaderValue(string headerName)
+    {
+        string headerValue;
+        if (this.headers.TryGetValue(headerName, out headerValue))
         {
+            return headerValue;
         }
 
-        public CustomWebResponse(HttpResponseMessage responseMsg, HttpClient httpClient, bool disposeClient)
-        {
-            this.response = new HttpResponseMessageBody(responseMsg, httpClient, disposeClient);
+        return string.Empty;
+    }
 
-            this.StatusCode = responseMsg.StatusCode;
-            this.IsSuccessStatusCode = responseMsg.IsSuccessStatusCode;
-            this.ContentLength = responseMsg.Content.Headers.ContentLength ?? 0;
-            this.CopyHeaderValues(responseMsg);
+    public bool IsHeaderPresent(string headerName)
+    {
+        return this.headerNamesSet.Contains(headerName);
+    }
+
+    public string[] GetHeaderNames()
+    {
+        return this.headerNames;
+    }
+
+    private void CopyHeaderValues(HttpResponseMessage response)
+    {
+        List<string> headerNames = new List<string>();
+        this.headers = new Dictionary<string, string>(10, StringComparer.OrdinalIgnoreCase);
+
+        foreach (KeyValuePair<string, IEnumerable<string>> kvp in response.Headers)
+        {
+            headerNames.Add(kvp.Key);
+            var headerValue = this.GetFirstHeaderValue(response.Headers, kvp.Key);
+            this.headers.Add(kvp.Key, headerValue);
         }
 
-        public HttpStatusCode StatusCode { get; private set; }
-
-        public bool IsSuccessStatusCode { get; private set; }
-
-        public string ContentType { get; private set; }
-
-        public long ContentLength { get; private set; }
-
-        public IHttpResponseBody ResponseBody
+        if (response.Content != null)
         {
-            get { return this.response; }
-        }
-
-        public static IWebResponseData GenerateWebResponse(HttpResponseMessage response)
-        {
-            return new CustomWebResponse(response);
-        }
-
-        public string GetHeaderValue(string headerName)
-        {
-            string headerValue;
-            if (this.headers.TryGetValue(headerName, out headerValue))
+            foreach (var kvp in response.Content.Headers)
             {
-                return headerValue;
-            }
-
-            return string.Empty;
-        }
-
-        public bool IsHeaderPresent(string headerName)
-        {
-            return this.headerNamesSet.Contains(headerName);
-        }
-
-        public string[] GetHeaderNames()
-        {
-            return this.headerNames;
-        }
-
-        private void CopyHeaderValues(HttpResponseMessage response)
-        {
-            List<string> headerNames = new List<string>();
-            this.headers = new Dictionary<string, string>(10, StringComparer.OrdinalIgnoreCase);
-
-            foreach (KeyValuePair<string, IEnumerable<string>> kvp in response.Headers)
-            {
-                headerNames.Add(kvp.Key);
-                var headerValue = this.GetFirstHeaderValue(response.Headers, kvp.Key);
-                this.headers.Add(kvp.Key, headerValue);
-            }
-
-            if (response.Content != null)
-            {
-                foreach (var kvp in response.Content.Headers)
+                if (!headerNames.Contains(kvp.Key))
                 {
-                    if (!headerNames.Contains(kvp.Key))
-                    {
-                        headerNames.Add(kvp.Key);
-                        var headerValue = this.GetFirstHeaderValue(response.Content.Headers, kvp.Key);
-                        this.headers.Add(kvp.Key, headerValue);
-                    }
+                    headerNames.Add(kvp.Key);
+                    var headerValue = this.GetFirstHeaderValue(response.Content.Headers, kvp.Key);
+                    this.headers.Add(kvp.Key, headerValue);
                 }
             }
-
-            this.headerNames = headerNames.ToArray();
-            this.headerNamesSet = new HashSet<string>(this.headerNames, StringComparer.OrdinalIgnoreCase);
         }
 
-        private string GetFirstHeaderValue(HttpHeaders headers, string key)
+        this.headerNames = headerNames.ToArray();
+        this.headerNamesSet = new HashSet<string>(this.headerNames, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private string GetFirstHeaderValue(HttpHeaders headers, string key)
+    {
+        IEnumerable<string> headerValues = null;
+        if (headers.TryGetValues(key, out headerValues))
         {
-            IEnumerable<string> headerValues = null;
-            if (headers.TryGetValues(key, out headerValues))
-            {
-                return headerValues.FirstOrDefault();
-            }
-
-            return string.Empty;
+            return headerValues.FirstOrDefault();
         }
+
+        return string.Empty;
     }
 }
