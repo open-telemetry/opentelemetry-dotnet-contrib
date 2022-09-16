@@ -18,37 +18,36 @@ using System;
 using System.Collections.Generic;
 using Amazon.Runtime;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation
+namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation;
+
+internal class AWSServiceHelper
 {
-    internal class AWSServiceHelper
+    internal static IReadOnlyDictionary<string, string> ServiceParameterMap = new Dictionary<string, string>()
     {
-        internal static IReadOnlyDictionary<string, string> ServiceParameterMap = new Dictionary<string, string>()
-        {
-            { DynamoDbService, "TableName" },
-            { SQSService, "QueueUrl" },
-        };
+        { DynamoDbService, "TableName" },
+        { SQSService, "QueueUrl" },
+    };
 
-        internal static IReadOnlyDictionary<string, string> ParameterAttributeMap = new Dictionary<string, string>()
-        {
-            { "TableName", AWSSemanticConventions.AttributeAWSDynamoTableName },
-            { "QueueUrl", AWSSemanticConventions.AttributeAWSSQSQueueUrl },
-        };
+    internal static IReadOnlyDictionary<string, string> ParameterAttributeMap = new Dictionary<string, string>()
+    {
+        { "TableName", AWSSemanticConventions.AttributeAWSDynamoTableName },
+        { "QueueUrl", AWSSemanticConventions.AttributeAWSSQSQueueUrl },
+    };
 
-        private const string DynamoDbService = "DynamoDBv2";
-        private const string SQSService = "SQS";
+    private const string DynamoDbService = "DynamoDBv2";
+    private const string SQSService = "SQS";
 
-        internal static string GetAWSServiceName(IRequestContext requestContext)
-            => Utils.RemoveAmazonPrefixFromServiceName(requestContext.Request.ServiceName);
+    internal static string GetAWSServiceName(IRequestContext requestContext)
+        => Utils.RemoveAmazonPrefixFromServiceName(requestContext.Request.ServiceName);
 
-        internal static string GetAWSOperationName(IRequestContext requestContext)
-        {
-            string completeRequestName = requestContext.OriginalRequest.GetType().Name;
-            string suffix = "Request";
-            var operationName = Utils.RemoveSuffix(completeRequestName, suffix);
-            return operationName;
-        }
-
-        internal static bool IsDynamoDbService(string service)
-            => DynamoDbService.Equals(service, StringComparison.OrdinalIgnoreCase);
+    internal static string GetAWSOperationName(IRequestContext requestContext)
+    {
+        string completeRequestName = requestContext.OriginalRequest.GetType().Name;
+        string suffix = "Request";
+        var operationName = Utils.RemoveSuffix(completeRequestName, suffix);
+        return operationName;
     }
+
+    internal static bool IsDynamoDbService(string service)
+        => DynamoDbService.Equals(service, StringComparison.OrdinalIgnoreCase);
 }

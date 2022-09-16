@@ -14,16 +14,15 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.AWSLambda
+namespace OpenTelemetry.Instrumentation.AWSLambda;
+
+/// <summary>
+/// AWS lambda instrumentation options.
+/// </summary>
+public class AWSLambdaInstrumentationOptions
 {
     /// <summary>
-    /// AWS lambda instrumentation options.
+    /// Gets or sets a value indicating whether AWS X-Ray context extraction should be disabled.
     /// </summary>
-    public class AWSLambdaInstrumentationOptions
-    {
-        /// <summary>
-        /// Gets or sets a value indicating whether AWS X-Ray context extraction should be disabled.
-        /// </summary>
-        public bool DisableAwsXRayContextExtraction { get; set; }
-    }
+    public bool DisableAwsXRayContextExtraction { get; set; }
 }
