@@ -16,171 +16,174 @@
 
 using System;
 using System.Collections.Generic;
+#if NET452
 using System.IO;
+#endif
 using System.Linq;
 using System.Net;
+#if !NET452
 using System.Net.Http;
+#endif
 using System.Reflection;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests
+namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests;
+
+internal class MockWebResponse
 {
-    internal class MockWebResponse
-    {
 #if NET452
-        public static HttpWebResponse CreateFromResource(string resourceName)
-        {
-            var rawResponse = Utils.GetResourceText(resourceName);
-            var response = ParseRawReponse(rawResponse);
-            var statusCode = ParseStatusCode(response.StatusLine);
-            return Create(statusCode, response.Headers, response.Body);
-        }
+    public static HttpWebResponse CreateFromResource(string resourceName)
+    {
+        var rawResponse = Utils.GetResourceText(resourceName);
+        var response = ParseRawReponse(rawResponse);
+        var statusCode = ParseStatusCode(response.StatusLine);
+        return Create(statusCode, response.Headers, response.Body);
+    }
 
-        public static HttpWebResponse Create(HttpStatusCode statusCode, IDictionary<string, string> headers, string body = null)
-        {
-            var type = typeof(HttpWebResponse);
-            var assembly = Assembly.GetAssembly(type);
-            var obj = assembly.CreateInstance("System.Net.HttpWebResponse");
+    public static HttpWebResponse Create(HttpStatusCode statusCode, IDictionary<string, string> headers, string body = null)
+    {
+        var type = typeof(HttpWebResponse);
+        var assembly = Assembly.GetAssembly(type);
+        var obj = assembly.CreateInstance("System.Net.HttpWebResponse");
 
-            var webHeaders = new WebHeaderCollection();
-            if (headers != null)
+        var webHeaders = new WebHeaderCollection();
+        if (headers != null)
+        {
+            foreach (var header in headers)
             {
-                foreach (var header in headers)
-                {
-                    webHeaders.Add(header.Key, header.Value);
-                }
+                webHeaders.Add(header.Key, header.Value);
             }
-
-            Stream responseBodyStream = null;
-            body = body ?? string.Empty;
-            responseBodyStream = Utils.CreateStreamFromString(body);
-
-            var statusFieldInfo = type.GetField(
-                "m_StatusCode",
-                BindingFlags.NonPublic | BindingFlags.Instance);
-            var headersFieldInfo = type.GetField(
-                "m_HttpResponseHeaders",
-                BindingFlags.NonPublic | BindingFlags.Instance);
-            var streamFieldInfo = type.GetField(
-                "m_ConnectStream",
-                BindingFlags.NonPublic | BindingFlags.Instance);
-            var contentLengthFieldInfo = type.GetField(
-                "m_ContentLength",
-                BindingFlags.NonPublic | BindingFlags.Instance);
-
-            statusFieldInfo.SetValue(obj, statusCode);
-            headersFieldInfo.SetValue(obj, webHeaders);
-            streamFieldInfo.SetValue(obj, responseBodyStream);
-            contentLengthFieldInfo.SetValue(obj, responseBodyStream.Length);
-
-            return obj as HttpWebResponse;
         }
+
+        Stream responseBodyStream = null;
+        body = body ?? string.Empty;
+        responseBodyStream = Utils.CreateStreamFromString(body);
+
+        var statusFieldInfo = type.GetField(
+            "m_StatusCode",
+            BindingFlags.NonPublic | BindingFlags.Instance);
+        var headersFieldInfo = type.GetField(
+            "m_HttpResponseHeaders",
+            BindingFlags.NonPublic | BindingFlags.Instance);
+        var streamFieldInfo = type.GetField(
+            "m_ConnectStream",
+            BindingFlags.NonPublic | BindingFlags.Instance);
+        var contentLengthFieldInfo = type.GetField(
+            "m_ContentLength",
+            BindingFlags.NonPublic | BindingFlags.Instance);
+
+        statusFieldInfo.SetValue(obj, statusCode);
+        headersFieldInfo.SetValue(obj, webHeaders);
+        streamFieldInfo.SetValue(obj, responseBodyStream);
+        contentLengthFieldInfo.SetValue(obj, responseBodyStream.Length);
+
+        return obj as HttpWebResponse;
+    }
 
 #else
-        public static HttpResponseMessage CreateFromResource(string resourceName)
+    public static HttpResponseMessage CreateFromResource(string resourceName)
+    {
+        var rawResponse = Utils.GetResourceText(resourceName);
+
+        var response = ParseRawReponse(rawResponse);
+        var statusCode = ParseStatusCode(response.StatusLine);
+
+        return Create(statusCode, response.Headers, response.Body);
+    }
+
+    public static HttpResponseMessage Create(HttpStatusCode statusCode, IDictionary<string, string> headers, string body = null)
+    {
+        var type = typeof(HttpResponseMessage);
+        var assembly = Assembly.GetAssembly(type);
+        var obj = assembly.CreateInstance("System.Net.Http.HttpResponseMessage");
+
+        HttpResponseMessage httpResponseMessage = obj as HttpResponseMessage;
+        var webHeaders = new WebHeaderCollection();
+        if (headers != null)
         {
-            var rawResponse = Utils.GetResourceText(resourceName);
-
-            var response = ParseRawReponse(rawResponse);
-            var statusCode = ParseStatusCode(response.StatusLine);
-
-            return Create(statusCode, response.Headers, response.Body);
-        }
-
-        public static HttpResponseMessage Create(HttpStatusCode statusCode, IDictionary<string, string> headers, string body = null)
-        {
-            var type = typeof(HttpResponseMessage);
-            var assembly = Assembly.GetAssembly(type);
-            var obj = assembly.CreateInstance("System.Net.Http.HttpResponseMessage");
-
-            HttpResponseMessage httpResponseMessage = obj as HttpResponseMessage;
-            var webHeaders = new WebHeaderCollection();
-            if (headers != null)
+            foreach (var header in headers)
             {
-                foreach (var header in headers)
-                {
-                    webHeaders.Add(header.Key, header.Value);
-                    httpResponseMessage.Headers.Add(header.Key, header.Value);
-                }
+                webHeaders.Add(header.Key, header.Value);
+                httpResponseMessage.Headers.Add(header.Key, header.Value);
             }
-
-            httpResponseMessage.StatusCode = statusCode;
-            string dummyJson = "{\"key1\":\"value1\"}";
-            httpResponseMessage.Content = new StringContent(body ?? dummyJson); // Content should be in Json format else we get exception from downstream unmarshalling
-            return httpResponseMessage;
         }
+
+        httpResponseMessage.StatusCode = statusCode;
+        string dummyJson = "{\"key1\":\"value1\"}";
+        httpResponseMessage.Content = new StringContent(body ?? dummyJson); // Content should be in Json format else we get exception from downstream unmarshalling
+        return httpResponseMessage;
+    }
 
 #endif
-        public static HttpResponse ParseRawReponse(string rawResponse)
+    public static HttpResponse ParseRawReponse(string rawResponse)
+    {
+        var response = new HttpResponse();
+        response.StatusLine = rawResponse;
+
+        var responseLines = rawResponse.Split('\n');
+
+        if (responseLines.Count() == 0)
         {
-            var response = new HttpResponse();
-            response.StatusLine = rawResponse;
+            throw new ArgumentException(
+                "The resource does not contain a valid HTTP response.",
+                "resourceName");
+        }
 
-            var responseLines = rawResponse.Split('\n');
+        response.StatusLine = responseLines[0];
+        var currentLine = responseLines[0];
+        var statusCode = ParseStatusCode(currentLine);
 
-            if (responseLines.Count() == 0)
+        var lineIndex = 0;
+        if (responseLines.Count() > 1)
+        {
+            for (lineIndex = 1; lineIndex < responseLines.Count(); lineIndex++)
             {
-                throw new ArgumentException(
-                    "The resource does not contain a valid HTTP response.",
-                    "resourceName");
-            }
-
-            response.StatusLine = responseLines[0];
-            var currentLine = responseLines[0];
-            var statusCode = ParseStatusCode(currentLine);
-
-            var lineIndex = 0;
-            if (responseLines.Count() > 1)
-            {
-                for (lineIndex = 1; lineIndex < responseLines.Count(); lineIndex++)
+                currentLine = responseLines[lineIndex];
+                if (currentLine.Trim() == string.Empty)
                 {
-                    currentLine = responseLines[lineIndex];
-                    if (currentLine.Trim() == string.Empty)
-                    {
-                        currentLine = responseLines[lineIndex - 1];
-                        break;
-                    }
+                    currentLine = responseLines[lineIndex - 1];
+                    break;
+                }
 
-                    var index = currentLine.IndexOf(":");
-                    if (index != -1)
-                    {
-                        var headerKey = currentLine.Substring(0, index);
-                        var headerValue = currentLine.Substring(index + 1);
-                        response.Headers.Add(headerKey.Trim(), headerValue.Trim());
-                    }
+                var index = currentLine.IndexOf(":");
+                if (index != -1)
+                {
+                    var headerKey = currentLine.Substring(0, index);
+                    var headerValue = currentLine.Substring(index + 1);
+                    response.Headers.Add(headerKey.Trim(), headerValue.Trim());
                 }
             }
-
-            var startOfBody = rawResponse.IndexOf(currentLine) + currentLine.Length;
-            response.Body = rawResponse.Substring(startOfBody).Trim();
-            return response;
         }
 
-        private static HttpStatusCode ParseStatusCode(string statusLine)
+        var startOfBody = rawResponse.IndexOf(currentLine) + currentLine.Length;
+        response.Body = rawResponse.Substring(startOfBody).Trim();
+        return response;
+    }
+
+    private static HttpStatusCode ParseStatusCode(string statusLine)
+    {
+        var statusCode = string.Empty;
+        try
         {
-            var statusCode = string.Empty;
-            try
-            {
-                statusCode = statusLine.Split(' ')[1];
-                return (HttpStatusCode)Enum.Parse(typeof(HttpStatusCode), statusCode);
-            }
-            catch (Exception exception)
-            {
-                throw new ArgumentException("Invalid HTTP status line.", exception);
-            }
+            statusCode = statusLine.Split(' ')[1];
+            return (HttpStatusCode)Enum.Parse(typeof(HttpStatusCode), statusCode);
         }
-
-        public class HttpResponse
+        catch (Exception exception)
         {
-            public HttpResponse()
-            {
-                this.Headers = new Dictionary<string, string>();
-            }
-
-            public string StatusLine { get; set; }
-
-            public IDictionary<string, string> Headers { get; private set; }
-
-            public string Body { get; set; }
+            throw new ArgumentException("Invalid HTTP status line.", exception);
         }
+    }
+
+    public class HttpResponse
+    {
+        public HttpResponse()
+        {
+            this.Headers = new Dictionary<string, string>();
+        }
+
+        public string StatusLine { get; set; }
+
+        public IDictionary<string, string> Headers { get; private set; }
+
+        public string Body { get; set; }
     }
 }

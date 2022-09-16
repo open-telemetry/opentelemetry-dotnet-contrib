@@ -17,39 +17,38 @@
 using OpenTelemetry.Contrib.Extensions.AWSXRay;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Trace
+namespace OpenTelemetry.Trace;
+
+/// <summary>
+/// Extension method to generate AWS X-Ray compatible trace id and replace the trace id of root activity.
+/// </summary>
+public static class TracerProviderBuilderExtensions
 {
     /// <summary>
-    /// Extension method to generate AWS X-Ray compatible trace id and replace the trace id of root activity.
+    /// Replace the trace id of root activity.
     /// </summary>
-    public static class TracerProviderBuilderExtensions
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/>.</returns>
+    public static TracerProviderBuilder AddXRayTraceId(this TracerProviderBuilder builder)
     {
-        /// <summary>
-        /// Replace the trace id of root activity.
-        /// </summary>
-        /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-        /// <returns>The instance of <see cref="TracerProviderBuilder"/>.</returns>
-        public static TracerProviderBuilder AddXRayTraceId(this TracerProviderBuilder builder)
-        {
-            Guard.ThrowIfNull(builder);
+        Guard.ThrowIfNull(builder);
 
-            AWSXRayIdGenerator.ReplaceTraceId();
-            return builder;
-        }
+        AWSXRayIdGenerator.ReplaceTraceId();
+        return builder;
+    }
 
-        /// <summary>
-        /// 1. Replace the trace id of root activity.
-        /// 2. Update the sampling decision for root activity when it's created through ActivitySource.StartActivity().
-        /// </summary>
-        /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-        /// <param name="sampler"><see cref="Sampler"/> being used.</param>
-        /// <returns>The instance of <see cref="TracerProviderBuilder"/>.</returns>
-        public static TracerProviderBuilder AddXRayTraceIdWithSampler(this TracerProviderBuilder builder, Sampler sampler)
-        {
-            Guard.ThrowIfNull(builder);
+    /// <summary>
+    /// 1. Replace the trace id of root activity.
+    /// 2. Update the sampling decision for root activity when it's created through ActivitySource.StartActivity().
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="sampler"><see cref="Sampler"/> being used.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/>.</returns>
+    public static TracerProviderBuilder AddXRayTraceIdWithSampler(this TracerProviderBuilder builder, Sampler sampler)
+    {
+        Guard.ThrowIfNull(builder);
 
-            AWSXRayIdGenerator.ReplaceTraceId(sampler);
-            return builder;
-        }
+        AWSXRayIdGenerator.ReplaceTraceId(sampler);
+        return builder;
     }
 }
