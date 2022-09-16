@@ -36,16 +36,6 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
         if (options.TableNameMappings != null
             && options.TableNameMappings.TryGetValue("Span", out var customTableName))
         {
-            if (string.IsNullOrWhiteSpace(customTableName))
-            {
-                throw new ArgumentException("TableName mapping for Span is invalid.");
-            }
-
-            if (Encoding.UTF8.GetByteCount(customTableName) != customTableName.Length)
-            {
-                throw new ArgumentException("The \"{customTableName}\" provided for TableNameMappings option contains non-ASCII characters", customTableName);
-            }
-
             partAName = customTableName;
         }
 
