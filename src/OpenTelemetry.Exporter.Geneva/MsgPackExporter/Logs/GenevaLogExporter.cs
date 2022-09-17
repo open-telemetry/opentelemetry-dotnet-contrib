@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Internal;
@@ -58,11 +57,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             var tempTableMappings = new Dictionary<string, string>(options.TableNameMappings.Count, StringComparer.Ordinal);
             foreach (var kv in options.TableNameMappings)
             {
-                if (Encoding.UTF8.GetByteCount(kv.Value) != kv.Value.Length)
-                {
-                    throw new ArgumentException("The value: \"{tableName}\" provided for TableNameMappings option contains non-ASCII characters", kv.Value);
-                }
-
                 if (kv.Key == "*")
                 {
                     if (kv.Value == "*")

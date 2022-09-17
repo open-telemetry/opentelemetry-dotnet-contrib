@@ -62,15 +62,14 @@ public class GenevaLogExporterTests
         });
 
         // Throw on null value - include key in exception message
-        var ex = Assert.Throws<ArgumentNullException>(() =>
+        var ex = Assert.Throws<ArgumentException>(() =>
         {
             new GenevaExporterOptions
             {
                 TableNameMappings = new Dictionary<string, string> { ["TestCategory"] = null },
             };
         });
-        Assert.Contains("TableNameMappings must not contain null values.", ex.Message);
-        Assert.Equal("TestCategory", ex.ParamName);
+        Assert.Contains("A string-typed value provided for TableNameMappings must not be null, empty, or consist only of white-space characters.", ex.Message);
 
         // Throw when TableNameMappings is null
         Assert.Throws<ArgumentNullException>(() =>
