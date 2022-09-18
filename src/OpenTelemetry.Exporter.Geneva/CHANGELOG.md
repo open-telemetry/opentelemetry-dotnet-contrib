@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+* Update OTel SDK version to `1.3.1`.
+  [#631](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/631)
+
+* The option `TableNameMappings` of `GenevaExporterOptions` will not support
+  string values that are null, empty, or consist only of white-space characters.
+  It will also not support string values that contain non-ASCII characters.
+  [646](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/646)
+
 ## 1.4.0-beta.1
 
 Released 2022-Aug-01
