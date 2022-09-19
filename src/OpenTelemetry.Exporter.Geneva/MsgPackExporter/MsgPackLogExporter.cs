@@ -48,9 +48,6 @@ internal sealed class MsgPackLogExporter : IDisposable
 
     public MsgPackLogExporter(GenevaExporterOptions options)
     {
-        Guard.ThrowIfNull(options);
-        Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
-
         // TODO: Validate mappings for reserved tablenames etc.
         if (options.TableNameMappings != null)
         {
