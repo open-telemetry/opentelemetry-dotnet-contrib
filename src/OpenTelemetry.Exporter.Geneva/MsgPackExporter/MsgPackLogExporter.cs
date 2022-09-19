@@ -1,4 +1,4 @@
-// <copyright file="GenevaLogExporter.cs" company="OpenTelemetry Authors">
+// <copyright file="MsgPackLogExporter.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,7 @@ using OpenTelemetry.Logs;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
-public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
+internal sealed class MsgPackLogExporter : IDisposable
 {
     private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
     private const int MaxSanitizedEventNameLength = 50;
@@ -46,7 +46,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
     private readonly bool shouldPassThruTableMappings;
     private bool isDisposed;
 
-    public GenevaLogExporter(GenevaExporterOptions options)
+    public MsgPackLogExporter(GenevaExporterOptions options)
     {
         Guard.ThrowIfNull(options);
         Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
@@ -134,7 +134,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
 
     private readonly IReadOnlyDictionary<string, string> m_tableMappings;
 
-    public override ExportResult Export(in Batch<LogRecord> batch)
+    public ExportResult Export(in Batch<LogRecord> batch)
     {
         var result = ExportResult.Success;
         foreach (var logRecord in batch)
@@ -152,31 +152,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         }
 
         return result;
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        if (this.isDisposed)
-        {
-            return;
-        }
-
-        if (disposing)
-        {
-            // DO NOT Dispose m_buffer as it is a static type
-            try
-            {
-                (this.m_dataTransport as IDisposable)?.Dispose();
-                this.m_prepopulatedFieldKeys.Clear();
-            }
-            catch (Exception ex)
-            {
-                ExporterEventSource.Log.ExporterException("GenevaLogExporter Dispose failed.", ex);
-            }
-        }
-
-        this.isDisposed = true;
-        base.Dispose(disposing);
     }
 
     internal bool IsUsingUnixDomainSocket
@@ -279,7 +254,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             {
                 var key = this.m_prepopulatedFieldKeys[i];
                 var value = this.m_prepopulatedFields[key];
-                cursor = AddPartAField(buffer, cursor, key, value);
+                cursor = GenevaBaseExporter<LogRecord>.AddPartAField(buffer, cursor, key, value);
                 cntFields += 1;
             }
         }
@@ -287,16 +262,16 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         // Part A - core envelope
         if (sanitizedEventName.Length != 0)
         {
-            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, sanitizedEventName);
+            cursor = GenevaBaseExporter<LogRecord>.AddPartAField(buffer, cursor, Schema.V40.PartA.Name, sanitizedEventName);
         }
         else
         {
-            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, eventName);
+            cursor = GenevaBaseExporter<LogRecord>.AddPartAField(buffer, cursor, Schema.V40.PartA.Name, eventName);
         }
 
         cntFields += 1;
 
-        cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Time, timestamp);
+        cursor = GenevaBaseExporter<LogRecord>.AddPartAField(buffer, cursor, Schema.V40.PartA.Time, timestamp);
         cntFields += 1;
 
         // Part A - dt extension
@@ -546,5 +521,26 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         MessagePackSerializer.WriteStr8Header(buffer, cursorStartIdx, validNameLength);
 
         return cursor;
+    }
+
+    public void Dispose()
+    {
+        if (this.isDisposed)
+        {
+            return;
+        }
+
+        // DO NOT Dispose m_buffer as it is a static type
+        try
+        {
+            (this.m_dataTransport as IDisposable)?.Dispose();
+            this.m_prepopulatedFieldKeys.Clear();
+        }
+        catch (Exception ex)
+        {
+            ExporterEventSource.Log.ExporterException("MsgPackLogExporter Dispose failed.", ex);
+        }
+
+        this.isDisposed = true;
     }
 }
