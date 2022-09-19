@@ -57,7 +57,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
 
         if (disposing)
         {
-            // DO NOT Dispose m_buffer as it is a static type
             try
             {
                 this.exporter.Dispose();
