@@ -28,7 +28,7 @@ using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva
 {
-    internal class TLDTraceExporter : GenevaBaseExporter<Activity>
+    internal sealed class TLDTraceExporter : GenevaBaseExporter<Activity>
     {
         public TLDTraceExporter(GenevaExporterOptions options)
         {
@@ -38,16 +38,6 @@ namespace OpenTelemetry.Exporter.Geneva
             if (options.TableNameMappings != null
                 && options.TableNameMappings.TryGetValue("Span", out var customTableName))
             {
-                if (string.IsNullOrWhiteSpace(customTableName))
-                {
-                    throw new ArgumentException("TableName mapping for Span is invalid.");
-                }
-
-                if (Encoding.UTF8.GetByteCount(customTableName) != customTableName.Length)
-                {
-                    throw new ArgumentException("The \"{customTableName}\" provided for TableNameMappings option contains non-ASCII characters", customTableName);
-                }
-
                 this.partAName = customTableName;
             }
 
