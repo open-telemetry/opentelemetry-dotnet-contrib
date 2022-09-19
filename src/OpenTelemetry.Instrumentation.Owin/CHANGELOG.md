@@ -2,9 +2,12 @@
 
 ## Unreleased
 
+## 1.0.0-rc.3
+
 * Changed activity source name from `OpenTelemetry.OWIN`
   to `OpenTelemetry.Instrumentation.Owin`
   ([#572](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/572))
+* Changed to depend on at least Owin 4.2.2.
 
 ## 1.0.0-rc.2
 
