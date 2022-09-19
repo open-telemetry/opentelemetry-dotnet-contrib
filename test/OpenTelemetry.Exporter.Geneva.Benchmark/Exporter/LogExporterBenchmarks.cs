@@ -65,7 +65,7 @@ public class LogExporterBenchmarks
 {
     private readonly ILogger logger;
     private readonly ILoggerFactory loggerFactory;
-    private readonly GenevaLogExporter exporter;
+    private readonly MsgPackLogExporter exporter;
     private readonly LogRecord logRecord;
     private readonly Batch<LogRecord> batch;
 
@@ -97,7 +97,7 @@ public class LogExporterBenchmarks
         // For msgpack serialization + export
         this.logRecord = GenerateTestLogRecord();
         this.batch = GenerateTestLogRecordBatch();
-        this.exporter = new GenevaLogExporter(new GenevaExporterOptions
+        this.exporter = new MsgPackLogExporter(new GenevaExporterOptions
         {
             ConnectionString = "EtwSession=OpenTelemetry",
             PrepopulatedFields = new Dictionary<string, object>

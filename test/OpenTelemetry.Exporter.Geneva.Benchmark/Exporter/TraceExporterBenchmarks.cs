@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using BenchmarkDotNet.Attributes;
@@ -40,7 +41,7 @@ public class TraceExporterBenchmarks
 {
     private readonly Activity activity;
     private readonly Batch<Activity> batch;
-    private readonly GenevaTraceExporter exporter;
+    private readonly MsgPackTraceExporter exporter;
     private readonly ActivitySource activitySource = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark");
 
     public TraceExporterBenchmarks()
@@ -67,7 +68,7 @@ public class TraceExporterBenchmarks
             this.activity?.SetStatus(Status.Error);
         }
 
-        this.exporter = new GenevaTraceExporter(new GenevaExporterOptions
+        this.exporter = new MsgPackTraceExporter(new GenevaExporterOptions
         {
             ConnectionString = "EtwSession=OpenTelemetry",
             PrepopulatedFields = new Dictionary<string, object>
