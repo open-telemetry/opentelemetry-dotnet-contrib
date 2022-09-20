@@ -13,7 +13,7 @@ Released 2022-Sep-20
   [denial of service vulnerability](https://github.com/advisories/GHSA-3rq8-h3gj-r5c6).
   ([#648](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/648))
 * Updated project to target `net462` and OTel 1.3.1 SDK
-  ([#XXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXX))
+  ([#653](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/653))
 
 ## 1.0.0-rc.2
 
