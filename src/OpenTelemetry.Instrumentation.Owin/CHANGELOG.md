@@ -12,6 +12,8 @@ Released 2022-Sep-20
 * Changed to depend on at least Owin 4.2.2 to resolve a
   [denial of service vulnerability](https://github.com/advisories/GHSA-3rq8-h3gj-r5c6).
   ([#648](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/648))
+* Updated project to target `net462` and OTel 1.3.1 SDK
+  ([#XXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXX))
 
 ## 1.0.0-rc.2
 
