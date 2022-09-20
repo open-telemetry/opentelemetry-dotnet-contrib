@@ -64,7 +64,7 @@ internal static class SpanHelper
 
 #if NET462 ||  NET6_0_OR_GREATER
     /// <summary>
-    /// Helper method that populates Activity properties from http status code according
+    /// Helper method that populates Activity Status from http status code according
     /// to https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md#status.
     /// </summary>
     /// <param name="kind">The span kind.</param>
