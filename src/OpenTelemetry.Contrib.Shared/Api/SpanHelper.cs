@@ -61,4 +61,24 @@ internal static class SpanHelper
 
         return Status.Error;
     }
+
+#if NET462 ||  NET6_0_OR_GREATER
+    /// <summary>
+    /// Helper method that populates Activity properties from http status code according
+    /// to https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md#status.
+    /// </summary>
+    /// <param name="kind">The span kind.</param>
+    /// <param name="httpStatusCode">Http status code.</param>
+    /// <returns>Resolved span <see cref="Status"/> for the Http status code.</returns>
+    public static ActivityStatusCode ResolveActivityStatusForHttpStatusCode(ActivityKind kind, int httpStatusCode)
+    {
+        var upperBound = kind == ActivityKind.Client ? 399 : 499;
+        if (httpStatusCode >= 100 && httpStatusCode <= upperBound)
+        {
+            return ActivityStatusCode.Unset;
+        }
+
+        return ActivityStatusCode.Error;
+    }
+#endif
 }
