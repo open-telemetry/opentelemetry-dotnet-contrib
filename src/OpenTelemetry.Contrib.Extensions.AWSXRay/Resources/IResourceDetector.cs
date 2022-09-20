@@ -16,18 +16,17 @@
 
 using System.Collections.Generic;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
+namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
+
+/// <summary>
+/// Resource detector interface.
+/// Mocking https://github.com/open-telemetry/opentelemetry-dotnet/blob/6b7f2dd77cf9d37260a853fcc95f7b77e296065d/src/OpenTelemetry/Resources/IResourceDetector.cs.
+/// </summary>
+public interface IResourceDetector
 {
     /// <summary>
-    /// Resource detector interface.
-    /// Mocking https://github.com/open-telemetry/opentelemetry-dotnet/blob/6b7f2dd77cf9d37260a853fcc95f7b77e296065d/src/OpenTelemetry/Resources/IResourceDetector.cs.
+    /// Called to get key-value pairs of attribute from detector.
     /// </summary>
-    public interface IResourceDetector
-    {
-        /// <summary>
-        /// Called to get key-value pairs of attribute from detector.
-        /// </summary>
-        /// <returns>List of key-value pairs of resource attributes.</returns>
-        IEnumerable<KeyValuePair<string, object>> Detect();
-    }
+    /// <returns>List of key-value pairs of resource attributes.</returns>
+    IEnumerable<KeyValuePair<string, object>> Detect();
 }
