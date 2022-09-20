@@ -5,7 +5,7 @@
 * Changed activity source name from `OpenTelemetry.OWIN`
   to `OpenTelemetry.Instrumentation.Owin`
   ([#572](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/572))
-* Changed to depend on at least Owin 4.2.2 to resolve a 
+* Changed to depend on at least Owin 4.2.2 to resolve a
   [denial of service vulnerability](https://github.com/advisories/GHSA-3rq8-h3gj-r5c6).
   ([#648](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/648))
 
