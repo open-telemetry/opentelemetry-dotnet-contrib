@@ -34,7 +34,7 @@ public class EventCountersInstrumentationOptions
     /// Listens to EventCounters from the given EventSource name.
     /// </summary>
     /// <param name="eventSourceName">The EventSource name.</param>
-    public void AddCounters(string eventSourceName)
+    public void AddEventSource(string eventSourceName)
     {
         this.eventSourceNames.Add(eventSourceName);
     }
@@ -44,7 +44,7 @@ public class EventCountersInstrumentationOptions
     /// </summary>
     /// <param name="eventSourceName">The EventSource name.</param>
     /// <returns><c>true</c> when an EventSource with the name <paramref name="eventSourceName"/> should be enabled.</returns>
-    public bool ShouldListenToSource(string eventSourceName)
+    internal bool ShouldListenToSource(string eventSourceName)
     {
         return this.eventSourceNames.Contains(eventSourceName);
     }
