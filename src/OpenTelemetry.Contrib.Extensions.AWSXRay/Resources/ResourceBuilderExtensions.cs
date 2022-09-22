@@ -17,31 +17,30 @@
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Resources
+namespace OpenTelemetry.Resources;
+
+/// <summary>
+/// Extension class for ResourceBuilder.
+/// </summary>
+public static class ResourceBuilderExtensions
 {
     /// <summary>
-    /// Extension class for ResourceBuilder.
+    /// Add resource detector to ResourceBuilder.
     /// </summary>
-    public static class ResourceBuilderExtensions
+    /// <param name="resourceBuilder"><see cref="ResourceBuilder"/> being configured.</param>
+    /// <param name="resourceDetector"><see cref="IResourceDetector"/> being added.</param>
+    /// <returns>The instance of <see cref="ResourceBuilder"/> to chain the calls.</returns>
+    public static ResourceBuilder AddDetector(this ResourceBuilder resourceBuilder, IResourceDetector resourceDetector)
     {
-        /// <summary>
-        /// Add resource detector to ResourceBuilder.
-        /// </summary>
-        /// <param name="resourceBuilder"><see cref="ResourceBuilder"/> being configured.</param>
-        /// <param name="resourceDetector"><see cref="IResourceDetector"/> being added.</param>
-        /// <returns>The instance of <see cref="ResourceBuilder"/> to chain the calls.</returns>
-        public static ResourceBuilder AddDetector(this ResourceBuilder resourceBuilder, IResourceDetector resourceDetector)
+        Guard.ThrowIfNull(resourceDetector);
+
+        var resourceAttributes = resourceDetector.Detect();
+
+        if (resourceAttributes != null)
         {
-            Guard.ThrowIfNull(resourceDetector);
-
-            var resourceAttributes = resourceDetector.Detect();
-
-            if (resourceAttributes != null)
-            {
-                resourceBuilder.AddAttributes(resourceAttributes);
-            }
-
-            return resourceBuilder;
+            resourceBuilder.AddAttributes(resourceAttributes);
         }
+
+        return resourceBuilder;
     }
 }

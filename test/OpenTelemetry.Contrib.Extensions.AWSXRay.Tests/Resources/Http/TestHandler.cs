@@ -17,29 +17,28 @@
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Http;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources.Http
+namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources.Http;
+
+public class TestHandler
 {
-    public class TestHandler
+    private const string INVALIDCRTNAME = "invalidcert";
+
+    [Fact]
+    public void TestValidHandler()
     {
-        private const string INVALIDCRTNAME = "invalidcert";
-
-        [Fact]
-        public void TestValidHandler()
+        using (CertificateUploader certificateUploader = new CertificateUploader())
         {
-            using (CertificateUploader certificateUploader = new CertificateUploader())
-            {
-                certificateUploader.Create();
+            certificateUploader.Create();
 
-                // Validates if the handler created.
-                Assert.NotNull(Handler.Create(certificateUploader.FilePath));
-            }
+            // Validates if the handler created.
+            Assert.NotNull(Handler.Create(certificateUploader.FilePath));
         }
+    }
 
-        [Fact]
-        public void TestInValidHandler()
-        {
-            // Validates if the handler created if no certificate is loaded into the trusted collection
-            Assert.Null(Handler.Create(INVALIDCRTNAME));
-        }
+    [Fact]
+    public void TestInValidHandler()
+    {
+        // Validates if the handler created if no certificate is loaded into the trusted collection
+        Assert.Null(Handler.Create(INVALIDCRTNAME));
     }
 }
