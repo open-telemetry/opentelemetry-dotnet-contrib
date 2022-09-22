@@ -31,11 +31,6 @@ public class EventCountersInstrumentationOptions
     public int RefreshIntervalSecs { get; set; } = 1;
 
     /// <summary>
-    /// Gets the arguments object used for the EventListener.EnableEvents function.
-    /// </summary>
-    public Dictionary<string, string> EnableEventsArguments => new() { { "EventCounterIntervalSec", this.RefreshIntervalSecs.ToString() } };
-
-    /// <summary>
     /// Listens to EventCounters from the given EventSource name.
     /// </summary>
     /// <param name="eventSourceName">The EventSource name.</param>

@@ -48,7 +48,7 @@ internal class EventCountersMetrics : EventListener
         {
             if (this.options.ShouldListenToSource(source.Name))
             {
-                this.EnableEvents(source, EventLevel.LogAlways, EventKeywords.None, this.options.EnableEventsArguments);
+                this.EnableEvents(source, EventLevel.LogAlways, EventKeywords.None, GetEnableEventsArguments(this.options));
             }
         }
     }
@@ -62,7 +62,7 @@ internal class EventCountersMetrics : EventListener
         }
         else if (this.options.ShouldListenToSource(source.Name))
         {
-            this.EnableEvents(source, EventLevel.LogAlways, EventKeywords.None, this.options.EnableEventsArguments);
+            this.EnableEvents(source, EventLevel.LogAlways, EventKeywords.None, GetEnableEventsArguments(this.options));
         }
     }
 
@@ -93,4 +93,7 @@ internal class EventCountersMetrics : EventListener
             metricKey,
             isGauge ? MeterInstance.CreateObservableGauge(name, () => this.values[metricKey]) : MeterInstance.CreateObservableCounter(name, () => this.values[metricKey]));
     }
+
+    private static Dictionary<string, string> GetEnableEventsArguments(EventCountersInstrumentationOptions options) =>
+        new() { { "EventCounterIntervalSec", options.RefreshIntervalSecs.ToString() } };
 }
