@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
@@ -44,9 +45,14 @@ public class GenevaExporterOptions
 
             foreach (var entry in value)
             {
-                if (entry.Value is null)
+                if (string.IsNullOrWhiteSpace(entry.Value))
                 {
-                    throw new ArgumentNullException(entry.Key, $"{nameof(this.TableNameMappings)} must not contain null values.");
+                    throw new ArgumentException($"A string-typed value provided for {nameof(this.TableNameMappings)} must not be null, empty, or consist only of white-space characters.");
+                }
+
+                if (Encoding.UTF8.GetByteCount(entry.Value) != entry.Value.Length)
+                {
+                    throw new ArgumentException($"A string-typed value provided for {nameof(this.TableNameMappings)} must not contain non-ASCII characters.", entry.Value);
                 }
 
                 copy[entry.Key] = entry.Value;
