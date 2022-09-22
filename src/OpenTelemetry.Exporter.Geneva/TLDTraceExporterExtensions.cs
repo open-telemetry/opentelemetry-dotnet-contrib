@@ -17,16 +17,15 @@
 using System;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Exporter.Geneva
+namespace OpenTelemetry.Exporter.Geneva;
+
+public static class TLDTraceExporterExtensions
 {
-    public static class TLDTraceExporterExtensions
+    public static TracerProviderBuilder AddTLDTraceExporter(this TracerProviderBuilder builder, Action<GenevaExporterOptions> configure)
     {
-        public static TracerProviderBuilder AddTLDTraceExporter(this TracerProviderBuilder builder, Action<GenevaExporterOptions> configure)
-        {
-            var options = new GenevaExporterOptions();
-            configure?.Invoke(options);
-            var exporter = new TLDTraceExporter(options);
-            return builder.AddProcessor(new ReentrantActivityExportProcessor(exporter));
-        }
+        var options = new GenevaExporterOptions();
+        configure?.Invoke(options);
+        var exporter = new TLDTraceExporter(options);
+        return builder.AddProcessor(new ReentrantActivityExportProcessor(exporter));
     }
 }

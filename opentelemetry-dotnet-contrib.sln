@@ -244,6 +244,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "trace", "trace", "{DDE9BB9A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "getting-started", "examples\TLDExporter\trace\ConsoleApp1\getting-started.csproj", "{F718E933-9EA3-417C-8965-7242D5DB1E25}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "logs", "logs", "{84B5DB9B-C206-4368-9EAA-D16C681F7DED}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "getting-started", "examples\TLDExporter\logs\ConsoleApp1\getting-started.csproj", "{F4F0501F-6361-4D9E-9650-53F2A050A1F9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -510,6 +514,10 @@ Global
 		{F718E933-9EA3-417C-8965-7242D5DB1E25}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F718E933-9EA3-417C-8965-7242D5DB1E25}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F718E933-9EA3-417C-8965-7242D5DB1E25}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4F0501F-6361-4D9E-9650-53F2A050A1F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4F0501F-6361-4D9E-9650-53F2A050A1F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4F0501F-6361-4D9E-9650-53F2A050A1F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4F0501F-6361-4D9E-9650-53F2A050A1F9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -590,6 +598,8 @@ Global
 		{D6B4F615-790D-4B15-97E3-E91AB7F42446} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
 		{DDE9BB9A-859C-46C5-A585-112777A4A234} = {D6B4F615-790D-4B15-97E3-E91AB7F42446}
 		{F718E933-9EA3-417C-8965-7242D5DB1E25} = {DDE9BB9A-859C-46C5-A585-112777A4A234}
+		{84B5DB9B-C206-4368-9EAA-D16C681F7DED} = {D6B4F615-790D-4B15-97E3-E91AB7F42446}
+		{F4F0501F-6361-4D9E-9650-53F2A050A1F9} = {84B5DB9B-C206-4368-9EAA-D16C681F7DED}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}

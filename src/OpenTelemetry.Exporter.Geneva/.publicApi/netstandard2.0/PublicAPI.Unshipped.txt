@@ -1,2 +1,4 @@
+Microsoft.Extensions.Logging.TLDLogExporterExtensions
 OpenTelemetry.Exporter.Geneva.TLDTraceExporterExtensions
+static Microsoft.Extensions.Logging.TLDLogExporterExtensions.AddTLDLogExporter(this OpenTelemetry.Logs.OpenTelemetryLoggerOptions options, System.Action<OpenTelemetry.Exporter.Geneva.GenevaExporterOptions> configure) -> OpenTelemetry.Logs.OpenTelemetryLoggerOptions
 static OpenTelemetry.Exporter.Geneva.TLDTraceExporterExtensions.AddTLDTraceExporter(this OpenTelemetry.Trace.TracerProviderBuilder builder, System.Action<OpenTelemetry.Exporter.Geneva.GenevaExporterOptions> configure) -> OpenTelemetry.Trace.TracerProviderBuilder
