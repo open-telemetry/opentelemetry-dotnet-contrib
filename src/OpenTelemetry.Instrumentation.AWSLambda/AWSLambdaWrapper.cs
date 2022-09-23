@@ -171,7 +171,7 @@ public static class AWSLambdaWrapper
         }
 
         var functionTags = AWSLambdaUtils.GetFunctionTags(input, context);
-        var httpTags = HttpSemanticConventions.GetHttpTags(input);
+        var httpTags = AWSLambdaHttpUtil.GetHttpTags(input);
 
         // We assume that functionTags and httpTags have no intersection.
         var activityName = AWSLambdaUtils.GetFunctionName(context) ?? "AWS Lambda Invoke";
@@ -214,7 +214,7 @@ public static class AWSLambdaWrapper
         try
         {
             var result = handler(input, context);
-            HttpSemanticConventions.SetHttpTagsFromResult(activity, result);
+            AWSLambdaHttpUtil.SetHttpTagsFromResult(activity, result);
             return result;
         }
         catch (Exception ex)
@@ -240,7 +240,7 @@ public static class AWSLambdaWrapper
         try
         {
             var result = await handlerAsync(input, context);
-            HttpSemanticConventions.SetHttpTagsFromResult(activity, result);
+            AWSLambdaHttpUtil.SetHttpTagsFromResult(activity, result);
             return result;
         }
         catch (Exception ex)

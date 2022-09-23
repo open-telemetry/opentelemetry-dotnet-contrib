@@ -14,30 +14,12 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using System.Collections.Generic;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
 {
     internal static class CommonExtensions
     {
-        internal static bool TryGetValueIgnoringCase<T>(this IDictionary<string, T> dict, string key, out T value)
-        {
-            value = default;
-            var foundTargetKey = false;
-            foreach (var kvp in dict)
-            {
-                if (string.Equals(kvp.Key, key, StringComparison.OrdinalIgnoreCase))
-                {
-                    value = kvp.Value;
-                    foundTargetKey = true;
-                    break;
-                }
-            }
-
-            return foundTargetKey;
-        }
-
         internal static void AddTagIfNotNull(this List<KeyValuePair<string, object>> tags, string tagName, object tagValue)
         {
             if (tagValue != null)

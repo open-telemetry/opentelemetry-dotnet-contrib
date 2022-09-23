@@ -22,11 +22,11 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
 {
-    internal class HttpSemanticConventions
+    internal class AWSLambdaHttpUtil
     {
         // x-forwarded-... headres are described here https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/x-forwarded-headers.html
-        private const string HeaderXForwardedProto = "X-Forwarded-Proto";
-        private const string HeaderHost = "Host";
+        private const string HeaderXForwardedProto = "x-forwarded-proto";
+        private const string HeaderHost = "host";
 
         internal static IEnumerable<KeyValuePair<string, object>> GetHttpTags<TInput>(TInput input)
         {
@@ -115,12 +115,12 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
         private static string GetHeaderValue(APIGatewayProxyRequest request, string name)
         {
             if (request.MultiValueHeaders != null &&
-                request.MultiValueHeaders.TryGetValueIgnoringCase(name, out var values))
+                request.MultiValueHeaders.TryGetValue(name, out var values))
             {
                 return string.Join(",", values);
             }
             else if (request.Headers != null &&
-                     request.Headers.TryGetValueIgnoringCase(name, out var value))
+                     request.Headers.TryGetValue(name, out var value))
             {
                 return value;
             }
@@ -131,7 +131,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
         private static string GetHeaderValue(APIGatewayHttpApiV2ProxyRequest request, string name)
         {
             if (request.Headers != null &&
-                request.Headers.TryGetValueIgnoringCase(name, out var header))
+                request.Headers.TryGetValue(name, out var header))
             {
                 // Multiple values for the same header will be separated by a comma.
                 return header;

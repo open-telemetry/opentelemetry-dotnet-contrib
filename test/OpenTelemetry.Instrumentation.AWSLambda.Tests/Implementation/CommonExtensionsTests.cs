@@ -24,24 +24,6 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
     public class CommonExtensionsTests
     {
         [Theory]
-        [InlineData("x-forwarded-test", false, null)]
-        [InlineData("x-forwarded-proto", true, "https")]
-        [InlineData("X-Forwarded-Proto", true, "https")]
-        [InlineData("X-forwarded-proTo", true, "https")]
-        public void TryGetValueIgnoringCase_Key_CorrectResult(string key, bool expectedSuccess, string expectedValue)
-        {
-            var dict = new Dictionary<string, string>
-            {
-                { "X-Forwarded-Proto", "https" },
-            };
-
-            var success = CommonExtensions.TryGetValueIgnoringCase(dict, key, out var value);
-
-            Assert.Equal(expectedSuccess, success);
-            Assert.Equal(expectedValue, value);
-        }
-
-        [Theory]
         [InlineData("test")]
         [InlineData(443)]
         [InlineData(null)]

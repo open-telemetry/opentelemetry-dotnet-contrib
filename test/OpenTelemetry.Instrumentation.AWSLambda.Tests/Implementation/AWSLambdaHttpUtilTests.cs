@@ -25,7 +25,7 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
 {
-    public class HttpSemanticConventionsTests
+    public class AWSLambdaHttpUtilTests
     {
         [Fact]
         public void GetHttpTags_APIGatewayProxyRequest_ReturnsCorrectTags()
@@ -41,7 +41,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
                 HttpMethod = "GET",
             };
 
-            var actualTags = HttpSemanticConventions.GetHttpTags(request);
+            var actualTags = AWSLambdaHttpUtil.GetHttpTags(request);
 
             var expectedTags = new Dictionary<string, object>
             {
@@ -75,7 +75,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
                 },
             };
 
-            var actualTags = HttpSemanticConventions.GetHttpTags(request);
+            var actualTags = AWSLambdaHttpUtil.GetHttpTags(request);
 
             var expectedTags = new Dictionary<string, object>
             {
@@ -106,7 +106,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
             using var testActivitySource = new ActivitySource("TestActivitySource");
             using var activity = testActivitySource.StartActivity("TestActivity");
 
-            HttpSemanticConventions.SetHttpTagsFromResult(activity, response);
+            AWSLambdaHttpUtil.SetHttpTagsFromResult(activity, response);
 
             var expectedTags = new Dictionary<string, string>
             {
@@ -132,7 +132,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
             using var testActivitySource = new ActivitySource("TestActivitySource");
             using var activity = testActivitySource.StartActivity("TestActivity");
 
-            HttpSemanticConventions.SetHttpTagsFromResult(activity, response);
+            AWSLambdaHttpUtil.SetHttpTagsFromResult(activity, response);
 
             var expectedTags = new Dictionary<string, string>
             {
@@ -151,7 +151,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
         [InlineData("https", "localhost", "localhost", 443)]
         public void GetHostAndPort_HostHeader_ReturnsCorrectHostAndPort(string httpSchema, string hostHeader, string expectedHost, int? expectedPort)
         {
-            (var host, var port) = HttpSemanticConventions.GetHostAndPort(httpSchema, hostHeader);
+            (var host, var port) = AWSLambdaHttpUtil.GetHostAndPort(httpSchema, hostHeader);
 
             Assert.Equal(expectedHost, host);
             Assert.Equal(expectedPort, port);
