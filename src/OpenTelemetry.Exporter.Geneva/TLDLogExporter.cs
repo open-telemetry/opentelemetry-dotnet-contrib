@@ -300,8 +300,8 @@ internal sealed class TLDLogExporter : GenevaBaseExporter<LogRecord>
         // Part A - ex extension
         if (logRecord.Exception != null)
         {
-            eb.AddCountedAnsiString("env_ex_type", logRecord.Exception.GetType().FullName, Encoding.UTF8);
-            eb.AddCountedAnsiString("env_ex_msg", logRecord.Exception.Message, Encoding.UTF8);
+            eb.AddCountedAnsiString("ext_ex_type", logRecord.Exception.GetType().FullName, Encoding.UTF8);
+            eb.AddCountedAnsiString("ext_ex_msg", logRecord.Exception.Message, Encoding.UTF8);
             partAFieldsCount += 2;
         }
 

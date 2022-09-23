@@ -123,6 +123,7 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
             this.activity.Dispose();
             this.batch.Dispose();
             this.activitySource.Dispose();
+            this.msgPackExporter.Dispose();
             this.tldExporter.Dispose();
         }
 

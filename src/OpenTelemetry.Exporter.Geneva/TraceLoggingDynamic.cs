@@ -2324,7 +2324,7 @@ internal struct EventDescriptor
     /// the event's Keyword. Then when collecting events, if the collector only
     /// wants "networking" events then the collector could ask ETW to deliver
     /// only the events that have bit 0x1 set in the Keyword.
-    /// 
+    ///
     /// The upper 16 bits of a keyword are reserved for definition by Microsoft.
     ///
     /// All providers should define keyword and all events should have at least
@@ -2403,7 +2403,7 @@ internal enum EventOutType : byte
     /// Suggests that the field be formatted as a boolean (true/false).
     ///
     /// Boolean is meaningful when applied to fields of type UInt8.
-    /// 
+    ///
     /// Boolean is the default OutType for fields of type Bool32.
     /// </summary>
     Boolean,
