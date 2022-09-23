@@ -126,7 +126,7 @@ public static class AWSLambdaWrapper
         Func<TInput, ILambdaContext, Task<object>> func = async (input, context) =>
         {
             await lambdaHandler(input, context);
-            return Task.FromResult<object>(null);
+            return null;
         };
         return TraceInternalAsync(tracerProvider, func, input, context, parentContext);
     }
