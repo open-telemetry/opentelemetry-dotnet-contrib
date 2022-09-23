@@ -65,7 +65,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
             return tags;
         }
 
-        internal static void SetHttpTagsFromResult<TResult>(Activity activity, TResult result)
+        internal static void SetHttpTagsFromResult(Activity activity, object result)
         {
             switch (result)
             {
@@ -87,10 +87,13 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
 
             // In case of multiple headres we consider only the 1st.
             var hostHeader = hostHeaders.Split(',').First();
-            var hostAndPort = hostHeader.Split(':');
+            var hostAndPort = hostHeader.Split(new char[] { ':' }, 2);
             if (hostAndPort.Length > 1)
             {
-                return (hostAndPort[0], int.Parse(hostAndPort[1]));
+                var host = hostAndPort[0];
+                return int.TryParse(hostAndPort[1], out var port)
+                    ? (host, port)
+                    : (host, null);
             }
             else
             {

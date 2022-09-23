@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
 {
@@ -25,17 +24,18 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
         internal static bool TryGetValueIgnoringCase<T>(this IDictionary<string, T> dict, string key, out T value)
         {
             value = default;
-            var targetKey = dict.Keys
-                .Where(s => string.Equals(s, key, StringComparison.OrdinalIgnoreCase))
-                .FirstOrDefault();
-
-            if (targetKey != default)
+            var foundTargetKey = false;
+            foreach (var kvp in dict)
             {
-                value = dict[targetKey];
-                return true;
+                if (string.Equals(kvp.Key, key, StringComparison.OrdinalIgnoreCase))
+                {
+                    value = kvp.Value;
+                    foundTargetKey = true;
+                    break;
+                }
             }
 
-            return false;
+            return foundTargetKey;
         }
 
         internal static void AddTagIfNotNull(this List<KeyValuePair<string, object>> tags, string tagName, object tagValue)
