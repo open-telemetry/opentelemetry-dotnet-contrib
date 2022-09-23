@@ -26,7 +26,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
         {
             value = default;
             var targetKey = dict.Keys
-                .Where(s => string.Equals(s, key, StringComparison.CurrentCultureIgnoreCase))
+                .Where(s => string.Equals(s, key, StringComparison.OrdinalIgnoreCase))
                 .FirstOrDefault();
 
             if (targetKey != default)
