@@ -180,9 +180,10 @@ namespace OpenTelemetry.Exporter.Geneva
                 case ulong:
                 case float:
                 case double:
-                case DateTime:
                     // TODO: This could be optimized. Refer to https://github.com/open-telemetry/opentelemetry-dotnet/blob/a37198c6d0f1814f8f5a995413649436657a2e2b/src/OpenTelemetry.Exporter.Prometheus.HttpListener/Internal/PrometheusSerializer.cs#L46-L54.
                     return WriteString(buffer, cursor, Convert.ToString(obj, CultureInfo.InvariantCulture));
+                case DateTime dt:
+                    return WriteString(buffer, cursor, Convert.ToString(dt.ToUniversalTime(), CultureInfo.InvariantCulture));
                 case bool[] vbarray:
                     return SerializeArray(buffer, cursor, vbarray);
                 case byte[] vui8array:

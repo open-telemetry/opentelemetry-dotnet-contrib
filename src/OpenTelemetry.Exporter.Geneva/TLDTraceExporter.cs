@@ -28,42 +28,20 @@ using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
-internal sealed class TLDTraceExporter : GenevaBaseExporter<Activity>
+internal sealed class TLDTraceExporter : TLDBaseExporter<Activity>
 {
     private const int StringLengthLimit = (1 << 14) - 1; // 16 * 1024 - 1 = 16383
 
     private readonly string partAName = "Span";
     private readonly byte partAFieldsCount = 3; // At least three fields: time, ext_dt_traceId, ext_dt_spanId
     private readonly IReadOnlyDictionary<string, object> m_customFields;
-    private readonly IReadOnlyDictionary<string, object> m_dedicatedFields;
     private readonly Tuple<byte[], byte[]> repeatedPartAFields;
     private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
 
     private readonly EventProvider eventProvider;
-    private readonly ThreadLocal<EventBuilder> eventBuilder = new(() => new(UncheckedASCIIEncoding.SharedInstance));
-    private readonly ThreadLocal<List<KeyValuePair<string, object>>> keyValuePairs = new(() => new());
-    private readonly ThreadLocal<KeyValuePair<string, object>[]> partCFields = new(() => new KeyValuePair<string, object>[120]); // This is used to temporarily store the PartC fields from tags
-
-    private static readonly IReadOnlyDictionary<string, string> V40_PART_A_TLD_MAPPING = new Dictionary<string, string>
-    {
-        // Part A
-        [Schema.V40.PartA.IKey] = "iKey",
-        [Schema.V40.PartA.Name] = "name",
-        [Schema.V40.PartA.Time] = "time",
-
-        // Part A Application Extension
-        [Schema.V40.PartA.Extensions.App.Id] = "ext_app_id",
-        [Schema.V40.PartA.Extensions.App.Ver] = "ext_app_ver",
-
-        // Part A Cloud Extension
-        [Schema.V40.PartA.Extensions.Cloud.Role] = "ext_cloud_role",
-        [Schema.V40.PartA.Extensions.Cloud.RoleInstance] = "ext_cloud_roleInstance",
-        [Schema.V40.PartA.Extensions.Cloud.RoleVer] = "ext_cloud_roleVer",
-
-        // Part A Os extension
-        [Schema.V40.PartA.Extensions.Os.Name] = "ext_os_name",
-        [Schema.V40.PartA.Extensions.Os.Ver] = "ext_os_ver",
-    };
+    private static readonly ThreadLocal<EventBuilder> eventBuilder = new(() => new(UncheckedASCIIEncoding.SharedInstance));
+    private static readonly ThreadLocal<List<KeyValuePair<string, object>>> keyValuePairs = new(() => new());
+    private static readonly ThreadLocal<KeyValuePair<string, object>[]> partCFields = new(() => new KeyValuePair<string, object>[120]); // This is used to temporarily store the PartC fields from tags
 
     private static readonly IReadOnlyDictionary<string, string> CS40_PART_B_MAPPING = new Dictionary<string, string>
     {
@@ -112,33 +90,20 @@ internal sealed class TLDTraceExporter : GenevaBaseExporter<Activity>
         if (options.CustomFields != null)
         {
             var customFields = new Dictionary<string, object>(StringComparer.Ordinal);
-            var dedicatedFields = new Dictionary<string, object>(StringComparer.Ordinal);
 
             // Seed customFields with Span PartB
             customFields["azureResourceProvider"] = true;
-            dedicatedFields["azureResourceProvider"] = true;
             foreach (var name in CS40_PART_B_MAPPING.Values)
             {
                 customFields[name] = true;
-                dedicatedFields[name] = true;
             }
 
             foreach (var name in options.CustomFields)
             {
                 customFields[name] = true;
-                dedicatedFields[name] = true;
             }
 
             this.m_customFields = customFields;
-
-            foreach (var name in CS40_PART_B_MAPPING.Keys)
-            {
-                dedicatedFields[name] = true;
-            }
-
-            dedicatedFields["otel.status_code"] = true;
-            dedicatedFields["otel.status_description"] = true;
-            this.m_dedicatedFields = dedicatedFields;
         }
 
         if (options.PrepopulatedFields != null)
@@ -146,7 +111,7 @@ internal sealed class TLDTraceExporter : GenevaBaseExporter<Activity>
             var prePopulatedFieldsCount = (byte)(options.PrepopulatedFields.Count - 1); // PrepopulatedFields option has the key ".ver" added to it which is not needed for TLD
             this.partAFieldsCount += prePopulatedFieldsCount;
 
-            var eb = this.eventBuilder.Value;
+            var eb = eventBuilder.Value;
             eb.Reset(this.partAName);
 
             foreach (var entry in options.PrepopulatedFields)
@@ -178,7 +143,7 @@ internal sealed class TLDTraceExporter : GenevaBaseExporter<Activity>
                 try
                 {
                     this.SerializeActivity(activity);
-                    this.eventProvider.Write(this.eventBuilder.Value);
+                    this.eventProvider.Write(eventBuilder.Value);
                 }
                 catch (Exception ex)
                 {
@@ -206,10 +171,8 @@ internal sealed class TLDTraceExporter : GenevaBaseExporter<Activity>
         {
             try
             {
+                // DO NOT Dispose eventBuilder, keyValuePairs, and partCFields as they are static
                 this.eventProvider?.Dispose();
-                this.eventBuilder.Dispose();
-                this.keyValuePairs.Dispose();
-                this.partCFields.Dispose();
             }
             catch (Exception ex)
             {
@@ -223,7 +186,7 @@ internal sealed class TLDTraceExporter : GenevaBaseExporter<Activity>
 
     internal void SerializeActivity(Activity activity)
     {
-        var eb = this.eventBuilder.Value;
+        var eb = eventBuilder.Value;
 
         eb.Reset(this.partAName);
         eb.AddUInt16("__csver__", 1024, EventOutType.Hex);
@@ -261,15 +224,15 @@ internal sealed class TLDTraceExporter : GenevaBaseExporter<Activity>
         var links = activity.Links;
         if (links.Any())
         {
-            var keyValuePairs = this.keyValuePairs.Value;
-            keyValuePairs.Clear();
+            var keyValuePairsForLinks = keyValuePairs.Value;
+            keyValuePairsForLinks.Clear();
             foreach (var link in links)
             {
-                keyValuePairs.Add(new("toTraceId", link.Context.TraceId.ToHexString()));
-                keyValuePairs.Add(new("toSpanId", link.Context.SpanId.ToHexString()));
+                keyValuePairsForLinks.Add(new("toTraceId", link.Context.TraceId.ToHexString()));
+                keyValuePairsForLinks.Add(new("toSpanId", link.Context.SpanId.ToHexString()));
             }
 
-            eb.AddCountedString("links", JsonSerializer.SerializeMap(keyValuePairs));
+            eb.AddCountedString("links", JsonSerializer.SerializeMap(keyValuePairsForLinks));
             partBFieldsCount++;
         }
 
@@ -278,7 +241,8 @@ internal sealed class TLDTraceExporter : GenevaBaseExporter<Activity>
         string statusDescription = string.Empty;
 
         int partCFieldsCountFromTags = 0;
-        var partCFields = this.partCFields.Value;
+        var kvpArrayForPartCFields = partCFields.Value;
+        List<KeyValuePair<string, object>> envPropertiesList = null;
 
         foreach (var entry in activity.TagObjects)
         {
@@ -305,13 +269,19 @@ internal sealed class TLDTraceExporter : GenevaBaseExporter<Activity>
             else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
-                partCFields[partCFieldsCountFromTags] = new(entry.Key, entry.Value);
+                kvpArrayForPartCFields[partCFieldsCountFromTags] = new(entry.Key, entry.Value);
                 partCFieldsCountFromTags++;
             }
             else
             {
-                hasEnvProperties = 1;
-                continue;
+                if (hasEnvProperties == 0)
+                {
+                    hasEnvProperties = 1;
+                    envPropertiesList = keyValuePairs.Value;
+                    envPropertiesList.Clear();
+                }
+
+                envPropertiesList.Add(new(entry.Key, entry.Value));
             }
         }
 
@@ -347,29 +317,14 @@ internal sealed class TLDTraceExporter : GenevaBaseExporter<Activity>
 
         for (int i = 0; i < partCFieldsCountFromTags; i++)
         {
-            this.Serialize(eb, partCFields[i].Key, partCFields[i].Value);
+            this.Serialize(eb, kvpArrayForPartCFields[i].Key, kvpArrayForPartCFields[i].Value);
         }
 
         if (hasEnvProperties == 1)
         {
-            // Iteration #2 - Get all "other" fields and collapse them into single field
+            // Get all "other" fields and collapse them into single field
             // named "env_properties".
-            var keyValuePairs = this.keyValuePairs.Value;
-            keyValuePairs.Clear();
-            foreach (var entry in activity.TagObjects)
-            {
-                // TODO: check name collision
-                if (this.m_dedicatedFields.ContainsKey(entry.Key))
-                {
-                    continue;
-                }
-                else
-                {
-                    keyValuePairs.Add(new(entry.Key, entry.Value));
-                }
-            }
-
-            var serializedEnvProperties = JsonSerializer.SerializeMap(keyValuePairs);
+            var serializedEnvProperties = JsonSerializer.SerializeMap(envPropertiesList);
             eb.AddCountedAnsiString("env_properties", serializedEnvProperties, Encoding.UTF8, 0, Math.Min(serializedEnvProperties.Length, StringLengthLimit));
         }
     }
@@ -380,7 +335,7 @@ internal sealed class TLDTraceExporter : GenevaBaseExporter<Activity>
         switch (value)
         {
             case bool vb:
-                eb.AddBool32(key, vb ? 1 : 0, EventOutType.Boolean);
+                eb.AddUInt8(key, (byte)(vb ? 1 : 0), EventOutType.Boolean);
                 break;
             case byte vui8:
                 eb.AddUInt8(key, vui8);
@@ -416,7 +371,7 @@ internal sealed class TLDTraceExporter : GenevaBaseExporter<Activity>
                 eb.AddCountedAnsiString(key, vs, Encoding.UTF8, 0, Math.Min(vs.Length, StringLengthLimit));
                 break;
             case DateTime vdt:
-                eb.AddFileTime(key, vdt);
+                eb.AddFileTime(key, vdt.ToUniversalTime());
                 break;
 
             // TODO: case bool[]
@@ -455,6 +410,11 @@ internal sealed class TLDTraceExporter : GenevaBaseExporter<Activity>
                 eb.AddCountedStringArray(key, vsarray);
                 break;
             case DateTime[] vdtarray:
+                for (int i = 0; i < vdtarray.Length; i++)
+                {
+                    vdtarray[i] = vdtarray[i].ToUniversalTime();
+                }
+
                 eb.AddFileTimeArray(key, vdtarray);
                 break;
             default:

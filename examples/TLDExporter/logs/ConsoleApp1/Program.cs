@@ -26,6 +26,17 @@ public class Program
             loggerOptions.AddTLDLogExporter(exporterOptions =>
             {
                 exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+                exporterOptions.PrepopulatedFields = new Dictionary<string, object>
+                {
+                    ["cloud.role"] = "BusyWorker",
+                    ["cloud.roleInstance"] = "CY1SCH030021417",
+                    ["cloud.roleVer"] = "9.0.15289.2",
+                };
+
+                // exporterOptions.TableNameMappings = new Dictionary<string, string>
+                // {
+                //    ["*"] = "TLDLog",
+                // };
             });
         }));
 

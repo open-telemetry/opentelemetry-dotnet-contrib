@@ -15,6 +15,7 @@
 // </copyright>
 
 using System.Diagnostics;
+using System.Runtime.Serialization;
 using OpenTelemetry;
 using OpenTelemetry.Exporter.Geneva;
 using OpenTelemetry.Trace;
@@ -38,6 +39,11 @@ public class Program
                     ["cloud.roleInstance"] = "CY1SCH030021417",
                     ["cloud.roleVer"] = "9.0.15289.2",
                 };
+
+                // options.TableNameMappings = new Dictionary<string, string>
+                // {
+                //    ["Span"] = "TLDSpan",
+                // };
             })
             .Build();
 

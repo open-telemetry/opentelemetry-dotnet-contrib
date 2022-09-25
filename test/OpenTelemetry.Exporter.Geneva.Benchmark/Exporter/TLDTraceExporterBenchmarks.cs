@@ -20,19 +20,19 @@ using BenchmarkDotNet.Attributes;
 using OpenTelemetry.Trace;
 
 /*
-BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
+BenchmarkDotNet=v0.13.2, OS=Windows 11 (10.0.22621.521)
 Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
 .NET SDK=7.0.100-preview.6.22352.1
-  [Host]     : .NET 6.0.8 (6.0.822.36306), X64 RyuJIT
-  DefaultJob : .NET 6.0.8 (6.0.822.36306), X64 RyuJIT
+  [Host]     : .NET 6.0.9 (6.0.922.41905), X64 RyuJIT AVX2
+  DefaultJob : .NET 6.0.9 (6.0.922.41905), X64 RyuJIT AVX2
 
 
-|                    Method |     Mean |   Error |  StdDev |  Gen 0 | Allocated |
+|                    Method |     Mean |   Error |  StdDev |   Gen0 | Allocated |
 |-------------------------- |---------:|--------:|--------:|-------:|----------:|
-| MsgPack_SerializeActivity | 365.7 ns | 0.88 ns | 0.78 ns | 0.0062 |      40 B |
-|     TLD_SerializeActivity | 471.3 ns | 3.03 ns | 2.69 ns | 0.0062 |      40 B |
-|    MsgPack_ExportActivity | 726.6 ns | 6.20 ns | 5.50 ns | 0.0057 |      40 B |
-|        TLD_ExportActivity | 831.6 ns | 6.38 ns | 5.97 ns | 0.0057 |      40 B |
+| MsgPack_SerializeActivity | 372.3 ns | 4.39 ns | 4.11 ns | 0.0062 |      40 B |
+|     TLD_SerializeActivity | 477.9 ns | 2.42 ns | 2.02 ns | 0.0057 |      40 B |
+|    MsgPack_ExportActivity | 747.8 ns | 2.38 ns | 2.11 ns | 0.0057 |      40 B |
+|        TLD_ExportActivity | 834.8 ns | 7.90 ns | 7.00 ns | 0.0057 |      40 B |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter

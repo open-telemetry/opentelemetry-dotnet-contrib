@@ -28,7 +28,7 @@ using OpenTelemetry.Logs;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
-internal sealed class TLDLogExporter : GenevaBaseExporter<LogRecord>
+internal sealed class TLDLogExporter : TLDBaseExporter<LogRecord>
 {
     private const int StringLengthLimit = (1 << 14) - 1; // 16 * 1024 - 1 = 16383
     private const int MaxSanitizedEventNameLength = 50;
@@ -42,36 +42,13 @@ internal sealed class TLDLogExporter : GenevaBaseExporter<LogRecord>
     private readonly bool shouldPassThruTableMappings;
     private readonly string m_defaultEventName = "Log";
     private readonly IReadOnlyDictionary<string, object> m_customFields;
-    private readonly IReadOnlyDictionary<string, object> m_prepopulatedFields;
     private readonly IReadOnlyDictionary<string, string> m_tableMappings;
-    private readonly List<string> m_prepopulatedFieldKeys;
     private readonly Tuple<byte[], byte[]> repeatedPartAFields;
 
     private readonly EventProvider eventProvider;
-    private readonly ThreadLocal<EventBuilder> eventBuilder = new(() => new(UncheckedASCIIEncoding.SharedInstance));
-    private readonly ThreadLocal<List<KeyValuePair<string, object>>> envProperties = new(() => new());
-    private readonly ThreadLocal<KeyValuePair<string, object>[]> partCFields = new(() => new KeyValuePair<string, object>[120]); // This is used to temporarily store the PartC fields from tags
-
-    private static readonly IReadOnlyDictionary<string, string> V40_PART_A_TLD_MAPPING = new Dictionary<string, string>
-    {
-        // Part A
-        [Schema.V40.PartA.IKey] = "iKey",
-        [Schema.V40.PartA.Name] = "name",
-        [Schema.V40.PartA.Time] = "time",
-
-        // Part A Application Extension
-        [Schema.V40.PartA.Extensions.App.Id] = "ext_app_id",
-        [Schema.V40.PartA.Extensions.App.Ver] = "ext_app_ver",
-
-        // Part A Cloud Extension
-        [Schema.V40.PartA.Extensions.Cloud.Role] = "ext_cloud_role",
-        [Schema.V40.PartA.Extensions.Cloud.RoleInstance] = "ext_cloud_roleInstance",
-        [Schema.V40.PartA.Extensions.Cloud.RoleVer] = "ext_cloud_roleVer",
-
-        // Part A Os extension
-        [Schema.V40.PartA.Extensions.Os.Name] = "ext_os_name",
-        [Schema.V40.PartA.Extensions.Os.Ver] = "ext_os_ver",
-    };
+    private static readonly ThreadLocal<EventBuilder> eventBuilder = new(() => new(UncheckedASCIIEncoding.SharedInstance));
+    private static readonly ThreadLocal<List<KeyValuePair<string, object>>> envProperties = new(() => new());
+    private static readonly ThreadLocal<KeyValuePair<string, object>[]> partCFields = new(() => new KeyValuePair<string, object>[120]); // This is used to temporarily store the PartC fields from tags
 
     private bool isDisposed;
 
@@ -121,19 +98,6 @@ internal sealed class TLDLogExporter : GenevaBaseExporter<LogRecord>
                 throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
         }
 
-        if (options.PrepopulatedFields != null)
-        {
-            this.m_prepopulatedFieldKeys = new List<string>();
-            var tempPrepopulatedFields = new Dictionary<string, object>(options.PrepopulatedFields.Count, StringComparer.Ordinal);
-            foreach (var kv in options.PrepopulatedFields)
-            {
-                tempPrepopulatedFields[kv.Key] = kv.Value;
-                this.m_prepopulatedFieldKeys.Add(kv.Key);
-            }
-
-            this.m_prepopulatedFields = tempPrepopulatedFields;
-        }
-
         // TODO: Validate custom fields (reserved name? etc).
         if (options.CustomFields != null)
         {
@@ -151,7 +115,7 @@ internal sealed class TLDLogExporter : GenevaBaseExporter<LogRecord>
             var prePopulatedFieldsCount = (byte)(options.PrepopulatedFields.Count - 1); // PrepopulatedFields option has the key ".ver" added to it which is not needed for TLD
             this.partAFieldsCount += prePopulatedFieldsCount;
 
-            var eb = this.eventBuilder.Value;
+            var eb = eventBuilder.Value;
             eb.Reset("_"); // EventName does not matter here as we only need the serialized key-value pairs
 
             foreach (var entry in options.PrepopulatedFields)
@@ -183,7 +147,7 @@ internal sealed class TLDLogExporter : GenevaBaseExporter<LogRecord>
                 try
                 {
                     this.SerializeLogRecord(activity);
-                    this.eventProvider.Write(this.eventBuilder.Value);
+                    this.eventProvider.Write(eventBuilder.Value);
                 }
                 catch (Exception ex)
                 {
@@ -211,10 +175,8 @@ internal sealed class TLDLogExporter : GenevaBaseExporter<LogRecord>
         {
             try
             {
+                // DO NOT Dispose eventBuilder, keyValuePairs, and partCFields as they are static
                 this.eventProvider?.Dispose();
-                this.eventBuilder.Dispose();
-                this.envProperties.Dispose();
-                this.partCFields.Dispose();
             }
             catch (Exception ex)
             {
@@ -252,7 +214,7 @@ internal sealed class TLDLogExporter : GenevaBaseExporter<LogRecord>
         // price = 100
         // TODO: 2. Structured with strongly typed logging.
 
-        string eventName = null;
+        string eventName;
         var categoryName = logRecord.CategoryName;
 
         // If user configured explicit TableName, use it.
@@ -269,7 +231,7 @@ internal sealed class TLDLogExporter : GenevaBaseExporter<LogRecord>
             eventName = GetSanitizedCategoryName(categoryName);
         }
 
-        var eb = this.eventBuilder.Value;
+        var eb = eventBuilder.Value;
         var timestamp = logRecord.Timestamp;
 
         eb.Reset(eventName);
@@ -321,7 +283,7 @@ internal sealed class TLDLogExporter : GenevaBaseExporter<LogRecord>
         bool bodyPopulated = false;
 
         int partCFieldsCountFromState = 0;
-        var partCFields = this.partCFields.Value;
+        var kvpArrayForPartCFields = partCFields.Value;
         List<KeyValuePair<string, object>> envPropertiesList = null;
 
         for (int i = 0; i < listKvp?.Count; i++)
@@ -343,7 +305,7 @@ internal sealed class TLDLogExporter : GenevaBaseExporter<LogRecord>
                 if (entry.Value != null)
                 {
                     // null is not supported.
-                    partCFields[partCFieldsCountFromState] = new(entry.Key, entry.Value);
+                    kvpArrayForPartCFields[partCFieldsCountFromState] = new(entry.Key, entry.Value);
                     partCFieldsCountFromState++;
                 }
             }
@@ -352,7 +314,7 @@ internal sealed class TLDLogExporter : GenevaBaseExporter<LogRecord>
                 if (hasEnvProperties == 0)
                 {
                     hasEnvProperties = 1;
-                    envPropertiesList = this.envProperties.Value;
+                    envPropertiesList = envProperties.Value;
                     envPropertiesList.Clear();
                 }
 
@@ -375,7 +337,7 @@ internal sealed class TLDLogExporter : GenevaBaseExporter<LogRecord>
 
         for (int i = 0; i < partCFieldsCountFromState; i++)
         {
-            this.Serialize(eb, partCFields[i].Key, partCFields[i].Value);
+            this.Serialize(eb, kvpArrayForPartCFields[i].Key, kvpArrayForPartCFields[i].Value);
         }
 
         if (hasEnvProperties == 1)
@@ -431,6 +393,7 @@ internal sealed class TLDLogExporter : GenevaBaseExporter<LogRecord>
     // If the resulting string is longer than 50 characters, only the first 50 characters will be taken.
     // If the first character in the resulting string is a lower-case alphabet, it will be converted to the corresponding upper-case.
     // If the resulting string still does not comply with Rule, the category name will not be serialized.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string GetSanitizedCategoryName(string categoryName)
     {
         int validNameLength = 0;
@@ -480,7 +443,7 @@ internal sealed class TLDLogExporter : GenevaBaseExporter<LogRecord>
         switch (value)
         {
             case bool vb:
-                eb.AddBool32(key, vb ? 1 : 0, EventOutType.Boolean);
+                eb.AddUInt8(key, (byte)(vb ? 1 : 0), EventOutType.Boolean);
                 break;
             case byte vui8:
                 eb.AddUInt8(key, vui8);
@@ -516,7 +479,7 @@ internal sealed class TLDLogExporter : GenevaBaseExporter<LogRecord>
                 eb.AddCountedAnsiString(key, vs, Encoding.UTF8, 0, Math.Min(vs.Length, StringLengthLimit));
                 break;
             case DateTime vdt:
-                eb.AddFileTime(key, vdt);
+                eb.AddFileTime(key, vdt.ToUniversalTime());
                 break;
 
             // TODO: case bool[]
@@ -555,6 +518,11 @@ internal sealed class TLDLogExporter : GenevaBaseExporter<LogRecord>
                 eb.AddCountedStringArray(key, vsarray);
                 break;
             case DateTime[] vdtarray:
+                for (int i = 0; i < vdtarray.Length; i++)
+                {
+                    vdtarray[i] = vdtarray[i].ToUniversalTime();
+                }
+
                 eb.AddFileTimeArray(key, vdtarray);
                 break;
             default:
