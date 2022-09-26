@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Fix the issue of incorrect handling of null attributes.
+  ([#566](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/566))
+
 ## 1.0.0-beta.3
 
 Released 2022-Jul-22

@@ -30,32 +30,32 @@ Without Scopes
 
 |                    Method | IncludeFormattedMessage |     Mean |    Error |   StdDev |  Gen 0 | Allocated |
 |-------------------------- |------------------------ |---------:|---------:|---------:|-------:|----------:|
-| LoggerWithMessageTemplate |                   False | 979.5 ns | 11.46 ns | 10.72 ns | 0.0401 |     256 B |
-| LoggerWithDirectLoggerAPI |                   False | 887.9 ns | 17.24 ns | 16.13 ns | 0.0620 |     392 B |
-| LoggerWithSourceGenerator |                   False | 965.8 ns | 16.84 ns | 15.75 ns | 0.0343 |     216 B |
-|        SerializeLogRecord |                   False | 696.5 ns | 13.94 ns | 14.92 ns | 0.0038 |      24 B |
-|                    Export |                   False | 744.9 ns | 12.91 ns | 12.08 ns | 0.0038 |      24 B |
-| LoggerWithMessageTemplate |                    True | 978.6 ns | 18.95 ns | 19.46 ns | 0.0401 |     256 B |
-| LoggerWithDirectLoggerAPI |                    True | 878.3 ns | 11.43 ns | 10.69 ns | 0.0620 |     392 B |
-| LoggerWithSourceGenerator |                    True | 942.8 ns | 14.55 ns | 13.61 ns | 0.0343 |     216 B |
-|        SerializeLogRecord |                    True | 707.3 ns |  9.01 ns |  8.42 ns | 0.0038 |      24 B |
-|                    Export |                    True | 752.0 ns |  8.97 ns |  7.49 ns | 0.0038 |      24 B |
+| LoggerWithMessageTemplate |                   False | 823.3 ns |  2.20 ns |  1.84 ns | 0.0362 |     232 B |
+| LoggerWithDirectLoggerAPI |                   False | 749.2 ns |  5.49 ns |  4.87 ns | 0.0582 |     368 B |
+| LoggerWithSourceGenerator |                   False | 798.4 ns |  2.72 ns |  2.41 ns | 0.0305 |     192 B |
+|        SerializeLogRecord |                   False | 596.3 ns | 10.69 ns | 10.00 ns |      - |         - |
+|                    Export |                   False | 655.1 ns | 12.75 ns | 15.18 ns |      - |         - |
+| LoggerWithMessageTemplate |                    True | 817.8 ns |  3.04 ns |  2.85 ns | 0.0362 |     232 B |
+| LoggerWithDirectLoggerAPI |                    True | 750.5 ns |  4.73 ns |  4.43 ns | 0.0582 |     368 B |
+| LoggerWithSourceGenerator |                    True | 782.3 ns |  9.26 ns |  8.67 ns | 0.0305 |     192 B |
+|        SerializeLogRecord |                    True | 580.3 ns |  3.39 ns |  3.17 ns |      - |         - |
+|                    Export |                    True | 640.1 ns |  4.26 ns |  3.98 ns |      - |         - |
 
 
 With Scopes (https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/545)
 
-|                    Method | IncludeFormattedMessage |       Mean |    Error |   StdDev |     Median |  Gen 0 | Allocated |
-|-------------------------- |------------------------ |-----------:|---------:|---------:|-----------:|-------:|----------:|
-| LoggerWithMessageTemplate |                   False | 1,042.8 ns | 19.34 ns | 54.55 ns | 1,022.1 ns | 0.0572 |     360 B |
-| LoggerWithDirectLoggerAPI |                   False |   953.4 ns | 13.90 ns | 13.00 ns |   950.4 ns | 0.0782 |     496 B |
-| LoggerWithSourceGenerator |                   False |   962.1 ns | 18.93 ns | 17.71 ns |   957.6 ns | 0.0496 |     320 B |
-|        SerializeLogRecord |                   False |   722.8 ns |  6.26 ns |  5.23 ns |   722.9 ns | 0.0200 |     128 B |
-|                    Export |                   False |   789.2 ns | 15.11 ns | 14.14 ns |   787.3 ns | 0.0200 |     128 B |
-| LoggerWithMessageTemplate |                    True |   986.8 ns | 12.56 ns | 11.13 ns |   983.4 ns | 0.0572 |     360 B |
-| LoggerWithDirectLoggerAPI |                    True |   932.1 ns | 18.25 ns | 20.29 ns |   924.7 ns | 0.0782 |     496 B |
-| LoggerWithSourceGenerator |                    True |   980.0 ns | 15.56 ns | 14.55 ns |   979.6 ns | 0.0496 |     320 B |
-|        SerializeLogRecord |                    True |   737.5 ns | 13.46 ns | 12.59 ns |   738.8 ns | 0.0200 |     128 B |
-|                    Export |                    True |   772.2 ns | 14.02 ns | 13.11 ns |   774.8 ns | 0.0200 |     128 B |
+|                    Method | IncludeFormattedMessage |     Mean |    Error |   StdDev |  Gen 0 | Allocated |
+|-------------------------- |------------------------ |---------:|---------:|---------:|-------:|----------:|
+| LoggerWithMessageTemplate |                   False | 872.5 ns |  5.37 ns |  4.48 ns | 0.0534 |     336 B |
+| LoggerWithDirectLoggerAPI |                   False | 808.6 ns | 12.32 ns | 10.92 ns | 0.0744 |     472 B |
+| LoggerWithSourceGenerator |                   False | 828.1 ns |  4.06 ns |  3.80 ns | 0.0467 |     296 B |
+|        SerializeLogRecord |                   False | 607.4 ns |  1.69 ns |  1.50 ns | 0.0162 |     104 B |
+|                    Export |                   False | 658.8 ns |  2.20 ns |  2.05 ns | 0.0162 |     104 B |
+| LoggerWithMessageTemplate |                    True | 845.7 ns |  3.77 ns |  3.52 ns | 0.0534 |     336 B |
+| LoggerWithDirectLoggerAPI |                    True | 803.4 ns |  5.37 ns |  5.02 ns | 0.0744 |     472 B |
+| LoggerWithSourceGenerator |                    True | 836.9 ns |  7.04 ns |  6.24 ns | 0.0467 |     296 B |
+|        SerializeLogRecord |                    True | 605.5 ns |  3.30 ns |  3.09 ns | 0.0162 |     104 B |
+|                    Export |                    True | 664.1 ns |  2.01 ns |  1.88 ns | 0.0162 |     104 B |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark;
