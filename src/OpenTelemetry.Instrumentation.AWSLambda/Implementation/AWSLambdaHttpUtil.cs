@@ -17,6 +17,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Web;
 using Amazon.Lambda.APIGatewayEvents;
 using OpenTelemetry.Trace;
 
@@ -42,14 +43,14 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
             {
                 case APIGatewayProxyRequest request:
                     httpScheme = GetHeaderValue(request, HeaderXForwardedProto);
-                    httpTarget = request.Path;
+                    httpTarget = string.Concat(request.Path ?? string.Empty, ConstructQueryString(request.QueryStringParameters));
                     httpMethod = request.HttpMethod;
                     var hostHeader = GetHeaderValue(request, HeaderHost);
                     (hostName, hostPort) = GetHostAndPort(httpScheme, hostHeader);
                     break;
                 case APIGatewayHttpApiV2ProxyRequest requestV2:
                     httpScheme = GetHeaderValue(requestV2, HeaderXForwardedProto);
-                    httpTarget = requestV2?.RequestContext?.Http?.Path;
+                    httpTarget = string.Concat(requestV2?.RequestContext?.Http?.Path ?? string.Empty, ConstructQueryString(requestV2.QueryStringParameters));
                     httpMethod = requestV2?.RequestContext?.Http?.Method;
                     var hostHeaderV2 = GetHeaderValue(requestV2, HeaderHost);
                     (hostName, hostPort) = GetHostAndPort(httpScheme, hostHeaderV2);
@@ -114,30 +115,33 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
 
         private static string GetHeaderValue(APIGatewayProxyRequest request, string name)
         {
-            if (request.MultiValueHeaders != null &&
-                request.MultiValueHeaders.TryGetValue(name, out var values))
-            {
-                return string.Join(",", values);
-            }
-            else if (request.Headers != null &&
-                     request.Headers.TryGetValue(name, out var value))
-            {
-                return value;
-            }
-
-            return null;
-        }
-
-        private static string GetHeaderValue(APIGatewayHttpApiV2ProxyRequest request, string name)
-        {
-            if (request.Headers != null &&
-                request.Headers.TryGetValue(name, out var header))
+            var multiValueHeader = request.MultiValueHeaders?.GetValueByKeyIgnoringCase(name);
+            if (multiValueHeader != null)
             {
                 // Multiple values for the same header will be separated by a comma.
-                return header;
+                return string.Join(",", multiValueHeader);
             }
 
-            return null;
+            return request.Headers?.GetValueByKeyIgnoringCase(name);
+        }
+
+        private static string GetHeaderValue(APIGatewayHttpApiV2ProxyRequest request, string name) =>
+            request.Headers?.GetValueByKeyIgnoringCase(name);
+
+        private static string ConstructQueryString(IDictionary<string, string> requestParameters)
+        {
+            if (requestParameters == null || requestParameters.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            var items = new List<string>();
+            foreach (string name in requestParameters.Keys)
+            {
+                items.Add(string.Concat(name, "=", HttpUtility.UrlEncode(requestParameters[name])));
+            }
+
+            return string.Concat("?", string.Join("&", items.ToArray()));
         }
     }
 }

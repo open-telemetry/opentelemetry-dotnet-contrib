@@ -15,6 +15,7 @@
 // </copyright>
 
 using System.Collections.Generic;
+using System.Linq;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
 {
@@ -27,5 +28,21 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
                 tags.Add(new(tagName, tagValue));
             }
         }
+
+        internal static T GetValueByKeyIgnoringCase<T>(this IDictionary<string, T> headers, string key)
+        {
+            var headersWithLowerCaseNames = headers?.KeysToLowerCase();
+
+            if (headersWithLowerCaseNames != null &&
+                headersWithLowerCaseNames.TryGetValue(key, out var value))
+            {
+                return value;
+            }
+
+            return default;
+        }
+
+        private static Dictionary<string, T> KeysToLowerCase<T>(this IDictionary<string, T> input) =>
+            input?.ToDictionary(x => x.Key.ToLower(), x => x.Value);
     }
 }
