@@ -296,7 +296,8 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
 
         cntFields += 1;
 
-        cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Time, timestamp);
+        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_time");
+        cursor = MessagePackSerializer.SerializeUtcDateTime(buffer, cursor, timestamp); // LogRecord.Timestamp should already be converted to UTC format in the SDK
         cntFields += 1;
 
         // Part A - dt extension
