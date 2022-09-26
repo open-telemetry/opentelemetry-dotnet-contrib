@@ -30,10 +30,10 @@ Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
 
 |                     Method |       Mean |   Error |  StdDev |   Gen0 | Allocated |
 |--------------------------- |-----------:|--------:|--------:|-------:|----------:|
-| MsgPack_SerializeLogRecord |   652.1 ns | 3.52 ns | 3.12 ns | 0.0200 |     128 B |
-|     TLD_SerializeLogRecord |   335.7 ns | 1.58 ns | 1.48 ns |      - |         - |
-|    MsgPack_ExportLogRecord | 1,050.6 ns | 3.10 ns | 2.75 ns | 0.0191 |     128 B |
-|        TLD_ExportLogRecord |   697.0 ns | 3.07 ns | 2.73 ns |      - |         - |
+| MsgPack_SerializeLogRecord |   625.7 ns | 3.18 ns | 2.97 ns | 0.0038 |      24 B |
+|     TLD_SerializeLogRecord |   331.1 ns | 1.57 ns | 1.47 ns |      - |         - |
+|    MsgPack_ExportLogRecord | 1,017.1 ns | 6.02 ns | 5.64 ns | 0.0038 |      24 B |
+|        TLD_ExportLogRecord |   695.0 ns | 1.80 ns | 1.69 ns |      - |         - |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
