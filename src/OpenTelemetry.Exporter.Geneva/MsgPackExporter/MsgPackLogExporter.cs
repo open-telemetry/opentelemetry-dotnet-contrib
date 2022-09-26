@@ -267,12 +267,8 @@ internal sealed class MsgPackLogExporter : IDisposable
 
         cntFields += 1;
 
-<<<<<<< HEAD:src/OpenTelemetry.Exporter.Geneva/MsgPackExporter/MsgPackLogExporter.cs
-        cursor = GenevaBaseExporter<LogRecord>.AddPartAField(buffer, cursor, Schema.V40.PartA.Time, timestamp);
-=======
         cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_time");
         cursor = MessagePackSerializer.SerializeUtcDateTime(buffer, cursor, timestamp); // LogRecord.Timestamp should already be converted to UTC format in the SDK
->>>>>>> origin/main:src/OpenTelemetry.Exporter.Geneva/MsgPackExporter/Logs/GenevaLogExporter.cs
         cntFields += 1;
 
         // Part A - dt extension
