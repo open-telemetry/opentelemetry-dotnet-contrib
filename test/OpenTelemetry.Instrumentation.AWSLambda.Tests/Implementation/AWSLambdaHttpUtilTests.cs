@@ -145,7 +145,6 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
         [InlineData(null, null, null, null)]
         [InlineData("", "", "", null)]
         [InlineData(null, "localhost:4321", "localhost", 4321)]
-        [InlineData(null, "localhost:4321, myhost.com:9876", "localhost", 4321)]
         [InlineData(null, "localhost", "localhost", null)]
         [InlineData("http", "localhost", "localhost", 80)]
         [InlineData("https", "localhost", "localhost", 443)]

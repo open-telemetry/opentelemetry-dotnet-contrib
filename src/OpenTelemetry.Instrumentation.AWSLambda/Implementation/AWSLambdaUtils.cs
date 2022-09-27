@@ -137,6 +137,30 @@ internal static class AWSLambdaUtils
         return tags;
     }
 
+    internal static IEnumerable<string> GetHeaderValues(APIGatewayProxyRequest request, string name)
+    {
+        var multiValueHeader = request.MultiValueHeaders?.GetValueByKeyIgnoringCase(name);
+        if (multiValueHeader != null)
+        {
+            return multiValueHeader;
+        }
+
+        var headerValue = request.Headers?.GetValueByKeyIgnoringCase(name);
+
+        return headerValue != null ? new[] { headerValue } : null;
+    }
+
+    internal static IEnumerable<string> GetHeaderValues(APIGatewayHttpApiV2ProxyRequest request, string name)
+    {
+        var headreValue = GetHeaderValue(request, name);
+
+        // Multiple values for the same header will be separated by a comma.
+        return headreValue?.Split(',');
+    }
+
+    private static string GetHeaderValue(APIGatewayHttpApiV2ProxyRequest request, string name) =>
+        request.Headers?.GetValueByKeyIgnoringCase(name);
+
     private static string GetAccountId(string functionArn)
     {
         // The fifth item of function arn: https://github.com/open-telemetry/opentelemetry-specification/blob/86aeab1e0a7e6c67be09c7f15ff25063ee6d2b5c/specification/trace/semantic_conventions/instrumentation/aws-lambda.md#all-triggers
@@ -184,33 +208,5 @@ internal static class AWSLambdaUtils
 
         var propagationContext = xrayPropagator.Extract(default, carrier, Getter);
         return propagationContext.ActivityContext;
-    }
-
-    private static IEnumerable<string> GetHeaderValues(APIGatewayProxyRequest request, string name)
-    {
-        if (request.MultiValueHeaders != null &&
-            request.MultiValueHeaders.TryGetValue(name, out var values))
-        {
-            return values;
-        }
-        else if (request.Headers != null &&
-                 request.Headers.TryGetValue(name, out var value))
-        {
-            return new[] { value };
-        }
-
-        return null;
-    }
-
-    private static IEnumerable<string> GetHeaderValues(APIGatewayHttpApiV2ProxyRequest request, string name)
-    {
-        if (request.Headers != null &&
-            request.Headers.TryGetValue(name, out var header))
-        {
-            // Multiple values for the same header will be separated by a comma.
-            return header?.Split(',');
-        }
-
-        return null;
     }
 }

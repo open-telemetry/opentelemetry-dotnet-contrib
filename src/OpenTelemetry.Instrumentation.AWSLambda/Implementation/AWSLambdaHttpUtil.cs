@@ -25,7 +25,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
 {
     internal class AWSLambdaHttpUtil
     {
-        // x-forwarded-... headres are described here https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/x-forwarded-headers.html
+        // x-forwarded-... headers are described here https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/x-forwarded-headers.html
         private const string HeaderXForwardedProto = "x-forwarded-proto";
         private const string HeaderHost = "host";
 
@@ -42,17 +42,17 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
             switch (input)
             {
                 case APIGatewayProxyRequest request:
-                    httpScheme = GetHeaderValue(request, HeaderXForwardedProto);
+                    httpScheme = AWSLambdaUtils.GetHeaderValues(request, HeaderXForwardedProto)?.FirstOrDefault();
                     httpTarget = string.Concat(request.Path ?? string.Empty, ConstructQueryString(request.QueryStringParameters));
                     httpMethod = request.HttpMethod;
-                    var hostHeader = GetHeaderValue(request, HeaderHost);
+                    var hostHeader = AWSLambdaUtils.GetHeaderValues(request, HeaderHost)?.FirstOrDefault();
                     (hostName, hostPort) = GetHostAndPort(httpScheme, hostHeader);
                     break;
                 case APIGatewayHttpApiV2ProxyRequest requestV2:
-                    httpScheme = GetHeaderValue(requestV2, HeaderXForwardedProto);
+                    httpScheme = AWSLambdaUtils.GetHeaderValues(requestV2, HeaderXForwardedProto)?.FirstOrDefault();
                     httpTarget = string.Concat(requestV2?.RequestContext?.Http?.Path ?? string.Empty, ConstructQueryString(requestV2.QueryStringParameters));
                     httpMethod = requestV2?.RequestContext?.Http?.Method;
-                    var hostHeaderV2 = GetHeaderValue(requestV2, HeaderHost);
+                    var hostHeaderV2 = AWSLambdaUtils.GetHeaderValues(requestV2, HeaderHost)?.FirstOrDefault();
                     (hostName, hostPort) = GetHostAndPort(httpScheme, hostHeaderV2);
                     break;
             }
@@ -79,15 +79,13 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
             }
         }
 
-        internal static (string Host, int? Port) GetHostAndPort(string httpScheme, string hostHeaders)
+        internal static (string Host, int? Port) GetHostAndPort(string httpScheme, string hostHeader)
         {
-            if (hostHeaders == null)
+            if (hostHeader == null)
             {
                 return (null, null);
             }
 
-            // In case of multiple headres we consider only the 1st.
-            var hostHeader = hostHeaders.Split(',').First();
             var hostAndPort = hostHeader.Split(new char[] { ':' }, 2);
             if (hostAndPort.Length > 1)
             {
@@ -98,35 +96,25 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
             }
             else
             {
-                int? defaultPort = null;
-                switch (httpScheme)
-                {
-                    case "http":
-                        defaultPort = 80;
-                        break;
-                    case "https":
-                        defaultPort = 443;
-                        break;
-                }
-
-                return (hostAndPort[0], defaultPort);
+                return (hostAndPort[0], GetDefaultPort(httpScheme));
             }
         }
 
-        private static string GetHeaderValue(APIGatewayProxyRequest request, string name)
+        private static int? GetDefaultPort(string httpScheme)
         {
-            var multiValueHeader = request.MultiValueHeaders?.GetValueByKeyIgnoringCase(name);
-            if (multiValueHeader != null)
+            int? defaultPort = null;
+            switch (httpScheme)
             {
-                // Multiple values for the same header will be separated by a comma.
-                return string.Join(",", multiValueHeader);
+                case "http":
+                    defaultPort = 80;
+                    break;
+                case "https":
+                    defaultPort = 443;
+                    break;
             }
 
-            return request.Headers?.GetValueByKeyIgnoringCase(name);
+            return defaultPort;
         }
-
-        private static string GetHeaderValue(APIGatewayHttpApiV2ProxyRequest request, string name) =>
-            request.Headers?.GetValueByKeyIgnoringCase(name);
 
         private static string ConstructQueryString(IDictionary<string, string> requestParameters)
         {
