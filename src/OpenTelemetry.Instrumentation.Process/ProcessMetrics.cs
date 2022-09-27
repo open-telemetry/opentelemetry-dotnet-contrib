@@ -14,8 +14,10 @@
 // limitations under the License.
 // </copyright>
 
+using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
+using System.Threading;
 using Diagnostics = System.Diagnostics;
 
 namespace OpenTelemetry.Instrumentation.Process;
@@ -27,27 +29,65 @@ internal class ProcessMetrics
 
     public ProcessMetrics(ProcessInstrumentationOptions options)
     {
-        InstrumentsValues values = new InstrumentsValues();
+        ThreadSafeInstrumentValues threadSafeInstrumentValues = new();
 
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
             "process.memory.usage",
-            () => values.GetMemoryUsage(),
+            () => threadSafeInstrumentValues.GetMemoryUsage(),
             unit: "By",
             description: "The amount of physical memory in use.");
 
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
             "process.memory.virtual",
-            () => values.GetVirtualMemoryUsage(),
+            () => threadSafeInstrumentValues.GetVirtualMemoryUsage(),
             unit: "By",
             description: "The amount of committed virtual memory.");
+    }
+
+    private class ThreadSafeInstrumentValues
+    {
+        private readonly ThreadLocal<Dictionary<int, InstrumentsValues>> threadIdToInstrumentValues = new(() =>
+        {
+            return new Dictionary<int, InstrumentsValues>();
+        });
+
+        public ThreadSafeInstrumentValues()
+        {
+        }
+
+        ~ThreadSafeInstrumentValues()
+        {
+            this.threadIdToInstrumentValues.Dispose();
+        }
+
+        public double GetMemoryUsage()
+        {
+            if (!this.threadIdToInstrumentValues.Value.ContainsKey(System.Environment.CurrentManagedThreadId))
+            {
+                this.threadIdToInstrumentValues.Value.Add(System.Environment.CurrentManagedThreadId, new InstrumentsValues());
+            }
+
+            this.threadIdToInstrumentValues.Value.TryGetValue(System.Environment.CurrentManagedThreadId, out var instrumentValues);
+            return instrumentValues.GetMemoryUsage();
+        }
+
+        public double GetVirtualMemoryUsage()
+        {
+            if (!this.threadIdToInstrumentValues.Value.ContainsKey(System.Environment.CurrentManagedThreadId))
+            {
+                this.threadIdToInstrumentValues.Value.Add(System.Environment.CurrentManagedThreadId, new InstrumentsValues());
+            }
+
+            this.threadIdToInstrumentValues.Value.TryGetValue(System.Environment.CurrentManagedThreadId, out var instrumentsValues);
+            return instrumentsValues.GetVirtualMemoryUsage();
+        }
     }
 
     private class InstrumentsValues
     {
         private readonly Diagnostics.Process currentProcess = Diagnostics.Process.GetCurrentProcess();
-
         private double? memoryUsage;
         private double? virtualMemoryUsage;
 
