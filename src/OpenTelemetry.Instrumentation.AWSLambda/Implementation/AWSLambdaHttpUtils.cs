@@ -100,21 +100,8 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
             }
         }
 
-        private static int? GetDefaultPort(string httpScheme)
-        {
-            int? defaultPort = null;
-            switch (httpScheme)
-            {
-                case "http":
-                    defaultPort = 80;
-                    break;
-                case "https":
-                    defaultPort = 443;
-                    break;
-            }
-
-            return defaultPort;
-        }
+        private static int? GetDefaultPort(string httpScheme) =>
+            httpScheme == "https" ? 443 : httpScheme == "http" ? 80 : null;
 
         private static string ConstructQueryString(IDictionary<string, string> requestParameters)
         {
