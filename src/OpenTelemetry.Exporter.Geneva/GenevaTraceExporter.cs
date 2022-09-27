@@ -16,6 +16,8 @@
 
 using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using OpenTelemetry.Exporter.Geneva.TLDExporter;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
@@ -37,10 +39,50 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
         Guard.ThrowIfNull(options);
         Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
-        var msgPackExporter = new MsgPackTraceExporter(options);
-        this.IsUsingUnixDomainSocket = msgPackExporter.IsUsingUnixDomainSocket;
-        this.exportActivity = (in Batch<Activity> batch) => msgPackExporter.Export(in batch);
-        this.exporter = msgPackExporter;
+        var useMsgPackExporter = false;
+        var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
+        switch (connectionStringBuilder.Protocol)
+        {
+            case TransportProtocol.Etw:
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    throw new ArgumentException("ETW cannot be used on non-Windows operating systems.");
+                }
+
+                useMsgPackExporter = true;
+                break;
+
+            case TransportProtocol.Unix:
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    throw new ArgumentException("Unix domain socket should not be used on Windows.");
+                }
+
+                useMsgPackExporter = true;
+                break;
+
+            case TransportProtocol.EtwTld:
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    throw new ArgumentException("ETW/TLD cannot be used on non-Windows operating systems.");
+                }
+
+                var tldTraceExporter = new TLDTraceExporter(options);
+                this.IsUsingUnixDomainSocket = false;
+                this.exportActivity = (in Batch<Activity> batch) => tldTraceExporter.Export(in batch);
+                this.exporter = tldTraceExporter;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
+        }
+
+        if (useMsgPackExporter)
+        {
+            var msgPackExporter = new MsgPackTraceExporter(options);
+            this.IsUsingUnixDomainSocket = msgPackExporter.IsUsingUnixDomainSocket;
+            this.exportActivity = (in Batch<Activity> batch) => msgPackExporter.Export(in batch);
+            this.exporter = msgPackExporter;
+        }
     }
 
     public override ExportResult Export(in Batch<Activity> batch)

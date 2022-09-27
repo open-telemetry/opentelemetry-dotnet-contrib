@@ -27,6 +27,7 @@ internal enum TransportProtocol
     Tcp,
     Udp,
     Unix,
+    EtwTld,
     Unspecified,
 }
 
@@ -77,6 +78,12 @@ internal class ConnectionStringBuilder
         set => this._parts[nameof(this.EtwSession)] = value;
     }
 
+    public string EtwTldSession
+    {
+        get => this.ThrowIfNotExists<string>(nameof(this.EtwTldSession));
+        set => this._parts[nameof(this.EtwTldSession)] = value;
+    }
+
     public string Endpoint
     {
         get => this.ThrowIfNotExists<string>(nameof(this.Endpoint));
@@ -93,6 +100,11 @@ internal class ConnectionStringBuilder
                 if (this._parts.ContainsKey(nameof(this.EtwSession)))
                 {
                     return TransportProtocol.Etw;
+                }
+
+                if (this._parts.ContainsKey(nameof(this.EtwTldSession)))
+                {
+                    return TransportProtocol.EtwTld;
                 }
 
                 if (!this._parts.ContainsKey(nameof(this.Endpoint)))
