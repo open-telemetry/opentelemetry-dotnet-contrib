@@ -1130,24 +1130,24 @@ public class GenevaLogExporterTests
 
         // Part A core envelope fields
 
-        var nameKey = GenevaBaseExporter<LogRecord>.V40_PART_A_MAPPING[Schema.V40.PartA.Name];
+        var nameKey = MsgPackExporter.V40_PART_A_MAPPING[Schema.V40.PartA.Name];
 
         // Check if the user has configured a custom table mapping
         Assert.Equal(partAName, mapping[nameKey]);
 
         // TODO: Update this when we support multiple Schema formats
         var partAVer = "4.0";
-        var verKey = GenevaBaseExporter<LogRecord>.V40_PART_A_MAPPING[Schema.V40.PartA.Ver];
+        var verKey = MsgPackExporter.V40_PART_A_MAPPING[Schema.V40.PartA.Ver];
         Assert.Equal(partAVer, mapping[verKey]);
 
         foreach (var item in exporterOptions.PrepopulatedFields)
         {
             var partAValue = item.Value as string;
-            var partAKey = GenevaBaseExporter<LogRecord>.V40_PART_A_MAPPING[item.Key];
+            var partAKey = MsgPackExporter.V40_PART_A_MAPPING[item.Key];
             Assert.Equal(partAValue, mapping[partAKey]);
         }
 
-        var timeKey = GenevaBaseExporter<LogRecord>.V40_PART_A_MAPPING[Schema.V40.PartA.Time];
+        var timeKey = MsgPackExporter.V40_PART_A_MAPPING[Schema.V40.PartA.Time];
         Assert.Equal(logRecord.Timestamp.Ticks, ((DateTime)mapping[timeKey]).Ticks);
 
         // Part A dt extensions
