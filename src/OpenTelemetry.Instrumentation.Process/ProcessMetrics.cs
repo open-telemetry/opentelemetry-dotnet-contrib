@@ -54,16 +54,7 @@ internal class ProcessMetrics
             return new Dictionary<int, InstrumentsValues>();
         });
 
-        public ThreadSafeInstrumentValues()
-        {
-        }
-
-        ~ThreadSafeInstrumentValues()
-        {
-            this.threadIdToInstrumentValues.Dispose();
-        }
-
-        public double GetMemoryUsage()
+        internal double GetMemoryUsage()
         {
             Console.WriteLine($"threadId: {Environment.CurrentManagedThreadId.ToString()} invoke ThreadSafeInstrumentValues GetMemoryUsage()");
             if (!this.threadIdToInstrumentValues.Value.ContainsKey(Environment.CurrentManagedThreadId))
@@ -77,7 +68,7 @@ internal class ProcessMetrics
             return instrumentValues.GetMemoryUsage();
         }
 
-        public double GetVirtualMemoryUsage()
+        internal double GetVirtualMemoryUsage()
         {
             Console.WriteLine($"threadId: {Environment.CurrentManagedThreadId.ToString()} invoke ThreadSafeInstrumentValues GetVirtualMemoryUsage()");
             if (!this.threadIdToInstrumentValues.Value.ContainsKey(Environment.CurrentManagedThreadId))
@@ -98,47 +89,47 @@ internal class ProcessMetrics
         private double? memoryUsage;
         private double? virtualMemoryUsage;
 
-        public InstrumentsValues()
+        internal InstrumentsValues()
         {
             this.memoryUsage = null;
             this.virtualMemoryUsage = null;
         }
 
-        public double GetMemoryUsage()
+        internal double GetMemoryUsage()
         {
             if (!this.memoryUsage.HasValue)
             {
                 Console.WriteLine($"threadId: {Environment.CurrentManagedThreadId.ToString()} invoke GetMemoryUsage() without the latest snapshot.");
-                Console.WriteLine($"threadId: {Environment.CurrentManagedThreadId.ToString()} Refresh()");
-
-                this.currentProcess.Refresh();
-                this.memoryUsage = this.currentProcess.WorkingSet64;
-                this.virtualMemoryUsage = this.currentProcess.PagedMemorySize64;
+                this.Snapshot();
             }
 
             Console.WriteLine($"threadId: {Environment.CurrentManagedThreadId.ToString()} retrieve memory usage from snapshot.");
-            double value = (double)this.memoryUsage;
+            var value = (double)this.memoryUsage;
             this.memoryUsage = null;
             return value;
         }
 
-        public double GetVirtualMemoryUsage()
+        internal double GetVirtualMemoryUsage()
         {
             if (!this.virtualMemoryUsage.HasValue)
             {
                 Console.WriteLine($"threadId: {Environment.CurrentManagedThreadId.ToString()} invoke GetVirtualMemoryUsage() without the latest snapshot.");
-                Console.WriteLine($"threadId: {Environment.CurrentManagedThreadId.ToString()} Refresh()");
-
-                this.currentProcess.Refresh();
-                this.memoryUsage = this.currentProcess.WorkingSet64;
-                this.virtualMemoryUsage = this.currentProcess.PagedMemorySize64;
+                this.Snapshot();
             }
 
             Console.WriteLine($"threadId: {Environment.CurrentManagedThreadId.ToString()} retrieve virtual memory usage from snapshot.");
 
-            double value = (double)this.virtualMemoryUsage;
+            var value = (double)this.virtualMemoryUsage;
             this.virtualMemoryUsage = null;
             return value;
+        }
+
+        private void Snapshot()
+        {
+            Console.WriteLine($"threadId: {Environment.CurrentManagedThreadId.ToString()} Refresh()");
+            this.currentProcess.Refresh();
+            this.memoryUsage = this.currentProcess.WorkingSet64;
+            this.virtualMemoryUsage = this.currentProcess.PagedMemorySize64;
         }
     }
 }
