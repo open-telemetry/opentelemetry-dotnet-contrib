@@ -250,10 +250,10 @@ public class GenevaTraceExporterTests
                 exporterOptions.CustomFields = new string[] { "clientRequestId" };
             }
 
-            using var exporter = new GenevaTraceExporter(exporterOptions);
-            var dedicatedFields = typeof(GenevaTraceExporter).GetField("m_dedicatedFields", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as IReadOnlyDictionary<string, object>;
-            var CS40_PART_B_MAPPING = typeof(GenevaTraceExporter).GetField("CS40_PART_B_MAPPING", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as IReadOnlyDictionary<string, string>;
-            var m_buffer = typeof(GenevaTraceExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as ThreadLocal<byte[]>;
+            using var exporter = new MsgPackTraceExporter(exporterOptions);
+            var dedicatedFields = typeof(MsgPackTraceExporter).GetField("m_dedicatedFields", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as IReadOnlyDictionary<string, object>;
+            var CS40_PART_B_MAPPING = typeof(MsgPackTraceExporter).GetField("CS40_PART_B_MAPPING", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as IReadOnlyDictionary<string, string>;
+            var m_buffer = typeof(MsgPackTraceExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as ThreadLocal<byte[]>;
 
             // Add an ActivityListener to serialize the activity and assert that it was valid on ActivityStopped event
 
@@ -417,7 +417,7 @@ public class GenevaTraceExporterTests
                 serverSocket.ReceiveTimeout = 10000;
 
                 // Create a test exporter to get MessagePack byte data for validation of the data received via Socket.
-                var exporter = new GenevaTraceExporter(new GenevaExporterOptions
+                var exporter = new MsgPackTraceExporter(new GenevaExporterOptions
                 {
                     ConnectionString = "Endpoint=unix:" + path,
                     PrepopulatedFields = new Dictionary<string, object>
