@@ -25,7 +25,7 @@ using OpenTelemetry.Logs;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
-internal sealed class MsgPackLogExporter : IDisposable
+internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 {
     private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
     private const int MaxSanitizedEventNameLength = 50;
@@ -250,7 +250,7 @@ internal sealed class MsgPackLogExporter : IDisposable
             {
                 var key = this.m_prepopulatedFieldKeys[i];
                 var value = this.m_prepopulatedFields[key];
-                cursor = GenevaBaseExporter<LogRecord>.AddPartAField(buffer, cursor, key, value);
+                cursor = AddPartAField(buffer, cursor, key, value);
                 cntFields += 1;
             }
         }
@@ -258,11 +258,11 @@ internal sealed class MsgPackLogExporter : IDisposable
         // Part A - core envelope
         if (sanitizedEventName.Length != 0)
         {
-            cursor = GenevaBaseExporter<LogRecord>.AddPartAField(buffer, cursor, Schema.V40.PartA.Name, sanitizedEventName);
+            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, sanitizedEventName);
         }
         else
         {
-            cursor = GenevaBaseExporter<LogRecord>.AddPartAField(buffer, cursor, Schema.V40.PartA.Name, eventName);
+            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, eventName);
         }
 
         cntFields += 1;
