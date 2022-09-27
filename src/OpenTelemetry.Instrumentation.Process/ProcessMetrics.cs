@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
@@ -64,23 +65,29 @@ internal class ProcessMetrics
 
         public double GetMemoryUsage()
         {
-            if (!this.threadIdToInstrumentValues.Value.ContainsKey(System.Environment.CurrentManagedThreadId))
+            Console.WriteLine($"threadId: {Environment.CurrentManagedThreadId.ToString()} invoke ThreadSafeInstrumentValues GetMemoryUsage()");
+            if (!this.threadIdToInstrumentValues.Value.ContainsKey(Environment.CurrentManagedThreadId))
             {
-                this.threadIdToInstrumentValues.Value.Add(System.Environment.CurrentManagedThreadId, new InstrumentsValues());
+                Console.WriteLine($"threadId: {Environment.CurrentManagedThreadId.ToString()} not in dictionary! inserting one entry for this thread...");
+
+                this.threadIdToInstrumentValues.Value.Add(Environment.CurrentManagedThreadId, new InstrumentsValues());
             }
 
-            this.threadIdToInstrumentValues.Value.TryGetValue(System.Environment.CurrentManagedThreadId, out var instrumentValues);
+            this.threadIdToInstrumentValues.Value.TryGetValue(Environment.CurrentManagedThreadId, out var instrumentValues);
             return instrumentValues.GetMemoryUsage();
         }
 
         public double GetVirtualMemoryUsage()
         {
-            if (!this.threadIdToInstrumentValues.Value.ContainsKey(System.Environment.CurrentManagedThreadId))
+            Console.WriteLine($"threadId: {Environment.CurrentManagedThreadId.ToString()} invoke ThreadSafeInstrumentValues GetVirtualMemoryUsage()");
+            if (!this.threadIdToInstrumentValues.Value.ContainsKey(Environment.CurrentManagedThreadId))
             {
-                this.threadIdToInstrumentValues.Value.Add(System.Environment.CurrentManagedThreadId, new InstrumentsValues());
+                Console.WriteLine($"threadId: {Environment.CurrentManagedThreadId.ToString()} not in dictionary! inserting one entry for this thread...");
+
+                this.threadIdToInstrumentValues.Value.Add(Environment.CurrentManagedThreadId, new InstrumentsValues());
             }
 
-            this.threadIdToInstrumentValues.Value.TryGetValue(System.Environment.CurrentManagedThreadId, out var instrumentsValues);
+            this.threadIdToInstrumentValues.Value.TryGetValue(Environment.CurrentManagedThreadId, out var instrumentsValues);
             return instrumentsValues.GetVirtualMemoryUsage();
         }
     }
@@ -101,10 +108,15 @@ internal class ProcessMetrics
         {
             if (!this.memoryUsage.HasValue)
             {
+                Console.WriteLine($"threadId: {Environment.CurrentManagedThreadId.ToString()} invoke GetMemoryUsage() without the latest snapshot.");
+                Console.WriteLine($"threadId: {Environment.CurrentManagedThreadId.ToString()} Refresh()");
+
                 this.currentProcess.Refresh();
                 this.memoryUsage = this.currentProcess.WorkingSet64;
+                this.virtualMemoryUsage = this.currentProcess.PagedMemorySize64;
             }
 
+            Console.WriteLine($"threadId: {Environment.CurrentManagedThreadId.ToString()} retrieve memory usage from snapshot.");
             double value = (double)this.memoryUsage;
             this.memoryUsage = null;
             return value;
@@ -114,9 +126,15 @@ internal class ProcessMetrics
         {
             if (!this.virtualMemoryUsage.HasValue)
             {
+                Console.WriteLine($"threadId: {Environment.CurrentManagedThreadId.ToString()} invoke GetVirtualMemoryUsage() without the latest snapshot.");
+                Console.WriteLine($"threadId: {Environment.CurrentManagedThreadId.ToString()} Refresh()");
+
                 this.currentProcess.Refresh();
+                this.memoryUsage = this.currentProcess.WorkingSet64;
                 this.virtualMemoryUsage = this.currentProcess.PagedMemorySize64;
             }
+
+            Console.WriteLine($"threadId: {Environment.CurrentManagedThreadId.ToString()} retrieve virtual memory usage from snapshot.");
 
             double value = (double)this.virtualMemoryUsage;
             this.virtualMemoryUsage = null;
