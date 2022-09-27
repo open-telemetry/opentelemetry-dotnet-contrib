@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using Diagnostics = System.Diagnostics;
@@ -24,38 +25,63 @@ internal class ProcessMetrics
 {
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
     internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
-    private static readonly Diagnostics.Process CurrentProcess = Diagnostics.Process.GetCurrentProcess();
 
-    static ProcessMetrics()
+    public ProcessMetrics(ProcessInstrumentationOptions options)
     {
+        InstrumentsValues values = new InstrumentsValues();
+
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
             "process.memory.usage",
-            () =>
-            {
-                CurrentProcess.Refresh();
-                return CurrentProcess.WorkingSet64;
-            },
+            () => values.GetMemoryUsage(),
             unit: "By",
             description: "The amount of physical memory in use.");
 
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
-            "process.memory.virtual",
-            () =>
-            {
-                CurrentProcess.Refresh();
-                return CurrentProcess.VirtualMemorySize64;
-            },
+            "process.memory.private.memory.size",
+            () => values.GetVirtualMemoryUsage(),
             unit: "By",
             description: "The amount of committed virtual memory.");
     }
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ProcessMetrics"/> class.
-    /// </summary>
-    /// <param name="options">The options to define the metrics.</param>
-    public ProcessMetrics(ProcessInstrumentationOptions options)
+    private class InstrumentsValues
     {
+        private readonly Diagnostics.Process currentProcess = Diagnostics.Process.GetCurrentProcess();
+
+        private double? memoryUsage;
+        private double? virtualMemoryUsage;
+
+        public InstrumentsValues()
+        {
+            this.memoryUsage = null;
+            this.virtualMemoryUsage = null;
+        }
+
+        public double GetMemoryUsage()
+        {
+            if (!this.memoryUsage.HasValue)
+            {
+                this.currentProcess.Refresh();
+                this.memoryUsage = this.currentProcess.WorkingSet64;
+            }
+
+            double value = (double)this.memoryUsage;
+            this.memoryUsage = null;
+            return value;
+        }
+
+        public double GetVirtualMemoryUsage()
+        {
+            if (!this.virtualMemoryUsage.HasValue)
+            {
+                this.currentProcess.Refresh();
+                this.virtualMemoryUsage = this.currentProcess.VirtualMemorySize64;
+            }
+
+            double value = (double)this.virtualMemoryUsage;
+            this.virtualMemoryUsage = null;
+            return value;
+        }
     }
 }
