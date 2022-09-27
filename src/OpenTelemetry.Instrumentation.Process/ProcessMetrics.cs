@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using Diagnostics = System.Diagnostics;
@@ -39,7 +38,7 @@ internal class ProcessMetrics
 
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
-            "process.memory.private.memory.size",
+            "process.memory.virtual",
             () => values.GetVirtualMemoryUsage(),
             unit: "By",
             description: "The amount of committed virtual memory.");
@@ -76,7 +75,7 @@ internal class ProcessMetrics
             if (!this.virtualMemoryUsage.HasValue)
             {
                 this.currentProcess.Refresh();
-                this.virtualMemoryUsage = this.currentProcess.VirtualMemorySize64;
+                this.virtualMemoryUsage = this.currentProcess.PagedMemorySize64;
             }
 
             double value = (double)this.virtualMemoryUsage;
