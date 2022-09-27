@@ -1,4 +1,4 @@
-// <copyright file="AWSLambdaHttpUtilTests.cs" company="OpenTelemetry Authors">
+// <copyright file="AWSLambdaHttpUtilsTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +25,7 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
 {
-    public class AWSLambdaHttpUtilTests
+    public class AWSLambdaHttpUtilsTests
     {
         [Fact]
         public void GetHttpTags_APIGatewayProxyRequest_ReturnsCorrectTags()
@@ -41,7 +41,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
                 HttpMethod = "GET",
             };
 
-            var actualTags = AWSLambdaHttpUtil.GetHttpTags(request);
+            var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
 
             var expectedTags = new Dictionary<string, object>
             {
@@ -75,7 +75,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
                 },
             };
 
-            var actualTags = AWSLambdaHttpUtil.GetHttpTags(request);
+            var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
 
             var expectedTags = new Dictionary<string, object>
             {
@@ -106,7 +106,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
             using var testActivitySource = new ActivitySource("TestActivitySource");
             using var activity = testActivitySource.StartActivity("TestActivity");
 
-            AWSLambdaHttpUtil.SetHttpTagsFromResult(activity, response);
+            AWSLambdaHttpUtils.SetHttpTagsFromResult(activity, response);
 
             var expectedTags = new Dictionary<string, object>
             {
@@ -132,7 +132,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
             using var testActivitySource = new ActivitySource("TestActivitySource");
             using var activity = testActivitySource.StartActivity("TestActivity");
 
-            AWSLambdaHttpUtil.SetHttpTagsFromResult(activity, response);
+            AWSLambdaHttpUtils.SetHttpTagsFromResult(activity, response);
 
             var expectedTags = new Dictionary<string, object>
             {
@@ -150,7 +150,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
         [InlineData("https", "localhost", "localhost", 443)]
         public void GetHostAndPort_HostHeader_ReturnsCorrectHostAndPort(string httpSchema, string hostHeader, string expectedHost, int? expectedPort)
         {
-            (var host, var port) = AWSLambdaHttpUtil.GetHostAndPort(httpSchema, hostHeader);
+            (var host, var port) = AWSLambdaHttpUtils.GetHostAndPort(httpSchema, hostHeader);
 
             Assert.Equal(expectedHost, host);
             Assert.Equal(expectedPort, port);

@@ -1,4 +1,4 @@
-// <copyright file="AWSLambdaHttpUtil.cs" company="OpenTelemetry Authors">
+// <copyright file="AWSLambdaHttpUtils.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,7 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
 {
-    internal class AWSLambdaHttpUtil
+    internal class AWSLambdaHttpUtils
     {
         // x-forwarded-... headers are described here https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/x-forwarded-headers.html
         private const string HeaderXForwardedProto = "x-forwarded-proto";
