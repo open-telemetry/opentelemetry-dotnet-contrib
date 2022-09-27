@@ -71,10 +71,10 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
             switch (result)
             {
                 case APIGatewayProxyResponse response:
-                    activity.SetTag(SemanticConventions.AttributeHttpStatusCode, response.StatusCode.ToString());
+                    activity.SetTag(SemanticConventions.AttributeHttpStatusCode, response.StatusCode);
                     break;
                 case APIGatewayHttpApiV2ProxyResponse responseV2:
-                    activity.SetTag(SemanticConventions.AttributeHttpStatusCode, responseV2.StatusCode.ToString());
+                    activity.SetTag(SemanticConventions.AttributeHttpStatusCode, responseV2.StatusCode);
                     break;
             }
         }

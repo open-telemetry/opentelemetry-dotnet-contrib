@@ -108,11 +108,11 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
 
             AWSLambdaHttpUtil.SetHttpTagsFromResult(activity, response);
 
-            var expectedTags = new Dictionary<string, string>
+            var expectedTags = new Dictionary<string, object>
             {
-                { "http.status_code", "200" },
+                { "http.status_code", 200 },
             };
-            AssertTags(expectedTags, activity.Tags);
+            AssertTags(expectedTags, activity.TagObjects);
         }
 
         [Fact]
@@ -134,11 +134,11 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
 
             AWSLambdaHttpUtil.SetHttpTagsFromResult(activity, response);
 
-            var expectedTags = new Dictionary<string, string>
+            var expectedTags = new Dictionary<string, object>
             {
-                { "http.status_code", "200" },
+                { "http.status_code", 200 },
             };
-            AssertTags(expectedTags, activity.Tags);
+            AssertTags(expectedTags, activity.TagObjects);
         }
 
         [Theory]
@@ -157,13 +157,14 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
             Assert.Equal(expectedPort, port);
         }
 
-        private static void AssertTags<TKey, TValue>(IReadOnlyDictionary<TKey, TValue> expectedTags, IEnumerable<KeyValuePair<TKey, TValue>> actualTags)
+        private static void AssertTags<TActualValue>(IReadOnlyDictionary<string, object> expectedTags, IEnumerable<KeyValuePair<string, TActualValue>> actualTags)
+            where TActualValue : class
         {
             Assert.NotNull(actualTags);
             Assert.Equal(expectedTags.Count, actualTags.Count());
             foreach (var tag in expectedTags)
             {
-                Assert.Contains(new KeyValuePair<TKey, TValue>(tag.Key, tag.Value), actualTags);
+                Assert.Contains(new KeyValuePair<string, TActualValue>(tag.Key, tag.Value as TActualValue), actualTags);
             }
         }
     }
