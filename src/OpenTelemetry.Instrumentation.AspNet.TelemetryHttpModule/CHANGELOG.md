@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-rc9.6
+
+Released 2022-Sep-28
+
 ## 1.0.0-rc9.5 (source code moved to contrib repo)
 
 Released 2022-Jun-21
