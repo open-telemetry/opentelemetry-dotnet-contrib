@@ -22,12 +22,9 @@ public class Program
     public static void Main()
     {
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddRuntimeInstrumentation()
-            .AddPrometheusExporter(options =>
-            {
-                options.StartHttpListener = true;
-                options.ScrapeResponseCacheDurationMilliseconds = 0;
-            })
+            .AddProcessInstrumentation()
+            .AddConsoleExporter()
+            //.AddConsoleExporter()
             .Build();
 
         // Most of the process.runtime.dotnet.gc.* metrics are only available after the GC finished at least one collection.
