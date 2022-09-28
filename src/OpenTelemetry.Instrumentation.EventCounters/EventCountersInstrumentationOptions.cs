@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 
 namespace OpenTelemetry.Instrumentation.EventCounters;
@@ -36,6 +37,11 @@ public class EventCountersInstrumentationOptions
     /// <param name="eventSourceName">The EventSource name.</param>
     public void AddEventSource(string eventSourceName)
     {
+        if (eventSourceName == "System.Runtime")
+        {
+            throw new NotSupportedException("Use the `OpenTelemetry.Instrumentation.Runtime` instrumentation.");
+        }
+
         this.eventSourceNames.Add(eventSourceName);
     }
 

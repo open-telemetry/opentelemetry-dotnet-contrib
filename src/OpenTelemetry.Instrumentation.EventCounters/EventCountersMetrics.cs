@@ -89,9 +89,10 @@ internal class EventCountersMetrics : EventListener
             this.values[metricKey] += Convert.ToDouble(payload["Increment"]);
         }
 
+        var instrumentName = $"{eventData.EventSource.Name}.{name}";
         _ = this.instruments.TryAdd(
             metricKey,
-            isGauge ? MeterInstance.CreateObservableGauge(name, () => this.values[metricKey]) : MeterInstance.CreateObservableCounter(name, () => this.values[metricKey]));
+            isGauge ? MeterInstance.CreateObservableGauge(instrumentName, () => this.values[metricKey]) : MeterInstance.CreateObservableCounter(instrumentName, () => this.values[metricKey]));
     }
 
     private static Dictionary<string, string> GetEnableEventsArguments(EventCountersInstrumentationOptions options) =>

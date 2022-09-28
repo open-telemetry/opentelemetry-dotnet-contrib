@@ -67,7 +67,7 @@ public class EventCountersMetricsTests
         meterProvider.ForceFlush();
 
         // Assert
-        var metric = metricItems.Find(x => x.Name == "counter");
+        var metric = metricItems.Find(x => x.Name == "source-a.counter");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
         Assert.Equal(1997.0202, GetActualValue(metric));
@@ -97,7 +97,7 @@ public class EventCountersMetricsTests
         meterProvider.ForceFlush();
 
         // Assert
-        var metric = metricItems.Find(x => x.Name == "inc-counter");
+        var metric = metricItems.Find(x => x.Name == "source-b.inc-counter");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleSum, metric.MetricType);
         Assert.Equal(3, GetActualValue(metric));
@@ -125,7 +125,7 @@ public class EventCountersMetricsTests
         meterProvider.ForceFlush();
 
         // Assert
-        var metric = metricItems.Find(x => x.Name == "poll-counter");
+        var metric = metricItems.Find(x => x.Name == "source-c.poll-counter");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
         Assert.Equal(20, GetActualValue(metric));
@@ -153,10 +153,40 @@ public class EventCountersMetricsTests
         meterProvider.ForceFlush();
 
         // Assert
-        var metric = metricItems.Find(x => x.Name == "inc-poll-counter");
+        var metric = metricItems.Find(x => x.Name == "source-d.inc-poll-counter");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleSum, metric.MetricType);
         Assert.Equal(2, GetActualValue(metric));
+    }
+
+    [Fact]
+    public async Task EventCounterSameName()
+    {
+        // Arrange
+        List<Metric> metricItems = new();
+        EventSource source = new("source-a");
+        EventCounter counter = new("counter", source);
+        EventCounter counter2 = new("counter", source);
+
+        var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddEventCountersInstrumentation(options =>
+            {
+                options.AddEventSource(source.Name);
+            })
+            .AddInMemoryExporter(metricItems)
+            .Build();
+
+        // Act
+        counter.WriteMetric(1997.0202);
+        // counter2.WriteMetric(1980.1208);
+        await Task.Delay(Delay);
+        meterProvider.ForceFlush();
+
+        // Assert
+        var metric = metricItems.Find(x => x.Name == "counter");
+        Assert.NotNull(metric);
+        Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
+        Assert.Equal(1997.0202, GetActualValue(metric));
     }
 
     private static double GetActualValue(Metric metric)
