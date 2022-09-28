@@ -128,7 +128,6 @@ public class FileBlobProviderTests
 
         // wait for timeout period
         Thread.Sleep(2000);
-
         var timeoutDeadline = DateTime.UtcNow - TimeSpan.FromMilliseconds(writeTimeOutInMilliseconds);
         PersistentStorageHelper.RemoveTimedOutTmpFiles(timeoutDeadline, ((FileBlob)blob).FullPath + ".tmp");
 
@@ -165,7 +164,6 @@ public class FileBlobProviderTests
 
         // Wait for lease to expire
         Thread.Sleep(2000);
-
         PersistentStorageHelper.RemoveExpiredLease(DateTime.UtcNow, leasePath);
 
         // File name will be change to .blob
