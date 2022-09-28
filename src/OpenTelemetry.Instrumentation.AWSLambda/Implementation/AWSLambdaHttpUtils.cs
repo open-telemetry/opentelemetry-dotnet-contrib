@@ -103,9 +103,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
         }
 
         internal static string ConstructQueryString(APIGatewayHttpApiV2ProxyRequest request) =>
-            !string.IsNullOrEmpty(request.RawQueryString)
-            ? string.Concat("?", request.RawQueryString)
-            : string.Empty;
+            string.IsNullOrEmpty(request.RawQueryString) ? string.Empty : "?" + request.RawQueryString;
 
         internal static (string Host, int? Port) GetHostAndPort(string httpScheme, string hostHeader)
         {
