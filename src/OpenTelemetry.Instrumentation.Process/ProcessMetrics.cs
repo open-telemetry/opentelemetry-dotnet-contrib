@@ -14,8 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using System.Threading;
@@ -23,63 +21,33 @@ using Diagnostics = System.Diagnostics;
 
 namespace OpenTelemetry.Instrumentation.Process;
 
-internal class ProcessMetrics
+internal sealed class ProcessMetrics
 {
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
     internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
 
+    private static readonly ThreadLocal<InstrumentsValues> CurrentThreadInstrumentsValues = new(() => new InstrumentsValues());
+
     public ProcessMetrics(ProcessInstrumentationOptions options)
     {
-        ThreadSafeInstrumentValues threadSafeInstrumentValues = new();
-
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
             "process.memory.usage",
-            () => threadSafeInstrumentValues.GetMemoryUsage(),
+            () => CurrentThreadInstrumentsValues.Value.GetMemoryUsage(),
             unit: "By",
             description: "The amount of physical memory in use.");
 
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
             "process.memory.virtual",
-            () => threadSafeInstrumentValues.GetVirtualMemoryUsage(),
+            () => CurrentThreadInstrumentsValues.Value.GetVirtualMemoryUsage(),
             unit: "By",
             description: "The amount of committed virtual memory.");
     }
 
-    private class ThreadSafeInstrumentValues
+    private sealed class InstrumentsValues
     {
-        private readonly ThreadLocal<Dictionary<int, InstrumentsValues>> threadIdToInstrumentValues = new(() =>
-        {
-            return new Dictionary<int, InstrumentsValues>();
-        });
-
-        internal double GetMemoryUsage()
-        {
-            if (!this.threadIdToInstrumentValues.Value.ContainsKey(Environment.CurrentManagedThreadId))
-            {
-                this.threadIdToInstrumentValues.Value.Add(Environment.CurrentManagedThreadId, new InstrumentsValues());
-            }
-
-            this.threadIdToInstrumentValues.Value.TryGetValue(Environment.CurrentManagedThreadId, out var instrumentValues);
-            return instrumentValues.GetMemoryUsage();
-        }
-
-        internal double GetVirtualMemoryUsage()
-        {
-            if (!this.threadIdToInstrumentValues.Value.ContainsKey(Environment.CurrentManagedThreadId))
-            {
-                this.threadIdToInstrumentValues.Value.Add(Environment.CurrentManagedThreadId, new InstrumentsValues());
-            }
-
-            this.threadIdToInstrumentValues.Value.TryGetValue(Environment.CurrentManagedThreadId, out var instrumentsValues);
-            return instrumentsValues.GetVirtualMemoryUsage();
-        }
-    }
-
-    private class InstrumentsValues
-    {
-        private readonly Diagnostics.Process currentProcess = Diagnostics.Process.GetCurrentProcess();
+        private static readonly Diagnostics.Process CurrentProcess = Diagnostics.Process.GetCurrentProcess();
         private double? memoryUsage;
         private double? virtualMemoryUsage;
 
@@ -115,9 +83,9 @@ internal class ProcessMetrics
 
         private void Snapshot()
         {
-            this.currentProcess.Refresh();
-            this.memoryUsage = this.currentProcess.WorkingSet64;
-            this.virtualMemoryUsage = this.currentProcess.PagedMemorySize64;
+            CurrentProcess.Refresh();
+            this.memoryUsage = CurrentProcess.WorkingSet64;
+            this.virtualMemoryUsage = CurrentProcess.PagedMemorySize64;
         }
     }
 }
