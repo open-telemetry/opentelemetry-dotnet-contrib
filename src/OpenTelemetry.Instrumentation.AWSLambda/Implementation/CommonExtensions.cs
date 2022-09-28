@@ -36,17 +36,15 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
                 return default;
             }
 
-            T value = default;
             foreach (var kvp in dict)
             {
                 if (string.Equals(kvp.Key, key, StringComparison.OrdinalIgnoreCase))
                 {
-                    value = kvp.Value;
-                    break;
+                    return kvp.Value;
                 }
             }
 
-            return value;
+            return default;
         }
     }
 }
