@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
+using OpenTelemetry.Exporter.Geneva.External;
 
 namespace OpenTelemetry.Exporter.Geneva.TLDExporter;
 

@@ -143,10 +143,8 @@ dotnet_diagnostic.IDE0002.severity = warning
 dotnet_diagnostic.IDE0005.severity = warning
 
 [obj/**.cs]
+[**/External/**.cs]
 generated_code = true
 
 [*.csproj]
 indent_size = 2
-
-[TraceLoggingDynamic.cs]
-generated_code = true

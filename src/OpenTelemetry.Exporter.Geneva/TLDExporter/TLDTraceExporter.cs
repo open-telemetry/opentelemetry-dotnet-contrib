@@ -20,6 +20,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using OpenTelemetry.Exporter.Geneva.External;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva.TLDExporter;
