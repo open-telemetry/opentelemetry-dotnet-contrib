@@ -78,7 +78,7 @@ public class FileBlobProviderTests
         var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
         long maxSizeInBytes = 100000;
         int maintenancePeriodInMilliseconds = 3000;
-        int retentionPeriodInMilliseconds = 2000;
+        int retentionPeriodInMilliseconds = 1000;
         int writeTimeOutInMilliseconds = 1000;
         using var blobProvider = new FileBlobProvider(
             testDirectory.FullName,
@@ -90,9 +90,10 @@ public class FileBlobProviderTests
         var data = Encoding.UTF8.GetBytes("Hello, World!");
         Assert.True(blobProvider.TryCreateBlob(data, out var blob));
 
-        // Wait for maintenance job to run
-        // TODO: reduce/eliminate sleep time
-        Thread.Sleep(4000);
+        // Wait for rentention deadline to expire
+        Thread.Sleep(2000);
+        var retentionDeadline = DateTime.UtcNow - TimeSpan.FromMilliseconds(retentionPeriodInMilliseconds);
+        PersistentStorageHelper.RemoveExpiredBlob(retentionDeadline, ((FileBlob)blob).FullPath);
 
         // Blob will be deleted as retention period is 1 sec
         Assert.False(File.Exists(((FileBlob)blob).FullPath));
@@ -125,9 +126,11 @@ public class FileBlobProviderTests
         // validate file moved successfully
         Assert.True(File.Exists(((FileBlob)blob).FullPath + ".tmp"));
 
-        // Wait for maintenance job to run
-        // TODO: reduce/eliminate sleep time
-        Thread.Sleep(4000);
+        // wait for timeout period
+        Thread.Sleep(2000);
+
+        var timeoutDeadline = DateTime.UtcNow - TimeSpan.FromMilliseconds(writeTimeOutInMilliseconds);
+        PersistentStorageHelper.RemoveTimedOutTmpFiles(timeoutDeadline, ((FileBlob)blob).FullPath + ".tmp");
 
         // tmp file will be deleted as write timeout period is 1 sec
         Assert.False(File.Exists(((FileBlob)blob).FullPath + ".tmp"));
@@ -160,9 +163,10 @@ public class FileBlobProviderTests
         var leasePath = ((FileBlob)blob).FullPath;
         Assert.True(File.Exists(leasePath));
 
-        // Wait for maintenance job to run
-        // TODO: reduce/eliminate sleep time
-        Thread.Sleep(4000);
+        // Wait for lease to expire
+        Thread.Sleep(2000);
+
+        PersistentStorageHelper.RemoveExpiredLease(DateTime.UtcNow, leasePath);
 
         // File name will be change to .blob
         Assert.True(File.Exists(blobPath));
