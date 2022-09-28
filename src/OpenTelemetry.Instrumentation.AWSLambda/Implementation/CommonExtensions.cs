@@ -14,8 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
 {
@@ -29,20 +29,24 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
             }
         }
 
-        internal static T GetValueByKeyIgnoringCase<T>(this IDictionary<string, T> headers, string key)
+        internal static T GetValueByKeyIgnoringCase<T>(this IDictionary<string, T> dict, string key)
         {
-            var headersWithLowerCaseNames = headers?.KeysToLowerCase();
-
-            if (headersWithLowerCaseNames != null &&
-                headersWithLowerCaseNames.TryGetValue(key, out var value))
+            if (dict == null)
             {
-                return value;
+                return default;
             }
 
-            return default;
-        }
+            T value = default;
+            foreach (var kvp in dict)
+            {
+                if (string.Equals(kvp.Key, key, StringComparison.OrdinalIgnoreCase))
+                {
+                    value = kvp.Value;
+                    break;
+                }
+            }
 
-        private static Dictionary<string, T> KeysToLowerCase<T>(this IDictionary<string, T> input) =>
-            input?.ToDictionary(x => x.Key.ToLower(), x => x.Value);
+            return value;
+        }
     }
 }

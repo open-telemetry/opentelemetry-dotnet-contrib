@@ -39,6 +39,10 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
                 },
                 Path = "/path/test",
                 HttpMethod = "GET",
+                MultiValueQueryStringParameters = new Dictionary<string, IList<string>>
+                {
+                    { "q1", new[] { "value1" } },
+                },
             };
 
             var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
@@ -46,7 +50,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
             var expectedTags = new Dictionary<string, object>
             {
                 { "http.scheme", "https" },
-                { "http.target", "/path/test" },
+                { "http.target", "/path/test?q1=value1" },
                 { "net.host.name", "localhost" },
                 { "net.host.port", 1234 },
                 { "http.method", "GET" },
@@ -65,11 +69,12 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
                     { "X-Forwarded-Proto",  "https" },
                     { "Host", "localhost:1234" },
                 },
+                RawPath = "/path/test",
+                RawQueryString = "q1=value1",
                 RequestContext = new APIGatewayHttpApiV2ProxyRequest.ProxyRequestContext
                 {
                     Http = new APIGatewayHttpApiV2ProxyRequest.HttpDescription
                     {
-                        Path = "/path/test",
                         Method = "GET",
                     },
                 },
@@ -80,7 +85,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
             var expectedTags = new Dictionary<string, object>
             {
                 { "http.scheme", "https" },
-                { "http.target", "/path/test" },
+                { "http.target", "/path/test?q1=value1" },
                 { "net.host.name", "localhost" },
                 { "net.host.port", 1234 },
                 { "http.method", "GET" },
@@ -145,6 +150,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
         [InlineData(null, null, null, null)]
         [InlineData("", "", "", null)]
         [InlineData(null, "localhost:4321", "localhost", 4321)]
+        [InlineData(null, "localhost:1a", "localhost", null)]
         [InlineData(null, "localhost", "localhost", null)]
         [InlineData("http", "localhost", "localhost", 80)]
         [InlineData("https", "localhost", "localhost", 443)]
@@ -154,6 +160,44 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
 
             Assert.Equal(expectedHost, host);
             Assert.Equal(expectedPort, port);
+        }
+
+        [Theory]
+        [InlineData(null, "")]
+        [InlineData(new string[] { }, "")]
+        [InlineData(new[] { "value1" }, "?name=value1")]
+        [InlineData(new[] { "value1", "value2" }, "?name=value1&name=value2")]
+        public void ConstructQueryString_APIGatewayProxyRequest_CorrectQueryString(IList<string> values, string expectedQueryString)
+        {
+            var request = new APIGatewayProxyRequest();
+            if (values != null)
+            {
+                request.MultiValueQueryStringParameters = new Dictionary<string, IList<string>>
+                {
+                    { "name", values },
+                };
+            }
+
+            var queryString = AWSLambdaHttpUtils.ConstructQueryString(request);
+
+            Assert.Equal(expectedQueryString, queryString);
+        }
+
+        [Theory]
+        [InlineData(null, "")]
+        [InlineData("", "")]
+        [InlineData("name=value1", "?name=value1")]
+        [InlineData("sdckj9_+", "?sdckj9_+")]
+        public void ConstructQueryString_APIGatewayHttpApiV2ProxyRequest_CorrectQueryString(string rawQueryString, string expectedQueryString)
+        {
+            var request = new APIGatewayHttpApiV2ProxyRequest
+            {
+                RawQueryString = rawQueryString,
+            };
+
+            var queryString = AWSLambdaHttpUtils.ConstructQueryString(request);
+
+            Assert.Equal(expectedQueryString, queryString);
         }
 
         private static void AssertTags<TActualValue>(IReadOnlyDictionary<string, object> expectedTags, IEnumerable<KeyValuePair<string, TActualValue>> actualTags)

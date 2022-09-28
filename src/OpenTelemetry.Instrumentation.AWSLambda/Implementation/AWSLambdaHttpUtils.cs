@@ -43,14 +43,14 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
             {
                 case APIGatewayProxyRequest request:
                     httpScheme = AWSLambdaUtils.GetHeaderValues(request, HeaderXForwardedProto)?.FirstOrDefault();
-                    httpTarget = string.Concat(request.Path ?? string.Empty, ConstructQueryString(request.QueryStringParameters));
+                    httpTarget = string.Concat(request.Path ?? string.Empty, ConstructQueryString(request));
                     httpMethod = request.HttpMethod;
                     var hostHeader = AWSLambdaUtils.GetHeaderValues(request, HeaderHost)?.FirstOrDefault();
                     (hostName, hostPort) = GetHostAndPort(httpScheme, hostHeader);
                     break;
                 case APIGatewayHttpApiV2ProxyRequest requestV2:
                     httpScheme = AWSLambdaUtils.GetHeaderValues(requestV2, HeaderXForwardedProto)?.FirstOrDefault();
-                    httpTarget = string.Concat(requestV2?.RequestContext?.Http?.Path ?? string.Empty, ConstructQueryString(requestV2.QueryStringParameters));
+                    httpTarget = string.Concat(requestV2?.RawPath ?? string.Empty, ConstructQueryString(requestV2));
                     httpMethod = requestV2?.RequestContext?.Http?.Method;
                     var hostHeaderV2 = AWSLambdaUtils.GetHeaderValues(requestV2, HeaderHost)?.FirstOrDefault();
                     (hostName, hostPort) = GetHostAndPort(httpScheme, hostHeaderV2);
@@ -79,6 +79,34 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
             }
         }
 
+        internal static string ConstructQueryString(APIGatewayProxyRequest request)
+        {
+            if (request.MultiValueQueryStringParameters == null)
+            {
+                return string.Empty;
+            }
+
+            var items = new List<string>();
+            foreach (var name in request.MultiValueQueryStringParameters.Keys)
+            {
+                // Multiple values for the same parameter will be added to query
+                // as ampersand separated: name=value1&name=value2
+                foreach (var value in request.MultiValueQueryStringParameters[name])
+                {
+                    items.Add(string.Concat(name, "=", HttpUtility.UrlEncode(value)));
+                }
+            }
+
+            return items.Count > 0
+                ? string.Concat("?", string.Join("&", items.ToArray()))
+                : string.Empty;
+        }
+
+        internal static string ConstructQueryString(APIGatewayHttpApiV2ProxyRequest request) =>
+            !string.IsNullOrEmpty(request.RawQueryString)
+            ? string.Concat("?", request.RawQueryString)
+            : string.Empty;
+
         internal static (string Host, int? Port) GetHostAndPort(string httpScheme, string hostHeader)
         {
             if (hostHeader == null)
@@ -102,21 +130,5 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
 
         private static int? GetDefaultPort(string httpScheme) =>
             httpScheme == "https" ? 443 : httpScheme == "http" ? 80 : null;
-
-        private static string ConstructQueryString(IDictionary<string, string> requestParameters)
-        {
-            if (requestParameters == null || requestParameters.Count == 0)
-            {
-                return string.Empty;
-            }
-
-            var items = new List<string>();
-            foreach (string name in requestParameters.Keys)
-            {
-                items.Add(string.Concat(name, "=", HttpUtility.UrlEncode(requestParameters[name])));
-            }
-
-            return string.Concat("?", string.Join("&", items.ToArray()));
-        }
     }
 }
