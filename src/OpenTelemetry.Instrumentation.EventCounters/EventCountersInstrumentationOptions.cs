@@ -27,7 +27,8 @@ public class EventCountersInstrumentationOptions
     private readonly HashSet<string> eventSourceNames = new();
 
     /// <summary>
-    /// Gets or sets the subscription interval in seconds.
+    /// Gets or sets the subscription interval in seconds for reading values
+    /// from the configured EventCounters.
     /// </summary>
     public int RefreshIntervalSecs { get; set; } = 1;
 
