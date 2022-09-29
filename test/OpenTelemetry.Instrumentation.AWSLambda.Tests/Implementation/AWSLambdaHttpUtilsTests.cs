@@ -167,7 +167,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
         [InlineData(new string[] { }, "")]
         [InlineData(new[] { "value1" }, "?name=value1")]
         [InlineData(new[] { "value1", "value2" }, "?name=value1&name=value2")]
-        public void ConstructQueryString_APIGatewayProxyRequest_CorrectQueryString(IList<string> values, string expectedQueryString)
+        public void GetQueryString_APIGatewayProxyRequest_CorrectQueryString(IList<string> values, string expectedQueryString)
         {
             var request = new APIGatewayProxyRequest();
             if (values != null)
@@ -178,7 +178,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
                 };
             }
 
-            var queryString = AWSLambdaHttpUtils.ConstructQueryString(request);
+            var queryString = AWSLambdaHttpUtils.GetQueryString(request);
 
             Assert.Equal(expectedQueryString, queryString);
         }
@@ -188,14 +188,14 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
         [InlineData("", "")]
         [InlineData("name=value1", "?name=value1")]
         [InlineData("sdckj9_+", "?sdckj9_+")]
-        public void ConstructQueryString_APIGatewayHttpApiV2ProxyRequest_CorrectQueryString(string rawQueryString, string expectedQueryString)
+        public void GetQueryString_APIGatewayHttpApiV2ProxyRequest_CorrectQueryString(string rawQueryString, string expectedQueryString)
         {
             var request = new APIGatewayHttpApiV2ProxyRequest
             {
                 RawQueryString = rawQueryString,
             };
 
-            var queryString = AWSLambdaHttpUtils.ConstructQueryString(request);
+            var queryString = AWSLambdaHttpUtils.GetQueryString(request);
 
             Assert.Equal(expectedQueryString, queryString);
         }

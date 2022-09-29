@@ -152,10 +152,10 @@ internal static class AWSLambdaUtils
 
     internal static IEnumerable<string> GetHeaderValues(APIGatewayHttpApiV2ProxyRequest request, string name)
     {
-        var headreValue = GetHeaderValue(request, name);
+        var headerValue = GetHeaderValue(request, name);
 
         // Multiple values for the same header will be separated by a comma.
-        return headreValue?.Split(',');
+        return headerValue?.Split(',');
     }
 
     private static string GetHeaderValue(APIGatewayHttpApiV2ProxyRequest request, string name) =>
