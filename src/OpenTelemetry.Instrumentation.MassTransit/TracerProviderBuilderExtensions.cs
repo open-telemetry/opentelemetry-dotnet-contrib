@@ -43,6 +43,7 @@ public static class TracerProviderBuilderExtensions
 
         builder.AddInstrumentation(() => new MassTransitInstrumentation(options));
         builder.AddSource(MassTransitDiagnosticListener.ActivitySourceName);
+        builder.AddSource(MassTransitInstrumentation.MassTransitDiagnosticListenerName);
 
         builder.AddLegacySource(OperationName.Consumer.Consume);
         builder.AddLegacySource(OperationName.Consumer.Handle);
