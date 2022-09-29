@@ -98,7 +98,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
             }
 
             return items.Count > 0
-                ? string.Concat("?", string.Join("&", items.ToArray()))
+                ? string.Concat("?", string.Join("&", items))
                 : string.Empty;
         }
 
