@@ -18,7 +18,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Web;
 using Amazon.Lambda.APIGatewayEvents;
+using Microsoft.Extensions.Primitives;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
@@ -43,15 +45,15 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
             {
                 case APIGatewayProxyRequest request:
                     httpScheme = AWSLambdaUtils.GetHeaderValues(request, HeaderXForwardedProto)?.FirstOrDefault();
-                    httpTarget = string.Concat(request.Path ?? string.Empty, GetQueryString(request));
+                    httpTarget = string.Concat(request.RequestContext?.Path ?? string.Empty, GetQueryString(request));
                     httpMethod = request.HttpMethod;
                     var hostHeader = AWSLambdaUtils.GetHeaderValues(request, HeaderHost)?.FirstOrDefault();
                     (hostName, hostPort) = GetHostAndPort(httpScheme, hostHeader);
                     break;
                 case APIGatewayHttpApiV2ProxyRequest requestV2:
                     httpScheme = AWSLambdaUtils.GetHeaderValues(requestV2, HeaderXForwardedProto)?.FirstOrDefault();
-                    httpTarget = string.Concat(requestV2?.RawPath ?? string.Empty, GetQueryString(requestV2));
-                    httpMethod = requestV2?.RequestContext?.Http?.Method;
+                    httpTarget = string.Concat(requestV2.RawPath ?? string.Empty, GetQueryString(requestV2));
+                    httpMethod = requestV2.RequestContext?.Http?.Method;
                     var hostHeaderV2 = AWSLambdaUtils.GetHeaderValues(requestV2, HeaderHost)?.FirstOrDefault();
                     (hostName, hostPort) = GetHostAndPort(httpScheme, hostHeaderV2);
                     break;
@@ -94,7 +96,10 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
                 // as ampersand separated: name=value1&name=value2
                 foreach (var value in parameterKvp.Value)
                 {
-                    queryString.Append(string.Concat(separator, parameterKvp.Key, "=", value));
+                    queryString.Append(separator)
+                        .Append(HttpUtility.UrlEncode(parameterKvp.Key))
+                        .Append("=")
+                        .Append(HttpUtility.UrlEncode(value));
                     separator = '&';
                 }
             }

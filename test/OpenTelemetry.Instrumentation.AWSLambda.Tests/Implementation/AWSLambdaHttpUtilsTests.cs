@@ -37,11 +37,14 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
                     { "X-Forwarded-Proto", new List<string> { "https" } },
                     { "Host", new List<string> { "localhost:1234" } },
                 },
-                Path = "/path/test",
                 HttpMethod = "GET",
                 MultiValueQueryStringParameters = new Dictionary<string, IList<string>>
                 {
                     { "q1", new[] { "value1" } },
+                },
+                RequestContext = new APIGatewayProxyRequest.ProxyRequestContext
+                {
+                    Path = "/path/test",
                 },
             };
 
@@ -166,6 +169,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
         [InlineData(null, "")]
         [InlineData(new string[] { }, "")]
         [InlineData(new[] { "value1" }, "?name=value1")]
+        [InlineData(new[] { "value$a" }, "?name=value%24a")]
         [InlineData(new[] { "value1", "value2" }, "?name=value1&name=value2")]
         public void GetQueryString_APIGatewayProxyRequest_CorrectQueryString(IList<string> values, string expectedQueryString)
         {
