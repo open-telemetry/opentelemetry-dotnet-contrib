@@ -40,7 +40,7 @@ public class EventCountersInstrumentationOptions
     {
         if (eventSourceName == "System.Runtime")
         {
-            throw new NotSupportedException("Use the `OpenTelemetry.Instrumentation.Runtime` instrumentation.");
+            throw new NotSupportedException("Use the `OpenTelemetry.Instrumentation.Runtime` or `OpenTelemetry.Instrumentation.Process` instrumentations.");
         }
 
         this.eventSourceNames.Add(eventSourceName);

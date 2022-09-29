@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Threading.Tasks;
@@ -187,6 +188,28 @@ public class EventCountersMetricsTests
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
         Assert.Equal(1997.0202, GetActualValue(metric));
+    }
+
+    [Fact]
+    public void ThrowExceptionWhenBuilderIsNull()
+    {
+        MeterProviderBuilder builder = null;
+        Assert.Throws<ArgumentNullException>(() => builder.AddEventCountersInstrumentation());
+    }
+
+    [Fact]
+    public void ThrowExceptionForUnsupportedEventSources()
+    {
+        var ex = Assert.Throws<NotSupportedException>(() =>
+        {
+            Sdk.CreateMeterProviderBuilder()
+            .AddEventCountersInstrumentation(options =>
+            {
+                options.AddEventSource("System.Runtime");
+            });
+        });
+
+        Assert.Equal("Use the `OpenTelemetry.Instrumentation.Runtime` or `OpenTelemetry.Instrumentation.Process` instrumentations.", ex.Message);
     }
 
     private static double GetActualValue(Metric metric)
