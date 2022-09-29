@@ -23,7 +23,7 @@ using System.Threading;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
-internal sealed class MsgPackTraceExporter : IDisposable
+internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 {
     public MsgPackTraceExporter(GenevaExporterOptions options)
     {
@@ -121,13 +121,13 @@ internal sealed class MsgPackTraceExporter : IDisposable
 
         // TODO: Do we support PartB as well?
         // Part A - core envelope
-        cursor = GenevaBaseExporter<Activity>.AddPartAField(buffer, cursor, Schema.V40.PartA.Name, partAName);
+        cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, partAName);
         this.m_cntPrepopulatedFields += 1;
 
         foreach (var entry in options.PrepopulatedFields)
         {
             var value = entry.Value;
-            cursor = GenevaBaseExporter<Activity>.AddPartAField(buffer, cursor, entry.Key, value);
+            cursor = AddPartAField(buffer, cursor, entry.Key, value);
             this.m_cntPrepopulatedFields += 1;
         }
 
