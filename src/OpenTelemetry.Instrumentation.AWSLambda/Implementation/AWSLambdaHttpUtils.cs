@@ -95,10 +95,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
                 foreach (var value in parameterKvp.Value)
                 {
                     queryString.Append(string.Concat(separator, parameterKvp.Key, "=", value));
-                    if (separator == '?')
-                    {
-                        separator = '&';
-                    }
+                    separator = '&';
                 }
             }
 
