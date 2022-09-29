@@ -16,7 +16,9 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Text;
 using Amazon.Lambda.APIGatewayEvents;
 using OpenTelemetry.Trace;
 
@@ -85,20 +87,23 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
                 return string.Empty;
             }
 
-            var items = new List<string>();
+            var queryString = new StringBuilder();
+            var separator = '?';
             foreach (var parameterKvp in request.MultiValueQueryStringParameters)
             {
                 // Multiple values for the same parameter will be added to query
                 // as ampersand separated: name=value1&name=value2
                 foreach (var value in parameterKvp.Value)
                 {
-                    items.Add(string.Concat(parameterKvp.Key, "=", value));
+                    queryString.Append(string.Concat(separator, parameterKvp.Key, "=", value));
+                    if (separator == '?')
+                    {
+                        separator = '&';
+                    }
                 }
             }
 
-            return items.Count > 0
-                ? string.Concat("?", string.Join("&", items))
-                : string.Empty;
+            return queryString.ToString();
         }
 
         internal static string GetQueryString(APIGatewayHttpApiV2ProxyRequest request) =>
