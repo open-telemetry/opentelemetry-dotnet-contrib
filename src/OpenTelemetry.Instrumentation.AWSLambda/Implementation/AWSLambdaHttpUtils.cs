@@ -20,7 +20,6 @@ using System.Linq;
 using System.Text;
 using System.Web;
 using Amazon.Lambda.APIGatewayEvents;
-using Microsoft.Extensions.Primitives;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation

@@ -170,6 +170,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
         [InlineData(new string[] { }, "")]
         [InlineData(new[] { "value1" }, "?name=value1")]
         [InlineData(new[] { "value$a" }, "?name=value%24a")]
+        [InlineData(new[] { "value 1" }, "?name=value+1")]
         [InlineData(new[] { "value1", "value2" }, "?name=value1&name=value2")]
         public void GetQueryString_APIGatewayProxyRequest_CorrectQueryString(IList<string> values, string expectedQueryString)
         {
