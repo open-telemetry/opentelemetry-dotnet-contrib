@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using System.Threading;
@@ -21,71 +22,134 @@ using Diagnostics = System.Diagnostics;
 
 namespace OpenTelemetry.Instrumentation.Process;
 
-internal sealed class ProcessMetrics
+internal class ProcessMetrics
 {
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
     internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
 
     private static readonly ThreadLocal<InstrumentsValues> CurrentThreadInstrumentsValues = new(() => new InstrumentsValues());
 
-    public ProcessMetrics(ProcessInstrumentationOptions options)
+    static ProcessMetrics()
     {
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
             "process.memory.usage",
             () => CurrentThreadInstrumentsValues.Value.GetMemoryUsage(),
             unit: "By",
-            description: "The amount of physical memory in use.");
+            description: "The amount of workingSet64");
 
         // TODO: change to ObservableUpDownCounter
         MeterInstance.CreateObservableGauge(
-            "process.memory.virtual",
-            () => CurrentThreadInstrumentsValues.Value.GetVirtualMemoryUsage(),
+            "process.memory.pagedMemorySize",
+            () => CurrentThreadInstrumentsValues.Value.GetPagedMemorySize(),
             unit: "By",
-            description: "The amount of committed virtual memory.");
+            description: "The amount of pagedMemorySize");
+
+        // TODO: change to ObservableUpDownCounter
+        MeterInstance.CreateObservableGauge(
+            "process.memory.pagedSystemMemorySize",
+            () => CurrentThreadInstrumentsValues.Value.GetPagedSystemMemorySize(),
+            unit: "By",
+            description: "The amount of pagedSystemMemorySize");
+
+        // TODO: change to ObservableUpDownCounter
+        MeterInstance.CreateObservableGauge(
+            "process.memory.nonPagedSystemMemorySize",
+            () => CurrentThreadInstrumentsValues.Value.GetNonPagedSystemMemorySize(),
+            unit: "By",
+            description: "The amount of nonPagedSystemMemorySize");
+
+        // TODO: change to ObservableUpDownCounter
+        MeterInstance.CreateObservableGauge(
+            "process.memory.privateMemorySize",
+            () => CurrentThreadInstrumentsValues.Value.GetPrivateMemorySize(),
+            unit: "By",
+            description: "The amount of PrivateMemorySize");
     }
 
-    private sealed class InstrumentsValues
+    public ProcessMetrics(ProcessInstrumentationOptions options)
+    {
+    }
+
+    private class InstrumentsValues
     {
         private static readonly Diagnostics.Process CurrentProcess = Diagnostics.Process.GetCurrentProcess();
-        private double? memoryUsage;
-        private double? virtualMemoryUsage;
-
-        internal InstrumentsValues()
-        {
-            this.memoryUsage = null;
-            this.virtualMemoryUsage = null;
-        }
+        private double? workingSet64;
+        private double? pagedMemorySize64;
+        private double? pagedSystemMemorySize64;
+        private double? nonpagedSystemMemorySize64;
+        private double? privateMemorySize64;
 
         internal double GetMemoryUsage()
         {
-            if (!this.memoryUsage.HasValue)
+            if (!this.workingSet64.HasValue)
             {
                 this.Snapshot();
             }
 
-            var value = (double)this.memoryUsage;
-            this.memoryUsage = null;
+            var value = this.workingSet64.Value;
+            this.workingSet64 = null;
             return value;
         }
 
-        internal double GetVirtualMemoryUsage()
+        internal double GetPagedMemorySize()
         {
-            if (!this.virtualMemoryUsage.HasValue)
+            if (!this.pagedMemorySize64.HasValue)
             {
                 this.Snapshot();
             }
 
-            var value = (double)this.virtualMemoryUsage;
-            this.virtualMemoryUsage = null;
+            var value = this.pagedMemorySize64.Value;
+            this.pagedMemorySize64 = null;
+            return value;
+        }
+
+        internal double GetPagedSystemMemorySize()
+        {
+            if (!this.pagedSystemMemorySize64.HasValue)
+            {
+                this.Snapshot();
+            }
+
+            var value = this.pagedSystemMemorySize64.Value;
+            this.pagedSystemMemorySize64 = null;
+            return value;
+        }
+
+        internal double GetNonPagedSystemMemorySize()
+        {
+            if (!this.nonpagedSystemMemorySize64.HasValue)
+            {
+                this.Snapshot();
+            }
+
+            var value = this.nonpagedSystemMemorySize64.Value;
+            this.nonpagedSystemMemorySize64 = null;
+            return value;
+        }
+
+        internal double GetPrivateMemorySize()
+        {
+            if (!this.privateMemorySize64.HasValue)
+            {
+                this.Snapshot();
+            }
+
+            var value = this.privateMemorySize64.Value;
+            this.privateMemorySize64 = null;
             return value;
         }
 
         private void Snapshot()
         {
+            Console.WriteLine("Refresh()");
             CurrentProcess.Refresh();
-            this.memoryUsage = CurrentProcess.WorkingSet64;
-            this.virtualMemoryUsage = CurrentProcess.PagedMemorySize64;
+
+            this.workingSet64 = CurrentProcess.WorkingSet64;
+            this.pagedMemorySize64 = CurrentProcess.PagedMemorySize64;
+            this.pagedSystemMemorySize64 = CurrentProcess.PagedSystemMemorySize64;
+            this.nonpagedSystemMemorySize64 = CurrentProcess.NonpagedSystemMemorySize64;
+            this.privateMemorySize64 = CurrentProcess.PrivateMemorySize64;
         }
     }
 }

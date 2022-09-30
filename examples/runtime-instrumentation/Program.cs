@@ -22,11 +22,10 @@ public class Program
     public static void Main()
     {
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddRuntimeInstrumentation()
-            .AddPrometheusExporter(options =>
+            .AddProcessInstrumentation()
+            .AddConsoleExporter((exporterOptions, metricReaderOptions) =>
             {
-                options.StartHttpListener = true;
-                options.ScrapeResponseCacheDurationMilliseconds = 0;
+                metricReaderOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 1000;
             })
             .Build();
 
