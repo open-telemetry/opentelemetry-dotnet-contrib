@@ -8,7 +8,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="BenchmarkDotNet" Version="0.13.2" />
+		<PackageReference Include="BenchmarkDotNet" Version="$(BenchmarkDotNetPkgVer)" />
 		<PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="[6.0.0,)" />
 		<PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.4" />
