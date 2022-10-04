@@ -43,17 +43,17 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
             switch (input)
             {
                 case APIGatewayProxyRequest request:
-                    httpScheme = AWSLambdaUtils.GetHeaderValues(request, HeaderXForwardedProto)?.FirstOrDefault();
+                    httpScheme = AWSLambdaUtils.GetHeaderValues(request, HeaderXForwardedProto)?.LastOrDefault();
                     httpTarget = string.Concat(request.RequestContext?.Path ?? string.Empty, GetQueryString(request));
                     httpMethod = request.HttpMethod;
-                    var hostHeader = AWSLambdaUtils.GetHeaderValues(request, HeaderHost)?.FirstOrDefault();
+                    var hostHeader = AWSLambdaUtils.GetHeaderValues(request, HeaderHost)?.LastOrDefault();
                     (hostName, hostPort) = GetHostAndPort(httpScheme, hostHeader);
                     break;
                 case APIGatewayHttpApiV2ProxyRequest requestV2:
-                    httpScheme = AWSLambdaUtils.GetHeaderValues(requestV2, HeaderXForwardedProto)?.FirstOrDefault();
+                    httpScheme = AWSLambdaUtils.GetHeaderValues(requestV2, HeaderXForwardedProto)?.LastOrDefault();
                     httpTarget = string.Concat(requestV2.RawPath ?? string.Empty, GetQueryString(requestV2));
                     httpMethod = requestV2.RequestContext?.Http?.Method;
-                    var hostHeaderV2 = AWSLambdaUtils.GetHeaderValues(requestV2, HeaderHost)?.FirstOrDefault();
+                    var hostHeaderV2 = AWSLambdaUtils.GetHeaderValues(requestV2, HeaderHost)?.LastOrDefault();
                     (hostName, hostPort) = GetHostAndPort(httpScheme, hostHeaderV2);
                     break;
             }
