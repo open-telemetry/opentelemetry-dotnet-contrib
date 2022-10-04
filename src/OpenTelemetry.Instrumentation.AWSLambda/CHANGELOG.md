@@ -1,6 +1,7 @@
 # Changelog - OpenTelemetry.Instrumentation.AWSLambda
 
 ## Unreleased
+
 * Implemented minimal HTTP Server semantic conventions attributes set
   ([#626](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/626))
 

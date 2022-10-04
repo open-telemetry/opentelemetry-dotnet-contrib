@@ -63,6 +63,30 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
         }
 
         [Fact]
+        public void GetHttpTags_APIGatewayProxyRequestWithMultiValueHeader_UsesLastValue()
+        {
+            var request = new APIGatewayProxyRequest
+            {
+                MultiValueHeaders = new Dictionary<string, IList<string>>
+                {
+                    { "X-Forwarded-Proto", new List<string> { "https", "http" } },
+                    { "Host", new List<string> { "localhost:1234", "myhost:432" } },
+                },
+            };
+
+            var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
+
+            var expectedTags = new Dictionary<string, object>
+            {
+                { "http.scheme", "http" },
+                { "net.host.name", "myhost" },
+                { "net.host.port", 432 },
+            };
+
+            AssertTags(expectedTags, actualTags);
+        }
+
+        [Fact]
         public void GetHttpTags_APIGatewayHttpApiV2ProxyRequest_ReturnsCorrectTags()
         {
             var request = new APIGatewayHttpApiV2ProxyRequest
@@ -92,6 +116,30 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
                 { "net.host.name", "localhost" },
                 { "net.host.port", 1234 },
                 { "http.method", "GET" },
+            };
+
+            AssertTags(expectedTags, actualTags);
+        }
+
+        [Fact]
+        public void GetHttpTags_APIGatewayHttpApiV2ProxyRequestWithMultiValueHeader_UsesLastValue()
+        {
+            var request = new APIGatewayHttpApiV2ProxyRequest
+            {
+                Headers = new Dictionary<string, string>
+                {
+                    { "X-Forwarded-Proto", "https,http" },
+                    { "Host", "localhost:1234,myhost:432" },
+                },
+            };
+
+            var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
+
+            var expectedTags = new Dictionary<string, object>
+            {
+                { "http.scheme", "http" },
+                { "net.host.name", "myhost" },
+                { "net.host.port", 432 },
             };
 
             AssertTags(expectedTags, actualTags);

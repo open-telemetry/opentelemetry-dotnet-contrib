@@ -44,14 +44,32 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
             {
                 case APIGatewayProxyRequest request:
                     httpScheme = AWSLambdaUtils.GetHeaderValues(request, HeaderXForwardedProto)?.LastOrDefault();
-                    httpTarget = string.Concat(request.RequestContext?.Path ?? string.Empty, GetQueryString(request));
+                    var queryString = GetQueryString(request);
+                    if (request.RequestContext?.Path != null)
+                    {
+                        httpTarget = string.Concat(request.RequestContext.Path, queryString);
+                    }
+                    else if (!string.IsNullOrEmpty(queryString))
+                    {
+                        httpTarget = queryString;
+                    }
+
                     httpMethod = request.HttpMethod;
                     var hostHeader = AWSLambdaUtils.GetHeaderValues(request, HeaderHost)?.LastOrDefault();
                     (hostName, hostPort) = GetHostAndPort(httpScheme, hostHeader);
                     break;
                 case APIGatewayHttpApiV2ProxyRequest requestV2:
                     httpScheme = AWSLambdaUtils.GetHeaderValues(requestV2, HeaderXForwardedProto)?.LastOrDefault();
-                    httpTarget = string.Concat(requestV2.RawPath ?? string.Empty, GetQueryString(requestV2));
+                    var queryStringV2 = GetQueryString(requestV2);
+                    if (requestV2.RawPath != null)
+                    {
+                        httpTarget = string.Concat(requestV2.RawPath, queryStringV2);
+                    }
+                    else if (!string.IsNullOrEmpty(queryStringV2))
+                    {
+                        httpTarget = queryStringV2;
+                    }
+
                     httpMethod = requestV2.RequestContext?.Http?.Method;
                     var hostHeaderV2 = AWSLambdaUtils.GetHeaderValues(requestV2, HeaderHost)?.LastOrDefault();
                     (hostName, hostPort) = GetHostAndPort(httpScheme, hostHeaderV2);
