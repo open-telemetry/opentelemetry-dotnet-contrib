@@ -14,6 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using Diagnostics = System.Diagnostics;
@@ -64,6 +66,18 @@ internal sealed class ProcessMetrics
             },
             unit: "By",
             description: "The amount of virtual memory allocated for this process that cannot be shared with other processes.");
+
+        // TODO: change to ObservableUpDownCounter
+        MeterInstance.CreateObservableGauge(
+            "process.cpu.count",
+            () => Environment.ProcessorCount,
+            description: "The number of available logical CPUs");
+
+        MeterInstance.CreateObservableCounter(
+            "process.cpu.time",
+            () => GetProcessorTimes(),
+            unit: "s",
+            description: "Processor time of this process");
     }
 
     private void Snapshot()
@@ -71,5 +85,14 @@ internal sealed class ProcessMetrics
         this.currentProcess.Refresh();
         this.memoryUsage = this.currentProcess.WorkingSet64;
         this.virtualMemoryUsage = this.currentProcess.PrivateMemorySize64;
+    }
+
+    private static IEnumerable<Measurement<double>> GetProcessorTimes()
+    {
+        return new[]
+        {
+                new Measurement<double>(CurrentProcess.UserProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("state", "user")),
+                new Measurement<double>(CurrentProcess.PrivilegedProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("state", "system")),
+        };
     }
 }
