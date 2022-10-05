@@ -78,6 +78,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
 
             var expectedTags = new Dictionary<string, object>
             {
+                { "http.target", string.Empty },
                 { "http.scheme", "http" },
                 { "net.host.name", "myhost" },
                 { "net.host.port", 432 },
@@ -137,6 +138,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation
 
             var expectedTags = new Dictionary<string, object>
             {
+                { "http.target", string.Empty },
                 { "http.scheme", "http" },
                 { "net.host.name", "myhost" },
                 { "net.host.port", 432 },
