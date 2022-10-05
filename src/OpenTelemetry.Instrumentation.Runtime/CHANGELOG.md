@@ -2,9 +2,9 @@
 
 ## Unreleased
 
-* Update OTel API version to `1.3.1`.
-  ([#631](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/631))
-* Update OTel API version to `1.4.0-beta.1` and change runtime metrics type to ObservableUpDownCounter
+* Update OTel API version to `1.4.0-beta.1`.
+  ([#675](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/675))
+* Change runtime metrics type to ObservableUpDownCounter
   ([#675](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/675))
 
 ## 1.0.0
