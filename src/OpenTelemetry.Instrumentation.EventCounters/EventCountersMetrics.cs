@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Diagnostics.Tracing;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace OpenTelemetry.Instrumentation.EventCounters;
 
@@ -28,13 +29,16 @@ namespace OpenTelemetry.Instrumentation.EventCounters;
 /// </summary>
 internal class EventCountersMetrics : EventListener
 {
-    internal static readonly AssemblyName AssemblyName = typeof(EventCountersMetrics).Assembly.GetName();
+    private static readonly AssemblyName AssemblyName = typeof(EventCountersMetrics).Assembly.GetName();
     internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
+    private static readonly Regex InstrumentNameRegex = new(
+        @"^[a-zA-Z][-.\w]{0,62}", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     private readonly EventCountersInstrumentationOptions options;
-    private readonly ConcurrentBag<EventSource> preInitEventSources = new();
-    private readonly ConcurrentDictionary<Tuple<string, string>, Instrument> instruments = new();
-    private readonly ConcurrentDictionary<Tuple<string, string>, double> values = new();
+    private readonly ConcurrentQueue<EventSource> preInitEventSources = new();
+    private readonly ConcurrentDictionary<(string, string), Instrument> instruments = new();
+    private readonly ConcurrentDictionary<(string, string), double> values = new();
+    private readonly HashSet<string> instrumentNames = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EventCountersMetrics"/> class.
@@ -44,7 +48,7 @@ internal class EventCountersMetrics : EventListener
     {
         this.options = options;
 
-        while (this.preInitEventSources.TryTake(out EventSource source))
+        while (this.preInitEventSources.TryDequeue(out EventSource source))
         {
             if (this.options.ShouldListenToSource(source.Name))
             {
@@ -58,7 +62,7 @@ internal class EventCountersMetrics : EventListener
     {
         if (this.options == null)
         {
-            this.preInitEventSources.Add(source);
+            this.preInitEventSources.Enqueue(source);
         }
         else if (this.options.ShouldListenToSource(source.Name))
         {
@@ -74,27 +78,80 @@ internal class EventCountersMetrics : EventListener
             return;
         }
 
+        var eventSourceName = eventData.EventSource.Name;
+
+        if (eventData.EventName != "EventCounters")
+        {
+            EventCountersInstrumentationEventSource.Log.IgnoreNonEventCountersName(eventSourceName);
+            return;
+        }
+
+        if (eventData.Payload.Count == 0 || eventData.Payload[0] is not IDictionary<string, object>)
+        {
+            EventCountersInstrumentationEventSource.Log.IgnoreEventWrittenEventArgsPayloadNotParseable(eventSourceName);
+            return;
+        }
+
         var payload = eventData.Payload[0] as IDictionary<string, object>;
-        var name = payload["Name"].ToString();
-        var isGauge = payload.ContainsKey("Mean");
-        Tuple<string, string> metricKey = new(eventData.EventSource.Name, name);
+        var hasName = payload.TryGetValue("Name", out var nameObj);
 
-        if (isGauge)
+        if (!hasName)
         {
-            this.values[metricKey] = Convert.ToDouble(payload["Mean"]);
-        }
-        else
-        {
-            _ = this.values.TryAdd(metricKey, 0);
-            this.values[metricKey] += Convert.ToDouble(payload["Increment"]);
+            EventCountersInstrumentationEventSource.Log.IgnoreEventWrittenEventArgsWithoutName(eventSourceName);
+            return;
         }
 
-        var instrumentName = $"{eventData.EventSource.Name}.{name}";
-        _ = this.instruments.TryAdd(
-            metricKey,
-            isGauge ? MeterInstance.CreateObservableGauge(instrumentName, () => this.values[metricKey]) : MeterInstance.CreateObservableCounter(instrumentName, () => this.values[metricKey]));
+        var name = nameObj.ToString();
+
+        var hasMean = payload.TryGetValue("Mean", out var mean);
+        var hasIncrement = payload.TryGetValue("Increment", out var increment);
+
+        if (!(hasIncrement ^ hasMean))
+        {
+            EventCountersInstrumentationEventSource.Log.IgnoreMeanIncrementConflict(eventSourceName);
+            return;
+        }
+
+        var value = Convert.ToDouble(hasMean ? mean : increment);
+        this.EventWritten(hasMean, eventSourceName, name, value);
     }
 
     private static Dictionary<string, string> GetEnableEventsArguments(EventCountersInstrumentationOptions options) =>
         new() { { "EventCounterIntervalSec", options.RefreshIntervalSecs.ToString() } };
+
+    private static bool IsValidInstrumentName(string name) =>
+        !string.IsNullOrWhiteSpace(name) && InstrumentNameRegex.IsMatch(name);
+
+    private void EventWritten(bool isGauge, string eventSourceName, string name, double value)
+    {
+        try
+        {
+            ValueTuple<string, string> metricKey = new(eventSourceName, name);
+            _ = this.values.AddOrUpdate(metricKey, value, isGauge ? (_, _) => value : (_, existing) => existing + value);
+
+            if (!this.instruments.ContainsKey(metricKey))
+            {
+                var instrumentName = $"EventCounters.{eventSourceName}.{name}";
+
+                if (!IsValidInstrumentName(instrumentName))
+                {
+                    EventCountersInstrumentationEventSource.Log.InvalidInstrumentNameWarning(instrumentName);
+                }
+
+                Instrument instrument = isGauge
+                    ? MeterInstance.CreateObservableGauge(instrumentName, () => this.values[metricKey])
+                    : MeterInstance.CreateObservableCounter(instrumentName, () => this.values[metricKey]);
+                _ = this.instruments.TryAdd(metricKey, instrument);
+
+                if (!this.instrumentNames.Add(instrumentName))
+                {
+                    EventCountersInstrumentationEventSource.Log.DuplicateInstrumentNameWarning(instrumentName);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            EventCountersInstrumentationEventSource.Log.ErrorWhileWritingEvent(eventSourceName, ex.Message);
+        }
+    }
 }

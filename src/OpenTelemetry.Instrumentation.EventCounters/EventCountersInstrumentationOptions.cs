@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace OpenTelemetry.Instrumentation.EventCounters;
 
@@ -35,15 +36,15 @@ public class EventCountersInstrumentationOptions
     /// <summary>
     /// Listens to EventCounters from the given EventSource name.
     /// </summary>
-    /// <param name="eventSourceName">The EventSource name.</param>
-    public void AddEventSource(string eventSourceName)
+    /// <param name="names">The EventSource names to listen to.</param>
+    public void AddEventSources(params string[] names)
     {
-        if (eventSourceName == "System.Runtime")
+        if (names.Contains("System.Runtime"))
         {
             throw new NotSupportedException("Use the `OpenTelemetry.Instrumentation.Runtime` or `OpenTelemetry.Instrumentation.Process` instrumentations.");
         }
 
-        this.eventSourceNames.Add(eventSourceName);
+        this.eventSourceNames.UnionWith(names);
     }
 
     /// <summary>
