@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Description>Unit test project for ASP.NET HttpModule</Description>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>net462</TargetFrameworks>
+    <TargetFrameworks>$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

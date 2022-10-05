@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add HTTP server span attributes for API Gateway triggers
+  ([#626](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/626))
+
 ## 1.1.0-beta.2
 
 Release PR: [#590](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/590)
