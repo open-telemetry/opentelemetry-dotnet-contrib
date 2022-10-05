@@ -16,7 +16,6 @@
 
 using System.Diagnostics.Metrics;
 using System.Reflection;
-using System.Threading;
 using Diagnostics = System.Diagnostics;
 
 namespace OpenTelemetry.Instrumentation.Process;
@@ -24,38 +23,34 @@ namespace OpenTelemetry.Instrumentation.Process;
 internal sealed class ProcessMetrics
 {
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
-    internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
+    internal readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
 
-    private static readonly ThreadLocal<InstrumentsValues> CurrentThreadInstrumentsValues = new(() => new InstrumentsValues());
+    private readonly InstrumentsValues instrumentsValues;
 
     public ProcessMetrics(ProcessInstrumentationOptions options)
     {
-        // TODO: change to ObservableUpDownCounter
-        MeterInstance.CreateObservableGauge(
-            "process.memory.usage",
-            () => CurrentThreadInstrumentsValues.Value.GetMemoryUsage(),
-            unit: "By",
-            description: "The amount of physical memory in use.");
+        this.instrumentsValues = new InstrumentsValues();
 
         // TODO: change to ObservableUpDownCounter
-        MeterInstance.CreateObservableGauge(
-            "process.memory.virtual",
-            () => CurrentThreadInstrumentsValues.Value.GetVirtualMemoryUsage(),
+        this.MeterInstance.CreateObservableGauge(
+            "process.memory.usage",
+            () => this.instrumentsValues.GetMemoryUsage(),
             unit: "By",
-            description: "The amount of committed virtual memory.");
+            description: "The amount of physical memory allocated for this process.");
+
+        // TODO: change to ObservableUpDownCounter
+        this.MeterInstance.CreateObservableGauge(
+            "process.memory.virtual",
+            () => this.instrumentsValues.GetVirtualMemoryUsage(),
+            unit: "By",
+            description: "The amount of virtual memory allocated for this process that cannot be shared with other processes.");
     }
 
     private sealed class InstrumentsValues
     {
-        private static readonly Diagnostics.Process CurrentProcess = Diagnostics.Process.GetCurrentProcess();
+        private readonly Diagnostics.Process currentProcess = Diagnostics.Process.GetCurrentProcess();
         private double? memoryUsage;
         private double? virtualMemoryUsage;
-
-        internal InstrumentsValues()
-        {
-            this.memoryUsage = null;
-            this.virtualMemoryUsage = null;
-        }
 
         internal double GetMemoryUsage()
         {
@@ -64,7 +59,7 @@ internal sealed class ProcessMetrics
                 this.Snapshot();
             }
 
-            var value = (double)this.memoryUsage;
+            var value = this.memoryUsage.Value;
             this.memoryUsage = null;
             return value;
         }
@@ -76,16 +71,16 @@ internal sealed class ProcessMetrics
                 this.Snapshot();
             }
 
-            var value = (double)this.virtualMemoryUsage;
+            var value = this.virtualMemoryUsage.Value;
             this.virtualMemoryUsage = null;
             return value;
         }
 
         private void Snapshot()
         {
-            CurrentProcess.Refresh();
-            this.memoryUsage = CurrentProcess.WorkingSet64;
-            this.virtualMemoryUsage = CurrentProcess.PagedMemorySize64;
+            this.currentProcess.Refresh();
+            this.memoryUsage = this.currentProcess.WorkingSet64;
+            this.virtualMemoryUsage = this.currentProcess.PrivateMemorySize64;
         }
     }
 }
