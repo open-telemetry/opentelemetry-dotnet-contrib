@@ -61,8 +61,6 @@ internal sealed class ActivityEventAttachingLogProcessor : BaseProcessor<LogReco
                 tags[nameof(data.EventId)] = data.EventId;
             }
 
-
-
             data.ForEachScope(ProcessScope, new State(tags, this));
 
             if (data.StateValues != null)

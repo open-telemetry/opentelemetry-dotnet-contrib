@@ -32,9 +32,6 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
         ShouldListenTo = source => true,
     };
 
-
-
-
     private bool sampled;
 
     public ActivityEventAttachingLogProcessorTests()
