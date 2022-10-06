@@ -70,7 +70,7 @@ internal sealed class ProcessMetrics
             "process.cpu.time",
             () => GetProcessorTimes(),
             unit: "s",
-            description: "Processor time of this process");
+            description: "Total CPU time broken down by user state and system state.");
     }
 
     private void Snapshot()
