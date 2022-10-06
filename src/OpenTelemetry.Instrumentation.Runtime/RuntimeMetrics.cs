@@ -51,6 +51,13 @@ internal class RuntimeMetrics
             () => GetGarbageCollectionCounts(),
             description: "Number of garbage collections that have occurred since process start.");
 
+        // TODO: change to ObservableUpDownCounter
+        MeterInstance.CreateObservableGauge(
+            "process.runtime.dotnet.gc.heap.live",
+            () => GC.GetTotalMemory(false),
+            "bytes",
+            "Count of bytes currently in use by live objects in the GC heap.");
+
 #if NETCOREAPP3_1_OR_GREATER
         MeterInstance.CreateObservableCounter(
             "process.runtime.dotnet.gc.allocations.size",

@@ -75,6 +75,9 @@ public class RuntimeMetricsTests
         var gcCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.collections.count");
         Assert.NotNull(gcCountMetric);
 
+        var currentHeapSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.heap.live");
+        Assert.NotNull(currentHeapSizeMetric);
+
 #if NETCOREAPP3_1_OR_GREATER
         var gcAllocationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.allocations.size");
         Assert.NotNull(gcAllocationSizeMetric);
