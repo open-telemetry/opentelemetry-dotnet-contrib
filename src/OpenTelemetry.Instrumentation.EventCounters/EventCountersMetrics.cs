@@ -19,7 +19,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Diagnostics.Tracing;
-using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -140,7 +139,6 @@ internal class EventCountersMetrics : EventListener
 
             if (!this.instruments.ContainsKey(metricKey))
             {
-
                 Instrument instrument = isGauge
                     ? MeterInstance.CreateObservableGauge(instrumentName, () => this.values[metricKey])
                     : MeterInstance.CreateObservableCounter(instrumentName, () => this.values[metricKey]);
