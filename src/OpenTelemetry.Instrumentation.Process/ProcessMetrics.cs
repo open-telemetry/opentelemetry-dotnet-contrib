@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
@@ -66,12 +65,6 @@ internal sealed class ProcessMetrics
             },
             unit: "By",
             description: "The amount of virtual memory allocated for this process that cannot be shared with other processes.");
-
-        // TODO: change to ObservableUpDownCounter
-        MeterInstance.CreateObservableGauge(
-            "process.cpu.count",
-            () => Environment.ProcessorCount,
-            description: "The number of available logical CPUs");
 
         MeterInstance.CreateObservableCounter(
             "process.cpu.time",

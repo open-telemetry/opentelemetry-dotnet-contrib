@@ -37,15 +37,45 @@ public class ProcessMetricsTests
 
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
-        Assert.True(exportedItems.Count == 4);
+        Assert.True(exportedItems.Count == 3);
         var physicalMemoryMetric = exportedItems.FirstOrDefault(i => i.Name == "process.memory.usage");
         Assert.NotNull(physicalMemoryMetric);
         var virtualMemoryMetric = exportedItems.FirstOrDefault(i => i.Name == "process.memory.virtual");
         Assert.NotNull(virtualMemoryMetric);
         var cpuTimeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.time");
         Assert.NotNull(cpuTimeMetric);
-        var cpuCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.count");
-        Assert.NotNull(cpuCountMetric);
+    }
+
+    [Fact]
+    public void CpuTimeMetricsAreCaptured()
+    {
+        var exportedItems = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddProcessInstrumentation()
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+
+        var cpuTimeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.time");
+        Assert.NotNull(cpuTimeMetric);
+
+        var userTimeCaptured = false;
+        var systemTimeCaptured = false;
+
+        var points = cpuTimeMetric.GetMetricPoints().GetEnumerator();
+        while (points.MoveNext() && (!userTimeCaptured || !systemTimeCaptured))
+        {
+            foreach (var tag in points.Current.Tags)
+            {
+                if (tag.Key == "state" && tag.Value.ToString() == "user")
+                    userTimeCaptured = true;
+                else if (tag.Key == "state" && tag.Value.ToString() == "system")
+                    systemTimeCaptured = true;
+            }
+        }
+        Assert.True(userTimeCaptured);
+        Assert.True(systemTimeCaptured);
     }
 
     [Fact]
