@@ -19,6 +19,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Diagnostics.Tracing;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -29,8 +30,8 @@ namespace OpenTelemetry.Instrumentation.EventCounters;
 /// </summary>
 internal class EventCountersMetrics : EventListener
 {
-    private static readonly AssemblyName AssemblyName = typeof(EventCountersMetrics).Assembly.GetName();
     internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
+    private static readonly AssemblyName AssemblyName = typeof(EventCountersMetrics).Assembly.GetName();
     private static readonly Regex InstrumentNameRegex = new(
         @"^[a-zA-Z][-.\w]{0,62}", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
@@ -38,7 +39,7 @@ internal class EventCountersMetrics : EventListener
     private readonly ConcurrentQueue<EventSource> preInitEventSources = new();
     private readonly ConcurrentDictionary<(string, string), Instrument> instruments = new();
     private readonly ConcurrentDictionary<(string, string), double> values = new();
-    private readonly HashSet<string> instrumentNames = new();
+    private readonly ConcurrentDictionary<string, byte> instrumentNames = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EventCountersMetrics"/> class.
@@ -48,11 +49,11 @@ internal class EventCountersMetrics : EventListener
     {
         this.options = options;
 
-        while (this.preInitEventSources.TryDequeue(out EventSource source))
+        while (this.preInitEventSources.TryDequeue(out EventSource eventSource))
         {
-            if (this.options.ShouldListenToSource(source.Name))
+            if (this.options.ShouldListenToSource(eventSource.Name))
             {
-                this.EnableEvents(source, EventLevel.LogAlways, EventKeywords.None, GetEnableEventsArguments(this.options));
+                this.EnableEvents(eventSource, EventLevel.LogAlways, EventKeywords.None, GetEnableEventsArguments(this.options));
             }
         }
     }
@@ -86,7 +87,7 @@ internal class EventCountersMetrics : EventListener
             return;
         }
 
-        if (eventData.Payload.Count == 0 || eventData.Payload[0] is not IDictionary<string, object>)
+        if (eventData.Payload == null || eventData.Payload.Count == 0 || eventData.Payload[0] is not IDictionary<string, object>)
         {
             EventCountersInstrumentationEventSource.Log.IgnoreEventWrittenEventArgsPayloadNotParseable(eventSourceName);
             return;
@@ -113,7 +114,7 @@ internal class EventCountersMetrics : EventListener
         }
 
         var value = Convert.ToDouble(hasMean ? mean : increment);
-        this.EventWritten(hasMean, eventSourceName, name, value);
+        this.UpdateInstrumentWithEvent(hasMean, eventSourceName, name, value);
     }
 
     private static Dictionary<string, string> GetEnableEventsArguments(EventCountersInstrumentationOptions options) =>
@@ -122,28 +123,30 @@ internal class EventCountersMetrics : EventListener
     private static bool IsValidInstrumentName(string name) =>
         !string.IsNullOrWhiteSpace(name) && InstrumentNameRegex.IsMatch(name);
 
-    private void EventWritten(bool isGauge, string eventSourceName, string name, double value)
+    private void UpdateInstrumentWithEvent(bool isGauge, string eventSourceName, string name, double value)
     {
         try
         {
             ValueTuple<string, string> metricKey = new(eventSourceName, name);
             _ = this.values.AddOrUpdate(metricKey, value, isGauge ? (_, _) => value : (_, existing) => existing + value);
 
+            var instrumentName = $"EventCounters.{eventSourceName}.{name}";
+
+            if (!IsValidInstrumentName(instrumentName))
+            {
+                EventCountersInstrumentationEventSource.Log.InvalidInstrumentNameWarning(instrumentName);
+                return;
+            }
+
             if (!this.instruments.ContainsKey(metricKey))
             {
-                var instrumentName = $"EventCounters.{eventSourceName}.{name}";
-
-                if (!IsValidInstrumentName(instrumentName))
-                {
-                    EventCountersInstrumentationEventSource.Log.InvalidInstrumentNameWarning(instrumentName);
-                }
 
                 Instrument instrument = isGauge
                     ? MeterInstance.CreateObservableGauge(instrumentName, () => this.values[metricKey])
                     : MeterInstance.CreateObservableCounter(instrumentName, () => this.values[metricKey]);
                 _ = this.instruments.TryAdd(metricKey, instrument);
 
-                if (!this.instrumentNames.Add(instrumentName))
+                if (!this.instrumentNames.TryAdd(instrumentName, 0))
                 {
                     EventCountersInstrumentationEventSource.Log.DuplicateInstrumentNameWarning(instrumentName);
                 }

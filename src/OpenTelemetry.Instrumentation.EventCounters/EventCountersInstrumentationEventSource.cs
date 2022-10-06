@@ -32,7 +32,7 @@ internal sealed class EventCountersInstrumentationEventSource : EventSource
         this.WriteEvent(1, instrumentName);
     }
 
-    [Event(2, Level = EventLevel.Warning, Message = "Invalid instrument name: {0}.")]
+    [Event(2, Level = EventLevel.Warning, Message = "Instrument not created. Invalid instrument name: {0}.")]
     internal void InvalidInstrumentNameWarning(string instrumentName)
     {
         this.WriteEvent(2, instrumentName);
