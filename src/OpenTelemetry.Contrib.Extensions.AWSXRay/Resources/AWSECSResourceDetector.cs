@@ -17,79 +17,78 @@
 using System;
 using System.Collections.Generic;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources
+namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
+
+/// <summary>
+/// Resource detector for application running in AWS ECS.
+/// </summary>
+public class AWSECSResourceDetector : IResourceDetector
 {
+    private const string AWSECSMetadataPath = "/proc/self/cgroup";
+    private const string AWSECSMetadataURLKey = "ECS_CONTAINER_METADATA_URI";
+    private const string AWSECSMetadataURLV4Key = "ECS_CONTAINER_METADATA_URI_V4";
+
     /// <summary>
-    /// Resource detector for application running in AWS ECS.
+    /// Detector the required and optional resource attributes from AWS ECS.
     /// </summary>
-    public class AWSECSResourceDetector : IResourceDetector
+    /// <returns>List of key-value pairs of resource attributes.</returns>
+    public IEnumerable<KeyValuePair<string, object>> Detect()
     {
-        private const string AWSECSMetadataPath = "/proc/self/cgroup";
-        private const string AWSECSMetadataURLKey = "ECS_CONTAINER_METADATA_URI";
-        private const string AWSECSMetadataURLV4Key = "ECS_CONTAINER_METADATA_URI_V4";
+        List<KeyValuePair<string, object>> resourceAttributes = null;
 
-        /// <summary>
-        /// Detector the required and optional resource attributes from AWS ECS.
-        /// </summary>
-        /// <returns>List of key-value pairs of resource attributes.</returns>
-        public IEnumerable<KeyValuePair<string, object>> Detect()
+        if (!this.IsECSProcess())
         {
-            List<KeyValuePair<string, object>> resourceAttributes = null;
-
-            if (!this.IsECSProcess())
-            {
-                return resourceAttributes;
-            }
-
-            try
-            {
-                var containerId = this.GetECSContainerId(AWSECSMetadataPath);
-
-                resourceAttributes = this.ExtractResourceAttributes(containerId);
-            }
-            catch (Exception ex)
-            {
-                AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSResourceDetector), ex);
-            }
-
             return resourceAttributes;
         }
 
-        internal List<KeyValuePair<string, object>> ExtractResourceAttributes(string containerId)
+        try
         {
-            var resourceAttributes = new List<KeyValuePair<string, object>>()
-            {
-                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_ecs"),
-                new KeyValuePair<string, object>(AWSSemanticConventions.AttributeContainerID, containerId),
-            };
+            var containerId = this.GetECSContainerId(AWSECSMetadataPath);
 
-            return resourceAttributes;
+            resourceAttributes = this.ExtractResourceAttributes(containerId);
+        }
+        catch (Exception ex)
+        {
+            AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSResourceDetector), ex);
         }
 
-        internal string GetECSContainerId(string path)
-        {
-            string containerId = null;
+        return resourceAttributes;
+    }
 
-            using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
+    internal List<KeyValuePair<string, object>> ExtractResourceAttributes(string containerId)
+    {
+        var resourceAttributes = new List<KeyValuePair<string, object>>()
+        {
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_ecs"),
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeContainerID, containerId),
+        };
+
+        return resourceAttributes;
+    }
+
+    internal string GetECSContainerId(string path)
+    {
+        string containerId = null;
+
+        using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
+        {
+            while (!streamReader.EndOfStream)
             {
-                while (!streamReader.EndOfStream)
+                var trimmedLine = streamReader.ReadLine().Trim();
+                if (trimmedLine.Length > 64)
                 {
-                    var trimmedLine = streamReader.ReadLine().Trim();
-                    if (trimmedLine.Length > 64)
-                    {
-                        containerId = trimmedLine.Substring(trimmedLine.Length - 64);
-                        return containerId;
-                    }
+                    containerId = trimmedLine.Substring(trimmedLine.Length - 64);
+                    return containerId;
                 }
             }
-
-            return containerId;
         }
 
-        internal bool IsECSProcess()
-        {
-            return Environment.GetEnvironmentVariable(AWSECSMetadataURLKey) != null || Environment.GetEnvironmentVariable(AWSECSMetadataURLV4Key) != null;
-        }
+        return containerId;
+    }
+
+    internal bool IsECSProcess()
+    {
+        return Environment.GetEnvironmentVariable(AWSECSMetadataURLKey) != null || Environment.GetEnvironmentVariable(AWSECSMetadataURLV4Key) != null;
     }
 }

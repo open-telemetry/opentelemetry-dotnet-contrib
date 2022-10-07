@@ -128,9 +128,9 @@ internal sealed class HttpInListener : IDisposable
 
             activity.SetTag(SemanticConventions.AttributeHttpStatusCode, response.StatusCode);
 
-            if (activity.GetStatus().StatusCode == StatusCode.Unset)
+            if (activity.Status == ActivityStatusCode.Unset)
             {
-                activity.SetStatus(SpanHelper.ResolveSpanStatusForHttpStatusCode(activity.Kind, response.StatusCode));
+                activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, response.StatusCode));
             }
 
             var routeData = context.Request.RequestContext.RouteData;
@@ -181,7 +181,7 @@ internal sealed class HttpInListener : IDisposable
                 activity.RecordException(exception);
             }
 
-            activity.SetStatus(Status.Error.WithDescription(exception.Message));
+            activity.SetStatus(ActivityStatusCode.Error, exception.Message);
 
             try
             {

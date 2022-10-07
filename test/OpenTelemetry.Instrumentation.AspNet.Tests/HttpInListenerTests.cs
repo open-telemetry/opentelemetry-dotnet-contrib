@@ -137,7 +137,7 @@ public class HttpInListenerTests
                            return httpContext.Request.Path != filter;
                        };
 
-                       options.Enrich = GetEnrichmentAction(setStatusToErrorInEnrich ? Status.Error : default);
+                       options.Enrich = GetEnrichmentAction(setStatusToErrorInEnrich ? ActivityStatusCode.Error : default);
 
                        options.RecordException = recordException;
                    })
@@ -217,27 +217,27 @@ public class HttpInListenerTests
 
         if (recordException)
         {
-            var status = span.GetStatus();
-            Assert.Equal(Status.Error.StatusCode, status.StatusCode);
-            Assert.Equal("Operation is not valid due to the current state of the object.", status.Description);
+            var status = span.Status;
+            Assert.Equal(ActivityStatusCode.Error, span.Status);
+            Assert.Equal("Operation is not valid due to the current state of the object.", span.StatusDescription);
         }
         else if (setStatusToErrorInEnrich)
         {
             // This validates that users can override the
             // status in Enrich.
-            Assert.Equal(Status.Error, span.GetStatus());
+            Assert.Equal(ActivityStatusCode.Error, span.Status);
 
             // Instrumentation is not expected to set status description
             // as the reason can be inferred from SemanticConventions.AttributeHttpStatusCode
-            Assert.True(string.IsNullOrEmpty(span.GetStatus().Description));
+            Assert.True(string.IsNullOrEmpty(span.StatusDescription));
         }
         else
         {
-            Assert.Equal(Status.Unset, span.GetStatus());
+            Assert.Equal(ActivityStatusCode.Unset, span.Status);
 
             // Instrumentation is not expected to set status description
             // as the reason can be inferred from SemanticConventions.AttributeHttpStatusCode
-            Assert.True(string.IsNullOrEmpty(span.GetStatus().Description));
+            Assert.True(string.IsNullOrEmpty(span.StatusDescription));
         }
     }
 
@@ -324,7 +324,7 @@ public class HttpInListenerTests
         Assert.True(isPropagatorCalled);
     }
 
-    private static Action<Activity, string, object> GetEnrichmentAction(Status statusToBeSet)
+    private static Action<Activity, string, object> GetEnrichmentAction(ActivityStatusCode statusToBeSet)
     {
         void EnrichAction(Activity activity, string method, object obj)
         {
