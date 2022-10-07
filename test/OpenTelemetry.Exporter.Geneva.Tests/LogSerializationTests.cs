@@ -45,16 +45,23 @@ public class LogSerializationTests
     public void SerializationTestForException()
     {
         var exceptionMessage = "Exception Message";
+        var ex = new Exception(exceptionMessage);
         var exportedFields = GetExportedFieldsAfterLogging(logger => logger.Log<object>(
             logLevel: LogLevel.Information,
             eventId: default,
             state: null,
-            exception: new Exception(exceptionMessage),
-            formatter: null));
+            exception: ex,
+            formatter: null),
+            (genevaOptions) => genevaOptions.ExportExceptionStack = ExportExceptionStack.AsString);
 
-        PrintFields(this.output, exportedFields);
         var actualExceptionMessage = exportedFields["env_ex_msg"];
         Assert.Equal(exceptionMessage, actualExceptionMessage);
+
+        var actualExceptionType = exportedFields["env_ex_type"];
+        Assert.Equal("System.Exception", actualExceptionType);
+
+        var actualExceptionStack = exportedFields["env_ex_stack"];
+        Assert.Equal(ex.ToString(), actualExceptionStack);
     }
 
     private static void PrintFields(ITestOutputHelper output, Dictionary<object, object> fields)
@@ -65,7 +72,7 @@ public class LogSerializationTests
         }
     }
 
-    private static Dictionary<object, object> GetExportedFieldsAfterLogging(Action<ILogger> doLog)
+    private static Dictionary<object, object> GetExportedFieldsAfterLogging(Action<ILogger> doLog, Action<GenevaExporterOptions> configureGeneva = null)
     {
         Socket server = null;
         string path = string.Empty;
@@ -77,9 +84,9 @@ public class LogSerializationTests
                     {
                         options.AddInMemoryExporter(logRecordList);
                     })
-                    .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
+                    .AddFilter(typeof(LogSerializationTests).FullName, LogLevel.Trace)); // Enable all LogLevels
 
-            var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
+            var logger = loggerFactory.CreateLogger<LogSerializationTests>();
             doLog(logger);
 
             Assert.Single(logRecordList);
@@ -97,6 +104,8 @@ public class LogSerializationTests
                 server.Bind(endpoint);
                 server.Listen(1);
             }
+
+            configureGeneva?.Invoke(exporterOptions);
 
             using var exporter = new MsgPackLogExporter(exporterOptions);
             var m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
