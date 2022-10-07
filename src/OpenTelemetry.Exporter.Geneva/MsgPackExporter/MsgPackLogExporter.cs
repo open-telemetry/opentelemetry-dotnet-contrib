@@ -441,6 +441,8 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 // 2. Trim smarter, by trimming the middle of stack, an
                 // keep top and bottom.
                 var exceptionStack = ToInvariantString(logRecord.Exception);
+                var maxBytesRequiredForStack = exceptionStack.Length * 4;
+                var remainingBytesInBuffer = BUFFER_SIZE - (cursor + this.m_bufferEpilogue.Length);
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_ex_stack");
                 cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, exceptionStack);
                 cntFields += 1;
