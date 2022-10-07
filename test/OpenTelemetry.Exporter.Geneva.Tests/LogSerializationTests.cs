@@ -98,8 +98,8 @@ public class LogSerializationTests
                 server.Listen(1);
             }
 
-            using var exporter = new GenevaLogExporter(exporterOptions);
-            var m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+            using var exporter = new MsgPackLogExporter(exporterOptions);
+            var m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
             _ = exporter.SerializeLogRecord(logRecordList[0]);
             object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
 
