@@ -25,62 +25,51 @@ internal sealed class ProcessMetrics
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
     internal readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
 
-    private readonly InstrumentsValues instrumentsValues;
+    private readonly Diagnostics.Process currentProcess = Diagnostics.Process.GetCurrentProcess();
+    private double? memoryUsage;
+    private double? virtualMemoryUsage;
 
     public ProcessMetrics(ProcessInstrumentationOptions options)
     {
-        this.instrumentsValues = new InstrumentsValues();
-
         // TODO: change to ObservableUpDownCounter
         this.MeterInstance.CreateObservableGauge(
             "process.memory.usage",
-            () => this.instrumentsValues.GetMemoryUsage(),
+            () =>
+            {
+                if (!this.memoryUsage.HasValue)
+                {
+                    this.Snapshot();
+                }
+
+                var value = this.memoryUsage.Value;
+                this.memoryUsage = null;
+                return value;
+            },
             unit: "By",
             description: "The amount of physical memory allocated for this process.");
 
         // TODO: change to ObservableUpDownCounter
         this.MeterInstance.CreateObservableGauge(
             "process.memory.virtual",
-            () => this.instrumentsValues.GetVirtualMemoryUsage(),
+            () =>
+            {
+                if (!this.virtualMemoryUsage.HasValue)
+                {
+                    this.Snapshot();
+                }
+
+                var value = this.virtualMemoryUsage.Value;
+                this.virtualMemoryUsage = null;
+                return value;
+            },
             unit: "By",
             description: "The amount of virtual memory allocated for this process that cannot be shared with other processes.");
     }
 
-    private sealed class InstrumentsValues
+    private void Snapshot()
     {
-        private readonly Diagnostics.Process currentProcess = Diagnostics.Process.GetCurrentProcess();
-        private double? memoryUsage;
-        private double? virtualMemoryUsage;
-
-        internal double GetMemoryUsage()
-        {
-            if (!this.memoryUsage.HasValue)
-            {
-                this.Snapshot();
-            }
-
-            var value = this.memoryUsage.Value;
-            this.memoryUsage = null;
-            return value;
-        }
-
-        internal double GetVirtualMemoryUsage()
-        {
-            if (!this.virtualMemoryUsage.HasValue)
-            {
-                this.Snapshot();
-            }
-
-            var value = this.virtualMemoryUsage.Value;
-            this.virtualMemoryUsage = null;
-            return value;
-        }
-
-        private void Snapshot()
-        {
-            this.currentProcess.Refresh();
-            this.memoryUsage = this.currentProcess.WorkingSet64;
-            this.virtualMemoryUsage = this.currentProcess.PrivateMemorySize64;
-        }
+        this.currentProcess.Refresh();
+        this.memoryUsage = this.currentProcess.WorkingSet64;
+        this.virtualMemoryUsage = this.currentProcess.PrivateMemorySize64;
     }
 }
