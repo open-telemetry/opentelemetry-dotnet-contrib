@@ -80,13 +80,13 @@ public class ProcessMetricsTests
         Meter m2 = new("myMeter");
 
         m1.CreateObservableCounter(
-            "myGaugeName",
+            "myCounterName",
             () => { return 1D; },
             unit: "1",
             description: "test");
 
         m2.CreateObservableCounter(
-            "myGaugeName",
+            "myCounterName",
             () => { return 2D; },
             unit: "1",
             description: "test");
@@ -104,8 +104,8 @@ public class ProcessMetricsTests
         meterProviderA.ForceFlush();
         meterProviderB.ForceFlush();
 
-        var metricA = exportedItemsA.FirstOrDefault(i => i.Name == "myGaugeName");
-        var metricB = exportedItemsB.FirstOrDefault(i => i.Name == "myGaugeName");
+        var metricA = exportedItemsA.FirstOrDefault(i => i.Name == "myCounterName");
+        var metricB = exportedItemsB.FirstOrDefault(i => i.Name == "myCounterName");
 
         Assert.Equal(GetValue(metricA), GetValue(metricB));
     }
