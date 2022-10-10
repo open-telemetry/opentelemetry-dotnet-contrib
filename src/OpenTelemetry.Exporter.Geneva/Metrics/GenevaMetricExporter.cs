@@ -121,7 +121,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                     switch (metric.MetricType)
                     {
                         case MetricType.LongSum:
-                        case MetricType.LongSumNonMonotonic:
                             {
                                 var ulongSum = Convert.ToUInt64(metricPoint.GetSumLong());
                                 var metricData = new MetricData { UInt64Value = ulongSum };
@@ -146,6 +145,23 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metricPoint.Tags,
                                     metricData);
                                 this.metricDataTransport.Send(MetricEventType.ULongMetric, this.bufferForNonHistogramMetrics, bodyLength);
+                                break;
+                            }
+
+                        // The value here could be negative hence we have to use `MetricEventType.DoubleMetric`
+                        case MetricType.LongSumNonMonotonic:
+                            {
+                                // potential for minor precision loss implicitly going from long->double
+                                // see: https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions#implicit-numeric-conversions
+                                var doubleSum = Convert.ToDouble(metricPoint.GetSumLong());
+                                var metricData = new MetricData { DoubleValue = doubleSum };
+                                var bodyLength = this.SerializeMetric(
+                                    MetricEventType.DoubleMetric,
+                                    metric.Name,
+                                    metricPoint.EndTime.ToFileTime(),
+                                    metricPoint.Tags,
+                                    metricData);
+                                this.metricDataTransport.Send(MetricEventType.DoubleMetric, this.bufferForNonHistogramMetrics, bodyLength);
                                 break;
                             }
 
