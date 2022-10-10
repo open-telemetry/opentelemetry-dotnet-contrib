@@ -52,7 +52,7 @@ public class LogSerializationTests
             state: null,
             exception: ex,
             formatter: null),
-            (genevaOptions) => genevaOptions.ExportExceptionStack = ExportExceptionStack.AsString);
+            (genevaOptions) => genevaOptions.ExceptionStackExportOption = ExceptionStackExportOptions.ExportAsString);
 
         var actualExceptionMessage = exportedFields["env_ex_msg"];
         Assert.Equal(exceptionMessage, actualExceptionMessage);

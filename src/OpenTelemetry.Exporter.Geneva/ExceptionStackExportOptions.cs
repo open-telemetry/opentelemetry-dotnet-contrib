@@ -16,9 +16,9 @@
 
 namespace OpenTelemetry.Exporter.Geneva;
 
-public enum ExportExceptionStack
+public enum ExceptionStackExportOptions
 {
-    None,
-    AsString,
-    // AsStackArray - future if stacks can be exported in more structured way
+    Drop,
+    ExportAsString,
+    // ExportStackArray - future if stacks can be exported in more structured way
 }

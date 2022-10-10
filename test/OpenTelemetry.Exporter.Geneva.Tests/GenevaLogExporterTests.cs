@@ -43,10 +43,10 @@ public class GenevaLogExporterTests
     }
 
     [Fact]
-    public void ExportExceptionStackDefaultIsNone()
+    public void ExportExceptionStackDefaultIsDrop()
     {
         GenevaExporterOptions exporterOptions = new GenevaExporterOptions();
-        Assert.Equal(ExportExceptionStack.None, exporterOptions.ExportExceptionStack);
+        Assert.Equal(ExceptionStackExportOptions.Drop, exporterOptions.ExceptionStackExportOption);
     }
 
     [Fact]

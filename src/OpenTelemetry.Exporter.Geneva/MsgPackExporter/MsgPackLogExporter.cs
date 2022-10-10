@@ -32,7 +32,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
     private readonly IReadOnlyDictionary<string, object> m_customFields;
 
-    private readonly ExportExceptionStack m_exportExceptionStack;
+    private readonly ExceptionStackExportOptions m_exportExceptionStack;
 
     private readonly string m_defaultEventName = "Log";
     private readonly IReadOnlyDictionary<string, object> m_prepopulatedFields;
@@ -50,7 +50,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
     public MsgPackLogExporter(GenevaExporterOptions options)
     {
-        this.m_exportExceptionStack = options.ExportExceptionStack;
+        this.m_exportExceptionStack = options.ExceptionStackExportOption;
 
         // TODO: Validate mappings for reserved tablenames etc.
         if (options.TableNameMappings != null)
@@ -433,16 +433,16 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, logRecord.Exception.Message);
             cntFields += 1;
 
-            if (this.m_exportExceptionStack == ExportExceptionStack.AsString)
+            if (this.m_exportExceptionStack == ExceptionStackExportOptions.ExportAsString)
             {
-                // TODO: Might be a good idea to spl. case exception stack.
+                // The current approach relies on the existing trim
+                // capabilities which trims string in excess of STRING_SIZE_LIMIT_CHAR_COUNT
+                // TODO: Revisit this:
                 // 1. Trim it off based on how much more bytes are available
-                // before running out of limit.
+                // before running out of limit instead of STRING_SIZE_LIMIT_CHAR_COUNT.
                 // 2. Trim smarter, by trimming the middle of stack, an
                 // keep top and bottom.
                 var exceptionStack = ToInvariantString(logRecord.Exception);
-                var maxBytesRequiredForStack = exceptionStack.Length * 4;
-                var remainingBytesInBuffer = BUFFER_SIZE - (cursor + this.m_bufferEpilogue.Length);
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_ex_stack");
                 cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, exceptionStack);
                 cntFields += 1;
