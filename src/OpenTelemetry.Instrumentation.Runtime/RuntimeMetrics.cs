@@ -55,8 +55,8 @@ internal class RuntimeMetrics
         MeterInstance.CreateObservableGauge(
             "process.runtime.dotnet.gc.heap.live",
             () => GC.GetTotalMemory(false),
-            "bytes",
-            "Count of bytes currently in use by live objects in the GC heap.");
+            unit: "bytes",
+            description: "Count of bytes currently in use by live objects in the GC heap.");
 
 #if NETCOREAPP3_1_OR_GREATER
         MeterInstance.CreateObservableCounter(
