@@ -29,6 +29,8 @@ internal sealed class ProcessMetrics
     private readonly Diagnostics.Process currentProcess = Diagnostics.Process.GetCurrentProcess();
     private double? memoryUsage;
     private double? virtualMemoryUsage;
+    private double? userProcessorTime;
+    private double? privilegedProcessorTime;
 
     public ProcessMetrics(ProcessInstrumentationOptions options)
     {
@@ -68,7 +70,24 @@ internal sealed class ProcessMetrics
 
         this.MeterInstance.CreateObservableCounter(
             "process.cpu.time",
-            () => this.GetProcessorTimes(),
+            () =>
+            {
+                if (!this.userProcessorTime.HasValue || !this.privilegedProcessorTime.HasValue)
+                {
+                    this.Snapshot();
+                }
+
+                var userProcessorTimeValue = this.userProcessorTime.Value;
+                var privilegedProcessorTimeValue = this.privilegedProcessorTime.Value;
+                this.userProcessorTime = null;
+                this.privilegedProcessorTime = null;
+
+                return new[]
+                {
+                    new Measurement<double>(userProcessorTimeValue, new KeyValuePair<string, object?>("state", "user")),
+                    new Measurement<double>(privilegedProcessorTimeValue, new KeyValuePair<string, object?>("state", "system")),
+                };
+            },
             unit: "s",
             description: "Total CPU time broken down by user state and system state.");
     }
@@ -78,14 +97,7 @@ internal sealed class ProcessMetrics
         this.currentProcess.Refresh();
         this.memoryUsage = this.currentProcess.WorkingSet64;
         this.virtualMemoryUsage = this.currentProcess.PrivateMemorySize64;
-    }
-
-    private IEnumerable<Measurement<double>> GetProcessorTimes()
-    {
-        return new[]
-        {
-            new Measurement<double>(this.currentProcess.UserProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("state", "user")),
-            new Measurement<double>(this.currentProcess.PrivilegedProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("state", "system")),
-        };
+        this.userProcessorTime = this.currentProcess.UserProcessorTime.TotalSeconds;
+        this.privilegedProcessorTime = this.currentProcess.PrivilegedProcessorTime.TotalSeconds;
     }
 }
