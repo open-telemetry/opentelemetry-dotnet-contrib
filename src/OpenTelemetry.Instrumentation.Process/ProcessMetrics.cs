@@ -66,9 +66,9 @@ internal sealed class ProcessMetrics
             unit: "By",
             description: "The amount of virtual memory allocated for this process that cannot be shared with other processes.");
 
-        MeterInstance.CreateObservableCounter(
+        this.MeterInstance.CreateObservableCounter(
             "process.cpu.time",
-            () => GetProcessorTimes(),
+            () => this.GetProcessorTimes(),
             unit: "s",
             description: "Total CPU time broken down by user state and system state.");
     }
@@ -80,12 +80,12 @@ internal sealed class ProcessMetrics
         this.virtualMemoryUsage = this.currentProcess.PrivateMemorySize64;
     }
 
-    private static IEnumerable<Measurement<double>> GetProcessorTimes()
+    private IEnumerable<Measurement<double>> GetProcessorTimes()
     {
         return new[]
         {
-                new Measurement<double>(CurrentProcess.UserProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("state", "user")),
-                new Measurement<double>(CurrentProcess.PrivilegedProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("state", "system")),
+            new Measurement<double>(this.currentProcess.UserProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("state", "user")),
+            new Measurement<double>(this.currentProcess.PrivilegedProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("state", "system")),
         };
     }
 }
