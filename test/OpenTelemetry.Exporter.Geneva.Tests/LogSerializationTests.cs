@@ -45,7 +45,8 @@ public class LogSerializationTests
     public void SerializationTestForException()
     {
         var exceptionMessage = "Exception Message";
-        var ex = new Exception(exceptionMessage);
+        var exStack = "Exception StackTrace";
+        var ex = new MyException(exceptionMessage, exStack);
         var exportedFields = GetExportedFieldsAfterLogging(logger => logger.Log<object>(
             logLevel: LogLevel.Information,
             eventId: default,
@@ -58,10 +59,39 @@ public class LogSerializationTests
         Assert.Equal(exceptionMessage, actualExceptionMessage);
 
         var actualExceptionType = exportedFields["env_ex_type"];
-        Assert.Equal("System.Exception", actualExceptionType);
+        Assert.Equal(typeof(MyException).FullName, actualExceptionType);
 
         var actualExceptionStack = exportedFields["env_ex_stack"];
-        Assert.Equal(ex.ToString(), actualExceptionStack);
+        Assert.Equal(exStack, actualExceptionStack);
+    }
+
+    [Fact]
+    public void SerializationTestForExceptionTrim()
+    {
+        var exceptionMessage = "Exception Message";
+        var exStack = new String('e', 16383 + 1);
+        var ex = new MyException(exceptionMessage, exStack);
+        var exportedFields = GetExportedFieldsAfterLogging(logger => logger.LogError(
+            ex,
+            "Error occurred. {field1} {field2}", "value1", "value2"),
+            (genevaOptions) => genevaOptions.ExceptionStackExportOption = ExceptionStackExportOptions.ExportAsString);
+
+        var actualExceptionMessage = exportedFields["env_ex_msg"];
+        Assert.Equal(exceptionMessage, actualExceptionMessage);
+
+        var actualExceptionType = exportedFields["env_ex_type"];
+        Assert.Equal(typeof(MyException).FullName, actualExceptionType);
+
+        var actualExceptionStack = exportedFields["env_ex_stack"];
+        Assert.EndsWith("...", (string) actualExceptionStack);
+
+        var actualValue = exportedFields["field1"];
+        Assert.Equal("value1", actualValue);
+
+        actualValue = exportedFields["field2"];
+        Assert.Equal("value2", actualValue);
+
+        // PrintFields(this.output, exportedFields);
     }
 
     private static void PrintFields(ITestOutputHelper output, Dictionary<object, object> fields)
@@ -154,5 +184,21 @@ public class LogSerializationTests
         var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
         var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
         return mapping;
+    }
+
+    private class MyException : Exception
+    {
+        private string stackTrace;
+
+        public MyException(string message, string stackTrace)
+        : base(message)
+        {
+            this.stackTrace = stackTrace;
+        }
+
+        public override string ToString()
+        {
+            return this.stackTrace;
+        }
     }
 }
