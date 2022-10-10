@@ -121,6 +121,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                     switch (metric.MetricType)
                     {
                         case MetricType.LongSum:
+                        case MetricType.LongSumNonMonotonic:
                             {
                                 var ulongSum = Convert.ToUInt64(metricPoint.GetSumLong());
                                 var metricData = new MetricData { UInt64Value = ulongSum };
@@ -149,6 +150,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                             }
 
                         case MetricType.DoubleSum:
+                        case MetricType.DoubleSumNonMonotonic:
                             {
                                 var doubleSum = metricPoint.GetSumDouble();
                                 var metricData = new MetricData { DoubleValue = doubleSum };
