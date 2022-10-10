@@ -70,46 +70,6 @@ public class ProcessMetricsTests
         Assert.True(GetValue(metricB) > 0);
     }
 
-    [Fact]
-    public void UnifiedMetricStreamIdentityWhen2MeterProviderInstancesHaveTheSameMeterName()
-    {
-        var exportedItemsA = new List<Metric>();
-        var exportedItemsB = new List<Metric>();
-
-        Meter m1 = new("myMeter");
-        Meter m2 = new("myMeter");
-
-        m1.CreateObservableCounter(
-            "myCounterName",
-            () => { return 1D; },
-            unit: "1",
-            description: "test");
-
-        m2.CreateObservableCounter(
-            "myCounterName",
-            () => { return 2D; },
-            unit: "1",
-            description: "test");
-
-        using var meterProviderA = Sdk.CreateMeterProviderBuilder()
-            .AddMeter("myMeter")
-            .AddInMemoryExporter(exportedItemsA)
-            .Build();
-
-        using var meterProviderB = Sdk.CreateMeterProviderBuilder()
-            .AddMeter("myMeter")
-            .AddInMemoryExporter(exportedItemsB)
-            .Build();
-
-        meterProviderA.ForceFlush();
-        meterProviderB.ForceFlush();
-
-        var metricA = exportedItemsA.FirstOrDefault(i => i.Name == "myCounterName");
-        var metricB = exportedItemsB.FirstOrDefault(i => i.Name == "myCounterName");
-
-        Assert.Equal(GetValue(metricA), GetValue(metricB));
-    }
-
     private static double GetValue(Metric metric)
     {
         Assert.NotNull(metric);
