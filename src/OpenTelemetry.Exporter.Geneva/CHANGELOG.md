@@ -2,8 +2,9 @@
 
 ## Unreleased
 
-* Update OTel SDK version to `1.3.1`.
-  [#631](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/631)
+* Update OTel SDK version to `1.4.0-beta.1`.
+* Add support for exporting `UpDownCounter` and `ObservableUpDownCounter`.
+  [#685](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/685)
 
 * The option `TableNameMappings` of `GenevaExporterOptions` will not support
   string values that are null, empty, or consist only of white-space characters.
