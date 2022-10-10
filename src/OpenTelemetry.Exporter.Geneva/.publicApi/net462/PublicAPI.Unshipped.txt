@@ -1,0 +1,5 @@
+OpenTelemetry.Exporter.Geneva.ExceptionStackExportOptions
+OpenTelemetry.Exporter.Geneva.ExceptionStackExportOptions.Drop = 0 -> OpenTelemetry.Exporter.Geneva.ExceptionStackExportOptions
+OpenTelemetry.Exporter.Geneva.ExceptionStackExportOptions.ExportAsString = 1 -> OpenTelemetry.Exporter.Geneva.ExceptionStackExportOptions
+OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.ExceptionStackExportOption.get -> OpenTelemetry.Exporter.Geneva.ExceptionStackExportOptions
+OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.ExceptionStackExportOption.set -> void
