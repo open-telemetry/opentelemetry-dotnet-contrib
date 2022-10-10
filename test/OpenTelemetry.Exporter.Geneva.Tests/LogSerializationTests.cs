@@ -47,13 +47,18 @@ public class LogSerializationTests
         var exceptionMessage = "Exception Message";
         var exStack = "Exception StackTrace";
         var ex = new MyException(exceptionMessage, exStack);
-        var exportedFields = GetExportedFieldsAfterLogging(logger => logger.Log<object>(
-            logLevel: LogLevel.Information,
-            eventId: default,
-            state: null,
-            exception: ex,
-            formatter: null),
-            (genevaOptions) => genevaOptions.ExceptionStackExportOption = ExceptionStackExportOptions.ExportAsString);
+        var exportedFields = GetExportedFieldsAfterLogging(
+            logger =>
+            {
+                logger.Log<object>(
+                            logLevel: LogLevel.Information,
+                            eventId: default,
+                            state: null,
+                            exception: ex,
+                            formatter: null);
+            },
+            (genevaOptions) =>
+            genevaOptions.ExceptionStackExportOption = ExceptionStackExportOptions.ExportAsString);
 
         var actualExceptionMessage = exportedFields["env_ex_msg"];
         Assert.Equal(exceptionMessage, actualExceptionMessage);
@@ -69,11 +74,10 @@ public class LogSerializationTests
     public void SerializationTestForExceptionTrim()
     {
         var exceptionMessage = "Exception Message";
-        var exStack = new String('e', 16383 + 1);
+        var exStack = new string('e', 16383 + 1);
         var ex = new MyException(exceptionMessage, exStack);
-        var exportedFields = GetExportedFieldsAfterLogging(logger => logger.LogError(
-            ex,
-            "Error occurred. {field1} {field2}", "value1", "value2"),
+        var exportedFields = GetExportedFieldsAfterLogging(
+            logger => logger.LogError(ex, "Error occurred. {field1} {field2}", "value1", "value2"),
             (genevaOptions) => genevaOptions.ExceptionStackExportOption = ExceptionStackExportOptions.ExportAsString);
 
         var actualExceptionMessage = exportedFields["env_ex_msg"];
@@ -83,7 +87,7 @@ public class LogSerializationTests
         Assert.Equal(typeof(MyException).FullName, actualExceptionType);
 
         var actualExceptionStack = exportedFields["env_ex_stack"];
-        Assert.EndsWith("...", (string) actualExceptionStack);
+        Assert.EndsWith("...", (string)actualExceptionStack);
 
         var actualValue = exportedFields["field1"];
         Assert.Equal("value1", actualValue);
