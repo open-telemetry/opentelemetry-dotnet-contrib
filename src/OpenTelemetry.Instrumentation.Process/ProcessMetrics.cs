@@ -89,7 +89,7 @@ internal sealed class ProcessMetrics
                 };
             },
             unit: "s",
-            description: "Total CPU time broken down by user state and system state.");
+            description: "Total CPU seconds broken down by different states.");
     }
 
     private void Snapshot()
