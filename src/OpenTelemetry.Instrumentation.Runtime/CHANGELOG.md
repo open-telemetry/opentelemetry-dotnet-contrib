@@ -4,6 +4,8 @@
 
 * Update OTel API version to `1.3.1`.
   ([#631](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/631))
+* Add current GC heap size metric
+  ([#683](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/683))
 
 ## 1.0.0
 
