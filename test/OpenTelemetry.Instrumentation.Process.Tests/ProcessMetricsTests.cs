@@ -85,7 +85,7 @@ public class ProcessMetricsTests
             unit: "1",
             description: "test");
 
-        m1.CreateObservableCounter(
+        m2.CreateObservableCounter(
             "myGaugeName",
             () => { return 2D; },
             unit: "1",
