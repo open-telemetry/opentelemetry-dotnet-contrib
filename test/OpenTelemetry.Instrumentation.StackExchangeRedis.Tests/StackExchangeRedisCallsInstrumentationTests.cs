@@ -385,7 +385,7 @@ public class StackExchangeRedisCallsInstrumentationTests
             }
         }
 
-        Assert.Equal(Status.Unset, activity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, activity.Status);
         Assert.Equal("redis", activity.GetTagValue(SemanticConventions.AttributeDbSystem));
         Assert.Equal(0, activity.GetTagValue(StackExchangeRedisCallsInstrumentation.RedisDatabaseIndexKeyName));
 
