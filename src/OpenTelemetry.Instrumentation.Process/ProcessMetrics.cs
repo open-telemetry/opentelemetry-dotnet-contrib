@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using Diagnostics = System.Diagnostics;
@@ -28,6 +29,8 @@ internal sealed class ProcessMetrics
     private readonly Diagnostics.Process currentProcess = Diagnostics.Process.GetCurrentProcess();
     private double? memoryUsage;
     private double? virtualMemoryUsage;
+    private double? userProcessorTime;
+    private double? privilegedProcessorTime;
 
     public ProcessMetrics(ProcessInstrumentationOptions options)
     {
@@ -64,6 +67,29 @@ internal sealed class ProcessMetrics
             },
             unit: "By",
             description: "The amount of virtual memory allocated for this process that cannot be shared with other processes.");
+
+        this.MeterInstance.CreateObservableCounter(
+            "process.cpu.time",
+            () =>
+            {
+                if (!this.userProcessorTime.HasValue || !this.privilegedProcessorTime.HasValue)
+                {
+                    this.Snapshot();
+                }
+
+                var userProcessorTimeValue = this.userProcessorTime.Value;
+                var privilegedProcessorTimeValue = this.privilegedProcessorTime.Value;
+                this.userProcessorTime = null;
+                this.privilegedProcessorTime = null;
+
+                return new[]
+                {
+                    new Measurement<double>(userProcessorTimeValue, new KeyValuePair<string, object?>("state", "user")),
+                    new Measurement<double>(privilegedProcessorTimeValue, new KeyValuePair<string, object?>("state", "system")),
+                };
+            },
+            unit: "s",
+            description: "Total CPU seconds broken down by different states.");
     }
 
     private void Snapshot()
@@ -71,5 +97,7 @@ internal sealed class ProcessMetrics
         this.currentProcess.Refresh();
         this.memoryUsage = this.currentProcess.WorkingSet64;
         this.virtualMemoryUsage = this.currentProcess.PrivateMemorySize64;
+        this.userProcessorTime = this.currentProcess.UserProcessorTime.TotalSeconds;
+        this.privilegedProcessorTime = this.currentProcess.PrivilegedProcessorTime.TotalSeconds;
     }
 }
