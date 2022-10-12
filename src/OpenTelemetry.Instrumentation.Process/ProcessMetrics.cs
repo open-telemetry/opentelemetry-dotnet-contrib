@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
@@ -31,9 +32,18 @@ internal sealed class ProcessMetrics
     private double? virtualMemoryUsage;
     private double? userProcessorTime;
     private double? privilegedProcessorTime;
+    private int? numberOfThreads;
+    private IEnumerable<Measurement<double>> cpuUtilization;
+
+    // vars for calculating CPU utilization
+    private DateTime collectionTimeStamp;
+    private double collectionUserProcessorTime;
+    private double collectionPrivilegedProcessorTime;
 
     public ProcessMetrics(ProcessInstrumentationOptions options)
     {
+        this.collectionTimeStamp = this.currentProcess.StartTime;
+
         // TODO: change to ObservableUpDownCounter
         this.MeterInstance.CreateObservableGauge(
             "process.memory.usage",
@@ -90,6 +100,39 @@ internal sealed class ProcessMetrics
             },
             unit: "s",
             description: "Total CPU seconds broken down by different states.");
+
+        this.MeterInstance.CreateObservableGauge(
+            "process.cpu.utilization",
+            () =>
+            {
+                if (this.cpuUtilization == null)
+                {
+                    this.Snapshot();
+                }
+
+                var value = this.cpuUtilization;
+                this.cpuUtilization = null;
+                return value;
+            },
+            unit: "1",
+            description: "Difference in process.cpu.time since the last measurement, divided by the elapsed time and number of CPUs available to the process.");
+
+        // TODO: change to ObservableUpDownCounter
+        this.MeterInstance.CreateObservableGauge(
+            "process.threads",
+            () =>
+            {
+                if (!this.numberOfThreads.HasValue)
+                {
+                    this.Snapshot();
+                }
+
+                var value = this.numberOfThreads.Value;
+                this.numberOfThreads = null;
+                return value;
+            },
+            unit: "{threads}",
+            description: "Process threads count.");
     }
 
     private void Snapshot()
@@ -99,5 +142,26 @@ internal sealed class ProcessMetrics
         this.virtualMemoryUsage = this.currentProcess.PrivateMemorySize64;
         this.userProcessorTime = this.currentProcess.UserProcessorTime.TotalSeconds;
         this.privilegedProcessorTime = this.currentProcess.PrivilegedProcessorTime.TotalSeconds;
+        this.cpuUtilization = this.GetCpuUtilization();
+        this.numberOfThreads = this.currentProcess.Threads.Count;
+    }
+
+    private IEnumerable<Measurement<double>> GetCpuUtilization()
+    {
+        var userProcessorUtilization = (this.currentProcess.UserProcessorTime.TotalSeconds - this.collectionUserProcessorTime) /
+                ((DateTime.UtcNow - this.collectionTimeStamp.ToUniversalTime()).TotalSeconds * Environment.ProcessorCount);
+
+        var privilegedProcessorUtilization = (this.currentProcess.PrivilegedProcessorTime.TotalSeconds - this.collectionPrivilegedProcessorTime) /
+                ((DateTime.UtcNow - this.collectionTimeStamp.ToUniversalTime()).TotalSeconds * Environment.ProcessorCount);
+
+        this.collectionTimeStamp = DateTime.UtcNow;
+        this.collectionUserProcessorTime = this.currentProcess.UserProcessorTime.TotalSeconds;
+        this.collectionPrivilegedProcessorTime = this.currentProcess.PrivilegedProcessorTime.TotalSeconds;
+
+        return new[]
+        {
+            new Measurement<double>(userProcessorUtilization, new KeyValuePair<string, object?>("state", "user")),
+            new Measurement<double>(privilegedProcessorUtilization, new KeyValuePair<string, object?>("state", "system")),
+        };
     }
 }
