@@ -263,13 +263,13 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
                         {
                             o.Enrich = (activity, eventName, obj) =>
                             {
-                                if (eventName.Equals(MassTransitEnrichEventType.OnStartActivity.ToString()))
+                                if (eventName.Equals("OnStartActivity"))
                                 {
-                                    activity.SetTag("client.startactivity", nameof(MassTransitEnrichEventType.OnStartActivity));
+                                    activity.SetTag("client.startactivity", "OnStartActivity");
                                 }
-                                else if (eventName.Equals(MassTransitEnrichEventType.OnStopActivity.ToString()))
+                                else if (eventName.Equals("OnStopActivity"))
                                 {
-                                    activity.SetTag("client.stopactivity", nameof(MassTransitEnrichEventType.OnStopActivity));
+                                    activity.SetTag("client.stopactivity", "OnStopActivity");
                                 }
                             };
                         }
@@ -311,8 +311,8 @@ namespace OpenTelemetry.Contrib.Instrumentation.MassTransit.Tests
             if (enrich && !enrichmentException)
             {
                 var consume = consumes.First();
-                Assert.Equal(nameof(MassTransitEnrichEventType.OnStartActivity), consume.TagObjects.Single(t => t.Key == "client.startactivity").Value);
-                Assert.Equal(nameof(MassTransitEnrichEventType.OnStopActivity), consume.TagObjects.Single(t => t.Key == "client.stopactivity").Value);
+                Assert.Equal("OnStartActivity", consume.TagObjects.Single(t => t.Key == "client.startactivity").Value);
+                Assert.Equal("OnStopActivity", consume.TagObjects.Single(t => t.Key == "client.stopactivity").Value);
             }
         }
 
