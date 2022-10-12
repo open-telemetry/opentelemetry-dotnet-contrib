@@ -89,7 +89,7 @@ public class ProcessMetricsTests
     }
 
     [Fact]
-    public void CpuUtilizationMetricsAreCaptured()
+    public void CpuUtilizationMetricsAreCapturedAndInRange()
     {
         var exportedItems = new List<Metric>();
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
