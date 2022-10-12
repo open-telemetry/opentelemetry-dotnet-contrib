@@ -15,7 +15,6 @@
 // </copyright>
 
 using System.Collections.Generic;
-using System.Diagnostics.Metrics;
 using System.Linq;
 using OpenTelemetry.Metrics;
 using Xunit;
@@ -48,7 +47,6 @@ public class ProcessMetricsTests
         Assert.NotNull(cpuUtilizationMetric);
         var threadMetric = exportedItems.FirstOrDefault(i => i.Name == "process.threads");
         Assert.NotNull(cpuTimeMetric);
-
     }
 
     [Fact]
