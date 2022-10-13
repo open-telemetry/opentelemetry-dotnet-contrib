@@ -87,7 +87,7 @@ public class ProcessMetricsTests
     }
 
     [Fact]
-    public void CpuUtilizationMetricsAreCapturedAndInRange()
+    public void CpuUtilizationMetricsAreCaptured()
     {
         var exportedItems = new List<Metric>();
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -99,7 +99,6 @@ public class ProcessMetricsTests
 
         var cpuUtilizationMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.utilization");
         Assert.NotNull(cpuUtilizationMetric);
-        Assert.True(GetValue(cpuUtilizationMetric) >= 0 && GetValue(cpuUtilizationMetric) <= 1);
 
         var userCpuUtilizationCaptured = false;
         var systemCpuUtilizationCaptured = false;
