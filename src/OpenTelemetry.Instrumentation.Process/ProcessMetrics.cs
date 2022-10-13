@@ -146,11 +146,9 @@ internal sealed class ProcessMetrics
 
     private IEnumerable<Measurement<double>> GetCpuUtilization()
     {
-        var userProcessorUtilization = (this.userProcessorTimeSeconds - this.lastCollectedUserProcessorTime) /
-                ((DateTime.UtcNow - this.lastCollectedTimeStampUtc).TotalSeconds * Environment.ProcessorCount);
-
-        var privilegedProcessorUtilization = (this.privilegedProcessorTimeSeconds - this.lastCollectedPrivilegedProcessorTime) /
-                ((DateTime.UtcNow - this.lastCollectedTimeStampUtc).TotalSeconds * Environment.ProcessorCount);
+        var temp = (DateTime.UtcNow - this.lastCollectedTimeStampUtc).TotalSeconds * Environment.ProcessorCount;
+        var userProcessorUtilization = (this.userProcessorTimeSeconds - this.lastCollectedUserProcessorTime) / temp;
+        var privilegedProcessorUtilization = (this.privilegedProcessorTimeSeconds - this.lastCollectedPrivilegedProcessorTime) / temp;
 
         this.lastCollectedTimeStampUtc = DateTime.UtcNow;
         this.lastCollectedUserProcessorTime = this.currentProcess.UserProcessorTime.TotalSeconds;
