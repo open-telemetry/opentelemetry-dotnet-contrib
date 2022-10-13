@@ -36,9 +36,9 @@ internal sealed class ProcessMetrics
     private IEnumerable<Measurement<double>> cpuUtilization;
 
     // vars for calculating CPU utilization
-    private DateTime lastCollectionTimeStampUtc = DateTime.UtcNow;
-    private double lastCollectionUserProcessorTime;
-    private double lastCollectionPrivilegedProcessorTime;
+    private DateTime lastCollectedTimeStampUtc = DateTime.UtcNow;
+    private double lastCollectedUserProcessorTime;
+    private double lastCollectedPrivilegedProcessorTime;
 
     public ProcessMetrics(ProcessInstrumentationOptions options)
     {
@@ -146,15 +146,15 @@ internal sealed class ProcessMetrics
 
     private IEnumerable<Measurement<double>> GetCpuUtilization()
     {
-        var userProcessorUtilization = (this.userProcessorTimeSeconds - this.lastCollectionUserProcessorTime) /
-                ((DateTime.UtcNow - this.lastCollectionTimeStampUtc).TotalSeconds * Environment.ProcessorCount);
+        var userProcessorUtilization = (this.userProcessorTimeSeconds - this.lastCollectedUserProcessorTime) /
+                ((DateTime.UtcNow - this.lastCollectedTimeStampUtc).TotalSeconds * Environment.ProcessorCount);
 
-        var privilegedProcessorUtilization = (this.privilegedProcessorTimeSeconds - this.lastCollectionPrivilegedProcessorTime) /
-                ((DateTime.UtcNow - this.lastCollectionTimeStampUtc).TotalSeconds * Environment.ProcessorCount);
+        var privilegedProcessorUtilization = (this.privilegedProcessorTimeSeconds - this.lastCollectedPrivilegedProcessorTime) /
+                ((DateTime.UtcNow - this.lastCollectedTimeStampUtc).TotalSeconds * Environment.ProcessorCount);
 
-        this.lastCollectionTimeStampUtc = DateTime.UtcNow;
-        this.lastCollectionUserProcessorTime = this.currentProcess.UserProcessorTime.TotalSeconds;
-        this.lastCollectionPrivilegedProcessorTime = this.currentProcess.PrivilegedProcessorTime.TotalSeconds;
+        this.lastCollectedTimeStampUtc = DateTime.UtcNow;
+        this.lastCollectedUserProcessorTime = this.currentProcess.UserProcessorTime.TotalSeconds;
+        this.lastCollectedPrivilegedProcessorTime = this.currentProcess.PrivilegedProcessorTime.TotalSeconds;
 
         return new[]
         {
