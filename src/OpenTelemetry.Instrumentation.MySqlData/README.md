@@ -54,7 +54,7 @@ For an ASP.NET application, adding instrumentation is typically done in the
 
 Note, If you are using `Mysql.Data` 8.0.31 or later, please add
 option `Logging=true` in your connection string to enable tracing.
-See [#691](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/691) for details.
+See issue #691 for details.
 
 ## Advanced configuration
 
