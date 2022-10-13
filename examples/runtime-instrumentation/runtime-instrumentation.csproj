@@ -8,5 +8,6 @@
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Exporter.Prometheus" Version="1.3.0-rc.2" />
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Runtime\OpenTelemetry.Instrumentation.Runtime.csproj" />
+    <ProjectReference Include="..\..\src\OpenTelemetry.Instrumentation.Process\OpenTelemetry.Instrumentation.Process.csproj" />
   </ItemGroup>
 </Project>

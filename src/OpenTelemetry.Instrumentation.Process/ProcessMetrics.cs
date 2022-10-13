@@ -36,13 +36,13 @@ internal sealed class ProcessMetrics
     private IEnumerable<Measurement<double>> cpuUtilization;
 
     // vars for calculating CPU utilization
-    private DateTime collectionTimeStamp;
-    private double collectionUserProcessorTime;
-    private double collectionPrivilegedProcessorTime;
+    private DateTime lastCollectionTimeStamp;
+    private double lastCollectionUserProcessorTime;
+    private double lastCollectionPrivilegedProcessorTime;
 
     public ProcessMetrics(ProcessInstrumentationOptions options)
     {
-        this.collectionTimeStamp = this.currentProcess.StartTime;
+        this.lastCollectionTimeStamp = this.currentProcess.StartTime;
 
         // TODO: change to ObservableUpDownCounter
         this.MeterInstance.CreateObservableGauge(
@@ -148,20 +148,20 @@ internal sealed class ProcessMetrics
 
     private IEnumerable<Measurement<double>> GetCpuUtilization()
     {
-        var userProcessorUtilization = (this.currentProcess.UserProcessorTime.TotalSeconds - this.collectionUserProcessorTime) /
-                ((DateTime.UtcNow - this.collectionTimeStamp.ToUniversalTime()).TotalSeconds * Environment.ProcessorCount);
+        var userProcessorUtilization = (this.userProcessorTime - this.lastCollectionUserProcessorTime) /
+                ((DateTime.UtcNow - this.lastCollectionTimeStamp.ToUniversalTime()).TotalSeconds * Environment.ProcessorCount);
 
-        var privilegedProcessorUtilization = (this.currentProcess.PrivilegedProcessorTime.TotalSeconds - this.collectionPrivilegedProcessorTime) /
-                ((DateTime.UtcNow - this.collectionTimeStamp.ToUniversalTime()).TotalSeconds * Environment.ProcessorCount);
+        var privilegedProcessorUtilization = (this.privilegedProcessorTime - this.lastCollectionPrivilegedProcessorTime) /
+                ((DateTime.UtcNow - this.lastCollectionTimeStamp.ToUniversalTime()).TotalSeconds * Environment.ProcessorCount);
 
-        this.collectionTimeStamp = DateTime.UtcNow;
-        this.collectionUserProcessorTime = this.currentProcess.UserProcessorTime.TotalSeconds;
-        this.collectionPrivilegedProcessorTime = this.currentProcess.PrivilegedProcessorTime.TotalSeconds;
+        this.lastCollectionTimeStamp = DateTime.UtcNow;
+        this.lastCollectionUserProcessorTime = this.currentProcess.UserProcessorTime.TotalSeconds;
+        this.lastCollectionPrivilegedProcessorTime = this.currentProcess.PrivilegedProcessorTime.TotalSeconds;
 
         return new[]
         {
-            new Measurement<double>(userProcessorUtilization, new KeyValuePair<string, object?>("state", "user")),
-            new Measurement<double>(privilegedProcessorUtilization, new KeyValuePair<string, object?>("state", "system")),
+            new Measurement<double>(userProcessorUtilization.Value, new KeyValuePair<string, object?>("state", "user")),
+            new Measurement<double>(privilegedProcessorUtilization.Value, new KeyValuePair<string, object?>("state", "system")),
         };
     }
 }

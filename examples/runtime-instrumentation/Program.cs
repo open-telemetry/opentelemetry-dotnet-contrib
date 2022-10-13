@@ -22,7 +22,7 @@ public class Program
     public static void Main()
     {
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddRuntimeInstrumentation()
+            .AddProcessInstrumentation()
             .AddPrometheusExporter(options =>
             {
                 options.StartHttpListener = true;
