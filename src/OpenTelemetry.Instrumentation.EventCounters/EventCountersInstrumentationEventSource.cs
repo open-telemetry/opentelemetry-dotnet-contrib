@@ -26,45 +26,33 @@ internal sealed class EventCountersInstrumentationEventSource : EventSource
 {
     public static readonly EventCountersInstrumentationEventSource Log = new();
 
-    [Event(1, Level = EventLevel.Warning, Message = "Duplicate instrument name detected: {0}.")]
-    internal void DuplicateInstrumentNameWarning(string instrumentName)
-    {
-        this.WriteEvent(1, instrumentName);
-    }
-
-    [Event(2, Level = EventLevel.Warning, Message = "Instrument not created. Invalid instrument name: {0}.")]
-    internal void InvalidInstrumentNameWarning(string instrumentName)
-    {
-        this.WriteEvent(2, instrumentName);
-    }
-
-    [Event(3, Level = EventLevel.Warning, Message = "Error while writing event from source: {0} - {1}.")]
+    [Event(1, Level = EventLevel.Warning, Message = "Error while writing event from source: {0} - {1}.")]
     internal void ErrorWhileWritingEvent(string eventSourceName, string exceptionMessage)
     {
-        this.WriteEvent(3, eventSourceName, exceptionMessage);
+        this.WriteEvent(1, eventSourceName, exceptionMessage);
     }
 
-    [Event(4, Level = EventLevel.Warning, Message = "Event data payload not parseable from source: {0}.")]
+    [Event(2, Level = EventLevel.Warning, Message = "Event data payload not parseable from source: {0}.")]
     internal void IgnoreEventWrittenEventArgsPayloadNotParseable(string eventSourceName)
+    {
+        this.WriteEvent(2, eventSourceName);
+    }
+
+    [Event(3, Level = EventLevel.Warning, Message = "Event data has no name from source: {0}.")]
+    internal void IgnoreEventWrittenEventArgsWithoutName(string eventSourceName)
+    {
+        this.WriteEvent(3, eventSourceName);
+    }
+
+    [Event(4, Level = EventLevel.Warning, Message = "Event data payload problem with values of Mean, Increment from source: {0}.")]
+    internal void IgnoreMeanIncrementConflict(string eventSourceName)
     {
         this.WriteEvent(4, eventSourceName);
     }
 
-    [Event(5, Level = EventLevel.Warning, Message = "Event data has no name from source: {0}.")]
-    internal void IgnoreEventWrittenEventArgsWithoutName(string eventSourceName)
-    {
-        this.WriteEvent(5, eventSourceName);
-    }
-
-    [Event(6, Level = EventLevel.Warning, Message = "Event data payload problem with values of Mean, Increment from source: {0}.")]
-    internal void IgnoreMeanIncrementConflict(string eventSourceName)
-    {
-        this.WriteEvent(6, eventSourceName);
-    }
-
-    [Event(7, Level = EventLevel.Warning, Message = "Event data has name other than 'EventCounters' from source: {0}.")]
+    [Event(5, Level = EventLevel.Warning, Message = "Event data has name other than 'EventCounters' from source: {0}.")]
     internal void IgnoreNonEventCountersName(string eventSourceName)
     {
-        this.WriteEvent(7, eventSourceName);
+        this.WriteEvent(5, eventSourceName);
     }
 }
