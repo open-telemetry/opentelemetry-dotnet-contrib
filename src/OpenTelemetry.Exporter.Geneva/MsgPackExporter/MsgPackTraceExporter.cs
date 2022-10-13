@@ -1,4 +1,4 @@
-// <copyright file="GenevaTraceExporter.cs" company="OpenTelemetry Authors">
+// <copyright file="MsgPackTraceExporter.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,17 +20,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
-public class GenevaTraceExporter : GenevaBaseExporter<Activity>
+internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 {
-    public GenevaTraceExporter(GenevaExporterOptions options)
+    public MsgPackTraceExporter(GenevaExporterOptions options)
     {
-        Guard.ThrowIfNull(options);
-        Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
-
         var partAName = "Span";
         if (options.TableNameMappings != null
             && options.TableNameMappings.TryGetValue("Span", out var customTableName))
@@ -144,7 +140,7 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
         Buffer.BlockCopy(buffer, 0, this.m_bufferEpilogue, 0, cursor - 0);
     }
 
-    public override ExportResult Export(in Batch<Activity> batch)
+    public ExportResult Export(in Batch<Activity> batch)
     {
         // Note: The MessagePackSerializer takes way less time / memory than creating the activity itself.
         //       This makes the short-circuit check less useful.
@@ -171,30 +167,6 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
         }
 
         return result;
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        if (this.isDisposed)
-        {
-            return;
-        }
-
-        if (disposing)
-        {
-            try
-            {
-                (this.m_dataTransport as IDisposable)?.Dispose();
-                this.m_buffer.Dispose();
-            }
-            catch (Exception ex)
-            {
-                ExporterEventSource.Log.ExporterException("GenevaTraceExporter Dispose failed.", ex);
-            }
-        }
-
-        this.isDisposed = true;
-        base.Dispose(disposing);
     }
 
     internal bool IsUsingUnixDomainSocket
@@ -401,6 +373,26 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
         cursor += this.m_bufferEpilogue.Length;
 
         return cursor;
+    }
+
+    public void Dispose()
+    {
+        if (this.isDisposed)
+        {
+            return;
+        }
+
+        try
+        {
+            (this.m_dataTransport as IDisposable)?.Dispose();
+            this.m_buffer.Dispose();
+        }
+        catch (Exception ex)
+        {
+            ExporterEventSource.Log.ExporterException("MsgPackTraceExporter Dispose failed.", ex);
+        }
+
+        this.isDisposed = true;
     }
 
     private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)

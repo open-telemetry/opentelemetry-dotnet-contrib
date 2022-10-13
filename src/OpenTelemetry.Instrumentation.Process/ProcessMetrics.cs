@@ -14,48 +14,90 @@
 // limitations under the License.
 // </copyright>
 
+using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using Diagnostics = System.Diagnostics;
 
 namespace OpenTelemetry.Instrumentation.Process;
 
-internal class ProcessMetrics
+internal sealed class ProcessMetrics
 {
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
-    internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
-    private static readonly Diagnostics.Process CurrentProcess = Diagnostics.Process.GetCurrentProcess();
+    internal readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
 
-    static ProcessMetrics()
+    private readonly Diagnostics.Process currentProcess = Diagnostics.Process.GetCurrentProcess();
+    private double? memoryUsage;
+    private double? virtualMemoryUsage;
+    private double? userProcessorTime;
+    private double? privilegedProcessorTime;
+
+    public ProcessMetrics(ProcessInstrumentationOptions options)
     {
         // TODO: change to ObservableUpDownCounter
-        MeterInstance.CreateObservableGauge(
+        this.MeterInstance.CreateObservableGauge(
             "process.memory.usage",
             () =>
             {
-                CurrentProcess.Refresh();
-                return CurrentProcess.WorkingSet64;
+                if (!this.memoryUsage.HasValue)
+                {
+                    this.Snapshot();
+                }
+
+                var value = this.memoryUsage.Value;
+                this.memoryUsage = null;
+                return value;
             },
             unit: "By",
-            description: "The amount of physical memory in use.");
+            description: "The amount of physical memory allocated for this process.");
 
         // TODO: change to ObservableUpDownCounter
-        MeterInstance.CreateObservableGauge(
+        this.MeterInstance.CreateObservableGauge(
             "process.memory.virtual",
             () =>
             {
-                CurrentProcess.Refresh();
-                return CurrentProcess.VirtualMemorySize64;
+                if (!this.virtualMemoryUsage.HasValue)
+                {
+                    this.Snapshot();
+                }
+
+                var value = this.virtualMemoryUsage.Value;
+                this.virtualMemoryUsage = null;
+                return value;
             },
             unit: "By",
-            description: "The amount of committed virtual memory.");
+            description: "The amount of virtual memory allocated for this process that cannot be shared with other processes.");
+
+        this.MeterInstance.CreateObservableCounter(
+            "process.cpu.time",
+            () =>
+            {
+                if (!this.userProcessorTime.HasValue || !this.privilegedProcessorTime.HasValue)
+                {
+                    this.Snapshot();
+                }
+
+                var userProcessorTimeValue = this.userProcessorTime.Value;
+                var privilegedProcessorTimeValue = this.privilegedProcessorTime.Value;
+                this.userProcessorTime = null;
+                this.privilegedProcessorTime = null;
+
+                return new[]
+                {
+                    new Measurement<double>(userProcessorTimeValue, new KeyValuePair<string, object?>("state", "user")),
+                    new Measurement<double>(privilegedProcessorTimeValue, new KeyValuePair<string, object?>("state", "system")),
+                };
+            },
+            unit: "s",
+            description: "Total CPU seconds broken down by different states.");
     }
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ProcessMetrics"/> class.
-    /// </summary>
-    /// <param name="options">The options to define the metrics.</param>
-    public ProcessMetrics(ProcessInstrumentationOptions options)
+    private void Snapshot()
     {
+        this.currentProcess.Refresh();
+        this.memoryUsage = this.currentProcess.WorkingSet64;
+        this.virtualMemoryUsage = this.currentProcess.PrivateMemorySize64;
+        this.userProcessorTime = this.currentProcess.UserProcessorTime.TotalSeconds;
+        this.privilegedProcessorTime = this.currentProcess.PrivilegedProcessorTime.TotalSeconds;
     }
 }
