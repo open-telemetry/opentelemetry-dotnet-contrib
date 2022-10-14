@@ -48,27 +48,6 @@ services.AddOpenTelemetrySdk(x =>
 });
 ```
 
-Instrumentation can be configured via options overload for
-`AddMassTransitInstrumentation` method:
-
-```csharp
-using var openTelemetry = Sdk.CreateTracerProviderBuilder()
-    .AddMassTransitInstrumentation(options =>
-    {
-        // Enable enriching an activity after it is created.
-        options.Enrich = (activity, eventName, rawObject) =>
-        {
-            if (eventName == "OnStartActivity")
-            {
-                var messagingOperation = activity.OperationName.Split('.').Last().ToLower();
-                if (messagingOperation != "send")
-                    activity.SetTag(SemanticConventions.AttributeMessagingOperation, messagingOperation);
-            }
-        };
-    })
-    .Build();
-```
-
 ## Filter traced operations
 
 For example you can trace only consume and handle operations using this snippet:
