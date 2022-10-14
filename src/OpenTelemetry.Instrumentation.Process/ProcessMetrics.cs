@@ -36,12 +36,16 @@ internal sealed class ProcessMetrics
     private IEnumerable<Measurement<double>> cpuUtilization;
 
     // vars for calculating CPU utilization
-    private DateTime lastCollectedTimeStampUtc = DateTime.UtcNow;
+    private DateTime lastCollectedTimeStampUtc;
     private double lastCollectedUserProcessorTime;
     private double lastCollectedPrivilegedProcessorTime;
 
     public ProcessMetrics(ProcessInstrumentationOptions options)
     {
+        this.lastCollectedTimeStampUtc = DateTime.UtcNow;
+        this.lastCollectedUserProcessorTime = this.currentProcess.UserProcessorTime.TotalSeconds;
+        this.lastCollectedUserProcessorTime = this.currentProcess.PrivilegedProcessorTime.TotalSeconds;
+
         // TODO: change to ObservableUpDownCounter
         this.MeterInstance.CreateObservableGauge(
             "process.memory.usage",
