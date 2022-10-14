@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -226,10 +227,21 @@ public class MassTransitInstrumentationTests
 
     [Theory]
     [InlineData(OperationName.Consumer.Consume)]
+    [InlineData(OperationName.Consumer.Consume, true)]
+    [InlineData(OperationName.Consumer.Consume, true, true)]
     [InlineData(OperationName.Consumer.Handle)]
+    [InlineData(OperationName.Consumer.Handle, true)]
+    [InlineData(OperationName.Consumer.Handle, true, true)]
     [InlineData(OperationName.Transport.Send)]
+    [InlineData(OperationName.Transport.Send, true)]
+    [InlineData(OperationName.Transport.Send, true, true)]
     [InlineData(OperationName.Transport.Receive)]
-    public async Task MassTransitInstrumentationTestOptions(string operationName)
+    [InlineData(OperationName.Transport.Receive, true)]
+    [InlineData(OperationName.Transport.Receive, true, true)]
+    public async Task MassTransitInstrumentationTestOptions(
+            string operationName,
+            bool enrich = false,
+            bool enrichmentException = false)
     {
         using Activity activity = new Activity("Parent");
         activity.SetParentId(
@@ -242,7 +254,31 @@ public class MassTransitInstrumentationTests
         using (Sdk.CreateTracerProviderBuilder()
                    .AddProcessor(activityProcessor.Object)
                    .AddMassTransitInstrumentation(o =>
-                       o.TracedOperations = new HashSet<string>(new[] { operationName }))
+                   {
+                       o.TracedOperations = new HashSet<string>(new[] { operationName });
+
+                       if (enrich)
+                       {
+                           if (!enrichmentException)
+                           {
+                               o.Enrich = (activity, eventName, obj) =>
+                               {
+                                   if (eventName.Equals("OnStartActivity"))
+                                   {
+                                       activity.SetTag("client.startactivity", "OnStartActivity");
+                                   }
+                                   else if (eventName.Equals("OnStopActivity"))
+                                   {
+                                       activity.SetTag("client.stopactivity", "OnStopActivity");
+                                   }
+                               };
+                           }
+                           else
+                           {
+                               o.Enrich = (activity, eventName, obj) => throw new Exception("Error while enriching activity");
+                           }
+                       }
+                   })
                    .Build())
         {
             var harness = new InMemoryTestHarness();
@@ -259,6 +295,12 @@ public class MassTransitInstrumentationTests
                 Assert.True(await harness.Consumed.SelectAsync<TestMessage>().Any());
                 Assert.True(await consumerHarness.Consumed.SelectAsync<TestMessage>().Any());
                 Assert.True(await handlerHarness.Consumed.SelectAsync().Any());
+
+                if (enrich && !enrichmentException)
+                {
+                    Assert.Equal("OnStartActivity", activity.TagObjects.Single(t => t.Key == "client.startactivity").Value);
+                    Assert.Equal("OnStopActivity", activity.TagObjects.Single(t => t.Key == "client.stopactivity").Value);
+                }
             }
             finally
             {

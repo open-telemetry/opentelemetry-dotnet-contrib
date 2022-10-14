@@ -61,6 +61,15 @@ internal class MassTransitDiagnosticListener : ListenerHandler
 
             ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
             ActivityInstrumentationHelper.SetKindProperty(activity, this.GetActivityKind(activity));
+
+            try
+            {
+                this.options.Enrich?.Invoke(activity, "OnStartActivity", payload);
+            }
+            catch (Exception ex)
+            {
+                MassTransitInstrumentationEventSource.Log.EnrichmentException("OnStartActivity", ex);
+            }
         }
     }
 
@@ -71,6 +80,8 @@ internal class MassTransitDiagnosticListener : ListenerHandler
             try
             {
                 this.TransformMassTransitTags(activity);
+
+                this.options.Enrich?.Invoke(activity, "OnStopActivity", payload);
             }
             catch (Exception ex)
             {
