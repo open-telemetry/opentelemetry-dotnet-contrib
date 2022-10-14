@@ -36,15 +36,15 @@ internal sealed class ProcessMetrics
     private IEnumerable<Measurement<double>> cpuUtilization;
 
     // vars for calculating CPU utilization
-    private DateTime lastCollectedTimeStampUtc;
+    private DateTime lastCollectionTimeUtc;
     private double lastCollectedUserProcessorTime;
     private double lastCollectedPrivilegedProcessorTime;
 
     public ProcessMetrics(ProcessInstrumentationOptions options)
     {
-        this.lastCollectedTimeStampUtc = DateTime.UtcNow;
+        this.lastCollectionTimeUtc = DateTime.UtcNow;
         this.lastCollectedUserProcessorTime = this.currentProcess.UserProcessorTime.TotalSeconds;
-        this.lastCollectedUserProcessorTime = this.currentProcess.PrivilegedProcessorTime.TotalSeconds;
+        this.lastCollectedPrivilegedProcessorTime = this.currentProcess.PrivilegedProcessorTime.TotalSeconds;
 
         // TODO: change to ObservableUpDownCounter
         this.MeterInstance.CreateObservableGauge(
@@ -150,11 +150,11 @@ internal sealed class ProcessMetrics
 
     private IEnumerable<Measurement<double>> GetCpuUtilization()
     {
-        var temp = (DateTime.UtcNow - this.lastCollectedTimeStampUtc).TotalSeconds * Environment.ProcessorCount;
+        var temp = (DateTime.UtcNow - this.lastCollectionTimeUtc).TotalSeconds * Environment.ProcessorCount;
         var userProcessorUtilization = (this.userProcessorTimeSeconds - this.lastCollectedUserProcessorTime) / temp;
         var privilegedProcessorUtilization = (this.privilegedProcessorTimeSeconds - this.lastCollectedPrivilegedProcessorTime) / temp;
 
-        this.lastCollectedTimeStampUtc = DateTime.UtcNow;
+        this.lastCollectionTimeUtc = DateTime.UtcNow;
         this.lastCollectedUserProcessorTime = this.currentProcess.UserProcessorTime.TotalSeconds;
         this.lastCollectedPrivilegedProcessorTime = this.currentProcess.PrivilegedProcessorTime.TotalSeconds;
 
