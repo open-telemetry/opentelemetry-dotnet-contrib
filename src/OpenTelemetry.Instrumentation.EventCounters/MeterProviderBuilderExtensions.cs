@@ -31,17 +31,17 @@ public static class MeterProviderBuilderExtensions
     /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
     /// <param name="configure">Runtime metrics options.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
-    public static MeterProviderBuilder AddEventCounterMetrics(
+    public static MeterProviderBuilder AddEventCountersInstrumentation(
         this MeterProviderBuilder builder,
-        Action<EventCounterMetricsOptions> configure = null)
+        Action<EventCountersInstrumentationOptions> configure = null)
     {
         Guard.ThrowIfNull(builder);
 
-        var options = new EventCounterMetricsOptions();
+        var options = new EventCountersInstrumentationOptions();
         configure?.Invoke(options);
 
-        var instrumentation = new EventCounterListener(options);
-        builder.AddMeter(EventCounterListener.InstrumentationName);
+        var instrumentation = new EventCountersMetrics(options);
+        builder.AddMeter(EventCountersMetrics.MeterInstance.Name);
         return builder.AddInstrumentation(() => instrumentation);
     }
 }
