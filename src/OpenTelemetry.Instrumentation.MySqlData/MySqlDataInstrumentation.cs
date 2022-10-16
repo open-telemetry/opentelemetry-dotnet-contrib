@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Reflection;
 using MySql.Data.MySqlClient;
 using OpenTelemetry.Trace;
 
@@ -37,7 +38,13 @@ internal class MySqlDataInstrumentation : DefaultTraceListener
         MySqlTrace.Listeners.Clear();
         MySqlTrace.Listeners.Add(this);
         MySqlTrace.Switch.Level = SourceLevels.Information;
-        MySqlTrace.QueryAnalysisEnabled = true;
+
+        // Mysql.Data removed `MySql.Data.MySqlClient.MySqlTrace.QueryAnalysisEnabled` since 8.0.31 so we need to set this using reflection.
+        var queryAnalysisEnabled = typeof(MySqlTrace).GetProperty("QueryAnalysisEnabled", BindingFlags.Public | BindingFlags.Static);
+        if (queryAnalysisEnabled != null)
+        {
+            queryAnalysisEnabled.SetValue(null, true);
+        }
     }
 
     /// <inheritdoc />
