@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 1.0.0-beta.1
+## 1.0.0-alpha.1
 
 Released 2022-Oct-17
 
