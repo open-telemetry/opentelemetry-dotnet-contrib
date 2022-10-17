@@ -8,7 +8,7 @@
   [646](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/646)
 
 * Update OTel SDK version to `1.4.0-beta.2`. Add support for exporting Histogram
-  Min and Max. If the histogram does not support min and max, the exporter
+  Min and Max. If the histogram does not contain min and max, the exporter
   exports both the values az zero.
   [#704](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/704)
 
