@@ -17,7 +17,7 @@ Add a reference to
 package.
 
 ```shell
-dotnet add package OpenTelemetry.Instrumentation.Process --version 0.1.0-alpha.1
+dotnet add package --prerelease OpenTelemetry.Instrumentation.Process
 ```
 
 Add a reference to
@@ -55,7 +55,8 @@ The amount of physical memory allocated for this process.
 
 ### process.memory.virtual
 
-The amount of virtual memory allocated for this process that cannot be shared with other processes.
+The amount of virtual memory allocated for this process
+that cannot be shared with other processes.
 
 | Units | Instrument Type   | Value Type |
 |-------|-------------------|------------|
