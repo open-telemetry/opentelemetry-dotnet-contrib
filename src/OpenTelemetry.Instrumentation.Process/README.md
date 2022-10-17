@@ -45,6 +45,47 @@ complete demo.
 
 ## Metrics
 
+### process.memory.usage
+
+The amount of physical memory allocated for this process.
+
+| Units | Instrument Type   | Value Type |
+|-------|-------------------|------------|
+|  `By` |  ObservableGauge  | `Double`   |
+
+### process.memory.virtual
+
+The amount of virtual memory allocated for this process that cannot be shared with other processes.
+
+| Units | Instrument Type   | Value Type |
+|-------|-------------------|------------|
+|  `By` |  ObservableGauge  | `Double`   |
+
+### process.cpu.time
+
+Total CPU seconds broken down by states.
+
+| Units | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|-------|-------------------|------------|------------------|------------------|
+|  `s`  | ObservableCounter | `Double`   | state            | user, system     |
+
+### process.cpu.utilization
+
+Difference in process.cpu.time since the last measurement,
+divided by the elapsed time and number of CPUs available to the process.
+
+| Units | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|-------|-------------------|------------|------------------|------------------|
+|  `1`  | ObservableCounter | `Double`   | state            | user, system     |
+
+### process.threads
+
+Process threads count.
+
+| Units           | Instrument Type   | Value Type |
+|-----------------|-------------------|------------|
+| `{threads}`     | ObservableCounter | `Int32`    |
+
 ## References
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
