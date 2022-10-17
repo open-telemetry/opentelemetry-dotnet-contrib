@@ -30,7 +30,7 @@ internal sealed class EventCountersMetrics : EventListener
     internal static readonly Meter MeterInstance = new(typeof(EventCountersMetrics).Assembly.GetName().Name, typeof(EventCountersMetrics).Assembly.GetName().Version.ToString());
 
     private readonly EventCountersInstrumentationOptions options;
-    private readonly ConcurrentQueue<EventSource> preInitEventSources = new();
+    private readonly List<EventSource> preInitEventSources = new();
     private readonly ConcurrentDictionary<(string, string), Instrument> instruments = new();
     private readonly ConcurrentDictionary<(string, string), double> values = new();
 
@@ -40,28 +40,41 @@ internal sealed class EventCountersMetrics : EventListener
     /// <param name="options">The options to define the metrics.</param>
     public EventCountersMetrics(EventCountersInstrumentationOptions options)
     {
-        this.options = options;
-
-        while (this.preInitEventSources.TryDequeue(out EventSource eventSource))
+        lock (this.preInitEventSources)
         {
-            if (this.options.ShouldListenToSource(eventSource.Name))
+            this.options = options;
+
+            foreach (EventSource eventSource in this.preInitEventSources)
             {
-                this.EnableEvents(eventSource, EventLevel.LogAlways, EventKeywords.None, GetEnableEventsArguments(this.options));
+                if (this.options.ShouldListenToSource(eventSource.Name))
+                {
+                    this.EnableEvents(eventSource);
+                }
             }
+
+            this.preInitEventSources.Clear();
         }
     }
 
     /// <inheritdoc />
-    protected override void OnEventSourceCreated(EventSource source)
+    protected override void OnEventSourceCreated(EventSource eventSource)
     {
-        if (this.options == null)
+        lock (this.preInitEventSources)
         {
-            this.preInitEventSources.Enqueue(source);
+            if (this.options == null)
+            {
+                this.preInitEventSources.Add(eventSource);
+            }
+            else if (this.options.ShouldListenToSource(eventSource.Name))
+            {
+                this.EnableEvents(eventSource);
+            }
         }
-        else if (this.options.ShouldListenToSource(source.Name))
-        {
-            this.EnableEvents(source, EventLevel.LogAlways, EventKeywords.None, GetEnableEventsArguments(this.options));
-        }
+    }
+    
+    private void EnableEvents(EventSource eventSource)
+    {
+         this.EnableEvents(eventSource, EventLevel.Critical, EventKeywords.None, GetEnableEventsArguments(this.options));
     }
 
     /// <inheritdoc />
