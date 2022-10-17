@@ -17,7 +17,7 @@ Add a reference to
 package.
 
 ```shell
-dotnet add package OpenTelemetry.Instrumentation.Process
+dotnet add package OpenTelemetry.Instrumentation.Process --version 0.1.0-alpha.1
 ```
 
 Add a reference to
@@ -39,6 +39,9 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
     .AddPrometheusHttpListener()
     .Build();
 ```
+
+Refer to [Program.cs](../../examples/runtime-instrumentation/Program.cs) for a
+complete demo.
 
 ## Metrics
 
