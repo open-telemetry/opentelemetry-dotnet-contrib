@@ -36,8 +36,7 @@ Process instrumentation should be enabled at application startup using the
 ```csharp
 using var meterProvider = Sdk.CreateMeterProviderBuilder()
     .AddProcessInstrumentation()
-    .AddPrometheusHttpListener(
-        options => options.UriPrefixes = new string[] { "http://localhost:9464/" })
+    .AddPrometheusHttpListener()
     .Build();
 ```
 
