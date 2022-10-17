@@ -295,12 +295,6 @@ public class MassTransitInstrumentationTests
                 Assert.True(await harness.Consumed.SelectAsync<TestMessage>().Any());
                 Assert.True(await consumerHarness.Consumed.SelectAsync<TestMessage>().Any());
                 Assert.True(await handlerHarness.Consumed.SelectAsync().Any());
-
-                if (enrich && !enrichmentException)
-                {
-                    Assert.Equal("OnStartActivity", activity.TagObjects.Single(t => t.Key == "client.startactivity").Value);
-                    Assert.Equal("OnStopActivity", activity.TagObjects.Single(t => t.Key == "client.stopactivity").Value);
-                }
             }
             finally
             {
@@ -313,6 +307,12 @@ public class MassTransitInstrumentationTests
         var consumes = this.GetActivitiesFromInvocationsByOperationName(activityProcessor.Invocations, operationName);
 
         Assert.Single(consumes);
+
+        if (enrich && !enrichmentException)
+        {
+            Assert.Equal("OnStartActivity", consumes.First().TagObjects.Single(t => t.Key == "client.startactivity").Value);
+            Assert.Equal("OnStopActivity", consumes.First().TagObjects.Single(t => t.Key == "client.stopactivity").Value);
+        }
     }
 
     [Fact]
