@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.4.0-beta.2
+
+Released 2022-Oct-17
+
 * The option `TableNameMappings` of `GenevaExporterOptions` will not support
   string values that are null, empty, or consist only of white-space characters.
   It will also not support string values that contain non-ASCII characters.
