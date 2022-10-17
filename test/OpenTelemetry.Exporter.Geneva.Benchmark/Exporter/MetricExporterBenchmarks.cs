@@ -23,30 +23,31 @@ using BenchmarkDotNet.Attributes;
 using OpenTelemetry.Metrics;
 
 /*
-BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
+BenchmarkDotNet=v0.13.2, OS=Windows 11 (10.0.22621.674)
 Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
-.NET SDK=6.0.102
-  [Host]     : .NET 6.0.2 (6.0.222.6406), X64 RyuJIT
-  DefaultJob : .NET 6.0.2 (6.0.222.6406), X64 RyuJIT
+.NET SDK=7.0.100-preview.6.22352.1
+  [Host]     : .NET 6.0.10 (6.0.1022.47605), X64 RyuJIT AVX2
+  DefaultJob : .NET 6.0.10 (6.0.1022.47605), X64 RyuJIT AVX2
+
 
 |                                                   Method |      Mean |    Error |   StdDev | Allocated |
 |--------------------------------------------------------- |----------:|---------:|---------:|----------:|
-|                      InstrumentWithNoListener3Dimensions |  66.07 ns | 0.213 ns | 0.199 ns |         - |
-|                      InstrumentWithNoListener4Dimensions | 109.53 ns | 0.267 ns | 0.236 ns |         - |
-|                    InstrumentWithWithListener3Dimensions |  65.59 ns | 0.322 ns | 0.285 ns |         - |
-|                    InstrumentWithWithListener4Dimensions | 117.56 ns | 0.655 ns | 0.613 ns |         - |
-|                 InstrumentWithWithDummyReader3Dimensions | 182.75 ns | 0.787 ns | 0.698 ns |         - |
-|                 InstrumentWithWithDummyReader4Dimensions | 244.04 ns | 1.268 ns | 1.186 ns |         - |
-| InstrumentWithWithGenevaCounterMetricExporter3Dimensions | 181.74 ns | 0.595 ns | 0.527 ns |         - |
-| InstrumentWithWithGenevaCounterMetricExporter4Dimensions | 265.85 ns | 3.214 ns | 3.006 ns |         - |
-|                SerializeCounterMetricItemWith3Dimensions | 166.33 ns | 0.470 ns | 0.439 ns |         - |
-|                SerializeCounterMetricItemWith4Dimensions | 200.02 ns | 0.546 ns | 0.510 ns |         - |
-|                   ExportCounterMetricItemWith3Dimensions | 464.79 ns | 3.996 ns | 3.738 ns |         - |
-|                   ExportCounterMetricItemWith4Dimensions | 504.02 ns | 6.362 ns | 5.951 ns |         - |
-|              SerializeHistogramMetricItemWith3Dimensions | 260.47 ns | 1.364 ns | 1.276 ns |         - |
-|              SerializeHistogramMetricItemWith4Dimensions | 293.25 ns | 0.674 ns | 0.631 ns |         - |
-|                 ExportHistogramMetricItemWith3Dimensions | 585.69 ns | 5.137 ns | 4.805 ns |         - |
-|                 ExportHistogramMetricItemWith4Dimensions | 618.47 ns | 4.946 ns | 4.384 ns |         - |
+|                      InstrumentWithNoListener3Dimensions |  67.73 ns | 0.232 ns | 0.217 ns |         - |
+|                      InstrumentWithNoListener4Dimensions | 109.41 ns | 0.593 ns | 0.526 ns |         - |
+|                    InstrumentWithWithListener3Dimensions |  70.75 ns | 0.336 ns | 0.314 ns |         - |
+|                    InstrumentWithWithListener4Dimensions | 111.69 ns | 0.455 ns | 0.403 ns |         - |
+|                 InstrumentWithWithDummyReader3Dimensions | 187.26 ns | 1.206 ns | 1.128 ns |         - |
+|                 InstrumentWithWithDummyReader4Dimensions | 254.82 ns | 0.931 ns | 0.777 ns |         - |
+| InstrumentWithWithGenevaCounterMetricExporter3Dimensions | 177.80 ns | 1.325 ns | 1.239 ns |         - |
+| InstrumentWithWithGenevaCounterMetricExporter4Dimensions | 255.63 ns | 4.011 ns | 3.752 ns |         - |
+|                SerializeCounterMetricItemWith3Dimensions | 176.72 ns | 0.858 ns | 0.803 ns |         - |
+|                SerializeCounterMetricItemWith4Dimensions | 211.00 ns | 1.069 ns | 1.000 ns |         - |
+|                   ExportCounterMetricItemWith3Dimensions | 448.24 ns | 3.487 ns | 3.091 ns |         - |
+|                   ExportCounterMetricItemWith4Dimensions | 489.01 ns | 4.478 ns | 3.739 ns |         - |
+|              SerializeHistogramMetricItemWith3Dimensions | 303.49 ns | 5.922 ns | 7.050 ns |         - |
+|              SerializeHistogramMetricItemWith4Dimensions | 330.51 ns | 3.240 ns | 3.030 ns |         - |
+|                 ExportHistogramMetricItemWith3Dimensions | 610.94 ns | 3.551 ns | 2.965 ns |         - |
+|                 ExportHistogramMetricItemWith4Dimensions | 632.27 ns | 1.829 ns | 1.528 ns |         - |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark;
@@ -68,6 +69,10 @@ public class MetricExporterBenchmarks
     private MetricPoint histogramMetricPointWith4Dimensions;
     private MetricData histogramSumWith3Dimensions;
     private MetricData histogramSumWith4Dimensions;
+    private MetricData histogramMinWith3Dimensions;
+    private MetricData histogramMinWith4Dimensions;
+    private MetricData histogramMaxWith3Dimensions;
+    private MetricData histogramMaxWith4Dimensions;
     private uint histogramCountWith3Dimensions;
     private uint histogramCountWith4Dimensions;
     private Batch<Metric> histogramMetricBatchWith3Dimensions;
@@ -118,8 +123,8 @@ public class MetricExporterBenchmarks
         enumeratorForCounterBatchWith4Dimensions.MoveNext();
         this.counterMetricWith4Dimensions = enumeratorForCounterBatchWith4Dimensions.Current;
 
-        this.histogramMetricPointWith3Dimensions = this.GenerateHistogramMetricItemWith3Dimensions(out this.histogramSumWith3Dimensions, out this.histogramCountWith3Dimensions);
-        this.histogramMetricPointWith4Dimensions = this.GenerateHistogramMetricItemWith4Dimensions(out this.histogramSumWith4Dimensions, out this.histogramCountWith4Dimensions);
+        this.histogramMetricPointWith3Dimensions = this.GenerateHistogramMetricItemWith3Dimensions(out this.histogramSumWith3Dimensions, out this.histogramCountWith3Dimensions, out this.histogramMinWith3Dimensions, out this.histogramMaxWith3Dimensions);
+        this.histogramMetricPointWith4Dimensions = this.GenerateHistogramMetricItemWith4Dimensions(out this.histogramSumWith4Dimensions, out this.histogramCountWith4Dimensions, out this.histogramMinWith4Dimensions, out this.histogramMaxWith4Dimensions);
 
         this.histogramMetricBatchWith3Dimensions = this.GenerateHistogramBatchWith3Dimensions();
         this.histogramMetricBatchWith4Dimensions = this.GenerateHistogramBatchWith4Dimensions();
@@ -287,7 +292,7 @@ public class MetricExporterBenchmarks
         return batchGeneratorExporter.Batch;
     }
 
-    private MetricPoint GenerateHistogramMetricItemWith3Dimensions(out MetricData sum, out uint count)
+    private MetricPoint GenerateHistogramMetricItemWith3Dimensions(out MetricData sum, out uint count, out MetricData min, out MetricData max)
     {
         using var meterWithInMemoryExporter = new Meter("GenerateHistogramMetricItemWith3Dimensions", "0.0.1");
         var histogram = meterWithInMemoryExporter.CreateHistogram<long>("HistogramWith3Dimensions");
@@ -321,10 +326,19 @@ public class MetricExporterBenchmarks
         sum = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetHistogramSum()) };
         count = Convert.ToUInt32(metricPoint.GetHistogramCount());
 
+        min = new MetricData { UInt64Value = 0 };
+        max = new MetricData { UInt64Value = 0 };
+
+        if (metricPoint.HasMinMax())
+        {
+            min = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetHistogramMin()) };
+            max = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetHistogramMax()) };
+        }
+
         return metricPoint;
     }
 
-    private MetricPoint GenerateHistogramMetricItemWith4Dimensions(out MetricData sum, out uint count)
+    private MetricPoint GenerateHistogramMetricItemWith4Dimensions(out MetricData sum, out uint count, out MetricData min, out MetricData max)
     {
         using var meterWithInMemoryExporter = new Meter("GenerateHistogramMetricItemWith4Dimensions", "0.0.1");
         var histogram = meterWithInMemoryExporter.CreateHistogram<long>("HistogramWith4Dimensions");
@@ -361,6 +375,15 @@ public class MetricExporterBenchmarks
         var metricPoint = metricPointsEnumerator.Current;
         sum = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetHistogramSum()) };
         count = Convert.ToUInt32(metricPoint.GetHistogramCount());
+
+        min = new MetricData { UInt64Value = 0 };
+        max = new MetricData { UInt64Value = 0 };
+
+        if (metricPoint.HasMinMax())
+        {
+            min = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetHistogramMin()) };
+            max = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetHistogramMax()) };
+        }
 
         return metricPoint;
     }
@@ -583,7 +606,9 @@ public class MetricExporterBenchmarks
             this.histogramMetricPointWith3Dimensions.Tags,
             this.histogramMetricPointWith3Dimensions.GetHistogramBuckets(),
             this.histogramSumWith3Dimensions,
-            this.histogramCountWith3Dimensions);
+            this.histogramCountWith3Dimensions,
+            this.histogramMinWith3Dimensions,
+            this.histogramMaxWith3Dimensions);
     }
 
     [Benchmark]
@@ -595,7 +620,9 @@ public class MetricExporterBenchmarks
             this.histogramMetricPointWith4Dimensions.Tags,
             this.histogramMetricPointWith4Dimensions.GetHistogramBuckets(),
             this.histogramSumWith4Dimensions,
-            this.histogramCountWith4Dimensions);
+            this.histogramCountWith4Dimensions,
+            this.histogramMinWith4Dimensions,
+            this.histogramMaxWith4Dimensions);
     }
 
     [Benchmark]
