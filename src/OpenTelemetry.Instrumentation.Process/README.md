@@ -40,7 +40,7 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
     .Build();
 ```
 
-Refer to [Program.cs](../../examples/runtime-instrumentation/Program.cs) for a
+Refer to [Program.cs](../../examples/process-instrumentation/Program.cs) for a
 complete demo.
 
 ## Metrics
@@ -53,6 +53,12 @@ The amount of physical memory allocated for this process.
 |-------|-------------------|------------|
 |  `By` |  ObservableGauge  | `Double`   |
 
+The API used to retrieve the value is:
+
+* [Process.WorkingSet64](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.workingset64):
+Gets the amount of physical memory, in bytes,
+allocated for the associated process.
+
 ### process.memory.virtual
 
 The amount of virtual memory allocated for this process
@@ -62,6 +68,12 @@ that cannot be shared with other processes.
 |-------|-------------------|------------|
 |  `By` |  ObservableGauge  | `Double`   |
 
+The API used to retrieve the value is:
+
+* [Process.WorkingSet64](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.privatememorysize64):
+Gets the amount of private memory, in bytes,
+allocated for the associated process.
+
 ### process.cpu.time
 
 Total CPU seconds broken down by states.
@@ -69,6 +81,14 @@ Total CPU seconds broken down by states.
 | Units | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |-------|-------------------|------------|------------------|------------------|
 |  `s`  | ObservableCounter | `Double`   | state            | user, system     |
+
+The APIs used to retrieve the values are:
+
+* [Process.UserProcessorTime](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.userprocessortime):
+Gets the user processor time for this process.
+
+* [Process.PrivilegedProcessorTime](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.privilegedprocessortime):
+Gets the privileged processor time for this process.
 
 ### process.cpu.utilization
 
@@ -79,13 +99,27 @@ divided by the elapsed time and number of CPUs available to the process.
 |-------|-------------------|------------|------------------|------------------|
 |  `1`  | ObservableCounter | `Double`   | state            | user, system     |
 
+The APIs used to retrieve the values are:
+
+* [Process.UserProcessorTime](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.userprocessortime):
+Gets the user processor time for this process.
+
+* [Process.PrivilegedProcessorTime](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.privilegedprocessortime):
+Gets the privileged processor time for this process.
+
 ### process.threads
 
 Process threads count.
 
 | Units           | Instrument Type   | Value Type |
 |-----------------|-------------------|------------|
-| `{threads}`     | ObservableCounter | `Int32`    |
+| `{threads}`     | ObservableGauge   | `Int32`    |
+
+The API used to retrieve the value is:
+
+* [Process.Threads](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.threads):
+Gets the set of threads that are running
+in the associated process.
 
 ## References
 
