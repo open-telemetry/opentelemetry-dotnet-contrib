@@ -184,7 +184,7 @@ public class GenevaMetricExporterTests
             // 1000: 1
             // 1001: 1 (We use one greater than the last bound provided (1000 + 1) as the value for the overflow bucket)
 
-            histogram.Record(-1, new("tag1", "value1"), new("tag2", "value2"));
+            histogram.Record(0, new("tag1", "value1"), new("tag2", "value2"));
             histogram.Record(150, new("tag1", "value1"), new("tag2", "value2"));
             histogram.Record(150, new("tag1", "value1"), new("tag2", "value2"));
             histogram.Record(750, new("tag1", "value1"), new("tag2", "value2"));
@@ -265,6 +265,7 @@ public class GenevaMetricExporterTests
         var doubleCounter = meter.CreateCounter<double>("doubleCounter");
         var histogramWithCustomBounds = meter.CreateHistogram<long>("histogramWithCustomBounds");
         var histogramWithNoBounds = meter.CreateHistogram<long>("histogramWithNoBounds");
+        var histogramWithNoMinMax = meter.CreateHistogram<long>("histogramWithNoMinMax");
         var exportedItems = new List<Metric>();
         using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
         {
@@ -292,6 +293,12 @@ public class GenevaMetricExporterTests
 
                 return null;
             })
+            .AddView(
+                "histogramWithNoMinMax",
+                new HistogramConfiguration
+                {
+                    RecordMinMax = false,
+                })
             .AddView("observableLongCounter", MetricStreamConfiguration.Drop)
             .AddView("observableDoubleCounter", new MetricStreamConfiguration { TagKeys = new string[] { } })
             .AddView(instrument =>
@@ -364,7 +371,7 @@ public class GenevaMetricExporterTests
         // 1000: 1
         // 1001: 1 (We use one greater than the last bound provided (1000 + 1) as the value for the overflow bucket)
 
-        histogramWithCustomBounds.Record(-1, new("tag1", "value1"), new("tag2", "value2"));
+        histogramWithCustomBounds.Record(0, new("tag1", "value1"), new("tag2", "value2"));
         histogramWithCustomBounds.Record(150, new("tag1", "value1"), new("tag2", "value2"));
         histogramWithCustomBounds.Record(150, new("tag1", "value1"), new("tag2", "value2"));
         histogramWithCustomBounds.Record(750, new("tag1", "value1"), new("tag2", "value2"));
@@ -378,11 +385,17 @@ public class GenevaMetricExporterTests
         // Only `sum` and `count` are sent for histogramWithNoBounds
         // No value-count pairs are sent for histogramWithNoBounds
 
-        histogramWithNoBounds.Record(-1, new("tag1", "value1"), new("tag2", "value2"));
+        histogramWithNoBounds.Record(0, new("tag1", "value1"), new("tag2", "value2"));
         histogramWithNoBounds.Record(150, new("tag1", "value1"), new("tag2", "value2"));
         histogramWithNoBounds.Record(150, new("tag1", "value1"), new("tag2", "value2"));
         histogramWithNoBounds.Record(750, new("tag1", "value1"), new("tag2", "value2"));
         histogramWithNoBounds.Record(2500, new("tag1", "value1"), new("tag2", "value2"));
+
+        histogramWithNoMinMax.Record(-1, new("tag1", "value1"), new("tag2", "value2"));
+        histogramWithNoMinMax.Record(150, new("tag1", "value1"), new("tag2", "value2"));
+        histogramWithNoMinMax.Record(150, new("tag1", "value1"), new("tag2", "value2"));
+        histogramWithNoMinMax.Record(750, new("tag1", "value1"), new("tag2", "value2"));
+        histogramWithNoMinMax.Record(2500, new("tag1", "value1"), new("tag2", "value2"));
 
         string path = string.Empty;
         Socket server = null;
@@ -414,7 +427,7 @@ public class GenevaMetricExporterTests
 
             inMemoryReader.Collect();
 
-            Assert.Equal(6, exportedItems.Count);
+            Assert.Equal(7, exportedItems.Count);
 
             // observableLongCounter and observableDoubleGauge are dropped
             Assert.Empty(exportedItems.Where(item => item.Name == "observableLongCounter" || item.Name == "observableDoubleGauge"));
@@ -644,13 +657,31 @@ public class GenevaMetricExporterTests
         {
             var sum = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetHistogramSum()) };
             var count = Convert.ToUInt32(metricPoint.GetHistogramCount());
+
+            ulong minValue = 0;
+            ulong maxValue = 0;
+            var min = new MetricData { UInt64Value = 0 };
+            var max = new MetricData { UInt64Value = 0 };
+
+            if (metricPoint.HasMinMax())
+            {
+                minValue = Convert.ToUInt64(metricPoint.GetHistogramMin());
+                maxValue = Convert.ToUInt64(metricPoint.GetHistogramMax());
+
+                min = new MetricData { UInt64Value = minValue };
+                max = new MetricData { UInt64Value = maxValue };
+            }
+
             var bodyLength = exporter.SerializeHistogramMetric(
                 metric.Name,
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
                 metricPoint.GetHistogramBuckets(),
                 sum,
-                count);
+                count,
+                min,
+                max);
+
             var buffer = typeof(GenevaMetricExporter).GetField("bufferForHistogramMetrics", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
             data = new MetricsContract(stream);
@@ -688,8 +719,8 @@ public class GenevaMetricExporterTests
 
             Assert.Equal(count, valueSection.Count);
             Assert.Equal(Convert.ToUInt64(metricPoint.GetHistogramSum()), valueSection.Sum);
-            Assert.Equal(0UL, valueSection.Min);
-            Assert.Equal(0UL, valueSection.Max);
+            Assert.Equal(minValue, valueSection.Min);
+            Assert.Equal(maxValue, valueSection.Max);
             Assert.Equal((ulong)metricPoint.EndTime.ToFileTime(), valueSection.Timestamp);
             Assert.Equal((ushort)MetricEventType.ExternallyAggregatedULongDistributionMetric, data.EventId);
             Assert.Equal(bodyLength, data.LenBody);
