@@ -71,11 +71,6 @@ internal sealed class EventCountersMetrics : EventListener
             }
         }
     }
-    
-    private void EnableEvents(EventSource eventSource)
-    {
-         this.EnableEvents(eventSource, EventLevel.Critical, EventKeywords.None, GetEnableEventsArguments(this.options));
-    }
 
     /// <inheritdoc />
     protected override void OnEventWritten(EventWrittenEventArgs eventData)
@@ -124,6 +119,11 @@ internal sealed class EventCountersMetrics : EventListener
 
     private static Dictionary<string, string> GetEnableEventsArguments(EventCountersInstrumentationOptions options) =>
         new() { { "EventCounterIntervalSec", options.RefreshIntervalSecs.ToString() } };
+
+    private void EnableEvents(EventSource eventSource)
+    {
+        this.EnableEvents(eventSource, EventLevel.Critical, EventKeywords.None, GetEnableEventsArguments(this.options));
+    }
 
     private void UpdateInstrumentWithEvent(bool isGauge, string eventSourceName, string name, double value)
     {
