@@ -1,4 +1,4 @@
-// <copyright file="EventCounterMetricsOptions.cs" company="OpenTelemetry Authors">
+// <copyright file="Program.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,15 +14,19 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.EventCounters;
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
 
-/// <summary>
-/// EventCounterMetrics Options.
-/// </summary>
-public class EventCounterMetricsOptions
+public class Program
 {
-    /// <summary>
-    /// Gets or sets the subscription interval in seconds.
-    /// </summary>
-    public int RefreshIntervalSecs { get; set; } = 60;
+    public static void Main()
+    {
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddProcessInstrumentation()
+            .AddPrometheusHttpListener()
+            .Build();
+
+        Console.WriteLine(".NET Process metrics are available at http://localhost:9464/metrics, press any key to exit...");
+        Console.ReadKey(false);
+    }
 }

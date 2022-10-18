@@ -22,25 +22,37 @@ namespace OpenTelemetry.Instrumentation.EventCounters;
 /// EventSource events emitted from the project.
 /// </summary>
 [EventSource(Name = "OpenTelemetry-Instrumentation-EventCounters")]
-internal class EventCountersInstrumentationEventSource : EventSource
+internal sealed class EventCountersInstrumentationEventSource : EventSource
 {
     public static readonly EventCountersInstrumentationEventSource Log = new();
 
-    [Event(1, Message = "Error occurred while processing eventCounter, EventCounter: {0}, Exception: {2}", Level = EventLevel.Error)]
-    public void ErrorEventCounter(string counterName, string exception)
+    [Event(1, Level = EventLevel.Warning, Message = "Error while writing event from source: {0} - {1}.")]
+    internal void ErrorWhileWritingEvent(string eventSourceName, string exceptionMessage)
     {
-        this.WriteEvent(1, counterName, exception);
+        this.WriteEvent(1, eventSourceName, exceptionMessage);
     }
 
-    [Event(2, Level = EventLevel.Warning, Message = @"Ignoring event written from EventSource: {0} as payload is not IDictionary to extract metrics.")]
-    public void IgnoreEventWrittenAsEventPayloadNotParseable(string eventSourceName)
+    [Event(2, Level = EventLevel.Warning, Message = "Event data payload not parseable from source: {0}.")]
+    internal void IgnoreEventWrittenEventArgsPayloadNotParseable(string eventSourceName)
+    {
+        this.WriteEvent(2, eventSourceName);
+    }
+
+    [Event(3, Level = EventLevel.Warning, Message = "Event data has no name from source: {0}.")]
+    internal void IgnoreEventWrittenEventArgsWithoutName(string eventSourceName)
+    {
+        this.WriteEvent(3, eventSourceName);
+    }
+
+    [Event(4, Level = EventLevel.Warning, Message = "Event data payload problem with values of Mean, Increment from source: {0}.")]
+    internal void IgnoreMeanIncrementConflict(string eventSourceName)
     {
         this.WriteEvent(4, eventSourceName);
     }
 
-    [Event(3, Level = EventLevel.Warning, Message = @"EventCountersInstrumentation - {0} failed with exception: {1}.")]
-    public void EventCountersInstrumentationWarning(string stage, string exceptionMessage)
+    [Event(5, Level = EventLevel.Warning, Message = "Event data has name other than 'EventCounters' from source: {0}.")]
+    internal void IgnoreNonEventCountersName(string eventSourceName)
     {
-        this.WriteEvent(8, stage, exceptionMessage);
+        this.WriteEvent(5, eventSourceName);
     }
 }
