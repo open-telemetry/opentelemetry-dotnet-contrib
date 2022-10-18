@@ -21,7 +21,7 @@ using System.Linq;
 namespace OpenTelemetry.Instrumentation.EventCounters;
 
 /// <summary>
-/// EventCounterListener Options.
+/// EventCounter Instrumentation Options.
 /// </summary>
 public class EventCountersInstrumentationOptions
 {
