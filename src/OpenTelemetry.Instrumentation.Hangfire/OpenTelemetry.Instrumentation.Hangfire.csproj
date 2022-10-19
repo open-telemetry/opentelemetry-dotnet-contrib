@@ -8,7 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Hangfire.Core" Version="[1.7.0,1.8.0)" />
-    <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryApiPkgVer)" />
+    <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryCoreLatestVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\Guard.cs" Link="Includes\Guard.cs" />
