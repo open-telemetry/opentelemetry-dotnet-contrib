@@ -32,8 +32,8 @@ internal sealed class EventCountersInstrumentationEventSource : EventSource
         this.WriteEvent(1, eventSourceName, exceptionMessage);
     }
 
-    [Event(2, Level = EventLevel.Warning, Message = "Event data payload not parseable from source: {0}.")]
-    internal void IgnoreEventWrittenEventArgsPayloadNotParseable(string eventSourceName)
+    [Event(2, Level = EventLevel.Warning, Message = "Event data payload not parsable from source: {0}.")]
+    internal void IgnoreEventWrittenEventArgsPayloadNotParsable(string eventSourceName)
     {
         this.WriteEvent(2, eventSourceName);
     }
