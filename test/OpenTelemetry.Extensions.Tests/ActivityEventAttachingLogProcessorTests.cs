@@ -71,10 +71,9 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
             {
                 builder.AddOpenTelemetry(options =>
                 {
-                    options
-                        .SetIncludeScopes(includeScopes)
-                        .SetIncludeFormattedMessage(includeFormattedMessage)
-                        .SetParseStateValues(parseStateValues);
+                    options.IncludeScopes = includeScopes;
+                    options.IncludeFormattedMessage = includeFormattedMessage;
+                    options.ParseStateValues = parseStateValues;
                     options.AttachLogsToActivityEvent();
                 });
                 builder.AddFilter(typeof(ActivityEventAttachingLogProcessorTests).FullName, LogLevel.Trace);
