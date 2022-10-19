@@ -84,7 +84,7 @@ namespace Examples.AspNet
                     });
                     break;
                 case "prometheus":
-                    meterBuilder.AddPrometheusHttpListener();
+                    meterBuilder.AddPrometheusExporter();
                     break;
                 default:
                     meterBuilder.AddConsoleExporter((exporterOptions, metricReaderOptions) =>
