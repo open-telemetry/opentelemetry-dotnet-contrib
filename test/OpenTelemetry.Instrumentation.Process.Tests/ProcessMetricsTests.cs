@@ -46,7 +46,7 @@ public class ProcessMetricsTests
         var cpuUtilizationMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.utilization");
         Assert.NotNull(cpuUtilizationMetric);
         var threadMetric = exportedItems.FirstOrDefault(i => i.Name == "process.threads");
-        Assert.NotNull(cpuTimeMetric);
+        Assert.NotNull(threadMetric);
     }
 
     [Fact]
@@ -158,7 +158,7 @@ public class ProcessMetricsTests
         {
             if (metric.MetricType.IsGauge())
             {
-                sum += metricPoint.GetGaugeLastValueDouble();
+                sum += metricPoint.GetGaugeLastValueLong();
             }
             else if (metric.MetricType.IsDouble())
             {
