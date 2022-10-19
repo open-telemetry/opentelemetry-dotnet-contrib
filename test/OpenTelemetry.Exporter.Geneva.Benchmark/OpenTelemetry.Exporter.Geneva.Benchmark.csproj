@@ -16,6 +16,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Exporter.Geneva\OpenTelemetry.Exporter.Geneva.csproj" />
+		<ProjectReference Include="..\..\src\OpenTelemetry.Instrumentation.Process\OpenTelemetry.Instrumentation.Process.csproj" />
 	</ItemGroup>
 
 </Project>
