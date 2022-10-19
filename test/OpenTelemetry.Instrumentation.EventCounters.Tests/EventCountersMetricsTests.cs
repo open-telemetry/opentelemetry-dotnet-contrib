@@ -160,7 +160,7 @@ public class EventCountersMetricsTests
         Assert.Equal(2, GetActualValue(metric));
     }
 
-    [Fact]
+    [Fact(Skip = "Unstable")]
     public async Task EventCounterSameNameUsesNewestCreated()
     {
         // Arrange
