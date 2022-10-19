@@ -29,7 +29,7 @@ public static class MeterProviderBuilderExtensions
     /// Enables EventCounter instrumentation.
     /// </summary>
     /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
-    /// <param name="configure">EventCounter instrumentation options.</param>
+    /// <param name="configure">EventCounters instrumentation options.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
     public static MeterProviderBuilder AddEventCountersInstrumentation(
         this MeterProviderBuilder builder,
