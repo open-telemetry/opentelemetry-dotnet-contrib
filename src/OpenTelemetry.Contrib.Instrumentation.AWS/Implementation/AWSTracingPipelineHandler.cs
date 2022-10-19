@@ -25,216 +25,215 @@ using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation
+namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation;
+
+internal class AWSTracingPipelineHandler : PipelineHandler
 {
-    internal class AWSTracingPipelineHandler : PipelineHandler
+    internal const string ActivitySourceName = "Amazon.AWS.AWSClientInstrumentation";
+
+    private static readonly AWSXRayPropagator AwsPropagator = new AWSXRayPropagator();
+    private static readonly Action<IDictionary<string, string>, string, string> Setter = (carrier, name, value) =>
     {
-        internal const string ActivitySourceName = "Amazon.AWS.AWSClientInstrumentation";
+        carrier[name] = value;
+    };
 
-        private static readonly AWSXRayPropagator AwsPropagator = new AWSXRayPropagator();
-        private static readonly Action<IDictionary<string, string>, string, string> Setter = (carrier, name, value) =>
+    private static readonly ActivitySource AWSSDKActivitySource = new ActivitySource(ActivitySourceName);
+
+    private readonly AWSClientInstrumentationOptions options;
+
+    public AWSTracingPipelineHandler(AWSClientInstrumentationOptions options)
+    {
+        this.options = options;
+    }
+
+    public override void InvokeSync(IExecutionContext executionContext)
+    {
+        var activity = this.ProcessBeginRequest(executionContext);
+        try
         {
-            carrier[name] = value;
-        };
-
-        private static readonly ActivitySource AWSSDKActivitySource = new ActivitySource(ActivitySourceName);
-
-        private readonly AWSClientInstrumentationOptions options;
-
-        public AWSTracingPipelineHandler(AWSClientInstrumentationOptions options)
-        {
-            this.options = options;
+            base.InvokeSync(executionContext);
         }
-
-        public override void InvokeSync(IExecutionContext executionContext)
+        catch (Exception ex)
         {
-            var activity = this.ProcessBeginRequest(executionContext);
-            try
+            if (activity != null)
             {
-                base.InvokeSync(executionContext);
+                this.ProcessException(activity, ex);
             }
-            catch (Exception ex)
-            {
-                if (activity != null)
-                {
-                    this.ProcessException(activity, ex);
-                }
 
-                throw;
-            }
-            finally
+            throw;
+        }
+        finally
+        {
+            if (activity != null)
             {
-                if (activity != null)
-                {
-                    this.ProcessEndRequest(executionContext, activity);
-                }
+                this.ProcessEndRequest(executionContext, activity);
             }
         }
+    }
 
-        public override async Task<T> InvokeAsync<T>(IExecutionContext executionContext)
+    public override async Task<T> InvokeAsync<T>(IExecutionContext executionContext)
+    {
+        T ret = null;
+
+        var activity = this.ProcessBeginRequest(executionContext);
+        try
         {
-            T ret = null;
-
-            var activity = this.ProcessBeginRequest(executionContext);
-            try
-            {
-                ret = await base.InvokeAsync<T>(executionContext).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                if (activity != null)
-                {
-                    this.ProcessException(activity, ex);
-                }
-
-                throw;
-            }
-            finally
-            {
-                if (activity != null)
-                {
-                    this.ProcessEndRequest(executionContext, activity);
-                }
-            }
-
-            return ret;
+            ret = await base.InvokeAsync<T>(executionContext).ConfigureAwait(false);
         }
-
-        private Activity ProcessBeginRequest(IExecutionContext executionContext)
+        catch (Exception ex)
         {
-            Activity activity = null;
-
-            var requestContext = executionContext.RequestContext;
-            var service = AWSServiceHelper.GetAWSServiceName(requestContext);
-            var operation = AWSServiceHelper.GetAWSOperationName(requestContext);
-
-            activity = AWSSDKActivitySource.StartActivity(service + "." + operation, ActivityKind.Client);
-
-            if (activity == null)
+            if (activity != null)
             {
-                return null;
+                this.ProcessException(activity, ex);
             }
 
-            if (this.options.SuppressDownstreamInstrumentation)
-            {
-                SuppressInstrumentationScope.Enter();
-            }
-
-            if (activity.IsAllDataRequested)
-            {
-                activity.SetTag(AWSSemanticConventions.AttributeAWSServiceName, service);
-                activity.SetTag(AWSSemanticConventions.AttributeAWSOperationName, operation);
-                var client = executionContext.RequestContext.ClientConfig;
-                if (client != null)
-                {
-                    var region = client.RegionEndpoint?.SystemName;
-                    activity.SetTag(AWSSemanticConventions.AttributeAWSRegion, region ?? AWSSDKUtils.DetermineRegion(client.ServiceURL));
-                }
-
-                this.AddRequestSpecificInformation(activity, requestContext, service);
-            }
-
-            AwsPropagator.Inject(new PropagationContext(activity.Context, Baggage.Current), requestContext.Request.Headers, Setter);
-
-            return activity;
+            throw;
         }
-
-        private void ProcessEndRequest(IExecutionContext executionContext, Activity activity)
+        finally
         {
-            var responseContext = executionContext.ResponseContext;
-            var requestContext = executionContext.RequestContext;
-
-            if (activity.IsAllDataRequested)
+            if (activity != null)
             {
-                if (Utils.GetTagValue(activity, AWSSemanticConventions.AttributeAWSRequestId) == null)
-                {
-                    activity.SetTag(AWSSemanticConventions.AttributeAWSRequestId, this.FetchRequestId(requestContext, responseContext));
-                }
-
-                var httpResponse = responseContext.HttpResponse;
-                if (httpResponse != null)
-                {
-                    int statusCode = (int)httpResponse.StatusCode;
-
-                    this.AddStatusCodeToActivity(activity, statusCode);
-                    activity.SetTag(AWSSemanticConventions.AttributeHttpResponseContentLength, httpResponse.ContentLength);
-                }
-            }
-
-            activity.Stop();
-        }
-
-        private void ProcessException(Activity activity, Exception ex)
-        {
-            if (activity.IsAllDataRequested)
-            {
-                activity.RecordException(ex);
-
-                activity.SetStatus(Status.Error.WithDescription(ex.Message));
-
-                if (ex is AmazonServiceException amazonServiceException)
-                {
-                    this.AddStatusCodeToActivity(activity, (int)amazonServiceException.StatusCode);
-                    activity.SetTag(AWSSemanticConventions.AttributeAWSRequestId, amazonServiceException.RequestId);
-                }
+                this.ProcessEndRequest(executionContext, activity);
             }
         }
 
-        private void AddRequestSpecificInformation(Activity activity, IRequestContext requestContext, string service)
-        {
-            if (AWSServiceHelper.ServiceParameterMap.TryGetValue(service, out string parameter))
-            {
-                AmazonWebServiceRequest request = requestContext.OriginalRequest;
+        return ret;
+    }
 
-                var property = request.GetType().GetProperty(parameter);
-                if (property != null)
-                {
-                    if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out string attribute))
-                    {
-                        activity.SetTag(attribute, property.GetValue(request));
-                    }
-                }
+    private Activity ProcessBeginRequest(IExecutionContext executionContext)
+    {
+        Activity activity = null;
+
+        var requestContext = executionContext.RequestContext;
+        var service = AWSServiceHelper.GetAWSServiceName(requestContext);
+        var operation = AWSServiceHelper.GetAWSOperationName(requestContext);
+
+        activity = AWSSDKActivitySource.StartActivity(service + "." + operation, ActivityKind.Client);
+
+        if (activity == null)
+        {
+            return null;
+        }
+
+        if (this.options.SuppressDownstreamInstrumentation)
+        {
+            SuppressInstrumentationScope.Enter();
+        }
+
+        if (activity.IsAllDataRequested)
+        {
+            activity.SetTag(AWSSemanticConventions.AttributeAWSServiceName, service);
+            activity.SetTag(AWSSemanticConventions.AttributeAWSOperationName, operation);
+            var client = executionContext.RequestContext.ClientConfig;
+            if (client != null)
+            {
+                var region = client.RegionEndpoint?.SystemName;
+                activity.SetTag(AWSSemanticConventions.AttributeAWSRegion, region ?? AWSSDKUtils.DetermineRegion(client.ServiceURL));
             }
 
-            if (AWSServiceHelper.IsDynamoDbService(service))
+            this.AddRequestSpecificInformation(activity, requestContext, service);
+        }
+
+        AwsPropagator.Inject(new PropagationContext(activity.Context, Baggage.Current), requestContext.Request.Headers, Setter);
+
+        return activity;
+    }
+
+    private void ProcessEndRequest(IExecutionContext executionContext, Activity activity)
+    {
+        var responseContext = executionContext.ResponseContext;
+        var requestContext = executionContext.RequestContext;
+
+        if (activity.IsAllDataRequested)
+        {
+            if (Utils.GetTagValue(activity, AWSSemanticConventions.AttributeAWSRequestId) == null)
             {
-                activity.SetTag(SemanticConventions.AttributeDbSystem, AWSSemanticConventions.AttributeValueDynamoDb);
+                activity.SetTag(AWSSemanticConventions.AttributeAWSRequestId, this.FetchRequestId(requestContext, responseContext));
+            }
+
+            var httpResponse = responseContext.HttpResponse;
+            if (httpResponse != null)
+            {
+                int statusCode = (int)httpResponse.StatusCode;
+
+                this.AddStatusCodeToActivity(activity, statusCode);
+                activity.SetTag(AWSSemanticConventions.AttributeHttpResponseContentLength, httpResponse.ContentLength);
             }
         }
 
-        private void AddStatusCodeToActivity(Activity activity, int status_code)
+        activity.Stop();
+    }
+
+    private void ProcessException(Activity activity, Exception ex)
+    {
+        if (activity.IsAllDataRequested)
         {
-            activity.SetTag(AWSSemanticConventions.AttributeHttpStatusCode, status_code);
+            activity.RecordException(ex);
+
+            activity.SetStatus(Status.Error.WithDescription(ex.Message));
+
+            if (ex is AmazonServiceException amazonServiceException)
+            {
+                this.AddStatusCodeToActivity(activity, (int)amazonServiceException.StatusCode);
+                activity.SetTag(AWSSemanticConventions.AttributeAWSRequestId, amazonServiceException.RequestId);
+            }
+        }
+    }
+
+    private void AddRequestSpecificInformation(Activity activity, IRequestContext requestContext, string service)
+    {
+        if (AWSServiceHelper.ServiceParameterMap.TryGetValue(service, out string parameter))
+        {
+            AmazonWebServiceRequest request = requestContext.OriginalRequest;
+
+            var property = request.GetType().GetProperty(parameter);
+            if (property != null)
+            {
+                if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out string attribute))
+                {
+                    activity.SetTag(attribute, property.GetValue(request));
+                }
+            }
         }
 
-        private string FetchRequestId(IRequestContext requestContext, IResponseContext responseContext)
+        if (AWSServiceHelper.IsDynamoDbService(service))
         {
-            string request_id = string.Empty;
-            var response = responseContext.Response;
-            if (response != null)
-            {
-                request_id = response.ResponseMetadata.RequestId;
-            }
-            else
-            {
-                var request_headers = requestContext.Request.Headers;
-                if (string.IsNullOrEmpty(request_id) && request_headers.TryGetValue("x-amzn-RequestId", out string req_id))
-                {
-                    request_id = req_id;
-                }
-
-                if (string.IsNullOrEmpty(request_id) && request_headers.TryGetValue("x-amz-request-id", out req_id))
-                {
-                    request_id = req_id;
-                }
-
-                if (string.IsNullOrEmpty(request_id) && request_headers.TryGetValue("x-amz-id-2", out req_id))
-                {
-                    request_id = req_id;
-                }
-            }
-
-            return request_id;
+            activity.SetTag(SemanticConventions.AttributeDbSystem, AWSSemanticConventions.AttributeValueDynamoDb);
         }
+    }
+
+    private void AddStatusCodeToActivity(Activity activity, int status_code)
+    {
+        activity.SetTag(AWSSemanticConventions.AttributeHttpStatusCode, status_code);
+    }
+
+    private string FetchRequestId(IRequestContext requestContext, IResponseContext responseContext)
+    {
+        string request_id = string.Empty;
+        var response = responseContext.Response;
+        if (response != null)
+        {
+            request_id = response.ResponseMetadata.RequestId;
+        }
+        else
+        {
+            var request_headers = requestContext.Request.Headers;
+            if (string.IsNullOrEmpty(request_id) && request_headers.TryGetValue("x-amzn-RequestId", out string req_id))
+            {
+                request_id = req_id;
+            }
+
+            if (string.IsNullOrEmpty(request_id) && request_headers.TryGetValue("x-amz-request-id", out req_id))
+            {
+                request_id = req_id;
+            }
+
+            if (string.IsNullOrEmpty(request_id) && request_headers.TryGetValue("x-amz-id-2", out req_id))
+            {
+                request_id = req_id;
+            }
+        }
+
+        return request_id;
     }
 }

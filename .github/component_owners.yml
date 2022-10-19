@@ -8,9 +8,6 @@ components:
     - lupengamzn
   src/OpenTelemetry.Contrib.Instrumentation.AWS/:
     - srprash
-  src/OpenTelemetry.Contrib.Instrumentation.AWSLambda/:
-    - rypdal
-    - Oberon00
   src/OpenTelemetry.Exporter.Geneva/:
     - cijothomas
     - codeblanch
@@ -24,16 +21,23 @@ components:
     - SergeyKanzhelev
   src/OpenTelemetry.Extensions/:
     - codeblanch
+  src/OpenTelemetry.Extensions.AzureMonitor/:
+    - rajkumar-rangaraj
+    - vishweshbankwar
   src/OpenTelemetry.Extensions.Docker/:
     - iskiselev
   src/OpenTelemetry.Extensions.PersistentStorage.Abstractions/:
     - vishweshbankwar
   src/OpenTelemetry.Extensions.PersistentStorage/:
     - vishweshbankwar
+  src/OpenTelemetry.Instrumentation.AWSLambda/:
+    - rypdal
+    - Oberon00
   src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
     - ejsmith
   src/OpenTelemetry.Instrumentation.EventCounters/:
     - hananiel
+    - mic-max
   src/OpenTelemetry.Instrumentation.GrpcCore/:
     - pcwiese
   src/OpenTelemetry.Instrumentation.Hangfire/:
@@ -58,9 +62,6 @@ components:
     - lupengamzn
   test/OpenTelemetry.Contrib.Instrumentation.AWS.Tests/:
     - srprash
-  test/OpenTelemetry.Contrib.Instrumentation.AWSLambda.Tests/:
-    - rypdal
-    - Oberon00
   test/OpenTelemetry.Exporter.Geneva.Benchmark/:
     - cijothomas
     - codeblanch
@@ -92,10 +93,14 @@ components:
     - swetharavichandrancisco
   test/OpenTelemetry.Extensions.PersistentStorage.Tests/:
     - vishweshbankwar
+  test/OpenTelemetry.Instrumentation.AWSLambda.Tests/:
+    - rypdal
+    - Oberon00
   test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/:
     - ejsmith
   test/OpenTelemetry.Instrumentation.EventCounters.Tests/:
     - hananiel
+    - mic-max
   test/OpenTelemetry.Instrumentation.GrpcCore.Tests/:
     - pcwiese
   test/OpenTelemetry.Instrumentation.Hangfire.Tests/:

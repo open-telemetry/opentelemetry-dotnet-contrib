@@ -19,37 +19,36 @@ using OpenTelemetry.Instrumentation.MassTransit;
 using OpenTelemetry.Instrumentation.MassTransit.Implementation;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Trace
+namespace OpenTelemetry.Trace;
+
+/// <summary>
+/// Extension methods to simplify registering of dependency instrumentation.
+/// </summary>
+public static class TracerProviderBuilderExtensions
 {
     /// <summary>
-    /// Extension methods to simplify registering of dependency instrumentation.
+    /// Enables the outgoing requests automatic data collection for MassTransit.
     /// </summary>
-    public static class TracerProviderBuilderExtensions
+    /// <param name="builder"><see cref="TracerProviderBuilderExtensions"/> being configured.</param>
+    /// <param name="configureMassTransitInstrumentationOptions">MassTransit configuration options.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilderExtensions"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddMassTransitInstrumentation(
+        this TracerProviderBuilder builder,
+        Action<MassTransitInstrumentationOptions> configureMassTransitInstrumentationOptions = null)
     {
-        /// <summary>
-        /// Enables the outgoing requests automatic data collection for MassTransit.
-        /// </summary>
-        /// <param name="builder"><see cref="TracerProviderBuilderExtensions"/> being configured.</param>
-        /// <param name="configureMassTransitInstrumentationOptions">MassTransit configuration options.</param>
-        /// <returns>The instance of <see cref="TracerProviderBuilderExtensions"/> to chain the calls.</returns>
-        public static TracerProviderBuilder AddMassTransitInstrumentation(
-            this TracerProviderBuilder builder,
-            Action<MassTransitInstrumentationOptions> configureMassTransitInstrumentationOptions = null)
-        {
-            Guard.ThrowIfNull(builder);
+        Guard.ThrowIfNull(builder);
 
-            var options = new MassTransitInstrumentationOptions();
-            configureMassTransitInstrumentationOptions?.Invoke(options);
+        var options = new MassTransitInstrumentationOptions();
+        configureMassTransitInstrumentationOptions?.Invoke(options);
 
-            builder.AddInstrumentation(() => new MassTransitInstrumentation(options));
-            builder.AddSource(MassTransitDiagnosticListener.ActivitySourceName);
+        builder.AddInstrumentation(() => new MassTransitInstrumentation(options));
+        builder.AddSource(MassTransitDiagnosticListener.ActivitySourceName);
 
-            builder.AddLegacySource(OperationName.Consumer.Consume);
-            builder.AddLegacySource(OperationName.Consumer.Handle);
-            builder.AddLegacySource(OperationName.Transport.Send);
-            builder.AddLegacySource(OperationName.Transport.Receive);
+        builder.AddLegacySource(OperationName.Consumer.Consume);
+        builder.AddLegacySource(OperationName.Consumer.Handle);
+        builder.AddLegacySource(OperationName.Transport.Send);
+        builder.AddLegacySource(OperationName.Transport.Receive);
 
-            return builder;
-        }
+        return builder;
     }
 }

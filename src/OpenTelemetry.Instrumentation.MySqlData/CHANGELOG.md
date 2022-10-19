@@ -2,8 +2,11 @@
 
 ## Unreleased
 
-* Updated OTel SDK package version to 1.3.0
-  ([#508](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/508))
+* Update OTel API version to `1.3.1`.
+  ([#631](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/631))
+* Compatibility with `Mysql.Data` 8.0.31 or later, Users must set `Logging=true`
+  in their connection string manually.
+  ([#692](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/692))
 
 ## 1.0.0-beta.3
 

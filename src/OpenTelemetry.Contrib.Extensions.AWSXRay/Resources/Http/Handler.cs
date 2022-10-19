@@ -17,35 +17,34 @@
 using System;
 using System.Net.Http;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Http
+namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Http;
+
+internal class Handler
 {
-    internal class Handler
+    public static HttpClientHandler Create(string certificateFile)
     {
-        public static HttpClientHandler Create(string certificateFile)
+        try
         {
-            try
-            {
-                ServerCertificateValidationProvider serverCertificateValidationProvider =
-                    ServerCertificateValidationProvider.FromCertificateFile(certificateFile);
+            ServerCertificateValidationProvider serverCertificateValidationProvider =
+                ServerCertificateValidationProvider.FromCertificateFile(certificateFile);
 
-                if (!serverCertificateValidationProvider.IsCertificateLoaded)
-                {
-                    AWSXRayEventSource.Log.FailedToValidateCertificate(nameof(Handler), "Failed to Load the certificate file into trusted collection");
-                    return null;
-                }
-
-                var clientHandler = new HttpClientHandler();
-                clientHandler.ServerCertificateCustomValidationCallback =
-                            (sender, x509Certificate2, x509Chain, sslPolicyErrors) =>
-                                serverCertificateValidationProvider.ValidationCallback(null, x509Certificate2, x509Chain, sslPolicyErrors);
-                return clientHandler;
-            }
-            catch (Exception ex)
+            if (!serverCertificateValidationProvider.IsCertificateLoaded)
             {
-                AWSXRayEventSource.Log.ResourceAttributesExtractException($"{nameof(Handler)} : Failed to create HttpClientHandler", ex);
+                AWSXRayEventSource.Log.FailedToValidateCertificate(nameof(Handler), "Failed to Load the certificate file into trusted collection");
+                return null;
             }
 
-            return null;
+            var clientHandler = new HttpClientHandler();
+            clientHandler.ServerCertificateCustomValidationCallback =
+                (sender, x509Certificate2, x509Chain, sslPolicyErrors) =>
+                    serverCertificateValidationProvider.ValidationCallback(null, x509Certificate2, x509Chain, sslPolicyErrors);
+            return clientHandler;
         }
+        catch (Exception ex)
+        {
+            AWSXRayEventSource.Log.ResourceAttributesExtractException($"{nameof(Handler)} : Failed to create HttpClientHandler", ex);
+        }
+
+        return null;
     }
 }

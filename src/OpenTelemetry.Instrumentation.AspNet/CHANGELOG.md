@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.0.0-rc9.6
+
+Released 2022-Sep-28
+
+* Migrate to native Activity `Status` and `StatusDesciption`.
+  ([#651](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/651))
+
 ## 1.0.0-rc9.5 (source code moved to contrib repo)
 
 Released 2022-Jun-21
