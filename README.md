@@ -29,7 +29,7 @@ expected to directly contribute to every component.
 Approvers
 ([@open-telemetry/dotnet-contrib-approvers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-approvers)):
 
-* This list is currently empty.
+* [Piotr Kie&#x142;kowicz](https://github.com/Kielek), Splunk
 
 *Find more about the approver role in [community
 repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#approver).*
