@@ -32,7 +32,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
     private readonly IReadOnlyDictionary<string, object> m_customFields;
 
-    private readonly ExceptionStackExportOptions m_exportExceptionStack;
+    private readonly ExceptionStackExportMode m_exportExceptionStack;
 
     private readonly string m_defaultEventName = "Log";
     private readonly IReadOnlyDictionary<string, object> m_prepopulatedFields;
@@ -50,7 +50,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
     public MsgPackLogExporter(GenevaExporterOptions options)
     {
-        this.m_exportExceptionStack = options.ExceptionStackExportOption;
+        this.m_exportExceptionStack = options.ExceptionStackExportMode;
 
         // TODO: Validate mappings for reserved tablenames etc.
         if (options.TableNameMappings != null)
@@ -433,7 +433,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, logRecord.Exception.Message);
             cntFields += 1;
 
-            if (this.m_exportExceptionStack == ExceptionStackExportOptions.ExportAsString)
+            if (this.m_exportExceptionStack == ExceptionStackExportMode.ExportAsString)
             {
                 // The current approach relies on the existing trim
                 // capabilities which trims string in excess of STRING_SIZE_LIMIT_CHAR_COUNT

@@ -58,7 +58,7 @@ public class LogSerializationTests
                             formatter: null);
             },
             (genevaOptions) =>
-            genevaOptions.ExceptionStackExportOption = ExceptionStackExportOptions.ExportAsString);
+            genevaOptions.ExceptionStackExportMode = ExceptionStackExportMode.ExportAsString);
 
         var actualExceptionMessage = exportedFields["env_ex_msg"];
         Assert.Equal(exceptionMessage, actualExceptionMessage);
@@ -78,7 +78,7 @@ public class LogSerializationTests
         var ex = new MyException(exceptionMessage, exStack);
         var exportedFields = GetExportedFieldsAfterLogging(
             logger => logger.LogError(ex, "Error occurred. {field1} {field2}", "value1", "value2"),
-            (genevaOptions) => genevaOptions.ExceptionStackExportOption = ExceptionStackExportOptions.ExportAsString);
+            (genevaOptions) => genevaOptions.ExceptionStackExportMode = ExceptionStackExportMode.ExportAsString);
 
         var actualExceptionMessage = exportedFields["env_ex_msg"];
         Assert.Equal(exceptionMessage, actualExceptionMessage);

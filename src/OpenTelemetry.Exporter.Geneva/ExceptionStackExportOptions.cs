@@ -1,4 +1,4 @@
-// <copyright file="ExceptionStackExportOptions.cs" company="OpenTelemetry Authors">
+// <copyright file="ExceptionStackExportMode.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,10 +16,10 @@
 
 namespace OpenTelemetry.Exporter.Geneva;
 
-public enum ExceptionStackExportOptions
+public enum ExceptionStackExportMode
 {
     Drop,
     ExportAsString,
 
-    // ExportStackArray - future if stacks can be exported in more structured way
+    // ExportAsArrayOfStacks - future if stacks can be exported in more structured way
 }
