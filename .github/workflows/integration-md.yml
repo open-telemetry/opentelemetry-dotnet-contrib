@@ -1,0 +1,22 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+    - '**.md'
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+    - '**.md'
+
+jobs:
+  redis-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [netcoreapp3.1,net6.0]
+    steps:
+      - run: 'echo "No build required"'
+
