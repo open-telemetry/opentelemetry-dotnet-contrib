@@ -125,7 +125,7 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         Assert.Equal(ActivityKind.Internal, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
         Assert.NotNull(activity.StatusDescription);
-        Assert.Single(activity.Events, evt => evt.Name == "exception");
+        Assert.Empty(activity.Events);
     }
 
     private async Task WaitJobProcessedAsync(string jobId, int timeToWaitInSeconds)
