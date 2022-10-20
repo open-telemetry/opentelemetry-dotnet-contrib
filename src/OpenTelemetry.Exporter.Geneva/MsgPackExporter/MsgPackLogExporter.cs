@@ -31,6 +31,9 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     private const int MaxSanitizedEventNameLength = 50;
 
     private readonly IReadOnlyDictionary<string, object> m_customFields;
+
+    private readonly ExceptionStackExportMode m_exportExceptionStack;
+
     private readonly string m_defaultEventName = "Log";
     private readonly IReadOnlyDictionary<string, object> m_prepopulatedFields;
     private readonly List<string> m_prepopulatedFieldKeys;
@@ -47,6 +50,8 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
     public MsgPackLogExporter(GenevaExporterOptions options)
     {
+        this.m_exportExceptionStack = options.ExceptionStackExportMode;
+
         // TODO: Validate mappings for reserved tablenames etc.
         if (options.TableNameMappings != null)
         {
@@ -288,18 +293,6 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             cntFields += 1;
         }
 
-        // Part A - ex extension
-        if (logRecord.Exception != null)
-        {
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_ex_type");
-            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, logRecord.Exception.GetType().FullName);
-            cntFields += 1;
-
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_ex_msg");
-            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, logRecord.Exception.Message);
-            cntFields += 1;
-        }
-
         // Part B
         var logLevel = logRecord.LogLevel;
 
@@ -429,6 +422,33 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             cntFields += 1;
         }
 
+        // Part A - ex extension
+        if (logRecord.Exception != null)
+        {
+            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_ex_type");
+            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, logRecord.Exception.GetType().FullName);
+            cntFields += 1;
+
+            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_ex_msg");
+            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, logRecord.Exception.Message);
+            cntFields += 1;
+
+            if (this.m_exportExceptionStack == ExceptionStackExportMode.ExportAsString)
+            {
+                // The current approach relies on the existing trim
+                // capabilities which trims string in excess of STRING_SIZE_LIMIT_CHAR_COUNT
+                // TODO: Revisit this:
+                // 1. Trim it off based on how much more bytes are available
+                // before running out of limit instead of STRING_SIZE_LIMIT_CHAR_COUNT.
+                // 2. Trim smarter, by trimming the middle of stack, an
+                // keep top and bottom.
+                var exceptionStack = ToInvariantString(logRecord.Exception);
+                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_ex_stack");
+                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, exceptionStack);
+                cntFields += 1;
+            }
+        }
+
         MessagePackSerializer.WriteUInt16(buffer, idxMapSizePatch, cntFields);
         Buffer.BlockCopy(this.m_bufferEpilogue, 0, buffer, cursor, this.m_bufferEpilogue.Length);
         cursor += this.m_bufferEpilogue.Length;
@@ -518,6 +538,21 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         MessagePackSerializer.WriteStr8Header(buffer, cursorStartIdx, validNameLength);
 
         return cursor;
+    }
+
+    private static string ToInvariantString(Exception exception)
+    {
+        var originalUICulture = Thread.CurrentThread.CurrentUICulture;
+
+        try
+        {
+            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
+            return exception.ToString();
+        }
+        finally
+        {
+            Thread.CurrentThread.CurrentUICulture = originalUICulture;
+        }
     }
 
     public void Dispose()

@@ -34,6 +34,8 @@ public class GenevaExporterOptions
 
     public IEnumerable<string> CustomFields { get; set; }
 
+    public ExceptionStackExportMode ExceptionStackExportMode { get; set; }
+
     public IReadOnlyDictionary<string, string> TableNameMappings
     {
         get => this._tableNameMappings;
