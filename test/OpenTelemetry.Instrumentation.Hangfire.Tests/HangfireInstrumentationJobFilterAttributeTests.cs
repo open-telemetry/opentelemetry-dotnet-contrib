@@ -76,7 +76,7 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         Assert.Contains("JOB TestJob.ThrowException", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
-        Assert.NotNull(activity.StatusDescription);
+        Assert.Contains("An exception occurred during performance of the job.", activity.StatusDescription);
         Assert.Empty(activity.Events);
     }
 
@@ -100,7 +100,7 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         Assert.Contains("JOB TestJob.ThrowException", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
-        Assert.NotNull(activity.StatusDescription);
+        Assert.Contains("An exception occurred during performance of the job.", activity.StatusDescription);
         Assert.Single(activity.Events, evt => evt.Name == "exception");
     }
 
@@ -124,7 +124,7 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         Assert.Contains("JOB TestJob.ThrowException", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
-        Assert.NotNull(activity.StatusDescription);
+        Assert.Contains("An exception occurred during performance of the job.", activity.StatusDescription);
         Assert.Empty(activity.Events);
     }
 
