@@ -77,6 +77,31 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         Assert.Equal(ActivityKind.Internal, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
         Assert.NotNull(activity.StatusDescription);
+        Assert.Empty(activity.Events);
+    }
+
+    [Fact]
+    public async Task Should_Create_Activity_With_Exception_Event_When_Job_Failed_And_Record_Exception_Is_True()
+    {
+        // Arrange
+        var exportedItems = new List<Activity>();
+        using var tel = Sdk.CreateTracerProviderBuilder()
+            .AddHangfireInstrumentation(options => options.RecordException = true)
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        // Act
+        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.ThrowException());
+        await this.WaitJobProcessedAsync(jobId, 5);
+
+        // Assert
+        Assert.Single(exportedItems, i => i.GetTagItem("job.id") as string == jobId);
+        var activity = exportedItems.Single(i => i.GetTagItem("job.id") as string == jobId);
+        Assert.Contains("JOB TestJob.ThrowException", activity.DisplayName);
+        Assert.Equal(ActivityKind.Internal, activity.Kind);
+        Assert.Equal(ActivityStatusCode.Error, activity.Status);
+        Assert.NotNull(activity.StatusDescription);
+        Assert.Single(activity.Events, evt => evt.Name == "exception");
     }
 
     private async Task WaitJobProcessedAsync(string jobId, int timeToWaitInSeconds)
