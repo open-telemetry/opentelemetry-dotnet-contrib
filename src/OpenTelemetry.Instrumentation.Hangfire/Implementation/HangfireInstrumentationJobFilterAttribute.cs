@@ -80,7 +80,7 @@ internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, I
         {
             if (performedContext.Exception != null)
             {
-                this.SetStatusAndRecordExcepion(activity, performedContext.Exception);
+                this.SetStatusAndRecordException(activity, performedContext.Exception);
             }
 
             activity.Dispose();
@@ -120,7 +120,7 @@ internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, I
         return telemetryData.ContainsKey(key) ? new[] { telemetryData[key] } : Enumerable.Empty<string>();
     }
 
-    private void SetStatusAndRecordExcepion(Activity activity, System.Exception exception)
+    private void SetStatusAndRecordException(Activity activity, System.Exception exception)
     {
         activity.SetStatus(ActivityStatusCode.Error, exception.Message);
 
