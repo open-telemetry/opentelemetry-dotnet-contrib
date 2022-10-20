@@ -19,7 +19,7 @@
 
   This does not affect applications targeting .NET Framework.
 
-* Change runtime metrics type to ObservableUpDownCounter
+* Change runtime metrics type to ObservableUpDownCounter from ObservableGauge
   ([#675](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/675))
 
 ## 1.0.0
