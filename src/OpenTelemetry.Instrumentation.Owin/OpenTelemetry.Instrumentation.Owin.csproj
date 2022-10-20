@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryPkgVer)" />
+    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
     <PackageReference Include="Microsoft.Owin" Version="$(MicrosoftOwinPkgVer)" />
   </ItemGroup>
 
