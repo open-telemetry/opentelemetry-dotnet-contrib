@@ -24,7 +24,7 @@ namespace OpenTelemetry.Exporter.Geneva;
 public class GenevaMetricExporterOptions
 {
     private IReadOnlyDictionary<string, object> _prepopulatedMetricDimensions;
-    private int _metricExporterIntervalMilliseconds = 20000;
+    private int _metricExporterIntervalMilliseconds = 60000;
 
     /// <summary>
     /// Gets or sets the ConnectionString which contains semicolon separated list of key-value pairs.
@@ -33,7 +33,7 @@ public class GenevaMetricExporterOptions
     public string ConnectionString { get; set; }
 
     /// <summary>
-    /// Gets or sets the metric export interval in milliseconds. The default value is 20000.
+    /// Gets or sets the metric export interval in milliseconds. The default value is 60000.
     /// </summary>
     public int MetricExportIntervalMilliseconds
     {
