@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add support to optionally record excepions
+  ([#719](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/719))
+
 * Update OTel API version to `1.3.1`.
   ([#631](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/631))
 
