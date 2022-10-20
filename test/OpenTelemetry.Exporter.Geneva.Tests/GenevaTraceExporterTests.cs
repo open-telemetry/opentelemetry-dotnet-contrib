@@ -475,7 +475,7 @@ public class GenevaTraceExporterTests
         }
     }
 
-    [Fact]
+    [Fact(Skip = "Run after GenevaExporter starts supporting ETW/TLD")]
     public void TLDTraceExporter_Success_Windows()
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

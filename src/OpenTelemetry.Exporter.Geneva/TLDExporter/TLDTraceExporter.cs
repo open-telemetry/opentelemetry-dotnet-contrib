@@ -24,7 +24,6 @@ using OpenTelemetry.Exporter.Geneva.External;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva.TLDExporter;
-
 internal sealed class TLDTraceExporter : TLDExporter, IDisposable
 {
     private readonly string partAName = "Span";
@@ -34,7 +33,11 @@ internal sealed class TLDTraceExporter : TLDExporter, IDisposable
     private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
 
     private readonly EventProvider eventProvider;
+
+    // TODO: Is using a single ThreadLocal a better idea?
     private static readonly ThreadLocal<EventBuilder> eventBuilder = new(() => new(UncheckedASCIIEncoding.SharedInstance));
+
+    // TODO: This could lead to unbounded memory usage.
     private static readonly ThreadLocal<List<KeyValuePair<string, object>>> keyValuePairs = new(() => new());
     private static readonly ThreadLocal<KeyValuePair<string, object>[]> partCFields = new(() => new KeyValuePair<string, object>[120]); // This is used to temporarily store the PartC fields from tags
 

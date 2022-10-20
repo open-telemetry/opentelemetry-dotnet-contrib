@@ -61,6 +61,7 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
                 useMsgPackExporter = true;
                 break;
 
+            /*
             case TransportProtocol.EtwTld:
                 if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
@@ -72,6 +73,7 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
                 this.exportActivity = (in Batch<Activity> batch) => tldTraceExporter.Export(in batch);
                 this.exporter = tldTraceExporter;
                 break;
+            */
             default:
                 throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
         }
