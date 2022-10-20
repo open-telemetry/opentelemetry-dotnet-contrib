@@ -332,7 +332,7 @@ public class MetricExporterBenchmarks
                 "gaugeA",
                 () =>
                 {
-                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
+                    System.Diagnostics.Process.GetCurrentProcess();
                     return 1D;
                 },
                 unit: "1",
@@ -342,7 +342,7 @@ public class MetricExporterBenchmarks
                 "gaugeB",
                 () =>
                 {
-                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
+                    System.Diagnostics.Process.GetCurrentProcess();
                     return 1D;
                 },
                 unit: "1",
@@ -352,7 +352,7 @@ public class MetricExporterBenchmarks
                 "gaugeC",
                 () =>
                 {
-                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
+                    System.Diagnostics.Process.GetCurrentProcess();
                     return 1D;
                 },
                 unit: "1",
@@ -362,7 +362,7 @@ public class MetricExporterBenchmarks
                 "gaugeD",
                 () =>
                 {
-                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
+                    System.Diagnostics.Process.GetCurrentProcess();
                     return 1D;
                 },
                 unit: "1",
@@ -372,7 +372,7 @@ public class MetricExporterBenchmarks
                 "gaugeE",
                 () =>
                 {
-                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
+                    System.Diagnostics.Process.GetCurrentProcess();
                     return 1D;
                 },
                 unit: "1",
@@ -382,7 +382,7 @@ public class MetricExporterBenchmarks
                 "gaugeF",
                 () =>
                 {
-                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
+                    System.Diagnostics.Process.GetCurrentProcess();
                     return 1D;
                 },
                 unit: "1",
@@ -392,7 +392,7 @@ public class MetricExporterBenchmarks
                 "gaugeG",
                 () =>
                 {
-                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
+                    System.Diagnostics.Process.GetCurrentProcess();
                     return 1D;
                 },
                 unit: "1",
@@ -402,7 +402,7 @@ public class MetricExporterBenchmarks
                 "gaugeH",
                 () =>
                 {
-                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
+                    System.Diagnostics.Process.GetCurrentProcess();
                     return 1D;
                 },
                 unit: "1",
@@ -412,7 +412,7 @@ public class MetricExporterBenchmarks
                 "gaugeI",
                 () =>
                 {
-                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
+                    System.Diagnostics.Process.GetCurrentProcess();
                     return 1D;
                 },
                 unit: "1",
@@ -422,7 +422,7 @@ public class MetricExporterBenchmarks
                 "gaugeJ",
                 () =>
                 {
-                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
+                    System.Diagnostics.Process.GetCurrentProcess();
                     return 1D;
                 },
                 unit: "1",
