@@ -152,7 +152,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                         case MetricType.LongSumNonMonotonic:
                             {
                                 // potential for minor precision loss implicitly going from long->double
-                                // see: https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions#implicit-numeric-conversions
+                                // see: https://docs.microsoft.com/dotnet/csharp/language-reference/builtin-types/numeric-conversions#implicit-numeric-conversions
                                 var doubleSum = Convert.ToDouble(metricPoint.GetSumLong());
                                 var metricData = new MetricData { DoubleValue = doubleSum };
                                 var bodyLength = this.SerializeMetric(
