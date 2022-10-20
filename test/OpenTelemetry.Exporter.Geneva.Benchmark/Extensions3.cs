@@ -1,4 +1,4 @@
-// <copyright file="Extensions2.cs" company="OpenTelemetry Authors">
+// <copyright file="Extensions3.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,7 @@ using OpenTelemetry.Internal;
 using OpenTelemetry.Metrics;
 using static OpenTelemetry.Exporter.Geneva.Benchmark.MetricExporterBenchmarks;
 
-public static class Extensions2
+public static class Extensions3
 {
     /// <summary>
     /// Enables runtime instrumentation.
@@ -28,7 +28,7 @@ public static class Extensions2
     /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
     /// <param name="configure">Runtime metrics options.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
-    public static MeterProviderBuilder AddProcessInstrumentationRefreshEachTime(
+    public static MeterProviderBuilder AddProcessInstrumentationNewProcessInstance(
         this MeterProviderBuilder builder,
         Action<ProcessInstrumentationOptions> configure = null)
     {
@@ -37,7 +37,7 @@ public static class Extensions2
         var options = new ProcessInstrumentationOptions();
         configure?.Invoke(options);
 
-        var instrumentation = new ProcessMetricsRefreshEachTime(options);
+        var instrumentation = new ProcessMetricsNewProcessInstanceOnEachCallback(options);
         builder.AddMeter(instrumentation.MeterInstance.Name);
         return builder.AddInstrumentation(() => instrumentation);
     }

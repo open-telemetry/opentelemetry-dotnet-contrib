@@ -34,6 +34,10 @@ public class MetricExporterBenchmarks
     private BaseExportingMetricReader inMemoryReader2;
     private List<Metric> exportedItems2 = new List<Metric>();
 
+    private MeterProvider meterProvider3;
+    private BaseExportingMetricReader inMemoryReader3;
+    private List<Metric> exportedItems3 = new List<Metric>();
+
     [GlobalSetup]
     public void Setup()
     {
@@ -48,6 +52,12 @@ public class MetricExporterBenchmarks
             .AddProcessInstrumentationRefreshEachTime()
             .AddReader(this.inMemoryReader2)
             .Build();
+
+        this.inMemoryReader3 = new BaseExportingMetricReader(new InMemoryExporter<Metric>(this.exportedItems3));
+        this.meterProvider3 = Sdk.CreateMeterProviderBuilder()
+            .AddProcessInstrumentationNewProcessInstance()
+            .AddReader(this.inMemoryReader3)
+            .Build();
     }
 
     [Benchmark]
@@ -57,9 +67,15 @@ public class MetricExporterBenchmarks
     }
 
     [Benchmark]
-    public void RefreshEachCallback()
+    public void RefreshEachCallbackWithLock()
     {
         this.inMemoryReader2.Collect();
+    }
+
+    [Benchmark]
+    public void CreateNewProcessInstanceOnEachCallback()
+    {
+        this.inMemoryReader3.Collect();
     }
 
     public sealed class ProcessMetricsRefreshOnce
@@ -177,7 +193,146 @@ public class MetricExporterBenchmarks
                 "gaugeA",
                 () =>
                 {
-                    this.currentProcess.Refresh();
+                    lock (this)
+                    {
+                        this.currentProcess.Refresh();
+                        return 1D;
+                    }
+                },
+                unit: "1",
+                description: "desA");
+
+            this.MeterInstance.CreateObservableGauge(
+                "gaugeB",
+                () =>
+                {
+                    lock (this)
+                    {
+                        this.currentProcess.Refresh();
+                        return 1D;
+                    }
+                },
+                unit: "1",
+                description: "desB");
+
+            this.MeterInstance.CreateObservableCounter(
+                "gaugeC",
+                () =>
+                {
+                    lock (this)
+                    {
+                        this.currentProcess.Refresh();
+                        return 1D;
+                    }
+                },
+                unit: "1",
+                description: "desC");
+
+            this.MeterInstance.CreateObservableGauge(
+                "gaugeD",
+                () =>
+                {
+                    lock (this)
+                    {
+                        this.currentProcess.Refresh();
+                        return 1D;
+                    }
+                },
+                unit: "1",
+                description: "desD");
+
+            this.MeterInstance.CreateObservableGauge(
+                "gaugeE",
+                () =>
+                {
+                    lock (this)
+                    {
+                        this.currentProcess.Refresh();
+                        return 1D;
+                    }
+                },
+                unit: "1",
+                description: "desE");
+
+            this.MeterInstance.CreateObservableGauge(
+                "gaugeF",
+                () =>
+                {
+                    lock (this)
+                    {
+                        this.currentProcess.Refresh();
+                        return 1D;
+                    }
+                },
+                unit: "1",
+                description: "desF");
+
+            this.MeterInstance.CreateObservableGauge(
+                "gaugeG",
+                () =>
+                {
+                    lock (this)
+                    {
+                        this.currentProcess.Refresh();
+                        return 1D;
+                    }
+                },
+                unit: "1",
+                description: "desG");
+
+            this.MeterInstance.CreateObservableCounter(
+                "gaugeH",
+                () =>
+                {
+                    lock (this)
+                    {
+                        this.currentProcess.Refresh();
+                        return 1D;
+                    }
+                },
+                unit: "1",
+                description: "desH");
+
+            this.MeterInstance.CreateObservableGauge(
+                "gaugeI",
+                () =>
+                {
+                    lock (this)
+                    {
+                        this.currentProcess.Refresh();
+                        return 1D;
+                    }
+                },
+                unit: "1",
+                description: "desI");
+
+            this.MeterInstance.CreateObservableGauge(
+                "gaugeJ",
+                () =>
+                {
+                    lock (this)
+                    {
+                        this.currentProcess.Refresh();
+                        return 1D;
+                    }
+                },
+                unit: "1",
+                description: "desJ");
+        }
+    }
+
+    public sealed class ProcessMetricsNewProcessInstanceOnEachCallback
+    {
+        internal static readonly AssemblyName AssemblyName = typeof(ProcessMetricsNewProcessInstanceOnEachCallback).Assembly.GetName();
+        internal readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
+
+        public ProcessMetricsNewProcessInstanceOnEachCallback(ProcessInstrumentationOptions options)
+        {
+            this.MeterInstance.CreateObservableGauge(
+                "gaugeA",
+                () =>
+                {
+                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
                     return 1D;
                 },
                 unit: "1",
@@ -187,7 +342,7 @@ public class MetricExporterBenchmarks
                 "gaugeB",
                 () =>
                 {
-                    this.currentProcess.Refresh();
+                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
                     return 1D;
                 },
                 unit: "1",
@@ -197,7 +352,7 @@ public class MetricExporterBenchmarks
                 "gaugeC",
                 () =>
                 {
-                    this.currentProcess.Refresh();
+                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
                     return 1D;
                 },
                 unit: "1",
@@ -207,7 +362,7 @@ public class MetricExporterBenchmarks
                 "gaugeD",
                 () =>
                 {
-                    this.currentProcess.Refresh();
+                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
                     return 1D;
                 },
                 unit: "1",
@@ -217,7 +372,7 @@ public class MetricExporterBenchmarks
                 "gaugeE",
                 () =>
                 {
-                    this.currentProcess.Refresh();
+                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
                     return 1D;
                 },
                 unit: "1",
@@ -227,7 +382,7 @@ public class MetricExporterBenchmarks
                 "gaugeF",
                 () =>
                 {
-                    this.currentProcess.Refresh();
+                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
                     return 1D;
                 },
                 unit: "1",
@@ -237,7 +392,7 @@ public class MetricExporterBenchmarks
                 "gaugeG",
                 () =>
                 {
-                    this.currentProcess.Refresh();
+                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
                     return 1D;
                 },
                 unit: "1",
@@ -247,7 +402,7 @@ public class MetricExporterBenchmarks
                 "gaugeH",
                 () =>
                 {
-                    this.currentProcess.Refresh();
+                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
                     return 1D;
                 },
                 unit: "1",
@@ -257,7 +412,7 @@ public class MetricExporterBenchmarks
                 "gaugeI",
                 () =>
                 {
-                    this.currentProcess.Refresh();
+                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
                     return 1D;
                 },
                 unit: "1",
@@ -267,7 +422,7 @@ public class MetricExporterBenchmarks
                 "gaugeJ",
                 () =>
                 {
-                    this.currentProcess.Refresh();
+                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
                     return 1D;
                 },
                 unit: "1",
