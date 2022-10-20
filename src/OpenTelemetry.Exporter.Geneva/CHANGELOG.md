@@ -12,7 +12,7 @@
 * Add support for exporting exception stack.
   [#672](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/672)
 
-* Change default MetricExportInterval to 60 secs from 20 secs.
+* Change the default MetricExportInterval from 20 seconds to 60 seconds.
   [#722](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/722)
 
 ## 1.4.0-beta.2
