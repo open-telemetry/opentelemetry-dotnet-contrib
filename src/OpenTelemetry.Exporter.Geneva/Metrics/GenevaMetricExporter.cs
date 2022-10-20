@@ -134,17 +134,20 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                 break;
                             }
 
+                        // The value here could be negative hence we have to use `MetricEventType.DoubleMetric`
                         case MetricType.LongGauge:
                             {
-                                var ulongSum = Convert.ToUInt64(metricPoint.GetGaugeLastValueLong());
-                                var metricData = new MetricData { UInt64Value = ulongSum };
+                                // potential for minor precision loss implicitly going from long->double
+                                // see: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions#implicit-numeric-conversions
+                                var doubleSum = Convert.ToDouble(metricPoint.GetGaugeLastValueLong());
+                                var metricData = new MetricData { DoubleValue = doubleSum };
                                 var bodyLength = this.SerializeMetric(
-                                    MetricEventType.ULongMetric,
+                                    MetricEventType.DoubleMetric,
                                     metric.Name,
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
                                     metricData);
-                                this.metricDataTransport.Send(MetricEventType.ULongMetric, this.bufferForNonHistogramMetrics, bodyLength);
+                                this.metricDataTransport.Send(MetricEventType.DoubleMetric, this.bufferForNonHistogramMetrics, bodyLength);
                                 break;
                             }
 
@@ -152,7 +155,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                         case MetricType.LongSumNonMonotonic:
                             {
                                 // potential for minor precision loss implicitly going from long->double
-                                // see: https://docs.microsoft.com/dotnet/csharp/language-reference/builtin-types/numeric-conversions#implicit-numeric-conversions
+                                // see: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions#implicit-numeric-conversions
                                 var doubleSum = Convert.ToDouble(metricPoint.GetSumLong());
                                 var metricData = new MetricData { DoubleValue = doubleSum };
                                 var bodyLength = this.SerializeMetric(
