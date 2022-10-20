@@ -148,7 +148,25 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                 break;
                             }
 
+                        // The value here could be negative hence we have to use `MetricEventType.DoubleMetric`
+                        case MetricType.LongSumNonMonotonic:
+                            {
+                                // potential for minor precision loss implicitly going from long->double
+                                // see: https://docs.microsoft.com/dotnet/csharp/language-reference/builtin-types/numeric-conversions#implicit-numeric-conversions
+                                var doubleSum = Convert.ToDouble(metricPoint.GetSumLong());
+                                var metricData = new MetricData { DoubleValue = doubleSum };
+                                var bodyLength = this.SerializeMetric(
+                                    MetricEventType.DoubleMetric,
+                                    metric.Name,
+                                    metricPoint.EndTime.ToFileTime(),
+                                    metricPoint.Tags,
+                                    metricData);
+                                this.metricDataTransport.Send(MetricEventType.DoubleMetric, this.bufferForNonHistogramMetrics, bodyLength);
+                                break;
+                            }
+
                         case MetricType.DoubleSum:
+                        case MetricType.DoubleSumNonMonotonic:
                             {
                                 var doubleSum = metricPoint.GetSumDouble();
                                 var metricData = new MetricData { DoubleValue = doubleSum };
