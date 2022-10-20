@@ -3,7 +3,7 @@
 ## Unreleased
 
 * Update OTel API version to `1.4.0-beta.2`.
-  
+
   OTel API updated System.Diagnostics.DiagnosticSource preview to version 7.0.0
   since [1.4.0-alpha.2](https://github.com/open-telemetry/opentelemetry-dotnet/releases/tag/core-1.4.0-alpha.2).
 
