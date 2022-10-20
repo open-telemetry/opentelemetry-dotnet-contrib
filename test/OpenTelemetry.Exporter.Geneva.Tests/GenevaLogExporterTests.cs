@@ -43,6 +43,13 @@ public class GenevaLogExporterTests
     }
 
     [Fact]
+    public void ExportExceptionStackDefaultIsDrop()
+    {
+        GenevaExporterOptions exporterOptions = new GenevaExporterOptions();
+        Assert.Equal(ExceptionStackExportMode.Drop, exporterOptions.ExceptionStackExportMode);
+    }
+
+    [Fact]
     public void SpecialCharactersInTableNameMappings()
     {
         Assert.Throws<ArgumentException>(() =>

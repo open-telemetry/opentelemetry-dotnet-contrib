@@ -96,9 +96,6 @@ to all the `ObservableGauge` below.
 
 Note: This metric is only available when targeting .NET6 or later.
 
-Note: `gc.heap.fragmentation.size` metrics is removed for .NET 6 because of a
-[bug](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/496).
-
 | Units   | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
 |---------|-----------------|------------|------------------|------------------|
 | `bytes` | ObservableGauge | `Int64`    | No Attributes    | N/A              |
@@ -135,7 +132,7 @@ The API used to retrieve the value is:
 The heap fragmentation, as observed during the latest garbage collection.
 The value will be unavailable until at least one garbage collection has occurred.
 
-Note: This metric is only available when targeting .NET6 or later.
+Note: This metric is only available when targeting .NET 7 or later.
 
 | Units   | Instrument Type | Value Type | Attribute Key(s) | Attribute Values           |
 |---------|-----------------|------------|------------------|----------------------------|

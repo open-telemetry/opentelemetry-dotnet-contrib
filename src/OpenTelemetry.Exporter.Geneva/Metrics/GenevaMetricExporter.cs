@@ -198,13 +198,23 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                             {
                                 var sum = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetHistogramSum()) };
                                 var count = Convert.ToUInt32(metricPoint.GetHistogramCount());
+                                MetricData min = ulongZero;
+                                MetricData max = ulongZero;
+                                if (metricPoint.HasMinMax())
+                                {
+                                    min = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetHistogramMin()) };
+                                    max = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetHistogramMax()) };
+                                }
+
                                 var bodyLength = this.SerializeHistogramMetric(
                                     metric.Name,
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
                                     metricPoint.GetHistogramBuckets(),
                                     sum,
-                                    count);
+                                    count,
+                                    min,
+                                    max);
                                 this.metricDataTransport.Send(MetricEventType.ExternallyAggregatedULongDistributionMetric, this.bufferForHistogramMetrics, bodyLength);
                                 break;
                             }
@@ -335,7 +345,9 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         in ReadOnlyTagCollection tags,
         HistogramBuckets buckets,
         MetricData sum,
-        uint count)
+        uint count,
+        MetricData min,
+        MetricData max)
     {
         ushort bodyLength;
         try
@@ -443,8 +455,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                 payloadPtr[0].Count = count;
                 payloadPtr[0].TimestampUtc = (ulong)timestamp;
                 payloadPtr[0].Sum = sum;
-                payloadPtr[0].Min = ulongZero;
-                payloadPtr[0].Max = ulongZero;
+                payloadPtr[0].Min = min;
+                payloadPtr[0].Max = max;
             }
         }
         finally

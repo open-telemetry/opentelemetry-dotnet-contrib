@@ -1,4 +1,4 @@
-// <copyright file="MeterProviderBuilderExtensionsTests.cs" company="OpenTelemetry Authors">
+// <copyright file="Program.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,20 +14,19 @@
 // limitations under the License.
 // </copyright>
 
-using System;
+using OpenTelemetry;
 using OpenTelemetry.Metrics;
-using Xunit;
 
-namespace OpenTelemetry.Instrumentation.EventCounters.Tests;
-
-public class MeterProviderBuilderExtensionsTests
+public class Program
 {
-    [Fact]
-    public void Throws_Exception_When_Builder_Is_Null()
+    public static void Main()
     {
-        MeterProviderBuilder builder = null;
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddProcessInstrumentation()
+            .AddPrometheusHttpListener()
+            .Build();
 
-        Func<object> action = () => builder.AddEventCounterMetrics();
-        Assert.Throws<ArgumentNullException>(action);
+        Console.WriteLine(".NET Process metrics are available at http://localhost:9464/metrics, press any key to exit...");
+        Console.ReadKey(false);
     }
 }
