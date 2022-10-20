@@ -17,7 +17,6 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using OpenTelemetry.Exporter.Geneva.TLDExporter;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
