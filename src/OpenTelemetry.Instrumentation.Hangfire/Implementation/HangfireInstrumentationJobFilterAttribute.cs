@@ -81,11 +81,11 @@ internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, I
             if (performedContext.Exception != null)
             {
                 activity.SetStatus(ActivityStatusCode.Error, performedContext.Exception.Message);
-            }
 
-            if (performedContext.Exception != null && this.options.RecordException)
-            {
-                activity.RecordException(performedContext.Exception);
+                if (this.options.RecordException)
+                {
+                    activity.RecordException(performedContext.Exception);
+                }
             }
 
             activity.Dispose();
