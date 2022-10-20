@@ -5,6 +5,10 @@
 * Add support for exporting `UpDownCounter` and `ObservableUpDownCounter`.
   [#685](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/685)
 
+* Export `MetricType.LongGauge` as a double metric as it might return negative
+  values.
+  [#721](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/721)
+
 ## 1.4.0-beta.2
 
 Released 2022-Oct-17
