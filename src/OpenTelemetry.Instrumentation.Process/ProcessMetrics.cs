@@ -27,8 +27,6 @@ internal sealed class ProcessMetrics
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
     internal readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
 
-    private readonly Diagnostics.Process currentProcess = Diagnostics.Process.GetCurrentProcess();
-
     // vars for calculating CPU utilization
     private DateTime lastCollectionTimeUtc;
     private double lastCollectedUserProcessorTime;
@@ -37,16 +35,15 @@ internal sealed class ProcessMetrics
     public ProcessMetrics(ProcessInstrumentationOptions options)
     {
         this.lastCollectionTimeUtc = DateTime.UtcNow;
-        this.lastCollectedUserProcessorTime = this.currentProcess.UserProcessorTime.TotalSeconds;
-        this.lastCollectedPrivilegedProcessorTime = this.currentProcess.PrivilegedProcessorTime.TotalSeconds;
+        this.lastCollectedUserProcessorTime = Diagnostics.Process.GetCurrentProcess().UserProcessorTime.TotalSeconds;
+        this.lastCollectedPrivilegedProcessorTime = Diagnostics.Process.GetCurrentProcess().PrivilegedProcessorTime.TotalSeconds;
 
         // TODO: change to ObservableUpDownCounter
         this.MeterInstance.CreateObservableGauge(
             "process.memory.usage",
             () =>
             {
-                this.currentProcess.Refresh();
-                return this.currentProcess.WorkingSet64;
+                return Diagnostics.Process.GetCurrentProcess().WorkingSet64;
             },
             unit: "By",
             description: "The amount of physical memory allocated for this process.");
@@ -56,8 +53,7 @@ internal sealed class ProcessMetrics
             "process.memory.virtual",
             () =>
             {
-                this.currentProcess.Refresh();
-                return this.currentProcess.PrivateMemorySize64;
+                return Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64;
             },
             unit: "By",
             description: "The amount of virtual memory allocated for this process that cannot be shared with other processes.");
@@ -66,11 +62,11 @@ internal sealed class ProcessMetrics
             "process.cpu.time",
             () =>
             {
-                this.currentProcess.Refresh();
+                var process = Diagnostics.Process.GetCurrentProcess();
                 return new[]
                 {
-                    new Measurement<double>(this.currentProcess.UserProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("state", "user")),
-                    new Measurement<double>(this.currentProcess.PrivilegedProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("state", "system")),
+                    new Measurement<double>(process.UserProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("state", "user")),
+                    new Measurement<double>(process.PrivilegedProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("state", "system")),
                 };
             },
             unit: "s",
@@ -80,7 +76,6 @@ internal sealed class ProcessMetrics
             "process.cpu.utilization",
             () =>
             {
-                this.currentProcess.Refresh();
                 return this.GetCpuUtilization();
             },
             unit: "1",
@@ -91,8 +86,7 @@ internal sealed class ProcessMetrics
             "process.threads",
             () =>
             {
-                this.currentProcess.Refresh();
-                return this.currentProcess.Threads.Count;
+                return Diagnostics.Process.GetCurrentProcess().Threads.Count;
             },
             unit: "{threads}",
             description: "Process threads count.");
@@ -100,13 +94,14 @@ internal sealed class ProcessMetrics
 
     private IEnumerable<Measurement<double>> GetCpuUtilization()
     {
+        var process = Diagnostics.Process.GetCurrentProcess();
         var elapsedTimeForAllCpus = (DateTime.UtcNow - this.lastCollectionTimeUtc).TotalSeconds * Environment.ProcessorCount;
-        var userProcessorUtilization = (this.currentProcess.UserProcessorTime.TotalSeconds - this.lastCollectedUserProcessorTime) / elapsedTimeForAllCpus;
-        var privilegedProcessorUtilization = (this.currentProcess.PrivilegedProcessorTime.TotalSeconds - this.lastCollectedPrivilegedProcessorTime) / elapsedTimeForAllCpus;
+        var userProcessorUtilization = (process.UserProcessorTime.TotalSeconds - this.lastCollectedUserProcessorTime) / elapsedTimeForAllCpus;
+        var privilegedProcessorUtilization = (process.PrivilegedProcessorTime.TotalSeconds - this.lastCollectedPrivilegedProcessorTime) / elapsedTimeForAllCpus;
 
         this.lastCollectionTimeUtc = DateTime.UtcNow;
-        this.lastCollectedUserProcessorTime = this.currentProcess.UserProcessorTime.TotalSeconds;
-        this.lastCollectedPrivilegedProcessorTime = this.currentProcess.PrivilegedProcessorTime.TotalSeconds;
+        this.lastCollectedUserProcessorTime = process.UserProcessorTime.TotalSeconds;
+        this.lastCollectedPrivilegedProcessorTime = process.PrivilegedProcessorTime.TotalSeconds;
 
         return new[]
         {
