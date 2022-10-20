@@ -102,6 +102,8 @@ public class GenevaMetricExporterTests
         using var meter = new Meter("SuccessfulSerialization", "0.0.1");
         var longCounter = meter.CreateCounter<long>("longCounter");
         var doubleCounter = meter.CreateCounter<double>("doubleCounter");
+        var longUpDownCounter = meter.CreateUpDownCounter<long>("longUpDownCounter");
+        var doubleUpDownCounter = meter.CreateUpDownCounter<double>("doubleUpDownCounter");
         var histogram = meter.CreateHistogram<long>("histogram");
         var exportedItems = new List<Metric>();
         using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
@@ -129,6 +131,12 @@ public class GenevaMetricExporterTests
         doubleCounter.Add(
             doubleValue, new("tag1", "value1"), new("tag2", "value2"));
 
+        longUpDownCounter.Add(
+            longValue, new("tag1", "value1"), new("tag2", "value2"));
+
+        doubleUpDownCounter.Add(
+            longValue, new("tag1", "value1"), new("tag2", "value2"));
+
         meter.CreateObservableCounter(
             "observableLongCounter",
             () => new List<Measurement<long>>()
@@ -152,6 +160,20 @@ public class GenevaMetricExporterTests
 
         meter.CreateObservableGauge(
             "observableDoubleGauge",
+            () => new List<Measurement<double>>()
+            {
+                new(doubleValue, new("tag1", "value1"), new("tag2", "value2")),
+            });
+
+        meter.CreateObservableUpDownCounter(
+            "observableUpDownLongCounter",
+            () => new List<Measurement<long>>()
+            {
+                new(longValue, new("tag1", "value1"), new("tag2", "value2")),
+            });
+
+        meter.CreateObservableUpDownCounter(
+            "observableUpDownDoubleCounter",
             () => new List<Measurement<double>>()
             {
                 new(doubleValue, new("tag1", "value1"), new("tag2", "value2")),
@@ -221,7 +243,7 @@ public class GenevaMetricExporterTests
 
             inMemoryReader.Collect();
 
-            Assert.Equal(7, exportedItems.Count);
+            Assert.Equal(11, exportedItems.Count);
 
             // check serialization for longCounter
             this.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
@@ -229,20 +251,32 @@ public class GenevaMetricExporterTests
             // check serialization for doubleCounter
             this.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
 
-            // check serialization for histogram
+            // check serialization for longUpDownCounter
             this.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
 
-            // check serialization for observableLongCounter
+            // check serialization for doubleUpDownCounter
             this.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
 
-            // check serialization for observableDoubleCounter
+            // check serialization for histogram
             this.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
 
-            // check serialization for observableLongGauge
+            // check serialization for observableLongCounter
             this.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
 
-            // check serialization for observableDoubleGauge
+            // check serialization for observableDoubleCounter
             this.CheckSerializationForSingleMetricPoint(exportedItems[6], exporter, exporterOptions);
+
+            // check serialization for observableLongGauge
+            this.CheckSerializationForSingleMetricPoint(exportedItems[7], exporter, exporterOptions);
+
+            // check serialization for observableDoubleGauge
+            this.CheckSerializationForSingleMetricPoint(exportedItems[8], exporter, exporterOptions);
+
+            // check serialization for observableUpDownLongCounter
+            this.CheckSerializationForSingleMetricPoint(exportedItems[9], exporter, exporterOptions);
+
+            // check serialization for observableUpDownDoubleCounter
+            this.CheckSerializationForSingleMetricPoint(exportedItems[10], exporter, exporterOptions);
         }
         finally
         {
@@ -637,6 +671,27 @@ public class GenevaMetricExporterTests
             var metricDataValue = metricType == MetricType.DoubleSum ?
                 metricPoint.GetSumDouble() :
                 metricPoint.GetGaugeLastValueDouble();
+            var metricData = new MetricData { DoubleValue = metricDataValue };
+            var bodyLength = exporter.SerializeMetric(
+                MetricEventType.DoubleMetric,
+                metric.Name,
+                metricPoint.EndTime.ToFileTime(),
+                metricPoint.Tags,
+                metricData);
+            var buffer = typeof(GenevaMetricExporter).GetField("bufferForNonHistogramMetrics", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
+            var stream = new KaitaiStream(buffer);
+            data = new MetricsContract(stream);
+            var valueSection = data.Body.ValueSection as SingleDoubleValue;
+            Assert.Equal(metricDataValue, valueSection.Value);
+            Assert.Equal((ulong)metricPoint.EndTime.ToFileTime(), valueSection.Timestamp);
+            Assert.Equal((ushort)MetricEventType.DoubleMetric, data.EventId);
+            Assert.Equal(bodyLength, data.LenBody);
+        }
+        else if (metricType == MetricType.LongSumNonMonotonic || metricType == MetricType.DoubleSumNonMonotonic)
+        {
+            var metricDataValue = metricType == MetricType.LongSumNonMonotonic ?
+                Convert.ToDouble(metricPoint.GetSumLong()) :
+                Convert.ToDouble(metricPoint.GetSumDouble());
             var metricData = new MetricData { DoubleValue = metricDataValue };
             var bodyLength = exporter.SerializeMetric(
                 MetricEventType.DoubleMetric,

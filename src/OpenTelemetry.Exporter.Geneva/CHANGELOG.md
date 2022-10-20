@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add support for exporting `UpDownCounter` and `ObservableUpDownCounter`.
+  [#685](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/685)
+
 ## 1.4.0-beta.2
 
 Released 2022-Oct-17
