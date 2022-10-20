@@ -37,6 +37,7 @@ components:
     - ejsmith
   src/OpenTelemetry.Instrumentation.EventCounters/:
     - hananiel
+    - mic-max
   src/OpenTelemetry.Instrumentation.GrpcCore/:
     - pcwiese
   src/OpenTelemetry.Instrumentation.Hangfire/:
@@ -99,6 +100,7 @@ components:
     - ejsmith
   test/OpenTelemetry.Instrumentation.EventCounters.Tests/:
     - hananiel
+    - mic-max
   test/OpenTelemetry.Instrumentation.GrpcCore.Tests/:
     - pcwiese
   test/OpenTelemetry.Instrumentation.Hangfire.Tests/:

@@ -134,21 +134,42 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                 break;
                             }
 
+                        // The value here could be negative hence we have to use `MetricEventType.DoubleMetric`
                         case MetricType.LongGauge:
                             {
-                                var ulongSum = Convert.ToUInt64(metricPoint.GetGaugeLastValueLong());
-                                var metricData = new MetricData { UInt64Value = ulongSum };
+                                // potential for minor precision loss implicitly going from long->double
+                                // see: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions#implicit-numeric-conversions
+                                var doubleSum = Convert.ToDouble(metricPoint.GetGaugeLastValueLong());
+                                var metricData = new MetricData { DoubleValue = doubleSum };
                                 var bodyLength = this.SerializeMetric(
-                                    MetricEventType.ULongMetric,
+                                    MetricEventType.DoubleMetric,
                                     metric.Name,
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
                                     metricData);
-                                this.metricDataTransport.Send(MetricEventType.ULongMetric, this.bufferForNonHistogramMetrics, bodyLength);
+                                this.metricDataTransport.Send(MetricEventType.DoubleMetric, this.bufferForNonHistogramMetrics, bodyLength);
+                                break;
+                            }
+
+                        // The value here could be negative hence we have to use `MetricEventType.DoubleMetric`
+                        case MetricType.LongSumNonMonotonic:
+                            {
+                                // potential for minor precision loss implicitly going from long->double
+                                // see: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions#implicit-numeric-conversions
+                                var doubleSum = Convert.ToDouble(metricPoint.GetSumLong());
+                                var metricData = new MetricData { DoubleValue = doubleSum };
+                                var bodyLength = this.SerializeMetric(
+                                    MetricEventType.DoubleMetric,
+                                    metric.Name,
+                                    metricPoint.EndTime.ToFileTime(),
+                                    metricPoint.Tags,
+                                    metricData);
+                                this.metricDataTransport.Send(MetricEventType.DoubleMetric, this.bufferForNonHistogramMetrics, bodyLength);
                                 break;
                             }
 
                         case MetricType.DoubleSum:
+                        case MetricType.DoubleSumNonMonotonic:
                             {
                                 var doubleSum = metricPoint.GetSumDouble();
                                 var metricData = new MetricData { DoubleValue = doubleSum };
@@ -180,13 +201,23 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                             {
                                 var sum = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetHistogramSum()) };
                                 var count = Convert.ToUInt32(metricPoint.GetHistogramCount());
+                                MetricData min = ulongZero;
+                                MetricData max = ulongZero;
+                                if (metricPoint.HasMinMax())
+                                {
+                                    min = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetHistogramMin()) };
+                                    max = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetHistogramMax()) };
+                                }
+
                                 var bodyLength = this.SerializeHistogramMetric(
                                     metric.Name,
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
                                     metricPoint.GetHistogramBuckets(),
                                     sum,
-                                    count);
+                                    count,
+                                    min,
+                                    max);
                                 this.metricDataTransport.Send(MetricEventType.ExternallyAggregatedULongDistributionMetric, this.bufferForHistogramMetrics, bodyLength);
                                 break;
                             }
@@ -317,7 +348,9 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         in ReadOnlyTagCollection tags,
         HistogramBuckets buckets,
         MetricData sum,
-        uint count)
+        uint count,
+        MetricData min,
+        MetricData max)
     {
         ushort bodyLength;
         try
@@ -425,8 +458,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                 payloadPtr[0].Count = count;
                 payloadPtr[0].TimestampUtc = (ulong)timestamp;
                 payloadPtr[0].Sum = sum;
-                payloadPtr[0].Min = ulongZero;
-                payloadPtr[0].Max = ulongZero;
+                payloadPtr[0].Min = min;
+                payloadPtr[0].Max = max;
             }
         }
         finally
