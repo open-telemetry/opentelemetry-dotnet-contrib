@@ -90,15 +90,11 @@ objects (the heap size) and some extra memory that is ready to handle newly
 allocated objects in the future. The value will be unavailable until at least one
 garbage collection has occurred.
 
-Note: `ObservableGauge` should be changed to `ObservableUpDownCounter` once available,
-as `ObservableUpDownCounter` is the best fit of instrument type. The same applies
-to all the `ObservableGauge` below.
-
 Note: This metric is only available when targeting .NET6 or later.
 
-| Units   | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
-|---------|-----------------|------------|------------------|------------------|
-| `bytes` | ObservableGauge | `Int64`    | No Attributes    | N/A              |
+| Units   | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
+|---------|-------------------------|------------|------------------|------------------|
+| `bytes` | ObservableUpDownCounter | `Int64`    | No Attributes    | N/A              |
 
 The API used to retrieve the value is:
 
@@ -113,9 +109,9 @@ garbage collection has occurred.
 
 Note: This metric is only available when targeting .NET6 or later.
 
-| Units   | Instrument Type | Value Type | Attribute Key(s) | Attribute Values           |
-|---------|-----------------|------------|------------------|----------------------------|
-| `bytes` | ObservableGauge | `Int64`    | generation       | gen0, gen1, gen2, loh, poh |
+| Units   | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values           |
+|---------|-------------------------|------------|------------------|----------------------------|
+| `bytes` | ObservableUpDownCounter | `Int64`    | generation       | gen0, gen1, gen2, loh, poh |
 
 The API used to retrieve the value is:
 
@@ -134,9 +130,9 @@ The value will be unavailable until at least one garbage collection has occurred
 
 Note: This metric is only available when targeting .NET 7 or later.
 
-| Units   | Instrument Type | Value Type | Attribute Key(s) | Attribute Values           |
-|---------|-----------------|------------|------------------|----------------------------|
-| `bytes` | ObservableGauge | `Int64`    | generation       | gen0, gen1, gen2, loh, poh |
+| Units   | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values           |
+|---------|-------------------------|------------|------------------|----------------------------|
+| `bytes` | ObservableUpDownCounter | `Int64`    | generation       | gen0, gen1, gen2, loh, poh |
 
 The API used to retrieve the value is:
 
@@ -206,9 +202,9 @@ the lock keyword in C#, or by calling Monitor.Enter() and Monitor.TryEnter().
 
 The number of thread pool threads that currently exist.
 
-| Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|-------------|-------------------|------------|------------------|------------------|
-| `{threads}` | ObservableGauge   | `Int32`    | No Attributes    | N/A              |
+| Units       | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
+|-------------|-------------------------|------------|------------------|------------------|
+| `{threads}` | ObservableUpDownCounter | `Int32`    | No Attributes    | N/A              |
 
 #### process.runtime.dotnet.**thread_pool.completed_items.count**
 
@@ -224,9 +220,9 @@ since the process start.
 The number of work items that are currently queued to be processed
 by the thread pool.
 
-| Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|-------------|-------------------|------------|------------------|------------------|
-| `{items}`   | ObservableGauge   | `Int64`    | No Attributes    | N/A              |
+| Units     | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
+|-----------|-------------------------|------------|------------------|------------------|
+| `{items}` | ObservableUpDownCounter | `Int64`    | No Attributes    | N/A              |
 
 #### process.runtime.dotnet.**timer.count**
 
@@ -235,9 +231,9 @@ be created by many sources such as System.Threading.Timer, Task.Delay, or the
 timeout in a CancellationSource. An active timer is registered to tick at some
 point in the future and has not yet been canceled.
 
-| Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|-------------|-------------------|------------|------------------|------------------|
-| `{timers}`  | ObservableGauge   | `Int64`    | No Attributes    | N/A              |
+| Units      | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
+|------------|-------------------------|------------|------------------|------------------|
+| `{timers}` | ObservableUpDownCounter | `Int64`    | No Attributes    | N/A              |
 
 The APIs used to retrieve the values are:
 
@@ -260,9 +256,9 @@ The APIs used to retrieve the values are:
 
 The number of .NET assemblies that are currently loaded.
 
-| Units          | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
-|----------------|-----------------|------------|------------------|------------------|
-| `{assemblies}` | ObservableGauge | `Int64`    | No Attributes    | N/A              |
+| Units          | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
+|----------------|-------------------------|------------|------------------|------------------|
+| `{assemblies}` | ObservableUpDownCounter | `Int64`    | No Attributes    | N/A              |
 
 The API used to retrieve the value is:
 
@@ -300,6 +296,23 @@ metric is available in the .NET version you are running.
 
 Some GC related metrics are unavailable until at least one garbage collection
 has occurred.
+
+## Note
+
+OTel API updated System.Diagnostics.DiagnosticSource preview to version 7.0.0
+since [1.4.0-alpha.2](https://github.com/open-telemetry/opentelemetry-dotnet/releases/tag/core-1.4.0-alpha.2).
+
+With this update, applications targeting .NET 5 and lower will receive a
+warning at build time as described [here](https://github.com/dotnet/runtime/pull/72518)
+(note: building using older versions of the .NET SDK produces an error at
+build time). This is because .NET 5 reached EOL in May 2022 and .NET
+Core 3.1 reaches EOL in December 2022.
+
+There is no guarantee that System.Diagnostics.DiagnosticSource will continue
+to work on older versions of .NET. However, the build warning can be
+suppressed by setting the SuppressTfmSupportBuildWarnings MSBuild property.
+
+This does not affect applications targeting .NET Framework.
 
 ## References
 
