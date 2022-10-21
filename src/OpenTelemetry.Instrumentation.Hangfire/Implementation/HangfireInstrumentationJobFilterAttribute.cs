@@ -23,9 +23,17 @@ using global::Hangfire.Client;
 using global::Hangfire.Common;
 using global::Hangfire.Server;
 using OpenTelemetry.Context.Propagation;
+using OpenTelemetry.Trace;
 
 internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, IServerFilter, IClientFilter
 {
+    private readonly HangfireInstrumentationOptions options;
+
+    public HangfireInstrumentationJobFilterAttribute(HangfireInstrumentationOptions options)
+    {
+        this.options = options;
+    }
+
     public void OnPerforming(PerformingContext performingContext)
     {
         // Short-circuit if nobody is listening
@@ -72,7 +80,7 @@ internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, I
         {
             if (performedContext.Exception != null)
             {
-                activity.SetStatus(ActivityStatusCode.Error, performedContext.Exception.Message);
+                this.SetStatusAndRecordException(activity, performedContext.Exception);
             }
 
             activity.Dispose();
@@ -110,5 +118,15 @@ internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, I
     private static IEnumerable<string> ExtractActivityProperties(Dictionary<string, string> telemetryData, string key)
     {
         return telemetryData.ContainsKey(key) ? new[] { telemetryData[key] } : Enumerable.Empty<string>();
+    }
+
+    private void SetStatusAndRecordException(Activity activity, System.Exception exception)
+    {
+        activity.SetStatus(ActivityStatusCode.Error, exception.Message);
+
+        if (this.options.RecordException)
+        {
+            activity.RecordException(exception);
+        }
     }
 }
