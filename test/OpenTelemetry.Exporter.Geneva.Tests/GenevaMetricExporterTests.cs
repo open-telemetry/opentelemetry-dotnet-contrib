@@ -645,11 +645,9 @@ public class GenevaMetricExporterTests
         MetricsContract data = null;
 
         // Check metric value, timestamp, eventId, and length of payload
-        if (metricType == MetricType.LongSum || metricType == MetricType.LongGauge)
+        if (metricType == MetricType.LongSum)
         {
-            var metricDataValue = metricType == MetricType.LongSum ?
-                Convert.ToUInt64(metricPoint.GetSumLong()) :
-                Convert.ToUInt64(metricPoint.GetGaugeLastValueLong());
+            var metricDataValue = Convert.ToUInt64(metricPoint.GetSumLong());
             var metricData = new MetricData { UInt64Value = metricDataValue };
             var bodyLength = exporter.SerializeMetric(
                 MetricEventType.ULongMetric,
@@ -664,6 +662,25 @@ public class GenevaMetricExporterTests
             Assert.Equal(metricDataValue, valueSection.Value);
             Assert.Equal((ulong)metricPoint.EndTime.ToFileTime(), valueSection.Timestamp);
             Assert.Equal((ushort)MetricEventType.ULongMetric, data.EventId);
+            Assert.Equal(bodyLength, data.LenBody);
+        }
+        else if (metricType == MetricType.LongGauge)
+        {
+            var metricDataValue = Convert.ToDouble(metricPoint.GetGaugeLastValueLong());
+            var metricData = new MetricData { DoubleValue = metricDataValue };
+            var bodyLength = exporter.SerializeMetric(
+                MetricEventType.DoubleMetric,
+                metric.Name,
+                metricPoint.EndTime.ToFileTime(),
+                metricPoint.Tags,
+                metricData);
+            var buffer = typeof(GenevaMetricExporter).GetField("bufferForNonHistogramMetrics", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
+            var stream = new KaitaiStream(buffer);
+            data = new MetricsContract(stream);
+            var valueSection = data.Body.ValueSection as SingleDoubleValue;
+            Assert.Equal(metricDataValue, valueSection.Value);
+            Assert.Equal((ulong)metricPoint.EndTime.ToFileTime(), valueSection.Timestamp);
+            Assert.Equal((ushort)MetricEventType.DoubleMetric, data.EventId);
             Assert.Equal(bodyLength, data.LenBody);
         }
         else if (metricType == MetricType.DoubleSum || metricType == MetricType.DoubleGauge)
