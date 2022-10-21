@@ -2,12 +2,22 @@
 
 ## Unreleased
 
+## 1.4.0-beta.3
+
+Released 2022-Oct-20
+
 * Add support for exporting `UpDownCounter` and `ObservableUpDownCounter`.
   [#685](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/685)
 
 * Export `MetricType.LongGauge` as a double metric as it might return negative
   values.
   [#721](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/721)
+
+* Add support for exporting exception stack.
+  [#672](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/672)
+
+* Change the default MetricExportInterval from 20 seconds to 60 seconds.
+  [#722](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/722)
 
 ## 1.4.0-beta.2
 
