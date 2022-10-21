@@ -156,13 +156,9 @@ public class ProcessMetricsTests
 
         foreach (ref readonly var metricPoint in metric.GetMetricPoints())
         {
-            if (metric.MetricType.IsGauge())
+            if (metric.MetricType.IsLong())
             {
                 sum += metricPoint.GetGaugeLastValueLong();
-            }
-            else if (metric.MetricType.IsDouble())
-            {
-                sum += metricPoint.GetSumDouble();
             }
         }
 
