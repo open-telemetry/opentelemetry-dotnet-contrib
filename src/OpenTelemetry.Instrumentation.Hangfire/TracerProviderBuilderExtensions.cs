@@ -16,6 +16,7 @@
 
 namespace OpenTelemetry.Trace;
 
+using System;
 using OpenTelemetry.Instrumentation.Hangfire.Implementation;
 using OpenTelemetry.Internal;
 
@@ -28,12 +29,18 @@ public static class TracerProviderBuilderExtensions
     /// Adds Hangfire instrumentation to the tracer provider.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="configureHangfireInstrumentationOptions">Callback action for configuring <see cref="HangfireInstrumentationOptions"/>.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-    public static TracerProviderBuilder AddHangfireInstrumentation(this TracerProviderBuilder builder)
+    public static TracerProviderBuilder AddHangfireInstrumentation(
+        this TracerProviderBuilder builder,
+        Action<HangfireInstrumentationOptions> configureHangfireInstrumentationOptions = null)
     {
         Guard.ThrowIfNull(builder);
 
-        Hangfire.GlobalJobFilters.Filters.Add(new HangfireInstrumentationJobFilterAttribute());
+        var options = new HangfireInstrumentationOptions();
+        configureHangfireInstrumentationOptions?.Invoke(options);
+
+        Hangfire.GlobalJobFilters.Filters.Add(new HangfireInstrumentationJobFilterAttribute(options));
 
         return builder.AddSource(HangfireInstrumentation.ActivitySourceName);
     }
