@@ -53,9 +53,6 @@ public class Program
 For an ASP.NET Core application, adding instrumentation is typically done in
 the `ConfigureServices` of your `Startup` class. Refer to [example](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/examples/AspNetCore/Program.cs).
 
-For an ASP.NET application, adding instrumentation is typically done in the
-`Global.asax.cs`. Refer to [example](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/examples/AspNet/Global.asax.cs).
-
 ## References
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
