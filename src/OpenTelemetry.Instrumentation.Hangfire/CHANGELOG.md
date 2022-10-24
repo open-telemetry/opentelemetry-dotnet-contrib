@@ -2,7 +2,7 @@
 
 ## 1.0.0
 
-Released 2022-Oct-23
+Released 2022-Oct-24
 
 * Add support to optionally record exceptions
   ([#719](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/719))
