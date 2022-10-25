@@ -46,7 +46,7 @@ public class EventCountersMetricsTests
         Assert.Empty(metricItems);
     }
 
-    [Fact]
+    [Fact(Skip = "Unstable")]
     public async Task EventCounter()
     {
         // Arrange
