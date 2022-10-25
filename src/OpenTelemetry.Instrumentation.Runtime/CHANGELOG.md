@@ -20,9 +20,9 @@
   Prometheus are unaffected by this.
 
 * Removes NETCoreApp3.1 target as it is going out of support. The package keeps
-  `netstandard2.0` and adds `netstandard2.1` target, so it can still be used with
-  .NET Core 3.1 apps, though any apps targeting .NET 5 and lower will receive a
-  warning at build time as described
+  `netstandard2.0` target, so it can still be used with .NET Core 3.1/.NET 5
+  apps, however certain metrics will not be available there. Additionally, apps
+  targeting .NET 5 and lower will receive a warning at build time as described
   [here](https://github.com/dotnet/runtime/pull/72518) (note: building using
   older versions of the .NET SDK produces an error at build time). This is
   because .NET 5 reached EOL in May 2022 and .NET Core 3.1 reaches EOL in
