@@ -18,11 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
-#if NETCOREAPP3_1_OR_GREATER
-using System.Threading;
-#endif
-
 #if NET6_0_OR_GREATER
+using System.Threading;
 using JitInfo = System.Runtime.JitInfo;
 #endif
 
@@ -51,15 +48,13 @@ internal class RuntimeMetrics
             () => GetGarbageCollectionCounts(),
             description: "Number of garbage collections that have occurred since process start.");
 
-#if NETCOREAPP3_1_OR_GREATER
+#if NET6_0_OR_GREATER
         MeterInstance.CreateObservableCounter(
             "process.runtime.dotnet.gc.allocations.size",
             () => GC.GetTotalAllocatedBytes(),
             unit: "bytes",
             description: "Count of bytes allocated on the managed GC heap since the process start. .NET objects are allocated from this heap. Object allocations from unmanaged languages such as C/C++ do not use this heap.");
-#endif
 
-#if NET6_0_OR_GREATER
         MeterInstance.CreateObservableUpDownCounter(
             "process.runtime.dotnet.gc.committed_memory.size",
             () =>
@@ -144,9 +139,7 @@ internal class RuntimeMetrics
                 unit: "bytes",
                 description: "The heap fragmentation, as observed during the latest garbage collection. The value will be unavailable until at least one garbage collection has occurred.");
         }
-#endif
 
-#if NET6_0_OR_GREATER
         MeterInstance.CreateObservableCounter(
             "process.runtime.dotnet.jit.il_compiled.size",
             () => JitInfo.GetCompiledILBytes(),
@@ -163,9 +156,7 @@ internal class RuntimeMetrics
             () => JitInfo.GetCompilationTime().Ticks * NanosecondsPerTick,
             unit: "ns",
             description: "The amount of time the JIT compiler has spent compiling methods since the process start.");
-#endif
 
-#if NETCOREAPP3_1_OR_GREATER
         MeterInstance.CreateObservableCounter(
             "process.runtime.dotnet.monitor.lock_contention.count",
             () => Monitor.LockContentionCount,
