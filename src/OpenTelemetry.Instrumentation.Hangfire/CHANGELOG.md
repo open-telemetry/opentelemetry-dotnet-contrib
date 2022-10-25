@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.0.0
+
+Released 2022-Oct-24
+
+* Add support to optionally record exceptions
+  ([#719](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/719))
+
 * Update OTel API version to `1.3.1`.
   ([#631](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/631))
 

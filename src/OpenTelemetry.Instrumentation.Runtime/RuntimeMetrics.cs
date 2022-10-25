@@ -60,8 +60,7 @@ internal class RuntimeMetrics
 #endif
 
 #if NET6_0_OR_GREATER
-        // TODO: change to ObservableUpDownCounter
-        MeterInstance.CreateObservableGauge(
+        MeterInstance.CreateObservableUpDownCounter(
             "process.runtime.dotnet.gc.committed_memory.size",
             () =>
             {
@@ -90,8 +89,7 @@ internal class RuntimeMetrics
         // Either Environment.Version is not 6 or (it's 6 but internal API GC.GetGenerationSize is valid)
         if (!isCodeRunningOnBuggyRuntimeVersion || getGenerationSize != null)
         {
-            // TODO: change to ObservableUpDownCounter
-            MeterInstance.CreateObservableGauge(
+            MeterInstance.CreateObservableUpDownCounter(
                 "process.runtime.dotnet.gc.heap.size",
                 () =>
                 {
@@ -124,8 +122,7 @@ internal class RuntimeMetrics
         // Not valid until .NET 7 where the bug in the API is fixed. See context in https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/496
         if (Environment.Version.Major >= 7)
         {
-            // TODO: change to ObservableUpDownCounter
-            MeterInstance.CreateObservableGauge(
+            MeterInstance.CreateObservableUpDownCounter(
                 "process.runtime.dotnet.gc.heap.fragmentation.size",
                 () =>
                 {
@@ -174,8 +171,7 @@ internal class RuntimeMetrics
             () => Monitor.LockContentionCount,
             description: "The number of times there was contention when trying to acquire a monitor lock since the process start. Monitor locks are commonly acquired by using the lock keyword in C#, or by calling Monitor.Enter() and Monitor.TryEnter().");
 
-        // TODO: change to ObservableUpDownCounter
-        MeterInstance.CreateObservableGauge(
+        MeterInstance.CreateObservableUpDownCounter(
             "process.runtime.dotnet.thread_pool.threads.count",
             () => (long)ThreadPool.ThreadCount,
             description: "The number of thread pool threads that currently exist.");
@@ -185,21 +181,18 @@ internal class RuntimeMetrics
             () => ThreadPool.CompletedWorkItemCount,
             description: "The number of work items that have been processed by the thread pool since the process start.");
 
-        // TODO: change to ObservableUpDownCounter
-        MeterInstance.CreateObservableGauge(
+        MeterInstance.CreateObservableUpDownCounter(
             "process.runtime.dotnet.thread_pool.queue.length",
             () => ThreadPool.PendingWorkItemCount,
             description: "The number of work items that are currently queued to be processed by the thread pool.");
 
-        // TODO: change to ObservableUpDownCounter
-        MeterInstance.CreateObservableGauge(
+        MeterInstance.CreateObservableUpDownCounter(
             "process.runtime.dotnet.timer.count",
             () => Timer.ActiveCount,
             description: "The number of timer instances that are currently active. Timers can be created by many sources such as System.Threading.Timer, Task.Delay, or the timeout in a CancellationSource. An active timer is registered to tick at some point in the future and has not yet been canceled.");
 #endif
 
-        // TODO: change to ObservableUpDownCounter
-        MeterInstance.CreateObservableGauge(
+        MeterInstance.CreateObservableUpDownCounter(
             "process.runtime.dotnet.assemblies.count",
             () => (long)AppDomain.CurrentDomain.GetAssemblies().Length,
             description: "The number of .NET assemblies that are currently loaded.");

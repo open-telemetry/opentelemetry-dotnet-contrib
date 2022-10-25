@@ -27,14 +27,6 @@ internal sealed class ProcessMetrics
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
     internal readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
 
-    private readonly Diagnostics.Process currentProcess = Diagnostics.Process.GetCurrentProcess();
-    private double? memoryUsageBytes;
-    private double? virtualMemoryUsageBytes;
-    private double? userProcessorTimeSeconds;
-    private double? privilegedProcessorTimeSeconds;
-    private int? numberOfThreads;
-    private IEnumerable<Measurement<double>> cpuUtilization;
-
     // vars for calculating CPU utilization
     private DateTime lastCollectionTimeUtc;
     private double lastCollectedUserProcessorTime;
@@ -43,22 +35,15 @@ internal sealed class ProcessMetrics
     public ProcessMetrics(ProcessInstrumentationOptions options)
     {
         this.lastCollectionTimeUtc = DateTime.UtcNow;
-        this.lastCollectedUserProcessorTime = this.currentProcess.UserProcessorTime.TotalSeconds;
-        this.lastCollectedPrivilegedProcessorTime = this.currentProcess.PrivilegedProcessorTime.TotalSeconds;
+        this.lastCollectedUserProcessorTime = Diagnostics.Process.GetCurrentProcess().UserProcessorTime.TotalSeconds;
+        this.lastCollectedPrivilegedProcessorTime = Diagnostics.Process.GetCurrentProcess().PrivilegedProcessorTime.TotalSeconds;
 
         // TODO: change to ObservableUpDownCounter
         this.MeterInstance.CreateObservableGauge(
             "process.memory.usage",
             () =>
             {
-                if (!this.memoryUsageBytes.HasValue)
-                {
-                    this.Snapshot();
-                }
-
-                var value = this.memoryUsageBytes.Value;
-                this.memoryUsageBytes = null;
-                return value;
+                return Diagnostics.Process.GetCurrentProcess().WorkingSet64;
             },
             unit: "By",
             description: "The amount of physical memory allocated for this process.");
@@ -68,14 +53,7 @@ internal sealed class ProcessMetrics
             "process.memory.virtual",
             () =>
             {
-                if (!this.virtualMemoryUsageBytes.HasValue)
-                {
-                    this.Snapshot();
-                }
-
-                var value = this.virtualMemoryUsageBytes.Value;
-                this.virtualMemoryUsageBytes = null;
-                return value;
+                return Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64;
             },
             unit: "By",
             description: "The amount of virtual memory allocated for this process that cannot be shared with other processes.");
@@ -84,20 +62,11 @@ internal sealed class ProcessMetrics
             "process.cpu.time",
             () =>
             {
-                if (!this.userProcessorTimeSeconds.HasValue || !this.privilegedProcessorTimeSeconds.HasValue)
-                {
-                    this.Snapshot();
-                }
-
-                var userProcessorTimeSecondsValue = this.userProcessorTimeSeconds.Value;
-                var privilegedProcessorTimeSecondsValue = this.privilegedProcessorTimeSeconds.Value;
-                this.userProcessorTimeSeconds = null;
-                this.privilegedProcessorTimeSeconds = null;
-
+                var process = Diagnostics.Process.GetCurrentProcess();
                 return new[]
                 {
-                    new Measurement<double>(userProcessorTimeSecondsValue, new KeyValuePair<string, object?>("state", "user")),
-                    new Measurement<double>(privilegedProcessorTimeSecondsValue, new KeyValuePair<string, object?>("state", "system")),
+                    new Measurement<double>(process.UserProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("state", "user")),
+                    new Measurement<double>(process.PrivilegedProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("state", "system")),
                 };
             },
             unit: "s",
@@ -107,14 +76,7 @@ internal sealed class ProcessMetrics
             "process.cpu.utilization",
             () =>
             {
-                if (this.cpuUtilization == null)
-                {
-                    this.Snapshot();
-                }
-
-                var value = this.cpuUtilization;
-                this.cpuUtilization = null;
-                return value;
+                return this.GetCpuUtilization();
             },
             unit: "1",
             description: "Difference in process.cpu.time since the last measurement, divided by the elapsed time and number of CPUs available to the process.");
@@ -124,44 +86,27 @@ internal sealed class ProcessMetrics
             "process.threads",
             () =>
             {
-                if (!this.numberOfThreads.HasValue)
-                {
-                    this.Snapshot();
-                }
-
-                var value = this.numberOfThreads.Value;
-                this.numberOfThreads = null;
-                return value;
+                return Diagnostics.Process.GetCurrentProcess().Threads.Count;
             },
             unit: "{threads}",
             description: "Process threads count.");
     }
 
-    private void Snapshot()
-    {
-        this.currentProcess.Refresh();
-        this.memoryUsageBytes = this.currentProcess.WorkingSet64;
-        this.virtualMemoryUsageBytes = this.currentProcess.PrivateMemorySize64;
-        this.userProcessorTimeSeconds = this.currentProcess.UserProcessorTime.TotalSeconds;
-        this.privilegedProcessorTimeSeconds = this.currentProcess.PrivilegedProcessorTime.TotalSeconds;
-        this.cpuUtilization = this.GetCpuUtilization();
-        this.numberOfThreads = this.currentProcess.Threads.Count;
-    }
-
     private IEnumerable<Measurement<double>> GetCpuUtilization()
     {
+        var process = Diagnostics.Process.GetCurrentProcess();
         var elapsedTimeForAllCpus = (DateTime.UtcNow - this.lastCollectionTimeUtc).TotalSeconds * Environment.ProcessorCount;
-        var userProcessorUtilization = (this.userProcessorTimeSeconds - this.lastCollectedUserProcessorTime) / elapsedTimeForAllCpus;
-        var privilegedProcessorUtilization = (this.privilegedProcessorTimeSeconds - this.lastCollectedPrivilegedProcessorTime) / elapsedTimeForAllCpus;
+        var userProcessorUtilization = (process.UserProcessorTime.TotalSeconds - this.lastCollectedUserProcessorTime) / elapsedTimeForAllCpus;
+        var privilegedProcessorUtilization = (process.PrivilegedProcessorTime.TotalSeconds - this.lastCollectedPrivilegedProcessorTime) / elapsedTimeForAllCpus;
 
         this.lastCollectionTimeUtc = DateTime.UtcNow;
-        this.lastCollectedUserProcessorTime = this.currentProcess.UserProcessorTime.TotalSeconds;
-        this.lastCollectedPrivilegedProcessorTime = this.currentProcess.PrivilegedProcessorTime.TotalSeconds;
+        this.lastCollectedUserProcessorTime = process.UserProcessorTime.TotalSeconds;
+        this.lastCollectedPrivilegedProcessorTime = process.PrivilegedProcessorTime.TotalSeconds;
 
         return new[]
         {
-            new Measurement<double>(Math.Min(userProcessorUtilization.Value, 1D), new KeyValuePair<string, object?>("state", "user")),
-            new Measurement<double>(Math.Min(privilegedProcessorUtilization.Value, 1D), new KeyValuePair<string, object?>("state", "system")),
+            new Measurement<double>(Math.Min(userProcessorUtilization, 1D), new KeyValuePair<string, object?>("state", "user")),
+            new Measurement<double>(Math.Min(privilegedProcessorUtilization, 1D), new KeyValuePair<string, object?>("state", "system")),
         };
     }
 }
