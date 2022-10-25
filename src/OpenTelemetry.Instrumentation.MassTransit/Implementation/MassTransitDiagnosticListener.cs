@@ -85,7 +85,7 @@ internal class MassTransitDiagnosticListener : ListenerHandler
             }
             catch (Exception ex)
             {
-                MassTransitInstrumentationEventSource.Log.EnrichmentException(ex);
+                MassTransitInstrumentationEventSource.Log.EnrichmentException("OnStopActivity", ex);
             }
         }
     }
