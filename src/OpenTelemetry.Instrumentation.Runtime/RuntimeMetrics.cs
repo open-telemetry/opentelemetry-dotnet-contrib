@@ -53,10 +53,10 @@ internal class RuntimeMetrics
 
 #if NET6_0_OR_GREATER
         MeterInstance.CreateObservableCounter(
-                "process.runtime.dotnet.gc.allocations.size",
-                () => GC.GetTotalAllocatedBytes(),
-                unit: "bytes",
-                description: "Count of bytes allocated on the managed GC heap since the process start. .NET objects are allocated from this heap. Object allocations from unmanaged languages such as C/C++ do not use this heap.");
+            "process.runtime.dotnet.gc.allocations.size",
+            () => GC.GetTotalAllocatedBytes(),
+            unit: "bytes",
+            description: "Count of bytes allocated on the managed GC heap since the process start. .NET objects are allocated from this heap. Object allocations from unmanaged languages such as C/C++ do not use this heap.");
 #endif
 
 #if NET6_0_OR_GREATER
