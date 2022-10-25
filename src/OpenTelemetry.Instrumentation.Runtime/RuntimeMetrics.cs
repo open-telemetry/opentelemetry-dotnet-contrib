@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
-#if NETCOREAPP3_1_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER
 using System.Threading;
 #endif
 
@@ -51,12 +51,12 @@ internal class RuntimeMetrics
             () => GetGarbageCollectionCounts(),
             description: "Number of garbage collections that have occurred since process start.");
 
-#if NETCOREAPP3_1_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER
         MeterInstance.CreateObservableCounter(
-            "process.runtime.dotnet.gc.allocations.size",
-            () => GC.GetTotalAllocatedBytes(),
-            unit: "bytes",
-            description: "Count of bytes allocated on the managed GC heap since the process start. .NET objects are allocated from this heap. Object allocations from unmanaged languages such as C/C++ do not use this heap.");
+                    "process.runtime.dotnet.gc.allocations.size",
+                    () => GC.GetTotalAllocatedBytes(),
+                    unit: "bytes",
+                    description: "Count of bytes allocated on the managed GC heap since the process start. .NET objects are allocated from this heap. Object allocations from unmanaged languages such as C/C++ do not use this heap.");
 #endif
 
 #if NET6_0_OR_GREATER
@@ -165,7 +165,7 @@ internal class RuntimeMetrics
             description: "The amount of time the JIT compiler has spent compiling methods since the process start.");
 #endif
 
-#if NETCOREAPP3_1_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER
         MeterInstance.CreateObservableCounter(
             "process.runtime.dotnet.monitor.lock_contention.count",
             () => Monitor.LockContentionCount,
