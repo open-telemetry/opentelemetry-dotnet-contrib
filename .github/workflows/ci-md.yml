@@ -5,7 +5,7 @@
 
 # IMPORTANT: This workflow MUST use the same 'name' as the non -md workflow.
 
-name: Windows
+name: Build
 
 on:
   pull_request:
@@ -19,7 +19,11 @@ jobs:
 
     strategy:
       matrix:
-        version: [net462,netcoreapp3.1,net6.0]
+        os: [ windows-latest, ubuntu-latest ]
+        version: [ net462, netcoreapp3.1, net6.0 ]
+        exclude:
+        - os: ubuntu-latest
+          version: net462
 
     steps:
       - run: 'echo "No build required"'
