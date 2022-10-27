@@ -69,7 +69,7 @@ Count of bytes allocated on the managed GC heap since the process start.
 .NET objects are allocated from this heap. Object allocations from unmanaged languages
 such as C/C++ do not use this heap.
 
-Note: This metric is only available when targeting .NET Core 3.1 or later.
+Note: This metric is only available when targeting .NET 6 or later.
 
 | Units   | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |---------|-------------------|------------|------------------|------------------|
@@ -90,7 +90,7 @@ objects (the heap size) and some extra memory that is ready to handle newly
 allocated objects in the future. The value will be unavailable until at least one
 garbage collection has occurred.
 
-Note: This metric is only available when targeting .NET6 or later.
+Note: This metric is only available when targeting .NET 6 or later.
 
 | Units   | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
 |---------|-------------------------|------------|------------------|------------------|
@@ -107,7 +107,7 @@ The heap size (including fragmentation), as observed during the
 latest garbage collection. The value will be unavailable until at least one
 garbage collection has occurred.
 
-Note: This metric is only available when targeting .NET6 or later.
+Note: This metric is only available when targeting .NET 6 or later.
 
 | Units   | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values           |
 |---------|-------------------------|------------|------------------|----------------------------|
@@ -186,7 +186,7 @@ The scope of this value is global. The same applies for other JIT related metric
 
 ### Threading related metrics
 
-These metrics are only available when targeting .NET Core 3.1 or later.
+These metrics are only available when targeting .NET 6 or later.
 
 #### process.runtime.dotnet.**monitor.lock_contention.count**
 
