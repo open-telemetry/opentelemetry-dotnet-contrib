@@ -12,6 +12,8 @@
   can still be used with .NET5.0 apps.
   ([#617](https://github.com/open-telemetry/opentelemetry-dotnet/pull/617))
 
+## 1.0.0-beta.4
+* Support latest  OpenTelemetry to latest1.4.0-beta.2 ([#680](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/680))
 ## 1.0.0-beta.3
 
 * Going forward the NuGet package will be
