@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Xml.Linq;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
@@ -211,6 +212,16 @@ internal class ConnectionStringBuilder
     {
         get => this.ThrowIfNotExists<string>(nameof(this.Namespace));
         set => this._parts[nameof(this.Namespace)] = value;
+    }
+
+    public bool ContainsKey(string key)
+    {
+        if (key == null)
+        {
+            throw new ArgumentNullException(nameof(key));
+        }
+
+        return this._parts.ContainsKey(key);
     }
 
     private T ThrowIfNotExists<T>(string name)
