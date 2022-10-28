@@ -37,6 +37,7 @@ internal sealed class EventCountersMetrics : EventListener
     private readonly List<EventSource> preInitEventSources = new();
     private readonly ConcurrentDictionary<(string, string), Instrument> instruments = new();
     private readonly ConcurrentDictionary<(string, string), double> values = new();
+
     /// <summary>
     /// Initializes a new instance of the <see cref="EventCountersMetrics"/> class.
     /// </summary>
