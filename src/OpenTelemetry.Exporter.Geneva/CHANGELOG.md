@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.4.0-beta.4
+
+Released 2022-Oct-28
+
 * Breaking change: Updated export logic for scopes
   * Export scopes which have a non-null key as individual columns (each
     key-value pair from the scopes is exported as its own column; these columns
