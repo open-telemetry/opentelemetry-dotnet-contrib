@@ -7,8 +7,6 @@
     key-value pair from the scopes is exported as its own column; these columns
     would also be taken into consideration when the CustomFields option is
     applied)
-  * GenevaExporter would not check for duplicate keys (if the scopes and log
-  message together have any duplicate keys, they would all be exported)
   [#736](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/736)
 
 ## 1.4.0-beta.3

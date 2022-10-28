@@ -369,6 +369,10 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                         cntFields += 1;
                     }
                 }
+                else
+                {
+                    hasEnvProperties = true;
+                }
             }
         }
 
