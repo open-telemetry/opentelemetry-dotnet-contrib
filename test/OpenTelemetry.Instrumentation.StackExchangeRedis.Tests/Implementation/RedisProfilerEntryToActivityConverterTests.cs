@@ -24,157 +24,158 @@ using StackExchange.Redis;
 using StackExchange.Redis.Profiling;
 using Xunit;
 
-namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation;
-
-[Collection("Redis")]
-public class RedisProfilerEntryToActivityConverterTests : IDisposable
+namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation
 {
-    private readonly ConnectionMultiplexer connection;
-    private readonly IDisposable tracerProvider;
-
-    public RedisProfilerEntryToActivityConverterTests()
+    [Collection("Redis")]
+    public class RedisProfilerEntryToActivityConverterTests : IDisposable
     {
-        var connectionOptions = new ConfigurationOptions
+        private readonly ConnectionMultiplexer connection;
+        private readonly IDisposable tracerProvider;
+
+        public RedisProfilerEntryToActivityConverterTests()
         {
-            AbortOnConnectFail = false,
-        };
-        connectionOptions.EndPoints.Add("localhost:6379");
+            var connectionOptions = new ConfigurationOptions
+            {
+                AbortOnConnectFail = false,
+            };
+            connectionOptions.EndPoints.Add("localhost:6379");
 
-        this.connection = ConnectionMultiplexer.Connect(connectionOptions);
+            this.connection = ConnectionMultiplexer.Connect(connectionOptions);
 
-        this.tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddRedisInstrumentation(this.connection)
-            .Build();
-    }
+            this.tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddRedisInstrumentation(this.connection)
+                .Build();
+        }
 
-    public void Dispose()
-    {
-        this.tracerProvider.Dispose();
-        this.connection.Dispose();
-        GC.SuppressFinalize(this);
-    }
+        public void Dispose()
+        {
+            this.tracerProvider.Dispose();
+            this.connection.Dispose();
+            GC.SuppressFinalize(this);
+        }
 
-    [Fact]
-    public void ProfilerCommandToActivity_UsesCommandAsName()
-    {
-        var activity = new Activity("redis-profiler");
-        var profiledCommand = new Mock<IProfiledCommand>();
-        profiledCommand.Setup(m => m.CommandCreated).Returns(DateTime.UtcNow);
-        profiledCommand.Setup(m => m.Command).Returns("SET");
+        [Fact]
+        public void ProfilerCommandToActivity_UsesCommandAsName()
+        {
+            var activity = new Activity("redis-profiler");
+            var profiledCommand = new Mock<IProfiledCommand>();
+            profiledCommand.Setup(m => m.CommandCreated).Returns(DateTime.UtcNow);
+            profiledCommand.Setup(m => m.Command).Returns("SET");
 
-        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisCallsInstrumentationOptions());
+            var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisCallsInstrumentationOptions());
 
-        Assert.Equal("SET", result.DisplayName);
-    }
+            Assert.Equal("SET", result.DisplayName);
+        }
 
-    [Fact]
-    public void ProfilerCommandToActivity_UsesTimestampAsStartTime()
-    {
-        var now = DateTimeOffset.Now;
-        var activity = new Activity("redis-profiler");
-        var profiledCommand = new Mock<IProfiledCommand>();
-        profiledCommand.Setup(m => m.CommandCreated).Returns(now.DateTime);
+        [Fact]
+        public void ProfilerCommandToActivity_UsesTimestampAsStartTime()
+        {
+            var now = DateTimeOffset.Now;
+            var activity = new Activity("redis-profiler");
+            var profiledCommand = new Mock<IProfiledCommand>();
+            profiledCommand.Setup(m => m.CommandCreated).Returns(now.DateTime);
 
-        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisCallsInstrumentationOptions());
+            var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisCallsInstrumentationOptions());
 
-        Assert.Equal(now, result.StartTimeUtc);
-    }
+            Assert.Equal(now, result.StartTimeUtc);
+        }
 
-    [Fact]
-    public void ProfilerCommandToActivity_SetsDbTypeAttributeAsRedis()
-    {
-        var activity = new Activity("redis-profiler");
-        var profiledCommand = new Mock<IProfiledCommand>();
-        profiledCommand.Setup(m => m.CommandCreated).Returns(DateTime.UtcNow);
+        [Fact]
+        public void ProfilerCommandToActivity_SetsDbTypeAttributeAsRedis()
+        {
+            var activity = new Activity("redis-profiler");
+            var profiledCommand = new Mock<IProfiledCommand>();
+            profiledCommand.Setup(m => m.CommandCreated).Returns(DateTime.UtcNow);
 
-        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisCallsInstrumentationOptions());
+            var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisCallsInstrumentationOptions());
 
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeDbSystem));
-        Assert.Equal("redis", result.GetTagValue(SemanticConventions.AttributeDbSystem));
-    }
+            Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeDbSystem));
+            Assert.Equal("redis", result.GetTagValue(SemanticConventions.AttributeDbSystem));
+        }
 
-    [Fact]
-    public void ProfilerCommandToActivity_UsesCommandAsDbStatementAttribute()
-    {
-        var activity = new Activity("redis-profiler");
-        var profiledCommand = new Mock<IProfiledCommand>();
-        profiledCommand.Setup(m => m.CommandCreated).Returns(DateTime.UtcNow);
-        profiledCommand.Setup(m => m.Command).Returns("SET");
+        [Fact]
+        public void ProfilerCommandToActivity_UsesCommandAsDbStatementAttribute()
+        {
+            var activity = new Activity("redis-profiler");
+            var profiledCommand = new Mock<IProfiledCommand>();
+            profiledCommand.Setup(m => m.CommandCreated).Returns(DateTime.UtcNow);
+            profiledCommand.Setup(m => m.Command).Returns("SET");
 
-        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisCallsInstrumentationOptions());
+            var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisCallsInstrumentationOptions());
 
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeDbStatement));
-        Assert.Equal("SET", result.GetTagValue(SemanticConventions.AttributeDbStatement));
-    }
+            Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeDbStatement));
+            Assert.Equal("SET", result.GetTagValue(SemanticConventions.AttributeDbStatement));
+        }
 
-    [Fact]
-    public void ProfilerCommandToActivity_UsesFlagsForFlagsAttribute()
-    {
-        var activity = new Activity("redis-profiler");
-        var profiledCommand = new Mock<IProfiledCommand>();
-        profiledCommand.Setup(m => m.CommandCreated).Returns(DateTime.UtcNow);
-        var expectedFlags = CommandFlags.FireAndForget |
-                            CommandFlags.NoRedirect;
-        profiledCommand.Setup(m => m.Flags).Returns(expectedFlags);
+        [Fact]
+        public void ProfilerCommandToActivity_UsesFlagsForFlagsAttribute()
+        {
+            var activity = new Activity("redis-profiler");
+            var profiledCommand = new Mock<IProfiledCommand>();
+            profiledCommand.Setup(m => m.CommandCreated).Returns(DateTime.UtcNow);
+            var expectedFlags = CommandFlags.FireAndForget |
+                                CommandFlags.NoRedirect;
+            profiledCommand.Setup(m => m.Flags).Returns(expectedFlags);
 
-        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisCallsInstrumentationOptions());
+            var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisCallsInstrumentationOptions());
 
-        Assert.NotNull(result.GetTagValue(StackExchangeRedisCallsInstrumentation.RedisFlagsKeyName));
-        Assert.Equal("PreferMaster, FireAndForget, NoRedirect", result.GetTagValue(StackExchangeRedisCallsInstrumentation.RedisFlagsKeyName));
-    }
+            Assert.NotNull(result.GetTagValue(StackExchangeRedisCallsInstrumentation.RedisFlagsKeyName));
+            Assert.Equal("PreferMaster, FireAndForget, NoRedirect", result.GetTagValue(StackExchangeRedisCallsInstrumentation.RedisFlagsKeyName));
+        }
 
-    [Fact]
-    public void ProfilerCommandToActivity_UsesIpEndPointAsEndPoint()
-    {
-        long address = 1;
-        int port = 2;
+        [Fact]
+        public void ProfilerCommandToActivity_UsesIpEndPointAsEndPoint()
+        {
+            long address = 1;
+            int port = 2;
 
-        var activity = new Activity("redis-profiler");
-        IPEndPoint ipLocalEndPoint = new IPEndPoint(address, port);
-        var profiledCommand = new Mock<IProfiledCommand>();
-        profiledCommand.Setup(m => m.CommandCreated).Returns(DateTime.UtcNow);
-        profiledCommand.Setup(m => m.EndPoint).Returns(ipLocalEndPoint);
+            var activity = new Activity("redis-profiler");
+            IPEndPoint ipLocalEndPoint = new IPEndPoint(address, port);
+            var profiledCommand = new Mock<IProfiledCommand>();
+            profiledCommand.Setup(m => m.CommandCreated).Returns(DateTime.UtcNow);
+            profiledCommand.Setup(m => m.EndPoint).Returns(ipLocalEndPoint);
 
-        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisCallsInstrumentationOptions());
+            var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisCallsInstrumentationOptions());
 
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetPeerIp));
-        Assert.Equal($"{address}.0.0.0", result.GetTagValue(SemanticConventions.AttributeNetPeerIp));
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetPeerPort));
-        Assert.Equal(port, result.GetTagValue(SemanticConventions.AttributeNetPeerPort));
-    }
+            Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetPeerIp));
+            Assert.Equal($"{address}.0.0.0", result.GetTagValue(SemanticConventions.AttributeNetPeerIp));
+            Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+            Assert.Equal(port, result.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+        }
 
-    [Fact]
-    public void ProfilerCommandToActivity_UsesDnsEndPointAsEndPoint()
-    {
-        var dnsEndPoint = new DnsEndPoint("https://opentelemetry.io/", 443);
+        [Fact]
+        public void ProfilerCommandToActivity_UsesDnsEndPointAsEndPoint()
+        {
+            var dnsEndPoint = new DnsEndPoint("https://opentelemetry.io/", 443);
 
-        var activity = new Activity("redis-profiler");
-        var profiledCommand = new Mock<IProfiledCommand>();
-        profiledCommand.Setup(m => m.CommandCreated).Returns(DateTime.UtcNow);
-        profiledCommand.Setup(m => m.EndPoint).Returns(dnsEndPoint);
+            var activity = new Activity("redis-profiler");
+            var profiledCommand = new Mock<IProfiledCommand>();
+            profiledCommand.Setup(m => m.CommandCreated).Returns(DateTime.UtcNow);
+            profiledCommand.Setup(m => m.EndPoint).Returns(dnsEndPoint);
 
-        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisCallsInstrumentationOptions());
+            var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisCallsInstrumentationOptions());
 
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetPeerName));
-        Assert.Equal(dnsEndPoint.Host, result.GetTagValue(SemanticConventions.AttributeNetPeerName));
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetPeerPort));
-        Assert.Equal(dnsEndPoint.Port, result.GetTagValue(SemanticConventions.AttributeNetPeerPort));
-    }
+            Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetPeerName));
+            Assert.Equal(dnsEndPoint.Host, result.GetTagValue(SemanticConventions.AttributeNetPeerName));
+            Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+            Assert.Equal(dnsEndPoint.Port, result.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+        }
 
 #if !NETFRAMEWORK
-    [Fact]
-    public void ProfilerCommandToActivity_UsesOtherEndPointAsEndPoint()
-    {
-        var unixEndPoint = new UnixDomainSocketEndPoint("https://opentelemetry.io/");
-        var activity = new Activity("redis-profiler");
-        var profiledCommand = new Mock<IProfiledCommand>();
-        profiledCommand.Setup(m => m.CommandCreated).Returns(DateTime.UtcNow);
-        profiledCommand.Setup(m => m.EndPoint).Returns(unixEndPoint);
+        [Fact]
+        public void ProfilerCommandToActivity_UsesOtherEndPointAsEndPoint()
+        {
+            var unixEndPoint = new UnixDomainSocketEndPoint("https://opentelemetry.io/");
+            var activity = new Activity("redis-profiler");
+            var profiledCommand = new Mock<IProfiledCommand>();
+            profiledCommand.Setup(m => m.CommandCreated).Returns(DateTime.UtcNow);
+            profiledCommand.Setup(m => m.EndPoint).Returns(unixEndPoint);
 
-        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisCallsInstrumentationOptions());
+            var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisCallsInstrumentationOptions());
 
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributePeerService));
-        Assert.Equal(unixEndPoint.ToString(), result.GetTagValue(SemanticConventions.AttributePeerService));
-    }
+            Assert.NotNull(result.GetTagValue(SemanticConventions.AttributePeerService));
+            Assert.Equal(unixEndPoint.ToString(), result.GetTagValue(SemanticConventions.AttributePeerService));
+        }
 #endif
+    }
 }
