@@ -2,11 +2,13 @@
 
 ## Unreleased
 
-* Update export logic for scopes:
+* Breaking change: Updated export logic for scopes
   * Export scopes which have a non-null key as individual columns (each
     key-value pair from the scopes is exported as its own column; these columns
     would also be taken into consideration when the CustomFields option is
-    applied)
+    applied).
+  * When using formatted strings for scopes, the templated string (`"{OriginalFormat"}`)
+    will not be exported.
   [#736](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/736)
 
 ## 1.4.0-beta.3
