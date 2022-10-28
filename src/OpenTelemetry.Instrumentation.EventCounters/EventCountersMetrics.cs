@@ -19,6 +19,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Diagnostics.Tracing;
+using System.Text;
 
 namespace OpenTelemetry.Instrumentation.EventCounters;
 
@@ -29,11 +30,13 @@ internal sealed class EventCountersMetrics : EventListener
 {
     internal static readonly Meter MeterInstance = new(typeof(EventCountersMetrics).Assembly.GetName().Name, typeof(EventCountersMetrics).Assembly.GetName().Version.ToString());
 
+    private const string Prefix = "ec";
+    private const int MaxInstrumentNameLength = 63;
+
     private readonly EventCountersInstrumentationOptions options;
     private readonly List<EventSource> preInitEventSources = new();
     private readonly ConcurrentDictionary<(string, string), Instrument> instruments = new();
     private readonly ConcurrentDictionary<(string, string), double> values = new();
-
     /// <summary>
     /// Initializes a new instance of the <see cref="EventCountersMetrics"/> class.
     /// </summary>
@@ -120,6 +123,62 @@ internal sealed class EventCountersMetrics : EventListener
     private static Dictionary<string, string> GetEnableEventsArguments(EventCountersInstrumentationOptions options) =>
         new() { { "EventCounterIntervalSec", options.RefreshIntervalSecs.ToString() } };
 
+    /// <summary>
+    /// If instrument name is too long, abbreviates event source name.
+    /// E.g. instrument for `Microsoft-AspNetCore-Server-Kestrel`, `tls-handshakes-per-second`
+    /// would be too long (64 chars), so it's abbreviated to `ec.m.a.s.k.tls-handshakes-per-second`
+    /// instead of `ec.Microsoft-AspNetCore-Server-Kestrel.tls-handshakes-per-second`.
+    ///
+    /// If after that instrument name is still invalid, it will be validated and ignored later in the pipeline.
+    /// </summary>
+    private static string GetInstrumentName(string sourceName, string eventName)
+    {
+        int totalLength = Prefix.Length + 1 + sourceName.Length + 1 + eventName.Length;
+        if (totalLength <= MaxInstrumentNameLength)
+        {
+            return string.Concat(Prefix, ".", sourceName, ".", eventName);
+        }
+
+        int maxEventSourceNameLength = MaxInstrumentNameLength - Prefix.Length - 2 - eventName.Length;
+        var abbreviation = new StringBuilder(maxEventSourceNameLength);
+        int ind = 0;
+        while (ind >= 0 && ind < sourceName.Length)
+        {
+            while (ind < sourceName.Length && (sourceName[ind] == '.' || sourceName[ind] == '-'))
+            {
+                ind++;
+            }
+
+            if (ind < sourceName.Length)
+            {
+                abbreviation.Append(char.ToLowerInvariant(sourceName[ind])).Append('.');
+            }
+
+            int nextDot = sourceName.IndexOf('.', ind);
+            int nextDash = sourceName.IndexOf('-', ind);
+
+            if (nextDot < 0)
+            {
+                if (nextDash < 0)
+                {
+                    break;
+                }
+
+                ind = nextDash;
+            }
+            else if (nextDash < 0)
+            {
+                ind = nextDot;
+            }
+            else
+            {
+                ind = Math.Min(nextDot, nextDash);
+            }
+        }
+
+        return string.Concat(Prefix, ".", abbreviation.ToString(), eventName);
+    }
+
     private void EnableEvents(EventSource eventSource)
     {
         this.EnableEvents(eventSource, EventLevel.Critical, EventKeywords.None, GetEnableEventsArguments(this.options));
@@ -132,7 +191,7 @@ internal sealed class EventCountersMetrics : EventListener
             ValueTuple<string, string> metricKey = new(eventSourceName, name);
             _ = this.values.AddOrUpdate(metricKey, value, isGauge ? (_, _) => value : (_, existing) => existing + value);
 
-            var instrumentName = $"EventCounters.{eventSourceName}.{name}";
+            var instrumentName = GetInstrumentName(eventSourceName, name);
 
             if (!this.instruments.ContainsKey(metricKey))
             {

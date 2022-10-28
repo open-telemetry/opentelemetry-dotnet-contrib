@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
+using System.Linq;
 using System.Threading.Tasks;
 using OpenTelemetry.Metrics;
 using Xunit;
@@ -68,7 +69,7 @@ public class EventCountersMetricsTests
         meterProvider.ForceFlush();
 
         // Assert
-        var metric = metricItems.Find(x => x.Name == "EventCounters.a.c");
+        var metric = metricItems.Find(x => x.Name == "ec.a.c");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
         Assert.Equal(1997.0202, GetActualValue(metric));
@@ -98,7 +99,7 @@ public class EventCountersMetricsTests
         meterProvider.ForceFlush();
 
         // Assert
-        var metric = metricItems.Find(x => x.Name == "EventCounters.b.inc-c");
+        var metric = metricItems.Find(x => x.Name == "ec.b.inc-c");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleSum, metric.MetricType);
         Assert.Equal(3, GetActualValue(metric));
@@ -126,7 +127,7 @@ public class EventCountersMetricsTests
         meterProvider.ForceFlush();
 
         // Assert
-        var metric = metricItems.Find(x => x.Name == "EventCounters.c.poll-c");
+        var metric = metricItems.Find(x => x.Name == "ec.c.poll-c");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
         Assert.Equal(20, GetActualValue(metric));
@@ -154,7 +155,7 @@ public class EventCountersMetricsTests
         meterProvider.ForceFlush();
 
         // Assert
-        var metric = metricItems.Find(x => x.Name == "EventCounters.d.inc-poll-c");
+        var metric = metricItems.Find(x => x.Name == "ec.d.inc-poll-c");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleSum, metric.MetricType);
         Assert.Equal(2, GetActualValue(metric));
@@ -184,7 +185,7 @@ public class EventCountersMetricsTests
         meterProvider.ForceFlush();
 
         // Assert
-        var metric = metricItems.Find(x => x.Name == "EventCounters.a.c");
+        var metric = metricItems.Find(x => x.Name == "ec.a.c");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
 
@@ -212,6 +213,69 @@ public class EventCountersMetricsTests
         });
 
         Assert.Equal("Use the `OpenTelemetry.Instrumentation.Runtime` or `OpenTelemetry.Instrumentation.Process` instrumentations.", ex.Message);
+    }
+
+    [Theory]
+    [InlineData("Microsoft-AspNetCore-Server-Kestrel-1", "tls-handshakes-per-second", "ec.m.a.s.k.1.tls-handshakes-per-second")]
+    [InlineData("Microsoft-AspNetCore-Server-Kestrel-1", "tls-handshakes-per-sec", "ec.Microsoft-AspNetCore-Server-Kestrel-1.tls-handshakes-per-sec")]
+    [InlineData("Microsoft.AspNetCore.Http.Connections-1", "connections-stopped", "ec.Microsoft.AspNetCore.Http.Connections-1.connections-stopped")]
+    [InlineData("Microsoft.AspNetCore.Http.Connections-1", "connections-timed-out-longer", "ec.m.a.h.c.1.connections-timed-out-longer")]
+    public async Task EventSourceNameAbbreviation(string sourceName, string eventName, string expectedInstrumentName)
+    {
+        // Arrange
+        List<Metric> metricItems = new();
+        EventSource source = new(sourceName);
+        IncrementingEventCounter connections = new(eventName, source);
+
+        var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddEventCountersInstrumentation(options =>
+            {
+                options.AddEventSources(source.Name);
+            })
+            .AddInMemoryExporter(metricItems)
+            .Build();
+
+        // Act
+        connections.Increment(1);
+        await Task.Delay(Delay);
+        meterProvider.ForceFlush();
+
+        // Assert
+        Metric metric = metricItems.Find(m => m.Name == expectedInstrumentName);
+        Assert.NotNull(metric);
+        Assert.Equal(1, GetActualValue(metric));
+    }
+
+    [Fact]
+    public async Task InstrumentNameTooLong()
+    {
+        // Arrange
+        List<Metric> metricItems = new();
+        EventSource source = new("source");
+
+        // ec.s. + event name is 63;
+        string veryLongEventName = new string('e', 59);
+        IncrementingEventCounter connections = new(veryLongEventName, source);
+
+        var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddEventCountersInstrumentation(options =>
+            {
+                options.AddEventSources(source.Name);
+            })
+            .AddInMemoryExporter(metricItems)
+            .Build();
+
+        // Act
+        connections.Increment(1);
+        await Task.Delay(Delay);
+        meterProvider.ForceFlush();
+
+        // Assert
+        foreach (var item in metricItems)
+        {
+            Assert.False(item.Name.StartsWith("ec.source.ee"));
+            Assert.False(item.Name.StartsWith("ec.s.ee"));
+        }
     }
 
     // polling and eventcounter with same instrument name?
