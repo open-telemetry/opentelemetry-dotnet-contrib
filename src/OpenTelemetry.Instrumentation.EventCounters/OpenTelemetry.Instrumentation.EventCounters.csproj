@@ -5,6 +5,7 @@
         <PackageTags>$(PackageTags);metrics;eventcounters</PackageTags>
         <MinVerTagPrefix>Instrumentation.EventCounters-</MinVerTagPrefix>
         <Nullable>enable</Nullable>
+        <EnablePublicApi>true</EnablePublicApi>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryCoreLatestVersion)" />
