@@ -24,7 +24,7 @@ EventCounter eventCounter = new("MyEventCounter", eventSource);
 PollingCounter pollingCounter = new("MyPollingCounter", eventSource, () => new Random().NextDouble());
 
 // Create and Configure Meter Provider
-var meterProvider = Sdk.CreateMeterProviderBuilder()
+using var meterProvider = Sdk.CreateMeterProviderBuilder()
     .AddEventCountersInstrumentation(options =>
     {
         options.RefreshIntervalSecs = 1;
@@ -36,4 +36,4 @@ var meterProvider = Sdk.CreateMeterProviderBuilder()
 eventCounter.WriteMetric(0);
 eventCounter.WriteMetric(1000);
 
-Thread.Sleep(3500);
+Thread.Sleep(1500);
