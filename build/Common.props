@@ -36,7 +36,7 @@
     <OpenTelemetryCoreLatestPreRelease>[1.4.0-beta.2]</OpenTelemetryCoreLatestPreRelease>
     <StackExchangeRedisPkgVer>[2.1.58,3.0)</StackExchangeRedisPkgVer>
     <StyleCopAnalyzersPkgVer>[1.2.0-beta.435,2.0)</StyleCopAnalyzersPkgVer>
-</PropertyGroup>
+  </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' != 'net6.0' and '$(TargetFramework)' != 'netstandard2.1'">
     <!-- Nullable analysis really only works on .net standard 2.1 and newer. -->
