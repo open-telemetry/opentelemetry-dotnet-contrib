@@ -17,41 +17,40 @@
 using System;
 using System.Collections.Generic;
 
-namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation
+namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation;
+
+internal static class CommonExtensions
 {
-    internal static class CommonExtensions
+    internal static void AddTagIfNotNull(this List<KeyValuePair<string, object>> tags, string tagName, object tagValue)
     {
-        internal static void AddTagIfNotNull(this List<KeyValuePair<string, object>> tags, string tagName, object tagValue)
+        if (tagValue != null)
         {
-            if (tagValue != null)
-            {
-                tags.Add(new(tagName, tagValue));
-            }
+            tags.Add(new(tagName, tagValue));
         }
+    }
 
-        internal static T GetValueByKeyIgnoringCase<T>(this IDictionary<string, T> dict, string key)
+    internal static T GetValueByKeyIgnoringCase<T>(this IDictionary<string, T> dict, string key)
+    {
+        // TODO: there may be opportunities for performance improvements of this method.
+
+        // We had to introduce case-insensitive headers search as can't fully rely on
+        // AWS documentation stating that expected headers are lower-case. AWS test
+        // console offers JSON example with camel case header names.
+        // See X-Forwarded-Proto or X-Forwarded-Port for example.
+
+        if (dict == null)
         {
-            // TODO: there may be opportunities for performance improvements of this method.
-
-            // We had to introduce case-insensitive headers search as can't fully rely on
-            // AWS documentation stating that expected headers are lower-case. AWS test
-            // console offers JSON example with camel case header names.
-            // See X-Forwarded-Proto or X-Forwarded-Port for example.
-
-            if (dict == null)
-            {
-                return default;
-            }
-
-            foreach (var kvp in dict)
-            {
-                if (string.Equals(kvp.Key, key, StringComparison.OrdinalIgnoreCase))
-                {
-                    return kvp.Value;
-                }
-            }
-
             return default;
         }
+
+        foreach (var kvp in dict)
+        {
+            if (string.Equals(kvp.Key, key, StringComparison.OrdinalIgnoreCase))
+            {
+                return kvp.Value;
+            }
+        }
+
+        return default;
     }
 }

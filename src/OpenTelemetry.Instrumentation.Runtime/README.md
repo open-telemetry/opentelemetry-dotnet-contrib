@@ -69,7 +69,7 @@ Count of bytes allocated on the managed GC heap since the process start.
 .NET objects are allocated from this heap. Object allocations from unmanaged languages
 such as C/C++ do not use this heap.
 
-Note: This metric is only available when targeting .NET Core 3.1 or later.
+Note: This metric is only available when targeting .NET 6 or later.
 
 | Units   | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |---------|-------------------|------------|------------------|------------------|
@@ -90,7 +90,7 @@ objects (the heap size) and some extra memory that is ready to handle newly
 allocated objects in the future. The value will be unavailable until at least one
 garbage collection has occurred.
 
-Note: This metric is only available when targeting .NET6 or later.
+Note: This metric is only available when targeting .NET 6 or later.
 
 | Units   | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
 |---------|-------------------------|------------|------------------|------------------|
@@ -107,7 +107,7 @@ The heap size (including fragmentation), as observed during the
 latest garbage collection. The value will be unavailable until at least one
 garbage collection has occurred.
 
-Note: This metric is only available when targeting .NET6 or later.
+Note: This metric is only available when targeting .NET 6 or later.
 
 | Units   | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values           |
 |---------|-------------------------|------------|------------------|----------------------------|
@@ -186,7 +186,7 @@ The scope of this value is global. The same applies for other JIT related metric
 
 ### Threading related metrics
 
-These metrics are only available when targeting .NET Core 3.1 or later.
+These metrics are only available when targeting .NET 6 or later.
 
 #### process.runtime.dotnet.**monitor.lock_contention.count**
 
@@ -296,23 +296,6 @@ metric is available in the .NET version you are running.
 
 Some GC related metrics are unavailable until at least one garbage collection
 has occurred.
-
-## Note
-
-OTel API updated System.Diagnostics.DiagnosticSource preview to version 7.0.0
-since [1.4.0-alpha.2](https://github.com/open-telemetry/opentelemetry-dotnet/releases/tag/core-1.4.0-alpha.2).
-
-With this update, applications targeting .NET 5 and lower will receive a
-warning at build time as described [here](https://github.com/dotnet/runtime/pull/72518)
-(note: building using older versions of the .NET SDK produces an error at
-build time). This is because .NET 5 reached EOL in May 2022 and .NET
-Core 3.1 reaches EOL in December 2022.
-
-There is no guarantee that System.Diagnostics.DiagnosticSource will continue
-to work on older versions of .NET. However, the build warning can be
-suppressed by setting the SuppressTfmSupportBuildWarnings MSBuild property.
-
-This does not affect applications targeting .NET Framework.
 
 ## References
 
