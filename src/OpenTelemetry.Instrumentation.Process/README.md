@@ -49,9 +49,9 @@ complete demo.
 
 The amount of physical memory allocated for this process.
 
-| Units | Instrument Type   | Value Type |
-|-------|-------------------|------------|
-|  `By` |  ObservableGauge  | `Double`   |
+| Units | Instrument Type         | Value Type |
+|-------|-------------------------|------------|
+| `By`  | ObservableUpDownCounter | `Double`   |
 
 The API used to retrieve the value is:
 
@@ -64,9 +64,9 @@ allocated for the associated process.
 The amount of virtual memory allocated for this process
 that cannot be shared with other processes.
 
-| Units | Instrument Type   | Value Type |
-|-------|-------------------|------------|
-|  `By` |  ObservableGauge  | `Double`   |
+| Units | Instrument Type         | Value Type |
+|-------|-------------------------|------------|
+|  `By` | ObservableUpDownCounter | `Double`   |
 
 The API used to retrieve the value is:
 
@@ -111,9 +111,9 @@ Gets the privileged processor time for this process.
 
 Process threads count.
 
-| Units           | Instrument Type   | Value Type |
-|-----------------|-------------------|------------|
-| `{threads}`     | ObservableGauge   | `Int32`    |
+| Units      | Instrument Type         | Value Type |
+|------------|-------------------------|------------|
+| `{threads}`| ObservableUpDownCounter | `Int32`    |
 
 The API used to retrieve the value is:
 
