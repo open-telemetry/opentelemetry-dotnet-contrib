@@ -158,7 +158,7 @@ public class ProcessMetricsTests
         {
             if (metric.MetricType.IsLong())
             {
-                sum += metricPoint.GetGaugeLastValueLong();
+                sum += metricPoint.GetSumLong();
             }
         }
 
