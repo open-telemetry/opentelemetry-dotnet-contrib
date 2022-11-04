@@ -37,7 +37,7 @@ public class HangfireInstrumentationOptions
     /// Gets or sets a delegate used to format the job name.
     /// </summary>
     /// <remarks>
-    /// Defaults to <c>{backgroundJob.Job.Type.Name}.{backgroundJob.Job.Method.Name}</c>
+    /// Defaults to <c>{backgroundJob.Job.Type.Name}.{backgroundJob.Job.Method.Name}</c>.
     /// </remarks>
     public Func<BackgroundJob, string> DisplayNameFunc { get; set; } = HangfireInstrumentation.DefaultDisplayNameFunc;
 }
