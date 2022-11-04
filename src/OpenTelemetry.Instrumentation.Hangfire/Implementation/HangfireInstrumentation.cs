@@ -48,5 +48,5 @@ internal static class HangfireInstrumentation
     /// The default display name delegate.
     /// </summary>
     internal static readonly Func<BackgroundJob, string> DefaultDisplayNameFunc =
-        backgroundJob => $"{backgroundJob.Job.Type.Name}.{backgroundJob.Job.Method.Name}";
+        backgroundJob => $"JOB {backgroundJob.Job.Type.Name}.{backgroundJob.Job.Method.Name}";
 }

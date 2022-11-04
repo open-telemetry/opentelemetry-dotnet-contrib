@@ -134,7 +134,7 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         // Arrange
         var exportedItems = new List<Activity>();
         using var tel = Sdk.CreateTracerProviderBuilder()
-            .AddHangfireInstrumentation(options => options.DisplayNameFunc = backgroundJob => $"{backgroundJob.Id}")
+            .AddHangfireInstrumentation(options => options.DisplayNameFunc = backgroundJob => $"JOB {backgroundJob.Id}")
             .AddInMemoryExporter(exportedItems)
             .Build();
 

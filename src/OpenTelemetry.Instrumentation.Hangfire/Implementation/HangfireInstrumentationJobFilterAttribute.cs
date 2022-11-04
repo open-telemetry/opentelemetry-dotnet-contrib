@@ -62,7 +62,7 @@ internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, I
             Func<BackgroundJob, string> displayNameFunc =
                 this.options.DisplayNameFunc ?? HangfireInstrumentation.DefaultDisplayNameFunc;
 
-            activity.DisplayName = $"JOB {displayNameFunc(performingContext.BackgroundJob)}";
+            activity.DisplayName = displayNameFunc(performingContext.BackgroundJob);
 
             if (activity.IsAllDataRequested)
             {
