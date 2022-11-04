@@ -128,6 +128,27 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         Assert.Empty(activity.Events);
     }
 
+    [Fact]
+    public async Task Should_Create_Activity_With_Custom_DisplayName()
+    {
+        // Arrange
+        var exportedItems = new List<Activity>();
+        using var tel = Sdk.CreateTracerProviderBuilder()
+            .AddHangfireInstrumentation(options => options.DisplayNameFunc = backgroundJob => $"{backgroundJob.Id}")
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        // Act
+        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
+        await this.WaitJobProcessedAsync(jobId, 5);
+
+        // Assert
+        Assert.Single(exportedItems, i => i.GetTagItem("job.id") as string == jobId);
+        var activity = exportedItems.Single(i => i.GetTagItem("job.id") as string == jobId);
+        Assert.Contains($"JOB {jobId}", activity.DisplayName);
+        Assert.Equal(ActivityKind.Internal, activity.Kind);
+    }
+
     private async Task WaitJobProcessedAsync(string jobId, int timeToWaitInSeconds)
     {
         var timeout = DateTime.Now.AddSeconds(timeToWaitInSeconds);
