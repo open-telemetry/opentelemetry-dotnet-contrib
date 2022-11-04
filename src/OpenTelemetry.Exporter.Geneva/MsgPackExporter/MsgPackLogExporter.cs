@@ -30,7 +30,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
     private const int MaxSanitizedEventNameLength = 50;
 
-    private readonly IReadOnlyDictionary<string, object> m_customFields;
+    private readonly IReadOnlyDictionary<string, ISet<string>> m_customFields;
 
     private readonly ExceptionStackExportMode m_exportExceptionStack;
 
@@ -116,15 +116,47 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         }
 
         // TODO: Validate custom fields (reserved name? etc).
+        // "*": all fields
+        // "A": column in all tables
+        // "B/A": column A in table B
+        // "B/*": all columns in table B
         if (options.CustomFields != null)
         {
-            var customFields = new Dictionary<string, object>(StringComparer.Ordinal);
+            var customFields = new Dictionary<string, ISet<string>>(StringComparer.Ordinal);
+            var containsAll = false;
             foreach (var name in options.CustomFields)
             {
-                customFields[name] = true;
+                if (name == "*")
+                {
+                    containsAll = true;
+                    break;
+                }
+
+                var parts = name.Split('/');
+                if (parts.Length == 1)
+                {
+                    customFields[name] = null;
+                }
+                else if (parts.Length == 2)
+                {
+                    if (!customFields.TryGetValue(parts[1], out var tables))
+                    {
+                        tables = new HashSet<string>(StringComparer.Ordinal);
+                        customFields[parts[1]] = tables;
+                    }
+
+                    tables?.Add(parts[0]);
+                }
+                else
+                {
+                    throw new ArgumentException($"Invalid custom field name: {name}");
+                }
             }
 
-            this.m_customFields = customFields;
+            if (!containsAll)
+            {
+                this.m_customFields = customFields;
+            }
         }
 
         var buffer = new byte[BUFFER_SIZE];
@@ -324,7 +356,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 bodyPopulated = true;
                 continue;
             }
-            else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
+            else if (this.IsCustomField(entry.Key, eventName))
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
                 if (entry.Value != null)
@@ -359,7 +391,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                     continue;
                 }
 
-                if (this.m_customFields == null || this.m_customFields.ContainsKey(scopeItem.Key))
+                if (this.IsCustomField(scopeItem.Key, eventName))
                 {
                     if (scopeItem.Value != null)
                     {
@@ -387,7 +419,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             for (int i = 0; i < listKvp.Count; i++)
             {
                 var entry = listKvp[i];
-                if (entry.Key == "{OriginalFormat}" || this.m_customFields.ContainsKey(entry.Key))
+                if (entry.Key == "{OriginalFormat}" || this.IsCustomField(entry.Key, eventName))
                 {
                     continue;
                 }
@@ -409,7 +441,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                         continue;
                     }
 
-                    if (!this.m_customFields.ContainsKey(scopeItem.Key))
+                    if (!this.IsCustomField(scopeItem.Key, eventName))
                     {
                         cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, scopeItem.Key);
                         cursor = MessagePackSerializer.Serialize(buffer, cursor, scopeItem.Value);
@@ -561,6 +593,13 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         {
             Thread.CurrentThread.CurrentUICulture = originalUICulture;
         }
+    }
+
+    private bool IsCustomField(string field, string table)
+    {
+        return this.m_customFields == null ||
+            this.m_customFields.TryGetValue(field, out var tables) &&
+            (tables == null || tables.Contains(table));
     }
 
     public void Dispose()

@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+* Add support for table level customization of customFields
 
 ## 1.4.0-beta.4
 

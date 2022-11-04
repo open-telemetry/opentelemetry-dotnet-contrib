@@ -683,7 +683,7 @@ public class GenevaLogExporterTests
             {
                 // The field "customField" of LogRecord.State should be present in the mapping as a separate key. Other fields of LogRecord.State which are not present
                 // in CustomFields should be added in the mapping under "env_properties"
-                exporterOptions.CustomFields = new string[] { "customField" };
+                exporterOptions.CustomFields = new string[] { "customField", "DefaultLogRecord/customField2" };
             }
 
             using var loggerFactory = LoggerFactory.Create(builder => builder
@@ -725,6 +725,7 @@ public class GenevaLogExporterTests
             // When the exporter options are configured with TableMappings only "customField" will be logged as a separate key in the mapping
             // "property" will be logged under "env_properties" in the mapping
             logger.Log(LogLevel.Trace, 101, "Log a {customField} and {property}", "CustomFieldValue", "PropertyValue");
+            logger.Log(LogLevel.Trace, 101, "Log a {customField2} and {property}", "CustomFieldValue", "PropertyValue");
             logger.Log(LogLevel.Trace, 101, "Log a {customField} and {property}", "CustomFieldValue", null);
             logger.Log(LogLevel.Trace, 101, "Log a {customField} and {property}", null, "PropertyValue");
             logger.Log(LogLevel.Debug, 101, "Log a {customField} and {property}", "CustomFieldValue", "PropertyValue");
@@ -740,10 +741,12 @@ public class GenevaLogExporterTests
 
             var loggerWithDefaultCategory = loggerFactory.CreateLogger("DefaultCategory");
             loggerWithDefaultCategory.LogInformation("Basic test");
+            loggerWithDefaultCategory.LogInformation("Log a {customField} and {property}", "CustomFieldValue", "PropertyValue");
+            loggerWithDefaultCategory.LogInformation("Log a {customField2} and {property}", "CustomFieldValue", "PropertyValue");
             loggerWithDefaultCategory.LogInformation("\u0418"); // Include non-ASCII characters in the message
 
             // logRecordList should have 14 logRecord entries as there were 14 Log calls
-            Assert.Equal(14, logRecordList.Count);
+            Assert.Equal(17, logRecordList.Count);
 
             var m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
 
@@ -1206,7 +1209,12 @@ public class GenevaLogExporterTests
                 {
                     Assert.Equal(item.Value.ToString(), mapping["body"]);
                 }
-                else if (exporterOptions.CustomFields == null || exporterOptions.CustomFields.Contains(item.Key))
+                else if (
+                    exporterOptions.CustomFields == null ||
+                    exporterOptions.CustomFields.Contains("*") ||
+                    exporterOptions.CustomFields.Contains(item.Key) ||
+                    exporterOptions.CustomFields.Contains(partAName + "/" + "*") ||
+                    exporterOptions.CustomFields.Contains(partAName + "/" + item.Key))
                 {
                     if (item.Value != null)
                     {
