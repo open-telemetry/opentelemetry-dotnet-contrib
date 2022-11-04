@@ -597,9 +597,27 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
     private bool IsCustomField(string field, string table)
     {
-        return this.m_customFields == null ||
-            this.m_customFields.TryGetValue(field, out var tables) &&
-            (tables == null || tables.Contains(table));
+        // No custom fields or `*`
+        if (this.m_customFields == null)
+        {
+            return true;
+        }
+
+        // `Table/column` or `Column`
+        if (this.m_customFields.TryGetValue(field, out var tables) &&
+            (tables != null || tables.Contains(table)))
+        {
+            return true;
+        }
+
+        // `Table/*`
+        if (this.m_customFields.TryGetValue("*", out tables) &&
+            (tables != null || tables.Contains(table)))
+        {
+            return true;
+        }
+
+        return false;
     }
 
     public void Dispose()
