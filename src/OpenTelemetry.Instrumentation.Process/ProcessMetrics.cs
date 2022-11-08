@@ -53,7 +53,7 @@ internal sealed class ProcessMetrics
             "process.memory.virtual",
             () =>
             {
-                return Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64;
+                return Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64;
             },
             unit: "By",
             description: "The amount of virtual memory allocated for this process that cannot be shared with other processes.");
