@@ -381,10 +381,13 @@ public class GenevaLogExporterTests
                 senderSocket.Listen(1);
             }
 
+            var exportedItems = new List<LogRecord>();
+
             using var loggerFactory = LoggerFactory.Create(builder => builder
                 .AddOpenTelemetry(options =>
                 {
                     options.IncludeScopes = true;
+                    options.AddInMemoryExporter(exportedItems);
                     options.AddGenevaLogExporter(options =>
                     {
                         options.ConnectionString = exporterOptions.ConnectionString;
@@ -405,7 +408,7 @@ public class GenevaLogExporterTests
 
             using (logger.BeginScope("MyOuterScope"))
             using (logger.BeginScope("MyInnerScope"))
-            using (logger.BeginScope("MyInnerInnerScope with {name} and {age} of custom", "John Doe", 35))
+            using (logger.BeginScope("MyInnerInnerScope with {Name} and {Age} of custom", "John Doe", 35))
             using (logger.BeginScope(new List<KeyValuePair<string, object>> { new KeyValuePair<string, object>("MyKey", "MyValue") }))
             {
                 logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
@@ -428,31 +431,15 @@ public class GenevaLogExporterTests
             var signal = (fluentdData as object[])[0] as string;
             var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
             var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
-            var serializedScopes = mapping["scopes"] as object[];
+            Assert.Equal("John Doe", mapping["Name"]);
+            Assert.Equal((byte)35, mapping["Age"]);
+            Assert.Equal("MyValue", mapping["MyKey"]);
 
-            Assert.Equal(4, serializedScopes.Length);
+            // Check other fields
+            Assert.Single(exportedItems);
+            var logRecord = exportedItems[0];
 
-            // Test 1st scope
-            var scope = serializedScopes[0] as ICollection<KeyValuePair<object, object>>;
-            Assert.Single(scope);
-            Assert.Contains(new KeyValuePair<object, object>("scope", "MyOuterScope"), scope);
-
-            // Test 2nd scope
-            scope = serializedScopes[1] as ICollection<KeyValuePair<object, object>>;
-            Assert.Single(scope);
-            Assert.Contains(new KeyValuePair<object, object>("scope", "MyInnerScope"), scope);
-
-            // Test 3rd scope
-            scope = serializedScopes[2] as ICollection<KeyValuePair<object, object>>;
-            Assert.Equal(3, scope.Count);
-            Assert.Contains(new KeyValuePair<object, object>("name", "John Doe"), scope);
-            Assert.Contains(new KeyValuePair<object, object>("age", (byte)35), scope);
-            Assert.Contains(new KeyValuePair<object, object>("{OriginalFormat}", "MyInnerInnerScope with {name} and {age} of custom"), scope);
-
-            // Test 4th scope
-            scope = serializedScopes[3] as ICollection<KeyValuePair<object, object>>;
-            Assert.Single(scope);
-            Assert.Contains(new KeyValuePair<object, object>("MyKey", "MyValue"), scope);
+            this.AssertFluentdForwardModeForLogRecord(exporterOptions, fluentdData, logRecord);
         }
         finally
         {
