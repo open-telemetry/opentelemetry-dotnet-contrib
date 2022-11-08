@@ -38,8 +38,7 @@ internal sealed class ProcessMetrics
         this.lastCollectedUserProcessorTime = Diagnostics.Process.GetCurrentProcess().UserProcessorTime.TotalSeconds;
         this.lastCollectedPrivilegedProcessorTime = Diagnostics.Process.GetCurrentProcess().PrivilegedProcessorTime.TotalSeconds;
 
-        // TODO: change to ObservableUpDownCounter
-        this.MeterInstance.CreateObservableGauge(
+        this.MeterInstance.CreateObservableUpDownCounter(
             "process.memory.usage",
             () =>
             {
@@ -48,8 +47,7 @@ internal sealed class ProcessMetrics
             unit: "By",
             description: "The amount of physical memory allocated for this process.");
 
-        // TODO: change to ObservableUpDownCounter
-        this.MeterInstance.CreateObservableGauge(
+        this.MeterInstance.CreateObservableUpDownCounter(
             "process.memory.virtual",
             () =>
             {
@@ -81,8 +79,7 @@ internal sealed class ProcessMetrics
             unit: "1",
             description: "Difference in process.cpu.time since the last measurement, divided by the elapsed time and number of CPUs available to the process.");
 
-        // TODO: change to ObservableUpDownCounter
-        this.MeterInstance.CreateObservableGauge(
+        this.MeterInstance.CreateObservableUpDownCounter(
             "process.threads",
             () =>
             {

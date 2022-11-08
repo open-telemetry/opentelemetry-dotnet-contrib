@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add support for custom job display names
+  ([#756](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/756))
+
 ## 1.0.0-beta.3
 
 Released 2022-Oct-26
