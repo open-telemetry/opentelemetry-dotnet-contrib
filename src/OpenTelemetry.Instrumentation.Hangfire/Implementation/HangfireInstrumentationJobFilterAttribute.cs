@@ -14,6 +14,9 @@
 // limitations under the License.
 // </copyright>
 
+using System;
+using Hangfire;
+
 namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 
 using System.Collections.Generic;
@@ -56,7 +59,10 @@ internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, I
 
         if (activity != null)
         {
-            activity.DisplayName = $"JOB {performingContext.BackgroundJob.Job.Type.Name}.{performingContext.BackgroundJob.Job.Method.Name}";
+            Func<BackgroundJob, string> displayNameFunc =
+                this.options.DisplayNameFunc ?? HangfireInstrumentation.DefaultDisplayNameFunc;
+
+            activity.DisplayName = displayNameFunc(performingContext.BackgroundJob);
 
             if (activity.IsAllDataRequested)
             {
