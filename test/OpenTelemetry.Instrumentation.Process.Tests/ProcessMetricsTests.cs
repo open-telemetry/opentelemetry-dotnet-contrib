@@ -15,7 +15,6 @@
 // </copyright>
 
 using System.Collections.Generic;
-using System.Diagnostics.Metrics;
 using System.Linq;
 using OpenTelemetry.Metrics;
 using Xunit;
@@ -37,13 +36,17 @@ public class ProcessMetricsTests
 
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
-        Assert.True(exportedItems.Count == 3);
+        Assert.True(exportedItems.Count == 5);
         var physicalMemoryMetric = exportedItems.FirstOrDefault(i => i.Name == "process.memory.usage");
         Assert.NotNull(physicalMemoryMetric);
         var virtualMemoryMetric = exportedItems.FirstOrDefault(i => i.Name == "process.memory.virtual");
         Assert.NotNull(virtualMemoryMetric);
         var cpuTimeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.time");
         Assert.NotNull(cpuTimeMetric);
+        var cpuUtilizationMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.utilization");
+        Assert.NotNull(cpuUtilizationMetric);
+        var threadMetric = exportedItems.FirstOrDefault(i => i.Name == "process.threads");
+        Assert.NotNull(threadMetric);
     }
 
     [Fact]
@@ -84,6 +87,43 @@ public class ProcessMetricsTests
     }
 
     [Fact]
+    public void CpuUtilizationMetricsAreCaptured()
+    {
+        var exportedItems = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddProcessInstrumentation()
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+
+        var cpuUtilizationMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.utilization");
+        Assert.NotNull(cpuUtilizationMetric);
+
+        var userCpuUtilizationCaptured = false;
+        var systemCpuUtilizationCaptured = false;
+
+        var iter = cpuUtilizationMetric.GetMetricPoints().GetEnumerator();
+        while (iter.MoveNext() && (!userCpuUtilizationCaptured || !systemCpuUtilizationCaptured))
+        {
+            foreach (var tag in iter.Current.Tags)
+            {
+                if (tag.Key == "state" && tag.Value.ToString() == "user")
+                {
+                    userCpuUtilizationCaptured = true;
+                }
+                else if (tag.Key == "state" && tag.Value.ToString() == "system")
+                {
+                    systemCpuUtilizationCaptured = true;
+                }
+            }
+        }
+
+        Assert.True(userCpuUtilizationCaptured);
+        Assert.True(systemCpuUtilizationCaptured);
+    }
+
+    [Fact]
     public void CheckValidGaugeValueWhen2MeterProviderInstancesHaveTheSameMeterName()
     {
         var exportedItemsA = new List<Metric>();
@@ -116,13 +156,9 @@ public class ProcessMetricsTests
 
         foreach (ref readonly var metricPoint in metric.GetMetricPoints())
         {
-            if (metric.MetricType.IsGauge())
+            if (metric.MetricType.IsLong())
             {
-                sum += metricPoint.GetGaugeLastValueDouble();
-            }
-            else if (metric.MetricType.IsDouble())
-            {
-                sum += metricPoint.GetSumDouble();
+                sum += metricPoint.GetGaugeLastValueLong();
             }
         }
 

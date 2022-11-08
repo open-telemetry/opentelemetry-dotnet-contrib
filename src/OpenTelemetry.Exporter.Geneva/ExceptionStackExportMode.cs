@@ -1,4 +1,4 @@
-// <copyright file="EventCounterMetricsOptions.cs" company="OpenTelemetry Authors">
+// <copyright file="ExceptionStackExportMode.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,15 +14,12 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Instrumentation.EventCounters;
+namespace OpenTelemetry.Exporter.Geneva;
 
-/// <summary>
-/// EventCounterMetrics Options.
-/// </summary>
-public class EventCounterMetricsOptions
+public enum ExceptionStackExportMode
 {
-    /// <summary>
-    /// Gets or sets the subscription interval in seconds.
-    /// </summary>
-    public int RefreshIntervalSecs { get; set; } = 60;
+    Drop,
+    ExportAsString,
+
+    // ExportAsArrayOfStacks - future if stacks can be exported in more structured way
 }

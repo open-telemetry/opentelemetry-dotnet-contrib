@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
@@ -26,27 +27,23 @@ internal sealed class ProcessMetrics
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
     internal readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
 
-    private readonly Diagnostics.Process currentProcess = Diagnostics.Process.GetCurrentProcess();
-    private double? memoryUsage;
-    private double? virtualMemoryUsage;
-    private double? userProcessorTime;
-    private double? privilegedProcessorTime;
+    // vars for calculating CPU utilization
+    private DateTime lastCollectionTimeUtc;
+    private double lastCollectedUserProcessorTime;
+    private double lastCollectedPrivilegedProcessorTime;
 
     public ProcessMetrics(ProcessInstrumentationOptions options)
     {
+        this.lastCollectionTimeUtc = DateTime.UtcNow;
+        this.lastCollectedUserProcessorTime = Diagnostics.Process.GetCurrentProcess().UserProcessorTime.TotalSeconds;
+        this.lastCollectedPrivilegedProcessorTime = Diagnostics.Process.GetCurrentProcess().PrivilegedProcessorTime.TotalSeconds;
+
         // TODO: change to ObservableUpDownCounter
         this.MeterInstance.CreateObservableGauge(
             "process.memory.usage",
             () =>
             {
-                if (!this.memoryUsage.HasValue)
-                {
-                    this.Snapshot();
-                }
-
-                var value = this.memoryUsage.Value;
-                this.memoryUsage = null;
-                return value;
+                return Diagnostics.Process.GetCurrentProcess().WorkingSet64;
             },
             unit: "By",
             description: "The amount of physical memory allocated for this process.");
@@ -56,14 +53,7 @@ internal sealed class ProcessMetrics
             "process.memory.virtual",
             () =>
             {
-                if (!this.virtualMemoryUsage.HasValue)
-                {
-                    this.Snapshot();
-                }
-
-                var value = this.virtualMemoryUsage.Value;
-                this.virtualMemoryUsage = null;
-                return value;
+                return Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64;
             },
             unit: "By",
             description: "The amount of virtual memory allocated for this process that cannot be shared with other processes.");
@@ -72,32 +62,51 @@ internal sealed class ProcessMetrics
             "process.cpu.time",
             () =>
             {
-                if (!this.userProcessorTime.HasValue || !this.privilegedProcessorTime.HasValue)
-                {
-                    this.Snapshot();
-                }
-
-                var userProcessorTimeValue = this.userProcessorTime.Value;
-                var privilegedProcessorTimeValue = this.privilegedProcessorTime.Value;
-                this.userProcessorTime = null;
-                this.privilegedProcessorTime = null;
-
+                var process = Diagnostics.Process.GetCurrentProcess();
                 return new[]
                 {
-                    new Measurement<double>(userProcessorTimeValue, new KeyValuePair<string, object?>("state", "user")),
-                    new Measurement<double>(privilegedProcessorTimeValue, new KeyValuePair<string, object?>("state", "system")),
+                    new Measurement<double>(process.UserProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("state", "user")),
+                    new Measurement<double>(process.PrivilegedProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("state", "system")),
                 };
             },
             unit: "s",
             description: "Total CPU seconds broken down by different states.");
+
+        this.MeterInstance.CreateObservableGauge(
+            "process.cpu.utilization",
+            () =>
+            {
+                return this.GetCpuUtilization();
+            },
+            unit: "1",
+            description: "Difference in process.cpu.time since the last measurement, divided by the elapsed time and number of CPUs available to the process.");
+
+        // TODO: change to ObservableUpDownCounter
+        this.MeterInstance.CreateObservableGauge(
+            "process.threads",
+            () =>
+            {
+                return Diagnostics.Process.GetCurrentProcess().Threads.Count;
+            },
+            unit: "{threads}",
+            description: "Process threads count.");
     }
 
-    private void Snapshot()
+    private IEnumerable<Measurement<double>> GetCpuUtilization()
     {
-        this.currentProcess.Refresh();
-        this.memoryUsage = this.currentProcess.WorkingSet64;
-        this.virtualMemoryUsage = this.currentProcess.PrivateMemorySize64;
-        this.userProcessorTime = this.currentProcess.UserProcessorTime.TotalSeconds;
-        this.privilegedProcessorTime = this.currentProcess.PrivilegedProcessorTime.TotalSeconds;
+        var process = Diagnostics.Process.GetCurrentProcess();
+        var elapsedTimeForAllCpus = (DateTime.UtcNow - this.lastCollectionTimeUtc).TotalSeconds * Environment.ProcessorCount;
+        var userProcessorUtilization = (process.UserProcessorTime.TotalSeconds - this.lastCollectedUserProcessorTime) / elapsedTimeForAllCpus;
+        var privilegedProcessorUtilization = (process.PrivilegedProcessorTime.TotalSeconds - this.lastCollectedPrivilegedProcessorTime) / elapsedTimeForAllCpus;
+
+        this.lastCollectionTimeUtc = DateTime.UtcNow;
+        this.lastCollectedUserProcessorTime = process.UserProcessorTime.TotalSeconds;
+        this.lastCollectedPrivilegedProcessorTime = process.PrivilegedProcessorTime.TotalSeconds;
+
+        return new[]
+        {
+            new Measurement<double>(Math.Min(userProcessorUtilization, 1D), new KeyValuePair<string, object?>("state", "user")),
+            new Measurement<double>(Math.Min(privilegedProcessorUtilization, 1D), new KeyValuePair<string, object?>("state", "system")),
+        };
     }
 }

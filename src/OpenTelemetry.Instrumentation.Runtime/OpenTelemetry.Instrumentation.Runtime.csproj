@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net462;netcoreapp3.1;net6.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net462;net6.0</TargetFrameworks>
     <Description>dotnet runtime instrumentation for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);runtime</PackageTags>
     <MinVerTagPrefix>Instrumentation.Runtime-</MinVerTagPrefix>
@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryApiPkgVer)" />
+    <PackageReference Include="OpenTelemetry.Api" Version="1.4.0-beta.2" />
   </ItemGroup>
 
   <ItemGroup>
