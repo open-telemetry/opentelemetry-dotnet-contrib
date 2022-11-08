@@ -27,8 +27,9 @@
     <MicrosoftNETTestSdkPkgVer>[16.11.0,17.0)</MicrosoftNETTestSdkPkgVer>
     <MoqPkgVer>[4.17.2,5.0)</MoqPkgVer>
     <OpenTelemetryExporterInMemoryPkgVer>$(OpenTelemetryCoreLatestVersion)</OpenTelemetryExporterInMemoryPkgVer>
+    <OpenTelemetryExporterInMemoryLatestPreReleasePkgVer>$(OpenTelemetryCoreLatestPrereleaseVersion)</OpenTelemetryExporterInMemoryLatestPreReleasePkgVer>
     <XUnitRunnerVisualStudioPkgVer>[2.4.3,3.0)</XUnitRunnerVisualStudioPkgVer>
     <XUnitPkgVer>[2.4.2,3.0)</XUnitPkgVer>
-  </PropertyGroup>
+</PropertyGroup>
 
 </Project>

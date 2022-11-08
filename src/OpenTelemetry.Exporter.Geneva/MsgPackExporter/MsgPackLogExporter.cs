@@ -349,42 +349,31 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             cntFields += 1;
         }
 
-        ushort scopeDepth = 0;
-        int indexArrayLength = 0;
-        logRecord.ForEachScope(ProcessScope, (object)null);
-        void ProcessScope(LogRecordScope scope, object state)
+        logRecord.ForEachScope(ProcessScopeForIndividualColumns, (object)null);
+        void ProcessScopeForIndividualColumns(LogRecordScope scope, object state)
         {
-            if (++scopeDepth == 1)
-            {
-                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "scopes");
-                cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, ushort.MaxValue);
-                indexArrayLength = cursor - 2;
-            }
-
-            cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
-            int indexMapSizeScope = cursor - 2;
-            ushort keysCount = 0;
-
             foreach (KeyValuePair<string, object> scopeItem in scope)
             {
-                string key = "scope";
-                if (!string.IsNullOrEmpty(scopeItem.Key))
+                if (string.IsNullOrEmpty(scopeItem.Key) || scopeItem.Key == "{OriginalFormat}")
                 {
-                    key = scopeItem.Key;
+                    continue;
                 }
 
-                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, key);
-                cursor = MessagePackSerializer.Serialize(buffer, cursor, scopeItem.Value);
-                keysCount++;
+                if (this.m_customFields == null || this.m_customFields.ContainsKey(scopeItem.Key))
+                {
+                    if (scopeItem.Value != null)
+                    {
+                        // null is not supported.
+                        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, scopeItem.Key);
+                        cursor = MessagePackSerializer.Serialize(buffer, cursor, scopeItem.Value);
+                        cntFields += 1;
+                    }
+                }
+                else
+                {
+                    hasEnvProperties = true;
+                }
             }
-
-            MessagePackSerializer.WriteUInt16(buffer, indexMapSizeScope, keysCount);
-        }
-
-        if (scopeDepth > 0)
-        {
-            MessagePackSerializer.WriteUInt16(buffer, indexArrayLength, scopeDepth);
-            cntFields += 1;
         }
 
         if (hasEnvProperties)
@@ -407,6 +396,25 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                     cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
                     cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
                     envPropertiesCount += 1;
+                }
+            }
+
+            logRecord.ForEachScope(ProcessScopeForEnvProperties, (object)null);
+            void ProcessScopeForEnvProperties(LogRecordScope scope, object state)
+            {
+                foreach (KeyValuePair<string, object> scopeItem in scope)
+                {
+                    if (string.IsNullOrEmpty(scopeItem.Key) || scopeItem.Key == "{OriginalFormat}")
+                    {
+                        continue;
+                    }
+
+                    if (!this.m_customFields.ContainsKey(scopeItem.Key))
+                    {
+                        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, scopeItem.Key);
+                        cursor = MessagePackSerializer.Serialize(buffer, cursor, scopeItem.Value);
+                        envPropertiesCount += 1;
+                    }
                 }
             }
 
