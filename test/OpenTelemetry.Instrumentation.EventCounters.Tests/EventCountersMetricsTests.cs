@@ -254,7 +254,7 @@ public class EventCountersMetricsTests
         EventSource source = new("source");
 
         // ec.s. + event name is 63;
-        string veryLongEventName = new string('e', 59);
+        string veryLongEventName = new string('e', 100);
         IncrementingEventCounter connections = new(veryLongEventName, source);
 
         var meterProvider = Sdk.CreateMeterProviderBuilder()

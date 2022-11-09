@@ -140,8 +140,7 @@ internal sealed class EventCountersMetrics : EventListener
             return string.Concat(Prefix, ".", sourceName, ".", eventName);
         }
 
-        int maxEventSourceNameLength = MaxInstrumentNameLength - Prefix.Length - 2 - eventName.Length;
-        var abbreviation = new StringBuilder(maxEventSourceNameLength);
+        var abbreviation = new StringBuilder(sourceName.Length);
         int ind = 0;
         while (ind >= 0 && ind < sourceName.Length)
         {
@@ -192,10 +191,9 @@ internal sealed class EventCountersMetrics : EventListener
             ValueTuple<string, string> metricKey = new(eventSourceName, name);
             _ = this.values.AddOrUpdate(metricKey, value, isGauge ? (_, _) => value : (_, existing) => existing + value);
 
-            var instrumentName = GetInstrumentName(eventSourceName, name);
-
             if (!this.instruments.ContainsKey(metricKey))
             {
+                var instrumentName = GetInstrumentName(eventSourceName, name);
                 Instrument instrument = isGauge
                     ? MeterInstance.CreateObservableGauge(instrumentName, () => this.values[metricKey])
                     : MeterInstance.CreateObservableCounter(instrumentName, () => this.values[metricKey]);
