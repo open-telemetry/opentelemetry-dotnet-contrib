@@ -75,7 +75,7 @@ public class RuntimeMetricsTests
         var gcCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.collections.count");
         Assert.NotNull(gcCountMetric);
 
-        var totalObjectsSize = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.heap.total_objects_size");
+        var totalObjectsSize = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.live_objects.size");
         Assert.NotNull(totalObjectsSize);
 
 #if NET6_0_OR_GREATER
