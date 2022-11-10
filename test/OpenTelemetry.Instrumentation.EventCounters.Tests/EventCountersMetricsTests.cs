@@ -220,6 +220,9 @@ public class EventCountersMetricsTests
     [InlineData("Microsoft-AspNetCore-Server-Kestrel-1", "tls-handshakes-per-sec", "ec.Microsoft-AspNetCore-Server-Kestrel-1.tls-handshakes-per-sec")]
     [InlineData("Microsoft.AspNetCore.Http.Connections-1", "connections-stopped", "ec.Microsoft.AspNetCore.Http.Connections-1.connections-stopped")]
     [InlineData("Microsoft.AspNetCore.Http.Connections-1", "connections-timed-out-longer", "ec.m.a.h.c.1.connections-timed-out-longer")]
+    [InlineData("Microsoft.AspNetCore.One.Two", "very-very-very-very-very-very-very-very-very-long-event-name", "ec.very-very-very-very-very-very-very-very-very-long-event-name")]
+    [InlineData("Microsoft.AspNetCore.One.Two", "very-very-very-very-very-very-very-very-long-event-name", "ec.m.a.very-very-very-very-very-very-very-very-long-event-name")]
+    [InlineData("Microsoft.AspNetCore.One.Two", "very-very-very-very-very-very-very-long-event-name", "ec.m.a.o.t.very-very-very-very-very-very-very-long-event-name")]
     public async Task EventSourceNameAbbreviation(string sourceName, string eventName, string expectedInstrumentName)
     {
         // Arrange

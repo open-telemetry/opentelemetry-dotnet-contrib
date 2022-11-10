@@ -140,7 +140,15 @@ internal sealed class EventCountersMetrics : EventListener
             return string.Concat(Prefix, ".", sourceName, ".", eventName);
         }
 
-        var abbreviation = new StringBuilder(sourceName.Length);
+        var maxEventSourceLength = MaxInstrumentNameLength - Prefix.Length - 1 - eventName.Length;
+        if (maxEventSourceLength < 2) 
+        {
+            // event name is too long, there is not enough space for sourceName.
+            // let ec.<eventName> flow to metrics SDK and filter if needed.
+            return string.Concat(Prefix, ".", eventName);
+        }
+
+        var abbreviation = new StringBuilder(maxEventSourceLength);
         int ind = 0;
         while (ind >= 0 && ind < sourceName.Length)
         {
@@ -151,6 +159,11 @@ internal sealed class EventCountersMetrics : EventListener
 
             if (ind < sourceName.Length)
             {
+                if (abbreviation.Length + 2 >= maxEventSourceLength)
+                {
+                    break;
+                }
+
                 abbreviation.Append(char.ToLowerInvariant(sourceName[ind])).Append('.');
             }
 
