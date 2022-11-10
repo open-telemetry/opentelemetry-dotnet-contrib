@@ -141,10 +141,10 @@ internal sealed class EventCountersMetrics : EventListener
         }
 
         var maxEventSourceLength = MaxInstrumentNameLength - Prefix.Length - 1 - eventName.Length;
-        if (maxEventSourceLength < 2) 
+        if (maxEventSourceLength < 2)
         {
             // event name is too long, there is not enough space for sourceName.
-            // let ec.<eventName> flow to metrics SDK and filter if needed.
+            // let ec.<eventName> flow to metrics SDK and it will suppress it if needed.
             return string.Concat(Prefix, ".", eventName);
         }
 
@@ -159,12 +159,12 @@ internal sealed class EventCountersMetrics : EventListener
 
             if (ind < sourceName.Length)
             {
+                abbreviation.Append(char.ToLowerInvariant(sourceName[ind])).Append('.');
                 if (abbreviation.Length + 2 >= maxEventSourceLength)
                 {
+                    // stop if there is no room to add another letter and a dot after
                     break;
                 }
-
-                abbreviation.Append(char.ToLowerInvariant(sourceName[ind])).Append('.');
             }
 
             int nextDot = sourceName.IndexOf('.', ind);
