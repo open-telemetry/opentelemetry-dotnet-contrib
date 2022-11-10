@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Added the exception type to the `process.runtime.dotnet.exceptions.count` metric tags.
+
 ## 1.1.0-beta.1
 
 Released 2022-Nov-22
