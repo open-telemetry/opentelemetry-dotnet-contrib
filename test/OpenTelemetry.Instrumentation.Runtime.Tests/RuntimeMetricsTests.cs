@@ -28,6 +28,10 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests;
 
 public class RuntimeMetricsTests
 {
+    private class CustomException : Exception
+    {
+    }
+
     private const int MaxTimeToAllowForFlush = 10000;
 
     [Fact]
@@ -42,9 +46,9 @@ public class RuntimeMetricsTests
         // The process.runtime.dotnet.exception.count metrics are only available after an exception has been thrown post OpenTelemetry.Instrumentation.Runtime initialization.
         try
         {
-            throw new Exception("Oops!");
+            throw new CustomException();
         }
-        catch (Exception)
+        catch (CustomException)
         {
             // swallow the exception
         }
@@ -56,7 +60,20 @@ public class RuntimeMetricsTests
         Assert.NotNull(assembliesCountMetric);
 
         var exceptionsCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.exceptions.count");
-        Assert.True(GetValue(exceptionsCountMetric) >= 1);
+        Assert.True(GetValue(exceptionsCountMetric, ExceptionTypeTagFilter) >= 1);
+
+        static bool ExceptionTypeTagFilter(MetricPoint metricPoint)
+        {
+            foreach (var tag in metricPoint.Tags)
+            {
+                if (tag.Key == "type" && (string)tag.Value == nameof(CustomException))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     [Fact]
@@ -179,13 +196,18 @@ public class RuntimeMetricsTests
     }
 #endif
 
-    private static double GetValue(Metric metric)
+    private static double GetValue(Metric metric, Predicate<MetricPoint> filter = null)
     {
         Assert.NotNull(metric);
         double sum = 0;
 
         foreach (ref readonly var metricPoint in metric.GetMetricPoints())
         {
+            if (filter?.Invoke(metricPoint) == false)
+            {
+                continue;
+            }
+
             if (metric.MetricType.IsSum())
             {
                 sum += metricPoint.GetSumLong();

@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 #if NET6_0_OR_GREATER
@@ -200,7 +201,12 @@ internal class RuntimeMetrics
 
         AppDomain.CurrentDomain.FirstChanceException += (source, e) =>
         {
-            exceptionCounter.Add(1);
+            var tags = new TagList
+            {
+                new("type", e.Exception.GetType().Name),
+            };
+
+            exceptionCounter.Add(1, tags);
         };
     }
 
