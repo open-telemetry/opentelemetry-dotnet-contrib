@@ -14,6 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+using Hangfire;
+
 namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 
 using System;
@@ -41,4 +43,10 @@ internal static class HangfireInstrumentation
     /// The activity source.
     /// </summary>
     internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version.ToString());
+
+    /// <summary>
+    /// The default display name delegate.
+    /// </summary>
+    internal static readonly Func<BackgroundJob, string> DefaultDisplayNameFunc =
+        backgroundJob => $"JOB {backgroundJob.Job.Type.Name}.{backgroundJob.Job.Method.Name}";
 }

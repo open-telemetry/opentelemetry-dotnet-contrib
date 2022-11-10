@@ -14,6 +14,10 @@
 // limitations under the License.
 // </copyright>
 
+using System;
+using Hangfire;
+using OpenTelemetry.Instrumentation.Hangfire.Implementation;
+
 namespace OpenTelemetry.Trace;
 
 /// <summary>
@@ -28,4 +32,12 @@ public class HangfireInstrumentationOptions
     /// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/exceptions.md.
     /// </remarks>
     public bool RecordException { get; set; }
+
+    /// <summary>
+    /// Gets or sets a delegate used to format the job name.
+    /// </summary>
+    /// <remarks>
+    /// Defaults to <c>{backgroundJob.Job.Type.Name}.{backgroundJob.Job.Method.Name}</c>.
+    /// </remarks>
+    public Func<BackgroundJob, string> DisplayNameFunc { get; set; } = HangfireInstrumentation.DefaultDisplayNameFunc;
 }
