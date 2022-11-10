@@ -17,13 +17,5 @@ jobs:
   build-test:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        os: [ windows-latest, ubuntu-latest ]
-        version: [ net462, netcoreapp3.1, net6.0 ]
-        exclude:
-        - os: ubuntu-latest
-          version: net462
-
     steps:
       - run: 'echo "No build required"'
