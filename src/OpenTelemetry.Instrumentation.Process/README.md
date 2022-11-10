@@ -62,9 +62,9 @@ allocated for the associated process.
 ### process.memory.virtual
 
 The amount of committed virtual memory for this process.
-One way to think of this is all the address space this process can read from without trigerring an access
-violation; including memory backed solely by RAM, pagefile-backed memory and
-file-backed memory.
+One way to think of this is all the address space this process can read from
+without trigerring an access violation; including memory backed solely by RAM,
+pagefile-backed memory and file-backed memory.
 
 | Units | Instrument Type         | Value Type |
 |-------|-------------------------|------------|
