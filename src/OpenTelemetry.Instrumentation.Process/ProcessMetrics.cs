@@ -54,7 +54,7 @@ internal sealed class ProcessMetrics
                 return Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64;
             },
             unit: "By",
-            description: "All the address space this process can read from without trigerring an access violation.");
+            description: "The amount of committed virtual memory for this process.");
 
         this.MeterInstance.CreateObservableCounter(
             "process.cpu.time",
