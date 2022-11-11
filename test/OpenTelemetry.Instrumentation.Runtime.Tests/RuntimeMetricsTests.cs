@@ -28,10 +28,6 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests;
 
 public class RuntimeMetricsTests
 {
-    private class CustomException : Exception
-    {
-    }
-
     private const int MaxTimeToAllowForFlush = 10000;
 
     [Fact]
@@ -220,5 +216,9 @@ public class RuntimeMetricsTests
         }
 
         return sum;
+    }
+
+    private class CustomException : Exception
+    {
     }
 }
