@@ -124,11 +124,12 @@ internal sealed class EventCountersMetrics : EventListener
         new() { { "EventCounterIntervalSec", options.RefreshIntervalSecs.ToString() } };
 
     /// <summary>
-    /// If instrument name is too long, abbreviates event source name.
+    /// If the resulting instrument name is too long, it trims the event source name
+    /// to fit in as many characters as possible keeping the event name intact.
     /// E.g. instrument for `Microsoft-AspNetCore-Server-Kestrel`, `tls-handshakes-per-second`
     /// would be too long (64 chars), so it's shortened to `ec.Microsoft-AspNetCore-Server-Kestre.tls-handshakes-per-second`.
-    /// 
-    /// If there is no room for event source name, returns `ec.{event name}` and 
+    ///
+    /// If there is no room for event source name, returns `ec.{event name}` and
     /// if it's still too long, it will be validated and ignored later in the pipeline.
     /// </summary>
     private static string GetInstrumentName(string sourceName, string eventName)
@@ -139,15 +140,20 @@ internal sealed class EventCountersMetrics : EventListener
             return string.Concat(Prefix, ".", sourceName, ".", eventName);
         }
 
-        var maxEventSourceLength = MaxInstrumentNameLength - Prefix.Length - 1 - eventName.Length;
-        if (maxEventSourceLength < 2)
+        var maxEventSourceLength = MaxInstrumentNameLength - Prefix.Length - 2 - eventName.Length;
+        if (maxEventSourceLength < 1)
         {
             // event name is too long, there is not enough space for sourceName.
             // let ec.<eventName> flow to metrics SDK and it will suppress it if needed.
             return string.Concat(Prefix, ".", eventName);
         }
 
-        return string.Concat(Prefix, ".", sourceName.Substring(0, maxEventSourceLength - 1), ".", eventName);
+        while (maxEventSourceLength > 0 && (sourceName[maxEventSourceLength - 1] == '.' || sourceName[maxEventSourceLength - 1] == '-'))  
+        {
+            maxEventSourceLength --;
+        }
+
+        return string.Concat(Prefix, ".", sourceName.Substring(0, maxEventSourceLength), ".", eventName);
     }
 
     private void EnableEvents(EventSource eventSource)
