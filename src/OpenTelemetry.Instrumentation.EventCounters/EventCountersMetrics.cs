@@ -126,10 +126,10 @@ internal sealed class EventCountersMetrics : EventListener
     /// <summary>
     /// If instrument name is too long, abbreviates event source name.
     /// E.g. instrument for `Microsoft-AspNetCore-Server-Kestrel`, `tls-handshakes-per-second`
-    /// would be too long (64 chars), so it's abbreviated to `ec.m.a.s.k.tls-handshakes-per-second`
-    /// instead of `ec.Microsoft-AspNetCore-Server-Kestrel.tls-handshakes-per-second`.
-    ///
-    /// If after that instrument name is still invalid, it will be validated and ignored later in the pipeline.
+    /// would be too long (64 chars), so it's shortened to `ec.Microsoft-AspNetCore-Server-Kestre.tls-handshakes-per-second`.
+    /// 
+    /// If there is no room for event source name, returns `ec.{event name}` and 
+    /// if it's still too long, it will be validated and ignored later in the pipeline.
     /// </summary>
     private static string GetInstrumentName(string sourceName, string eventName)
     {
