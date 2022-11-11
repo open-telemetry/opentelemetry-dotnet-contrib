@@ -148,9 +148,9 @@ internal sealed class EventCountersMetrics : EventListener
             return string.Concat(Prefix, ".", eventName);
         }
 
-        while (maxEventSourceLength > 0 && (sourceName[maxEventSourceLength - 1] == '.' || sourceName[maxEventSourceLength - 1] == '-'))  
+        while (maxEventSourceLength > 0 && (sourceName[maxEventSourceLength - 1] == '.' || sourceName[maxEventSourceLength - 1] == '-'))
         {
-            maxEventSourceLength --;
+            maxEventSourceLength--;
         }
 
         return string.Concat(Prefix, ".", sourceName.Substring(0, maxEventSourceLength), ".", eventName);
