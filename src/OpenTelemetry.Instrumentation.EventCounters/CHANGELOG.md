@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-alpha.2
+
+Released 2022-Nov-10
+
 * Update OpenTelemetry.Api to 1.3.1.
 * Change `EventCounter` prefix to `ec` and trim the event source name to keep
   instrument name under 63 characters.
