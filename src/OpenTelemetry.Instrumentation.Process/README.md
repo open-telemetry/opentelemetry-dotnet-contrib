@@ -63,8 +63,8 @@ allocated for the associated process.
 
 The amount of committed virtual memory for this process.
 One way to think of this is all the address space this process can read from
-without trigerring an access violation; including memory backed solely by RAM,
-pagefile-backed memory and file-backed memory.
+without trigerring an access violation; this includes memory backed solely by RAM,
+by a swapfile/pagefile and by other mapped files on disk.
 
 | Units | Instrument Type         | Value Type |
 |-------|-------------------------|------------|
