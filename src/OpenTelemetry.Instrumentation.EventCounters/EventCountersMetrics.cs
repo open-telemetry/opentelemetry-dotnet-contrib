@@ -19,7 +19,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Diagnostics.Tracing;
-using System.Text;
 
 namespace OpenTelemetry.Instrumentation.EventCounters;
 
@@ -148,48 +147,7 @@ internal sealed class EventCountersMetrics : EventListener
             return string.Concat(Prefix, ".", eventName);
         }
 
-        var abbreviation = new StringBuilder(maxEventSourceLength);
-        int ind = 0;
-        while (ind >= 0 && ind < sourceName.Length)
-        {
-            while (ind < sourceName.Length && (sourceName[ind] == '.' || sourceName[ind] == '-'))
-            {
-                ind++;
-            }
-
-            if (ind < sourceName.Length)
-            {
-                abbreviation.Append(char.ToLowerInvariant(sourceName[ind])).Append('.');
-                if (abbreviation.Length + 2 >= maxEventSourceLength)
-                {
-                    // stop if there is no room to add another letter and a dot after
-                    break;
-                }
-            }
-
-            int nextDot = sourceName.IndexOf('.', ind);
-            int nextDash = sourceName.IndexOf('-', ind);
-
-            if (nextDot < 0)
-            {
-                if (nextDash < 0)
-                {
-                    break;
-                }
-
-                ind = nextDash;
-            }
-            else if (nextDash < 0)
-            {
-                ind = nextDot;
-            }
-            else
-            {
-                ind = Math.Min(nextDot, nextDash);
-            }
-        }
-
-        return string.Concat(Prefix, ".", abbreviation.ToString(), eventName);
+        return string.Concat(Prefix, ".", sourceName.Substring(0, maxEventSourceLength - 1), ".", eventName);
     }
 
     private void EnableEvents(EventSource eventSource)
