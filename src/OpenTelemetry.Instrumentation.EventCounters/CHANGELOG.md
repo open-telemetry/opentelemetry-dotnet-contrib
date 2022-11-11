@@ -3,7 +3,8 @@
 ## Unreleased
 
 * Update OpenTelemetry.Api to 1.3.1.
-* Change `EventCounter` prefix to `ec` and trim the event source name to keep instrument name under 63 characters.
+* Change `EventCounter` prefix to `ec` and trim the event source name to keep
+  instrument name under 63 characters.
   ([#740](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/740))
 
 ## 1.0.0-alpha.1
