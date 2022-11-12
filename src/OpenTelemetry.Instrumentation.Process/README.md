@@ -61,8 +61,10 @@ allocated for the associated process.
 
 ### process.memory.virtual
 
-The amount of virtual memory allocated for this process
-that cannot be shared with other processes.
+The amount of committed virtual memory for this process.
+One way to think of this is all the address space this process can read from
+without trigerring an access violation; this includes memory backed solely by RAM,
+by a swapfile/pagefile and by other mapped files on disk.
 
 | Units | Instrument Type         | Value Type |
 |-------|-------------------------|------------|
@@ -70,8 +72,8 @@ that cannot be shared with other processes.
 
 The API used to retrieve the value is:
 
-* [Process.WorkingSet64](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.privatememorysize64):
-Gets the amount of private memory, in bytes,
+* [Process.VirtualMemorySize64](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.virtualmemorysize64):
+Gets the amount of the virtual memory, in bytes,
 allocated for the associated process.
 
 ### process.cpu.time
