@@ -31,6 +31,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     private const int MaxSanitizedEventNameLength = 50;
 
     private readonly IReadOnlyDictionary<string, ISet<string>> m_customFields;
+    private readonly ISet<string> m_allFieldsCustomTables;
 
     private readonly ExceptionStackExportMode m_exportExceptionStack;
 
@@ -123,6 +124,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         if (options.CustomFields != null)
         {
             var customFields = new Dictionary<string, ISet<string>>(StringComparer.Ordinal);
+            var allFieldsCustomTables = new HashSet<string>(StringComparer.Ordinal);
             var containsAll = false;
             foreach (var name in options.CustomFields)
             {
@@ -139,13 +141,20 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 }
                 else if (parts.Length == 2)
                 {
-                    if (!customFields.TryGetValue(parts[1], out var tables))
+                    if (parts[1] == "*")
                     {
-                        tables = new HashSet<string>(StringComparer.Ordinal);
-                        customFields[parts[1]] = tables;
+                        allFieldsCustomTables.Add(parts[0]);
                     }
+                    else
+                    {
+                        if (!customFields.TryGetValue(parts[1], out var tables))
+                        {
+                            tables = new HashSet<string>(StringComparer.Ordinal);
+                            customFields[parts[1]] = tables;
+                        }
 
-                    tables?.Add(parts[0]);
+                        tables.Add(parts[0]);
+                    }
                 }
                 else
                 {
@@ -156,6 +165,10 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             if (!containsAll)
             {
                 this.m_customFields = customFields;
+                if (allFieldsCustomTables.Count > 0)
+                {
+                    this.m_allFieldsCustomTables = allFieldsCustomTables;
+                }
             }
         }
 
@@ -605,14 +618,13 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
         // `Table/column` or `Column`
         if (this.m_customFields.TryGetValue(field, out var tables) &&
-            (tables != null || tables.Contains(table)))
+            (tables == null || tables.Contains(table)))
         {
             return true;
         }
 
         // `Table/*`
-        if (this.m_customFields.TryGetValue("*", out tables) &&
-            (tables != null || tables.Contains(table)))
+        if (this.m_allFieldsCustomTables != null && this.m_allFieldsCustomTables.Contains(table))
         {
             return true;
         }

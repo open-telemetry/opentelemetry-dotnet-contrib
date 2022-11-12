@@ -16,6 +16,7 @@
 
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Diagnosers;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 
@@ -87,6 +88,7 @@ public class LogExporterBenchmarks
                         ["cloud.roleInstance"] = "CY1SCH030021417",
                         ["cloud.roleVer"] = "9.0.15289.2",
                     };
+                    exporterOptions.CustomFields = new[] { "TestLogger/food" };
                 });
 
                 loggerOptions.IncludeFormattedMessage = this.IncludeFormattedMessage;
