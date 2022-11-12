@@ -428,6 +428,13 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "eventId");
             cursor = MessagePackSerializer.SerializeInt32(buffer, cursor, eventId.Id);
             cntFields += 1;
+
+            if (eventId.Name != null)
+            {
+                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "eventName");
+                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, eventId.Name);
+                cntFields += 1;
+            }
         }
 
         // Part A - ex extension
