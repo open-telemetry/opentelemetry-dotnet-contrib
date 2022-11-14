@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Update the .NET API used to retrieve `process.memory.virtual` metric to be
+  `Process.VirtualMemorySize64`.
+  ([#762](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/762))
+
 * Update OTel API version to be `1.4.0-beta.2` and change process metrics type
   from ObservableGauge to `ObservableUpDownCounter`. Updated instruments are:
   "process.memory.usage", "process.memory.virtual" and "process.threads".
