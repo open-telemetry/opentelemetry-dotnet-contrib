@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.0-alpha.1
 
 * Update the .NET API used to retrieve `process.memory.virtual` metric to be
   `Process.VirtualMemorySize64`.
