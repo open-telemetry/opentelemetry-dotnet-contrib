@@ -16,7 +16,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.Tracing;
+using System.Threading;
 using System.Threading.Tasks;
 using OpenTelemetry.Metrics;
 using Xunit;
@@ -46,7 +48,7 @@ public class EventCountersMetricsTests
         Assert.Empty(metricItems);
     }
 
-    [Fact(Skip = "Unstable")]
+    [Fact]
     public async Task EventCounter()
     {
         // Arrange
@@ -65,6 +67,14 @@ public class EventCountersMetricsTests
         // Act
         counter.WriteMetric(1997.0202);
         await Task.Delay(Delay);
+        /*Assert.True(SpinWait.SpinUntil(
+            () =>
+            {
+                Thread.Sleep(10);
+                return metricItems.Count >= 1;
+            },
+            TimeSpan.FromSeconds(10)));*/
+        // WaitForActivityExport(metricItems, 1);
         meterProvider.ForceFlush();
 
         // Assert
@@ -104,7 +114,7 @@ public class EventCountersMetricsTests
         Assert.Equal(3, GetActualValue(metric));
     }
 
-    [Fact(Skip = "Unstable")]
+    [Fact]
     public async Task PollingCounter()
     {
         // Arrange
@@ -132,7 +142,7 @@ public class EventCountersMetricsTests
         Assert.Equal(20, GetActualValue(metric));
     }
 
-    [Fact(Skip = "Unstable")]
+    [Fact]
     public async Task IncrementingPollingCounter()
     {
         // Arrange
@@ -160,7 +170,7 @@ public class EventCountersMetricsTests
         Assert.Equal(2, GetActualValue(metric));
     }
 
-    [Fact(Skip = "Unstable")]
+    [Fact]
     public async Task EventCounterSameNameUsesNewestCreated()
     {
         // Arrange
@@ -228,5 +238,12 @@ public class EventCountersMetricsTests
         }
 
         return sum;
+    }
+
+    private static void WaitForActivityExport<T>(List<T> exportedItems, int count)
+    {
+        // We need to let End callback execute as it is executed AFTER response was returned.
+        // In unit tests environment there may be a lot of parallel unit tests executed, so
+        // giving some breezing room for the End callback to complete
     }
 }
