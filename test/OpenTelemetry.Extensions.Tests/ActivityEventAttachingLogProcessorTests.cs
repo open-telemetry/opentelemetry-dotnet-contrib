@@ -32,9 +32,6 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
         ShouldListenTo = source => true,
     };
 
-    private readonly ILogger logger;
-    private readonly ILoggerFactory loggerFactory;
-    private OpenTelemetryLoggerOptions options;
     private bool sampled;
 
     public ActivityEventAttachingLogProcessorTests()
@@ -47,25 +44,12 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
         };
 
         ActivitySource.AddActivityListener(this.activityListener);
-
-        this.loggerFactory = LoggerFactory.Create(builder =>
-        {
-            builder.AddOpenTelemetry(options =>
-            {
-                this.options = options;
-                options.AttachLogsToActivityEvent();
-            });
-            builder.AddFilter(typeof(ActivityEventAttachingLogProcessorTests).FullName, LogLevel.Trace);
-        });
-
-        this.logger = this.loggerFactory.CreateLogger<ActivityEventAttachingLogProcessorTests>();
     }
 
     public void Dispose()
     {
         this.activitySource.Dispose();
         this.activityListener.Dispose();
-        this.loggerFactory.Dispose();
     }
 
     [Theory]
@@ -82,24 +66,34 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
         bool recordException = false)
     {
         this.sampled = sampled;
-        this.options.IncludeFormattedMessage = includeFormattedMessage;
-        this.options.ParseStateValues = parseStateValues;
-        this.options.IncludeScopes = includeScopes;
 
+        using ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder.AddOpenTelemetry(options =>
+                {
+                    options.IncludeScopes = includeScopes;
+                    options.IncludeFormattedMessage = includeFormattedMessage;
+                    options.ParseStateValues = parseStateValues;
+                    options.AttachLogsToActivityEvent();
+                });
+                builder.AddFilter(typeof(ActivityEventAttachingLogProcessorTests).FullName, LogLevel.Trace);
+            });
+
+        ILogger logger = loggerFactory.CreateLogger<ActivityEventAttachingLogProcessorTests>();
         Activity activity = this.activitySource.StartActivity("Test");
 
-        using IDisposable scope = this.logger.BeginScope("{NodeId}", 99);
+        using IDisposable scope = logger.BeginScope("{NodeId}", 99);
 
-        this.logger.LogInformation(eventId, "Hello OpenTelemetry {UserId}!", 8);
+        logger.LogInformation(eventId, "Hello OpenTelemetry {UserId}!", 8);
 
         Activity innerActivity = null;
         if (recordException)
         {
             innerActivity = this.activitySource.StartActivity("InnerTest");
 
-            using IDisposable innerScope = this.logger.BeginScope("{RequestId}", "1234");
+            using IDisposable innerScope = logger.BeginScope("{RequestId}", "1234");
 
-            this.logger.LogError(new InvalidOperationException("Goodbye OpenTelemetry."), "Exception event.");
+            logger.LogError(new InvalidOperationException("Goodbye OpenTelemetry."), "Exception event.");
 
             innerActivity.Dispose();
         }
