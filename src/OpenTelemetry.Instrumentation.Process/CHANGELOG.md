@@ -5,7 +5,6 @@
 * Update the .NET API used to retrieve `process.memory.virtual` metric
   from `Process.PrivateMemorySize64` to
   [Process.VirtualMemorySize64](https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.process.virtualmemorysize64?view=net-7.0).
-
   ([#762](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/762))
 
 * Update OTel API version to be `1.4.0-beta.2` and change process metrics type
