@@ -71,7 +71,7 @@ Released 2021-Oct-08
   [Microsoft.AspNet.TelemetryCorrelation](https://www.nuget.org/packages/Microsoft.AspNet.TelemetryCorrelation/)
   to listen for incoming http requests to the process. Please see the (Step 2:
   Modify
-  Web.config)[https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/src/OpenTelemetry.Instrumentation.AspNet#step-2-modify-webconfig]
+  Web.config)[https://github.com/open-telemetry/opentelemetry-dotnet-contrib/tree/main/src/OpenTelemetry.Instrumentation.AspNet#step-2-modify-webconfig]
   README section for details on the new HttpModule definition required.
   ([#2222](https://github.com/open-telemetry/opentelemetry-dotnet/issues/2222))
 
