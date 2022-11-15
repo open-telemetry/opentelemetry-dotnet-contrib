@@ -56,6 +56,31 @@ public class RuntimeMetricsTests
         Assert.NotNull(assembliesCountMetric);
 
         var exceptionsCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.exceptions.count");
+        Assert.True(GetValue(exceptionsCountMetric) >= 1);
+    }
+
+    [Fact]
+    public void ExceptionTypeCanBeRecordedWithExceptionCount()
+    {
+        var exportedItems = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddRuntimeInstrumentation(options => options.RecordExceptionType = true)
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        try
+        {
+            throw new CustomException();
+        }
+        catch (CustomException)
+        {
+            // swallow the exception
+        }
+
+        meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+        Assert.True(exportedItems.Count > 1);
+
+        var exceptionsCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.exceptions.count");
         Assert.True(GetValue(exceptionsCountMetric, ExceptionTypeTagFilter) >= 1);
 
         static bool ExceptionTypeTagFilter(MetricPoint metricPoint)

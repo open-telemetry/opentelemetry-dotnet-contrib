@@ -32,7 +32,9 @@ namespace OpenTelemetry.Instrumentation.Runtime;
 internal class RuntimeMetrics
 {
     internal static readonly AssemblyName AssemblyName = typeof(RuntimeMetrics).Assembly.GetName();
-    internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
+    internal static readonly string MeterName = AssemblyName.Name;
+
+    internal readonly Meter MeterInstance = new(MeterName, AssemblyName.Version.ToString());
 
 #if NET6_0_OR_GREATER
     private const long NanosecondsPerTick = 100;
@@ -42,7 +44,11 @@ internal class RuntimeMetrics
     private static readonly string[] GenNames = new string[] { "gen0", "gen1", "gen2", "loh", "poh" };
     private static bool isGcInfoAvailable;
 
-    static RuntimeMetrics()
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RuntimeMetrics"/> class.
+    /// </summary>
+    /// <param name="options">The options to define the metrics.</param>
+    public RuntimeMetrics(RuntimeInstrumentationOptions options)
     {
         MeterInstance.CreateObservableCounter(
             "process.runtime.dotnet.gc.collections.count",
@@ -199,23 +205,9 @@ internal class RuntimeMetrics
             "process.runtime.dotnet.exceptions.count",
             description: "Count of exceptions that have been thrown in managed code, since the observation started. The value will be unavailable until an exception has been thrown after OpenTelemetry.Instrumentation.Runtime initialization.");
 
-        AppDomain.CurrentDomain.FirstChanceException += (source, e) =>
-        {
-            var tags = new TagList
-            {
-                new("type", e.Exception.GetType().Name),
-            };
-
-            exceptionCounter.Add(1, tags);
-        };
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="RuntimeMetrics"/> class.
-    /// </summary>
-    /// <param name="options">The options to define the metrics.</param>
-    public RuntimeMetrics(RuntimeInstrumentationOptions options)
-    {
+        AppDomain.CurrentDomain.FirstChanceException += options.RecordExceptionType
+            ? (_, e) => exceptionCounter.Add(1, new KeyValuePair<string, object>("type", e.Exception.GetType().Name))
+            : (_, _) => exceptionCounter.Add(1);
     }
 
     private static bool IsGcInfoAvailable

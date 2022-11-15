@@ -93,4 +93,10 @@ public class RuntimeInstrumentationOptions
             /// </summary>
             internal bool IsExceptionCountEnabled => this.ExceptionCountEnabled == true || this.IsAllEnabled;
     */
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the exception type should be recorded as a tag for the exceptions
+    /// metric.
+    /// </summary>
+    public bool RecordExceptionType { get; set; }
 }
