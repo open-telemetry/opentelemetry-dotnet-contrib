@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.2
+
+Released 2022-Nov-11
+
 * Fixed issue when using version 3.7.100 of the AWS SDK for .NET triggering an
   EndpointResolver not found exception.
   ([#726](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/726))
