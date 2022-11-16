@@ -34,6 +34,9 @@
 
   This does not affect applications targeting .NET Framework.
 
+* Add "process.runtime.dotnet.gc.objects.size" metric
+  ([#683](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/683))
+
 ## 1.0.0
 
 Released 2022-Aug-03

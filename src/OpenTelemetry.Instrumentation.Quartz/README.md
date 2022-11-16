@@ -70,7 +70,7 @@ x.AddQuartzInstrumentation(
 ```
 
 For full operation list please see:
-[OperationName](../OpenTelemetry.Instrumentation.Quartz/Implementation/OperationName.cs).
+[OperationName](OperationName.cs).
 
 All operations are enabled by default.
 
