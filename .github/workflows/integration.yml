@@ -20,9 +20,5 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/setup-dotnet@v3.0.3
-        with:
-          dotnet-version: '7.0.x'
-
       - name: Run redis docker-compose.integration
         run: docker-compose --file=test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/docker-compose.yml --file=build/docker-compose.${{ matrix.version }}.yml --project-directory=. up --exit-code-from=tests --build
