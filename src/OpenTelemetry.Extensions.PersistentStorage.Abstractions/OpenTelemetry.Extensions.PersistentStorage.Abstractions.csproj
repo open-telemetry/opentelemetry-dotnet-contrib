@@ -13,7 +13,6 @@
     <NoWarn>$(NoWarn),1591</NoWarn>
     <Nullable>enable</Nullable>
     <EnableAnalysis>true</EnableAnalysis>
-    <EnablePublicApi>true</EnablePublicApi>
   </PropertyGroup>
 
 </Project>
