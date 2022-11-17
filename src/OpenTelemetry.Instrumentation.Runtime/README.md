@@ -65,7 +65,8 @@ of objects.
 
 #### process.runtime.dotnet.**gc.objects.size**
 
-Count of bytes currently in use by objects in the GC heap that haven't been collected yet.
+Count of bytes currently in use by objects in the GC heap that haven't been
+collected yet.
 Fragmentation and other GC committed memory pools are excluded.
 
 | Units   | Instrument Type         | Value Type | Attribute Key(s)  | Attribute Values |
