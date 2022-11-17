@@ -5,7 +5,6 @@
     <PackageTags>$(PackageTags);distributed-tracing</PackageTags>
     <MinVerTagPrefix>Instrumentation.ElasticsearchClient-</MinVerTagPrefix>
     <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
-    <EnablePublicApi>true</EnablePublicApi>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="1.2.0" />

@@ -6,7 +6,6 @@
     <PackageTags>$(PackageTags);distributed-tracing;AspNet;MVC;WebAPI</PackageTags>
     <IncludeInstrumentationHelpers>true</IncludeInstrumentationHelpers>
     <MinVerTagPrefix>Instrumentation.AspNet-</MinVerTagPrefix>
-    <EnablePublicApi>true</EnablePublicApi>
   </PropertyGroup>
 
   <ItemGroup>
