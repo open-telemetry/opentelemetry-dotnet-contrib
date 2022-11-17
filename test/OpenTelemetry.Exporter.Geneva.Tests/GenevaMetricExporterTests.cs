@@ -730,18 +730,13 @@ public class GenevaMetricExporterTests
             var sum = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetHistogramSum()) };
             var count = Convert.ToUInt32(metricPoint.GetHistogramCount());
 
-            ulong minValue = 0;
-            ulong maxValue = 0;
             var min = new MetricData { UInt64Value = 0 };
             var max = new MetricData { UInt64Value = 0 };
 
-            if (metricPoint.HasMinMax())
+            if (metricPoint.TryGetHistogramMinMaxValues(out var minValue, out var maxValue))
             {
-                minValue = Convert.ToUInt64(metricPoint.GetHistogramMin());
-                maxValue = Convert.ToUInt64(metricPoint.GetHistogramMax());
-
-                min = new MetricData { UInt64Value = minValue };
-                max = new MetricData { UInt64Value = maxValue };
+                min = new MetricData { UInt64Value = Convert.ToUInt64(minValue) };
+                max = new MetricData { UInt64Value = Convert.ToUInt64(maxValue) };
             }
 
             var bodyLength = exporter.SerializeHistogramMetric(

@@ -203,10 +203,10 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                 var count = Convert.ToUInt32(metricPoint.GetHistogramCount());
                                 MetricData min = ulongZero;
                                 MetricData max = ulongZero;
-                                if (metricPoint.HasMinMax())
+                                if (metricPoint.TryGetHistogramMinMaxValues(out var minValue, out var maxValue))
                                 {
-                                    min = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetHistogramMin()) };
-                                    max = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetHistogramMax()) };
+                                    min = new MetricData { UInt64Value = Convert.ToUInt64(minValue) };
+                                    max = new MetricData { UInt64Value = Convert.ToUInt64(maxValue) };
                                 }
 
                                 var bodyLength = this.SerializeHistogramMetric(

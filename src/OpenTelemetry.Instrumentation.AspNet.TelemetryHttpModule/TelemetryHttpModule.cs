@@ -84,12 +84,7 @@ public class TelemetryHttpModule : IHttpModule
     private void OnExecuteRequestStep(HttpContextBase context, Action step)
     {
         // Called only on 4.7.1+ runtimes
-
-        if (context.CurrentNotification == RequestNotification.ExecuteRequestHandler && !context.IsPostNotification)
-        {
-            ActivityHelper.RestoreContextIfNeeded(context.ApplicationInstance.Context);
-        }
-
+        ActivityHelper.RestoreContextIfNeeded(context.ApplicationInstance.Context);
         step();
     }
 
