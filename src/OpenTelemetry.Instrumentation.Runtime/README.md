@@ -63,6 +63,19 @@ The API used to retrieve the value is:
   The number of times garbage collection has occurred for the specified generation
 of objects.
 
+#### process.runtime.dotnet.**gc.objects.size**
+
+Count of bytes currently in use by objects in the GC heap that haven't been collected yet. Fragmentation and other GC committed memory pools are excluded.
+
+| Units   | Instrument Type         | Value Type | Attribute Key(s)  | Attribute Values |
+|---------|-------------------------|------------|-------------------|------------------|
+| `bytes` | ObservableUpDownCounter | `Int64`    | No Attributes     | N/A              |
+
+The API used to retrieve the value is:
+
+* [GC.GetTotalMemory](https://docs.microsoft.com/dotnet/api/system.gc.gettotalmemory):
+  Retrieves the number of bytes currently thought to be allocated. The value is an approximate count.
+
 #### process.runtime.dotnet.**gc.allocations.size**
 
 Count of bytes allocated on the managed GC heap since the process start.
