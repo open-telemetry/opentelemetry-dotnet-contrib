@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* Update OTel API version to `1.4.0-beta.2`.
+* Update OpenTelemetry API to 1.4.0-beta.3 ([#774](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/774))
 
 * Change ObservableGauge to ObservableUpDownCounter for the below metrics (which
   better fit UpDownCounter semantics as they are additive.)
@@ -33,6 +33,9 @@
   that this package will continue to work on older versions of .NET.
 
   This does not affect applications targeting .NET Framework.
+
+* Add "process.runtime.dotnet.gc.objects.size" metric
+  ([#683](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/683))
 
 ## 1.0.0
 

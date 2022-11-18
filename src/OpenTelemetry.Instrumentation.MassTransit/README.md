@@ -85,7 +85,7 @@ x.AddMassTransitInstrumentation(
 }));
 ```
 
-For full operation list please see: [OperationName](../OpenTelemetry.Instrumentation.MassTransit/Implementation/OperationName.cs).
+For full operation list please see: [OperationName](OperationName.cs).
 
 All operations are enabled by default.
 
