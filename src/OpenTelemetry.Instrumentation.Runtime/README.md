@@ -68,6 +68,7 @@ of objects.
 Count of bytes currently in use by objects in the GC heap that haven't been
 collected yet.
 Fragmentation and other GC committed memory pools are excluded.
+The value is available irrespective of GC events.
 
 | Units   | Instrument Type         | Value Type | Attribute Key(s)  | Attribute Values |
 |---------|-------------------------|------------|-------------------|------------------|
@@ -77,7 +78,9 @@ The API used to retrieve the value is:
 
 * [GC.GetTotalMemory](https://docs.microsoft.com/dotnet/api/system.gc.gettotalmemory):
   Retrieves the number of bytes currently thought to be allocated.
-The value is an approximate count.
+The value is an approximate count. API is called with `false`
+as a value of forceFullCollection parameter. Returns an instantaneous
+value at the time of observation.
 
 #### process.runtime.dotnet.**gc.allocations.size**
 
