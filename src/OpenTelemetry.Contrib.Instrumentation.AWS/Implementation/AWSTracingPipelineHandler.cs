@@ -37,7 +37,7 @@ internal class AWSTracingPipelineHandler : PipelineHandler
         carrier[name] = value;
     };
 
-    private static readonly ActivitySource AWSSDKActivitySource = new ActivitySource(ActivitySourceName);
+    private static readonly ActivitySource AWSSDKActivitySource = AWSActivitySourceHelper.ActivitySource;
 
     private readonly AWSClientInstrumentationOptions options;
 
