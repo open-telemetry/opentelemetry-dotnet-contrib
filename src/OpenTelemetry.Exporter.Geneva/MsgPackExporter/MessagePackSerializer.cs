@@ -314,6 +314,13 @@ internal static class MessagePackSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void WriteStr8Header(Span<byte> buffer, int nameStartIdx, int validNameLength)
+    {
+        buffer[nameStartIdx] = STR8;
+        buffer[nameStartIdx + 1] = unchecked((byte)validNameLength);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeAsciiString(byte[] buffer, int cursor, string value)
     {
         if (value == null)
@@ -336,7 +343,7 @@ internal static class MessagePackSerializer
             }
             else
             {
-                throw new ArgumentException("The input string: \"{inputString}\" has non-ASCII characters in it.", value);
+                throw new ArgumentException($"The input string: \"{value}\" has non-ASCII characters in it.", nameof(value));
             }
         }
 
@@ -353,7 +360,7 @@ internal static class MessagePackSerializer
             }
             else
             {
-                throw new ArgumentException("The input string: \"{inputString}\" has non-ASCII characters in it.", value);
+                throw new ArgumentException($"The input string: \"{value}\" has non-ASCII characters in it.", nameof(value));
             }
         }
 
@@ -564,7 +571,7 @@ internal static class MessagePackSerializer
             case DateTime v:
                 return SerializeUtcDateTime(buffer, cursor, v.ToUniversalTime());
             default:
-                string repr = null;
+                string repr;
 
                 try
                 {
@@ -579,13 +586,17 @@ internal static class MessagePackSerializer
         }
     }
 
-    public static int SerializeSpan(byte[] buffer, int cursor, Span<byte> value)
+    public static int SerializeSpan(byte[] buffer, int cursor, ReadOnlySpan<byte> value)
     {
-        for (int i = 0; i < value.Length; ++i)
+        var length = value.Length;
+
+        if (length == 0)
         {
-            buffer[cursor++] = value[i];
+            return SerializeNull(buffer, cursor);
         }
 
-        return cursor;
+        value.CopyTo(new Span<byte>(buffer, cursor, length));
+
+        return cursor + length;
     }
 }

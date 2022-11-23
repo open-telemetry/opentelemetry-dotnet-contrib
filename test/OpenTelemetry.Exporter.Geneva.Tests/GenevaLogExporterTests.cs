@@ -76,7 +76,7 @@ public class GenevaLogExporterTests
                 TableNameMappings = new Dictionary<string, string> { ["TestCategory"] = null },
             };
         });
-        Assert.Contains("A string-typed value provided for TableNameMappings must not be null, empty, or consist only of white-space characters.", ex.Message);
+        Assert.Contains("The table name mapping value provided for key 'TestCategory' was null, empty, or consisted only of white-space characters.", ex.Message);
 
         // Throw when TableNameMappings is null
         Assert.Throws<ArgumentNullException>(() =>
