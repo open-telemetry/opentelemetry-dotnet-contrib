@@ -1,8 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
-        <IncludeSharedTestSource>true</IncludeSharedTestSource>
+      <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
+      <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
+      <IncludeSharedTestSource>true</IncludeSharedTestSource>
     </PropertyGroup>
 
     <ItemGroup>
