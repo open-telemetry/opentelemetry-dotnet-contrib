@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,7 +48,7 @@ public class EventCountersMetricsTests
     }
 
     [Fact]
-    public async Task EventCounter()
+    public void EventCounter()
     {
         // Arrange
         List<Metric> metricItems = new();
@@ -66,16 +65,8 @@ public class EventCountersMetricsTests
 
         // Act
         counter.WriteMetric(1997.0202);
-        await Task.Delay(Delay);
-        /*Assert.True(SpinWait.SpinUntil(
-            () =>
-            {
-                Thread.Sleep(10);
-                return metricItems.Count >= 1;
-            },
-            TimeSpan.FromSeconds(10)));*/
-        // WaitForActivityExport(metricItems, 1);
         meterProvider.ForceFlush();
+        Assert.True(SpinWait.SpinUntil(() => metricItems.Count == 1, 10000));
 
         // Assert
         var metric = metricItems.Find(x => x.Name == "EventCounters.a.c");
@@ -238,12 +229,5 @@ public class EventCountersMetricsTests
         }
 
         return sum;
-    }
-
-    private static void WaitForActivityExport<T>(List<T> exportedItems, int count)
-    {
-        // We need to let End callback execute as it is executed AFTER response was returned.
-        // In unit tests environment there may be a lot of parallel unit tests executed, so
-        // giving some breezing room for the End callback to complete
     }
 }
