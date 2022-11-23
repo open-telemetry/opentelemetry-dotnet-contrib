@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.1.0-beta.1
+
+Released 2022-Nov-22
+
 * Update OpenTelemetry API to 1.4.0-beta.3 ([#774](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/774))
 
 * Change ObservableGauge to ObservableUpDownCounter for the below metrics (which
