@@ -4,7 +4,8 @@
 
 * Fix the issue of incorrect handling of null attributes.
   ([#566](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/566))
-* Update Google Cloud Dependencies
+* Update Google Cloud Dependencies to 3.0.0
+  and OTel SDK package to 1.3.1
   ([#794](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/794))
 
 ## 1.0.0-beta.3
