@@ -4,6 +4,8 @@
 
 * Fix the issue of incorrect handling of null attributes.
   ([#566](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/566))
+* Update Google Cloud Dependencies
+  ([#794](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/794))
 
 ## 1.0.0-beta.3
 
