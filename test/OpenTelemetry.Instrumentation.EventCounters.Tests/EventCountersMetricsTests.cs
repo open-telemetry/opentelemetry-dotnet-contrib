@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Threading;
-using System.Threading.Tasks;
 using OpenTelemetry.Metrics;
 using Xunit;
 
@@ -26,12 +25,9 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests;
 
 public class EventCountersMetricsTests
 {
-    private const int Delay = 1200;
-
-    [Fact(Skip = "Other tests metrics are being exported here")]
-    public async Task NoMetricsByDefault()
+    [Fact]
+    public void NoMetricsByDefault()
     {
-        // Arrange
         List<Metric> metricItems = new();
 
         var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -39,18 +35,13 @@ public class EventCountersMetricsTests
             .AddInMemoryExporter(metricItems)
             .Build();
 
-        // Act
-        await Task.Delay(Delay);
-        meterProvider.ForceFlush();
-
-        // Assert
+        Assert.False(AwaitExport(meterProvider, metricItems));
         Assert.Empty(metricItems);
     }
 
     [Fact]
     public void EventCounter()
     {
-        // Arrange
         List<Metric> metricItems = new();
         EventSource source = new("a");
         EventCounter counter = new("c", source);
@@ -63,22 +54,19 @@ public class EventCountersMetricsTests
             .AddInMemoryExporter(metricItems)
             .Build();
 
-        // Act
-        counter.WriteMetric(1997.0202);
-        meterProvider.ForceFlush();
-        Assert.True(SpinWait.SpinUntil(() => metricItems.Count == 1, 10000));
+        counter.WriteMetric(1.11);
 
-        // Assert
-        var metric = metricItems.Find(x => x.Name == "EventCounters.a.c");
+        Assert.True(AwaitExport(meterProvider, metricItems));
+        Assert.Single(metricItems);
+        var metric = metricItems.Find(x => x.Name == "ec.a.c");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
-        Assert.Equal(1997.0202, GetActualValue(metric));
+        Assert.Equal(1.11, GetActualValue(metric));
     }
 
     [Fact]
-    public async Task IncrementingEventCounter()
+    public void IncrementingEventCounter()
     {
-        // Arrange
         List<Metric> metricItems = new();
         EventSource source = new("b");
         IncrementingEventCounter incCounter = new("inc-c", source);
@@ -91,24 +79,21 @@ public class EventCountersMetricsTests
             .AddInMemoryExporter(metricItems)
             .Build();
 
-        // Act
         incCounter.Increment(1);
         incCounter.Increment(1);
         incCounter.Increment(1);
-        await Task.Delay(Delay);
-        meterProvider.ForceFlush();
 
-        // Assert
-        var metric = metricItems.Find(x => x.Name == "EventCounters.b.inc-c");
+        Assert.True(AwaitExport(meterProvider, metricItems));
+        Assert.Single(metricItems);
+        var metric = metricItems.Find(x => x.Name == "ec.b.inc-c");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleSum, metric.MetricType);
         Assert.Equal(3, GetActualValue(metric));
     }
 
     [Fact]
-    public async Task PollingCounter()
+    public void PollingCounter()
     {
-        // Arrange
         int i = 0;
         List<Metric> metricItems = new();
         EventSource source = new("c");
@@ -122,21 +107,17 @@ public class EventCountersMetricsTests
             .AddInMemoryExporter(metricItems)
             .Build();
 
-        // Act
-        await Task.Delay(Delay * 2);
-        meterProvider.ForceFlush();
-
-        // Assert
-        var metric = metricItems.Find(x => x.Name == "EventCounters.c.poll-c");
+        Assert.True(AwaitExport(meterProvider, metricItems));
+        Assert.Single(metricItems);
+        var metric = metricItems.Find(x => x.Name == "ec.c.poll-c");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
         Assert.Equal(20, GetActualValue(metric));
     }
 
     [Fact]
-    public async Task IncrementingPollingCounter()
+    public void IncrementingPollingCounter()
     {
-        // Arrange
         int i = 1;
         List<Metric> metricItems = new();
         EventSource source = new("d");
@@ -150,21 +131,17 @@ public class EventCountersMetricsTests
             .AddInMemoryExporter(metricItems)
             .Build();
 
-        // Act
-        await Task.Delay(Delay * 2);
-        meterProvider.ForceFlush();
-
-        // Assert
-        var metric = metricItems.Find(x => x.Name == "EventCounters.d.inc-poll-c");
+        Assert.True(AwaitExport(meterProvider, metricItems));
+        Assert.Single(metricItems);
+        var metric = metricItems.Find(x => x.Name == "ec.d.inc-poll-c");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleSum, metric.MetricType);
         Assert.Equal(2, GetActualValue(metric));
     }
 
     [Fact]
-    public async Task EventCounterSameNameUsesNewestCreated()
+    public void EventCounterSameNameUsesNewestCreated()
     {
-        // Arrange
         List<Metric> metricItems = new();
         EventSource source = new("a");
         EventCounter counter = new("c", source);
@@ -178,19 +155,17 @@ public class EventCountersMetricsTests
             .AddInMemoryExporter(metricItems)
             .Build();
 
-        // Act
-        counter2.WriteMetric(1980.1208);
-        counter.WriteMetric(1997.0202);
-        await Task.Delay(Delay);
-        meterProvider.ForceFlush();
+        counter.WriteMetric(1.11);
+        counter2.WriteMetric(2.22);
 
-        // Assert
-        var metric = metricItems.Find(x => x.Name == "EventCounters.a.c");
+        Assert.True(AwaitExport(meterProvider, metricItems));
+        Assert.Single(metricItems);
+        var metric = metricItems.Find(x => x.Name == "ec.a.c");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
 
         // Since `counter2` was created after `counter` it is exported
-        Assert.Equal(1980.1208, GetActualValue(metric));
+        Assert.Equal(1.11, GetActualValue(metric));
     }
 
     [Fact]
@@ -215,8 +190,6 @@ public class EventCountersMetricsTests
         Assert.Equal("Use the `OpenTelemetry.Instrumentation.Runtime` or `OpenTelemetry.Instrumentation.Process` instrumentations.", ex.Message);
     }
 
-    // polling and eventcounter with same instrument name?
-
     private static double GetActualValue(Metric metric)
     {
         double sum = 0;
@@ -229,5 +202,17 @@ public class EventCountersMetricsTests
         }
 
         return sum;
+    }
+
+    private static bool AwaitExport<T>(MeterProvider meterProvider, List<T> exportedItems, int count = 1, int sleep = 10, int timeout = 2000)
+    {
+        return SpinWait.SpinUntil(
+            () =>
+            {
+                Thread.Sleep(sleep);
+                meterProvider.ForceFlush();
+                return exportedItems.Count == count;
+            },
+            timeout);
     }
 }
