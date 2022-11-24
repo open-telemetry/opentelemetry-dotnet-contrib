@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Added support for
+  [DateTimeOffset](https://learn.microsoft.com/dotnet/api/system.datetimeoffset).
+  ([#797](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/797))
+
 ## 1.4.0-beta.5
 
 Released 2022-Nov-21
