@@ -8,7 +8,6 @@
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
     <MinVerTagPrefix>Exporter.Geneva-</MinVerTagPrefix>
-    <EnablePublicApi>true</EnablePublicApi>
     <EnableAnalysis>true</EnableAnalysis>
   </PropertyGroup>
 

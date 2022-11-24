@@ -44,7 +44,7 @@ public class EventCountersMetricsTests
     {
         List<Metric> metricItems = new();
         EventSource source = new("a");
-        EventCounter counter = new("c", source);
+        EventCounter counter = new("1", source);
 
         var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
@@ -58,7 +58,7 @@ public class EventCountersMetricsTests
 
         Assert.True(AwaitExport(meterProvider, metricItems));
         Assert.Single(metricItems);
-        var metric = metricItems.Find(x => x.Name == "ec.a.c");
+        var metric = metricItems[0];
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
         Assert.Equal(1.11, GetActualValue(metric));
@@ -69,7 +69,7 @@ public class EventCountersMetricsTests
     {
         List<Metric> metricItems = new();
         EventSource source = new("b");
-        IncrementingEventCounter incCounter = new("inc-c", source);
+        IncrementingEventCounter incCounter = new("2", source);
 
         var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
@@ -82,10 +82,9 @@ public class EventCountersMetricsTests
         incCounter.Increment(1);
         incCounter.Increment(1);
         incCounter.Increment(1);
-
         Assert.True(AwaitExport(meterProvider, metricItems));
         Assert.Single(metricItems);
-        var metric = metricItems.Find(x => x.Name == "ec.b.inc-c");
+        var metric = metricItems[0];
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleSum, metric.MetricType);
         Assert.Equal(3, GetActualValue(metric));
@@ -97,7 +96,7 @@ public class EventCountersMetricsTests
         int i = 0;
         List<Metric> metricItems = new();
         EventSource source = new("c");
-        PollingCounter pollCounter = new("poll-c", source, () => ++i * 10);
+        PollingCounter pollCounter = new("3", source, () => ++i * 10);
 
         var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
@@ -109,10 +108,10 @@ public class EventCountersMetricsTests
 
         Assert.True(AwaitExport(meterProvider, metricItems));
         Assert.Single(metricItems);
-        var metric = metricItems.Find(x => x.Name == "ec.c.poll-c");
+        var metric = metricItems[0];
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
-        Assert.Equal(20, GetActualValue(metric));
+        Assert.Equal(10, GetActualValue(metric));
     }
 
     [Fact]
@@ -121,7 +120,7 @@ public class EventCountersMetricsTests
         int i = 1;
         List<Metric> metricItems = new();
         EventSource source = new("d");
-        IncrementingPollingCounter incPollCounter = new("inc-poll-c", source, () => i++);
+        IncrementingPollingCounter incPollCounter = new("4", source, () => i++);
 
         var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
@@ -133,39 +132,10 @@ public class EventCountersMetricsTests
 
         Assert.True(AwaitExport(meterProvider, metricItems));
         Assert.Single(metricItems);
-        var metric = metricItems.Find(x => x.Name == "ec.d.inc-poll-c");
+        var metric = metricItems[0];
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleSum, metric.MetricType);
-        Assert.Equal(2, GetActualValue(metric));
-    }
-
-    [Fact]
-    public void EventCounterSameNameUsesNewestCreated()
-    {
-        List<Metric> metricItems = new();
-        EventSource source = new("a");
-        EventCounter counter = new("c", source);
-        EventCounter counter2 = new("c", source);
-
-        var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddEventCountersInstrumentation(options =>
-            {
-                options.AddEventSources(source.Name);
-            })
-            .AddInMemoryExporter(metricItems)
-            .Build();
-
-        counter.WriteMetric(1.11);
-        counter2.WriteMetric(2.22);
-
-        Assert.True(AwaitExport(meterProvider, metricItems));
-        Assert.Single(metricItems);
-        var metric = metricItems.Find(x => x.Name == "ec.a.c");
-        Assert.NotNull(metric);
-        Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
-
-        // Since `counter2` was created after `counter` it is exported
-        Assert.Equal(1.11, GetActualValue(metric));
+        Assert.Equal(1, GetActualValue(metric));
     }
 
     [Fact]
@@ -188,6 +158,67 @@ public class EventCountersMetricsTests
         });
 
         Assert.Equal("Use the `OpenTelemetry.Instrumentation.Runtime` or `OpenTelemetry.Instrumentation.Process` instrumentations.", ex.Message);
+    }
+
+    [Theory]
+    [InlineData("Microsoft-AspNetCore-Server-Kestrel-1", "tls-handshakes-per-second", "ec.Microsoft-AspNetCore-Server-Kestre.tls-handshakes-per-second")]
+    [InlineData("Microsoft-AspNetCore-Server-Kestrel-2", "tls-handshakes-per-sec", "ec.Microsoft-AspNetCore-Server-Kestrel-2.tls-handshakes-per-sec")]
+    [InlineData("Microsoft.AspNetCore.Http.Connections-1", "connections-stopped", "ec.Microsoft.AspNetCore.Http.Connections-1.connections-stopped")]
+    [InlineData("Microsoft.AspNetCore.Http.Connections-1", "connections-timed-out-longer", "ec.Microsoft.AspNetCore.Http.Conne.connections-timed-out-longer")]
+    [InlineData("Microsoft.AspNetCore.Http.Conn.Something", "connections-timed-out-longer", "ec.Microsoft.AspNetCore.Http.Conn.connections-timed-out-longer")]
+    [InlineData("Microsoft.AspNetCore.One.Two", "very-very-very-very-very-very-very-very-very-long-event-name", "ec.very-very-very-very-very-very-very-very-very-long-event-name")]
+    [InlineData("Microsoft.AspNetCore.One.Two", "very-very-very-very-very-very-very-very-long-event-name", "ec.Micr.very-very-very-very-very-very-very-very-long-event-name")]
+    [InlineData("Microsoft.AspNetCore.One.Two", "very-very-very-very-very-very-very-long-event-name", "ec.Microsoft.very-very-very-very-very-very-very-long-event-name")]
+    public void EventSourceNameShortening(string sourceName, string eventName, string expectedInstrumentName)
+    {
+        List<Metric> metricItems = new();
+        EventSource source = new(sourceName);
+        IncrementingEventCounter connections = new(eventName, source);
+
+        var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddEventCountersInstrumentation(options =>
+            {
+                options.AddEventSources(source.Name);
+            })
+            .AddInMemoryExporter(metricItems)
+            .Build();
+
+        connections.Increment(1);
+
+        Assert.True(AwaitExport(meterProvider, metricItems));
+        Assert.Single(metricItems);
+        Metric metric = metricItems[0];
+        Assert.NotNull(metric);
+        Assert.Equal(expectedInstrumentName, metric.Name);
+        Assert.Equal(1, GetActualValue(metric));
+    }
+
+    [Fact]
+    public void InstrumentNameTooLong()
+    {
+        List<Metric> metricItems = new();
+        EventSource source = new("e");
+
+        // ec.s. + event name is 63;
+        string veryLongEventName = new string('e', 100);
+        IncrementingEventCounter connections = new(veryLongEventName, source);
+
+        var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddEventCountersInstrumentation(options =>
+            {
+                options.AddEventSources(source.Name);
+            })
+            .AddInMemoryExporter(metricItems)
+            .Build();
+
+        connections.Increment(1);
+        Assert.True(AwaitExport(meterProvider, metricItems));
+
+        foreach (var item in metricItems)
+        {
+            Assert.False(item.Name.StartsWith("ec.e.ee"));
+            Assert.False(item.Name.StartsWith("ec.s.ee"));
+        }
     }
 
     private static double GetActualValue(Metric metric)
