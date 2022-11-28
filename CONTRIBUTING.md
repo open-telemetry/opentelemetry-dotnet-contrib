@@ -183,7 +183,7 @@ Usually it is a good idea to use the latest version. Example:
 
   ```xml
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry" Version="1.2.0" />
+    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
   </ItemGroup>
   ```
 
@@ -200,6 +200,12 @@ by you. To ensure your project is versioned appropriately, specify a
     <MinVerTagPrefix>Instrumentation.FooBar-</MinVerTagPrefix>
   </PropertyGroup>
   ```
+
+* Public API of all packages is analyzed by
+[Microsoft.CodeAnalysis.PublicApiAnalyzers](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/Microsoft.CodeAnalysis.PublicApiAnalyzers.md).
+This analyzer requires files structure to store the information about public API.
+Create `PublicAPI.Shipped.txt` and `PublicAPI.Unshipped.txt` for each `TargetFramework`
+defined in csproj under `{ProjectFolder}\.publicApi\{TargetFramework}`.
 
 * To build and release your project as nuget, you must provide a GitHub workflow
 to be triggered when a tag with prefix "Instrumentation.FooBar-" is pushed to
@@ -227,12 +233,10 @@ the main branch. The workflow file should be named as
   package. Every project's README file needs to have a link to the Nuget
   package. You can use the below snippet for reference:
 
-<!-- markdownlint-disable MD040 -->
-```
+```md
 [![NuGet](https://img.shields.io/nuget/v/{your_package_name}.svg)](https://www.nuget.org/packages/{your_package_name})
 [![NuGet](https://img.shields.io/nuget/dt/{your_package_name}.svg)](https://www.nuget.org/packages/{your_package_name})
 ```
-<!-- markdownlint-enable MD040 -->
 
 * When contributing a new project you are expected to assign either yourself or
 someone else who would take ownership for the component you are contributing.

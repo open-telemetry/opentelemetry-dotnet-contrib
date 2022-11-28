@@ -27,7 +27,7 @@ jobs:
         fetch-depth: 0 # fetching all
 
     - name: Install dependencies
-      run: dotnet restore
+      run: dotnet restore src/${{env.PROJECT}}
 
     - name: dotnet build ${{env.PROJECT}}
       run: dotnet build src/${{env.PROJECT}} --configuration Release --no-restore -p:Deterministic=true
