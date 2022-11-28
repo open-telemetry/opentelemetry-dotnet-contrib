@@ -68,7 +68,7 @@ of objects.
 Count of bytes currently in use by objects in the GC heap that haven't been
 collected yet.
 Fragmentation and other GC committed memory pools are excluded.
-The value is available even before first garbage collection has occured.
+The value is available even before first garbage collection has occurred.
 
 | Units   | Instrument Type         | Value Type | Attribute Key(s)  | Attribute Values |
 |---------|-------------------------|------------|-------------------|------------------|
