@@ -570,6 +570,8 @@ internal static class MessagePackSerializer
                 return SerializeArray(buffer, cursor, v);
             case DateTime v:
                 return SerializeUtcDateTime(buffer, cursor, v.ToUniversalTime());
+            case DateTimeOffset v:
+                return SerializeUtcDateTime(buffer, cursor, v.UtcDateTime);
             default:
                 string repr;
 

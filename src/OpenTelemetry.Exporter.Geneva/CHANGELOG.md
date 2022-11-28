@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Added support for
+  [DateTimeOffset](https://learn.microsoft.com/dotnet/api/system.datetimeoffset).
+  ([#797](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/797))
+
 * Add support in logs for prefix-based table name mapping configuration.
   [#796](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/796)
 
