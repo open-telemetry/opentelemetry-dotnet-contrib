@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add support in logs for prefix-based table name mapping configuration.
+  [#796](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/796)
+
 ## 1.4.0-beta.5
 
 Released 2022-Nov-21
