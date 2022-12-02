@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 #if NET6_0_OR_GREATER
@@ -50,25 +49,25 @@ internal class RuntimeMetrics
     /// <param name="options">The options to define the metrics.</param>
     public RuntimeMetrics(RuntimeInstrumentationOptions options)
     {
-        MeterInstance.CreateObservableCounter(
+        this.MeterInstance.CreateObservableCounter(
             "process.runtime.dotnet.gc.collections.count",
             () => GetGarbageCollectionCounts(),
             description: "Number of garbage collections that have occurred since process start.");
 
-        MeterInstance.CreateObservableUpDownCounter(
+        this.MeterInstance.CreateObservableUpDownCounter(
             "process.runtime.dotnet.gc.objects.size",
             () => GC.GetTotalMemory(false),
             unit: "bytes",
             description: "Count of bytes currently in use by objects in the GC heap that haven't been collected yet. Fragmentation and other GC committed memory pools are excluded.");
 
 #if NET6_0_OR_GREATER
-        MeterInstance.CreateObservableCounter(
+        this.MeterInstance.CreateObservableCounter(
             "process.runtime.dotnet.gc.allocations.size",
             () => GC.GetTotalAllocatedBytes(),
             unit: "bytes",
             description: "Count of bytes allocated on the managed GC heap since the process start. .NET objects are allocated from this heap. Object allocations from unmanaged languages such as C/C++ do not use this heap.");
 
-        MeterInstance.CreateObservableUpDownCounter(
+        this.MeterInstance.CreateObservableUpDownCounter(
             "process.runtime.dotnet.gc.committed_memory.size",
             () =>
             {
@@ -97,7 +96,7 @@ internal class RuntimeMetrics
         // Either Environment.Version is not 6 or (it's 6 but internal API GC.GetGenerationSize is valid)
         if (!isCodeRunningOnBuggyRuntimeVersion || getGenerationSize != null)
         {
-            MeterInstance.CreateObservableUpDownCounter(
+            this.MeterInstance.CreateObservableUpDownCounter(
                 "process.runtime.dotnet.gc.heap.size",
                 () =>
                 {
@@ -130,7 +129,7 @@ internal class RuntimeMetrics
         // Not valid until .NET 7 where the bug in the API is fixed. See context in https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/496
         if (Environment.Version.Major >= 7)
         {
-            MeterInstance.CreateObservableUpDownCounter(
+            this.MeterInstance.CreateObservableUpDownCounter(
                 "process.runtime.dotnet.gc.heap.fragmentation.size",
                 () =>
                 {
@@ -153,55 +152,55 @@ internal class RuntimeMetrics
                 description: "The heap fragmentation, as observed during the latest garbage collection. The value will be unavailable until at least one garbage collection has occurred.");
         }
 
-        MeterInstance.CreateObservableCounter(
+        this.MeterInstance.CreateObservableCounter(
             "process.runtime.dotnet.jit.il_compiled.size",
             () => JitInfo.GetCompiledILBytes(),
             unit: "bytes",
             description: "Count of bytes of intermediate language that have been compiled since the process start.");
 
-        MeterInstance.CreateObservableCounter(
+        this.MeterInstance.CreateObservableCounter(
             "process.runtime.dotnet.jit.methods_compiled.count",
             () => JitInfo.GetCompiledMethodCount(),
             description: "The number of times the JIT compiler compiled a method since the process start. The JIT compiler may be invoked multiple times for the same method to compile with different generic parameters, or because tiered compilation requested different optimization settings.");
 
-        MeterInstance.CreateObservableCounter(
+        this.MeterInstance.CreateObservableCounter(
             "process.runtime.dotnet.jit.compilation_time",
             () => JitInfo.GetCompilationTime().Ticks * NanosecondsPerTick,
             unit: "ns",
             description: "The amount of time the JIT compiler has spent compiling methods since the process start.");
 
-        MeterInstance.CreateObservableCounter(
+        this.MeterInstance.CreateObservableCounter(
             "process.runtime.dotnet.monitor.lock_contention.count",
             () => Monitor.LockContentionCount,
             description: "The number of times there was contention when trying to acquire a monitor lock since the process start. Monitor locks are commonly acquired by using the lock keyword in C#, or by calling Monitor.Enter() and Monitor.TryEnter().");
 
-        MeterInstance.CreateObservableUpDownCounter(
+        this.MeterInstance.CreateObservableUpDownCounter(
             "process.runtime.dotnet.thread_pool.threads.count",
             () => (long)ThreadPool.ThreadCount,
             description: "The number of thread pool threads that currently exist.");
 
-        MeterInstance.CreateObservableCounter(
+        this.MeterInstance.CreateObservableCounter(
             "process.runtime.dotnet.thread_pool.completed_items.count",
             () => ThreadPool.CompletedWorkItemCount,
             description: "The number of work items that have been processed by the thread pool since the process start.");
 
-        MeterInstance.CreateObservableUpDownCounter(
+        this.MeterInstance.CreateObservableUpDownCounter(
             "process.runtime.dotnet.thread_pool.queue.length",
             () => ThreadPool.PendingWorkItemCount,
             description: "The number of work items that are currently queued to be processed by the thread pool.");
 
-        MeterInstance.CreateObservableUpDownCounter(
+        this.MeterInstance.CreateObservableUpDownCounter(
             "process.runtime.dotnet.timer.count",
             () => Timer.ActiveCount,
             description: "The number of timer instances that are currently active. Timers can be created by many sources such as System.Threading.Timer, Task.Delay, or the timeout in a CancellationSource. An active timer is registered to tick at some point in the future and has not yet been canceled.");
 #endif
 
-        MeterInstance.CreateObservableUpDownCounter(
+        this.MeterInstance.CreateObservableUpDownCounter(
             "process.runtime.dotnet.assemblies.count",
             () => (long)AppDomain.CurrentDomain.GetAssemblies().Length,
             description: "The number of .NET assemblies that are currently loaded.");
 
-        var exceptionCounter = MeterInstance.CreateCounter<long>(
+        var exceptionCounter = this.MeterInstance.CreateCounter<long>(
             "process.runtime.dotnet.exceptions.count",
             description: "Count of exceptions that have been thrown in managed code, since the observation started. The value will be unavailable until an exception has been thrown after OpenTelemetry.Instrumentation.Runtime initialization.");
 
