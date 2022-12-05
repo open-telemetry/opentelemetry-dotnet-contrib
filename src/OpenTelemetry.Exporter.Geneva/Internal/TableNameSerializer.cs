@@ -27,8 +27,9 @@ internal sealed class TableNameSerializer
     public const int MaxCachedSanitizedTableNames = 1024;
 
 #pragma warning disable CA1825 // Avoid zero-length array allocations
-    /* Note: We don't use Array.Empty<byte> here because we need a different
-    instance to detect the pass-through case. */
+    /* Note: We don't use Array.Empty<byte> here because that is used to
+    indicate an invalid name. We need a different instance to trigger the
+    pass-through case. */
     private static readonly byte[] s_passthroughTableName = new byte[0];
 #pragma warning restore CA1825 // Avoid zero-length array allocations
     private static readonly StringComparer s_dictionaryKeyComparer = StringComparer.Ordinal;
