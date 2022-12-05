@@ -69,9 +69,8 @@ public class TableNameSerializerTests
         {
             TableNameMappings = new Dictionary<string, string>()
             {
-                ["prefix"] = "*",
+                ["Prefix"] = "*",
                 ["Prefix.Sub"] = "SubTableName",
-                ["prefix.sub.final"] = "Ignored",
                 ["Prefix.Sub.Final"] = "FinalTableName",
             },
         };
