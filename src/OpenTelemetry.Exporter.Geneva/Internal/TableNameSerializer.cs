@@ -31,6 +31,8 @@ internal sealed class TableNameSerializer
     instance to detect the pass-through case. */
     private static readonly byte[] s_passthroughTableName = new byte[0];
 #pragma warning restore CA1825 // Avoid zero-length array allocations
+    private static readonly StringComparer s_dictionaryKeyComparer = StringComparer.Ordinal;
+    private static readonly StringComparison s_dictionaryKeyComparison = StringComparison.Ordinal;
 
     private readonly byte[] m_defaultTableName;
     private readonly Dictionary<string, byte[]> m_tableMappings;
@@ -50,7 +52,7 @@ internal sealed class TableNameSerializer
 
         if (options.TableNameMappings != null)
         {
-            var tempTableMappings = new Dictionary<string, byte[]>(options.TableNameMappings.Count, StringComparer.Ordinal);
+            var tempTableMappings = new Dictionary<string, byte[]>(options.TableNameMappings.Count, s_dictionaryKeyComparer);
             foreach (var kv in options.TableNameMappings)
             {
                 if (kv.Key == "*")
@@ -240,7 +242,7 @@ internal sealed class TableNameSerializer
 
                 foreach (var mapping in this.m_tableMappings)
                 {
-                    if (!categoryName.StartsWith(mapping.Key, StringComparison.OrdinalIgnoreCase))
+                    if (!categoryName.StartsWith(mapping.Key, s_dictionaryKeyComparison))
                     {
                         continue;
                     }
@@ -298,12 +300,12 @@ internal sealed class TableNameSerializer
     private sealed class TableNameCacheDictionary : Dictionary<string, byte[]>, ITableNameCacheDictionary
     {
         public TableNameCacheDictionary()
-            : base(0, StringComparer.OrdinalIgnoreCase)
+            : base(0, s_dictionaryKeyComparer)
         {
         }
 
         public TableNameCacheDictionary(TableNameCacheDictionary sourceCache)
-            : base(sourceCache, StringComparer.OrdinalIgnoreCase)
+            : base(sourceCache, s_dictionaryKeyComparer)
         {
             this.CachedSanitizedTableNameCount = sourceCache.CachedSanitizedTableNameCount;
         }
