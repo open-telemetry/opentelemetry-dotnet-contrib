@@ -125,7 +125,7 @@ internal sealed class TableNameSerializer
         {
             // Pass-through mode with a full cache.
 
-            int bytesWritten = SanitizedCategoryName(new Span<byte>(destination, offset, MaxSanitizedEventNameLength + 2), categoryName);
+            int bytesWritten = WriteSanitizedCategoryNameToSpan(new Span<byte>(destination, offset, MaxSanitizedEventNameLength + 2), categoryName);
 
             tableName = new ReadOnlySpan<byte>(destination, offset, bytesWritten);
 
@@ -155,7 +155,7 @@ internal sealed class TableNameSerializer
     // If the resulting string is longer than 50 characters, only the first 50 characters will be taken.
     // If the first character in the resulting string is a lower-case alphabet, it will be converted to the corresponding upper-case.
     // If the resulting string still does not comply with Rule, the category name will not be serialized.
-    private static int SanitizedCategoryName(Span<byte> buffer, string categoryName)
+    private static int WriteSanitizedCategoryNameToSpan(Span<byte> buffer, string categoryName)
     {
         // Reserve 2 bytes for storing LIMIT_MAX_STR8_LENGTH_IN_BYTES and (byte)validNameLength -
         // these 2 bytes will be back filled after iterating through categoryName.
@@ -263,7 +263,7 @@ internal sealed class TableNameSerializer
 
                 Span<byte> stackBuffer = stackalloc byte[64];
 
-                int bytesWritten = SanitizedCategoryName(stackBuffer, categoryName);
+                int bytesWritten = WriteSanitizedCategoryNameToSpan(stackBuffer, categoryName);
                 if (bytesWritten > 0)
                 {
                     mappedTableName = stackBuffer.Slice(0, bytesWritten).ToArray();
