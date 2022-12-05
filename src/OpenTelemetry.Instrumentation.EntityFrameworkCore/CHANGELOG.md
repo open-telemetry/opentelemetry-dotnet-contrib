@@ -6,7 +6,7 @@
   [#347](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/347)
 
 * Update the `ActivitySource` name used to the assembly name:
-`OpenTelemetry.Instrumentation.StackExchangeRedis`
+`OpenTelemetry.Instrumentation.EntityFrameworkCore`
   [#486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/486)
 
 ## 1.0.0-beta.3
