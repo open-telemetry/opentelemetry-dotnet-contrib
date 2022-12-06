@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace OpenTelemetry.Exporter.Geneva;
@@ -120,6 +121,7 @@ internal sealed class TableNameSerializer
         return true;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int ResolveAndSerializeTableNameForCategoryName(byte[] destination, int offset, string categoryName, out ReadOnlySpan<byte> tableName)
     {
         byte[] mappedTableName = this.ResolveTableMappingForCategoryName(categoryName);
