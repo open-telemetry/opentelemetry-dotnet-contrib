@@ -28,6 +28,8 @@ namespace OpenTelemetry.Extensions.Docker.Resources;
 public class DockerResourceDetector : IResourceDetector
 {
     private const string FILEPATH = "/proc/self/cgroup";
+    private const string FILEPATHV2 = "/proc/self/mountinfo";
+    private const string HOSTNAME = "hostname";
 
     /// <summary>
     /// Detects the resource attributes from Docker.
@@ -35,17 +37,16 @@ public class DockerResourceDetector : IResourceDetector
     /// <returns>Resource with key-value pairs of resource attributes.</returns>
     public Resource Detect()
     {
-        return this.BuildResource(FILEPATH);
+        return this.BuildResource();
     }
 
     /// <summary>
     /// Builds the resource attributes from Container Id in file path.
     /// </summary>
-    /// <param name="path">File path where container id exists.</param>
     /// <returns>Returns Resource with list of key-value pairs of container resource attributes if container id exists else empty resource.</returns>
-    internal Resource BuildResource(string path)
+    internal Resource BuildResource()
     {
-        var containerId = this.ExtractContainerId(path);
+        var containerId = this.ExtractContainerId();
 
         if (string.IsNullOrEmpty(containerId))
         {
@@ -60,9 +61,27 @@ public class DockerResourceDetector : IResourceDetector
     /// <summary>
     /// Extracts Container Id from path.
     /// </summary>
+    /// <returns>Returns Resource with list of key-value pairs of container resource attributes if container id exists else empty resource.</returns>
+    private string ExtractContainerId()
+    {
+        try
+        {
+            return this.ExtractContainerIdV1(FILEPATH) ?? this.ExtractContainerIdV2(FILEPATHV2);
+        }
+        catch (Exception ex)
+        {
+            DockerExtensionsEventSource.Log.ExtractResourceAttributesException($"{nameof(DockerResourceDetector)} : Failed to extract Container id from path", ex);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Extracts Container Id from path using the cgroupv1 format.
+    /// </summary>
     /// <param name="path">cgroup path.</param>
     /// <returns>Container Id, Null if not found or exception being thrown.</returns>
-    private string ExtractContainerId(string path)
+    private string ExtractContainerIdV1(string path)
     {
         try
         {
@@ -74,6 +93,37 @@ public class DockerResourceDetector : IResourceDetector
             foreach (string line in File.ReadLines(path))
             {
                 string containerId = (!string.IsNullOrEmpty(line)) ? this.GetIdFromLine(line) : null;
+                if (!string.IsNullOrEmpty(containerId))
+                {
+                    return containerId;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            DockerExtensionsEventSource.Log.ExtractResourceAttributesException($"{nameof(DockerResourceDetector)} : Failed to extract Container id from path", ex);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Extracts Container Id from path using the cgroupv2 format.
+    /// </summary>
+    /// <param name="path">File path where container id exists.</param>
+    /// <returns>Returns Resource with list of key-value pairs of container resource attributes if container id exists else empty resource.</returns>
+    private string ExtractContainerIdV2(string path)
+    {
+        try
+        {
+            if (!File.Exists(path))
+            {
+                return null;
+            }
+
+            foreach (string line in File.ReadLines(path))
+            {
+                string containerId = line.Contains(HOSTNAME) ? this.GetIdFromLine(line) : null;
                 if (!string.IsNullOrEmpty(containerId))
                 {
                     return containerId;
