@@ -24,7 +24,8 @@ namespace OpenTelemetry.Exporter.Geneva;
 
 internal sealed class TableNameSerializer
 {
-    public const int MaxSanitizedEventNameLength = 50;
+    public const int MaxSanitizedCategoryNameLength = 50;
+    public const int MaxSanitizedCategoryNameBytes = MaxSanitizedCategoryNameLength + 2;
     public const int MaxCachedSanitizedTableNames = 1024;
 
 #pragma warning disable CA1825 // Avoid zero-length array allocations
@@ -96,7 +97,7 @@ internal sealed class TableNameSerializer
         Debug.Assert(!string.IsNullOrWhiteSpace(tableName), "tableName was null or whitespace");
 
         var length = tableName.Length;
-        if (length > MaxSanitizedEventNameLength)
+        if (length > MaxSanitizedCategoryNameLength)
         {
             return false;
         }
@@ -130,7 +131,7 @@ internal sealed class TableNameSerializer
         {
             // Pass-through mode with a full cache.
 
-            int bytesWritten = WriteSanitizedCategoryNameToSpan(new Span<byte>(destination, offset, MaxSanitizedEventNameLength + 2), categoryName);
+            int bytesWritten = WriteSanitizedCategoryNameToSpan(new Span<byte>(destination, offset, MaxSanitizedCategoryNameBytes), categoryName);
 
             tableName = new ReadOnlySpan<byte>(destination, offset, bytesWritten);
 
@@ -189,7 +190,7 @@ internal sealed class TableNameSerializer
 
         for (int i = 1; i < categoryName.Length; ++i)
         {
-            if (validNameLength == MaxSanitizedEventNameLength)
+            if (validNameLength == MaxSanitizedCategoryNameLength)
             {
                 break;
             }
@@ -252,7 +253,7 @@ internal sealed class TableNameSerializer
             : s_passthroughTableName;
 
         Span<byte> sanitizedTableNameStorage = mappedTableName == s_passthroughTableName
-            ? stackalloc byte[64]
+            ? stackalloc byte[MaxSanitizedCategoryNameBytes]
             : Array.Empty<byte>();
 
         if (sanitizedTableNameStorage.Length > 0)
