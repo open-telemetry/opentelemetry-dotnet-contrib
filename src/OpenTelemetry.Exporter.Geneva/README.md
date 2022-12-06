@@ -113,6 +113,10 @@ each
 of the log. For changing the default table name for Logs, add an entry with key
 as `*`, and value as the custom table name.
 
+#### `WriteEventIdName` (optional)
+
+When set to true. The `EventId.Name` property will be written as a column in the table.
+
 ### Enable Metrics
 
 This snippet shows how to configure the Geneva Exporter for Metrics

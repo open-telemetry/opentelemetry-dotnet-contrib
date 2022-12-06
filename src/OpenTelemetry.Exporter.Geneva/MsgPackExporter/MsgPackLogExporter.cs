@@ -33,6 +33,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     private readonly IReadOnlyDictionary<string, object> m_customFields;
 
     private readonly ExceptionStackExportMode m_exportExceptionStack;
+    private readonly bool m_writeEventIdName;
 
     private readonly string m_defaultEventName = "Log";
     private readonly IReadOnlyDictionary<string, object> m_prepopulatedFields;
@@ -51,6 +52,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     public MsgPackLogExporter(GenevaExporterOptions options)
     {
         this.m_exportExceptionStack = options.ExceptionStackExportMode;
+        this.m_writeEventIdName = options.WriteEventIdName;
 
         // TODO: Validate mappings for reserved tablenames etc.
         if (options.TableNameMappings != null)
@@ -428,6 +430,13 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "eventId");
             cursor = MessagePackSerializer.SerializeInt32(buffer, cursor, eventId.Id);
             cntFields += 1;
+
+            if (m_writeEventIdName)
+            {
+                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "eventName");
+                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, eventId.Name);
+                cntFields += 1;
+            }
         }
 
         // Part A - ex extension

@@ -36,6 +36,8 @@ public class GenevaExporterOptions
 
     public ExceptionStackExportMode ExceptionStackExportMode { get; set; }
 
+    public bool WriteEventIdName { get; set; }
+
     public IReadOnlyDictionary<string, string> TableNameMappings
     {
         get => this._tableNameMappings;
