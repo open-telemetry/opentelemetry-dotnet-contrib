@@ -222,6 +222,56 @@ internal sealed class TableNameSerializer
 
     private byte[] ResolveTableMappingForCategoryNameRare(string categoryName)
     {
+        byte[] mappedTableName = null;
+
+        // If user configured table name mappings run resolution logic.
+        if (this.m_tableMappings != null
+            && !this.m_tableMappings.TryGetValue(categoryName, out mappedTableName))
+        {
+            // Find best match if an exact match was not found.
+
+            string currentKey = null;
+
+            foreach (var mapping in this.m_tableMappings)
+            {
+                if (!categoryName.StartsWith(mapping.Key, s_dictionaryKeyComparison))
+                {
+                    continue;
+                }
+
+                if (currentKey == null || mapping.Key.Length >= currentKey.Length)
+                {
+                    currentKey = mapping.Key;
+                    mappedTableName = mapping.Value;
+                }
+            }
+        }
+
+        mappedTableName ??= !this.m_shouldPassThruTableMappings
+            ? this.m_defaultTableName
+            : s_passthroughTableName;
+
+        Span<byte> sanitizedTableNameStorage = mappedTableName == s_passthroughTableName
+            ? stackalloc byte[64]
+            : Array.Empty<byte>();
+
+        if (sanitizedTableNameStorage.Length > 0)
+        {
+            // We resolved to a wildcard which is pass-through mode.
+
+            int bytesWritten = WriteSanitizedCategoryNameToSpan(sanitizedTableNameStorage, categoryName);
+            if (bytesWritten > 0)
+            {
+                sanitizedTableNameStorage = sanitizedTableNameStorage.Slice(0, bytesWritten);
+            }
+            else
+            {
+                // Note: When the table name could not be sanitized we cache
+                // the empty array NOT s_passthroughTableName.
+                mappedTableName = Array.Empty<byte>();
+            }
+        }
+
         lock (this.m_lockObject)
         {
             var tableNameCache = this.m_tableNameCache;
@@ -233,62 +283,21 @@ internal sealed class TableNameSerializer
                 return tableName;
             }
 
-            byte[] mappedTableName = null;
-
-            // If user configured table name mappings run resolution logic.
-            if (this.m_tableMappings != null
-                && !this.m_tableMappings.TryGetValue(categoryName, out mappedTableName))
+            if (mappedTableName == s_passthroughTableName
+                && tableNameCache.CachedSanitizedTableNameCount < MaxCachedSanitizedTableNames)
             {
-                // Find best match if an exact match was not found.
-
-                string currentKey = null;
-
-                foreach (var mapping in this.m_tableMappings)
-                {
-                    if (!categoryName.StartsWith(mapping.Key, s_dictionaryKeyComparison))
-                    {
-                        continue;
-                    }
-
-                    if (currentKey == null || mapping.Key.Length >= currentKey.Length)
-                    {
-                        currentKey = mapping.Key;
-                        mappedTableName = mapping.Value;
-                    }
-                }
-            }
-
-            mappedTableName ??= !this.m_shouldPassThruTableMappings
-                ? this.m_defaultTableName
-                : s_passthroughTableName;
-
-            if (mappedTableName.Length <= 0 && tableNameCache.CachedSanitizedTableNameCount < MaxCachedSanitizedTableNames)
-            {
-                // We resolved to a wildcard which is pass-through mode.
-
-                Span<byte> stackBuffer = stackalloc byte[64];
-
-                int bytesWritten = WriteSanitizedCategoryNameToSpan(stackBuffer, categoryName);
-                if (bytesWritten > 0)
-                {
-                    mappedTableName = stackBuffer.Slice(0, bytesWritten).ToArray();
-
-                    tableNameCache.CachedSanitizedTableNameCount++;
-                }
-                else
-                {
-                    // Note: When the table name could not be sanitized we cache
-                    // the empty array NOT s_passthroughTableName.
-                    mappedTableName = Array.Empty<byte>();
-                }
+                mappedTableName = sanitizedTableNameStorage.ToArray();
+                tableNameCache.CachedSanitizedTableNameCount++;
             }
 
             // Note: This is using copy-on-write pattern to keep the happy
             // path lockless once everything has spun up.
-            this.m_tableNameCache = new(tableNameCache)
+            TableNameCacheDictionary newTableNameCache = new(tableNameCache)
             {
                 [categoryName] = mappedTableName,
             };
+
+            this.m_tableNameCache = newTableNameCache;
 
             return mappedTableName;
         }
