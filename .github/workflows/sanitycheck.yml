@@ -2,9 +2,9 @@ name: sanitycheck
 
 on:
   push:
-    branches: [ main ]
+    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extension*' ]
   pull_request:
-    branches: [ main ]
+    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extension*' ]
 
 jobs:
   misspell:
