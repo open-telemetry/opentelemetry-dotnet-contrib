@@ -2,11 +2,11 @@ name: Integration Tests
 
 on:
   push:
-    branches: [ 'main*' ]
+    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extension*' ]
     paths-ignore:
     - '**.md'
   pull_request:
-    branches: [ 'main*' ]
+    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extension*' ]
     paths-ignore:
     - '**.md'
 
