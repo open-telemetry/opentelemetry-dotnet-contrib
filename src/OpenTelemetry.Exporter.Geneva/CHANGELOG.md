@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.3.1
+
+Released 2022-Dec-07
+
+* Fix the overflow bucket value serialization for Histogram.
+  ([#805](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/805))
+
 ## 1.3.0
 
 Released 2022-Jul-28
