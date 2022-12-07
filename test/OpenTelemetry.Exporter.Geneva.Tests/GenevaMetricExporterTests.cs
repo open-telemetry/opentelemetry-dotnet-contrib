@@ -671,7 +671,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                         if (bucket.ExplicitBound != double.PositiveInfinity)
                         {
                             Assert.Equal(bucket.ExplicitBound, valueCountPairs.Columns[listIterator].Value);
-                            lastExplicitBound = bucket.ExplicitBound;
                         }
                         else
                         {
@@ -683,6 +682,8 @@ namespace OpenTelemetry.Exporter.Geneva.Tests
                         listIterator++;
                         bucketsWithPositiveCount++;
                     }
+
+                    lastExplicitBound = bucket.ExplicitBound;
                 }
 
                 Assert.Equal(bucketsWithPositiveCount, valueCountPairs.DistributionSize);
