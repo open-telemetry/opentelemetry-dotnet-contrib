@@ -15,6 +15,9 @@
 // </copyright>
 
 using System;
+#if NET6_0_OR_GREATER
+using System.Buffers.Binary;
+#endif
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -61,6 +64,8 @@ internal static class MessagePackSerializer
     private const int LIMIT_MAX_FIX_MAP_COUNT = 15;
     private const int LIMIT_MAX_FIX_ARRAY_LENGTH = 15;
     private const int STRING_SIZE_LIMIT_CHAR_COUNT = (1 << 14) - 1; // 16 * 1024 - 1 = 16383
+
+    private const int MAX_STACK_ALLOC_SIZE_IN_BYTES = 256;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeNull(byte[] buffer, int cursor)
@@ -195,6 +200,10 @@ internal static class MessagePackSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int WriteInt16(byte[] buffer, int cursor, short value)
     {
+#if NET6_0_OR_GREATER
+        BinaryPrimitives.WriteInt16BigEndian(buffer.AsSpan(cursor), value);
+        return cursor + sizeof(short);
+#else
         unchecked
         {
             buffer[cursor++] = (byte)(value >> 8);
@@ -202,11 +211,16 @@ internal static class MessagePackSerializer
         }
 
         return cursor;
+#endif
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int WriteInt32(byte[] buffer, int cursor, int value)
     {
+#if NET6_0_OR_GREATER
+        BinaryPrimitives.WriteInt32BigEndian(buffer.AsSpan(cursor), value);
+        return cursor + sizeof(int);
+#else
         unchecked
         {
             buffer[cursor++] = (byte)(value >> 24);
@@ -216,11 +230,16 @@ internal static class MessagePackSerializer
         }
 
         return cursor;
+#endif
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int WriteInt64(byte[] buffer, int cursor, long value)
     {
+#if NET6_0_OR_GREATER
+        BinaryPrimitives.WriteInt64BigEndian(buffer.AsSpan(cursor), value);
+        return cursor + sizeof(long);
+#else
         unchecked
         {
             buffer[cursor++] = (byte)(value >> 56);
@@ -234,11 +253,16 @@ internal static class MessagePackSerializer
         }
 
         return cursor;
+#endif
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int WriteUInt16(byte[] buffer, int cursor, ushort value)
     {
+#if NET6_0_OR_GREATER
+        BinaryPrimitives.WriteUInt16BigEndian(buffer.AsSpan(cursor), value);
+        return cursor + sizeof(ushort);
+#else
         unchecked
         {
             buffer[cursor++] = (byte)(value >> 8);
@@ -246,11 +270,16 @@ internal static class MessagePackSerializer
         }
 
         return cursor;
+#endif
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int WriteUInt32(byte[] buffer, int cursor, uint value)
     {
+#if NET6_0_OR_GREATER
+        BinaryPrimitives.WriteUInt32BigEndian(buffer.AsSpan(cursor), value);
+        return cursor + sizeof(uint);
+#else
         unchecked
         {
             buffer[cursor++] = (byte)(value >> 24);
@@ -260,11 +289,16 @@ internal static class MessagePackSerializer
         }
 
         return cursor;
+#endif
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int WriteUInt64(byte[] buffer, int cursor, ulong value)
     {
+#if NET6_0_OR_GREATER
+        BinaryPrimitives.WriteUInt64BigEndian(buffer.AsSpan(cursor), value);
+        return cursor + sizeof(ulong);
+#else
         unchecked
         {
             buffer[cursor++] = (byte)(value >> 56);
@@ -278,6 +312,7 @@ internal static class MessagePackSerializer
         }
 
         return cursor;
+#endif
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -381,6 +416,45 @@ internal static class MessagePackSerializer
         return cursor;
     }
 
+#if NET6_0_OR_GREATER
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int SerializeUnicodeString(byte[] buffer, int cursor, ReadOnlySpan<char> value)
+    {
+        if (value == null)
+        {
+            return SerializeNull(buffer, cursor);
+        }
+
+        int start = cursor;
+        var cch = value.Length;
+        int cb;
+        cursor += 3;
+        if (cch <= STRING_SIZE_LIMIT_CHAR_COUNT)
+        {
+            cb = Encoding.UTF8.GetBytes(value.Slice(0, cch), buffer.AsSpan(cursor));
+            cursor += cb;
+        }
+        else
+        {
+            cb = Encoding.UTF8.GetBytes(value.Slice(0, STRING_SIZE_LIMIT_CHAR_COUNT - 3), buffer.AsSpan(cursor));
+            cursor += cb;
+            cb += 3;
+
+            // append "..." to indicate the string truncation
+            buffer[cursor++] = 0x2E;
+            buffer[cursor++] = 0x2E;
+            buffer[cursor++] = 0x2E;
+        }
+
+        buffer[start] = STR16;
+        buffer[start + 1] = unchecked((byte)(cb >> 8));
+        buffer[start + 2] = unchecked((byte)cb);
+        return cursor;
+    }
+
+#else
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeUnicodeString(byte[] buffer, int cursor, string value)
     {
@@ -415,6 +489,8 @@ internal static class MessagePackSerializer
         buffer[start + 2] = unchecked((byte)cb);
         return cursor;
     }
+
+#endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int WriteArrayHeader(byte[] buffer, int cursor, int length)
@@ -565,6 +641,18 @@ internal static class MessagePackSerializer
                 return SerializeUtcDateTime(buffer, cursor, v.ToUniversalTime());
             case DateTimeOffset v:
                 return SerializeUtcDateTime(buffer, cursor, v.UtcDateTime);
+
+#if NET6_0_OR_GREATER
+            case ISpanFormattable v:
+                Span<char> tmp = stackalloc char[MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)];
+                if (v.TryFormat(tmp, out int charsWritten, string.Empty, CultureInfo.InvariantCulture))
+                {
+                    return SerializeUnicodeString(buffer, cursor, tmp.Slice(0, charsWritten));
+                }
+
+                goto default;
+#endif
+
             default:
                 string repr = null;
 
@@ -583,11 +671,7 @@ internal static class MessagePackSerializer
 
     public static int SerializeSpan(byte[] buffer, int cursor, Span<byte> value)
     {
-        for (int i = 0; i < value.Length; ++i)
-        {
-            buffer[cursor++] = value[i];
-        }
-
-        return cursor;
+        value.CopyTo(buffer.AsSpan(cursor));
+        return cursor + value.Length;
     }
 }
