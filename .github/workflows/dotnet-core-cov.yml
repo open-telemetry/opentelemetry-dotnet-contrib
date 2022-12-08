@@ -2,11 +2,11 @@ name: Code Coverage
 
 on:
   push:
-    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extension*' ]
+    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths-ignore:
     - '**.md'
   pull_request:
-    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extension*' ]
+    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths-ignore:
     - '**.md'
 

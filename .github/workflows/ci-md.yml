@@ -9,7 +9,7 @@ name: Build
 
 on:
   pull_request:
-    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extension*' ]
+    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths:
     - '**.md'
 
