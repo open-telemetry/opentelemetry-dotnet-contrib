@@ -7,6 +7,8 @@
   ([#797](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/797))
 * Fix the overflow bucket value serialization for Histogram.
   ([#805](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/805))
+* Fix EventSource logging
+  ([#813](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/813))
 
 ## 1.4.0-beta.5
 
