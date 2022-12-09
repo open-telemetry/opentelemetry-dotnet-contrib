@@ -95,7 +95,7 @@ internal sealed class ExporterEventSource : EventSource
         this.WriteEvent(EVENT_ID_METRIC, monitoringAccount, metricNamespace, metricName, error);
     }
 
-    [Event(EVENT_ID_ERROR, Message = "Exporter failed.", Level = EventLevel.Error)]
+    [Event(EVENT_ID_ERROR, Message = "Exporter failed. Message: {0}, Exception: {1}", Level = EventLevel.Error)]
     public void ExporterException(string message, string error)
     {
         this.WriteEvent(EVENT_ID_ERROR, message, error);
