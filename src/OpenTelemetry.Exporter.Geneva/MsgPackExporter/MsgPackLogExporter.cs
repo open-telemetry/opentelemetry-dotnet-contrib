@@ -456,7 +456,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     private static byte GetSeverityNumber(LogLevel logLevel)
     {
         // Maps the Ilogger LogLevel to OpenTelemetry logging level.
-        // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/stateData-model.md#mapping-of-severitynumber
+        // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#mapping-of-severitynumber
         // TODO: for improving perf simply do ((int)loglevel * 4) + 1
         // or ((int)logLevel << 2) + 1
         switch (logLevel)
