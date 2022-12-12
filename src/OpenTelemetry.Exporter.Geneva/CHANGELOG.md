@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Avoid allocation when serializing scopes.
+  ([#818](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/818))
+
 ## 1.4.0-beta.6
 
 Released 2022-Dec-09
