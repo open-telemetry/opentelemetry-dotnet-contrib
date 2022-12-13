@@ -246,37 +246,499 @@ public class GenevaMetricExporterTests
             Assert.Equal(11, exportedItems.Count);
 
             // check serialization for longCounter
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net47)'
+Before:
             this.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net6.0)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net48)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net471)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net462)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net472)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+*/
+            CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
 
             // check serialization for doubleCounter
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net47)'
+Before:
             this.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net6.0)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net48)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net471)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net462)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net472)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+*/
+            CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
 
             // check serialization for longUpDownCounter
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net47)'
+Before:
             this.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net6.0)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net48)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net471)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net462)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net472)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+*/
+            CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
 
             // check serialization for doubleUpDownCounter
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net47)'
+Before:
             this.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net6.0)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net48)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net471)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net462)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net472)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+*/
+            CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
 
             // check serialization for histogram
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net47)'
+Before:
             this.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net6.0)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net48)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net471)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net462)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net472)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+*/
+            CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
 
             // check serialization for observableLongCounter
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net47)'
+Before:
             this.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net6.0)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net48)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net471)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net462)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net472)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+*/
+            CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
 
             // check serialization for observableDoubleCounter
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net47)'
+Before:
             this.CheckSerializationForSingleMetricPoint(exportedItems[6], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[6], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net6.0)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[6], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[6], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net48)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[6], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[6], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net471)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[6], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[6], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net462)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[6], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[6], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net472)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[6], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[6], exporter, exporterOptions);
+*/
+            CheckSerializationForSingleMetricPoint(exportedItems[6], exporter, exporterOptions);
 
             // check serialization for observableLongGauge
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net47)'
+Before:
             this.CheckSerializationForSingleMetricPoint(exportedItems[7], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[7], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net6.0)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[7], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[7], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net48)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[7], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[7], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net471)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[7], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[7], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net462)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[7], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[7], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net472)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[7], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[7], exporter, exporterOptions);
+*/
+            CheckSerializationForSingleMetricPoint(exportedItems[7], exporter, exporterOptions);
 
             // check serialization for observableDoubleGauge
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net47)'
+Before:
             this.CheckSerializationForSingleMetricPoint(exportedItems[8], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[8], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net6.0)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[8], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[8], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net48)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[8], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[8], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net471)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[8], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[8], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net462)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[8], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[8], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net472)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[8], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[8], exporter, exporterOptions);
+*/
+            CheckSerializationForSingleMetricPoint(exportedItems[8], exporter, exporterOptions);
 
             // check serialization for observableUpDownLongCounter
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net47)'
+Before:
             this.CheckSerializationForSingleMetricPoint(exportedItems[9], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[9], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net6.0)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[9], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[9], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net48)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[9], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[9], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net471)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[9], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[9], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net462)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[9], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[9], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net472)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[9], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[9], exporter, exporterOptions);
+*/
+            CheckSerializationForSingleMetricPoint(exportedItems[9], exporter, exporterOptions);
 
             // check serialization for observableUpDownDoubleCounter
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net47)'
+Before:
             this.CheckSerializationForSingleMetricPoint(exportedItems[10], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[10], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net6.0)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[10], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[10], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net48)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[10], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[10], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net471)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[10], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[10], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net462)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[10], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[10], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net472)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[10], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[10], exporter, exporterOptions);
+*/
+            CheckSerializationForSingleMetricPoint(exportedItems[10], exporter, exporterOptions);
         }
         finally
         {
@@ -468,22 +930,274 @@ public class GenevaMetricExporterTests
             Assert.Empty(exportedItems.Where(item => item.Name == "observableLongCounter" || item.Name == "observableDoubleGauge"));
 
             // check serialization for longCounter
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net47)'
+Before:
             this.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net6.0)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net48)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net471)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net462)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net472)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+*/
+            CheckSerializationForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
 
             // check serialization for doubleCounter
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net47)'
+Before:
             this.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net6.0)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net48)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net471)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net462)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net472)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+*/
+            CheckSerializationForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
 
             // check serialization for histogramWithCustomBounds
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net47)'
+Before:
             this.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net6.0)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net48)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net471)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net462)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net472)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+*/
+            CheckSerializationForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
 
             // check serialization for histogramWithNoBounds
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net47)'
+Before:
             this.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net6.0)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net48)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net471)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net462)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net472)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
+*/
+            CheckSerializationForSingleMetricPoint(exportedItems[3], exporter, exporterOptions);
 
             // check serialization for observableDoubleCounter
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net47)'
+Before:
             this.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net6.0)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net48)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net471)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net462)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net472)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
+*/
+            CheckSerializationForSingleMetricPoint(exportedItems[4], exporter, exporterOptions);
 
             // check serialization for observableLongGauge
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net47)'
+Before:
             this.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net6.0)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net48)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net471)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net462)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+*/
+
+/* Unmerged change from project 'OpenTelemetry.Exporter.Geneva.Tests (net472)'
+Before:
+            this.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+After:
+            GenevaMetricExporterTests.CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
+*/
+            CheckSerializationForSingleMetricPoint(exportedItems[5], exporter, exporterOptions);
         }
         finally
         {
@@ -637,7 +1351,22 @@ public class GenevaMetricExporterTests
         }
     }
 
-    private void CheckSerializationForSingleMetricPoint(Metric metric, GenevaMetricExporter exporter, GenevaMetricExporterOptions exporterOptions)
+    private static void CheckHistogramBucketSerialization(HistogramBucket bucket, HistogramValueCountPairs valueCountPairs, int listIterator, double lastExplicitBound)
+    {
+
+        if (bucket.ExplicitBound != double.PositiveInfinity)
+        {
+            Assert.Equal(bucket.ExplicitBound, valueCountPairs.Columns[listIterator].Value);
+        }
+        else
+        {
+            Assert.Equal((ulong)lastExplicitBound + 1, valueCountPairs.Columns[listIterator].Value);
+        }
+
+        Assert.Equal(bucket.BucketCount, valueCountPairs.Columns[listIterator].Count);
+    }
+
+    private static void CheckSerializationForSingleMetricPoint(Metric metric, GenevaMetricExporter exporter, GenevaMetricExporterOptions exporterOptions)
     {
         var metricType = metric.MetricType;
         var metricPointsEnumerator = metric.GetMetricPoints().GetEnumerator();
@@ -764,27 +1493,14 @@ public class GenevaMetricExporterTests
             double lastExplicitBound = default;
             foreach (var bucket in metricPoint.GetHistogramBuckets())
             {
-                if (bucket.BucketCount == 0)
+                if (bucket.BucketCount > 0)
                 {
-                    lastExplicitBound = bucket.ExplicitBound;
-                }
-                else
-                {
-                    if (bucket.ExplicitBound != double.PositiveInfinity)
-                    {
-                        Assert.Equal(bucket.ExplicitBound, valueCountPairs.Columns[listIterator].Value);
-                        lastExplicitBound = bucket.ExplicitBound;
-                    }
-                    else
-                    {
-                        Assert.Equal((ulong)lastExplicitBound + 1, valueCountPairs.Columns[listIterator].Value);
-                    }
-
-                    Assert.Equal(bucket.BucketCount, valueCountPairs.Columns[listIterator].Count);
-
+                    CheckHistogramBucketSerialization(bucket, valueCountPairs, listIterator, lastExplicitBound);
                     listIterator++;
                     bucketsWithPositiveCount++;
                 }
+
+                lastExplicitBound = bucket.ExplicitBound;
             }
 
             Assert.Equal(bucketsWithPositiveCount, valueCountPairs.DistributionSize);
