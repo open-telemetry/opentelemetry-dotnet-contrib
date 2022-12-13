@@ -637,6 +637,21 @@ public class GenevaMetricExporterTests
         }
     }
 
+    private static void CheckHistogramBucketSerialization(HistogramBucket bucket, HistogramValueCountPairs valueCountPairs, int listIterator, double lastExplicitBound)
+    {
+
+        if (bucket.ExplicitBound != double.PositiveInfinity)
+        {
+            Assert.Equal(bucket.ExplicitBound, valueCountPairs.Columns[listIterator].Value);
+        }
+        else
+        {
+            Assert.Equal((ulong)lastExplicitBound + 1, valueCountPairs.Columns[listIterator].Value);
+        }
+
+        Assert.Equal(bucket.BucketCount, valueCountPairs.Columns[listIterator].Count);
+    }
+
     private void CheckSerializationForSingleMetricPoint(Metric metric, GenevaMetricExporter exporter, GenevaMetricExporterOptions exporterOptions)
     {
         var metricType = metric.MetricType;
@@ -764,30 +779,14 @@ public class GenevaMetricExporterTests
             double lastExplicitBound = default;
             foreach (var bucket in metricPoint.GetHistogramBuckets())
             {
-                if (bucket.BucketCount == 0)
+                if (bucket.BucketCount > 0)
                 {
-                    lastExplicitBound = bucket.ExplicitBound;
-                }
-                else
-                {
-                    if (bucket.ExplicitBound != double.PositiveInfinity)
-                    {
-                        Assert.Equal(bucket.ExplicitBound, valueCountPairs.Columns[listIterator].Value);
-                        lastExplicitBound = bucket.ExplicitBound;
-                    }
-                    else
-                    {
-                        Assert.Equal((ulong)lastExplicitBound + 1, valueCountPairs.Columns[listIterator].Value);
-                    }
-
-                    Assert.Equal(bucket.BucketCount, valueCountPairs.Columns[listIterator].Count);
-
+                    CheckHistogramBucketSerialization(bucket, valueCountPairs, listIterator, lastExplicitBound);
                     listIterator++;
                     bucketsWithPositiveCount++;
                 }
-            }
 
-            Assert.Equal(bucketsWithPositiveCount, valueCountPairs.DistributionSize);
+                Assert.Equal(bucketsWithPositiveCount, valueCountPairs.DistributionSize);
 
             Assert.Equal(count, valueSection.Count);
             Assert.Equal(Convert.ToUInt64(metricPoint.GetHistogramSum()), valueSection.Sum);
