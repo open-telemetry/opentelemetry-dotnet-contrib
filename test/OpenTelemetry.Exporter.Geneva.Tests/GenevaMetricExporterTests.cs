@@ -790,6 +790,7 @@ public class GenevaMetricExporterTests
             }
 
             Assert.Equal(bucketsWithPositiveCount, valueCountPairs.DistributionSize);
+
             Assert.Equal(count, valueSection.Count);
             Assert.Equal(Convert.ToUInt64(metricPoint.GetHistogramSum()), valueSection.Sum);
             Assert.Equal(minValue, valueSection.Min);
