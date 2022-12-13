@@ -369,6 +369,216 @@ public class MessagePackSerializerTests
     }
 
     [Fact]
+    public void MessagePackSerializer_BoolArray()
+    {
+        this.MessagePackSerializer_TestSerialization((bool[])null);
+        this.MessagePackSerializer_TestSerialization(Array.Empty<bool>());
+
+        var arr = new bool[]
+        {
+            true, false, true,
+        };
+
+        this.MessagePackSerializer_TestSerialization(arr);
+    }
+
+    [Fact]
+    public void MessagePackSerializer_ByteArray()
+    {
+        this.MessagePackSerializer_TestSerialization((byte[])null);
+        this.MessagePackSerializer_TestSerialization(Array.Empty<byte>());
+
+        var arr = new byte[]
+        {
+            1,
+            100,
+            255,
+        };
+
+        this.MessagePackSerializer_TestSerialization(arr);
+    }
+
+    [Fact]
+    public void MessagePackSerializer_SbyteArray()
+    {
+        this.MessagePackSerializer_TestSerialization((sbyte[])null);
+        this.MessagePackSerializer_TestSerialization(Array.Empty<sbyte>());
+
+        var arr = new sbyte[]
+        {
+            1,
+            100,
+            -100,
+        };
+
+        this.MessagePackSerializer_TestSerialization(arr);
+    }
+
+    [Fact]
+    public void MessagePackSerializer_ShortArray()
+    {
+        this.MessagePackSerializer_TestSerialization((short[])null);
+        this.MessagePackSerializer_TestSerialization(Array.Empty<short>());
+
+        var arr = new short[]
+        {
+            1,
+            1000,
+            -10000,
+        };
+
+        this.MessagePackSerializer_TestSerialization(arr);
+    }
+
+    [Fact]
+    public void MessagePackSerializer_UshortArray()
+    {
+        this.MessagePackSerializer_TestSerialization((ushort[])null);
+        this.MessagePackSerializer_TestSerialization(Array.Empty<ushort>());
+
+        var arr = new ushort[]
+        {
+            1,
+            10000,
+            65000,
+        };
+
+        this.MessagePackSerializer_TestSerialization(arr);
+    }
+
+    [Fact]
+    public void MessagePackSerializer_IntArray()
+    {
+        this.MessagePackSerializer_TestSerialization((int[])null);
+        this.MessagePackSerializer_TestSerialization(Array.Empty<int>());
+
+        var arr = new int[]
+        {
+            1,
+            6180340,
+            -314159265,
+        };
+
+        this.MessagePackSerializer_TestSerialization(arr);
+    }
+
+    [Fact]
+    public void MessagePackSerializer_UintArray()
+    {
+        this.MessagePackSerializer_TestSerialization((uint[])null);
+        this.MessagePackSerializer_TestSerialization(Array.Empty<uint>());
+
+        var arr = new uint[]
+        {
+            1,
+            6180340,
+            4_000_000_000,
+        };
+
+        this.MessagePackSerializer_TestSerialization(arr);
+    }
+
+    [Fact]
+    public void MessagePackSerializer_LongArray()
+    {
+        this.MessagePackSerializer_TestSerialization((long[])null);
+        this.MessagePackSerializer_TestSerialization(Array.Empty<long>());
+
+        var arr = new long[]
+        {
+            1,
+            -4_000_000_000_000_000_000,
+            9_000_000_000_000_000_000,
+        };
+
+        this.MessagePackSerializer_TestSerialization(arr);
+    }
+
+    [Fact]
+    public void MessagePackSerializer_UlongArray()
+    {
+        this.MessagePackSerializer_TestSerialization((ulong[])null);
+        this.MessagePackSerializer_TestSerialization(Array.Empty<ulong>());
+
+        var arr = new ulong[]
+        {
+            1,
+            6180340,
+            18_000_000_000_000_000_000,
+        };
+
+        this.MessagePackSerializer_TestSerialization(arr);
+    }
+
+    [Fact]
+    public void MessagePackSerializer_FloatArray()
+    {
+        this.MessagePackSerializer_TestSerialization((float[])null);
+        this.MessagePackSerializer_TestSerialization(Array.Empty<float>());
+
+        var arr = new float[]
+        {
+            1,
+            3.14159f,
+            -3.14159f,
+        };
+
+        this.MessagePackSerializer_TestSerialization(arr);
+    }
+
+    [Fact]
+    public void MessagePackSerializer_DoubleArray()
+    {
+        this.MessagePackSerializer_TestSerialization((double[])null);
+        this.MessagePackSerializer_TestSerialization(Array.Empty<double>());
+
+        var arr = new double[]
+        {
+            1,
+            3.14159d,
+            -3.14159d,
+        };
+
+        this.MessagePackSerializer_TestSerialization(arr);
+    }
+
+    [Fact]
+    public void MessagePackSerializer_DateTimeArray()
+    {
+        this.MessagePackSerializer_TestSerialization((DateTime[])null);
+        this.MessagePackSerializer_TestSerialization(Array.Empty<DateTime>());
+
+        var arr = new DateTime[]
+        {
+            DateTime.Parse("2014-05-05 10:01:11"),
+            DateTime.Parse("2016-04-27 11:02:22"),
+            DateTime.Parse("2018-07-22 14:05:33"),
+            DateTime.Parse("2021-02-09 23:07:44"),
+            DateTime.Parse("2121-02-24 00:00:00"),
+        };
+
+        this.MessagePackSerializer_TestSerialization(arr);
+    }
+
+    [Fact]
+    public void MessagePackSerializer_DateTimeOffsetArray()
+    {
+        this.MessagePackSerializer_TestSerialization((DateTimeOffset[])null);
+        this.MessagePackSerializer_TestSerialization(Array.Empty<DateTimeOffset>());
+
+        var arr = new DateTimeOffset[]
+        {
+            DateTimeOffset.Parse("2014-05-05 10:01:11"),
+            DateTimeOffset.Parse("2016-04-27 11:02:22"),
+            DateTimeOffset.Parse("2018-07-22 14:05:33"),
+            DateTimeOffset.Parse("2021-02-09 23:07:44"),
+            DateTimeOffset.Parse("2121-02-24 00:00:00"),
+        };
+
+        this.MessagePackSerializer_TestSerialization(arr);
+    }
+
+    [Fact]
     public void MessagePackSerializer_Map()
     {
         this.MessagePackSerializer_TestSerialization((Dictionary<string, object>)null);

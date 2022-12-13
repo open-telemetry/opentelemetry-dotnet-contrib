@@ -635,6 +635,32 @@ internal static class MessagePackSerializer
                 return SerializeUnicodeString(buffer, cursor, v);
             case IDictionary<string, object> v:
                 return SerializeMap(buffer, cursor, v);
+            case bool[] v:
+                return SerializeArray(buffer, cursor, v);
+            case byte[] v:
+                return SerializeArray(buffer, cursor, v);
+            case sbyte[] v:
+                return SerializeArray(buffer, cursor, v);
+            case short[] v:
+                return SerializeArray(buffer, cursor, v);
+            case ushort[] v:
+                return SerializeArray(buffer, cursor, v);
+            case int[] v:
+                return SerializeArray(buffer, cursor, v);
+            case uint[] v:
+                return SerializeArray(buffer, cursor, v);
+            case long[] v:
+                return SerializeArray(buffer, cursor, v);
+            case ulong[] v:
+                return SerializeArray(buffer, cursor, v);
+            case float[] v:
+                return SerializeArray(buffer, cursor, v);
+            case double[] v:
+                return SerializeArray(buffer, cursor, v);
+            case DateTime[] v:
+                return SerializeArray(buffer, cursor, v);
+            case DateTimeOffset[] v:
+                return SerializeArray(buffer, cursor, v);
             case object[] v:
                 return SerializeArray(buffer, cursor, v);
             case DateTime v:
