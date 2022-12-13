@@ -24,6 +24,8 @@ namespace OpenTelemetry.Exporter.Geneva.Tests;
 
 public class MessagePackSerializerTests
 {
+    private static readonly int[] ArraySizesToTest = new[] { byte.MaxValue, ushort.MaxValue, ushort.MaxValue + 1, };
+
     private void AssertBytes(byte[] expected, byte[] actual, int length)
     {
         Assert.Equal(expected.Length, length);
@@ -38,11 +40,32 @@ public class MessagePackSerializerTests
         }
     }
 
-    private void MessagePackSerializer_TestSerialization(object obj)
+    private void MessagePackSerializer_TestSerialization(object obj, int bufferSize = 64 * 1024)
     {
-        var buffer = new byte[64 * 1024];
+        var buffer = new byte[bufferSize];
         var length = MessagePackSerializer.Serialize(buffer, 0, obj);
         this.AssertBytes(MessagePack.MessagePackSerializer.Serialize(obj), buffer, length);
+    }
+
+    private void MessagePackSerializer_TestStructArraySerialization<T>(T[] seedArr)
+        where T : struct
+    {
+        this.MessagePackSerializer_TestSerialization((T[])null);
+        this.MessagePackSerializer_TestSerialization(Array.Empty<T>());
+        this.MessagePackSerializer_TestSerialization(seedArr);
+
+        foreach (int arrSize in ArraySizesToTest)
+        {
+            var bigArr = new T[arrSize];
+            for (int i = 0; i < arrSize; i++)
+            {
+                bigArr[i] = seedArr[i % seedArr.Length];
+            }
+
+            // Big enough for arrSize elements of the biggest expected sizeof(T) plus some extra
+            int bufferSize = 64 * (arrSize + 64);
+            this.MessagePackSerializer_TestSerialization(bigArr, bufferSize);
+        }
     }
 
     private void MessagePackSerializer_TestASCIIStringSerialization(string input)
@@ -385,9 +408,6 @@ public class MessagePackSerializerTests
     [Fact]
     public void MessagePackSerializer_ByteArray()
     {
-        this.MessagePackSerializer_TestSerialization((byte[])null);
-        this.MessagePackSerializer_TestSerialization(Array.Empty<byte>());
-
         var arr = new byte[]
         {
             1,
@@ -395,15 +415,12 @@ public class MessagePackSerializerTests
             255,
         };
 
-        this.MessagePackSerializer_TestSerialization(arr);
+        this.MessagePackSerializer_TestStructArraySerialization(arr);
     }
 
     [Fact]
     public void MessagePackSerializer_SbyteArray()
     {
-        this.MessagePackSerializer_TestSerialization((sbyte[])null);
-        this.MessagePackSerializer_TestSerialization(Array.Empty<sbyte>());
-
         var arr = new sbyte[]
         {
             1,
@@ -411,15 +428,12 @@ public class MessagePackSerializerTests
             -100,
         };
 
-        this.MessagePackSerializer_TestSerialization(arr);
+        this.MessagePackSerializer_TestStructArraySerialization(arr);
     }
 
     [Fact]
     public void MessagePackSerializer_ShortArray()
     {
-        this.MessagePackSerializer_TestSerialization((short[])null);
-        this.MessagePackSerializer_TestSerialization(Array.Empty<short>());
-
         var arr = new short[]
         {
             1,
@@ -427,15 +441,12 @@ public class MessagePackSerializerTests
             -10000,
         };
 
-        this.MessagePackSerializer_TestSerialization(arr);
+        this.MessagePackSerializer_TestStructArraySerialization(arr);
     }
 
     [Fact]
     public void MessagePackSerializer_UshortArray()
     {
-        this.MessagePackSerializer_TestSerialization((ushort[])null);
-        this.MessagePackSerializer_TestSerialization(Array.Empty<ushort>());
-
         var arr = new ushort[]
         {
             1,
@@ -443,15 +454,12 @@ public class MessagePackSerializerTests
             65000,
         };
 
-        this.MessagePackSerializer_TestSerialization(arr);
+        this.MessagePackSerializer_TestStructArraySerialization(arr);
     }
 
     [Fact]
     public void MessagePackSerializer_IntArray()
     {
-        this.MessagePackSerializer_TestSerialization((int[])null);
-        this.MessagePackSerializer_TestSerialization(Array.Empty<int>());
-
         var arr = new int[]
         {
             1,
@@ -459,15 +467,12 @@ public class MessagePackSerializerTests
             -314159265,
         };
 
-        this.MessagePackSerializer_TestSerialization(arr);
+        this.MessagePackSerializer_TestStructArraySerialization(arr);
     }
 
     [Fact]
     public void MessagePackSerializer_UintArray()
     {
-        this.MessagePackSerializer_TestSerialization((uint[])null);
-        this.MessagePackSerializer_TestSerialization(Array.Empty<uint>());
-
         var arr = new uint[]
         {
             1,
@@ -475,15 +480,12 @@ public class MessagePackSerializerTests
             4_000_000_000,
         };
 
-        this.MessagePackSerializer_TestSerialization(arr);
+        this.MessagePackSerializer_TestStructArraySerialization(arr);
     }
 
     [Fact]
     public void MessagePackSerializer_LongArray()
     {
-        this.MessagePackSerializer_TestSerialization((long[])null);
-        this.MessagePackSerializer_TestSerialization(Array.Empty<long>());
-
         var arr = new long[]
         {
             1,
@@ -491,15 +493,12 @@ public class MessagePackSerializerTests
             9_000_000_000_000_000_000,
         };
 
-        this.MessagePackSerializer_TestSerialization(arr);
+        this.MessagePackSerializer_TestStructArraySerialization(arr);
     }
 
     [Fact]
     public void MessagePackSerializer_UlongArray()
     {
-        this.MessagePackSerializer_TestSerialization((ulong[])null);
-        this.MessagePackSerializer_TestSerialization(Array.Empty<ulong>());
-
         var arr = new ulong[]
         {
             1,
@@ -507,15 +506,12 @@ public class MessagePackSerializerTests
             18_000_000_000_000_000_000,
         };
 
-        this.MessagePackSerializer_TestSerialization(arr);
+        this.MessagePackSerializer_TestStructArraySerialization(arr);
     }
 
     [Fact]
     public void MessagePackSerializer_FloatArray()
     {
-        this.MessagePackSerializer_TestSerialization((float[])null);
-        this.MessagePackSerializer_TestSerialization(Array.Empty<float>());
-
         var arr = new float[]
         {
             1,
@@ -523,15 +519,12 @@ public class MessagePackSerializerTests
             -3.14159f,
         };
 
-        this.MessagePackSerializer_TestSerialization(arr);
+        this.MessagePackSerializer_TestStructArraySerialization(arr);
     }
 
     [Fact]
     public void MessagePackSerializer_DoubleArray()
     {
-        this.MessagePackSerializer_TestSerialization((double[])null);
-        this.MessagePackSerializer_TestSerialization(Array.Empty<double>());
-
         var arr = new double[]
         {
             1,
@@ -539,15 +532,12 @@ public class MessagePackSerializerTests
             -3.14159d,
         };
 
-        this.MessagePackSerializer_TestSerialization(arr);
+        this.MessagePackSerializer_TestStructArraySerialization(arr);
     }
 
     [Fact]
     public void MessagePackSerializer_DateTimeArray()
     {
-        this.MessagePackSerializer_TestSerialization((DateTime[])null);
-        this.MessagePackSerializer_TestSerialization(Array.Empty<DateTime>());
-
         var arr = new DateTime[]
         {
             DateTime.Parse("2014-05-05 10:01:11"),
@@ -557,15 +547,12 @@ public class MessagePackSerializerTests
             DateTime.Parse("2121-02-24 00:00:00"),
         };
 
-        this.MessagePackSerializer_TestSerialization(arr);
+        this.MessagePackSerializer_TestStructArraySerialization(arr);
     }
 
     [Fact]
     public void MessagePackSerializer_DateTimeOffsetArray()
     {
-        this.MessagePackSerializer_TestSerialization((DateTimeOffset[])null);
-        this.MessagePackSerializer_TestSerialization(Array.Empty<DateTimeOffset>());
-
         var arr = new DateTimeOffset[]
         {
             DateTimeOffset.Parse("2014-05-05 10:01:11"),
@@ -575,7 +562,7 @@ public class MessagePackSerializerTests
             DateTimeOffset.Parse("2121-02-24 00:00:00"),
         };
 
-        this.MessagePackSerializer_TestSerialization(arr);
+        this.MessagePackSerializer_TestStructArraySerialization(arr);
     }
 
     [Fact]

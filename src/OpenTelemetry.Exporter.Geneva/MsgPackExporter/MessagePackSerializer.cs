@@ -524,7 +524,7 @@ internal static class MessagePackSerializer
         cursor = WriteArrayHeader(buffer, cursor, array.Length);
         for (int i = 0; i < array.Length; i++)
         {
-            cursor = Serialize(buffer, cursor, array[i]);
+            cursor = Serialize(buffer, cursor, (T)array[i]);
         }
 
         return cursor;
