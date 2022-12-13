@@ -64,11 +64,11 @@ internal class MassTransitDiagnosticListener : ListenerHandler
 
             try
             {
-                this.options.Enrich?.Invoke(activity, "OnStartActivity", payload);
+                this.options.EnrichWithRequestPayload?.Invoke(activity, payload);
             }
             catch (Exception ex)
             {
-                MassTransitInstrumentationEventSource.Log.EnrichmentException("OnStartActivity", ex);
+                this.options.EnrichWithException(activity, ex);
             }
         }
     }
@@ -81,11 +81,11 @@ internal class MassTransitDiagnosticListener : ListenerHandler
             {
                 this.TransformMassTransitTags(activity);
 
-                this.options.Enrich?.Invoke(activity, "OnStopActivity", payload);
+                this.options.EnrichWithResponsePayload?.Invoke(activity, payload);
             }
             catch (Exception ex)
             {
-                MassTransitInstrumentationEventSource.Log.EnrichmentException("OnStopActivity", ex);
+                this.options.EnrichWithException(activity, ex);
             }
         }
     }

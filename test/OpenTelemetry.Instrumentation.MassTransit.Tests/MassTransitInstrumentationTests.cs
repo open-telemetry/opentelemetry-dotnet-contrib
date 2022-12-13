@@ -243,6 +243,10 @@ public class MassTransitInstrumentationTests
             bool enrich = false,
             bool enrichmentException = false)
     {
+        bool enrichWithHttpRequestMessageCalled = false;
+        bool enrichWithHttpResponseMessageCalled = false;
+        bool enrichWithExceptionCalled = false;
+
         using Activity activity = new Activity("Parent");
         activity.SetParentId(
             ActivityTraceId.CreateRandom(),
@@ -252,34 +256,31 @@ public class MassTransitInstrumentationTests
 
         var activityProcessor = new Mock<BaseProcessor<Activity>>();
         using (Sdk.CreateTracerProviderBuilder()
-                   .AddProcessor(activityProcessor.Object)
-                   .AddMassTransitInstrumentation(o =>
-                   {
-                       o.TracedOperations = new HashSet<string>(new[] { operationName });
+            .AddProcessor(activityProcessor.Object)
+            .AddMassTransitInstrumentation(o =>
+            {
+                o.TracedOperations = new HashSet<string>(new[] { operationName });
 
-                       if (enrich)
-                       {
-                           if (!enrichmentException)
-                           {
-                               o.Enrich = (activity, eventName, obj) =>
-                               {
-                                   if (eventName.Equals("OnStartActivity"))
-                                   {
-                                       activity.SetTag("client.startactivity", "OnStartActivity");
-                                   }
-                                   else if (eventName.Equals("OnStopActivity"))
-                                   {
-                                       activity.SetTag("client.stopactivity", "OnStopActivity");
-                                   }
-                               };
-                           }
-                           else
-                           {
-                               o.Enrich = (activity, eventName, obj) => throw new Exception("Error while enriching activity");
-                           }
-                       }
-                   })
-                   .Build())
+                if (enrich)
+                {
+                    if (!enrichmentException)
+                    {
+                        o.EnrichWithRequestPayload = (activity, httpRequestMessage) => { enrichWithHttpRequestMessageCalled = true; };
+                    }
+                    else
+                    {
+                        o.EnrichWithRequestPayload = (activity, httpRequestMessage) =>
+                        {
+                            enrichWithHttpRequestMessageCalled = true;
+                            throw new Exception("Error while enriching activity");
+                        };
+                    }
+
+                    o.EnrichWithResponsePayload = (activity, httpResponseMessage) => { enrichWithHttpResponseMessageCalled = true; };
+                    o.EnrichWithException = (activity, obj) => { enrichWithExceptionCalled = true; };
+                }
+            })
+            .Build())
         {
             var harness = new InMemoryTestHarness();
             var consumerHarness = harness.Consumer<TestConsumer>();
@@ -308,10 +309,24 @@ public class MassTransitInstrumentationTests
 
         Assert.Single(consumes);
 
-        if (enrich && !enrichmentException)
+        if (enrich)
         {
-            Assert.Equal("OnStartActivity", consumes.First().TagObjects.Single(t => t.Key == "client.startactivity").Value);
-            Assert.Equal("OnStopActivity", consumes.First().TagObjects.Single(t => t.Key == "client.stopactivity").Value);
+            Assert.True(enrichWithHttpRequestMessageCalled);
+            Assert.True(enrichWithHttpResponseMessageCalled);
+        }
+        else
+        {
+            Assert.False(enrichWithHttpRequestMessageCalled);
+            Assert.False(enrichWithHttpResponseMessageCalled);
+        }
+
+        if (enrichmentException)
+        {
+            Assert.True(enrichWithExceptionCalled);
+        }
+        else
+        {
+            Assert.False(enrichWithExceptionCalled);
         }
     }
 
