@@ -5,9 +5,8 @@
 * Updated `Transport` with exception-handling and a couple of bug fixes ([#747](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/747)):
   * Adds `InstanaExporterEventSource` to provide for error logging.
   * Adds exception-handling to `Transport` with logging via `InstanaExporterEventSource`.
-  * Fixes `Transport` request buffering to remove potential for exceeding underlying array capacity.
-  * Fixes `Transport` to remove potential for lost spans due to buffer length.
-
+  * Fixes `Transport` buffering to prevent exceeding underlying array capacity.
+  * Fixes `Transport` to prevent lost spans due to buffer length.
 
 ## 1.0.1
 
