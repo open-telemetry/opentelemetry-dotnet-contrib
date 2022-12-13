@@ -316,7 +316,7 @@ public class GenevaMetricExporterTests
                 {
                     Name = "renamedhistogramWithCustomBounds",
                     Description = "modifiedDescription",
-                    Boundaries = new double[] { 500, 1000 },
+                    Boundaries = new double[] { 500, 1000, 10000 },
                 })
             .AddView(instrument =>
             {
@@ -398,7 +398,8 @@ public class GenevaMetricExporterTests
         // Record the following values for histogramWithCustomBounds:
         // (-inf - 500] : 3
         // (500 - 1000] : 1
-        // (1000 - +inf) : 1
+        // (1000 - 10000] : 0
+        // (10000 - +inf) : 1
         //
         // The corresponding value-count pairs to be sent for histogramWithCustomBounds:
         // 500: 3
@@ -409,7 +410,7 @@ public class GenevaMetricExporterTests
         histogramWithCustomBounds.Record(150, new("tag1", "value1"), new("tag2", "value2"));
         histogramWithCustomBounds.Record(150, new("tag1", "value1"), new("tag2", "value2"));
         histogramWithCustomBounds.Record(750, new("tag1", "value1"), new("tag2", "value2"));
-        histogramWithCustomBounds.Record(2500, new("tag1", "value1"), new("tag2", "value2"));
+        histogramWithCustomBounds.Record(50000, new("tag1", "value1"), new("tag2", "value2"));
 
         // Record the following values for histogramWithNoBounds:
         // (-inf - 500] : 3
@@ -763,11 +764,16 @@ public class GenevaMetricExporterTests
             double lastExplicitBound = default;
             foreach (var bucket in metricPoint.GetHistogramBuckets())
             {
-                if (bucket.BucketCount > 0)
+                if (bucket.BucketCount == 0)
+                {
+                    lastExplicitBound = bucket.ExplicitBound;
+                }
+                else
                 {
                     if (bucket.ExplicitBound != double.PositiveInfinity)
                     {
                         Assert.Equal(bucket.ExplicitBound, valueCountPairs.Columns[listIterator].Value);
+                        lastExplicitBound = bucket.ExplicitBound;
                     }
                     else
                     {
@@ -779,8 +785,6 @@ public class GenevaMetricExporterTests
                     listIterator++;
                     bucketsWithPositiveCount++;
                 }
-
-                lastExplicitBound = bucket.ExplicitBound;
             }
 
             Assert.Equal(bucketsWithPositiveCount, valueCountPairs.DistributionSize);
