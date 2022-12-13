@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Update OpenTelemetry API to 1.4.0-rc.1 ([#XXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXX))
+
 ## 1.0.0-alpha.2
 
 Released 2022-Nov-18
