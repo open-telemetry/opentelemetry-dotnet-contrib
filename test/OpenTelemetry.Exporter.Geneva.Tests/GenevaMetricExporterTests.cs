@@ -639,7 +639,6 @@ public class GenevaMetricExporterTests
 
     private static void CheckHistogramBucketSerialization(HistogramBucket bucket, HistogramValueCountPairs valueCountPairs, int listIterator, double lastExplicitBound)
     {
-
         if (bucket.ExplicitBound != double.PositiveInfinity)
         {
             Assert.Equal(bucket.ExplicitBound, valueCountPairs.Columns[listIterator].Value);
