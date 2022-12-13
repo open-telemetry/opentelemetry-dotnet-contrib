@@ -423,6 +423,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
             {
                 if (bucket.BucketCount == 0)
                 {
+                    // the underlying implementation of buckets, of type HistogramBuckets is a BST, which is sorted
                     lastExplicitBound = bucket.ExplicitBound;
                     continue;
                 }
