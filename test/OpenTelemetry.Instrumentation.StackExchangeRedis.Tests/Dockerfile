@@ -11,7 +11,7 @@ COPY . ./
 WORKDIR "/repo/test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests"
 RUN dotnet publish "OpenTelemetry.Instrumentation.StackExchangeRedis.Tests.csproj" -c "${PUBLISH_CONFIGURATION}" -f "${PUBLISH_FRAMEWORK}" -o /drop -p:IntegrationBuild=true -p:TARGET_FRAMEWORK=${PUBLISH_FRAMEWORK}
 
-FROM mcr.microsoft.com/dotnet/sdk:${SDK_VERSION} AS final
+FROM mcr.microsoft.com/dotnet/sdk:${TEST_VERSION} AS final
 WORKDIR /test
 COPY --from=build /drop .
 ENTRYPOINT ["dotnet", "vstest", "OpenTelemetry.Instrumentation.StackExchangeRedis.Tests.dll"]
