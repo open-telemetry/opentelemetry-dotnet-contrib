@@ -3,7 +3,7 @@
 # docker build --file test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/Dockerfile .
 
 ARG SDK_VERSION=7.0
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:${SDK_VERSION} AS build
 ARG PUBLISH_CONFIGURATION=Release
 ARG PUBLISH_FRAMEWORK=net7.0
 WORKDIR /repo
