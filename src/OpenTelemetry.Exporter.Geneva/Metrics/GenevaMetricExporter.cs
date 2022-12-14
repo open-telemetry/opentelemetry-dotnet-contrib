@@ -426,7 +426,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                     if (bucket.ExplicitBound != double.PositiveInfinity)
                     {
                         MetricSerializer.SerializeUInt64(this.bufferForHistogramMetrics, ref bufferIndex, Convert.ToUInt64(bucket.ExplicitBound));
-                        lastExplicitBound = bucket.ExplicitBound;
                     }
                     else
                     {
@@ -437,6 +436,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                     MetricSerializer.SerializeUInt32(this.bufferForHistogramMetrics, ref bufferIndex, Convert.ToUInt32(bucket.BucketCount));
                     bucketCount++;
                 }
+
+                lastExplicitBound = bucket.ExplicitBound;
             }
 
             // Write the number of items in distribution emitted and reset back to end.

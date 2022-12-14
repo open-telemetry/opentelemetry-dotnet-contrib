@@ -768,7 +768,6 @@ public class GenevaMetricExporterTests
                     if (bucket.ExplicitBound != double.PositiveInfinity)
                     {
                         Assert.Equal(bucket.ExplicitBound, valueCountPairs.Columns[listIterator].Value);
-                        lastExplicitBound = bucket.ExplicitBound;
                     }
                     else
                     {
@@ -780,6 +779,8 @@ public class GenevaMetricExporterTests
                     listIterator++;
                     bucketsWithPositiveCount++;
                 }
+
+                lastExplicitBound = bucket.ExplicitBound;
             }
 
             Assert.Equal(bucketsWithPositiveCount, valueCountPairs.DistributionSize);
