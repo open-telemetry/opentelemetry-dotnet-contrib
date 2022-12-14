@@ -26,6 +26,10 @@ internal sealed class InstanaExporterEventSource : EventSource
 {
     public static InstanaExporterEventSource Log = new();
 
+    private InstanaExporterEventSource()
+    {
+    }
+
     [NonEvent]
     public void FailedExport(Exception ex)
     {
