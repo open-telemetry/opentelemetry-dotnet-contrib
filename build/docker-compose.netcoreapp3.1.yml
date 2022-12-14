@@ -5,4 +5,4 @@ services:
     build:
       args:
         PUBLISH_FRAMEWORK: netcoreapp3.1
-        SDK_VERSION: 3.1
+        SDK_VERSION: 7.0

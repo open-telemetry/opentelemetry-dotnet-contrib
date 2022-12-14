@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		CONTRIBUTING.md = CONTRIBUTING.md
+		global.json = global.json
 		NuGet.config = NuGet.config
 		opentelemetry-dotnet-contrib.proj = opentelemetry-dotnet-contrib.proj
 		examples\process-instrumentation\process-instrumentation.csproj = examples\process-instrumentation\process-instrumentation.csproj
