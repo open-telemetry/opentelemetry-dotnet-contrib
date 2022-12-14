@@ -3,6 +3,8 @@
 # docker build --file test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/Dockerfile .
 
 ARG BUILD_SDK_VERSION=7.0
+ARG TEST_SDK_VERSION=7.0
+
 FROM mcr.microsoft.com/dotnet/sdk:${BUILD_SDK_VERSION} AS build
 ARG PUBLISH_CONFIGURATION=Release
 ARG PUBLISH_FRAMEWORK=net7.0
@@ -11,7 +13,6 @@ COPY . ./
 WORKDIR "/repo/test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests"
 RUN dotnet publish "OpenTelemetry.Instrumentation.StackExchangeRedis.Tests.csproj" -c "${PUBLISH_CONFIGURATION}" -f "${PUBLISH_FRAMEWORK}" -o /drop -p:IntegrationBuild=true -p:TARGET_FRAMEWORK=${PUBLISH_FRAMEWORK}
 
-ARG TEST_SDK_VERSION=7.0
 FROM mcr.microsoft.com/dotnet/sdk:${TEST_SDK_VERSION} AS final
 WORKDIR /test
 COPY --from=build /drop .
