@@ -27,6 +27,7 @@ internal sealed class TableNameSerializer
     public const int MaxSanitizedCategoryNameLength = 50;
     public const int MaxSanitizedCategoryNameBytes = MaxSanitizedCategoryNameLength + 2;
     public const int MaxCachedSanitizedTableNames = 1024;
+    private const StringComparison DictionaryKeyComparison = StringComparison.Ordinal;
 
 #pragma warning disable CA1825 // Avoid zero-length array allocations
     /* Note: We don't use Array.Empty<byte> here because that is used to
@@ -35,7 +36,6 @@ internal sealed class TableNameSerializer
     private static readonly byte[] s_passthroughTableName = new byte[0];
 #pragma warning restore CA1825 // Avoid zero-length array allocations
     private static readonly StringComparer s_dictionaryKeyComparer = StringComparer.Ordinal;
-    private static readonly StringComparison s_dictionaryKeyComparison = StringComparison.Ordinal;
 
     private readonly byte[] m_defaultTableName;
     private readonly Dictionary<string, byte[]> m_tableMappings;
@@ -235,7 +235,7 @@ internal sealed class TableNameSerializer
 
             foreach (var mapping in this.m_tableMappings)
             {
-                if (!categoryName.StartsWith(mapping.Key, s_dictionaryKeyComparison))
+                if (!categoryName.StartsWith(mapping.Key, DictionaryKeyComparison))
                 {
                     continue;
                 }
