@@ -65,7 +65,9 @@ internal static class MessagePackSerializer
     private const int LIMIT_MAX_FIX_ARRAY_LENGTH = 15;
     private const int STRING_SIZE_LIMIT_CHAR_COUNT = (1 << 14) - 1; // 16 * 1024 - 1 = 16383
 
+#if NET6_0_OR_GREATER
     private const int MAX_STACK_ALLOC_SIZE_IN_BYTES = 256;
+#endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeNull(byte[] buffer, int cursor)
