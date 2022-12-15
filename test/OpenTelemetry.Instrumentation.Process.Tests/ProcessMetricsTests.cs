@@ -156,6 +156,23 @@ public class ProcessMetricsTests
 
         Assert.NotEmpty(exportedItemsA);
         Assert.Empty(exportedItemsB);
+
+        exportedItemsA.Clear();
+        exportedItemsB.Clear();
+
+        meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
+
+        Assert.NotEmpty(exportedItemsA);
+        Assert.Empty(exportedItemsB);
+
+        exportedItemsA.Clear();
+
+        meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
+
+        // Note: This should fail due to:
+        // https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry/Metrics/MetricReaderExt.cs#L244-L249
+        Assert.NotEmpty(exportedItemsA);
+        Assert.Empty(exportedItemsB);
     }
 
     private static double GetValue(Metric metric)
