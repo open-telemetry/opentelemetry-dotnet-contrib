@@ -134,19 +134,28 @@ public class ProcessMetricsTests
             .AddInMemoryExporter(exportedItemsA)
             .Build();
 
-        using var meterProviderB = Sdk.CreateMeterProviderBuilder()
+        using (var meterProviderB = Sdk.CreateMeterProviderBuilder()
             .AddProcessInstrumentation()
             .AddInMemoryExporter(exportedItemsB)
-            .Build();
+            .Build())
+        {
+            meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
+            meterProviderB.ForceFlush(MaxTimeToAllowForFlush);
+
+            var metricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.usage");
+            var metricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.memory.usage");
+
+            Assert.True(GetValue(metricA) > 0);
+            Assert.True(GetValue(metricB) > 0);
+        }
+
+        exportedItemsA.Clear();
+        exportedItemsB.Clear();
 
         meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
-        meterProviderB.ForceFlush(MaxTimeToAllowForFlush);
 
-        var metricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.usage");
-        var metricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.memory.usage");
-
-        Assert.True(GetValue(metricA) > 0);
-        Assert.True(GetValue(metricB) > 0);
+        Assert.NotEmpty(exportedItemsA);
+        Assert.Empty(exportedItemsB);
     }
 
     private static double GetValue(Metric metric)
