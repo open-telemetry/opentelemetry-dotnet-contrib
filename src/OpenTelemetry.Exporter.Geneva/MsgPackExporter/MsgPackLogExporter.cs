@@ -33,7 +33,9 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     private readonly IReadOnlyDictionary<string, object> m_customFields;
 
     private readonly ExceptionStackExportMode m_exportExceptionStack;
-    private readonly ExporterStateForScopes exporterStateForScopes;
+
+    // This is used for Scopes
+    private readonly ThreadLocal<SerializationDataForScopes> m_serializationData = new(() => null);
 
     private readonly string m_defaultEventName = "Log";
     private readonly IReadOnlyDictionary<string, object> m_prepopulatedFields;
@@ -127,8 +129,6 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
             this.m_customFields = customFields;
         }
-
-        this.exporterStateForScopes = new ExporterStateForScopes() { CustomFields = this.m_customFields };
 
         var buffer = new byte[BUFFER_SIZE];
         var cursor = MessagePackSerializer.Serialize(buffer, 0, new Dictionary<string, object> { { "TimeFormat", "DateTime" } });
@@ -353,22 +353,22 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         }
 
         // Prepare state for scopes
-        var state = this.exporterStateForScopes;
-        var dataForScopes = state.SerializationData.Value;
+        var dataForScopes = this.m_serializationData.Value;
         if (dataForScopes == null)
         {
             dataForScopes = new SerializationDataForScopes
             {
                 Buffer = buffer,
             };
-            state.SerializationData.Value = dataForScopes;
+
+            this.m_serializationData.Value = dataForScopes;
         }
 
         dataForScopes.Cursor = cursor;
         dataForScopes.FieldsCount = cntFields;
         dataForScopes.HasEnvProperties = hasEnvProperties;
 
-        logRecord.ForEachScope(ProcessScopeForIndividualColumns, this.exporterStateForScopes);
+        logRecord.ForEachScope(ProcessScopeForIndividualColumns, this);
 
         // Update the variables that could have been modified in ProcessScopeForIndividualColumns
         hasEnvProperties = dataForScopes.HasEnvProperties;
@@ -402,7 +402,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             dataForScopes.Cursor = cursor;
             dataForScopes.EnvPropertiesCount = envPropertiesCount;
 
-            logRecord.ForEachScope(ProcessScopeForEnvProperties, this.exporterStateForScopes);
+            logRecord.ForEachScope(ProcessScopeForEnvProperties, this);
 
             // Update the variables that could have been modified in ProcessScopeForEnvProperties
             cursor = dataForScopes.Cursor;
@@ -574,9 +574,10 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         this.isDisposed = true;
     }
 
-    private static readonly Action<LogRecordScope, ExporterStateForScopes> ProcessScopeForIndividualColumns = (scope, state) =>
+    private static readonly Action<LogRecordScope, MsgPackLogExporter> ProcessScopeForIndividualColumns = (scope, state) =>
     {
-        var stateData = state.SerializationData.Value;
+        var stateData = state.m_serializationData.Value;
+        var customFields = state.m_customFields;
 
         foreach (KeyValuePair<string, object> scopeItem in scope)
         {
@@ -585,7 +586,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 continue;
             }
 
-            if (state.CustomFields == null || state.CustomFields.ContainsKey(scopeItem.Key))
+            if (customFields == null || customFields.ContainsKey(scopeItem.Key))
             {
                 if (scopeItem.Value != null)
                 {
@@ -602,9 +603,10 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         }
     };
 
-    private static readonly Action<LogRecordScope, ExporterStateForScopes> ProcessScopeForEnvProperties = (scope, state) =>
+    private static readonly Action<LogRecordScope, MsgPackLogExporter> ProcessScopeForEnvProperties = (scope, state) =>
     {
-        var stateData = state.SerializationData.Value;
+        var stateData = state.m_serializationData.Value;
+        var customFields = state.m_customFields;
 
         foreach (KeyValuePair<string, object> scopeItem in scope)
         {
@@ -613,7 +615,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 continue;
             }
 
-            if (!state.CustomFields.ContainsKey(scopeItem.Key))
+            if (!customFields.ContainsKey(scopeItem.Key))
             {
                 stateData.Cursor = MessagePackSerializer.SerializeUnicodeString(stateData.Buffer, stateData.Cursor, scopeItem.Key);
                 stateData.Cursor = MessagePackSerializer.Serialize(stateData.Buffer, stateData.Cursor, scopeItem.Value);
@@ -630,11 +632,5 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         public int Cursor;
         public byte[] Buffer;
         public ushort FieldsCount;
-    }
-
-    private class ExporterStateForScopes
-    {
-        public readonly ThreadLocal<SerializationDataForScopes> SerializationData = new(() => null);
-        public IReadOnlyDictionary<string, object> CustomFields;
     }
 }
