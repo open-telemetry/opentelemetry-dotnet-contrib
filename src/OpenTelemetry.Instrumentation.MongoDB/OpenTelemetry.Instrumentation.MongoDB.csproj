@@ -5,6 +5,7 @@
     <Description>OpenTelemetry instrumentation for MongoDB</Description>
     <PackageTags>$(PackageTags);distributed-tracing;Mongo</PackageTags>
     <MinVerTagPrefix>Instrumentation.Mongo-</MinVerTagPrefix>
+    <RootNamespace>OpenTelemetry.Instrumentation.Mongo</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

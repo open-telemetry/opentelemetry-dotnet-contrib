@@ -241,7 +241,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentati
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "process-instrumentation", "examples\process-instrumentation\process-instrumentation.csproj", "{C3B3BBAF-CC38-4D5C-AFA2-33184D07BF75}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Instrumentation.Mongo", "src\OpenTelemetry.Instrumentation.Mongo\OpenTelemetry.Instrumentation.Mongo.csproj", "{D19A81B9-7718-4766-A207-DB8E15144DA9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Instrumentation.MongoDB", "src\OpenTelemetry.Instrumentation.MongoDB\OpenTelemetry.Instrumentation.MongoDB.csproj", "{D19A81B9-7718-4766-A207-DB8E15144DA9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
