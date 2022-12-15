@@ -57,6 +57,14 @@ public class DockerResourceDetectorTests
     private const string CONTAINERID =
         "d86d75589bf6cc254f3e2cc29debdf85dde404998aa128997a819ff991827356";
 
+    // cgroupv2 line with container Id
+    private const string CGROUPLINEV2 =
+        "13:name=systemd:/pod/d86d75589bf6cc254f3e2cc29debdf85dde404998aa128997a819ff991827356/hostname";
+
+    // Expected Container Id
+    private const string CONTAINERIDV2 = "d86d75589bf6cc254f3e2cc29debdf85dde404998aa128997a819ff991827356";
+
+
     [Fact]
     public void TestValidContainer()
     {
@@ -84,6 +92,12 @@ public class DockerResourceDetectorTests
         {
             tempFile.Write(CGROUPLINE);
             Assert.Equal(CONTAINERID, this.GetContainerId(dockerResourceDetector.BuildResource(tempFile.FilePath)));
+        }
+
+        using (TempFile tempFile = new TempFile())
+        {
+            tempFile.Write(CGROUPLINEV2);
+            Assert.Equal(CONTAINERIDV2, this.GetContainerId(dockerResourceDetector.BuildResource(tempFile.FilePath)));
         }
     }
 

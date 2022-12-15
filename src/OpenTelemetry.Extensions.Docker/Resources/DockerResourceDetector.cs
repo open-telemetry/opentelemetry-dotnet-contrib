@@ -37,16 +37,17 @@ public class DockerResourceDetector : IResourceDetector
     /// <returns>Resource with key-value pairs of resource attributes.</returns>
     public Resource Detect()
     {
-        return this.BuildResource();
+        return this.BuildResource(FILEPATH);
     }
 
     /// <summary>
     /// Builds the resource attributes from Container Id in file path.
     /// </summary>
+    /// <param name="path">cgroup path.</param>
     /// <returns>Returns Resource with list of key-value pairs of container resource attributes if container id exists else empty resource.</returns>
-    internal Resource BuildResource()
+    internal Resource BuildResource(string path)
     {
-        var containerId = this.ExtractContainerId();
+        var containerId = this.ExtractContainerId(path);
 
         if (string.IsNullOrEmpty(containerId))
         {
@@ -61,12 +62,13 @@ public class DockerResourceDetector : IResourceDetector
     /// <summary>
     /// Extracts Container Id from path.
     /// </summary>
+    /// /// <param name="path">cgroup path.</param>
     /// <returns>Returns Resource with list of key-value pairs of container resource attributes if container id exists else empty resource.</returns>
-    private string ExtractContainerId()
+    private string ExtractContainerId(string path)
     {
         try
         {
-            return this.ExtractContainerIdV1(FILEPATH) ?? this.ExtractContainerIdV2(FILEPATHV2);
+            return this.ExtractContainerIdV1(path) ?? this.ExtractContainerIdV2(path);
         }
         catch (Exception ex)
         {
@@ -123,7 +125,7 @@ public class DockerResourceDetector : IResourceDetector
 
             foreach (string line in File.ReadLines(path))
             {
-                string containerId = line.Contains(HOSTNAME) ? this.GetIdFromLine(line) : null;
+                string containerId = (!string.IsNullOrEmpty(line) && line.Contains(HOSTNAME)) ? this.GetIdFromLineV2(line) : null;
                 if (!string.IsNullOrEmpty(containerId))
                 {
                     return containerId;
@@ -157,6 +159,27 @@ public class DockerResourceDetector : IResourceDetector
         int endIndex = lastSection.LastIndexOf('.');
 
         string containerId = this.RemovePrefixAndSuffixIfneeded(lastSection, startIndex, endIndex);
+
+        if (string.IsNullOrEmpty(containerId) || !EncodingUtils.IsValidHexString(containerId))
+        {
+            return null;
+        }
+
+        return containerId;
+    }
+
+    private string GetIdFromLineV2(string line)
+    {
+        int hostnameIndex = line.LastIndexOf("/" + HOSTNAME);
+        if (hostnameIndex < 0)
+        {
+            return null;
+        }
+
+        string earlierSection = line.Substring(0, hostnameIndex);
+        int startIndex = earlierSection.LastIndexOf('/');
+
+        string containerId = this.RemovePrefixAndSuffixIfneeded(earlierSection, startIndex, hostnameIndex);
 
         if (string.IsNullOrEmpty(containerId) || !EncodingUtils.IsValidHexString(containerId))
         {
