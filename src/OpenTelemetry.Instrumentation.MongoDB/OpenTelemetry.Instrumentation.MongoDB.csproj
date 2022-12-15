@@ -4,8 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Description>OpenTelemetry instrumentation for MongoDB</Description>
     <PackageTags>$(PackageTags);distributed-tracing;Mongo</PackageTags>
-    <MinVerTagPrefix>Instrumentation.Mongo-</MinVerTagPrefix>
-    <RootNamespace>OpenTelemetry.Instrumentation.Mongo</RootNamespace>
+    <MinVerTagPrefix>Instrumentation.MongoDB-</MinVerTagPrefix>
   </PropertyGroup>
 
   <ItemGroup>
