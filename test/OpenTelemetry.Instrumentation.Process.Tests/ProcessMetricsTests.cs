@@ -123,7 +123,8 @@ public class ProcessMetricsTests
         Assert.True(systemCpuUtilizationCaptured);
     }
 
-    [Fact]
+    // See: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/831
+    [Fact(Skip = "There are known issues with this test.")]
     public void CheckValidGaugeValueWhen2MeterProviderInstancesHaveTheSameMeterName()
     {
         var exportedItemsA = new List<Metric>();
@@ -169,7 +170,7 @@ public class ProcessMetricsTests
 
         meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
 
-        // Note: This should fail due to:
+        // Note: This fails due to:
         // https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry/Metrics/MetricReaderExt.cs#L244-L249
         Assert.NotEmpty(exportedItemsA);
         Assert.Empty(exportedItemsB);
