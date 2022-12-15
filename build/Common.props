@@ -24,7 +24,6 @@
       Refer to https://docs.microsoft.com/en-us/nuget/concepts/package-versioning for semver syntax.
     -->
     <MinVerPkgVer>[4.2.0,5.0)</MinVerPkgVer>
-    <MicrosoftCodeAnalysisNetAnalyzersPkgVer>[6.0.0]</MicrosoftCodeAnalysisNetAnalyzersPkgVer>
     <MicrosoftCodeCoveragePkgVer>[17.3.2]</MicrosoftCodeCoveragePkgVer>
     <MicrosoftExtensionsHostingAbstractionsPkgVer>[2.1.0,5.0)</MicrosoftExtensionsHostingAbstractionsPkgVer>
     <MicrosoftExtensionsOptionsPkgVer>[3.1.0,)</MicrosoftExtensionsOptionsPkgVer>
@@ -51,7 +50,6 @@
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="$(MicrosoftNETFrameworkReferenceAssembliesPkgVer)" PrivateAssets="All" />
     <PackageReference Include="StyleCop.Analyzers" Version="$(StyleCopAnalyzersPkgVer)" Condition="'$(SkipAnalysis)'!='true'" PrivateAssets="All" />
     <PackageReference Include="Microsoft.CodeCoverage" Version="$(MicrosoftCodeCoveragePkgVer)" Condition="'$(Configuration)'=='Release'" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(MicrosoftCodeAnalysisNetAnalyzersPkgVer)" Condition="'$(EnableAnalysis)'=='true' and '$(SkipAnalysis)'!='true'" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(IncludeSharedInstrumentationSource)'=='true'">
