@@ -366,6 +366,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
         dataForScopes.Cursor = cursor;
         dataForScopes.FieldsCount = cntFields;
+        dataForScopes.HasEnvProperties = hasEnvProperties;
 
         logRecord.ForEachScope(ProcessScopeForIndividualColumns, this.exporterStateForScopes);
 
