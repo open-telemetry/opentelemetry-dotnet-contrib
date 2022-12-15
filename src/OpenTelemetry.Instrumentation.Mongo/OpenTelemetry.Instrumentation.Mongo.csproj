@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>OpenTelemetry instrumentation for MongoDB</Description>
+    <PackageTags>$(PackageTags);distributed-tracing;Mongo</PackageTags>
+    <MinVerTagPrefix>Instrumentation.Mongo-</MinVerTagPrefix>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MongoDB.Driver.Core.Extensions.DiagnosticSources" Version="1.2.0" />
+    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
+  </ItemGroup>
+
+</Project>
