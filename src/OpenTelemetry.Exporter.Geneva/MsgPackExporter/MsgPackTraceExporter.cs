@@ -240,22 +240,30 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             cntFields += 1;
         }
 
-        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "links");
-        cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, ushort.MaxValue); // Note: always use Array16 for perf consideration
-        var idxLinkPatch = cursor - 2;
-        ushort cntLink = 0;
-        foreach (ref readonly var link in activity.EnumerateLinks())
+        var linkEnumerator = activity.EnumerateLinks();
+        if (linkEnumerator.MoveNext())
         {
-            cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, 2);
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "toTraceId");
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, link.Context.TraceId.ToHexString());
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "toSpanId");
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, link.Context.SpanId.ToHexString());
-            cntLink += 1;
-        }
+            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "links");
+            cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, ushort.MaxValue); // Note: always use Array16 for perf consideration
+            var idxLinkPatch = cursor - 2;
 
-        MessagePackSerializer.WriteUInt16(buffer, idxLinkPatch, cntLink);
-        cntFields += 1;
+            ushort cntLink = 0;
+            do
+            {
+                ref readonly var link = ref linkEnumerator.Current;
+
+                cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, 2);
+                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "toTraceId");
+                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, link.Context.TraceId.ToHexString());
+                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "toSpanId");
+                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, link.Context.SpanId.ToHexString());
+                cntLink += 1;
+            }
+            while (linkEnumerator.MoveNext());
+
+            MessagePackSerializer.WriteUInt16(buffer, idxLinkPatch, cntLink);
+            cntFields += 1;
+        }
 
         // TODO: The current approach is to iterate twice over TagObjects so that all
         // env_properties can be added the very end. This avoids speculating the size
