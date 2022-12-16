@@ -45,7 +45,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
 
     public override ExportResult Export(in Batch<LogRecord> batch)
     {
-        return this.exportLogRecord(batch);
+        return this.exportLogRecord(in batch);
     }
 
     protected override void Dispose(bool disposing)

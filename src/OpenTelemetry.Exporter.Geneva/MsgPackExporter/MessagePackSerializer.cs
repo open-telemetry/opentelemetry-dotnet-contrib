@@ -351,6 +351,13 @@ internal static class MessagePackSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void WriteStr8Header(Span<byte> buffer, int nameStartIdx, int validNameLength)
+    {
+        buffer[nameStartIdx] = STR8;
+        buffer[nameStartIdx + 1] = unchecked((byte)validNameLength);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeAsciiString(byte[] buffer, int cursor, string value)
     {
         if (value == null)
@@ -373,7 +380,7 @@ internal static class MessagePackSerializer
             }
             else
             {
-                throw new ArgumentException("The input string: \"{inputString}\" has non-ASCII characters in it.", value);
+                throw new ArgumentException($"The input string: \"{value}\" has non-ASCII characters in it.", nameof(value));
             }
         }
 
@@ -390,7 +397,7 @@ internal static class MessagePackSerializer
             }
             else
             {
-                throw new ArgumentException("The input string: \"{inputString}\" has non-ASCII characters in it.", value);
+                throw new ArgumentException($"The input string: \"{value}\" has non-ASCII characters in it.", nameof(value));
             }
         }
 
@@ -656,7 +663,7 @@ internal static class MessagePackSerializer
 #endif
 
             default:
-                string repr = null;
+                string repr;
 
                 try
                 {
@@ -671,9 +678,17 @@ internal static class MessagePackSerializer
         }
     }
 
-    public static int SerializeSpan(byte[] buffer, int cursor, Span<byte> value)
+    public static int SerializeSpan(byte[] buffer, int cursor, ReadOnlySpan<byte> value)
     {
+        var length = value.Length;
+
+        if (length == 0)
+        {
+            return SerializeNull(buffer, cursor);
+        }
+
         value.CopyTo(buffer.AsSpan(cursor));
-        return cursor + value.Length;
+
+        return cursor + length;
     }
 }
