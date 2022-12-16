@@ -2,17 +2,16 @@ name: Build
 
 on:
   push:
-    branches: [ main ]
+    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths-ignore:
     - '**.md'
   pull_request:
-    branches: [ main ]
+    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths-ignore:
     - '**.md'
 
 jobs:
   build-test:
-    
 
     strategy:
       fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
@@ -27,10 +26,16 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - uses: actions/setup-dotnet@v3.0.3
+    - name: Install .NET 3.1 SDK
+      uses: actions/setup-dotnet@v3.0.3
+      with:
+        dotnet-version: '3.1.x'
+
+    - name: Install .NET 7 SDK
+      uses: actions/setup-dotnet@v3.0.3
       with:
         dotnet-version: '7.0.x'
-        
+
     - name: Install dependencies
       run: dotnet restore
 

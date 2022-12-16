@@ -2,12 +2,12 @@ name: dotnet format
 
 on:
   push:
-    branches: [ main ]
+    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths:
     - '**.cs'
     - '.editorconfig'
   pull_request:
-    branches: [ main ]
+    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths:
     - '**.cs'
     - '.editorconfig'
@@ -19,6 +19,11 @@ jobs:
     steps:
     - name: check out code
       uses: actions/checkout@v3
+
+    - name: Install .NET 7 SDK
+      uses: actions/setup-dotnet@v3.0.3
+      with:
+        dotnet-version: '7.0.x'
 
     - name: Install format tool
       run: dotnet tool install -g dotnet-format
