@@ -2,11 +2,20 @@
 
 ## Unreleased
 
+* Update OpenTelemetry to 1.4.0-rc.1
+  ([#820](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/820))
+
+## 1.4.0-beta.6
+
+Released 2022-Dec-09
+
 * Added support for
   [DateTimeOffset](https://learn.microsoft.com/dotnet/api/system.datetimeoffset).
   ([#797](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/797))
 * Fix the overflow bucket value serialization for Histogram.
   ([#805](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/805))
+* Fix EventSource logging
+  ([#813](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/813))
 
 ## 1.3.1
 
