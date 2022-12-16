@@ -92,7 +92,7 @@ internal sealed class ActivityEventAttachingLogProcessor : BaseProcessor<LogReco
         }
     }
 
-    private class State
+    private sealed class State
     {
         public State(ActivityTagsCollection tags, ActivityEventAttachingLogProcessor processor)
         {
