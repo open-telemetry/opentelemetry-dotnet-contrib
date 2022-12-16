@@ -4,6 +4,8 @@
 
 * Update OTel SDK version to `1.3.1`.
   ([#631](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/631))
+* Change value `rpc.system` from `wcf` to `dotnet_wcf`.
+  ([#837](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/837))
 
 ## 1.0.0-rc.7
 

@@ -22,7 +22,7 @@ using System.Threading;
 namespace OpenTelemetry.Exporter.Geneva;
 
 [EventSource(Name = "OpenTelemetry-Exporter-Geneva")]
-internal class ExporterEventSource : EventSource
+internal sealed class ExporterEventSource : EventSource
 {
     public static readonly ExporterEventSource Log = new ExporterEventSource();
     private const int EVENT_ID_TRACE = 1; // Failed to send Trace
@@ -30,10 +30,10 @@ internal class ExporterEventSource : EventSource
     private const int EVENT_ID_METRIC = 3; // Failed to send Metric
     private const int EVENT_ID_ERROR = 4; // Other common exporter exceptions
 
-    [Event(EVENT_ID_TRACE, Message = "Exporter failed to send trace data. Exception: {0}", Level = EventLevel.Error)]
+    [NonEvent]
     public void FailedToSendTraceData(Exception ex)
     {
-        if (Log.IsEnabled(EventLevel.Error, EventKeywords.All))
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
             // https://docs.microsoft.com/en-us/windows/win32/etw/about-event-tracing
             // ETW has a size limit: The total event size is greater than 64K. This includes the ETW header plus the data or payload.
@@ -43,38 +43,62 @@ internal class ExporterEventSource : EventSource
             // descrs[0].Size = ((arg1.Length + 1) * 2);
             // I'm assuming it calculates the size of string, then it should be:
             // (count of chars) * sizeof(char) + sizeof(Length:int) = (str.Length * 2 + 4).
-            this.WriteEvent(EVENT_ID_TRACE, ToInvariantString(ex));
+            this.FailedToSendTraceData(ToInvariantString(ex));
         }
     }
 
-    [Event(EVENT_ID_LOG, Message = "Exporter failed to send log data. Exception: {0}", Level = EventLevel.Error)]
+    [NonEvent]
     public void FailedToSendLogData(Exception ex)
     {
-        if (Log.IsEnabled(EventLevel.Error, EventKeywords.All))
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
             // TODO: Do not hit ETW size limit even for external library exception stack.
-            this.WriteEvent(EVENT_ID_LOG, ToInvariantString(ex));
+            this.FailedToSendLogData(ToInvariantString(ex));
         }
     }
 
-    [Event(EVENT_ID_METRIC, Message = "Exporter failed to send metric data. Data will not be sent. MonitoringAccount = {0} MetricNamespace = {1}, MetricName = {2}, Message: {3}", Level = EventLevel.Error)]
+    [NonEvent]
     public void FailedToSendMetricData(string monitoringAccount, string metricNamespace, string metricName, Exception ex)
     {
-        if (Log.IsEnabled(EventLevel.Error, EventKeywords.All))
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
             // TODO: Do not hit ETW size limit even for external library exception stack.
-            this.WriteEvent(EVENT_ID_METRIC, monitoringAccount, metricNamespace, metricName, ToInvariantString(ex));
+            this.FailedToSendMetricData(monitoringAccount, metricNamespace, metricName, ToInvariantString(ex));
         }
     }
 
-    [Event(EVENT_ID_ERROR, Message = "Exporter failed.", Level = EventLevel.Error)]
+    [NonEvent]
     public void ExporterException(string message, Exception ex)
     {
         if (Log.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
             // TODO: Do not hit ETW size limit even for external library exception stack.
-            this.WriteEvent(EVENT_ID_ERROR, message, ToInvariantString(ex));
+            this.ExporterException(message, ToInvariantString(ex));
         }
+    }
+
+    [Event(EVENT_ID_TRACE, Message = "Exporter failed to send trace data. Exception: {0}", Level = EventLevel.Error)]
+    public void FailedToSendTraceData(string error)
+    {
+        this.WriteEvent(EVENT_ID_TRACE, error);
+    }
+
+    [Event(EVENT_ID_LOG, Message = "Exporter failed to send log data. Exception: {0}", Level = EventLevel.Error)]
+    public void FailedToSendLogData(string error)
+    {
+        this.WriteEvent(EVENT_ID_LOG, error);
+    }
+
+    [Event(EVENT_ID_METRIC, Message = "Exporter failed to send metric data. Data will not be sent. MonitoringAccount = {0} MetricNamespace = {1}, MetricName = {2}, Message: {3}", Level = EventLevel.Error)]
+    public void FailedToSendMetricData(string monitoringAccount, string metricNamespace, string metricName, string error)
+    {
+        this.WriteEvent(EVENT_ID_METRIC, monitoringAccount, metricNamespace, metricName, error);
+    }
+
+    [Event(EVENT_ID_ERROR, Message = "Exporter failed. Message: {0}, Exception: {1}", Level = EventLevel.Error)]
+    public void ExporterException(string message, string error)
+    {
+        this.WriteEvent(EVENT_ID_ERROR, message, error);
     }
 
     /// <summary>

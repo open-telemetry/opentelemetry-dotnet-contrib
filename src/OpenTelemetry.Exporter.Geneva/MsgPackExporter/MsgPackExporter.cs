@@ -58,7 +58,7 @@ internal abstract class MsgPackExporter
         return cursor;
     }
 
-    protected static int AddPartAField(byte[] buffer, int cursor, string name, Span<byte> value)
+    protected static int AddPartAField(byte[] buffer, int cursor, string name, ReadOnlySpan<byte> value)
     {
         if (V40_PART_A_MAPPING.TryGetValue(name, out string replacementKey))
         {

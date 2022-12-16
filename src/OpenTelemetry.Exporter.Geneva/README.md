@@ -104,14 +104,74 @@ sent through this exporter.
 
 This defines the mapping for the table name used to store Logs and Traces.
 
-The default table name used for Traces is `Span`. For changing the table name
-for Traces, add an entry with key as `Span`, and value as the custom table name.
+##### Trace table name mappings
 
-The default table name used for Logs is `Log`. Mappings can be specified for
-each
+The default table name used for Traces is `Span`. To change the table name for
+Traces add an entry with the key `Span` and set the value to the desired custom
+table name.
+
+**Note:** Only a single table name is supported for Traces.
+
+##### Log table name mappings
+
+The default table name used for Logs is `Log`. Mappings can be specified
+universally or for individual log message
 [category](https://docs.microsoft.com/dotnet/core/extensions/logging#log-category)
-of the log. For changing the default table name for Logs, add an entry with key
-as `*`, and value as the custom table name.
+values.
+
+* To change the default table name for Logs add an entry with the key `*` and
+  set the value to the desired custom table name. To enable "pass-through"
+  mapping set the value of the `*` key to `*`. For details on "pass-through"
+  mode see below.
+
+* To change the table name for a specific log
+  [category](https://docs.microsoft.com/dotnet/core/extensions/logging#log-category)
+  add an entry with the key set to the full "category" of the log messages or a
+  prefix that will match the starting portion of the log message "category". Set
+  the value of the key to either the desired custom table name or `*` to enable
+  "pass-through" mapping. For details on "pass-through" mode see below.
+
+  For example, given the configuration...
+
+  ```csharp
+    var options = new GenevaExporterOptions
+    {
+        TableNameMappings = new Dictionary<string, string>()
+        {
+            ["*"] = "DefaultLogs",
+            ["MyCompany"] = "InternalLogs",
+            ["MyCompany.Product1"] = "InternalProduct1Logs",
+            ["MyCompany.Product2"] = "InternalProduct2Logs",
+            ["MyCompany.Product2.Security"] = "InternalSecurityLogs",
+            ["MyPartner"] = "*",
+        },
+    };
+  ```
+
+  ...log category mapping would be performed as such:
+
+  * `ILogger<ThirdParty.Thing>`: This would go to "DefaultLogs"
+  * `ILogger<MyCompany.ProductX.Thing>`: This would go to "InternalLogs"
+  * `ILogger<MyCompany.Product1.Thing>`: This would go to "InternalProduct1Logs"
+  * `ILogger<MyCompany.Product2.Thing>`: This would go to "InternalProduct2Logs"
+  * `ILogger<MyCompany.Product2.Security.Alert>`: This would go to
+    "InternalSecurityLogs"
+  * `ILogger<MyPartner.Product.Thing>`: This is marked as pass-through ("*") so
+    it will be sanitized as "MyPartnerProductThing" table name
+
+##### Pass-through table name mapping rules
+
+When "pass-through" mapping is enabled for a given log message the runtime
+[category](https://docs.microsoft.com/dotnet/core/extensions/logging#log-category)
+value will be converted into a valid table name.
+
+* The first character MUST be an ASCII letter. If it is lower-case, it will be
+  converted into an upper-case letter. If the first character is invalid all log
+  messages for the "category" will be dropped.
+
+* Any non-ASCII letter or number will be removed.
+
+* Only the first 50 valid characters will be used.
 
 ### Enable Metrics
 
