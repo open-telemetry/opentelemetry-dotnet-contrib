@@ -40,7 +40,7 @@ public class AutoFlushActivityProcessorTests
 
         using var source = new ActivitySource(sourceName);
         using var activity = source.StartActivity("name", ActivityKind.Server);
-        activity.Dispose();
+        activity.Stop();
 
         mockExporting.Protected().Verify("OnForceFlush", Times.Once(), 5_000);
     }
@@ -59,7 +59,7 @@ public class AutoFlushActivityProcessorTests
 
         using var source = new ActivitySource(sourceName);
         using var activity = source.StartActivity("name", ActivityKind.Client);
-        activity.Dispose();
+        activity.Stop();
 
         mockExporting.Protected().Verify("OnForceFlush", Times.Never(), It.IsAny<int>());
     }
@@ -78,7 +78,7 @@ public class AutoFlushActivityProcessorTests
 
         using var source = new ActivitySource(sourceName);
         using var activity = source.StartActivity("name", ActivityKind.Server);
-        activity.Dispose();
+        activity.Stop();
 
         mockExporting.Protected().Verify("OnForceFlush", Times.Never(), 5_000);
     }
