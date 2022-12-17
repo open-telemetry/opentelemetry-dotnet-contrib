@@ -63,13 +63,32 @@ The API used to retrieve the value is:
   The number of times garbage collection has occurred for the specified generation
 of objects.
 
+#### process.runtime.dotnet.**gc.objects.size**
+
+Count of bytes currently in use by objects in the GC heap that haven't been
+collected yet.
+Fragmentation and other GC committed memory pools are excluded.
+The value is available even before first garbage collection has occurred.
+
+| Units   | Instrument Type         | Value Type | Attribute Key(s)  | Attribute Values |
+|---------|-------------------------|------------|-------------------|------------------|
+| `bytes` | ObservableUpDownCounter | `Int64`    | No Attributes     | N/A              |
+
+The API used to retrieve the value is:
+
+* [GC.GetTotalMemory](https://docs.microsoft.com/dotnet/api/system.gc.gettotalmemory):
+  Retrieves the number of bytes currently thought to be allocated.
+The value is an approximate count. API is called with `false`
+as a value of forceFullCollection parameter. Returns an instantaneous
+value at the time of observation.
+
 #### process.runtime.dotnet.**gc.allocations.size**
 
 Count of bytes allocated on the managed GC heap since the process start.
 .NET objects are allocated from this heap. Object allocations from unmanaged languages
 such as C/C++ do not use this heap.
 
-Note: This metric is only available when targeting .NET Core 3.1 or later.
+Note: This metric is only available when targeting .NET 6 or later.
 
 | Units   | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |---------|-------------------|------------|------------------|------------------|
@@ -90,18 +109,11 @@ objects (the heap size) and some extra memory that is ready to handle newly
 allocated objects in the future. The value will be unavailable until at least one
 garbage collection has occurred.
 
-Note: `ObservableGauge` should be changed to `ObservableUpDownCounter` once available,
-as `ObservableUpDownCounter` is the best fit of instrument type. The same applies
-to all the `ObservableGauge` below.
+Note: This metric is only available when targeting .NET 6 or later.
 
-Note: This metric is only available when targeting .NET6 or later.
-
-Note: `gc.heap.fragmentation.size` metrics is removed for .NET 6 because of a
-[bug](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/496).
-
-| Units   | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
-|---------|-----------------|------------|------------------|------------------|
-| `bytes` | ObservableGauge | `Int64`    | No Attributes    | N/A              |
+| Units   | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
+|---------|-------------------------|------------|------------------|------------------|
+| `bytes` | ObservableUpDownCounter | `Int64`    | No Attributes    | N/A              |
 
 The API used to retrieve the value is:
 
@@ -114,11 +126,11 @@ The heap size (including fragmentation), as observed during the
 latest garbage collection. The value will be unavailable until at least one
 garbage collection has occurred.
 
-Note: This metric is only available when targeting .NET6 or later.
+Note: This metric is only available when targeting .NET 6 or later.
 
-| Units   | Instrument Type | Value Type | Attribute Key(s) | Attribute Values           |
-|---------|-----------------|------------|------------------|----------------------------|
-| `bytes` | ObservableGauge | `Int64`    | generation       | gen0, gen1, gen2, loh, poh |
+| Units   | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values           |
+|---------|-------------------------|------------|------------------|----------------------------|
+| `bytes` | ObservableUpDownCounter | `Int64`    | generation       | gen0, gen1, gen2, loh, poh |
 
 The API used to retrieve the value is:
 
@@ -135,11 +147,11 @@ The API used to retrieve the value is:
 The heap fragmentation, as observed during the latest garbage collection.
 The value will be unavailable until at least one garbage collection has occurred.
 
-Note: This metric is only available when targeting .NET6 or later.
+Note: This metric is only available when targeting .NET 7 or later.
 
-| Units   | Instrument Type | Value Type | Attribute Key(s) | Attribute Values           |
-|---------|-----------------|------------|------------------|----------------------------|
-| `bytes` | ObservableGauge | `Int64`    | generation       | gen0, gen1, gen2, loh, poh |
+| Units   | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values           |
+|---------|-------------------------|------------|------------------|----------------------------|
+| `bytes` | ObservableUpDownCounter | `Int64`    | generation       | gen0, gen1, gen2, loh, poh |
 
 The API used to retrieve the value is:
 
@@ -193,7 +205,7 @@ The scope of this value is global. The same applies for other JIT related metric
 
 ### Threading related metrics
 
-These metrics are only available when targeting .NET Core 3.1 or later.
+These metrics are only available when targeting .NET 6 or later.
 
 #### process.runtime.dotnet.**monitor.lock_contention.count**
 
@@ -209,9 +221,9 @@ the lock keyword in C#, or by calling Monitor.Enter() and Monitor.TryEnter().
 
 The number of thread pool threads that currently exist.
 
-| Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|-------------|-------------------|------------|------------------|------------------|
-| `{threads}` | ObservableGauge   | `Int32`    | No Attributes    | N/A              |
+| Units       | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
+|-------------|-------------------------|------------|------------------|------------------|
+| `{threads}` | ObservableUpDownCounter | `Int32`    | No Attributes    | N/A              |
 
 #### process.runtime.dotnet.**thread_pool.completed_items.count**
 
@@ -227,9 +239,9 @@ since the process start.
 The number of work items that are currently queued to be processed
 by the thread pool.
 
-| Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|-------------|-------------------|------------|------------------|------------------|
-| `{items}`   | ObservableGauge   | `Int64`    | No Attributes    | N/A              |
+| Units     | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
+|-----------|-------------------------|------------|------------------|------------------|
+| `{items}` | ObservableUpDownCounter | `Int64`    | No Attributes    | N/A              |
 
 #### process.runtime.dotnet.**timer.count**
 
@@ -238,9 +250,9 @@ be created by many sources such as System.Threading.Timer, Task.Delay, or the
 timeout in a CancellationSource. An active timer is registered to tick at some
 point in the future and has not yet been canceled.
 
-| Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|-------------|-------------------|------------|------------------|------------------|
-| `{timers}`  | ObservableGauge   | `Int64`    | No Attributes    | N/A              |
+| Units      | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
+|------------|-------------------------|------------|------------------|------------------|
+| `{timers}` | ObservableUpDownCounter | `Int64`    | No Attributes    | N/A              |
 
 The APIs used to retrieve the values are:
 
@@ -263,9 +275,9 @@ The APIs used to retrieve the values are:
 
 The number of .NET assemblies that are currently loaded.
 
-| Units          | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
-|----------------|-----------------|------------|------------------|------------------|
-| `{assemblies}` | ObservableGauge | `Int64`    | No Attributes    | N/A              |
+| Units          | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
+|----------------|-------------------------|------------|------------------|------------------|
+| `{assemblies}` | ObservableUpDownCounter | `Int64`    | No Attributes    | N/A              |
 
 The API used to retrieve the value is:
 

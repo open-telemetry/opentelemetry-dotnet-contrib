@@ -10,8 +10,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		CONTRIBUTING.md = CONTRIBUTING.md
+		global.json = global.json
 		NuGet.config = NuGet.config
 		opentelemetry-dotnet-contrib.proj = opentelemetry-dotnet-contrib.proj
+		examples\process-instrumentation\process-instrumentation.csproj = examples\process-instrumentation\process-instrumentation.csproj
 		README.md = README.md
 	EndProjectSection
 EndProject
@@ -25,18 +27,20 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{43CAFE52-F329-4431-87DA-7FEE1454D9A9}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\assign-reviewers.yml = .github\workflows\assign-reviewers.yml
+		.github\workflows\ci-md.yml = .github\workflows\ci-md.yml
+		.github\workflows\ci.yml = .github\workflows\ci.yml
 		.github\workflows\codeql-analysis.yml = .github\workflows\codeql-analysis.yml
 		.github\workflows\dotnet-core-cov.yml = .github\workflows\dotnet-core-cov.yml
 		.github\workflows\dotnet-format-md.yml = .github\workflows\dotnet-format-md.yml
 		.github\workflows\dotnet-format.yml = .github\workflows\dotnet-format.yml
+		.github\workflows\integration-md.yml = .github\workflows\integration-md.yml
 		.github\workflows\integration.yml = .github\workflows\integration.yml
-		.github\workflows\linux-ci-md.yml = .github\workflows\linux-ci-md.yml
-		.github\workflows\linux-ci.yml = .github\workflows\linux-ci.yml
 		.github\workflows\markdownlint.yml = .github\workflows\markdownlint.yml
 		.github\workflows\package-Exporter.Geneva.yml = .github\workflows\package-Exporter.Geneva.yml
 		.github\workflows\package-Exporter.Instana.yml = .github\workflows\package-Exporter.Instana.yml
 		.github\workflows\package-Exporter.Stackdriver.yml = .github\workflows\package-Exporter.Stackdriver.yml
 		.github\workflows\package-Extensions.AWSXRay.yml = .github\workflows\package-Extensions.AWSXRay.yml
+		.github\workflows\package-Extensions.AzureMonitor.yml = .github\workflows\package-Extensions.AzureMonitor.yml
 		.github\workflows\package-Extensions.Docker.yml = .github\workflows\package-Extensions.Docker.yml
 		.github\workflows\package-Extensions.PersistentStorage.Abstractions.yml = .github\workflows\package-Extensions.PersistentStorage.Abstractions.yml
 		.github\workflows\package-Extensions.PersistentStorage.yml = .github\workflows\package-Extensions.PersistentStorage.yml
@@ -53,14 +57,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\package-Instrumentation.MassTransit.yml = .github\workflows\package-Instrumentation.MassTransit.yml
 		.github\workflows\package-Instrumentation.MySqlData.yml = .github\workflows\package-Instrumentation.MySqlData.yml
 		.github\workflows\package-Instrumentation.Owin.yml = .github\workflows\package-Instrumentation.Owin.yml
+		.github\workflows\package-Instrumentation.Process.yml = .github\workflows\package-Instrumentation.Process.yml
 		.github\workflows\package-Instrumentation.Quartz.yml = .github\workflows\package-Instrumentation.Quartz.yml
 		.github\workflows\package-Instrumentation.Runtime.yml = .github\workflows\package-Instrumentation.Runtime.yml
 		.github\workflows\package-Instrumentation.StackExchangeRedis.yml = .github\workflows\package-Instrumentation.StackExchangeRedis.yml
 		.github\workflows\package-Instrumentation.Wcf.yml = .github\workflows\package-Instrumentation.Wcf.yml
 		.github\workflows\sanitycheck.yml = .github\workflows\sanitycheck.yml
 		.github\workflows\stale.yml = .github\workflows\stale.yml
-		.github\workflows\windows-ci-md.yml = .github\workflows\windows-ci-md.yml
-		.github\workflows\windows-ci.yml = .github\workflows\windows-ci.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}"
@@ -71,6 +74,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{824BD1DE
 		build\Common.targets = build\Common.targets
 		build\debug.snk = build\debug.snk
 		build\docker-compose.net6.0.yml = build\docker-compose.net6.0.yml
+		build\docker-compose.net7.0.yml = build\docker-compose.net7.0.yml
 		build\docker-compose.netcoreapp3.1.yml = build\docker-compose.netcoreapp3.1.yml
 		build\opentelemetry-icon-color.png = build\opentelemetry-icon-color.png
 		build\OpenTelemetryContrib.prod.ruleset = build\OpenTelemetryContrib.prod.ruleset
@@ -236,6 +240,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.AWSLambda.Tests", "test\OpenTelemetry.Instrumentation.AWSLambda.Tests\OpenTelemetry.Instrumentation.AWSLambda.Tests.csproj", "{0F18B7C8-B192-4236-9578-7AD02BFC7128}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.AWSLambda", "src\OpenTelemetry.Instrumentation.AWSLambda\OpenTelemetry.Instrumentation.AWSLambda.csproj", "{B40B975E-78B2-4712-8B4D-BADA67DF0C0A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "process-instrumentation", "examples\process-instrumentation\process-instrumentation.csproj", "{C3B3BBAF-CC38-4D5C-AFA2-33184D07BF75}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -499,6 +505,10 @@ Global
 		{B40B975E-78B2-4712-8B4D-BADA67DF0C0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B40B975E-78B2-4712-8B4D-BADA67DF0C0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B40B975E-78B2-4712-8B4D-BADA67DF0C0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3B3BBAF-CC38-4D5C-AFA2-33184D07BF75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3B3BBAF-CC38-4D5C-AFA2-33184D07BF75}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3B3BBAF-CC38-4D5C-AFA2-33184D07BF75}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3B3BBAF-CC38-4D5C-AFA2-33184D07BF75}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -576,6 +586,7 @@ Global
 		{61421ACF-5F90-491B-AFB3-14EF12CCA255} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{0F18B7C8-B192-4236-9578-7AD02BFC7128} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{B40B975E-78B2-4712-8B4D-BADA67DF0C0A} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{C3B3BBAF-CC38-4D5C-AFA2-33184D07BF75} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}

@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## 1.0.0-rc9.7
+
+Released 2022-Nov-28
+
+* Restore Activity.Current before all IIS Lifecycle events
+  ([#761](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/761))
+
+## 1.0.0-rc9.6
+
+Released 2022-Sep-28
+
+* Update `OpenTelemetry.Api` to `1.3.1`.
+([#665](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/665))
+
 ## 1.0.0-rc9.5 (source code moved to contrib repo)
 
 Released 2022-Jun-21

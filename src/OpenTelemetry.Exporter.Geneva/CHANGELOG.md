@@ -2,6 +2,79 @@
 
 ## Unreleased
 
+* Update OpenTelemetry to 1.4.0-rc.1
+  ([#820](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/820))
+* Add support in logs for prefix-based table name mapping configuration.
+  [#796](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/796)
+* Updated the trace exporter to use the new performance APIs introduced in
+  `System.Diagnostics.DiagnosticSource` v7.0.
+  [#838](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/838)
+
+## 1.4.0-beta.6
+
+Released 2022-Dec-09
+
+* Added support for
+  [DateTimeOffset](https://learn.microsoft.com/dotnet/api/system.datetimeoffset).
+  ([#797](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/797))
+* Fix the overflow bucket value serialization for Histogram.
+  ([#805](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/805))
+* Fix EventSource logging.
+  ([#813](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/813))
+
+## 1.4.0-beta.5
+
+Released 2022-Nov-21
+
+* Update OpenTelemetry to 1.4.0-beta.3
+  ([#774](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/774))
+
+## 1.4.0-beta.4
+
+Released 2022-Oct-28
+
+* Updated export logic for scopes
+  * Users upgrading from `1.4.0-beta.1`, `1.4.0-beta.2` or `1.4.0-beta.3` to
+    this version will see a **breaking change**
+  * Export scopes which have a non-null key as individual columns (each
+    key-value pair from the scopes is exported as its own column; these columns
+    would also be taken into consideration when the CustomFields option is
+    applied).
+  * When using formatted strings for scopes, the templated string
+    (`"{OriginalFormat"}`) will not be exported.
+  [#736](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/736)
+
+## 1.4.0-beta.3
+
+Released 2022-Oct-20
+
+* Add support for exporting `UpDownCounter` and `ObservableUpDownCounter`.
+  [#685](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/685)
+
+* Export `MetricType.LongGauge` as a double metric as it might return negative
+  values.
+  [#721](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/721)
+
+* Add support for exporting exception stack.
+  [#672](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/672)
+
+* Change the default MetricExportInterval from 20 seconds to 60 seconds.
+  [#722](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/722)
+
+## 1.4.0-beta.2
+
+Released 2022-Oct-17
+
+* The option `TableNameMappings` of `GenevaExporterOptions` will not support
+  string values that are null, empty, or consist only of white-space characters.
+  It will also not support string values that contain non-ASCII characters.
+  [646](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/646)
+
+* Update OTel SDK version to `1.4.0-beta.2`. Add support for exporting Histogram
+  Min and Max. If the histogram does not contain min and max, the exporter
+  exports both the values as zero.
+  [#704](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/704)
+
 ## 1.4.0-beta.1
 
 Released 2022-Aug-01

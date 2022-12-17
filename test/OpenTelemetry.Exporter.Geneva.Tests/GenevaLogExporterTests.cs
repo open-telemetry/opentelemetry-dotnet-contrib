@@ -43,6 +43,13 @@ public class GenevaLogExporterTests
     }
 
     [Fact]
+    public void ExportExceptionStackDefaultIsDrop()
+    {
+        GenevaExporterOptions exporterOptions = new GenevaExporterOptions();
+        Assert.Equal(ExceptionStackExportMode.Drop, exporterOptions.ExceptionStackExportMode);
+    }
+
+    [Fact]
     public void SpecialCharactersInTableNameMappings()
     {
         Assert.Throws<ArgumentException>(() =>
@@ -62,15 +69,14 @@ public class GenevaLogExporterTests
         });
 
         // Throw on null value - include key in exception message
-        var ex = Assert.Throws<ArgumentNullException>(() =>
+        var ex = Assert.Throws<ArgumentException>(() =>
         {
             new GenevaExporterOptions
             {
                 TableNameMappings = new Dictionary<string, string> { ["TestCategory"] = null },
             };
         });
-        Assert.Contains("TableNameMappings must not contain null values.", ex.Message);
-        Assert.Equal("TestCategory", ex.ParamName);
+        Assert.Contains("The table name mapping value provided for key 'TestCategory' was null, empty, or consisted only of white-space characters.", ex.Message);
 
         // Throw when TableNameMappings is null
         Assert.Throws<ArgumentNullException>(() =>
@@ -172,7 +178,7 @@ public class GenevaLogExporterTests
                 .AddFilter("*", LogLevel.Trace)); // Enable all LogLevels
 
             // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
-            using var exporter = new GenevaLogExporter(exporterOptions);
+            using var exporter = new MsgPackLogExporter(exporterOptions);
 
             ILogger logger;
             ThreadLocal<byte[]> m_buffer;
@@ -189,7 +195,7 @@ public class GenevaLogExporterTests
                         logger.LogError("this does not matter");
 
                         Assert.Single(logRecordList);
-                        m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+                        m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
                         _ = exporter.SerializeLogRecord(logRecordList[0]);
                         fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
                         actualTableName = (fluentdData as object[])[0] as string;
@@ -207,7 +213,7 @@ public class GenevaLogExporterTests
                 logger.LogError("this does not matter");
 
                 Assert.Single(logRecordList);
-                m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+                m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
                 _ = exporter.SerializeLogRecord(logRecordList[0]);
                 fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
                 actualTableName = (fluentdData as object[])[0] as string;
@@ -294,13 +300,13 @@ public class GenevaLogExporterTests
                 .AddFilter("*", LogLevel.Trace)); // Enable all LogLevels
 
             // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
-            using var exporter = new GenevaLogExporter(exporterOptions);
+            using var exporter = new MsgPackLogExporter(exporterOptions);
 
             ILogger passThruTableMappingsLogger, userInitializedTableMappingsLogger;
             ThreadLocal<byte[]> m_buffer;
             object fluentdData;
             string actualTableName;
-            m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+            m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
 
             // Verify that the category table mappings specified by the users in the Geneva Configuration are mapped correctly.
             foreach (var mapping in userInitializedCategoryToTableNameMappings)
@@ -351,8 +357,10 @@ public class GenevaLogExporterTests
         }
     }
 
-    [Fact]
-    public void SerializeILoggerScopes()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void SerializeILoggerScopes(bool hasCustomFields)
     {
         string path = string.Empty;
         Socket senderSocket = null;
@@ -375,13 +383,22 @@ public class GenevaLogExporterTests
                 senderSocket.Listen(1);
             }
 
+            if (hasCustomFields)
+            {
+                exporterOptions.CustomFields = new string[] { "food", "Name", "Key1" };
+            }
+
+            var exportedItems = new List<LogRecord>();
+
             using var loggerFactory = LoggerFactory.Create(builder => builder
                 .AddOpenTelemetry(options =>
                 {
                     options.IncludeScopes = true;
+                    options.AddInMemoryExporter(exportedItems);
                     options.AddGenevaLogExporter(options =>
                     {
                         options.ConnectionString = exporterOptions.ConnectionString;
+                        options.CustomFields = exporterOptions.CustomFields;
                     });
                 }));
 
@@ -399,8 +416,8 @@ public class GenevaLogExporterTests
 
             using (logger.BeginScope("MyOuterScope"))
             using (logger.BeginScope("MyInnerScope"))
-            using (logger.BeginScope("MyInnerInnerScope with {name} and {age} of custom", "John Doe", 35))
-            using (logger.BeginScope(new List<KeyValuePair<string, object>> { new KeyValuePair<string, object>("MyKey", "MyValue") }))
+            using (logger.BeginScope("MyInnerInnerScope with {Name} and {Age} of custom", "John Doe", 25))
+            using (logger.BeginScope(new List<KeyValuePair<string, object>> { new("Key1", "Value1"), new("Key2", "Value2") }))
             {
                 logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
             }
@@ -408,7 +425,7 @@ public class GenevaLogExporterTests
             byte[] serializedData;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                var m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+                var m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
                 serializedData = m_buffer.Value;
             }
             else
@@ -422,31 +439,45 @@ public class GenevaLogExporterTests
             var signal = (fluentdData as object[])[0] as string;
             var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
             var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
-            var serializedScopes = mapping["scopes"] as object[];
 
-            Assert.Equal(4, serializedScopes.Length);
+            if (hasCustomFields)
+            {
+                var envProperties = mapping["env_properties"] as Dictionary<object, object>;
 
-            // Test 1st scope
-            var scope = serializedScopes[0] as ICollection<KeyValuePair<object, object>>;
-            Assert.Single(scope);
-            Assert.Contains(new KeyValuePair<object, object>("scope", "MyOuterScope"), scope);
+                // Custom Fields
+                Assert.Equal("artichoke", mapping["food"]);
+                Assert.Equal("John Doe", mapping["Name"]);
+                Assert.Equal("Value1", mapping["Key1"]);
 
-            // Test 2nd scope
-            scope = serializedScopes[1] as ICollection<KeyValuePair<object, object>>;
-            Assert.Single(scope);
-            Assert.Contains(new KeyValuePair<object, object>("scope", "MyInnerScope"), scope);
+                Assert.False(mapping.ContainsKey("MyOuterScope"));
+                Assert.False(mapping.ContainsKey("MyInnerScope"));
 
-            // Test 3rd scope
-            scope = serializedScopes[2] as ICollection<KeyValuePair<object, object>>;
-            Assert.Equal(3, scope.Count);
-            Assert.Contains(new KeyValuePair<object, object>("name", "John Doe"), scope);
-            Assert.Contains(new KeyValuePair<object, object>("age", (byte)35), scope);
-            Assert.Contains(new KeyValuePair<object, object>("{OriginalFormat}", "MyInnerInnerScope with {name} and {age} of custom"), scope);
+                // env_properties
+                Assert.True(Equals(envProperties["price"], 3.99));
+                Assert.Equal((byte)25, envProperties["Age"]);
+                Assert.Equal("Value2", envProperties["Key2"]);
 
-            // Test 4th scope
-            scope = serializedScopes[3] as ICollection<KeyValuePair<object, object>>;
-            Assert.Single(scope);
-            Assert.Contains(new KeyValuePair<object, object>("MyKey", "MyValue"), scope);
+                Assert.False(envProperties.ContainsKey("MyOuterScope"));
+                Assert.False(envProperties.ContainsKey("MyInnerScope"));
+            }
+            else
+            {
+                Assert.Equal("artichoke", mapping["food"]);
+                Assert.True(Equals(mapping["price"], 3.99));
+                Assert.Equal("John Doe", mapping["Name"]);
+                Assert.Equal((byte)25, mapping["Age"]);
+                Assert.Equal("Value1", mapping["Key1"]);
+                Assert.Equal("Value2", mapping["Key2"]);
+
+                Assert.False(mapping.ContainsKey("MyOuterScope"));
+                Assert.False(mapping.ContainsKey("MyInnerScope"));
+            }
+
+            // Check other fields
+            Assert.Single(exportedItems);
+            var logRecord = exportedItems[0];
+
+            this.AssertFluentdForwardModeForLogRecord(exporterOptions, fluentdData, logRecord);
         }
         finally
         {
@@ -505,7 +536,7 @@ public class GenevaLogExporterTests
                 .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
 
             // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
-            using var exporter = new GenevaLogExporter(exporterOptions);
+            using var exporter = new MsgPackLogExporter(exporterOptions);
 
             // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
@@ -525,7 +556,7 @@ public class GenevaLogExporterTests
 
             // VALIDATE
             Assert.Single(logRecordList);
-            var m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+            var m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
             _ = exporter.SerializeLogRecord(logRecordList[0]);
             object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
             var body = GetField(fluentdData, "body");
@@ -555,7 +586,7 @@ public class GenevaLogExporterTests
 
             // VALIDATE
             Assert.Single(logRecordList);
-            m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+            m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
             _ = exporter.SerializeLogRecord(logRecordList[0]);
             fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
             body = GetField(fluentdData, "body");
@@ -582,7 +613,7 @@ public class GenevaLogExporterTests
 
             // VALIDATE
             Assert.Single(logRecordList);
-            m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+            m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
             _ = exporter.SerializeLogRecord(logRecordList[0]);
             fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
             body = GetField(fluentdData, "body");
@@ -607,7 +638,7 @@ public class GenevaLogExporterTests
 
             // VALIDATE
             Assert.Single(logRecordList);
-            m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+            m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
             _ = exporter.SerializeLogRecord(logRecordList[0]);
             fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
             Assert.Equal("Value1", GetField(fluentdData, "Key1"));
@@ -707,7 +738,7 @@ public class GenevaLogExporterTests
                 .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
 
             // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
-            using var exporter = new GenevaLogExporter(exporterOptions);
+            using var exporter = new MsgPackLogExporter(exporterOptions);
 
             // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
@@ -752,7 +783,7 @@ public class GenevaLogExporterTests
             // logRecordList should have 14 logRecord entries as there were 14 Log calls
             Assert.Equal(14, logRecordList.Count);
 
-            var m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+            var m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
 
             foreach (var logRecord in logRecordList)
             {
@@ -843,7 +874,7 @@ public class GenevaLogExporterTests
                 serverSocket.ReceiveTimeout = 10000;
 
                 // Create a test exporter to get MessagePack byte data for validation of the data received via Socket.
-                using var exporter = new GenevaLogExporter(new GenevaExporterOptions
+                using var exporter = new MsgPackLogExporter(new GenevaExporterOptions
                 {
                     ConnectionString = "Endpoint=unix:" + path,
                     PrepopulatedFields = new Dictionary<string, object>
@@ -939,7 +970,7 @@ public class GenevaLogExporterTests
                 .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
 
             // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
-            using var exporter = new GenevaLogExporter(exporterOptions);
+            using var exporter = new MsgPackLogExporter(exporterOptions);
 
             // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
@@ -955,7 +986,7 @@ public class GenevaLogExporterTests
 
             // VALIDATE
             Assert.Single(logRecordList);
-            var m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+            var m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
             _ = exporter.SerializeLogRecord(logRecordList[0]);
             object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
             var exceptionType = GetField(fluentdData, "env_ex_type");
@@ -1013,7 +1044,7 @@ public class GenevaLogExporterTests
                 .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
 
             // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
-            using var exporter = new GenevaLogExporter(exporterOptions);
+            using var exporter = new MsgPackLogExporter(exporterOptions);
 
             // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
@@ -1029,7 +1060,7 @@ public class GenevaLogExporterTests
 
             // VALIDATE
             Assert.Single(logRecordList);
-            var m_buffer = typeof(GenevaLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+            var m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
             _ = exporter.SerializeLogRecord(logRecordList[0]);
             object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
 
@@ -1131,24 +1162,24 @@ public class GenevaLogExporterTests
 
         // Part A core envelope fields
 
-        var nameKey = GenevaBaseExporter<LogRecord>.V40_PART_A_MAPPING[Schema.V40.PartA.Name];
+        var nameKey = MsgPackExporter.V40_PART_A_MAPPING[Schema.V40.PartA.Name];
 
         // Check if the user has configured a custom table mapping
         Assert.Equal(partAName, mapping[nameKey]);
 
         // TODO: Update this when we support multiple Schema formats
         var partAVer = "4.0";
-        var verKey = GenevaBaseExporter<LogRecord>.V40_PART_A_MAPPING[Schema.V40.PartA.Ver];
+        var verKey = MsgPackExporter.V40_PART_A_MAPPING[Schema.V40.PartA.Ver];
         Assert.Equal(partAVer, mapping[verKey]);
 
         foreach (var item in exporterOptions.PrepopulatedFields)
         {
             var partAValue = item.Value as string;
-            var partAKey = GenevaBaseExporter<LogRecord>.V40_PART_A_MAPPING[item.Key];
+            var partAKey = MsgPackExporter.V40_PART_A_MAPPING[item.Key];
             Assert.Equal(partAValue, mapping[partAKey]);
         }
 
-        var timeKey = GenevaBaseExporter<LogRecord>.V40_PART_A_MAPPING[Schema.V40.PartA.Time];
+        var timeKey = MsgPackExporter.V40_PART_A_MAPPING[Schema.V40.PartA.Time];
         Assert.Equal(logRecord.Timestamp.Ticks, ((DateTime)mapping[timeKey]).Ticks);
 
         // Part A dt extensions

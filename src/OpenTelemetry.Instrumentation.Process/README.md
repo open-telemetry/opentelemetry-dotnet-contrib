@@ -17,7 +17,7 @@ Add a reference to
 package.
 
 ```shell
-dotnet add package OpenTelemetry.Instrumentation.Process
+dotnet add package --prerelease OpenTelemetry.Instrumentation.Process
 ```
 
 Add a reference to
@@ -36,12 +36,92 @@ Process instrumentation should be enabled at application startup using the
 ```csharp
 using var meterProvider = Sdk.CreateMeterProviderBuilder()
     .AddProcessInstrumentation()
-    .AddPrometheusHttpListener(
-        options => options.UriPrefixes = new string[] { "http://localhost:9464/" })
+    .AddPrometheusHttpListener()
     .Build();
 ```
 
+Refer to [Program.cs](../../examples/process-instrumentation/Program.cs) for a
+complete demo.
+
 ## Metrics
+
+### process.memory.usage
+
+The amount of physical memory allocated for this process.
+
+| Units | Instrument Type         | Value Type |
+|-------|-------------------------|------------|
+| `By`  | ObservableUpDownCounter | `Double`   |
+
+The API used to retrieve the value is:
+
+* [Process.WorkingSet64](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.workingset64):
+Gets the amount of physical memory, in bytes,
+allocated for the associated process.
+
+### process.memory.virtual
+
+The amount of committed virtual memory for this process.
+One way to think of this is all the address space this process can read from
+without trigerring an access violation; this includes memory backed solely by RAM,
+by a swapfile/pagefile and by other mapped files on disk.
+
+| Units | Instrument Type         | Value Type |
+|-------|-------------------------|------------|
+|  `By` | ObservableUpDownCounter | `Double`   |
+
+The API used to retrieve the value is:
+
+* [Process.VirtualMemorySize64](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.virtualmemorysize64):
+Gets the amount of the virtual memory, in bytes,
+allocated for the associated process.
+
+### process.cpu.time
+
+Total CPU seconds broken down by states.
+
+| Units | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|-------|-------------------|------------|------------------|------------------|
+|  `s`  | ObservableCounter | `Double`   | state            | user, system     |
+
+The APIs used to retrieve the values are:
+
+* [Process.UserProcessorTime](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.userprocessortime):
+Gets the user processor time for this process.
+
+* [Process.PrivilegedProcessorTime](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.privilegedprocessortime):
+Gets the privileged processor time for this process.
+
+### process.cpu.utilization
+
+Difference in process.cpu.time since the last measurement,
+divided by the elapsed time and number of CPUs available to the process.
+
+| Units | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|-------|-------------------|------------|------------------|------------------|
+|  `1`  | ObservableCounter | `Double`   | state            | user, system     |
+
+The APIs used to retrieve the values are:
+
+* [Process.UserProcessorTime](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.userprocessortime):
+Gets the user processor time for this process.
+
+* [Process.PrivilegedProcessorTime](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.privilegedprocessortime):
+Gets the privileged processor time for this process.
+
+### process.threads
+
+Process threads count.
+
+| Units      | Instrument Type         | Value Type |
+|------------|-------------------------|------------|
+| `{threads}`| ObservableUpDownCounter | `Int32`    |
+
+The API used to retrieve the value is:
+
+* [Process.Threads](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.threads):
+Gets the set of threads that are running
+in the associated process.
 
 ## References
 

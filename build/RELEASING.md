@@ -22,7 +22,10 @@ OpenTelemetry account.
 2. Update the Changelog for your project with relevant details.
 Replace any "Unreleased" heading with this version and add the release date.
 
-3. Submit a PR to update Changelog and get it merged to `main` branch.
+3. If you are releasing stable version, update public API definition
+in `PublicAPI.Shipped.txt` files and cleanup corresponding `PublicAPI.Unshipped.txt`.
+
+4. Submit a PR to update Changelog and get it merged to `main` branch.
 
 ## Steps
 

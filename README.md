@@ -1,8 +1,7 @@
 # OpenTelemetry .NET Contrib
 
 [![Slack](https://img.shields.io/badge/slack-@cncf/otel/dotnet-brightgreen.svg?logo=slack)](https://cloud-native.slack.com/archives/C01N3BC2W7Q)
-[![Linux](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/actions/workflows/linux-ci.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/actions/workflows/linux-ci.yml)
-[![Windows](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/actions/workflows/windows-ci.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/actions/workflows/windows-ci.yml)
+[![Build](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/actions/workflows/ci.yml)
 
 This project is intended to provide helpful libraries and standalone
 OpenTelemetry-based utilities that don't fit the express scope of the
@@ -29,7 +28,7 @@ expected to directly contribute to every component.
 Approvers
 ([@open-telemetry/dotnet-contrib-approvers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-approvers)):
 
-* This list is currently empty.
+* [Piotr Kie&#x142;kowicz](https://github.com/Kielek), Splunk
 
 *Find more about the approver role in [community
 repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#approver).*
@@ -40,12 +39,16 @@ Maintainers
 * [Alan West](https://github.com/alanwest), New Relic
 * [Cijo Thomas](https://github.com/cijothomas), Microsoft
 * [Mikel Blanchard](https://github.com/CodeBlanch), Microsoft
-* [Prashant Srivastava](https://github.com/srprash), AWS
-* [Sergey Kanzhelev](https://github.com/SergeyKanzhelev), Google
 * [Utkarsh Umesan Pillai](https://github.com/utpilla), Microsoft
 
 *Find more about the maintainer role in [community
 repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#maintainer).*
+
+[Emeritus
+Maintainer/Approver/Triager](https://github.com/open-telemetry/community/blob/main/community-membership.md#emeritus-maintainerapprovertriager):
+
+* [Prashant Srivastava](https://github.com/srprash), AWS
+* [Sergey Kanzhelev](https://github.com/SergeyKanzhelev), Google
 
 Even though, anybody can contribute, there are benefits of being a member of our
 community. See to the [community membership

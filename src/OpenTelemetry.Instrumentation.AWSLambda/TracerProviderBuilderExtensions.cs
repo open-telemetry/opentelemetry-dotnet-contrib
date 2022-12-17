@@ -20,38 +20,37 @@ using OpenTelemetry.Internal;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Instrumentation.AWSLambda
+namespace OpenTelemetry.Instrumentation.AWSLambda;
+
+/// <summary>
+/// Extension class for TracerProviderBuilder.
+/// </summary>
+public static class TracerProviderBuilderExtensions
 {
     /// <summary>
-    /// Extension class for TracerProviderBuilder.
+    /// Add AWS Lambda configurations.
     /// </summary>
-    public static class TracerProviderBuilderExtensions
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="configure">AWS lambda instrumentation options.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddAWSLambdaConfigurations(
+        this TracerProviderBuilder builder,
+        Action<AWSLambdaInstrumentationOptions> configure = null)
     {
-        /// <summary>
-        /// Add AWS Lambda configurations.
-        /// </summary>
-        /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-        /// <param name="configure">AWS lambda instrumentation options.</param>
-        /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-        public static TracerProviderBuilder AddAWSLambdaConfigurations(
-            this TracerProviderBuilder builder,
-            Action<AWSLambdaInstrumentationOptions> configure = null)
-        {
-            Guard.ThrowIfNull(builder);
+        Guard.ThrowIfNull(builder);
 
-            var options = new AWSLambdaInstrumentationOptions();
-            configure?.Invoke(options);
+        var options = new AWSLambdaInstrumentationOptions();
+        configure?.Invoke(options);
 
-            AWSLambdaWrapper.DisableAwsXRayContextExtraction = options.DisableAwsXRayContextExtraction;
+        AWSLambdaWrapper.DisableAwsXRayContextExtraction = options.DisableAwsXRayContextExtraction;
 
-            builder.AddSource(AWSLambdaWrapper.ActivitySourceName);
-            builder.SetResourceBuilder(ResourceBuilder
-                .CreateEmpty()
-                .AddService(AWSLambdaUtils.GetFunctionName(), null, null, false)
-                .AddTelemetrySdk()
-                .AddAttributes(AWSLambdaResourceDetector.Detect()));
+        builder.AddSource(AWSLambdaWrapper.ActivitySourceName);
+        builder.SetResourceBuilder(ResourceBuilder
+            .CreateEmpty()
+            .AddService(AWSLambdaUtils.GetFunctionName(), null, null, false)
+            .AddTelemetrySdk()
+            .AddAttributes(AWSLambdaResourceDetector.Detect()));
 
-            return builder;
-        }
+        return builder;
     }
 }

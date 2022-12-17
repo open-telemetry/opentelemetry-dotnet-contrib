@@ -29,7 +29,6 @@ namespace OpenTelemetry.Instrumentation.Runtime.Tests;
 public class RuntimeMetricsTests
 {
     private const int MaxTimeToAllowForFlush = 10000;
-    private const string MetricPrefix = "process.runtime.dotnet.";
 
     [Fact]
     public void RuntimeMetricsAreCaptured()
@@ -52,7 +51,6 @@ public class RuntimeMetricsTests
 
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
         Assert.True(exportedItems.Count > 1);
-        Assert.StartsWith(MetricPrefix, exportedItems[0].Name);
 
         var assembliesCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.assemblies.count");
         Assert.NotNull(assembliesCountMetric);
@@ -77,12 +75,14 @@ public class RuntimeMetricsTests
         var gcCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.collections.count");
         Assert.NotNull(gcCountMetric);
 
-#if NETCOREAPP3_1_OR_GREATER
-        var gcAllocationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.allocations.size");
-        Assert.NotNull(gcAllocationSizeMetric);
-#endif
+        var totalObjectsSize = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.objects.size");
+        Assert.NotNull(totalObjectsSize);
 
 #if NET6_0_OR_GREATER
+
+        var gcAllocationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.allocations.size");
+        Assert.NotNull(gcAllocationSizeMetric);
+
         var gcCommittedMemorySizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.committed_memory.size");
         Assert.NotNull(gcCommittedMemorySizeMetric);
 
@@ -118,9 +118,7 @@ public class RuntimeMetricsTests
         var jitCompilationTimeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.jit.compilation_time");
         Assert.NotNull(jitCompilationTimeMetric);
     }
-#endif
 
-#if NETCOREAPP3_1_OR_GREATER
     [Fact]
     public void ThreadingRelatedMetricsTest()
     {

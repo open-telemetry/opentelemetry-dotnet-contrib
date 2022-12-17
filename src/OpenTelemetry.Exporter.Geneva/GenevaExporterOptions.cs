@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
@@ -33,6 +34,8 @@ public class GenevaExporterOptions
 
     public IEnumerable<string> CustomFields { get; set; }
 
+    public ExceptionStackExportMode ExceptionStackExportMode { get; set; }
+
     public IReadOnlyDictionary<string, string> TableNameMappings
     {
         get => this._tableNameMappings;
@@ -44,9 +47,32 @@ public class GenevaExporterOptions
 
             foreach (var entry in value)
             {
-                if (entry.Value is null)
+                if (string.IsNullOrWhiteSpace(entry.Key))
                 {
-                    throw new ArgumentNullException(entry.Key, $"{nameof(this.TableNameMappings)} must not contain null values.");
+                    throw new ArgumentException("A table name mapping key was null, empty, or consisted only of white-space characters.", nameof(this.TableNameMappings));
+                }
+
+                if (string.IsNullOrWhiteSpace(entry.Value))
+                {
+                    throw new ArgumentException($"The table name mapping value provided for key '{entry.Key}' was null, empty, or consisted only of white-space characters.", nameof(this.TableNameMappings));
+                }
+
+                if (Encoding.UTF8.GetByteCount(entry.Value) != entry.Value.Length)
+                {
+                    throw new ArgumentException($"The table name mapping value '{entry.Value}' provided for key '{entry.Key}' contained non-ASCII characters.", nameof(this.TableNameMappings));
+                }
+
+                if (entry.Value != "*")
+                {
+                    if (!TableNameSerializer.IsValidTableName(entry.Value))
+                    {
+                        throw new ArgumentException($"The table name mapping value '{entry.Value}' provided for key '{entry.Key}' contained invalid characters or was too long.", nameof(this.TableNameMappings));
+                    }
+
+                    if (TableNameSerializer.IsReservedTableName(entry.Value))
+                    {
+                        throw new ArgumentException($"The table name mapping value '{entry.Value}' provided for key '{entry.Key}' is reserved and cannot be specified.", nameof(this.TableNameMappings));
+                    }
                 }
 
                 copy[entry.Key] = entry.Value;
