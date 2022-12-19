@@ -43,7 +43,7 @@ public class DockerResourceDetector : IResourceDetector
     /// <summary>
     /// Builds the resource attributes from Container Id in file path.
     /// </summary>
-    /// <param name="path">cgroup path.</param>
+    /// <param name="path">File path where container id exists.</param>
     /// <returns>Returns Resource with list of key-value pairs of container resource attributes if container id exists else empty resource.</returns>
     internal Resource BuildResource(string path)
     {
@@ -68,7 +68,7 @@ public class DockerResourceDetector : IResourceDetector
     {
         try
         {
-            return this.ExtractContainerIdV1(path) ?? this.ExtractContainerIdV2(path);
+            return this.ExtractContainerIdV2(path) ?? this.ExtractContainerIdV1(path);
         }
         catch (Exception ex)
         {

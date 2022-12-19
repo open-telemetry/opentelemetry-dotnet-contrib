@@ -64,7 +64,6 @@ public class DockerResourceDetectorTests
     // Expected Container Id
     private const string CONTAINERIDV2 = "d86d75589bf6cc254f3e2cc29debdf85dde404998aa128997a819ff991827356";
 
-
     [Fact]
     public void TestValidContainer()
     {
