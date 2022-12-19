@@ -251,7 +251,7 @@ public class GenevaTraceExporterTests
             }
 
             using var exporter = new MsgPackTraceExporter(exporterOptions);
-            var dedicatedFields = typeof(MsgPackTraceExporter).GetField("m_dedicatedFields", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as IReadOnlyDictionary<string, object>;
+            var customFields = typeof(MsgPackTraceExporter).GetField("m_customFields", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as IReadOnlyDictionary<string, object>;
             var CS40_PART_B_MAPPING = typeof(MsgPackTraceExporter).GetField("CS40_PART_B_MAPPING", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as IReadOnlyDictionary<string, string>;
             var m_buffer = typeof(MsgPackTraceExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as ThreadLocal<byte[]>;
 
@@ -269,7 +269,7 @@ public class GenevaTraceExporterTests
             {
                 _ = exporter.SerializeActivity(activity);
                 object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
-                this.AssertFluentdForwardModeForActivity(exporterOptions, fluentdData, activity, CS40_PART_B_MAPPING, dedicatedFields, customChecksForActivity);
+                this.AssertFluentdForwardModeForActivity(exporterOptions, fluentdData, activity, CS40_PART_B_MAPPING, customFields, customChecksForActivity);
                 invocationCount++;
             };
             ActivitySource.AddActivityListener(listener);
@@ -492,7 +492,7 @@ public class GenevaTraceExporterTests
         return callingMethodName;
     }
 
-    private void AssertFluentdForwardModeForActivity(GenevaExporterOptions exporterOptions, object fluentdData, Activity activity, IReadOnlyDictionary<string, string> CS40_PART_B_MAPPING, IReadOnlyDictionary<string, object> dedicatedFields, Action<Dictionary<object, object>> customChecksForActivity)
+    private void AssertFluentdForwardModeForActivity(GenevaExporterOptions exporterOptions, object fluentdData, Activity activity, IReadOnlyDictionary<string, string> CS40_PART_B_MAPPING, IReadOnlyDictionary<string, object> customFields, Action<Dictionary<object, object>> customChecksForActivity)
     {
         /* Fluentd Forward Mode:
         [
@@ -627,7 +627,7 @@ public class GenevaTraceExporterTests
             else
             {
                 // If CustomFields are proivded, dedicatedFields will be populated
-                if (exporterOptions.CustomFields == null || dedicatedFields.ContainsKey(tag.Key))
+                if (exporterOptions.CustomFields == null || customFields.ContainsKey(tag.Key))
                 {
                     Assert.Equal(tag.Value.ToString(), mapping[tag.Key].ToString());
                 }

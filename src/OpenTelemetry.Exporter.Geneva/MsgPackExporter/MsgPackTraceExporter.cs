@@ -60,34 +60,23 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         // TODO: Validate custom fields (reserved name? etc).
         if (options.CustomFields != null)
         {
-            var customFields = new Dictionary<string, object>(StringComparer.Ordinal);
-            var dedicatedFields = new Dictionary<string, object>(StringComparer.Ordinal);
-
-            // Seed customFields with Span PartB
-            customFields["azureResourceProvider"] = true;
-            dedicatedFields["azureResourceProvider"] = true;
-            foreach (var name in CS40_PART_B_MAPPING.Values)
+            var customFields = new Dictionary<string, object>(StringComparer.Ordinal)
             {
-                customFields[name] = true;
-                dedicatedFields[name] = true;
+                // Seed customFields with Span PartB
+                ["azureResourceProvider"] = true,
+            };
+
+            foreach (var entry in CS40_PART_B_MAPPING)
+            {
+                customFields[entry.Value] = true;
             }
 
             foreach (var name in options.CustomFields)
             {
                 customFields[name] = true;
-                dedicatedFields[name] = true;
             }
 
             this.m_customFields = customFields;
-
-            foreach (var name in CS40_PART_B_MAPPING.Keys)
-            {
-                dedicatedFields[name] = true;
-            }
-
-            dedicatedFields["otel.status_code"] = true;
-            dedicatedFields["otel.status_description"] = true;
-            this.m_dedicatedFields = dedicatedFields;
         }
 
         var buffer = new byte[BUFFER_SIZE];
@@ -265,81 +254,13 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             cntFields += 1;
         }
 
-        // TODO: The current approach is to iterate twice over TagObjects so that all
-        // env_properties can be added the very end. This avoids speculating the size
-        // and preallocating a separate buffer for it.
-        // Alternates include static allocation and iterate once.
-        // The TODO: here is to measure perf and change to alternate, if required.
+        var enumerator = activity.EnumerateTagObjects();
+        var state = new TagEnumerationState(buffer, cursor, cntFields);
 
-        // Iteration #1 - Get those fields which become dedicated column
-        // i.e all PartB fields and opt-in part c fields.
-        bool hasEnvProperties = false;
-        bool isStatusSuccess = true;
-        string statusDescription = string.Empty;
+        this.EnumerateTagObjects(ref enumerator, ref state);
 
-        foreach (ref readonly var entry in activity.EnumerateTagObjects())
-        {
-            // TODO: check name collision
-            if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string replacementKey))
-            {
-                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, replacementKey);
-            }
-            else if (string.Equals(entry.Key, "otel.status_code", StringComparison.Ordinal))
-            {
-                if (string.Equals(entry.Value.ToString(), "ERROR", StringComparison.Ordinal))
-                {
-                    isStatusSuccess = false;
-                }
-
-                continue;
-            }
-            else if (string.Equals(entry.Key, "otel.status_description", StringComparison.Ordinal))
-            {
-                statusDescription = entry.Value.ToString();
-                continue;
-            }
-            else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
-            {
-                // TODO: the above null check can be optimized and avoided inside foreach.
-                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
-            }
-            else
-            {
-                hasEnvProperties = true;
-                continue;
-            }
-
-            cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
-            cntFields += 1;
-        }
-
-        if (hasEnvProperties)
-        {
-            // Iteration #2 - Get all "other" fields and collapse them into single field
-            // named "env_properties".
-            ushort envPropertiesCount = 0;
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_properties");
-            cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
-            int idxMapSizeEnvPropertiesPatch = cursor - 2;
-
-            foreach (ref readonly var entry in activity.EnumerateTagObjects())
-            {
-                // TODO: check name collision
-                if (this.m_dedicatedFields.ContainsKey(entry.Key))
-                {
-                    continue;
-                }
-                else
-                {
-                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
-                    cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
-                    envPropertiesCount += 1;
-                }
-            }
-
-            cntFields += 1;
-            MessagePackSerializer.WriteUInt16(buffer, idxMapSizeEnvPropertiesPatch, envPropertiesCount);
-        }
+        cursor = state.Cursor;
+        cntFields = state.FieldCount;
 
         if (activity.Status != ActivityStatusCode.Unset)
         {
@@ -355,17 +276,14 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                 cntFields += 1;
             }
         }
-        else
+        else if (!state.IsStatusSuccess)
         {
-            if (!isStatusSuccess)
+            MessagePackSerializer.SerializeBool(buffer, idxSuccessPatch, false);
+            if (!string.IsNullOrEmpty(state.StatusDescription))
             {
-                MessagePackSerializer.SerializeBool(buffer, idxSuccessPatch, false);
-                if (!string.IsNullOrEmpty(statusDescription))
-                {
-                    cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "statusMessage");
-                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, statusDescription);
-                    cntFields += 1;
-                }
+                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "statusMessage");
+                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, state.StatusDescription);
+                cntFields += 1;
             }
         }
         #endregion
@@ -376,6 +294,69 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         cursor += this.m_bufferEpilogue.Length;
 
         return cursor;
+    }
+
+    private void EnumerateTagObjects(
+        ref Activity.Enumerator<KeyValuePair<string, object>> tagObjectsEnumerator,
+        ref TagEnumerationState state)
+    {
+        while (tagObjectsEnumerator.MoveNext())
+        {
+            ref readonly var entry = ref tagObjectsEnumerator.Current;
+
+            // TODO: check name collision
+            if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string replacementKey))
+            {
+                state.Cursor = MessagePackSerializer.SerializeAsciiString(state.Buffer, state.Cursor, replacementKey);
+            }
+            else if (string.Equals(entry.Key, "otel.status_code", StringComparison.Ordinal))
+            {
+                if (string.Equals(entry.Value.ToString(), "ERROR", StringComparison.Ordinal))
+                {
+                    state.IsStatusSuccess = false;
+                }
+
+                continue;
+            }
+            else if (string.Equals(entry.Key, "otel.status_description", StringComparison.Ordinal))
+            {
+                state.StatusDescription = entry.Value.ToString();
+                continue;
+            }
+            else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
+            {
+                // TODO: the above null check can be optimized and avoided inside foreach.
+                state.Cursor = MessagePackSerializer.SerializeUnicodeString(state.Buffer, state.Cursor, entry.Key);
+            }
+            else
+            {
+                // Note: How this works is current tag and count are pushed to
+                // the stack and then we recurse to keep processing tags. Once
+                // we have visited all the tags we start popping values and
+                // writing env_properties for anything that was pushed as we
+                // unwind.
+
+                var localPropertyCopy = entry;
+                var currentLocalPropertyCount = state.EnvPropertiesCount++;
+
+                this.EnumerateTagObjects(ref tagObjectsEnumerator, ref state);
+
+                if (currentLocalPropertyCount == state.EnvPropertiesCount - 1)
+                {
+                    state.Cursor = MessagePackSerializer.SerializeAsciiString(state.Buffer, state.Cursor, "env_properties");
+                    state.Cursor = MessagePackSerializer.WriteMapHeader(state.Buffer, state.Cursor, state.EnvPropertiesCount);
+                    state.FieldCount++;
+                }
+
+                state.Cursor = MessagePackSerializer.SerializeUnicodeString(state.Buffer, state.Cursor, localPropertyCopy.Key);
+                state.Cursor = MessagePackSerializer.Serialize(state.Buffer, state.Cursor, localPropertyCopy.Value);
+
+                return;
+            }
+
+            state.Cursor = MessagePackSerializer.Serialize(state.Buffer, state.Cursor, entry.Value);
+            state.FieldCount++;
+        }
     }
 
     public void Dispose()
@@ -416,8 +397,6 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     private readonly IReadOnlyDictionary<string, object> m_customFields;
 
-    private readonly IReadOnlyDictionary<string, object> m_dedicatedFields;
-
     private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
 
     private static readonly IReadOnlyDictionary<string, string> CS40_PART_B_MAPPING = new Dictionary<string, string>
@@ -436,4 +415,24 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
     };
 
     private bool isDisposed;
+
+    private ref struct TagEnumerationState
+    {
+        public readonly byte[] Buffer;
+        public int Cursor;
+        public ushort FieldCount;
+        public int EnvPropertiesCount;
+        public bool IsStatusSuccess;
+        public string StatusDescription;
+
+        public TagEnumerationState(byte[] buffer, int cursor, ushort fieldCount)
+        {
+            this.Buffer = buffer;
+            this.Cursor = cursor;
+            this.FieldCount = fieldCount;
+            this.EnvPropertiesCount = 0;
+            this.IsStatusSuccess = true;
+            this.StatusDescription = string.Empty;
+        }
+    }
 }
