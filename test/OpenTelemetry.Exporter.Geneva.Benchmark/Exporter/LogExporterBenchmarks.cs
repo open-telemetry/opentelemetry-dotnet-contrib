@@ -70,12 +70,19 @@ public class LogExporterBenchmarks
                         ["cloud.roleInstance"] = "CY1SCH030021417",
                         ["cloud.roleVer"] = "9.0.15289.2",
                     };
+                    exporterOptions.TableNameMappings = new Dictionary<string, string>
+                    {
+                        ["*"] = "*",
+                        ["TestCompany"] = "*",
+                        ["TestCompany.TestNamespace"] = "*",
+                        ["TestCompany.TestNamespace.TestLogger"] = "TestLoggerTable",
+                    };
                 });
 
                 loggerOptions.IncludeFormattedMessage = this.IncludeFormattedMessage;
             }));
 
-        this.logger = this.loggerFactory.CreateLogger("TestLogger");
+        this.logger = this.loggerFactory.CreateLogger("TestCompany.TestNamespace.TestLogger");
 
         // For msgpack serialization + export
         this.logRecord = GenerateTestLogRecord();

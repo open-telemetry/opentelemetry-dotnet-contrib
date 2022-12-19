@@ -28,58 +28,29 @@ namespace OpenTelemetry.Exporter.Geneva;
 internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 {
     private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
-    private const int MaxSanitizedEventNameLength = 50;
 
-    private readonly IReadOnlyDictionary<string, object> m_customFields;
-
-    private readonly ExceptionStackExportMode m_exportExceptionStack;
-
-    // This is used for Scopes
-    private readonly ThreadLocal<SerializationDataForScopes> m_serializationData = new(() => null);
-
-    private readonly string m_defaultEventName = "Log";
-    private readonly IReadOnlyDictionary<string, object> m_prepopulatedFields;
-    private readonly List<string> m_prepopulatedFieldKeys;
-    private static readonly ThreadLocal<byte[]> m_buffer = new(() => null);
-    private readonly byte[] m_bufferEpilogue;
+    private static readonly ThreadLocal<byte[]> m_buffer = new ThreadLocal<byte[]>(() => null);
     private static readonly string[] logLevels = new string[7]
     {
         "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None",
     };
 
+    private readonly TableNameSerializer m_tableNameSerializer;
+    private readonly Dictionary<string, object> m_customFields;
+    private readonly Dictionary<string, object> m_prepopulatedFields;
+    private readonly ExceptionStackExportMode m_exportExceptionStack;
+    private readonly List<string> m_prepopulatedFieldKeys;
+    private readonly byte[] m_bufferEpilogue;
     private readonly IDataTransport m_dataTransport;
-    private readonly bool shouldPassThruTableMappings;
+    
+    // This is used for Scopes
+    private readonly ThreadLocal<SerializationDataForScopes> m_serializationData = new(() => null);
     private bool isDisposed;
 
     public MsgPackLogExporter(GenevaExporterOptions options)
     {
+        this.m_tableNameSerializer = new(options, defaultTableName: "Log");
         this.m_exportExceptionStack = options.ExceptionStackExportMode;
-
-        // TODO: Validate mappings for reserved tablenames etc.
-        if (options.TableNameMappings != null)
-        {
-            var tempTableMappings = new Dictionary<string, string>(options.TableNameMappings.Count, StringComparer.Ordinal);
-            foreach (var kv in options.TableNameMappings)
-            {
-                if (kv.Key == "*")
-                {
-                    if (kv.Value == "*")
-                    {
-                        this.shouldPassThruTableMappings = true;
-                    }
-                    else
-                    {
-                        this.m_defaultEventName = kv.Value;
-                    }
-                }
-                else
-                {
-                    tempTableMappings[kv.Key] = kv.Value;
-                }
-            }
-
-            this.m_tableMappings = tempTableMappings;
-        }
 
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
         switch (connectionStringBuilder.Protocol)
@@ -135,8 +106,6 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         this.m_bufferEpilogue = new byte[cursor - 0];
         Buffer.BlockCopy(buffer, 0, this.m_bufferEpilogue, 0, cursor - 0);
     }
-
-    private readonly IReadOnlyDictionary<string, string> m_tableMappings;
 
     public ExportResult Export(in Batch<LogRecord> batch)
     {
@@ -210,40 +179,8 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 3);
 
         var categoryName = logRecord.CategoryName;
-        string eventName = null;
 
-        Span<byte> sanitizedEventName = default;
-
-        // If user configured explicit TableName, use it.
-        if (this.m_tableMappings != null && this.m_tableMappings.TryGetValue(categoryName, out eventName))
-        {
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, eventName);
-        }
-        else if (!this.shouldPassThruTableMappings)
-        {
-            eventName = this.m_defaultEventName;
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, eventName);
-        }
-        else
-        {
-            int cursorStartIdx = cursor;
-
-            if (categoryName.Length > 0)
-            {
-                cursor = SerializeSanitizedCategoryName(buffer, cursor, categoryName);
-            }
-
-            if (cursor == cursorStartIdx)
-            {
-                // Serializing null as categoryName could not be sanitized into a valid string.
-                cursor = MessagePackSerializer.SerializeNull(buffer, cursor);
-            }
-            else
-            {
-                // Sanitized category name has been serialized.
-                sanitizedEventName = buffer.AsSpan().Slice(cursorStartIdx, cursor - cursorStartIdx);
-            }
-        }
+        cursor = this.m_tableNameSerializer.ResolveAndSerializeTableNameForCategoryName(buffer, cursor, categoryName, out ReadOnlySpan<byte> eventName);
 
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 1);
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 2);
@@ -264,14 +201,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         }
 
         // Part A - core envelope
-        if (sanitizedEventName.Length != 0)
-        {
-            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, sanitizedEventName);
-        }
-        else
-        {
-            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, eventName);
-        }
+        cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, eventName);
 
         cntFields += 1;
 
@@ -481,61 +411,6 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             default:
                 return 1;
         }
-    }
-
-    // This method would map the logger category to a table name which only contains alphanumeric values with the following additions:
-    // Any character that is not allowed will be removed.
-    // If the resulting string is longer than 50 characters, only the first 50 characters will be taken.
-    // If the first character in the resulting string is a lower-case alphabet, it will be converted to the corresponding upper-case.
-    // If the resulting string still does not comply with Rule, the category name will not be serialized.
-    private static int SerializeSanitizedCategoryName(byte[] buffer, int cursor, string categoryName)
-    {
-        int cursorStartIdx = cursor;
-
-        // Reserve 2 bytes for storing LIMIT_MAX_STR8_LENGTH_IN_BYTES and (byte)validNameLength -
-        // these 2 bytes will be back filled after iterating through categoryName.
-        cursor += 2;
-        int validNameLength = 0;
-
-        // Special treatment for the first character.
-        var firstChar = categoryName[0];
-        if (firstChar >= 'A' && firstChar <= 'Z')
-        {
-            buffer[cursor++] = (byte)firstChar;
-            ++validNameLength;
-        }
-        else if (firstChar >= 'a' && firstChar <= 'z')
-        {
-            // If the first character in the resulting string is a lower-case alphabet,
-            // it will be converted to the corresponding upper-case.
-            buffer[cursor++] = (byte)(firstChar - 32);
-            ++validNameLength;
-        }
-        else
-        {
-            // Not a valid name.
-            return cursor -= 2;
-        }
-
-        for (int i = 1; i < categoryName.Length; ++i)
-        {
-            if (validNameLength == MaxSanitizedEventNameLength)
-            {
-                break;
-            }
-
-            var cur = categoryName[i];
-            if ((cur >= 'a' && cur <= 'z') || (cur >= 'A' && cur <= 'Z') || (cur >= '0' && cur <= '9'))
-            {
-                buffer[cursor++] = (byte)cur;
-                ++validNameLength;
-            }
-        }
-
-        // Backfilling MessagePack serialization protocol and valid category length to the startIdx of the categoryName byte array.
-        MessagePackSerializer.WriteStr8Header(buffer, cursorStartIdx, validNameLength);
-
-        return cursor;
     }
 
     private static string ToInvariantString(Exception exception)

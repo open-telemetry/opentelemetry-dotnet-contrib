@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -241,15 +240,18 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             cntFields += 1;
         }
 
-        var links = activity.Links;
-        if (links.Any())
+        var linkEnumerator = activity.EnumerateLinks();
+        if (linkEnumerator.MoveNext())
         {
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "links");
             cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, ushort.MaxValue); // Note: always use Array16 for perf consideration
             var idxLinkPatch = cursor - 2;
+
             ushort cntLink = 0;
-            foreach (var link in links)
+            do
             {
+                ref readonly var link = ref linkEnumerator.Current;
+
                 cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, 2);
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "toTraceId");
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, link.Context.TraceId.ToHexString());
@@ -257,6 +259,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, link.Context.SpanId.ToHexString());
                 cntLink += 1;
             }
+            while (linkEnumerator.MoveNext());
 
             MessagePackSerializer.WriteUInt16(buffer, idxLinkPatch, cntLink);
             cntFields += 1;
@@ -274,7 +277,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         bool isStatusSuccess = true;
         string statusDescription = string.Empty;
 
-        foreach (var entry in activity.TagObjects)
+        foreach (ref readonly var entry in activity.EnumerateTagObjects())
         {
             // TODO: check name collision
             if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string replacementKey))
@@ -319,7 +322,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
             int idxMapSizeEnvPropertiesPatch = cursor - 2;
 
-            foreach (var entry in activity.TagObjects)
+            foreach (ref readonly var entry in activity.EnumerateTagObjects())
             {
                 // TODO: check name collision
                 if (this.m_dedicatedFields.ContainsKey(entry.Key))
