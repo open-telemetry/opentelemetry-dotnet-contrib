@@ -637,7 +637,7 @@ public class GenevaMetricExporterTests
         }
     }
 
-    private static void CheckHistogramBucketSerialization(HistogramBucket bucket, HistogramValueCountPairs valueCountPairs, int listIterator, double lastExplicitBound)
+    private static void AssertHistogramBucketSerialization(HistogramBucket bucket, HistogramValueCountPairs valueCountPairs, int listIterator, double lastExplicitBound)
     {
         if (bucket.ExplicitBound != double.PositiveInfinity)
         {
@@ -780,7 +780,7 @@ public class GenevaMetricExporterTests
             {
                 if (bucket.BucketCount > 0)
                 {
-                    CheckHistogramBucketSerialization(bucket, valueCountPairs, listIterator, lastExplicitBound);
+                    AssertHistogramBucketSerialization(bucket, valueCountPairs, listIterator, lastExplicitBound);
                     listIterator++;
                     bucketsWithPositiveCount++;
                 }
