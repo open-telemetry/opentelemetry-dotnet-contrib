@@ -400,7 +400,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
 
-    private readonly ThreadLocal<byte[]> m_buffer = new ThreadLocal<byte[]>(() => null);
+    private readonly ThreadLocal<byte[]> m_buffer = new(() => null);
 
     private readonly byte[] m_bufferPrologue;
 
