@@ -46,6 +46,17 @@ internal class InstanaSpanSerializer
         return instanaSpan.Data.Events.GetEnumerator();
     }
 
+    internal async Task<byte[]> SerializeToByteArrayAsync(InstanaSpan instanaSpan)
+    {
+        using var stream = new MemoryStream();
+        using var writer = new StreamWriter(stream);
+
+        await this.SerializeToStreamWriterAsync(instanaSpan, writer);
+
+        await writer.FlushAsync();
+        return stream.ToArray();
+    }
+
     internal async Task SerializeToStreamWriterAsync(InstanaSpan instanaSpan, StreamWriter writer)
     {
         await writer.WriteAsync(OPEN_BRACE);
