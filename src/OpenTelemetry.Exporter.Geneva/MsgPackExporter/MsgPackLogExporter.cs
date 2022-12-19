@@ -42,7 +42,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     private readonly List<string> m_prepopulatedFieldKeys;
     private readonly byte[] m_bufferEpilogue;
     private readonly IDataTransport m_dataTransport;
-    
+
     // This is used for Scopes
     private readonly ThreadLocal<SerializationDataForScopes> m_serializationData = new(() => null);
     private bool isDisposed;
@@ -439,6 +439,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         try
         {
             (this.m_dataTransport as IDisposable)?.Dispose();
+            this.m_serializationData.Dispose();
             this.m_prepopulatedFieldKeys.Clear();
         }
         catch (Exception ex)
