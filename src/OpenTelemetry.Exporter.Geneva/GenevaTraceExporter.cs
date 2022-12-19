@@ -45,7 +45,7 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 
     public override ExportResult Export(in Batch<Activity> batch)
     {
-        return this.exportActivity(batch);
+        return this.exportActivity(in batch);
     }
 
     protected override void Dispose(bool disposing)

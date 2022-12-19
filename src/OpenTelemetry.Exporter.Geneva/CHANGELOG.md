@@ -4,6 +4,11 @@
 
 * Update OpenTelemetry to 1.4.0-rc.1
   ([#820](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/820))
+* Add support in logs for prefix-based table name mapping configuration.
+  [#796](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/796)
+* Updated the trace exporter to use the new performance APIs introduced in
+  `System.Diagnostics.DiagnosticSource` v7.0.
+  [#838](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/838)
 
 ## 1.4.0-beta.6
 
@@ -14,7 +19,7 @@ Released 2022-Dec-09
   ([#797](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/797))
 * Fix the overflow bucket value serialization for Histogram.
   ([#805](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/805))
-* Fix EventSource logging
+* Fix EventSource logging.
   ([#813](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/813))
 
 ## 1.4.0-beta.5
