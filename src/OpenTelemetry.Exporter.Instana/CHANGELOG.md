@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.1.0
+## 1.0.2
 
 Released 2022-Dec-20
 
