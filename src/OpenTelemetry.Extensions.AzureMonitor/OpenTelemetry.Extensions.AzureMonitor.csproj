@@ -5,6 +5,7 @@
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
     <TargetFrameworks Condition="'$(Configuration)' == 'Debug'">$(TargetFrameworks);net6.0</TargetFrameworks> <!-- Added just to get proper nullable analysis in IDE -->
     <MinVerTagPrefix>Extensions.AzureMonitor-</MinVerTagPrefix>
+    <EnableAnalysis>true</EnableAnalysis>
   </PropertyGroup>
 
   <ItemGroup>
