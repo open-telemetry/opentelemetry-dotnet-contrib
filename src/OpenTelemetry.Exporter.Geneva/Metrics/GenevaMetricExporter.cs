@@ -462,7 +462,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void SerializeHistogramBucket(HistogramBucket bucket, ref int bufferIndex, double lastExplicitBound)
+    private void SerializeHistogramBucket(in HistogramBucket bucket, ref int bufferIndex, double lastExplicitBound)
     {
         if (bucket.ExplicitBound != double.PositiveInfinity)
         {
