@@ -33,6 +33,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
     internal const int MaxDimensionValueSize = 1024;
 
+    private static readonly MetricData ulongZero = new MetricData { UInt64Value = 0 };
+
     private readonly ushort prepopulatedDimensionsCount;
 
     private readonly int fixedPayloadStartIndex;
@@ -54,8 +56,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
     private readonly int bufferIndexForNonHistogramMetrics;
 
     private readonly int bufferIndexForHistogramMetrics;
-
-    private static readonly MetricData ulongZero = new MetricData { UInt64Value = 0 };
 
     private bool isDisposed;
 
