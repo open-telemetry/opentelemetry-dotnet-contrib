@@ -400,6 +400,23 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
 
+    private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
+
+    private static readonly IReadOnlyDictionary<string, string> CS40_PART_B_MAPPING = new Dictionary<string, string>
+    {
+        ["db.system"] = "dbSystem",
+        ["db.name"] = "dbName",
+        ["db.statement"] = "dbStatement",
+
+        ["http.method"] = "httpMethod",
+        ["http.url"] = "httpUrl",
+        ["http.status_code"] = "httpStatusCode",
+
+        ["messaging.system"] = "messagingSystem",
+        ["messaging.destination"] = "messagingDestination",
+        ["messaging.url"] = "messagingUrl",
+    };
+
     private readonly ThreadLocal<byte[]> m_buffer = new(() => null);
 
     private readonly byte[] m_bufferPrologue;
@@ -417,23 +434,6 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
     private readonly IReadOnlyDictionary<string, object> m_customFields;
 
     private readonly IReadOnlyDictionary<string, object> m_dedicatedFields;
-
-    private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
-
-    private static readonly IReadOnlyDictionary<string, string> CS40_PART_B_MAPPING = new Dictionary<string, string>
-    {
-        ["db.system"] = "dbSystem",
-        ["db.name"] = "dbName",
-        ["db.statement"] = "dbStatement",
-
-        ["http.method"] = "httpMethod",
-        ["http.url"] = "httpUrl",
-        ["http.status_code"] = "httpStatusCode",
-
-        ["messaging.system"] = "messagingSystem",
-        ["messaging.destination"] = "messagingDestination",
-        ["messaging.url"] = "messagingUrl",
-    };
 
     private bool isDisposed;
 }
