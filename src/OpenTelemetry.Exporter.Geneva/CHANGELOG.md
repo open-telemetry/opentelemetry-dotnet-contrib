@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.4.0-rc.1
+
+Released 2022-Dec-19
+
 * Update OpenTelemetry to 1.4.0-rc.1
   ([#820](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/820))
 * Add support in logs for prefix-based table name mapping configuration.
@@ -9,7 +13,6 @@
 * Updated the trace exporter to use the new performance APIs introduced in
   `System.Diagnostics.DiagnosticSource` v7.0.
   [#838](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/838)
-
 * Avoid allocation when serializing scopes.
   ([#818](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/818))
 
