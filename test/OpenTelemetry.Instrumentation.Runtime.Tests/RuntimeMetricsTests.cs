@@ -133,7 +133,7 @@ public class RuntimeMetricsTests
         List<Task> tasks = new List<Task>();
         for (int i = 0; i < taskCount; i++)
         {
-            tasks.Add(Task.Run(() => { Console.Write("Hi"); }));
+            tasks.Add(Task.Run(() => { }));
         }
 
         Task.WaitAll(tasks.ToArray());
