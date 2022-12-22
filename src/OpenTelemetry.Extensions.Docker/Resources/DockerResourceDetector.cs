@@ -37,17 +37,24 @@ public class DockerResourceDetector : IResourceDetector
     /// <returns>Resource with key-value pairs of resource attributes.</returns>
     public Resource Detect()
     {
-        return this.BuildResource(FILEPATH);
+        var cGroupBuild = this.BuildResource(FILEPATH, true);
+        if (cGroupBuild == Resource.Empty)
+        {
+            cGroupBuild = this.BuildResource(FILEPATHV2, false);
+        }
+
+        return cGroupBuild;
     }
 
     /// <summary>
     /// Builds the resource attributes from Container Id in file path.
     /// </summary>
     /// <param name="path">File path where container id exists.</param>
+    /// <param name="isCGroupV1">Default parameter signifying where cgroup is of version 1 or 2. Defaults to version 1.</param>
     /// <returns>Returns Resource with list of key-value pairs of container resource attributes if container id exists else empty resource.</returns>
-    internal Resource BuildResource(string path)
+    internal Resource BuildResource(string path, bool isCGroupV1 = true)
     {
-        var containerId = this.ExtractContainerId(path);
+        var containerId = this.ExtractContainerId(path, isCGroupV1);
 
         if (string.IsNullOrEmpty(containerId))
         {
@@ -62,13 +69,19 @@ public class DockerResourceDetector : IResourceDetector
     /// <summary>
     /// Extracts Container Id from path.
     /// </summary>
-    /// /// <param name="path">cgroup path.</param>
+    /// <param name="path">cgroup path.</param>
+    /// <param name="isCGroupV1">Default parameter signifying where cgroup is of version 1 or 2. Defaults to version 1.</param>
     /// <returns>Returns Resource with list of key-value pairs of container resource attributes if container id exists else empty resource.</returns>
-    private string ExtractContainerId(string path)
+    private string ExtractContainerId(string path, bool isCGroupV1)
     {
         try
         {
-            return this.ExtractContainerIdV2(path) ?? this.ExtractContainerIdV1(path);
+            if (isCGroupV1)
+            {
+                return this.ExtractContainerIdV1(path);
+            }
+
+            return this.ExtractContainerIdV2(path);
         }
         catch (Exception ex)
         {

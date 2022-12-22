@@ -96,7 +96,7 @@ public class DockerResourceDetectorTests
         using (TempFile tempFile = new TempFile())
         {
             tempFile.Write(CGROUPLINEV2);
-            Assert.Equal(CONTAINERIDV2, this.GetContainerId(dockerResourceDetector.BuildResource(tempFile.FilePath)));
+            Assert.Equal(CONTAINERIDV2, this.GetContainerId(dockerResourceDetector.BuildResource(tempFile.FilePath, false)));
         }
     }
 
