@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.2
+
+Released 2022-Dec-20
+
 * Updated `Transport` with exception-handling and a couple of bug fixes ([#747](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/747)):
   * Adds `InstanaExporterEventSource` to provide for error logging.
   * Adds exception-handling to `Transport` with logging via `InstanaExporterEventSource`.
