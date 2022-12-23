@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 #endif
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Models;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 
@@ -35,7 +36,7 @@ public class AWSEBSResourceDetector : IResourceDetector
     /// Detector the required and optional resource attributes from AWS ElasticBeanstalk.
     /// </summary>
     /// <returns>List of key-value pairs of resource attributes.</returns>
-    public IEnumerable<KeyValuePair<string, object>> Detect()
+    public Resource Detect()
     {
         List<KeyValuePair<string, object>> resourceAttributes = null;
 
@@ -64,19 +65,19 @@ public class AWSEBSResourceDetector : IResourceDetector
             AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSEBSResourceDetector), ex);
         }
 
-        return resourceAttributes;
+        return new Resource(resourceAttributes);
     }
 
     internal List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEBSMetadataModel metadata)
     {
         var resourceAttributes = new List<KeyValuePair<string, object>>()
         {
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_elastic_beanstalk"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceName, "aws_elastic_beanstalk"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceNamespace, metadata.EnvironmentName),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceInstanceID, metadata.DeploymentId),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceVersion, metadata.VersionLabel),
+            new(ResourceSemanticConventions.AttributeCloudProvider, "aws"),
+            new(ResourceSemanticConventions.AttributeCloudPlatform, "aws_elastic_beanstalk"),
+            new(ResourceSemanticConventions.AttributeServiceName, "aws_elastic_beanstalk"),
+            new(ResourceSemanticConventions.AttributeServiceNamespace, metadata.EnvironmentName),
+            new(ResourceSemanticConventions.AttributeServiceInstanceId, metadata.DeploymentId),
+            new(ResourceSemanticConventions.AttributeServiceVersion, metadata.VersionLabel),
         };
 
         return resourceAttributes;

@@ -17,6 +17,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
+using OpenTelemetry.Resources;
 using Xunit;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources;
@@ -28,8 +29,8 @@ public class TestAWSEC2ResourceDetector
     {
         IEnumerable<KeyValuePair<string, object>> resourceAttributes;
         var ec2ResourceDetector = new AWSEC2ResourceDetector();
-        resourceAttributes = ec2ResourceDetector.Detect();
-        Assert.Null(resourceAttributes); // will be null as it's not in ec2 environment
+        var resource = ec2ResourceDetector.Detect();
+        Assert.Equal(resource, Resource.Empty); // will be empty as it's not in ec2 environment
     }
 
     [Fact]

@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 
@@ -32,13 +33,13 @@ public class AWSECSResourceDetector : IResourceDetector
     /// Detector the required and optional resource attributes from AWS ECS.
     /// </summary>
     /// <returns>List of key-value pairs of resource attributes.</returns>
-    public IEnumerable<KeyValuePair<string, object>> Detect()
+    public Resource Detect()
     {
         List<KeyValuePair<string, object>> resourceAttributes = null;
 
         if (!this.IsECSProcess())
         {
-            return resourceAttributes;
+            return Resource.Empty;
         }
 
         try
@@ -52,16 +53,16 @@ public class AWSECSResourceDetector : IResourceDetector
             AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSResourceDetector), ex);
         }
 
-        return resourceAttributes;
+        return new Resource(resourceAttributes);
     }
 
     internal List<KeyValuePair<string, object>> ExtractResourceAttributes(string containerId)
     {
         var resourceAttributes = new List<KeyValuePair<string, object>>()
         {
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_ecs"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeContainerID, containerId),
+            new(ResourceSemanticConventions.AttributeCloudProvider, "aws"),
+            new(ResourceSemanticConventions.AttributeCloudPlatform, "aws_ecs"),
+            new(ResourceSemanticConventions.AttributeContainerId, containerId),
         };
 
         return resourceAttributes;
@@ -89,6 +90,7 @@ public class AWSECSResourceDetector : IResourceDetector
 
     internal bool IsECSProcess()
     {
-        return Environment.GetEnvironmentVariable(AWSECSMetadataURLKey) != null || Environment.GetEnvironmentVariable(AWSECSMetadataURLV4Key) != null;
+        return Environment.GetEnvironmentVariable(AWSECSMetadataURLKey) != null ||
+               Environment.GetEnvironmentVariable(AWSECSMetadataURLV4Key) != null;
     }
 }

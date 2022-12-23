@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 
@@ -32,7 +33,7 @@ public class AWSLambdaResourceDetector : IResourceDetector
     /// Detector the required and optional resource attributes from AWS Lambda.
     /// </summary>
     /// <returns>List of key-value pairs of resource attributes.</returns>
-    public IEnumerable<KeyValuePair<string, object>> Detect()
+    public Resource Detect()
     {
         List<KeyValuePair<string, object>> resourceAttributes = null;
 
@@ -45,18 +46,18 @@ public class AWSLambdaResourceDetector : IResourceDetector
             AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSLambdaResourceDetector), ex);
         }
 
-        return resourceAttributes;
+        return new Resource(resourceAttributes);
     }
 
     internal List<KeyValuePair<string, object>> ExtractResourceAttributes()
     {
         var resourceAttributes = new List<KeyValuePair<string, object>>()
         {
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_lambda"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudRegion, GetAWSRegion()),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeFaasName, GetFunctionName()),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeFaasVersion, GetFunctionVersion()),
+            new(ResourceSemanticConventions.AttributeCloudProvider, "aws"),
+            new(ResourceSemanticConventions.AttributeCloudPlatform, "aws_lambda"),
+            new(ResourceSemanticConventions.AttributeCloudRegion, GetAWSRegion()),
+            new(ResourceSemanticConventions.AttributeFaasName, GetFunctionName()),
+            new(ResourceSemanticConventions.AttributeFaasVersion, GetFunctionVersion()),
         };
 
         return resourceAttributes;
