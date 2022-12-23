@@ -37,24 +37,23 @@ public class DockerResourceDetector : IResourceDetector
     /// <returns>Resource with key-value pairs of resource attributes.</returns>
     public Resource Detect()
     {
-        var cGroupBuild = this.BuildResource(FILEPATH, true);
+        var cGroupBuild = this.BuildResourceV1(FILEPATH);
         if (cGroupBuild == Resource.Empty)
         {
-            cGroupBuild = this.BuildResource(FILEPATHV2, false);
+            cGroupBuild = this.BuildResourceV2(FILEPATHV2);
         }
 
         return cGroupBuild;
     }
 
     /// <summary>
-    /// Builds the resource attributes from Container Id in file path.
+    /// Builds the resource attributes from Container Id in file path of cgroupv1.
     /// </summary>
     /// <param name="path">File path where container id exists.</param>
-    /// <param name="isCGroupV1">Default parameter signifying where cgroup is of version 1 or 2. Defaults to version 1.</param>
     /// <returns>Returns Resource with list of key-value pairs of container resource attributes if container id exists else empty resource.</returns>
-    internal Resource BuildResource(string path, bool isCGroupV1 = true)
+    internal Resource BuildResourceV1(string path)
     {
-        var containerId = this.ExtractContainerId(path, isCGroupV1);
+        var containerId = this.ExtractContainerIdV1(path);
 
         if (string.IsNullOrEmpty(containerId))
         {
@@ -67,28 +66,22 @@ public class DockerResourceDetector : IResourceDetector
     }
 
     /// <summary>
-    /// Extracts Container Id from path.
+    /// Builds the resource attributes from Container Id in file path of cgroupv2.
     /// </summary>
-    /// <param name="path">cgroup path.</param>
-    /// <param name="isCGroupV1">Default parameter signifying where cgroup is of version 1 or 2. Defaults to version 1.</param>
+    /// <param name="path">File path where container id exists.</param>
     /// <returns>Returns Resource with list of key-value pairs of container resource attributes if container id exists else empty resource.</returns>
-    private string ExtractContainerId(string path, bool isCGroupV1)
+    internal Resource BuildResourceV2(string path)
     {
-        try
-        {
-            if (isCGroupV1)
-            {
-                return this.ExtractContainerIdV1(path);
-            }
+        var containerId = this.ExtractContainerIdV2(path);
 
-            return this.ExtractContainerIdV2(path);
-        }
-        catch (Exception ex)
+        if (string.IsNullOrEmpty(containerId))
         {
-            DockerExtensionsEventSource.Log.ExtractResourceAttributesException($"{nameof(DockerResourceDetector)} : Failed to extract Container id from path", ex);
+            return Resource.Empty;
         }
-
-        return null;
+        else
+        {
+            return new Resource(new List<KeyValuePair<string, object>>() { new KeyValuePair<string, object>(DockerSemanticConventions.AttributeContainerID, containerId), });
+        }
     }
 
     /// <summary>

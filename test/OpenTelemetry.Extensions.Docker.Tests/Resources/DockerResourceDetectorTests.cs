@@ -72,31 +72,31 @@ public class DockerResourceDetectorTests
         using (TempFile tempFile = new TempFile())
         {
             tempFile.Write(CGROUPLINEWITHPREFIX);
-            Assert.Equal(CONTAINERIDWITHPREFIXREMOVED, this.GetContainerId(dockerResourceDetector.BuildResource(tempFile.FilePath)));
+            Assert.Equal(CONTAINERIDWITHPREFIXREMOVED, this.GetContainerId(dockerResourceDetector.BuildResourceV1(tempFile.FilePath)));
         }
 
         using (TempFile tempFile = new TempFile())
         {
             tempFile.Write(CGROUPLINEWITHSUFFIX);
-            Assert.Equal(CONTAINERIDWITHSUFFIXREMOVED, this.GetContainerId(dockerResourceDetector.BuildResource(tempFile.FilePath)));
+            Assert.Equal(CONTAINERIDWITHSUFFIXREMOVED, this.GetContainerId(dockerResourceDetector.BuildResourceV1(tempFile.FilePath)));
         }
 
         using (TempFile tempFile = new TempFile())
         {
             tempFile.Write(CGROUPLINEWITHPREFIXandSUFFIX);
-            Assert.Equal(CONTAINERIDWITHPREFIXANDSUFFIXREMOVED, this.GetContainerId(dockerResourceDetector.BuildResource(tempFile.FilePath)));
+            Assert.Equal(CONTAINERIDWITHPREFIXANDSUFFIXREMOVED, this.GetContainerId(dockerResourceDetector.BuildResourceV1(tempFile.FilePath)));
         }
 
         using (TempFile tempFile = new TempFile())
         {
             tempFile.Write(CGROUPLINE);
-            Assert.Equal(CONTAINERID, this.GetContainerId(dockerResourceDetector.BuildResource(tempFile.FilePath)));
+            Assert.Equal(CONTAINERID, this.GetContainerId(dockerResourceDetector.BuildResourceV1(tempFile.FilePath)));
         }
 
         using (TempFile tempFile = new TempFile())
         {
             tempFile.Write(CGROUPLINEV2);
-            Assert.Equal(CONTAINERIDV2, this.GetContainerId(dockerResourceDetector.BuildResource(tempFile.FilePath, false)));
+            Assert.Equal(CONTAINERIDV2, this.GetContainerId(dockerResourceDetector.BuildResourceV2(tempFile.FilePath)));
         }
     }
 
@@ -109,11 +109,11 @@ public class DockerResourceDetectorTests
         using (TempFile tempFile = new TempFile())
         {
             tempFile.Write(INVALIDCGROUPLINE);
-            Assert.Equal(dockerResourceDetector.BuildResource(tempFile.FilePath), Resource.Empty);
+            Assert.Equal(dockerResourceDetector.BuildResourceV1(tempFile.FilePath), Resource.Empty);
         }
 
         // test invalid file
-        Assert.Equal(dockerResourceDetector.BuildResource(Path.GetTempPath()), Resource.Empty);
+        Assert.Equal(dockerResourceDetector.BuildResourceV1(Path.GetTempPath()), Resource.Empty);
     }
 
     private string GetContainerId(Resource resource)
