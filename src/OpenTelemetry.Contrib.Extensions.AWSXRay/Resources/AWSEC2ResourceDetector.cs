@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Models;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 
@@ -35,7 +36,7 @@ public class AWSEC2ResourceDetector : IResourceDetector
     /// Detector the required and optional resource attributes from AWS EC2.
     /// </summary>
     /// <returns>List of key-value pairs of resource attributes.</returns>
-    public IEnumerable<KeyValuePair<string, object>> Detect()
+    public Resource Detect()
     {
         List<KeyValuePair<string, object>> resourceAttributes = null;
 
@@ -52,21 +53,22 @@ public class AWSEC2ResourceDetector : IResourceDetector
             AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSEC2ResourceDetector), ex);
         }
 
-        return resourceAttributes;
+        return new Resource(resourceAttributes);
     }
 
-    internal List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEC2IdentityDocumentModel identity, string hostName)
+    internal List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEC2IdentityDocumentModel identity,
+        string hostName)
     {
         var resourceAttributes = new List<KeyValuePair<string, object>>()
         {
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_ec2"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudAccountID, identity.AccountId),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudAvailableZone, identity.AvailabilityZone),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeHostID, identity.InstanceId),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeHostType, identity.InstanceType),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudRegion, identity.Region),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeHostName, hostName),
+            new(ResourceSemanticConventions.AttributeCloudProvider, "aws"),
+            new(ResourceSemanticConventions.AttributeCloudPlatform, "aws_ec2"),
+            new(ResourceSemanticConventions.AttributeCloudAccountId, identity.AccountId),
+            new(ResourceSemanticConventions.AttributeCloudAvailabilityZone, identity.AvailabilityZone),
+            new(ResourceSemanticConventions.AttributeHostId, identity.InstanceId),
+            new(ResourceSemanticConventions.AttributeHostType, identity.InstanceType),
+            new(ResourceSemanticConventions.AttributeCloudRegion, identity.Region),
+            new(ResourceSemanticConventions.AttributeHostName, hostName),
         };
 
         return resourceAttributes;
@@ -79,7 +81,8 @@ public class AWSEC2ResourceDetector : IResourceDetector
 
     private string GetAWSEC2Token()
     {
-        return ResourceDetectorUtils.SendOutRequest(AWSEC2MetadataTokenUrl, "PUT", new KeyValuePair<string, string>(AWSEC2MetadataTokenTTLHeader, "60")).Result;
+        return ResourceDetectorUtils.SendOutRequest(AWSEC2MetadataTokenUrl, "PUT",
+            new KeyValuePair<string, string>(AWSEC2MetadataTokenTTLHeader, "60")).Result;
     }
 
     private AWSEC2IdentityDocumentModel GetAWSEC2Identity(string token)
@@ -92,11 +95,13 @@ public class AWSEC2ResourceDetector : IResourceDetector
 
     private string GetIdentityResponse(string token)
     {
-        return ResourceDetectorUtils.SendOutRequest(AWSEC2IdentityDocumentUrl, "GET", new KeyValuePair<string, string>(AWSEC2MetadataTokenHeader, token)).Result;
+        return ResourceDetectorUtils.SendOutRequest(AWSEC2IdentityDocumentUrl, "GET",
+            new KeyValuePair<string, string>(AWSEC2MetadataTokenHeader, token)).Result;
     }
 
     private string GetAWSEC2HostName(string token)
     {
-        return ResourceDetectorUtils.SendOutRequest(AWSEC2HostNameUrl, "GET", new KeyValuePair<string, string>(AWSEC2MetadataTokenHeader, token)).Result;
+        return ResourceDetectorUtils.SendOutRequest(AWSEC2HostNameUrl, "GET",
+            new KeyValuePair<string, string>(AWSEC2MetadataTokenHeader, token)).Result;
     }
 }
