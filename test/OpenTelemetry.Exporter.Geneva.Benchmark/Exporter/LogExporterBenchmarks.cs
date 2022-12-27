@@ -20,25 +20,25 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 
 /*
-BenchmarkDotNet=v0.13.2, OS=Windows 11 (10.0.22621.819)
+BenchmarkDotNet=v0.13.2, OS=Windows 11 (10.0.22621.963)
 Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
-.NET SDK=7.0.100
-  [Host]     : .NET 6.0.11 (6.0.1122.52304), X64 RyuJIT AVX2
-  DefaultJob : .NET 6.0.11 (6.0.1122.52304), X64 RyuJIT AVX2
+.NET SDK=7.0.101
+  [Host]     : .NET 7.0.1 (7.0.122.56804), X64 RyuJIT AVX2
+  DefaultJob : .NET 7.0.1 (7.0.122.56804), X64 RyuJIT AVX2
 
 
-|                    Method | IncludeFormattedMessage |     Mean |   Error |  StdDev |   Gen0 | Allocated |
-|-------------------------- |------------------------ |---------:|--------:|--------:|-------:|----------:|
-| LoggerWithMessageTemplate |                   False | 832.5 ns | 5.99 ns | 5.00 ns | 0.0162 |     104 B |
-| LoggerWithDirectLoggerAPI |                   False | 766.2 ns | 3.85 ns | 3.60 ns | 0.0381 |     240 B |
-| LoggerWithSourceGenerator |                   False | 815.3 ns | 2.89 ns | 2.41 ns | 0.0095 |      64 B |
-|        SerializeLogRecord |                   False | 582.3 ns | 0.81 ns | 0.72 ns |      - |         - |
-|                    Export |                   False | 646.0 ns | 1.10 ns | 0.86 ns |      - |         - |
-| LoggerWithMessageTemplate |                    True | 847.7 ns | 5.56 ns | 5.20 ns | 0.0162 |     104 B |
-| LoggerWithDirectLoggerAPI |                    True | 762.5 ns | 2.72 ns | 2.41 ns | 0.0381 |     240 B |
-| LoggerWithSourceGenerator |                    True | 816.6 ns | 2.79 ns | 2.47 ns | 0.0095 |      64 B |
-|        SerializeLogRecord |                    True | 586.3 ns | 1.80 ns | 1.69 ns |      - |         - |
-|                    Export |                    True | 659.5 ns | 6.00 ns | 5.61 ns |      - |         - |
+|                    Method | IncludeFormattedMessage |       Mean |    Error |   StdDev |   Gen0 | Allocated |
+|-------------------------- |------------------------ |-----------:|---------:|---------:|-------:|----------:|
+| LoggerWithMessageTemplate |                   False | 1,221.9 ns | 17.52 ns | 15.53 ns | 0.0153 |     104 B |
+| LoggerWithDirectLoggerAPI |                   False | 1,109.6 ns | 22.14 ns | 34.47 ns | 0.0381 |     240 B |
+| LoggerWithSourceGenerator |                   False | 1,117.7 ns |  9.94 ns |  7.76 ns | 0.0095 |      64 B |
+|        SerializeLogRecord |                   False |   560.0 ns |  2.87 ns |  2.40 ns |      - |         - |
+|                    Export |                   False |   891.0 ns | 17.06 ns | 32.05 ns |      - |         - |
+| LoggerWithMessageTemplate |                    True | 1,243.7 ns | 24.79 ns | 35.55 ns | 0.0153 |     104 B |
+| LoggerWithDirectLoggerAPI |                    True | 1,090.8 ns | 12.85 ns | 10.04 ns | 0.0381 |     240 B |
+| LoggerWithSourceGenerator |                    True | 1,186.1 ns | 23.58 ns | 45.99 ns | 0.0095 |      64 B |
+|        SerializeLogRecord |                    True |   564.8 ns |  5.20 ns |  4.06 ns |      - |         - |
+|                    Export |                    True |   874.5 ns | 17.38 ns | 24.37 ns |      - |         - |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark;
