@@ -1,4 +1,4 @@
-// <copyright file="MetricUnixDataTransport.cs" company="OpenTelemetry Authors">
+// <copyright file="MetricSocketDataTransport.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,29 +14,29 @@
 // limitations under the License.
 // </copyright>
 
+using System;
+
 namespace OpenTelemetry.Exporter.Geneva;
 
-internal sealed class MetricUnixDataTransport : IMetricDataTransport
+internal sealed class MetricSocketDataTransport : IMetricDataTransport
 {
     private readonly int fixedPayloadLength;
-    private readonly UnixDomainSocketDataTransport udsDataTransport;
+    private readonly IDataTransport socketDataTransport;
     private bool isDisposed;
 
-    public MetricUnixDataTransport(
-        string unixDomainSocketPath,
-        int timeoutMilliseconds = UnixDomainSocketDataTransport.DefaultTimeoutMilliseconds)
+    public MetricSocketDataTransport(IDataTransport socketDataTransport)
     {
         unsafe
         {
             this.fixedPayloadLength = sizeof(BinaryHeader);
         }
 
-        this.udsDataTransport = new UnixDomainSocketDataTransport(unixDomainSocketPath, timeoutMilliseconds);
+        this.socketDataTransport = socketDataTransport ?? throw new ArgumentNullException(nameof(socketDataTransport));
     }
 
     public void Send(MetricEventType eventType, byte[] body, int size)
     {
-        this.udsDataTransport.Send(body, size + this.fixedPayloadLength);
+        this.socketDataTransport.Send(body, size + this.fixedPayloadLength);
     }
 
     public void Dispose()
@@ -46,7 +46,10 @@ internal sealed class MetricUnixDataTransport : IMetricDataTransport
             return;
         }
 
-        this.udsDataTransport?.Dispose();
+        if (this.socketDataTransport is IDisposable disposableDataTransport)
+        {
+            disposableDataTransport.Dispose();
+        }
         this.isDisposed = true;
     }
 }
