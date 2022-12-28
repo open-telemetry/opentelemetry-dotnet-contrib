@@ -91,7 +91,7 @@ internal class TcpSocketDataTransport : IDataTransport, IDisposable
         }
         catch (Exception ex)
         {
-            ExporterEventSource.Log.ExporterException("UDS Connect failed.", ex);
+            ExporterEventSource.Log.ExporterException("Failed to connect TCP socket.", ex);
 
             // Re-throw the exception to
             // 1. fail fast in Geneva exporter contructor, or
