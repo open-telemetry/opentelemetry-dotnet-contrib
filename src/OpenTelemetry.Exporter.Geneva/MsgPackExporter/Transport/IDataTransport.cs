@@ -18,6 +18,8 @@ namespace OpenTelemetry.Exporter.Geneva;
 
 internal interface IDataTransport
 {
+    bool SupportsBatching { get; }
+
     bool IsEnabled();
 
     void Send(byte[] data, int size);

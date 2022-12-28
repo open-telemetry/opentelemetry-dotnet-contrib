@@ -62,6 +62,8 @@ internal class EtwDataTransport : IDataTransport, IDisposable
         this.m_eventSource.SendEvent((int)EtwEventSource.EtwEventId.TraceEvent, data, size);
     }
 
+    public bool SupportsBatching => false;
+
     public bool IsEnabled()
     {
         return this.m_eventSource.IsEnabled();

@@ -31,7 +31,7 @@ public static class GenevaLoggingExtensions
         var genevaOptions = new GenevaExporterOptions();
         configure?.Invoke(genevaOptions);
         var exporter = new GenevaLogExporter(genevaOptions);
-        if (exporter.IsUsingUnixDomainSocket)
+        if (exporter.SupportsBatching)
         {
             return options.AddProcessor(new BatchLogRecordExportProcessor(exporter));
         }

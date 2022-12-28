@@ -46,6 +46,8 @@ internal class UnixDomainSocketDataTransport : IDataTransport, IDisposable
         this.Connect();
     }
 
+    public bool SupportsBatching => true;
+
     public bool IsEnabled()
     {
         return true;

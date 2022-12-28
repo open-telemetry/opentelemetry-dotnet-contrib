@@ -127,10 +127,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         return result;
     }
 
-    internal bool IsUsingUnixDomainSocket
-    {
-        get => this.m_dataTransport is UnixDomainSocketDataTransport;
-    }
+    internal bool SupportsBatching => this.m_dataTransport.SupportsBatching;
 
     internal int SerializeLogRecord(LogRecord logRecord)
     {

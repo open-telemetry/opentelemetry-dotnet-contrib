@@ -22,7 +22,7 @@ namespace OpenTelemetry.Exporter.Geneva;
 
 public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
 {
-    internal bool IsUsingUnixDomainSocket;
+    internal bool SupportsBatching { get; }
 
     private bool isDisposed;
 
@@ -38,7 +38,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
         var msgPackExporter = new MsgPackLogExporter(options);
-        this.IsUsingUnixDomainSocket = msgPackExporter.IsUsingUnixDomainSocket;
+        this.SupportsBatching = msgPackExporter.SupportsBatching;
         this.exportLogRecord = (in Batch<LogRecord> batch) => msgPackExporter.Export(in batch);
         this.exporter = msgPackExporter;
     }
