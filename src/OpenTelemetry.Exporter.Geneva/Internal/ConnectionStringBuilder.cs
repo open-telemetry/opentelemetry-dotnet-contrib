@@ -138,7 +138,7 @@ internal class ConnectionStringBuilder
         {
             if (!this._parts.TryGetValue(nameof(this.TimeoutMilliseconds), out string value))
             {
-                return UnixDomainSocketDataTransport.DefaultTimeoutMilliseconds;
+                return TransportDefaults.SocketTimeoutMilliseconds;
             }
 
             try

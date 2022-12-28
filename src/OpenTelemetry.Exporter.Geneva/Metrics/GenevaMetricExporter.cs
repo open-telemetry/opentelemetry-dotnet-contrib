@@ -84,11 +84,18 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                 }
 
                 var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
-                this.metricDataTransport = new MetricSocketDataTransport(new UnixDomainSocketDataTransport(unixDomainSocketPath));
+                this.metricDataTransport = new MetricSocketDataTransport(
+                    new UnixDomainSocketDataTransport(unixDomainSocketPath)
+                    {
+                        TimeoutMilliseconds = connectionStringBuilder.TimeoutMilliseconds
+                    });
                 break;
             case TransportProtocol.Tcp:
                 this.metricDataTransport = new MetricSocketDataTransport(
-                    new TcpSocketDataTransport(connectionStringBuilder.Host, connectionStringBuilder.Port, connectionStringBuilder.TimeoutMilliseconds));
+                    new TcpSocketDataTransport(connectionStringBuilder.Host, connectionStringBuilder.Port)
+                    {
+                        TimeoutMilliseconds = connectionStringBuilder.TimeoutMilliseconds
+                    });
                 break;
             case TransportProtocol.Unspecified:
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

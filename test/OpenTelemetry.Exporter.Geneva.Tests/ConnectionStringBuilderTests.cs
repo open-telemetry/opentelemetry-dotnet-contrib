@@ -116,7 +116,7 @@ public class ConnectionStringBuilderTests
         Assert.Equal(6000, builder.TimeoutMilliseconds);
 
         builder = new ConnectionStringBuilder("Endpoint=unix:/var/run/default_fluent.socket");
-        Assert.Equal(UnixDomainSocketDataTransport.DefaultTimeoutMilliseconds, builder.TimeoutMilliseconds);
+        Assert.Equal(TransportDefaults.SocketTimeoutMilliseconds, builder.TimeoutMilliseconds);
 
         builder = new ConnectionStringBuilder("TimeoutMilliseconds=0");
         Assert.Throws<ArgumentException>(() => _ = builder.TimeoutMilliseconds);

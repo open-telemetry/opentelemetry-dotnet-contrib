@@ -22,29 +22,21 @@ namespace OpenTelemetry.Exporter.Geneva;
 
 internal class UnixDomainSocketDataTransport : IDataTransport, IDisposable
 {
-    public const int DefaultTimeoutMilliseconds = 15000;
     private readonly EndPoint unixEndpoint;
     private Socket socket;
-    private int timeoutMilliseconds;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UnixDomainSocketDataTransport"/> class.
     /// The class for transporting data over Unix domain socket.
     /// </summary>
     /// <param name="unixDomainSocketPath">The path to connect a unix domain socket over.</param>
-    /// <param name="timeoutMilliseconds">
-    /// The time-out value, in milliseconds.
-    /// If you set the property with a value between 1 and 499, the value will be changed to 500.
-    /// The default value is 15,000 milliseconds.
-    /// </param>
-    public UnixDomainSocketDataTransport(
-        string unixDomainSocketPath,
-        int timeoutMilliseconds = DefaultTimeoutMilliseconds)
+    public UnixDomainSocketDataTransport(string unixDomainSocketPath)
     {
         this.unixEndpoint = new UnixDomainSocketEndPoint(unixDomainSocketPath);
-        this.timeoutMilliseconds = timeoutMilliseconds;
         this.Connect();
     }
+
+    public int TimeoutMilliseconds { get; set; } = TransportDefaults.SocketTimeoutMilliseconds;
 
     public bool SupportsBatching => true;
 
@@ -83,7 +75,7 @@ internal class UnixDomainSocketDataTransport : IDataTransport, IDisposable
         {
             this.socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP)
             {
-                SendTimeout = this.timeoutMilliseconds,
+                SendTimeout = this.TimeoutMilliseconds,
             };
             this.socket.Connect(this.unixEndpoint);
         }

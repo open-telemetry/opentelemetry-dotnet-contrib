@@ -22,31 +22,22 @@ namespace OpenTelemetry.Exporter.Geneva;
 
 internal class TcpSocketDataTransport : IDataTransport, IDisposable
 {
-    public const int DefaultTimeoutMilliseconds = 15000;
     private readonly EndPoint networkEndpoint;
     private Socket socket;
-    private int timeoutMilliseconds;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TcpSocketDataTransport"/> class.
-    /// The class for transporting data over Unix domain socket.
+    /// The class for transporting data over the TCP network socket.
     /// </summary>
     /// <param name="host">Host name of the TCP endpoint.</param>
     /// <param name="port">Port of the TCP endpoint.</param>
-    /// <param name="timeoutMilliseconds">
-    /// The time-out value, in milliseconds.
-    /// If you set the property with a value between 1 and 499, the value will be changed to 500.
-    /// The default value is 15,000 milliseconds.
-    /// </param>
-    public TcpSocketDataTransport(
-        string host,
-        int port,
-        int timeoutMilliseconds = DefaultTimeoutMilliseconds)
+    public TcpSocketDataTransport(string host, int port)
     {
         this.networkEndpoint = new DnsEndPoint(host, port);
-        this.timeoutMilliseconds = timeoutMilliseconds;
         this.Connect();
     }
+
+    public int TimeoutMilliseconds { get; set; } = TransportDefaults.SocketTimeoutMilliseconds;
 
     public bool SupportsBatching => true;
 
@@ -85,7 +76,7 @@ internal class TcpSocketDataTransport : IDataTransport, IDisposable
         {
             this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
             {
-                SendTimeout = this.timeoutMilliseconds,
+                SendTimeout = this.TimeoutMilliseconds
             };
             this.socket.Connect(this.networkEndpoint);
         }
