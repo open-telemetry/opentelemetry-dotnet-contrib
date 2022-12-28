@@ -72,6 +72,9 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
                 this.m_dataTransport = new UnixDomainSocketDataTransport(unixDomainSocketPath);
                 break;
+            case TransportProtocol.Tcp:
+                this.m_dataTransport = new TcpSocketDataTransport(connectionStringBuilder.Host, connectionStringBuilder.Port, connectionStringBuilder.TimeoutMilliseconds);
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
         }
