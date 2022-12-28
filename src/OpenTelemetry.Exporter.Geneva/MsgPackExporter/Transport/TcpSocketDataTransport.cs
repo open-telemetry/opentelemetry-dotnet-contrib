@@ -31,13 +31,17 @@ internal class TcpSocketDataTransport : IDataTransport, IDisposable
     /// </summary>
     /// <param name="host">Host name of the TCP endpoint.</param>
     /// <param name="port">Port of the TCP endpoint.</param>
-    public TcpSocketDataTransport(string host, int port)
+    /// <param name="timeoutMilliseconds">Timeout in milliseconds. Defaults to <see cref="TransportDefaults.SocketTimeoutMilliseconds" />.</param>
+    public TcpSocketDataTransport(string host, int port, int timeoutMilliseconds = TransportDefaults.SocketTimeoutMilliseconds)
     {
         this.networkEndpoint = new DnsEndPoint(host, port);
+        this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+        {
+            SendTimeout = timeoutMilliseconds
+        };
+
         this.Connect();
     }
-
-    public int TimeoutMilliseconds { get; set; } = TransportDefaults.SocketTimeoutMilliseconds;
 
     public bool SupportsBatching => true;
 
@@ -74,10 +78,6 @@ internal class TcpSocketDataTransport : IDataTransport, IDisposable
     {
         try
         {
-            this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
-            {
-                SendTimeout = this.TimeoutMilliseconds
-            };
             this.socket.Connect(this.networkEndpoint);
         }
         catch (Exception ex)

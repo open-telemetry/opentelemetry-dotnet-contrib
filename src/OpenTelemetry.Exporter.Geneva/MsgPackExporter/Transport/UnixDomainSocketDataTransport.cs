@@ -30,13 +30,17 @@ internal class UnixDomainSocketDataTransport : IDataTransport, IDisposable
     /// The class for transporting data over Unix domain socket.
     /// </summary>
     /// <param name="unixDomainSocketPath">The path to connect a unix domain socket over.</param>
-    public UnixDomainSocketDataTransport(string unixDomainSocketPath)
+    /// <param name="timeoutMilliseconds">Timeout in milliseconds. Defaults to <see cref="TransportDefaults.SocketTimeoutMilliseconds" />.</param>
+    public UnixDomainSocketDataTransport(string unixDomainSocketPath, int timeoutMilliseconds = TransportDefaults.SocketTimeoutMilliseconds)
     {
         this.unixEndpoint = new UnixDomainSocketEndPoint(unixDomainSocketPath);
+        this.socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP)
+        {
+            SendTimeout = timeoutMilliseconds
+        };
+
         this.Connect();
     }
-
-    public int TimeoutMilliseconds { get; set; } = TransportDefaults.SocketTimeoutMilliseconds;
 
     public bool SupportsBatching => true;
 
@@ -73,10 +77,6 @@ internal class UnixDomainSocketDataTransport : IDataTransport, IDisposable
     {
         try
         {
-            this.socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP)
-            {
-                SendTimeout = this.TimeoutMilliseconds,
-            };
             this.socket.Connect(this.unixEndpoint);
         }
         catch (Exception ex)

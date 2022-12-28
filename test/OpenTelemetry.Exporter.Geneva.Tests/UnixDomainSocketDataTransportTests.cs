@@ -78,10 +78,7 @@ public class UnixDomainSocketDataTransportTests
             server.Listen(1);
             var data = new byte[1024];
             var i = 0;
-            using var dataTransport = new UnixDomainSocketDataTransport(path)
-            {
-                TimeoutMilliseconds = 5000  // Set low timeout for faster tests
-            };
+            using var dataTransport = new UnixDomainSocketDataTransport(path, timeoutMilliseconds: 5000 /* Set low timeout for faster tests. */);
             var socket = typeof(UnixDomainSocketDataTransport).GetField("socket", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(dataTransport) as Socket;
             try
             {
