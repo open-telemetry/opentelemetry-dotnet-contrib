@@ -30,7 +30,7 @@ public class EventCountersMetricsTests
     {
         List<Metric> metricItems = new();
 
-        var meterProvider = Sdk.CreateMeterProviderBuilder()
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation()
             .AddInMemoryExporter(metricItems)
             .Build();
@@ -46,7 +46,7 @@ public class EventCountersMetricsTests
         EventSource source = new("a");
         EventCounter counter = new("1", source);
 
-        var meterProvider = Sdk.CreateMeterProviderBuilder()
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
             {
                 options.AddEventSources(source.Name);
@@ -71,7 +71,7 @@ public class EventCountersMetricsTests
         EventSource source = new("b");
         IncrementingEventCounter incCounter = new("2", source);
 
-        var meterProvider = Sdk.CreateMeterProviderBuilder()
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
             {
                 options.AddEventSources(source.Name);
@@ -98,7 +98,7 @@ public class EventCountersMetricsTests
         EventSource source = new("c");
         PollingCounter pollCounter = new("3", source, () => ++i * 10);
 
-        var meterProvider = Sdk.CreateMeterProviderBuilder()
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
             {
                 options.AddEventSources(source.Name);
@@ -122,7 +122,7 @@ public class EventCountersMetricsTests
         EventSource source = new("d");
         IncrementingPollingCounter incPollCounter = new("4", source, () => i++);
 
-        var meterProvider = Sdk.CreateMeterProviderBuilder()
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
             {
                 options.AddEventSources(source.Name);
@@ -175,7 +175,7 @@ public class EventCountersMetricsTests
         EventSource source = new(sourceName);
         IncrementingEventCounter connections = new(eventName, source);
 
-        var meterProvider = Sdk.CreateMeterProviderBuilder()
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
             {
                 options.AddEventSources(source.Name);
@@ -203,7 +203,7 @@ public class EventCountersMetricsTests
         string veryLongEventName = new string('e', 100);
         IncrementingEventCounter connections = new(veryLongEventName, source);
 
-        var meterProvider = Sdk.CreateMeterProviderBuilder()
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
             {
                 options.AddEventSources(source.Name);
