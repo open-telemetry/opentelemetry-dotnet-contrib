@@ -56,6 +56,9 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             case TransportProtocol.Tcp:
                 this.m_dataTransport = new TcpSocketDataTransport(connectionStringBuilder.Host, connectionStringBuilder.Port, timeoutMilliseconds: connectionStringBuilder.TimeoutMilliseconds);
                 break;
+            case TransportProtocol.Udp:
+                this.m_dataTransport = new UdpSocketDataTransport(connectionStringBuilder.Host, connectionStringBuilder.Port, timeoutMilliseconds: connectionStringBuilder.TimeoutMilliseconds);
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
         }

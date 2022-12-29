@@ -91,6 +91,10 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                 this.metricDataTransport = new MetricSocketDataTransport(
                     new TcpSocketDataTransport(connectionStringBuilder.Host, connectionStringBuilder.Port, timeoutMilliseconds: connectionStringBuilder.TimeoutMilliseconds));
                 break;
+            case TransportProtocol.Udp:
+                this.metricDataTransport = new MetricSocketDataTransport(
+                    new UdpSocketDataTransport(connectionStringBuilder.Host, connectionStringBuilder.Port, timeoutMilliseconds: connectionStringBuilder.TimeoutMilliseconds));
+                break;
             case TransportProtocol.Unspecified:
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
