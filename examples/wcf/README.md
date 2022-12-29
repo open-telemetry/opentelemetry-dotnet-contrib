@@ -5,7 +5,7 @@ Project structure:
 * Examples.Wcf.Client.DotNet
 
   An example of how to call a WCF service with OpenTelemetry instrumentation on
-  .NET Core.
+  .NET.
 
 * Examples.Wcf.Client.NetFramework
 
