@@ -27,7 +27,6 @@ PollingCounter pollingCounter = new("MyPollingCounter", eventSource, () => new R
 using var meterProvider = Sdk.CreateMeterProviderBuilder()
     .AddEventCountersInstrumentation(options =>
     {
-        options.RefreshIntervalSecs = 1;
         options.AddEventSources(eventSource.Name);
     })
     .AddConsoleExporter()
@@ -36,4 +35,4 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
 eventCounter.WriteMetric(0);
 eventCounter.WriteMetric(1000);
 
-Thread.Sleep(1500);
+Thread.Sleep(1200);
