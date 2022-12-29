@@ -28,11 +28,14 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
     .AddEventCountersInstrumentation(options =>
     {
         options.AddEventSources(eventSource.Name);
+        options.RefreshIntervalSecs = 1;
     })
     .AddConsoleExporter()
     .Build();
 
+// Write to EventCounters
 eventCounter.WriteMetric(0);
 eventCounter.WriteMetric(1000);
 
+// Wait for EventCounter data to be polled (RefreshIntervalSecs is 1 second by default)
 Thread.Sleep(1200);
