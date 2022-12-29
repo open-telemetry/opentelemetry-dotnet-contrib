@@ -37,6 +37,7 @@ internal class TcpSocketDataTransport : IDataTransport, IDisposable
         this.networkEndpoint = new DnsEndPoint(host, port);
         this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
         {
+            LingerState = new LingerOption(enable: false, 0),
             SendTimeout = timeoutMilliseconds,
         };
 
@@ -54,7 +55,9 @@ internal class TcpSocketDataTransport : IDataTransport, IDisposable
     {
         try
         {
-            if (!this.socket.Connected)
+            var socketConnected = this.socket.Connected && this.socket.Poll(0, SelectMode.SelectWrite);
+
+            if (!socketConnected)
             {
                 // Socket connection is off! Server might have stopped. Trying to reconnect.
                 this.Reconnect();
