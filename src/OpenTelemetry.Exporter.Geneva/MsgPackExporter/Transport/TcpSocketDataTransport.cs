@@ -53,8 +53,7 @@ internal class TcpSocketDataTransport : IDataTransport, IDisposable
     {
         try
         {
-            var socketConnected = this.socket.Connected && this.socket.Poll(0, SelectMode.SelectWrite);
-            if (!socketConnected)
+            if (!this.socket.Connected)
             {
                 // Socket connection is off! Server might have stopped. Trying to reconnect.
                 this.Reconnect();
