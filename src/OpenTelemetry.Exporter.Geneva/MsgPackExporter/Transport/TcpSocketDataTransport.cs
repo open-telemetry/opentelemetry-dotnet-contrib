@@ -23,6 +23,8 @@ namespace OpenTelemetry.Exporter.Geneva;
 internal class TcpSocketDataTransport : IDataTransport, IDisposable
 {
     private readonly EndPoint networkEndpoint;
+    private readonly int timeoutMilliseconds;
+
     private Socket socket;
 
     /// <summary>
@@ -35,11 +37,7 @@ internal class TcpSocketDataTransport : IDataTransport, IDisposable
     public TcpSocketDataTransport(string host, int port, int timeoutMilliseconds = TransportDefaults.SocketTimeoutMilliseconds)
     {
         this.networkEndpoint = new DnsEndPoint(host, port);
-        this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
-        {
-            LingerState = new LingerOption(enable: false, 0),
-            SendTimeout = timeoutMilliseconds,
-        };
+        this.timeoutMilliseconds = timeoutMilliseconds;
 
         this.Connect();
     }
@@ -56,7 +54,6 @@ internal class TcpSocketDataTransport : IDataTransport, IDisposable
         try
         {
             var socketConnected = this.socket.Connected && this.socket.Poll(0, SelectMode.SelectWrite);
-
             if (!socketConnected)
             {
                 // Socket connection is off! Server might have stopped. Trying to reconnect.
@@ -81,6 +78,12 @@ internal class TcpSocketDataTransport : IDataTransport, IDisposable
     {
         try
         {
+            this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+            {
+                LingerState = new LingerOption(enable: false, 0),
+                SendTimeout = this.timeoutMilliseconds,
+            };
+
             this.socket.Connect(this.networkEndpoint);
         }
         catch (Exception ex)
@@ -96,7 +99,7 @@ internal class TcpSocketDataTransport : IDataTransport, IDisposable
 
     private void Reconnect()
     {
-        this.socket.Close();
+        this.socket.Close(); // Disposes the socket.
         this.Connect();
     }
 }

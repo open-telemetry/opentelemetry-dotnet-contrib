@@ -23,6 +23,8 @@ namespace OpenTelemetry.Exporter.Geneva;
 internal class UnixDomainSocketDataTransport : IDataTransport, IDisposable
 {
     private readonly EndPoint unixEndpoint;
+    private readonly int timeoutMilliseconds;
+
     private Socket socket;
 
     /// <summary>
@@ -34,10 +36,7 @@ internal class UnixDomainSocketDataTransport : IDataTransport, IDisposable
     public UnixDomainSocketDataTransport(string unixDomainSocketPath, int timeoutMilliseconds = TransportDefaults.SocketTimeoutMilliseconds)
     {
         this.unixEndpoint = new UnixDomainSocketEndPoint(unixDomainSocketPath);
-        this.socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP)
-        {
-            SendTimeout = timeoutMilliseconds,
-        };
+        this.timeoutMilliseconds = timeoutMilliseconds;
 
         this.Connect();
     }
@@ -77,6 +76,11 @@ internal class UnixDomainSocketDataTransport : IDataTransport, IDisposable
     {
         try
         {
+            this.socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP)
+            {
+                SendTimeout = this.timeoutMilliseconds,
+            };
+
             this.socket.Connect(this.unixEndpoint);
         }
         catch (Exception ex)
@@ -92,7 +96,7 @@ internal class UnixDomainSocketDataTransport : IDataTransport, IDisposable
 
     private void Reconnect()
     {
-        this.socket.Close();
+        this.socket.Close(); // Disposes the socket.
         this.Connect();
     }
 }
