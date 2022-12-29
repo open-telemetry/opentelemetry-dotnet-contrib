@@ -37,7 +37,7 @@ internal class TcpSocketDataTransport : IDataTransport, IDisposable
         this.networkEndpoint = new DnsEndPoint(host, port);
         this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
         {
-            SendTimeout = timeoutMilliseconds
+            SendTimeout = timeoutMilliseconds,
         };
 
         this.Connect();

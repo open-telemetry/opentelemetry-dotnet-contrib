@@ -36,7 +36,7 @@ internal class UnixDomainSocketDataTransport : IDataTransport, IDisposable
         this.unixEndpoint = new UnixDomainSocketEndPoint(unixDomainSocketPath);
         this.socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP)
         {
-            SendTimeout = timeoutMilliseconds
+            SendTimeout = timeoutMilliseconds,
         };
 
         this.Connect();

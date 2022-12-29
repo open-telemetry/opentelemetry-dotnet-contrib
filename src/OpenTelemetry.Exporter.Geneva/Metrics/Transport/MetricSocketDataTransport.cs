@@ -50,6 +50,7 @@ internal sealed class MetricSocketDataTransport : IMetricDataTransport
         {
             disposableDataTransport.Dispose();
         }
+
         this.isDisposed = true;
     }
 }
