@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.2.7" />
-    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.0.1" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.2.9" />
+    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="$(OpenTelemetryCoreLatestVersion)" />
   </ItemGroup>
 
   <ItemGroup>
