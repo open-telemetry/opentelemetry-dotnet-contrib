@@ -54,14 +54,14 @@ public class EventCountersMetricsTests
             .AddInMemoryExporter(metricItems)
             .Build();
 
-        counter.WriteMetric(1.11);
+        counter.WriteMetric(1997.0202);
 
         Assert.True(AwaitExport(meterProvider, metricItems));
         Assert.Single(metricItems);
         var metric = metricItems[0];
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
-        Assert.Equal(1.11, GetActualValue(metric));
+        Assert.Equal(1997.0202, GetActualValue(metric));
     }
 
     [Fact]
@@ -179,7 +179,7 @@ public class EventCountersMetricsTests
 
     [Theory]
     [InlineData("Microsoft-AspNetCore-Server-Kestrel-1", "tls-handshakes-per-second", "ec.Microsoft-AspNetCore-Server-Kestre.tls-handshakes-per-second")]
-    [InlineData("Microsoft-AspNetCore-Server-Kestrel-2", "tls-handshakes-per-sec", "ec.Microsoft-AspNetCore-Server-Kestrel-2.tls-handshakes-per-sec")]
+    [InlineData("Microsoft-AspNetCore-Server-Kestrel-1", "tls-handshakes-per-sec", "ec.Microsoft-AspNetCore-Server-Kestrel-1.tls-handshakes-per-sec")]
     [InlineData("Microsoft.AspNetCore.Http.Connections-1", "connections-stopped", "ec.Microsoft.AspNetCore.Http.Connections-1.connections-stopped")]
     [InlineData("Microsoft.AspNetCore.Http.Connections-1", "connections-timed-out-longer", "ec.Microsoft.AspNetCore.Http.Conne.connections-timed-out-longer")]
     [InlineData("Microsoft.AspNetCore.Http.Conn.Something", "connections-timed-out-longer", "ec.Microsoft.AspNetCore.Http.Conn.connections-timed-out-longer")]
@@ -214,7 +214,7 @@ public class EventCountersMetricsTests
     public void InstrumentNameTooLong()
     {
         List<Metric> metricItems = new();
-        using EventSource source = new("e");
+        using EventSource source = new("source");
 
         // ec.s. + event name is 63;
         string veryLongEventName = new string('e', 100);
@@ -233,7 +233,7 @@ public class EventCountersMetricsTests
 
         foreach (var item in metricItems)
         {
-            Assert.False(item.Name.StartsWith("ec.e.ee"));
+            Assert.False(item.Name.StartsWith("ec.source.ee"));
             Assert.False(item.Name.StartsWith("ec.s.ee"));
         }
     }
