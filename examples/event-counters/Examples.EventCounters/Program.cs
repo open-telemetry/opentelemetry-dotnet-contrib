@@ -19,9 +19,9 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 
 // Create EventSources and EventCounters
-EventSource eventSource = new("MyEventSource");
-EventCounter eventCounter = new("MyEventCounter", eventSource);
-PollingCounter pollingCounter = new("MyPollingCounter", eventSource, () => new Random().NextDouble());
+using EventSource eventSource = new("MyEventSource");
+using EventCounter eventCounter = new("MyEventCounter", eventSource);
+using PollingCounter pollingCounter = new("MyPollingCounter", eventSource, () => new Random().NextDouble());
 
 // Create and Configure Meter Provider
 using var meterProvider = Sdk.CreateMeterProviderBuilder()
