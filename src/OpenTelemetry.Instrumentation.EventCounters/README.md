@@ -11,7 +11,7 @@ using OpenTelemetry Metrics API.
 
 ## Steps to enable OpenTelemetry.Instrumentation.EventCounters
 
-You can view an example project using event counters at
+You can view an example project using EventCounters at
 `/examples/event-counters/Examples.EventCounters`.
 
 ### Step 1: Install Package
