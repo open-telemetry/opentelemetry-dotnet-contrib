@@ -231,11 +231,9 @@ public class EventCountersMetricsTests
         connections.Increment(1);
         Assert.True(AwaitExport(meterProvider, metricItems));
 
-        foreach (var item in metricItems)
-        {
-            Assert.False(item.Name.StartsWith("ec.source.ee"));
-            Assert.False(item.Name.StartsWith("ec.s.ee"));
-        }
+        Assert.Single(metricItems);
+        Assert.False(metricItems[0].Name.StartsWith("ec.source.ee"));
+        Assert.False(metricItems[0].Name.StartsWith("ec.s.ee"));
     }
 
     private static double GetActualValue(Metric metric)
