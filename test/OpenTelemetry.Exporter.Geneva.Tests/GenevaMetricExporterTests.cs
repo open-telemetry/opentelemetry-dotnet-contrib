@@ -316,7 +316,7 @@ public class GenevaMetricExporterTests
                 {
                     Name = "renamedhistogramWithCustomBounds",
                     Description = "modifiedDescription",
-                    Boundaries = new double[] { 500, 1000 },
+                    Boundaries = new double[] { 500, 1000, 10000 },
                 })
             .AddView(instrument =>
             {
@@ -398,7 +398,8 @@ public class GenevaMetricExporterTests
         // Record the following values for histogramWithCustomBounds:
         // (-inf - 500] : 3
         // (500 - 1000] : 1
-        // (1000 - +inf) : 1
+        // (1000 - 10000] : 0
+        // (10000 - +inf) : 1
         //
         // The corresponding value-count pairs to be sent for histogramWithCustomBounds:
         // 500: 3
@@ -409,7 +410,7 @@ public class GenevaMetricExporterTests
         histogramWithCustomBounds.Record(150, new("tag1", "value1"), new("tag2", "value2"));
         histogramWithCustomBounds.Record(150, new("tag1", "value1"), new("tag2", "value2"));
         histogramWithCustomBounds.Record(750, new("tag1", "value1"), new("tag2", "value2"));
-        histogramWithCustomBounds.Record(2500, new("tag1", "value1"), new("tag2", "value2"));
+        histogramWithCustomBounds.Record(50000, new("tag1", "value1"), new("tag2", "value2"));
 
         // Record the following values for histogramWithNoBounds:
         // (-inf - 500] : 3
@@ -636,6 +637,20 @@ public class GenevaMetricExporterTests
         }
     }
 
+    private static void AssertHistogramBucketSerialization(HistogramBucket bucket, HistogramValueCountPairs valueCountPairs, int listIterator, double lastExplicitBound)
+    {
+        if (bucket.ExplicitBound != double.PositiveInfinity)
+        {
+            Assert.Equal(bucket.ExplicitBound, valueCountPairs.Columns[listIterator].Value);
+        }
+        else
+        {
+            Assert.Equal((ulong)lastExplicitBound + 1, valueCountPairs.Columns[listIterator].Value);
+        }
+
+        Assert.Equal(bucket.BucketCount, valueCountPairs.Columns[listIterator].Count);
+    }
+
     private void CheckSerializationForSingleMetricPoint(Metric metric, GenevaMetricExporter exporter, GenevaMetricExporterOptions exporterOptions)
     {
         var metricType = metric.MetricType;
@@ -730,18 +745,13 @@ public class GenevaMetricExporterTests
             var sum = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetHistogramSum()) };
             var count = Convert.ToUInt32(metricPoint.GetHistogramCount());
 
-            ulong minValue = 0;
-            ulong maxValue = 0;
             var min = new MetricData { UInt64Value = 0 };
             var max = new MetricData { UInt64Value = 0 };
 
-            if (metricPoint.HasMinMax())
+            if (metricPoint.TryGetHistogramMinMaxValues(out var minValue, out var maxValue))
             {
-                minValue = Convert.ToUInt64(metricPoint.GetHistogramMin());
-                maxValue = Convert.ToUInt64(metricPoint.GetHistogramMax());
-
-                min = new MetricData { UInt64Value = minValue };
-                max = new MetricData { UInt64Value = maxValue };
+                min = new MetricData { UInt64Value = Convert.ToUInt64(minValue) };
+                max = new MetricData { UInt64Value = Convert.ToUInt64(maxValue) };
             }
 
             var bodyLength = exporter.SerializeHistogramMetric(
@@ -770,21 +780,12 @@ public class GenevaMetricExporterTests
             {
                 if (bucket.BucketCount > 0)
                 {
-                    if (bucket.ExplicitBound != double.PositiveInfinity)
-                    {
-                        Assert.Equal(bucket.ExplicitBound, valueCountPairs.Columns[listIterator].Value);
-                        lastExplicitBound = bucket.ExplicitBound;
-                    }
-                    else
-                    {
-                        Assert.Equal((ulong)lastExplicitBound + 1, valueCountPairs.Columns[listIterator].Value);
-                    }
-
-                    Assert.Equal(bucket.BucketCount, valueCountPairs.Columns[listIterator].Count);
-
+                    AssertHistogramBucketSerialization(bucket, valueCountPairs, listIterator, lastExplicitBound);
                     listIterator++;
                     bucketsWithPositiveCount++;
                 }
+
+                lastExplicitBound = bucket.ExplicitBound;
             }
 
             Assert.Equal(bucketsWithPositiveCount, valueCountPairs.DistributionSize);

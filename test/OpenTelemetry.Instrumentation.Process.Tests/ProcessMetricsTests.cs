@@ -123,7 +123,8 @@ public class ProcessMetricsTests
         Assert.True(systemCpuUtilizationCaptured);
     }
 
-    [Fact]
+    // See: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/831
+    [Fact(Skip = "There are known issues with this test.")]
     public void CheckValidGaugeValueWhen2MeterProviderInstancesHaveTheSameMeterName()
     {
         var exportedItemsA = new List<Metric>();
@@ -134,19 +135,45 @@ public class ProcessMetricsTests
             .AddInMemoryExporter(exportedItemsA)
             .Build();
 
-        using var meterProviderB = Sdk.CreateMeterProviderBuilder()
+        using (var meterProviderB = Sdk.CreateMeterProviderBuilder()
             .AddProcessInstrumentation()
             .AddInMemoryExporter(exportedItemsB)
-            .Build();
+            .Build())
+        {
+            meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
+            meterProviderB.ForceFlush(MaxTimeToAllowForFlush);
+
+            var metricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.usage");
+            var metricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.memory.usage");
+
+            Assert.True(GetValue(metricA) > 0);
+            Assert.True(GetValue(metricB) > 0);
+        }
+
+        exportedItemsA.Clear();
+        exportedItemsB.Clear();
 
         meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
-        meterProviderB.ForceFlush(MaxTimeToAllowForFlush);
 
-        var metricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.usage");
-        var metricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.memory.usage");
+        Assert.NotEmpty(exportedItemsA);
+        Assert.Empty(exportedItemsB);
 
-        Assert.True(GetValue(metricA) > 0);
-        Assert.True(GetValue(metricB) > 0);
+        exportedItemsA.Clear();
+        exportedItemsB.Clear();
+
+        meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
+
+        Assert.NotEmpty(exportedItemsA);
+        Assert.Empty(exportedItemsB);
+
+        exportedItemsA.Clear();
+
+        meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
+
+        // Note: This fails due to:
+        // https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry/Metrics/MetricReaderExt.cs#L244-L249
+        Assert.NotEmpty(exportedItemsA);
+        Assert.Empty(exportedItemsB);
     }
 
     private static double GetValue(Metric metric)
@@ -158,7 +185,7 @@ public class ProcessMetricsTests
         {
             if (metric.MetricType.IsLong())
             {
-                sum += metricPoint.GetGaugeLastValueLong();
+                sum += metricPoint.GetSumLong();
             }
         }
 

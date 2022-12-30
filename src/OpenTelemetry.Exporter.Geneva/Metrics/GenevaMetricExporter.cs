@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using OpenTelemetry.Internal;
@@ -31,6 +32,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
     internal const int MaxDimensionNameSize = 256;
 
     internal const int MaxDimensionValueSize = 1024;
+
+    private static readonly MetricData ulongZero = new MetricData { UInt64Value = 0 };
 
     private readonly ushort prepopulatedDimensionsCount;
 
@@ -53,8 +56,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
     private readonly int bufferIndexForNonHistogramMetrics;
 
     private readonly int bufferIndexForHistogramMetrics;
-
-    private static readonly MetricData ulongZero = new MetricData { UInt64Value = 0 };
 
     private bool isDisposed;
 
@@ -203,10 +204,10 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                 var count = Convert.ToUInt32(metricPoint.GetHistogramCount());
                                 MetricData min = ulongZero;
                                 MetricData max = ulongZero;
-                                if (metricPoint.HasMinMax())
+                                if (metricPoint.TryGetHistogramMinMaxValues(out var minValue, out var maxValue))
                                 {
-                                    min = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetHistogramMin()) };
-                                    max = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetHistogramMax()) };
+                                    min = new MetricData { UInt64Value = Convert.ToUInt64(minValue) };
+                                    max = new MetricData { UInt64Value = Convert.ToUInt64(maxValue) };
                                 }
 
                                 var bodyLength = this.SerializeHistogramMetric(
@@ -423,20 +424,11 @@ public class GenevaMetricExporter : BaseExporter<Metric>
             {
                 if (bucket.BucketCount > 0)
                 {
-                    if (bucket.ExplicitBound != double.PositiveInfinity)
-                    {
-                        MetricSerializer.SerializeUInt64(this.bufferForHistogramMetrics, ref bufferIndex, Convert.ToUInt64(bucket.ExplicitBound));
-                        lastExplicitBound = bucket.ExplicitBound;
-                    }
-                    else
-                    {
-                        // The bucket to catch the overflows is one greater than the last bound provided
-                        MetricSerializer.SerializeUInt64(this.bufferForHistogramMetrics, ref bufferIndex, Convert.ToUInt64(lastExplicitBound + 1));
-                    }
-
-                    MetricSerializer.SerializeUInt32(this.bufferForHistogramMetrics, ref bufferIndex, Convert.ToUInt32(bucket.BucketCount));
+                    this.SerializeHistogramBucket(bucket, ref bufferIndex, lastExplicitBound);
                     bucketCount++;
                 }
+
+                lastExplicitBound = bucket.ExplicitBound;
             }
 
             // Write the number of items in distribution emitted and reset back to end.
@@ -467,6 +459,22 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         }
 
         return bodyLength;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void SerializeHistogramBucket(in HistogramBucket bucket, ref int bufferIndex, double lastExplicitBound)
+    {
+        if (bucket.ExplicitBound != double.PositiveInfinity)
+        {
+            MetricSerializer.SerializeUInt64(this.bufferForHistogramMetrics, ref bufferIndex, Convert.ToUInt64(bucket.ExplicitBound));
+        }
+        else
+        {
+            // The bucket to catch the overflows is one greater than the last bound provided
+            MetricSerializer.SerializeUInt64(this.bufferForHistogramMetrics, ref bufferIndex, Convert.ToUInt64(lastExplicitBound + 1));
+        }
+
+        MetricSerializer.SerializeUInt32(this.bufferForHistogramMetrics, ref bufferIndex, Convert.ToUInt32(bucket.BucketCount));
     }
 
     private List<byte[]> SerializePrepopulatedDimensionsKeys(IEnumerable<string> keys)

@@ -24,7 +24,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="$(MicrosoftPublicApiAnalyzersPkgVer)" Condition=" $(OS) == 'Windows_NT' and '$(EnablePublicApi)'=='true'" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="$(MicrosoftPublicApiAnalyzersPkgVer)" Condition=" $(OS) == 'Windows_NT' and '$(EnablePublicApi)'!='false'" PrivateAssets="All" />
   </ItemGroup>
 
   <Target Name="AssemblyVersionTarget" AfterTargets="MinVer" Condition="'$(MinVerVersion)'!=''">
@@ -53,7 +53,7 @@
   </PropertyGroup>
 
   <!--PublicApi Analyzer-->
-  <ItemGroup Condition="'$(EnablePublicApi)'=='true'">
+  <ItemGroup Condition="'$(EnablePublicApi)'!='false'">
     <AdditionalFiles Include=".publicApi\$(TargetFramework)\PublicAPI.Shipped.txt" />
     <AdditionalFiles Include=".publicApi\$(TargetFramework)\PublicAPI.Unshipped.txt" />
     <None Include=".publicApi\*\PublicAPI.Shipped.txt" />
