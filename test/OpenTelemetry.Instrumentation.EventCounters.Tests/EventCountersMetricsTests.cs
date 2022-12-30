@@ -43,8 +43,8 @@ public class EventCountersMetricsTests
     public void EventCounter()
     {
         List<Metric> metricItems = new();
-        EventSource source = new("a");
-        EventCounter counter = new("1", source);
+        using EventSource source = new("a");
+        using EventCounter counter = new("c", source);
 
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
@@ -68,8 +68,8 @@ public class EventCountersMetricsTests
     public void IncrementingEventCounter()
     {
         List<Metric> metricItems = new();
-        EventSource source = new("b");
-        IncrementingEventCounter incCounter = new("2", source);
+        using EventSource source = new("b");
+        using IncrementingEventCounter incCounter = new("inc-c", source);
 
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
@@ -95,8 +95,8 @@ public class EventCountersMetricsTests
     {
         int i = 0;
         List<Metric> metricItems = new();
-        EventSource source = new("c");
-        PollingCounter pollCounter = new("3", source, () => ++i * 10);
+        using EventSource source = new("c");
+        using PollingCounter pollCounter = new("poll-c", source, () => ++i * 10);
 
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
@@ -119,8 +119,8 @@ public class EventCountersMetricsTests
     {
         int i = 1;
         List<Metric> metricItems = new();
-        EventSource source = new("d");
-        IncrementingPollingCounter incPollCounter = new("4", source, () => i++);
+        using EventSource source = new("d");
+        using IncrementingPollingCounter incPollCounter = new("inc-poll-c", source, () => i++);
 
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
@@ -161,6 +161,23 @@ public class EventCountersMetricsTests
     }
 
     [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void ThrowExceptionForInvalidRefreshIntervalSet(int refreshIntervalSecs)
+    {
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+        {
+            Sdk.CreateMeterProviderBuilder()
+            .AddEventCountersInstrumentation(options =>
+            {
+                options.RefreshIntervalSecs = refreshIntervalSecs;
+            });
+        });
+
+        Assert.Equal("EventCounters Instrumentation `RefreshIntervalSecs` must be >= 1.", ex.Message);
+    }
+
+    [Theory]
     [InlineData("Microsoft-AspNetCore-Server-Kestrel-1", "tls-handshakes-per-second", "ec.Microsoft-AspNetCore-Server-Kestre.tls-handshakes-per-second")]
     [InlineData("Microsoft-AspNetCore-Server-Kestrel-2", "tls-handshakes-per-sec", "ec.Microsoft-AspNetCore-Server-Kestrel-2.tls-handshakes-per-sec")]
     [InlineData("Microsoft.AspNetCore.Http.Connections-1", "connections-stopped", "ec.Microsoft.AspNetCore.Http.Connections-1.connections-stopped")]
@@ -172,8 +189,8 @@ public class EventCountersMetricsTests
     public void EventSourceNameShortening(string sourceName, string eventName, string expectedInstrumentName)
     {
         List<Metric> metricItems = new();
-        EventSource source = new(sourceName);
-        IncrementingEventCounter connections = new(eventName, source);
+        using EventSource source = new(sourceName);
+        using IncrementingEventCounter connections = new(eventName, source);
 
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
@@ -197,11 +214,11 @@ public class EventCountersMetricsTests
     public void InstrumentNameTooLong()
     {
         List<Metric> metricItems = new();
-        EventSource source = new("e");
+        using EventSource source = new("e");
 
         // ec.s. + event name is 63;
         string veryLongEventName = new string('e', 100);
-        IncrementingEventCounter connections = new(veryLongEventName, source);
+        using IncrementingEventCounter connections = new(veryLongEventName, source);
 
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddEventCountersInstrumentation(options =>
