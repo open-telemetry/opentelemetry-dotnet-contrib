@@ -19,6 +19,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Diagnostics.Tracing;
+using System.Globalization;
 
 namespace OpenTelemetry.Instrumentation.EventCounters;
 
@@ -34,8 +35,10 @@ internal sealed class EventCountersMetrics : EventListener
 
     private readonly EventCountersInstrumentationOptions options;
     private readonly List<EventSource> preInitEventSources = new();
+    private readonly List<EventSource> enabledEventSources = new();
     private readonly ConcurrentDictionary<(string, string), Instrument> instruments = new();
     private readonly ConcurrentDictionary<(string, string), double> values = new();
+    private bool isDisposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EventCountersMetrics"/> class.
@@ -52,6 +55,7 @@ internal sealed class EventCountersMetrics : EventListener
                 if (this.options.ShouldListenToSource(eventSource.Name))
                 {
                     this.EnableEvents(eventSource);
+                    this.enabledEventSources.Add(eventSource);
                 }
             }
 
@@ -60,10 +64,41 @@ internal sealed class EventCountersMetrics : EventListener
     }
 
     /// <inheritdoc />
+    public override void Dispose()
+    {
+        if (!this.isDisposed)
+        {
+            lock (this.preInitEventSources)
+            {
+                if (!this.isDisposed)
+                {
+                    foreach (var eventSource in this.enabledEventSources)
+                    {
+                        this.DisableEvents(eventSource);
+                    }
+
+                    this.isDisposed = true;
+                }
+            }
+
+            // DO NOT clear the ConcurrentDictionary instances as some other thread executing the OnEventWritten callback might be using them
+            this.enabledEventSources.Clear();
+            this.options.EventSourceNames.Clear();
+        }
+
+        base.Dispose();
+    }
+
+    /// <inheritdoc />
     protected override void OnEventSourceCreated(EventSource eventSource)
     {
         lock (this.preInitEventSources)
         {
+            if (this.isDisposed)
+            {
+                return;
+            }
+
             if (this.options == null)
             {
                 this.preInitEventSources.Add(eventSource);
@@ -71,6 +106,7 @@ internal sealed class EventCountersMetrics : EventListener
             else if (this.options.ShouldListenToSource(eventSource.Name))
             {
                 this.EnableEvents(eventSource);
+                this.enabledEventSources.Add(eventSource);
             }
         }
     }
@@ -116,12 +152,12 @@ internal sealed class EventCountersMetrics : EventListener
             return;
         }
 
-        var value = Convert.ToDouble(hasMean ? mean : increment);
+        var value = Convert.ToDouble(hasMean ? mean : increment, CultureInfo.InvariantCulture);
         this.UpdateInstrumentWithEvent(hasMean, eventSourceName, name, value);
     }
 
     private static Dictionary<string, string> GetEnableEventsArguments(EventCountersInstrumentationOptions options) =>
-        new() { { "EventCounterIntervalSec", options.RefreshIntervalSecs.ToString() } };
+        new() { { "EventCounterIntervalSec", options.RefreshIntervalSecs.ToString(CultureInfo.InvariantCulture) } };
 
     /// <summary>
     /// If the resulting instrument name is too long, it trims the event source name
