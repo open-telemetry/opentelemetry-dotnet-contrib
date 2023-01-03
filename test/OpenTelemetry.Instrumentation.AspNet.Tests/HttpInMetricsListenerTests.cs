@@ -24,6 +24,7 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 
+[Collection("HttpInListenerTests")]
 public class HttpInMetricsListenerTests
 {
     [Fact]
@@ -36,9 +37,9 @@ public class HttpInMetricsListenerTests
             new HttpResponse(new StringWriter()));
 
         // This is to enable activity creation
-        // as it is created using activitysource inside TelemetryHttpModule
+        // as it is created using ActivitySource inside TelemetryHttpModule
         // TODO: This should not be needed once the dependency on activity is removed from metrics
-        using var traceprovider = Sdk.CreateTracerProviderBuilder()
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddAspNetInstrumentation(opts => opts.Enrich
                 = (activity, eventName, rawObject) =>
                 {
@@ -50,7 +51,7 @@ public class HttpInMetricsListenerTests
             .Build();
 
         var exportedItems = new List<Metric>();
-        using var meterprovider = Sdk.CreateMeterProviderBuilder()
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddAspNetInstrumentation()
             .AddInMemoryExporter(exportedItems)
             .Build();
@@ -58,7 +59,7 @@ public class HttpInMetricsListenerTests
         var activity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStartedCallback);
         ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStoppedCallback);
 
-        meterprovider.ForceFlush();
+        meterProvider.ForceFlush();
 
         var metricPoints = new List<MetricPoint>();
         foreach (var p in exportedItems[0].GetMetricPoints())
