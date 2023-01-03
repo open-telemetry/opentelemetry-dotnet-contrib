@@ -14,7 +14,9 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Data;
+using System.Diagnostics;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
@@ -33,4 +35,10 @@ public class EntityFrameworkInstrumentationOptions
     /// Gets or sets a value indicating whether or not the <see cref="EntityFrameworkInstrumentation"/> should add the text of <see cref="CommandType.Text"/> commands as the <see cref="SemanticConventions.AttributeDbStatement"/> tag. Default value: False.
     /// </summary>
     public bool SetDbStatementForText { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets a value <see cref="EntityFrameworkInstrumentation"/> for an alternative <see cref="Activity.DisplayName"/>. Default value: empty string.
+    /// </summary>
+    public string AlternativeDisplayName { get; set; } = string.Empty;
+
 }

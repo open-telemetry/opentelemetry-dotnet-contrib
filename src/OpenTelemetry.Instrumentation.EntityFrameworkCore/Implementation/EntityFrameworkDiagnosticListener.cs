@@ -48,7 +48,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<object> dbContextFetcher = new PropertyFetcher<object>("Context");
     private readonly PropertyFetcher<object> dbContextDatabaseFetcher = new PropertyFetcher<object>("Database");
     private readonly PropertyFetcher<string> providerNameFetcher = new PropertyFetcher<string>("ProviderName");
-    private readonly PropertyFetcher<object> dataSourceFetcher = new PropertyFetcher<object>("DataSource");
+    private readonly PropertyFetcher<object> dataSourceFetcher = new PropertyFetcher<object>("  ");
     private readonly PropertyFetcher<object> databaseFetcher = new PropertyFetcher<object>("Database");
     private readonly PropertyFetcher<CommandType> commandTypeFetcher = new PropertyFetcher<CommandType>("CommandType");
     private readonly PropertyFetcher<string> commandTextFetcher = new PropertyFetcher<string>("CommandText");
@@ -86,8 +86,9 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                     }
 
                     var connection = this.connectionFetcher.Fetch(command);
-                    var database = (string)this.databaseFetcher.Fetch(connection);
-
+                    var database = string.IsNullOrWhiteSpace(this.options.AlternativeDisplayName)
+                        ? (string)this.databaseFetcher.Fetch(connection)
+                        : this.options.AlternativeDisplayName;
                     activity.DisplayName = database;
 
                     if (activity.IsAllDataRequested)

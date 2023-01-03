@@ -71,6 +71,34 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     }
 
     [Fact]
+    public void EntityFrameworkContextWithAlternativeDatabaseName()
+    {
+        var activityProcessor = new Mock<BaseProcessor<Activity>>();
+        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
+            .AddProcessor(activityProcessor.Object)
+            .AddEntityFrameworkCoreInstrumentation(new Action<EntityFrameworkInstrumentationOptions>(options =>
+            {
+                options.AlternativeDatabaseName = "AltName";
+            })).Build();
+
+        using (var context = new ItemsContext(this.contextOptions))
+        {
+            var items = context.Set<Item>().OrderBy(e => e.Name).ToList();
+
+            Assert.Equal(3, items.Count);
+            Assert.Equal("ItemOne", items[0].Name);
+            Assert.Equal("ItemThree", items[1].Name);
+            Assert.Equal("ItemTwo", items[2].Name);
+        }
+
+        Assert.Equal(3, activityProcessor.Invocations.Count);
+
+        var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
+
+        VerifyActivityData(activity);
+    }
+
+    [Fact]
     public void EntityFrameworkContextExceptionEventsInstrumentedTest()
     {
         var activityProcessor = new Mock<BaseProcessor<Activity>>();
@@ -108,8 +136,13 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         return connection;
     }
 
-    private static void VerifyActivityData(Activity activity, bool isError = false)
+    private static void VerifyActivityData(Activity activity, bool isError = false, string altDisplayName = null)
     {
+        if (altDisplayName != null)
+        {
+            Assert.Equal(altDisplayName, activity.DisplayName);
+        }
+
         Assert.Equal("main", activity.DisplayName);
         Assert.Equal(ActivityKind.Client, activity.Kind);
         Assert.Equal("sqlite", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbSystem).Value);
