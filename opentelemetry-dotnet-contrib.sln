@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		CONTRIBUTING.md = CONTRIBUTING.md
+		global.json = global.json
 		NuGet.config = NuGet.config
 		opentelemetry-dotnet-contrib.proj = opentelemetry-dotnet-contrib.proj
 		examples\process-instrumentation\process-instrumentation.csproj = examples\process-instrumentation\process-instrumentation.csproj
@@ -72,6 +73,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{824BD1DE
 		build\Common.targets = build\Common.targets
 		build\debug.snk = build\debug.snk
 		build\docker-compose.net6.0.yml = build\docker-compose.net6.0.yml
+		build\docker-compose.net7.0.yml = build\docker-compose.net7.0.yml
 		build\docker-compose.netcoreapp3.1.yml = build\docker-compose.netcoreapp3.1.yml
 		build\opentelemetry-icon-color.png = build\opentelemetry-icon-color.png
 		build\OpenTelemetryContrib.prod.ruleset = build\OpenTelemetryContrib.prod.ruleset
@@ -103,7 +105,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "wcf", "wcf", "{73474960-8F9
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Wcf.Shared", "examples\wcf\shared\Examples.Wcf.Shared.csproj", "{21716C26-3B2A-4208-BDFB-8E58E2AF49EA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Wcf.Client.Core", "examples\wcf\client-core\Examples.Wcf.Client.Core.csproj", "{3AF5D7E4-CA7D-401B-9729-A6D8F63B023C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Wcf.Client.DotNet", "examples\wcf\client-core\Examples.Wcf.Client.DotNet.csproj", "{3AF5D7E4-CA7D-401B-9729-A6D8F63B023C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Wcf.Client.NetFramework", "examples\wcf\client-netframework\Examples.Wcf.Client.NetFramework.csproj", "{2A7867E5-0FD6-42F8-B594-19E897EDA54C}"
 EndProject

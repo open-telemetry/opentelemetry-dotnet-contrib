@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -241,15 +240,18 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             cntFields += 1;
         }
 
-        var links = activity.Links;
-        if (links.Any())
+        var linkEnumerator = activity.EnumerateLinks();
+        if (linkEnumerator.MoveNext())
         {
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "links");
             cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, ushort.MaxValue); // Note: always use Array16 for perf consideration
             var idxLinkPatch = cursor - 2;
+
             ushort cntLink = 0;
-            foreach (var link in links)
+            do
             {
+                ref readonly var link = ref linkEnumerator.Current;
+
                 cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, 2);
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "toTraceId");
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, link.Context.TraceId.ToHexString());
@@ -257,6 +259,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, link.Context.SpanId.ToHexString());
                 cntLink += 1;
             }
+            while (linkEnumerator.MoveNext());
 
             MessagePackSerializer.WriteUInt16(buffer, idxLinkPatch, cntLink);
             cntFields += 1;
@@ -274,7 +277,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         bool isStatusSuccess = true;
         string statusDescription = string.Empty;
 
-        foreach (var entry in activity.TagObjects)
+        foreach (ref readonly var entry in activity.EnumerateTagObjects())
         {
             // TODO: check name collision
             if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string replacementKey))
@@ -319,7 +322,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
             int idxMapSizeEnvPropertiesPatch = cursor - 2;
 
-            foreach (var entry in activity.TagObjects)
+            foreach (ref readonly var entry in activity.EnumerateTagObjects())
             {
                 // TODO: check name collision
                 if (this.m_dedicatedFields.ContainsKey(entry.Key))
@@ -397,24 +400,6 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
 
-    private readonly ThreadLocal<byte[]> m_buffer = new ThreadLocal<byte[]>(() => null);
-
-    private readonly byte[] m_bufferPrologue;
-
-    private readonly byte[] m_bufferEpilogue;
-
-    private readonly ushort m_cntPrepopulatedFields;
-
-    private readonly int m_idxTimestampPatch;
-
-    private readonly int m_idxMapSizePatch;
-
-    private readonly IDataTransport m_dataTransport;
-
-    private readonly IReadOnlyDictionary<string, object> m_customFields;
-
-    private readonly IReadOnlyDictionary<string, object> m_dedicatedFields;
-
     private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
 
     private static readonly IReadOnlyDictionary<string, string> CS40_PART_B_MAPPING = new Dictionary<string, string>
@@ -431,6 +416,24 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         ["messaging.destination"] = "messagingDestination",
         ["messaging.url"] = "messagingUrl",
     };
+
+    private readonly ThreadLocal<byte[]> m_buffer = new(() => null);
+
+    private readonly byte[] m_bufferPrologue;
+
+    private readonly byte[] m_bufferEpilogue;
+
+    private readonly ushort m_cntPrepopulatedFields;
+
+    private readonly int m_idxTimestampPatch;
+
+    private readonly int m_idxMapSizePatch;
+
+    private readonly IDataTransport m_dataTransport;
+
+    private readonly IReadOnlyDictionary<string, object> m_customFields;
+
+    private readonly IReadOnlyDictionary<string, object> m_dedicatedFields;
 
     private bool isDisposed;
 }

@@ -87,7 +87,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
             }
             catch
             {
-                this.listener.Dispose();
+                this.listener?.Dispose();
                 this.listener = null;
                 retryCount--;
             }

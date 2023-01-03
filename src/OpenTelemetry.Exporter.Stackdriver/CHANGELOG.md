@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-beta.4
+
+Released 2022-Dec-07
+
 * Fix the issue of incorrect handling of null attributes.
   ([#566](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/566))
 * Support for Google Cloud Dependencies up to 3.x.x

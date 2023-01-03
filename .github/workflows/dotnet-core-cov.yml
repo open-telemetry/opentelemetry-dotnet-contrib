@@ -2,11 +2,11 @@ name: Code Coverage
 
 on:
   push:
-    branches: [ main ]
+    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths-ignore:
     - '**.md'
   pull_request:
-    branches: [ main ]
+    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths-ignore:
     - '**.md'
 
@@ -27,7 +27,7 @@ jobs:
     - uses: actions/setup-dotnet@v3.0.3
       with:
         dotnet-version: '7.0.x'
-        
+
     - name: Install dependencies
       run: dotnet restore
 
