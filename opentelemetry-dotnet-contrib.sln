@@ -105,7 +105,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "wcf", "wcf", "{73474960-8F9
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Wcf.Shared", "examples\wcf\shared\Examples.Wcf.Shared.csproj", "{21716C26-3B2A-4208-BDFB-8E58E2AF49EA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Wcf.Client.Core", "examples\wcf\client-core\Examples.Wcf.Client.Core.csproj", "{3AF5D7E4-CA7D-401B-9729-A6D8F63B023C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Wcf.Client.DotNet", "examples\wcf\client-core\Examples.Wcf.Client.DotNet.csproj", "{3AF5D7E4-CA7D-401B-9729-A6D8F63B023C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Wcf.Client.NetFramework", "examples\wcf\client-netframework\Examples.Wcf.Client.NetFramework.csproj", "{2A7867E5-0FD6-42F8-B594-19E897EDA54C}"
 EndProject
