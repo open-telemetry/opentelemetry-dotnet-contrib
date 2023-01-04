@@ -36,4 +36,11 @@ internal class EntityFrameworkInstrumentation : IDisposable
     {
         this.diagnosticSourceSubscriber?.Dispose();
     }
+
+    internal static Func<object, object, string> DefaultDisplayNameFunc = (fetcher, o)
+        =>
+    {
+        var tool = (PropertyFetcher<string>)fetcher;
+        return tool.Fetch(o);
+    };
 }

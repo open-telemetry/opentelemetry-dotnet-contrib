@@ -23,6 +23,9 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 
 internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 {
+    /// <summary>
+    /// The default display name delegate.
+    /// </summary>
     internal const string DiagnosticSourceName = "Microsoft.EntityFrameworkCore";
 
     internal const string EntityFrameworkCoreCommandCreated = "Microsoft.EntityFrameworkCore.Database.Command.CommandCreated";
@@ -86,9 +89,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                     }
 
                     var connection = this.connectionFetcher.Fetch(command);
-                    var database = string.IsNullOrWhiteSpace(this.options.AlternativeDisplayName)
-                        ? (string)this.databaseFetcher.Fetch(connection)
-                        : this.options.AlternativeDisplayName;
+                    var database = this.options.DisplayNameFunc(this.databaseFetcher, connection);
                     activity.DisplayName = database;
 
                     if (activity.IsAllDataRequested)

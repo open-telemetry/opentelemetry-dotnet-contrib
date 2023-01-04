@@ -74,11 +74,12 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     public void EntityFrameworkContextWithAlternativeDatabaseName()
     {
         var activityProcessor = new Mock<BaseProcessor<Activity>>();
+        var altDisplayName = "AltName";
         using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
             .AddProcessor(activityProcessor.Object)
             .AddEntityFrameworkCoreInstrumentation(new Action<EntityFrameworkInstrumentationOptions>(options =>
             {
-                options.AlternativeDatabaseName = "AltName";
+                options.DisplayNameFunc = (o, o1) => altDisplayName;
             })).Build();
 
         using (var context = new ItemsContext(this.contextOptions))
@@ -95,7 +96,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
 
-        VerifyActivityData(activity);
+        VerifyActivityData(activity, altDisplayName:altDisplayName);
     }
 
     [Fact]
@@ -138,12 +139,8 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
     private static void VerifyActivityData(Activity activity, bool isError = false, string altDisplayName = null)
     {
-        if (altDisplayName != null)
-        {
-            Assert.Equal(altDisplayName, activity.DisplayName);
-        }
+        Assert.Equal(altDisplayName ?? "main", activity.DisplayName);
 
-        Assert.Equal("main", activity.DisplayName);
         Assert.Equal(ActivityKind.Client, activity.Kind);
         Assert.Equal("sqlite", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbSystem).Value);
 

@@ -17,6 +17,7 @@
 using System;
 using System.Data;
 using System.Diagnostics;
+using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
@@ -37,8 +38,8 @@ public class EntityFrameworkInstrumentationOptions
     public bool SetDbStatementForText { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value <see cref="EntityFrameworkInstrumentation"/> for an alternative <see cref="Activity.DisplayName"/>. Default value: empty string.
+    /// Gets or sets a value <see cref="EntityFrameworkInstrumentation"/> for an alternative <see cref="Activity.DisplayName"/>. Default value: <see cref="EntityFrameworkInstrumentation.DefaultDisplayNameFunc"/>.
     /// </summary>
-    public string AlternativeDisplayName { get; set; } = string.Empty;
-
+    public Func<object, object, string> DisplayNameFunc { set; get; } =
+        EntityFrameworkInstrumentation.DefaultDisplayNameFunc;
 }
