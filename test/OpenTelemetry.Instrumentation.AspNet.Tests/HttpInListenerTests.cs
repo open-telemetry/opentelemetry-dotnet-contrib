@@ -31,7 +31,6 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 
-[Collection("HttpInListenerTests")]
 public class HttpInListenerTests
 {
     [Theory]
