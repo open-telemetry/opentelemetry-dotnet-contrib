@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using OpenTelemetry.Extensions.Docker.Utils;
 using OpenTelemetry.Resources;
 
@@ -176,16 +177,12 @@ public class DockerResourceDetector : IResourceDetector
 
     private string GetIdFromLineV2(string line)
     {
-        int hostnameIndex = line.LastIndexOf("/" + HOSTNAME);
-        if (hostnameIndex < 0)
+        string containerId = null;
+        var match = Regex.Match(line, @".*/.+/([\w+-.]{64})/.*$");
+        if (match.Success)
         {
-            return null;
+            containerId = match.Groups[1].Value;
         }
-
-        string earlierSection = line.Substring(0, hostnameIndex);
-        int startIndex = earlierSection.LastIndexOf('/');
-
-        string containerId = this.RemovePrefixAndSuffixIfneeded(earlierSection, startIndex, hostnameIndex);
 
         if (string.IsNullOrEmpty(containerId) || !EncodingUtils.IsValidHexString(containerId))
         {
