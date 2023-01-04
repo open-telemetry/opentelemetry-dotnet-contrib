@@ -31,7 +31,8 @@ services.AddOpenTelemetryTracing(x =>
 
 ## Elastic.Clients.Elasticsearch
 
-Newer version [Elastic.Clients.Elasticsearch](https://www.nuget.org/packages/Elastic.Clients.Elasticsearch)
+[Elastic.Clients.Elasticsearch](https://www.nuget.org/packages/Elastic.Clients.Elasticsearch),
+that deprecates `NEST/Elasticsearch.Net`,
 brings native support for OpenTelemetry. To instrument it you need
 to configure the OpenTelemetry SDK to listen to the `ActivitySource`
 used by the library by calling `AddSource("Elastic.Clients.Elasticsearch.ElasticsearchClient")`
