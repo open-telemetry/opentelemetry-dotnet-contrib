@@ -37,10 +37,10 @@ internal class EntityFrameworkInstrumentation : IDisposable
         this.diagnosticSourceSubscriber?.Dispose();
     }
 
-    internal static Func<object, object, string> DefaultDisplayNameFunc = (fetcher, o)
+    internal static readonly Func<object, object, string> DefaultDisplayNameFunc = (fetcher, connection)
         =>
     {
-        var tool = (PropertyFetcher<string>)fetcher;
-        return tool.Fetch(o);
+        var propertyFetcher = (PropertyFetcher<string>)fetcher;
+        return propertyFetcher.Fetch(connection);
     };
 }
