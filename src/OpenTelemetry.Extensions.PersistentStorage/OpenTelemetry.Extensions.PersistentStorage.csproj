@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\Guard.cs" Link="Includes\Guard.cs" />
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Extensions.PersistentStorage.Abstractions\NotNullWhenAttribute.cs" Link="Includes\NotNullWhenAttribute.cs" />
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\NullableAttributes.cs" Link="Includes\NullableAttributes.cs" />
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Extensions.PersistentStorage.Abstractions\OpenTelemetry.Extensions.PersistentStorage.Abstractions.csproj" />
   </ItemGroup>
 
