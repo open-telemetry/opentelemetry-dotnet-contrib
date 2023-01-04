@@ -193,6 +193,7 @@ public class StackdriverExporterTests
             { "doubleKey2", 1F },
             { "boolKey", true },
             { "nullKey", null },
+            { "http.url", null },
         };
         if (additionalAttributes != null)
         {
@@ -225,7 +226,7 @@ public class StackdriverExporterTests
         var activitySource = new ActivitySource(nameof(CreateTestActivity));
 
         var tags = setAttributes ?
-            attributes.Where(x => x.Value != null).Select(kvp => new KeyValuePair<string, object>(kvp.Key, kvp.Value.ToString()))
+            attributes.Select(kvp => new KeyValuePair<string, object>(kvp.Key, kvp.Value?.ToString()))
             : null;
         var links = addLinks ?
             new[]
