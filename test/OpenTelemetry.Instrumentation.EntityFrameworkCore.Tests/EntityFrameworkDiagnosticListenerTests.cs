@@ -71,7 +71,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     }
 
     [Fact]
-    public void EntityFrameworkContextWithAlternativeDatabaseName()
+    public void EntityFrameworkContextWithAlternativeDisplayName()
     {
         var activityProcessor = new Mock<BaseProcessor<Activity>>();
         var altDisplayName = "AltName";
