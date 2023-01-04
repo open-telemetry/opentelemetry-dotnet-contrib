@@ -3,7 +3,14 @@
 [![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.ElasticsearchClient.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ElasticsearchClient)
 [![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.ElasticsearchClient.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ElasticsearchClient)
 
-Automatically instruments events emitted by the NEST/Elasticsearch.Net client library.
+Automatically instruments events emitted by the [NEST/Elasticsearch.Net](https://www.nuget.org/packages/NEST)
+client library.
+
+Newer version [Elastic.Clients.Elasticsearch](https://www.nuget.org/packages/Elastic.Clients.Elasticsearch)
+brings native support for OpenTelemetry. To instrument this version you need
+to configure the OpenTelemetry SDK to listen to the `ActivitySource`
+used by the library by calling `AddSource("Elastic.Clients.Elasticsearch.ElasticsearchClient")`
+on the `TracerProviderBuilder`.
 
 ## Installation
 
