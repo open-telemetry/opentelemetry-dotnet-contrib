@@ -228,7 +228,7 @@ an application code by catching the exception and stopping the `Activity` manual
     catch (Exception)
     {
         var activity = Activity.Current;
-        if (activity is { Source.Name: "wcf" })
+        if (activity != null && activity.Source.Name.Contains("OpenTelemetry.Instrumentation.Wcf"))
         {
             activity.Stop();
         }
