@@ -227,7 +227,11 @@ an application code by catching the exception and stopping the `Activity` manual
     }
     catch (Exception)
     {
-        Activity.Current?.Stop();
+        var activity = Activity.Current;
+        if (activity is { Source.Name: "wcf" })
+        {
+            activity.Stop();
+        }
     }
 ```
 
