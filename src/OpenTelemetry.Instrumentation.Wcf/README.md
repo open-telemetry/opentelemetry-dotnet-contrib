@@ -212,6 +212,25 @@ contracts you want to instrument:
     }
 ```
 
+## Known issues
+
+WCF library does not provide any extension points to handle exception thrown on
+communication (e.g. EndpointNotFoundException). Because of that in case of such
+an event the `Activity` will not be stopped correctly. This can be handled in
+an application code by catching the exception and stopping the `Activity` manually.
+
+```csharp
+    StatusResponse? response = null;
+    try
+    {
+        response = await client.PingAsync(statusRequest).ConfigureAwait(false);
+    }
+    catch (Exception)
+    {
+        Activity.Current?.Stop();
+    }
+```
+
 ## References
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
