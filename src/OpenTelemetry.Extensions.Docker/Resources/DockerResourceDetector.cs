@@ -33,47 +33,45 @@ public class DockerResourceDetector : IResourceDetector
     private const string HOSTNAME = "hostname";
 
     /// <summary>
+    /// CGroup Parse Versions.
+    /// </summary>
+    internal enum ParseMode
+    {
+        /// <summary>
+        /// Represents CGroupV1.
+        /// </summary>
+        V1,
+
+        /// <summary>
+        /// Represents CGroupV2.
+        /// </summary>
+        V2,
+    }
+
+    /// <summary>
     /// Detects the resource attributes from Docker.
     /// </summary>
     /// <returns>Resource with key-value pairs of resource attributes.</returns>
     public Resource Detect()
     {
-        var cGroupBuild = this.BuildResourceV1(FILEPATH);
+        var cGroupBuild = this.BuildResource(FILEPATH, ParseMode.V1);
         if (cGroupBuild == Resource.Empty)
         {
-            cGroupBuild = this.BuildResourceV2(FILEPATHV2);
+            cGroupBuild = this.BuildResource(FILEPATHV2, ParseMode.V2);
         }
 
         return cGroupBuild;
     }
 
     /// <summary>
-    /// Builds the resource attributes from Container Id in file path of cgroupv1.
+    /// Builds the resource attributes from Container Id in file path.
     /// </summary>
     /// <param name="path">File path where container id exists.</param>
+    /// <param name="cgroupVersion">CGroup Version of file to parse from.</param>
     /// <returns>Returns Resource with list of key-value pairs of container resource attributes if container id exists else empty resource.</returns>
-    internal Resource BuildResourceV1(string path)
+    internal Resource BuildResource(string path, ParseMode cgroupVersion)
     {
-        var containerId = this.ExtractContainerIdV1(path);
-
-        if (string.IsNullOrEmpty(containerId))
-        {
-            return Resource.Empty;
-        }
-        else
-        {
-            return new Resource(new List<KeyValuePair<string, object>>() { new KeyValuePair<string, object>(DockerSemanticConventions.AttributeContainerID, containerId), });
-        }
-    }
-
-    /// <summary>
-    /// Builds the resource attributes from Container Id in file path of cgroupv2.
-    /// </summary>
-    /// <param name="path">File path where container id exists.</param>
-    /// <returns>Returns Resource with list of key-value pairs of container resource attributes if container id exists else empty resource.</returns>
-    internal Resource BuildResourceV2(string path)
-    {
-        var containerId = this.ExtractContainerIdV2(path);
+        var containerId = this.ExtractContainerId(path, cgroupVersion);
 
         if (string.IsNullOrEmpty(containerId))
         {
@@ -89,8 +87,9 @@ public class DockerResourceDetector : IResourceDetector
     /// Extracts Container Id from path using the cgroupv1 format.
     /// </summary>
     /// <param name="path">cgroup path.</param>
+    /// <param name="cgroupVersion">CGroup Version of file to parse from.</param>
     /// <returns>Container Id, Null if not found or exception being thrown.</returns>
-    private string ExtractContainerIdV1(string path)
+    private string ExtractContainerId(string path, ParseMode cgroupVersion)
     {
         try
         {
@@ -101,7 +100,19 @@ public class DockerResourceDetector : IResourceDetector
 
             foreach (string line in File.ReadLines(path))
             {
-                string containerId = (!string.IsNullOrEmpty(line)) ? this.GetIdFromLine(line) : null;
+                string containerId = null;
+                if (!string.IsNullOrEmpty(line))
+                {
+                    if (cgroupVersion == ParseMode.V1)
+                    {
+                        containerId = this.GetIdFromLineV1(line);
+                    }
+                    else if (cgroupVersion == ParseMode.V2 && line.Contains(HOSTNAME))
+                    {
+                        containerId = this.GetIdFromLineV2(line);
+                    }
+                }
+
                 if (!string.IsNullOrEmpty(containerId))
                 {
                     return containerId;
@@ -117,42 +128,11 @@ public class DockerResourceDetector : IResourceDetector
     }
 
     /// <summary>
-    /// Extracts Container Id from path using the cgroupv2 format.
-    /// </summary>
-    /// <param name="path">File path where container id exists.</param>
-    /// <returns>Returns Resource with list of key-value pairs of container resource attributes if container id exists else empty resource.</returns>
-    private string ExtractContainerIdV2(string path)
-    {
-        try
-        {
-            if (!File.Exists(path))
-            {
-                return null;
-            }
-
-            foreach (string line in File.ReadLines(path))
-            {
-                string containerId = (!string.IsNullOrEmpty(line) && line.Contains(HOSTNAME)) ? this.GetIdFromLineV2(line) : null;
-                if (!string.IsNullOrEmpty(containerId))
-                {
-                    return containerId;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            DockerExtensionsEventSource.Log.ExtractResourceAttributesException($"{nameof(DockerResourceDetector)} : Failed to extract Container id from path", ex);
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Gets the Container Id from the line after removing the prefix and suffix.
+    /// Gets the Container Id from the line after removing the prefix and suffix from the cgroupv1 format.
     /// </summary>
     /// <param name="line">line read from cgroup file.</param>
-    /// <returns>Container Id.</returns>
-    private string GetIdFromLine(string line)
+    /// <returns>Container Id, Null if not found.</returns>
+    private string GetIdFromLineV1(string line)
     {
         // This cgroup output line should have the container id in it
         int lastSlashIndex = line.LastIndexOf('/');
@@ -175,6 +155,11 @@ public class DockerResourceDetector : IResourceDetector
         return containerId;
     }
 
+    /// <summary>
+    /// Gets the Container Id from the line of the cgroupv2 format.
+    /// </summary>
+    /// <param name="line">line read from cgroup file.</param>
+    /// <returns>Container Id, Null if not found.</returns>
     private string GetIdFromLineV2(string line)
     {
         string containerId = null;
