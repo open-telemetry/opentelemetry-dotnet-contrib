@@ -115,7 +115,7 @@ public class DockerResourceDetectorTests
         {
             Name = "Invalid hex cgroupv2 line (contains a z)",
             Line = "13:name=systemd:/var/lib/containerd/io.containerd.grpc.v1.cri/sandboxes/fb5916a02feca96bdeecd8e062df9e5e51d6617c8214b5e1f3fz9320f4402ae6/hostname",
-            CgroupVersion = DockerResourceDetector.ParseMode.V1,
+            CgroupVersion = DockerResourceDetector.ParseMode.V2,
         },
     };
 
