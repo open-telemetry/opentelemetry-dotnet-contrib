@@ -31,6 +31,7 @@ internal sealed class TLDLogExporter : TLDExporter, IDisposable
 {
     private const int MaxSanitizedEventNameLength = 50;
 
+    // TODO: Is using a single ThreadLocal a better idea?
     private static readonly ThreadLocal<EventBuilder> eventBuilder = new(() => null);
     private static readonly ThreadLocal<List<KeyValuePair<string, object>>> envProperties = new(() => null);
     private static readonly ThreadLocal<KeyValuePair<string, object>[]> partCFields = new(() => null); // This is used to temporarily store the PartC fields from tags
@@ -346,6 +347,7 @@ internal sealed class TLDLogExporter : TLDExporter, IDisposable
                     envPropertiesList.Clear();
                 }
 
+                // TODO: This could lead to unbounded memory usage.
                 envPropertiesList.Add(new(entry.Key, entry.Value));
             }
         }
@@ -534,6 +536,7 @@ internal sealed class TLDLogExporter : TLDExporter, IDisposable
                     envPropertiesList.Clear();
                 }
 
+                // TODO: This could lead to unbounded memory usage.
                 envPropertiesList.Add(new(scopeItem.Key, scopeItem.Value));
             }
         }
