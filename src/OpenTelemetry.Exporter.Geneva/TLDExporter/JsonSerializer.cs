@@ -45,7 +45,7 @@ internal static class JsonSerializer
             0x61, 0x62, 0x63, 0x64, 0x65, 0x66,
         };
         HEX_CODE = new byte[512];
-            for (int i = 0; i < 256; i++)
+        for (int i = 0; i < 256; i++)
         {
             HEX_CODE[i] = mapping[i >> 4];
             HEX_CODE[i + 256] = mapping[i & 0x0F];
@@ -106,7 +106,7 @@ internal static class JsonSerializer
         if (length >= 1)
         {
             cursor = Serialize(buffer, cursor, array[0]);
-                for (int i = 1; i < length; i++)
+            for (int i = 1; i < length; i++)
             {
                 buffer[cursor++] = unchecked((byte)',');
                 cursor = Serialize(buffer, cursor, array[i]);
@@ -133,7 +133,7 @@ internal static class JsonSerializer
         }
 
         buffer[cursor++] = unchecked((byte)'{');
-            int count = 0;
+        int count = 0;
         foreach (var entry in map)
         {
             if (count > 0)
@@ -224,7 +224,7 @@ internal static class JsonSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int WriteString(byte[] buffer, int cursor, string value)
     {
-            for (int i = 0; i < value.Length; i++)
+        for (int i = 0; i < value.Length; i++)
         {
             var ordinal = (ushort)value[i];
             switch (ordinal)
@@ -287,5 +287,4 @@ internal static class JsonSerializer
 
         return cursor;
     }
-}
 }

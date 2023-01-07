@@ -15,9 +15,8 @@
 // </copyright>
 
 using System;
-using OpenTelemetry.Exporter.Geneva.TLDExporter;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
+using OpenTelemetry.Exporter.Geneva.TLDExporter;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 

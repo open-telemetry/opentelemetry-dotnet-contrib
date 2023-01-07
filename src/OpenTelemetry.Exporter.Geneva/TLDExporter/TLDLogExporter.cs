@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.Extensions.Logging;
@@ -41,12 +40,15 @@ internal sealed class TLDLogExporter : TLDExporter, IDisposable
         "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None",
     };
 
+    private readonly ThreadLocal<SerializationDataForScopes> serializationData = new(() => null); // This is used for Scopes
+
     private readonly byte partAFieldsCount = 1; // At least one field: time
     private readonly bool shouldPassThruTableMappings;
-    private readonly string m_defaultEventName = "Log";
-    private readonly IReadOnlyDictionary<string, object> m_customFields;
-    private readonly IReadOnlyDictionary<string, string> m_tableMappings;
+    private readonly string defaultEventName = "Log";
+    private readonly IReadOnlyDictionary<string, object> customFields;
+    private readonly IReadOnlyDictionary<string, string> tableMappings;
     private readonly Tuple<byte[], byte[]> repeatedPartAFields;
+    private readonly ExceptionStackExportMode exceptionStackExportMode;
 
     private readonly EventProvider eventProvider;
 
@@ -56,6 +58,11 @@ internal sealed class TLDLogExporter : TLDExporter, IDisposable
     {
         Guard.ThrowIfNull(options);
         Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
+
+        var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
+        this.eventProvider = new EventProvider(connectionStringBuilder.EtwSession);
+
+        this.exceptionStackExportMode = options.ExceptionStackExportMode;
 
         // TODO: Validate mappings for reserved tablenames etc.
         if (options.TableNameMappings != null)
@@ -71,7 +78,7 @@ internal sealed class TLDLogExporter : TLDExporter, IDisposable
                     }
                     else
                     {
-                        this.m_defaultEventName = kv.Value;
+                        this.defaultEventName = kv.Value;
                     }
                 }
                 else
@@ -80,22 +87,7 @@ internal sealed class TLDLogExporter : TLDExporter, IDisposable
                 }
             }
 
-            this.m_tableMappings = tempTableMappings;
-        }
-
-        var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
-        switch (connectionStringBuilder.Protocol)
-        {
-            case TransportProtocol.Etw:
-                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    throw new ArgumentException("ETW cannot be used on non-Windows operating systems.");
-                }
-
-                this.eventProvider = new EventProvider(connectionStringBuilder.EtwSession);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
+            this.tableMappings = tempTableMappings;
         }
 
         // TODO: Validate custom fields (reserved name? etc).
@@ -107,7 +99,7 @@ internal sealed class TLDLogExporter : TLDExporter, IDisposable
                 customFields[name] = true;
             }
 
-            this.m_customFields = customFields;
+            this.customFields = customFields;
         }
 
         if (options.PrepopulatedFields != null)
@@ -181,6 +173,7 @@ internal sealed class TLDLogExporter : TLDExporter, IDisposable
         {
             // DO NOT Dispose eventBuilder, keyValuePairs, and partCFields as they are static
             this.eventProvider?.Dispose();
+            this.serializationData?.Dispose();
         }
         catch (Exception ex)
         {
@@ -220,12 +213,12 @@ internal sealed class TLDLogExporter : TLDExporter, IDisposable
         var categoryName = logRecord.CategoryName;
 
         // If user configured explicit TableName, use it.
-        if (this.m_tableMappings != null && this.m_tableMappings.TryGetValue(categoryName, out eventName))
+        if (this.tableMappings != null && this.tableMappings.TryGetValue(categoryName, out eventName))
         {
         }
         else if (!this.shouldPassThruTableMappings)
         {
-            eventName = this.m_defaultEventName;
+            eventName = this.defaultEventName;
         }
         else
         {
@@ -272,7 +265,22 @@ internal sealed class TLDLogExporter : TLDExporter, IDisposable
         {
             eb.AddCountedAnsiString("ext_ex_type", logRecord.Exception.GetType().FullName, Encoding.UTF8);
             eb.AddCountedAnsiString("ext_ex_msg", logRecord.Exception.Message, Encoding.UTF8);
+
             partAFieldsCount += 2;
+
+            if (this.exceptionStackExportMode == ExceptionStackExportMode.ExportAsString)
+            {
+                // The current approach relies on the existing trim
+                // capabilities which trims string in excess of STRING_SIZE_LIMIT_CHAR_COUNT
+                // TODO: Revisit this:
+                // 1. Trim it off based on how much more bytes are available
+                // before running out of limit instead of STRING_SIZE_LIMIT_CHAR_COUNT.
+                // 2. Trim smarter, by trimming the middle of stack, an
+                // keep top and bottom.
+                var exceptionStack = ToInvariantString(logRecord.Exception);
+                eb.AddCountedAnsiString("ext_ex_stack", exceptionStack, Encoding.UTF8, 0, Math.Min(exceptionStack.Length, StringLengthLimit));
+                partAFieldsCount++;
+            }
         }
 
         eb.SetStructFieldCount(partAFieldsCountPatch, partAFieldsCount);
@@ -290,7 +298,7 @@ internal sealed class TLDLogExporter : TLDExporter, IDisposable
         byte hasEnvProperties = 0;
         bool bodyPopulated = false;
 
-        int partCFieldsCountFromState = 0;
+        byte partCFieldsCountFromState = 0;
         var kvpArrayForPartCFields = partCFields.Value;
         if (kvpArrayForPartCFields == null)
         {
@@ -313,7 +321,7 @@ internal sealed class TLDLogExporter : TLDExporter, IDisposable
                 bodyPopulated = true;
                 continue;
             }
-            else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
+            else if (this.customFields == null || this.customFields.ContainsKey(entry.Key))
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
                 if (entry.Value != null)
@@ -352,7 +360,24 @@ internal sealed class TLDLogExporter : TLDExporter, IDisposable
 
         // Part C
 
-        var partCFieldsCount = partCFieldsCountFromState + hasEnvProperties; // We at least have these many fields in Part C
+        // Prepare state for scopes
+        var dataForScopes = this.serializationData.Value;
+        if (dataForScopes == null)
+        {
+            dataForScopes = new SerializationDataForScopes();
+            this.serializationData.Value = dataForScopes;
+        }
+
+        dataForScopes.HasEnvProperties = hasEnvProperties;
+        dataForScopes.PartCFieldsCountFromState = partCFieldsCountFromState;
+
+        logRecord.ForEachScope(ProcessScopeForIndividualColumns, this);
+
+        // Update the variables that could have been modified in ProcessScopeForIndividualColumns
+        hasEnvProperties = dataForScopes.HasEnvProperties;
+        partCFieldsCountFromState = dataForScopes.PartCFieldsCountFromState;
+
+        int partCFieldsCount = partCFieldsCountFromState + hasEnvProperties; // We at least have these many fields in Part C
         var partCFieldsCountPatch = eb.AddStruct("PartC", (byte)partCFieldsCount);
 
         for (int i = 0; i < partCFieldsCountFromState; i++)
@@ -455,5 +480,68 @@ internal sealed class TLDLogExporter : TLDExporter, IDisposable
         }
 
         return result.Slice(0, validNameLength).ToString();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static string ToInvariantString(Exception exception)
+    {
+        var originalUICulture = Thread.CurrentThread.CurrentUICulture;
+
+        try
+        {
+            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
+            return exception.ToString();
+        }
+        finally
+        {
+            Thread.CurrentThread.CurrentUICulture = originalUICulture;
+        }
+    }
+
+    private static readonly Action<LogRecordScope, TLDLogExporter> ProcessScopeForIndividualColumns = (scope, state) =>
+    {
+        var stateData = state.serializationData.Value;
+        var customFields = state.customFields;
+        var kvpArrayForPartCFields = partCFields.Value;
+        var envPropertiesList = envProperties.Value;
+
+        foreach (KeyValuePair<string, object> scopeItem in scope)
+        {
+            if (string.IsNullOrEmpty(scopeItem.Key) || scopeItem.Key == "{OriginalFormat}")
+            {
+                continue;
+            }
+
+            if (customFields == null || customFields.ContainsKey(scopeItem.Key))
+            {
+                if (scopeItem.Value != null)
+                {
+                    kvpArrayForPartCFields[stateData.PartCFieldsCountFromState] = new(scopeItem.Key, scopeItem.Value);
+                    stateData.PartCFieldsCountFromState++;
+                }
+            }
+            else
+            {
+                if (stateData.HasEnvProperties == 0)
+                {
+                    stateData.HasEnvProperties = 1;
+                    if (envPropertiesList == null)
+                    {
+                        envPropertiesList = new List<KeyValuePair<string, object>>();
+                        envProperties.Value = envPropertiesList;
+                    }
+
+                    envPropertiesList.Clear();
+                }
+
+                envPropertiesList.Add(new(scopeItem.Key, scopeItem.Value));
+            }
+        }
+    };
+
+    private class SerializationDataForScopes
+    {
+        public byte HasEnvProperties;
+        public byte PartCFieldsCountFromState;
     }
 }
