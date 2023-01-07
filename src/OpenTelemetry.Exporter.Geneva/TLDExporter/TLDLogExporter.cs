@@ -22,16 +22,19 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.Extensions.Logging;
-using Microsoft.TraceLoggingDynamic;
+using OpenTelemetry.Exporter.Geneva.External;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 
-namespace OpenTelemetry.Exporter.Geneva;
+namespace OpenTelemetry.Exporter.Geneva.TLDExporter;
 
-internal sealed class TLDLogExporter : TLDBaseExporter<LogRecord>
+internal sealed class TLDLogExporter : TLDExporter, IDisposable
 {
-    private const int StringLengthLimit = (1 << 14) - 1; // 16 * 1024 - 1 = 16383
     private const int MaxSanitizedEventNameLength = 50;
+
+    private static readonly ThreadLocal<EventBuilder> eventBuilder = new(() => null);
+    private static readonly ThreadLocal<List<KeyValuePair<string, object>>> envProperties = new(() => null);
+    private static readonly ThreadLocal<KeyValuePair<string, object>[]> partCFields = new(() => null); // This is used to temporarily store the PartC fields from tags
 
     private static readonly string[] logLevels = new string[7]
     {
@@ -46,9 +49,6 @@ internal sealed class TLDLogExporter : TLDBaseExporter<LogRecord>
     private readonly Tuple<byte[], byte[]> repeatedPartAFields;
 
     private readonly EventProvider eventProvider;
-    private static readonly ThreadLocal<EventBuilder> eventBuilder = new(() => new(UncheckedASCIIEncoding.SharedInstance));
-    private static readonly ThreadLocal<List<KeyValuePair<string, object>>> envProperties = new(() => new());
-    private static readonly ThreadLocal<KeyValuePair<string, object>[]> partCFields = new(() => new KeyValuePair<string, object>[120]); // This is used to temporarily store the PartC fields from tags
 
     private bool isDisposed;
 
@@ -116,6 +116,12 @@ internal sealed class TLDLogExporter : TLDBaseExporter<LogRecord>
             this.partAFieldsCount += prePopulatedFieldsCount;
 
             var eb = eventBuilder.Value;
+            if (eb == null)
+            {
+                eb = new EventBuilder(UncheckedASCIIEncoding.SharedInstance);
+                eventBuilder.Value = eb;
+            }
+
             eb.Reset("_"); // EventName does not matter here as we only need the serialized key-value pairs
 
             foreach (var entry in options.PrepopulatedFields)
@@ -130,14 +136,14 @@ internal sealed class TLDLogExporter : TLDBaseExporter<LogRecord>
 
                 V40_PART_A_TLD_MAPPING.TryGetValue(key, out string replacementKey);
                 var keyToSerialize = replacementKey ?? key;
-                this.Serialize(eb, keyToSerialize, value);
+                Serialize(eb, keyToSerialize, value);
 
                 this.repeatedPartAFields = eb.GetRawFields();
             }
         }
     }
 
-    public override ExportResult Export(in Batch<LogRecord> batch)
+    public ExportResult Export(in Batch<LogRecord> batch)
     {
         var result = ExportResult.Success;
         if (this.eventProvider.IsEnabled())
@@ -164,28 +170,24 @@ internal sealed class TLDLogExporter : TLDBaseExporter<LogRecord>
         return result;
     }
 
-    protected override void Dispose(bool disposing)
+    public void Dispose()
     {
         if (this.isDisposed)
         {
             return;
         }
 
-        if (disposing)
+        try
         {
-            try
-            {
-                // DO NOT Dispose eventBuilder, keyValuePairs, and partCFields as they are static
-                this.eventProvider?.Dispose();
-            }
-            catch (Exception ex)
-            {
-                ExporterEventSource.Log.ExporterException("GenevaTraceExporter Dispose failed.", ex);
-            }
+            // DO NOT Dispose eventBuilder, keyValuePairs, and partCFields as they are static
+            this.eventProvider?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            ExporterEventSource.Log.ExporterException("TLDLogExporter Dispose failed.", ex);
         }
 
         this.isDisposed = true;
-        base.Dispose(disposing);
     }
 
     internal void SerializeLogRecord(LogRecord logRecord)
@@ -232,6 +234,12 @@ internal sealed class TLDLogExporter : TLDBaseExporter<LogRecord>
         }
 
         var eb = eventBuilder.Value;
+        if (eb == null)
+        {
+            eb = new EventBuilder(UncheckedASCIIEncoding.SharedInstance);
+            eventBuilder.Value = eb;
+        }
+
         var timestamp = logRecord.Timestamp;
 
         eb.Reset(eventName);
@@ -271,9 +279,9 @@ internal sealed class TLDLogExporter : TLDBaseExporter<LogRecord>
 
         // Part B
 
-        byte partBFieldsCount = 3;
-        var partBFieldsCountPatch = eb.AddStruct("PartB", partBFieldsCount); // We at least have three fields in Part B: severityText, severityNumber, name
-
+        byte partBFieldsCount = 4;
+        var partBFieldsCountPatch = eb.AddStruct("PartB", partBFieldsCount); // We at least have three fields in Part B: _typeName, severityText, severityNumber, name
+        eb.AddCountedString("_typeName", "Log");
         var logLevel = logRecord.LogLevel;
         eb.AddCountedString("severityText", logLevels[(int)logLevel]);
         eb.AddUInt8("severityNumber", GetSeverityNumber(logLevel));
@@ -284,6 +292,12 @@ internal sealed class TLDLogExporter : TLDBaseExporter<LogRecord>
 
         int partCFieldsCountFromState = 0;
         var kvpArrayForPartCFields = partCFields.Value;
+        if (kvpArrayForPartCFields == null)
+        {
+            kvpArrayForPartCFields = new KeyValuePair<string, object>[120];
+            partCFields.Value = kvpArrayForPartCFields;
+        }
+
         List<KeyValuePair<string, object>> envPropertiesList = null;
 
         for (int i = 0; i < listKvp?.Count; i++)
@@ -315,6 +329,12 @@ internal sealed class TLDLogExporter : TLDBaseExporter<LogRecord>
                 {
                     hasEnvProperties = 1;
                     envPropertiesList = envProperties.Value;
+                    if (envPropertiesList == null)
+                    {
+                        envPropertiesList = new List<KeyValuePair<string, object>>();
+                        envProperties.Value = envPropertiesList;
+                    }
+
                     envPropertiesList.Clear();
                 }
 
@@ -337,7 +357,7 @@ internal sealed class TLDLogExporter : TLDBaseExporter<LogRecord>
 
         for (int i = 0; i < partCFieldsCountFromState; i++)
         {
-            this.Serialize(eb, kvpArrayForPartCFields[i].Key, kvpArrayForPartCFields[i].Value);
+            Serialize(eb, kvpArrayForPartCFields[i].Key, kvpArrayForPartCFields[i].Value);
         }
 
         if (hasEnvProperties == 1)
@@ -435,109 +455,5 @@ internal sealed class TLDLogExporter : TLDBaseExporter<LogRecord>
         }
 
         return result.Slice(0, validNameLength).ToString();
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void Serialize(EventBuilder eb, string key, object value)
-    {
-        switch (value)
-        {
-            case bool vb:
-                eb.AddUInt8(key, (byte)(vb ? 1 : 0), EventOutType.Boolean);
-                break;
-            case byte vui8:
-                eb.AddUInt8(key, vui8);
-                break;
-            case sbyte vi8:
-                eb.AddInt8(key, vi8);
-                break;
-            case short vi16:
-                eb.AddInt16(key, vi16);
-                break;
-            case ushort vui16:
-                eb.AddUInt16(key, vui16);
-                break;
-            case int vi32:
-                eb.AddInt32(key, vi32);
-                break;
-            case uint vui32:
-                eb.AddUInt32(key, vui32);
-                break;
-            case long vi64:
-                eb.AddInt64(key, vi64);
-                break;
-            case ulong vui64:
-                eb.AddUInt64(key, vui64);
-                break;
-            case float vf:
-                eb.AddFloat32(key, vf);
-                break;
-            case double vd:
-                eb.AddFloat64(key, vd);
-                break;
-            case string vs:
-                eb.AddCountedAnsiString(key, vs, Encoding.UTF8, 0, Math.Min(vs.Length, StringLengthLimit));
-                break;
-            case DateTime vdt:
-                eb.AddFileTime(key, vdt.ToUniversalTime());
-                break;
-
-            // TODO: case bool[]
-            // TODO: case obj[]
-            case byte[] vui8array:
-                eb.AddUInt8Array(key, vui8array);
-                break;
-            case sbyte[] vi8array:
-                eb.AddInt8Array(key, vi8array);
-                break;
-            case short[] vi16array:
-                eb.AddInt16Array(key, vi16array);
-                break;
-            case ushort[] vui16array:
-                eb.AddUInt16Array(key, vui16array);
-                break;
-            case int[] vi32array:
-                eb.AddInt32Array(key, vi32array);
-                break;
-            case uint[] vui32array:
-                eb.AddUInt32Array(key, vui32array);
-                break;
-            case long[] vi64array:
-                eb.AddInt64Array(key, vi64array);
-                break;
-            case ulong[] vui64array:
-                eb.AddUInt64Array(key, vui64array);
-                break;
-            case float[] vfarray:
-                eb.AddFloat32Array(key, vfarray);
-                break;
-            case double[] vdarray:
-                eb.AddFloat64Array(key, vdarray);
-                break;
-            case string[] vsarray:
-                eb.AddCountedStringArray(key, vsarray);
-                break;
-            case DateTime[] vdtarray:
-                for (int i = 0; i < vdtarray.Length; i++)
-                {
-                    vdtarray[i] = vdtarray[i].ToUniversalTime();
-                }
-
-                eb.AddFileTimeArray(key, vdtarray);
-                break;
-            default:
-                string repr;
-                try
-                {
-                    repr = Convert.ToString(value, CultureInfo.InvariantCulture);
-                }
-                catch
-                {
-                    repr = $"ERROR: type {value.GetType().FullName} is not supported";
-                }
-
-                eb.AddCountedAnsiString(key, repr, Encoding.UTF8, 0, Math.Min(repr.Length, StringLengthLimit));
-                break;
-        }
     }
 }

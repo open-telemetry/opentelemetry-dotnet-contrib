@@ -489,9 +489,9 @@ public class GenevaTraceExporterTests
             using var tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .SetSampler(new AlwaysOnSampler())
                 .AddSource(sourceName)
-                .AddTLDTraceExporter(options =>
+                .AddGenevaTraceExporter(options =>
                 {
-                    options.ConnectionString = "EtwSession=OpenTelemetry";
+                    options.ConnectionString = "EtwSession=OpenTelemetry;UseTLD=true";
                     options.PrepopulatedFields = new Dictionary<string, object>
                     {
                         ["cloud.role"] = "BusyWorker",

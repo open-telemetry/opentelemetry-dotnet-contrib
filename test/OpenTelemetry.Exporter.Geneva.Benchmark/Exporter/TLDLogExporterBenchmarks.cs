@@ -17,6 +17,7 @@
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Exporter.Geneva.TLDExporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Trace;
 
@@ -36,154 +37,153 @@ Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
 |        TLD_ExportLogRecord |   695.0 ns | 1.80 ns | 1.69 ns |      - |         - |
 */
 
-namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
+namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter;
+
+[MemoryDiagnoser]
+public class TLDLogExporterBenchmarks
 {
-    [MemoryDiagnoser]
-    public class TLDLogExporterBenchmarks
+    private readonly LogRecord logRecord;
+    private readonly Batch<LogRecord> batch;
+    private readonly MsgPackLogExporter msgPackExporter;
+    private readonly TLDLogExporter tldExporter;
+    private readonly ILogger loggerForTLD;
+    private readonly ILogger loggerForMsgPack;
+    private readonly ILoggerFactory loggerFactoryForTLD;
+    private readonly ILoggerFactory loggerFactoryForMsgPack;
+
+    public TLDLogExporterBenchmarks()
     {
-        private readonly LogRecord logRecord;
-        private readonly Batch<LogRecord> batch;
-        private readonly GenevaLogExporter msgPackExporter;
-        private readonly TLDLogExporter tldExporter;
-        private readonly ILogger loggerForTLD;
-        private readonly ILogger loggerForMsgPack;
-        private readonly ILoggerFactory loggerFactoryForTLD;
-        private readonly ILoggerFactory loggerFactoryForMsgPack;
-
-        public TLDLogExporterBenchmarks()
+        this.msgPackExporter = new MsgPackLogExporter(new GenevaExporterOptions
         {
-            this.msgPackExporter = new GenevaLogExporter(new GenevaExporterOptions
+            ConnectionString = "EtwSession=OpenTelemetry",
+            PrepopulatedFields = new Dictionary<string, object>
             {
-                ConnectionString = "EtwSession=OpenTelemetry",
-                PrepopulatedFields = new Dictionary<string, object>
-                {
-                    ["cloud.role"] = "BusyWorker",
-                    ["cloud.roleInstance"] = "CY1SCH030021417",
-                    ["cloud.roleVer"] = "9.0.15289.2",
-                },
-            });
+                ["cloud.role"] = "BusyWorker",
+                ["cloud.roleInstance"] = "CY1SCH030021417",
+                ["cloud.roleVer"] = "9.0.15289.2",
+            },
+        });
 
-            this.tldExporter = new TLDLogExporter(new GenevaExporterOptions()
+        this.tldExporter = new TLDLogExporter(new GenevaExporterOptions()
+        {
+            ConnectionString = "EtwSession=OpenTelemetry;UseTLD=true",
+            PrepopulatedFields = new Dictionary<string, object>
             {
-                ConnectionString = "EtwSession=OpenTelemetry",
-                PrepopulatedFields = new Dictionary<string, object>
-                {
-                    ["cloud.role"] = "BusyWorker",
-                    ["cloud.roleInstance"] = "CY1SCH030021417",
-                    ["cloud.roleVer"] = "9.0.15289.2",
-                },
-            });
+                ["cloud.role"] = "BusyWorker",
+                ["cloud.roleInstance"] = "CY1SCH030021417",
+                ["cloud.roleVer"] = "9.0.15289.2",
+            },
+        });
 
-            this.logRecord = GenerateTestLogRecord();
-            this.batch = GenerateTestLogRecordBatch();
+        this.logRecord = GenerateTestLogRecord();
+        this.batch = GenerateTestLogRecordBatch();
 
-            this.loggerFactoryForTLD = LoggerFactory.Create(builder =>
-                builder.AddOpenTelemetry(loggerOptions =>
+        this.loggerFactoryForTLD = LoggerFactory.Create(builder =>
+            builder.AddOpenTelemetry(loggerOptions =>
+            {
+                loggerOptions.AddGenevaLogExporter(exporterOptions =>
                 {
-                    loggerOptions.AddTLDLogExporter(exporterOptions =>
+                    exporterOptions.ConnectionString = "EtwSession=OpenTelemetry;UseTLD=true";
+                    exporterOptions.PrepopulatedFields = new Dictionary<string, object>
                     {
-                        exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
-                        exporterOptions.PrepopulatedFields = new Dictionary<string, object>
-                        {
-                            ["cloud.role"] = "BusyWorker",
-                            ["cloud.roleInstance"] = "CY1SCH030021417",
-                            ["cloud.roleVer"] = "9.0.15289.2",
-                        };
-                    });
-                }));
+                        ["cloud.role"] = "BusyWorker",
+                        ["cloud.roleInstance"] = "CY1SCH030021417",
+                        ["cloud.roleVer"] = "9.0.15289.2",
+                    };
+                });
+            }));
 
-            this.loggerForTLD = this.loggerFactoryForTLD.CreateLogger<TLDLogExporterBenchmarks>();
+        this.loggerForTLD = this.loggerFactoryForTLD.CreateLogger<TLDLogExporterBenchmarks>();
 
-            this.loggerFactoryForMsgPack = LoggerFactory.Create(builder =>
-                builder.AddOpenTelemetry(loggerOptions =>
-                {
-                    loggerOptions.AddGenevaLogExporter(exporterOptions =>
-                    {
-                        exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
-                        exporterOptions.PrepopulatedFields = new Dictionary<string, object>
-                        {
-                            ["cloud.role"] = "BusyWorker",
-                            ["cloud.roleInstance"] = "CY1SCH030021417",
-                            ["cloud.roleVer"] = "9.0.15289.2",
-                        };
-                    });
-                }));
-
-            this.loggerForMsgPack = this.loggerFactoryForMsgPack.CreateLogger<TLDLogExporterBenchmarks>();
-        }
-
-        [Benchmark]
-        public void MsgPack_SerializeLogRecord()
-        {
-            this.msgPackExporter.SerializeLogRecord(this.logRecord);
-        }
-
-        [Benchmark]
-        public void TLD_SerializeLogRecord()
-        {
-            this.tldExporter.SerializeLogRecord(this.logRecord);
-        }
-
-        [Benchmark]
-        public void MsgPack_ExportLogRecord()
-        {
-            this.msgPackExporter.Export(this.batch);
-        }
-
-        [Benchmark]
-        public void TLD_ExportLogRecord()
-        {
-            this.tldExporter.Export(this.batch);
-        }
-
-        [GlobalCleanup]
-        public void Cleanup()
-        {
-            this.batch.Dispose();
-            this.loggerFactoryForTLD.Dispose();
-            this.loggerFactoryForMsgPack.Dispose();
-            this.tldExporter.Dispose();
-            this.msgPackExporter.Dispose();
-        }
-
-        private static LogRecord GenerateTestLogRecord()
-        {
-            var exportedItems = new List<LogRecord>(1);
-            using var factory = LoggerFactory.Create(builder => builder
-                .AddOpenTelemetry(loggerOptions =>
-                {
-                    loggerOptions.AddInMemoryExporter(exportedItems);
-                }));
-
-            var logger = factory.CreateLogger("TestLogger");
-            logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
-            return exportedItems[0];
-        }
-
-        private static Batch<LogRecord> GenerateTestLogRecordBatch()
-        {
-            var items = new List<LogRecord>(1);
-            using var batchGeneratorExporter = new BatchGeneratorExporter();
-            using var factory = LoggerFactory.Create(builder => builder
-                .AddOpenTelemetry(loggerOptions =>
-                {
-                    loggerOptions.AddProcessor(new SimpleLogRecordExportProcessor(batchGeneratorExporter));
-                }));
-
-            var logger = factory.CreateLogger("TestLogger");
-            logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
-            return batchGeneratorExporter.Batch;
-        }
-
-        private class BatchGeneratorExporter : BaseExporter<LogRecord>
-        {
-            public Batch<LogRecord> Batch { get; set; }
-
-            public override ExportResult Export(in Batch<LogRecord> batch)
+        this.loggerFactoryForMsgPack = LoggerFactory.Create(builder =>
+            builder.AddOpenTelemetry(loggerOptions =>
             {
-                this.Batch = batch;
-                return ExportResult.Success;
-            }
+                loggerOptions.AddGenevaLogExporter(exporterOptions =>
+                {
+                    exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+                    exporterOptions.PrepopulatedFields = new Dictionary<string, object>
+                    {
+                        ["cloud.role"] = "BusyWorker",
+                        ["cloud.roleInstance"] = "CY1SCH030021417",
+                        ["cloud.roleVer"] = "9.0.15289.2",
+                    };
+                });
+            }));
+
+        this.loggerForMsgPack = this.loggerFactoryForMsgPack.CreateLogger<TLDLogExporterBenchmarks>();
+    }
+
+    [Benchmark]
+    public void MsgPack_SerializeLogRecord()
+    {
+        this.msgPackExporter.SerializeLogRecord(this.logRecord);
+    }
+
+    [Benchmark]
+    public void TLD_SerializeLogRecord()
+    {
+        this.tldExporter.SerializeLogRecord(this.logRecord);
+    }
+
+    [Benchmark]
+    public void MsgPack_ExportLogRecord()
+    {
+        this.msgPackExporter.Export(this.batch);
+    }
+
+    [Benchmark]
+    public void TLD_ExportLogRecord()
+    {
+        this.tldExporter.Export(this.batch);
+    }
+
+    [GlobalCleanup]
+    public void Cleanup()
+    {
+        this.batch.Dispose();
+        this.loggerFactoryForTLD.Dispose();
+        this.loggerFactoryForMsgPack.Dispose();
+        this.tldExporter.Dispose();
+        this.msgPackExporter.Dispose();
+    }
+
+    private static LogRecord GenerateTestLogRecord()
+    {
+        var exportedItems = new List<LogRecord>(1);
+        using var factory = LoggerFactory.Create(builder => builder
+            .AddOpenTelemetry(loggerOptions =>
+            {
+                loggerOptions.AddInMemoryExporter(exportedItems);
+            }));
+
+        var logger = factory.CreateLogger("TestLogger");
+        logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+        return exportedItems[0];
+    }
+
+    private static Batch<LogRecord> GenerateTestLogRecordBatch()
+    {
+        var items = new List<LogRecord>(1);
+        using var batchGeneratorExporter = new BatchGeneratorExporter();
+        using var factory = LoggerFactory.Create(builder => builder
+            .AddOpenTelemetry(loggerOptions =>
+            {
+                loggerOptions.AddProcessor(new SimpleLogRecordExportProcessor(batchGeneratorExporter));
+            }));
+
+        var logger = factory.CreateLogger("TestLogger");
+        logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+        return batchGeneratorExporter.Batch;
+    }
+
+    private class BatchGeneratorExporter : BaseExporter<LogRecord>
+    {
+        public Batch<LogRecord> Batch { get; set; }
+
+        public override ExportResult Export(in Batch<LogRecord> batch)
+        {
+            this.Batch = batch;
+            return ExportResult.Success;
         }
     }
 }

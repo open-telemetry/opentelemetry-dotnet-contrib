@@ -18,30 +18,20 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using Microsoft.TraceLoggingDynamic;
+using OpenTelemetry.Exporter.Geneva.External;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Exporter.Geneva;
-
-internal sealed class TLDTraceExporter : TLDBaseExporter<Activity>
+namespace OpenTelemetry.Exporter.Geneva.TLDExporter;
+internal sealed class TLDTraceExporter : TLDExporter, IDisposable
 {
-    private const int StringLengthLimit = (1 << 14) - 1; // 16 * 1024 - 1 = 16383
+    // TODO: Is using a single ThreadLocal a better idea?
+    private static readonly ThreadLocal<EventBuilder> eventBuilder = new(() => null);
+    private static readonly ThreadLocal<List<KeyValuePair<string, object>>> keyValuePairs = new(() => null);
+    private static readonly ThreadLocal<KeyValuePair<string, object>[]> partCFields = new(() => null); // This is used to temporarily store the PartC fields from tags
 
-    private readonly string partAName = "Span";
-    private readonly byte partAFieldsCount = 3; // At least three fields: time, ext_dt_traceId, ext_dt_spanId
-    private readonly IReadOnlyDictionary<string, object> m_customFields;
-    private readonly Tuple<byte[], byte[]> repeatedPartAFields;
     private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
-
-    private readonly EventProvider eventProvider;
-    private static readonly ThreadLocal<EventBuilder> eventBuilder = new(() => new(UncheckedASCIIEncoding.SharedInstance));
-    private static readonly ThreadLocal<List<KeyValuePair<string, object>>> keyValuePairs = new(() => new());
-    private static readonly ThreadLocal<KeyValuePair<string, object>[]> partCFields = new(() => new KeyValuePair<string, object>[120]); // This is used to temporarily store the PartC fields from tags
 
     private static readonly IReadOnlyDictionary<string, string> CS40_PART_B_MAPPING = new Dictionary<string, string>
     {
@@ -58,6 +48,13 @@ internal sealed class TLDTraceExporter : TLDBaseExporter<Activity>
         ["messaging.url"] = "messagingUrl",
     };
 
+    private readonly string partAName = "Span";
+    private readonly byte partAFieldsCount = 3; // At least three fields: time, ext_dt_traceId, ext_dt_spanId
+    private readonly IReadOnlyDictionary<string, object> m_customFields;
+    private readonly Tuple<byte[], byte[]> repeatedPartAFields;
+
+    private readonly EventProvider eventProvider;
+
     private bool isDisposed;
 
     public TLDTraceExporter(GenevaExporterOptions options)
@@ -65,25 +62,13 @@ internal sealed class TLDTraceExporter : TLDBaseExporter<Activity>
         Guard.ThrowIfNull(options);
         Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
+        var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
+        this.eventProvider = new EventProvider(connectionStringBuilder.EtwSession);
+
         if (options.TableNameMappings != null
             && options.TableNameMappings.TryGetValue("Span", out var customTableName))
         {
             this.partAName = customTableName;
-        }
-
-        var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
-        switch (connectionStringBuilder.Protocol)
-        {
-            case TransportProtocol.Etw:
-                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    throw new ArgumentException("ETW cannot be used on non-Windows operating systems.");
-                }
-
-                this.eventProvider = new EventProvider(connectionStringBuilder.EtwSession);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
         }
 
         // TODO: Validate custom fields (reserved name? etc).
@@ -112,6 +97,12 @@ internal sealed class TLDTraceExporter : TLDBaseExporter<Activity>
             this.partAFieldsCount += prePopulatedFieldsCount;
 
             var eb = eventBuilder.Value;
+            if (eb == null)
+            {
+                eb = new EventBuilder(UncheckedASCIIEncoding.SharedInstance);
+                eventBuilder.Value = eb;
+            }
+
             eb.Reset(this.partAName);
 
             foreach (var entry in options.PrepopulatedFields)
@@ -126,14 +117,14 @@ internal sealed class TLDTraceExporter : TLDBaseExporter<Activity>
 
                 V40_PART_A_TLD_MAPPING.TryGetValue(key, out string replacementKey);
                 var keyToSerialize = replacementKey ?? key;
-                this.Serialize(eb, keyToSerialize, value);
+                Serialize(eb, keyToSerialize, value);
 
                 this.repeatedPartAFields = eb.GetRawFields();
             }
         }
     }
 
-    public override ExportResult Export(in Batch<Activity> batch)
+    public ExportResult Export(in Batch<Activity> batch)
     {
         var result = ExportResult.Success;
         if (this.eventProvider.IsEnabled())
@@ -160,33 +151,34 @@ internal sealed class TLDTraceExporter : TLDBaseExporter<Activity>
         return result;
     }
 
-    protected override void Dispose(bool disposing)
+    public void Dispose()
     {
         if (this.isDisposed)
         {
             return;
         }
 
-        if (disposing)
+        try
         {
-            try
-            {
-                // DO NOT Dispose eventBuilder, keyValuePairs, and partCFields as they are static
-                this.eventProvider?.Dispose();
-            }
-            catch (Exception ex)
-            {
-                ExporterEventSource.Log.ExporterException("GenevaTraceExporter Dispose failed.", ex);
-            }
+            // DO NOT Dispose eventBuilder, keyValuePairs, and partCFields as they are static
+            this.eventProvider?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            ExporterEventSource.Log.ExporterException("TLDTraceExporter Dispose failed.", ex);
         }
 
         this.isDisposed = true;
-        base.Dispose(disposing);
     }
 
     internal void SerializeActivity(Activity activity)
     {
         var eb = eventBuilder.Value;
+        if (eb == null)
+        {
+            eb = new EventBuilder(UncheckedASCIIEncoding.SharedInstance);
+            eventBuilder.Value = eb;
+        }
 
         eb.Reset(this.partAName);
         eb.AddUInt16("__csver__", 1024, EventOutType.Hex);
@@ -221,16 +213,27 @@ internal sealed class TLDTraceExporter : TLDBaseExporter<Activity>
             partBFieldsCount++;
         }
 
-        var links = activity.Links;
-        if (links.Any())
+        var linkEnumerator = activity.EnumerateLinks();
+        if (linkEnumerator.MoveNext())
         {
             var keyValuePairsForLinks = keyValuePairs.Value;
-            keyValuePairsForLinks.Clear();
-            foreach (var link in links)
+            if (keyValuePairsForLinks == null)
             {
+                keyValuePairsForLinks = new List<KeyValuePair<string, object>>();
+                keyValuePairs.Value = keyValuePairsForLinks;
+            }
+
+            keyValuePairsForLinks.Clear();
+
+            do
+            {
+                ref readonly var link = ref linkEnumerator.Current;
+
+                // TODO: This could lead to unbounded memory usage.
                 keyValuePairsForLinks.Add(new("toTraceId", link.Context.TraceId.ToHexString()));
                 keyValuePairsForLinks.Add(new("toSpanId", link.Context.SpanId.ToHexString()));
             }
+            while (linkEnumerator.MoveNext());
 
             eb.AddCountedString("links", JsonSerializer.SerializeMap(keyValuePairsForLinks));
             partBFieldsCount++;
@@ -242,19 +245,25 @@ internal sealed class TLDTraceExporter : TLDBaseExporter<Activity>
 
         int partCFieldsCountFromTags = 0;
         var kvpArrayForPartCFields = partCFields.Value;
+        if (kvpArrayForPartCFields == null)
+        {
+            kvpArrayForPartCFields = new KeyValuePair<string, object>[120];
+            partCFields.Value = kvpArrayForPartCFields;
+        }
+
         List<KeyValuePair<string, object>> envPropertiesList = null;
 
-        foreach (var entry in activity.TagObjects)
+        foreach (ref readonly var entry in activity.EnumerateTagObjects())
         {
             // TODO: check name collision
             if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string replacementKey))
             {
-                this.Serialize(eb, entry.Key, entry.Value);
+                Serialize(eb, entry.Key, replacementKey);
                 partBFieldsCount++;
             }
             else if (string.Equals(entry.Key, "otel.status_code", StringComparison.Ordinal))
             {
-                if (string.Equals(entry.Value.ToString(), "ERROR", StringComparison.Ordinal))
+                if (string.Equals(Convert.ToString(entry.Value, CultureInfo.InvariantCulture), "ERROR", StringComparison.Ordinal))
                 {
                     isStatusSuccess = 0;
                 }
@@ -263,7 +272,7 @@ internal sealed class TLDTraceExporter : TLDBaseExporter<Activity>
             }
             else if (string.Equals(entry.Key, "otel.status_description", StringComparison.Ordinal))
             {
-                statusDescription = entry.Value.ToString();
+                statusDescription = Convert.ToString(entry.Value, CultureInfo.InvariantCulture);
                 continue;
             }
             else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
@@ -278,9 +287,16 @@ internal sealed class TLDTraceExporter : TLDBaseExporter<Activity>
                 {
                     hasEnvProperties = 1;
                     envPropertiesList = keyValuePairs.Value;
+                    if (envPropertiesList == null)
+                    {
+                        envPropertiesList = new List<KeyValuePair<string, object>>();
+                        keyValuePairs.Value = envPropertiesList;
+                    }
+
                     envPropertiesList.Clear();
                 }
 
+                // TODO: This could lead to unbounded memory usage.
                 envPropertiesList.Add(new(entry.Key, entry.Value));
             }
         }
@@ -317,7 +333,7 @@ internal sealed class TLDTraceExporter : TLDBaseExporter<Activity>
 
         for (int i = 0; i < partCFieldsCountFromTags; i++)
         {
-            this.Serialize(eb, kvpArrayForPartCFields[i].Key, kvpArrayForPartCFields[i].Value);
+            Serialize(eb, kvpArrayForPartCFields[i].Key, kvpArrayForPartCFields[i].Value);
         }
 
         if (hasEnvProperties == 1)
@@ -326,110 +342,6 @@ internal sealed class TLDTraceExporter : TLDBaseExporter<Activity>
             // named "env_properties".
             var serializedEnvProperties = JsonSerializer.SerializeMap(envPropertiesList);
             eb.AddCountedAnsiString("env_properties", serializedEnvProperties, Encoding.UTF8, 0, Math.Min(serializedEnvProperties.Length, StringLengthLimit));
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void Serialize(EventBuilder eb, string key, object value)
-    {
-        switch (value)
-        {
-            case bool vb:
-                eb.AddUInt8(key, (byte)(vb ? 1 : 0), EventOutType.Boolean);
-                break;
-            case byte vui8:
-                eb.AddUInt8(key, vui8);
-                break;
-            case sbyte vi8:
-                eb.AddInt8(key, vi8);
-                break;
-            case short vi16:
-                eb.AddInt16(key, vi16);
-                break;
-            case ushort vui16:
-                eb.AddUInt16(key, vui16);
-                break;
-            case int vi32:
-                eb.AddInt32(key, vi32);
-                break;
-            case uint vui32:
-                eb.AddUInt32(key, vui32);
-                break;
-            case long vi64:
-                eb.AddInt64(key, vi64);
-                break;
-            case ulong vui64:
-                eb.AddUInt64(key, vui64);
-                break;
-            case float vf:
-                eb.AddFloat32(key, vf);
-                break;
-            case double vd:
-                eb.AddFloat64(key, vd);
-                break;
-            case string vs:
-                eb.AddCountedAnsiString(key, vs, Encoding.UTF8, 0, Math.Min(vs.Length, StringLengthLimit));
-                break;
-            case DateTime vdt:
-                eb.AddFileTime(key, vdt.ToUniversalTime());
-                break;
-
-            // TODO: case bool[]
-            // TODO: case obj[]
-            case byte[] vui8array:
-                eb.AddUInt8Array(key, vui8array);
-                break;
-            case sbyte[] vi8array:
-                eb.AddInt8Array(key, vi8array);
-                break;
-            case short[] vi16array:
-                eb.AddInt16Array(key, vi16array);
-                break;
-            case ushort[] vui16array:
-                eb.AddUInt16Array(key, vui16array);
-                break;
-            case int[] vi32array:
-                eb.AddInt32Array(key, vi32array);
-                break;
-            case uint[] vui32array:
-                eb.AddUInt32Array(key, vui32array);
-                break;
-            case long[] vi64array:
-                eb.AddInt64Array(key, vi64array);
-                break;
-            case ulong[] vui64array:
-                eb.AddUInt64Array(key, vui64array);
-                break;
-            case float[] vfarray:
-                eb.AddFloat32Array(key, vfarray);
-                break;
-            case double[] vdarray:
-                eb.AddFloat64Array(key, vdarray);
-                break;
-            case string[] vsarray:
-                eb.AddCountedStringArray(key, vsarray);
-                break;
-            case DateTime[] vdtarray:
-                for (int i = 0; i < vdtarray.Length; i++)
-                {
-                    vdtarray[i] = vdtarray[i].ToUniversalTime();
-                }
-
-                eb.AddFileTimeArray(key, vdtarray);
-                break;
-            default:
-                string repr;
-                try
-                {
-                    repr = Convert.ToString(value, CultureInfo.InvariantCulture);
-                }
-                catch
-                {
-                    repr = $"ERROR: type {value.GetType().FullName} is not supported";
-                }
-
-                eb.AddCountedAnsiString(key, repr, Encoding.UTF8, 0, Math.Min(repr.Length, StringLengthLimit));
-                break;
         }
     }
 }

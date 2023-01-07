@@ -29,9 +29,9 @@ public class Program
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .SetSampler(new AlwaysOnSampler())
             .AddSource(Source.Name)
-            .AddTLDTraceExporter(options =>
+            .AddGenevaTraceExporter(options =>
             {
-                options.ConnectionString = "EtwSession=OpenTelemetry";
+                options.ConnectionString = "EtwSession=OpenTelemetry;UseTLD=true";
                 options.CustomFields = new string[] { "foo", "bar", "keyValuePairs" };
                 options.PrepopulatedFields = new Dictionary<string, object>
                 {

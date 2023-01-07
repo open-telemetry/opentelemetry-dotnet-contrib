@@ -15,6 +15,9 @@
 // </copyright>
 
 using System;
+using OpenTelemetry.Exporter.Geneva.TLDExporter;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 
@@ -37,10 +40,55 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         Guard.ThrowIfNull(options);
         Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
-        var msgPackExporter = new MsgPackLogExporter(options);
-        this.IsUsingUnixDomainSocket = msgPackExporter.IsUsingUnixDomainSocket;
-        this.exportLogRecord = (in Batch<LogRecord> batch) => msgPackExporter.Export(in batch);
-        this.exporter = msgPackExporter;
+        bool useMsgPackExporter;
+        var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
+        switch (connectionStringBuilder.Protocol)
+        {
+            case TransportProtocol.Etw:
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    throw new ArgumentException("ETW cannot be used on non-Windows operating systems.");
+                }
+
+                useMsgPackExporter = true;
+                break;
+
+            case TransportProtocol.Unix:
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    throw new ArgumentException("Unix domain socket should not be used on Windows.");
+                }
+
+                useMsgPackExporter = true;
+                break;
+
+            case TransportProtocol.EtwTld:
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    throw new ArgumentException("ETW/TLD cannot be used on non-Windows operating systems.");
+                }
+
+                useMsgPackExporter = false;
+                break;
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
+        }
+
+        if (useMsgPackExporter)
+        {
+            var msgPackLogExporter = new MsgPackLogExporter(options);
+            this.IsUsingUnixDomainSocket = msgPackLogExporter.IsUsingUnixDomainSocket;
+            this.exportLogRecord = (in Batch<LogRecord> batch) => msgPackLogExporter.Export(in batch);
+            this.exporter = msgPackLogExporter;
+        }
+        else
+        {
+            var tldLogExporter = new TLDLogExporter(options);
+            this.IsUsingUnixDomainSocket = false;
+            this.exportLogRecord = (in Batch<LogRecord> batch) => tldLogExporter.Export(in batch);
+            this.exporter = tldLogExporter;
+        }
     }
 
     public override ExportResult Export(in Batch<LogRecord> batch)

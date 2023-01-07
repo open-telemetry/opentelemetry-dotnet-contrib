@@ -17,6 +17,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using BenchmarkDotNet.Attributes;
+using OpenTelemetry.Exporter.Geneva.TLDExporter;
 using OpenTelemetry.Trace;
 
 /*
@@ -42,7 +43,7 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
     {
         private readonly Activity activity;
         private readonly Batch<Activity> batch;
-        private readonly GenevaTraceExporter msgPackExporter;
+        private readonly MsgPackTraceExporter msgPackExporter;
         private readonly TLDTraceExporter tldExporter;
         private readonly ActivitySource activitySource = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark");
 
@@ -70,7 +71,7 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
                 this.activity?.SetStatus(Status.Error);
             }
 
-            this.msgPackExporter = new GenevaTraceExporter(new GenevaExporterOptions
+            this.msgPackExporter = new MsgPackTraceExporter(new GenevaExporterOptions
             {
                 ConnectionString = "EtwSession=OpenTelemetry",
                 PrepopulatedFields = new Dictionary<string, object>
@@ -83,7 +84,7 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
 
             this.tldExporter = new TLDTraceExporter(new GenevaExporterOptions()
             {
-                ConnectionString = "EtwSession=OpenTelemetry",
+                ConnectionString = "EtwSession=OpenTelemetry;UseTLD=true",
                 PrepopulatedFields = new Dictionary<string, object>
                 {
                     ["cloud.role"] = "BusyWorker",

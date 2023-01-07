@@ -17,7 +17,8 @@
 using System;
 using System.Text;
 using BenchmarkDotNet.Attributes;
-using Microsoft.TraceLoggingDynamic;
+using OpenTelemetry.Exporter.Geneva.External;
+using OpenTelemetry.Exporter.Geneva.TLDExporter;
 
 /*
 BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
@@ -41,84 +42,83 @@ Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
 |                      TLD_Reset | 12.40 ns | 0.006 ns | 0.005 ns |         - |
 */
 
-namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
+namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter;
+
+[MemoryDiagnoser]
+public class SerializationBenchmarks
 {
-    [MemoryDiagnoser]
-    public class SerializationBenchmarks
+    private const int StringLengthLimit = (1 << 14) - 1;
+    private const string Key = "ext_dt_traceId";
+    private const string Value = "e8ea7e9ac72de94e91fabc613f9686b2";
+    private readonly EventBuilder eventBuilder = new(UncheckedASCIIEncoding.SharedInstance);
+    private readonly byte[] buffer = new byte[65360];
+
+    [Benchmark]
+    public void TLD_SerializeUInt8()
     {
-        private const int StringLengthLimit = (1 << 14) - 1;
-        private const string Key = "ext_dt_traceId";
-        private const string Value = "e8ea7e9ac72de94e91fabc613f9686b2";
-        private readonly EventBuilder eventBuilder = new(UncheckedASCIIEncoding.SharedInstance);
-        private readonly byte[] buffer = new byte[65360];
+        this.eventBuilder.Reset("test");
+        this.eventBuilder.AddUInt8("Number", 123);
+    }
 
-        [Benchmark]
-        public void TLD_SerializeUInt8()
-        {
-            this.eventBuilder.Reset("test");
-            this.eventBuilder.AddUInt8("Number", 123);
-        }
+    [Benchmark]
+    public void MsgPack_SerializeUInt8()
+    {
+        var cursor = MessagePackSerializer.SerializeAsciiString(this.buffer, 0, "Number");
+        MessagePackSerializer.SerializeUInt8(this.buffer, cursor, 123);
+    }
 
-        [Benchmark]
-        public void MsgPack_SerializeUInt8()
-        {
-            var cursor = MessagePackSerializer.SerializeAsciiString(this.buffer, 0, "Number");
-            MessagePackSerializer.SerializeUInt8(this.buffer, cursor, 123);
-        }
+    [Benchmark]
+    public void TLD_SerializeAsciiString()
+    {
+        this.eventBuilder.Reset("test");
+        this.eventBuilder.AddCountedString(Key, Value);
+    }
 
-        [Benchmark]
-        public void TLD_SerializeAsciiString()
-        {
-            this.eventBuilder.Reset("test");
-            this.eventBuilder.AddCountedString(Key, Value);
-        }
+    [Benchmark]
+    public void MsgPack_SerializeAsciiString()
+    {
+        var cursor = MessagePackSerializer.SerializeAsciiString(this.buffer, 0, Key);
+        MessagePackSerializer.SerializeAsciiString(this.buffer, cursor, Value);
+    }
 
-        [Benchmark]
-        public void MsgPack_SerializeAsciiString()
-        {
-            var cursor = MessagePackSerializer.SerializeAsciiString(this.buffer, 0, Key);
-            MessagePackSerializer.SerializeAsciiString(this.buffer, cursor, Value);
-        }
+    [Benchmark]
+    public void TLD_SerializeUnicodeSubString()
+    {
+        this.eventBuilder.Reset("test");
+        this.eventBuilder.AddCountedAnsiString(Key, Value, Encoding.UTF8, 0, Math.Min(Value.Length, StringLengthLimit));
+    }
 
-        [Benchmark]
-        public void TLD_SerializeUnicodeSubString()
-        {
-            this.eventBuilder.Reset("test");
-            this.eventBuilder.AddCountedAnsiString(Key, Value, Encoding.UTF8, 0, Math.Min(Value.Length, StringLengthLimit));
-        }
+    [Benchmark]
+    public void TLD_SerializeUnicodeString()
+    {
+        this.eventBuilder.Reset("test");
+        this.eventBuilder.AddCountedAnsiString(Key, Value, Encoding.UTF8);
+    }
 
-        [Benchmark]
-        public void TLD_SerializeUnicodeString()
-        {
-            this.eventBuilder.Reset("test");
-            this.eventBuilder.AddCountedAnsiString(Key, Value, Encoding.UTF8);
-        }
+    [Benchmark]
+    public void MsgPack_SerializeUnicodeString()
+    {
+        var cursor = MessagePackSerializer.SerializeAsciiString(this.buffer, 0, Key);
+        MessagePackSerializer.SerializeUnicodeString(this.buffer, cursor, Value);
+    }
 
-        [Benchmark]
-        public void MsgPack_SerializeUnicodeString()
-        {
-            var cursor = MessagePackSerializer.SerializeAsciiString(this.buffer, 0, Key);
-            MessagePackSerializer.SerializeUnicodeString(this.buffer, cursor, Value);
-        }
+    [Benchmark]
+    public void TLD_SerializeDateTime()
+    {
+        this.eventBuilder.Reset("test");
+        this.eventBuilder.AddFileTime("time", DateTime.UtcNow);
+    }
 
-        [Benchmark]
-        public void TLD_SerializeDateTime()
-        {
-            this.eventBuilder.Reset("test");
-            this.eventBuilder.AddFileTime("time", DateTime.UtcNow);
-        }
+    [Benchmark]
+    public void MsgPack_SerializeDateTime()
+    {
+        var cursor = MessagePackSerializer.SerializeAsciiString(this.buffer, 0, "time");
+        MessagePackSerializer.SerializeUtcDateTime(this.buffer, cursor, DateTime.UtcNow);
+    }
 
-        [Benchmark]
-        public void MsgPack_SerializeDateTime()
-        {
-            var cursor = MessagePackSerializer.SerializeAsciiString(this.buffer, 0, "time");
-            MessagePackSerializer.SerializeUtcDateTime(this.buffer, cursor, DateTime.UtcNow);
-        }
-
-        [Benchmark]
-        public void TLD_Reset()
-        {
-            this.eventBuilder.Reset("test");
-        }
+    [Benchmark]
+    public void TLD_Reset()
+    {
+        this.eventBuilder.Reset("test");
     }
 }

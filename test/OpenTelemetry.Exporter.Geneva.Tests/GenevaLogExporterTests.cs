@@ -1092,9 +1092,9 @@ public class GenevaLogExporterTests
             using var loggerFactory = LoggerFactory.Create(builder => builder
             .AddOpenTelemetry(loggerOptions =>
             {
-                loggerOptions.AddTLDLogExporter(exporterOptions =>
+                loggerOptions.AddGenevaLogExporter(exporterOptions =>
                 {
-                    exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+                    exporterOptions.ConnectionString = "EtwSession=OpenTelemetry;UseTLD=true";
                     exporterOptions.PrepopulatedFields = new Dictionary<string, object>
                     {
                         ["cloud.role"] = "BusyWorker",

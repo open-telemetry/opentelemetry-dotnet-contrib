@@ -70,7 +70,7 @@ that is larger than the buffer size of the recording session.
 Most ETW decoding tools are unable to decode an event with more than 128
 fields.
 */
-namespace Microsoft.TraceLoggingDynamic;
+namespace OpenTelemetry.Exporter.Geneva.External;
 
 using System;
 using System.Globalization;
