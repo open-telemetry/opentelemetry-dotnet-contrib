@@ -77,10 +77,10 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         var altDisplayName = "AltName";
         using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
             .AddProcessor(activityProcessor.Object)
-            .AddEntityFrameworkCoreInstrumentation(new Action<EntityFrameworkInstrumentationOptions>(options =>
+            .AddEntityFrameworkCoreInstrumentation(options =>
             {
-                options.DisplayNameFunc = (o, o1) => altDisplayName;
-            })).Build();
+                options.DisplayNameFunc = (_, _) => altDisplayName;
+            }).Build();
 
         Assert.Equal(3, activityProcessor.Invocations.Count);
 
