@@ -96,7 +96,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
 
-        VerifyActivityData(activity, altDisplayName:altDisplayName);
+        VerifyActivityData(activity, altDisplayName: altDisplayName);
     }
 
     [Fact]
