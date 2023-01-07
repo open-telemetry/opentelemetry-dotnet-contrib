@@ -40,8 +40,8 @@ public static class MeterProviderBuilderExtensions
         var options = new ProcessInstrumentationOptions();
         configure?.Invoke(options);
 
-        var instrumentation = new ProcessMetrics(options);
-        builder.AddMeter(ProcessMetrics.MeterInstance.Name);
-        return builder.AddInstrumentation(() => instrumentation);
+        builder.AddMeter(ProcessMetrics.MeterName);
+
+        return builder.AddInstrumentation(() => new ProcessMetrics(options));
     }
 }

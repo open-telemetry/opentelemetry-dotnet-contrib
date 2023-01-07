@@ -45,7 +45,7 @@ internal class SpanSender : ISpanSender
         while (true)
         {
             // check if we can send spans
-            if (this.spansQueue.TryPeek(out InstanaSpan dummySpan))
+            if (this.spansQueue.TryPeek(out InstanaSpan _))
             {
                 // actually send spans
                 await this.transport.SendSpansAsync(this.spansQueue);

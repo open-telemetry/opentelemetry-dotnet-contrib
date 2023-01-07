@@ -1,0 +1,3 @@
+OpenTelemetry.Extensions.AzureMonitor.ApplicationInsightsSampler
+OpenTelemetry.Extensions.AzureMonitor.ApplicationInsightsSampler.ApplicationInsightsSampler(float samplingRatio) -> void
+override OpenTelemetry.Extensions.AzureMonitor.ApplicationInsightsSampler.ShouldSample(in OpenTelemetry.Trace.SamplingParameters samplingParameters) -> OpenTelemetry.Trace.SamplingResult

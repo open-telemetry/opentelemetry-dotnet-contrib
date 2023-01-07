@@ -14,48 +14,103 @@
 // limitations under the License.
 // </copyright>
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using Diagnostics = System.Diagnostics;
 
 namespace OpenTelemetry.Instrumentation.Process;
 
-internal class ProcessMetrics
+internal sealed class ProcessMetrics : IDisposable
 {
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
-    internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
-    private static readonly Diagnostics.Process CurrentProcess = Diagnostics.Process.GetCurrentProcess();
+    internal static readonly string MeterName = AssemblyName.Name;
 
-    static ProcessMetrics()
+    private readonly Meter meterInstance = new(MeterName, AssemblyName.Version.ToString());
+
+    // vars for calculating CPU utilization
+    private DateTime lastCollectionTimeUtc;
+    private double lastCollectedUserProcessorTime;
+    private double lastCollectedPrivilegedProcessorTime;
+
+    public ProcessMetrics(ProcessInstrumentationOptions options)
     {
-        // TODO: change to ObservableUpDownCounter
-        MeterInstance.CreateObservableGauge(
+        this.lastCollectionTimeUtc = DateTime.UtcNow;
+        this.lastCollectedUserProcessorTime = Diagnostics.Process.GetCurrentProcess().UserProcessorTime.TotalSeconds;
+        this.lastCollectedPrivilegedProcessorTime = Diagnostics.Process.GetCurrentProcess().PrivilegedProcessorTime.TotalSeconds;
+
+        this.meterInstance.CreateObservableUpDownCounter(
             "process.memory.usage",
             () =>
             {
-                CurrentProcess.Refresh();
-                return CurrentProcess.WorkingSet64;
+                return Diagnostics.Process.GetCurrentProcess().WorkingSet64;
             },
             unit: "By",
-            description: "The amount of physical memory in use.");
+            description: "The amount of physical memory allocated for this process.");
 
-        // TODO: change to ObservableUpDownCounter
-        MeterInstance.CreateObservableGauge(
+        this.meterInstance.CreateObservableUpDownCounter(
             "process.memory.virtual",
             () =>
             {
-                CurrentProcess.Refresh();
-                return CurrentProcess.VirtualMemorySize64;
+                return Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64;
             },
             unit: "By",
-            description: "The amount of committed virtual memory.");
+            description: "The amount of committed virtual memory for this process.");
+
+        this.meterInstance.CreateObservableCounter(
+            "process.cpu.time",
+            () =>
+            {
+                var process = Diagnostics.Process.GetCurrentProcess();
+                return new[]
+                {
+                    new Measurement<double>(process.UserProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("state", "user")),
+                    new Measurement<double>(process.PrivilegedProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("state", "system")),
+                };
+            },
+            unit: "s",
+            description: "Total CPU seconds broken down by different states.");
+
+        this.meterInstance.CreateObservableGauge(
+            "process.cpu.utilization",
+            () =>
+            {
+                return this.GetCpuUtilization();
+            },
+            unit: "1",
+            description: "Difference in process.cpu.time since the last measurement, divided by the elapsed time and number of CPUs available to the process.");
+
+        this.meterInstance.CreateObservableUpDownCounter(
+            "process.threads",
+            () =>
+            {
+                return Diagnostics.Process.GetCurrentProcess().Threads.Count;
+            },
+            unit: "{threads}",
+            description: "Process threads count.");
     }
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ProcessMetrics"/> class.
-    /// </summary>
-    /// <param name="options">The options to define the metrics.</param>
-    public ProcessMetrics(ProcessInstrumentationOptions options)
+    public void Dispose()
     {
+        this.meterInstance.Dispose();
+    }
+
+    private IEnumerable<Measurement<double>> GetCpuUtilization()
+    {
+        var process = Diagnostics.Process.GetCurrentProcess();
+        var elapsedTimeForAllCpus = (DateTime.UtcNow - this.lastCollectionTimeUtc).TotalSeconds * Environment.ProcessorCount;
+        var userProcessorUtilization = (process.UserProcessorTime.TotalSeconds - this.lastCollectedUserProcessorTime) / elapsedTimeForAllCpus;
+        var privilegedProcessorUtilization = (process.PrivilegedProcessorTime.TotalSeconds - this.lastCollectedPrivilegedProcessorTime) / elapsedTimeForAllCpus;
+
+        this.lastCollectionTimeUtc = DateTime.UtcNow;
+        this.lastCollectedUserProcessorTime = process.UserProcessorTime.TotalSeconds;
+        this.lastCollectedPrivilegedProcessorTime = process.PrivilegedProcessorTime.TotalSeconds;
+
+        return new[]
+        {
+            new Measurement<double>(Math.Min(userProcessorUtilization, 1D), new KeyValuePair<string, object?>("state", "user")),
+            new Measurement<double>(Math.Min(privilegedProcessorUtilization, 1D), new KeyValuePair<string, object?>("state", "system")),
+        };
     }
 }

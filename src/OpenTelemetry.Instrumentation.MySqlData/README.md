@@ -50,7 +50,11 @@ the `ConfigureServices` of your `Startup` class. Refer to documentation for
 [OpenTelemetry.Instrumentation.AspNetCore](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Instrumentation.AspNetCore/README.md).
 
 For an ASP.NET application, adding instrumentation is typically done in the
-`Global.asax.cs`. Refer to documentation for [OpenTelemetry.Instrumentation.AspNet](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Instrumentation.AspNet/README.md).
+`Global.asax.cs`. Refer to documentation for [OpenTelemetry.Instrumentation.AspNet](../OpenTelemetry.Instrumentation.AspNet/README.md).
+
+Note, If you are using `Mysql.Data` 8.0.31 or later, please add
+option `Logging=true` in your connection string to enable tracing.
+See issue #691 for details.
 
 ## Advanced configuration
 

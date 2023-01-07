@@ -37,6 +37,7 @@ components:
     - ejsmith
   src/OpenTelemetry.Instrumentation.EventCounters/:
     - hananiel
+    - mic-max
   src/OpenTelemetry.Instrumentation.GrpcCore/:
     - pcwiese
   src/OpenTelemetry.Instrumentation.Hangfire/:
@@ -89,7 +90,7 @@ components:
   test/OpenTelemetry.Extensions.Tests/:
     - codeblanch
   test/OpenTelemetry.Extensions.Docker.Tests/:
-    - swetharavichandrancisco
+    - iskiselev
   test/OpenTelemetry.Extensions.PersistentStorage.Tests/:
     - vishweshbankwar
   test/OpenTelemetry.Instrumentation.AWSLambda.Tests/:
@@ -99,6 +100,7 @@ components:
     - ejsmith
   test/OpenTelemetry.Instrumentation.EventCounters.Tests/:
     - hananiel
+    - mic-max
   test/OpenTelemetry.Instrumentation.GrpcCore.Tests/:
     - pcwiese
   test/OpenTelemetry.Instrumentation.Hangfire.Tests/:

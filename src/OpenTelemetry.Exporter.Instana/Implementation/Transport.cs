@@ -26,6 +26,8 @@ namespace OpenTelemetry.Exporter.Instana.Implementation;
 
 internal class Transport
 {
+    private const int MultiSpanBufferLimit = 4096000;
+
     private static readonly InstanaSpanSerializer InstanaSpanSerializer = new InstanaSpanSerializer();
     private static readonly MediaTypeHeaderValue MEDIAHEADER = new MediaTypeHeaderValue("application/json");
 
@@ -35,8 +37,6 @@ internal class Transport
     private static string configuredAgentKey = string.Empty;
     private static string bundleUrl = string.Empty;
     private static InstanaHttpClient client = null;
-
-    private readonly byte[] tracesBuffer = new byte[4096000];
 
     static Transport()
     {
@@ -50,43 +50,65 @@ internal class Transport
 
     internal async Task SendSpansAsync(ConcurrentQueue<InstanaSpan> spanQueue)
     {
-        using (MemoryStream sendBuffer = new MemoryStream(this.tracesBuffer))
+        try
         {
-            using (StreamWriter writer = new StreamWriter(sendBuffer))
+            using (MemoryStream sendBuffer = new MemoryStream())
             {
-                await writer.WriteAsync("{\"spans\":[");
-                bool first = true;
-                while (spanQueue.TryDequeue(out InstanaSpan span) && sendBuffer.Position < 4070000)
+                using (StreamWriter writer = new StreamWriter(sendBuffer))
                 {
-                    if (!first)
+                    await writer.WriteAsync("{\"spans\":[");
+                    bool first = true;
+
+                    // peek instead of dequeue, because we don't yet know whether the next span
+                    // fits within our MULTI_SPAN_BUFFER_LIMIT
+                    while (spanQueue.TryPeek(out InstanaSpan span))
                     {
-                        await writer.WriteAsync(",");
+                        var serialized = await InstanaSpanSerializer.SerializeToByteArrayAsync(span);
+
+                        if (!first)
+                        {
+                            if (sendBuffer.Length + serialized.Length > MultiSpanBufferLimit)
+                            {
+                                break;
+                            }
+
+                            await writer.WriteAsync(",");
+                        }
+
+                        first = false;
+
+                        await sendBuffer.WriteAsync(serialized, 0, serialized.Length);
+
+                        // Now we can dequeue. Note, this means we'll be giving up/losing
+                        // this span if we fail to send for any reason.
+                        spanQueue.TryDequeue(out _);
                     }
 
-                    first = false;
-                    await InstanaSpanSerializer.SerializeToStreamWriterAsync(span, writer);
-                }
+                    await writer.WriteAsync("]}");
 
-                await writer.WriteAsync("]}");
+                    await writer.FlushAsync();
+                    long length = sendBuffer.Position;
+                    sendBuffer.Position = 0;
 
-                await writer.FlushAsync();
-                long length = sendBuffer.Position;
-                sendBuffer.Position = 0;
+                    HttpContent content = new StreamContent(sendBuffer, (int)length);
+                    content.Headers.ContentType = MEDIAHEADER;
+                    content.Headers.Add("X-INSTANA-TIME", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString());
 
-                HttpContent content = new StreamContent(sendBuffer, (int)length);
-                content.Headers.ContentType = MEDIAHEADER;
-                content.Headers.Add("X-INSTANA-TIME", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString());
-
-                using (var httpMsg = new HttpRequestMessage()
-                {
-                    Method = HttpMethod.Post,
-                    RequestUri = new Uri(bundleUrl),
-                })
-                {
-                    httpMsg.Content = content;
-                    var res = client.SendAsync(httpMsg).GetAwaiter().GetResult();
+                    using (var httpMsg = new HttpRequestMessage()
+                    {
+                        Method = HttpMethod.Post,
+                        RequestUri = new Uri(bundleUrl),
+                    })
+                    {
+                        httpMsg.Content = content;
+                        await client.SendAsync(httpMsg);
+                    }
                 }
             }
+        }
+        catch (Exception e)
+        {
+            InstanaExporterEventSource.Log.FailedExport(e);
         }
     }
 

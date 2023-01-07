@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using OpenTelemetry.Internal;
@@ -31,6 +32,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
     internal const int MaxDimensionNameSize = 256;
 
     internal const int MaxDimensionValueSize = 1024;
+
+    private static readonly MetricData ulongZero = new MetricData { UInt64Value = 0 };
 
     private readonly ushort prepopulatedDimensionsCount;
 
@@ -53,8 +56,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
     private readonly int bufferIndexForNonHistogramMetrics;
 
     private readonly int bufferIndexForHistogramMetrics;
-
-    private static readonly MetricData ulongZero = new MetricData { UInt64Value = 0 };
 
     private bool isDisposed;
 
@@ -134,21 +135,42 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                 break;
                             }
 
+                        // The value here could be negative hence we have to use `MetricEventType.DoubleMetric`
                         case MetricType.LongGauge:
                             {
-                                var ulongSum = Convert.ToUInt64(metricPoint.GetGaugeLastValueLong());
-                                var metricData = new MetricData { UInt64Value = ulongSum };
+                                // potential for minor precision loss implicitly going from long->double
+                                // see: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions#implicit-numeric-conversions
+                                var doubleSum = Convert.ToDouble(metricPoint.GetGaugeLastValueLong());
+                                var metricData = new MetricData { DoubleValue = doubleSum };
                                 var bodyLength = this.SerializeMetric(
-                                    MetricEventType.ULongMetric,
+                                    MetricEventType.DoubleMetric,
                                     metric.Name,
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
                                     metricData);
-                                this.metricDataTransport.Send(MetricEventType.ULongMetric, this.bufferForNonHistogramMetrics, bodyLength);
+                                this.metricDataTransport.Send(MetricEventType.DoubleMetric, this.bufferForNonHistogramMetrics, bodyLength);
+                                break;
+                            }
+
+                        // The value here could be negative hence we have to use `MetricEventType.DoubleMetric`
+                        case MetricType.LongSumNonMonotonic:
+                            {
+                                // potential for minor precision loss implicitly going from long->double
+                                // see: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions#implicit-numeric-conversions
+                                var doubleSum = Convert.ToDouble(metricPoint.GetSumLong());
+                                var metricData = new MetricData { DoubleValue = doubleSum };
+                                var bodyLength = this.SerializeMetric(
+                                    MetricEventType.DoubleMetric,
+                                    metric.Name,
+                                    metricPoint.EndTime.ToFileTime(),
+                                    metricPoint.Tags,
+                                    metricData);
+                                this.metricDataTransport.Send(MetricEventType.DoubleMetric, this.bufferForNonHistogramMetrics, bodyLength);
                                 break;
                             }
 
                         case MetricType.DoubleSum:
+                        case MetricType.DoubleSumNonMonotonic:
                             {
                                 var doubleSum = metricPoint.GetSumDouble();
                                 var metricData = new MetricData { DoubleValue = doubleSum };
@@ -180,13 +202,23 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                             {
                                 var sum = new MetricData { UInt64Value = Convert.ToUInt64(metricPoint.GetHistogramSum()) };
                                 var count = Convert.ToUInt32(metricPoint.GetHistogramCount());
+                                MetricData min = ulongZero;
+                                MetricData max = ulongZero;
+                                if (metricPoint.TryGetHistogramMinMaxValues(out var minValue, out var maxValue))
+                                {
+                                    min = new MetricData { UInt64Value = Convert.ToUInt64(minValue) };
+                                    max = new MetricData { UInt64Value = Convert.ToUInt64(maxValue) };
+                                }
+
                                 var bodyLength = this.SerializeHistogramMetric(
                                     metric.Name,
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
                                     metricPoint.GetHistogramBuckets(),
                                     sum,
-                                    count);
+                                    count,
+                                    min,
+                                    max);
                                 this.metricDataTransport.Send(MetricEventType.ExternallyAggregatedULongDistributionMetric, this.bufferForHistogramMetrics, bodyLength);
                                 break;
                             }
@@ -317,7 +349,9 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         in ReadOnlyTagCollection tags,
         HistogramBuckets buckets,
         MetricData sum,
-        uint count)
+        uint count,
+        MetricData min,
+        MetricData max)
     {
         ushort bodyLength;
         try
@@ -390,20 +424,11 @@ public class GenevaMetricExporter : BaseExporter<Metric>
             {
                 if (bucket.BucketCount > 0)
                 {
-                    if (bucket.ExplicitBound != double.PositiveInfinity)
-                    {
-                        MetricSerializer.SerializeUInt64(this.bufferForHistogramMetrics, ref bufferIndex, Convert.ToUInt64(bucket.ExplicitBound));
-                        lastExplicitBound = bucket.ExplicitBound;
-                    }
-                    else
-                    {
-                        // The bucket to catch the overflows is one greater than the last bound provided
-                        MetricSerializer.SerializeUInt64(this.bufferForHistogramMetrics, ref bufferIndex, Convert.ToUInt64(lastExplicitBound + 1));
-                    }
-
-                    MetricSerializer.SerializeUInt32(this.bufferForHistogramMetrics, ref bufferIndex, Convert.ToUInt32(bucket.BucketCount));
+                    this.SerializeHistogramBucket(bucket, ref bufferIndex, lastExplicitBound);
                     bucketCount++;
                 }
+
+                lastExplicitBound = bucket.ExplicitBound;
             }
 
             // Write the number of items in distribution emitted and reset back to end.
@@ -425,8 +450,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                 payloadPtr[0].Count = count;
                 payloadPtr[0].TimestampUtc = (ulong)timestamp;
                 payloadPtr[0].Sum = sum;
-                payloadPtr[0].Min = ulongZero;
-                payloadPtr[0].Max = ulongZero;
+                payloadPtr[0].Min = min;
+                payloadPtr[0].Max = max;
             }
         }
         finally
@@ -434,6 +459,22 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         }
 
         return bodyLength;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void SerializeHistogramBucket(in HistogramBucket bucket, ref int bufferIndex, double lastExplicitBound)
+    {
+        if (bucket.ExplicitBound != double.PositiveInfinity)
+        {
+            MetricSerializer.SerializeUInt64(this.bufferForHistogramMetrics, ref bufferIndex, Convert.ToUInt64(bucket.ExplicitBound));
+        }
+        else
+        {
+            // The bucket to catch the overflows is one greater than the last bound provided
+            MetricSerializer.SerializeUInt64(this.bufferForHistogramMetrics, ref bufferIndex, Convert.ToUInt64(lastExplicitBound + 1));
+        }
+
+        MetricSerializer.SerializeUInt32(this.bufferForHistogramMetrics, ref bufferIndex, Convert.ToUInt32(bucket.BucketCount));
     }
 
     private List<byte[]> SerializePrepopulatedDimensionsKeys(IEnumerable<string> keys)

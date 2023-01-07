@@ -2,8 +2,50 @@
 
 ## Unreleased
 
-* Update OTel API version to `1.3.1`.
-  ([#631](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/631))
+## 1.1.0-beta.2
+
+Released 2022-Dec-13
+
+* Update OpenTelemetry API to 1.4.0-rc.1 ([#820](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/820))
+
+## 1.1.0-beta.1
+
+Released 2022-Nov-22
+
+* Update OpenTelemetry API to 1.4.0-beta.3 ([#774](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/774))
+
+* Change ObservableGauge to ObservableUpDownCounter for the below metrics (which
+  better fit UpDownCounter semantics as they are additive.)
+
+  "process.runtime.dotnet.gc.heap.size",
+  "process.runtime.dotnet.gc.heap.fragmentation.size",
+  "process.runtime.dotnet.thread_pool.threads.count",
+  "process.runtime.dotnet.thread_pool.queue.length",
+  "process.runtime.dotnet.timer.count",
+  "process.runtime.dotnet.assemblies.count"
+  ([#675](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/675))
+
+  If your backend system distinguishes between ObservableUpDownCounter and
+  ObservableGauge, then you may need to adjust your queries. Systems like
+  Prometheus are unaffected by this.
+
+* Removes NETCoreApp3.1 target as .NET Core 3.1 and .NET 5 are going out of
+  support. The package keeps `netstandard2.0` target, so it can still be used
+  with .NET Core 3.1/.NET 5 apps, however certain metrics will not be available
+  there. Additionally, apps targeting .NET 5 and lower will receive a warning at
+  build time as described [here](https://github.com/dotnet/runtime/pull/72518)
+  (note: building using older versions of the .NET SDK produces an error at
+  build time). This is because .NET 5 reached EOL in May 2022 and .NET Core 3.1
+  reaches EOL in December 2022.
+
+  The build warning can be suppressed by setting the
+  SuppressTfmSupportBuildWarnings MSBuild property, but there is no guarantee
+  that this package will continue to work on older versions of .NET.
+
+  This does not affect applications targeting .NET Framework.
+
+* Add "process.runtime.dotnet.gc.objects.size" metric
+  ([#683](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/683))
 
 ## 1.0.0
 

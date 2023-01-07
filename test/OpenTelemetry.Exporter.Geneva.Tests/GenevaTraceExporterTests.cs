@@ -24,6 +24,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -250,10 +251,10 @@ public class GenevaTraceExporterTests
                 exporterOptions.CustomFields = new string[] { "clientRequestId" };
             }
 
-            using var exporter = new GenevaTraceExporter(exporterOptions);
-            var dedicatedFields = typeof(GenevaTraceExporter).GetField("m_dedicatedFields", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as IReadOnlyDictionary<string, object>;
-            var CS40_PART_B_MAPPING = typeof(GenevaTraceExporter).GetField("CS40_PART_B_MAPPING", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as IReadOnlyDictionary<string, string>;
-            var m_buffer = typeof(GenevaTraceExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as ThreadLocal<byte[]>;
+            using var exporter = new MsgPackTraceExporter(exporterOptions);
+            var dedicatedFields = typeof(MsgPackTraceExporter).GetField("m_dedicatedFields", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as IReadOnlyDictionary<string, object>;
+            var CS40_PART_B_MAPPING = typeof(MsgPackTraceExporter).GetField("CS40_PART_B_MAPPING", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as IReadOnlyDictionary<string, string>;
+            var m_buffer = typeof(MsgPackTraceExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as ThreadLocal<byte[]>;
 
             // Add an ActivityListener to serialize the activity and assert that it was valid on ActivityStopped event
 
@@ -417,7 +418,7 @@ public class GenevaTraceExporterTests
                 serverSocket.ReceiveTimeout = 10000;
 
                 // Create a test exporter to get MessagePack byte data for validation of the data received via Socket.
-                var exporter = new GenevaTraceExporter(new GenevaExporterOptions
+                var exporter = new MsgPackTraceExporter(new GenevaExporterOptions
                 {
                     ConnectionString = "Endpoint=unix:" + path,
                     PrepopulatedFields = new Dictionary<string, object>
@@ -562,24 +563,24 @@ public class GenevaTraceExporterTests
 
         // Part A core envelope fields
 
-        var nameKey = GenevaBaseExporter<Activity>.V40_PART_A_MAPPING[Schema.V40.PartA.Name];
+        var nameKey = MsgPackExporter.V40_PART_A_MAPPING[Schema.V40.PartA.Name];
 
         // Check if the user has configured a custom table mapping
         Assert.Equal(partAName, mapping[nameKey]);
 
         // TODO: Update this when we support multiple Schema formats
         var partAVer = "4.0";
-        var verKey = GenevaBaseExporter<Activity>.V40_PART_A_MAPPING[Schema.V40.PartA.Ver];
+        var verKey = MsgPackExporter.V40_PART_A_MAPPING[Schema.V40.PartA.Ver];
         Assert.Equal(partAVer, mapping[verKey]);
 
         foreach (var item in exporterOptions.PrepopulatedFields)
         {
             var partAValue = item.Value as string;
-            var partAKey = GenevaBaseExporter<Activity>.V40_PART_A_MAPPING[item.Key];
+            var partAKey = MsgPackExporter.V40_PART_A_MAPPING[item.Key];
             Assert.Equal(partAValue, mapping[partAKey]);
         }
 
-        var timeKey = GenevaBaseExporter<Activity>.V40_PART_A_MAPPING[Schema.V40.PartA.Time];
+        var timeKey = MsgPackExporter.V40_PART_A_MAPPING[Schema.V40.PartA.Time];
         Assert.Equal(tsEnd, ((DateTime)mapping[timeKey]).Ticks);
 
         // Part A dt extensions

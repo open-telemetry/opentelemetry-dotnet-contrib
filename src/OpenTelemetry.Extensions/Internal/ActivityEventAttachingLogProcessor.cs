@@ -61,8 +61,6 @@ internal sealed class ActivityEventAttachingLogProcessor : BaseProcessor<LogReco
                 tags[nameof(data.EventId)] = data.EventId;
             }
 
-            var activityEvent = new ActivityEvent("log", data.Timestamp, tags);
-
             data.ForEachScope(ProcessScope, new State(tags, this));
 
             if (data.StateValues != null)
@@ -84,6 +82,7 @@ internal sealed class ActivityEventAttachingLogProcessor : BaseProcessor<LogReco
                 tags[nameof(data.FormattedMessage)] = data.FormattedMessage;
             }
 
+            var activityEvent = new ActivityEvent("log", data.Timestamp, tags);
             activity.AddEvent(activityEvent);
 
             if (data.Exception != null)
@@ -93,7 +92,7 @@ internal sealed class ActivityEventAttachingLogProcessor : BaseProcessor<LogReco
         }
     }
 
-    private class State
+    private sealed class State
     {
         public State(ActivityTagsCollection tags, ActivityEventAttachingLogProcessor processor)
         {

@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Description>Unit test project for OpenTelemetry ASP.NET instrumentation</Description>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>net462</TargetFrameworks>
+    <TargetFrameworks>$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,7 +27,6 @@
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\StatusHelper.cs" Link="Includes\StatusHelper.cs" />
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\SpanHelper.cs" Link="Includes\SpanHelper.cs" />
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\SpanAttributeConstants.cs" Link="Includes\SpanAttributeConstants.cs" />
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\EnumerationHelper.cs" Link="Includes\EnumerationHelper.cs" />
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\IActivityEnumerator.cs" Link="Includes\IActivityEnumerator.cs"/>
