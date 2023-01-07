@@ -21,141 +21,140 @@ using OpenTelemetry.Exporter.Geneva.TLDExporter;
 using OpenTelemetry.Trace;
 
 /*
-BenchmarkDotNet=v0.13.2, OS=Windows 11 (10.0.22621.521)
+BenchmarkDotNet=v0.13.3, OS=Windows 11 (10.0.22621.963)
 Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
-.NET SDK=7.0.100-preview.6.22352.1
-  [Host]     : .NET 6.0.9 (6.0.922.41905), X64 RyuJIT AVX2
-  DefaultJob : .NET 6.0.9 (6.0.922.41905), X64 RyuJIT AVX2
+.NET SDK=7.0.101
+  [Host]     : .NET 7.0.1 (7.0.122.56804), X64 RyuJIT AVX2
+  DefaultJob : .NET 7.0.1 (7.0.122.56804), X64 RyuJIT AVX2
 
 
-|                    Method |     Mean |   Error |  StdDev |   Gen0 | Allocated |
-|-------------------------- |---------:|--------:|--------:|-------:|----------:|
-| MsgPack_SerializeActivity | 372.3 ns | 4.39 ns | 4.11 ns | 0.0062 |      40 B |
-|     TLD_SerializeActivity | 477.9 ns | 2.42 ns | 2.02 ns | 0.0057 |      40 B |
-|    MsgPack_ExportActivity | 747.8 ns | 2.38 ns | 2.11 ns | 0.0057 |      40 B |
-|        TLD_ExportActivity | 834.8 ns | 7.90 ns | 7.00 ns | 0.0057 |      40 B |
+|                    Method |     Mean |   Error |  StdDev | Allocated |
+|-------------------------- |---------:|--------:|--------:|----------:|
+| MsgPack_SerializeActivity | 300.3 ns | 1.14 ns | 1.07 ns |         - |
+|     TLD_SerializeActivity | 371.0 ns | 0.70 ns | 0.66 ns |         - |
+|    MsgPack_ExportActivity | 680.2 ns | 1.73 ns | 1.62 ns |         - |
+|        TLD_ExportActivity | 729.5 ns | 4.78 ns | 4.24 ns |         - |
 */
 
-namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter
+namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter;
+
+[MemoryDiagnoser]
+public class TLDTraceExporterBenchmarks
 {
-    [MemoryDiagnoser]
-    public class TLDTraceExporterBenchmarks
+    private readonly Activity activity;
+    private readonly Batch<Activity> batch;
+    private readonly MsgPackTraceExporter msgPackExporter;
+    private readonly TLDTraceExporter tldExporter;
+    private readonly ActivitySource activitySource = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark");
+
+    public TLDTraceExporterBenchmarks()
     {
-        private readonly Activity activity;
-        private readonly Batch<Activity> batch;
-        private readonly MsgPackTraceExporter msgPackExporter;
-        private readonly TLDTraceExporter tldExporter;
-        private readonly ActivitySource activitySource = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark");
+        Activity.DefaultIdFormat = ActivityIdFormat.W3C;
 
-        public TLDTraceExporterBenchmarks()
+        this.batch = this.CreateBatch();
+
+        using var activityListener = new ActivityListener
         {
-            Activity.DefaultIdFormat = ActivityIdFormat.W3C;
+            ActivityStarted = null,
+            ActivityStopped = null,
+            ShouldListenTo = (activitySource) => activitySource.Name == this.activitySource.Name,
+            Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded,
+        };
 
-            this.batch = this.CreateBatch();
+        ActivitySource.AddActivityListener(activityListener);
 
-            using var activityListener = new ActivityListener
+        using (var testActivity = this.activitySource.StartActivity("Benchmark"))
+        {
+            this.activity = testActivity;
+            this.activity?.SetTag("tagString", "value");
+            this.activity?.SetTag("tagInt", 100);
+            this.activity?.SetStatus(Status.Error);
+        }
+
+        this.msgPackExporter = new MsgPackTraceExporter(new GenevaExporterOptions
+        {
+            ConnectionString = "EtwSession=OpenTelemetry",
+            PrepopulatedFields = new Dictionary<string, object>
             {
-                ActivityStarted = null,
-                ActivityStopped = null,
-                ShouldListenTo = (activitySource) => activitySource.Name == this.activitySource.Name,
-                Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded,
-            };
+                ["cloud.role"] = "BusyWorker",
+                ["cloud.roleInstance"] = "CY1SCH030021417",
+                ["cloud.roleVer"] = "9.0.15289.2",
+            },
+        });
 
-            ActivitySource.AddActivityListener(activityListener);
-
-            using (var testActivity = this.activitySource.StartActivity("Benchmark"))
+        this.tldExporter = new TLDTraceExporter(new GenevaExporterOptions()
+        {
+            ConnectionString = "EtwSession=OpenTelemetry;UseTLD=true",
+            PrepopulatedFields = new Dictionary<string, object>
             {
-                this.activity = testActivity;
-                this.activity?.SetTag("tagString", "value");
-                this.activity?.SetTag("tagInt", 100);
-                this.activity?.SetStatus(Status.Error);
-            }
+                ["cloud.role"] = "BusyWorker",
+                ["cloud.roleInstance"] = "CY1SCH030021417",
+                ["cloud.roleVer"] = "9.0.15289.2",
+            },
+        });
+    }
 
-            this.msgPackExporter = new MsgPackTraceExporter(new GenevaExporterOptions
-            {
-                ConnectionString = "EtwSession=OpenTelemetry",
-                PrepopulatedFields = new Dictionary<string, object>
-                {
-                    ["cloud.role"] = "BusyWorker",
-                    ["cloud.roleInstance"] = "CY1SCH030021417",
-                    ["cloud.roleVer"] = "9.0.15289.2",
-                },
-            });
+    [Benchmark]
+    public void MsgPack_SerializeActivity()
+    {
+        this.msgPackExporter.SerializeActivity(this.activity);
+    }
 
-            this.tldExporter = new TLDTraceExporter(new GenevaExporterOptions()
-            {
-                ConnectionString = "EtwSession=OpenTelemetry;UseTLD=true",
-                PrepopulatedFields = new Dictionary<string, object>
-                {
-                    ["cloud.role"] = "BusyWorker",
-                    ["cloud.roleInstance"] = "CY1SCH030021417",
-                    ["cloud.roleVer"] = "9.0.15289.2",
-                },
-            });
+    [Benchmark]
+    public void TLD_SerializeActivity()
+    {
+        this.tldExporter.SerializeActivity(this.activity);
+    }
+
+    [Benchmark]
+    public void MsgPack_ExportActivity()
+    {
+        this.msgPackExporter.Export(this.batch);
+    }
+
+    [Benchmark]
+    public void TLD_ExportActivity()
+    {
+        this.tldExporter.Export(this.batch);
+    }
+
+    [GlobalCleanup]
+    public void Cleanup()
+    {
+        this.activity.Dispose();
+        this.batch.Dispose();
+        this.activitySource.Dispose();
+        this.msgPackExporter.Dispose();
+        this.tldExporter.Dispose();
+    }
+
+    private Batch<Activity> CreateBatch()
+    {
+        using var batchGeneratorExporter = new BatchGeneratorExporter();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new AlwaysOnSampler())
+            .AddSource(this.activitySource.Name)
+            .AddProcessor(new SimpleActivityExportProcessor(batchGeneratorExporter))
+            .Build();
+
+        using (var activity = this.activitySource.StartActivity("Benchmark"))
+        {
+            activity.SetTag("tagString", "value");
+            activity.SetTag("tagInt", 100);
+            activity.SetStatus(Status.Error);
         }
 
-        [Benchmark]
-        public void MsgPack_SerializeActivity()
+        return batchGeneratorExporter.Batch;
+    }
+
+    private class BatchGeneratorExporter : BaseExporter<Activity>
+    {
+        public Batch<Activity> Batch { get; set; }
+
+        public override ExportResult Export(in Batch<Activity> batch)
         {
-            this.msgPackExporter.SerializeActivity(this.activity);
-        }
-
-        [Benchmark]
-        public void TLD_SerializeActivity()
-        {
-            this.tldExporter.SerializeActivity(this.activity);
-        }
-
-        [Benchmark]
-        public void MsgPack_ExportActivity()
-        {
-            this.msgPackExporter.Export(this.batch);
-        }
-
-        [Benchmark]
-        public void TLD_ExportActivity()
-        {
-            this.tldExporter.Export(this.batch);
-        }
-
-        [GlobalCleanup]
-        public void Cleanup()
-        {
-            this.activity.Dispose();
-            this.batch.Dispose();
-            this.activitySource.Dispose();
-            this.msgPackExporter.Dispose();
-            this.tldExporter.Dispose();
-        }
-
-        private Batch<Activity> CreateBatch()
-        {
-            using var batchGeneratorExporter = new BatchGeneratorExporter();
-            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new AlwaysOnSampler())
-                .AddSource(this.activitySource.Name)
-                .AddProcessor(new SimpleActivityExportProcessor(batchGeneratorExporter))
-                .Build();
-
-            using (var activity = this.activitySource.StartActivity("Benchmark"))
-            {
-                activity.SetTag("tagString", "value");
-                activity.SetTag("tagInt", 100);
-                activity.SetStatus(Status.Error);
-            }
-
-            return batchGeneratorExporter.Batch;
-        }
-
-        private class BatchGeneratorExporter : BaseExporter<Activity>
-        {
-            public Batch<Activity> Batch { get; set; }
-
-            public override ExportResult Export(in Batch<Activity> batch)
-            {
-                this.Batch = batch;
-                return ExportResult.Success;
-            }
+            this.Batch = batch;
+            return ExportResult.Success;
         }
     }
 }

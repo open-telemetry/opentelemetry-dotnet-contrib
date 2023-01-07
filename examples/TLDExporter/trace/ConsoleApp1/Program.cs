@@ -15,7 +15,6 @@
 // </copyright>
 
 using System.Diagnostics;
-using System.Runtime.Serialization;
 using OpenTelemetry;
 using OpenTelemetry.Exporter.Geneva;
 using OpenTelemetry.Trace;

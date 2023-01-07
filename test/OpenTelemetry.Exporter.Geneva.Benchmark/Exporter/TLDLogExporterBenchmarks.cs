@@ -22,19 +22,19 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Trace;
 
 /*
-BenchmarkDotNet=v0.13.2, OS=Windows 11 (10.0.22621.521)
+BenchmarkDotNet=v0.13.3, OS=Windows 11 (10.0.22621.963)
 Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
-.NET SDK=7.0.100-preview.6.22352.1
-  [Host]     : .NET 6.0.9 (6.0.922.41905), X64 RyuJIT AVX2
-  DefaultJob : .NET 6.0.9 (6.0.922.41905), X64 RyuJIT AVX2
+.NET SDK=7.0.101
+  [Host]     : .NET 7.0.1 (7.0.122.56804), X64 RyuJIT AVX2
+  DefaultJob : .NET 7.0.1 (7.0.122.56804), X64 RyuJIT AVX2
 
 
-|                     Method |       Mean |   Error |  StdDev |   Gen0 | Allocated |
-|--------------------------- |-----------:|--------:|--------:|-------:|----------:|
-| MsgPack_SerializeLogRecord |   625.7 ns | 3.18 ns | 2.97 ns | 0.0038 |      24 B |
-|     TLD_SerializeLogRecord |   331.1 ns | 1.57 ns | 1.47 ns |      - |         - |
-|    MsgPack_ExportLogRecord | 1,017.1 ns | 6.02 ns | 5.64 ns | 0.0038 |      24 B |
-|        TLD_ExportLogRecord |   695.0 ns | 1.80 ns | 1.69 ns |      - |         - |
+|                     Method |     Mean |   Error |  StdDev | Allocated |
+|--------------------------- |---------:|--------:|--------:|----------:|
+| MsgPack_SerializeLogRecord | 560.9 ns | 2.92 ns | 2.44 ns |         - |
+|     TLD_SerializeLogRecord | 357.5 ns | 1.01 ns | 0.89 ns |         - |
+|    MsgPack_ExportLogRecord | 957.2 ns | 3.47 ns | 3.25 ns |         - |
+|        TLD_ExportLogRecord | 732.0 ns | 2.04 ns | 1.71 ns |         - |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter;
