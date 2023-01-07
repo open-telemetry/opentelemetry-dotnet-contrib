@@ -17,7 +17,6 @@
 using System;
 using System.Data;
 using System.Diagnostics;
-using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
@@ -40,6 +39,6 @@ public class EntityFrameworkInstrumentationOptions
     /// <summary>
     /// Gets or sets a value <see cref="EntityFrameworkInstrumentation"/> for an alternative <see cref="Activity.DisplayName"/>. Default value: <see cref="EntityFrameworkInstrumentation.DefaultDisplayNameFunc"/>.
     /// </summary>
-    public Func<object, object, string> DisplayNameFunc { set; get; } =
+    public Func<object, object, string> DisplayNameFunc { get; set; } =
         EntityFrameworkInstrumentation.DefaultDisplayNameFunc;
 }

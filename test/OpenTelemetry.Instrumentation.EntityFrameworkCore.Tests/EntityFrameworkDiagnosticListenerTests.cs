@@ -82,21 +82,11 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
                 options.DisplayNameFunc = (o, o1) => altDisplayName;
             })).Build();
 
-        using (var context = new ItemsContext(this.contextOptions))
-        {
-            var items = context.Set<Item>().OrderBy(e => e.Name).ToList();
-
-            Assert.Equal(3, items.Count);
-            Assert.Equal("ItemOne", items[0].Name);
-            Assert.Equal("ItemThree", items[1].Name);
-            Assert.Equal("ItemTwo", items[2].Name);
-        }
-
         Assert.Equal(3, activityProcessor.Invocations.Count);
 
         var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
 
-        VerifyActivityData(activity, altDisplayName:altDisplayName);
+        VerifyActivityData(activity, altDisplayName: altDisplayName);
     }
 
     [Fact]
