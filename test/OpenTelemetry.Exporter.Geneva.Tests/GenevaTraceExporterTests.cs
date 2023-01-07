@@ -476,7 +476,7 @@ public class GenevaTraceExporterTests
         }
     }
 
-    [Fact(Skip = "Run after GenevaExporter starts supporting ETW/TLD")]
+    [Fact]
     public void TLDTraceExporter_Success_Windows()
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -491,7 +491,7 @@ public class GenevaTraceExporterTests
                 .AddSource(sourceName)
                 .AddGenevaTraceExporter(options =>
                 {
-                    options.ConnectionString = "EtwTldSession=OpenTelemetry";
+                    options.ConnectionString = "EtwSession=OpenTelemetry;UseTLD=true";
                     options.PrepopulatedFields = new Dictionary<string, object>
                     {
                         ["cloud.role"] = "BusyWorker",

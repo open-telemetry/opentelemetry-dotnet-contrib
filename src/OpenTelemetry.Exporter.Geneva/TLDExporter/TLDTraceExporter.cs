@@ -17,7 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
+using System.Globalization;
 using System.Text;
 using System.Threading;
 using OpenTelemetry.Exporter.Geneva.External;
@@ -26,20 +26,12 @@ using OpenTelemetry.Internal;
 namespace OpenTelemetry.Exporter.Geneva.TLDExporter;
 internal sealed class TLDTraceExporter : TLDExporter, IDisposable
 {
-    private readonly string partAName = "Span";
-    private readonly byte partAFieldsCount = 3; // At least three fields: time, ext_dt_traceId, ext_dt_spanId
-    private readonly IReadOnlyDictionary<string, object> m_customFields;
-    private readonly Tuple<byte[], byte[]> repeatedPartAFields;
-    private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
-
-    private readonly EventProvider eventProvider;
-
     // TODO: Is using a single ThreadLocal a better idea?
-    private static readonly ThreadLocal<EventBuilder> eventBuilder = new(() => new(UncheckedASCIIEncoding.SharedInstance));
+    private static readonly ThreadLocal<EventBuilder> eventBuilder = new(() => null);
+    private static readonly ThreadLocal<List<KeyValuePair<string, object>>> keyValuePairs = new(() => null);
+    private static readonly ThreadLocal<KeyValuePair<string, object>[]> partCFields = new(() => null); // This is used to temporarily store the PartC fields from tags
 
-    // TODO: This could lead to unbounded memory usage.
-    private static readonly ThreadLocal<List<KeyValuePair<string, object>>> keyValuePairs = new(() => new());
-    private static readonly ThreadLocal<KeyValuePair<string, object>[]> partCFields = new(() => new KeyValuePair<string, object>[120]); // This is used to temporarily store the PartC fields from tags
+    private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
 
     private static readonly IReadOnlyDictionary<string, string> CS40_PART_B_MAPPING = new Dictionary<string, string>
     {
@@ -56,6 +48,13 @@ internal sealed class TLDTraceExporter : TLDExporter, IDisposable
         ["messaging.url"] = "messagingUrl",
     };
 
+    private readonly string partAName = "Span";
+    private readonly byte partAFieldsCount = 3; // At least three fields: time, ext_dt_traceId, ext_dt_spanId
+    private readonly IReadOnlyDictionary<string, object> m_customFields;
+    private readonly Tuple<byte[], byte[]> repeatedPartAFields;
+
+    private readonly EventProvider eventProvider;
+
     private bool isDisposed;
 
     public TLDTraceExporter(GenevaExporterOptions options)
@@ -64,7 +63,7 @@ internal sealed class TLDTraceExporter : TLDExporter, IDisposable
         Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
-        this.eventProvider = new EventProvider(connectionStringBuilder.EtwTldSession);
+        this.eventProvider = new EventProvider(connectionStringBuilder.EtwSession);
 
         if (options.TableNameMappings != null
             && options.TableNameMappings.TryGetValue("Span", out var customTableName))
@@ -98,6 +97,12 @@ internal sealed class TLDTraceExporter : TLDExporter, IDisposable
             this.partAFieldsCount += prePopulatedFieldsCount;
 
             var eb = eventBuilder.Value;
+            if (eb == null)
+            {
+                eb = new EventBuilder(UncheckedASCIIEncoding.SharedInstance);
+                eventBuilder.Value = eb;
+            }
+
             eb.Reset(this.partAName);
 
             foreach (var entry in options.PrepopulatedFields)
@@ -160,7 +165,7 @@ internal sealed class TLDTraceExporter : TLDExporter, IDisposable
         }
         catch (Exception ex)
         {
-            ExporterEventSource.Log.ExporterException("GenevaTraceExporter Dispose failed.", ex);
+            ExporterEventSource.Log.ExporterException("TLDTraceExporter Dispose failed.", ex);
         }
 
         this.isDisposed = true;
@@ -169,6 +174,11 @@ internal sealed class TLDTraceExporter : TLDExporter, IDisposable
     internal void SerializeActivity(Activity activity)
     {
         var eb = eventBuilder.Value;
+        if (eb == null)
+        {
+            eb = new EventBuilder(UncheckedASCIIEncoding.SharedInstance);
+            eventBuilder.Value = eb;
+        }
 
         eb.Reset(this.partAName);
         eb.AddUInt16("__csver__", 1024, EventOutType.Hex);
@@ -203,16 +213,27 @@ internal sealed class TLDTraceExporter : TLDExporter, IDisposable
             partBFieldsCount++;
         }
 
-        var links = activity.Links;
-        if (links.Any())
+        var linkEnumerator = activity.EnumerateLinks();
+        if (linkEnumerator.MoveNext())
         {
             var keyValuePairsForLinks = keyValuePairs.Value;
-            keyValuePairsForLinks.Clear();
-            foreach (var link in links)
+            if (keyValuePairsForLinks == null)
             {
+                keyValuePairsForLinks = new List<KeyValuePair<string, object>>();
+                keyValuePairs.Value = keyValuePairsForLinks;
+            }
+
+            keyValuePairsForLinks.Clear();
+
+            do
+            {
+                ref readonly var link = ref linkEnumerator.Current;
+
+                // TODO: This could lead to unbounded memory usage.
                 keyValuePairsForLinks.Add(new("toTraceId", link.Context.TraceId.ToHexString()));
                 keyValuePairsForLinks.Add(new("toSpanId", link.Context.SpanId.ToHexString()));
             }
+            while (linkEnumerator.MoveNext());
 
             eb.AddCountedString("links", JsonSerializer.SerializeMap(keyValuePairsForLinks));
             partBFieldsCount++;
@@ -224,9 +245,15 @@ internal sealed class TLDTraceExporter : TLDExporter, IDisposable
 
         int partCFieldsCountFromTags = 0;
         var kvpArrayForPartCFields = partCFields.Value;
+        if (kvpArrayForPartCFields == null)
+        {
+            kvpArrayForPartCFields = new KeyValuePair<string, object>[120];
+            partCFields.Value = kvpArrayForPartCFields;
+        }
+
         List<KeyValuePair<string, object>> envPropertiesList = null;
 
-        foreach (var entry in activity.TagObjects)
+        foreach (ref readonly var entry in activity.EnumerateTagObjects())
         {
             // TODO: check name collision
             if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string replacementKey))
@@ -236,7 +263,7 @@ internal sealed class TLDTraceExporter : TLDExporter, IDisposable
             }
             else if (string.Equals(entry.Key, "otel.status_code", StringComparison.Ordinal))
             {
-                if (string.Equals(entry.Value.ToString(), "ERROR", StringComparison.Ordinal))
+                if (string.Equals(Convert.ToString(entry.Value, CultureInfo.InvariantCulture), "ERROR", StringComparison.Ordinal))
                 {
                     isStatusSuccess = 0;
                 }
@@ -245,7 +272,7 @@ internal sealed class TLDTraceExporter : TLDExporter, IDisposable
             }
             else if (string.Equals(entry.Key, "otel.status_description", StringComparison.Ordinal))
             {
-                statusDescription = entry.Value.ToString();
+                statusDescription = Convert.ToString(entry.Value, CultureInfo.InvariantCulture);
                 continue;
             }
             else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
@@ -260,9 +287,16 @@ internal sealed class TLDTraceExporter : TLDExporter, IDisposable
                 {
                     hasEnvProperties = 1;
                     envPropertiesList = keyValuePairs.Value;
+                    if (envPropertiesList == null)
+                    {
+                        envPropertiesList = new List<KeyValuePair<string, object>>();
+                        keyValuePairs.Value = envPropertiesList;
+                    }
+
                     envPropertiesList.Clear();
                 }
 
+                // TODO: This could lead to unbounded memory usage.
                 envPropertiesList.Add(new(entry.Key, entry.Value));
             }
         }

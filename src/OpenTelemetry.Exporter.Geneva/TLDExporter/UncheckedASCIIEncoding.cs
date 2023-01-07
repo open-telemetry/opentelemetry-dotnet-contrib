@@ -29,9 +29,7 @@ namespace OpenTelemetry.Exporter.Geneva.TLDExporter;
 #pragma warning disable SA1124
 internal sealed class UncheckedASCIIEncoding : Encoding
 {
-    private static readonly Lazy<Encoding> lazySharedInstance = new(() => new UncheckedASCIIEncoding());
-
-    public static Encoding SharedInstance = lazySharedInstance.Value;
+    public static Encoding SharedInstance = new UncheckedASCIIEncoding();
 
     public UncheckedASCIIEncoding()
         : base(20127)
