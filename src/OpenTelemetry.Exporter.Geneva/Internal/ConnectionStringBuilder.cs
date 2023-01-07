@@ -103,12 +103,10 @@ internal class ConnectionStringBuilder
                 // Checking Etw first, since it's preferred for Windows and enables fail fast on Linux
                 if (this._parts.ContainsKey(nameof(this.EtwSession)))
                 {
-                    if (this._parts.TryGetValue(nameof(this.UseTLD), out var useTld))
+                    _ = this._parts.TryGetValue(nameof(this.UseTLD), out var useTld);
+                    if (useTld != null && useTld.ToUpperInvariant() == bool.TrueString.ToUpperInvariant())
                     {
-                        if (useTld.ToUpperInvariant() == bool.TrueString.ToUpperInvariant())
-                        {
-                            return TransportProtocol.EtwTld;
-                        }
+                        return TransportProtocol.EtwTld;
                     }
 
                     return TransportProtocol.Etw;

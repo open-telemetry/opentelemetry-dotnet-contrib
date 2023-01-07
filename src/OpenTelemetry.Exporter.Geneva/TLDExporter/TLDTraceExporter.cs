@@ -258,7 +258,7 @@ internal sealed class TLDTraceExporter : TLDExporter, IDisposable
             // TODO: check name collision
             if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string replacementKey))
             {
-                Serialize(eb, entry.Key, entry.Value);
+                Serialize(eb, entry.Key, replacementKey);
                 partBFieldsCount++;
             }
             else if (string.Equals(entry.Key, "otel.status_code", StringComparison.Ordinal))
