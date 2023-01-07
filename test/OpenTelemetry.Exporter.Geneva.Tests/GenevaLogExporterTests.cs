@@ -24,6 +24,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 using Xunit;
@@ -76,7 +77,7 @@ public class GenevaLogExporterTests
                 TableNameMappings = new Dictionary<string, string> { ["TestCategory"] = null },
             };
         });
-        Assert.Contains("A string-typed value provided for TableNameMappings must not be null, empty, or consist only of white-space characters.", ex.Message);
+        Assert.Contains("The table name mapping value provided for key 'TestCategory' was null, empty, or consisted only of white-space characters.", ex.Message);
 
         // Throw when TableNameMappings is null
         Assert.Throws<ArgumentNullException>(() =>
@@ -357,8 +358,10 @@ public class GenevaLogExporterTests
         }
     }
 
-    [Fact]
-    public void SerializeILoggerScopes()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void SerializeILoggerScopes(bool hasCustomFields)
     {
         string path = string.Empty;
         Socket senderSocket = null;
@@ -381,13 +384,22 @@ public class GenevaLogExporterTests
                 senderSocket.Listen(1);
             }
 
+            if (hasCustomFields)
+            {
+                exporterOptions.CustomFields = new string[] { "food", "Name", "Key1" };
+            }
+
+            var exportedItems = new List<LogRecord>();
+
             using var loggerFactory = LoggerFactory.Create(builder => builder
                 .AddOpenTelemetry(options =>
                 {
                     options.IncludeScopes = true;
+                    options.AddInMemoryExporter(exportedItems);
                     options.AddGenevaLogExporter(options =>
                     {
                         options.ConnectionString = exporterOptions.ConnectionString;
+                        options.CustomFields = exporterOptions.CustomFields;
                     });
                 }));
 
@@ -405,8 +417,8 @@ public class GenevaLogExporterTests
 
             using (logger.BeginScope("MyOuterScope"))
             using (logger.BeginScope("MyInnerScope"))
-            using (logger.BeginScope("MyInnerInnerScope with {name} and {age} of custom", "John Doe", 35))
-            using (logger.BeginScope(new List<KeyValuePair<string, object>> { new KeyValuePair<string, object>("MyKey", "MyValue") }))
+            using (logger.BeginScope("MyInnerInnerScope with {Name} and {Age} of custom", "John Doe", 25))
+            using (logger.BeginScope(new List<KeyValuePair<string, object>> { new("Key1", "Value1"), new("Key2", "Value2") }))
             {
                 logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
             }
@@ -428,31 +440,45 @@ public class GenevaLogExporterTests
             var signal = (fluentdData as object[])[0] as string;
             var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
             var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
-            var serializedScopes = mapping["scopes"] as object[];
 
-            Assert.Equal(4, serializedScopes.Length);
+            if (hasCustomFields)
+            {
+                var envProperties = mapping["env_properties"] as Dictionary<object, object>;
 
-            // Test 1st scope
-            var scope = serializedScopes[0] as ICollection<KeyValuePair<object, object>>;
-            Assert.Single(scope);
-            Assert.Contains(new KeyValuePair<object, object>("scope", "MyOuterScope"), scope);
+                // Custom Fields
+                Assert.Equal("artichoke", mapping["food"]);
+                Assert.Equal("John Doe", mapping["Name"]);
+                Assert.Equal("Value1", mapping["Key1"]);
 
-            // Test 2nd scope
-            scope = serializedScopes[1] as ICollection<KeyValuePair<object, object>>;
-            Assert.Single(scope);
-            Assert.Contains(new KeyValuePair<object, object>("scope", "MyInnerScope"), scope);
+                Assert.False(mapping.ContainsKey("MyOuterScope"));
+                Assert.False(mapping.ContainsKey("MyInnerScope"));
 
-            // Test 3rd scope
-            scope = serializedScopes[2] as ICollection<KeyValuePair<object, object>>;
-            Assert.Equal(3, scope.Count);
-            Assert.Contains(new KeyValuePair<object, object>("name", "John Doe"), scope);
-            Assert.Contains(new KeyValuePair<object, object>("age", (byte)35), scope);
-            Assert.Contains(new KeyValuePair<object, object>("{OriginalFormat}", "MyInnerInnerScope with {name} and {age} of custom"), scope);
+                // env_properties
+                Assert.True(Equals(envProperties["price"], 3.99));
+                Assert.Equal((byte)25, envProperties["Age"]);
+                Assert.Equal("Value2", envProperties["Key2"]);
 
-            // Test 4th scope
-            scope = serializedScopes[3] as ICollection<KeyValuePair<object, object>>;
-            Assert.Single(scope);
-            Assert.Contains(new KeyValuePair<object, object>("MyKey", "MyValue"), scope);
+                Assert.False(envProperties.ContainsKey("MyOuterScope"));
+                Assert.False(envProperties.ContainsKey("MyInnerScope"));
+            }
+            else
+            {
+                Assert.Equal("artichoke", mapping["food"]);
+                Assert.True(Equals(mapping["price"], 3.99));
+                Assert.Equal("John Doe", mapping["Name"]);
+                Assert.Equal((byte)25, mapping["Age"]);
+                Assert.Equal("Value1", mapping["Key1"]);
+                Assert.Equal("Value2", mapping["Key2"]);
+
+                Assert.False(mapping.ContainsKey("MyOuterScope"));
+                Assert.False(mapping.ContainsKey("MyInnerScope"));
+            }
+
+            // Check other fields
+            Assert.Single(exportedItems);
+            var logRecord = exportedItems[0];
+
+            this.AssertFluentdForwardModeForLogRecord(exporterOptions, fluentdData, logRecord);
         }
         finally
         {

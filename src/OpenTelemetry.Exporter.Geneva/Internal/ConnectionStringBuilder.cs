@@ -48,7 +48,11 @@ internal class ConnectionStringBuilder
                 continue;
             }
 
+#if NET6_0_OR_GREATER
+            var index = token.IndexOf(EqualSign, StringComparison.Ordinal);
+#else
             var index = token.IndexOf(EqualSign);
+#endif
             if (index == -1 || index != token.LastIndexOf(EqualSign))
             {
                 continue;

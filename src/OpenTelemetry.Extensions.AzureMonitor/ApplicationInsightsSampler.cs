@@ -71,7 +71,7 @@ public class ApplicationInsightsSampler : Sampler
             return this.recordAndSampleSamplingResult;
         }
 
-        double sampleScore = DJB2SampleScore(samplingParameters.TraceId.ToHexString().ToLowerInvariant());
+        double sampleScore = DJB2SampleScore(samplingParameters.TraceId.ToHexString().ToUpperInvariant());
 
         if (sampleScore < this.samplingRatio)
         {
@@ -90,7 +90,10 @@ public class ApplicationInsightsSampler : Sampler
 
         for (int i = 0; i < traceIdHex.Length; i++)
         {
-            hash = ((hash << 5) + hash) + (int)traceIdHex[i];
+            unchecked
+            {
+                hash = (hash << 5) + hash + (int)traceIdHex[i];
+            }
         }
 
         // Take the absolute value of the hash

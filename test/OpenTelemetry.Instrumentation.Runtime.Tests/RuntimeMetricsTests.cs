@@ -75,12 +75,14 @@ public class RuntimeMetricsTests
         var gcCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.collections.count");
         Assert.NotNull(gcCountMetric);
 
-#if NETCOREAPP3_1_OR_GREATER
-        var gcAllocationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.allocations.size");
-        Assert.NotNull(gcAllocationSizeMetric);
-#endif
+        var totalObjectsSize = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.objects.size");
+        Assert.NotNull(totalObjectsSize);
 
 #if NET6_0_OR_GREATER
+
+        var gcAllocationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.allocations.size");
+        Assert.NotNull(gcAllocationSizeMetric);
+
         var gcCommittedMemorySizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.committed_memory.size");
         Assert.NotNull(gcCommittedMemorySizeMetric);
 
@@ -116,9 +118,7 @@ public class RuntimeMetricsTests
         var jitCompilationTimeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.jit.compilation_time");
         Assert.NotNull(jitCompilationTimeMetric);
     }
-#endif
 
-#if NETCOREAPP3_1_OR_GREATER
     [Fact]
     public void ThreadingRelatedMetricsTest()
     {
@@ -133,7 +133,7 @@ public class RuntimeMetricsTests
         List<Task> tasks = new List<Task>();
         for (int i = 0; i < taskCount; i++)
         {
-            tasks.Add(Task.Run(() => { Console.Write("Hi"); }));
+            tasks.Add(Task.Run(() => { }));
         }
 
         Task.WaitAll(tasks.ToArray());

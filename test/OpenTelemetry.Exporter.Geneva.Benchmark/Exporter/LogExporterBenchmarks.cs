@@ -20,42 +20,25 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 
 /*
-BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22621
+BenchmarkDotNet=v0.13.2, OS=Windows 11 (10.0.22621.963)
 Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
-.NET SDK=7.0.100-preview.6.22352.1
-  [Host]     : .NET 6.0.9 (6.0.922.41905), X64 RyuJIT
-  DefaultJob : .NET 6.0.9 (6.0.922.41905), X64 RyuJIT
-
-Without Scopes
-
-|                    Method | IncludeFormattedMessage |       Mean |   Error |  StdDev |  Gen 0 | Allocated |
-|-------------------------- |------------------------ |-----------:|--------:|--------:|-------:|----------:|
-| LoggerWithMessageTemplate |                   False | 1,273.1 ns | 6.09 ns | 5.39 ns | 0.0362 |     232 B |
-| LoggerWithDirectLoggerAPI |                   False | 1,213.0 ns | 9.71 ns | 8.61 ns | 0.0572 |     368 B |
-| LoggerWithSourceGenerator |                   False | 1,243.5 ns | 6.13 ns | 5.44 ns | 0.0305 |     192 B |
-|        SerializeLogRecord |                   False |   587.7 ns | 2.71 ns | 2.54 ns |      - |         - |
-|                    Export |                   False |   955.0 ns | 5.46 ns | 5.11 ns |      - |         - |
-| LoggerWithMessageTemplate |                    True | 1,261.1 ns | 6.59 ns | 5.84 ns | 0.0362 |     232 B |
-| LoggerWithDirectLoggerAPI |                    True | 1,214.4 ns | 4.56 ns | 4.27 ns | 0.0572 |     368 B |
-| LoggerWithSourceGenerator |                    True | 1,229.6 ns | 6.84 ns | 6.40 ns | 0.0305 |     192 B |
-|        SerializeLogRecord |                    True |   581.6 ns | 2.38 ns | 2.11 ns |      - |         - |
-|                    Export |                    True |   958.4 ns | 3.02 ns | 2.52 ns |      - |         - |
+.NET SDK=7.0.101
+  [Host]     : .NET 7.0.1 (7.0.122.56804), X64 RyuJIT AVX2
+  DefaultJob : .NET 7.0.1 (7.0.122.56804), X64 RyuJIT AVX2
 
 
-With Scopes (https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/545)
-
-|                    Method | IncludeFormattedMessage |       Mean |   Error |  StdDev |  Gen 0 | Allocated |
-|-------------------------- |------------------------ |-----------:|--------:|--------:|-------:|----------:|
-| LoggerWithMessageTemplate |                   False | 1,280.8 ns | 7.45 ns | 6.61 ns | 0.0534 |     336 B |
-| LoggerWithDirectLoggerAPI |                   False | 1,261.5 ns | 6.38 ns | 5.96 ns | 0.0744 |     472 B |
-| LoggerWithSourceGenerator |                   False | 1,309.3 ns | 4.83 ns | 4.52 ns | 0.0458 |     296 B |
-|        SerializeLogRecord |                   False |   611.3 ns | 4.63 ns | 4.11 ns | 0.0162 |     104 B |
-|                    Export |                   False | 1,012.2 ns | 7.56 ns | 7.07 ns | 0.0153 |     104 B |
-| LoggerWithMessageTemplate |                    True | 1,278.3 ns | 6.63 ns | 5.88 ns | 0.0534 |     336 B |
-| LoggerWithDirectLoggerAPI |                    True | 1,263.8 ns | 8.26 ns | 7.73 ns | 0.0744 |     472 B |
-| LoggerWithSourceGenerator |                    True | 1,273.4 ns | 5.57 ns | 5.21 ns | 0.0458 |     296 B |
-|        SerializeLogRecord |                    True |   604.3 ns | 2.83 ns | 2.65 ns | 0.0162 |     104 B |
-|                    Export |                    True | 1,003.6 ns | 9.29 ns | 8.69 ns | 0.0153 |     104 B |
+|                    Method | IncludeFormattedMessage |       Mean |    Error |   StdDev |   Gen0 | Allocated |
+|-------------------------- |------------------------ |-----------:|---------:|---------:|-------:|----------:|
+| LoggerWithMessageTemplate |                   False | 1,221.9 ns | 17.52 ns | 15.53 ns | 0.0153 |     104 B |
+| LoggerWithDirectLoggerAPI |                   False | 1,109.6 ns | 22.14 ns | 34.47 ns | 0.0381 |     240 B |
+| LoggerWithSourceGenerator |                   False | 1,117.7 ns |  9.94 ns |  7.76 ns | 0.0095 |      64 B |
+|        SerializeLogRecord |                   False |   560.0 ns |  2.87 ns |  2.40 ns |      - |         - |
+|                    Export |                   False |   891.0 ns | 17.06 ns | 32.05 ns |      - |         - |
+| LoggerWithMessageTemplate |                    True | 1,243.7 ns | 24.79 ns | 35.55 ns | 0.0153 |     104 B |
+| LoggerWithDirectLoggerAPI |                    True | 1,090.8 ns | 12.85 ns | 10.04 ns | 0.0381 |     240 B |
+| LoggerWithSourceGenerator |                    True | 1,186.1 ns | 23.58 ns | 45.99 ns | 0.0095 |      64 B |
+|        SerializeLogRecord |                    True |   564.8 ns |  5.20 ns |  4.06 ns |      - |         - |
+|                    Export |                    True |   874.5 ns | 17.38 ns | 24.37 ns |      - |         - |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark;
@@ -87,12 +70,19 @@ public class LogExporterBenchmarks
                         ["cloud.roleInstance"] = "CY1SCH030021417",
                         ["cloud.roleVer"] = "9.0.15289.2",
                     };
+                    exporterOptions.TableNameMappings = new Dictionary<string, string>
+                    {
+                        ["*"] = "*",
+                        ["TestCompany"] = "*",
+                        ["TestCompany.TestNamespace"] = "*",
+                        ["TestCompany.TestNamespace.TestLogger"] = "TestLoggerTable",
+                    };
                 });
 
                 loggerOptions.IncludeFormattedMessage = this.IncludeFormattedMessage;
             }));
 
-        this.logger = this.loggerFactory.CreateLogger("TestLogger");
+        this.logger = this.loggerFactory.CreateLogger("TestCompany.TestNamespace.TestLogger");
 
         // For msgpack serialization + export
         this.logRecord = GenerateTestLogRecord();

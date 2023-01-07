@@ -2,12 +2,12 @@ name: Integration Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths-ignore:
     - '**.md'
   pull_request:
-    branches: [ main ]
-    paths-ignore:
+    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
+    paths:
     - '**.md'
 
 jobs:
@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: [netcoreapp3.1,net6.0]
+        version: [netcoreapp3.1,net6.0,net7.0]
     steps:
       - run: 'echo "No build required"'
 
