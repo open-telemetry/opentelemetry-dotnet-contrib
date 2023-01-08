@@ -36,7 +36,7 @@ Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
 |        TLD_ExportActivity | 729.5 ns | 4.78 ns | 4.24 ns |         - |
 */
 
-namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter;
+namespace OpenTelemetry.Exporter.Geneva.Benchmark;
 
 [MemoryDiagnoser]
 public class TLDTraceExporterBenchmarks

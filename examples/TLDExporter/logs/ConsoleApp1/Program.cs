@@ -35,11 +35,11 @@ public class Program
                     ["cloud.roleVer"] = "9.0.15289.2",
                 };
 
-                    // exporterOptions.TableNameMappings = new Dictionary<string, string>
-                    // {
-                    //    ["*"] = "TLDLog",
-                    // };
-                });
+                // exporterOptions.TableNameMappings = new Dictionary<string, string>
+                // {
+                //    ["*"] = "TLDLog",
+                // };
+            });
         }));
 
         var logger = loggerFactory.CreateLogger<Program>();

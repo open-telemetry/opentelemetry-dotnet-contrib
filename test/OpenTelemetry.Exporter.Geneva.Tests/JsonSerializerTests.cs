@@ -16,89 +16,89 @@
 
 using System.Collections.Generic;
 using System.Text;
+using OpenTelemetry.Exporter.Geneva.TLDExporter;
 using Xunit;
 
-namespace OpenTelemetry.Exporter.Geneva.UnitTest
+namespace OpenTelemetry.Exporter.Geneva.Tests;
+
+public class JsonSerializerTests
 {
-    public class JsonSerializerTests
+    private static void TestSerialization(object value, string expected)
     {
-        private void TestSerialization(object value, string expected)
-        {
-            var buffer = new byte[64 * 1024];
-            var length = JsonSerializer.Serialize(buffer, 0, value);
-            Assert.Equal(expected, Encoding.ASCII.GetString(buffer, 0, length));
-        }
+        var buffer = new byte[64 * 1024];
+        var length = JsonSerializer.Serialize(buffer, 0, value);
+        Assert.Equal(expected, Encoding.ASCII.GetString(buffer, 0, length));
+    }
 
-        [Fact]
-        [Trait("Platform", "Any")]
-        public void JsonSerializer_Null()
-        {
-            this.TestSerialization(null, "null");
-        }
+    [Fact]
+    [Trait("Platform", "Any")]
+    public void JsonSerializer_Null()
+    {
+        TestSerialization(null, "null");
+    }
 
-        [Fact]
-        [Trait("Platform", "Any")]
-        public void JsonSerializer_Boolean()
-        {
-            this.TestSerialization(true, "true");
-            this.TestSerialization(false, "false");
-        }
+    [Fact]
+    [Trait("Platform", "Any")]
+    public void JsonSerializer_Boolean()
+    {
+        TestSerialization(true, "true");
+        TestSerialization(false, "false");
+    }
 
-        [Fact]
-        [Trait("Platform", "Any")]
-        public void JsonSerializer_Numeric()
-        {
-            this.TestSerialization(0, "0");
-            this.TestSerialization(123, "123");
-            this.TestSerialization(-123, "-123");
-            this.TestSerialization(0.0f, "0");
-            this.TestSerialization(1.0f, "1");
-            this.TestSerialization(3.14f, "3.14");
-            this.TestSerialization(-3.14f, "-3.14");
-            this.TestSerialization(0.0d, "0");
-            this.TestSerialization(3.14d, "3.14");
-            this.TestSerialization(3.1415926d, "3.1415926");
-            this.TestSerialization(-3.1415926d, "-3.1415926");
-        }
+    [Fact]
+    [Trait("Platform", "Any")]
+    public void JsonSerializer_Numeric()
+    {
+        TestSerialization(0, "0");
+        TestSerialization(123, "123");
+        TestSerialization(-123, "-123");
+        TestSerialization(0.0f, "0");
+        TestSerialization(1.0f, "1");
+        TestSerialization(3.14f, "3.14");
+        TestSerialization(-3.14f, "-3.14");
+        TestSerialization(0.0d, "0");
+        TestSerialization(3.14d, "3.14");
+        TestSerialization(3.1415926d, "3.1415926");
+        TestSerialization(-3.1415926d, "-3.1415926");
+    }
 
-        [Fact]
-        [Trait("Platform", "Any")]
-        public void JsonSerializer_String()
-        {
-            this.TestSerialization((string)null, "null");
-            this.TestSerialization(string.Empty, "''".Replace("'", "\""));
-            this.TestSerialization("Hello, World!", "'Hello, World!'".Replace("'", "\""));
-            this.TestSerialization("\"", "'\\\"'".Replace("'", "\""));
-            this.TestSerialization("\n", "'\\n'".Replace("'", "\""));
-            this.TestSerialization("\t", "'\\t'".Replace("'", "\""));
-            this.TestSerialization("\0", "'\\u0000'".Replace("'", "\""));
-            this.TestSerialization("\u6768", "'\\u6768'".Replace("'", "\""));
-        }
+    [Fact]
+    [Trait("Platform", "Any")]
+    public void JsonSerializer_String()
+    {
+        TestSerialization((string)null, "null");
+        TestSerialization(string.Empty, "''".Replace("'", "\""));
+        TestSerialization("Hello, World!", "'Hello, World!'".Replace("'", "\""));
+        TestSerialization("\"", "'\\\"'".Replace("'", "\""));
+        TestSerialization("\n", "'\\n'".Replace("'", "\""));
+        TestSerialization("\t", "'\\t'".Replace("'", "\""));
+        TestSerialization("\0", "'\\u0000'".Replace("'", "\""));
+        TestSerialization("\u6768", "'\\u6768'".Replace("'", "\""));
+    }
 
-        [Fact]
-        [Trait("Platform", "Any")]
-        public void JsonSerializer_Array()
-        {
-            this.TestSerialization((object[])null, "null");
-            this.TestSerialization(new object[] { }, "[]");
-            this.TestSerialization(new object[] { 1, 2, 3 }, "[1,2,3]");
-        }
+    [Fact]
+    [Trait("Platform", "Any")]
+    public void JsonSerializer_Array()
+    {
+        TestSerialization((object[])null, "null");
+        TestSerialization(new object[] { }, "[]");
+        TestSerialization(new object[] { 1, 2, 3 }, "[1,2,3]");
+    }
 
-        [Fact]
-        [Trait("Platform", "Any")]
-        public void JsonSerializer_Map()
-        {
-            this.TestSerialization((Dictionary<string, object>)null, "null");
-            this.TestSerialization(new Dictionary<string, object>(), "{}");
-            this.TestSerialization(
-                new Dictionary<string, object>
-                {
-                    ["foo"] = 1,
-                    ["bar"] = "baz",
-                    ["golden ratio"] = 0.6180340f,
-                    ["pi"] = 3.14159265358979d,
-                },
-                "{'foo':1,'bar':'baz','golden ratio':0.618034,'pi':3.14159265358979}".Replace("'", "\""));
-        }
+    [Fact]
+    [Trait("Platform", "Any")]
+    public void JsonSerializer_Map()
+    {
+        TestSerialization((Dictionary<string, object>)null, "null");
+        TestSerialization(new Dictionary<string, object>(), "{}");
+        TestSerialization(
+            new Dictionary<string, object>
+            {
+                ["foo"] = 1,
+                ["bar"] = "baz",
+                ["golden ratio"] = 0.6180340f,
+                ["pi"] = 3.14159265358979d,
+            },
+            "{'foo':1,'bar':'baz','golden ratio':0.618034,'pi':3.14159265358979}".Replace("'", "\""));
     }
 }

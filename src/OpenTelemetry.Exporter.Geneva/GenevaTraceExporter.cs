@@ -76,10 +76,10 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 
         if (useMsgPackExporter)
         {
-            var msgPackExporter = new MsgPackTraceExporter(options);
-            this.IsUsingUnixDomainSocket = msgPackExporter.IsUsingUnixDomainSocket;
-            this.exportActivity = (in Batch<Activity> batch) => msgPackExporter.Export(in batch);
-            this.exporter = msgPackExporter;
+            var msgPackTraceExporter = new MsgPackTraceExporter(options);
+            this.IsUsingUnixDomainSocket = msgPackTraceExporter.IsUsingUnixDomainSocket;
+            this.exportActivity = (in Batch<Activity> batch) => msgPackTraceExporter.Export(in batch);
+            this.exporter = msgPackTraceExporter;
         }
         else
         {

@@ -42,7 +42,7 @@ Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
 |                      TLD_Reset | 12.739 ns | 0.0351 ns | 0.0328 ns |         - |
 */
 
-namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter;
+namespace OpenTelemetry.Exporter.Geneva.Benchmark;
 
 [MemoryDiagnoser]
 public class SerializationBenchmarks
