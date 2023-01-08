@@ -39,7 +39,7 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
         Guard.ThrowIfNull(options);
         Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
-        var useMsgPackExporter = true;
+        bool useMsgPackExporter;
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
         switch (connectionStringBuilder.Protocol)
         {
@@ -49,6 +49,7 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
                     throw new ArgumentException("ETW cannot be used on non-Windows operating systems.");
                 }
 
+                useMsgPackExporter = true;
                 break;
 
             case TransportProtocol.Unix:
@@ -57,6 +58,7 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
                     throw new ArgumentException("Unix domain socket should not be used on Windows.");
                 }
 
+                useMsgPackExporter = true;
                 break;
 
             case TransportProtocol.EtwTld:
@@ -74,10 +76,10 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 
         if (useMsgPackExporter)
         {
-            var msgPackExporter = new MsgPackTraceExporter(options);
-            this.IsUsingUnixDomainSocket = msgPackExporter.IsUsingUnixDomainSocket;
-            this.exportActivity = (in Batch<Activity> batch) => msgPackExporter.Export(in batch);
-            this.exporter = msgPackExporter;
+            var msgPackTraceExporter = new MsgPackTraceExporter(options);
+            this.IsUsingUnixDomainSocket = msgPackTraceExporter.IsUsingUnixDomainSocket;
+            this.exportActivity = (in Batch<Activity> batch) => msgPackTraceExporter.Export(in batch);
+            this.exporter = msgPackTraceExporter;
         }
         else
         {
