@@ -21,25 +21,25 @@ using OpenTelemetry.Exporter.Geneva.External;
 using OpenTelemetry.Exporter.Geneva.TLDExporter;
 
 /*
-BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
+BenchmarkDotNet=v0.13.3, OS=Windows 11 (10.0.22621.963)
 Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
-.NET SDK=7.0.100-preview.6.22352.1
-  [Host]     : .NET 6.0.8 (6.0.822.36306), X64 RyuJIT
-  DefaultJob : .NET 6.0.8 (6.0.822.36306), X64 RyuJIT
+.NET SDK=7.0.101
+  [Host]     : .NET 7.0.1 (7.0.122.56804), X64 RyuJIT AVX2
+  DefaultJob : .NET 7.0.1 (7.0.122.56804), X64 RyuJIT AVX2
 
 
-|                         Method |     Mean |    Error |   StdDev | Allocated |
-|------------------------------- |---------:|---------:|---------:|----------:|
-|             TLD_SerializeUInt8 | 23.40 ns | 0.142 ns | 0.126 ns |         - |
-|         MsgPack_SerializeUInt8 | 10.83 ns | 0.031 ns | 0.029 ns |         - |
-|       TLD_SerializeAsciiString | 31.15 ns | 0.043 ns | 0.038 ns |         - |
-|   MsgPack_SerializeAsciiString | 23.85 ns | 0.040 ns | 0.031 ns |         - |
-|  TLD_SerializeUnicodeSubString | 43.14 ns | 0.067 ns | 0.062 ns |         - |
-|     TLD_SerializeUnicodeString | 43.57 ns | 0.081 ns | 0.076 ns |         - |
-| MsgPack_SerializeUnicodeString | 27.78 ns | 0.017 ns | 0.015 ns |         - |
-|          TLD_SerializeDateTime | 49.22 ns | 0.027 ns | 0.024 ns |         - |
-|      MsgPack_SerializeDateTime | 35.95 ns | 0.051 ns | 0.043 ns |         - |
-|                      TLD_Reset | 12.40 ns | 0.006 ns | 0.005 ns |         - |
+|                         Method |      Mean |     Error |    StdDev | Allocated |
+|------------------------------- |----------:|----------:|----------:|----------:|
+|             TLD_SerializeUInt8 | 22.483 ns | 0.0216 ns | 0.0202 ns |         - |
+|         MsgPack_SerializeUInt8 |  7.360 ns | 0.0135 ns | 0.0127 ns |         - |
+|       TLD_SerializeAsciiString | 31.141 ns | 0.0210 ns | 0.0176 ns |         - |
+|   MsgPack_SerializeAsciiString | 19.580 ns | 0.0412 ns | 0.0385 ns |         - |
+|  TLD_SerializeUnicodeSubString | 41.064 ns | 0.0708 ns | 0.0662 ns |         - |
+|     TLD_SerializeUnicodeString | 41.889 ns | 0.0927 ns | 0.0868 ns |         - |
+| MsgPack_SerializeUnicodeString | 21.806 ns | 0.0281 ns | 0.0249 ns |         - |
+|          TLD_SerializeDateTime | 45.321 ns | 0.1321 ns | 0.1235 ns |         - |
+|      MsgPack_SerializeDateTime | 30.667 ns | 0.0401 ns | 0.0356 ns |         - |
+|                      TLD_Reset | 12.739 ns | 0.0351 ns | 0.0328 ns |         - |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark.Exporter;
