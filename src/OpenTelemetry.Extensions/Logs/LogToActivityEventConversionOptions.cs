@@ -28,7 +28,7 @@ public class LogToActivityEventConversionOptions
     /// <summary>
     /// Gets or sets the callback action used to convert log state into <see cref="ActivityEvent"/> tags.
     /// </summary>
-    public Action<ActivityTagsCollection, IReadOnlyList<KeyValuePair<string, object>>> StateConverter { get; set; } = DefaultLogStateConverter.ConvertState;
+    public Action<ActivityTagsCollection, IReadOnlyList<KeyValuePair<string, object?>>> StateConverter { get; set; } = DefaultLogStateConverter.ConvertState;
 
     /// <summary>
     /// Gets or sets the callback action used to convert log scopes into <see cref="ActivityEvent"/> tags.
