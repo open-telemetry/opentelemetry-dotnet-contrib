@@ -123,7 +123,7 @@ internal sealed class TableNameSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int ResolveAndSerializeTableNameForCategoryName(byte[] destination, int offset, string categoryName, out ReadOnlySpan<byte> tableName)
+    public int ResolveAndSerializeTableNameForCategoryName(byte[] destination, int offset, string categoryName, out GenevaTableName tableName)
     {
         byte[] mappedTableName = this.ResolveTableMappingForCategoryName(categoryName);
 
@@ -133,14 +133,14 @@ internal sealed class TableNameSerializer
 
             int bytesWritten = WriteSanitizedCategoryNameToSpan(new Span<byte>(destination, offset, MaxSanitizedCategoryNameBytes), categoryName);
 
-            tableName = new ReadOnlySpan<byte>(destination, offset, bytesWritten);
+            tableName = new(new ReadOnlySpan<byte>(destination, offset, bytesWritten));
 
             return offset + bytesWritten;
         }
 
-        tableName = mappedTableName;
+        tableName = new(mappedTableName);
 
-        return MessagePackSerializer.SerializeSpan(destination, offset, tableName);
+        return MessagePackSerializer.SerializeSpan(destination, offset, mappedTableName);
     }
 
     private static byte[] BuildStr8BufferForAsciiString(string value)

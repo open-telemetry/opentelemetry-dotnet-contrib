@@ -30,6 +30,8 @@ public class GenevaExporterOptions
 
     private IReadOnlyDictionary<string, string> _tableNameMappings;
 
+    private IGenevaTableColumnNameResolver _tableColumnNameResolver;
+
     public string ConnectionString { get; set; }
 
     public IEnumerable<string> CustomFields { get; set; }
@@ -140,6 +142,28 @@ public class GenevaExporterOptions
             }
 
             this._fields = copy;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the <see cref="IGenevaTableColumnNameResolver"/> to use
+    /// when resolving column names for a given table. Default value: <see
+    /// langword="null"/>.
+    /// </summary>
+    /// <remarks>
+    /// Notes:
+    /// <list type="bullet">
+    /// <item><see cref="TableColumnNameResolver"/> only applies to logs.</item>
+    /// </list>
+    /// </remarks>
+    public IGenevaTableColumnNameResolver TableColumnNameResolver
+    {
+        get => this._tableColumnNameResolver;
+        set
+        {
+            Guard.ThrowIfNull(value);
+
+            this._tableColumnNameResolver = value;
         }
     }
 }

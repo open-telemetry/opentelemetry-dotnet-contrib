@@ -36,7 +36,8 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     };
 
     private readonly TableNameSerializer m_tableNameSerializer;
-    private readonly Dictionary<string, object> m_customFields;
+    private readonly IGenevaTableColumnNameResolver m_tableColumnNameResolver;
+    private readonly ISet<string> m_defaultColumnNames;
     private readonly Dictionary<string, object> m_prepopulatedFields;
     private readonly ExceptionStackExportMode m_exportExceptionStack;
     private readonly List<string> m_prepopulatedFieldKeys;
@@ -92,14 +93,16 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         // TODO: Validate custom fields (reserved name? etc).
         if (options.CustomFields != null)
         {
-            var customFields = new Dictionary<string, object>(StringComparer.Ordinal);
+            var customFields = new HashSet<string>(StringComparer.Ordinal);
             foreach (var name in options.CustomFields)
             {
-                customFields[name] = true;
+                customFields.Add(name);
             }
 
-            this.m_customFields = customFields;
+            this.m_defaultColumnNames = customFields;
         }
+
+        this.m_tableColumnNameResolver = options.TableColumnNameResolver;
 
         var buffer = new byte[BUFFER_SIZE];
         var cursor = MessagePackSerializer.Serialize(buffer, 0, new Dictionary<string, object> { { "TimeFormat", "DateTime" } });
@@ -180,7 +183,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
         var categoryName = logRecord.CategoryName;
 
-        cursor = this.m_tableNameSerializer.ResolveAndSerializeTableNameForCategoryName(buffer, cursor, categoryName, out ReadOnlySpan<byte> eventName);
+        cursor = this.m_tableNameSerializer.ResolveAndSerializeTableNameForCategoryName(buffer, cursor, categoryName, out GenevaTableName eventName);
 
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 1);
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 2);
@@ -201,7 +204,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         }
 
         // Part A - core envelope
-        cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, eventName);
+        cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, eventName.ToAsciiStr8());
 
         cntFields += 1;
 
@@ -241,6 +244,9 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, categoryName);
         cntFields += 1;
 
+        var columnNames = this.m_tableColumnNameResolver?.ResolveColumnNamesForTableName(in eventName)
+            ?? this.m_defaultColumnNames;
+
         bool hasEnvProperties = false;
         bool bodyPopulated = false;
         for (int i = 0; i < listKvp?.Count; i++)
@@ -257,7 +263,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 bodyPopulated = true;
                 continue;
             }
-            else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
+            else if (columnNames == null || columnNames.Contains(entry.Key))
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
                 if (entry.Value != null)
@@ -294,6 +300,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             this.m_serializationData.Value = dataForScopes;
         }
 
+        dataForScopes.ColumnNames = columnNames;
         dataForScopes.Cursor = cursor;
         dataForScopes.FieldsCount = cntFields;
         dataForScopes.HasEnvProperties = hasEnvProperties;
@@ -316,7 +323,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             for (int i = 0; i < listKvp.Count; i++)
             {
                 var entry = listKvp[i];
-                if (entry.Key == "{OriginalFormat}" || this.m_customFields.ContainsKey(entry.Key))
+                if (entry.Key == "{OriginalFormat}" || (columnNames != null && columnNames.Contains(entry.Key)))
                 {
                     continue;
                 }
@@ -453,7 +460,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     private static readonly Action<LogRecordScope, MsgPackLogExporter> ProcessScopeForIndividualColumns = (scope, state) =>
     {
         var stateData = state.m_serializationData.Value;
-        var customFields = state.m_customFields;
+        var columnNames = stateData.ColumnNames;
 
         foreach (KeyValuePair<string, object> scopeItem in scope)
         {
@@ -462,7 +469,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 continue;
             }
 
-            if (customFields == null || customFields.ContainsKey(scopeItem.Key))
+            if (columnNames == null || columnNames.Contains(scopeItem.Key))
             {
                 if (scopeItem.Value != null)
                 {
@@ -482,7 +489,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     private static readonly Action<LogRecordScope, MsgPackLogExporter> ProcessScopeForEnvProperties = (scope, state) =>
     {
         var stateData = state.m_serializationData.Value;
-        var customFields = state.m_customFields;
+        var columnNames = stateData.ColumnNames;
 
         foreach (KeyValuePair<string, object> scopeItem in scope)
         {
@@ -491,7 +498,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 continue;
             }
 
-            if (!customFields.ContainsKey(scopeItem.Key))
+            if (!columnNames.Contains(scopeItem.Key))
             {
                 stateData.Cursor = MessagePackSerializer.SerializeUnicodeString(stateData.Buffer, stateData.Cursor, scopeItem.Key);
                 stateData.Cursor = MessagePackSerializer.Serialize(stateData.Buffer, stateData.Cursor, scopeItem.Value);
@@ -502,6 +509,8 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
     private class SerializationDataForScopes
     {
+        public ISet<string> ColumnNames;
+
         public bool HasEnvProperties;
         public ushort EnvPropertiesCount;
 

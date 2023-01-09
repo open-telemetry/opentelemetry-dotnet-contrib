@@ -23,8 +23,8 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 using Xunit;
@@ -1083,6 +1083,98 @@ public class GenevaLogExporterTests
         }
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void SerializationTestUsingTableColumnNameResolver(bool matchTestTableName)
+    {
+        // ARRANGE
+        string path = string.Empty;
+        Socket server = null;
+        var logRecordList = new List<LogRecord>();
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions
+            {
+                TableNameMappings = new Dictionary<string, string> { ["*"] = "*" },
+                CustomFields = new List<string> { "extra1", "extra2" },
+                TableColumnNameResolver = new TableColumnNameResolver(),
+            };
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(options =>
+                {
+                    options.AddGenevaLogExporter(options =>
+                    {
+                        options.ConnectionString = exporterOptions.ConnectionString;
+                        options.TableNameMappings = exporterOptions.TableNameMappings;
+                        options.CustomFields = exporterOptions.CustomFields;
+                        options.TableColumnNameResolver = exporterOptions.TableColumnNameResolver;
+                    });
+                    options.AddInMemoryExporter(logRecordList);
+                })
+                .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
+
+            // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
+            using var exporter = new MsgPackLogExporter(exporterOptions);
+
+            // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
+            var logger = loggerFactory.CreateLogger(matchTestTableName ? TableColumnNameResolver.TestTableName : typeof(GenevaLogExporterTests).FullName);
+
+            // ACT
+            logger.LogInformation("Hello world {food} {price} {extra1} {extra2}.", "artichoke", 3.99, "extra1", "extra2");
+
+            // VALIDATE
+            Assert.Single(logRecordList);
+            var m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+            _ = exporter.SerializeLogRecord(logRecordList[0]);
+            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+
+            var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
+            var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
+
+            if (matchTestTableName)
+            {
+                Assert.Contains(mapping, item => (string)item.Key == "food");
+                Assert.Contains(mapping, item => (string)item.Key == "price");
+                Assert.DoesNotContain(mapping, item => (string)item.Key == "extra1");
+                Assert.DoesNotContain(mapping, item => (string)item.Key == "extra2");
+            }
+            else
+            {
+                Assert.DoesNotContain(mapping, item => (string)item.Key == "food");
+                Assert.DoesNotContain(mapping, item => (string)item.Key == "price");
+                Assert.Contains(mapping, item => (string)item.Key == "extra1");
+                Assert.Contains(mapping, item => (string)item.Key == "extra2");
+            }
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
     private static string GenerateTempFilePath()
     {
         while (true)
@@ -1271,5 +1363,28 @@ public class GenevaLogExporterTests
     // A custom exception class with non-ASCII character in the type name
     private class CustomException\u0418 : Exception
     {
+    }
+
+    internal sealed class TableColumnNameResolver : IGenevaTableColumnNameResolver
+    {
+        public const string TestTableName = "TestTable";
+
+        private readonly byte[] testTableName = Encoding.ASCII.GetBytes(TestTableName);
+
+        private readonly ISet<string> testColumnNames = new HashSet<string>
+        {
+            "food",
+            "price",
+        };
+
+        public ISet<string> ResolveColumnNamesForTableName(in GenevaTableName tableName)
+        {
+            if (tableName.ToAsciiBytes().SequenceEqual(this.testTableName))
+            {
+                return this.testColumnNames;
+            }
+
+            return null;
+        }
     }
 }

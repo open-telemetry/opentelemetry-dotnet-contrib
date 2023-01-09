@@ -133,7 +133,7 @@ public class TableNameSerializerTests
                 var bytesWritten = tableNameSerializer.ResolveAndSerializeTableNameForCategoryName(buffer, 0, categoryName, out var tableName);
 
                 Assert.Equal(sanitizedCategoryName.Length + 2, bytesWritten);
-                Assert.Equal(sanitizedCategoryName, Encoding.ASCII.GetString(tableName.ToArray(), 2, sanitizedCategoryName.Length));
+                Assert.Equal(sanitizedCategoryName, tableName.ToString());
             }
         }
 
@@ -153,6 +153,6 @@ public class TableNameSerializerTests
         var bytesWritten = tableNameSerializer.ResolveAndSerializeTableNameForCategoryName(buffer, 0, categoryName, out var resolvedTableName);
 
         Assert.Equal(tableName.Length + 2, bytesWritten);
-        Assert.Equal(tableName, Encoding.ASCII.GetString(resolvedTableName.ToArray(), 2, tableName.Length));
+        Assert.Equal(tableName, resolvedTableName.ToString());
     }
 }
