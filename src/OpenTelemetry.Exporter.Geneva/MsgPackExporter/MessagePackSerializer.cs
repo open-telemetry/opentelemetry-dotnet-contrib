@@ -654,7 +654,7 @@ internal static class MessagePackSerializer
 #if NET6_0_OR_GREATER
             case ISpanFormattable v:
                 Span<char> tmp = stackalloc char[MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)];
-                if (v.TryFormat(tmp, out int charsWritten, string.Empty, CultureInfo.InvariantCulture))
+                if (v.TryFormat(tmp, out int charsWritten, default, CultureInfo.InvariantCulture))
                 {
                     return SerializeUnicodeString(buffer, cursor, tmp.Slice(0, charsWritten));
                 }
