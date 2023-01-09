@@ -39,6 +39,5 @@ public class EntityFrameworkInstrumentationOptions
     /// <summary>
     /// Gets or sets a value <see cref="EntityFrameworkInstrumentation"/> for an alternative <see cref="Activity.DisplayName"/>. Default value: <see cref="EntityFrameworkInstrumentation.DefaultDisplayNameFunc"/>.
     /// </summary>
-    public Func<object, object, string> DisplayNameFunc { get; set; } =
-        EntityFrameworkInstrumentation.DefaultDisplayNameFunc;
+    public Action<Activity, string, object> Enrich { get; set; }
 }

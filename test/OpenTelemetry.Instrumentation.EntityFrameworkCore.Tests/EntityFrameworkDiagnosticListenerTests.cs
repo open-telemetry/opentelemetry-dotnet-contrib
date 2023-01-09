@@ -79,7 +79,10 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             .AddProcessor(activityProcessor.Object)
             .AddEntityFrameworkCoreInstrumentation(options =>
             {
-                options.DisplayNameFunc = (_, _) => altDisplayName;
+                options.Enrich = (activity1, s, arg3) =>
+                {
+                    activity1.DisplayName = altDisplayName;
+                };
             }).Build();
 
         using (var context = new ItemsContext(this.contextOptions))

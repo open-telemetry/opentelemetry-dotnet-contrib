@@ -17,6 +17,7 @@
 using System;
 using System.Data;
 using System.Diagnostics;
+using System.Linq;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
@@ -89,11 +90,20 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                     }
 
                     var connection = this.connectionFetcher.Fetch(command);
-                    var database = this.options.DisplayNameFunc(this.databaseFetcher, connection);
+                    var database = (string)this.databaseFetcher.Fetch(connection);
                     activity.DisplayName = database;
 
                     if (activity.IsAllDataRequested)
                     {
+                        try
+                        {
+                            this.options.Enrich?.Invoke(activity, EntityFrameworkCoreCommandCreated, connection);
+                        }
+                        catch (Exception ex)
+                        {
+                            EntityFrameworkInstrumentationEventSource.Log.EnrichmentException("EntityFrameworkCoreCommandCreated", ex);
+                        }
+
                         var dbContext = this.dbContextFetcher.Fetch(payload);
                         var dbContextDatabase = this.dbContextDatabaseFetcher.Fetch(dbContext);
                         var providerName = this.providerNameFetcher.Fetch(dbContextDatabase);
@@ -126,8 +136,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         }
 
                         var dataSource = (string)this.dataSourceFetcher.Fetch(connection);
-
-                        activity.AddTag(AttributeDbName, database);
+                        activity.AddTag(AttributeDbName, activity.DisplayName);
                         if (!string.IsNullOrEmpty(dataSource))
                         {
                             activity.AddTag(AttributePeerService, dataSource);

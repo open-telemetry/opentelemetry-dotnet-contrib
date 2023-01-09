@@ -59,6 +59,15 @@ internal class EntityFrameworkInstrumentationEventSource : EventSource
         this.WriteEvent(4, handlerName, eventName);
     }
 
+    [NonEvent]
+    public void EnrichmentException(string eventName, Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        {
+            this.EnrichmentException(eventName, ex);
+        }
+    }
+
     /// <summary>
     /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
     /// appropriate for diagnostics tracing.
