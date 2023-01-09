@@ -34,8 +34,12 @@ internal static class JsonSerializer
     private const byte ASCII_CARRIAGE_RETURN = 0x0D;
     private const byte ASCII_HORIZONTAL_TAB = 0x09;
 
+#if NET6_0_OR_GREATER
+    private const int MAX_STACK_ALLOC_SIZE_IN_BYTES = 256;
+#endif
+
     private static readonly byte[] HEX_CODE;
-    private static readonly ThreadLocal<byte[]> buffer = new(() => new byte[65360]);
+    private static readonly ThreadLocal<byte[]> threadLocalBuffer = new(() => null);
 
     static JsonSerializer()
     {
@@ -45,7 +49,7 @@ internal static class JsonSerializer
             0x61, 0x62, 0x63, 0x64, 0x65, 0x66,
         };
         HEX_CODE = new byte[512];
-        for (var i = 0; i < 256; i++)
+        for (int i = 0; i < 256; i++)
         {
             HEX_CODE[i] = mapping[i >> 4];
             HEX_CODE[i + 256] = mapping[i & 0x0F];
@@ -55,8 +59,15 @@ internal static class JsonSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string SerializeNull()
     {
-        var count = WriteString(buffer.Value, 0, "null");
-        return Encoding.UTF8.GetString(buffer.Value, 0, count);
+        var buffer = threadLocalBuffer.Value;
+        if (buffer == null)
+        {
+            buffer = new byte[65360];
+            threadLocalBuffer.Value = buffer;
+        }
+
+        var count = WriteString(buffer, 0, "null");
+        return Encoding.UTF8.GetString(buffer, 0, count);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -68,8 +79,15 @@ internal static class JsonSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string SerializeString(string value)
     {
-        var count = SerializeString(buffer.Value, 0, value);
-        return Encoding.UTF8.GetString(buffer.Value, 0, count);
+        var buffer = threadLocalBuffer.Value;
+        if (buffer == null)
+        {
+            buffer = new byte[65360];
+            threadLocalBuffer.Value = buffer;
+        }
+
+        var count = SerializeString(buffer, 0, value);
+        return Encoding.UTF8.GetString(buffer, 0, count);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -89,8 +107,15 @@ internal static class JsonSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string SerializeArray<T>(T[] array)
     {
-        var count = SerializeArray(buffer.Value, 0, array);
-        return Encoding.UTF8.GetString(buffer.Value, 0, count);
+        var buffer = threadLocalBuffer.Value;
+        if (buffer == null)
+        {
+            buffer = new byte[65360];
+            threadLocalBuffer.Value = buffer;
+        }
+
+        var count = SerializeArray(buffer, 0, array);
+        return Encoding.UTF8.GetString(buffer, 0, count);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -106,7 +131,7 @@ internal static class JsonSerializer
         if (length >= 1)
         {
             cursor = Serialize(buffer, cursor, array[0]);
-            for (var i = 1; i < length; i++)
+            for (int i = 1; i < length; i++)
             {
                 buffer[cursor++] = unchecked((byte)',');
                 cursor = Serialize(buffer, cursor, array[i]);
@@ -120,8 +145,29 @@ internal static class JsonSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string SerializeMap(IEnumerable<KeyValuePair<string, object>> map)
     {
-        var count = SerializeMap(buffer.Value, 0, map);
-        return Encoding.UTF8.GetString(buffer.Value, 0, count);
+        var buffer = threadLocalBuffer.Value;
+        if (buffer == null)
+        {
+            buffer = new byte[65360];
+            threadLocalBuffer.Value = buffer;
+        }
+
+        var count = SerializeMap(buffer, 0, map);
+        return Encoding.UTF8.GetString(buffer, 0, count);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static byte[] SerializeKeyValuePairsListAsBytes(List<KeyValuePair<string, object>> listKVp, out int count)
+    {
+        var buffer = threadLocalBuffer.Value;
+        if (buffer == null)
+        {
+            buffer = new byte[65360];
+            threadLocalBuffer.Value = buffer;
+        }
+
+        count = SerializeKeyValuePairList(buffer, 0, listKVp);
+        return buffer;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -133,7 +179,7 @@ internal static class JsonSerializer
         }
 
         buffer[cursor++] = unchecked((byte)'{');
-        var count = 0;
+        int count = 0;
         foreach (var entry in map)
         {
             if (count > 0)
@@ -152,10 +198,44 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int SerializeKeyValuePairList(byte[] buffer, int cursor, List<KeyValuePair<string, object>> listKvp)
+    {
+        if (listKvp == null)
+        {
+            return SerializeNull(buffer, cursor);
+        }
+
+        buffer[cursor++] = unchecked((byte)'{');
+        int count = 0;
+        for (int i = 0; i < listKvp.Count; i++)
+        {
+            if (count > 0)
+            {
+                buffer[cursor++] = unchecked((byte)',');
+            }
+
+            cursor = SerializeString(buffer, cursor, listKvp[i].Key);
+            buffer[cursor++] = unchecked((byte)':');
+            cursor = Serialize(buffer, cursor, listKvp[i].Value);
+            count++;
+        }
+
+        buffer[cursor++] = unchecked((byte)'}');
+        return cursor;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string Serialize(object obj)
     {
-        var count = Serialize(buffer.Value, 0, obj);
-        return Encoding.UTF8.GetString(buffer.Value, 0, count);
+        var buffer = threadLocalBuffer.Value;
+        if (buffer == null)
+        {
+            buffer = new byte[65360];
+            threadLocalBuffer.Value = buffer;
+        }
+
+        var count = Serialize(buffer, 0, obj);
+        return Encoding.UTF8.GetString(buffer, 0, count);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -170,6 +250,7 @@ internal static class JsonSerializer
         {
             case bool v:
                 return WriteString(buffer, cursor, v ? "true" : "false");
+#if NET6_0_OR_GREATER
             case byte:
             case sbyte:
             case short:
@@ -180,10 +261,29 @@ internal static class JsonSerializer
             case ulong:
             case float:
             case double:
-                // TODO: This could be optimized. Refer to https://github.com/open-telemetry/opentelemetry-dotnet/blob/a37198c6d0f1814f8f5a995413649436657a2e2b/src/OpenTelemetry.Exporter.Prometheus.HttpListener/Internal/PrometheusSerializer.cs#L46-L54.
+                Span<char> tmp = stackalloc char[MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)];
+                (obj as ISpanFormattable).TryFormat(tmp, out int charsWritten, default, CultureInfo.InvariantCulture);
+                return WriteString(buffer, cursor, tmp.Slice(0, charsWritten));
+            case DateTime dt:
+                tmp = stackalloc char[MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)];
+                dt = dt.ToUniversalTime();
+                dt.TryFormat(tmp, out int count, default, CultureInfo.InvariantCulture);
+                return WriteString(buffer, cursor, tmp.Slice(0, count));
+#else
+            case byte:
+            case sbyte:
+            case short:
+            case ushort:
+            case int:
+            case uint:
+            case long:
+            case ulong:
+            case float:
+            case double:
                 return WriteString(buffer, cursor, Convert.ToString(obj, CultureInfo.InvariantCulture));
             case DateTime dt:
                 return WriteString(buffer, cursor, Convert.ToString(dt.ToUniversalTime(), CultureInfo.InvariantCulture));
+#endif
             case bool[] vbarray:
                 return SerializeArray(buffer, cursor, vbarray);
             case byte[] vui8array:
@@ -216,6 +316,16 @@ internal static class JsonSerializer
                 return SerializeMap(buffer, cursor, v);
             case object[] v:
                 return SerializeArray(buffer, cursor, v);
+#if NET6_0_OR_GREATER
+            case ISpanFormattable v:
+                tmp = stackalloc char[MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)];
+                if (v.TryFormat(tmp, out charsWritten, default, CultureInfo.InvariantCulture))
+                {
+                    return WriteString(buffer, cursor, tmp.Slice(0, charsWritten));
+                }
+
+                goto default;
+#endif
             default:
                 return SerializeString(buffer, cursor, $"ERROR: type {obj.GetType().FullName} is not supported");
         }
@@ -224,7 +334,7 @@ internal static class JsonSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int WriteString(byte[] buffer, int cursor, string value)
     {
-        for (var i = 0; i < value.Length; i++)
+        for (int i = 0; i < value.Length; i++)
         {
             var ordinal = (ushort)value[i];
             switch (ordinal)
@@ -287,4 +397,73 @@ internal static class JsonSerializer
 
         return cursor;
     }
+
+#if NET6_0_OR_GREATER
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int WriteString(byte[] buffer, int cursor, Span<char> value)
+    {
+        for (int i = 0; i < value.Length; i++)
+        {
+            var ordinal = (ushort)value[i];
+            switch (ordinal)
+            {
+                case ASCII_QUOTATION_MARK:
+                    buffer[cursor++] = ASCII_REVERSE_SOLIDUS;
+                    buffer[cursor++] = ASCII_QUOTATION_MARK;
+                    break;
+                case ASCII_REVERSE_SOLIDUS:
+                    buffer[cursor++] = ASCII_REVERSE_SOLIDUS;
+                    buffer[cursor++] = ASCII_REVERSE_SOLIDUS;
+                    break;
+                case ASCII_SOLIDUS:
+                    buffer[cursor++] = ASCII_REVERSE_SOLIDUS;
+                    buffer[cursor++] = ASCII_SOLIDUS;
+                    break;
+                case ASCII_BACKSPACE:
+                    buffer[cursor++] = ASCII_REVERSE_SOLIDUS;
+                    buffer[cursor++] = unchecked((byte)'b');
+                    break;
+                case ASCII_FORMFEED:
+                    buffer[cursor++] = ASCII_REVERSE_SOLIDUS;
+                    buffer[cursor++] = unchecked((byte)'f');
+                    break;
+                case ASCII_LINEFEED:
+                    buffer[cursor++] = ASCII_REVERSE_SOLIDUS;
+                    buffer[cursor++] = unchecked((byte)'n');
+                    break;
+                case ASCII_CARRIAGE_RETURN:
+                    buffer[cursor++] = ASCII_REVERSE_SOLIDUS;
+                    buffer[cursor++] = unchecked((byte)'r');
+                    break;
+                case ASCII_HORIZONTAL_TAB:
+                    buffer[cursor++] = ASCII_REVERSE_SOLIDUS;
+                    buffer[cursor++] = unchecked((byte)'t');
+                    break;
+                default:
+                    // ASCII printable characters
+                    if (ordinal >= 32 && ordinal < 127)
+                    {
+                        buffer[cursor++] = unchecked((byte)ordinal);
+                    }
+
+                    // ASCII control characters, extended ASCII codes or UNICODE
+                    else
+                    {
+                        buffer[cursor++] = ASCII_REVERSE_SOLIDUS;
+                        var high = unchecked(ordinal >> 8);
+                        var low = ordinal & 0xFF;
+                        buffer[cursor++] = unchecked((byte)'u');
+                        buffer[cursor++] = HEX_CODE[high];
+                        buffer[cursor++] = HEX_CODE[high + 256];
+                        buffer[cursor++] = HEX_CODE[low];
+                        buffer[cursor++] = HEX_CODE[low + 256];
+                    }
+
+                    break;
+            }
+        }
+
+        return cursor;
+    }
+#endif
 }

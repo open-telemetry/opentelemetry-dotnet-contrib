@@ -235,7 +235,9 @@ internal sealed class TLDTraceExporter : TLDExporter, IDisposable
             }
             while (linkEnumerator.MoveNext());
 
-            eb.AddCountedString("links", JsonSerializer.SerializeMap(keyValuePairsForLinks));
+            var serializedLinksStringAsBytes = JsonSerializer.SerializeKeyValuePairsListAsBytes(keyValuePairsForLinks, out var count);
+            eb.AddCountedAnsiString("links", serializedLinksStringAsBytes, 0, count);
+
             partBFieldsCount++;
         }
 
@@ -340,8 +342,9 @@ internal sealed class TLDTraceExporter : TLDExporter, IDisposable
         {
             // Get all "other" fields and collapse them into single field
             // named "env_properties".
-            var serializedEnvProperties = JsonSerializer.SerializeMap(envPropertiesList);
-            eb.AddCountedAnsiString("env_properties", serializedEnvProperties, Encoding.UTF8, 0, Math.Min(serializedEnvProperties.Length, StringLengthLimit));
+
+            var serializedEnvPropertiesStringAsBytes = JsonSerializer.SerializeKeyValuePairsListAsBytes(envPropertiesList, out var count);
+            eb.AddCountedAnsiString("env_properties", serializedEnvPropertiesStringAsBytes, 0, count);
         }
     }
 }
