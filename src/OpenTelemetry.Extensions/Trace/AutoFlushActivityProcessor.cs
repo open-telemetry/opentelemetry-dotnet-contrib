@@ -87,7 +87,7 @@ internal sealed class AutoFlushActivityProcessor : BaseProcessor<Activity>
         var shouldFlush = this.RunPredicate(data);
         if (shouldFlush)
         {
-            this.tracerProvider?.ForceFlush(this.timeoutMilliseconds);
+            this.tracerProvider!.ForceFlush(this.timeoutMilliseconds);
         }
     }
 
