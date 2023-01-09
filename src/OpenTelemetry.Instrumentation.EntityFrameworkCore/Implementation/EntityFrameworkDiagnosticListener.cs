@@ -94,15 +94,6 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
                     if (activity.IsAllDataRequested)
                     {
-                        try
-                        {
-                            this.options.Enrich?.Invoke(activity, EntityFrameworkCoreCommandCreated, connection);
-                        }
-                        catch (Exception ex)
-                        {
-                            EntityFrameworkInstrumentationEventSource.Log.EnrichmentException("EntityFrameworkCoreCommandCreated", ex);
-                        }
-
                         var dbContext = this.dbContextFetcher.Fetch(payload);
                         var dbContextDatabase = this.dbContextDatabaseFetcher.Fetch(dbContext);
                         var providerName = this.providerNameFetcher.Fetch(dbContextDatabase);
@@ -139,6 +130,15 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         if (!string.IsNullOrEmpty(dataSource))
                         {
                             activity.AddTag(AttributePeerService, dataSource);
+                        }
+
+                        try
+                        {
+                            this.options.Enrich?.Invoke(activity, EntityFrameworkCoreCommandCreated, connection);
+                        }
+                        catch (Exception ex)
+                        {
+                            EntityFrameworkInstrumentationEventSource.Log.EnrichmentException("EntityFrameworkCoreCommandCreated", ex);
                         }
                     }
                 }

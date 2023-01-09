@@ -82,6 +82,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
                 options.Enrich = (activity1, s, arg3) =>
                 {
                     activity1.DisplayName = altDisplayName;
+                    activity1.SetTag("db.name", altDisplayName);
                 };
             }).Build();
 
