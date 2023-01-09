@@ -17,7 +17,6 @@
 using System;
 using System.Data;
 using System.Diagnostics;
-using System.Linq;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
