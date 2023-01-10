@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Added the `TableColumnNameResolver` property on `GenevaExporterOptions` and
+  the `IGenevaTableColumnNameResolver` interface to allow for custom resolution
+  of columns for a given table in logs.
+  ([#878](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/878))
+
 ## 1.4.0-rc.1
 
 Released 2022-Dec-19
