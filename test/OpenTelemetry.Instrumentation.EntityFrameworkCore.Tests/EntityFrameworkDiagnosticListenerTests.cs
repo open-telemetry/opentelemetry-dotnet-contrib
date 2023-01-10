@@ -79,7 +79,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             .AddProcessor(activityProcessor.Object)
             .AddEntityFrameworkCoreInstrumentation(options =>
             {
-                options.Enrich = (activity1, s, arg3) =>
+                options.EnrichWithIDbConnection = (activity1, _) =>
                 {
                     activity1.DisplayName = altDisplayName;
                     activity1.SetTag("db.name", altDisplayName);

@@ -126,7 +126,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         }
 
                         var dataSource = (string)this.dataSourceFetcher.Fetch(connection);
-                        activity.AddTag(AttributeDbName, activity.DisplayName);
+                        activity.AddTag(AttributeDbName, database);
                         if (!string.IsNullOrEmpty(dataSource))
                         {
                             activity.AddTag(AttributePeerService, dataSource);
@@ -134,7 +134,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
                         try
                         {
-                            this.options.Enrich?.Invoke(activity, EntityFrameworkCoreCommandCreated, connection);
+                            this.options.EnrichWithIDbConnection?.Invoke(activity, connection as IDbConnection);
                         }
                         catch (Exception ex)
                         {

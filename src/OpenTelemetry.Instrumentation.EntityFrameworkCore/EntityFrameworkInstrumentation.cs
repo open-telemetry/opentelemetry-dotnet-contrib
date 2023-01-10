@@ -21,13 +21,6 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
 
 internal class EntityFrameworkInstrumentation : IDisposable
 {
-    internal static readonly Func<object, object, string> DefaultDisplayNameFunc = (fetcher, connection)
-        =>
-    {
-        var propertyFetcher = (PropertyFetcher<object>)fetcher;
-        return (string)propertyFetcher.Fetch(connection);
-    };
-
     private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
 
     public EntityFrameworkInstrumentation(EntityFrameworkInstrumentationOptions options = null)
