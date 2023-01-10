@@ -1,0 +1,3 @@
+OpenTelemetry.ResourceDetector.Container.ContainerResourceDetector
+OpenTelemetry.ResourceDetector.Container.ContainerResourceDetector.ContainerResourceDetector() -> void
+OpenTelemetry.ResourceDetector.Container.ContainerResourceDetector.Detect() -> OpenTelemetry.Resources.Resource

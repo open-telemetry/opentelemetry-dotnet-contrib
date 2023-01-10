@@ -17,7 +17,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace OpenTelemetry.Extensions.Docker.Utils;
+namespace OpenTelemetry.ResourceDetector.Container.Utils;
 
 internal class EncodingUtils
 {

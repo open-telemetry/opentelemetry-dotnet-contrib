@@ -18,7 +18,7 @@ using System;
 using System.IO;
 using System.Threading;
 
-namespace OpenTelemetry.Extensions.Docker.Tests;
+namespace OpenTelemetry.ResourceDetector.Container.Tests;
 
 internal class TempFile : IDisposable
 {
@@ -37,9 +37,9 @@ internal class TempFile : IDisposable
 
     public void Write(string data)
     {
-        using (FileStream stream = new FileStream(this.filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite | FileShare.Delete))
+        using (var stream = new FileStream(this.filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite | FileShare.Delete))
         {
-            using (StreamWriter sw = new StreamWriter(stream))
+            using (var sw = new StreamWriter(stream))
             {
                 sw.Write(data);
             }
@@ -48,7 +48,7 @@ internal class TempFile : IDisposable
 
     public void Dispose()
     {
-        for (int tries = 0; ; tries++)
+        for (var tries = 0; ; tries++)
         {
             try
             {

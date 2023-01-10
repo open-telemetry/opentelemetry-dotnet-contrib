@@ -1,4 +1,4 @@
-// <copyright file="DockerResourceDetector.cs" company="OpenTelemetry Authors">
+// <copyright file="ContainerResourceDetector.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,15 +18,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using OpenTelemetry.Extensions.Docker.Utils;
+using OpenTelemetry.ResourceDetector.Container.Utils;
 using OpenTelemetry.Resources;
 
-namespace OpenTelemetry.Extensions.Docker.Resources;
+namespace OpenTelemetry.ResourceDetector.Container;
 
 /// <summary>
 /// Resource detector for application running in Docker environment.
 /// </summary>
-public class DockerResourceDetector : IResourceDetector
+public class ContainerResourceDetector : IResourceDetector
 {
     private const string FILEPATH = "/proc/self/cgroup";
     private const string FILEPATHV2 = "/proc/self/mountinfo";
@@ -79,7 +79,7 @@ public class DockerResourceDetector : IResourceDetector
         }
         else
         {
-            return new Resource(new List<KeyValuePair<string, object>>() { new KeyValuePair<string, object>(DockerSemanticConventions.AttributeContainerID, containerId), });
+            return new Resource(new List<KeyValuePair<string, object>>() { new KeyValuePair<string, object>(ContainerSemanticConventions.AttributeContainerID, containerId), });
         }
     }
 
@@ -121,7 +121,7 @@ public class DockerResourceDetector : IResourceDetector
         }
         catch (Exception ex)
         {
-            DockerExtensionsEventSource.Log.ExtractResourceAttributesException($"{nameof(DockerResourceDetector)} : Failed to extract Container id from path", ex);
+            ContainerResourceDetectorEventSource.Log.ExtractResourceAttributesException($"{nameof(ContainerResourceDetector)} : Failed to extract Container id from path", ex);
         }
 
         return null;
@@ -145,7 +145,7 @@ public class DockerResourceDetector : IResourceDetector
         int startIndex = lastSection.LastIndexOf('-');
         int endIndex = lastSection.LastIndexOf('.');
 
-        string containerId = this.RemovePrefixAndSuffixIfneeded(lastSection, startIndex, endIndex);
+        string containerId = this.RemovePrefixAndSuffixIfNeeded(lastSection, startIndex, endIndex);
 
         if (string.IsNullOrEmpty(containerId) || !EncodingUtils.IsValidHexString(containerId))
         {
@@ -177,7 +177,7 @@ public class DockerResourceDetector : IResourceDetector
         return containerId;
     }
 
-    private string RemovePrefixAndSuffixIfneeded(string input, int startIndex, int endIndex)
+    private string RemovePrefixAndSuffixIfNeeded(string input, int startIndex, int endIndex)
     {
         startIndex = (startIndex == -1) ? 0 : startIndex + 1;
 
