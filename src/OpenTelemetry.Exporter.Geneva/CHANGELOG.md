@@ -28,7 +28,7 @@ Released 2022-Dec-09
 * Fix EventSource logging.
   ([#813](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/813))
 * Update `MessagePackSerializer` to use
-  [BinaryPrimitives](https://learn.microsoft.com/en-us/dotnet/api/system.buffers.binary.binaryprimitives?view=net-7.0)
+  [BinaryPrimitives](https://learn.microsoft.com/dotnet/api/system.buffers.binary.binaryprimitives)
   to serialize scalar types more efficiently by avoiding repeated bound checks.
   Add support for serializing `ISpanFormattable` types.
   ([#803](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/803))
