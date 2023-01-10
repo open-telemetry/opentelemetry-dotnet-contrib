@@ -32,7 +32,7 @@ internal enum TransportProtocol
 
 internal class ConnectionStringBuilder
 {
-    private readonly Dictionary<string, string> _parts = new Dictionary<string, string>(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _parts = new(StringComparer.Ordinal);
 
     public ConnectionStringBuilder(string connectionString)
     {
@@ -52,6 +52,8 @@ internal class ConnectionStringBuilder
 #else
             var index = token.IndexOf(EqualSign);
 #endif
+
+            // Skip tokens containing either 0 or 2+ '=' characters
             if (index == -1 || index != token.LastIndexOf(EqualSign))
             {
                 continue;
@@ -66,9 +68,11 @@ internal class ConnectionStringBuilder
                 throw new ArgumentException("Connection string cannot contain empty keys or values.");
             }
 
+            // Maintain the original letter casing
             this._parts[key] = value;
         }
 
+        // Connection string must have 1+ key-value pairs
         if (this._parts.Count == 0)
         {
             throw new ArgumentNullException(nameof(connectionString), $"{nameof(connectionString)} is invalid.");

@@ -21,212 +21,210 @@ namespace OpenTelemetry.Exporter.Geneva.Tests;
 
 public class ConnectionStringBuilderTests
 {
-    [Fact]
-    public void ConnectionStringBuilder_constructor_Invalid_Input()
+    [Theory]
+    // Unspecified
+    [InlineData("key1=value1", TransportProtocol.Unspecified)]
+    [InlineData("etwSession=OpenTelemetry", TransportProtocol.Unspecified)]
+    [InlineData("monitoringAccount=TestAccount", TransportProtocol.Unspecified)]
+    [InlineData("endpoint=tcp://localhost:33333", TransportProtocol.Unspecified)]
+    [InlineData("TimeoutMilliseconds=10000", TransportProtocol.Unspecified, null, null, null, null, null, null, 10000)]
+    [InlineData("Account=TestAccount", TransportProtocol.Unspecified, null, null, null, null, null, "TestAccount")]
+    [InlineData("Account=value1;Account=VALUE2", TransportProtocol.Unspecified, null, null, null, null, null, "VALUE2")]
+    [InlineData("Namespace=TestNamespace", TransportProtocol.Unspecified, null, null, null, null, null, null, null, "TestNamespace")]
+    // Etw
+    [InlineData("EtwSession=OpenTelemetry", TransportProtocol.Etw, null, null, null, "OpenTelemetry")]
+    [InlineData("Endpoint=tcp://localhost:33333;EtwSession=OpenTelemetry", TransportProtocol.Etw, "tcp://localhost:33333", "localhost", 33333, "OpenTelemetry")]
+    // Udp
+    [InlineData("Endpoint=udp://localhost:11013", TransportProtocol.Udp, "udp://localhost:11013", "localhost", 11013)]
+    [InlineData("Endpoint=UDP://localhost:11111", TransportProtocol.Udp, "UDP://localhost:11111", "localhost", 11111)]
+    [InlineData("Endpoint=udp://localhost", TransportProtocol.Udp, "udp://localhost", "localhost")]
+    // Tcp
+    [InlineData("Endpoint=tcp://localhost:11013", TransportProtocol.Tcp, "tcp://localhost:11013", "localhost", 11013)]
+    [InlineData("Endpoint=TCP://localhost:11111", TransportProtocol.Tcp, "TCP://localhost:11111", "localhost", 11111)]
+    [InlineData("Endpoint=tcp://localhost", TransportProtocol.Tcp, "tcp://localhost", "localhost")]
+    // Unix
+    [InlineData("Endpoint=unix:/var/run/default_fluent.socket", TransportProtocol.Unix, "unix:/var/run/default_fluent.socket", null, null, null, "/var/run/default_fluent.socket", null, UnixDomainSocketDataTransport.DefaultTimeoutMilliseconds)]
+    [InlineData("Endpoint=unix:///var/run/default_fluent.socket", TransportProtocol.Unix, "unix:///var/run/default_fluent.socket", null, null, null, "/var/run/default_fluent.socket")]
+    [InlineData("Endpoint=unix:/var/run/default_fluent.socket", TransportProtocol.Unix, "unix:/var/run/default_fluent.socket", null, null, null, "/var/run/default_fluent.socket")]
+    internal void Constructor(
+        string str,
+        TransportProtocol protocol,
+        string Endpoint = null,
+        string Host = null,
+        int? Port = null,
+        string EtwSession = null,
+        string udsPath = null,
+        string Account = null,
+        int? TimeoutMilliseconds = null,
+        string Namespace = null)
     {
-        // null connection string
-        Assert.Throws<ArgumentException>(() => _ = new ConnectionStringBuilder(null));
+        ConnectionStringBuilder builder = new(str);
 
-        // empty connection string
-        Assert.Throws<ArgumentException>(() => _ = new ConnectionStringBuilder(string.Empty));
-        Assert.Throws<ArgumentException>(() => _ = new ConnectionStringBuilder("   "));
+        Assert.Equal(protocol, builder.Protocol);
 
-        // empty key
-        Assert.Throws<ArgumentException>(() => _ = new ConnectionStringBuilder("=value"));
-        Assert.Throws<ArgumentException>(() => _ = new ConnectionStringBuilder("=value1;key2=value2"));
-        Assert.Throws<ArgumentException>(() => _ = new ConnectionStringBuilder("key1=value1;=value2"));
+        if (Endpoint != null)
+        {
+            Assert.Equal(Endpoint, builder.Endpoint);
+        }
 
-        // empty value
-        Assert.Throws<ArgumentException>(() => _ = new ConnectionStringBuilder("key="));
-        Assert.Throws<ArgumentException>(() => _ = new ConnectionStringBuilder("key1=;key2=value2"));
-        Assert.Throws<ArgumentException>(() => _ = new ConnectionStringBuilder("key1=value1;key2="));
+        if (Host != null)
+        {
+            Assert.Equal(Host, builder.Host);
+        }
 
-        // invalid format
-        Assert.Throws<ArgumentNullException>(() => _ = new ConnectionStringBuilder("key;value"));
-        Assert.Throws<ArgumentNullException>(() => _ = new ConnectionStringBuilder("key==value"));
+        if (Port != null)
+        {
+            Assert.Equal(Port, builder.Port);
+        }
+
+        if (EtwSession != null)
+        {
+            Assert.Equal(EtwSession, builder.EtwSession);
+        }
+
+        if (udsPath != null)
+        {
+            Assert.Equal(udsPath, builder.ParseUnixDomainSocketPath());
+        }
+
+        if (TimeoutMilliseconds != null)
+        {
+            Assert.Equal(TimeoutMilliseconds, builder.TimeoutMilliseconds);
+        }
+
+        if (Account != null)
+        {
+            Assert.Equal(Account, builder.Account);
+        }
+
+        if (Namespace != null)
+        {
+            Assert.Equal(Namespace, builder.Namespace);
+        }
     }
 
-    [Fact]
-    public void ConnectionStringBuilder_constructor_Duplicated_Keys()
+    // Constructor
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("=value")]
+    [InlineData("=value1;key2=value2")]
+    [InlineData("key1=value1;=value2")]
+    [InlineData("key=")]
+    [InlineData("key1=;key2=value2")]
+    [InlineData("key1=value1;key2=")]
+    [InlineData("key;value")]
+    [InlineData("key==value")]
+    public void ConstructorThrows(string connectionString)
     {
-        var builder = new ConnectionStringBuilder("Account=value1;Account=VALUE2");
-        Assert.Equal("VALUE2", builder.Account);
+        Assert.ThrowsAny<Exception>(() => _ = new ConnectionStringBuilder(connectionString));
     }
 
-    [Fact]
-    public void ConnectionStringBuilder_Protocol_No_Default_Value()
+    // Protocol
+    [Theory]
+    [InlineData("Endpoint=udp://:11111")]
+    [InlineData("Endpoint=tpc://:11111")]
+    [InlineData("Endpoint=foo://localhost:11013")]
+    public void ProtocolThrows(string connectionString)
     {
-        var builder = new ConnectionStringBuilder("key1=value1");
-        Assert.Equal(TransportProtocol.Unspecified, builder.Protocol);
-
-        builder = new ConnectionStringBuilder("EtwSession=OpenTelemetry");
-        Assert.Equal(TransportProtocol.Etw, builder.Protocol);
-
-        builder = new ConnectionStringBuilder("Endpoint=udp://localhost:11013");
-        Assert.Equal(TransportProtocol.Udp, builder.Protocol);
-
-        builder = new ConnectionStringBuilder("Endpoint=tcp://localhost:11013");
-        Assert.Equal(TransportProtocol.Tcp, builder.Protocol);
-
-        builder = new ConnectionStringBuilder("Endpoint=foo://localhost:11013");
+        ConnectionStringBuilder builder = new(connectionString);
         Assert.Throws<ArgumentException>(() => _ = builder.Protocol);
     }
 
-    [Fact]
-    public void ConnectionStringBuilder_EtwSession()
+    // Endpoint
+    [Theory]
+    [InlineData("endpoint=tcp://localhost:33333")]
+    public void EndpointThrows(string connectionString)
     {
-        var builder = new ConnectionStringBuilder("EtwSession=OpenTelemetry");
-        Assert.Equal(TransportProtocol.Etw, builder.Protocol);
-        Assert.Equal("OpenTelemetry", builder.EtwSession);
-        Assert.Throws<ArgumentException>(() => _ = builder.Host);
-        Assert.Throws<ArgumentException>(() => _ = builder.Port);
+        ConnectionStringBuilder builder = new(connectionString);
+        Assert.Throws<ArgumentException>(() => _ = builder.Endpoint);
+    }
 
-        builder = new ConnectionStringBuilder("Endpoint=udp://localhost:11013");
-        Assert.Equal(TransportProtocol.Udp, builder.Protocol);
+    // Host
+    [Theory]
+    [InlineData("EtwSession=OpenTelemetry")]
+    [InlineData("endpoint=tcp://localhost:33333")]
+    [InlineData("Endpoint=tpc://:11111")]
+    public void HostThrows(string connectionString)
+    {
+        ConnectionStringBuilder builder = new(connectionString);
+        Assert.Throws<ArgumentException>(() => _ = builder.Host);
+    }
+
+    // Port
+    [Theory]
+    [InlineData("EtwSession=OpenTelemetry")]
+    [InlineData("Endpoint=udp://localhost")]
+    [InlineData("Endpoint=udp://:11111")]
+    [InlineData("endpoint=tcp://localhost:33333")]
+    [InlineData("Endpoint=tpc://:11111")]
+    public void PortThrows(string connectionString)
+    {
+        ConnectionStringBuilder builder = new(connectionString);
+        Assert.Throws<ArgumentException>(() => _ = builder.Port);
+    }
+
+    // EtwSession
+    [Theory]
+    [InlineData("Endpoint=udp://localhost:11013")]
+    [InlineData("etwSession=OpenTelemetry")]
+    public void EtwSessionThrows(string connectionString)
+    {
+        ConnectionStringBuilder builder = new(connectionString);
         Assert.Throws<ArgumentException>(() => _ = builder.EtwSession);
     }
 
-    [Fact]
-    public void ConnectionStringBuilder_Endpoint_UnixDomainSocketPath()
+    // ParseUnixDomainSocketPath()
+    [Theory]
+    [InlineData("Endpoint=unix://:11111")]
+    [InlineData("EtwSession=OpenTelemetry")]
+    public void ParseUnixDomainSocketPathThrows(string connectionString)
     {
-        var builder = new ConnectionStringBuilder("Endpoint=unix:/var/run/default_fluent.socket");
-        Assert.Equal("unix:/var/run/default_fluent.socket", builder.Endpoint);
-        Assert.Equal(TransportProtocol.Unix, builder.Protocol);
-        Assert.Equal("/var/run/default_fluent.socket", builder.ParseUnixDomainSocketPath());
-
-        builder = new ConnectionStringBuilder("Endpoint=unix:///var/run/default_fluent.socket");
-        Assert.Equal("unix:///var/run/default_fluent.socket", builder.Endpoint);
-        Assert.Equal(TransportProtocol.Unix, builder.Protocol);
-        Assert.Equal("/var/run/default_fluent.socket", builder.ParseUnixDomainSocketPath());
-
-        builder = new ConnectionStringBuilder("Endpoint=unix://:11111");
-        Assert.Throws<ArgumentException>(() => _ = builder.ParseUnixDomainSocketPath());
-
-        builder = new ConnectionStringBuilder("EtwSession=OpenTelemetry");
+        ConnectionStringBuilder builder = new(connectionString);
         Assert.Throws<ArgumentException>(() => _ = builder.ParseUnixDomainSocketPath());
     }
 
-    [Fact]
-    public void ConnectionStringBuilder_TimeoutMilliseconds()
+    // TimeoutMilliseconds
+    [Theory]
+    [InlineData("TimeoutMilliseconds=0")]
+    [InlineData("TimeoutMilliseconds=-1")]
+    [InlineData("TimeoutMilliseconds=10.5")]
+    [InlineData("TimeoutMilliseconds=abc")]
+    public void TimeoutMillisecondsThrows(string connectionString)
     {
-        var builder = new ConnectionStringBuilder("TimeoutMilliseconds=10000");
-        Assert.Equal(10000, builder.TimeoutMilliseconds);
+        ConnectionStringBuilder builder = new(connectionString);
+        Assert.Throws<ArgumentException>(() => _ = builder.TimeoutMilliseconds);
+    }
 
+    // Account
+    [Theory]
+    [InlineData("key1=value1")]
+    [InlineData("account=TestAccount")]
+
+    public void NoAccountThrows(string connectionString)
+    {
+        ConnectionStringBuilder builder = new(connectionString);
+        Assert.Throws<ArgumentException>(() => _ = builder.Account);
+    }
+
+    // Namspace
+    [Theory]
+    [InlineData("key1=value1")]
+    [InlineData("namespace=TestNamespace")]
+
+    public void NoNamespaceThrows(string connectionString)
+    {
+        ConnectionStringBuilder builder = new(connectionString);
+        Assert.Throws<ArgumentException>(() => _ = builder.Account);
+    }
+
+    // Misc.
+    [Fact]
+    public void CanUpdateTimeoutMilliseconds()
+    {
+        ConnectionStringBuilder builder = new("TimeoutMilliseconds=10000");
         builder.TimeoutMilliseconds = 6000;
         Assert.Equal(6000, builder.TimeoutMilliseconds);
-
-        builder = new ConnectionStringBuilder("Endpoint=unix:/var/run/default_fluent.socket");
-        Assert.Equal(UnixDomainSocketDataTransport.DefaultTimeoutMilliseconds, builder.TimeoutMilliseconds);
-
-        builder = new ConnectionStringBuilder("TimeoutMilliseconds=0");
-        Assert.Throws<ArgumentException>(() => _ = builder.TimeoutMilliseconds);
-
-        builder = new ConnectionStringBuilder("TimeoutMilliseconds=-1");
-        Assert.Throws<ArgumentException>(() => _ = builder.TimeoutMilliseconds);
-
-        builder = new ConnectionStringBuilder("TimeoutMilliseconds=-2");
-        Assert.Throws<ArgumentException>(() => _ = builder.TimeoutMilliseconds);
-
-        builder = new ConnectionStringBuilder("TimeoutMilliseconds=10.5");
-        Assert.Throws<ArgumentException>(() => _ = builder.TimeoutMilliseconds);
-
-        builder = new ConnectionStringBuilder("TimeoutMilliseconds=abc");
-        Assert.Throws<ArgumentException>(() => _ = builder.TimeoutMilliseconds);
-    }
-
-    [Fact]
-    public void ConnectionStringBuilder_Endpoint_Udp()
-    {
-        var builder = new ConnectionStringBuilder("Endpoint=udp://localhost:11111");
-        Assert.Equal("udp://localhost:11111", builder.Endpoint);
-        Assert.Equal(TransportProtocol.Udp, builder.Protocol);
-        Assert.Equal("localhost", builder.Host);
-        Assert.Equal(11111, builder.Port);
-
-        builder = new ConnectionStringBuilder("Endpoint=Udp://localhost:11111");
-        Assert.Equal(TransportProtocol.Udp, builder.Protocol);
-
-        builder = new ConnectionStringBuilder("Endpoint=UDP://localhost:11111");
-        Assert.Equal(TransportProtocol.Udp, builder.Protocol);
-
-        builder = new ConnectionStringBuilder("Endpoint=udp://localhost");
-        Assert.Equal(TransportProtocol.Udp, builder.Protocol);
-        Assert.Equal("localhost", builder.Host);
-        Assert.Throws<ArgumentException>(() => _ = builder.Port);
-
-        builder = new ConnectionStringBuilder("Endpoint=udp://:11111");
-        Assert.Throws<ArgumentException>(() => _ = builder.Protocol);
-        Assert.Throws<ArgumentException>(() => _ = builder.Host);
-        Assert.Throws<ArgumentException>(() => _ = builder.Port);
-    }
-
-    [Fact]
-    public void ConnectionStringBuilder_Endpoint_Tcp()
-    {
-        var builder = new ConnectionStringBuilder("Endpoint=tcp://localhost:33333");
-        Assert.Equal("tcp://localhost:33333", builder.Endpoint);
-        Assert.Equal(TransportProtocol.Tcp, builder.Protocol);
-        Assert.Equal("localhost", builder.Host);
-        Assert.Equal(33333, builder.Port);
-
-        builder = new ConnectionStringBuilder("Endpoint=Tcp://localhost:11111");
-        Assert.Equal(TransportProtocol.Tcp, builder.Protocol);
-
-        builder = new ConnectionStringBuilder("Endpoint=TCP://localhost:11111");
-        Assert.Equal(TransportProtocol.Tcp, builder.Protocol);
-
-        builder = new ConnectionStringBuilder("Endpoint=tcp://localhost");
-        Assert.Equal(TransportProtocol.Tcp, builder.Protocol);
-        Assert.Equal("localhost", builder.Host);
-        Assert.Throws<ArgumentException>(() => _ = builder.Port);
-
-        builder = new ConnectionStringBuilder("Endpoint=tpc://:11111");
-        Assert.Throws<ArgumentException>(() => _ = builder.Protocol);
-        Assert.Throws<ArgumentException>(() => _ = builder.Host);
-        Assert.Throws<ArgumentException>(() => _ = builder.Port);
-    }
-
-    [Fact]
-    public void ConnectionStringBuilder_EtwSession_Endpoint_Both_Set()
-    {
-        var builder = new ConnectionStringBuilder("Endpoint=tcp://localhost:33333;EtwSession=OpenTelemetry");
-        Assert.Equal(TransportProtocol.Etw, builder.Protocol);
-
-        Assert.Equal("OpenTelemetry", builder.EtwSession);
-
-        Assert.Equal("tcp://localhost:33333", builder.Endpoint);
-        Assert.Equal("localhost", builder.Host);
-        Assert.Equal(33333, builder.Port);
-    }
-
-    [Fact]
-    public void ConnectionStringBuilder_MonitoringAccount_No_Default_Value()
-    {
-        var builder = new ConnectionStringBuilder("key1=value1");
-        Assert.Throws<ArgumentException>(() => _ = builder.Account);
-
-        builder.Account = "TestAccount";
-        Assert.Equal("TestAccount", builder.Account);
-
-        builder = new ConnectionStringBuilder("Account=TestAccount");
-        Assert.Equal("TestAccount", builder.Account);
-    }
-
-    [Fact]
-    public void ConnectionStringBuilder_Keywords_Are_Case_Sensitive()
-    {
-        var builder = new ConnectionStringBuilder("etwSession=OpenTelemetry");
-        Assert.Throws<ArgumentException>(() => builder.EtwSession);
-        Assert.Equal(TransportProtocol.Unspecified, builder.Protocol);
-
-        builder = new ConnectionStringBuilder("endpoint=tcp://localhost:33333");
-        Assert.Throws<ArgumentException>(() => builder.Endpoint);
-        Assert.Equal(TransportProtocol.Unspecified, builder.Protocol);
-        Assert.Throws<ArgumentException>(() => builder.Host);
-        Assert.Throws<ArgumentException>(() => builder.Port);
-
-        builder = new ConnectionStringBuilder("monitoringAccount=TestAccount");
-        Assert.Throws<ArgumentException>(() => builder.Account);
-        Assert.Equal(TransportProtocol.Unspecified, builder.Protocol);
     }
 }
