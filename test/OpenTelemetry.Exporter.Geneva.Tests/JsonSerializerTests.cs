@@ -16,7 +16,7 @@
 
 using System.Collections.Generic;
 using System.Text;
-using OpenTelemetry.Exporter.Geneva.TLDExporter;
+using OpenTelemetry.Exporter.Geneva.TldExporter;
 using Xunit;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;

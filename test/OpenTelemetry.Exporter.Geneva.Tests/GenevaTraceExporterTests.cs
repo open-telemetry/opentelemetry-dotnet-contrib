@@ -490,7 +490,7 @@ public class GenevaTraceExporterTests
                 .AddSource(sourceName)
                 .AddGenevaTraceExporter(options =>
                 {
-                    options.ConnectionString = "EtwSession=OpenTelemetry;UseTLD=true";
+                    options.ConnectionString = "EtwSession=OpenTelemetry;PrivatePreviewEnableTraceLoggingDynamic=true";
                     options.PrepopulatedFields = new Dictionary<string, object>
                     {
                         ["cloud.role"] = "BusyWorker",

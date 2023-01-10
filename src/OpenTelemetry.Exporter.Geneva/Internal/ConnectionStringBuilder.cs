@@ -82,10 +82,10 @@ internal class ConnectionStringBuilder
         set => this._parts[nameof(this.EtwSession)] = value;
     }
 
-    public string UseTLD
+    public string PrivatePreviewEnableTraceLoggingDynamic
     {
-        get => this.ThrowIfNotExists<string>(nameof(this.UseTLD));
-        set => this._parts[nameof(this.UseTLD)] = value;
+        get => this.ThrowIfNotExists<string>(nameof(this.PrivatePreviewEnableTraceLoggingDynamic));
+        set => this._parts[nameof(this.PrivatePreviewEnableTraceLoggingDynamic)] = value;
     }
 
     public string Endpoint
@@ -103,8 +103,8 @@ internal class ConnectionStringBuilder
                 // Checking Etw first, since it's preferred for Windows and enables fail fast on Linux
                 if (this._parts.ContainsKey(nameof(this.EtwSession)))
                 {
-                    _ = this._parts.TryGetValue(nameof(this.UseTLD), out var useTld);
-                    if (useTld != null && useTld.ToUpperInvariant() == bool.TrueString.ToUpperInvariant())
+                    _ = this._parts.TryGetValue(nameof(this.PrivatePreviewEnableTraceLoggingDynamic), out var PrivatePreviewEnableTraceLoggingDynamic);
+                    if (PrivatePreviewEnableTraceLoggingDynamic != null && PrivatePreviewEnableTraceLoggingDynamic.ToUpperInvariant() == bool.TrueString.ToUpperInvariant())
                     {
                         return TransportProtocol.EtwTld;
                     }

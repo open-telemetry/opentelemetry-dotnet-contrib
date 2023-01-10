@@ -18,7 +18,7 @@ using System;
 using System.Text;
 using BenchmarkDotNet.Attributes;
 using OpenTelemetry.Exporter.Geneva.External;
-using OpenTelemetry.Exporter.Geneva.TLDExporter;
+using OpenTelemetry.Exporter.Geneva.TldExporter;
 
 /*
 BenchmarkDotNet=v0.13.3, OS=Windows 11 (10.0.22621.963)

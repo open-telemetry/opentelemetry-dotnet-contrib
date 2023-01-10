@@ -17,7 +17,7 @@
 using System;
 using System.Text;
 
-namespace OpenTelemetry.Exporter.Geneva.TLDExporter;
+namespace OpenTelemetry.Exporter.Geneva.TldExporter;
 
 /// <summary>
 /// Like ASCIIEncoding but instead of checking for non-ASCII characters, it just
