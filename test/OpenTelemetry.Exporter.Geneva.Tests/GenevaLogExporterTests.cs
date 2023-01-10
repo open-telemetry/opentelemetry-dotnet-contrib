@@ -1094,7 +1094,7 @@ public class GenevaLogExporterTests
             {
                 loggerOptions.AddGenevaLogExporter(exporterOptions =>
                 {
-                    exporterOptions.ConnectionString = "EtwSession=OpenTelemetry;UseTLD=true";
+                    exporterOptions.ConnectionString = "EtwSession=OpenTelemetry;PrivatePreviewEnableTraceLoggingDynamic=true";
                     exporterOptions.PrepopulatedFields = new Dictionary<string, object>
                     {
                         ["cloud.role"] = "BusyWorker",

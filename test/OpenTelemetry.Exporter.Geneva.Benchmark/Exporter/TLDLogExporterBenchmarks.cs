@@ -17,7 +17,7 @@
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry.Exporter.Geneva.TLDExporter;
+using OpenTelemetry.Exporter.Geneva.TldExporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Trace;
 
@@ -45,7 +45,7 @@ public class TLDLogExporterBenchmarks
     private readonly LogRecord logRecord;
     private readonly Batch<LogRecord> batch;
     private readonly MsgPackLogExporter msgPackExporter;
-    private readonly TLDLogExporter tldExporter;
+    private readonly TldLogExporter tldExporter;
     private readonly ILogger loggerForTLD;
     private readonly ILogger loggerForMsgPack;
     private readonly ILoggerFactory loggerFactoryForTLD;
@@ -64,9 +64,9 @@ public class TLDLogExporterBenchmarks
             },
         });
 
-        this.tldExporter = new TLDLogExporter(new GenevaExporterOptions()
+        this.tldExporter = new TldLogExporter(new GenevaExporterOptions()
         {
-            ConnectionString = "EtwSession=OpenTelemetry;UseTLD=true",
+            ConnectionString = "EtwSession=OpenTelemetry;PrivatePreviewEnableTraceLoggingDynamic=true",
             PrepopulatedFields = new Dictionary<string, object>
             {
                 ["cloud.role"] = "BusyWorker",
@@ -83,7 +83,7 @@ public class TLDLogExporterBenchmarks
             {
                 loggerOptions.AddGenevaLogExporter(exporterOptions =>
                 {
-                    exporterOptions.ConnectionString = "EtwSession=OpenTelemetry;UseTLD=true";
+                    exporterOptions.ConnectionString = "EtwSession=OpenTelemetry;PrivatePreviewEnableTraceLoggingDynamic=true";
                     exporterOptions.PrepopulatedFields = new Dictionary<string, object>
                     {
                         ["cloud.role"] = "BusyWorker",
