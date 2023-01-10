@@ -16,7 +16,7 @@
 
 using System;
 using System.Runtime.InteropServices;
-using OpenTelemetry.Exporter.Geneva.TLDExporter;
+using OpenTelemetry.Exporter.Geneva.TldExporter;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 
@@ -83,7 +83,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         }
         else
         {
-            var tldLogExporter = new TLDLogExporter(options);
+            var tldLogExporter = new TldLogExporter(options);
             this.IsUsingUnixDomainSocket = false;
             this.exportLogRecord = (in Batch<LogRecord> batch) => tldLogExporter.Export(in batch);
             this.exporter = tldLogExporter;

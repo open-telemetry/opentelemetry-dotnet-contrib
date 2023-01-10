@@ -1,4 +1,4 @@
-// <copyright file="TLDTraceExporter.cs" company="OpenTelemetry Authors">
+// <copyright file="TldTraceExporter.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +23,8 @@ using System.Threading;
 using OpenTelemetry.Exporter.Geneva.External;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Exporter.Geneva.TLDExporter;
-internal sealed class TLDTraceExporter : TLDExporter, IDisposable
+namespace OpenTelemetry.Exporter.Geneva.TldExporter;
+internal sealed class TldTraceExporter : TldExporter, IDisposable
 {
     // TODO: Is using a single ThreadLocal a better idea?
     private static readonly ThreadLocal<EventBuilder> eventBuilder = new(() => null);
@@ -57,7 +57,7 @@ internal sealed class TLDTraceExporter : TLDExporter, IDisposable
 
     private bool isDisposed;
 
-    public TLDTraceExporter(GenevaExporterOptions options)
+    public TldTraceExporter(GenevaExporterOptions options)
     {
         Guard.ThrowIfNull(options);
         Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
@@ -165,7 +165,7 @@ internal sealed class TLDTraceExporter : TLDExporter, IDisposable
         }
         catch (Exception ex)
         {
-            ExporterEventSource.Log.ExporterException("TLDTraceExporter Dispose failed.", ex);
+            ExporterEventSource.Log.ExporterException("TldTraceExporter Dispose failed.", ex);
         }
 
         this.isDisposed = true;

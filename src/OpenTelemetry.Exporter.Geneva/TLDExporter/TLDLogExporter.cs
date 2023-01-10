@@ -1,4 +1,4 @@
-// <copyright file="TLDLogExporter.cs" company="OpenTelemetry Authors">
+// <copyright file="TldLogExporter.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,9 +25,9 @@ using OpenTelemetry.Exporter.Geneva.External;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 
-namespace OpenTelemetry.Exporter.Geneva.TLDExporter;
+namespace OpenTelemetry.Exporter.Geneva.TldExporter;
 
-internal sealed class TLDLogExporter : TLDExporter, IDisposable
+internal sealed class TldLogExporter : TldExporter, IDisposable
 {
     private const int MaxSanitizedEventNameLength = 50;
 
@@ -55,7 +55,7 @@ internal sealed class TLDLogExporter : TLDExporter, IDisposable
 
     private bool isDisposed;
 
-    public TLDLogExporter(GenevaExporterOptions options)
+    public TldLogExporter(GenevaExporterOptions options)
     {
         Guard.ThrowIfNull(options);
         Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
@@ -178,7 +178,7 @@ internal sealed class TLDLogExporter : TLDExporter, IDisposable
         }
         catch (Exception ex)
         {
-            ExporterEventSource.Log.ExporterException("TLDLogExporter Dispose failed.", ex);
+            ExporterEventSource.Log.ExporterException("TldLogExporter Dispose failed.", ex);
         }
 
         this.isDisposed = true;
@@ -500,7 +500,7 @@ internal sealed class TLDLogExporter : TLDExporter, IDisposable
         }
     }
 
-    private static readonly Action<LogRecordScope, TLDLogExporter> ProcessScopeForIndividualColumns = (scope, state) =>
+    private static readonly Action<LogRecordScope, TldLogExporter> ProcessScopeForIndividualColumns = (scope, state) =>
     {
         var stateData = state.serializationData.Value;
         var customFields = state.customFields;

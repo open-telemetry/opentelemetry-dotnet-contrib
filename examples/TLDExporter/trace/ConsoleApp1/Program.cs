@@ -30,7 +30,7 @@ public class Program
             .AddSource(Source.Name)
             .AddGenevaTraceExporter(options =>
             {
-                options.ConnectionString = "EtwSession=OpenTelemetry;UseTLD=true";
+                options.ConnectionString = "EtwSession=OpenTelemetry;PrivatePreviewEnableTraceLoggingDynamic=true";
                 options.CustomFields = new string[] { "foo", "bar", "keyValuePairs" };
                 options.PrepopulatedFields = new Dictionary<string, object>
                 {

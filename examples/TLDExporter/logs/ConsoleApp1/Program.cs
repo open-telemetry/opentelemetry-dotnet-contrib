@@ -26,7 +26,7 @@ public class Program
             loggerOptions.IncludeScopes = true;
             loggerOptions.AddGenevaLogExporter(exporterOptions =>
             {
-                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry;UseTLD=true";
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry;PrivatePreviewEnableTraceLoggingDynamic=true";
                 exporterOptions.CustomFields = new string[] { "food", "MyKey1" };
                 exporterOptions.PrepopulatedFields = new Dictionary<string, object>
                 {

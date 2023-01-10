@@ -1,4 +1,4 @@
-// <copyright file="TLDExporter.cs" company="OpenTelemetry Authors">
+// <copyright file="TldExporter.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,9 +21,9 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using OpenTelemetry.Exporter.Geneva.External;
 
-namespace OpenTelemetry.Exporter.Geneva.TLDExporter;
+namespace OpenTelemetry.Exporter.Geneva.TldExporter;
 
-internal abstract class TLDExporter
+internal abstract class TldExporter
 {
     internal const int StringLengthLimit = (1 << 14) - 1; // 16 * 1024 - 1 = 16383
     internal static readonly IReadOnlyDictionary<string, string> V40_PART_A_TLD_MAPPING = new Dictionary<string, string>
