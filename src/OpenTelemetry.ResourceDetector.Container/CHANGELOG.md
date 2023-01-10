@@ -6,7 +6,7 @@
   [`OpenTelemetry.ResourceDetector.Container`](https://www.nuget.org/packages/OpenTelemetry.ResourceDetector.Container).
   Older versions will remain at
   [`OpenTelemetry.Extensions.Docker`](https://www.nuget.org/packages/OpenTelemetry.Extensions.Docker)
-  [(#XXX)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXX)
+  [(#881)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/881)
 
   Migration:
 
