@@ -21,13 +21,13 @@ namespace OpenTelemetry.Logs;
 
 internal static class DefaultLogStateConverter
 {
-    public static void ConvertState(ActivityTagsCollection tags, IReadOnlyList<KeyValuePair<string, object>> state)
+    public static void ConvertState(ActivityTagsCollection tags, IReadOnlyList<KeyValuePair<string, object?>> state)
     {
         for (int i = 0; i < state.Count; i++)
         {
-            KeyValuePair<string, object> stateItem = state[i];
+            KeyValuePair<string, object?> stateItem = state[i];
 
-            object value = stateItem.Value;
+            object? value = stateItem.Value;
             if (value != null)
             {
                 if (string.IsNullOrEmpty(stateItem.Key))
@@ -46,9 +46,9 @@ internal static class DefaultLogStateConverter
     {
         string prefix = $"scope[{depth}]";
 
-        foreach (KeyValuePair<string, object> scopeItem in scope)
+        foreach (KeyValuePair<string, object?> scopeItem in scope)
         {
-            object value = scopeItem.Value;
+            object? value = scopeItem.Value;
             if (value != null)
             {
                 if (string.IsNullOrEmpty(scopeItem.Key))
