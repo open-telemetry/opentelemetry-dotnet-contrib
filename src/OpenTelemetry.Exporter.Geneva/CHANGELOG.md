@@ -5,6 +5,12 @@
 * Update OpenTelemetry to 1.4.0-rc.2
   ([#880](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/880))
 
+* Add TldTraceExporter and TldLogExporter. Use
+  `"PrivatePreviewEnableTraceLoggingDynamic=true"` in the connection string to
+  use these exporters.
+  ([#662](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/662))
+  ([#874](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/874))
+
 ## 1.4.0-rc.1
 
 Released 2022-Dec-19
