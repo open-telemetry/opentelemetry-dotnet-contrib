@@ -103,8 +103,8 @@ internal class ConnectionStringBuilder
                 // Checking Etw first, since it's preferred for Windows and enables fail fast on Linux
                 if (this._parts.ContainsKey(nameof(this.EtwSession)))
                 {
-                    _ = this._parts.TryGetValue(nameof(this.PrivatePreviewEnableTraceLoggingDynamic), out var useTld);
-                    if (useTld != null && useTld.ToUpperInvariant() == bool.TrueString.ToUpperInvariant())
+                    _ = this._parts.TryGetValue(nameof(this.PrivatePreviewEnableTraceLoggingDynamic), out var privatePreviewEnableTraceLoggingDynamic);
+                    if (privatePreviewEnableTraceLoggingDynamic != null && privatePreviewEnableTraceLoggingDynamic.ToUpperInvariant() == bool.TrueString.ToUpperInvariant())
                     {
                         return TransportProtocol.EtwTld;
                     }
