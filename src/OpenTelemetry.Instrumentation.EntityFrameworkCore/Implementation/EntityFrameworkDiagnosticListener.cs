@@ -23,9 +23,6 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 
 internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 {
-    /// <summary>
-    /// The default display name delegate.
-    /// </summary>
     internal const string DiagnosticSourceName = "Microsoft.EntityFrameworkCore";
 
     internal const string EntityFrameworkCoreCommandCreated = "Microsoft.EntityFrameworkCore.Database.Command.CommandCreated";
