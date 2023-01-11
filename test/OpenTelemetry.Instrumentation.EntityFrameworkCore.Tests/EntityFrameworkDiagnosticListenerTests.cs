@@ -74,15 +74,15 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     public void EntityFrameworkContextWithAlternativeDisplayName()
     {
         var activityProcessor = new Mock<BaseProcessor<Activity>>();
-        var altDisplayName = "AltName";
         using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
             .AddProcessor(activityProcessor.Object)
             .AddEntityFrameworkCoreInstrumentation(options =>
             {
-                options.EnrichWithIDbConnection = (activity1, _) =>
+                options.EnrichWithIDbConnection = (activity1, dbConnection) =>
                 {
-                    activity1.DisplayName = altDisplayName;
-                    activity1.SetTag("db.name", altDisplayName);
+                    var stateDisplayName = $"{dbConnection.State} main";
+                    activity1.DisplayName = stateDisplayName;
+                    activity1.SetTag("db.name", stateDisplayName);
                 };
             }).Build();
 
@@ -100,7 +100,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
 
-        VerifyActivityData(activity, altDisplayName: altDisplayName);
+        VerifyActivityData(activity, altDisplayName: $"Open main");
     }
 
     [Fact]
