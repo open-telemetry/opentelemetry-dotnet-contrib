@@ -26,7 +26,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
-using OpenTelemetry.Trace;
 using Xunit;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
