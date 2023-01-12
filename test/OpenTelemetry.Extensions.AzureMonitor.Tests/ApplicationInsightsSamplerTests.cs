@@ -27,11 +27,12 @@ public class ApplicationInsightsSamplerTests
     [Fact]
     public void VerifyHashAlgorithmCorrectness()
     {
-        byte[] testBytes = new byte[]
+        byte[] testBytes1 = new byte[]
         {
             0x8F, 0xFF, 0xFF, 0xFF,
             0xFF, 0xFF, 0xFF, 0xFF,
-            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
         };
         byte[] testBytes2 = new byte[]
         {
@@ -40,26 +41,26 @@ public class ApplicationInsightsSamplerTests
             0x8F, 0x9F, 0xAF, 0xBF,
             0xCF, 0xDF, 0xEF, 0xFF,
         };
-        ActivityTraceId testId = ActivityTraceId.CreateFromBytes(testBytes);
+        ActivityTraceId testId1 = ActivityTraceId.CreateFromBytes(testBytes1);
         ActivityTraceId testId2 = ActivityTraceId.CreateFromBytes(testBytes2);
 
-        ActivityContext parentContext = default(ActivityContext);
-        SamplingParameters testParams = new SamplingParameters(parentContext, testId, "TestActivity", ActivityKind.Internal);
+        ActivityContext parentContext = default;
+        SamplingParameters testParams1 = new SamplingParameters(parentContext, testId1, "TestActivity", ActivityKind.Internal);
         SamplingParameters testParams2 = new SamplingParameters(parentContext, testId2, "TestActivity", ActivityKind.Internal);
 
-        var zeroSampler = new ApplicationInsightsSampler(0);
-        ApplicationInsightsSampler oneSampler = new ApplicationInsightsSampler(1);
-
-        // 0.86 is below the sample score for testId1, but strict enough to drop testId2
-        ApplicationInsightsSampler ratioSampler = new ApplicationInsightsSampler(0.86f);
-
-        Assert.Equal(SamplingDecision.Drop, zeroSampler.ShouldSample(testParams).Decision);
+        // Verify sample ratio: 0
+        ApplicationInsightsSampler zeroSampler = new ApplicationInsightsSampler(0);
+        Assert.Equal(SamplingDecision.Drop, zeroSampler.ShouldSample(testParams1).Decision);
         Assert.Equal(SamplingDecision.Drop, zeroSampler.ShouldSample(testParams2).Decision);
 
-        Assert.Equal(SamplingDecision.RecordAndSample, oneSampler.ShouldSample(testParams).Decision);
+        // Verify sample ratio: 1
+        ApplicationInsightsSampler oneSampler = new ApplicationInsightsSampler(1);
+        Assert.Equal(SamplingDecision.RecordAndSample, oneSampler.ShouldSample(testParams1).Decision);
         Assert.Equal(SamplingDecision.RecordAndSample, oneSampler.ShouldSample(testParams2).Decision);
 
-        Assert.Equal(SamplingDecision.Drop, ratioSampler.ShouldSample(testParams).Decision);
+        // 0.5 is below the sample score for testId1, but strict enough to drop testId2
+        ApplicationInsightsSampler ratioSampler = new ApplicationInsightsSampler(0.5f);
+        Assert.Equal(SamplingDecision.Drop, ratioSampler.ShouldSample(testParams1).Decision);
         Assert.Equal(SamplingDecision.RecordAndSample, ratioSampler.ShouldSample(testParams2).Decision);
     }
 
