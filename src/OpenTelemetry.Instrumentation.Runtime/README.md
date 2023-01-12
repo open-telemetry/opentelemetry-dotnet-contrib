@@ -49,9 +49,9 @@ to the application.
 Number of garbage collections that have occurred since process start.
 
 Note: Collecting a generation means collecting objects in that generation and all
-its younger generations. However, each dimension for this metrics doesn't include
-the collection counts for the lower generation.
-e.g. count for gen1 is `GC.CollectionCount(1) - GC.CollectionCount(0)`.
+its younger generations. However, each dimension for this metric doesn't include
+the counts for collections triggered by higher generations.
+e.g. count for gen1 is `GC.CollectionCount(1) - GC.CollectionCount(2)`.
 
 | Units           | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |-----------------|-------------------|------------|------------------|------------------|
