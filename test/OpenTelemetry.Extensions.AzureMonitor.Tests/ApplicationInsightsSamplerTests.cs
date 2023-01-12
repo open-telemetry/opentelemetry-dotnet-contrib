@@ -27,14 +27,14 @@ public class ApplicationInsightsSamplerTests
     [Fact]
     public void VerifyHashAlgorithmCorrectness()
     {
-        byte[] testBytes1 = new byte[]
+        byte[] testBytes1 = new byte[] // hex string: 8fffffffffffffff0000000000000000
         {
             0x8F, 0xFF, 0xFF, 0xFF,
             0xFF, 0xFF, 0xFF, 0xFF,
             0, 0, 0, 0,
             0, 0, 0, 0,
         };
-        byte[] testBytes2 = new byte[]
+        byte[] testBytes2 = new byte[] // hex string: 0f1f2f3f4f5f6f7f8f9fafbfcfdfefff
         {
             0x0F, 0x1F, 0x2F, 0x3F,
             0x4F, 0x5F, 0x6F, 0x7F,
@@ -58,7 +58,8 @@ public class ApplicationInsightsSamplerTests
         Assert.Equal(SamplingDecision.RecordAndSample, oneSampler.ShouldSample(testParams1).Decision);
         Assert.Equal(SamplingDecision.RecordAndSample, oneSampler.ShouldSample(testParams2).Decision);
 
-        // 0.5 is below the sample score for testId2, but strict enough to drop testId1
+        // Verify sample ratio: 0.5.
+        // This is below the sample score for testId2, but strict enough to drop testId1
         ApplicationInsightsSampler ratioSampler = new ApplicationInsightsSampler(samplingRatio: 0.5f);
         Assert.Equal(SamplingDecision.Drop, ratioSampler.ShouldSample(testParams1).Decision);
         Assert.Equal(SamplingDecision.RecordAndSample, ratioSampler.ShouldSample(testParams2).Decision);
