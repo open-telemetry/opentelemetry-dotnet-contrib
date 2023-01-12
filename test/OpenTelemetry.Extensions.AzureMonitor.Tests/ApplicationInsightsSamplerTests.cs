@@ -58,7 +58,7 @@ public class ApplicationInsightsSamplerTests
         Assert.Equal(SamplingDecision.RecordAndSample, oneSampler.ShouldSample(testParams1).Decision);
         Assert.Equal(SamplingDecision.RecordAndSample, oneSampler.ShouldSample(testParams2).Decision);
 
-        // 0.5 is below the sample score for testId1, but strict enough to drop testId2
+        // 0.5 is below the sample score for testId2, but strict enough to drop testId1
         ApplicationInsightsSampler ratioSampler = new ApplicationInsightsSampler(0.5f);
         Assert.Equal(SamplingDecision.Drop, ratioSampler.ShouldSample(testParams1).Decision);
         Assert.Equal(SamplingDecision.RecordAndSample, ratioSampler.ShouldSample(testParams2).Decision);
