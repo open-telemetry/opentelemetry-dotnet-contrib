@@ -33,7 +33,7 @@ public static class MeterProviderBuilderExtensions
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
     public static MeterProviderBuilder AddRuntimeInstrumentation(
         this MeterProviderBuilder builder,
-        Action<RuntimeInstrumentationOptions> configure = null)
+        Action<RuntimeInstrumentationOptions>? configure = null)
     {
         Guard.ThrowIfNull(builder);
 

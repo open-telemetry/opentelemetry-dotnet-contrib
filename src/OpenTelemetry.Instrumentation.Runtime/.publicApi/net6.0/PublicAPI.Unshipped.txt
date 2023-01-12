@@ -1,0 +1,3 @@
+#nullable enable
+*REMOVED*static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddRuntimeInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder? builder, System.Action<OpenTelemetry.Instrumentation.Runtime.RuntimeInstrumentationOptions?>? configure = null) -> OpenTelemetry.Metrics.MeterProviderBuilder?
+static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddRuntimeInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder! builder, System.Action<OpenTelemetry.Instrumentation.Runtime.RuntimeInstrumentationOptions!>? configure = null) -> OpenTelemetry.Metrics.MeterProviderBuilder!
