@@ -178,13 +178,14 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                     break;
                             }
                         }
+
                         try
                         {
                             this.options.EnrichWithIDbCommand?.Invoke(activity, command as IDbCommand);
                         }
                         catch (Exception ex)
                         {
-                            EntityFrameworkInstrumentationEventSource.Log.EnrichmentException("EntityFrameworkCoreCommandCreated", ex);
+                            EntityFrameworkInstrumentationEventSource.Log.EnrichmentException("EntityFrameworkCoreCommandExecuting", ex);
                         }
                     }
                 }
