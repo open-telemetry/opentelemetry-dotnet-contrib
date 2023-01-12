@@ -185,7 +185,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         }
                         catch (Exception ex)
                         {
-                            EntityFrameworkInstrumentationEventSource.Log.EnrichmentException("EntityFrameworkCoreCommandExecuting", ex);
+                            EntityFrameworkInstrumentationEventSource.Log.EnrichmentException(nameof(EntityFrameworkCoreCommandExecuting), ex);
                         }
                     }
                 }
