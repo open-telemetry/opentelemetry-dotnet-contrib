@@ -49,17 +49,17 @@ public class ApplicationInsightsSamplerTests
         SamplingParameters testParams2 = new SamplingParameters(parentContext, testId2, "TestActivity", ActivityKind.Internal);
 
         // Verify sample ratio: 0
-        ApplicationInsightsSampler zeroSampler = new ApplicationInsightsSampler(0);
+        ApplicationInsightsSampler zeroSampler = new ApplicationInsightsSampler(samplingRatio: 0);
         Assert.Equal(SamplingDecision.Drop, zeroSampler.ShouldSample(testParams1).Decision);
         Assert.Equal(SamplingDecision.Drop, zeroSampler.ShouldSample(testParams2).Decision);
 
         // Verify sample ratio: 1
-        ApplicationInsightsSampler oneSampler = new ApplicationInsightsSampler(1);
+        ApplicationInsightsSampler oneSampler = new ApplicationInsightsSampler(samplingRatio: 1);
         Assert.Equal(SamplingDecision.RecordAndSample, oneSampler.ShouldSample(testParams1).Decision);
         Assert.Equal(SamplingDecision.RecordAndSample, oneSampler.ShouldSample(testParams2).Decision);
 
         // 0.5 is below the sample score for testId2, but strict enough to drop testId1
-        ApplicationInsightsSampler ratioSampler = new ApplicationInsightsSampler(0.5f);
+        ApplicationInsightsSampler ratioSampler = new ApplicationInsightsSampler(samplingRatio: 0.5f);
         Assert.Equal(SamplingDecision.Drop, ratioSampler.ShouldSample(testParams1).Decision);
         Assert.Equal(SamplingDecision.RecordAndSample, ratioSampler.ShouldSample(testParams2).Decision);
     }
