@@ -98,11 +98,10 @@ public class QuartzDiagnosticListenerTests
 
         var activityProcessor = new Mock<BaseProcessor<Activity>>();
 
-        var jobDataMapPropertyFetcher = new PropertyFetcher<object>("JobDataMap");
         using var tel = Sdk.CreateTracerProviderBuilder()
             .SetSampler(new AlwaysOnSampler())
             .AddQuartzInstrumentation(q =>
-                q.Enrich = (a, s, payload) =>
+                q.Enrich = (a, _, payload) =>
                 {
                     if (payload is IJobDetail jobDetail)
                     {
@@ -225,7 +224,7 @@ public class QuartzDiagnosticListenerTests
             .AddQuartzInstrumentation(q =>
             {
                 q.RecordException = true;
-                q.Enrich = (a, s, p) =>
+                q.Enrich = (a, _, p) =>
                 {
                     if (p is IJobDetail jobDetail)
                     {
@@ -291,7 +290,7 @@ public class QuartzDiagnosticListenerTests
             .AddQuartzInstrumentation(q =>
             {
                 q.RecordException = true;
-                q.Enrich = (a, s, p) =>
+                q.Enrich = (_, s, _) =>
                 {
                     if (s.Equals("OnException"))
                     {
