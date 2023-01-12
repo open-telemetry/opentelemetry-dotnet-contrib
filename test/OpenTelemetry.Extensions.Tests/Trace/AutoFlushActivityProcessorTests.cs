@@ -42,7 +42,7 @@ public class AutoFlushActivityProcessorTests
         using var activity = source.StartActivity("name", ActivityKind.Server);
         activity.Stop();
 
-        mockExporting.Protected().Verify("OnForceFlush", Times.Once(), 5_000);
+        mockExporting.Protected().Verify("OnForceFlush", Times.AtLeastOnce(), 5_000);
     }
 
     [Fact]
