@@ -74,13 +74,16 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     public void EntityFrameworkContextWithAlternativeDisplayName()
     {
         var activityProcessor = new Mock<BaseProcessor<Activity>>();
+        var expectedCommand = "SELECT \"i\".\"Id\", \"i\".\"Name\"" +
+                              "\nFROM \"Item\" AS \"i\"" +
+                              "\nORDER BY \"i\".\"Name\" main";
         using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
             .AddProcessor(activityProcessor.Object)
             .AddEntityFrameworkCoreInstrumentation(options =>
             {
-                options.EnrichWithIDbConnection = (activity1, dbConnection) =>
+                options.EnrichWithIDbCommand = (activity1, command) =>
                 {
-                    var stateDisplayName = $"{dbConnection.State} main";
+                    var stateDisplayName = $"{command.CommandText} main";
                     activity1.DisplayName = stateDisplayName;
                     activity1.SetTag("db.name", stateDisplayName);
                 };
@@ -100,7 +103,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
 
-        VerifyActivityData(activity, altDisplayName: $"Open main");
+        VerifyActivityData(activity, altDisplayName: $"{expectedCommand}");
     }
 
     [Fact]

@@ -9,7 +9,7 @@
 `OpenTelemetry.Instrumentation.EntityFrameworkCore`
   [#486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/486)
 
-* Added support to `EnrichWithIDbConnection`
+* Added support to `EnrichWithIDbCommand`
   [#868](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/868)
 
 ## 1.0.0-beta.3

@@ -128,15 +128,6 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         {
                             activity.AddTag(AttributePeerService, dataSource);
                         }
-
-                        try
-                        {
-                            this.options.EnrichWithIDbConnection?.Invoke(activity, connection as IDbConnection);
-                        }
-                        catch (Exception ex)
-                        {
-                            EntityFrameworkInstrumentationEventSource.Log.EnrichmentException("EntityFrameworkCoreCommandCreated", ex);
-                        }
                     }
                 }
 
@@ -186,6 +177,14 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                     activity.AddTag(SpanAttributeConstants.DatabaseStatementTypeKey, nameof(CommandType.TableDirect));
                                     break;
                             }
+                        }
+                        try
+                        {
+                            this.options.EnrichWithIDbCommand?.Invoke(activity, command as IDbCommand);
+                        }
+                        catch (Exception ex)
+                        {
+                            EntityFrameworkInstrumentationEventSource.Log.EnrichmentException("EntityFrameworkCoreCommandCreated", ex);
                         }
                     }
                 }

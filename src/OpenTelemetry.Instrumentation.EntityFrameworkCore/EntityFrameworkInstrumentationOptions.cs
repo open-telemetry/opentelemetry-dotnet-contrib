@@ -41,7 +41,7 @@ public class EntityFrameworkInstrumentationOptions
     /// </summary>
     /// <remarks>
     /// <para><see cref="Activity"/>: the activity being enriched.</para>
-    /// <para><see cref="IDbConnection"/>: connection to allow access to contextual information.</para>
+    /// <para><see cref="IDbCommand"/>: db command to allow access to command.</para>
     /// </remarks>
-    public Action<Activity, IDbConnection> EnrichWithIDbConnection { get; set; }
+    public Action<Activity, IDbCommand> EnrichWithIDbCommand { get; set; }
 }
