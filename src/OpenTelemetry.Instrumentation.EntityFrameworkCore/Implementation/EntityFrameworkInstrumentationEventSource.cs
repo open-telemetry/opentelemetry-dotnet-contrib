@@ -36,6 +36,15 @@ internal class EntityFrameworkInstrumentationEventSource : EventSource
         }
     }
 
+    [NonEvent]
+    public void EnrichmentException(string eventName, Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        {
+            this.EnrichmentException(eventName, ex.ToInvariantString());
+        }
+    }
+
     [Event(1, Message = "Unknown error processing event '{1}' from handler '{0}', Exception: {2}", Level = EventLevel.Error)]
     public void UnknownErrorProcessingEvent(string handlerName, string eventName, string ex)
     {
@@ -60,21 +69,12 @@ internal class EntityFrameworkInstrumentationEventSource : EventSource
         this.WriteEvent(4, handlerName, eventName);
     }
 
-    [NonEvent]
-    public void EnrichmentException(string eventName, Exception ex)
-    {
-        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
-        {
-            this.EnrichmentException(eventName, ex.ToInvariantString());
-        }
-    }
-
     [Event(5, Message = "Enrichment threw exception. Exception {0}.", Level = EventLevel.Error)]
     private void EnrichmentException(string eventName, string exception)
     {
         if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
-            this.WriteEvent(5, eventName);
+            this.WriteEvent(5, eventName, exception);
         }
     }
 
