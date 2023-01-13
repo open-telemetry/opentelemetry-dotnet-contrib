@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Xunit;
@@ -106,44 +107,6 @@ public class TableNameSerializerTests
         Assert.Equal(2, tableNameSerializer.TableNameCache.Count);
     }
 
-    [Fact]
-    public void TableNameCacheTest()
-    {
-        var options = new GenevaExporterOptions
-        {
-            TableNameMappings = new Dictionary<string, string>()
-            {
-                ["*"] = "*",
-            },
-        };
-
-        var buffer = new byte[1024];
-
-        var tableNameSerializer = new TableNameSerializer(options, "DefaultLogs");
-
-        var numberOfCategoryNames = TableNameSerializer.MaxCachedSanitizedTableNames * 2;
-
-        for (int i = 0; i < numberOfCategoryNames; i++)
-        {
-            var categoryName = $"category.{i}-test";
-            var sanitizedCategoryName = $"Category{i}test";
-
-            for (int c = 0; c < 10; c++)
-            {
-                var bytesWritten = tableNameSerializer.ResolveAndSerializeTableNameForCategoryName(buffer, 0, categoryName, out var tableName);
-
-                Assert.Equal(sanitizedCategoryName.Length + 2, bytesWritten);
-                Assert.Equal(sanitizedCategoryName, tableName.ToString());
-            }
-        }
-
-        var tableNameCache = tableNameSerializer.TableNameCache;
-
-        Assert.NotNull(tableNameCache);
-        Assert.Equal(numberOfCategoryNames, tableNameCache.Count);
-        Assert.Equal(TableNameSerializer.MaxCachedSanitizedTableNames, tableNameCache.CachedSanitizedTableNameCount);
-    }
-
     private static void RunTableNameSerializerTest(string categoryName, string tableName, GenevaExporterOptions options)
     {
         var buffer = new byte[1024];
@@ -153,6 +116,7 @@ public class TableNameSerializerTests
         var bytesWritten = tableNameSerializer.ResolveAndSerializeTableNameForCategoryName(buffer, 0, categoryName, out var resolvedTableName);
 
         Assert.Equal(tableName.Length + 2, bytesWritten);
-        Assert.Equal(tableName, resolvedTableName.ToString());
+        Assert.Equal(tableName, resolvedTableName.Item1);
+        Assert.Equal(Encoding.ASCII.GetBytes(tableName), resolvedTableName.Item2.AsSpan().Slice(2).ToArray());
     }
 }

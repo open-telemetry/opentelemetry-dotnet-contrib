@@ -183,7 +183,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
         var categoryName = logRecord.CategoryName;
 
-        cursor = this.m_tableNameSerializer.ResolveAndSerializeTableNameForCategoryName(buffer, cursor, categoryName, out GenevaTableName eventName);
+        cursor = this.m_tableNameSerializer.ResolveAndSerializeTableNameForCategoryName(buffer, cursor, categoryName, out Tuple<string, byte[]> tableName);
 
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 1);
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 2);
@@ -204,7 +204,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         }
 
         // Part A - core envelope
-        cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, eventName.ToAsciiStr8());
+        cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, tableName.Item2.AsSpan());
 
         cntFields += 1;
 
@@ -244,7 +244,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, categoryName);
         cntFields += 1;
 
-        var columnNames = this.m_tableColumnNameResolver?.ResolveColumnNamesForTableName(in eventName)
+        var columnNames = this.m_tableColumnNameResolver?.ResolveColumnNamesForTableName(tableName.Item1)
             ?? this.m_defaultColumnNames;
 
         bool hasEnvProperties = false;

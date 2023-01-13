@@ -1395,17 +1395,15 @@ public class GenevaLogExporterTests
     {
         public const string TestTableName = "TestTable";
 
-        private readonly byte[] testTableName = Encoding.ASCII.GetBytes(TestTableName);
-
         private readonly ISet<string> testColumnNames = new HashSet<string>
         {
             "food",
             "price",
         };
 
-        public ISet<string> ResolveColumnNamesForTableName(in GenevaTableName tableName)
+        public ISet<string> ResolveColumnNamesForTableName(string tableName)
         {
-            if (tableName.ToAsciiBytes().SequenceEqual(this.testTableName))
+            if (tableName.Equals(TestTableName, StringComparison.OrdinalIgnoreCase))
             {
                 return this.testColumnNames;
             }

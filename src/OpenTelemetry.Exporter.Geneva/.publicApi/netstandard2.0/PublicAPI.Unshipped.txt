@@ -5,9 +5,5 @@ OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.ExceptionStackExportMode.get
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.ExceptionStackExportMode.set -> void
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.TableColumnNameResolver.get -> OpenTelemetry.Exporter.Geneva.IGenevaTableColumnNameResolver
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.TableColumnNameResolver.set -> void
-OpenTelemetry.Exporter.Geneva.GenevaTableName
-OpenTelemetry.Exporter.Geneva.GenevaTableName.GenevaTableName() -> void
-OpenTelemetry.Exporter.Geneva.GenevaTableName.ToAsciiBytes() -> System.ReadOnlySpan<byte>
 OpenTelemetry.Exporter.Geneva.IGenevaTableColumnNameResolver
-OpenTelemetry.Exporter.Geneva.IGenevaTableColumnNameResolver.ResolveColumnNamesForTableName(in OpenTelemetry.Exporter.Geneva.GenevaTableName tableName) -> System.Collections.Generic.ISet<string>
-override OpenTelemetry.Exporter.Geneva.GenevaTableName.ToString() -> string
+OpenTelemetry.Exporter.Geneva.IGenevaTableColumnNameResolver.ResolveColumnNamesForTableName(string tableName) -> System.Collections.Generic.ISet<string>

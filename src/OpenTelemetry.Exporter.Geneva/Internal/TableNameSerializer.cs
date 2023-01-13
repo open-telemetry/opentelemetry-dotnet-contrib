@@ -26,24 +26,19 @@ internal sealed class TableNameSerializer
 {
     public const int MaxSanitizedCategoryNameLength = 50;
     public const int MaxSanitizedCategoryNameBytes = MaxSanitizedCategoryNameLength + 2;
-    public const int MaxCachedSanitizedTableNames = 1024;
     private const StringComparison DictionaryKeyComparison = StringComparison.Ordinal;
 
-#pragma warning disable CA1825 // Avoid zero-length array allocations
-    /* Note: We don't use Array.Empty<byte> here because that is used to
-    indicate an invalid name. We need a different instance to trigger the
-    pass-through case. */
-    private static readonly byte[] s_passthroughTableName = new byte[0];
-#pragma warning restore CA1825 // Avoid zero-length array allocations
+    private static readonly Tuple<string, byte[]> s_passthroughTableName = new("*", Array.Empty<byte>());
+    private static readonly Tuple<string, byte[]> s_invalidTableName = new(string.Empty, Array.Empty<byte>());
     private static readonly StringComparer s_dictionaryKeyComparer = StringComparer.Ordinal;
 
-    private readonly byte[] m_defaultTableName;
-    private readonly Dictionary<string, byte[]> m_tableMappings;
+    private readonly Tuple<string, byte[]> m_defaultTableName;
+    private readonly Dictionary<string, Tuple<string, byte[]>> m_tableMappings;
     private readonly bool m_shouldPassThruTableMappings;
     private readonly object m_lockObject = new();
-    private TableNameCacheDictionary m_tableNameCache = new();
+    private Dictionary<string, Tuple<string, byte[]>> m_tableNameCache = new(s_dictionaryKeyComparer);
 
-    public ITableNameCacheDictionary TableNameCache => this.m_tableNameCache;
+    public IReadOnlyDictionary<string, Tuple<string, byte[]>> TableNameCache => this.m_tableNameCache;
 
     public TableNameSerializer(GenevaExporterOptions options, string defaultTableName)
     {
@@ -51,11 +46,11 @@ internal sealed class TableNameSerializer
         Debug.Assert(!string.IsNullOrWhiteSpace(defaultTableName), "defaultEventName was null or whitespace");
         Debug.Assert(IsValidTableName(defaultTableName), "defaultEventName was invalid");
 
-        this.m_defaultTableName = BuildStr8BufferForAsciiString(defaultTableName);
+        this.m_defaultTableName = new(defaultTableName, BuildStr8BufferForAsciiString(defaultTableName));
 
         if (options.TableNameMappings != null)
         {
-            var tempTableMappings = new Dictionary<string, byte[]>(options.TableNameMappings.Count, s_dictionaryKeyComparer);
+            var tempTableMappings = new Dictionary<string, Tuple<string, byte[]>>(options.TableNameMappings.Count, s_dictionaryKeyComparer);
             foreach (var kv in options.TableNameMappings)
             {
                 if (kv.Key == "*")
@@ -66,7 +61,7 @@ internal sealed class TableNameSerializer
                     }
                     else
                     {
-                        this.m_defaultTableName = BuildStr8BufferForAsciiString(kv.Value);
+                        this.m_defaultTableName = new(kv.Value, BuildStr8BufferForAsciiString(kv.Value));
                     }
                 }
                 else if (kv.Value == "*")
@@ -75,7 +70,7 @@ internal sealed class TableNameSerializer
                 }
                 else
                 {
-                    tempTableMappings[kv.Key] = BuildStr8BufferForAsciiString(kv.Value);
+                    tempTableMappings[kv.Key] = new(kv.Value, BuildStr8BufferForAsciiString(kv.Value));
                 }
             }
 
@@ -123,24 +118,13 @@ internal sealed class TableNameSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int ResolveAndSerializeTableNameForCategoryName(byte[] destination, int offset, string categoryName, out GenevaTableName tableName)
+    public int ResolveAndSerializeTableNameForCategoryName(byte[] destination, int offset, string categoryName, out Tuple<string, byte[]> tableName)
     {
-        byte[] mappedTableName = this.ResolveTableMappingForCategoryName(categoryName);
+        tableName = this.ResolveTableMappingForCategoryName(categoryName);
 
-        if (mappedTableName == s_passthroughTableName)
-        {
-            // Pass-through mode with a full cache.
+        Debug.Assert(tableName != null, "tableName was null");
 
-            int bytesWritten = WriteSanitizedCategoryNameToSpan(new Span<byte>(destination, offset, MaxSanitizedCategoryNameBytes), categoryName);
-
-            tableName = new(new ReadOnlySpan<byte>(destination, offset, bytesWritten));
-
-            return offset + bytesWritten;
-        }
-
-        tableName = new(mappedTableName);
-
-        return MessagePackSerializer.SerializeSpan(destination, offset, mappedTableName);
+        return MessagePackSerializer.SerializeSpan(destination, offset, tableName.Item2);
     }
 
     private static byte[] BuildStr8BufferForAsciiString(string value)
@@ -209,11 +193,35 @@ internal sealed class TableNameSerializer
         return cursor;
     }
 
-    private byte[] ResolveTableMappingForCategoryName(string categoryName)
+    private static string ConvertSanitizedCategoryNameToString(byte[] tableName)
+    {
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        return string.Create(tableName.Length - 2, tableName, CreateString);
+
+        static void CreateString(Span<char> destination, byte[] source)
+        {
+            for (int i = 2, c = 0; i < source.Length; i++, c++)
+            {
+                destination[c] = (char)source[i];
+            }
+        }
+#else
+        char[] destination = new char[tableName.Length - 2];
+
+        for (int i = 2, c = 0; i < tableName.Length; i++, c++)
+        {
+            destination[c] = (char)tableName[i];
+        }
+
+        return new(destination);
+#endif
+    }
+
+    private Tuple<string, byte[]> ResolveTableMappingForCategoryName(string categoryName)
     {
         var tableNameCache = this.m_tableNameCache;
 
-        if (tableNameCache.TryGetValue(categoryName, out byte[] tableName))
+        if (tableNameCache.TryGetValue(categoryName, out Tuple<string, byte[]> tableName))
         {
             return tableName;
         }
@@ -221,9 +229,9 @@ internal sealed class TableNameSerializer
         return this.ResolveTableMappingForCategoryNameRare(categoryName);
     }
 
-    private byte[] ResolveTableMappingForCategoryNameRare(string categoryName)
+    private Tuple<string, byte[]> ResolveTableMappingForCategoryNameRare(string categoryName)
     {
-        byte[] mappedTableName = null;
+        Tuple<string, byte[]> mappedTableName = null;
 
         // If user configured table name mappings run resolution logic.
         if (this.m_tableMappings != null
@@ -267,9 +275,7 @@ internal sealed class TableNameSerializer
             }
             else
             {
-                // Note: When the table name could not be sanitized we cache
-                // the empty array NOT s_passthroughTableName.
-                mappedTableName = Array.Empty<byte>();
+                mappedTableName = s_invalidTableName;
             }
         }
 
@@ -279,21 +285,20 @@ internal sealed class TableNameSerializer
 
             // Check if another thread added the mapping while we waited on the
             // lock.
-            if (tableNameCache.TryGetValue(categoryName, out byte[] tableName))
+            if (tableNameCache.TryGetValue(categoryName, out Tuple<string, byte[]> tableName))
             {
                 return tableName;
             }
 
-            if (mappedTableName == s_passthroughTableName
-                && tableNameCache.CachedSanitizedTableNameCount < MaxCachedSanitizedTableNames)
+            if (mappedTableName == s_passthroughTableName)
             {
-                mappedTableName = sanitizedTableNameStorage.ToArray();
-                tableNameCache.CachedSanitizedTableNameCount++;
+                byte[] sanitizedTableName = sanitizedTableNameStorage.ToArray();
+                mappedTableName = new(ConvertSanitizedCategoryNameToString(sanitizedTableName), sanitizedTableName);
             }
 
             // Note: This is using copy-on-write pattern to keep the happy
             // path lockless once everything has spun up.
-            TableNameCacheDictionary newTableNameCache = new(tableNameCache)
+            Dictionary<string, Tuple<string, byte[]>> newTableNameCache = new(tableNameCache, s_dictionaryKeyComparer)
             {
                 [categoryName] = mappedTableName,
             };
@@ -302,27 +307,5 @@ internal sealed class TableNameSerializer
 
             return mappedTableName;
         }
-    }
-
-    // Note: This is used for tests.
-    public interface ITableNameCacheDictionary : IReadOnlyDictionary<string, byte[]>
-    {
-        int CachedSanitizedTableNameCount { get; }
-    }
-
-    private sealed class TableNameCacheDictionary : Dictionary<string, byte[]>, ITableNameCacheDictionary
-    {
-        public TableNameCacheDictionary()
-            : base(0, s_dictionaryKeyComparer)
-        {
-        }
-
-        public TableNameCacheDictionary(TableNameCacheDictionary sourceCache)
-            : base(sourceCache, s_dictionaryKeyComparer)
-        {
-            this.CachedSanitizedTableNameCount = sourceCache.CachedSanitizedTableNameCount;
-        }
-
-        public int CachedSanitizedTableNameCount { get; set; }
     }
 }

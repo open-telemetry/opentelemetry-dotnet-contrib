@@ -29,5 +29,5 @@ public interface IGenevaTableColumnNameResolver
     /// <param name="tableName">Table name.</param>
     /// <returns>The set of column names for the given table or <see
     /// langword="null"/> to fallback to the default behavior.</returns>
-    ISet<string> ResolveColumnNamesForTableName(in GenevaTableName tableName);
+    ISet<string> ResolveColumnNamesForTableName(string tableName);
 }
