@@ -24,7 +24,7 @@ namespace OpenTelemetry.Extensions.AzureMonitor.Tests;
 
 public class ApplicationInsightsSamplerTests
 {
-    [Fact(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/891")]
+    [Fact]
     public void VerifyHashAlgorithmCorrectness()
     {
         byte[] testBytes1 = new byte[] // hex string: 8fffffffffffffff0000000000000000
