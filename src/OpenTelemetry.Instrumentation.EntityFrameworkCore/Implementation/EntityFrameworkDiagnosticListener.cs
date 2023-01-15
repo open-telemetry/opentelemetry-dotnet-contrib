@@ -113,15 +113,15 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 activity.AddTag(AttributeDbSystem, "mysql");
                                 break;
                             case "Npgsql.EntityFrameworkCore.PostgreSQL":
+                            case "Devart.Data.PostgreSql.EFCore":
                                 activity.AddTag(AttributeDbSystem, "postgresql");
                                 break;
                             case "Oracle.EntityFrameworkCore":
                             case "Devart.Data.Oracle.EFCore":
-                            case "Devart.Data.PostgreSql.EFCore":
                                 activity.AddTag(AttributeDbSystem, "oracle");
                                 break;
                             case "Microsoft.EntityFrameworkCore.InMemory":
-                                activity.AddTag(AttributeDbSystem, "efcore-in-memory");
+                                activity.AddTag(AttributeDbSystem, "efcore_in_memory");
                                 break;
                             case "FirebirdSql.EntityFrameworkCore.Firebird":
                                 activity.AddTag(AttributeDbSystem, "firebird");
@@ -131,25 +131,24 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 break;
                             case "EntityFrameworkCore.SqlServerCompact35":
                             case "EntityFrameworkCore.SqlServerCompact40":
-                                activity.AddTag(AttributeDbSystem, "sqlserver-compact");
+                                activity.AddTag(AttributeDbSystem, "mssql_compact");
                                 break;
                             case "EntityFrameworkCore.OpenEdge":
                                 activity.AddTag(AttributeDbSystem, "openedge");
-                                break;
-                            case "IBM.EntityFrameworkCore":
-                            case "IBM.EntityFrameworkCore-lnx":
-                            case "IBM.EntityFrameworkCore-osx":
-                                //outstanding questions
-                                activity.AddTag(AttributeDbSystem, "db2-or-informix");
                                 break;
                             case "EntityFrameworkCore.Jet":
                                 activity.AddTag(AttributeDbSystem, "jet");
                                 break;
                             case "Google.Cloud.EntityFrameworkCore.Spanner":
-                                activity.AddTag(AttributeDbSystem, "gcp-spanner");
+                                activity.AddTag(AttributeDbSystem, "gcp_spanner");
                                 break;
                             case "Teradata.EntityFrameworkCore":
                                 activity.AddTag(AttributeDbSystem, "teradata");
+                                break;
+                            case "IBM.EntityFrameworkCore":
+                            case "IBM.EntityFrameworkCore-lnx":
+                            case "IBM.EntityFrameworkCore-osx":
+                                activity.AddTag(AttributeDbSystem, "ibmdb");
                                 break;
                             default:
                                 activity.AddTag(AttributeDbSystem, "other_sql");
