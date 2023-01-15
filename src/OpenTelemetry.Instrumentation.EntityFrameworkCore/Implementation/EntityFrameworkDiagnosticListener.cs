@@ -148,7 +148,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             case "IBM.EntityFrameworkCore":
                             case "IBM.EntityFrameworkCore-lnx":
                             case "IBM.EntityFrameworkCore-osx":
-                                activity.AddTag(AttributeDbSystem, "ibmdb");
+                                activity.AddTag(AttributeDbSystem, "ibm");
                                 break;
                             default:
                                 activity.AddTag(AttributeDbSystem, "other_sql");
