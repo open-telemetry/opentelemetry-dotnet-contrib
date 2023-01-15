@@ -11,6 +11,9 @@
 
 * Added support to `EnrichWithIDbCommand`
   [#868](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/868)
+* Map missing dbs to system.db:
+`OpenTelemetry.Instrumentation.EntityFrameworkCore`
+  [#898](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/898)
 
 ## 1.0.0-beta.3
 
