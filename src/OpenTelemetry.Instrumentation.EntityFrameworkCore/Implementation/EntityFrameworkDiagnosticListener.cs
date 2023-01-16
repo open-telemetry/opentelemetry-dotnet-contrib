@@ -131,7 +131,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 break;
                             case "EntityFrameworkCore.SqlServerCompact35":
                             case "EntityFrameworkCore.SqlServerCompact40":
-                                activity.AddTag(AttributeDbSystem, "mssql_compact");
+                                activity.AddTag(AttributeDbSystem, "mssqlcompact");
                                 break;
                             case "EntityFrameworkCore.OpenEdge":
                                 activity.AddTag(AttributeDbSystem, "openedge");
@@ -140,7 +140,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 activity.AddTag(AttributeDbSystem, "jet");
                                 break;
                             case "Google.Cloud.EntityFrameworkCore.Spanner":
-                                activity.AddTag(AttributeDbSystem, "gcp_spanner");
+                                activity.AddTag(AttributeDbSystem, "spanner");
                                 break;
                             case "Teradata.EntityFrameworkCore":
                                 activity.AddTag(AttributeDbSystem, "teradata");
