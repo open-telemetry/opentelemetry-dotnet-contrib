@@ -103,7 +103,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
 
-        VerifyActivityData(activity, altDisplayName: $"{expectedCommand}");
+        VerifyActivityData(activity, altDisplayName: $"{expectedCommand.Replace("\r\n", "\n")}");
     }
 
     [Fact]
