@@ -70,7 +70,7 @@ internal class EntityFrameworkInstrumentationEventSource : EventSource
     }
 
     [Event(5, Message = "Enrichment threw exception. Exception {0}.", Level = EventLevel.Error)]
-    private void EnrichmentException(string eventName, string exception)
+    public void EnrichmentException(string eventName, string exception)
     {
         if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
