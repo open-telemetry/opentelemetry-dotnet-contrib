@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Update OpenTelemetry to 1.4.0-rc.2
+  ([#880](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/880))
+
 ## 1.4.0-rc.1
 
 Released 2022-Dec-19
@@ -27,6 +30,11 @@ Released 2022-Dec-09
   ([#805](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/805))
 * Fix EventSource logging.
   ([#813](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/813))
+* Update `MessagePackSerializer` to use
+  [BinaryPrimitives](https://learn.microsoft.com/dotnet/api/system.buffers.binary.binaryprimitives)
+  to serialize scalar types more efficiently by avoiding repeated bound checks.
+  Add support for serializing `ISpanFormattable` types.
+  ([#803](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/803))
 
 ## 1.4.0-beta.5
 

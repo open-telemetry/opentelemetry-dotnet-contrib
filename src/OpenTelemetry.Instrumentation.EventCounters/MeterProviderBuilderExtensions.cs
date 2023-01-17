@@ -33,7 +33,7 @@ public static class MeterProviderBuilderExtensions
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
     public static MeterProviderBuilder AddEventCountersInstrumentation(
         this MeterProviderBuilder builder,
-        Action<EventCountersInstrumentationOptions> configure = null)
+        Action<EventCountersInstrumentationOptions>? configure = null)
     {
         Guard.ThrowIfNull(builder);
 
