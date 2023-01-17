@@ -7,6 +7,16 @@ Automatically instruments
 [DiagnosticSource](https://masstransit-project.com/advanced/monitoring/diagnostic-source.html)
 events emitted by [MassTransit](https://masstransit-project.com/) library.
 
+## Deprecated
+
+> **NOTE that this only works with MassTransit v7 (and earlier, where supported)**.
+> MassTransit v8.0.0 and later have built-in direct support for Open Telemetry
+> via `ActivitySource`.
+
+To instrument MassTransit v8.0.0+ you need to configure the OpenTelemetry SDK
+to listen to the `ActivitySource` used by the library by calling
+`AddSource("MassTransit")` on the `TracerProviderBuilder`.
+
 ## Installation
 
 ```shell
