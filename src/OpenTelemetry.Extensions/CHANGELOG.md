@@ -2,13 +2,15 @@
 
 ## Unreleased
 
-* Update OpenTelemetry to 1.4.0-rc.1 ([#820](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/820))
+* Update OpenTelemetry to 1.4.0-rc.2
+  ([#880](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/880))
 
 ## 1.0.0-beta.3
 
 Released 2022-Nov-09
 
-* Update OpenTelemetry to 1.4.0-beta.2 ([#680](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/680))
+* Update OpenTelemetry to 1.4.0-beta.2
+  ([#680](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/680))
 
 * Implemented auto flush activity processor
   ([#297](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/297))
