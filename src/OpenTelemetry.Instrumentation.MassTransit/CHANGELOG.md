@@ -1,12 +1,9 @@
 # Changelog
 
-## Unreleased
+## Deprecated
 
-* Update OTel SDK version to `1.3.1`.
-  ([#637](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/637))
-* Remove .NET Framework 4.6.1. The minimum .NET Framework version supported is
-  .NET Framework 4.6.2 (by .NET Standard 2.0).
-  ([#637](https://github.com/open-telemetry/opentelemetry-dotnet/issues/637))
+* This package is deprecated. Please check [README.md](README.md#deprecated)
+  for more details.
 
 ## 1.0.0-beta.3
 
