@@ -24,7 +24,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 using Xunit;
@@ -1080,6 +1079,32 @@ public class GenevaLogExporterTests
             catch
             {
             }
+        }
+    }
+
+    [Fact]
+    public void TLDLogExporter_Success_Windows()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+            .AddOpenTelemetry(loggerOptions =>
+            {
+                loggerOptions.AddGenevaLogExporter(exporterOptions =>
+                {
+                    exporterOptions.ConnectionString = "EtwSession=OpenTelemetry;PrivatePreviewEnableTraceLoggingDynamic=true";
+                    exporterOptions.PrepopulatedFields = new Dictionary<string, object>
+                    {
+                        ["cloud.role"] = "BusyWorker",
+                        ["cloud.roleInstance"] = "CY1SCH030021417",
+                        ["cloud.roleVer"] = "9.0.15289.2",
+                    };
+                });
+            }));
+
+            var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
+
+            logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
         }
     }
 

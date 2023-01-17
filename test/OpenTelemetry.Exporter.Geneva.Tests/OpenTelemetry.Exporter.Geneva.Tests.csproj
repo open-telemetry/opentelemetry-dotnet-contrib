@@ -13,7 +13,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="KaitaiStruct.Runtime.CSharp" Version="0.9.0" />
+    <PackageReference Include="KaitaiStruct.Runtime.CSharp" Version="0.10.0" />
     <PackageReference Include="MessagePack" Version="1.9.11" />
     <!--KaitaiStruct.Runtime.CSharp which is used to deserialize metrics data is not a strong-named assembly.
     StrongNamer signs any unsigned assemblies present in the project dependencies -->

@@ -15,6 +15,8 @@
 // </copyright>
 
 using System;
+using System.Runtime.InteropServices;
+using OpenTelemetry.Exporter.Geneva.TldExporter;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 
@@ -37,10 +39,38 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         Guard.ThrowIfNull(options);
         Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
-        var msgPackExporter = new MsgPackLogExporter(options);
-        this.SupportsBatching = msgPackExporter.SupportsBatching;
-        this.exportLogRecord = (in Batch<LogRecord> batch) => msgPackExporter.Export(in batch);
-        this.exporter = msgPackExporter;
+        bool useMsgPackExporter;
+        var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
+        switch (connectionStringBuilder.Protocol)
+        {
+            case TransportProtocol.EtwTld:
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    throw new ArgumentException("ETW/TLD cannot be used on non-Windows operating systems.");
+                }
+
+                useMsgPackExporter = false;
+                break;
+
+            default:
+                useMsgPackExporter = true;
+                break;
+        }
+
+        if (useMsgPackExporter)
+        {
+            var msgPackLogExporter = new MsgPackLogExporter(options);
+            this.SupportsBatching = msgPackLogExporter.SupportsBatching;
+            this.exportLogRecord = (in Batch<LogRecord> batch) => msgPackLogExporter.Export(in batch);
+            this.exporter = msgPackLogExporter;
+        }
+        else
+        {
+            var tldLogExporter = new TldLogExporter(options);
+            this.SupportsBatching = false;
+            this.exportLogRecord = (in Batch<LogRecord> batch) => tldLogExporter.Export(in batch);
+            this.exporter = tldLogExporter;
+        }
     }
 
     public override ExportResult Export(in Batch<LogRecord> batch)
