@@ -36,6 +36,13 @@ Released 2022-Dec-09
   Add support for serializing `ISpanFormattable` types.
   ([#803](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/803))
 
+## 1.3.1
+
+Released 2022-Dec-07
+
+* Fix the overflow bucket value serialization for Histogram.
+  ([#807](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/807))
+
 ## 1.4.0-beta.5
 
 Released 2022-Nov-21
