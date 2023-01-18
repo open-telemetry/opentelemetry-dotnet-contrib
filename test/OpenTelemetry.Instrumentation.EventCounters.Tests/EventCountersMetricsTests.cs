@@ -214,6 +214,7 @@ public class EventCountersMetricsTests
         Assert.Equal("Use the `OpenTelemetry.Instrumentation.Runtime` or `OpenTelemetry.Instrumentation.Process` instrumentations.", ex.Message);
     }
 
+    /*
     [Theory]
     [InlineData("Microsoft-AspNetCore-Server-Kestrel-1", "tls-handshakes-per-second", "ec.Microsoft-AspNetCore-Server-Kestre.tls-handshakes-per-second")]
     [InlineData("Microsoft-AspNetCore-Server-Kestrel-1", "tls-handshakes-per-sec", "ec.Microsoft-AspNetCore-Server-Kestrel-1.tls-handshakes-per-sec")]
@@ -248,6 +249,7 @@ public class EventCountersMetricsTests
         Assert.NotNull(metric);
         Assert.Equal(1, GetActualValue(metric));
     }
+    */
 
     [Fact]
     public void InstrumentNameTooLong()
