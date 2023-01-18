@@ -54,7 +54,15 @@ internal class MySqlDataInstrumentation : DefaultTraceListener
         var ctor = typeof(MySqlConnectionStringBuilder).GetConstructor(new[] { typeof(string), typeof(bool) });
         if (ctor == null)
         {
-            ctor = typeof(MySqlConnectionStringBuilder).GetConstructor(new[] { typeof(string) })!;
+            ctor = typeof(MySqlConnectionStringBuilder).GetConstructor(new[] { typeof(string) });
+            if (ctor == null)
+            {
+                MySqlDataInstrumentationEventSource.Log.ErrorInitialize(
+                    "Failed to get proper MySqlConnectionStringBuilder constructor, maybe unsupported Mysql.Data version. Connection Level Details will not be available.",
+                    string.Empty);
+                return;
+            }
+
             var p1 = Expression.Parameter(typeof(string), "connectionString");
             var newExpression = Expression.New(ctor, p1);
             var func = Expression.Lambda<Func<string, MySqlConnectionStringBuilder>>(newExpression, p1).Compile();
@@ -85,9 +93,13 @@ internal class MySqlDataInstrumentation : DefaultTraceListener
             {
                 case MySqlTraceEventType.ConnectionOpened:
                     // args: [driverId, connStr, threadId]
-                    var driverId = (long)args[0];
-                    var connStr = args[1].ToString();
-                    this.dbConn[driverId] = this.builderFactory(connStr);
+                    if (this.builderFactory != null)
+                    {
+                        var driverId = (long)args[0];
+                        var connStr = args[1].ToString();
+                        this.dbConn[driverId] = this.builderFactory(connStr);
+                    }
+
                     break;
                 case MySqlTraceEventType.ConnectionClosed:
                     break;
