@@ -44,7 +44,7 @@ internal static class AWSLambdaUtils
             return new[] { value };
         }
 
-        return new string[0];
+        return Array.Empty<string>();
     };
 
     internal static ActivityContext GetXRayParentContext()
