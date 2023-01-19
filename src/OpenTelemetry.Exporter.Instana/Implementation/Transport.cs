@@ -29,7 +29,6 @@ internal static class Transport
 {
     private const int MultiSpanBufferLimit = 4096000;
 
-    private static readonly InstanaSpanSerializer InstanaSpanSerializer = new InstanaSpanSerializer();
     private static readonly MediaTypeHeaderValue MEDIAHEADER = new MediaTypeHeaderValue("application/json");
 
     private static bool isConfigured;

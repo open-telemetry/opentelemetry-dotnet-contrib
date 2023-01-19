@@ -143,7 +143,9 @@ public static class AWSXRayIdGenerator
     /// <param name="buffer">An array of bytes to contain random numbers.</param>
     private static void NextBytes(byte[] buffer)
     {
+#pragma warning disable CA5394 // Do not use insecure randomness
         Global.NextBytes(buffer);
+#pragma warning restore CA5394 // Do not use insecure randomness
     }
 
     /// <summary>
@@ -153,7 +155,9 @@ public static class AWSXRayIdGenerator
     /// <returns>A 32-bit signed integer that is greater than or equal to 0, and less than maxValue.</returns>
     private static int Next(int maxValue)
     {
+#pragma warning disable CA5394 // Do not use insecure randomness
         return Global.Next(maxValue);
+#pragma warning restore CA5394 // Do not use insecure randomness
     }
 
     private static ActivitySamplingResult ComputeRootActivitySamplingResult(

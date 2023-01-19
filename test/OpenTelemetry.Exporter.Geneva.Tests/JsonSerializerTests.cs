@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Text;
 using OpenTelemetry.Exporter.Geneva.TldExporter;
@@ -81,7 +82,7 @@ public class JsonSerializerTests
     public void JsonSerializer_Array()
     {
         TestSerialization((object[])null, "null");
-        TestSerialization(new object[] { }, "[]");
+        TestSerialization(Array.Empty<object>(), "[]");
         TestSerialization(new object[] { 1, 2, 3 }, "[1,2,3]");
     }
 

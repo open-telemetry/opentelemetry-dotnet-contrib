@@ -37,10 +37,9 @@ public class TestAWSEBSResourceDetector
     [Fact]
     public void TestExtractResourceAttributes()
     {
-        var ebsResourceDetector = new AWSEBSResourceDetector();
         var sampleModel = new SampleAWSEBSMetadataModel();
 
-        var resourceAttributes = ebsResourceDetector.ExtractResourceAttributes(sampleModel).ToDictionary(x => x.Key, x => x.Value);
+        var resourceAttributes = AWSEBSResourceDetector.ExtractResourceAttributes(sampleModel).ToDictionary(x => x.Key, x => x.Value);
 
         Assert.Equal("aws", resourceAttributes[AWSSemanticConventions.AttributeCloudProvider]);
         Assert.Equal("aws_elastic_beanstalk", resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform]);
@@ -53,8 +52,7 @@ public class TestAWSEBSResourceDetector
     [Fact]
     public void TestGetEBSMetadata()
     {
-        var ebsResourceDetector = new AWSEBSResourceDetector();
-        var ebsMetadata = ebsResourceDetector.GetEBSMetadata(AWSEBSMetadataFilePath);
+        var ebsMetadata = AWSEBSResourceDetector.GetEBSMetadata(AWSEBSMetadataFilePath);
 
         Assert.Equal("1234567890", ebsMetadata.DeploymentId);
         Assert.Equal("Test AWS Elastic Beanstalk Environment Name", ebsMetadata.EnvironmentName);

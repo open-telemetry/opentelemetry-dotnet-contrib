@@ -36,16 +36,16 @@ public class AWSECSResourceDetector : IResourceDetector
     {
         List<KeyValuePair<string, object>> resourceAttributes = null;
 
-        if (!this.IsECSProcess())
+        if (!IsECSProcess())
         {
             return resourceAttributes;
         }
 
         try
         {
-            var containerId = this.GetECSContainerId(AWSECSMetadataPath);
+            var containerId = GetECSContainerId(AWSECSMetadataPath);
 
-            resourceAttributes = this.ExtractResourceAttributes(containerId);
+            resourceAttributes = ExtractResourceAttributes(containerId);
         }
         catch (Exception ex)
         {
@@ -55,7 +55,7 @@ public class AWSECSResourceDetector : IResourceDetector
         return resourceAttributes;
     }
 
-    internal List<KeyValuePair<string, object>> ExtractResourceAttributes(string containerId)
+    internal static List<KeyValuePair<string, object>> ExtractResourceAttributes(string containerId)
     {
         var resourceAttributes = new List<KeyValuePair<string, object>>()
         {
@@ -67,7 +67,7 @@ public class AWSECSResourceDetector : IResourceDetector
         return resourceAttributes;
     }
 
-    internal string GetECSContainerId(string path)
+    internal static string GetECSContainerId(string path)
     {
         string containerId = null;
 
@@ -87,7 +87,7 @@ public class AWSECSResourceDetector : IResourceDetector
         return containerId;
     }
 
-    internal bool IsECSProcess()
+    internal static bool IsECSProcess()
     {
         return Environment.GetEnvironmentVariable(AWSECSMetadataURLKey) != null || Environment.GetEnvironmentVariable(AWSECSMetadataURLV4Key) != null;
     }

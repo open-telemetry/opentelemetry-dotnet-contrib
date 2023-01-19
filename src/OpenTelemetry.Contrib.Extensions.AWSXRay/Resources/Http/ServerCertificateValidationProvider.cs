@@ -80,6 +80,22 @@ internal class ServerCertificateValidationProvider
         }
     }
 
+    private static bool HasCommonCertificate(X509Chain chain, X509Certificate2Collection collection)
+    {
+        foreach (var chainElement in chain.ChainElements)
+        {
+            foreach (var certificate in collection)
+            {
+                if (Enumerable.SequenceEqual(chainElement.Certificate.GetPublicKey(), certificate.GetPublicKey()))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     private bool ValidateCertificate(X509Certificate2 cert, X509Chain chain, SslPolicyErrors errors)
     {
         var isSslPolicyPassed = errors == SslPolicyErrors.None ||
@@ -119,7 +135,7 @@ internal class ServerCertificateValidationProvider
         }
 
         // check if at least one certificate in the chain is in our trust list
-        var isTrusted = this.HasCommonCertificate(chain, this.trustedCertificates);
+        var isTrusted = HasCommonCertificate(chain, this.trustedCertificates);
         if (!isTrusted)
         {
             var serverCertificates = string.Empty;
@@ -140,21 +156,5 @@ internal class ServerCertificateValidationProvider
         }
 
         return isSslPolicyPassed && isValidChain && isTrusted;
-    }
-
-    private bool HasCommonCertificate(X509Chain chain, X509Certificate2Collection collection)
-    {
-        foreach (var chainElement in chain.ChainElements)
-        {
-            foreach (var certificate in collection)
-            {
-                if (Enumerable.SequenceEqual(chainElement.Certificate.GetPublicKey(), certificate.GetPublicKey()))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 }

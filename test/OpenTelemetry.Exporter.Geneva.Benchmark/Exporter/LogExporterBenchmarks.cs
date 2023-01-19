@@ -102,7 +102,7 @@ public class LogExporterBenchmarks
     [Benchmark]
     public void LoggerWithMessageTemplate()
     {
-        this.logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+        this.logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
     }
 
     [Benchmark]
@@ -158,7 +158,7 @@ public class LogExporterBenchmarks
             }));
 
         var logger = factory.CreateLogger("TestLogger");
-        logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+        logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
         return items[0];
     }
 
@@ -173,7 +173,7 @@ public class LogExporterBenchmarks
             }));
 
         var logger = factory.CreateLogger("TestLogger");
-        logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+        logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
         return batchGeneratorExporter.Batch;
     }
 

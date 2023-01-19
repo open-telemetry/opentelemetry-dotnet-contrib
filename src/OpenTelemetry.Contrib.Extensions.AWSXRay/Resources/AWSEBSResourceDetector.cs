@@ -57,9 +57,9 @@ public class AWSEBSResourceDetector : IResourceDetector
             filePath = AWSEBSMetadataWindowsFilePath;
 #endif
 
-            var metadata = this.GetEBSMetadata(filePath);
+            var metadata = GetEBSMetadata(filePath);
 
-            resourceAttributes = this.ExtractResourceAttributes(metadata);
+            resourceAttributes = ExtractResourceAttributes(metadata);
         }
         catch (Exception ex)
         {
@@ -69,7 +69,7 @@ public class AWSEBSResourceDetector : IResourceDetector
         return resourceAttributes;
     }
 
-    internal List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEBSMetadataModel metadata)
+    internal static List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEBSMetadataModel metadata)
     {
         var resourceAttributes = new List<KeyValuePair<string, object>>()
         {
@@ -84,7 +84,7 @@ public class AWSEBSResourceDetector : IResourceDetector
         return resourceAttributes;
     }
 
-    internal AWSEBSMetadataModel GetEBSMetadata(string filePath)
+    internal static AWSEBSMetadataModel GetEBSMetadata(string filePath)
     {
         return ResourceDetectorUtils.DeserializeFromFile<AWSEBSMetadataModel>(filePath);
     }

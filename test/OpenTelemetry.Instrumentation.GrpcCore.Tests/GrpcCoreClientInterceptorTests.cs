@@ -35,7 +35,7 @@ public class GrpcCoreClientInterceptorTests
     /// <summary>
     /// A bogus server uri.
     /// </summary>
-    private static readonly string BogusServerUri = "dns:i.dont.exist:77923";
+    private const string BogusServerUri = "dns:i.dont.exist:77923";
 
     /// <summary>
     /// The default metadata func.
@@ -49,7 +49,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task AsyncUnarySuccess()
     {
-        await this.TestHandlerSuccess(FoobarService.MakeUnaryAsyncRequest, DefaultMetadataFunc()).ConfigureAwait(false);
+        await TestHandlerSuccess(FoobarService.MakeUnaryAsyncRequest, DefaultMetadataFunc()).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -59,7 +59,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task AsyncUnaryUnavailable()
     {
-        await this.TestHandlerFailure(
+        await TestHandlerFailure(
             FoobarService.MakeUnaryAsyncRequest,
             StatusCode.Unavailable,
             validateErrorDescription: false,
@@ -73,7 +73,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task AsyncUnaryFail()
     {
-        await this.TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest).ConfigureAwait(false);
+        await TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -97,7 +97,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task ClientStreamingSuccess()
     {
-        await this.TestHandlerSuccess(FoobarService.MakeClientStreamingRequest, DefaultMetadataFunc()).ConfigureAwait(false);
+        await TestHandlerSuccess(FoobarService.MakeClientStreamingRequest, DefaultMetadataFunc()).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -107,7 +107,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task ClientStreamingUnavailable()
     {
-        await this.TestHandlerFailure(
+        await TestHandlerFailure(
             FoobarService.MakeClientStreamingRequest,
             StatusCode.Unavailable,
             validateErrorDescription: false,
@@ -121,7 +121,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task ClientStreamingFail()
     {
-        await this.TestHandlerFailure(FoobarService.MakeClientStreamingRequest).ConfigureAwait(false);
+        await TestHandlerFailure(FoobarService.MakeClientStreamingRequest).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -145,7 +145,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task ServerStreamingSuccess()
     {
-        await this.TestHandlerSuccess(FoobarService.MakeServerStreamingRequest, DefaultMetadataFunc()).ConfigureAwait(false);
+        await TestHandlerSuccess(FoobarService.MakeServerStreamingRequest, DefaultMetadataFunc()).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -155,7 +155,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task ServerStreamingFail()
     {
-        await this.TestHandlerFailure(FoobarService.MakeServerStreamingRequest).ConfigureAwait(false);
+        await TestHandlerFailure(FoobarService.MakeServerStreamingRequest).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -179,7 +179,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task DuplexStreamingSuccess()
     {
-        await this.TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest, DefaultMetadataFunc()).ConfigureAwait(false);
+        await TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest, DefaultMetadataFunc()).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -189,7 +189,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task DuplexStreamingUnavailable()
     {
-        await this.TestHandlerFailure(
+        await TestHandlerFailure(
             FoobarService.MakeDuplexStreamingRequest,
             StatusCode.Unavailable,
             validateErrorDescription: false,
@@ -203,7 +203,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task DuplexStreamingFail()
     {
-        await this.TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest).ConfigureAwait(false);
+        await TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -376,7 +376,7 @@ public class GrpcCoreClientInterceptorTests
     /// <param name="clientRequestFunc">The client request function.</param>
     /// <param name="additionalMetadata">The additional metadata, if any.</param>
     /// <returns>A Task.</returns>
-    private async Task TestHandlerSuccess(Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc, Metadata additionalMetadata)
+    private static async Task TestHandlerSuccess(Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc, Metadata additionalMetadata)
     {
         var mockPropagator = new Mock<TextMapPropagator>();
         PropagationContext capturedPropagationContext = default;
@@ -482,7 +482,7 @@ public class GrpcCoreClientInterceptorTests
     /// <returns>
     /// A Task.
     /// </returns>
-    private async Task TestHandlerFailure(
+    private static async Task TestHandlerFailure(
         Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc,
         StatusCode statusCode = StatusCode.ResourceExhausted,
         bool validateErrorDescription = true,

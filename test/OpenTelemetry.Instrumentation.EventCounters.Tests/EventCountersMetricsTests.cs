@@ -278,8 +278,8 @@ public class EventCountersMetricsTests
         // Assert
         foreach (var item in metricItems)
         {
-            Assert.False(item.Name.StartsWith("ec.source.ee"));
-            Assert.False(item.Name.StartsWith("ec.s.ee"));
+            Assert.False(item.Name.StartsWith("ec.source.ee", StringComparison.Ordinal));
+            Assert.False(item.Name.StartsWith("ec.s.ee", StringComparison.Ordinal));
         }
     }
 
