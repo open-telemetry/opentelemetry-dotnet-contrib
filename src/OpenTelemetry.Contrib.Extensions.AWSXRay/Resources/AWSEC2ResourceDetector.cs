@@ -41,11 +41,11 @@ public class AWSEC2ResourceDetector : IResourceDetector
 
         try
         {
-            var token = this.GetAWSEC2Token();
-            var identity = this.GetAWSEC2Identity(token);
-            var hostName = this.GetAWSEC2HostName(token);
+            var token = GetAWSEC2Token();
+            var identity = GetAWSEC2Identity(token);
+            var hostName = GetAWSEC2HostName(token);
 
-            resourceAttributes = this.ExtractResourceAttributes(identity, hostName);
+            resourceAttributes = ExtractResourceAttributes(identity, hostName);
         }
         catch (Exception ex)
         {
@@ -55,7 +55,7 @@ public class AWSEC2ResourceDetector : IResourceDetector
         return resourceAttributes;
     }
 
-    internal List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEC2IdentityDocumentModel identity, string hostName)
+    internal static List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEC2IdentityDocumentModel identity, string hostName)
     {
         var resourceAttributes = new List<KeyValuePair<string, object>>()
         {
@@ -72,30 +72,30 @@ public class AWSEC2ResourceDetector : IResourceDetector
         return resourceAttributes;
     }
 
-    internal AWSEC2IdentityDocumentModel DeserializeResponse(string response)
+    internal static AWSEC2IdentityDocumentModel DeserializeResponse(string response)
     {
         return ResourceDetectorUtils.DeserializeFromString<AWSEC2IdentityDocumentModel>(response);
     }
 
-    private string GetAWSEC2Token()
+    private static string GetAWSEC2Token()
     {
         return ResourceDetectorUtils.SendOutRequest(AWSEC2MetadataTokenUrl, "PUT", new KeyValuePair<string, string>(AWSEC2MetadataTokenTTLHeader, "60")).Result;
     }
 
-    private AWSEC2IdentityDocumentModel GetAWSEC2Identity(string token)
+    private static AWSEC2IdentityDocumentModel GetAWSEC2Identity(string token)
     {
-        var identity = this.GetIdentityResponse(token);
-        var identityDocument = this.DeserializeResponse(identity);
+        var identity = GetIdentityResponse(token);
+        var identityDocument = DeserializeResponse(identity);
 
         return identityDocument;
     }
 
-    private string GetIdentityResponse(string token)
+    private static string GetIdentityResponse(string token)
     {
         return ResourceDetectorUtils.SendOutRequest(AWSEC2IdentityDocumentUrl, "GET", new KeyValuePair<string, string>(AWSEC2MetadataTokenHeader, token)).Result;
     }
 
-    private string GetAWSEC2HostName(string token)
+    private static string GetAWSEC2HostName(string token)
     {
         return ResourceDetectorUtils.SendOutRequest(AWSEC2HostNameUrl, "GET", new KeyValuePair<string, string>(AWSEC2MetadataTokenHeader, token)).Result;
     }

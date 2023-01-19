@@ -41,6 +41,7 @@ public static class AWSXRayIdGenerator
 
     internal static void ReplaceTraceId(Sampler sampler = null)
     {
+#pragma warning disable CA2000 // Dispose objects before losing scope
         var awsXRayActivityListener = new ActivityListener
         {
             ActivityStarted = (activity) =>
@@ -63,6 +64,7 @@ public static class AWSXRayIdGenerator
 
             ShouldListenTo = (_) => true,
         };
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
         ActivitySource.AddActivityListener(awsXRayActivityListener);
     }

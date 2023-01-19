@@ -29,7 +29,9 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 public class AWSEBSResourceDetector : IResourceDetector
 {
     private const string AWSEBSMetadataWindowsFilePath = "C:\\Program Files\\Amazon\\XRay\\environment.conf";
+#if NETSTANDARD
     private const string AWSEBSMetadataLinuxFilePath = "/var/elasticbeanstalk/xray/environment.conf";
+#endif
 
     /// <summary>
     /// Detector the required and optional resource attributes from AWS ElasticBeanstalk.

@@ -27,7 +27,9 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 /// <summary>
 /// Class for resource detector utils.
 /// </summary>
+#pragma warning disable CA1052
 public class ResourceDetectorUtils
+#pragma warning restore CA1052
 {
     internal static async Task<string> SendOutRequest(string url, string method, KeyValuePair<string, string> header, HttpClientHandler handler = null)
     {
@@ -37,11 +39,13 @@ public class ResourceDetectorUtils
             httpRequestMessage.Method = new HttpMethod(method);
             httpRequestMessage.Headers.Add(header.Key, header.Value);
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
             var httpClient = handler == null ? new HttpClient() : new HttpClient(handler);
-            using (var response = await httpClient.SendAsync(httpRequestMessage))
+#pragma warning restore CA2000 // Dispose objects before losing scope
+            using (var response = await httpClient.SendAsync(httpRequestMessage).ConfigureAwait(false))
             {
                 response.EnsureSuccessStatusCode();
-                return await response.Content.ReadAsStringAsync();
+                return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             }
         }
     }

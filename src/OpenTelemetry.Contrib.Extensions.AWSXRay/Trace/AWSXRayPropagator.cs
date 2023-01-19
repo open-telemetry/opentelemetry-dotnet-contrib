@@ -303,7 +303,11 @@ public class AWSXRayPropagator : TextMapPropagator
     internal static string ToXRayTraceIdFormat(string traceId)
     {
         var sb = new StringBuilder();
+#if NETSTANDARD
+        sb.Append(Version[0]);
+#else
         sb.Append(Version);
+#endif
         sb.Append(TraceIdDelimiter);
         sb.Append(traceId.Substring(0, EpochHexDigits));
         sb.Append(TraceIdDelimiter);
