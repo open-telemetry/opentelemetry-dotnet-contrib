@@ -18,6 +18,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using OpenTelemetry.Extensions.PersistentStorage.Abstractions;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Extensions.PersistentStorage;
 
@@ -57,10 +58,7 @@ public class FileBlob : PersistentBlob
 
     protected override bool OnTryWrite(byte[] buffer, int leasePeriodMilliseconds = 0)
     {
-        if (buffer == null)
-        {
-            throw new ArgumentNullException(nameof(buffer));
-        }
+        Guard.ThrowIfNull(buffer);
 
         string path = this.FullPath + ".tmp";
 
