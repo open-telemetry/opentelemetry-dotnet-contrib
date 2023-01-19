@@ -663,10 +663,9 @@ public class GenevaTraceExporterTests
             else
             {
                 // If CustomFields are proivded, dedicatedFields will be populated
-                object value = null;
-                if (exporterOptions.CustomFields == null || dedicatedFields.TryGetValue(tag.Key, out value))
+                if (exporterOptions.CustomFields == null || dedicatedFields.TryGetValue(tag.Key, out _))
                 {
-                    Assert.Equal(tag.Value.ToString(), value.ToString());
+                    Assert.Equal(tag.Value.ToString(), mapping[tag.Key].ToString());
                 }
                 else
                 {
