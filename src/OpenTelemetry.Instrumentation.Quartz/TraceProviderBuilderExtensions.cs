@@ -17,6 +17,7 @@
 using System;
 using OpenTelemetry.Instrumentation.Quartz;
 using OpenTelemetry.Instrumentation.Quartz.Implementation;
+using OpenTelemetry.Internal;
 
 // ReSharper disable once CheckNamespace
 namespace OpenTelemetry.Trace;
@@ -36,6 +37,8 @@ public static class TraceProviderBuilderExtensions
         this TracerProviderBuilder builder,
         Action<QuartzInstrumentationOptions> configureQuartzInstrumentationOptions = null)
     {
+        Guard.ThrowIfNull(builder);
+
         var options = new QuartzInstrumentationOptions();
         configureQuartzInstrumentationOptions?.Invoke(options);
 
