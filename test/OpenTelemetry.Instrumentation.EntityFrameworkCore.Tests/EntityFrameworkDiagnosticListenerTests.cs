@@ -71,7 +71,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     }
 
     [Fact]
-    public void EntityFrameworkDbContextWithAlternativeDisplayName()
+    public void EntityFrameworkEnrichDisplayNameWithEnrichWithIDbCommand()
     {
         var activityProcessor = new Mock<BaseProcessor<Activity>>();
         var expectedDisplayName = "Text main";
