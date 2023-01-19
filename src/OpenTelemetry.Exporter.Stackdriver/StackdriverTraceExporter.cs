@@ -89,9 +89,7 @@ public class StackdriverTraceExporter : BaseExporter<Activity>
     }
 
     /// <inheritdoc/>
-#pragma warning disable CA1725 // Parameter names should match base declaration
-    public override ExportResult Export(in Batch<Activity> batchActivity)
-#pragma warning restore CA1725 // Parameter names should match base declaration
+    public override ExportResult Export(in Batch<Activity> batch)
     {
         TraceServiceClient traceWriter = this.traceServiceClient;
         if (this.traceServiceClient == null)
@@ -107,7 +105,7 @@ public class StackdriverTraceExporter : BaseExporter<Activity>
             ProjectName = this.googleCloudProjectId,
         };
 
-        foreach (var activity in batchActivity)
+        foreach (var activity in batch)
         {
             // It should never happen that the time has no correct kind, only if OpenTelemetry is used incorrectly.
             if (activity.StartTimeUtc.Kind == DateTimeKind.Utc)
