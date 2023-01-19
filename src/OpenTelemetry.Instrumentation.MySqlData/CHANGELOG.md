@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-beta.5
+
+Released 2023-Jan-19
+
 * Compatibility with Mysql.Data 8.0.32 or later.
   ([#901](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/901))
 
