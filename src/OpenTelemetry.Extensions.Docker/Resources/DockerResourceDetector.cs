@@ -84,6 +84,68 @@ public class DockerResourceDetector : IResourceDetector
     }
 
     /// <summary>
+    /// Gets the Container Id from the line after removing the prefix and suffix from the cgroupv1 format.
+    /// </summary>
+    /// <param name="line">line read from cgroup file.</param>
+    /// <returns>Container Id, Null if not found.</returns>
+    private static string GetIdFromLineV1(string line)
+    {
+        // This cgroup output line should have the container id in it
+        int lastSlashIndex = line.LastIndexOf('/');
+        if (lastSlashIndex < 0)
+        {
+            return null;
+        }
+
+        string lastSection = line.Substring(lastSlashIndex + 1);
+        int startIndex = lastSection.LastIndexOf('-');
+        int endIndex = lastSection.LastIndexOf('.');
+
+        string containerId = RemovePrefixAndSuffixIfneeded(lastSection, startIndex, endIndex);
+
+        if (string.IsNullOrEmpty(containerId) || !EncodingUtils.IsValidHexString(containerId))
+        {
+            return null;
+        }
+
+        return containerId;
+    }
+
+    /// <summary>
+    /// Gets the Container Id from the line of the cgroupv2 format.
+    /// </summary>
+    /// <param name="line">line read from cgroup file.</param>
+    /// <returns>Container Id, Null if not found.</returns>
+    private static string GetIdFromLineV2(string line)
+    {
+        string containerId = null;
+        var match = Regex.Match(line, @".*/.+/([\w+-.]{64})/.*$");
+        if (match.Success)
+        {
+            containerId = match.Groups[1].Value;
+        }
+
+        if (string.IsNullOrEmpty(containerId) || !EncodingUtils.IsValidHexString(containerId))
+        {
+            return null;
+        }
+
+        return containerId;
+    }
+
+    private static string RemovePrefixAndSuffixIfneeded(string input, int startIndex, int endIndex)
+    {
+        startIndex = (startIndex == -1) ? 0 : startIndex + 1;
+
+        if (endIndex == -1)
+        {
+            endIndex = input.Length;
+        }
+
+        return input.Substring(startIndex, endIndex - startIndex);
+    }
+
+    /// <summary>
     /// Extracts Container Id from path using the cgroupv1 format.
     /// </summary>
     /// <param name="path">cgroup path.</param>
@@ -105,11 +167,11 @@ public class DockerResourceDetector : IResourceDetector
                 {
                     if (cgroupVersion == ParseMode.V1)
                     {
-                        containerId = this.GetIdFromLineV1(line);
+                        containerId = GetIdFromLineV1(line);
                     }
                     else if (cgroupVersion == ParseMode.V2 && line.Contains(HOSTNAME))
                     {
-                        containerId = this.GetIdFromLineV2(line);
+                        containerId = GetIdFromLineV2(line);
                     }
                 }
 
@@ -125,67 +187,5 @@ public class DockerResourceDetector : IResourceDetector
         }
 
         return null;
-    }
-
-    /// <summary>
-    /// Gets the Container Id from the line after removing the prefix and suffix from the cgroupv1 format.
-    /// </summary>
-    /// <param name="line">line read from cgroup file.</param>
-    /// <returns>Container Id, Null if not found.</returns>
-    private string GetIdFromLineV1(string line)
-    {
-        // This cgroup output line should have the container id in it
-        int lastSlashIndex = line.LastIndexOf('/');
-        if (lastSlashIndex < 0)
-        {
-            return null;
-        }
-
-        string lastSection = line.Substring(lastSlashIndex + 1);
-        int startIndex = lastSection.LastIndexOf('-');
-        int endIndex = lastSection.LastIndexOf('.');
-
-        string containerId = this.RemovePrefixAndSuffixIfneeded(lastSection, startIndex, endIndex);
-
-        if (string.IsNullOrEmpty(containerId) || !EncodingUtils.IsValidHexString(containerId))
-        {
-            return null;
-        }
-
-        return containerId;
-    }
-
-    /// <summary>
-    /// Gets the Container Id from the line of the cgroupv2 format.
-    /// </summary>
-    /// <param name="line">line read from cgroup file.</param>
-    /// <returns>Container Id, Null if not found.</returns>
-    private string GetIdFromLineV2(string line)
-    {
-        string containerId = null;
-        var match = Regex.Match(line, @".*/.+/([\w+-.]{64})/.*$");
-        if (match.Success)
-        {
-            containerId = match.Groups[1].Value;
-        }
-
-        if (string.IsNullOrEmpty(containerId) || !EncodingUtils.IsValidHexString(containerId))
-        {
-            return null;
-        }
-
-        return containerId;
-    }
-
-    private string RemovePrefixAndSuffixIfneeded(string input, int startIndex, int endIndex)
-    {
-        startIndex = (startIndex == -1) ? 0 : startIndex + 1;
-
-        if (endIndex == -1)
-        {
-            endIndex = input.Length;
-        }
-
-        return input.Substring(startIndex, endIndex - startIndex);
     }
 }
