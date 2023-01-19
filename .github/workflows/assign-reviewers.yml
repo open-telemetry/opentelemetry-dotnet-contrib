@@ -11,3 +11,5 @@ jobs:
     name: Assign Reviewers
     steps:
       - uses: dyladan/component-owners@main
+        with:
+          assign-owners: ${{ github.event.pull_request.draft == false }}
