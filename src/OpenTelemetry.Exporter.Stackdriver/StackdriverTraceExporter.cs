@@ -37,7 +37,9 @@ public class StackdriverTraceExporter : BaseExporter<Activity>
     private readonly TraceServiceSettings traceServiceSettings;
     private readonly TraceServiceClient traceServiceClient;
 
+#pragma warning disable CA1810 // Initialize reference type static fields inline
     static StackdriverTraceExporter()
+#pragma warning restore CA1810 // Initialize reference type static fields inline
     {
         try
         {
@@ -87,7 +89,9 @@ public class StackdriverTraceExporter : BaseExporter<Activity>
     }
 
     /// <inheritdoc/>
+#pragma warning disable CA1725 // Parameter names should match base declaration
     public override ExportResult Export(in Batch<Activity> batchActivity)
+#pragma warning restore CA1725 // Parameter names should match base declaration
     {
         TraceServiceClient traceWriter = this.traceServiceClient;
         if (this.traceServiceClient == null)
