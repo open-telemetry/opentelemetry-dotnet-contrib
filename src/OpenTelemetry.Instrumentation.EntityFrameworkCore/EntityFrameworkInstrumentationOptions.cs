@@ -32,5 +32,5 @@ public class EntityFrameworkInstrumentationOptions
     /// <summary>
     /// Gets or sets a value indicating whether or not the <see cref="EntityFrameworkInstrumentation"/> should add the text of <see cref="CommandType.Text"/> commands as the <see cref="SemanticConventions.AttributeDbStatement"/> tag. Default value: False.
     /// </summary>
-    public bool SetDbStatementForText { get; set; } = false;
+    public bool SetDbStatementForText { get; set; }
 }
