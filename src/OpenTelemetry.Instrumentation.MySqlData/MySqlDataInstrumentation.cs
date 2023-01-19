@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Linq.Expressions;
 using System.Reflection;
 using MySql.Data.MySqlClient;
 using OpenTelemetry.Trace;
@@ -28,9 +29,11 @@ namespace OpenTelemetry.Instrumentation.MySqlData;
 /// </summary>
 internal class MySqlDataInstrumentation : DefaultTraceListener
 {
-    private readonly ConcurrentDictionary<long, MySqlConnectionStringBuilder> dbConn = new ConcurrentDictionary<long, MySqlConnectionStringBuilder>();
+    private readonly ConcurrentDictionary<long, MySqlConnectionStringBuilder> dbConn = new();
 
     private readonly MySqlDataInstrumentationOptions options;
+
+    private readonly Func<string, MySqlConnectionStringBuilder> builderFactory;
 
     public MySqlDataInstrumentation(MySqlDataInstrumentationOptions options = null)
     {
@@ -40,15 +43,49 @@ internal class MySqlDataInstrumentation : DefaultTraceListener
         MySqlTrace.Switch.Level = SourceLevels.Information;
 
         // Mysql.Data removed `MySql.Data.MySqlClient.MySqlTrace.QueryAnalysisEnabled` since 8.0.31 so we need to set this using reflection.
-        var queryAnalysisEnabled = typeof(MySqlTrace).GetProperty("QueryAnalysisEnabled", BindingFlags.Public | BindingFlags.Static);
+        var queryAnalysisEnabled =
+            typeof(MySqlTrace).GetProperty("QueryAnalysisEnabled", BindingFlags.Public | BindingFlags.Static);
         if (queryAnalysisEnabled != null)
         {
             queryAnalysisEnabled.SetValue(null, true);
         }
+
+        // Mysql.Data add optional param `isAnalyzed` to MySqlConnectionStringBuilder constructor since 8.0.32
+        var ctor = typeof(MySqlConnectionStringBuilder).GetConstructor(new[] { typeof(string), typeof(bool) });
+        if (ctor == null)
+        {
+            ctor = typeof(MySqlConnectionStringBuilder).GetConstructor(new[] { typeof(string) });
+            if (ctor == null)
+            {
+                MySqlDataInstrumentationEventSource.Log.ErrorInitialize(
+                    "Failed to get proper MySqlConnectionStringBuilder constructor, maybe unsupported Mysql.Data version. Connection Level Details will not be available.",
+                    string.Empty);
+                return;
+            }
+
+            var p1 = Expression.Parameter(typeof(string), "connectionString");
+            var newExpression = Expression.New(ctor, p1);
+            var func = Expression.Lambda<Func<string, MySqlConnectionStringBuilder>>(newExpression, p1).Compile();
+            this.builderFactory = s => func(s);
+        }
+        else
+        {
+            var p1 = Expression.Parameter(typeof(string));
+            var p2 = Expression.Parameter(typeof(bool));
+            var newExpression = Expression.New(ctor, p1, p2);
+            var func = Expression.Lambda<Func<string, bool, MySqlConnectionStringBuilder>>(newExpression, p1, p2).Compile();
+            this.builderFactory = s => func(s, false);
+        }
     }
 
     /// <inheritdoc />
-    public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
+    public override void TraceEvent(
+        TraceEventCache eventCache,
+        string source,
+        TraceEventType eventType,
+        int id,
+        string format,
+        params object[] args)
     {
         try
         {
@@ -56,9 +93,13 @@ internal class MySqlDataInstrumentation : DefaultTraceListener
             {
                 case MySqlTraceEventType.ConnectionOpened:
                     // args: [driverId, connStr, threadId]
-                    var driverId = (long)args[0];
-                    var connStr = args[1].ToString();
-                    this.dbConn[driverId] = new MySqlConnectionStringBuilder(connStr);
+                    if (this.builderFactory != null)
+                    {
+                        var driverId = (long)args[0];
+                        var connStr = args[1].ToString();
+                        this.dbConn[driverId] = this.builderFactory(connStr);
+                    }
+
                     break;
                 case MySqlTraceEventType.ConnectionClosed:
                     break;
