@@ -18,10 +18,11 @@ using System.Threading.Tasks;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation;
 
-internal class SpanSender : ISpanSender
+#pragma warning disable CA1001 // Types that own disposable fields should be disposable
+internal sealed class SpanSender : ISpanSender
+#pragma warning restore CA1001 // Types that own disposable fields should be disposable
 {
     private readonly Task queueSenderTask;
-    private readonly Transport transport = new Transport();
     private readonly ConcurrentQueue<InstanaSpan> spansQueue = new ConcurrentQueue<InstanaSpan>();
 
     public SpanSender()
@@ -33,7 +34,7 @@ internal class SpanSender : ISpanSender
 
     public void Enqueue(InstanaSpan instanaSpan)
     {
-        if (this.transport.IsAvailable)
+        if (Transport.IsAvailable)
         {
             this.spansQueue.Enqueue(instanaSpan);
         }
@@ -48,11 +49,11 @@ internal class SpanSender : ISpanSender
             if (this.spansQueue.TryPeek(out InstanaSpan _))
             {
                 // actually send spans
-                await this.transport.SendSpansAsync(this.spansQueue);
+                await Transport.SendSpansAsync(this.spansQueue).ConfigureAwait(false);
             }
 
             // rest for a while
-            await Task.Delay(1000);
+            await Task.Delay(1000).ConfigureAwait(false);
         }
     }
 }

@@ -36,12 +36,12 @@ internal class InstanaSpanSerializer
 #pragma warning restore SA1310 // Field names should not contain underscore
     private static readonly long UnixZeroTime = new DateTime(1970, 1, 1, 0, 0, 0, 0).Ticks;
 
-    internal IEnumerator GetSpanTagsEnumerator(InstanaSpan instanaSpan)
+    internal static IEnumerator GetSpanTagsEnumerator(InstanaSpan instanaSpan)
     {
         return instanaSpan.Data.Tags.GetEnumerator();
     }
 
-    internal IEnumerator GetSpanEventsEnumerator(InstanaSpan instanaSpan)
+    internal static IEnumerator GetSpanEventsEnumerator(InstanaSpan instanaSpan)
     {
         return instanaSpan.Data.Events.GetEnumerator();
     }
