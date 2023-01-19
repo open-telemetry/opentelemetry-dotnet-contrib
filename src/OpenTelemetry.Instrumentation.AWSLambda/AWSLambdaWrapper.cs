@@ -22,6 +22,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda;
@@ -69,6 +70,7 @@ public static class AWSLambdaWrapper
         ILambdaContext context,
         ActivityContext parentContext = default)
     {
+        Guard.ThrowIfNull(lambdaHandler);
         return TraceInternal(tracerProvider, lambdaHandler, input, context, parentContext);
     }
 
@@ -125,7 +127,7 @@ public static class AWSLambdaWrapper
     {
         Func<TInput, ILambdaContext, Task<object>> func = async (input, context) =>
         {
-            await lambdaHandler(input, context);
+            await lambdaHandler(input, context).ConfigureAwait(false);
             return null;
         };
         return TraceInternalAsync(tracerProvider, func, input, context, parentContext);
@@ -154,6 +156,7 @@ public static class AWSLambdaWrapper
         ILambdaContext context,
         ActivityContext parentContext = default)
     {
+        Guard.ThrowIfNull(lambdaHandler);
         return TraceInternalAsync(tracerProvider, lambdaHandler, input, context, parentContext);
     }
 
@@ -239,7 +242,7 @@ public static class AWSLambdaWrapper
         var activity = OnFunctionStart(input, context, parentContext);
         try
         {
-            var result = await handlerAsync(input, context);
+            var result = await handlerAsync(input, context).ConfigureAwait(false);
             AWSLambdaHttpUtils.SetHttpTagsFromResult(activity, result);
             return result;
         }
