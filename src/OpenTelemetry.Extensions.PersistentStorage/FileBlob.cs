@@ -57,6 +57,11 @@ public class FileBlob : PersistentBlob
 
     protected override bool OnTryWrite(byte[] buffer, int leasePeriodMilliseconds = 0)
     {
+        if (buffer == null)
+        {
+            throw new ArgumentNullException(nameof(buffer));
+        }
+
         string path = this.FullPath + ".tmp";
 
         try
