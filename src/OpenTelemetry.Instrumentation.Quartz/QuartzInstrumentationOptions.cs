@@ -56,5 +56,5 @@ public class QuartzInstrumentationOptions
     /// <summary>
     /// Gets or sets traced operations set.
     /// </summary>
-    public HashSet<string> TracedOperations { get; set; } = new HashSet<string>(DefaultTracedOperations);
+    public HashSet<string> TracedOperations { get; set; } = new(DefaultTracedOperations);
 }
