@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <Description>Unit test project for OpenTelemetry Quartz.NET instrumentation</Description>
-        <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
+        <TargetFrameworks>net7.0;net6.0;net472</TargetFrameworks>
         <IncludeSharedTestSource>true</IncludeSharedTestSource>
     </PropertyGroup>
 
