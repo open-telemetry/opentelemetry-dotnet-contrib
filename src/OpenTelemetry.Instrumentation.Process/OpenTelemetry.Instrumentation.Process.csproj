@@ -5,6 +5,7 @@
     <PackageTags>$(PackageTags);process</PackageTags>
     <MinVerTagPrefix>Instrumentation.Process-</MinVerTagPrefix>
     <EnableAnalysis>true</EnableAnalysis>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
