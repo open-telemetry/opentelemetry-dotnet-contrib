@@ -8,6 +8,9 @@
 * Update the `ActivitySource` name used to the assembly name:
 `OpenTelemetry.Instrumentation.EntityFrameworkCore`
   [#486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/486)
+* Removes `AddEntityFrameworkCoreInstrumentation` method with default configure
+  default parameter.
+  ([#916](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/916))
 
 ## 1.0.0-beta.3
 

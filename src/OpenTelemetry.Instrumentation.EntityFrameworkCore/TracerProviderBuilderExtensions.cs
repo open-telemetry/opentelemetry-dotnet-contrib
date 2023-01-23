@@ -30,16 +30,24 @@ public static class TracerProviderBuilderExtensions
     /// Enables Microsoft.EntityFrameworkCore instrumentation.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-    /// <param name="configureOptions">EntityFrameworkCore configuration options.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddEntityFrameworkCoreInstrumentation(
+        this TracerProviderBuilder builder) => AddEntityFrameworkCoreInstrumentation(builder, configure: null);
+
+    /// <summary>
+    /// Enables Microsoft.EntityFrameworkCore instrumentation.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="configure">EntityFrameworkCore configuration options.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddEntityFrameworkCoreInstrumentation(
         this TracerProviderBuilder builder,
-        Action<EntityFrameworkInstrumentationOptions> configureOptions = null)
+        Action<EntityFrameworkInstrumentationOptions> configure)
     {
         Guard.ThrowIfNull(builder);
 
         var options = new EntityFrameworkInstrumentationOptions();
-        configureOptions?.Invoke(options);
+        configure?.Invoke(options);
 
         builder.AddInstrumentation(() => new EntityFrameworkInstrumentation(options));
 
