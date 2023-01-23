@@ -37,4 +37,10 @@ internal class MySqlDataInstrumentationEventSource : EventSource
     {
         this.WriteEvent(1, mysqlEventId, message, exception);
     }
+
+    [Event(2, Message = "Error accured while initializing MySqlDataInstrumentation, Message {0}, Exception: {1}", Level = EventLevel.Warning)]
+    public void ErrorInitialize(string message, string exception)
+    {
+        this.WriteEvent(1, message, exception);
+    }
 }
