@@ -3,7 +3,7 @@
 ## Unreleased
 
 * Updated OTel SDK package version to 1.3.1
-  [#XXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXX)
+  [#915](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/915)
 
 * Update the `ActivitySource` name used to the assembly name:
 `OpenTelemetry.Instrumentation.EntityFrameworkCore`
