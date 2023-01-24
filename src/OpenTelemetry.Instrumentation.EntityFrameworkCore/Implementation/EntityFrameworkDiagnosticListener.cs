@@ -181,7 +181,10 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
                         try
                         {
-                            this.options.EnrichWithIDbCommand?.Invoke(activity, command as IDbCommand);
+                            if (command is IDbCommand typedCommand)
+                            {
+                                this.options.EnrichWithIDbCommand?.Invoke(activity, typedCommand);
+                            }
                         }
                         catch (Exception ex)
                         {
