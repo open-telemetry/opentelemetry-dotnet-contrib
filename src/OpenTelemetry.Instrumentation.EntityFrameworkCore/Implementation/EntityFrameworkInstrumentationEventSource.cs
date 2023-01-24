@@ -18,6 +18,7 @@ using System;
 using System.Diagnostics.Tracing;
 using System.Globalization;
 using System.Threading;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 
@@ -32,6 +33,15 @@ internal class EntityFrameworkInstrumentationEventSource : EventSource
         if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
         {
             this.UnknownErrorProcessingEvent(handlerName, eventName, ToInvariantString(ex));
+        }
+    }
+
+    [NonEvent]
+    public void EnrichmentException(string eventName, Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        {
+            this.EnrichmentException(eventName, ex.ToInvariantString());
         }
     }
 
@@ -57,6 +67,15 @@ internal class EntityFrameworkInstrumentationEventSource : EventSource
     public void InvalidPayload(string handlerName, string eventName)
     {
         this.WriteEvent(4, handlerName, eventName);
+    }
+
+    [Event(5, Message = "Enrichment threw exception. Exception {0}.", Level = EventLevel.Error)]
+    public void EnrichmentException(string eventName, string exception)
+    {
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        {
+            this.WriteEvent(5, eventName, exception);
+        }
     }
 
     /// <summary>

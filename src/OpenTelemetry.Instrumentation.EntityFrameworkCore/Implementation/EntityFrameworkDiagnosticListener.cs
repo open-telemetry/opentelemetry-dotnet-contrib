@@ -87,7 +87,6 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
                     var connection = this.connectionFetcher.Fetch(command);
                     var database = (string)this.databaseFetcher.Fetch(connection);
-
                     activity.DisplayName = database;
 
                     if (activity.IsAllDataRequested)
@@ -124,7 +123,6 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         }
 
                         var dataSource = (string)this.dataSourceFetcher.Fetch(connection);
-
                         activity.AddTag(AttributeDbName, database);
                         if (!string.IsNullOrEmpty(dataSource))
                         {
@@ -179,6 +177,18 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                     activity.AddTag(SpanAttributeConstants.DatabaseStatementTypeKey, nameof(CommandType.TableDirect));
                                     break;
                             }
+                        }
+
+                        try
+                        {
+                            if (command is IDbCommand typedCommand)
+                            {
+                                this.options.EnrichWithIDbCommand?.Invoke(activity, typedCommand);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            EntityFrameworkInstrumentationEventSource.Log.EnrichmentException(nameof(EntityFrameworkCoreCommandExecuting), ex);
                         }
                     }
                 }
