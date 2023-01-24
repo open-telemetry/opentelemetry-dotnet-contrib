@@ -24,13 +24,23 @@ namespace Microsoft.Extensions.Logging;
 
 public static class GenevaLoggingExtensions
 {
-    public static OpenTelemetryLoggerOptions AddGenevaLogExporter(this OpenTelemetryLoggerOptions options, Action<GenevaExporterOptions> configure)
+
+    public static OpenTelemetryLoggerOptions AddGenevaLogExporter(
+        this OpenTelemetryLoggerOptions options,
+        Action<GenevaExporterOptions> configure,
+        Func<BaseExporter<LogRecord>, BaseProcessor<LogRecord>> newProcessorDelegate = null)
     {
         Guard.ThrowIfNull(options);
 
         var genevaOptions = new GenevaExporterOptions();
         configure?.Invoke(genevaOptions);
         var exporter = new GenevaLogExporter(genevaOptions);
+
+        if (newProcessorDelegate != null)
+        {
+            return options.AddProcessor(newProcessorDelegate(exporter));
+        }
+
         if (exporter.IsUsingUnixDomainSocket)
         {
             return options.AddProcessor(new BatchLogRecordExportProcessor(exporter));
