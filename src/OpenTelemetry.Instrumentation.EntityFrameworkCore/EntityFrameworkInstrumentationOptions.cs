@@ -37,7 +37,7 @@ public class EntityFrameworkInstrumentationOptions
     public bool SetDbStatementForText { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets an action to enrich an Activity from the db connection.
+    /// Gets or sets an action to enrich an Activity from the db command.
     /// </summary>
     /// <remarks>
     /// <para><see cref="Activity"/>: the activity being enriched.</para>
