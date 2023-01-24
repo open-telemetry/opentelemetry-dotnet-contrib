@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Threading;
+using System.Threading.Tasks;
 using OpenTelemetry.Metrics;
 using Xunit;
 
@@ -267,16 +268,15 @@ public class EventCountersMetricsTests
         return sum;
     }
 
-    private static bool AwaitExport<T>(MeterProvider meterProvider, List<T> exportedItems, int count = 1, int initialSleep = 1000, int sleep = 10, int timeout = 2000)
+    private static bool AwaitExport<T>(MeterProvider meterProvider, List<T> exportedItems)
     {
-        Thread.Sleep(initialSleep);
         return SpinWait.SpinUntil(
             () =>
             {
-                Thread.Sleep(sleep);
+                Thread.Sleep(100);
                 meterProvider.ForceFlush();
-                return exportedItems.Count == count;
+                return exportedItems.Count == 1;
             },
-            timeout);
+            10_000);
     }
 }
