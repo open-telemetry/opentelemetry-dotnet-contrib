@@ -1,8 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net452;netstandard2.0</TargetFrameworks>
     <Description>OpenTelemetry extensions for AWS X-Ray.</Description>
     <MinVerTagPrefix>Extensions.AWSXRay-</MinVerTagPrefix>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
