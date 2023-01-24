@@ -12,6 +12,9 @@
   default parameter.
   ([#916](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/916))
 
+* Added support to `EnrichWithIDbCommand`
+  [#868](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/868)
+
 ## 1.0.0-beta.3
 
 * Going forward the NuGet package will be
