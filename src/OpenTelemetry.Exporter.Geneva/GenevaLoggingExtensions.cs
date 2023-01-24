@@ -19,6 +19,7 @@ using OpenTelemetry;
 using OpenTelemetry.Exporter.Geneva;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
+using OpenTelemetry.Trace;
 
 namespace Microsoft.Extensions.Logging;
 
@@ -33,13 +34,7 @@ public static class GenevaLoggingExtensions
         var exporter = new GenevaLogExporter(genevaOptions);
         if (exporter.IsUsingUnixDomainSocket)
         {
-            var batchOptions = new BatchExportActivityProcessorOptions();
-            return builder.AddProcessor(new BatchActivityExportProcessor(
-                exporter,
-                batchOptions.MaxQueueSize,
-                batchOptions.ScheduledDelayMilliseconds,
-                batchOptions.ExporterTimeoutMilliseconds,
-                batchOptions.MaxExportBatchSize));
+            return options.AddProcessor(new BatchLogRecordExportProcessor(exporter));
         }
         else
         {
