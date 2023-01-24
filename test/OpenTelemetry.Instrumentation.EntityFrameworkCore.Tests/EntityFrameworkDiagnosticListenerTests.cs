@@ -71,6 +71,40 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     }
 
     [Fact]
+    public void EntityFrameworkEnrichDisplayNameWithEnrichWithIDbCommand()
+    {
+        var activityProcessor = new Mock<BaseProcessor<Activity>>();
+        var expectedDisplayName = "Text main";
+        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
+            .AddProcessor(activityProcessor.Object)
+            .AddEntityFrameworkCoreInstrumentation(options =>
+            {
+                options.EnrichWithIDbCommand = (activity1, command) =>
+                {
+                    var stateDisplayName = $"{command.CommandType} main";
+                    activity1.DisplayName = stateDisplayName;
+                    activity1.SetTag("db.name", stateDisplayName);
+                };
+            }).Build();
+
+        using (var context = new ItemsContext(this.contextOptions))
+        {
+            var items = context.Set<Item>().OrderBy(e => e.Name).ToList();
+
+            Assert.Equal(3, items.Count);
+            Assert.Equal("ItemOne", items[0].Name);
+            Assert.Equal("ItemThree", items[1].Name);
+            Assert.Equal("ItemTwo", items[2].Name);
+        }
+
+        Assert.Equal(3, activityProcessor.Invocations.Count);
+
+        var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
+
+        VerifyActivityData(activity, altDisplayName: $"{expectedDisplayName}");
+    }
+
+    [Fact]
     public void EntityFrameworkContextExceptionEventsInstrumentedTest()
     {
         var activityProcessor = new Mock<BaseProcessor<Activity>>();
@@ -108,16 +142,17 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         return connection;
     }
 
-    private static void VerifyActivityData(Activity activity, bool isError = false)
+    private static void VerifyActivityData(Activity activity, bool isError = false, string altDisplayName = null)
     {
-        Assert.Equal("main", activity.DisplayName);
+        Assert.Equal(altDisplayName ?? "main", activity.DisplayName);
+
         Assert.Equal(ActivityKind.Client, activity.Kind);
         Assert.Equal("sqlite", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbSystem).Value);
 
         // TBD: SqlLite not setting the DataSource so it doesn't get set.
         Assert.DoesNotContain(activity.Tags, t => t.Key == EntityFrameworkDiagnosticListener.AttributePeerService);
 
-        Assert.Equal("main", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbName).Value);
+        Assert.Equal(altDisplayName ?? "main", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbName).Value);
         Assert.Equal(CommandType.Text.ToString(), activity.Tags.FirstOrDefault(t => t.Key == SpanAttributeConstants.DatabaseStatementTypeKey).Value);
 
         if (!isError)
