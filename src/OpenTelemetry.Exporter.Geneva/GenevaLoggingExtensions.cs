@@ -33,7 +33,13 @@ public static class GenevaLoggingExtensions
         var exporter = new GenevaLogExporter(genevaOptions);
         if (exporter.IsUsingUnixDomainSocket)
         {
-            return options.AddProcessor(new BatchLogRecordExportProcessor(exporter));
+            var batchOptions = new BatchExportActivityProcessorOptions();
+            return builder.AddProcessor(new BatchActivityExportProcessor(
+                exporter,
+                batchOptions.MaxQueueSize,
+                batchOptions.ScheduledDelayMilliseconds,
+                batchOptions.ExporterTimeoutMilliseconds,
+                batchOptions.MaxExportBatchSize));
         }
         else
         {
