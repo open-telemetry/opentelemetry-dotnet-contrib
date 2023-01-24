@@ -24,7 +24,6 @@ namespace Microsoft.Extensions.Logging;
 
 public static class GenevaLoggingExtensions
 {
-
     public static OpenTelemetryLoggerOptions AddGenevaLogExporter(
         this OpenTelemetryLoggerOptions options,
         Action<GenevaExporterOptions> configure,
