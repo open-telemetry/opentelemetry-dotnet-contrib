@@ -1,3 +1,4 @@
+#nullable enable
 OpenTelemetry.Contrib.Instrumentation.AWS.AWSClientInstrumentationOptions
 OpenTelemetry.Contrib.Instrumentation.AWS.AWSClientInstrumentationOptions.AWSClientInstrumentationOptions() -> void
 OpenTelemetry.Contrib.Instrumentation.AWS.AWSClientInstrumentationOptions.SuppressDownstreamInstrumentation.get -> bool
