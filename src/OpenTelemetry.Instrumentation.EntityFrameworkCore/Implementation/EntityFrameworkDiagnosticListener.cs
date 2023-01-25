@@ -121,7 +121,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 activity.AddTag(AttributeDbSystem, "oracle");
                                 break;
                             case "Microsoft.EntityFrameworkCore.InMemory":
-                                activity.AddTag(AttributeDbSystem, "efcore_in_memory");
+                                activity.AddTag(AttributeDbSystem, "efcoreinmemory");
                                 break;
                             case "FirebirdSql.EntityFrameworkCore.Firebird":
                                 activity.AddTag(AttributeDbSystem, "firebird");
@@ -144,11 +144,6 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 break;
                             case "Teradata.EntityFrameworkCore":
                                 activity.AddTag(AttributeDbSystem, "teradata");
-                                break;
-                            case "IBM.EntityFrameworkCore":
-                            case "IBM.EntityFrameworkCore-lnx":
-                            case "IBM.EntityFrameworkCore-osx":
-                                activity.AddTag(AttributeDbSystem, "ibm");
                                 break;
                             default:
                                 activity.AddTag(AttributeDbSystem, "other_sql");
