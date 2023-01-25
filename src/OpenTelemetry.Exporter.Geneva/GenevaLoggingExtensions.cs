@@ -19,7 +19,6 @@ using OpenTelemetry;
 using OpenTelemetry.Exporter.Geneva;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
-using OpenTelemetry.Trace;
 
 namespace Microsoft.Extensions.Logging;
 
