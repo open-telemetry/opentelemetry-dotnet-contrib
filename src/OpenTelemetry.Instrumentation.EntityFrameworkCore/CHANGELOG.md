@@ -2,12 +2,15 @@
 
 ## Unreleased
 
-* Updated OTel SDK package version to 1.2.0
-  [#347](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/347)
+* Updated OTel SDK package version to 1.3.2
+  [#917](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/917)
 
 * Update the `ActivitySource` name used to the assembly name:
 `OpenTelemetry.Instrumentation.EntityFrameworkCore`
   [#486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/486)
+
+* Added support to `EnrichWithIDbCommand`
+  [#868](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/868)
 
 ## 1.0.0-beta.3
 
