@@ -1,3 +1,4 @@
+#nullable enable
 OpenTelemetry.Contrib.Extensions.AWSXRay.AWSXRayIdGenerator
 OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEBSResourceDetector
 OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEBSResourceDetector.AWSEBSResourceDetector() -> void
