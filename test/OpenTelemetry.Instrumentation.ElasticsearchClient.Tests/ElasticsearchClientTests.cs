@@ -81,7 +81,8 @@ public class ElasticsearchClientTests
 
         Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
         Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-        var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.NotNull(debugInfo);
         Assert.NotEmpty(debugInfo);
         Assert.Contains("Successful (200) low level call", debugInfo);
 
@@ -136,7 +137,8 @@ public class ElasticsearchClientTests
 
         Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
         Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-        var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.NotNull(debugInfo);
         Assert.NotEmpty(debugInfo);
         Assert.Contains("Successful (404) low level call", debugInfo);
 
@@ -191,7 +193,8 @@ public class ElasticsearchClientTests
 
         Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
         Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-        var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.NotNull(debugInfo);
         Assert.NotEmpty(debugInfo);
         Assert.Contains("Successful (200) low level call", debugInfo);
 
@@ -426,7 +429,8 @@ public class ElasticsearchClientTests
 
         Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
         Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-        var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.NotNull(debugInfo);
         Assert.NotEmpty(debugInfo);
         Assert.Contains("Successful (200) low level call", debugInfo);
 
@@ -480,7 +484,8 @@ public class ElasticsearchClientTests
 
         Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
         Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-        var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.NotNull(debugInfo);
         Assert.NotEmpty(debugInfo);
         Assert.Equal(
             @"{
@@ -551,7 +556,8 @@ public class ElasticsearchClientTests
 
         Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
         Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-        var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.NotNull(debugInfo);
         Assert.NotEmpty(debugInfo);
         Assert.DoesNotContain("123", debugInfo);
 
@@ -606,7 +612,8 @@ public class ElasticsearchClientTests
 
         Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
         Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-        var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.NotNull(debugInfo);
         Assert.NotEmpty(debugInfo);
         Assert.Contains("Successful (200) low level call", debugInfo);
 
@@ -662,7 +669,8 @@ public class ElasticsearchClientTests
 
         Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
         Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-        var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.NotNull(debugInfo);
         Assert.NotEmpty(debugInfo);
         Assert.Contains("Unsuccessful (500) low level call", debugInfo);
 
@@ -718,7 +726,8 @@ public class ElasticsearchClientTests
 
         Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
         Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-        var debugInfo = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.NotNull(debugInfo);
         Assert.NotEmpty(debugInfo);
         Assert.Contains("Successful (200) low level call", debugInfo);
 

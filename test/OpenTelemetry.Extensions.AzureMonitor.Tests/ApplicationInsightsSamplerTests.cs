@@ -16,7 +16,7 @@
 
 using System;
 using System.Diagnostics;
-
+using System.Globalization;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -88,7 +88,7 @@ public class ApplicationInsightsSamplerTests
     [Fact]
     public void GetDescriptionMatchesSpec()
     {
-        var expectedDescription = "ApplicationInsightsSampler{0.5}";
+        var expectedDescription = "ApplicationInsightsSampler{0" + NumberFormatInfo.CurrentInfo.NumberDecimalSeparator + "5}";
         Assert.Equal(expectedDescription, new ApplicationInsightsSampler(0.5f).Description);
     }
 }

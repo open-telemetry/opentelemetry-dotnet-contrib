@@ -55,10 +55,10 @@ public class HttpInListenerTests
         int routeType,
         string routeTemplate,
         bool setStatusToErrorInEnrich = false,
-        string filter = null,
+        string? filter = null,
         bool recordException = false)
     {
-        IDisposable tracerProvider = null;
+        IDisposable? tracerProvider = null;
         RouteData routeData;
         switch (routeType)
         {
@@ -99,7 +99,7 @@ public class HttpInListenerTests
             return i switch
             {
                 39 => "Test", // User-Agent
-                _ => null,
+                _ => string.Empty,
             };
         });
 
@@ -123,7 +123,7 @@ public class HttpInListenerTests
                    {
                        options.Filter = httpContext =>
                        {
-                           Assert.True(Activity.Current.IsAllDataRequested);
+                           Assert.True(Activity.Current?.IsAllDataRequested);
                            if (string.IsNullOrEmpty(filter))
                            {
                                return true;
@@ -153,7 +153,7 @@ public class HttpInListenerTests
                 Assert.Single(inMemoryEventListener.Events.Where((e) => e.EventId == 2));
             }
 
-            Assert.Equal(TelemetryHttpModule.AspNetActivityName, Activity.Current.OperationName);
+            Assert.Equal(TelemetryHttpModule.AspNetActivityName, Activity.Current?.OperationName);
 
             if (recordException)
             {

@@ -35,7 +35,7 @@ internal static class ActivityHelperExtensions
     /// <returns>Tag value or null if a match was not found.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "ActivityProcessor is hot path")]
-    public static object GetTagValue(this Activity activity, string tagName)
+    public static object? GetTagValue(this Activity activity, string tagName)
     {
         Debug.Assert(activity != null, "Activity should not be null");
 
@@ -51,9 +51,9 @@ internal static class ActivityHelperExtensions
         return state.Value;
     }
 
-    private struct ActivitySingleTagEnumerator : IActivityEnumerator<KeyValuePair<string, object>>
+    private struct ActivitySingleTagEnumerator : IActivityEnumerator<KeyValuePair<string, object?>>
     {
-        public object Value;
+        public object? Value;
 
         private readonly string tagName;
 
@@ -63,7 +63,7 @@ internal static class ActivityHelperExtensions
             this.Value = null;
         }
 
-        public bool ForEach(KeyValuePair<string, object> item)
+        public bool ForEach(KeyValuePair<string, object?> item)
         {
             if (item.Key == this.tagName)
             {
@@ -76,20 +76,20 @@ internal static class ActivityHelperExtensions
     }
 
     private static class ActivityTagsEnumeratorFactory<TState>
-        where TState : struct, IActivityEnumerator<KeyValuePair<string, object>>
+        where TState : struct, IActivityEnumerator<KeyValuePair<string, object?>>
     {
-        private static readonly object EmptyActivityTagObjects = typeof(Activity).GetField("s_emptyTagObjects", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+        private static readonly object? EmptyActivityTagObjects = typeof(Activity).GetField("s_emptyTagObjects", BindingFlags.Static | BindingFlags.NonPublic)?.GetValue(null);
 
-        private static readonly DictionaryEnumerator<string, object, TState>.AllocationFreeForEachDelegate
-            ActivityTagObjectsEnumerator = DictionaryEnumerator<string, object, TState>.BuildAllocationFreeForEachDelegate(
-                typeof(Activity).GetField("_tags", BindingFlags.Instance | BindingFlags.NonPublic).FieldType);
+        private static readonly DictionaryEnumerator<string, object?, TState>.AllocationFreeForEachDelegate
+            ActivityTagObjectsEnumerator = DictionaryEnumerator<string, object?, TState>.BuildAllocationFreeForEachDelegate(
+                typeof(Activity).GetField("_tags", BindingFlags.Instance | BindingFlags.NonPublic)?.FieldType);
 
-        private static readonly DictionaryEnumerator<string, object, TState>.ForEachDelegate ForEachTagValueCallbackRef = ForEachTagValueCallback;
+        private static readonly DictionaryEnumerator<string, object?, TState>.ForEachDelegate ForEachTagValueCallbackRef = ForEachTagValueCallback;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Enumerate(Activity activity, ref TState state)
+        public static void Enumerate(Activity? activity, ref TState state)
         {
-            var tagObjects = activity.TagObjects;
+            var tagObjects = activity?.TagObjects;
 
             if (ReferenceEquals(tagObjects, EmptyActivityTagObjects))
             {
@@ -102,7 +102,7 @@ internal static class ActivityHelperExtensions
                 ForEachTagValueCallbackRef);
         }
 
-        private static bool ForEachTagValueCallback(ref TState state, KeyValuePair<string, object> item)
+        private static bool ForEachTagValueCallback(ref TState state, KeyValuePair<string, object?> item)
             => state.ForEach(item);
     }
 }

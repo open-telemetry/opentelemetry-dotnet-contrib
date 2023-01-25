@@ -28,7 +28,7 @@ namespace OpenTelemetry.Instrumentation;
 internal class MultiTypePropertyFetcher<T>
 {
     private readonly string propertyName;
-    private readonly ConcurrentDictionary<Type, PropertyFetch> innerFetcher = new ConcurrentDictionary<Type, PropertyFetch>();
+    private readonly ConcurrentDictionary<Type, PropertyFetch?> innerFetcher = new ConcurrentDictionary<Type, PropertyFetch?>();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MultiTypePropertyFetcher{T}"/> class.
@@ -44,7 +44,7 @@ internal class MultiTypePropertyFetcher<T>
     /// </summary>
     /// <param name="obj">Object to be fetched.</param>
     /// <returns>Property fetched.</returns>
-    public T Fetch(object obj)
+    public T? Fetch(object? obj)
     {
         if (obj == null)
         {
@@ -52,7 +52,7 @@ internal class MultiTypePropertyFetcher<T>
         }
 
         var type = obj.GetType().GetTypeInfo();
-        PropertyFetch fetcher = null;
+        PropertyFetch? fetcher = null;
         if (!this.innerFetcher.TryGetValue(type, out fetcher))
         {
             var property = type.DeclaredProperties.FirstOrDefault(p => string.Equals(p.Name, this.propertyName, StringComparison.InvariantCultureIgnoreCase));
@@ -81,7 +81,7 @@ internal class MultiTypePropertyFetcher<T>
         /// Create a property fetcher from a .NET Reflection PropertyInfo class that
         /// represents a property of a particular type.
         /// </summary>
-        public static PropertyFetch FetcherForProperty(PropertyInfo propertyInfo)
+        public static PropertyFetch? FetcherForProperty(PropertyInfo? propertyInfo)
         {
             if (propertyInfo == null || !typeof(T).IsAssignableFrom(propertyInfo.PropertyType))
             {
@@ -90,12 +90,14 @@ internal class MultiTypePropertyFetcher<T>
             }
 
             var typedPropertyFetcher = typeof(TypedPropertyFetch<,>);
+#pragma warning disable CS8604 // Possible null reference argument (propertyInfo.DeclaringType is: Type?)
             var instantiatedTypedPropertyFetcher = typedPropertyFetcher.MakeGenericType(
                 typeof(T), propertyInfo.DeclaringType, propertyInfo.PropertyType);
-            return (PropertyFetch)Activator.CreateInstance(instantiatedTypedPropertyFetcher, propertyInfo);
+#pragma warning restore CS8604 // Possible null reference argument.
+            return (PropertyFetch?)Activator.CreateInstance(instantiatedTypedPropertyFetcher, propertyInfo);
         }
 
-        public virtual T Fetch(object obj)
+        public virtual T? Fetch(object obj)
         {
             return default;
         }
@@ -103,16 +105,16 @@ internal class MultiTypePropertyFetcher<T>
         private class TypedPropertyFetch<TDeclaredObject, TDeclaredProperty> : PropertyFetch
             where TDeclaredProperty : T
         {
-            private readonly Func<TDeclaredObject, TDeclaredProperty> propertyFetch;
+            private readonly Func<TDeclaredObject, TDeclaredProperty>? propertyFetch;
 
             public TypedPropertyFetch(PropertyInfo property)
             {
-                this.propertyFetch = (Func<TDeclaredObject, TDeclaredProperty>)property.GetMethod.CreateDelegate(typeof(Func<TDeclaredObject, TDeclaredProperty>));
+                this.propertyFetch = (Func<TDeclaredObject, TDeclaredProperty>?)property.GetMethod?.CreateDelegate(typeof(Func<TDeclaredObject, TDeclaredProperty>));
             }
 
-            public override T Fetch(object obj)
+            public override T? Fetch(object obj)
             {
-                if (obj is TDeclaredObject o)
+                if (obj is TDeclaredObject o && this.propertyFetch != null)
                 {
                     return this.propertyFetch(o);
                 }

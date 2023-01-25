@@ -192,11 +192,17 @@ public class EventCountersMetricsTests
         Assert.Equal(1980.1208, GetActualValue(metric));
     }
 
+    /// <summary>
+    /// TODO: With Nullables this test no longer makes sense.
+    /// </summary>
     [Fact]
     public void ThrowExceptionWhenBuilderIsNull()
     {
-        MeterProviderBuilder builder = null;
+        MeterProviderBuilder? builder = null;
+
+#pragma warning disable CS8604 // Possible null reference argument.
         Assert.Throws<ArgumentNullException>(() => builder.AddEventCountersInstrumentation());
+#pragma warning restore CS8604 // Possible null reference argument.
     }
 
     [Fact]

@@ -42,7 +42,7 @@ internal static class EventSourceTestHelper
             object[] eventArguments = GenerateEventArguments(eventMethod);
             eventMethod.Invoke(eventSource, eventArguments);
 
-            EventWrittenEventArgs actualEvent = null;
+            EventWrittenEventArgs? actualEvent = null;
 
             actualEvent = listener.Messages.First(q => q.EventName == eventMethod.Name);
 
@@ -116,7 +116,7 @@ internal static class EventSourceTestHelper
 
     private static void AssertEqual<T>(string methodName, T expected, T actual)
     {
-        if (!expected.Equals(actual))
+        if (expected != null && !expected.Equals(actual))
         {
             var errorMessage = string.Format(
                 CultureInfo.InvariantCulture,

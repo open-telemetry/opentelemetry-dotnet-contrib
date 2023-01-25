@@ -25,14 +25,14 @@ internal class DiagnosticSourceSubscriber : IDisposable, IObserver<DiagnosticLis
 {
     private readonly Func<string, ListenerHandler> handlerFactory;
     private readonly Func<DiagnosticListener, bool> diagnosticSourceFilter;
-    private readonly Func<string, object, object, bool> isEnabledFilter;
+    private readonly Func<string, object?, object?, bool>? isEnabledFilter;
     private long disposed;
-    private IDisposable allSourcesSubscription;
+    private IDisposable? allSourcesSubscription;
     private List<IDisposable> listenerSubscriptions;
 
     public DiagnosticSourceSubscriber(
         ListenerHandler handler,
-        Func<string, object, object, bool> isEnabledFilter)
+        Func<string, object?, object?, bool>? isEnabledFilter)
         : this(_ => handler, value => handler.SourceName == value.Name, isEnabledFilter)
     {
     }
@@ -40,7 +40,7 @@ internal class DiagnosticSourceSubscriber : IDisposable, IObserver<DiagnosticLis
     public DiagnosticSourceSubscriber(
         Func<string, ListenerHandler> handlerFactory,
         Func<DiagnosticListener, bool> diagnosticSourceFilter,
-        Func<string, object, object, bool> isEnabledFilter)
+        Func<string, object?, object?, bool>? isEnabledFilter)
     {
         Guard.ThrowIfNull(handlerFactory);
 

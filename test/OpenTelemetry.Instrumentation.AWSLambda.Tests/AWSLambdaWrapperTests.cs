@@ -212,7 +212,7 @@ public class AWSLambdaWrapperTests
     {
         Environment.SetEnvironmentVariable("_X_AMZN_TRACE_ID", null);
 
-        Activity activity = null;
+        Activity? activity = null;
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
                    .AddAWSLambdaConfigurations()
                    .Build())
@@ -227,7 +227,7 @@ public class AWSLambdaWrapperTests
     public void OnFunctionStart_NoSampledAndAwsXRayContextExtractionDisabled_ActivityCreated()
     {
         Environment.SetEnvironmentVariable("_X_AMZN_TRACE_ID", $"Root=1-5759e988-bd862e3fe1be46a994272793;Parent={XRayParentId};Sampled=0");
-        Activity activity = null;
+        Activity? activity = null;
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
                    .AddAWSLambdaConfigurations(c => c.DisableAwsXRayContextExtraction = true)

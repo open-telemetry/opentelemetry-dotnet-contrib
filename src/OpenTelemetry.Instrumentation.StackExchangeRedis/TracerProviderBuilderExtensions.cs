@@ -40,8 +40,8 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddRedisInstrumentation(
         this TracerProviderBuilder builder,
-        IConnectionMultiplexer connection = null,
-        Action<StackExchangeRedisCallsInstrumentationOptions> configure = null)
+        IConnectionMultiplexer? connection = null,
+        Action<StackExchangeRedisCallsInstrumentationOptions>? configure = null)
     {
         Guard.ThrowIfNull(builder);
 
@@ -78,7 +78,7 @@ public static class TracerProviderBuilderExtensions
         TracerProviderBuilder builder,
         IConnectionMultiplexer connection,
         StackExchangeRedisCallsInstrumentationOptions options,
-        Action<StackExchangeRedisCallsInstrumentationOptions> configure)
+        Action<StackExchangeRedisCallsInstrumentationOptions>? configure)
     {
         configure?.Invoke(options);
 

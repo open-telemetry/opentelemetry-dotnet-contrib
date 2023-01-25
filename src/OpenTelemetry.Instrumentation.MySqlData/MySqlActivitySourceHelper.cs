@@ -33,9 +33,9 @@ internal class MySqlActivitySourceHelper
     public static readonly string ActivitySourceName = AssemblyName.Name;
     public static readonly string ActivityName = ActivitySourceName + ".Execute";
 
-    public static readonly IEnumerable<KeyValuePair<string, object>> CreationTags = new[]
+    public static readonly IEnumerable<KeyValuePair<string, object?>> CreationTags = new[]
     {
-        new KeyValuePair<string, object>(SemanticConventions.AttributeDbSystem, MysqlDatabaseSystemName),
+        new KeyValuePair<string, object?>(SemanticConventions.AttributeDbSystem, MysqlDatabaseSystemName),
     };
 
     private static readonly Version Version = typeof(MySqlActivitySourceHelper).Assembly.GetName().Version;

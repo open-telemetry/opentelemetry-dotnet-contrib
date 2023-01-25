@@ -39,7 +39,7 @@ public class StackExchangeRedisCallsInstrumentationTests
      */
 
     private const string RedisEndPointEnvVarName = "OTEL_REDISENDPOINT";
-    private static readonly string RedisEndPoint = SkipUnlessEnvVarFoundTheoryAttribute.GetEnvironmentVariable(RedisEndPointEnvVarName);
+    private static readonly string? RedisEndPoint = SkipUnlessEnvVarFoundTheoryAttribute.GetEnvironmentVariable(RedisEndPointEnvVarName);
 
     [Trait("CategoryName", "RedisIntegrationTests")]
     [SkipUnlessEnvVarFoundTheory(RedisEndPointEnvVarName)]
@@ -152,7 +152,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         var profilerFactory = instrumentation.GetProfilerSessionsFactory();
         var first = profilerFactory();
         var second = profilerFactory();
-        ProfilingSession third = null;
+        ProfilingSession? third = null;
         await Task.Delay(1).ContinueWith((t) => { third = profilerFactory(); });
         Assert.Equal(first, second);
         Assert.Equal(second, third);
@@ -230,10 +230,10 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         // get an initial profiler from root activity
         Activity.Current = rootActivity;
-        ProfilingSession profiler0 = profilerFactory();
+        ProfilingSession? profiler0 = profilerFactory();
 
         // expect different result from synchronous child activity
-        ProfilingSession profiler1;
+        ProfilingSession? profiler1;
         using (Activity.Current = new Activity("Child-Span-1").SetParentId(rootActivity.Id).Start())
         {
             profiler1 = profilerFactory();
@@ -270,10 +270,10 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         // get an initial profiler from root activity
         Activity.Current = rootActivity;
-        ProfilingSession profiler0 = profilerFactory();
+        ProfilingSession? profiler0 = profilerFactory();
 
         // expect different result from synchronous child activity
-        ProfilingSession profiler1;
+        ProfilingSession? profiler1;
         using (Activity.Current = new Activity("Child-Span-1").SetParentId(rootActivity.Id).Start())
         {
             profiler1 = profilerFactory();
@@ -288,7 +288,7 @@ public class StackExchangeRedisCallsInstrumentationTests
             // lose async context on purpose
             await Task.Delay(100).ConfigureAwait(false);
 
-            ProfilingSession profiler2 = profilerFactory();
+            ProfilingSession? profiler2 = profilerFactory();
             Assert.NotSame(profiler0, profiler2);
             Assert.NotSame(profiler1, profiler2);
         }
@@ -296,15 +296,19 @@ public class StackExchangeRedisCallsInstrumentationTests
         Activity.Current = rootActivity;
 
         // ensure same result back in root activity
-        ProfilingSession profiles3 = profilerFactory();
+        ProfilingSession? profiles3 = profilerFactory();
         Assert.Same(profiler0, profiles3);
     }
 
     [Fact]
     public void StackExchangeRedis_BadArgs()
     {
-        TracerProviderBuilder builder = null;
+        TracerProviderBuilder? builder = null;
+
+        // With Nullables this check no longer makes sense.
+#pragma warning disable CS8604 // Possible null reference argument.
         Assert.Throws<ArgumentNullException>(() => builder.AddRedisInstrumentation(null));
+#pragma warning restore CS8604 // Possible null reference argument.
 
         var activityProcessor = new Mock<BaseProcessor<Activity>>();
         Assert.Throws<NotSupportedException>(() =>

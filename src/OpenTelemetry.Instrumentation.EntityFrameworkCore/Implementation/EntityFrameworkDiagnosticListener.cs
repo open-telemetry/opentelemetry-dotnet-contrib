@@ -56,7 +56,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
     private readonly EntityFrameworkInstrumentationOptions options;
 
-    public EntityFrameworkDiagnosticListener(string sourceName, EntityFrameworkInstrumentationOptions options)
+    public EntityFrameworkDiagnosticListener(string sourceName, EntityFrameworkInstrumentationOptions? options)
         : base(sourceName)
     {
         this.options = options ?? new EntityFrameworkInstrumentationOptions();
@@ -64,7 +64,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
     public override bool SupportsNullActivity => true;
 
-    public override void OnCustom(string name, Activity activity, object payload)
+    public override void OnCustom(string name, Activity? activity, object? payload)
     {
         switch (name)
         {
@@ -77,6 +77,11 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         return;
                     }
 
+                    if (payload == null)
+                    {
+                        return;
+                    }
+
                     var command = this.commandFetcher.Fetch(payload);
                     if (command == null)
                     {
@@ -86,13 +91,33 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                     }
 
                     var connection = this.connectionFetcher.Fetch(command);
-                    var database = (string)this.databaseFetcher.Fetch(connection);
+                    if (connection == null)
+                    {
+                        return;
+                    }
+
+                    var database = (string?)this.databaseFetcher.Fetch(connection);
+                    if (database == null)
+                    {
+                        return;
+                    }
+
                     activity.DisplayName = database;
 
                     if (activity.IsAllDataRequested)
                     {
                         var dbContext = this.dbContextFetcher.Fetch(payload);
+                        if (dbContext == null)
+                        {
+                            return;
+                        }
+
                         var dbContextDatabase = this.dbContextDatabaseFetcher.Fetch(dbContext);
+                        if (dbContextDatabase == null)
+                        {
+                            return;
+                        }
+
                         var providerName = this.providerNameFetcher.Fetch(dbContextDatabase);
 
                         switch (providerName)
@@ -122,7 +147,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 break;
                         }
 
-                        var dataSource = (string)this.dataSourceFetcher.Fetch(connection);
+                        var dataSource = (string?)this.dataSourceFetcher.Fetch(connection);
                         activity.AddTag(AttributeDbName, database);
                         if (!string.IsNullOrEmpty(dataSource))
                         {
@@ -148,9 +173,14 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
                     if (activity.IsAllDataRequested)
                     {
+                        if (payload == null)
+                        {
+                            return;
+                        }
+
                         var command = this.commandFetcher.Fetch(payload);
 
-                        if (this.commandTypeFetcher.Fetch(command) is CommandType commandType)
+                        if (command != null && this.commandTypeFetcher.Fetch(command) is CommandType commandType)
                         {
                             var commandText = this.commandTextFetcher.Fetch(command);
                             switch (commandType)
@@ -230,6 +260,11 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                     {
                         if (activity.IsAllDataRequested)
                         {
+                            if (payload == null)
+                            {
+                                return;
+                            }
+
                             if (this.exceptionFetcher.Fetch(payload) is Exception exception)
                             {
                                 activity.SetStatus(Status.Error.WithDescription(exception.Message));

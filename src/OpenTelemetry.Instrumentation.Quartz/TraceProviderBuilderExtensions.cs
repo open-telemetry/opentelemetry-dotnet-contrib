@@ -34,7 +34,7 @@ public static class TraceProviderBuilderExtensions
     /// <returns>The instance of <see cref="TraceProviderBuilderExtensions"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddQuartzInstrumentation(
         this TracerProviderBuilder builder,
-        Action<QuartzInstrumentationOptions> configureQuartzInstrumentationOptions = null)
+        Action<QuartzInstrumentationOptions>? configureQuartzInstrumentationOptions = null)
     {
         var options = new QuartzInstrumentationOptions();
         configureQuartzInstrumentationOptions?.Invoke(options);

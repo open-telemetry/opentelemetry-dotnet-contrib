@@ -34,7 +34,7 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddElasticsearchClientInstrumentation(
         this TracerProviderBuilder builder,
-        Action<ElasticsearchClientInstrumentationOptions> configure = null)
+        Action<ElasticsearchClientInstrumentationOptions>? configure = null)
     {
         Guard.ThrowIfNull(builder);
 

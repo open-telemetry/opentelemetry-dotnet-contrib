@@ -27,7 +27,7 @@ namespace OpenTelemetry.Instrumentation;
 internal class PropertyFetcher<T>
 {
     private readonly string propertyName;
-    private PropertyFetch innerFetcher;
+    private PropertyFetch? innerFetcher;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PropertyFetcher{T}"/> class.
@@ -43,9 +43,9 @@ internal class PropertyFetcher<T>
     /// </summary>
     /// <param name="obj">Object to be fetched.</param>
     /// <returns>Property fetched.</returns>
-    public T Fetch(object obj)
+    public T? Fetch(object obj)
     {
-        if (!this.TryFetch(obj, out T value))
+        if (!this.TryFetch(obj, out T? value))
         {
             throw new ArgumentException("Supplied object was null or did not match the expected type.", nameof(obj));
         }
@@ -59,7 +59,7 @@ internal class PropertyFetcher<T>
     /// <param name="obj">Object to be fetched.</param>
     /// <param name="value">Fetched value.</param>
     /// <returns><see langword="true"/> if the property was fetched.</returns>
-    public bool TryFetch(object obj, out T value)
+    public bool TryFetch(object? obj, out T? value)
     {
         if (obj == null)
         {
@@ -76,7 +76,19 @@ internal class PropertyFetcher<T>
                 property = type.GetProperty(this.propertyName);
             }
 
+            if (property == null)
+            {
+                value = default;
+                return false;
+            }
+
             this.innerFetcher = PropertyFetch.FetcherForProperty(property);
+        }
+
+        if (this.innerFetcher == null)
+        {
+            value = default;
+            return false;
         }
 
         return this.innerFetcher.TryFetch(obj, out value);
@@ -89,7 +101,7 @@ internal class PropertyFetcher<T>
         /// Create a property fetcher from a .NET Reflection PropertyInfo class that
         /// represents a property of a particular type.
         /// </summary>
-        public static PropertyFetch FetcherForProperty(PropertyInfo propertyInfo)
+        public static PropertyFetch? FetcherForProperty(PropertyInfo propertyInfo)
         {
             if (propertyInfo == null || !typeof(T).IsAssignableFrom(propertyInfo.PropertyType))
             {
@@ -98,12 +110,14 @@ internal class PropertyFetcher<T>
             }
 
             var typedPropertyFetcher = typeof(TypedPropertyFetch<,>);
+#pragma warning disable CS8604 // Possible null reference argument (propertyInfo.DeclaringType is: Type?)
             var instantiatedTypedPropertyFetcher = typedPropertyFetcher.MakeGenericType(
                 typeof(T), propertyInfo.DeclaringType, propertyInfo.PropertyType);
-            return (PropertyFetch)Activator.CreateInstance(instantiatedTypedPropertyFetcher, propertyInfo);
+#pragma warning restore CS8604 // Possible null reference argument.
+            return (PropertyFetch?)Activator.CreateInstance(instantiatedTypedPropertyFetcher, propertyInfo);
         }
 
-        public virtual bool TryFetch(object obj, out T value)
+        public virtual bool TryFetch(object obj, out T? value)
         {
             value = default;
             return false;
@@ -112,16 +126,16 @@ internal class PropertyFetcher<T>
         private class TypedPropertyFetch<TDeclaredObject, TDeclaredProperty> : PropertyFetch
             where TDeclaredProperty : T
         {
-            private readonly Func<TDeclaredObject, TDeclaredProperty> propertyFetch;
+            private readonly Func<TDeclaredObject, TDeclaredProperty>? propertyFetch;
 
             public TypedPropertyFetch(PropertyInfo property)
             {
-                this.propertyFetch = (Func<TDeclaredObject, TDeclaredProperty>)property.GetMethod.CreateDelegate(typeof(Func<TDeclaredObject, TDeclaredProperty>));
+                this.propertyFetch = (Func<TDeclaredObject, TDeclaredProperty>?)property.GetMethod?.CreateDelegate(typeof(Func<TDeclaredObject, TDeclaredProperty>));
             }
 
-            public override bool TryFetch(object obj, out T value)
+            public override bool TryFetch(object obj, out T? value)
             {
-                if (obj is TDeclaredObject o)
+                if (this.propertyFetch != null && obj is TDeclaredObject o)
                 {
                     value = this.propertyFetch(o);
                     return true;

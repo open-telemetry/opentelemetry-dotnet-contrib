@@ -42,9 +42,9 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
         this.options = options;
     }
 
-    public override void OnStartActivity(Activity activity, object payload)
+    public override void OnStartActivity(Activity? activity, object? payload)
     {
-        if (activity.IsAllDataRequested)
+        if (activity != null && activity.IsAllDataRequested)
         {
             if (!this.options.TracedOperations.Contains(activity.OperationName))
             {
@@ -70,9 +70,9 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
         }
     }
 
-    public override void OnStopActivity(Activity activity, object payload)
+    public override void OnStopActivity(Activity? activity, object? payload)
     {
-        if (activity.IsAllDataRequested)
+        if (activity != null && activity.IsAllDataRequested)
         {
             try
             {
@@ -86,9 +86,9 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
         }
     }
 
-    public override void OnException(Activity activity, object payload)
+    public override void OnException(Activity? activity, object? payload)
     {
-        if (activity.IsAllDataRequested)
+        if (activity != null && activity.IsAllDataRequested)
         {
             var exc = payload as Exception;
             if (exc == null)
@@ -135,7 +135,7 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
         };
     }
 
-    private string GetTag(IEnumerable<KeyValuePair<string, string>> tags, string tagName)
+    private string? GetTag(IEnumerable<KeyValuePair<string, string?>> tags, string tagName)
     {
         var tag = tags.SingleOrDefault(kv => kv.Key == tagName);
         return tag.Value;

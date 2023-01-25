@@ -30,14 +30,14 @@ internal class AWSLambdaHttpUtils
     private const string HeaderXForwardedProto = "x-forwarded-proto";
     private const string HeaderHost = "host";
 
-    internal static IEnumerable<KeyValuePair<string, object>> GetHttpTags<TInput>(TInput input)
+    internal static IEnumerable<KeyValuePair<string, object?>> GetHttpTags<TInput>(TInput input)
     {
-        var tags = new List<KeyValuePair<string, object>>();
+        var tags = new List<KeyValuePair<string, object?>>();
 
-        string httpScheme = null;
-        string httpTarget = null;
-        string httpMethod = null;
-        string hostName = null;
+        string? httpScheme = null;
+        string? httpTarget = null;
+        string? httpMethod = null;
+        string? hostName = null;
         int? hostPort = null;
 
         switch (input)
@@ -67,15 +67,15 @@ internal class AWSLambdaHttpUtils
         return tags;
     }
 
-    internal static void SetHttpTagsFromResult(Activity activity, object result)
+    internal static void SetHttpTagsFromResult(Activity? activity, object? result)
     {
         switch (result)
         {
             case APIGatewayProxyResponse response:
-                activity.SetTag(SemanticConventions.AttributeHttpStatusCode, response.StatusCode);
+                activity?.SetTag(SemanticConventions.AttributeHttpStatusCode, response.StatusCode);
                 break;
             case APIGatewayHttpApiV2ProxyResponse responseV2:
-                activity.SetTag(SemanticConventions.AttributeHttpStatusCode, responseV2.StatusCode);
+                activity?.SetTag(SemanticConventions.AttributeHttpStatusCode, responseV2.StatusCode);
                 break;
         }
     }
@@ -109,7 +109,7 @@ internal class AWSLambdaHttpUtils
     internal static string GetQueryString(APIGatewayHttpApiV2ProxyRequest request) =>
         string.IsNullOrEmpty(request.RawQueryString) ? string.Empty : "?" + request.RawQueryString;
 
-    internal static (string Host, int? Port) GetHostAndPort(string httpScheme, string hostHeader)
+    internal static (string? Host, int? Port) GetHostAndPort(string? httpScheme, string? hostHeader)
     {
         if (hostHeader == null)
         {
@@ -130,6 +130,6 @@ internal class AWSLambdaHttpUtils
         }
     }
 
-    private static int? GetDefaultPort(string httpScheme) =>
+    private static int? GetDefaultPort(string? httpScheme) =>
         httpScheme == "https" ? 443 : httpScheme == "http" ? 80 : null;
 }

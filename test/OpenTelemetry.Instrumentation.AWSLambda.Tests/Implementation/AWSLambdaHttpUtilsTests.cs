@@ -164,6 +164,8 @@ public class AWSLambdaHttpUtilsTests
         using var testActivitySource = new ActivitySource("TestActivitySource");
         using var activity = testActivitySource.StartActivity("TestActivity");
 
+        Assert.NotNull(activity);
+
         AWSLambdaHttpUtils.SetHttpTagsFromResult(activity, response);
 
         var expectedTags = new Dictionary<string, object>
@@ -189,6 +191,8 @@ public class AWSLambdaHttpUtilsTests
 
         using var testActivitySource = new ActivitySource("TestActivitySource");
         using var activity = testActivitySource.StartActivity("TestActivity");
+
+        Assert.NotNull(activity);
 
         AWSLambdaHttpUtils.SetHttpTagsFromResult(activity, response);
 
@@ -255,14 +259,14 @@ public class AWSLambdaHttpUtilsTests
         Assert.Equal(expectedQueryString, queryString);
     }
 
-    private static void AssertTags<TActualValue>(IReadOnlyDictionary<string, object> expectedTags, IEnumerable<KeyValuePair<string, TActualValue>> actualTags)
+    private static void AssertTags<TActualValue>(IReadOnlyDictionary<string, object> expectedTags, IEnumerable<KeyValuePair<string, TActualValue?>> actualTags)
         where TActualValue : class
     {
         Assert.NotNull(actualTags);
         Assert.Equal(expectedTags.Count, actualTags.Count());
         foreach (var tag in expectedTags)
         {
-            Assert.Contains(new KeyValuePair<string, TActualValue>(tag.Key, tag.Value as TActualValue), actualTags);
+            Assert.Contains(new KeyValuePair<string, TActualValue?>(tag.Key, tag.Value as TActualValue), actualTags);
         }
     }
 }

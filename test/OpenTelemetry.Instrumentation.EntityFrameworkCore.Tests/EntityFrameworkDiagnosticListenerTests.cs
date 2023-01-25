@@ -32,7 +32,7 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests;
 public class EntityFrameworkDiagnosticListenerTests : IDisposable
 {
     private readonly DbContextOptions<ItemsContext> contextOptions;
-    private readonly DbConnection connection;
+    private readonly DbConnection? connection;
 
     public EntityFrameworkDiagnosticListenerTests()
     {
@@ -131,7 +131,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         VerifyActivityData(activity, isError: true);
     }
 
-    public void Dispose() => this.connection.Dispose();
+    public void Dispose() => this.connection?.Dispose();
 
     private static DbConnection CreateInMemoryDatabase()
     {
@@ -142,7 +142,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         return connection;
     }
 
-    private static void VerifyActivityData(Activity activity, bool isError = false, string altDisplayName = null)
+    private static void VerifyActivityData(Activity activity, bool isError = false, string? altDisplayName = null)
     {
         Assert.Equal(altDisplayName ?? "main", activity.DisplayName);
 
@@ -190,7 +190,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     {
         public int Id { get; set; }
 
-        public string Name { get; set; }
+        public string? Name { get; set; }
     }
 
     private class ItemsContext : DbContext

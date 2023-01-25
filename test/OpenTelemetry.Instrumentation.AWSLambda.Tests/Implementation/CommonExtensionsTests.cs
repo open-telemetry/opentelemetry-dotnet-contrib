@@ -29,7 +29,7 @@ public class CommonExtensionsTests
     [InlineData(null)]
     public void AddTagIfNotNull_Tag_CorrectTagsList(object tag)
     {
-        var tags = new List<KeyValuePair<string, object>>();
+        var tags = new List<KeyValuePair<string, object?>>();
 
         tags.AddTagIfNotNull("tagName", tag);
 

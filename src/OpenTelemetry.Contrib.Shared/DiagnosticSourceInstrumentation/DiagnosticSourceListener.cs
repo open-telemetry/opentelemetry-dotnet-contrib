@@ -21,7 +21,7 @@ using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation;
 
-internal class DiagnosticSourceListener : IObserver<KeyValuePair<string, object>>
+internal class DiagnosticSourceListener : IObserver<KeyValuePair<string, object?>>
 {
     private readonly ListenerHandler handler;
 
@@ -40,7 +40,7 @@ internal class DiagnosticSourceListener : IObserver<KeyValuePair<string, object>
     {
     }
 
-    public void OnNext(KeyValuePair<string, object> value)
+    public void OnNext(KeyValuePair<string, object?> value)
     {
         if (!this.handler.SupportsNullActivity && Activity.Current == null)
         {

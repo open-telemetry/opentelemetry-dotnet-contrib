@@ -27,7 +27,7 @@ internal static class StatusHelper
     public const string ErrorStatusCodeTagValue = "ERROR";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string GetTagValueForStatusCode(StatusCode statusCode)
+    public static string? GetTagValueForStatusCode(StatusCode statusCode)
     {
         return statusCode switch
         {

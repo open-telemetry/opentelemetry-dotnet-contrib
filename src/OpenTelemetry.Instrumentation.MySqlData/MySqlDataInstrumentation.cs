@@ -33,9 +33,9 @@ internal class MySqlDataInstrumentation : DefaultTraceListener
 
     private readonly MySqlDataInstrumentationOptions options;
 
-    private readonly Func<string, MySqlConnectionStringBuilder> builderFactory;
+    private readonly Func<string, MySqlConnectionStringBuilder>? builderFactory;
 
-    public MySqlDataInstrumentation(MySqlDataInstrumentationOptions options = null)
+    public MySqlDataInstrumentation(MySqlDataInstrumentationOptions? options = null)
     {
         this.options = options ?? new MySqlDataInstrumentationOptions();
         MySqlTrace.Listeners.Clear();

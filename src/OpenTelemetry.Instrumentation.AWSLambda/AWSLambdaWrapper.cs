@@ -93,7 +93,7 @@ public static class AWSLambdaWrapper
         ILambdaContext context,
         ActivityContext parentContext = default)
     {
-        Func<TInput, ILambdaContext, object> func = (input, context) =>
+        Func<TInput, ILambdaContext, object?> func = (input, context) =>
         {
             lambdaHandler(input, context);
             return null;
@@ -123,7 +123,7 @@ public static class AWSLambdaWrapper
         ILambdaContext context,
         ActivityContext parentContext = default)
     {
-        Func<TInput, ILambdaContext, Task<object>> func = async (input, context) =>
+        Func<TInput, ILambdaContext, Task<object?>> func = async (input, context) =>
         {
             await lambdaHandler(input, context);
             return null;
@@ -159,7 +159,7 @@ public static class AWSLambdaWrapper
 
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
-    internal static Activity OnFunctionStart<TInput>(TInput input, ILambdaContext context, ActivityContext parentContext = default)
+    internal static Activity? OnFunctionStart<TInput>(TInput input, ILambdaContext context, ActivityContext parentContext = default)
     {
         if (parentContext == default)
         {
@@ -175,12 +175,12 @@ public static class AWSLambdaWrapper
 
         // We assume that functionTags and httpTags have no intersection.
         var activityName = AWSLambdaUtils.GetFunctionName(context) ?? "AWS Lambda Invoke";
-        var activity = AWSLambdaActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext, functionTags.Concat(httpTags));
+        var activity = AWSLambdaActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext, functionTags?.Concat(httpTags));
 
         return activity;
     }
 
-    private static void OnFunctionStop(Activity activity, TracerProvider tracerProvider)
+    private static void OnFunctionStop(Activity? activity, TracerProvider tracerProvider)
     {
         if (activity != null)
         {
@@ -191,7 +191,7 @@ public static class AWSLambdaWrapper
         tracerProvider?.ForceFlush();
     }
 
-    private static void OnException(Activity activity, Exception exception)
+    private static void OnException(Activity? activity, Exception exception)
     {
         if (activity != null)
         {

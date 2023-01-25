@@ -43,5 +43,5 @@ public class EntityFrameworkInstrumentationOptions
     /// <para><see cref="Activity"/>: the activity being enriched.</para>
     /// <para><see cref="IDbCommand"/>: db command to allow access to command.</para>
     /// </remarks>
-    public Action<Activity, IDbCommand> EnrichWithIDbCommand { get; set; }
+    public Action<Activity, IDbCommand>? EnrichWithIDbCommand { get; set; }
 }

@@ -35,7 +35,7 @@ internal class InstrumentationEventSource : EventSource
     }
 
     [NonEvent]
-    public void UnknownErrorProcessingEvent(string handlerName, string eventName, Exception ex)
+    public void UnknownErrorProcessingEvent(string? handlerName, string eventName, Exception ex)
     {
         if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
         {
@@ -44,7 +44,7 @@ internal class InstrumentationEventSource : EventSource
     }
 
     [Event(2, Message = "Unknown error processing event '{1}' from handler '{0}', Exception: {2}", Level = EventLevel.Error)]
-    public void UnknownErrorProcessingEvent(string handlerName, string eventName, string ex)
+    public void UnknownErrorProcessingEvent(string? handlerName, string eventName, string ex)
     {
         this.WriteEvent(2, handlerName, eventName, ex);
     }

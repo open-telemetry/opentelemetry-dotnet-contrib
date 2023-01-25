@@ -57,12 +57,12 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         this.options = options;
     }
 
-    public override void OnStartActivity(Activity activity, object payload)
+    public override void OnStartActivity(Activity? activity, object? payload)
     {
         // By this time, samplers have already run and
         // activity.IsAllDataRequested populated accordingly.
 
-        if (Sdk.SuppressInstrumentation)
+        if (Sdk.SuppressInstrumentation || activity == null)
         {
             return;
         }
@@ -129,9 +129,9 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         }
     }
 
-    public override void OnStopActivity(Activity activity, object payload)
+    public override void OnStopActivity(Activity? activity, object? payload)
     {
-        if (activity.IsAllDataRequested)
+        if (activity != null && activity.IsAllDataRequested)
         {
             var statusCode = this.httpStatusFetcher.Fetch(payload);
             activity.SetStatus(SpanHelper.ResolveSpanStatusForHttpStatusCode(statusCode.GetValueOrDefault()));
@@ -201,7 +201,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         }
     }
 
-    private string GetDisplayName(Activity activity, object method, string elasticType = null)
+    private string GetDisplayName(Activity activity, object? method, string? elasticType = null)
     {
         switch (activity.OperationName)
         {
@@ -223,7 +223,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         }
     }
 
-    private string GetElasticIndex(Uri uri)
+    private string? GetElasticIndex(Uri uri)
     {
         // first segment is always /
         if (uri.Segments.Length < 2)
@@ -263,7 +263,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         var request = ParseRequest.Match(debugInformation);
         if (request.Success)
         {
-            string body = request.Groups[1]?.Value?.Trim();
+            string? body = request.Groups[1]?.Value?.Trim();
             if (body == null)
             {
                 return debugInformation;

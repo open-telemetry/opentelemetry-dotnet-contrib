@@ -21,8 +21,8 @@ namespace OpenTelemetry.Tests;
 
 internal class TestActivityProcessor : BaseProcessor<Activity>
 {
-    public Action<Activity> StartAction;
-    public Action<Activity> EndAction;
+    public Action<Activity>? StartAction;
+    public Action<Activity>? EndAction;
 
     public TestActivityProcessor()
     {

@@ -5,6 +5,7 @@
     <PackageTags>$(PackageTags);distributed-tracing</PackageTags>
     <MinVerTagPrefix>Instrumentation.EntityFrameworkCore-</MinVerTagPrefix>
     <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

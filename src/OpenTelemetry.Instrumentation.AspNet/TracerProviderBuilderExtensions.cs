@@ -33,7 +33,7 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddAspNetInstrumentation(
         this TracerProviderBuilder builder,
-        Action<AspNetInstrumentationOptions> configureAspNetInstrumentationOptions = null)
+        Action<AspNetInstrumentationOptions>? configureAspNetInstrumentationOptions = null)
     {
         Guard.ThrowIfNull(builder);
 

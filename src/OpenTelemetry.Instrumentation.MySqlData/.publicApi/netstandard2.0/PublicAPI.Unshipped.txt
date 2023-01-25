@@ -1,3 +1,4 @@
+#nullable enable
 OpenTelemetry.Instrumentation.MySqlData.MySqlDataInstrumentationOptions
 OpenTelemetry.Instrumentation.MySqlData.MySqlDataInstrumentationOptions.EnableConnectionLevelAttributes.get -> bool
 OpenTelemetry.Instrumentation.MySqlData.MySqlDataInstrumentationOptions.EnableConnectionLevelAttributes.set -> void
@@ -7,4 +8,4 @@ OpenTelemetry.Instrumentation.MySqlData.MySqlDataInstrumentationOptions.RecordEx
 OpenTelemetry.Instrumentation.MySqlData.MySqlDataInstrumentationOptions.SetDbStatement.get -> bool
 OpenTelemetry.Instrumentation.MySqlData.MySqlDataInstrumentationOptions.SetDbStatement.set -> void
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
-static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddMySqlDataInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder, System.Action<OpenTelemetry.Instrumentation.MySqlData.MySqlDataInstrumentationOptions> configureMySqlDataInstrumentationOptions = null) -> OpenTelemetry.Trace.TracerProviderBuilder
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddMySqlDataInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder, System.Action<OpenTelemetry.Instrumentation.MySqlData.MySqlDataInstrumentationOptions!>? configureMySqlDataInstrumentationOptions = null) -> OpenTelemetry.Trace.TracerProviderBuilder!

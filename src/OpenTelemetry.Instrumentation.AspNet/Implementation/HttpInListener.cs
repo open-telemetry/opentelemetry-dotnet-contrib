@@ -135,7 +135,7 @@ internal sealed class HttpInListener : IDisposable
 
             var routeData = context.Request.RequestContext.RouteData;
 
-            string template = null;
+            string? template = null;
             if (routeData.Values.TryGetValue("MS_SubRoutes", out object msSubRoutes))
             {
                 // WebAPI attribute routing flows here. Use reflection to not take a dependency on microsoft.aspnet.webapi.core\[version]\lib\[framework]\System.Web.Http.
@@ -145,7 +145,10 @@ internal sealed class HttpInListener : IDisposable
                     var subRouteData = attributeRouting.GetValue(0);
 
                     _ = this.routeFetcher.TryFetch(subRouteData, out var route);
-                    _ = this.routeTemplateFetcher.TryFetch(route, out template);
+                    if (route != null)
+                    {
+                        _ = this.routeTemplateFetcher.TryFetch(route, out template);
+                    }
                 }
             }
             else if (routeData.Route is Route route)
@@ -154,7 +157,7 @@ internal sealed class HttpInListener : IDisposable
                 template = route.Url;
             }
 
-            if (!string.IsNullOrEmpty(template))
+            if (template != null && !string.IsNullOrEmpty(template))
             {
                 // Override the name that was previously set to the path part of URL.
                 activity.DisplayName = template;

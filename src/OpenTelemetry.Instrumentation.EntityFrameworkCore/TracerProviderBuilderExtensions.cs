@@ -34,7 +34,7 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddEntityFrameworkCoreInstrumentation(
         this TracerProviderBuilder builder,
-        Action<EntityFrameworkInstrumentationOptions> configureOptions = null)
+        Action<EntityFrameworkInstrumentationOptions>? configureOptions = null)
     {
         Guard.ThrowIfNull(builder);
 

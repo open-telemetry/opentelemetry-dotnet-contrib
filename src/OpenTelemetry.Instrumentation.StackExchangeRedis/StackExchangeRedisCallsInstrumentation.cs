@@ -38,9 +38,9 @@ internal class StackExchangeRedisCallsInstrumentation : IDisposable
     internal static readonly string ActivityName = ActivitySourceName + ".Execute";
     internal static readonly Version Version = typeof(StackExchangeRedisCallsInstrumentation).Assembly.GetName().Version;
     internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version.ToString());
-    internal static readonly IEnumerable<KeyValuePair<string, object>> CreationTags = new[]
+    internal static readonly IEnumerable<KeyValuePair<string, object?>>? CreationTags = new[]
     {
-        new KeyValuePair<string, object>(SemanticConventions.AttributeDbSystem, "redis"),
+        new KeyValuePair<string, object?>(SemanticConventions.AttributeDbSystem, "redis"),
     };
 
     internal readonly ConcurrentDictionary<(ActivityTraceId TraceId, ActivitySpanId SpanId), (Activity Activity, ProfilingSession Session)> Cache
@@ -77,7 +77,7 @@ internal class StackExchangeRedisCallsInstrumentation : IDisposable
     /// Returns session for the Redis calls recording.
     /// </summary>
     /// <returns>Session associated with the current span context to record Redis calls.</returns>
-    public Func<ProfilingSession> GetProfilerSessionsFactory()
+    public Func<ProfilingSession?> GetProfilerSessionsFactory()
     {
         return () =>
         {
@@ -86,7 +86,7 @@ internal class StackExchangeRedisCallsInstrumentation : IDisposable
                 return null;
             }
 
-            Activity parent = Activity.Current;
+            Activity? parent = Activity.Current;
 
             // If no parent use the default session.
             if (parent == null || parent.IdFormat != ActivityIdFormat.W3C)
