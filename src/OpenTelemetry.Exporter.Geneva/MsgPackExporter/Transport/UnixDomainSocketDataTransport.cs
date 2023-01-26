@@ -43,7 +43,7 @@ internal class UnixDomainSocketDataTransport : IDataTransport, IDisposable
     {
         this.unixEndpoint = new UnixDomainSocketEndPoint(unixDomainSocketPath);
         this.timeoutMilliseconds = timeoutMilliseconds;
-        this.Connect();
+        this.CreateSocket();
     }
 
     public bool IsEnabled()
@@ -79,10 +79,7 @@ internal class UnixDomainSocketDataTransport : IDataTransport, IDisposable
     {
         try
         {
-            this.socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP)
-            {
-                SendTimeout = this.timeoutMilliseconds,
-            };
+            this.CreateSocket();
             this.socket.Connect(this.unixEndpoint);
         }
         catch (Exception ex)
@@ -100,5 +97,13 @@ internal class UnixDomainSocketDataTransport : IDataTransport, IDisposable
     {
         this.socket.Close();
         this.Connect();
+    }
+
+    private void CreateSocket()
+    {
+        this.socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP)
+        {
+            SendTimeout = this.timeoutMilliseconds,
+        };
     }
 }
