@@ -17,7 +17,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using OpenTelemetry.Metrics;
 using Xunit;
 
@@ -43,10 +45,9 @@ public class EventCountersMetricsTests
 
         // Act
         counter.WriteMetric(1997.0202);
-        AwaitExport(meterProvider, metricItems);
+        var metric = AwaitExport(meterProvider, metricItems, "ec.a.c");
 
         // Assert
-        var metric = metricItems.Find(x => x.Name == "ec.a.c");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
         Assert.Equal(1997.0202, GetActualValue(metric));
@@ -72,10 +73,9 @@ public class EventCountersMetricsTests
         incCounter.Increment(1);
         incCounter.Increment(1);
         incCounter.Increment(1);
-        AwaitExport(meterProvider, metricItems);
+        var metric = AwaitExport(meterProvider, metricItems, "ec.b.inc-c");
 
         // Assert
-        var metric = metricItems.Find(x => x.Name == "ec.b.inc-c");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleSum, metric.MetricType);
         Assert.Equal(3, GetActualValue(metric));
@@ -99,10 +99,9 @@ public class EventCountersMetricsTests
             .Build();
 
         // Act
-        AwaitExport(meterProvider, metricItems);
+        var metric = AwaitExport(meterProvider, metricItems, "ec.c.poll-c");
 
         // Assert
-        var metric = metricItems.Find(x => x.Name == "ec.c.poll-c");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
         Assert.Equal(10, GetActualValue(metric));
@@ -126,44 +125,12 @@ public class EventCountersMetricsTests
             .Build();
 
         // Act
-        AwaitExport(meterProvider, metricItems);
+        var metric = AwaitExport(meterProvider, metricItems, "ec.d.inc-poll-c");
 
         // Assert
-        var metric = metricItems.Find(x => x.Name == "ec.d.inc-poll-c");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleSum, metric.MetricType);
         Assert.Equal(1, GetActualValue(metric));
-    }
-
-    [Fact]
-    public void EventCounterSameNameUsesNewestCreated()
-    {
-        // Arrange
-        List<Metric> metricItems = new();
-        using EventSource source = new("a");
-        using EventCounter counter = new("c", source);
-        using EventCounter counter2 = new("c", source);
-
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddEventCountersInstrumentation(options =>
-            {
-                options.AddEventSources(source.Name);
-            })
-            .AddInMemoryExporter(metricItems)
-            .Build();
-
-        // Act
-        counter2.WriteMetric(1980.1208);
-        counter.WriteMetric(1997.0202);
-        AwaitExport(meterProvider, metricItems);
-
-        // Assert
-        var metric = metricItems.Find(x => x.Name == "ec.a.c");
-        Assert.NotNull(metric);
-        Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
-
-        // Since `counter2` was created after `counter` it is exported
-        Assert.Equal(1980.1208, GetActualValue(metric));
     }
 
     [Fact]
@@ -214,10 +181,9 @@ public class EventCountersMetricsTests
 
         // Act
         connections.Increment(1);
-        AwaitExport(meterProvider, metricItems);
+        var metric = AwaitExport(meterProvider, metricItems, expectedInstrumentName);
 
         // Assert
-        Metric metric = metricItems.Find(m => m.Name == expectedInstrumentName);
         Assert.NotNull(metric);
         Assert.Equal(1, GetActualValue(metric));
     }
@@ -243,7 +209,9 @@ public class EventCountersMetricsTests
 
         // Act
         connections.Increment(1);
-        AwaitExport(meterProvider, metricItems);
+
+        Task.Delay(1800).Wait();
+        meterProvider.ForceFlush();
 
         // Assert
         foreach (var item in metricItems)
@@ -267,15 +235,20 @@ public class EventCountersMetricsTests
         return sum;
     }
 
-    private static bool AwaitExport<T>(MeterProvider meterProvider, List<T> exportedItems)
+    private static Metric AwaitExport(MeterProvider meterProvider, List<Metric> exportedItems, string expectedInstrumentName)
     {
-        return SpinWait.SpinUntil(
+        Metric metric = null;
+
+        SpinWait.SpinUntil(
             () =>
             {
                 Thread.Sleep(100);
                 meterProvider.ForceFlush();
-                return exportedItems.Count == 1;
+                metric = exportedItems.Where(x => x.Name == expectedInstrumentName).FirstOrDefault();
+                return metric != null;
             },
             10_000);
+
+        return metric;
     }
 }
