@@ -26,6 +26,10 @@ public class BasicTests
     public void AddAspNetInstrumentation_BadArgs()
     {
         TracerProviderBuilder? builder = null;
-        Assert.Throws<ArgumentNullException>(() => builder?.AddAspNetInstrumentation());
+
+        // With Nullables this check no longer makes sense.
+#pragma warning disable CS8604 // Possible null reference argument.
+        Assert.Throws<ArgumentNullException>(() => builder.AddAspNetInstrumentation());
+#pragma warning restore CS8604 // Possible null reference argument.
     }
 }
