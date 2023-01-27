@@ -12,5 +12,5 @@ OpenTelemetry.Instrumentation.Quartz.QuartzInstrumentationOptions.RecordExceptio
 OpenTelemetry.Instrumentation.Quartz.QuartzInstrumentationOptions.TracedOperations.get -> System.Collections.Generic.HashSet<string!>!
 OpenTelemetry.Instrumentation.Quartz.QuartzInstrumentationOptions.TracedOperations.set -> void
 OpenTelemetry.Trace.TraceProviderBuilderExtensions
-static OpenTelemetry.Trace.TraceProviderBuilderExtensions.AddQuartzInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder
+static OpenTelemetry.Trace.TraceProviderBuilderExtensions.AddQuartzInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder!
 static OpenTelemetry.Trace.TraceProviderBuilderExtensions.AddQuartzInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder, System.Action<OpenTelemetry.Instrumentation.Quartz.QuartzInstrumentationOptions!>? configure) -> OpenTelemetry.Trace.TracerProviderBuilder!
