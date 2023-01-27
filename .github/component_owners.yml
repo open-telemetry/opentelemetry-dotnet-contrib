@@ -42,8 +42,6 @@ components:
     - pcwiese
   src/OpenTelemetry.Instrumentation.Hangfire/:
     - fred2u
-  src/OpenTelemetry.Instrumentation.MassTransit/:
-    - alexvaluyskiy
   src/OpenTelemetry.Instrumentation.MySqlData/:
     - moonheart
   src/OpenTelemetry.Instrumentation.Owin/:
@@ -90,7 +88,7 @@ components:
   test/OpenTelemetry.Extensions.Tests/:
     - codeblanch
   test/OpenTelemetry.Extensions.Docker.Tests/:
-    - swetharavichandrancisco
+    - iskiselev
   test/OpenTelemetry.Extensions.PersistentStorage.Tests/:
     - vishweshbankwar
   test/OpenTelemetry.Instrumentation.AWSLambda.Tests/:
@@ -105,8 +103,6 @@ components:
     - pcwiese
   test/OpenTelemetry.Instrumentation.Hangfire.Tests/:
     - fred2u
-  test/OpenTelemetry.Instrumentation.MassTransit.Tests/:
-    - alexvaluyskiy
   test/OpenTelemetry.Instrumentation.MySqlData.Tests/:
     - moonheart
   test/OpenTelemetry.Instrumentation.Owin.Tests/:

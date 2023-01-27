@@ -56,6 +56,7 @@ public class RuntimeMetricsTests
         Assert.NotNull(assembliesCountMetric);
 
         var exceptionsCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.exceptions.count");
+        Assert.NotNull(exceptionsCountMetric);
         Assert.True(GetValue(exceptionsCountMetric) >= 1);
     }
 
@@ -147,6 +148,7 @@ public class RuntimeMetricsTests
         Assert.NotNull(threadCountMetric);
 
         var completedItemsCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.thread_pool.completed_items.count");
+        Assert.NotNull(completedItemsCountMetric);
         Assert.True(GetValue(completedItemsCountMetric) >= taskCount);
 
         var queueLengthMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.thread_pool.queue.length");
@@ -167,6 +169,7 @@ public class RuntimeMetricsTests
             meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
             var timerCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.timer.count");
+            Assert.NotNull(timerCountMetric);
             Assert.True(GetValue(timerCountMetric) >= timerCount);
         }
         finally
@@ -181,7 +184,6 @@ public class RuntimeMetricsTests
 
     private static double GetValue(Metric metric)
     {
-        Assert.NotNull(metric);
         double sum = 0;
 
         foreach (ref readonly var metricPoint in metric.GetMetricPoints())

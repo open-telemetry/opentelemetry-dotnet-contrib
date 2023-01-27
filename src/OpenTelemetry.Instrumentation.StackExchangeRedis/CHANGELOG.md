@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-* Update OTel API version to `1.3.1`.
-  ([#631](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/631))
+* Update OTel API version to `1.3.2`.
+  ([#917](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/917))
 
 ## 1.0.0-rc9.7
 

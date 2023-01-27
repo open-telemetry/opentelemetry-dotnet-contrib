@@ -29,11 +29,18 @@ public static class MeterProviderBuilderExtensions
     /// Enables runtime instrumentation.
     /// </summary>
     /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
+    /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
+    public static MeterProviderBuilder AddProcessInstrumentation(this MeterProviderBuilder builder) => AddProcessInstrumentation(builder, configure: null);
+
+    /// <summary>
+    /// Enables runtime instrumentation.
+    /// </summary>
+    /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
     /// <param name="configure">Runtime metrics options.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
     public static MeterProviderBuilder AddProcessInstrumentation(
         this MeterProviderBuilder builder,
-        Action<ProcessInstrumentationOptions> configure = null)
+        Action<ProcessInstrumentationOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
 

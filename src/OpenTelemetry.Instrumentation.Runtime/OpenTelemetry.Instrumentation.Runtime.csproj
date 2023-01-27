@@ -5,6 +5,7 @@
     <PackageTags>$(PackageTags);runtime</PackageTags>
     <MinVerTagPrefix>Instrumentation.Runtime-</MinVerTagPrefix>
     <EnableAnalysis>true</EnableAnalysis>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

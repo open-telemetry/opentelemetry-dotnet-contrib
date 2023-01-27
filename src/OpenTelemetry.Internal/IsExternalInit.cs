@@ -1,4 +1,4 @@
-// <copyright file="TestExporter.cs" company="OpenTelemetry Authors">
+// <copyright file="IsExternalInit.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,24 +14,12 @@
 // limitations under the License.
 // </copyright>
 
-using System;
-
-namespace OpenTelemetry.Tests;
-
-internal class TestExporter<T> : BaseExporter<T>
-    where T : class
+#if NETFRAMEWORK || NETSTANDARD2_0_OR_GREATER
+namespace System.Runtime.CompilerServices
 {
-    private readonly Action<Batch<T>> processBatchAction;
-
-    public TestExporter(Action<Batch<T>> processBatchAction)
+    // This enabled "init" keyword in net462 + netstandard2.0 targets.
+    internal sealed class IsExternalInit
     {
-        this.processBatchAction = processBatchAction ?? throw new ArgumentNullException(nameof(processBatchAction));
-    }
-
-    public override ExportResult Export(in Batch<T> batch)
-    {
-        this.processBatchAction(batch);
-
-        return ExportResult.Success;
     }
 }
+#endif

@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+* Update OpenTelemetry to 1.4.0-rc.2
+  ([#880](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/880))
+
+* Add TldTraceExporter and TldLogExporter. Use
+  `"PrivatePreviewEnableTraceLoggingDynamic=true"` in the connection string to
+  use these exporters.
+  ([#662](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/662))
+  ([#874](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/874))
+
+* Add support for configuring BatchActivityExportProcessor parameters (via
+  environment variables) used by GenevaTraceExporter in Linux.
+  ([#925](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/925))
+
 ## 1.4.0-rc.1
 
 Released 2022-Dec-19
@@ -27,6 +40,18 @@ Released 2022-Dec-09
   ([#805](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/805))
 * Fix EventSource logging.
   ([#813](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/813))
+* Update `MessagePackSerializer` to use
+  [BinaryPrimitives](https://learn.microsoft.com/dotnet/api/system.buffers.binary.binaryprimitives)
+  to serialize scalar types more efficiently by avoiding repeated bound checks.
+  Add support for serializing `ISpanFormattable` types.
+  ([#803](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/803))
+
+## 1.3.1
+
+Released 2022-Dec-07
+
+* Fix the overflow bucket value serialization for Histogram.
+  ([#807](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/807))
 
 ## 1.4.0-beta.5
 

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
@@ -14,5 +14,9 @@
     <Nullable>enable</Nullable>
     <EnableAnalysis>true</EnableAnalysis>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\NullableAttributes.cs" Link="Includes\NullableAttributes.cs" />
+  </ItemGroup>
 
 </Project>

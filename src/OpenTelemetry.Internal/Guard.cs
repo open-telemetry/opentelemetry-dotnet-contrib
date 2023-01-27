@@ -14,46 +14,50 @@
 // limitations under the License.
 // </copyright>
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
-#if !NETCOREAPP3_0_OR_GREATER
+#pragma warning disable SA1402 // File may only contain a single type
+#pragma warning disable SA1403 // File may only contain a single namespace
+#pragma warning disable SA1649 // File name should match first type name
+
+#if !NET6_0_OR_GREATER
 namespace System.Runtime.CompilerServices
 {
-    /// <summary>
-    /// Allows capturing of the expressions passed to a method.
-    /// </summary>
+    /// <summary>Allows capturing of the expressions passed to a method.</summary>
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
-#pragma warning disable SA1402 // File may only contain a single type
-#pragma warning disable SA1649 // File name should match first type name
     internal sealed class CallerArgumentExpressionAttribute : Attribute
-#pragma warning restore SA1649 // File name should match first type name
-#pragma warning restore SA1402 // File may only contain a single type
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CallerArgumentExpressionAttribute"/> class.
-        /// </summary>
-        /// <param name="parameterName">The name of the targeted parameter.</param>
         public CallerArgumentExpressionAttribute(string parameterName)
         {
             this.ParameterName = parameterName;
         }
 
-        /// <summary>
-        /// Gets the target parameter name of the CallerArgumentExpression.
-        /// </summary>
         public string ParameterName { get; }
     }
 }
 #endif
 
-#nullable enable
+#if !NETCOREAPP3_0_OR_GREATER && !NETSTANDARD2_1_OR_GREATER
+namespace System.Diagnostics.CodeAnalysis
+{
+    /// <summary>Specifies that an output is not <see langword="null"/> even if
+    /// the corresponding type allows it. Specifies that an input argument was
+    /// not <see langword="null"/> when the call returns.</summary>
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.ReturnValue, Inherited = false)]
+    internal sealed class NotNullAttribute : Attribute
+    {
+    }
+}
+#endif
 
-#pragma warning disable SA1403 // File may only contain a single namespace
 namespace OpenTelemetry.Internal
-#pragma warning restore SA1403 // File may only contain a single namespace
 {
     /// <summary>
     /// Methods for guarding against exception throwing values.
@@ -67,7 +71,7 @@ namespace OpenTelemetry.Internal
         /// <param name="paramName">The parameter name to use in the thrown exception.</param>
         [DebuggerHidden]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfNull(object value, [CallerArgumentExpression("value")] string? paramName = null)
+        public static void ThrowIfNull([NotNull] object? value, [CallerArgumentExpression("value")] string? paramName = null)
         {
             if (value is null)
             {
@@ -82,13 +86,15 @@ namespace OpenTelemetry.Internal
         /// <param name="paramName">The parameter name to use in the thrown exception.</param>
         [DebuggerHidden]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfNullOrEmpty(string value, [CallerArgumentExpression("value")] string? paramName = null)
+        public static void ThrowIfNullOrEmpty([NotNull] string? value, [CallerArgumentExpression("value")] string? paramName = null)
+#pragma warning disable CS8777 // Parameter must have a non-null value when exiting.
         {
             if (string.IsNullOrEmpty(value))
             {
                 throw new ArgumentException("Must not be null or empty", paramName);
             }
         }
+#pragma warning restore CS8777 // Parameter must have a non-null value when exiting.
 
         /// <summary>
         /// Throw an exception if the value is null or whitespace.
@@ -97,13 +103,15 @@ namespace OpenTelemetry.Internal
         /// <param name="paramName">The parameter name to use in the thrown exception.</param>
         [DebuggerHidden]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfNullOrWhitespace(string value, [CallerArgumentExpression("value")] string? paramName = null)
+        public static void ThrowIfNullOrWhitespace([NotNull] string? value, [CallerArgumentExpression("value")] string? paramName = null)
+#pragma warning disable CS8777 // Parameter must have a non-null value when exiting.
         {
             if (string.IsNullOrWhiteSpace(value))
             {
                 throw new ArgumentException("Must not be null or whitespace", paramName);
             }
         }
+#pragma warning restore CS8777 // Parameter must have a non-null value when exiting.
 
         /// <summary>
         /// Throw an exception if the value is zero.
@@ -176,11 +184,11 @@ namespace OpenTelemetry.Internal
         /// <returns>The value casted to the specified type.</returns>
         [DebuggerHidden]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T ThrowIfNotOfType<T>(object value, [CallerArgumentExpression("value")] string? paramName = null)
+        public static T ThrowIfNotOfType<T>([NotNull] object? value, [CallerArgumentExpression("value")] string? paramName = null)
         {
             if (value is not T result)
             {
-                throw new InvalidCastException($"Cannot cast '{paramName}' from '{value.GetType().Name}' to '{typeof(T).Name}'");
+                throw new InvalidCastException($"Cannot cast '{paramName}' from '{value?.GetType().ToString() ?? "null"}' to '{typeof(T)}'");
             }
 
             return result;
@@ -195,7 +203,13 @@ namespace OpenTelemetry.Internal
             {
                 var minMessage = minName != null ? $": {minName}" : string.Empty;
                 var maxMessage = maxName != null ? $": {maxName}" : string.Empty;
-                var exMessage = message ?? $"Must be in the range: [{min}{minMessage}, {max}{maxMessage}]";
+                var exMessage = message ?? string.Format(
+                    CultureInfo.InvariantCulture,
+                    "Must be in the range: [{0}{1}, {2}{3}]",
+                    min,
+                    minMessage,
+                    max,
+                    maxMessage);
                 throw new ArgumentOutOfRangeException(paramName, value, exMessage);
             }
         }
