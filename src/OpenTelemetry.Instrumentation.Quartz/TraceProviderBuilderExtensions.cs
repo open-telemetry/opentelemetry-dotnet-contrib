@@ -30,14 +30,22 @@ public static class TraceProviderBuilderExtensions
     /// Enables the Quartz.NET Job automatic data collection for Quartz.NET.
     /// </summary>
     /// <param name="builder"><see cref="TraceProviderBuilderExtensions"/> being configured.</param>
-    /// <param name="configureQuartzInstrumentationOptions">Quartz configuration options.</param>
+    /// <returns>The instance of <see cref="TraceProviderBuilderExtensions"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddQuartzInstrumentation(
+        this TracerProviderBuilder builder) => AddQuartzInstrumentation(builder, configure: null);
+
+    /// <summary>
+    /// Enables the Quartz.NET Job automatic data collection for Quartz.NET.
+    /// </summary>
+    /// <param name="builder"><see cref="TraceProviderBuilderExtensions"/> being configured.</param>
+    /// <param name="configure">Quartz configuration options.</param>
     /// <returns>The instance of <see cref="TraceProviderBuilderExtensions"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddQuartzInstrumentation(
         this TracerProviderBuilder builder,
-        Action<QuartzInstrumentationOptions> configureQuartzInstrumentationOptions = null)
+        Action<QuartzInstrumentationOptions> configure)
     {
         var options = new QuartzInstrumentationOptions();
-        configureQuartzInstrumentationOptions?.Invoke(options);
+        configure?.Invoke(options);
 
         builder.AddInstrumentation(() => new QuartzJobInstrumentation(options));
         builder.AddSource(QuartzDiagnosticListener.ActivitySourceName);
