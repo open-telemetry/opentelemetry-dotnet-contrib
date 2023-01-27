@@ -4,6 +4,8 @@
 
 * Update OTel API version to `1.3.2`.
   ([#917](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/917))
+* Removes `AddMySqlDataInstrumentation` method with default configure parameter.
+  ([#930](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/930))
 
 ## 1.0.0-beta.5
 
