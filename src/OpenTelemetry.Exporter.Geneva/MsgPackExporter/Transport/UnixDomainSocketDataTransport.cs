@@ -74,9 +74,9 @@ internal class UnixDomainSocketDataTransport : IDataTransport, IDisposable
     {
         this.socket.Dispose();
     }
-
-    private void Connect()
+    private void Reconnect()
     {
+        this.socket.Close();
         try
         {
             this.CreateSocket();
@@ -86,17 +86,9 @@ internal class UnixDomainSocketDataTransport : IDataTransport, IDisposable
         {
             ExporterEventSource.Log.ExporterException("UDS Connect failed.", ex);
 
-            // Re-throw the exception to
-            // 1. fail fast in Geneva exporter contructor, or
-            // 2. fail in the Reconnect attempt.
+            // Re-throw the exception to fail in the Reconnect attempt.
             throw;
         }
-    }
-
-    private void Reconnect()
-    {
-        this.socket.Close();
-        this.Connect();
     }
 
     private void CreateSocket()
