@@ -15,6 +15,9 @@
   environment variables) used by GenevaTraceExporter in Linux.
   ([#925](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/925))
 
+* Fix socket connection issue at startup when UDS mount point is not available
+  ([#935](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/935))
+  
 ## 1.4.0-rc.1
 
 Released 2022-Dec-19
