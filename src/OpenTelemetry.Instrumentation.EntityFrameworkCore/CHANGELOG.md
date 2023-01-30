@@ -14,7 +14,7 @@ Released 2023-Jan-25
   ([#486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/486))
 
 * Removes `AddEntityFrameworkCoreInstrumentation` method with default configure
-  default parameter.
+  parameter.
   ([#916](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/916))
 
 * Added support to `EnrichWithIDbCommand`
