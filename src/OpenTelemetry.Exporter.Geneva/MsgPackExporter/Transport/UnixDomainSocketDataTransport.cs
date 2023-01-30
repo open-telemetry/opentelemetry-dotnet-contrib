@@ -43,7 +43,14 @@ internal class UnixDomainSocketDataTransport : IDataTransport, IDisposable
     {
         this.unixEndpoint = new UnixDomainSocketEndPoint(unixDomainSocketPath);
         this.timeoutMilliseconds = timeoutMilliseconds;
-        this.CreateSocket();
+        try
+        {
+            this.Connect();
+        }
+        catch (Exception ex)
+        {
+            ExporterEventSource.Log.ExporterException("UDS unavailable at startup.", ex);
+        }
     }
 
     public bool IsEnabled()
@@ -74,28 +81,31 @@ internal class UnixDomainSocketDataTransport : IDataTransport, IDisposable
     {
         this.socket.Dispose();
     }
-    private void Reconnect()
+
+    private void Connect()
     {
-        this.socket.Close();
         try
         {
-            this.CreateSocket();
+            this.socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP)
+            {
+                SendTimeout = this.timeoutMilliseconds,
+            };
             this.socket.Connect(this.unixEndpoint);
         }
         catch (Exception ex)
         {
             ExporterEventSource.Log.ExporterException("UDS Connect failed.", ex);
 
-            // Re-throw the exception to fail in the Reconnect attempt.
+            // Re-throw the exception to
+            // 1. fail fast in Geneva exporter contructor, or
+            // 2. fail in the Reconnect attempt.
             throw;
         }
     }
 
-    private void CreateSocket()
+    private void Reconnect()
     {
-        this.socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP)
-        {
-            SendTimeout = this.timeoutMilliseconds,
-        };
+        this.socket.Close();
+        this.Connect();
     }
 }
