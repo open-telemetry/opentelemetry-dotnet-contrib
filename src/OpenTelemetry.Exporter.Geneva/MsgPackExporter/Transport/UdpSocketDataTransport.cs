@@ -54,15 +54,7 @@ internal class UdpSocketDataTransport : IDataTransport, IDisposable
 
     public void Send(byte[] data, int size)
     {
-        try
-        {
-            this.socket.SendTo(data, size, SocketFlags.None, this.networkEndpoint);
-        }
-        catch (Exception)
-        {
-            // Re-throw the exception so that Export method catches it and sets the ExportResult correctly.
-            throw;
-        }
+        this.socket.SendTo(data, size, SocketFlags.None, this.networkEndpoint);
     }
 
     public void Dispose()
