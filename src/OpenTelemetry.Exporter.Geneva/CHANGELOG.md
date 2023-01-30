@@ -15,10 +15,10 @@
   environment variables) used by GenevaTraceExporter in Linux.
   ([#925](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/925))
 
-* Changed the behavior of Unix domain socket connection at startup. Before this 
-  change, the exporter initialization would throw exception if the target Unix 
-  Domain Socket does not exist. After this change, the exporter initialization 
-  would return success and the exporting background thread will try to 
+* Changed the behavior of Unix domain socket connection at startup. Before this
+  change, the exporter initialization would throw exception if the target Unix
+  Domain Socket does not exist. After this change, the exporter initialization
+  would return success and the exporting background thread will try to
   establish the connection.
   ([#935](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/935))
 
