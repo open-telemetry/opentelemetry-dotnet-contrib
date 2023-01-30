@@ -175,7 +175,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         return result;
     }
 
-    internal bool IsUsingUnixDomainSocket
+    internal bool SupportsBatching
     {
         get => this.m_dataTransport is UnixDomainSocketDataTransport;
     }

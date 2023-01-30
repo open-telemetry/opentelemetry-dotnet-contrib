@@ -24,7 +24,7 @@ namespace OpenTelemetry.Exporter.Geneva;
 
 public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 {
-    internal readonly bool IsUsingUnixDomainSocket;
+    internal readonly bool SupportsBatching;
 
     private bool isDisposed;
 
@@ -61,6 +61,11 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
                 useMsgPackExporter = true;
                 break;
 
+            case TransportProtocol.Tcp:
+            case TransportProtocol.Udp:
+                useMsgPackExporter = true;
+                break;
+
             case TransportProtocol.EtwTld:
                 if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
@@ -77,14 +82,14 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
         if (useMsgPackExporter)
         {
             var msgPackTraceExporter = new MsgPackTraceExporter(options);
-            this.IsUsingUnixDomainSocket = msgPackTraceExporter.IsUsingUnixDomainSocket;
+            this.SupportsBatching = msgPackTraceExporter.SupportsBatching;
             this.exportActivity = (in Batch<Activity> batch) => msgPackTraceExporter.Export(in batch);
             this.exporter = msgPackTraceExporter;
         }
         else
         {
             var tldTraceExporter = new TldTraceExporter(options);
-            this.IsUsingUnixDomainSocket = false;
+            this.SupportsBatching = false;
             this.exportActivity = (in Batch<Activity> batch) => tldTraceExporter.Export(in batch);
             this.exporter = tldTraceExporter;
         }

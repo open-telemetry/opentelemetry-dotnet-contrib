@@ -41,7 +41,7 @@ public static class GenevaExporterHelperExtensions
     {
         configure?.Invoke(options);
         var exporter = new GenevaTraceExporter(options);
-        if (exporter.IsUsingUnixDomainSocket)
+        if (exporter.SupportsBatching)
         {
             var batchOptions = new BatchExportActivityProcessorOptions();
             return builder.AddProcessor(new BatchActivityExportProcessor(
