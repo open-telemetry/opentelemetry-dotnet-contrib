@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.4.0-rc.2
+
+Released 2023-Jan-30
+
 * Update OpenTelemetry to 1.4.0-rc.2
   ([#880](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/880))
 
@@ -10,6 +14,10 @@
   use these exporters.
   ([#662](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/662))
   ([#874](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/874))
+
+* Add support for configuring BatchActivityExportProcessor parameters (via
+  environment variables) used by GenevaTraceExporter in Linux.
+  ([#925](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/925))
 
 ## 1.4.0-rc.1
 

@@ -146,6 +146,9 @@ public class ProcessMetricsTests
             var metricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.usage");
             var metricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.memory.usage");
 
+            Assert.NotNull(metricA);
+            Assert.NotNull(metricB);
+
             Assert.True(GetValue(metricA) > 0);
             Assert.True(GetValue(metricB) > 0);
         }
@@ -178,7 +181,6 @@ public class ProcessMetricsTests
 
     private static double GetValue(Metric metric)
     {
-        Assert.NotNull(metric);
         double sum = 0;
 
         foreach (ref readonly var metricPoint in metric.GetMetricPoints())

@@ -29,9 +29,17 @@ public static class TracerProviderBuilderExtensions
     /// Enables the outgoing requests automatic data collection for WCF.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilderExtensions"/> being configured.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilderExtensions"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddWcfInstrumentation(this TracerProviderBuilder builder) =>
+        AddWcfInstrumentation(builder, configure: null);
+
+    /// <summary>
+    /// Enables the outgoing requests automatic data collection for WCF.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilderExtensions"/> being configured.</param>
     /// <param name="configure">Wcf configuration options.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilderExtensions"/> to chain the calls.</returns>
-    public static TracerProviderBuilder AddWcfInstrumentation(this TracerProviderBuilder builder, Action<WcfInstrumentationOptions> configure = null)
+    public static TracerProviderBuilder AddWcfInstrumentation(this TracerProviderBuilder builder, Action<WcfInstrumentationOptions> configure)
     {
         Guard.ThrowIfNull(builder);
 

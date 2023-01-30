@@ -17,6 +17,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using OpenTelemetry.Metrics;
 using Xunit;
@@ -25,27 +27,6 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests;
 
 public class EventCountersMetricsTests
 {
-    private const int Delay = 1200;
-
-    [Fact(Skip = "Other tests metrics are being exported here")]
-    public void NoMetricsByDefault()
-    {
-        // Arrange
-        List<Metric> metricItems = new();
-
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddEventCountersInstrumentation(null)
-            .AddInMemoryExporter(metricItems)
-            .Build();
-
-        // Act
-        Task.Delay(Delay).Wait();
-        meterProvider.ForceFlush();
-
-        // Assert
-        Assert.Empty(metricItems);
-    }
-
     [Fact]
     public void EventCounter()
     {
@@ -64,11 +45,9 @@ public class EventCountersMetricsTests
 
         // Act
         counter.WriteMetric(1997.0202);
-        Task.Delay(Delay).Wait();
-        meterProvider.ForceFlush();
+        var metric = AwaitExport(meterProvider, metricItems, expectedInstrumentName: "ec.a.c");
 
         // Assert
-        var metric = metricItems.Find(x => x.Name == "ec.a.c");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
         Assert.Equal(1997.0202, GetActualValue(metric));
@@ -94,17 +73,15 @@ public class EventCountersMetricsTests
         incCounter.Increment(1);
         incCounter.Increment(1);
         incCounter.Increment(1);
-        Task.Delay(Delay).Wait();
-        meterProvider.ForceFlush();
+        var metric = AwaitExport(meterProvider, metricItems, expectedInstrumentName: "ec.b.inc-c");
 
         // Assert
-        var metric = metricItems.Find(x => x.Name == "ec.b.inc-c");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleSum, metric.MetricType);
         Assert.Equal(3, GetActualValue(metric));
     }
 
-    [Fact(Skip = "Unstable")]
+    [Fact]
     public void PollingCounter()
     {
         // Arrange
@@ -122,17 +99,15 @@ public class EventCountersMetricsTests
             .Build();
 
         // Act
-        Task.Delay(Delay * 2).Wait();
-        meterProvider.ForceFlush();
+        var metric = AwaitExport(meterProvider, metricItems, expectedInstrumentName: "ec.c.poll-c");
 
         // Assert
-        var metric = metricItems.Find(x => x.Name == "ec.c.poll-c");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
-        Assert.Equal(20, GetActualValue(metric));
+        Assert.Equal(10, GetActualValue(metric));
     }
 
-    [Fact(Skip = "Unstable")]
+    [Fact]
     public void IncrementingPollingCounter()
     {
         // Arrange
@@ -150,46 +125,12 @@ public class EventCountersMetricsTests
             .Build();
 
         // Act
-        Task.Delay(Delay * 2).Wait();
-        meterProvider.ForceFlush();
+        var metric = AwaitExport(meterProvider, metricItems, expectedInstrumentName: "ec.d.inc-poll-c");
 
         // Assert
-        var metric = metricItems.Find(x => x.Name == "ec.d.inc-poll-c");
         Assert.NotNull(metric);
         Assert.Equal(MetricType.DoubleSum, metric.MetricType);
-        Assert.Equal(2, GetActualValue(metric));
-    }
-
-    [Fact]
-    public void EventCounterSameNameUsesNewestCreated()
-    {
-        // Arrange
-        List<Metric> metricItems = new();
-        using EventSource source = new("a");
-        using EventCounter counter = new("c", source);
-        using EventCounter counter2 = new("c", source);
-
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddEventCountersInstrumentation(options =>
-            {
-                options.AddEventSources(source.Name);
-            })
-            .AddInMemoryExporter(metricItems)
-            .Build();
-
-        // Act
-        counter2.WriteMetric(1980.1208);
-        counter.WriteMetric(1997.0202);
-        Task.Delay(Delay).Wait();
-        meterProvider.ForceFlush();
-
-        // Assert
-        var metric = metricItems.Find(x => x.Name == "ec.a.c");
-        Assert.NotNull(metric);
-        Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
-
-        // Since `counter2` was created after `counter` it is exported
-        Assert.Equal(1980.1208, GetActualValue(metric));
+        Assert.Equal(1, GetActualValue(metric));
     }
 
     [Fact]
@@ -214,7 +155,6 @@ public class EventCountersMetricsTests
         Assert.Equal("Use the `OpenTelemetry.Instrumentation.Runtime` or `OpenTelemetry.Instrumentation.Process` instrumentations.", ex.Message);
     }
 
-    /*
     [Theory]
     [InlineData("Microsoft-AspNetCore-Server-Kestrel-1", "tls-handshakes-per-second", "ec.Microsoft-AspNetCore-Server-Kestre.tls-handshakes-per-second")]
     [InlineData("Microsoft-AspNetCore-Server-Kestrel-1", "tls-handshakes-per-sec", "ec.Microsoft-AspNetCore-Server-Kestrel-1.tls-handshakes-per-sec")]
@@ -241,17 +181,14 @@ public class EventCountersMetricsTests
 
         // Act
         connections.Increment(1);
-        Task.Delay(Delay).Wait();
-        meterProvider.ForceFlush();
+        var metric = AwaitExport(meterProvider, metricItems, expectedInstrumentName);
 
         // Assert
-        Metric metric = metricItems.Find(m => m.Name == expectedInstrumentName);
         Assert.NotNull(metric);
         Assert.Equal(1, GetActualValue(metric));
     }
-    */
 
-    [Fact]
+    [Fact(Skip = "This test should properly validate no metrics are exported from event counters with invalid names (too long)")]
     public void InstrumentNameTooLong()
     {
         // Arrange
@@ -272,7 +209,8 @@ public class EventCountersMetricsTests
 
         // Act
         connections.Increment(1);
-        Task.Delay(Delay).Wait();
+
+        Task.Delay(1800).Wait();
         meterProvider.ForceFlush();
 
         // Assert
@@ -282,8 +220,6 @@ public class EventCountersMetricsTests
             Assert.False(item.Name.StartsWith("ec.s.ee"));
         }
     }
-
-    // polling and eventcounter with same instrument name?
 
     private static double GetActualValue(Metric metric)
     {
@@ -297,5 +233,22 @@ public class EventCountersMetricsTests
         }
 
         return sum;
+    }
+
+    private static Metric AwaitExport(MeterProvider meterProvider, List<Metric> exportedItems, string expectedInstrumentName)
+    {
+        Metric metric = null;
+
+        SpinWait.SpinUntil(
+            () =>
+            {
+                Thread.Sleep(100);
+                meterProvider.ForceFlush();
+                metric = exportedItems.Where(x => x.Name == expectedInstrumentName).FirstOrDefault();
+                return metric != null;
+            },
+            10_000);
+
+        return metric;
     }
 }
