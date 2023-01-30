@@ -51,21 +51,13 @@ internal class TcpSocketDataTransport : IDataTransport, IDisposable
 
     public void Send(byte[] data, int size)
     {
-        try
+        if (!this.socket.Connected)
         {
-            if (!this.socket.Connected)
-            {
-                // Socket connection is off! Server might have stopped. Trying to reconnect.
-                this.Reconnect();
-            }
+            // Socket connection is off! Server might have stopped. Trying to reconnect.
+            this.Reconnect();
+        }
 
-            this.socket.Send(data, size, SocketFlags.None);
-        }
-        catch (Exception)
-        {
-            // Re-throw the exception so that Export method catches it and sets the ExportResult correctly.
-            throw;
-        }
+        this.socket.Send(data, size, SocketFlags.None);
     }
 
     public void Dispose()

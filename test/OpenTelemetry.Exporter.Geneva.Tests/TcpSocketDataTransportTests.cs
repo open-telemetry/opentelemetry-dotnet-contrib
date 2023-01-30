@@ -49,7 +49,7 @@ public class TcpSocketDataTransportTests
         Assert.Equal(data[2], receivedData[2]);
     }
 
-    [Fact(Skip = "Test does not perform server tear down correctly")]
+    [Fact]
     public void TcpSocketDataTransport_ServerRestart()
     {
         var endpoint = new IPEndPoint(IPAddress.Any, TestPort);
@@ -58,56 +58,63 @@ public class TcpSocketDataTransportTests
         LingerOption lo = new LingerOption(false, 0);
         server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Linger, lo);
 
+        server.Bind(endpoint);
+        server.Listen(1);
+
+        // Client
+        using var dataTransport = new TcpSocketDataTransport(TestHost, TestPort);
+        Socket serverSocket = server.Accept();
+
+        LingerOption sslo = new LingerOption(false, 0);
+        serverSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Linger, sslo);
+
+        var data = new byte[] { 12, 34, 56 };
+        dataTransport.Send(data, data.Length);
+        var receivedData = new byte[3];
+        serverSocket.Receive(receivedData);
+        Assert.Equal(data[0], receivedData[0]);
+        Assert.Equal(data[1], receivedData[1]);
+        Assert.Equal(data[2], receivedData[2]);
+
+        // Emulate server tear down.
+        serverSocket.Dispose();
+        server.Dispose();
+
         try
         {
-            server.Bind(endpoint);
-            server.Listen(1);
-
-            // Client
-            using var dataTransport = new TcpSocketDataTransport(TestHost, TestPort);
-            Socket serverSocket = server.Accept();
-            var data = new byte[] { 12, 34, 56 };
-            dataTransport.Send(data, data.Length);
-            var receivedData = new byte[3];
-            serverSocket.Receive(receivedData);
-            Assert.Equal(data[0], receivedData[0]);
-            Assert.Equal(data[1], receivedData[1]);
-            Assert.Equal(data[2], receivedData[2]);
-
-            // Emulate server stops
-            serverSocket.Shutdown(SocketShutdown.Both);
-            serverSocket.Disconnect(false);
-            serverSocket.Dispose();
-            server.Shutdown(SocketShutdown.Both);
-            server.Disconnect(false);
-
-            Assert.ThrowsAny<Exception>(() => dataTransport.Send(data, data.Length));
-            Assert.ThrowsAny<Exception>(() => dataTransport.Send(data, data.Length));
-
-            using var server2 = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            try
+            // It could take a few attempts to send data for data transport to
+            // start throwing socket exceptions.
+            for (var i = 0; i < 5; i++)
             {
-                server2.Bind(endpoint);
-                server2.Listen(1);
-
-                var data2 = new byte[] { 34, 56, 78 };
-                dataTransport.Send(data2, data2.Length);
-
-                using Socket serverSocket2 = server2.Accept();
-                var receivedData2 = new byte[5];
-                serverSocket2.Receive(receivedData2);
-                Assert.Equal(data2[0], receivedData2[0]);
-                Assert.Equal(data2[1], receivedData2[1]);
-                Assert.Equal(data2[2], receivedData2[2]);
+                dataTransport.Send(data, data.Length);
             }
-            finally
-            {
-                server2.Dispose();
-            }
+
+            Assert.Fail("dataTransport must start failing requests.");
+        }
+        catch (Exception)
+        {
+            // Expected, data transport will reconnect to a new server.
+        }
+
+        using var server2 = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        try
+        {
+            server2.Bind(endpoint);
+            server2.Listen(1);
+
+            var data2 = new byte[] { 78, 90, 21 };
+            dataTransport.Send(data2, data2.Length);
+
+            using Socket serverSocket2 = server2.Accept();
+            var receivedData2 = new byte[3];
+            serverSocket2.Receive(receivedData2);
+            Assert.Equal(data2[0], receivedData2[0]);
+            Assert.Equal(data2[1], receivedData2[1]);
+            Assert.Equal(data2[2], receivedData2[2]);
         }
         finally
         {
-            server.Dispose();
+            server2.Dispose();
         }
     }
 }
