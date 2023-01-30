@@ -45,7 +45,7 @@ public class EventCountersMetricsTests
 
         // Act
         counter.WriteMetric(1997.0202);
-        var metric = AwaitExport(meterProvider, metricItems, "ec.a.c");
+        var metric = AwaitExport(meterProvider, metricItems, expectedInstrumentName: "ec.a.c");
 
         // Assert
         Assert.NotNull(metric);
@@ -73,7 +73,7 @@ public class EventCountersMetricsTests
         incCounter.Increment(1);
         incCounter.Increment(1);
         incCounter.Increment(1);
-        var metric = AwaitExport(meterProvider, metricItems, "ec.b.inc-c");
+        var metric = AwaitExport(meterProvider, metricItems, expectedInstrumentName: "ec.b.inc-c");
 
         // Assert
         Assert.NotNull(metric);
@@ -99,7 +99,7 @@ public class EventCountersMetricsTests
             .Build();
 
         // Act
-        var metric = AwaitExport(meterProvider, metricItems, "ec.c.poll-c");
+        var metric = AwaitExport(meterProvider, metricItems, expectedInstrumentName: "ec.c.poll-c");
 
         // Assert
         Assert.NotNull(metric);
@@ -125,7 +125,7 @@ public class EventCountersMetricsTests
             .Build();
 
         // Act
-        var metric = AwaitExport(meterProvider, metricItems, "ec.d.inc-poll-c");
+        var metric = AwaitExport(meterProvider, metricItems, expectedInstrumentName: "ec.d.inc-poll-c");
 
         // Assert
         Assert.NotNull(metric);
