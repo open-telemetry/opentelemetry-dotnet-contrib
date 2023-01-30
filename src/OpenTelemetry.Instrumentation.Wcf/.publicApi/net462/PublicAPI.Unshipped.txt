@@ -47,4 +47,5 @@ override OpenTelemetry.Instrumentation.Wcf.TelemetryEndpointBehaviorExtensionEle
 override OpenTelemetry.Instrumentation.Wcf.TelemetryEndpointBehaviorExtensionElement.CreateBehavior() -> object
 override OpenTelemetry.Instrumentation.Wcf.TelemetryServiceBehaviorExtensionElement.BehaviorType.get -> System.Type
 override OpenTelemetry.Instrumentation.Wcf.TelemetryServiceBehaviorExtensionElement.CreateBehavior() -> object
-static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddWcfInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder, System.Action<OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions> configure = null) -> OpenTelemetry.Trace.TracerProviderBuilder
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddWcfInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder) -> OpenTelemetry.Trace.TracerProviderBuilder
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddWcfInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder, System.Action<OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions> configure) -> OpenTelemetry.Trace.TracerProviderBuilder

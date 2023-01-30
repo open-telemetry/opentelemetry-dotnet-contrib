@@ -2,7 +2,18 @@
 
 ## Unreleased
 
+* Updates to 1.3.2 of OpenTelemetry SDK.
+[917](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/917)
+
+## 1.0.0-beta.2
+
+Released 2023-Jan-11
+
 * Updates to 1.3.1 of OpenTelemetry SDK.
+[712](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/712)
+
+* Added CGroupv2 support.
+[839](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/839)
 
 ## 1.0.0-beta.1
 

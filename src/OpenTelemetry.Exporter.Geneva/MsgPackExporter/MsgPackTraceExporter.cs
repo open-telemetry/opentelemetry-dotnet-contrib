@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -286,7 +287,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             }
             else if (string.Equals(entry.Key, "otel.status_code", StringComparison.Ordinal))
             {
-                if (string.Equals(entry.Value.ToString(), "ERROR", StringComparison.Ordinal))
+                if (string.Equals(Convert.ToString(entry.Value, CultureInfo.InvariantCulture), "ERROR", StringComparison.Ordinal))
                 {
                     isStatusSuccess = false;
                 }
@@ -295,7 +296,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             }
             else if (string.Equals(entry.Key, "otel.status_description", StringComparison.Ordinal))
             {
-                statusDescription = entry.Value.ToString();
+                statusDescription = Convert.ToString(entry.Value, CultureInfo.InvariantCulture);
                 continue;
             }
             else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))

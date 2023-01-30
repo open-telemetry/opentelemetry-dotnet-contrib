@@ -14,6 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -83,9 +85,9 @@ internal static class ActivityExtensions
             {
                 AttributeMap =
                 {
-                    activity.Tags?.ToDictionary(
+                    activity.Tags.ToDictionary(
                         s => s.Key,
-                        s => s.Value?.ToAttributeValue()),
+                        s => s.Value.ToAttributeValue()),
                 },
             };
         }
