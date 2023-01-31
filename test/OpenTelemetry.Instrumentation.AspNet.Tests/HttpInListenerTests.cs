@@ -137,7 +137,13 @@ public class HttpInListenerTests
                            return httpContext.Request.Path != filter;
                        };
 
-                       options.Enrich = GetEnrichmentAction(setStatusToErrorInEnrich ? ActivityStatusCode.Error : default);
+                       options.EnrichWithHttpResponse = (activity, _) =>
+                       {
+                           if (setStatusToErrorInEnrich)
+                           {
+                               activity.SetStatus(ActivityStatusCode.Error);
+                           }
+                       };
 
                        options.RecordException = recordException;
                    })

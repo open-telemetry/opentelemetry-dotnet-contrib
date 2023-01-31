@@ -1,7 +1,11 @@
 ﻿OpenTelemetry.Instrumentation.AspNet.AspNetInstrumentationOptions
 OpenTelemetry.Instrumentation.AspNet.AspNetInstrumentationOptions.AspNetInstrumentationOptions() -> void
-OpenTelemetry.Instrumentation.AspNet.AspNetInstrumentationOptions.Enrich.get -> System.Action<System.Diagnostics.Activity, string, object>
-OpenTelemetry.Instrumentation.AspNet.AspNetInstrumentationOptions.Enrich.set -> void
+OpenTelemetry.Instrumentation.AspNet.AspNetInstrumentationOptions.EnrichWithException.get -> System.Action<System.Diagnostics.Activity, System.Exception>
+OpenTelemetry.Instrumentation.AspNet.AspNetInstrumentationOptions.EnrichWithException.set -> void
+OpenTelemetry.Instrumentation.AspNet.AspNetInstrumentationOptions.EnrichWithHttpRequest.get -> System.Action<System.Diagnostics.Activity, System.Web.HttpRequest>
+OpenTelemetry.Instrumentation.AspNet.AspNetInstrumentationOptions.EnrichWithHttpRequest.set -> void
+OpenTelemetry.Instrumentation.AspNet.AspNetInstrumentationOptions.EnrichWithHttpResponse.get -> System.Action<System.Diagnostics.Activity, System.Web.HttpResponse>
+OpenTelemetry.Instrumentation.AspNet.AspNetInstrumentationOptions.EnrichWithHttpResponse.set -> void
 OpenTelemetry.Instrumentation.AspNet.AspNetInstrumentationOptions.Filter.get -> System.Func<System.Web.HttpContext, bool>
 OpenTelemetry.Instrumentation.AspNet.AspNetInstrumentationOptions.Filter.set -> void
 OpenTelemetry.Instrumentation.AspNet.AspNetInstrumentationOptions.RecordException.get -> bool

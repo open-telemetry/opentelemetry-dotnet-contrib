@@ -39,13 +39,10 @@ public class HttpInMetricsListenerTests
         // as it is created using ActivitySource inside TelemetryHttpModule
         // TODO: This should not be needed once the dependency on activity is removed from metrics
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddAspNetInstrumentation(opts => opts.Enrich
-                = (activity, eventName, rawObject) =>
+            .AddAspNetInstrumentation(opts => opts.EnrichWithHttpResponse
+                = (activity, _) =>
                 {
-                    if (eventName.Equals("OnStopActivity"))
-                    {
-                        duration = activity.Duration.TotalMilliseconds;
-                    }
+                    duration = activity.Duration.TotalMilliseconds;
                 })
             .Build();
 

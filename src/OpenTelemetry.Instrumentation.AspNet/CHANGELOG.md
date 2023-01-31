@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+* Breaking change The Enrich callback option has been removed. For better
+  usability, it has been replaced by three separate options:
+  EnrichWithHttpRequest, EnrichWithHttpResponse and EnrichWithException.
+  Previously, the single Enrich callback required the consumer to detect which
+  event triggered the callback to be invoked (e.g., request start, response end,
+  or an exception) and then cast the object received to the appropriate type:
+  HttpRequest, HttpResponse, or Exception. The separate callbacks make it clear
+  what event triggers them and there is no longer the need to cast the argument
+  to the expected type.
+
 ## 1.0.0-rc9.7
 
 Released 2022-Nov-28
