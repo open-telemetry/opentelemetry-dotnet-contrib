@@ -137,6 +137,7 @@ public class HttpInListenerTests
                            return httpContext.Request.Path != filter;
                        };
 
+                       // TODO: update to test activity enrichment for other enrich options.
                        options.EnrichWithHttpResponse = (activity, _) =>
                        {
                            if (setStatusToErrorInEnrich)
