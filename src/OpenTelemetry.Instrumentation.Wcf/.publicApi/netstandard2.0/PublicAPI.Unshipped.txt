@@ -29,4 +29,5 @@ OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.SuppressDownstreamIn
 OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.SuppressDownstreamInstrumentation.set -> void
 OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.WcfInstrumentationOptions() -> void
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
-static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddWcfInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder, System.Action<OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions> configure = null) -> OpenTelemetry.Trace.TracerProviderBuilder
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddWcfInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder) -> OpenTelemetry.Trace.TracerProviderBuilder
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddWcfInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder, System.Action<OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions> configure) -> OpenTelemetry.Trace.TracerProviderBuilder
