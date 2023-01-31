@@ -11,6 +11,7 @@
   HttpRequest, HttpResponse, or Exception. The separate callbacks make it clear
   what event triggers them and there is no longer the need to cast the argument
   to the expected type.
+  ([#940](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/940))
 
 ## 1.0.0-rc9.7
 
