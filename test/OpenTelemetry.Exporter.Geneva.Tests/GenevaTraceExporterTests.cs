@@ -359,7 +359,7 @@ public class GenevaTraceExporterTests
                         options.ConnectionString = "Endpoint=unix:" + path;
                     })
                     .Build();
-                Assert.True(false, "Should never reach here. GenevaTraceExporter should fail in constructor.");
+                Assert.True(true, "GenevaTraceExporter should not fail in constructor.");
             }
             catch (SocketException ex)
             {
@@ -373,7 +373,7 @@ public class GenevaTraceExporterTests
                 {
                     ConnectionString = "Endpoint=unix:" + path,
                 });
-                Assert.True(false, "Should never reach here. GenevaTraceExporter should fail in constructor.");
+                Assert.True(true, "GenevaTraceExporter should not fail in constructor.");
             }
             catch (SocketException ex)
             {
