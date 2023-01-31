@@ -43,29 +43,6 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
         switch (connectionStringBuilder.Protocol)
         {
-            case TransportProtocol.Etw:
-                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    throw new ArgumentException("ETW cannot be used on non-Windows operating systems.");
-                }
-
-                useMsgPackExporter = true;
-                break;
-
-            case TransportProtocol.Unix:
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    throw new ArgumentException("Unix domain socket should not be used on Windows.");
-                }
-
-                useMsgPackExporter = true;
-                break;
-
-            case TransportProtocol.Tcp:
-            case TransportProtocol.Udp:
-                useMsgPackExporter = true;
-                break;
-
             case TransportProtocol.EtwTld:
                 if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
@@ -76,7 +53,8 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
                 break;
 
             default:
-                throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
+                useMsgPackExporter = true;
+                break;
         }
 
         if (useMsgPackExporter)
