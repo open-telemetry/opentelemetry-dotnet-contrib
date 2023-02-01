@@ -48,20 +48,33 @@ to the application.
 
 Number of garbage collections that have occurred since process start.
 
-Note: Collecting a generation means collecting objects in that generation and all
-its younger generations. However, each dimension for this metrics doesn't include
-the collection counts for the lower generation.
-e.g. count for gen1 is `GC.CollectionCount(1) - GC.CollectionCount(0)`.
+Note: .NET uses a [generational GC](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/fundamentals#generations)
+which divides the heap into different generations numbered 0, 1, and 2. In each
+collection the GC decides which generation to search for reclaimable memory,
+then it searches that generation and all the lower ones. A GC collection that
+searches generations 0, 1, and 2 is called a "gen2" collection, searching
+generations 0 and 1 is a "gen1" collection and searching generation 0 only is a
+"gen0" collection. The gen0, gen1, and gen2 attribute values for this metric
+count respectively the number of gen0, gen1, and gen2 collections which have
+occurred since the process started.
 
 | Units           | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |-----------------|-------------------|------------|------------------|------------------|
 | `{collections}` | ObservableCounter | `Int64`    | generation       | gen0, gen1, gen2 |
 
-The API used to retrieve the value is:
+The metric can be computed using the [GC.CollectionCount](https://docs.microsoft.com/dotnet/api/system.gc.collectioncount)
+API:
 
-* [GC.CollectionCount](https://docs.microsoft.com/dotnet/api/system.gc.collectioncount):
-  The number of times garbage collection has occurred for the specified generation
-of objects.
+* `count_gen0_collections = GC.CollectionCount(0) - GC.CollectionCount(1)`
+* `count_gen1_collections = GC.CollectionCount(1) - GC.CollectionCount(2)`
+* `count_gen2_collections = GC.CollectionCount(2)`
+
+GC.CollectionCount(X) counts the number of times objects in generation X have
+been searched during any GC collection. Although it may sound similar, notice
+this is not the same as the number of genX collections. For example objects in
+generation 0 are searched during gen0, gen1, and gen2 collections so
+`GC.CollectionCount(0) = count_gen0_collections + count_gen1_collections + count_gen2_collections`.
+This is why the expressions above are not direct assignments.
 
 #### process.runtime.dotnet.**gc.objects.size**
 
