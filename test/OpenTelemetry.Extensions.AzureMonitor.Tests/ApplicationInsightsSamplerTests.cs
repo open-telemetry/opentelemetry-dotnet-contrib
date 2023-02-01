@@ -50,8 +50,8 @@ public class ApplicationInsightsSamplerTests
 
         // Verify sample ratio: 0
         ApplicationInsightsSampler zeroSampler = new ApplicationInsightsSampler(samplingRatio: 0);
-        Assert.Equal(SamplingDecision.Drop, zeroSampler.ShouldSample(testParams1).Decision);
-        Assert.Equal(SamplingDecision.Drop, zeroSampler.ShouldSample(testParams2).Decision);
+        Assert.Equal(SamplingDecision.RecordOnly, zeroSampler.ShouldSample(testParams1).Decision);
+        Assert.Equal(SamplingDecision.RecordOnly, zeroSampler.ShouldSample(testParams2).Decision);
 
         // Verify sample ratio: 1
         ApplicationInsightsSampler oneSampler = new ApplicationInsightsSampler(samplingRatio: 1);
@@ -61,7 +61,7 @@ public class ApplicationInsightsSamplerTests
         // Verify sample ratio: 0.5.
         // This is below the sample score for testId2, but strict enough to drop testId1
         ApplicationInsightsSampler ratioSampler = new ApplicationInsightsSampler(samplingRatio: 0.5f);
-        Assert.Equal(SamplingDecision.Drop, ratioSampler.ShouldSample(testParams1).Decision);
+        Assert.Equal(SamplingDecision.RecordOnly, ratioSampler.ShouldSample(testParams1).Decision);
         Assert.Equal(SamplingDecision.RecordAndSample, ratioSampler.ShouldSample(testParams2).Decision);
     }
 
