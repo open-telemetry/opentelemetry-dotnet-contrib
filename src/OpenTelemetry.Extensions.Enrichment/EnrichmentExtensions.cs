@@ -14,8 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
@@ -29,25 +29,69 @@ public static class EnrichmentExtensions
         Guard.ThrowIfNull(builder);
 
         return builder
-            .ConfigureServices(services => services.AddSingleton<BaseTraceEnricher, T>())
-            .TryAddEnrichment();
+            .TryAddEnrichment()
+            .ConfigureServices(services => services.AddSingleton<BaseTraceEnricher, T>());
     }
 
-    public static TracerProviderBuilder AddTraceEnricher<T>(this TracerProviderBuilder builder, BaseTraceEnricher enricher)
-        where T : BaseTraceEnricher
+    public static TracerProviderBuilder AddTraceEnricher(this TracerProviderBuilder builder, BaseTraceEnricher enricher)
     {
         Guard.ThrowIfNull(builder);
         Guard.ThrowIfNull(enricher);
 
         return builder
-            .ConfigureServices(services => services.AddSingleton(enricher))
-            .TryAddEnrichment();
+            .TryAddEnrichment()
+            .ConfigureBuilder((sp, builder) =>
+            {
+                var proc = sp.GetRequiredService<TraceEnrichmentProcessor>();
+                proc.AddEnricher(enricher);
+            });
+    }
+
+    public static IServiceCollection AddTraceEnricher<T>(this IServiceCollection services)
+        where T : BaseTraceEnricher
+    {
+        Guard.ThrowIfNull(services);
+
+        return services
+            .TryAddEnrichment()
+            .AddSingleton<BaseTraceEnricher, T>();
+    }
+
+    public static IServiceCollection AddTraceEnricher(this IServiceCollection services, BaseTraceEnricher enricher)
+    {
+        Guard.ThrowIfNull(services);
+        Guard.ThrowIfNull(enricher);
+
+        return services
+            .TryAddEnrichment()
+            .AddSingleton(enricher);
     }
 
     private static TracerProviderBuilder TryAddEnrichment(this TracerProviderBuilder builder)
     {
         return builder
-            .ConfigureServices(services => services.TryAddSingleton<TraceEnrichmentProcessor>())
-            .AddProcessor<TraceEnrichmentProcessor>();
+            .ConfigureServices(services =>
+            {
+                if (!services.Any(x => x.ServiceType == typeof(TraceEnrichmentProcessor)))
+                {
+                    builder.AddProcessor<TraceEnrichmentProcessor>();
+                }
+            });
+    }
+
+    private static IServiceCollection TryAddEnrichment(this IServiceCollection services)
+    {
+        if (!services.Any(x => x.ServiceType == typeof(TraceEnrichmentProcessor)))
+        {
+            services
+                .AddSingleton<TraceEnrichmentProcessor>()
+                .ConfigureOpenTelemetryTracerProvider((sp, builder) =>
+                {
+                    var proc = sp.GetRequiredService<TraceEnrichmentProcessor>();
+                    builder.AddProcessor(proc);
+                });
+        }
+
+        return services;
     }
 }
