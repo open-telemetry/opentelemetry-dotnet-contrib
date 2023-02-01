@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+* Sampler will now return `RecordOnly` SamplingResult when the telemetry is
+sampled out.
+([#933](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/933))
+
 ## 1.0.0-beta.2
 
 Released 2022-Sept-12
