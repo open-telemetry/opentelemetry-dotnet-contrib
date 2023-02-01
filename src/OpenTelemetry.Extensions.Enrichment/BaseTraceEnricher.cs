@@ -18,5 +18,4 @@ namespace OpenTelemetry.Extensions.Enrichment;
 
 public abstract class BaseTraceEnricher : BaseEnricher<TraceEnrichmentBag>
 {
-    public abstract void EnrichOnActivityStart(TraceEnrichmentBag enrichmentBag);
 }
