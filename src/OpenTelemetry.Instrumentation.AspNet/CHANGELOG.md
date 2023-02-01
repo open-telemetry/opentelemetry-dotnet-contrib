@@ -12,6 +12,8 @@
   what event triggers them and there is no longer the need to cast the argument
   to the expected type.
   ([#940](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/940))
+* Removes `AddAspNetInstrumentation` method with default configure parameter.
+  ([#942](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/942))
 
 ## 1.0.0-rc9.7
 
