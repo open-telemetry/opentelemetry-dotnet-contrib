@@ -239,7 +239,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "process-instrumentation", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.EventCounters", "examples\event-counters\Examples.EventCounters\Examples.EventCounters.csproj", "{BA58CC8B-F5CA-4DC7-A3A8-D01B2E10731E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Extensions.Enrichment", "src\OpenTelemetry.Extensions.Enrichment\OpenTelemetry.Extensions.Enrichment.csproj", "{5BA85306-64B8-4E04-90EB-7069C187E250}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.Enrichment", "src\OpenTelemetry.Extensions.Enrichment\OpenTelemetry.Extensions.Enrichment.csproj", "{5BA85306-64B8-4E04-90EB-7069C187E250}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Extensions.Enrichment.Tests", "test\OpenTelemetry.Extensions.Enrichment.Tests\OpenTelemetry.Extensions.Enrichment.Tests.csproj", "{5A7BE9DA-3582-49D8-A8E7-164C1E3CDB38}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -507,6 +509,10 @@ Global
 		{5BA85306-64B8-4E04-90EB-7069C187E250}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5BA85306-64B8-4E04-90EB-7069C187E250}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5BA85306-64B8-4E04-90EB-7069C187E250}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A7BE9DA-3582-49D8-A8E7-164C1E3CDB38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A7BE9DA-3582-49D8-A8E7-164C1E3CDB38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A7BE9DA-3582-49D8-A8E7-164C1E3CDB38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A7BE9DA-3582-49D8-A8E7-164C1E3CDB38}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -585,6 +591,7 @@ Global
 		{C3B3BBAF-CC38-4D5C-AFA2-33184D07BF75} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
 		{BA58CC8B-F5CA-4DC7-A3A8-D01B2E10731E} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
 		{5BA85306-64B8-4E04-90EB-7069C187E250} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{5A7BE9DA-3582-49D8-A8E7-164C1E3CDB38} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
