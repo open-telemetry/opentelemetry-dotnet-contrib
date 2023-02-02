@@ -14,10 +14,12 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenTelemetry.Metrics;
 using Xunit;
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace OpenTelemetry.Instrumentation.Process.Tests;
 
@@ -29,7 +31,7 @@ public class ProcessMetricsTests
     public void ProcessMetricsAreCaptured()
     {
         var exportedItems = new List<Metric>();
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+        var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddProcessInstrumentation()
             .AddInMemoryExporter(exportedItems)
             .Build();
@@ -47,18 +49,22 @@ public class ProcessMetricsTests
         Assert.NotNull(cpuUtilizationMetric);
         var threadMetric = exportedItems.FirstOrDefault(i => i.Name == "process.threads");
         Assert.NotNull(threadMetric);
+
+        meterProvider.Dispose();
     }
 
     [Fact]
     public void CpuTimeMetricsAreCaptured()
     {
         var exportedItems = new List<Metric>();
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+        var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddProcessInstrumentation()
             .AddInMemoryExporter(exportedItems)
             .Build();
 
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+
+        meterProvider.Dispose();
 
         var cpuTimeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.time");
         Assert.NotNull(cpuTimeMetric);
@@ -90,12 +96,14 @@ public class ProcessMetricsTests
     public void CpuUtilizationMetricsAreCaptured()
     {
         var exportedItems = new List<Metric>();
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+        var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddProcessInstrumentation()
             .AddInMemoryExporter(exportedItems)
             .Build();
 
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+
+        meterProvider.Dispose();
 
         var cpuUtilizationMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.utilization");
         Assert.NotNull(cpuUtilizationMetric);
@@ -124,59 +132,28 @@ public class ProcessMetricsTests
     }
 
     // See: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/831
-    [Fact(Skip = "There are known issues with this test.")]
-    public void CheckValidGaugeValueWhen2MeterProviderInstancesHaveTheSameMeterName()
+    // [Fact(Skip = "There are known issues with this test.")]
+    [Fact]
+    public void MyTest()
     {
         var exportedItemsA = new List<Metric>();
         var exportedItemsB = new List<Metric>();
 
-        using var meterProviderA = Sdk.CreateMeterProviderBuilder()
+        var meterProviderA = Sdk.CreateMeterProviderBuilder()
             .AddProcessInstrumentation()
             .AddInMemoryExporter(exportedItemsA)
             .Build();
 
-        using (var meterProviderB = Sdk.CreateMeterProviderBuilder()
-            .AddProcessInstrumentation()
-            .AddInMemoryExporter(exportedItemsB)
-            .Build())
-        {
-            meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
-            meterProviderB.ForceFlush(MaxTimeToAllowForFlush);
+        Assert.Throws<Exception>(
+            () =>
+            {
+                Sdk.CreateMeterProviderBuilder()
+                .AddProcessInstrumentation()
+                .AddInMemoryExporter(exportedItemsB)
+                .Build();
+            });
 
-            var metricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.usage");
-            var metricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.memory.usage");
-
-            Assert.NotNull(metricA);
-            Assert.NotNull(metricB);
-
-            Assert.True(GetValue(metricA) > 0);
-            Assert.True(GetValue(metricB) > 0);
-        }
-
-        exportedItemsA.Clear();
-        exportedItemsB.Clear();
-
-        meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
-
-        Assert.NotEmpty(exportedItemsA);
-        Assert.Empty(exportedItemsB);
-
-        exportedItemsA.Clear();
-        exportedItemsB.Clear();
-
-        meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
-
-        Assert.NotEmpty(exportedItemsA);
-        Assert.Empty(exportedItemsB);
-
-        exportedItemsA.Clear();
-
-        meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
-
-        // Note: This fails due to:
-        // https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry/Metrics/MetricReaderExt.cs#L244-L249
-        Assert.NotEmpty(exportedItemsA);
-        Assert.Empty(exportedItemsB);
+        meterProviderA.Dispose();
     }
 
     private static double GetValue(Metric metric)

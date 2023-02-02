@@ -29,7 +29,9 @@ internal sealed class ProcessMetrics : IDisposable
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
     internal static readonly string MeterName = AssemblyName.Name;
 
-    private readonly Meter meterInstance = new(MeterName, AssemblyName.Version.ToString());
+    private static readonly Meter MeterInstance = new(MeterName, AssemblyName.Version.ToString());
+
+    private static ProcessMetrics? m;
 
     // vars for calculating CPU utilization
     private DateTime lastCollectionTimeUtc;
@@ -38,11 +40,16 @@ internal sealed class ProcessMetrics : IDisposable
 
     public ProcessMetrics(ProcessInstrumentationOptions options)
     {
+        if (m != null)
+        {
+            throw new Exception("Must be null");
+        }
+
         this.lastCollectionTimeUtc = DateTime.UtcNow;
         this.lastCollectedUserProcessorTime = Diagnostics.Process.GetCurrentProcess().UserProcessorTime.TotalSeconds;
         this.lastCollectedPrivilegedProcessorTime = Diagnostics.Process.GetCurrentProcess().PrivilegedProcessorTime.TotalSeconds;
 
-        this.meterInstance.CreateObservableUpDownCounter(
+        MeterInstance.CreateObservableUpDownCounter(
             "process.memory.usage",
             () =>
             {
@@ -51,7 +58,7 @@ internal sealed class ProcessMetrics : IDisposable
             unit: "By",
             description: "The amount of physical memory allocated for this process.");
 
-        this.meterInstance.CreateObservableUpDownCounter(
+        MeterInstance.CreateObservableUpDownCounter(
             "process.memory.virtual",
             () =>
             {
@@ -60,7 +67,7 @@ internal sealed class ProcessMetrics : IDisposable
             unit: "By",
             description: "The amount of committed virtual memory for this process.");
 
-        this.meterInstance.CreateObservableCounter(
+        MeterInstance.CreateObservableCounter(
             "process.cpu.time",
             () =>
             {
@@ -74,7 +81,7 @@ internal sealed class ProcessMetrics : IDisposable
             unit: "s",
             description: "Total CPU seconds broken down by different states.");
 
-        this.meterInstance.CreateObservableGauge(
+        MeterInstance.CreateObservableGauge(
             "process.cpu.utilization",
             () =>
             {
@@ -83,7 +90,7 @@ internal sealed class ProcessMetrics : IDisposable
             unit: "1",
             description: "Difference in process.cpu.time since the last measurement, divided by the elapsed time and number of CPUs available to the process.");
 
-        this.meterInstance.CreateObservableUpDownCounter(
+        MeterInstance.CreateObservableUpDownCounter(
             "process.threads",
             () =>
             {
@@ -91,11 +98,13 @@ internal sealed class ProcessMetrics : IDisposable
             },
             unit: "{threads}",
             description: "Process threads count.");
+
+        m = this;
     }
 
     public void Dispose()
     {
-        this.meterInstance.Dispose();
+        m = null;
     }
 
     private IEnumerable<Measurement<double>> GetCpuUtilization()
