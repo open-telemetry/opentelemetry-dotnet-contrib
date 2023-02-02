@@ -17,8 +17,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Coyote.SystematicTesting;
+using Microsoft.Coyote;
 using OpenTelemetry.Metrics;
 using Xunit;
+using System.Threading.Tasks;
+
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace OpenTelemetry.Instrumentation.Process.Tests;
@@ -27,11 +31,22 @@ public class ProcessMetricsTests
 {
     private const int MaxTimeToAllowForFlush = 10000;
 
+    [Fact(Timeout = 5000)]
+    public void RunCoyoteTest()
+    {
+        var config = Configuration.Create().WithTestingIterations(100);
+        TestingEngine engine = TestingEngine.Create(config, this.MyTestRaceCondition);
+        engine.Run();
+        var report = engine.TestReport;
+
+        Assert.True(report.NumOfFoundBugs == 0, $"Coyote found {report.NumOfFoundBugs} bug(s).");
+    }
+
     [Fact]
     public void ProcessMetricsAreCaptured()
     {
         var exportedItems = new List<Metric>();
-        var meterProvider = Sdk.CreateMeterProviderBuilder()
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddProcessInstrumentation()
             .AddInMemoryExporter(exportedItems)
             .Build();
@@ -49,22 +64,18 @@ public class ProcessMetricsTests
         Assert.NotNull(cpuUtilizationMetric);
         var threadMetric = exportedItems.FirstOrDefault(i => i.Name == "process.threads");
         Assert.NotNull(threadMetric);
-
-        meterProvider.Dispose();
     }
 
     [Fact]
     public void CpuTimeMetricsAreCaptured()
     {
         var exportedItems = new List<Metric>();
-        var meterProvider = Sdk.CreateMeterProviderBuilder()
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddProcessInstrumentation()
             .AddInMemoryExporter(exportedItems)
             .Build();
 
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
-
-        meterProvider.Dispose();
 
         var cpuTimeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.time");
         Assert.NotNull(cpuTimeMetric);
@@ -96,14 +107,12 @@ public class ProcessMetricsTests
     public void CpuUtilizationMetricsAreCaptured()
     {
         var exportedItems = new List<Metric>();
-        var meterProvider = Sdk.CreateMeterProviderBuilder()
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddProcessInstrumentation()
             .AddInMemoryExporter(exportedItems)
             .Build();
 
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
-
-        meterProvider.Dispose();
 
         var cpuUtilizationMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.utilization");
         Assert.NotNull(cpuUtilizationMetric);
@@ -139,7 +148,7 @@ public class ProcessMetricsTests
         var exportedItemsA = new List<Metric>();
         var exportedItemsB = new List<Metric>();
 
-        var meterProviderA = Sdk.CreateMeterProviderBuilder()
+        using var meterProviderA = Sdk.CreateMeterProviderBuilder()
             .AddProcessInstrumentation()
             .AddInMemoryExporter(exportedItemsA)
             .Build();
@@ -152,8 +161,32 @@ public class ProcessMetricsTests
                 .AddInMemoryExporter(exportedItemsB)
                 .Build();
             });
+    }
 
-        meterProviderA.Dispose();
+    public async Task MyTestRaceCondition()
+    {
+        var exportedItemsA = new List<Metric>();
+        var exportedItemsB = new List<Metric>();
+
+        Task task = Task.Run(() =>
+        {
+            using var meterProviderA = Sdk.CreateMeterProviderBuilder()
+            .AddProcessInstrumentation()
+            .AddInMemoryExporter(exportedItemsA)
+            .Build();
+
+            Assert.Throws<Exception>(
+                () =>
+                {
+                    Sdk.CreateMeterProviderBuilder()
+                    .AddProcessInstrumentation()
+                    .AddInMemoryExporter(exportedItemsB)
+                    .Build();
+                });
+
+        });
+
+        await task;
     }
 
     private static double GetValue(Metric metric)

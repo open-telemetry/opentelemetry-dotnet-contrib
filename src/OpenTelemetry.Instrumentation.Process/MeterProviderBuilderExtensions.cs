@@ -15,6 +15,7 @@
 // </copyright>
 
 using System;
+using System.Diagnostics;
 using OpenTelemetry.Instrumentation.Process;
 using OpenTelemetry.Internal;
 
@@ -49,6 +50,16 @@ public static class MeterProviderBuilderExtensions
 
         builder.AddMeter(ProcessMetrics.MeterName);
 
-        return builder.AddInstrumentation(() => new ProcessMetrics(options));
+        return builder.AddInstrumentation(
+            () =>
+            {
+                if (ProcessMetrics.TryCreate(options, out ProcessMetrics m))
+                {
+                    return m;
+                }
+
+                throw new Exception("This is invalid!!!!!!!");
+            }
+        );
     }
 }

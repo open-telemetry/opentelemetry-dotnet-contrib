@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
+using System.Threading;
 using Diagnostics = System.Diagnostics;
 
 namespace OpenTelemetry.Instrumentation.Process;
@@ -30,21 +31,28 @@ internal sealed class ProcessMetrics : IDisposable
     internal static readonly string MeterName = AssemblyName.Name;
 
     private static readonly Meter MeterInstance = new(MeterName, AssemblyName.Version.ToString());
-
     private static ProcessMetrics? m;
+    private static int usingResource;
 
     // vars for calculating CPU utilization
     private DateTime lastCollectionTimeUtc;
     private double lastCollectedUserProcessorTime;
     private double lastCollectedPrivilegedProcessorTime;
 
-    public ProcessMetrics(ProcessInstrumentationOptions options)
+    public static bool TryCreate(ProcessInstrumentationOptions options, out ProcessMetrics m)
     {
-        if (m != null)
+        if (Interlocked.CompareExchange(ref usingResource, 1, 0) != 0)
         {
-            throw new Exception("Must be null");
+            m = null;
+            return false;
         }
 
+        m = new ProcessMetrics(options);
+        return true;
+    }
+
+    private ProcessMetrics(ProcessInstrumentationOptions options)
+    {
         this.lastCollectionTimeUtc = DateTime.UtcNow;
         this.lastCollectedUserProcessorTime = Diagnostics.Process.GetCurrentProcess().UserProcessorTime.TotalSeconds;
         this.lastCollectedPrivilegedProcessorTime = Diagnostics.Process.GetCurrentProcess().PrivilegedProcessorTime.TotalSeconds;
@@ -104,7 +112,7 @@ internal sealed class ProcessMetrics : IDisposable
 
     public void Dispose()
     {
-        m = null;
+        Interlocked.CompareExchange(ref usingResource, 0, 1);
     }
 
     private IEnumerable<Measurement<double>> GetCpuUtilization()
