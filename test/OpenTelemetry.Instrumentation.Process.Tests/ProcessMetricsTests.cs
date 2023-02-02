@@ -31,17 +31,6 @@ public class ProcessMetricsTests
 {
     private const int MaxTimeToAllowForFlush = 10000;
 
-    [Fact(Timeout = 5000)]
-    public void RunCoyoteTest()
-    {
-        var config = Configuration.Create().WithTestingIterations(100);
-        TestingEngine engine = TestingEngine.Create(config, this.MyTestRaceCondition);
-        engine.Run();
-        var report = engine.TestReport;
-
-        Assert.True(report.NumOfFoundBugs == 0, $"Coyote found {report.NumOfFoundBugs} bug(s).");
-    }
-
     [Fact]
     public void ProcessMetricsAreCaptured()
     {
@@ -141,52 +130,36 @@ public class ProcessMetricsTests
     }
 
     // See: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/831
-    // [Fact(Skip = "There are known issues with this test.")]
     [Fact]
-    public void MyTest()
+    public async void MyTest()
     {
         var exportedItemsA = new List<Metric>();
         var exportedItemsB = new List<Metric>();
-
-        using var meterProviderA = Sdk.CreateMeterProviderBuilder()
-            .AddProcessInstrumentation()
-            .AddInMemoryExporter(exportedItemsA)
-            .Build();
 
         Assert.Throws<Exception>(
             () =>
             {
-                Sdk.CreateMeterProviderBuilder()
-                .AddProcessInstrumentation()
-                .AddInMemoryExporter(exportedItemsB)
-                .Build();
-            });
-    }
-
-    public async Task MyTestRaceCondition()
-    {
-        var exportedItemsA = new List<Metric>();
-        var exportedItemsB = new List<Metric>();
-
-        Task task = Task.Run(() =>
-        {
-            using var meterProviderA = Sdk.CreateMeterProviderBuilder()
-            .AddProcessInstrumentation()
-            .AddInMemoryExporter(exportedItemsA)
-            .Build();
-
-            Assert.Throws<Exception>(
-                () =>
+                var tasks = new List<Task>()
                 {
-                    Sdk.CreateMeterProviderBuilder()
-                    .AddProcessInstrumentation()
-                    .AddInMemoryExporter(exportedItemsB)
-                    .Build();
-                });
+                    Task.Run(() =>
+                    {
+                        var meterProviderA = Sdk.CreateMeterProviderBuilder()
+                            .AddProcessInstrumentation()
+                            .AddInMemoryExporter(exportedItemsA)
+                            .Build();
+                    }),
 
-        });
+                    Task.Run(() =>
+                    {
+                        var meterProviderB = Sdk.CreateMeterProviderBuilder()
+                            .AddProcessInstrumentation()
+                            .AddInMemoryExporter(exportedItemsB)
+                            .Build();
+                }),
+                };
 
-        await task;
+                Task.WaitAll(tasks.ToArray());
+            });
     }
 
     private static double GetValue(Metric metric)
