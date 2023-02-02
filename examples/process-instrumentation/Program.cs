@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 
@@ -22,43 +21,12 @@ public class Program
 {
     public static void Main()
     {
-        //MyTest();
-    }
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddProcessInstrumentation()
+            .AddPrometheusHttpListener()
+            .Build();
 
-    [Microsoft.Coyote.SystematicTesting.Test]
-    public static void MyTest()
-    {
-        var exportedItemsA = new List<Metric>();
-        var exportedItemsB = new List<Metric>();
-
-        var tasks = new List<Task>()
-        {
-                Task.Run(() =>
-                {
-                    using var meterProviderA = Sdk.CreateMeterProviderBuilder()
-                        .AddProcessInstrumentation()
-                        .AddInMemoryExporter(exportedItemsA)
-                        .Build();
-                }),
-
-                Task.Run(() =>
-                {
-                    try
-                    {
-                        Sdk.CreateMeterProviderBuilder()
-                            .AddProcessInstrumentation()
-                            .AddInMemoryExporter(exportedItemsB)
-                            .Build();
-                    }
-                    catch (Exception ex)
-                    {
-
-                    }
-                }),
-        };
-
-        Task.WaitAll();
-
-        return;
+        Console.WriteLine(".NET Process metrics are available at http://localhost:9464/metrics, press any key to exit...");
+        Console.ReadKey(false);
     }
 }
