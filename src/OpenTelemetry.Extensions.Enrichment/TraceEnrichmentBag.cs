@@ -14,8 +14,18 @@
 // limitations under the License.
 // </copyright>
 
+using System.Diagnostics;
+
 namespace OpenTelemetry.Extensions.Enrichment;
 
 public class TraceEnrichmentBag : BaseEnrichmentBag
 {
+    public Activity? Activity { get; set; }
+
+    public override void Clear()
+    {
+        this.Activity = null;
+
+        base.Clear();
+    }
 }

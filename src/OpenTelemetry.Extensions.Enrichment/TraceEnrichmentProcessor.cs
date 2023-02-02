@@ -44,6 +44,8 @@ internal sealed class TraceEnrichmentProcessor : BaseProcessor<Activity>
 
         try
         {
+            propertyBag.Activity = activity;
+
             foreach (var enricher in this.traceEnrichers)
             {
                 enricher.Enrich(propertyBag);
