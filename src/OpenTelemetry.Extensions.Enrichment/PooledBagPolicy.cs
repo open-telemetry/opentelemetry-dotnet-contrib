@@ -18,7 +18,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace OpenTelemetry.Extensions.Enrichment;
 
-internal sealed class PooledBagPolicy<T> : PooledObjectPolicy<T>
+public sealed class PooledBagPolicy<T> : PooledObjectPolicy<T>
     where T : BaseEnrichmentBag, new()
 {
     public PooledBagPolicy()
@@ -31,7 +31,7 @@ internal sealed class PooledBagPolicy<T> : PooledObjectPolicy<T>
 
     public override bool Return(T obj)
     {
-        obj.Clear();
+        obj?.Clear();
         return true;
     }
 }

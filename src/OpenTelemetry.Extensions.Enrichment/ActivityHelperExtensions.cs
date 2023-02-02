@@ -19,14 +19,15 @@ using System.Runtime.CompilerServices;
 
 namespace OpenTelemetry.Extensions.Enrichment;
 
-internal static class ActivityHelperExtensions
+public static class ActivityHelperExtensions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void AddTagRange(this Activity activity, BaseEnrichmentBag enrichmentBag)
     {
         Debug.Assert(activity != null, "Activity should not be null");
+        Debug.Assert(enrichmentBag != null, "Enrichment bag should not be null");
 
-        foreach (var kvp in enrichmentBag.EnrichmentBag)
+        foreach (var kvp in enrichmentBag!.EnrichmentBag)
         {
             _ = activity!.AddTag(kvp.Key, kvp.Value);
         }

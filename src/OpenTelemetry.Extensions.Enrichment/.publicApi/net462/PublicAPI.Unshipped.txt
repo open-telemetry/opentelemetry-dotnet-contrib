@@ -1,5 +1,6 @@
 abstract OpenTelemetry.Extensions.Enrichment.BaseEnricher<T>.Enrich(T enrichmentBag) -> void
 abstract OpenTelemetry.Extensions.Enrichment.BaseTraceEnricher.EnrichOnActivityStart(OpenTelemetry.Extensions.Enrichment.TraceEnrichmentBag! enrichmentBag) -> void
+OpenTelemetry.Extensions.Enrichment.ActivityHelperExtensions
 OpenTelemetry.Extensions.Enrichment.BaseEnricher<T>
 OpenTelemetry.Extensions.Enrichment.BaseEnricher<T>.BaseEnricher() -> void
 OpenTelemetry.Extensions.Enrichment.BaseEnrichmentBag
@@ -7,15 +8,21 @@ OpenTelemetry.Extensions.Enrichment.BaseEnrichmentBag.BaseEnrichmentBag() -> voi
 OpenTelemetry.Extensions.Enrichment.BaseTraceEnricher
 OpenTelemetry.Extensions.Enrichment.BaseTraceEnricher.BaseTraceEnricher() -> void
 OpenTelemetry.Extensions.Enrichment.EnrichmentExtensions
+OpenTelemetry.Extensions.Enrichment.PooledBagPolicy<T>
+OpenTelemetry.Extensions.Enrichment.PooledBagPolicy<T>.PooledBagPolicy() -> void
 OpenTelemetry.Extensions.Enrichment.TraceEnrichmentBag
 OpenTelemetry.Extensions.Enrichment.TraceEnrichmentBag.Activity.get -> System.Diagnostics.Activity?
 OpenTelemetry.Extensions.Enrichment.TraceEnrichmentBag.Activity.set -> void
 OpenTelemetry.Extensions.Enrichment.TraceEnrichmentBag.TraceEnrichmentBag() -> void
+override OpenTelemetry.Extensions.Enrichment.PooledBagPolicy<T>.Create() -> T!
+override OpenTelemetry.Extensions.Enrichment.PooledBagPolicy<T>.Return(T! obj) -> bool
 override OpenTelemetry.Extensions.Enrichment.TraceEnrichmentBag.Clear() -> void
+static OpenTelemetry.Extensions.Enrichment.ActivityHelperExtensions.AddTagRange(this System.Diagnostics.Activity! activity, OpenTelemetry.Extensions.Enrichment.BaseEnrichmentBag! enrichmentBag) -> void
 static OpenTelemetry.Extensions.Enrichment.EnrichmentExtensions.AddTraceEnricher(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, OpenTelemetry.Extensions.Enrichment.BaseTraceEnricher! enricher) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 static OpenTelemetry.Extensions.Enrichment.EnrichmentExtensions.AddTraceEnricher(this OpenTelemetry.Trace.TracerProviderBuilder! builder, OpenTelemetry.Extensions.Enrichment.BaseTraceEnricher! enricher) -> OpenTelemetry.Trace.TracerProviderBuilder!
 static OpenTelemetry.Extensions.Enrichment.EnrichmentExtensions.AddTraceEnricher<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 static OpenTelemetry.Extensions.Enrichment.EnrichmentExtensions.AddTraceEnricher<T>(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder!
+static OpenTelemetry.Extensions.Enrichment.PooledBagPolicy<T>.Instance.get -> OpenTelemetry.Extensions.Enrichment.PooledBagPolicy<T!>!
 virtual OpenTelemetry.Extensions.Enrichment.BaseEnrichmentBag.Add(string! key, object! value) -> void
 virtual OpenTelemetry.Extensions.Enrichment.BaseEnrichmentBag.Clear() -> void
 virtual OpenTelemetry.Extensions.Enrichment.BaseEnrichmentBag.EnrichmentBag.get -> System.Collections.Generic.IReadOnlyList<System.Collections.Generic.KeyValuePair<string!, object!>>!
