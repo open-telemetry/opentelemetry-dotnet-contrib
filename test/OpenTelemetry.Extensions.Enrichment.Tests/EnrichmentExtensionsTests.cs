@@ -70,7 +70,7 @@ public sealed class EnrichmentExtensionsTests
     }
 
     [Fact]
-    public async Task ServiceCollection_AddTraceEnricherT_RegistersEnricher()
+    public async Task IServiceCollection_AddTraceEnricherT_RegistersEnricher()
     {
         using var host = Host.CreateDefaultBuilder()
             .ConfigureServices(services => services
@@ -103,7 +103,7 @@ public sealed class EnrichmentExtensionsTests
     }
 
     [Fact]
-    public async Task ServiceCollection_AddTraceEnricher_RegistersEnricher()
+    public async Task IServiceCollection_AddTraceEnricher_RegistersEnricher()
     {
         var enricher1 = new Mock<BaseTraceEnricher>();
         var enricher2 = new Mock<BaseTraceEnricher>();
