@@ -49,16 +49,14 @@ public static class MeterProviderBuilderExtensions
 
         builder.AddMeter(ProcessMetrics.MeterName);
 
-        return builder.AddInstrumentation(
-            () =>
+        return builder.AddInstrumentation(() =>
+        {
+            if (ProcessMetrics.TryCreate(options, out ProcessMetrics? processMetrics))
             {
-                if (ProcessMetrics.TryCreate(options, out ProcessMetrics? processMetrics))
-                {
-                    return processMetrics;
-                }
-
-                throw new InvalidOperationException("It is not supported to have multiple meterProviders dependency injected ProcessMetrics.");
+                return processMetrics;
             }
-        );
+
+            throw new InvalidOperationException("It is not supported to have multiple meterProviders dependency injected ProcessMetrics.");
+        });
     }
 }
