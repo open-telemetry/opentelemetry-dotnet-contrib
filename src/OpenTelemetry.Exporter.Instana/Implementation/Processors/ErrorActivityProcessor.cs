@@ -43,6 +43,6 @@ internal class ErrorActivityProcessor : ActivityProcessorBase, IActivityProcesso
             instanaSpan.Ec = 0;
         }
 
-        await base.ProcessAsync(activity, instanaSpan);
+        await base.ProcessAsync(activity, instanaSpan).ConfigureAwait(false);
     }
 }
