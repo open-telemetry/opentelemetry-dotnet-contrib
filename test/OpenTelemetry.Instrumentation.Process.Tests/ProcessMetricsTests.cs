@@ -126,7 +126,7 @@ public class ProcessMetricsTests
     }
 
     [Fact]
-    public void ProcessMetricsShouldThrowOnSecondDIAttempt()
+    public void ProcessMetricsShouldThrowInTheSecondDIAttempt()
     {
         var exportedItemsA = new List<Metric>();
         var exportedItemsB = new List<Metric>();
