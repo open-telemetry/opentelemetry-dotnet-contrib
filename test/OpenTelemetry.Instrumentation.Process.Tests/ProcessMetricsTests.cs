@@ -139,16 +139,21 @@ public class ProcessMetricsTests
         var exception = Assert.Throws<InvalidOperationException>(
             () =>
             {
-                Sdk.CreateMeterProviderBuilder()
-                .AddProcessInstrumentation()
-                .AddInMemoryExporter(exportedItemsB)
-                .Build();
+                using var meterProviderB = Sdk.CreateMeterProviderBuilder()
+                    .AddProcessInstrumentation()
+                    .AddInMemoryExporter(exportedItemsB)
+                    .Build();
             });
 
         Assert.Equal("It is not supported to have multiple meterProviders dependency injected ProcessMetrics.", exception.Message);
 
-        // cleanup
+        // explicitly cleanup for testing purpose
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
         meterProviderA.Dispose();
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+
+        exportedItemsA.Clear();
+        exportedItemsB.Clear();
 
         // should throw in asynchronous scenario as well
         Assert.Throws<AggregateException>(() =>
