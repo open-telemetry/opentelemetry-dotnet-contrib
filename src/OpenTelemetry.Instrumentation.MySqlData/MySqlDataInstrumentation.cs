@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
 using MySql.Data.MySqlClient;
@@ -113,7 +114,7 @@ internal class MySqlDataInstrumentation : DefaultTraceListener
                     break;
                 case MySqlTraceEventType.QueryClosed:
                     // args: [driverId]
-                    this.AfterExecuteCommand();
+                    AfterExecuteCommand();
                     break;
                 case MySqlTraceEventType.StatementPrepared:
                     break;
@@ -129,7 +130,7 @@ internal class MySqlDataInstrumentation : DefaultTraceListener
                     break;
                 case MySqlTraceEventType.Error:
                     // args: [driverId, exNumber, exMessage]
-                    this.ErrorExecuteCommand(this.GetMySqlErrorException(args[2]));
+                    this.ErrorExecuteCommand(GetMySqlErrorException(args[2]));
                     break;
                 case MySqlTraceEventType.QueryNormalized:
                     // Should use QueryNormalized event when it exists. Because cmdText in QueryOpened event is incomplete when cmdText.length>300
@@ -137,13 +138,46 @@ internal class MySqlDataInstrumentation : DefaultTraceListener
                     this.OverwriteDbStatement(this.GetCommand(args[0], args[2]));
                     break;
                 default:
-                    MySqlDataInstrumentationEventSource.Log.UnknownMySqlTraceEventType(id, string.Format(format, args));
+                    MySqlDataInstrumentationEventSource.Log.UnknownMySqlTraceEventType(id, string.Format(CultureInfo.InvariantCulture, format, args));
                     break;
             }
         }
         catch (Exception e)
         {
-            MySqlDataInstrumentationEventSource.Log.ErrorTraceEvent(id, string.Format(format, args), e.ToString());
+            MySqlDataInstrumentationEventSource.Log.ErrorTraceEvent(id, string.Format(CultureInfo.InvariantCulture, format, args), e.ToString());
+        }
+    }
+
+    private static Exception GetMySqlErrorException(object errorMsg)
+    {
+#pragma warning disable CA2201 // Do not raise reserved exception types
+        return new Exception(errorMsg?.ToString());
+#pragma warning restore CA2201 // Do not raise reserved exception types
+    }
+
+    private static void AfterExecuteCommand()
+    {
+        var activity = Activity.Current;
+        if (activity == null)
+        {
+            return;
+        }
+
+        if (activity.Source != MySqlActivitySourceHelper.ActivitySource)
+        {
+            return;
+        }
+
+        try
+        {
+            if (activity.IsAllDataRequested)
+            {
+                activity.SetStatus(Status.Unset);
+            }
+        }
+        finally
+        {
+            activity.Stop();
         }
     }
 
@@ -198,32 +232,6 @@ internal class MySqlDataInstrumentation : DefaultTraceListener
         }
     }
 
-    private void AfterExecuteCommand()
-    {
-        var activity = Activity.Current;
-        if (activity == null)
-        {
-            return;
-        }
-
-        if (activity.Source != MySqlActivitySourceHelper.ActivitySource)
-        {
-            return;
-        }
-
-        try
-        {
-            if (activity.IsAllDataRequested)
-            {
-                activity.SetStatus(Status.Unset);
-            }
-        }
-        finally
-        {
-            activity.Stop();
-        }
-    }
-
     private void ErrorExecuteCommand(Exception exception)
     {
         var activity = Activity.Current;
@@ -264,11 +272,6 @@ internal class MySqlDataInstrumentation : DefaultTraceListener
 
         command.SqlText = cmd == null ? string.Empty : cmd.ToString();
         return command;
-    }
-
-    private Exception GetMySqlErrorException(object errorMsg)
-    {
-        return new Exception($"{errorMsg}");
     }
 
     private void AddConnectionLevelDetailsToActivity(MySqlConnectionStringBuilder dataSource, Activity sqlActivity)
