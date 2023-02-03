@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using OpenTelemetry.Metrics;
 using Xunit;
@@ -162,22 +163,28 @@ public class ProcessMetricsTests
             {
                 Task.Run(() =>
                 {
-                    using var meterProviderA = Sdk.CreateMeterProviderBuilder()
+                    var meterProviderA = Sdk.CreateMeterProviderBuilder()
                         .AddProcessInstrumentation()
                         .AddInMemoryExporter(exportedItemsA)
                         .Build();
+
+                    Thread.Sleep(3000); // increase the odds of 2 tasks overlaps
                 }),
 
                 Task.Run(() =>
                 {
-                    using var meterProviderB = Sdk.CreateMeterProviderBuilder()
+                    var meterProviderB = Sdk.CreateMeterProviderBuilder()
                         .AddProcessInstrumentation()
                         .AddInMemoryExporter(exportedItemsB)
                         .Build();
+
+                    Thread.Sleep(3000); // increase the odds of 2 tasks overlaps
                 }),
             };
 
             Task.WaitAll(tasks.ToArray());
         });
+
+        meterProviderA.Dispose();
     }
 }
