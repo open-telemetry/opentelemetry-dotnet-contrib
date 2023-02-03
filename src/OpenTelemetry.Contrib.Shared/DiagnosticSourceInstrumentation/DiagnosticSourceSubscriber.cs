@@ -21,7 +21,9 @@ using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation;
 
-internal class DiagnosticSourceSubscriber : IDisposable, IObserver<DiagnosticListener>
+#pragma warning disable CA1812
+internal sealed class DiagnosticSourceSubscriber : IDisposable, IObserver<DiagnosticListener>
+#pragma warning restore CA1812
 {
     private readonly Func<string, ListenerHandler> handlerFactory;
     private readonly Func<DiagnosticListener, bool> diagnosticSourceFilter;
@@ -87,11 +89,11 @@ internal class DiagnosticSourceSubscriber : IDisposable, IObserver<DiagnosticLis
     /// <inheritdoc/>
     public void Dispose()
     {
-        this.Dispose(true);
+        this.DisposeInternal();
         GC.SuppressFinalize(this);
     }
 
-    protected virtual void Dispose(bool disposing)
+    private void DisposeInternal()
     {
         if (Interlocked.CompareExchange(ref this.disposed, 1, 0) == 1)
         {
