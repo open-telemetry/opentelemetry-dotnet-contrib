@@ -9,8 +9,6 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="$(CoverletCollectorPkgVer)" />
-    <PackageReference Include="Microsoft.Coyote" Version="1.7.3" />
-    <PackageReference Include="Microsoft.Coyote.Test" Version="1.7.3" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkPkgVer)" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryLatestPreReleasePkgVer)" />
     <PackageReference Include="xunit" Version="$(XUnitPkgVer)" />
