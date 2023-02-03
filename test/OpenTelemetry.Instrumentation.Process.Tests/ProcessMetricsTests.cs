@@ -125,8 +125,6 @@ public class ProcessMetricsTests
         Assert.True(systemCpuUtilizationCaptured);
     }
 
-    // See: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/831
-
     [Fact]
     public void ProcessMetricsShouldThrowOnSecondDIAttempt()
     {
