@@ -17,13 +17,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Coyote.SystematicTesting;
-using Microsoft.Coyote;
+using System.Threading.Tasks;
 using OpenTelemetry.Metrics;
 using Xunit;
-using System.Threading.Tasks;
-
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace OpenTelemetry.Instrumentation.Process.Tests;
 
@@ -130,50 +126,55 @@ public class ProcessMetricsTests
     }
 
     // See: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/831
+
     [Fact]
-    public async void MyTest()
+    public void ProcessMetricsShouldThrowOnSecondDIAttempt()
     {
         var exportedItemsA = new List<Metric>();
         var exportedItemsB = new List<Metric>();
 
-        Assert.Throws<Exception>(
+        var meterProviderA = Sdk.CreateMeterProviderBuilder()
+            .AddProcessInstrumentation()
+            .AddInMemoryExporter(exportedItemsA)
+            .Build();
+
+        var exception = Assert.Throws<InvalidOperationException>(
             () =>
             {
-                var tasks = new List<Task>()
-                {
-                    Task.Run(() =>
-                    {
-                        var meterProviderA = Sdk.CreateMeterProviderBuilder()
-                            .AddProcessInstrumentation()
-                            .AddInMemoryExporter(exportedItemsA)
-                            .Build();
-                    }),
-
-                    Task.Run(() =>
-                    {
-                        var meterProviderB = Sdk.CreateMeterProviderBuilder()
-                            .AddProcessInstrumentation()
-                            .AddInMemoryExporter(exportedItemsB)
-                            .Build();
-                }),
-                };
-
-                Task.WaitAll(tasks.ToArray());
+                Sdk.CreateMeterProviderBuilder()
+                .AddProcessInstrumentation()
+                .AddInMemoryExporter(exportedItemsB)
+                .Build();
             });
-    }
 
-    private static double GetValue(Metric metric)
-    {
-        double sum = 0;
+        Assert.Equal("It is not supported to have multiple meterProviders dependency injected ProcessMetrics.", exception.Message);
 
-        foreach (ref readonly var metricPoint in metric.GetMetricPoints())
+        // cleanup
+        meterProviderA.Dispose();
+
+        // should throw in asynchronous scenario as well
+        Assert.Throws<AggregateException>(() =>
         {
-            if (metric.MetricType.IsLong())
+            var tasks = new List<Task>()
             {
-                sum += metricPoint.GetSumLong();
-            }
-        }
+                Task.Run(() =>
+                {
+                    using var meterProviderA = Sdk.CreateMeterProviderBuilder()
+                        .AddProcessInstrumentation()
+                        .AddInMemoryExporter(exportedItemsA)
+                        .Build();
+                }),
 
-        return sum;
+                Task.Run(() =>
+                {
+                    using var meterProviderB = Sdk.CreateMeterProviderBuilder()
+                        .AddProcessInstrumentation()
+                        .AddInMemoryExporter(exportedItemsB)
+                        .Build();
+                }),
+            };
+
+            Task.WaitAll(tasks.ToArray());
+        });
     }
 }

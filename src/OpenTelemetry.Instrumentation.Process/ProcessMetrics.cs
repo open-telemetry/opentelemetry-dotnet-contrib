@@ -31,25 +31,12 @@ internal sealed class ProcessMetrics : IDisposable
     internal static readonly string MeterName = AssemblyName.Name;
 
     private static readonly Meter MeterInstance = new(MeterName, AssemblyName.Version.ToString());
-    private static ProcessMetrics? m;
     private static int usingResource;
 
     // vars for calculating CPU utilization
     private DateTime lastCollectionTimeUtc;
     private double lastCollectedUserProcessorTime;
     private double lastCollectedPrivilegedProcessorTime;
-
-    public static bool TryCreate(ProcessInstrumentationOptions options, out ProcessMetrics m)
-    {
-        if (Interlocked.CompareExchange(ref usingResource, 1, 0) != 0)
-        {
-            m = null;
-            return false;
-        }
-
-        m = new ProcessMetrics(options);
-        return true;
-    }
 
     private ProcessMetrics(ProcessInstrumentationOptions options)
     {
@@ -106,8 +93,18 @@ internal sealed class ProcessMetrics : IDisposable
             },
             unit: "{threads}",
             description: "Process threads count.");
+    }
 
-        m = this;
+    public static bool TryCreate(ProcessInstrumentationOptions options, out ProcessMetrics? processMetrics)
+    {
+        if (Interlocked.CompareExchange(ref usingResource, 1, 0) != 0)
+        {
+            processMetrics = null;
+            return false;
+        }
+
+        processMetrics = new ProcessMetrics(options);
+        return true;
     }
 
     public void Dispose()

@@ -15,7 +15,6 @@
 // </copyright>
 
 using System;
-using System.Diagnostics;
 using OpenTelemetry.Instrumentation.Process;
 using OpenTelemetry.Internal;
 
@@ -53,12 +52,12 @@ public static class MeterProviderBuilderExtensions
         return builder.AddInstrumentation(
             () =>
             {
-                if (ProcessMetrics.TryCreate(options, out ProcessMetrics m))
+                if (ProcessMetrics.TryCreate(options, out ProcessMetrics? processMetrics))
                 {
-                    return m;
+                    return processMetrics;
                 }
 
-                throw new Exception("This is invalid!!!!!!!");
+                throw new InvalidOperationException("It is not supported to have multiple meterProviders dependency injected ProcessMetrics.");
             }
         );
     }
