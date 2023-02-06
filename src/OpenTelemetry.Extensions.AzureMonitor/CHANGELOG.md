@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.0.0-beta.3
+
+Released 2023-Feb-07
 
 * Sampler will now return `RecordOnly` SamplingResult when the telemetry is
 sampled out.
