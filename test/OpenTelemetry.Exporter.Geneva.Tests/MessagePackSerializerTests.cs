@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using Xunit;
 using Xunit.Sdk;
@@ -54,7 +55,9 @@ public class MessagePackSerializerTests
         if (!string.IsNullOrEmpty(input) && input.Length > sizeLimit)
         {
             // We truncate the string using `.` in the last three characters which takes 3 bytes of memort
+#pragma warning disable CA1846 // Prefer 'AsSpan' over 'Substring'
             var byteCount = Encoding.ASCII.GetByteCount(input.Substring(0, sizeLimit - 3)) + 3;
+#pragma warning restore CA1846 // Prefer 'AsSpan' over 'Substring'
             Assert.Equal(0xDA, buffer[0]);
             Assert.Equal(byteCount, (buffer[1] << 8) | buffer[2]);
             Assert.Equal(byteCount, length - 3); // First three bytes are metadata
@@ -109,7 +112,9 @@ public class MessagePackSerializerTests
         if (!string.IsNullOrEmpty(input) && input.Length > sizeLimit)
         {
             // We truncate the string using `.` in the last three characters which takes 3 bytes of memory
+#pragma warning disable CA1846 // Prefer 'AsSpan' over 'Substring'
             var byteCount = Encoding.UTF8.GetByteCount(input.Substring(0, sizeLimit - 3)) + 3;
+#pragma warning restore CA1846 // Prefer 'AsSpan' over 'Substring'
             Assert.Equal(0xDA, buffer[0]);
             Assert.Equal(byteCount, (buffer[1] << 8) | buffer[2]);
             Assert.Equal(byteCount, length - 3); // First three bytes are metadata
@@ -347,7 +352,7 @@ public class MessagePackSerializerTests
     public void MessagePackSerializer_Array()
     {
         this.MessagePackSerializer_TestSerialization((object[])null);
-        this.MessagePackSerializer_TestSerialization(new object[0]);
+        this.MessagePackSerializer_TestSerialization(Array.Empty<object>());
 
         // This object array has a custom string which will be serialized as STR16
         var objectArrayWithString = new object[]
@@ -386,7 +391,7 @@ public class MessagePackSerializerTests
         _ = MessagePackSerializer.Serialize(buffer, 0, dictionaryWithStrings);
         var dictionaryWithStringsDeserialized = MessagePack.MessagePackSerializer.Deserialize<Dictionary<string, object>>(buffer);
         Assert.Equal(dictionaryWithStrings.Count, dictionaryWithStringsDeserialized.Count);
-        Assert.Equal(dictionaryWithStrings["foo"], Convert.ToInt32(dictionaryWithStringsDeserialized["foo"]));
+        Assert.Equal(dictionaryWithStrings["foo"], Convert.ToInt32(dictionaryWithStringsDeserialized["foo"], CultureInfo.InvariantCulture));
         Assert.Equal(dictionaryWithStrings["bar"], dictionaryWithStringsDeserialized["bar"]);
         Assert.Equal(dictionaryWithStrings["golden ratio"], dictionaryWithStringsDeserialized["golden ratio"]);
         Assert.Equal(dictionaryWithStrings["pi"], dictionaryWithStringsDeserialized["pi"]);

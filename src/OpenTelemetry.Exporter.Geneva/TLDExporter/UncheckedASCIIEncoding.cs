@@ -16,6 +16,7 @@
 
 using System;
 using System.Text;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva.TldExporter;
 
@@ -124,11 +125,7 @@ internal sealed class UncheckedASCIIEncoding : Encoding
 
     public override int GetByteCount(string chars)
     {
-        if (chars == null)
-        {
-            throw new ArgumentNullException(nameof(chars));
-        }
-
+        Guard.ThrowIfNull(chars);
         return chars.Length;
     }
 
