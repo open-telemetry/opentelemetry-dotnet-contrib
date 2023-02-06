@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* [Instrumentation.Process] Removed CPU utilization metric.
+  ([#972](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/972))
+
 ## 1.0.0-alpha.5
 
 Released 2023-Feb-02
