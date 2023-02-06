@@ -34,10 +34,7 @@ public static class MeterProviderBuilderExtensions
     {
         Guard.ThrowIfNull(builder);
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
-        var instrumentation = new AspNetMetrics();
-#pragma warning restore CA2000 // Dispose objects before losing scope
         builder.AddMeter(AspNetMetrics.InstrumentationName);
-        return builder.AddInstrumentation(() => instrumentation);
+        return builder.AddInstrumentation(() => new AspNetMetrics());
     }
 }
