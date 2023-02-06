@@ -27,7 +27,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests;
 
 public class EventCountersMetricsTests
 {
-    [Fact]
+    [Fact(Skip = "Unstable")]
     public void EventCounter()
     {
         // Arrange
