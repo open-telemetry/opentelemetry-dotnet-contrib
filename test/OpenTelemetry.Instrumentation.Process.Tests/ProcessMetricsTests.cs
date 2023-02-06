@@ -36,15 +36,13 @@ public class ProcessMetricsTests
 
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
-        Assert.True(exportedItems.Count == 5);
+        Assert.True(exportedItems.Count == 4);
         var physicalMemoryMetric = exportedItems.FirstOrDefault(i => i.Name == "process.memory.usage");
         Assert.NotNull(physicalMemoryMetric);
         var virtualMemoryMetric = exportedItems.FirstOrDefault(i => i.Name == "process.memory.virtual");
         Assert.NotNull(virtualMemoryMetric);
         var cpuTimeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.time");
         Assert.NotNull(cpuTimeMetric);
-        var cpuUtilizationMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.utilization");
-        Assert.NotNull(cpuUtilizationMetric);
         var threadMetric = exportedItems.FirstOrDefault(i => i.Name == "process.threads");
         Assert.NotNull(threadMetric);
     }
@@ -87,44 +85,6 @@ public class ProcessMetricsTests
     }
 
     [Fact]
-    public void CpuUtilizationMetricsAreCaptured()
-    {
-        var exportedItems = new List<Metric>();
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddProcessInstrumentation()
-            .AddInMemoryExporter(exportedItems)
-            .Build();
-
-        meterProvider.ForceFlush(MaxTimeToAllowForFlush);
-
-        var cpuUtilizationMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.utilization");
-        Assert.NotNull(cpuUtilizationMetric);
-
-        var userCpuUtilizationCaptured = false;
-        var systemCpuUtilizationCaptured = false;
-
-        var iter = cpuUtilizationMetric.GetMetricPoints().GetEnumerator();
-        while (iter.MoveNext() && (!userCpuUtilizationCaptured || !systemCpuUtilizationCaptured))
-        {
-            foreach (var tag in iter.Current.Tags)
-            {
-                if (tag.Key == "state" && tag.Value.ToString() == "user")
-                {
-                    userCpuUtilizationCaptured = true;
-                }
-                else if (tag.Key == "state" && tag.Value.ToString() == "system")
-                {
-                    systemCpuUtilizationCaptured = true;
-                }
-            }
-        }
-
-        Assert.True(userCpuUtilizationCaptured);
-        Assert.True(systemCpuUtilizationCaptured);
-    }
-
-    // See: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/831
-    [Fact(Skip = "There are known issues with this test.")]
     public void CheckValidGaugeValueWhen2MeterProviderInstancesHaveTheSameMeterName()
     {
         var exportedItemsA = new List<Metric>();
@@ -173,8 +133,6 @@ public class ProcessMetricsTests
 
         meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
 
-        // Note: This fails due to:
-        // https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry/Metrics/MetricReaderExt.cs#L244-L249
         Assert.NotEmpty(exportedItemsA);
         Assert.Empty(exportedItemsB);
     }
