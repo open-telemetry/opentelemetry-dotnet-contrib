@@ -110,7 +110,7 @@ public class ProcessMetricsTests
     [Fact]
     public void ProcessMetricsAreCapturedWhenTasksOverlap()
     {
-        var exportedItemsA =new List<Metric>();
+        var exportedItemsA = new List<Metric>();
         var exportedItemsB = new List<Metric>();
 
         var tasks = new List<Task>()
