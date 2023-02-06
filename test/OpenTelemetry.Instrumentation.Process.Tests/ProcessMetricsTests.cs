@@ -16,6 +16,8 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using OpenTelemetry.Metrics;
 using Xunit;
 
@@ -28,23 +30,44 @@ public class ProcessMetricsTests
     [Fact]
     public void ProcessMetricsAreCaptured()
     {
-        var exportedItems = new List<Metric>();
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+        var exportedItemsA = new List<Metric>();
+        var meterProviderA = Sdk.CreateMeterProviderBuilder()
             .AddProcessInstrumentation()
-            .AddInMemoryExporter(exportedItems)
+            .AddInMemoryExporter(exportedItemsA)
             .Build();
 
-        meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+        meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
 
-        Assert.True(exportedItems.Count == 4);
-        var physicalMemoryMetric = exportedItems.FirstOrDefault(i => i.Name == "process.memory.usage");
+        Assert.True(exportedItemsA.Count == 4);
+        var physicalMemoryMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.usage");
         Assert.NotNull(physicalMemoryMetric);
-        var virtualMemoryMetric = exportedItems.FirstOrDefault(i => i.Name == "process.memory.virtual");
+        var virtualMemoryMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.virtual");
         Assert.NotNull(virtualMemoryMetric);
-        var cpuTimeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.time");
+        var cpuTimeMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.cpu.time");
         Assert.NotNull(cpuTimeMetric);
-        var threadMetric = exportedItems.FirstOrDefault(i => i.Name == "process.threads");
+        var threadMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.threads");
         Assert.NotNull(threadMetric);
+
+        exportedItemsA.Clear();
+
+        var exportedItemsB = new List<Metric>();
+
+        using var meterProviderB = Sdk.CreateMeterProviderBuilder()
+            .AddProcessInstrumentation()
+            .AddInMemoryExporter(exportedItemsA, metricReaderOptions =>
+            {
+                metricReaderOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 1500;
+            })
+            .AddInMemoryExporter(exportedItemsB, metricReaderOptions =>
+            {
+                metricReaderOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 5000;
+            })
+            .Build();
+
+        meterProviderB.ForceFlush(MaxTimeToAllowForFlush);
+
+        Assert.True(exportedItemsA.Count == 4);
+        Assert.True(exportedItemsB.Count == 4);
     }
 
     [Fact]
@@ -82,6 +105,62 @@ public class ProcessMetricsTests
 
         Assert.True(userTimeCaptured);
         Assert.True(systemTimeCaptured);
+    }
+
+    [Fact]
+    public void ProcessMetricsAreCapturedWhenTasksOverlap()
+    {
+        var exportedItemsA =new List<Metric>();
+        var exportedItemsB = new List<Metric>();
+
+        var tasks = new List<Task>()
+        {
+            Task.Run(() =>
+            {
+                var meterProviderA = Sdk.CreateMeterProviderBuilder()
+                    .AddProcessInstrumentation()
+                    .AddInMemoryExporter(exportedItemsA)
+                    .Build();
+
+                Thread.Sleep(3000); // increase the odds of 2 tasks overlaps
+
+                meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
+            }),
+
+            Task.Run(() =>
+            {
+                var meterProviderB = Sdk.CreateMeterProviderBuilder()
+                    .AddProcessInstrumentation()
+                    .AddInMemoryExporter(exportedItemsB)
+                    .Build();
+
+                Thread.Sleep(3000); // increase the odds of 2 tasks overlaps
+
+                meterProviderB.ForceFlush(MaxTimeToAllowForFlush);
+            }),
+        };
+
+        Task.WaitAll(tasks.ToArray());
+
+        Assert.True(exportedItemsA.Count == 4);
+        var physicalMemoryMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.usage");
+        Assert.NotNull(physicalMemoryMetricA);
+        var virtualMemoryMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.virtual");
+        Assert.NotNull(virtualMemoryMetricA);
+        var cpuTimeMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.cpu.time");
+        Assert.NotNull(cpuTimeMetricA);
+        var threadMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.threads");
+        Assert.NotNull(threadMetricA);
+
+        Assert.True(exportedItemsB.Count == 4);
+        var physicalMemoryMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.memory.usage");
+        Assert.NotNull(physicalMemoryMetricB);
+        var virtualMemoryMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.memory.virtual");
+        Assert.NotNull(virtualMemoryMetricB);
+        var cpuTimeMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.cpu.time");
+        Assert.NotNull(cpuTimeMetricB);
+        var threadMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.threads");
+        Assert.NotNull(threadMetricB);
     }
 
     [Fact]
