@@ -85,7 +85,7 @@ public class GenevaTraceExporterTests
         // Supported types for PrepopulatedFields should not throw an exception
         var exception = Record.Exception(() =>
         {
-            new GenevaExporterOptions
+            _ = new GenevaExporterOptions
             {
                 ConnectionString = "EtwSession=OpenTelemetry",
                 PrepopulatedFields = new Dictionary<string, object>
@@ -663,7 +663,7 @@ public class GenevaTraceExporterTests
             else
             {
                 // If CustomFields are proivded, dedicatedFields will be populated
-                if (exporterOptions.CustomFields == null || dedicatedFields.ContainsKey(tag.Key))
+                if (exporterOptions.CustomFields == null || dedicatedFields.TryGetValue(tag.Key, out _))
                 {
                     Assert.Equal(tag.Value.ToString(), mapping[tag.Key].ToString());
                 }

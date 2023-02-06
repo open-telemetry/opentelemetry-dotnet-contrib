@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -385,7 +386,7 @@ public class GenevaLogExporterTests
 
             if (hasCustomFields)
             {
-                exporterOptions.CustomFields = new string[] { "food", "Name", "Key1" };
+                exporterOptions.CustomFields = new string[] { "Food", "Name", "Key1" };
             }
 
             var exportedItems = new List<LogRecord>();
@@ -419,7 +420,7 @@ public class GenevaLogExporterTests
             using (logger.BeginScope("MyInnerInnerScope with {Name} and {Age} of custom", "John Doe", 25))
             using (logger.BeginScope(new List<KeyValuePair<string, object>> { new("Key1", "Value1"), new("Key2", "Value2") }))
             {
-                logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+                logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
             }
 
             byte[] serializedData;
@@ -445,7 +446,7 @@ public class GenevaLogExporterTests
                 var envProperties = mapping["env_properties"] as Dictionary<object, object>;
 
                 // Custom Fields
-                Assert.Equal("artichoke", mapping["food"]);
+                Assert.Equal("artichoke", mapping["Food"]);
                 Assert.Equal("John Doe", mapping["Name"]);
                 Assert.Equal("Value1", mapping["Key1"]);
 
@@ -453,7 +454,7 @@ public class GenevaLogExporterTests
                 Assert.False(mapping.ContainsKey("MyInnerScope"));
 
                 // env_properties
-                Assert.True(Equals(envProperties["price"], 3.99));
+                Assert.True(Equals(envProperties["Price"], 3.99));
                 Assert.Equal((byte)25, envProperties["Age"]);
                 Assert.Equal("Value2", envProperties["Key2"]);
 
@@ -462,8 +463,8 @@ public class GenevaLogExporterTests
             }
             else
             {
-                Assert.Equal("artichoke", mapping["food"]);
-                Assert.True(Equals(mapping["price"], 3.99));
+                Assert.Equal("artichoke", mapping["Food"]);
+                Assert.True(Equals(mapping["Price"], 3.99));
                 Assert.Equal("John Doe", mapping["Name"]);
                 Assert.Equal((byte)25, mapping["Age"]);
                 Assert.Equal("Value1", mapping["Key1"]);
@@ -757,24 +758,24 @@ public class GenevaLogExporterTests
             using (var activity = source.StartActivity("Activity"))
             {
                 // Log inside an activity to set LogRecord.TraceId and LogRecord.SpanId
-                logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99); // structured logging
+                logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99); // structured logging
             }
 
             // When the exporter options are configured with TableMappings only "customField" will be logged as a separate key in the mapping
             // "property" will be logged under "env_properties" in the mapping
-            logger.Log(LogLevel.Trace, 101, "Log a {customField} and {property}", "CustomFieldValue", "PropertyValue");
-            logger.Log(LogLevel.Trace, 101, "Log a {customField} and {property}", "CustomFieldValue", null);
-            logger.Log(LogLevel.Trace, 101, "Log a {customField} and {property}", null, "PropertyValue");
-            logger.Log(LogLevel.Debug, 101, "Log a {customField} and {property}", "CustomFieldValue", "PropertyValue");
-            logger.Log(LogLevel.Information, 101, "Log a {customField} and {property}", "CustomFieldValue", "PropertyValue");
-            logger.Log(LogLevel.Warning, 101, "Log a {customField} and {property}", "CustomFieldValue", "PropertyValue");
-            logger.Log(LogLevel.Error, 101, "Log a {customField} and {property}", "CustomFieldValue", "PropertyValue");
-            logger.Log(LogLevel.Critical, 101, "Log a {customField} and {property}", "CustomFieldValue", "PropertyValue");
+            logger.Log(LogLevel.Trace, 101, "Log a {CustomField} and {Property}", "CustomFieldValue", "PropertyValue");
+            logger.Log(LogLevel.Trace, 101, "Log a {CustomField} and {Property}", "CustomFieldValue", null);
+            logger.Log(LogLevel.Trace, 101, "Log a {CustomField} and {Property}", null, "PropertyValue");
+            logger.Log(LogLevel.Debug, 101, "Log a {CustomField} and {Property}", "CustomFieldValue", "PropertyValue");
+            logger.Log(LogLevel.Information, 101, "Log a {CustomField} and {Property}", "CustomFieldValue", "PropertyValue");
+            logger.Log(LogLevel.Warning, 101, "Log a {CustomField} and {Property}", "CustomFieldValue", "PropertyValue");
+            logger.Log(LogLevel.Error, 101, "Log a {CustomField} and {Property}", "CustomFieldValue", "PropertyValue");
+            logger.Log(LogLevel.Critical, 101, "Log a {CustomField} and {Property}", "CustomFieldValue", "PropertyValue");
             logger.LogInformation("Hello World!"); // unstructured logging
-            logger.LogError(new InvalidOperationException("Oops! Food is spoiled!"), "Hello from {food} {price}.", "artichoke", 3.99);
+            logger.LogError(new InvalidOperationException("Oops! Food is spoiled!"), "Hello from {Food} {Price}.", "artichoke", 3.99);
 
             // Exception with a non-ASCII character in its type name
-            logger.LogError(new CustomException\u0418(), "Hello from {food} {price}.", "artichoke", 3.99);
+            logger.LogError(new CustomException\u0418(), "Hello from {Food} {Price}.", "artichoke", 3.99);
 
             var loggerWithDefaultCategory = loggerFactory.CreateLogger("DefaultCategory");
             loggerWithDefaultCategory.LogInformation("Basic test");
@@ -837,7 +838,7 @@ public class GenevaLogExporterTests
 
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
 
-            logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+            logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
         }
     }
 
@@ -888,7 +889,7 @@ public class GenevaLogExporterTests
                 // Emit a LogRecord and grab a copy of internal buffer for validation.
                 var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
 
-                logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+                logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
 
                 // logRecordList should have a singleLogRecord entry after the logger.LogInformation call
                 Assert.Single(logRecordList);
@@ -908,7 +909,7 @@ public class GenevaLogExporterTests
                 // Emit log on a different thread to test for multithreading scenarios
                 var thread = new Thread(() =>
                 {
-                    logger.LogInformation("Hello from another thread {food} {price}.", "artichoke", 3.99);
+                    logger.LogInformation("Hello from another thread {Food} {Price}.", "artichoke", 3.99);
                 });
                 thread.Start();
                 thread.Join();
@@ -1104,7 +1105,7 @@ public class GenevaLogExporterTests
 
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
 
-            logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+            logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
         }
     }
 
@@ -1140,9 +1141,9 @@ public class GenevaLogExporterTests
         var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
         var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
 
-        if (mapping.ContainsKey(key))
+        if (mapping.TryGetValue(key, out var value))
         {
-            return mapping[key];
+            return value;
         }
         else
         {
@@ -1286,7 +1287,7 @@ public class GenevaLogExporterTests
 
         if (logRecord.EventId != default)
         {
-            Assert.Equal(logRecord.EventId.Id, int.Parse(mapping["eventId"].ToString()));
+            Assert.Equal(logRecord.EventId.Id, int.Parse(mapping["eventId"].ToString(), CultureInfo.InvariantCulture));
         }
 
         // Epilouge
