@@ -89,12 +89,6 @@ internal sealed class DiagnosticSourceSubscriber : IDisposable, IObserver<Diagno
     /// <inheritdoc/>
     public void Dispose()
     {
-        this.DisposeInternal();
-        GC.SuppressFinalize(this);
-    }
-
-    private void DisposeInternal()
-    {
         if (Interlocked.CompareExchange(ref this.disposed, 1, 0) == 1)
         {
             return;
