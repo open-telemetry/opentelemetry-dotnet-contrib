@@ -175,22 +175,17 @@ When contributing a new project you are expected to assign either yourself or
 someone else who would take ownership of the component you are contributing. The
 owner should at least be an [OpenTelemetry
 Member](https://github.com/open-telemetry/community/blob/main/community-membership.md#member)
-to be eligible to assigned as component owner. Once the owner is identified,
-please update [component_owners](./.github/component_owners.yml) file for the
-new project. The component owner(s) are expected to respond to issues and review
-PRs affecting their component.
+to be eligible to assigned as component owner. This is required to ensure that
+reviews can be automatically requested from the owners. Once the owner is
+identified, please update [component_owners](./.github/component_owners.yml)
+file for the new project. The component owner(s) are expected to respond to
+issues and review PRs affecting their component.
 
 Although the projects within this repo share some properties and configurations,
 they are built and released independently. So if you are creating a new project
 within `/src` and corresponding test project within `/test`, here are a few
 things you should do to ensure that your project is automatically built and
 shipped through CI.
-
-* Wherever feasible, your component should support all the officially supported
-versions of [.NET](https://dotnet.microsoft.com/download/dotnet) and [.NET
-Framework](https://dotnet.microsoft.com/download/dotnet-framework), except `.NET
-Framework 3.5`. To avoid security vulnerability reportings, the CI checks in
-this repo will be run only against the above version of .NET.
 
 * Based on what your project is, you may need to depend on the [OpenTelemetry
 SDK](https://www.nuget.org/packages/OpenTelemetry) or the [OpenTelemetry
