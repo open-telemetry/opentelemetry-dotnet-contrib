@@ -7,7 +7,7 @@
 Released 2023-Feb-07
 
 * Sampler will now return `RecordOnly` SamplingResult when the telemetry is
-sampled instead of `Drop`. This will result activity object to be created always
+sampled instead of `Drop`. This will result in `Activity` to be created always
 and populated with all information such as tag, events etc. This is done in
 order to allow metrics collection from the generated activities. **Note**: This
 change will have no impact on the overall sampling behavior.
