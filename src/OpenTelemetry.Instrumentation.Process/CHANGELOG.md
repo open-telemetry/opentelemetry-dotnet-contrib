@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Cleanup public API
+  ([#973](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/973))
+
 ## 1.0.0-alpha.5
 
 Released 2023-Feb-02
