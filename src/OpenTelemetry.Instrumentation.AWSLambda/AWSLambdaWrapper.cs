@@ -95,6 +95,7 @@ public static class AWSLambdaWrapper
         ILambdaContext context,
         ActivityContext parentContext = default)
     {
+        Guard.ThrowIfNull(lambdaHandler);
         Func<TInput, ILambdaContext, object> func = (input, context) =>
         {
             lambdaHandler(input, context);
