@@ -189,10 +189,7 @@ public static class AWSLambdaWrapper
 
     private static void OnFunctionStop(Activity activity, TracerProvider tracerProvider)
     {
-        if (activity != null)
-        {
-            activity.Stop();
-        }
+        activity?.Stop();
 
         // force flush before function quit in case of Lambda freeze.
         tracerProvider?.ForceFlush();
