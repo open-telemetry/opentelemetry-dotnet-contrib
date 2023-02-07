@@ -128,6 +128,8 @@ public static class AWSLambdaWrapper
         ILambdaContext context,
         ActivityContext parentContext = default)
     {
+        Guard.ThrowIfNull(lambdaHandler);
+
         async Task<object> Handler(TInput input, ILambdaContext context)
         {
             await lambdaHandler(input, context).ConfigureAwait(false);
