@@ -18,6 +18,7 @@ using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Web;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.AspNet;
 
@@ -57,6 +58,8 @@ public class TelemetryHttpModule : IHttpModule
     /// <inheritdoc />
     public void Init(HttpApplication context)
     {
+        Guard.ThrowIfNull(context);
+
         context.BeginRequest += this.Application_BeginRequest;
         context.EndRequest += this.Application_EndRequest;
         context.Error += this.Application_Error;
