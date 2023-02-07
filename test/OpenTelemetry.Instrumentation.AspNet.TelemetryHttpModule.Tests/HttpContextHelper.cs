@@ -79,9 +79,9 @@ internal class HttpContextHelper
 
         public override string GetUnknownRequestHeader(string name)
         {
-            if (this.headers.ContainsKey(name))
+            if (this.headers.TryGetValue(name, out var value))
             {
-                return this.headers[name];
+                return value;
             }
 
             return base.GetUnknownRequestHeader(name);
@@ -91,9 +91,9 @@ internal class HttpContextHelper
         {
             var name = GetKnownRequestHeaderName(index);
 
-            if (this.headers.ContainsKey(name))
+            if (this.headers.TryGetValue(name, out var value))
             {
-                return this.headers[name];
+                return value;
             }
 
             return base.GetKnownRequestHeader(index);
