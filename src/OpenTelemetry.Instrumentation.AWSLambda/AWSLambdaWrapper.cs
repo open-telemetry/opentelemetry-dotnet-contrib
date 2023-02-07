@@ -96,12 +96,14 @@ public static class AWSLambdaWrapper
         ActivityContext parentContext = default)
     {
         Guard.ThrowIfNull(lambdaHandler);
-        Func<TInput, ILambdaContext, object> func = (input, context) =>
+
+        object Handler(TInput input, ILambdaContext context)
         {
             lambdaHandler(input, context);
             return null;
-        };
-        TraceInternal(tracerProvider, func, input, context, parentContext);
+        }
+
+        TraceInternal(tracerProvider, Handler, input, context, parentContext);
     }
 
     /// <summary>
@@ -126,12 +128,13 @@ public static class AWSLambdaWrapper
         ILambdaContext context,
         ActivityContext parentContext = default)
     {
-        Func<TInput, ILambdaContext, Task<object>> func = async (input, context) =>
+        async Task<object> Handler(TInput input, ILambdaContext context)
         {
             await lambdaHandler(input, context).ConfigureAwait(false);
             return null;
-        };
-        return TraceInternalAsync(tracerProvider, func, input, context, parentContext);
+        }
+
+        return TraceInternalAsync(tracerProvider, Handler, input, context, parentContext);
     }
 
     /// <summary>
