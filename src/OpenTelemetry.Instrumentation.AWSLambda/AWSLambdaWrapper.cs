@@ -22,6 +22,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda;
@@ -69,6 +70,7 @@ public static class AWSLambdaWrapper
         ILambdaContext context,
         ActivityContext parentContext = default)
     {
+        Guard.ThrowIfNull(lambdaHandler);
         return TraceInternal(tracerProvider, lambdaHandler, input, context, parentContext);
     }
 
@@ -93,12 +95,15 @@ public static class AWSLambdaWrapper
         ILambdaContext context,
         ActivityContext parentContext = default)
     {
-        Func<TInput, ILambdaContext, object> func = (input, context) =>
+        Guard.ThrowIfNull(lambdaHandler);
+
+        object Handler(TInput input, ILambdaContext context)
         {
             lambdaHandler(input, context);
             return null;
-        };
-        TraceInternal(tracerProvider, func, input, context, parentContext);
+        }
+
+        TraceInternal(tracerProvider, Handler, input, context, parentContext);
     }
 
     /// <summary>
@@ -123,12 +128,15 @@ public static class AWSLambdaWrapper
         ILambdaContext context,
         ActivityContext parentContext = default)
     {
-        Func<TInput, ILambdaContext, Task<object>> func = async (input, context) =>
+        Guard.ThrowIfNull(lambdaHandler);
+
+        async Task<object> Handler(TInput input, ILambdaContext context)
         {
-            await lambdaHandler(input, context);
+            await lambdaHandler(input, context).ConfigureAwait(false);
             return null;
-        };
-        return TraceInternalAsync(tracerProvider, func, input, context, parentContext);
+        }
+
+        return TraceInternalAsync(tracerProvider, Handler, input, context, parentContext);
     }
 
     /// <summary>
@@ -154,6 +162,7 @@ public static class AWSLambdaWrapper
         ILambdaContext context,
         ActivityContext parentContext = default)
     {
+        Guard.ThrowIfNull(lambdaHandler);
         return TraceInternalAsync(tracerProvider, lambdaHandler, input, context, parentContext);
     }
 
@@ -182,10 +191,7 @@ public static class AWSLambdaWrapper
 
     private static void OnFunctionStop(Activity activity, TracerProvider tracerProvider)
     {
-        if (activity != null)
-        {
-            activity.Stop();
-        }
+        activity?.Stop();
 
         // force flush before function quit in case of Lambda freeze.
         tracerProvider?.ForceFlush();
@@ -239,7 +245,7 @@ public static class AWSLambdaWrapper
         var activity = OnFunctionStart(input, context, parentContext);
         try
         {
-            var result = await handlerAsync(input, context);
+            var result = await handlerAsync(input, context).ConfigureAwait(false);
             AWSLambdaHttpUtils.SetHttpTagsFromResult(activity, result);
             return result;
         }
