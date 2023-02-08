@@ -26,18 +26,18 @@ namespace OpenTelemetry.Exporter.Instana.Implementation;
 
 internal class Transport
 {
-    private const int MULTI_SPAN_BUFFER_SIZE = 4096000;
-    private const int MULTI_SPAN_BUFFER_LIMIT = 4070000;
-    private readonly byte[] tracesBuffer = new byte[MULTI_SPAN_BUFFER_SIZE];
+    private const int MultiSpanBufferSize = 4096000;
+    private const int MultiSpanBufferLimit = 4070000;
     private static readonly InstanaSpanSerializer InstanaSpanSerializer = new InstanaSpanSerializer();
     private static readonly MediaTypeHeaderValue MEDIAHEADER = new MediaTypeHeaderValue("application/json");
-
     private static bool isConfigured = false;
     private static int backendTimeout = 0;
     private static string configuredEndpoint = string.Empty;
     private static string configuredAgentKey = string.Empty;
     private static string bundleUrl = string.Empty;
     private static InstanaHttpClient client = null;
+
+    private readonly byte[] tracesBuffer = new byte[MultiSpanBufferSize];
 
     static Transport()
     {
@@ -53,7 +53,7 @@ internal class Transport
     {
         try
         {
-            using (MemoryStream sendBuffer = new MemoryStream(tracesBuffer))
+            using (MemoryStream sendBuffer = new MemoryStream(this.tracesBuffer))
             {
                 using (StreamWriter writer = new StreamWriter(sendBuffer))
                 {
@@ -62,20 +62,23 @@ internal class Transport
 
                     // peek instead of dequeue, because we don't yet know whether the next span
                     // fits within our MULTI_SPAN_BUFFER_LIMIT
-                    while (spanQueue.TryPeek(out InstanaSpan span) && sendBuffer.Position < MULTI_SPAN_BUFFER_LIMIT)
+                    while (spanQueue.TryPeek(out InstanaSpan span) && sendBuffer.Position < MultiSpanBufferLimit)
                     {
                         if (!first)
                         {
                             await writer.WriteAsync(",");
                         }
+
                         await InstanaSpanSerializer.SerializeToStreamWriterAsync(span, writer);
                         await writer.FlushAsync();
 
                         first = false;
+
                         // Now we can dequeue. Note, this means we'll be giving up/losing
                         // this span if we fail to send for any reason.
                         spanQueue.TryDequeue(out _);
                     }
+
                     await writer.WriteAsync("]}");
                     await writer.FlushAsync();
 
