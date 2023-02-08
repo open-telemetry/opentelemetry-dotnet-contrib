@@ -191,7 +191,7 @@ shipped through CI.
 SDK](https://www.nuget.org/packages/OpenTelemetry) or the [OpenTelemetry
 API](https://www.nuget.org/packages/OpenTelemetry.Api) Include the necessary
 package in your project. You can choose the version that you want to depend on.
-Usually it is a good idea to use the latest stable version. Example:
+Usually, it is a good idea to use the latest stable version. For example:
 
 ```xml
 <ItemGroup>
