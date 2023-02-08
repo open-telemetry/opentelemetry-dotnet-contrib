@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+* Wrong JSON for serialized spans was generated after last changes fixed
 * Update OTel SDK version to `1.3.2`.
   ([#917](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/917))
 
