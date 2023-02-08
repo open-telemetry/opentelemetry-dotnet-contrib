@@ -26,8 +26,9 @@ namespace OpenTelemetry.Exporter.Instana.Implementation;
 
 internal class Transport
 {
-    private const int MultiSpanBufferLimit = 4096000;
-
+    private const int MULTI_SPAN_BUFFER_SIZE = 4096000;
+    private const int MULTI_SPAN_BUFFER_LIMIT = 4070000;
+    private readonly byte[] tracesBuffer = new byte[MULTI_SPAN_BUFFER_SIZE];
     private static readonly InstanaSpanSerializer InstanaSpanSerializer = new InstanaSpanSerializer();
     private static readonly MediaTypeHeaderValue MEDIAHEADER = new MediaTypeHeaderValue("application/json");
 
@@ -52,7 +53,7 @@ internal class Transport
     {
         try
         {
-            using (MemoryStream sendBuffer = new MemoryStream())
+            using (MemoryStream sendBuffer = new MemoryStream(tracesBuffer))
             {
                 using (StreamWriter writer = new StreamWriter(sendBuffer))
                 {
@@ -61,34 +62,26 @@ internal class Transport
 
                     // peek instead of dequeue, because we don't yet know whether the next span
                     // fits within our MULTI_SPAN_BUFFER_LIMIT
-                    while (spanQueue.TryPeek(out InstanaSpan span))
+                    while (spanQueue.TryPeek(out InstanaSpan span) && sendBuffer.Position < MULTI_SPAN_BUFFER_LIMIT)
                     {
-                        var serialized = await InstanaSpanSerializer.SerializeToByteArrayAsync(span);
-
                         if (!first)
                         {
-                            if (sendBuffer.Length + serialized.Length > MultiSpanBufferLimit)
-                            {
-                                break;
-                            }
-
                             await writer.WriteAsync(",");
                         }
+                        await InstanaSpanSerializer.SerializeToStreamWriterAsync(span, writer);
+                        await writer.FlushAsync();
 
                         first = false;
-
-                        await sendBuffer.WriteAsync(serialized, 0, serialized.Length);
-
                         // Now we can dequeue. Note, this means we'll be giving up/losing
                         // this span if we fail to send for any reason.
                         spanQueue.TryDequeue(out _);
                     }
-
                     await writer.WriteAsync("]}");
-
                     await writer.FlushAsync();
+
                     long length = sendBuffer.Position;
                     sendBuffer.Position = 0;
+                    sendBuffer.SetLength(length);
 
                     HttpContent content = new StreamContent(sendBuffer, (int)length);
                     content.Headers.ContentType = MEDIAHEADER;

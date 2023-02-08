@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
 	<PackageTags>Instana Tracing APM</PackageTags>
+	  <LangVersion>latest</LangVersion>
 	<Description>Instana .NET Exporter for OpenTelemetry</Description>
 	<MinVerTagPrefix>Exporter.Instana-</MinVerTagPrefix>
   </PropertyGroup>
