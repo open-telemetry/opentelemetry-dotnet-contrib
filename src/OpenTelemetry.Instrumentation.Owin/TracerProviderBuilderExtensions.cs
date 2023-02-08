@@ -29,16 +29,24 @@ public static class TracerProviderBuilderExtensions
     /// Enables the incoming requests automatic data collection for OWIN.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-    /// <param name="configureOwinInstrumentationOptions">OWIN Request configuration options.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddOwinInstrumentation(this TracerProviderBuilder builder) =>
+        AddOwinInstrumentation(builder, configure: null);
+
+    /// <summary>
+    /// Enables the incoming requests automatic data collection for OWIN.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="configure">OWIN Request configuration options.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddOwinInstrumentation(
         this TracerProviderBuilder builder,
-        Action<OwinInstrumentationOptions> configureOwinInstrumentationOptions = null)
+        Action<OwinInstrumentationOptions> configure)
     {
         Guard.ThrowIfNull(builder);
 
         var owinOptions = new OwinInstrumentationOptions();
-        configureOwinInstrumentationOptions?.Invoke(owinOptions);
+        configure?.Invoke(owinOptions);
 
         OwinInstrumentationActivitySource.Options = owinOptions;
 
