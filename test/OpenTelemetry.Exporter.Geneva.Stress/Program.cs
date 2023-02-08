@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -29,7 +30,7 @@ namespace OpenTelemetry.Exporter.Geneva.Stress;
 internal class Program
 {
     private static volatile bool s_bContinue = true;
-    private static long s_nEvents = 0;
+    private static long s_nEvents;
 
     private static ActivitySource source = new ActivitySource("OpenTelemetry.Exporter.Geneva.Stress");
 
@@ -135,7 +136,7 @@ internal class Program
                     watch.Stop();
                     var nEvents = statistics.Sum();
                     var nEventPerSecond = (int)((nEvents - s_nEvents) / (watch.ElapsedMilliseconds / 1000.0));
-                    Console.Title = string.Format("Loops: {0:n0}, Loops/Second: {1:n0}", nEvents, nEventPerSecond);
+                    Console.Title = string.Format(CultureInfo.InvariantCulture, "Loops: {0:n0}, Loops/Second: {1:n0}", nEvents, nEventPerSecond);
                 }
             },
             () =>

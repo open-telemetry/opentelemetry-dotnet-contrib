@@ -429,7 +429,9 @@ public class ActivityHelperTest : IDisposable
     }
 
     [Fact]
+#pragma warning disable CA1030 // Use events where appropriate
     public void Fire_Exception_Events()
+#pragma warning restore CA1030 // Use events where appropriate
     {
         int callbacksFired = 0;
 
@@ -529,13 +531,11 @@ public class ActivityHelperTest : IDisposable
 
     private class NoopTextMapPropagator : TextMapPropagator
     {
-        private static readonly PropagationContext DefaultPropagationContext = default;
-
         public override ISet<string> Fields => null;
 
         public override PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>> getter)
         {
-            return DefaultPropagationContext;
+            return default;
         }
 
         public override void Inject<T>(PropagationContext context, T carrier, Action<T, string, string> setter)
