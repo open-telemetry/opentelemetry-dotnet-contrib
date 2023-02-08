@@ -44,6 +44,9 @@ public class TelemetryClientMessageInspector : IClientMessageInspector
     /// <inheritdoc/>
     public object BeforeSendRequest(ref Message request, IClientChannel channel)
     {
+        Guard.ThrowIfNull(request);
+        Guard.ThrowIfNull(channel);
+
         try
         {
             if (WcfInstrumentationActivitySource.Options == null || WcfInstrumentationActivitySource.Options.OutgoingRequestFilter?.Invoke(request) == false)
@@ -51,7 +54,7 @@ public class TelemetryClientMessageInspector : IClientMessageInspector
                 WcfInstrumentationEventSource.Log.RequestIsFilteredOut();
                 return new State
                 {
-                    SuppressionScope = this.SuppressDownstreamInstrumentation(),
+                    SuppressionScope = SuppressDownstreamInstrumentation(),
                 };
             }
         }
@@ -60,14 +63,14 @@ public class TelemetryClientMessageInspector : IClientMessageInspector
             WcfInstrumentationEventSource.Log.RequestFilterException(ex);
             return new State
             {
-                SuppressionScope = this.SuppressDownstreamInstrumentation(),
+                SuppressionScope = SuppressDownstreamInstrumentation(),
             };
         }
 
         Activity activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
             WcfInstrumentationActivitySource.OutgoingRequestActivityName,
             ActivityKind.Client);
-        IDisposable suppressionScope = this.SuppressDownstreamInstrumentation();
+        IDisposable suppressionScope = SuppressDownstreamInstrumentation();
 
         if (activity != null)
         {
@@ -143,6 +146,9 @@ public class TelemetryClientMessageInspector : IClientMessageInspector
     /// <inheritdoc/>
     public void AfterReceiveReply(ref Message reply, object correlationState)
     {
+        Guard.ThrowIfNull(reply);
+        Guard.ThrowIfNull(correlationState);
+
         State state = (State)correlationState;
 
         state.SuppressionScope?.Dispose();
@@ -171,7 +177,7 @@ public class TelemetryClientMessageInspector : IClientMessageInspector
         }
     }
 
-    private IDisposable SuppressDownstreamInstrumentation()
+    private static IDisposable SuppressDownstreamInstrumentation()
     {
         return WcfInstrumentationActivitySource.Options?.SuppressDownstreamInstrumentation ?? false
             ? SuppressInstrumentationScope.Begin()
