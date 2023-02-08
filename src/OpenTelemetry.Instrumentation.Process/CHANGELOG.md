@@ -3,7 +3,8 @@
 ## Unreleased
 
 * Removed `ProcessInstrumentationOptions` and
-  `AddProcessInstrumentation(this MeterProviderBuilder builder, Action<ProcessInstrumentationOptions>? configure)`
+  `AddProcessInstrumentation(this MeterProviderBuilder builder,`
+  `Action<ProcessInstrumentationOptions>? configure)`
   from the public APIs.
   ([#973](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/973))
 
