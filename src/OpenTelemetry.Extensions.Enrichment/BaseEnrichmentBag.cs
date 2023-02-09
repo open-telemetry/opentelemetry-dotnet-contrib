@@ -22,7 +22,7 @@ public abstract class BaseEnrichmentBag
 {
     private readonly List<KeyValuePair<string, object>> bag = new();
 
-    public virtual IReadOnlyList<KeyValuePair<string, object>> EnrichmentBag => this.bag;
+    public IReadOnlyList<KeyValuePair<string, object>> EnrichmentBag => this.bag;
 
     public virtual void Add(string key, object value)
     {
