@@ -243,7 +243,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sampling", "sampling", "{1A
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tailbasedsampling-spanlevel", "tailbasedsampling-spanlevel", "{F4E62C71-B62E-48AA-8BAB-8EC8B0F405B8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDKBasedSpanLevelTailSamplingSample", "examples\sampling\spanlevel-tailbased-sampling\SDKBasedSpanLevelTailSamplingSample.csproj", "{4645F383-24EB-4939-BC22-41AEACC4466F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.TailBasedSamplingAtSpanLevel", "examples\sampling\spanlevel-tailbased-sampling\Examples.TailBasedSamplingAtSpanLevel.csproj", "{4645F383-24EB-4939-BC22-41AEACC4466F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
