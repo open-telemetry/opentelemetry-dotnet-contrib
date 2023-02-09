@@ -26,6 +26,10 @@ components:
     - vishweshbankwar
   src/OpenTelemetry.Extensions.Docker/:
     - iskiselev
+  src/OpenTelemetry.Extensions.Enrichment/:
+    - evgenyfedorov2
+  src/OpenTelemetry.Extensions.Enrichment.AspNetCore/:
+    - evgenyfedorov2
   src/OpenTelemetry.Extensions.PersistentStorage.Abstractions/:
     - vishweshbankwar
   src/OpenTelemetry.Extensions.PersistentStorage/:

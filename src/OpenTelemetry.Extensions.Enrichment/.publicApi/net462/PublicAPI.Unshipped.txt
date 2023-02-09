@@ -1,5 +1,4 @@
 abstract OpenTelemetry.Extensions.Enrichment.BaseEnricher<T>.Enrich(T enrichmentBag) -> void
-abstract OpenTelemetry.Extensions.Enrichment.BaseTraceEnricher.EnrichOnActivityStart(OpenTelemetry.Extensions.Enrichment.TraceEnrichmentBag! enrichmentBag) -> void
 OpenTelemetry.Extensions.Enrichment.ActivityHelperExtensions
 OpenTelemetry.Extensions.Enrichment.BaseEnricher<T>
 OpenTelemetry.Extensions.Enrichment.BaseEnricher<T>.BaseEnricher() -> void

@@ -4,7 +4,7 @@
     <TargetFrameworks>$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry .NET SDK ASP.NET Core telemetry enrichment.</Description>
     <NoWarn>$(NoWarn),CS1591</NoWarn>
-    <MinVerTagPrefix>Extensions-</MinVerTagPrefix>
+    <MinVerTagPrefix>Extensions.Enrichment.AspNetCore-</MinVerTagPrefix>
     <Nullable>enable</Nullable>
     <EnableAnalysis>true</EnableAnalysis>
   </PropertyGroup>
