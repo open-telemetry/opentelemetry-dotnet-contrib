@@ -1,21 +1,25 @@
 # StratifiedSampling in OpenTelemetry .NET - Example
 
-This is a proof of concept for how we can achieve stratified sampling in OpenTelemetry.
-This is based on an example scenario of requiring different sampling rates depending on
-whether the query is user-initiated or programmatic query.
+This is a proof of concept for how we can achieve stratified sampling in
+OpenTelemetry. This is based on an example scenario of requiring different
+sampling rates depending on whether the query is user-initiated or
+programmatic query.
 
-Stratified sampling is a way to divide a population (e.g., "all queries to a service") into mutually
-exclusive sub-populations aka "strata". For example, the strata here are "all user-initiated queries",
-"all programmatic queries". Each stratum is then sampled using a probabilistic sampling method.
-This ensures that all sub-populations are represented.
+Stratified sampling is a way to divide a population into mutually exclusive
+sub-populations aka "strata". For example, the strata for a population of
+"queries" could be "user-initiated queries" and "programmatic queries". Each
+stratum is then sampled using a probabilistic sampling method. This ensures
+that all sub-populations are represented.
 
-We use disproportionate stratified sampling here - i.e., the sample size of each sub-population here
-is not proportionate to their occurrence in the overall population - in this example, we want to ensure
-that all user-initiated queries are represented, so we use a 100% sampling rate for it, while the sampling
+We use disproportionate stratified sampling here - i.e., the sample size of
+each sub-population is not proportionate to their occurrence in the overall
+population. In this example, we want to ensure that all user initiated queries
+are represented, so we use a 100% sampling rate for it, while the sampling
 rate chosen for programmatic queries is much lower.
 
-You should see the following output on the Console when you run this application. This shows that the
-two sub-populations (strata) are being sampled independently.
+You should see the following output on the Console when you run this
+application. This shows that the two sub-populations (strata) are being
+sampled independently.
 
 ```text
 StratifiedSampler handling userinitiated query
