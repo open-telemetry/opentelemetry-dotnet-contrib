@@ -16,6 +16,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
@@ -63,6 +64,15 @@ internal sealed class ProcessMetrics
             },
             unit: "s",
             description: "Total CPU seconds broken down by different states.");
+
+        MeterInstance.CreateObservableUpDownCounter(
+            "process.processor.count",
+            () =>
+            {
+                return Environment.ProcessorCount;
+            },
+            unit: "{processors}",
+            description: "Processor count.");
 
         MeterInstance.CreateObservableUpDownCounter(
             "process.threads",
