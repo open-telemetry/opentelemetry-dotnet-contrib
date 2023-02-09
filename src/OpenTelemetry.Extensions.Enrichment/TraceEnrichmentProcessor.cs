@@ -50,8 +50,6 @@ internal sealed class TraceEnrichmentProcessor : BaseProcessor<Activity>
             {
                 enricher.Enrich(propertyBag);
             }
-
-            activity.AddTagRange(propertyBag);
         }
         finally
         {

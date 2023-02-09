@@ -22,6 +22,11 @@ public class TraceEnrichmentBag : BaseEnrichmentBag
 {
     public Activity? Activity { get; set; }
 
+    public override void Add(string key, object value)
+    {
+        this.Activity?.SetTag(key, value);
+    }
+
     public override void Clear()
     {
         this.Activity = null;

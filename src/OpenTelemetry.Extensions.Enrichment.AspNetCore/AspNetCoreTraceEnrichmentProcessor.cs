@@ -53,8 +53,6 @@ internal sealed class AspNetCoreTraceEnrichmentProcessor
             {
                 enricher.EnrichWithHttpRequest(propertyBag, request);
             }
-
-            activity.AddTagRange(propertyBag);
         }
         finally
         {
@@ -74,8 +72,6 @@ internal sealed class AspNetCoreTraceEnrichmentProcessor
             {
                 enricher.EnrichWithHttpResponse(propertyBag, response);
             }
-
-            activity.AddTagRange(propertyBag);
         }
         finally
         {
@@ -95,8 +91,6 @@ internal sealed class AspNetCoreTraceEnrichmentProcessor
             {
                 enricher.EnrichWithException(propertyBag, exception);
             }
-
-            activity.AddTagRange(propertyBag);
         }
         finally
         {
