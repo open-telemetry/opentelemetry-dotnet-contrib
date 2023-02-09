@@ -92,23 +92,6 @@ Gets the user processor time for this process.
 * [Process.PrivilegedProcessorTime](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.privilegedprocessortime):
 Gets the privileged processor time for this process.
 
-### process.cpu.utilization
-
-Difference in process.cpu.time since the last measurement,
-divided by the elapsed time and number of CPUs available to the process.
-
-| Units | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|-------|-------------------|------------|------------------|------------------|
-|  `1`  | ObservableCounter | `Double`   | state            | user, system     |
-
-The APIs used to retrieve the values are:
-
-* [Process.UserProcessorTime](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.userprocessortime):
-Gets the user processor time for this process.
-
-* [Process.PrivilegedProcessorTime](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.privilegedprocessortime):
-Gets the privileged processor time for this process.
-
 ### process.threads
 
 Process threads count.
