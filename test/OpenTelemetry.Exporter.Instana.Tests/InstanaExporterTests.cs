@@ -30,8 +30,8 @@ public class InstanaExporterTests
     private readonly Mock<IInstanaExporterHelper> instanaExporterHelperMock = new Mock<IInstanaExporterHelper>(MockBehavior.Strict);
     private readonly Mock<IActivityProcessor> activityProcessorMock = new Mock<IActivityProcessor>(MockBehavior.Strict);
     private readonly Mock<ISpanSender> spanSenderMock = new Mock<ISpanSender>(MockBehavior.Strict);
-    private InstanaSpan instanaSpan = null;
-    private InstanaExporter instanaExporter = null;
+    private InstanaSpan instanaSpan;
+    private InstanaExporter instanaExporter;
 
     [Fact]
     public void Export()
