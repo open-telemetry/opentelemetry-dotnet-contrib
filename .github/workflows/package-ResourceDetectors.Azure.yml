@@ -9,7 +9,7 @@ on:
         default: 'warning'
   push:
     tags:
-      - 'ResourceDetectors.Azure-*' # trigger when we create a tag with prefix "IResourceDetectors.Azure-"
+      - 'ResourceDetectors.Azure-*' # trigger when we create a tag with prefix "ResourceDetectors.Azure-"
 
 jobs:
   build-test-pack:
