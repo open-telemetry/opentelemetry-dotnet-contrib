@@ -421,16 +421,17 @@ public class WebConfigWithLocationTagTransformTest
             var document = new XmlTransformableDocument();
             using var transformation = new XmlTransformation(stream, null);
             stream = null;
+#pragma warning disable CA3075 // Insecure DTD processing in XML
             document.LoadXml(originalConfiguration);
+#pragma warning restore CA3075 // Insecure DTD processing in XML
             transformation.Apply(document);
             result = XDocument.Parse(document.OuterXml);
         }
         finally
         {
-            if (stream != null)
-            {
-                stream.Dispose();
-            }
+#pragma warning disable CA1508 // Avoid dead conditional code
+            stream?.Dispose();
+#pragma warning restore CA1508 // Avoid dead conditional code
         }
 
         return result;
