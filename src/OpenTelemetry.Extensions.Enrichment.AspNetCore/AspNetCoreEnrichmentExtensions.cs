@@ -42,14 +42,18 @@ public static class AspNetCoreEnrichmentExtensions
         Guard.ThrowIfNull(builder);
         Guard.ThrowIfNull(enricher);
 
-        return builder
-            .ConfigureServices(services => services
-                .TryAddAspNetCoreEnrichment())
-            .ConfigureBuilder((sp, builder) =>
+        _ = builder.ConfigureServices(services => services.TryAddAspNetCoreEnrichment());
+
+        if (builder is IDeferredTracerProviderBuilder deferredTracerProviderBuilder)
+        {
+            deferredTracerProviderBuilder.Configure((sp, builder) =>
             {
                 var proc = sp.GetRequiredService<AspNetCoreTraceEnrichmentProcessor>();
                 proc.AddEnricher(enricher);
             });
+        }
+
+        return builder;
     }
 
     public static IServiceCollection AddAspNetCoreTraceEnricher<T>(this IServiceCollection services)

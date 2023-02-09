@@ -38,13 +38,18 @@ public static class EnrichmentExtensions
         Guard.ThrowIfNull(builder);
         Guard.ThrowIfNull(enricher);
 
-        return builder
-            .TryAddEnrichment()
-            .ConfigureBuilder((sp, builder) =>
+        _ = builder.TryAddEnrichment();
+
+        if (builder is IDeferredTracerProviderBuilder deferredTracerProviderBuilder)
+        {
+            deferredTracerProviderBuilder.Configure((sp, builder) =>
             {
                 var proc = sp.GetRequiredService<TraceEnrichmentProcessor>();
                 proc.AddEnricher(enricher);
             });
+        }
+
+        return builder;
     }
 
     public static IServiceCollection AddTraceEnricher<T>(this IServiceCollection services)
