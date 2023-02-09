@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Removed CPU utilization metric `process.cpu.utilization`.
+  ([#972](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/972))
+
 * Removed `ProcessInstrumentationOptions` and
   `AddProcessInstrumentation(this MeterProviderBuilder builder,`
   `Action<ProcessInstrumentationOptions>? configure)`
