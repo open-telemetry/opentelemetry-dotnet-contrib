@@ -68,7 +68,15 @@ update the Changelog.
 2. Navigate to the
 [**Actions**](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/actions)
 tab on the repo and monitor the "Pack YOUR_PROJECT_NAME" workflow. The last step
-in the workflow is to publish to Nuget.org.
+in the workflow is to publish to Nuget.org and prepare corresponding github
+release page.
 
-3. Validate that the new version (as specified in step1) of the project is
+3. Validate that the new version (as specified in step 1) of the project is
 successfully published to nuget.org under OpenTelemetry owner.
+
+4. Publish a release in GitHub:
+
+   - Use draft created by "Pack YOUR_PROJECT_NAME" GitHub workflow.
+   - Use the appropriate CHANGELOG.md content in the description.
+   - Set as a pre-release if it not stable release.
+   - Set as the latest release if you releasing stable version.
