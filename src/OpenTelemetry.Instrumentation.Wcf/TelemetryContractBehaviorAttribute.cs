@@ -18,6 +18,7 @@ using System;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Wcf;
 #if NETFRAMEWORK
@@ -45,6 +46,7 @@ public sealed class TelemetryContractBehaviorAttribute : Attribute, IContractBeh
     /// <inheritdoc />
     public void ApplyClientBehavior(ContractDescription contractDescription, ServiceEndpoint endpoint, ClientRuntime clientRuntime)
     {
+        Guard.ThrowIfNull(clientRuntime);
         TelemetryEndpointBehavior.ApplyClientBehaviorToClientRuntime(clientRuntime);
     }
 
@@ -52,6 +54,7 @@ public sealed class TelemetryContractBehaviorAttribute : Attribute, IContractBeh
     public void ApplyDispatchBehavior(ContractDescription contractDescription, ServiceEndpoint endpoint, DispatchRuntime dispatchRuntime)
     {
 #if NETFRAMEWORK
+        Guard.ThrowIfNull(dispatchRuntime);
         TelemetryEndpointBehavior.ApplyDispatchBehaviorToEndpoint(dispatchRuntime.EndpointDispatcher);
 #endif
     }

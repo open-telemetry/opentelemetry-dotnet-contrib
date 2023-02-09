@@ -45,6 +45,9 @@ public class TelemetryDispatchMessageInspector : IDispatchMessageInspector
     /// <inheritdoc/>
     public object AfterReceiveRequest(ref Message request, IClientChannel channel, InstanceContext instanceContext)
     {
+        Guard.ThrowIfNull(request);
+        Guard.ThrowIfNull(channel);
+
         try
         {
             if (WcfInstrumentationActivitySource.Options == null || WcfInstrumentationActivitySource.Options.IncomingRequestFilter?.Invoke(request) == false)
