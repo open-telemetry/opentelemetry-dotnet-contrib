@@ -92,6 +92,20 @@ Gets the user processor time for this process.
 * [Process.PrivilegedProcessorTime](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.privilegedprocessortime):
 Gets the privileged processor time for this process.
 
+### process.processors
+
+Process threads count.
+
+| Units         | Instrument Type         | Value Type |
+|---------------|-------------------------|------------|
+| `{processors}`| ObservableUpDownCounter | `Int32`    |
+
+The API used to retrieve the value is:
+
+* [Process.processors](https://learn.microsoft.com/dotnet/api/system.environment.processorcount):
+Gets the number of processors available
+to the current process.
+
 ### process.threads
 
 Process threads count.
