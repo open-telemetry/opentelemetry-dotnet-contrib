@@ -43,7 +43,7 @@ internal sealed class TailSamplingProcessor : BaseProcessor<Activity>
     // 1. Performance: Unlike head-based sampling where the sampling decision is made at span creation time, in
     //    tail sampling the decision is made only at the end, so there is additional memory cost.
     // 2. Traces will not be complete: Since this sampling is at a span level, the generated trace will be partial and won't be complete.
-    //     For example, if another part of the call tree is sucessful, those spans may not be sampled in leading to a partial trace.
+    //     For example, if another part of the call tree is successful, those spans may not be sampled in leading to a partial trace.
     // 3. If multiple exporters are used, this decision will impact all of them: https://github.com/open-telemetry/opentelemetry-dotnet/issues/3861.
     private void FilterSpan(Activity activity)
     {
