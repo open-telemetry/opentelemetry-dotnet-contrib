@@ -19,13 +19,12 @@ using Xunit;
 
 namespace OpenTelemetry.Exporter.Instana.Tests;
 
-public class InstanaSpanFactoryTests
+public static class InstanaSpanFactoryTests
 {
-    private InstanaSpanFactory instanaSpanFactory = new InstanaSpanFactory();
-
     [Fact]
-    public void CreateSpan()
+    public static void CreateSpan()
     {
+        _ = new InstanaSpanFactory();
         InstanaSpan instanaSpan = InstanaSpanFactory.CreateSpan();
 
         Assert.NotNull(instanaSpan);

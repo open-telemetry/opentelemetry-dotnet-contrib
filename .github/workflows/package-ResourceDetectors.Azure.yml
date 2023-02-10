@@ -1,4 +1,4 @@
-name: Pack OpenTelemetry.Extensions
+name: Pack OpenTelemetry.ResourceDetectors.Azure
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ on:
         default: 'warning'
   push:
     tags:
-      - 'Extensions-*' # trigger when we create a tag with prefix "Extensions-"
+      - 'ResourceDetectors.Azure-*' # trigger when we create a tag with prefix "ResourceDetectors.Azure-"
 
 jobs:
   build-test-pack:
@@ -17,7 +17,7 @@ jobs:
     permissions:
       contents: write
     env:
-      PROJECT: OpenTelemetry.Extensions
+      PROJECT: OpenTelemetry.ResourceDetectors.Azure
 
     strategy:
       matrix:
@@ -42,7 +42,7 @@ jobs:
       run: dotnet test test/${{env.PROJECT}}.Tests
 
     - name: dotnet pack ${{env.PROJECT}}
-      run: dotnet pack src/${{env.PROJECT}} --configuration Release #--no-build <- OpenTelemetry.Extensions has a conditional net6.0 target which causes dotnet pack to break when -no-build is used (for some reason)
+      run: dotnet pack src/${{env.PROJECT}} --configuration Release --no-build
 
     - name: Publish Artifacts
       uses: actions/upload-artifact@v3
