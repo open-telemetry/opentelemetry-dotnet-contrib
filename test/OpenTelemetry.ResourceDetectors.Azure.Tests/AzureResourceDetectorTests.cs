@@ -25,12 +25,18 @@ namespace OpenTelemetry.ResourceDetectors.Azure.Tests;
 public class AzureResourceDetectorTests
 {
     [Fact]
-    public void AppServiceResourceDetectorTest()
+    public void AppServiceResourceDetectorReturnsResourceWithAttributes()
     {
         Environment.SetEnvironmentVariable("WEBSITE_SITE_NAME", "AzureAppService");
         var resource = ResourceBuilder.CreateEmpty().AddDetector(new AppServiceResourceDetector()).Build();
         Assert.NotNull(resource);
         Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "AzureAppService"), resource.Attributes);
         Environment.SetEnvironmentVariable("WEBSITE_SITE_NAME", null);
+    }
+
+    [Fact]
+    public void AppServiceResourceDetectorReturnsNullOutsideOfAppService()
+    {
+        var resource = ResourceBuilder.CreateEmpty().AddDetector(new AppServiceResourceDetector()).Build();
     }
 }
