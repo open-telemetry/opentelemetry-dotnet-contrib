@@ -32,6 +32,7 @@ public sealed class AppServiceResourceDetector : IResourceDetector
         string? serviceName = null;
         try
         {
+            // https://learn.microsoft.com/azure/app-service/reference-app-settings?tabs=kudu%2Cdotnet#app-environment
             serviceName = Environment.GetEnvironmentVariable("WEBSITE_SITE_NAME");
         }
         catch
