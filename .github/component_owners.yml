@@ -55,6 +55,9 @@ components:
     - xiang17
   src/OpenTelemetry.Instrumentation.Wcf/:
     - codeblanch
+  src/OpenTelemetry.ResourceDetectors.Azure/:
+    - rajkumar-rangaraj
+    - vishweshbankwar
   test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/:
     - srprash
     - lupengamzn
