@@ -24,12 +24,10 @@ using Xunit;
 
 namespace OpenTelemetry.Exporter.Instana.Tests;
 
-public class InstanaSpanSerializerTests
+public static class InstanaSpanSerializerTests
 {
-    private InstanaSpanSerializer instanaSpanSerializer = new InstanaSpanSerializer();
-
     [Fact]
-    public async Task SerializeToStreamWriterAsync()
+    public static async Task SerializeToStreamWriterAsync()
     {
         InstanaSpan instanaOtelSpan = InstanaSpanFactory.CreateSpan();
         instanaOtelSpan.F = new Implementation.From() { E = "12345", H = "localhost" };
@@ -66,14 +64,14 @@ public class InstanaSpanSerializerTests
         {
             using (StreamWriter writer = new StreamWriter(sendBuffer))
             {
-                await this.instanaSpanSerializer.SerializeToStreamWriterAsync(instanaOtelSpan, writer);
+                await InstanaSpanSerializer.SerializeToStreamWriterAsync(instanaOtelSpan, writer);
                 await writer.FlushAsync();
                 long length = sendBuffer.Position;
                 sendBuffer.Position = 0;
                 sendBuffer.SetLength(length);
 
-                Newtonsoft.Json.JsonSerializer serializer = null;
-                serializer = new Newtonsoft.Json.JsonSerializer();
+                JsonSerializer serializer = null;
+                serializer = new JsonSerializer();
                 serializer.Converters.Add(new JavaScriptDateTimeConverter());
                 serializer.NullValueHandling = NullValueHandling.Ignore;
 
