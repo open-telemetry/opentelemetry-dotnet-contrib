@@ -62,7 +62,7 @@ internal class DefaultActivityProcessor : ActivityProcessorBase, IActivityProces
             instanaSpan.Tp = true;
         }
 
-        await base.ProcessAsync(activity, instanaSpan);
+        await base.ProcessAsync(activity, instanaSpan).ConfigureAwait(false);
     }
 
     private static SpanKind GetSpanKind(ActivityKind activityKind)

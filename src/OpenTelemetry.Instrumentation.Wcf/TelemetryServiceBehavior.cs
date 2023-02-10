@@ -18,6 +18,7 @@
 using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Wcf;
 
@@ -35,6 +36,8 @@ public class TelemetryServiceBehavior : IServiceBehavior
     /// <inheritdoc/>
     public void ApplyDispatchBehavior(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
     {
+        Guard.ThrowIfNull(serviceHostBase);
+
         foreach (var channelDispatcherBase in serviceHostBase.ChannelDispatchers)
         {
             var channelDispatcher = (ChannelDispatcher)channelDispatcherBase;
