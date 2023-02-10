@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <Description>OpenTelemetry Resource Detectors for Azure cloud environments</Description>
@@ -14,5 +14,6 @@
 
     <ItemGroup>
         <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\Guard.cs" Link="Includes\Guard.cs" />
+        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\ResourceSemanticConventions.cs" Link="Includes\ResourceSemanticConventions.cs"/>
     </ItemGroup>
 </Project>
