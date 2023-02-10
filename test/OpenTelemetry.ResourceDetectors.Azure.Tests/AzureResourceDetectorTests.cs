@@ -44,6 +44,6 @@ public class AzureResourceDetectorTests
     public void AppServiceResourceDetectorReturnsNullOutsideOfAppService()
     {
         var resource = new AppServiceResourceDetector().Detect();
-        Assert.Null(resource);
+        Assert.Empty(resource.Attributes);
     }
 }

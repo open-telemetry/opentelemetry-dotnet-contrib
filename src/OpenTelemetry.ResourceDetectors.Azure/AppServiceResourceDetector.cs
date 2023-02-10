@@ -52,7 +52,7 @@ public sealed class AppServiceResourceDetector : IResourceDetector
         }
         else
         {
-            return null;
+            return Resource.Empty;
         }
 
         return new Resource(attributeList);
