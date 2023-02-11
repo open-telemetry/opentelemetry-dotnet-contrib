@@ -87,8 +87,8 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
                 SuppressInstrumentationScope.Enter();
             }
 
-            var elasticIndex = this.GetElasticIndex(uri);
-            activity.DisplayName = this.GetDisplayName(activity, method, elasticIndex);
+            var elasticIndex = GetElasticIndex(uri);
+            activity.DisplayName = GetDisplayName(activity, method, elasticIndex);
             activity.SetTag(SemanticConventions.AttributeDbSystem, DatabaseSystemName);
 
             if (elasticIndex != null)
@@ -144,7 +144,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
             var debugInformation = this.debugInformationFetcher.Fetch(payload);
             if (debugInformation != null && this.options.SetDbStatementForRequest)
             {
-                var dbStatement = this.ParseAndFormatRequest(activity, debugInformation);
+                var dbStatement = this.ParseAndFormatRequest(debugInformation);
                 if (this.options.MaxDbStatementLength > 0 && dbStatement.Length > this.options.MaxDbStatementLength)
                 {
                     dbStatement = dbStatement.Substring(0, this.options.MaxDbStatementLength);
@@ -201,7 +201,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         }
     }
 
-    private string GetDisplayName(Activity activity, object method, string elasticType = null)
+    private static string GetDisplayName(Activity activity, object method, string elasticType = null)
     {
         switch (activity.OperationName)
         {
@@ -223,7 +223,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         }
     }
 
-    private string GetElasticIndex(Uri uri)
+    private static string GetElasticIndex(Uri uri)
     {
         // first segment is always /
         if (uri.Segments.Length < 2)
@@ -232,7 +232,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         }
 
         // operations starting with _ are not indices (_cat, _search, etc)
-        if (uri.Segments[1].StartsWith("_"))
+        if (uri.Segments[1].StartsWith("_", StringComparison.Ordinal))
         {
             return null;
         }
@@ -245,7 +245,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
             return null;
         }
 
-        if (elasticType.EndsWith("/"))
+        if (elasticType.EndsWith("/", StringComparison.Ordinal))
         {
             elasticType = elasticType.Substring(0, elasticType.Length - 1);
         }
@@ -253,7 +253,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         return elasticType;
     }
 
-    private string ParseAndFormatRequest(Activity activity, string debugInformation)
+    private string ParseAndFormatRequest(string debugInformation)
     {
         if (!this.options.ParseAndFormatRequest)
         {
@@ -275,9 +275,10 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
                 return debugInformation;
             }
 
+            using (doc)
             using (var stream = new MemoryStream())
             {
-                var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
+                using var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
                 doc.WriteTo(writer);
                 writer.Flush();
                 body = Encoding.UTF8.GetString(stream.ToArray());
