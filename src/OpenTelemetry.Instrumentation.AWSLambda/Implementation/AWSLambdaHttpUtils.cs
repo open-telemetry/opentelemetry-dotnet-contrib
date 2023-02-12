@@ -97,7 +97,7 @@ internal class AWSLambdaHttpUtils
             {
                 queryString.Append(separator)
                     .Append(HttpUtility.UrlEncode(parameterKvp.Key))
-                    .Append("=")
+                    .Append('=')
                     .Append(HttpUtility.UrlEncode(value));
                 separator = '&';
             }

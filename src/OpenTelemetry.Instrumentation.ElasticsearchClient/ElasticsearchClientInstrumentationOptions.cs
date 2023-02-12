@@ -32,7 +32,7 @@ public class ElasticsearchClientInstrumentationOptions
     /// <summary>
     /// Gets or sets a value indicating whether the JSON request body should be parsed out of the request debug information and formatted as indented JSON.
     /// </summary>
-    public bool ParseAndFormatRequest { get; set; } = false;
+    public bool ParseAndFormatRequest { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether or not the OpenTelemetry.Instrumentation.ElasticsearchClient

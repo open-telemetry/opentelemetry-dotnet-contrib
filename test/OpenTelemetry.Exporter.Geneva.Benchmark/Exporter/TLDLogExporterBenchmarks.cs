@@ -157,7 +157,7 @@ public class TLDLogExporterBenchmarks
             }));
 
         var logger = factory.CreateLogger("TestLogger");
-        logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+        logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
         return exportedItems[0];
     }
 
@@ -172,7 +172,7 @@ public class TLDLogExporterBenchmarks
             }));
 
         var logger = factory.CreateLogger("TestLogger");
-        logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+        logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
         return batchGeneratorExporter.Batch;
     }
 

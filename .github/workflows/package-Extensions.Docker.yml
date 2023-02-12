@@ -14,6 +14,8 @@ on:
 jobs:
   build-test-pack:
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
     env:
       PROJECT: OpenTelemetry.Extensions.Docker
 
@@ -51,3 +53,15 @@ jobs:
     - name: Publish Nuget
       run: |
         nuget push **/${{env.PROJECT}}/bin/**/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_TOKEN }} -SymbolApiKey ${{ secrets.NUGET_TOKEN }}
+
+    - name: Create GitHub Prerelease
+      if: ${{ (contains(github.ref_name, '-alpha.') || contains(github.ref_name, '-beta.') || contains(github.ref_name, '-rc.')) }}
+      run: gh release create ${{ github.ref_name }} --title ${{ github.ref_name }} --verify-tag --notes "See [CHANGELOG](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/${{ github.ref_name }}/src/${{env.PROJECT}}/CHANGELOG.md) for details." --prerelease
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create GitHub Release
+      if: ${{ !(contains(github.ref_name, '-alpha.') || contains(github.ref_name, '-beta.') || contains(github.ref_name, '-rc.')) }}
+      run: gh release create ${{ github.ref_name }} --title ${{ github.ref_name }} --verify-tag --notes "See [CHANGELOG](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/${{ github.ref_name }}/src/${{env.PROJECT}}/CHANGELOG.md) for details." --latest
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
