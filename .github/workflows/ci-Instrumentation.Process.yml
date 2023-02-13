@@ -1,10 +1,11 @@
-name: Build OpenTelemetry.Instrumentation.Process
+name: OpenTelemetry.Instrumentation.Process
 
 on:
   pull_request:
-    branches: [ 'main*', 'instrumentation*' ]
+    branches: [ 'main*' ]
     paths:
-    - 'src/OpenTelemetry.Instrumentation.Process.Tests/**'
+    - '.github/workflows/ci-Instrumentation.Process.yml'
+    - 'src/OpenTelemetry.Instrumentation.Process/**'
     - 'test/OpenTelemetry.Instrumentation.Process.Tests/**'
 
 jobs:
