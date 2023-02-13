@@ -1,4 +1,4 @@
-name: Build
+name: Build OpenTelemetry.Instrumentation.Process
 
 on:
   pull_request:
