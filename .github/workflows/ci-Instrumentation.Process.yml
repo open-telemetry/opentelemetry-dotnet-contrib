@@ -4,15 +4,8 @@ on:
   pull_request:
     branches: [ 'main*', 'instrumentation*' ]
     paths:
-    - '.github/**'
-    - 'build/**'
     - 'src/OpenTelemetry.Instrumentation.Process.Tests/**'
-    - 'src/OpenTelemetry.Internal/**'
-    - 'src/Directory.Build.props'
-    - 'src/Directory.Build.targets'
     - 'test/OpenTelemetry.Instrumentation.Process.Tests/**'
-    - 'global.json'
-    - 'NuGet.config'
 
 jobs:
   build-test:
