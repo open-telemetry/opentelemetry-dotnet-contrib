@@ -45,9 +45,9 @@ public class ProcessMetricsTests
         Assert.NotNull(virtualMemoryMetric);
         var cpuTimeMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.cpu.time");
         Assert.NotNull(cpuTimeMetric);
-        var processorCountMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.processors");
+        var processorCountMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.cpu.count");
         Assert.NotNull(processorCountMetric);
-        var threadMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.threads");
+        var threadMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.cpu.count");
         Assert.NotNull(threadMetric);
 
         exportedItemsA.Clear();
@@ -151,7 +151,7 @@ public class ProcessMetricsTests
         Assert.NotNull(virtualMemoryMetricA);
         var cpuTimeMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.cpu.time");
         Assert.NotNull(cpuTimeMetricA);
-        var processorCountMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.processors");
+        var processorCountMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.cpu.count");
         Assert.NotNull(processorCountMetricA);
         var threadMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.threads");
         Assert.NotNull(threadMetricA);
@@ -163,7 +163,7 @@ public class ProcessMetricsTests
         Assert.NotNull(virtualMemoryMetricB);
         var cpuTimeMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.cpu.time");
         Assert.NotNull(cpuTimeMetricB);
-        var processorCountMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.processors");
+        var processorCountMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.cpu.count");
         Assert.NotNull(processorCountMetricB);
         var threadMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.threads");
         Assert.NotNull(threadMetricB);
