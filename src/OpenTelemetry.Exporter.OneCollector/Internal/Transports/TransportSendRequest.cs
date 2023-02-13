@@ -14,6 +14,11 @@
 // limitations under the License.
 // </copyright>
 
+// Note: StyleCop doesn't understand the C#11 "required" modifier yet. Remove
+// this in the future once StyleCop is updated. See:
+// https://github.com/DotNetAnalyzers/StyleCopAnalyzers/issues/3527
+#pragma warning disable SA1206 // Declaration keywords should follow order
+
 namespace OpenTelemetry.Exporter.OneCollector;
 
 internal readonly struct TransportSendRequest

@@ -1,4 +1,4 @@
-// <copyright file="OneCollectorExporterOptions.cs" company="OpenTelemetry Authors">
+// <copyright file="OneCollectorExporterTransportOptions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +14,13 @@
 // limitations under the License.
 // </copyright>
 
+using OpenTelemetry.Logs;
+
 namespace OpenTelemetry.Exporter;
 
+/// <summary>
+/// Contains transport options for the <see cref="OneCollectorExporter{T}"/> class.
+/// </summary>
 public sealed class OneCollectorExporterTransportOptions
 {
     internal const string DefaultOneCollectorEndpoint = "https://mobile.events.data.microsoft.com/OneCollector/1.0/";
@@ -23,6 +28,10 @@ public sealed class OneCollectorExporterTransportOptions
     internal const int DefaultMaxNumberOfItemsPerPayload = 1500;
 
     internal static readonly Func<HttpClient> DefaultHttpClientFactory = () => new HttpClient();
+
+    internal OneCollectorExporterTransportOptions()
+    {
+    }
 
     /// <summary>
     /// Gets or sets OneCollector endpoint address. Default value:
@@ -71,14 +80,8 @@ public sealed class OneCollectorExporterTransportOptions
     /// Notes:
     /// <list type="bullet">
     /// <item>The default behavior when using the <see
-    /// cref="JaegerExporterHelperExtensions.AddJaegerExporter(TracerProviderBuilder,
-    /// Action{JaegerExporterOptions})"/> extension is if an <a
-    /// href="https://docs.microsoft.com/dotnet/api/system.net.http.ihttpclientfactory">IHttpClientFactory</a>
-    /// instance can be resolved through the application <see
-    /// cref="IServiceProvider"/> then an <see cref="HttpClient"/> will be
-    /// created through the factory with the name "OneCollectorExporter"
-    /// otherwise an <see cref="HttpClient"/> will be instantiated
-    /// directly.</item>
+    /// cref="OneCollectorLogExporterOptions"/> class is an <see
+    /// cref="HttpClient"/> will be instantiated directly.</item>
     /// </list>
     /// </remarks>
     public Func<HttpClient> HttpClientFactory { get; set; } = DefaultHttpClientFactory;

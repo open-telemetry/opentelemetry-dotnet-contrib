@@ -1,4 +1,4 @@
-// <copyright file="OneCollectorExporterTransportProtocolType.cs" company="OpenTelemetry Authors">
+// <copyright file="OneCollectorLogExporter.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,15 +14,22 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Exporter;
+using OpenTelemetry.Exporter;
+
+namespace OpenTelemetry.Logs;
 
 /// <summary>
-/// Describes the OneCollector transport protocol to use when sending telemetry.
+/// OpenTelemetry exporter implementation for sending <see cref="LogRecord"/>
+/// telemetry data to Microsoft OneCollector.
 /// </summary>
-public enum OneCollectorExporterTransportProtocolType
+public sealed class OneCollectorLogExporter : OneCollectorExporter<LogRecord>
 {
     /// <summary>
-    /// HTTP JSON POST protocol.
+    /// Initializes a new instance of the <see cref="OneCollectorLogExporter"/> class.
     /// </summary>
-    HttpJsonPost,
+    /// <param name="options"><see cref="OneCollectorLogExporterOptions"/>.</param>
+    public OneCollectorLogExporter(OneCollectorLogExporterOptions options)
+        : base(options)
+    {
+    }
 }

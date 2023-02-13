@@ -37,20 +37,20 @@ internal sealed class EventNameManager
         Debug.Assert(defaultEventNamespace != null, "defaultEventNamespace was null");
         Debug.Assert(defaultEventName != null, "defaultEventName was null");
 
-        this.defaultEventNamespace = defaultEventNamespace;
-        this.defaultEventName = defaultEventName;
+        this.defaultEventNamespace = defaultEventNamespace!;
+        this.defaultEventName = defaultEventName!;
 
-        if (!IsEventNamespaceValid(defaultEventNamespace))
+        if (!IsEventNamespaceValid(defaultEventNamespace!))
         {
             throw new ArgumentException($"Default event namespace '{defaultEventNamespace}' was invalid.", nameof(defaultEventNamespace));
         }
 
-        if (!IsEventNamespaceValid(defaultEventName))
+        if (!IsEventNamespaceValid(defaultEventName!))
         {
             throw new ArgumentException($"Default event name '{defaultEventName}' was invalid.", nameof(defaultEventName));
         }
 
-        var defaultEventFullNameLength = defaultEventNamespace.Length + defaultEventName.Length + 1;
+        var defaultEventFullNameLength = defaultEventNamespace!.Length + defaultEventName!.Length + 1;
         if (defaultEventFullNameLength < MinimumEventFullNameLength || defaultEventFullNameLength > MaximumEventFullNameLength)
         {
             throw new ArgumentException($"Default event full name '{defaultEventNamespace}.{defaultEventName}' does not meet length requirements.", nameof(defaultEventName));
@@ -58,7 +58,9 @@ internal sealed class EventNameManager
 
         this.defaultEventFullName = BuildEventFullName(defaultEventNamespace, defaultEventName)!;
 
+#if NET6_0_OR_GREATER
         Debug.Assert(this.defaultEventFullName != null, "this.defaultFullyQualifiedEventName was null");
+#endif
     }
 
     // Note: This is exposed for unit tests.
@@ -98,7 +100,7 @@ internal sealed class EventNameManager
             return cachedEventFullName;
         }
 
-        return this.ResolveEventNameRare(eventNameCache, eventNamespace, eventName!);
+        return this.ResolveEventNameRare(eventNameCache, eventNamespace!, eventName!);
     }
 
     private static byte[] BuildEventFullName(string eventNamespace, string eventName)

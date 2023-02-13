@@ -14,16 +14,35 @@
 // limitations under the License.
 // </copyright>
 
-using OpenTelemetry.Exporter;
 using OpenTelemetry.Internal;
+using OpenTelemetry.Logs;
 
 namespace OpenTelemetry.Logs;
 
+/// <summary>
+/// Contains extension methods to register the OneCollector log exporter.
+/// </summary>
 public static class OneCollectorOpenTelemetryLoggerOptionsExtensions
 {
-    public static OpenTelemetryLoggerOptions AddOneCollectorExporter(this OpenTelemetryLoggerOptions options)
+    /// <summary>
+    /// Add OneCollector exporter to the <see
+    /// cref="OpenTelemetryLoggerOptions"/>.
+    /// </summary>
+    /// <param name="options"><see cref="OpenTelemetryLoggerOptions"/>.</param>
+    /// <returns>The supplied <see cref="OpenTelemetryLoggerOptions"/> for call
+    /// chaining.</returns>
+    public static OpenTelemetryLoggerOptions AddOneCollectorExporter(
+        this OpenTelemetryLoggerOptions options)
         => AddOneCollectorExporter(options, _ => { });
 
+    /// <summary>
+    /// Add OneCollector exporter to the <see
+    /// cref="OpenTelemetryLoggerOptions"/>.
+    /// </summary>
+    /// <param name="options"><see cref="OpenTelemetryLoggerOptions"/>.</param>
+    /// <param name="configure">Callback action for configuring <see cref="OneCollectorLogExporterOptions"/>.</param>
+    /// <returns>The supplied <see cref="OpenTelemetryLoggerOptions"/> for call
+    /// chaining.</returns>
     public static OpenTelemetryLoggerOptions AddOneCollectorExporter(
         this OpenTelemetryLoggerOptions options,
         Action<OneCollectorLogExporterOptions> configure)
@@ -35,18 +54,17 @@ public static class OneCollectorOpenTelemetryLoggerOptionsExtensions
 
         configure?.Invoke(logExporterOptions);
 
-        var exporter = new OneCollectorExporter<LogRecord>(
-            logExporterOptions);
-
         var batchOptions = logExporterOptions.BatchOptions;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
         options.AddProcessor(
             new BatchLogRecordExportProcessor(
-                exporter,
+                new OneCollectorLogExporter(logExporterOptions),
                 batchOptions.MaxQueueSize,
                 batchOptions.ScheduledDelayMilliseconds,
                 batchOptions.ExporterTimeoutMilliseconds,
                 batchOptions.MaxExportBatchSize));
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
         return options;
     }

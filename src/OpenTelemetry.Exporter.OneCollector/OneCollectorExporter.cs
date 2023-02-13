@@ -20,21 +20,32 @@ using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter;
 
-public sealed class OneCollectorExporter<T> : BaseExporter<T>
+/// <summary>
+/// OpenTelemetry exporter implementation for sending telemetry data to
+/// Microsoft OneCollector.
+/// </summary>
+/// <typeparam name="T">Item type.</typeparam>
+public class OneCollectorExporter<T> : BaseExporter<T>
     where T : class
 {
+    private readonly string typeName;
     private readonly ISink<T> sink;
     private Resource? resource;
 
-    public OneCollectorExporter(OneCollectorExporterOptions<T> options)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OneCollectorExporter{T}"/> class.
+    /// </summary>
+    /// <param name="sinkFactory"><see cref="ISinkFactory{T}"/>.</param>
+    internal OneCollectorExporter(ISinkFactory<T> sinkFactory)
     {
-        Guard.ThrowIfNull(options);
+        Guard.ThrowIfNull(sinkFactory);
 
-        this.sink = options.CreateSink();
+        this.typeName = typeof(T).Name;
+        this.sink = sinkFactory.CreateSink();
     }
 
     /// <inheritdoc/>
-    public override ExportResult Export(in Batch<T> batch)
+    public sealed override ExportResult Export(in Batch<T> batch)
     {
         try
         {
@@ -48,7 +59,7 @@ public sealed class OneCollectorExporter<T> : BaseExporter<T>
         }
         catch (Exception ex)
         {
-            OneCollectorExporterEventSource.Log.WriteExportExceptionThrownEventIfEnabled(typeof(T).Name, ex);
+            OneCollectorExporterEventSource.Log.WriteExportExceptionThrownEventIfEnabled(this.typeName, ex);
 
             return ExportResult.Failure;
         }

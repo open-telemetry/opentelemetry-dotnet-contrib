@@ -16,8 +16,18 @@
 
 namespace OpenTelemetry.Exporter;
 
+/// <summary>
+/// Describes the OneCollector compression algorithm type to use when sending telemetry over HTTP.
+/// </summary>
 public enum OneCollectorExporterHttpTransportCompressionType
 {
+    /// <summary>
+    /// Uncompressed telemetry data.
+    /// </summary>
     None,
+
+    /// <summary>
+    /// Compressed telemetry data using the Deflate algorithm.
+    /// </summary>
     Deflate,
 }

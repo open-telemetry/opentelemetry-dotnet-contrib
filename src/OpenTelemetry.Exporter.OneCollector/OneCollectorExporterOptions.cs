@@ -14,14 +14,14 @@
 // limitations under the License.
 // </copyright>
 
-using OpenTelemetry.Exporter.OneCollector;
-
 namespace OpenTelemetry.Exporter;
 
-public abstract class OneCollectorExporterOptions<T>
-    where T : class
+/// <summary>
+/// Contains options for the <see cref="OneCollectorExporter{T}"/> class.
+/// </summary>
+public abstract class OneCollectorExporterOptions
 {
-    protected OneCollectorExporterOptions()
+    internal OneCollectorExporterOptions()
     {
     }
 
@@ -36,7 +36,7 @@ public abstract class OneCollectorExporterOptions<T>
     public string? InstrumentationKey { get; set; }
 
     /// <summary>
-    /// Gets or sets the OneCollector transport options.
+    /// Gets the OneCollector transport options.
     /// </summary>
     public OneCollectorExporterTransportOptions TransportOptions { get; } = new();
 
@@ -54,6 +54,4 @@ public abstract class OneCollectorExporterOptions<T>
 
         this.TransportOptions.Validate();
     }
-
-    internal abstract ISink<T> CreateSink();
 }

@@ -1,4 +1,4 @@
-// <copyright file="OneCollectorExporterTransportProtocolType.cs" company="OpenTelemetry Authors">
+// <copyright file="ISinkFactory.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,15 +14,10 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Exporter;
+namespace OpenTelemetry.Exporter.OneCollector;
 
-/// <summary>
-/// Describes the OneCollector transport protocol to use when sending telemetry.
-/// </summary>
-public enum OneCollectorExporterTransportProtocolType
+internal interface ISinkFactory<T>
+    where T : class
 {
-    /// <summary>
-    /// HTTP JSON POST protocol.
-    /// </summary>
-    HttpJsonPost,
+    ISink<T> CreateSink();
 }

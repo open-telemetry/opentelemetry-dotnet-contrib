@@ -28,6 +28,7 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
 {
     [ThreadStatic]
     private static MemoryStream? threadBuffer;
+    private readonly string typeName;
     private readonly ISerializer<T> serializer;
     private readonly ITransport transport;
     private readonly int initialBufferCapacity;
@@ -41,6 +42,7 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
         Guard.ThrowIfNull(transport);
         Guard.ThrowIfOutOfRange(initialBufferCapacity, min: 0);
 
+        this.typeName = typeof(T).Name;
         this.serializer = serializer;
         this.transport = transport;
         this.initialBufferCapacity = initialBufferCapacity;
@@ -94,17 +96,17 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
             if (this.transport.Send(
                 new TransportSendRequest
                 {
-                    ItemType = typeof(T).Name,
+                    ItemType = this.typeName,
                     ItemStream = buffer,
                     NumberOfItems = numberOfItemsSerialized,
                 }))
             {
-                OneCollectorExporterEventSource.Log.WriteSinkDataWrittenEventIfEnabled(typeof(T).Name, numberOfItemsSerialized, this.Description);
+                OneCollectorExporterEventSource.Log.WriteSinkDataWrittenEventIfEnabled(this.typeName, numberOfItemsSerialized, this.Description);
 
                 return numberOfItemsSerialized;
             }
 
-            OneCollectorExporterEventSource.Log.DataDropped(typeof(T).Name, numberOfItemsSerialized);
+            OneCollectorExporterEventSource.Log.DataDropped(this.typeName, numberOfItemsSerialized);
 
             return 0;
         }
@@ -146,18 +148,18 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
                 if (!this.transport.Send(
                     new TransportSendRequest
                     {
-                        ItemType = typeof(T).Name,
+                        ItemType = this.typeName,
                         ItemStream = buffer,
                         NumberOfItems = 1,
                     }))
                 {
-                    OneCollectorExporterEventSource.Log.DataDropped(typeof(T).Name, 1);
+                    OneCollectorExporterEventSource.Log.DataDropped(this.typeName, 1);
                 }
             }
             catch (Exception ex)
             {
-                OneCollectorExporterEventSource.Log.DataDropped(typeof(T).Name, 1);
-                OneCollectorExporterEventSource.Log.WriteExportExceptionThrownEventIfEnabled(typeof(T).Name, ex);
+                OneCollectorExporterEventSource.Log.DataDropped(this.typeName, 1);
+                OneCollectorExporterEventSource.Log.WriteExportExceptionThrownEventIfEnabled(this.typeName, ex);
             }
             finally
             {
