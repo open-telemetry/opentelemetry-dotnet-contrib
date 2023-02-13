@@ -94,7 +94,7 @@ Gets the privileged processor time for this process.
 
 ### process.cpu.count
 
-Process processor (CPU cores) count.
+Process processors (CPU cores) count.
 
 | Units         | Instrument Type         | Value Type |
 |---------------|-------------------------|------------|
