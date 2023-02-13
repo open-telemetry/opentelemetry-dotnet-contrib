@@ -43,7 +43,7 @@ public sealed class OneCollectorExporterTransportOptions
     /// Gets or sets OneCollector transport protocol. Default value: <see
     /// cref="OneCollectorExporterTransportProtocolType.HttpJsonPost"/>.
     /// </summary>
-    public OneCollectorExporterTransportProtocolType Protocol { get; set; } = OneCollectorExporterTransportProtocolType.HttpJsonPost;
+    internal OneCollectorExporterTransportProtocolType Protocol { get; set; } = OneCollectorExporterTransportProtocolType.HttpJsonPost;
 
     /// <summary>
     /// Gets or sets the maximum request payload size in bytes when sending data
@@ -52,7 +52,7 @@ public sealed class OneCollectorExporterTransportOptions
     /// <remarks>
     /// Note: Set to -1 for unlimited request payload size.
     /// </remarks>
-    public int MaxPayloadSizeInBytes { get; set; } = DefaultMaxPayloadSizeInBytes;
+    internal int MaxPayloadSizeInBytes { get; set; } = DefaultMaxPayloadSizeInBytes;
 
     /// <summary>
     /// Gets or sets the maximum number of items per request payload when
@@ -61,14 +61,14 @@ public sealed class OneCollectorExporterTransportOptions
     /// <remarks>
     /// Note: Set to -1 for unlimited number of items per request payload.
     /// </remarks>
-    public int MaxNumberOfItemsPerPayload { get; set; } = DefaultMaxNumberOfItemsPerPayload;
+    internal int MaxNumberOfItemsPerPayload { get; set; } = DefaultMaxNumberOfItemsPerPayload;
 
     /// <summary>
     /// Gets or sets the compression type to use when transmiting telemetry over
     /// HTTP. Default value: <see
     /// cref="OneCollectorExporterHttpTransportCompressionType.Deflate"/>.
     /// </summary>
-    public OneCollectorExporterHttpTransportCompressionType HttpCompression { get; set; } = OneCollectorExporterHttpTransportCompressionType.Deflate;
+    internal OneCollectorExporterHttpTransportCompressionType HttpCompression { get; set; } = OneCollectorExporterHttpTransportCompressionType.Deflate;
 
     /// <summary>
     /// Gets or sets the factory function called to create the <see
@@ -84,7 +84,7 @@ public sealed class OneCollectorExporterTransportOptions
     /// cref="HttpClient"/> will be instantiated directly.</item>
     /// </list>
     /// </remarks>
-    public Func<HttpClient> HttpClientFactory { get; set; } = DefaultHttpClientFactory;
+    internal Func<HttpClient> HttpClientFactory { get; set; } = DefaultHttpClientFactory;
 
     internal void Validate()
     {

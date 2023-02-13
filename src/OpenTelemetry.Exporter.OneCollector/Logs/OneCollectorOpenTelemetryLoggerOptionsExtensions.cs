@@ -15,7 +15,6 @@
 // </copyright>
 
 using OpenTelemetry.Internal;
-using OpenTelemetry.Logs;
 
 namespace OpenTelemetry.Logs;
 

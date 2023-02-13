@@ -27,17 +27,6 @@ namespace OpenTelemetry.Logs;
 public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions, ISinkFactory<LogRecord>
 {
     /// <summary>
-    /// Gets or sets the default event namespace. Default value: <see
-    /// cref="AssemblyName.Name"/> from the assembly returned by <see
-    /// cref="Assembly.GetEntryAssembly"/>.
-    /// </summary>
-    /// <remarks>
-    /// Note: The default event namespace is used if a <see
-    /// cref="LogRecord.CategoryName"/> is not supplied.
-    /// </remarks>
-    internal string DefaultEventNamespace { get; set; } = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
-
-    /// <summary>
     /// Gets or sets the default event name. Default value: Log.
     /// </summary>
     /// <remarks>
@@ -51,6 +40,19 @@ public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions
     /// Gets the <see cref="BatchExportProcessorOptions{T}"/> options.
     /// </summary>
     public BatchExportProcessorOptions<LogRecord> BatchOptions { get; } = new();
+
+    /// <summary>
+    /// Gets or sets the default event namespace. Default value: <see
+    /// cref="AssemblyName.Name"/> from the assembly returned by <see
+    /// cref="Assembly.GetEntryAssembly"/>.
+    /// </summary>
+    /// <remarks>
+    /// Note: The default event namespace is used if a <see
+    /// cref="LogRecord.CategoryName"/> is not supplied. This is internal at the
+    /// moment because using the <see cref="ILogger"/> interface there should
+    /// always be a category name.
+    /// </remarks>
+    internal string DefaultEventNamespace { get; set; } = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
 
     ISink<LogRecord> ISinkFactory<LogRecord>.CreateSink()
     {

@@ -19,7 +19,7 @@ namespace OpenTelemetry.Exporter;
 /// <summary>
 /// Describes the OneCollector transport protocol to use when sending telemetry.
 /// </summary>
-public enum OneCollectorExporterTransportProtocolType
+internal enum OneCollectorExporterTransportProtocolType
 {
     /// <summary>
     /// HTTP JSON POST protocol.
