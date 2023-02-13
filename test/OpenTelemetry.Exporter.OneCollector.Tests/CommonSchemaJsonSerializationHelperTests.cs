@@ -1,4 +1,4 @@
-// <copyright file="CommonSchemaJsonSerializerTests.cs" company="OpenTelemetry Authors">
+// <copyright file="CommonSchemaJsonSerializationHelperTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,12 +16,11 @@
 
 using System.Text;
 using System.Text.Json;
-using OpenTelemetry.Resources;
 using Xunit;
 
 namespace OpenTelemetry.Exporter.OneCollector.Tests;
 
-public class CommonSchemaJsonSerializerTests
+public class CommonSchemaJsonSerializationHelperTests
 {
     [Theory]
     [InlineData("stringValue1", "\"stringValue1\"")]
@@ -75,7 +74,7 @@ public class CommonSchemaJsonSerializerTests
         this.SerializeValueToJsonTest(typeWithToString, "\"Hello world\"");
 
         var typeWithThrowingToString = new TypeWithThrowingToString();
-        this.SerializeValueToJsonTest(typeWithThrowingToString, $"\"ERROR: type {typeof(CommonSchemaJsonSerializerTests).FullName}\\u002B{typeof(TypeWithThrowingToString).Name} is not supported\"");
+        this.SerializeValueToJsonTest(typeWithThrowingToString, $"\"ERROR: type {typeof(CommonSchemaJsonSerializationHelperTests).FullName}\\u002B{typeof(TypeWithThrowingToString).Name} is not supported\"");
 
         var ts = new TimeSpan(0, 10, 18, 59, 1);
         this.SerializeValueToJsonTest(ts, "\"10:18:59.0010000\"");
@@ -112,30 +111,10 @@ public class CommonSchemaJsonSerializerTests
 
         using (var writer = new Utf8JsonWriter(stream))
         {
-            TestCommonSchemaJsonSerializer.ExecuteSerializeValueToJson(value, writer);
+            CommonSchemaJsonSerializationHelper.SerializeValueToJson(value, writer);
         }
 
         return Encoding.UTF8.GetString(stream.ToArray());
-    }
-
-    private sealed class TestCommonSchemaJsonSerializer : CommonSchemaJsonSerializer<object>
-    {
-        public TestCommonSchemaJsonSerializer()
-            : base("tenantToken")
-        {
-        }
-
-        public override string Description => "Test serializer";
-
-        public static void ExecuteSerializeValueToJson(object? item, Utf8JsonWriter writer)
-        {
-            SerializeValueToJson(item, writer);
-        }
-
-        protected override void SerializeItemToJson(Resource resource, object? item, Utf8JsonWriter writer)
-        {
-            throw new NotImplementedException();
-        }
     }
 
     private sealed class TypeWithToString

@@ -52,7 +52,7 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
                 return;
             }
 
-            SerializeKeyValueToJson(scopeAttribute.Key, scopeAttribute.Value, w);
+            CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(scopeAttribute.Key, scopeAttribute.Value, w);
         }
     };
 
@@ -126,7 +126,7 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
                     continue;
                 }
 
-                SerializeKeyValueToJson(attribute.Key, attribute.Value, writer);
+                CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(attribute.Key, attribute.Value, writer);
             }
         }
 
@@ -145,14 +145,14 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
             {
                 var resourceAttribute = resourceAttributeList[i];
 
-                SerializeKeyValueToJson(resourceAttribute.Key, resourceAttribute.Value, writer);
+                CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(resourceAttribute.Key, resourceAttribute.Value, writer);
             }
         }
         else
         {
             foreach (KeyValuePair<string, object> resourceAttribute in resource.Attributes)
             {
-                SerializeKeyValueToJson(resourceAttribute.Key, resourceAttribute.Value, writer);
+                CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(resourceAttribute.Key, resourceAttribute.Value, writer);
             }
         }
 
