@@ -92,9 +92,9 @@ Gets the user processor time for this process.
 * [Process.PrivilegedProcessorTime](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.privilegedprocessortime):
 Gets the privileged processor time for this process.
 
-### process.processors
+### process.cpu.count
 
-Process threads count.
+Process processor (CPU cores) count.
 
 | Units         | Instrument Type         | Value Type |
 |---------------|-------------------------|------------|
