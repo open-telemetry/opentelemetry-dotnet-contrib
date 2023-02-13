@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 1.1.0-beta.5
+## 1.1.0-rc.1
 
 Released 2023-Feb-13
 
