@@ -6,8 +6,34 @@
 The OneCollector Exporter exports telemetry to the Microsoft OneCollector
 backend.
 
+> **Warning**
+> This is an early preview version breaking changes should be expected.
+
 ## Installation
 
 ```shell
 dotnet add package --prerelease OpenTelemetry.Exporter.OneCollector
+```
+
+## Basic usage
+
+```csharp
+using var logFactory = LoggerFactory.Create(builder => builder
+    .AddOpenTelemetry(builder =>
+    {
+        builder.ParseStateValues = true;
+        builder.IncludeScopes = true;
+        builder.AddOneCollectorExporter(o =>
+        {
+            o.TenantToken = "tenant-token-here";
+            o.InstrumentationKey = "instrumentation-key-here";
+        });
+    }));
+
+var logger = logFactory.CreateLogger<MyService>();
+
+using var scope = logger.BeginScope("{requestContext}", Guid.NewGuid());
+
+logger.LogInformation("Request received {requestId}!", 1);
+logger.LogWarning("Warning encountered {error_code}!", 0xBAADBEEF);
 ```
