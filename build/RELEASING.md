@@ -33,12 +33,12 @@ in `PublicAPI.Shipped.txt` files and cleanup corresponding `PublicAPI.Unshipped.
 on the `main` branch is the one which added/updated the Changelog to
 the project being released. *This latest commit will be tagged on the release.*
 
-1. Create and push git tag for the project and the version of the project
+1. Create and push signed git tag for the project and the version of the project
 you want to release. The version should be the one used in the **Pre-steps** to
 update the Changelog.
 
     ```powershell
-    git tag -a <PROJECT TAG PREFIX>-<VERSION> -m "<PROJECT TAG PREFIX>-<VERSION>"
+    git tag -s -a <PROJECT TAG PREFIX>-<VERSION> -m "<PROJECT TAG PREFIX>-<VERSION>"
     ```
 
     You can find the project tag prefix in the `.csproj` file for the project.
@@ -52,7 +52,7 @@ update the Changelog.
     **example:**
 
     ```powershell
-    git tag -a Instrumentation.AWS-1.0.0 -m "Instrumentation.AWS-1.0.0"
+    git tag -s -a Instrumentation.AWS-1.0.0 -m "Instrumentation.AWS-1.0.0"
     git push origin Instrumentation.AWS-1.0.0
     ```
 
