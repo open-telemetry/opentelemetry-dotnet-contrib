@@ -1,4 +1,4 @@
-name: OpenTelemetry.Instrumentation.Process
+name: Instrumentation.Process
 
 on:
   pull_request:
@@ -37,5 +37,4 @@ jobs:
       run: dotnet build --configuration Release test/OpenTelemetry.Instrumentation.Process.Tests/OpenTelemetry.Instrumentation.Process.Tests.csproj
 
     - name: Test ${{ matrix.version }}
-      run: dotnet test test/OpenTelemetry.Instrumentatio
-  n.Process.Tests/bin/Release/${{ matrix.version }}/OpenTelemetry.Instrumentation.Process.Tests.dll --logger:"console;verbosity=detailed"
+      run: dotnet test test/OpenTelemetry.Instrumentation.Process.Tests/bin/Release/${{ matrix.version }}/OpenTelemetry.Instrumentation.Process.Tests.dll --logger:"console;verbosity=detailed"
