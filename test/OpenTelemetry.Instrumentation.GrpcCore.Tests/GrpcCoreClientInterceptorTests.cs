@@ -321,7 +321,7 @@ public class GrpcCoreClientInterceptorTests
     /// <param name="recordedMessages">if set to <c>true</c> [recorded messages].</param>
     internal static void ValidateCommonActivityTags(
         Activity activity,
-        Grpc.Core.StatusCode expectedStatusCode = Grpc.Core.StatusCode.OK,
+        StatusCode expectedStatusCode = StatusCode.OK,
         bool recordedMessages = false)
     {
         Assert.NotNull(activity);

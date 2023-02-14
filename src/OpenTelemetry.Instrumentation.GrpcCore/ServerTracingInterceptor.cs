@@ -19,8 +19,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using global::Grpc.Core;
-using global::Grpc.Core.Interceptors;
+using Grpc.Core;
+using Grpc.Core.Interceptors;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
 
@@ -29,7 +29,7 @@ namespace OpenTelemetry.Instrumentation.GrpcCore;
 /// <summary>
 /// A service interceptor that starts and stops an Activity for each inbound RPC.
 /// </summary>
-/// <seealso cref="global::Grpc.Core.Interceptors.Interceptor" />
+/// <seealso cref="Interceptor" />
 public class ServerTracingInterceptor : Interceptor
 {
     /// <summary>
