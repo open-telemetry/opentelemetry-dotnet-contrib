@@ -100,11 +100,7 @@ The number of processors (CPU cores) available to the current process.
 |---------------|-------------------------|------------|
 | `{processors}`| ObservableUpDownCounter | `Int32`    |
 
-The API used to retrieve the value is:
-
-* [Process.processors](https://learn.microsoft.com/dotnet/api/system.environment.processorcount):
-Gets the number of processors available
-to the current process.
+The API used to retrieve the value is [System.Environment.ProcessorCount](https://learn.microsoft.com/dotnet/api/system.environment.processorcount).
 
 ### process.threads
 
