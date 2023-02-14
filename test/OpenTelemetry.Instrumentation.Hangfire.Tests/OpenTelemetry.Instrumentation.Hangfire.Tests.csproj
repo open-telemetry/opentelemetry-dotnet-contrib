@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Description>Unit test project for OpenTelemetry Hangfire instrumentation</Description>
-    <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
+    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
+    <TargetFrameworks>netcoreapp3.1;net472</TargetFrameworks>
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
