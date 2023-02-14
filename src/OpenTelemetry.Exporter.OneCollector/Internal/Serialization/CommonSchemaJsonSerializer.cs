@@ -34,8 +34,6 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
     private const char OneCollectorTenancySymbol = 'o';
 
     private static readonly byte[] NewLine = "\n"u8.ToArray();
-    [ThreadStatic]
-    private static Utf8JsonWriter? threadWriter;
 
     private readonly int maxPayloadSizeInBytes;
     private readonly int maxNumberOfItemsPerPayload;
@@ -57,14 +55,14 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
 
     protected JsonEncodedText TenantTokenWithTenancySystemSymbol { get; }
 
-    public void SerializeBatchOfItemsToStream(Resource resource, in Batch<T> batch, Stream stream, out BatchSerializationResult result)
+    public void SerializeBatchOfItemsToStream(Resource resource, in Batch<T> batch, Stream stream, int initialSizeOfPayloadInBytes, out BatchSerializationResult result)
     {
         Guard.ThrowIfNull(stream);
 
         var numberOfSerializedItems = 0;
-        long payloadSizeInBytes = 0;
+        long payloadSizeInBytes = initialSizeOfPayloadInBytes;
 
-        var writer = threadWriter ??= new(
+        var writer = ThreadStorageHelper.Utf8JsonWriter ??= new(
             stream,
             new JsonWriterOptions
             {
@@ -85,7 +83,7 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
 
             this.SerializeItemToJson(resource, item, writer);
 
-            var currentItemSizeInBytes = writer.BytesCommitted - payloadSizeInBytes + writer.BytesPending + 1;
+            var currentItemSizeInBytes = writer.BytesCommitted + writer.BytesPending + 1;
 
             payloadSizeInBytes += currentItemSizeInBytes;
 

@@ -85,15 +85,13 @@ public class LogRecordCommonSchemaJsonSerializerTests
     [Fact]
     public void LogRecordTimestampJsonTest()
     {
-        var timestamp = DateTime.UtcNow;
-
         string json = GetLogRecordJson(1, (index, logRecord) =>
         {
-            logRecord.Timestamp = timestamp;
+            logRecord.Timestamp = DateTime.SpecifyKind(new DateTime(2023, 1, 18, 10, 18, 0), DateTimeKind.Utc);
         });
 
         Assert.Equal(
-            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"{timestamp:O}\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1}}}}\n",
+            "{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2023-01-18T10:18:00Z\",\"iKey\":\"o:tenant-token\",\"data\":{\"severityText\":\"Trace\",\"severityNumber\":1}}\n",
             json);
     }
 
@@ -207,6 +205,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
             resource ?? Resource.Empty,
             in batch,
             stream,
+            initialSizeOfPayloadInBytes: 0,
             out var result);
 
         return Encoding.UTF8.GetString(stream.ToArray());

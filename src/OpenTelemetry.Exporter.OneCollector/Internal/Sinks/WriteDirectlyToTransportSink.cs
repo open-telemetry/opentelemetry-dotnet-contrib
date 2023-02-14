@@ -26,12 +26,10 @@ namespace OpenTelemetry.Exporter.OneCollector;
 internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
     where T : class
 {
-    [ThreadStatic]
-    private static MemoryStream? threadBuffer;
     private readonly string typeName;
     private readonly ISerializer<T> serializer;
     private readonly ITransport transport;
-    private readonly int initialBufferCapacity;
+    private readonly MemoryStream buffer;
 
     public WriteDirectlyToTransportSink(
         ISerializer<T> serializer,
@@ -45,10 +43,12 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
         this.typeName = typeof(T).Name;
         this.serializer = serializer;
         this.transport = transport;
-        this.initialBufferCapacity = initialBufferCapacity;
+        this.buffer = new(initialBufferCapacity);
     }
 
     public string Description => "WriteDirectlyToTransportSink";
+
+    internal MemoryStream Buffer => this.buffer;
 
     public void Dispose()
     {
@@ -62,11 +62,11 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
     {
         Span<byte> remainingData = default;
 
-        var buffer = threadBuffer ??= new(this.initialBufferCapacity);
+        var buffer = this.buffer;
 
         try
         {
-            this.serializer.SerializeBatchOfItemsToStream(resource, in batch, buffer, out var serializationResult);
+            this.serializer.SerializeBatchOfItemsToStream(resource, in batch, buffer, (int)buffer.Length, out var serializationResult);
 
             var numberOfItemsSerialized = serializationResult.NumberOfItemsSerialized;
 
@@ -74,6 +74,10 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
             {
                 return 0;
             }
+
+            OneCollectorExporterEventSource.Log.WriteSinkDataWrittenEventIfEnabled(this.typeName, numberOfItemsSerialized, this.Description);
+
+            var numberOfItemsToSend = numberOfItemsSerialized;
 
             if (serializationResult.PayloadOverflowItemSizeInBytes.HasValue)
             {
@@ -88,27 +92,23 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
 
                 buffer.SetLength(endPositionOfValidMessages);
 
-                numberOfItemsSerialized--;
+                numberOfItemsToSend--;
             }
 
             buffer.Position = 0;
 
-            if (this.transport.Send(
+            if (!this.transport.Send(
                 new TransportSendRequest
                 {
                     ItemType = this.typeName,
                     ItemStream = buffer,
-                    NumberOfItems = numberOfItemsSerialized,
+                    NumberOfItems = numberOfItemsToSend,
                 }))
             {
-                OneCollectorExporterEventSource.Log.WriteSinkDataWrittenEventIfEnabled(this.typeName, numberOfItemsSerialized, this.Description);
-
-                return numberOfItemsSerialized;
+                OneCollectorExporterEventSource.Log.DataDropped(this.typeName, numberOfItemsToSend);
             }
 
-            OneCollectorExporterEventSource.Log.DataDropped(this.typeName, numberOfItemsSerialized);
-
-            return 0;
+            return numberOfItemsSerialized;
         }
         finally
         {
@@ -140,9 +140,11 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
 
     private void TrySendRemainingData()
     {
-        var buffer = threadBuffer;
+        var buffer = this.buffer;
         if (buffer != null && buffer.Length > 0)
         {
+            buffer.Position = 0;
+
             try
             {
                 if (!this.transport.Send(

@@ -22,6 +22,14 @@ namespace OpenTelemetry.Exporter.OneCollector.Tests;
 
 public class CommonSchemaJsonSerializationHelperTests
 {
+    [Fact]
+    public void SerializeKeyValueToJsonTest()
+    {
+        string actualJson = GetJson(key: "key1", value: "value1");
+
+        Assert.Equal("\"key1\":\"value1\"", actualJson);
+    }
+
     [Theory]
     [InlineData("stringValue1", "\"stringValue1\"")]
     [InlineData(18, "18")]
@@ -35,8 +43,15 @@ public class CommonSchemaJsonSerializationHelperTests
     [InlineData(true, "true")]
     [InlineData(false, "false")]
     [InlineData(null, "null")]
-    [InlineData(18.99D, "18.99")]
-    [InlineData(18.99F, "18.99")]
+    [InlineData(1.01D, "1.01")]
+#if NETFRAMEWORK
+    // Note: There seems to be some kind of round-tripping bug in .NET
+    // Framework. See:
+    // https://stackoverflow.com/questions/24299692/why-is-a-round-trip-conversion-via-a-string-not-safe-for-a-double
+    [InlineData(2.1099999F, "2.1099999")]
+#else
+    [InlineData(1.02F, "1.02")]
+#endif
     public void SerializeValueToJsonTest(object? value, string expectedJson)
     {
         string actualJson = GetJson(value);
@@ -54,9 +69,9 @@ public class CommonSchemaJsonSerializationHelperTests
          * https://github.com/dotnet/runtime/blob/78ed4438a42acab80541e9bde1910abaa8841db2/src/libraries/System.Text.Json/src/System/Text/Json/Writer/JsonWriterHelper.Date.cs#L43
          */
         var dt = DateTime.SpecifyKind(new DateTime(2023, 1, 18, 10, 18, 0), DateTimeKind.Utc);
-        this.SerializeValueToJsonTest(dt, $"\"2023-01-18T10:18:00Z\"");
+        this.SerializeValueToJsonTest(dt, "\"2023-01-18T10:18:00Z\"");
         var dto = new DateTimeOffset(new DateTime(2023, 1, 18, 10, 18, 0), new TimeSpan(1, 0, 0));
-        this.SerializeValueToJsonTest(dto, $"\"2023-01-18T10:18:00+01:00\"");
+        this.SerializeValueToJsonTest(dto, "\"2023-01-18T10:18:00+01:00\"");
         /* End note. */
 
         var byteArray = new byte[] { 0, 0xff };
@@ -105,13 +120,20 @@ public class CommonSchemaJsonSerializationHelperTests
 #endif
     }
 
-    private static string GetJson(object? value)
+    private static string GetJson(object? value, string? key = null)
     {
         using var stream = new MemoryStream();
 
-        using (var writer = new Utf8JsonWriter(stream))
+        using (var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { SkipValidation = true }))
         {
-            CommonSchemaJsonSerializationHelper.SerializeValueToJson(value, writer);
+            if (key is not null)
+            {
+                CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(key, value, writer);
+            }
+            else
+            {
+                CommonSchemaJsonSerializationHelper.SerializeValueToJson(value, writer);
+            }
         }
 
         return Encoding.UTF8.GetString(stream.ToArray());

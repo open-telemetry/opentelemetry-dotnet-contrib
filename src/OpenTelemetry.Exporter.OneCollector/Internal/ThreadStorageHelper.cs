@@ -1,4 +1,4 @@
-// <copyright file="ISerializer.cs" company="OpenTelemetry Authors">
+// <copyright file="ThreadStorageHelper.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,19 +14,12 @@
 // limitations under the License.
 // </copyright>
 
-using OpenTelemetry.Resources;
+using System.Text.Json;
 
 namespace OpenTelemetry.Exporter.OneCollector;
 
-internal interface ISerializer<T>
-    where T : class
+internal static class ThreadStorageHelper
 {
-    string Description { get; }
-
-    void SerializeBatchOfItemsToStream(
-        Resource resource,
-        in Batch<T> batch,
-        Stream stream,
-        int initialSizeOfPayloadInBytes,
-        out BatchSerializationResult serializationResult);
+    [ThreadStatic]
+    public static Utf8JsonWriter? Utf8JsonWriter;
 }
