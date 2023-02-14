@@ -14,7 +14,7 @@
     <PackageReference Include="AWSSDK.SQS" Version="3.5.0.26" />
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.5.1.2" />
     <PackageReference Include="Moq" Version="$(MoqNet45PkgVer)" />
-    <PackageReference Condition="$([MSBuild]::IsOsPlatform('Windows'))" Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)">
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
