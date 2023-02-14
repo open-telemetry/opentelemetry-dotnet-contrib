@@ -34,7 +34,7 @@ on the `main` branch is the one which added/updated the Changelog to
 the project being released. *This latest commit will be tagged on the release.*
 
 1. Create and push git tag for the project and the version of the project
-you want to release. The version shoud the one used in the **Pre-steps** to
+you want to release. The version should be the one used in the **Pre-steps** to
 update the Changelog.
 
     ```powershell
@@ -68,7 +68,10 @@ update the Changelog.
 2. Navigate to the
 [**Actions**](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/actions)
 tab on the repo and monitor the "Pack YOUR_PROJECT_NAME" workflow. The last step
-in the workflow is to publish to Nuget.org.
+in the workflow is to publish to Nuget.org and prepare corresponding github
+release page.
 
-3. Validate that the new version (as specified in step1) of the project is
+3. Validate that the new version (as specified in step 1) of the project is
 successfully published to nuget.org under OpenTelemetry owner.
+
+4. Validate that the new version was published in GitHub.

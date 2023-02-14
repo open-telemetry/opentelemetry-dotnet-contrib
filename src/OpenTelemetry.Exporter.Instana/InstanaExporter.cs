@@ -16,6 +16,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using OpenTelemetry.Exporter.Instana.Implementation;
@@ -30,7 +31,7 @@ internal class InstanaExporter : BaseExporter<Activity>
     private string name;
     private ISpanSender spanSender = new SpanSender();
     private IInstanaExporterHelper instanaExporterHelper = new InstanaExporterHelper();
-    private bool shutdownCalled = false;
+    private bool shutdownCalled;
 
     public InstanaExporter(string name = "InstanaExporter", IActivityProcessor activityProcessor = null)
     {
@@ -77,7 +78,7 @@ internal class InstanaExporter : BaseExporter<Activity>
         From from = null;
         if (this.instanaExporterHelper.IsWindows())
         {
-            from = new From() { E = Process.GetCurrentProcess().Id.ToString() };
+            from = new From() { E = Process.GetCurrentProcess().Id.ToString(CultureInfo.InvariantCulture) };
         }
 
         string serviceName = this.ExtractServiceName(ref from);
@@ -175,7 +176,7 @@ internal class InstanaExporter : BaseExporter<Activity>
     {
         InstanaSpan instanaSpan = InstanaSpanFactory.CreateSpan();
 
-        await this.activityProcessor.ProcessAsync(activity, instanaSpan);
+        await this.activityProcessor.ProcessAsync(activity, instanaSpan).ConfigureAwait(false);
 
         if (!string.IsNullOrEmpty(serviceName))
         {
