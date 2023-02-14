@@ -33,7 +33,7 @@ jobs:
       with:
         dotnet-version: '7.0.x'
 
-    - name: Build
+    - name: Build OpenTelemetry.Instrumentation.Process
       run: dotnet build --configuration Release test/OpenTelemetry.Instrumentation.Process.Tests/OpenTelemetry.Instrumentation.Process.Tests.csproj
 
     - name: Test ${{ matrix.version }}
