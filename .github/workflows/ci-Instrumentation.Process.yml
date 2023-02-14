@@ -14,10 +14,6 @@ jobs:
       fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
       matrix:
         os: [ windows-latest, ubuntu-latest ]
-        version: [ net462, netcoreapp3.1, net6.0, net7.0 ]
-        exclude:
-        - os: ubuntu-latest
-          version: net462
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -36,5 +32,5 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release test/OpenTelemetry.Instrumentation.Process.Tests/OpenTelemetry.Instrumentation.Process.Tests.csproj
 
-    - name: Test ${{ matrix.version }}
-      run: dotnet test test/OpenTelemetry.Instrumentation.Process.Tests/bin/Release/${{ matrix.version }}/OpenTelemetry.Instrumentation.Process.Tests.dll --logger:"console;verbosity=detailed"
+    - name: Test
+      run: dotnet test test/OpenTelemetry.Instrumentation.Process.Tests/bin/Release/**/OpenTelemetry.Instrumentation.Process.Tests.dll --logger:"console;verbosity=detailed"
