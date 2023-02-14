@@ -66,7 +66,7 @@ public class TelemetryHttpModule : IHttpModule
 
         if (HttpRuntime.UsingIntegratedPipeline && OnExecuteRequestStepMethodInfo != null)
         {
-            // OnExecuteRequestStep is availabile starting with 4.7.1
+            // OnExecuteRequestStep is available starting with 4.7.1
             try
             {
                 OnExecuteRequestStepMethodInfo.Invoke(context, new object[] { (Action<HttpContextBase, Action>)this.OnExecuteRequestStep });
