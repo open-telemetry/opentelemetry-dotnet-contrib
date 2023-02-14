@@ -35,7 +35,7 @@ You can contribute to this project from a Windows, macOS or Linux machine.
 On all platforms, the minimum requirements are:
 
 * Git client and command line tools.
-* .NET 6.0+
+* .NET 7.0+
 
 Please note that individual project requirements might vary.
 
@@ -50,7 +50,7 @@ are disabled outside of Windows.
 ### Windows
 
 * Visual Studio 2022+ or Visual Studio Code
-* .NET Framework 4.6.1+
+* .NET Framework 4.6.2+
 
 ## Pull Requests
 
