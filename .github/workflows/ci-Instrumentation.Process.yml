@@ -8,12 +8,11 @@ on:
     - 'test/OpenTelemetry.Instrumentation.Process.Tests/**'
 
 jobs:
-  build-test:
-
+  unit-test:
     strategy:
       fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
       matrix:
-        os: [ windows-latest, ubuntu-latest ]
+        os: [ ubuntu-latest, windows-latest ]
 
     runs-on: ${{ matrix.os }}
     steps:
