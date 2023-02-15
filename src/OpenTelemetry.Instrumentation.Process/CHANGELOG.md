@@ -2,6 +2,31 @@
 
 ## Unreleased
 
+TBD
+
+## 1.0.0-alpha.6
+
+Released 2023-Feb-13
+
+* Update OpenTelemetry API to 1.4.0-rc.4
+  ([#990](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/990))
+
+* Removed CPU utilization metric `process.cpu.utilization`.
+  ([#972](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/972))
+
+* Removed `ProcessInstrumentationOptions` and
+  `AddProcessInstrumentation(this MeterProviderBuilder builder,`
+  `Action<ProcessInstrumentationOptions>? configure)`
+  from the public APIs.
+  ([#973](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/973))
+
+## 1.0.0-alpha.5
+
+Released 2023-Feb-02
+
+* Update OpenTelemetry API to 1.4.0-rc.3
+  ([#944](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/944))
+
 ## 1.0.0-alpha.4
 
 Released 2023-Jan-11

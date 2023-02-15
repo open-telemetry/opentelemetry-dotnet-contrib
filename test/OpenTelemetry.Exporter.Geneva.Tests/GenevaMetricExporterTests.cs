@@ -322,7 +322,7 @@ public class GenevaMetricExporterTests
             {
                 if (instrument.Name == "histogramWithNoBounds")
                 {
-                    return new ExplicitBucketHistogramConfiguration { Boundaries = new double[] { } };
+                    return new ExplicitBucketHistogramConfiguration { Boundaries = Array.Empty<double>() };
                 }
 
                 return null;
@@ -334,7 +334,7 @@ public class GenevaMetricExporterTests
                     RecordMinMax = false,
                 })
             .AddView("observableLongCounter", MetricStreamConfiguration.Drop)
-            .AddView("observableDoubleCounter", new MetricStreamConfiguration { TagKeys = new string[] { } })
+            .AddView("observableDoubleCounter", new MetricStreamConfiguration { TagKeys = Array.Empty<string>() })
             .AddView(instrument =>
             {
                 if (instrument.Name == "observableLongGauge")
