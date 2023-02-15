@@ -20,8 +20,9 @@ Project structure:
   admin privileges. For details see: [Configuring HTTP and
   HTTPS](https://docs.microsoft.com/en-us/dotnet/framework/wcf/feature-details/configuring-http-and-https).
 
-  Note: There is no .NET Core server example because only the client libraries
-  for WCF are available on .NET Core / .NET 5.
+ > **Note**
+ > There is no .NET Core server example because only the client libraries
+ for WCF are available on .NET Core / .NET 5.
 
 * Examples.Wcf.Shared
 

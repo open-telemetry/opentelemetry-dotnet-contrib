@@ -9,7 +9,8 @@ which instruments
 [StackExchange.Redis](https://www.nuget.org/packages/StackExchange.Redis/)
 and collects traces about outgoing calls to Redis.
 
-**Note: This component is based on the OpenTelemetry semantic conventions for
+> **Note**
+> This component is based on the OpenTelemetry semantic conventions for
 [traces](https://github.com/open-telemetry/opentelemetry-specification/tree/main/specification/trace/semantic_conventions).
 These conventions are
 [Experimental](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/document-status.md),
@@ -17,7 +18,7 @@ and hence, this package is a [pre-release](https://github.com/open-telemetry/ope
 Until a [stable
 version](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/telemetry-stability.md)
 is released, there can be breaking changes. You can track the progress from
-[milestones](https://github.com/open-telemetry/opentelemetry-dotnet/milestone/23).**
+[milestones](https://github.com/open-telemetry/opentelemetry-dotnet/milestone/23).
 
 ## Steps to enable OpenTelemetry.Instrumentation.StackExchangeRedis
 
