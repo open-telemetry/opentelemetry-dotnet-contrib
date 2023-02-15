@@ -16,6 +16,13 @@
 
 #nullable enable
 
+// Note: When implicit usings are enabled in a project this file will generate
+// warnings/errors without this suppression.
+#pragma warning disable IDE0005 // Using directive is unnecessary.
+
+// Note: For some targets this file will contain more than one type/namespace.
+#pragma warning disable IDE0161 // Convert to file-scoped namespace
+
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
