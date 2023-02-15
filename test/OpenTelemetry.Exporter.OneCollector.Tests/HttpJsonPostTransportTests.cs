@@ -111,8 +111,6 @@ public class HttpJsonPostTransportTests
 
                 context.Request.InputStream.CopyTo(requestBody);
 
-                context.Response.OutputStream.Close();
-
                 try
                 {
                     requestBody.Position = 0;
@@ -125,12 +123,17 @@ public class HttpJsonPostTransportTests
                 {
                     testException = ex;
                 }
+                finally
+                {
+                    context.Response.OutputStream.Close();
+                }
             },
             out var testServerHost,
             out var testServerPort);
 
         var transport = createTransportFunc(
             new Uri($"http://{testServerHost}:{testServerPort}/"));
+
         try
         {
             var requestBodyBytes = Encoding.ASCII.GetBytes(requestBody);

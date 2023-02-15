@@ -41,7 +41,7 @@ internal static class TestHttpServer
         RunningServer? server = null;
 
         var retryCount = 5;
-        while (retryCount > 0)
+        while (true)
         {
             try
             {
@@ -56,13 +56,18 @@ internal static class TestHttpServer
                 server.Start();
                 break;
             }
-            catch (HttpListenerException)
+            catch (HttpListenerException ex)
             {
-                retryCount--;
+                server?.Dispose();
+                server = null;
+                if (--retryCount <= 0)
+                {
+                    throw new InvalidOperationException("TestHttpServer could not be started.", ex);
+                }
             }
         }
 
-        return server!;
+        return server;
     }
 
     private sealed class RunningServer : IDisposable
