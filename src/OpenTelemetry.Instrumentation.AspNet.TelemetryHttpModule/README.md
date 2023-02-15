@@ -120,7 +120,8 @@ TelemetryHttpModuleOptions.TextMapPropagator = new CompositeTextMapPropagator(
     });
 ```
 
-Note: When using the `OpenTelemetry.Instrumentation.AspNet`
+> **Note**
+> When using the `OpenTelemetry.Instrumentation.AspNet`
 `TelemetryHttpModuleOptions.TextMapPropagator` is automatically initialized to
 the SDK default propagator (`Propagators.DefaultTextMapPropagator`) which by
 default supports W3C Trace Context & Baggage.
