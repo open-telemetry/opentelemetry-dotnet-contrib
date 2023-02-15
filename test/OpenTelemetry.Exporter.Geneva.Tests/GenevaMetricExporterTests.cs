@@ -625,6 +625,56 @@ public class GenevaMetricExporterTests
         }
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void DisableMetricNameValidationTest(bool disableMetricNameValidation)
+    {
+        var instrumentNameRegexProperty = GenevaMetricExporter.GetOpenTelemetryInstrumentNameRegexProperty();
+        var initialInstrumentNameRegexValue = instrumentNameRegexProperty.GetValue(null);
+        try
+        {
+            var exportedMetrics = new List<Metric>();
+
+            using var meter = new Meter("Invalid/Meter");
+
+            using (var provider = Sdk.CreateMeterProviderBuilder()
+                .AddMeter(meter.Name)
+                .AddGenevaMetricExporter(options =>
+                {
+                    options.DisableMetricNameValidation = disableMetricNameValidation;
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        options.ConnectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+                    }
+                    else
+                    {
+                        var path = GenerateTempFilePath();
+                        options.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+                    }
+                })
+                .AddInMemoryExporter(exportedMetrics)
+                .Build())
+            {
+                var counter = meter.CreateCounter<int>("count");
+                counter.Add(1);
+            }
+
+            if (disableMetricNameValidation)
+            {
+                Assert.Single(exportedMetrics);
+            }
+            else
+            {
+                Assert.Empty(exportedMetrics);
+            }
+        }
+        finally
+        {
+            instrumentNameRegexProperty.SetValue(null, initialInstrumentNameRegexValue);
+        }
+    }
+
     private static string GenerateTempFilePath()
     {
         while (true)
