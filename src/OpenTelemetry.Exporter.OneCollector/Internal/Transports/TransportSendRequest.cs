@@ -17,6 +17,7 @@
 // Note: StyleCop doesn't understand the C#11 "required" modifier yet. Remove
 // this in the future once StyleCop is updated. See:
 // https://github.com/DotNetAnalyzers/StyleCopAnalyzers/issues/3527
+
 #pragma warning disable SA1206 // Declaration keywords should follow order
 
 namespace OpenTelemetry.Exporter.OneCollector;
@@ -32,17 +33,15 @@ internal readonly struct TransportSendRequest
 #endif
     }
 
-    public
 #if NET7_0_OR_GREATER
-        required
-#endif
-        string ItemType { get; init; }
+    public required string ItemType { get; init; }
 
-    public
-#if NET7_0_OR_GREATER
-        required
+    public required Stream ItemStream { get; init; }
+#else
+    public string ItemType { get; init; }
+
+    public Stream ItemStream { get; init; }
 #endif
-        Stream ItemStream { get; init; }
 
     public int? NumberOfItems { get; init; }
 }
