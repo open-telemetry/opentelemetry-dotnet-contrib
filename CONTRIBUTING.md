@@ -169,23 +169,44 @@ build. Breaking the rules will result in a build failure.
 This repo is a great place to contribute a new instrumentation, exporter or any
 kind of extension. Please refer to [this
 page](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/docs/trace/extending-the-sdk/README.md#extending-the-opentelemetry-net-sdk)
-for help writing your component. Although the projects within this repo share
-some properties and configurations, they are built and released independently.
-So if you are creating a new project within `/src` and corresponding test
-project within `/test`, here are a few things you should do to ensure that your
-project is automatically built and shipped through CI.
+for help writing your component.
+
+When contributing a new project you are expected to assign either yourself or
+someone else who would take ownership of the component you are contributing. The
+owner should at least be an [OpenTelemetry
+Member](https://github.com/open-telemetry/community/blob/main/community-membership.md#member)
+to be eligible to assigned as component owner. This is required to ensure that
+reviews can be automatically requested from the owners. Once the owner is
+identified, please update [component_owners](./.github/component_owners.yml)
+file for the new project. The component owner(s) are expected to respond to
+issues and review PRs affecting their component.
+
+Although the projects within this repo share some properties and configurations,
+they are built and released independently. So if you are creating a new project
+within `/src` and corresponding test project within `/test`, here are a few
+things you should do to ensure that your project is automatically built and
+shipped through CI.
 
 * Based on what your project is, you may need to depend on the [OpenTelemetry
 SDK](https://www.nuget.org/packages/OpenTelemetry) or the [OpenTelemetry
 API](https://www.nuget.org/packages/OpenTelemetry.Api) Include the necessary
 package in your project. You can choose the version that you want to depend on.
-Usually it is a good idea to use the latest version. Example:
+Usually, it is a good idea to use the latest stable version. For example:
 
-  ```xml
-  <ItemGroup>
+```xml
+<ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
-  </ItemGroup>
-  ```
+</ItemGroup>
+```
+
+* If your component relies on new features not yet part of the stable release, you
+can refer to the latest pre-release version.
+
+```xml
+<ItemGroup>
+    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestPrereleaseVersion)" />
+</ItemGroup>
+```
 
 * The assembly and nuget versioning is managed through
 [MinVer](https://github.com/adamralph/minver) for all the projects in the repo.
@@ -195,11 +216,11 @@ by you. To ensure your project is versioned appropriately, specify a
 "OpenTelemetry.Instrumentation.FooBar", the MinVerTagPrefix must be
 "Instrumentation.FooBar-". Example:
 
-  ```xml
-  <PropertyGroup>
+```xml
+<PropertyGroup>
     <MinVerTagPrefix>Instrumentation.FooBar-</MinVerTagPrefix>
-  </PropertyGroup>
-  ```
+</PropertyGroup>
+```
 
 * Public API of all packages is analyzed by
 [Microsoft.CodeAnalysis.PublicApiAnalyzers](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/Microsoft.CodeAnalysis.PublicApiAnalyzers.md).
@@ -237,8 +258,3 @@ the main branch. The workflow file should be named as
 [![NuGet](https://img.shields.io/nuget/v/{your_package_name}.svg)](https://www.nuget.org/packages/{your_package_name})
 [![NuGet](https://img.shields.io/nuget/dt/{your_package_name}.svg)](https://www.nuget.org/packages/{your_package_name})
 ```
-
-* When contributing a new project you are expected to assign either yourself or
-someone else who would take ownership for the component you are contributing.
-Please add the right owner for your project in the
-[component_owners](./.github/component_owners.yml) file.
