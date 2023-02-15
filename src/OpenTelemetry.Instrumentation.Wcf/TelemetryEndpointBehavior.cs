@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Wcf;
 #if NETFRAMEWORK
@@ -43,6 +44,7 @@ public class TelemetryEndpointBehavior : IEndpointBehavior
     /// <inheritdoc/>
     public void ApplyClientBehavior(ServiceEndpoint endpoint, ClientRuntime clientRuntime)
     {
+        Guard.ThrowIfNull(clientRuntime);
         ApplyClientBehaviorToClientRuntime(clientRuntime);
     }
 
@@ -50,6 +52,7 @@ public class TelemetryEndpointBehavior : IEndpointBehavior
     public void ApplyDispatchBehavior(ServiceEndpoint endpoint, EndpointDispatcher endpointDispatcher)
     {
 #if NETFRAMEWORK
+        Guard.ThrowIfNull(endpointDispatcher);
         ApplyDispatchBehaviorToEndpoint(endpointDispatcher);
 #endif
     }

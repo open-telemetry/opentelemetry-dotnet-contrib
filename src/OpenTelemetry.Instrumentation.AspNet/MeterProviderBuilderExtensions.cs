@@ -34,8 +34,7 @@ public static class MeterProviderBuilderExtensions
     {
         Guard.ThrowIfNull(builder);
 
-        var instrumentation = new AspNetMetrics();
         builder.AddMeter(AspNetMetrics.InstrumentationName);
-        return builder.AddInstrumentation(() => instrumentation);
+        return builder.AddInstrumentation(() => new AspNetMetrics());
     }
 }

@@ -53,6 +53,6 @@ internal class TagsActivityProcessor : ActivityProcessorBase, IActivityProcessor
         instanaSpan.TransformInfo.StatusCode = statusCode;
         instanaSpan.TransformInfo.StatusDesc = statusDesc;
 
-        await base.ProcessAsync(activity, instanaSpan);
+        await base.ProcessAsync(activity, instanaSpan).ConfigureAwait(false);
     }
 }
