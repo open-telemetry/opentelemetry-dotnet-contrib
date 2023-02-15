@@ -14,10 +14,15 @@
 // limitations under the License.
 // </copyright>
 
+// Note: When implicit usings are enabled in a project this file will generate
+// warnings/errors without this suppression.
+#pragma warning disable IDE0005 // Using directive is unnecessary.
+
 #nullable enable
 
 using System;
 using System.Net;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,7 +30,9 @@ namespace OpenTelemetry.Tests;
 
 internal static class TestHttpServer
 {
+#if !NET6_0_OR_GREATER
     private static readonly Random GlobalRandom = new();
+#endif
 
     public static IDisposable RunServer(Action<HttpListenerContext> action, out string host, out int port)
     {
@@ -38,7 +45,13 @@ internal static class TestHttpServer
         {
             try
             {
+#if NET6_0_OR_GREATER
+                port = RandomNumberGenerator.GetInt32(2000, 5000);
+#else
+#pragma warning disable CA5394 // Do not use insecure randomness
                 port = GlobalRandom.Next(2000, 5000);
+#pragma warning restore CA5394 // Do not use insecure randomness
+#endif
                 server = new RunningServer(action, host, port);
                 server.Start();
                 break;
@@ -105,6 +118,7 @@ internal static class TestHttpServer
             {
                 this.listener.Close();
                 this.httpListenerTask?.Wait();
+                this.initialized.Dispose();
             }
             catch (ObjectDisposedException)
             {
