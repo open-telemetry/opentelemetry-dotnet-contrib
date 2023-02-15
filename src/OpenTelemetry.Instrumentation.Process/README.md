@@ -92,6 +92,23 @@ Gets the user processor time for this process.
 * [Process.PrivilegedProcessorTime](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.privilegedprocessortime):
 Gets the privileged processor time for this process.
 
+### process.cpu.count
+
+The number of processors (CPU cores) available to the current process.
+
+| Units         | Instrument Type         | Value Type |
+|---------------|-------------------------|------------|
+| `{processors}`| ObservableUpDownCounter | `Int32`    |
+
+The API used to retrieve the value is [System.Environment.ProcessorCount](https://learn.microsoft.com/dotnet/api/system.environment.processorcount).
+
+> **Note**
+> This metric is under [discussion][1] and not part of the
+[Process Metrics Spec][2] at this time.
+
+[1]: https://github.com/open-telemetry/opentelemetry-specification/issues/3200
+[2]: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md
+
 ### process.threads
 
 Process threads count.
