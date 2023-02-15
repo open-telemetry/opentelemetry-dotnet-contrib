@@ -636,7 +636,7 @@ public class GenevaMetricExporterTests
         {
             var exportedMetrics = new List<Metric>();
 
-            using var meter = new Meter("Invalid/Meter");
+            using var meter = new Meter(Guid.NewGuid().ToString());
 
             using (var provider = Sdk.CreateMeterProviderBuilder()
                 .AddMeter(meter.Name)
@@ -656,7 +656,7 @@ public class GenevaMetricExporterTests
                 .AddInMemoryExporter(exportedMetrics)
                 .Build())
             {
-                var counter = meter.CreateCounter<int>("count");
+                var counter = meter.CreateCounter<int>("count/invalid");
                 counter.Add(1);
             }
 
