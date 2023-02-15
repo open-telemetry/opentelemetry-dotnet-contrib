@@ -21,6 +21,10 @@ using Xunit;
 
 namespace OpenTelemetry.Exporter.OneCollector.Tests;
 
+// Suppressed because the underscores help with readability. That and artistic
+// license!
+#pragma warning disable CA1707 // Identifiers should not contain underscores
+
 public class WriteDirectlyToTransportSinkTests
 {
     [Fact]
