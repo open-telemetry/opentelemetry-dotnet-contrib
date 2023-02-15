@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using OpenTelemetry.Exporter.OneCollector;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Logs;

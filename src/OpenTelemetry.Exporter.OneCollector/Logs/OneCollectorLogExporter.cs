@@ -14,9 +14,9 @@
 // limitations under the License.
 // </copyright>
 
-using OpenTelemetry.Exporter;
+using OpenTelemetry.Logs;
 
-namespace OpenTelemetry.Logs;
+namespace OpenTelemetry.Exporter.OneCollector;
 
 /// <summary>
 /// OpenTelemetry exporter implementation for sending <see cref="LogRecord"/>

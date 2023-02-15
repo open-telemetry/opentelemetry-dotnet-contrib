@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Exporter;
+namespace OpenTelemetry.Exporter.OneCollector;
 
 /// <summary>
 /// Describes the OneCollector transport protocol to use when sending telemetry.

@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Exporter;
+namespace OpenTelemetry.Exporter.OneCollector;
 
 /// <summary>
 /// Describes the OneCollector compression algorithm type to use when sending telemetry over HTTP.

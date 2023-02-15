@@ -14,11 +14,10 @@
 // limitations under the License.
 // </copyright>
 
-using OpenTelemetry.Exporter.OneCollector;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Resources;
 
-namespace OpenTelemetry.Exporter;
+namespace OpenTelemetry.Exporter.OneCollector;
 
 /// <summary>
 /// OpenTelemetry exporter implementation for sending telemetry data to

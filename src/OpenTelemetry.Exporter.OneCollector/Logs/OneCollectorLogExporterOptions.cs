@@ -16,10 +16,9 @@
 
 using System.Reflection;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry.Exporter;
-using OpenTelemetry.Exporter.OneCollector;
+using OpenTelemetry.Logs;
 
-namespace OpenTelemetry.Logs;
+namespace OpenTelemetry.Exporter.OneCollector;
 
 /// <summary>
 /// Contains options for the <see cref="OneCollectorLogExporter"/> class.

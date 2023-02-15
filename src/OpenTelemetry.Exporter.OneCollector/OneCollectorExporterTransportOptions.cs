@@ -14,9 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-using OpenTelemetry.Logs;
-
-namespace OpenTelemetry.Exporter;
+namespace OpenTelemetry.Exporter.OneCollector;
 
 /// <summary>
 /// Contains transport options for the <see cref="OneCollectorExporter{T}"/> class.
