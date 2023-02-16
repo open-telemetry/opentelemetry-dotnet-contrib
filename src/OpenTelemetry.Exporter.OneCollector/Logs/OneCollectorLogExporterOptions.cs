@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System.Reflection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 
@@ -41,9 +40,8 @@ public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions
     public BatchExportProcessorOptions<LogRecord> BatchOptions { get; } = new();
 
     /// <summary>
-    /// Gets or sets the default event namespace. Default value: <see
-    /// cref="AssemblyName.Name"/> from the assembly returned by <see
-    /// cref="Assembly.GetEntryAssembly"/>.
+    /// Gets or sets the default event namespace. Default value:
+    /// OpenTelemetry.Logs.
     /// </summary>
     /// <remarks>
     /// Note: The default event namespace is used if a <see
@@ -51,7 +49,7 @@ public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions
     /// moment because using the <see cref="ILogger"/> interface there should
     /// always be a category name.
     /// </remarks>
-    internal string DefaultEventNamespace { get; set; } = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
+    internal string DefaultEventNamespace { get; set; } = "OpenTelemetry.Logs";
 
     ISink<LogRecord> ISinkFactory<LogRecord>.CreateSink()
     {
