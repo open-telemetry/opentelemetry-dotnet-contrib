@@ -8,6 +8,11 @@ Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main
 which instruments [.NET](https://docs.microsoft.com/dotnet) and
 collect telemetry about process behavior.
 
+The process metric instruments being implemented are following OpenTelemetry
+[metrics semantic conventions][1].
+
+[1]: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md#metric-instruments
+
 ## Steps to enable OpenTelemetry.Instrumentation.Process
 
 ### Step 1: Install package
@@ -103,11 +108,11 @@ The number of processors (CPU cores) available to the current process.
 The API used to retrieve the value is [System.Environment.ProcessorCount](https://learn.microsoft.com/dotnet/api/system.environment.processorcount).
 
 > **Note**
-> This metric is under [discussion][1] and not part of the
-[Process Metrics Spec][2] at this time.
+> This metric is under [discussion][2] and not part of the
+[Process Metrics Spec][3] at this time.
 
-[1]: https://github.com/open-telemetry/opentelemetry-specification/issues/3200
-[2]: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md
+[2]: https://github.com/open-telemetry/opentelemetry-specification/issues/3200
+[3]: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md
 
 ### process.threads
 
