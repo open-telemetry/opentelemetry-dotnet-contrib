@@ -8,8 +8,8 @@ Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main
 which instruments [.NET](https://docs.microsoft.com/dotnet) and
 collect telemetry about process behavior.
 
-The process metric instruments listed are following OpenTelemetry [metrics
-semantic conventions][1].
+The process metric instruments being implemented are following OpenTelemetry
+[metrics semantic conventions][1].
 
 [1]: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md#metric-instruments
 
