@@ -2,9 +2,9 @@
 
 ## Unreleased
 
-## 0.5.0
+## 0.5.0-beta.1
 
-Released 2023-Feb-16
+Released 2023-Feb-17
 
 * Added `process.cpu.count` metric.
   ([#981](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/981))
