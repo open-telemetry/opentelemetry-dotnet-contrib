@@ -17,8 +17,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using global::Grpc.Core;
-using global::Grpc.Core.Interceptors;
+using Grpc.Core;
+using Grpc.Core.Interceptors;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
 
@@ -27,7 +27,7 @@ namespace OpenTelemetry.Instrumentation.GrpcCore;
 /// <summary>
 /// A client interceptor that starts and stops an Activity for each outbound RPC.
 /// </summary>
-/// <seealso cref="global::Grpc.Core.Interceptors.Interceptor" />
+/// <seealso cref="Interceptor" />
 public class ClientTracingInterceptor : Interceptor
 {
     /// <summary>
