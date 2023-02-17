@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-TBD
+* Added `process.cpu.count` metric.
+  ([#981](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/981))
 
 ## 1.0.0-alpha.6
 

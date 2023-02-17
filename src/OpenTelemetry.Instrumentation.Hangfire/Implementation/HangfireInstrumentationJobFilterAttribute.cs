@@ -126,7 +126,7 @@ internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, I
         return telemetryData.ContainsKey(key) ? new[] { telemetryData[key] } : Enumerable.Empty<string>();
     }
 
-    private void SetStatusAndRecordException(Activity activity, System.Exception exception)
+    private void SetStatusAndRecordException(Activity activity, Exception exception)
     {
         activity.SetStatus(ActivityStatusCode.Error, exception.Message);
 
