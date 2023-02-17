@@ -58,6 +58,7 @@ public sealed class AppServiceResourceDetector : IResourceDetector
         catch
         {
             // TODO: log exception.
+            return Resource.Empty;
         }
 
         return new Resource(attributeList);

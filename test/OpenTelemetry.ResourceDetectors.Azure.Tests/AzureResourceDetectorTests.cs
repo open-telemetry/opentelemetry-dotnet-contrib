@@ -39,6 +39,7 @@ public class AzureResourceDetectorTests
         finally
         {
             Environment.SetEnvironmentVariable("WEBSITE_SITE_NAME", null);
+            Environment.SetEnvironmentVariable("WEBSITE_INSTANCE_ID", null);
         }
     }
 
