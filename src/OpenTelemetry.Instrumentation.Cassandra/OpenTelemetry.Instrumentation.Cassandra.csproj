@@ -5,7 +5,6 @@
     <Description>OpenTelemetry Cassandra Instrumentation</Description>
     <PackageTags>$(PackageTags);Cassandra;CassandraCSharpDriver</PackageTags>
     <MinVerTagPrefix>Instrumentation.Cassandra-</MinVerTagPrefix>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,6 +15,5 @@
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\Guard.cs" Link="Includes\Guard.cs" />
   </ItemGroup>
-
 
 </Project>
