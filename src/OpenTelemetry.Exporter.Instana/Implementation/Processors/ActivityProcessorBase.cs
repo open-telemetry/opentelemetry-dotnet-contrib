@@ -28,7 +28,7 @@ internal abstract class ActivityProcessorBase : IActivityProcessor
     {
         if (this.NextProcessor != null)
         {
-            await this.NextProcessor.ProcessAsync(activity, instanaSpan);
+            await this.NextProcessor.ProcessAsync(activity, instanaSpan).ConfigureAwait(false);
         }
     }
 

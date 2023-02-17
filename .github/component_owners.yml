@@ -19,6 +19,9 @@ components:
     - Yun-Ting
   src/OpenTelemetry.Exporter.Instana/:
     - zivaninstana
+  src/OpenTelemetry.Exporter.OneCollector/:
+    - codeblanch
+    - reyang
   src/OpenTelemetry.Exporter.Stackdriver/:
     - SergeyKanzhelev
   src/OpenTelemetry.Extensions/:
@@ -57,6 +60,9 @@ components:
     - xiang17
   src/OpenTelemetry.Instrumentation.Wcf/:
     - codeblanch
+  src/OpenTelemetry.ResourceDetectors.Azure/:
+    - rajkumar-rangaraj
+    - vishweshbankwar
   test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/:
     - srprash
     - lupengamzn
@@ -85,6 +91,9 @@ components:
     - Yun-Ting
   test/OpenTelemetry.Exporter.Instana.Tests/:
     - zivaninstana
+  test/OpenTelemetry.Exporter.OneCollector.Tests/:
+    - codeblanch
+    - reyang
   test/OpenTelemetry.Exporter.Stackdriver.Tests/:
     - SergeyKanzhelev
   test/OpenTelemetry.Extensions.Tests/:
@@ -118,3 +127,7 @@ components:
     - codeblanch
   test/OpenTelemetry.Contrib.Instrumentation.Cassandra.Tests/:
     - xsoheilalizadeh
+  test/OpenTelemetry.ResourceDetectors.Azure.Tests/:
+    - rajkumar-rangaraj
+    - vishweshbankwar
+

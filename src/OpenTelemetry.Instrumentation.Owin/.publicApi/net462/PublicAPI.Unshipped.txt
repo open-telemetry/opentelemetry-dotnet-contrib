@@ -11,5 +11,6 @@ OpenTelemetry.Instrumentation.Owin.OwinInstrumentationOptions.RecordException.ge
 OpenTelemetry.Instrumentation.Owin.OwinInstrumentationOptions.RecordException.set -> void
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
 Owin.AppBuilderExtensions
-static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddOwinInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder, System.Action<OpenTelemetry.Instrumentation.Owin.OwinInstrumentationOptions> configureOwinInstrumentationOptions = null) -> OpenTelemetry.Trace.TracerProviderBuilder
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddOwinInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder) -> OpenTelemetry.Trace.TracerProviderBuilder
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddOwinInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder, System.Action<OpenTelemetry.Instrumentation.Owin.OwinInstrumentationOptions> configure) -> OpenTelemetry.Trace.TracerProviderBuilder
 static Owin.AppBuilderExtensions.UseOpenTelemetry(this Owin.IAppBuilder appBuilder) -> Owin.IAppBuilder

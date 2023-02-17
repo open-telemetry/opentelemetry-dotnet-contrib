@@ -18,7 +18,6 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace OpenTelemetry.Exporter.Geneva.Stress;
@@ -61,7 +60,7 @@ internal class DummyServer
                 Socket acceptSocket = this.serverSocket.Accept();
                 Task.Run(() =>
                 {
-                    int threadId = Thread.CurrentThread.ManagedThreadId;
+                    int threadId = Environment.CurrentManagedThreadId;
                     Console.WriteLine($"ThreadID {threadId}: Start reading from socket.");
                     int totalBytes = 0;
                     try

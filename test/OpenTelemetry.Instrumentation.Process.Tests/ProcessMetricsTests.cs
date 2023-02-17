@@ -16,6 +16,8 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using OpenTelemetry.Metrics;
 using Xunit;
 
@@ -28,25 +30,46 @@ public class ProcessMetricsTests
     [Fact]
     public void ProcessMetricsAreCaptured()
     {
-        var exportedItems = new List<Metric>();
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+        var exportedItemsA = new List<Metric>();
+        var meterProviderA = Sdk.CreateMeterProviderBuilder()
             .AddProcessInstrumentation()
-            .AddInMemoryExporter(exportedItems)
+            .AddInMemoryExporter(exportedItemsA)
             .Build();
 
-        meterProvider.ForceFlush(MaxTimeToAllowForFlush);
+        meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
 
-        Assert.True(exportedItems.Count == 5);
-        var physicalMemoryMetric = exportedItems.FirstOrDefault(i => i.Name == "process.memory.usage");
+        Assert.True(exportedItemsA.Count == 5);
+        var physicalMemoryMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.usage");
         Assert.NotNull(physicalMemoryMetric);
-        var virtualMemoryMetric = exportedItems.FirstOrDefault(i => i.Name == "process.memory.virtual");
+        var virtualMemoryMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.virtual");
         Assert.NotNull(virtualMemoryMetric);
-        var cpuTimeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.time");
+        var cpuTimeMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.cpu.time");
         Assert.NotNull(cpuTimeMetric);
-        var cpuUtilizationMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.utilization");
-        Assert.NotNull(cpuUtilizationMetric);
-        var threadMetric = exportedItems.FirstOrDefault(i => i.Name == "process.threads");
+        var processorCountMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.cpu.count");
+        Assert.NotNull(processorCountMetric);
+        var threadMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.cpu.count");
         Assert.NotNull(threadMetric);
+
+        exportedItemsA.Clear();
+
+        var exportedItemsB = new List<Metric>();
+
+        using var meterProviderB = Sdk.CreateMeterProviderBuilder()
+            .AddProcessInstrumentation()
+            .AddInMemoryExporter(exportedItemsA, metricReaderOptions =>
+            {
+                metricReaderOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 1500;
+            })
+            .AddInMemoryExporter(exportedItemsB, metricReaderOptions =>
+            {
+                metricReaderOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 5000;
+            })
+            .Build();
+
+        meterProviderB.ForceFlush(MaxTimeToAllowForFlush);
+
+        Assert.True(exportedItemsA.Count == 5);
+        Assert.True(exportedItemsB.Count == 5);
     }
 
     [Fact]
@@ -87,44 +110,66 @@ public class ProcessMetricsTests
     }
 
     [Fact]
-    public void CpuUtilizationMetricsAreCaptured()
+    public void ProcessMetricsAreCapturedWhenTasksOverlap()
     {
-        var exportedItems = new List<Metric>();
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddProcessInstrumentation()
-            .AddInMemoryExporter(exportedItems)
-            .Build();
+        var exportedItemsA = new List<Metric>();
+        var exportedItemsB = new List<Metric>();
 
-        meterProvider.ForceFlush(MaxTimeToAllowForFlush);
-
-        var cpuUtilizationMetric = exportedItems.FirstOrDefault(i => i.Name == "process.cpu.utilization");
-        Assert.NotNull(cpuUtilizationMetric);
-
-        var userCpuUtilizationCaptured = false;
-        var systemCpuUtilizationCaptured = false;
-
-        var iter = cpuUtilizationMetric.GetMetricPoints().GetEnumerator();
-        while (iter.MoveNext() && (!userCpuUtilizationCaptured || !systemCpuUtilizationCaptured))
+        var tasks = new List<Task>()
         {
-            foreach (var tag in iter.Current.Tags)
+            Task.Run(() =>
             {
-                if (tag.Key == "state" && tag.Value.ToString() == "user")
-                {
-                    userCpuUtilizationCaptured = true;
-                }
-                else if (tag.Key == "state" && tag.Value.ToString() == "system")
-                {
-                    systemCpuUtilizationCaptured = true;
-                }
-            }
-        }
+                var meterProviderA = Sdk.CreateMeterProviderBuilder()
+                    .AddProcessInstrumentation()
+                    .AddInMemoryExporter(exportedItemsA)
+                    .Build();
 
-        Assert.True(userCpuUtilizationCaptured);
-        Assert.True(systemCpuUtilizationCaptured);
+                Thread.Sleep(3000); // increase the odds of 2 tasks overlaps
+
+                meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
+            }),
+
+            Task.Run(() =>
+            {
+                var meterProviderB = Sdk.CreateMeterProviderBuilder()
+                    .AddProcessInstrumentation()
+                    .AddInMemoryExporter(exportedItemsB)
+                    .Build();
+
+                Thread.Sleep(3000); // increase the odds of 2 tasks overlaps
+
+                meterProviderB.ForceFlush(MaxTimeToAllowForFlush);
+            }),
+        };
+
+        Task.WaitAll(tasks.ToArray());
+
+        Assert.True(exportedItemsA.Count == 5);
+        var physicalMemoryMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.usage");
+        Assert.NotNull(physicalMemoryMetricA);
+        var virtualMemoryMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.virtual");
+        Assert.NotNull(virtualMemoryMetricA);
+        var cpuTimeMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.cpu.time");
+        Assert.NotNull(cpuTimeMetricA);
+        var processorCountMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.cpu.count");
+        Assert.NotNull(processorCountMetricA);
+        var threadMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.threads");
+        Assert.NotNull(threadMetricA);
+
+        Assert.True(exportedItemsB.Count == 5);
+        var physicalMemoryMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.memory.usage");
+        Assert.NotNull(physicalMemoryMetricB);
+        var virtualMemoryMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.memory.virtual");
+        Assert.NotNull(virtualMemoryMetricB);
+        var cpuTimeMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.cpu.time");
+        Assert.NotNull(cpuTimeMetricB);
+        var processorCountMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.cpu.count");
+        Assert.NotNull(processorCountMetricB);
+        var threadMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.threads");
+        Assert.NotNull(threadMetricB);
     }
 
-    // See: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/831
-    [Fact(Skip = "There are known issues with this test.")]
+    [Fact]
     public void CheckValidGaugeValueWhen2MeterProviderInstancesHaveTheSameMeterName()
     {
         var exportedItemsA = new List<Metric>();
@@ -173,8 +218,6 @@ public class ProcessMetricsTests
 
         meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
 
-        // Note: This fails due to:
-        // https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry/Metrics/MetricReaderExt.cs#L244-L249
         Assert.NotEmpty(exportedItemsA);
         Assert.Empty(exportedItemsB);
     }

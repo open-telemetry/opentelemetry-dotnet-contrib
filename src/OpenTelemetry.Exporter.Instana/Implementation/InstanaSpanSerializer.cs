@@ -17,12 +17,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation;
 
-internal class InstanaSpanSerializer
+internal static class InstanaSpanSerializer
 {
 #pragma warning disable SA1310 // Field names should not contain underscore
     private const string COMMA = ",";
@@ -36,78 +37,69 @@ internal class InstanaSpanSerializer
 #pragma warning restore SA1310 // Field names should not contain underscore
     private static readonly long UnixZeroTime = new DateTime(1970, 1, 1, 0, 0, 0, 0).Ticks;
 
-    internal IEnumerator GetSpanTagsEnumerator(InstanaSpan instanaSpan)
+    internal static IEnumerator GetSpanTagsEnumerator(InstanaSpan instanaSpan)
     {
         return instanaSpan.Data.Tags.GetEnumerator();
     }
 
-    internal IEnumerator GetSpanEventsEnumerator(InstanaSpan instanaSpan)
+    internal static IEnumerator GetSpanEventsEnumerator(InstanaSpan instanaSpan)
     {
         return instanaSpan.Data.Events.GetEnumerator();
     }
 
-    internal async Task<byte[]> SerializeToByteArrayAsync(InstanaSpan instanaSpan)
+    internal static async Task SerializeToStreamWriterAsync(InstanaSpan instanaSpan, StreamWriter writer)
     {
-        using var stream = new MemoryStream();
-        using var writer = new StreamWriter(stream);
-
-        await this.SerializeToStreamWriterAsync(instanaSpan, writer);
-
-        await writer.FlushAsync();
-        return stream.ToArray();
-    }
-
-    internal async Task SerializeToStreamWriterAsync(InstanaSpan instanaSpan, StreamWriter writer)
-    {
-        await writer.WriteAsync(OPEN_BRACE);
-        await this.AppendProperty(instanaSpan.T, "t", writer);
-        await writer.WriteAsync(COMMA);
-        await this.AppendProperty(instanaSpan.S, "s", writer);
-        await writer.WriteAsync(COMMA);
+        await writer.WriteAsync(OPEN_BRACE).ConfigureAwait(false);
+        await AppendProperty(instanaSpan.T, "t", writer).ConfigureAwait(false);
+        await writer.WriteAsync(COMMA).ConfigureAwait(false);
+        await AppendProperty(instanaSpan.S, "s", writer).ConfigureAwait(false);
+        await writer.WriteAsync(COMMA).ConfigureAwait(false);
 
         if (!string.IsNullOrEmpty(instanaSpan.P))
         {
-            await this.AppendProperty(instanaSpan.P, "p", writer);
-            await writer.WriteAsync(COMMA);
+            await AppendProperty(instanaSpan.P, "p", writer).ConfigureAwait(false);
+            await writer.WriteAsync(COMMA).ConfigureAwait(false);
         }
 
         if (!string.IsNullOrEmpty(instanaSpan.Lt))
         {
-            await this.AppendProperty(instanaSpan.Lt, "lt", writer);
-            await writer.WriteAsync(COMMA);
+            await AppendProperty(instanaSpan.Lt, "lt", writer).ConfigureAwait(false);
+            await writer.WriteAsync(COMMA).ConfigureAwait(false);
         }
 
         if (instanaSpan.Tp)
         {
-            await this.AppendProperty(true.ToString().ToLower(), "tp", writer);
-            await writer.WriteAsync(COMMA);
+#pragma warning disable CA1308 // Normalize strings to uppercase
+            await AppendProperty(true.ToString().ToLowerInvariant(), "tp", writer).ConfigureAwait(false);
+#pragma warning restore CA1308 // Normalize strings to uppercase
+            await writer.WriteAsync(COMMA).ConfigureAwait(false);
         }
 
         if (instanaSpan.K != SpanKind.NOT_SET)
         {
-            await this.AppendProperty((((int)instanaSpan.K) + 1).ToString(), "k", writer);
-            await writer.WriteAsync(COMMA);
+            await AppendProperty((((int)instanaSpan.K) + 1).ToString(CultureInfo.InvariantCulture), "k", writer).ConfigureAwait(false);
+            await writer.WriteAsync(COMMA).ConfigureAwait(false);
         }
 
-        await this.AppendProperty(instanaSpan.N, "n", writer);
-        await writer.WriteAsync(COMMA);
-        await this.AppendPropertyAsync(DateToUnixMillis(instanaSpan.Ts), "ts", writer);
-        await writer.WriteAsync(COMMA);
-        await this.AppendPropertyAsync((long)(instanaSpan.D / 10_000), "d", writer);
-        await writer.WriteAsync(COMMA);
-        await this.AppendObjectAsync(this.SerializeDataAsync, "data", instanaSpan, writer);
-        await writer.WriteAsync(COMMA);
-        await this.AppendObjectAsync(SerializeFromAsync, "f", instanaSpan, writer);
-        await writer.WriteAsync(COMMA);
-        await this.AppendPropertyAsync(instanaSpan.Ec, "ec", writer);
-        await writer.WriteAsync(CLOSE_BRACE);
+        await AppendProperty(instanaSpan.N, "n", writer).ConfigureAwait(false);
+        await writer.WriteAsync(COMMA).ConfigureAwait(false);
+        await AppendPropertyAsync(DateToUnixMillis(instanaSpan.Ts), "ts", writer).ConfigureAwait(false);
+        await writer.WriteAsync(COMMA).ConfigureAwait(false);
+        await AppendPropertyAsync((long)(instanaSpan.D / 10_000), "d", writer).ConfigureAwait(false);
+        await writer.WriteAsync(COMMA).ConfigureAwait(false);
+        await AppendObjectAsync(SerializeDataAsync, "data", instanaSpan, writer).ConfigureAwait(false);
+        await writer.WriteAsync(COMMA).ConfigureAwait(false);
+        await AppendObjectAsync(SerializeFromAsync, "f", instanaSpan, writer).ConfigureAwait(false);
+        await writer.WriteAsync(COMMA).ConfigureAwait(false);
+        await AppendPropertyAsync(instanaSpan.Ec, "ec", writer).ConfigureAwait(false);
+        await writer.WriteAsync(CLOSE_BRACE).ConfigureAwait(false);
     }
 
     private static async Task SerializeFromAsync(InstanaSpan instanaSpan, StreamWriter writer)
     {
-        await writer.WriteAsync("{\"e\":\"");
-        await writer.WriteAsync(instanaSpan.F.E);
-        await writer.WriteAsync("\"}");
+        await writer.WriteAsync("{\"e\":\"").ConfigureAwait(false);
+        await writer.WriteAsync(instanaSpan.F.E).ConfigureAwait(false);
+        await writer.WriteAsync("\"}").ConfigureAwait(false);
     }
 
     private static long DateToUnixMillis(long timeStamp)
@@ -117,12 +109,12 @@ internal class InstanaSpanSerializer
 
     private static async Task SerializeTagsAsync(InstanaSpan instanaSpan, StreamWriter writer)
     {
-        await SerializeTagsLogicAsync(instanaSpan.Data.Tags, writer);
+        await SerializeTagsLogicAsync(instanaSpan.Data.Tags, writer).ConfigureAwait(false);
     }
 
     private static async Task SerializeTagsLogicAsync(Dictionary<string, string> tags, StreamWriter writer)
     {
-        await writer.WriteAsync(OPEN_BRACE);
+        await writer.WriteAsync(OPEN_BRACE).ConfigureAwait(false);
         using (var enumerator = tags.GetEnumerator())
         {
             byte i = 0;
@@ -132,18 +124,18 @@ internal class InstanaSpanSerializer
                 {
                     if (i > 0)
                     {
-                        await writer.WriteAsync(COMMA);
+                        await writer.WriteAsync(COMMA).ConfigureAwait(false);
                     }
                     else
                     {
                         i = 1;
                     }
 
-                    await writer.WriteAsync(QUOTE);
-                    await writer.WriteAsync(enumerator.Current.Key);
-                    await writer.WriteAsync(QUOTE_COLON_QUOTE);
-                    await writer.WriteAsync(enumerator.Current.Value);
-                    await writer.WriteAsync(QUOTE);
+                    await writer.WriteAsync(QUOTE).ConfigureAwait(false);
+                    await writer.WriteAsync(enumerator.Current.Key).ConfigureAwait(false);
+                    await writer.WriteAsync(QUOTE_COLON_QUOTE).ConfigureAwait(false);
+                    await writer.WriteAsync(enumerator.Current.Value).ConfigureAwait(false);
+                    await writer.WriteAsync(QUOTE).ConfigureAwait(false);
                 }
             }
             catch (InvalidOperationException)
@@ -154,37 +146,37 @@ internal class InstanaSpanSerializer
             }
         }
 
-        await writer.WriteAsync(CLOSE_BRACE);
+        await writer.WriteAsync(CLOSE_BRACE).ConfigureAwait(false);
     }
 
-    private async Task AppendProperty(string value, string name, StreamWriter json)
+    private static async Task AppendProperty(string value, string name, StreamWriter json)
     {
-        await json.WriteAsync(QUOTE);
-        await json.WriteAsync(name);
-        await json.WriteAsync(QUOTE_COLON_QUOTE);
-        await json.WriteAsync(value);
-        await json.WriteAsync(QUOTE);
+        await json.WriteAsync(QUOTE).ConfigureAwait(false);
+        await json.WriteAsync(name).ConfigureAwait(false);
+        await json.WriteAsync(QUOTE_COLON_QUOTE).ConfigureAwait(false);
+        await json.WriteAsync(value).ConfigureAwait(false);
+        await json.WriteAsync(QUOTE).ConfigureAwait(false);
     }
 
-    private async Task AppendPropertyAsync(long value, string name, StreamWriter json)
+    private static async Task AppendPropertyAsync(long value, string name, StreamWriter json)
     {
-        await json.WriteAsync(QUOTE);
-        await json.WriteAsync(name);
-        await json.WriteAsync(QUOTE_COLON);
-        await json.WriteAsync(value.ToString());
+        await json.WriteAsync(QUOTE).ConfigureAwait(false);
+        await json.WriteAsync(name).ConfigureAwait(false);
+        await json.WriteAsync(QUOTE_COLON).ConfigureAwait(false);
+        await json.WriteAsync(value.ToString(CultureInfo.InvariantCulture)).ConfigureAwait(false);
     }
 
-    private async Task AppendObjectAsync(Func<InstanaSpan, StreamWriter, Task> valueFunction, string name, InstanaSpan instanaSpan, StreamWriter json)
+    private static async Task AppendObjectAsync(Func<InstanaSpan, StreamWriter, Task> valueFunction, string name, InstanaSpan instanaSpan, StreamWriter json)
     {
-        await json.WriteAsync(QUOTE);
-        await json.WriteAsync(name);
-        await json.WriteAsync(QUOTE_COLON);
-        await valueFunction(instanaSpan, json);
+        await json.WriteAsync(QUOTE).ConfigureAwait(false);
+        await json.WriteAsync(name).ConfigureAwait(false);
+        await json.WriteAsync(QUOTE_COLON).ConfigureAwait(false);
+        await valueFunction(instanaSpan, json).ConfigureAwait(false);
     }
 
-    private async Task SerializeDataAsync(InstanaSpan instanaSpan, StreamWriter writer)
+    private static async Task SerializeDataAsync(InstanaSpan instanaSpan, StreamWriter writer)
     {
-        await writer.WriteAsync(OPEN_BRACE);
+        await writer.WriteAsync(OPEN_BRACE).ConfigureAwait(false);
         using (var enumerator = instanaSpan.Data.data.GetEnumerator())
         {
             byte i = 0;
@@ -194,18 +186,18 @@ internal class InstanaSpanSerializer
                 {
                     if (i > 0)
                     {
-                        await writer.WriteAsync(COMMA);
+                        await writer.WriteAsync(COMMA).ConfigureAwait(false);
                     }
                     else
                     {
                         i = 1;
                     }
 
-                    await writer.WriteAsync(QUOTE);
-                    await writer.WriteAsync(enumerator.Current.Key);
-                    await writer.WriteAsync(QUOTE_COLON_QUOTE);
-                    await writer.WriteAsync(enumerator.Current.Value.ToString());
-                    await writer.WriteAsync(QUOTE);
+                    await writer.WriteAsync(QUOTE).ConfigureAwait(false);
+                    await writer.WriteAsync(enumerator.Current.Key).ConfigureAwait(false);
+                    await writer.WriteAsync(QUOTE_COLON_QUOTE).ConfigureAwait(false);
+                    await writer.WriteAsync(enumerator.Current.Value.ToString()).ConfigureAwait(false);
+                    await writer.WriteAsync(QUOTE).ConfigureAwait(false);
                 }
             }
             catch (InvalidOperationException)
@@ -218,67 +210,67 @@ internal class InstanaSpanSerializer
 
         if (instanaSpan.Data.Tags?.Count > 0)
         {
-            await writer.WriteAsync(COMMA);
+            await writer.WriteAsync(COMMA).ConfigureAwait(false);
 
             // serialize tags
-            await this.AppendObjectAsync(SerializeTagsAsync, InstanaExporterConstants.TAGS_FIELD, instanaSpan, writer);
+            await AppendObjectAsync(SerializeTagsAsync, InstanaExporterConstants.TAGS_FIELD, instanaSpan, writer).ConfigureAwait(false);
         }
 
         if (instanaSpan.Data.Events?.Count > 0)
         {
-            await writer.WriteAsync(COMMA);
+            await writer.WriteAsync(COMMA).ConfigureAwait(false);
 
             // serialize tags
-            await this.AppendObjectAsync(this.SerializeEventsAsync, InstanaExporterConstants.EVENTS_FIELD, instanaSpan, writer);
+            await AppendObjectAsync(SerializeEventsAsync, InstanaExporterConstants.EVENTS_FIELD, instanaSpan, writer).ConfigureAwait(false);
         }
 
-        await writer.WriteAsync(CLOSE_BRACE);
+        await writer.WriteAsync(CLOSE_BRACE).ConfigureAwait(false);
     }
 
-    private async Task SerializeEventsAsync(InstanaSpan instanaSpan, StreamWriter writer)
+    private static async Task SerializeEventsAsync(InstanaSpan instanaSpan, StreamWriter writer)
     {
         using (var enumerator = instanaSpan.Data.Events.GetEnumerator())
         {
             byte i = 0;
             try
             {
-                await writer.WriteAsync("[");
+                await writer.WriteAsync("[").ConfigureAwait(false);
                 while (enumerator.MoveNext())
                 {
                     if (i > 0)
                     {
-                        await writer.WriteAsync(COMMA);
+                        await writer.WriteAsync(COMMA).ConfigureAwait(false);
                     }
                     else
                     {
                         i = 1;
                     }
 
-                    await writer.WriteAsync(OPEN_BRACE);
-                    await writer.WriteAsync(QUOTE);
-                    await writer.WriteAsync(InstanaExporterConstants.EVENT_NAME_FIELD);
-                    await writer.WriteAsync(QUOTE_COLON_QUOTE);
-                    await writer.WriteAsync(enumerator.Current.Name);
-                    await writer.WriteAsync(QUOTE_COMMA_QUOTE);
-                    await writer.WriteAsync(InstanaExporterConstants.EVENT_TIMESTAMP_FIELD);
-                    await writer.WriteAsync(QUOTE_COLON_QUOTE);
-                    await writer.WriteAsync(DateToUnixMillis(enumerator.Current.Ts).ToString());
-                    await writer.WriteAsync(QUOTE);
+                    await writer.WriteAsync(OPEN_BRACE).ConfigureAwait(false);
+                    await writer.WriteAsync(QUOTE).ConfigureAwait(false);
+                    await writer.WriteAsync(InstanaExporterConstants.EVENT_NAME_FIELD).ConfigureAwait(false);
+                    await writer.WriteAsync(QUOTE_COLON_QUOTE).ConfigureAwait(false);
+                    await writer.WriteAsync(enumerator.Current.Name).ConfigureAwait(false);
+                    await writer.WriteAsync(QUOTE_COMMA_QUOTE).ConfigureAwait(false);
+                    await writer.WriteAsync(InstanaExporterConstants.EVENT_TIMESTAMP_FIELD).ConfigureAwait(false);
+                    await writer.WriteAsync(QUOTE_COLON_QUOTE).ConfigureAwait(false);
+                    await writer.WriteAsync(DateToUnixMillis(enumerator.Current.Ts).ToString(CultureInfo.InvariantCulture)).ConfigureAwait(false);
+                    await writer.WriteAsync(QUOTE).ConfigureAwait(false);
 
                     if (enumerator.Current.Tags?.Count > 0)
                     {
-                        await writer.WriteAsync(COMMA);
-                        await writer.WriteAsync(QUOTE);
-                        await writer.WriteAsync(InstanaExporterConstants.TAGS_FIELD);
-                        await writer.WriteAsync(QUOTE);
-                        await writer.WriteAsync(COLON);
-                        await SerializeTagsLogicAsync(enumerator.Current.Tags, writer);
+                        await writer.WriteAsync(COMMA).ConfigureAwait(false);
+                        await writer.WriteAsync(QUOTE).ConfigureAwait(false);
+                        await writer.WriteAsync(InstanaExporterConstants.TAGS_FIELD).ConfigureAwait(false);
+                        await writer.WriteAsync(QUOTE).ConfigureAwait(false);
+                        await writer.WriteAsync(COLON).ConfigureAwait(false);
+                        await SerializeTagsLogicAsync(enumerator.Current.Tags, writer).ConfigureAwait(false);
                     }
 
-                    await writer.WriteAsync(CLOSE_BRACE);
+                    await writer.WriteAsync(CLOSE_BRACE).ConfigureAwait(false);
                 }
 
-                await writer.WriteAsync("]");
+                await writer.WriteAsync("]").ConfigureAwait(false);
             }
             catch (InvalidOperationException)
             {
