@@ -14,10 +14,10 @@
 // limitations under the License.
 // </copyright>
 
+using OpenTelemetry.Instrumentation.Cassandra;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Metrics;
 
-namespace OpenTelemetry.Instrumentation.Cassandra;
+namespace OpenTelemetry.Metrics;
 
 /// <summary>
 /// Extension methods to simplify registering of dependency instrumentation.

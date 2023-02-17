@@ -30,7 +30,7 @@ public static class CassandraBuilderExtensions
     /// <param name="builder">Cassandra builder.</param>
     /// <param name="options">Cassandra driver metrics options.</param>
     /// <returns>Returning Cassandra builder.</returns>
-    public static Builder WithOpenTelemetryMetrics(this Builder builder, DriverMetricsOptions? options = null)
+    public static Builder WithOpenTelemetryMetrics(this Builder builder, DriverMetricsOptions options = null)
     {
         return builder.WithMetrics(new CassandraDriverMetricsProvider(), options ?? GetDefaultOptions());
     }

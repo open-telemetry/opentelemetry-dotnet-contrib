@@ -1,0 +1,2 @@
+static OpenTelemetry.Instrumentation.Cassandra.CassandraBuilderExtensions(this Cassandra.Builder! builder, Cassandra.Metrics.DriverMetricsOptions options) -> Cassandra.Builder!
+static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddCassandraInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder! builder) -> OpenTelemetry.Metrics.MeterProviderBuilder!
