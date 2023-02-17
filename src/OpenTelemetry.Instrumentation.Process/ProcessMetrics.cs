@@ -24,25 +24,16 @@ using Diagnostics = System.Diagnostics;
 
 namespace OpenTelemetry.Instrumentation.Process;
 
-internal sealed class ProcessMetrics : IDisposable
+internal sealed class ProcessMetrics
 {
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
     internal static readonly string MeterName = AssemblyName.Name;
 
-    private readonly Meter meterInstance = new(MeterName, AssemblyName.Version.ToString());
+    private static readonly Meter MeterInstance = new(MeterName, AssemblyName.Version.ToString());
 
-    // vars for calculating CPU utilization
-    private DateTime lastCollectionTimeUtc;
-    private double lastCollectedUserProcessorTime;
-    private double lastCollectedPrivilegedProcessorTime;
-
-    public ProcessMetrics(ProcessInstrumentationOptions options)
+    static ProcessMetrics()
     {
-        this.lastCollectionTimeUtc = DateTime.UtcNow;
-        this.lastCollectedUserProcessorTime = Diagnostics.Process.GetCurrentProcess().UserProcessorTime.TotalSeconds;
-        this.lastCollectedPrivilegedProcessorTime = Diagnostics.Process.GetCurrentProcess().PrivilegedProcessorTime.TotalSeconds;
-
-        this.meterInstance.CreateObservableUpDownCounter(
+        MeterInstance.CreateObservableUpDownCounter(
             "process.memory.usage",
             () =>
             {
@@ -51,7 +42,7 @@ internal sealed class ProcessMetrics : IDisposable
             unit: "By",
             description: "The amount of physical memory allocated for this process.");
 
-        this.meterInstance.CreateObservableUpDownCounter(
+        MeterInstance.CreateObservableUpDownCounter(
             "process.memory.virtual",
             () =>
             {
@@ -60,7 +51,7 @@ internal sealed class ProcessMetrics : IDisposable
             unit: "By",
             description: "The amount of committed virtual memory for this process.");
 
-        this.meterInstance.CreateObservableCounter(
+        MeterInstance.CreateObservableCounter(
             "process.cpu.time",
             () =>
             {
@@ -74,16 +65,16 @@ internal sealed class ProcessMetrics : IDisposable
             unit: "s",
             description: "Total CPU seconds broken down by different states.");
 
-        this.meterInstance.CreateObservableGauge(
-            "process.cpu.utilization",
+        MeterInstance.CreateObservableUpDownCounter(
+            "process.cpu.count",
             () =>
             {
-                return this.GetCpuUtilization();
+                return Environment.ProcessorCount;
             },
-            unit: "1",
-            description: "Difference in process.cpu.time since the last measurement, divided by the elapsed time and number of CPUs available to the process.");
+            unit: "{processors}",
+            description: "The number of processors (CPU cores) available to the current process.");
 
-        this.meterInstance.CreateObservableUpDownCounter(
+        MeterInstance.CreateObservableUpDownCounter(
             "process.threads",
             () =>
             {
@@ -93,26 +84,7 @@ internal sealed class ProcessMetrics : IDisposable
             description: "Process threads count.");
     }
 
-    public void Dispose()
+    public ProcessMetrics(ProcessInstrumentationOptions options)
     {
-        this.meterInstance.Dispose();
-    }
-
-    private IEnumerable<Measurement<double>> GetCpuUtilization()
-    {
-        var process = Diagnostics.Process.GetCurrentProcess();
-        var elapsedTimeForAllCpus = (DateTime.UtcNow - this.lastCollectionTimeUtc).TotalSeconds * Environment.ProcessorCount;
-        var userProcessorUtilization = (process.UserProcessorTime.TotalSeconds - this.lastCollectedUserProcessorTime) / elapsedTimeForAllCpus;
-        var privilegedProcessorUtilization = (process.PrivilegedProcessorTime.TotalSeconds - this.lastCollectedPrivilegedProcessorTime) / elapsedTimeForAllCpus;
-
-        this.lastCollectionTimeUtc = DateTime.UtcNow;
-        this.lastCollectedUserProcessorTime = process.UserProcessorTime.TotalSeconds;
-        this.lastCollectedPrivilegedProcessorTime = process.PrivilegedProcessorTime.TotalSeconds;
-
-        return new[]
-        {
-            new Measurement<double>(Math.Min(userProcessorUtilization, 1D), new KeyValuePair<string, object?>("state", "user")),
-            new Measurement<double>(Math.Min(privilegedProcessorUtilization, 1D), new KeyValuePair<string, object?>("state", "system")),
-        };
     }
 }

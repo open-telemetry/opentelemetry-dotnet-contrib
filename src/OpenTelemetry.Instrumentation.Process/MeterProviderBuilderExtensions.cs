@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using OpenTelemetry.Instrumentation.Process;
 using OpenTelemetry.Internal;
 
@@ -26,29 +25,17 @@ namespace OpenTelemetry.Metrics;
 public static class MeterProviderBuilderExtensions
 {
     /// <summary>
-    /// Enables runtime instrumentation.
+    /// Enables process instrumentation.
     /// </summary>
     /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
-    /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
-    public static MeterProviderBuilder AddProcessInstrumentation(this MeterProviderBuilder builder) => AddProcessInstrumentation(builder, configure: null);
-
-    /// <summary>
-    /// Enables runtime instrumentation.
-    /// </summary>
-    /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
-    /// <param name="configure">Runtime metrics options.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
     public static MeterProviderBuilder AddProcessInstrumentation(
-        this MeterProviderBuilder builder,
-        Action<ProcessInstrumentationOptions>? configure)
+        this MeterProviderBuilder builder)
     {
         Guard.ThrowIfNull(builder);
 
         var options = new ProcessInstrumentationOptions();
-        configure?.Invoke(options);
-
         builder.AddMeter(ProcessMetrics.MeterName);
-
         return builder.AddInstrumentation(() => new ProcessMetrics(options));
     }
 }

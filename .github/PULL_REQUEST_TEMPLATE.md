@@ -8,3 +8,4 @@ For significant contributions please make sure you have completed the following 
 
 * [ ] Appropriate `CHANGELOG.md` updated for non-trivial changes
 * [ ] Design discussion issue #
+* [ ] Changes in public API reviewed

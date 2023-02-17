@@ -2,8 +2,18 @@
 
 ## Unreleased
 
+## 1.0.0-beta.3
+
+Released 2023-Feb-07
+
 * Sampler will now return `RecordOnly` SamplingResult when the telemetry is
-sampled out.
+sampled instead of `Drop`. This will result in `Activity` to be created always
+and populated with all information such as tag, events etc. This is done in
+order to allow metrics collection from the generated activities.
+
+> **Note**
+> This change will have no impact on the overall sampling behavior,
+but may have additional performance overhead from creating more activities.
 ([#933](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/933))
 
 ## 1.0.0-beta.2

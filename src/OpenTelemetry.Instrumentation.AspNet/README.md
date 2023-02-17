@@ -8,7 +8,8 @@ Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main
 which instruments [ASP.NET](https://docs.microsoft.com/aspnet/overview) and
 collect metrics and traces about incoming web requests.
 
-**Note: This component is based on the OpenTelemetry semantic conventions for
+> **Note**
+> This component is based on the OpenTelemetry semantic conventions for
 [metrics](https://github.com/open-telemetry/opentelemetry-specification/tree/main/specification/metrics/semantic_conventions)
 and
 [traces](https://github.com/open-telemetry/opentelemetry-specification/tree/main/specification/trace/semantic_conventions).
@@ -18,7 +19,7 @@ and hence, this package is a [pre-release](https://github.com/open-telemetry/ope
 Until a [stable
 version](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/telemetry-stability.md)
 is released, there can be breaking changes. You can track the progress from
-[milestones](https://github.com/open-telemetry/opentelemetry-dotnet/milestone/23).**
+[milestones](https://github.com/open-telemetry/opentelemetry-dotnet/milestone/23).
 
 ## Steps to enable OpenTelemetry.Instrumentation.AspNet
 
