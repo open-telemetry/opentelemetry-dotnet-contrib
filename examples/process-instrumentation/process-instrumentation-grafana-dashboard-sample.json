@@ -33,7 +33,7 @@
         "type": "prometheus",
         "uid": "InQLY014z"
       },
-      "description": "The amount of committed virtual memory for this process. One way to think of this is all the address space this process can read from without trigerring an access violation; this includes memory backed solely by RAM, by a swapfile/pagefile and by other mapped files on disk.",
+      "description": "The amount of committed virtual memory. One way to think of this is all the address space this process can read from without triggering an access violation; this includes memory backed solely by RAM, by a swapfile/pagefile and by other mapped files on disk.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -151,7 +151,7 @@
         "type": "prometheus",
         "uid": "InQLY014z"
       },
-      "description": "The amount of physical memory allocated for this process.",
+      "description": "the amount of physical memory allocated",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -244,7 +244,7 @@
         "type": "prometheus",
         "uid": "InQLY014z"
       },
-      "description": "Total CPU seconds broken down by states.\nProcess.UserProcessorTime: Gets the user processor time for this process.\n\nProcess.PrivilegedProcessorTime: Gets the privileged processor time for this process.",
+      "description": "Total CPU seconds broken down by states.\nProcess.UserProcessorTime: Gets the user processor time.\nProcess.PrivilegedProcessorTime: Gets the privileged processor time.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -560,7 +560,7 @@
         "type": "prometheus",
         "uid": "InQLY014z"
       },
-      "description": "The number of processors (CPU cores) available to the current process.",
+      "description": "The number of processors (CPU cores) available.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -635,6 +635,6 @@
   "timezone": "",
   "title": "process instrumentation",
   "uid": "WPv6P0JVk",
-  "version": 5,
+  "version": 6,
   "weekStart": ""
 }
