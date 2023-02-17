@@ -245,7 +245,7 @@ public class GrpcCoreClientInterceptorTests
                 Assert.True(Activity.Current.Source == GrpcCoreInstrumentation.ActivitySource);
                 Assert.Equal(parentActivity.Id, Activity.Current.ParentId);
 
-                // Set a tag on the Activity and make sure we can see it afterwardsd
+                // Set a tag on the Activity and make sure we can see it afterwards
                 Activity.Current.SetTag("foo", "bar");
                 return metadata;
             });
@@ -321,7 +321,7 @@ public class GrpcCoreClientInterceptorTests
     /// <param name="recordedMessages">if set to <c>true</c> [recorded messages].</param>
     internal static void ValidateCommonActivityTags(
         Activity activity,
-        Grpc.Core.StatusCode expectedStatusCode = Grpc.Core.StatusCode.OK,
+        StatusCode expectedStatusCode = StatusCode.OK,
         bool recordedMessages = false)
     {
         Assert.NotNull(activity);

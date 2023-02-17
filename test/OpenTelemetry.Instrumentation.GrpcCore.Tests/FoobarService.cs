@@ -250,7 +250,7 @@ internal class FoobarService : Foobar.FoobarBase
     /// <summary>
     /// Wraps server shutdown with an IDisposable pattern.
     /// </summary>
-    /// <seealso cref="System.IDisposable" />
+    /// <seealso cref="IDisposable" />
     public sealed class DisposableServer : IDisposable
     {
         /// <summary>

@@ -150,8 +150,15 @@ public class UnixDomainSocketDataTransportTests
                 serverSocket.Shutdown(SocketShutdown.Both);
                 serverSocket.Disconnect(false);
                 serverSocket.Dispose();
-                server.Shutdown(SocketShutdown.Both);
-                server.Disconnect(false);
+
+                if (server.Connected)
+                {
+                    // On MacOS the 'server' socket never shows up as connected
+                    // so trying to shutdown/disconnect throws an exception.
+                    server.Shutdown(SocketShutdown.Both);
+                    server.Disconnect(false);
+                }
+
                 server.Dispose();
                 try
                 {
