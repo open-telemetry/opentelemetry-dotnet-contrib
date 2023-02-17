@@ -8,6 +8,8 @@ components:
     - lupengamzn
   src/OpenTelemetry.Contrib.Instrumentation.AWS/:
     - srprash
+  src/OpenTelemetry.Contrib.Instrumentation.Cassandra/:
+    - xsoheilalizadeh
   src/OpenTelemetry.Exporter.Geneva/:
     - cijothomas
     - codeblanch
@@ -114,3 +116,5 @@ components:
     - xiang17
   test/OpenTelemetry.Instrumentation.Wcf.Tests/:
     - codeblanch
+  test/OpenTelemetry.Contrib.Instrumentation.Cassandra.Tests/:
+    - xsoheilalizadeh
