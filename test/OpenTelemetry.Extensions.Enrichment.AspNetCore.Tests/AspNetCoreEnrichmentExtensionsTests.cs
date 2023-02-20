@@ -129,7 +129,7 @@ public sealed class AspNetCoreEnrichmentExtensionsTests
                     .WithTracing(builder => builder
                         .AddAspNetCoreInstrumentation()
                         .AddInMemoryExporter(exportedItems))
-                        .StartWithHost().Services
+                        .Services
                     .AddAspNetCoreTraceEnricher<MyAspNetCoreTraceEnricher>()
                     .AddAspNetCoreTraceEnricher<MyAspNetCoreTraceEnricher2>()
                     .AddRouting();
@@ -175,7 +175,7 @@ public sealed class AspNetCoreEnrichmentExtensionsTests
                     .AddOpenTelemetry()
                     .WithTracing(builder => builder
                         .AddAspNetCoreInstrumentation())
-                        .StartWithHost().Services
+                        .Services
                     .AddAspNetCoreTraceEnricher(enricher1.Object)
                     .AddAspNetCoreTraceEnricher(enricher2.Object)
                     .AddRouting();

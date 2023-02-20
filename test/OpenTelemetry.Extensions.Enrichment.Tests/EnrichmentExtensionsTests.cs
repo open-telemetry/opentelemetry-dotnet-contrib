@@ -77,7 +77,6 @@ public sealed class EnrichmentExtensionsTests
                 .AddOpenTelemetry()
                 .WithTracing(builder => builder
                     .AddSource(SourceName))
-                .StartWithHost()
                 .Services
                 .AddTraceEnricher<MyTraceEnricher>()
                 .AddTraceEnricher<MyTraceEnricher2>())
@@ -113,7 +112,6 @@ public sealed class EnrichmentExtensionsTests
                 .AddOpenTelemetry()
                 .WithTracing(builder => builder
                     .AddSource(SourceName))
-                .StartWithHost()
                 .Services
                 .AddTraceEnricher(enricher1.Object)
                 .AddTraceEnricher(enricher2.Object))
