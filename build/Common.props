@@ -7,6 +7,8 @@
     <DefineConstants>$(DefineConstants);SIGNED</DefineConstants>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <NetFrameworkMinimumSupportedVersion>net462</NetFrameworkMinimumSupportedVersion>
+    <NetMinimumSupportedVersion>net6.0</NetMinimumSupportedVersion>
+    <NetStandardMinimumSupportedVersion>netstandard2.0</NetStandardMinimumSupportedVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">

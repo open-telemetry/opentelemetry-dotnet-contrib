@@ -1,0 +1,19 @@
+OpenTelemetry.Extensions.Enrichment.AspNetCore.AspNetCoreEnrichmentExtensions
+OpenTelemetry.Extensions.Enrichment.AspNetCore.AspNetCoreTraceEnricher
+OpenTelemetry.Extensions.Enrichment.AspNetCore.AspNetCoreTraceEnricher.AspNetCoreTraceEnricher() -> void
+OpenTelemetry.Extensions.Enrichment.AspNetCore.BaseAspNetCoreEnricher<T>
+OpenTelemetry.Extensions.Enrichment.AspNetCore.BaseAspNetCoreEnricher<T>.BaseAspNetCoreEnricher() -> void
+OpenTelemetry.Extensions.Enrichment.BaseAspNetCoreEnricher<T>
+OpenTelemetry.Extensions.Enrichment.BaseAspNetCoreEnricher<T>.BaseAspNetCoreEnricher() -> void
+OpenTelemetry.Extensions.Enrichment.BaseAspNetCoreTraceEnricher
+OpenTelemetry.Extensions.Enrichment.BaseAspNetCoreTraceEnricher.BaseAspNetCoreTraceEnricher() -> void
+static OpenTelemetry.Extensions.Enrichment.AspNetCore.AspNetCoreEnrichmentExtensions.AddAspNetCoreTraceEnricher(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, OpenTelemetry.Extensions.Enrichment.AspNetCore.AspNetCoreTraceEnricher! enricher) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static OpenTelemetry.Extensions.Enrichment.AspNetCore.AspNetCoreEnrichmentExtensions.AddAspNetCoreTraceEnricher(this OpenTelemetry.Trace.TracerProviderBuilder! builder, OpenTelemetry.Extensions.Enrichment.AspNetCore.AspNetCoreTraceEnricher! enricher) -> OpenTelemetry.Trace.TracerProviderBuilder!
+static OpenTelemetry.Extensions.Enrichment.AspNetCore.AspNetCoreEnrichmentExtensions.AddAspNetCoreTraceEnricher<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static OpenTelemetry.Extensions.Enrichment.AspNetCore.AspNetCoreEnrichmentExtensions.AddAspNetCoreTraceEnricher<T>(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder!
+virtual OpenTelemetry.Extensions.Enrichment.AspNetCore.BaseAspNetCoreEnricher<T>.EnrichWithException(T enrichmentBag, System.Exception! exception) -> void
+virtual OpenTelemetry.Extensions.Enrichment.AspNetCore.BaseAspNetCoreEnricher<T>.EnrichWithHttpRequest(T enrichmentBag, Microsoft.AspNetCore.Http.HttpRequest! request) -> void
+virtual OpenTelemetry.Extensions.Enrichment.AspNetCore.BaseAspNetCoreEnricher<T>.EnrichWithHttpResponse(T enrichmentBag, Microsoft.AspNetCore.Http.HttpResponse! response) -> void
+virtual OpenTelemetry.Extensions.Enrichment.BaseAspNetCoreEnricher<T>.EnrichWithException(T enrichmentBag, System.Exception! exception) -> void
+virtual OpenTelemetry.Extensions.Enrichment.BaseAspNetCoreEnricher<T>.EnrichWithHttpRequest(T enrichmentBag, System.Net.Http.HttpRequestMessage! request) -> void
+virtual OpenTelemetry.Extensions.Enrichment.BaseAspNetCoreEnricher<T>.EnrichWithHttpResponse(T enrichmentBag, System.Net.Http.HttpResponseMessage! response) -> void
