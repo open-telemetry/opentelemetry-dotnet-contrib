@@ -70,6 +70,26 @@ public sealed class EnrichmentExtensionsTests
     }
 
     [Fact]
+    public void TracerProviderBuilder_AddTraceEnricherAction_RegistersEnricher()
+    {
+        const string testKey = "key";
+        const string testValue = "value";
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSource(SourceName)
+            .AddTraceEnricher(bag => bag.Add(testKey, testValue))
+            .Build();
+
+        using var source1 = new ActivitySource(SourceName);
+
+        using (var activity = source1.StartActivity(SourceName))
+        {
+            activity.Stop();
+            Assert.Equal(testValue, (string)activity.GetTagItem(testKey));
+        }
+    }
+
+    [Fact]
     public async Task IServiceCollection_AddTraceEnricherT_RegistersEnricher()
     {
         using var host = Host.CreateDefaultBuilder()

@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Internal;
@@ -46,6 +47,25 @@ public static class EnrichmentExtensions
             {
                 var proc = sp.GetRequiredService<TraceEnrichmentProcessor>();
                 proc.AddEnricher(enricher);
+            });
+        }
+
+        return builder;
+    }
+
+    public static TracerProviderBuilder AddTraceEnricher(this TracerProviderBuilder builder, Action<TraceEnrichmentBag> enrichmentAction)
+    {
+        Guard.ThrowIfNull(builder);
+        Guard.ThrowIfNull(enrichmentAction);
+
+        _ = builder.TryAddEnrichment();
+
+        if (builder is IDeferredTracerProviderBuilder deferredTracerProviderBuilder)
+        {
+            deferredTracerProviderBuilder.Configure((sp, builder) =>
+            {
+                var proc = sp.GetRequiredService<TraceEnrichmentProcessor>();
+                proc.AddEnricher(new InternalTraceEnricher(enrichmentAction));
             });
         }
 
