@@ -24,7 +24,9 @@ public class TraceEnrichmentBag : BaseEnrichmentBag
 
     public override void Add(string key, object value)
     {
-        this.Activity?.SetTag(key, value);
+        Debug.Assert(this.Activity != null, "trace enricher was null");
+
+        this.Activity!.SetTag(key, value);
     }
 
     public override void Clear()
