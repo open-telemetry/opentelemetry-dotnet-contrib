@@ -17,6 +17,7 @@
 using System;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
@@ -62,11 +63,9 @@ public static class EnrichmentExtensions
 
         if (builder is IDeferredTracerProviderBuilder deferredTracerProviderBuilder)
         {
-            deferredTracerProviderBuilder.Configure((sp, builder) =>
-            {
-                var proc = sp.GetRequiredService<TraceEnrichmentProcessor>();
-                proc.AddEnricher(new InternalTraceEnricher(enrichmentAction));
-            });
+            EnrichmentActions.Actions.Add(enrichmentAction);
+
+            builder.ConfigureServices(services => services.TryAddSingleton<TraceEnricher, EnrichmentActions>());
         }
 
         return builder;
