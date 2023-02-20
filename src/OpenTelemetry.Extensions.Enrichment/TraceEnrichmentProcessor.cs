@@ -14,28 +14,32 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.Extensions.ObjectPool;
 
 namespace OpenTelemetry.Extensions.Enrichment;
 
 internal sealed class TraceEnrichmentProcessor : BaseProcessor<Activity>
 {
-    private readonly List<BaseTraceEnricher> traceEnrichers = new();
     private readonly ObjectPool<TraceEnrichmentBag> propertyBagPool =
         new DefaultObjectPool<TraceEnrichmentBag>(PooledBagPolicy<TraceEnrichmentBag>.Instance);
 
+    private BaseTraceEnricher[] traceEnrichers;
+
     public TraceEnrichmentProcessor(IEnumerable<BaseTraceEnricher> traceEnrichers)
     {
-        this.traceEnrichers.AddRange(traceEnrichers);
+        this.traceEnrichers = traceEnrichers.ToArray();
     }
 
     public void AddEnricher(BaseTraceEnricher traceEnricher)
     {
         Debug.Assert(traceEnricher != null, "trace enricher was null");
 
-        this.traceEnrichers.Add(traceEnricher!);
+        Array.Resize(ref this.traceEnrichers, this.traceEnrichers.Length + 1);
+        this.traceEnrichers[this.traceEnrichers.Length - 1] = traceEnricher!;
     }
 
     public override void OnEnd(Activity activity)
