@@ -8,6 +8,7 @@ OpenTelemetry.Extensions.Enrichment.EnrichmentExtensions
 OpenTelemetry.Extensions.Enrichment.PooledBagPolicy<T>
 OpenTelemetry.Extensions.Enrichment.PooledBagPolicy<T>.PooledBagPolicy() -> void
 OpenTelemetry.Extensions.Enrichment.TraceEnricher
+OpenTelemetry.Extensions.Enrichment.TraceEnricher.TraceEnricher() -> void
 OpenTelemetry.Extensions.Enrichment.TraceEnrichmentBag
 OpenTelemetry.Extensions.Enrichment.TraceEnrichmentBag.Activity.get -> System.Diagnostics.Activity?
 OpenTelemetry.Extensions.Enrichment.TraceEnrichmentBag.Activity.set -> void
