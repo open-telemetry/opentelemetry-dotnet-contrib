@@ -131,7 +131,7 @@ public class DockerResourceDetectorTests
             tempFile.Write(testCase.Line);
             Assert.Equal(
                 testCase.ExpectedContainerId,
-                this.GetContainerId(dockerResourceDetector.BuildResource(tempFile.FilePath, testCase.CgroupVersion)));
+                GetContainerId(dockerResourceDetector.BuildResource(tempFile.FilePath, testCase.CgroupVersion)));
         }
     }
 
@@ -173,13 +173,13 @@ public class DockerResourceDetectorTests
         Assert.Equal(dockerResourceDetector.BuildResource(Path.GetTempPath(), DockerResourceDetector.ParseMode.V2), Resource.Empty);
     }
 
-    private string GetContainerId(Resource resource)
+    private static string GetContainerId(Resource resource)
     {
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
         return resourceAttributes[DockerSemanticConventions.AttributeContainerID]?.ToString();
     }
 
-    private class TestCase
+    private sealed class TestCase
     {
         public string Name { get; set; }
 
