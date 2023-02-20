@@ -23,5 +23,5 @@
   <ItemGroup>
     <ProjectReference Include="..\OpenTelemetry.Extensions.Enrichment\OpenTelemetry.Extensions.Enrichment.csproj" />
   </ItemGroup>
-  
+
 </Project>

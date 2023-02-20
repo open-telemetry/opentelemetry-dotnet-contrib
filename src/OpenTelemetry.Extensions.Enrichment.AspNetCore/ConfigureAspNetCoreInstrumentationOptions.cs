@@ -20,7 +20,9 @@ using OpenTelemetry.Instrumentation.AspNetCore;
 
 namespace Microsoft.R9.Extensions.HttpClient.Tracing.Internal;
 
+#pragma warning disable CA1812 // Class is instantiated through dependency injection
 internal sealed class ConfigureAspNetCoreInstrumentationOptions : IConfigureOptions<AspNetCoreInstrumentationOptions>
+#pragma warning restore CA1812 // Class is instantiated through dependency injection
 {
     private readonly AspNetCoreTraceEnrichmentProcessor processor;
 

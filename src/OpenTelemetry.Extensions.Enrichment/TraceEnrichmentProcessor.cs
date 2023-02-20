@@ -21,7 +21,9 @@ using System.Linq;
 
 namespace OpenTelemetry.Extensions.Enrichment;
 
+#pragma warning disable CA1812 // Class is instantiated through dependency injection
 internal sealed class TraceEnrichmentProcessor : BaseProcessor<Activity>
+#pragma warning restore CA1812 // Class is instantiated through dependency injection
 {
     private TraceEnricher[] traceEnrichers;
 

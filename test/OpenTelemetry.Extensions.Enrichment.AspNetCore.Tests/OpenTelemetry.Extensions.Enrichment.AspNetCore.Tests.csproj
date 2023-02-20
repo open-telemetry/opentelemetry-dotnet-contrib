@@ -31,7 +31,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\OpenTelemetry.Extensions.Enrichment.AspNetCore\OpenTelemetry.Extensions.Enrichment.AspNetCore.csproj" />
   </ItemGroup>
