@@ -31,19 +31,10 @@ internal sealed class ConfigureAspNetCoreInstrumentationOptions : IConfigureOpti
 
     public void Configure(AspNetCoreInstrumentationOptions options)
     {
-        options.EnrichWithHttpRequest = (activity, request) =>
-        {
-            this.processor.EnrichWithHttpRequest(activity, request);
-        };
+        options.EnrichWithHttpRequest = this.processor.EnrichWithHttpRequest;
 
-        options.EnrichWithHttpResponse = (activity, response) =>
-        {
-            this.processor.EnrichWithHttpResponse(activity, response);
-        };
+        options.EnrichWithHttpResponse = this.processor.EnrichWithHttpResponse;
 
-        options.EnrichWithException = (activity, exception) =>
-        {
-            this.processor.EnrichWithException(activity, exception);
-        };
+        options.EnrichWithException = this.processor.EnrichWithException;
     }
 }

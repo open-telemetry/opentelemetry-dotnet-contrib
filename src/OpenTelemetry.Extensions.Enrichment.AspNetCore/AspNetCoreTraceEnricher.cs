@@ -14,8 +14,22 @@
 // limitations under the License.
 // </copyright>
 
+using System;
+using Microsoft.AspNetCore.Http;
+
 namespace OpenTelemetry.Extensions.Enrichment.AspNetCore;
 
 public abstract class AspNetCoreTraceEnricher : BaseAspNetCoreEnricher<TraceEnrichmentBag>
 {
+    public virtual void EnrichWithHttpRequest(ref TraceEnrichmentBag enrichmentBag, HttpRequest request)
+    {
+    }
+
+    public virtual void EnrichWithHttpResponse(ref TraceEnrichmentBag enrichmentBag, HttpResponse response)
+    {
+    }
+
+    public virtual void EnrichWithException(ref TraceEnrichmentBag enrichmentBag, Exception exception)
+    {
+    }
 }

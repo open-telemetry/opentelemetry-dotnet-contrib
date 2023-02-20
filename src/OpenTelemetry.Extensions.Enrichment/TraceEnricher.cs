@@ -14,8 +14,14 @@
 // limitations under the License.
 // </copyright>
 
+using System;
+
 namespace OpenTelemetry.Extensions.Enrichment;
 
 public abstract class TraceEnricher : BaseEnricher<TraceEnrichmentBag>
 {
+    public virtual void Enrich(ref TraceEnrichmentBag traceEnrichmentBag)
+    {
+        throw new NotImplementedException();
+    }
 }

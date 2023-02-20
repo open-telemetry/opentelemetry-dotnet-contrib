@@ -18,21 +18,19 @@ using System.Diagnostics;
 
 namespace OpenTelemetry.Extensions.Enrichment;
 
-public class TraceEnrichmentBag : BaseEnrichmentBag
+#pragma warning disable CA1815 // Override equals and operator equals on value types
+public struct TraceEnrichmentBag
+#pragma warning restore CA1815 // Override equals and operator equals on value types
 {
-    public Activity? Activity { get; set; }
-
-    public override void Add(string key, object value)
+    public TraceEnrichmentBag(Activity activity)
     {
-        Debug.Assert(this.Activity != null, "trace enricher was null");
-
-        this.Activity!.SetTag(key, value);
+        this.Activity = activity;
     }
 
-    public override void Clear()
-    {
-        this.Activity = null;
+    public Activity Activity { get; init; }
 
-        base.Clear();
+    public void Add(string key, object? value)
+    {
+        this.Activity.AddTag(key, value);
     }
 }

@@ -1,4 +1,4 @@
-// <copyright file="PooledBagPolicy.cs" company="OpenTelemetry Authors">
+// <copyright file="IsExternalInit.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,24 +14,13 @@
 // limitations under the License.
 // </copyright>
 
-using Microsoft.Extensions.ObjectPool;
+using System.ComponentModel;
 
-namespace OpenTelemetry.Extensions.Enrichment;
+namespace System.Runtime.CompilerServices;
 
-public sealed class PooledBagPolicy<T> : PooledObjectPolicy<T>
-    where T : BaseEnrichmentBag, new()
+/* This enables support for C# 9/10 records on older frameworks */
+
+[EditorBrowsable(EditorBrowsableState.Never)]
+internal static class IsExternalInit
 {
-    public PooledBagPolicy()
-    {
-    }
-
-    public static PooledBagPolicy<T> Instance { get; } = new();
-
-    public override T Create() => new();
-
-    public override bool Return(T obj)
-    {
-        obj?.Clear();
-        return true;
-    }
 }

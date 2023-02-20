@@ -18,16 +18,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.ObjectPool;
 
 namespace OpenTelemetry.Extensions.Enrichment.AspNetCore;
 
 internal sealed class AspNetCoreTraceEnrichmentProcessor
 {
     private readonly List<AspNetCoreTraceEnricher> enrichers = new();
-
-    private readonly ObjectPool<TraceEnrichmentBag> propertyBagPool =
-        new DefaultObjectPool<TraceEnrichmentBag>(PooledBagPolicy<TraceEnrichmentBag>.Instance);
 
     public AspNetCoreTraceEnrichmentProcessor(IEnumerable<AspNetCoreTraceEnricher> enrichers)
     {
@@ -43,58 +39,31 @@ internal sealed class AspNetCoreTraceEnrichmentProcessor
 
     public void EnrichWithHttpRequest(Activity activity, HttpRequest request)
     {
-        var propertyBag = this.propertyBagPool.Get();
+        var propertyBag = new TraceEnrichmentBag(activity);
 
-        try
+        foreach (var enricher in this.enrichers)
         {
-            propertyBag.Activity = activity;
-
-            foreach (var enricher in this.enrichers)
-            {
-                enricher.EnrichWithHttpRequest(propertyBag, request);
-            }
-        }
-        finally
-        {
-            this.propertyBagPool.Return(propertyBag);
+            enricher.EnrichWithHttpRequest(propertyBag, request);
         }
     }
 
     public void EnrichWithHttpResponse(Activity activity, HttpResponse response)
     {
-        var propertyBag = this.propertyBagPool.Get();
+        var propertyBag = new TraceEnrichmentBag(activity);
 
-        try
+        foreach (var enricher in this.enrichers)
         {
-            propertyBag.Activity = activity;
-
-            foreach (var enricher in this.enrichers)
-            {
-                enricher.EnrichWithHttpResponse(propertyBag, response);
-            }
-        }
-        finally
-        {
-            this.propertyBagPool.Return(propertyBag);
+            enricher.EnrichWithHttpResponse(propertyBag, response);
         }
     }
 
     public void EnrichWithException(Activity activity, Exception exception)
     {
-        var propertyBag = this.propertyBagPool.Get();
+        var propertyBag = new TraceEnrichmentBag(activity);
 
-        try
+        foreach (var enricher in this.enrichers)
         {
-            propertyBag.Activity = activity;
-
-            foreach (var enricher in this.enrichers)
-            {
-                enricher.EnrichWithException(propertyBag, exception);
-            }
-        }
-        finally
-        {
-            this.propertyBagPool.Return(propertyBag);
+            enricher.EnrichWithException(propertyBag, exception);
         }
     }
 }
