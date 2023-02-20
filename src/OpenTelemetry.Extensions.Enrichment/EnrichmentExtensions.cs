@@ -24,16 +24,16 @@ namespace OpenTelemetry.Extensions.Enrichment;
 public static class EnrichmentExtensions
 {
     public static TracerProviderBuilder AddTraceEnricher<T>(this TracerProviderBuilder builder)
-        where T : BaseTraceEnricher
+        where T : TraceEnricher
     {
         Guard.ThrowIfNull(builder);
 
         return builder
             .TryAddEnrichment()
-            .ConfigureServices(services => services.AddSingleton<BaseTraceEnricher, T>());
+            .ConfigureServices(services => services.AddSingleton<TraceEnricher, T>());
     }
 
-    public static TracerProviderBuilder AddTraceEnricher(this TracerProviderBuilder builder, BaseTraceEnricher enricher)
+    public static TracerProviderBuilder AddTraceEnricher(this TracerProviderBuilder builder, TraceEnricher enricher)
     {
         Guard.ThrowIfNull(builder);
         Guard.ThrowIfNull(enricher);
@@ -53,16 +53,16 @@ public static class EnrichmentExtensions
     }
 
     public static IServiceCollection AddTraceEnricher<T>(this IServiceCollection services)
-        where T : BaseTraceEnricher
+        where T : TraceEnricher
     {
         Guard.ThrowIfNull(services);
 
         return services
             .TryAddEnrichment()
-            .AddSingleton<BaseTraceEnricher, T>();
+            .AddSingleton<TraceEnricher, T>();
     }
 
-    public static IServiceCollection AddTraceEnricher(this IServiceCollection services, BaseTraceEnricher enricher)
+    public static IServiceCollection AddTraceEnricher(this IServiceCollection services, TraceEnricher enricher)
     {
         Guard.ThrowIfNull(services);
         Guard.ThrowIfNull(enricher);

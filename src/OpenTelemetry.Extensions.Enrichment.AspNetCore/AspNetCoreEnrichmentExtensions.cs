@@ -27,17 +27,17 @@ namespace OpenTelemetry.Extensions.Enrichment.AspNetCore;
 public static class AspNetCoreEnrichmentExtensions
 {
     public static TracerProviderBuilder AddAspNetCoreTraceEnricher<T>(this TracerProviderBuilder builder)
-        where T : BaseAspNetCoreTraceEnricher
+        where T : AspNetCoreTraceEnricher
     {
         Guard.ThrowIfNull(builder);
 
         return builder
             .ConfigureServices(services => services
                 .TryAddAspNetCoreEnrichment()
-                .AddSingleton<BaseAspNetCoreTraceEnricher, T>());
+                .AddSingleton<AspNetCoreTraceEnricher, T>());
     }
 
-    public static TracerProviderBuilder AddAspNetCoreTraceEnricher(this TracerProviderBuilder builder, BaseAspNetCoreTraceEnricher enricher)
+    public static TracerProviderBuilder AddAspNetCoreTraceEnricher(this TracerProviderBuilder builder, AspNetCoreTraceEnricher enricher)
     {
         Guard.ThrowIfNull(builder);
         Guard.ThrowIfNull(enricher);
@@ -57,16 +57,16 @@ public static class AspNetCoreEnrichmentExtensions
     }
 
     public static IServiceCollection AddAspNetCoreTraceEnricher<T>(this IServiceCollection services)
-        where T : BaseAspNetCoreTraceEnricher
+        where T : AspNetCoreTraceEnricher
     {
         Guard.ThrowIfNull(services);
 
         return services
             .TryAddAspNetCoreEnrichment()
-            .AddSingleton<BaseAspNetCoreTraceEnricher, T>();
+            .AddSingleton<AspNetCoreTraceEnricher, T>();
     }
 
-    public static IServiceCollection AddAspNetCoreTraceEnricher(this IServiceCollection services, BaseAspNetCoreTraceEnricher enricher)
+    public static IServiceCollection AddAspNetCoreTraceEnricher(this IServiceCollection services, AspNetCoreTraceEnricher enricher)
     {
         Guard.ThrowIfNull(services);
         Guard.ThrowIfNull(enricher);

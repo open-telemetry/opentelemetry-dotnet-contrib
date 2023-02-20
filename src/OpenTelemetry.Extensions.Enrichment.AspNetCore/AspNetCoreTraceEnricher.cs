@@ -1,4 +1,4 @@
-// <copyright file="BaseTraceEnricher.cs" company="OpenTelemetry Authors">
+// <copyright file="AspNetCoreTraceEnricher.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +14,8 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Extensions.Enrichment;
+namespace OpenTelemetry.Extensions.Enrichment.AspNetCore;
 
-public abstract class BaseTraceEnricher : BaseEnricher<TraceEnrichmentBag>
+public abstract class AspNetCoreTraceEnricher : BaseAspNetCoreEnricher<TraceEnrichmentBag>
 {
 }

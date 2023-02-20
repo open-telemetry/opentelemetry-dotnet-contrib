@@ -27,14 +27,14 @@ internal sealed class TraceEnrichmentProcessor : BaseProcessor<Activity>
     private readonly ObjectPool<TraceEnrichmentBag> propertyBagPool =
         new DefaultObjectPool<TraceEnrichmentBag>(PooledBagPolicy<TraceEnrichmentBag>.Instance);
 
-    private BaseTraceEnricher[] traceEnrichers;
+    private TraceEnricher[] traceEnrichers;
 
-    public TraceEnrichmentProcessor(IEnumerable<BaseTraceEnricher> traceEnrichers)
+    public TraceEnrichmentProcessor(IEnumerable<TraceEnricher> traceEnrichers)
     {
         this.traceEnrichers = traceEnrichers.ToArray();
     }
 
-    public void AddEnricher(BaseTraceEnricher traceEnricher)
+    public void AddEnricher(TraceEnricher traceEnricher)
     {
         Debug.Assert(traceEnricher != null, "trace enricher was null");
 

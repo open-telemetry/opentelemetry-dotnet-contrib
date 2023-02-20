@@ -80,8 +80,8 @@ public sealed class AspNetCoreEnrichmentExtensionsTests
     [Fact]
     public async Task TraceProviderBuilder_AddAspNetCoreTraceEnricher_RegistersEnricher()
     {
-        var enricher1 = new Mock<BaseAspNetCoreTraceEnricher>();
-        var enricher2 = new Mock<BaseAspNetCoreTraceEnricher>();
+        var enricher1 = new Mock<AspNetCoreTraceEnricher>();
+        var enricher2 = new Mock<AspNetCoreTraceEnricher>();
 
         var webHostBuilder = new WebHostBuilder()
             .UseTestServer()
@@ -164,8 +164,8 @@ public sealed class AspNetCoreEnrichmentExtensionsTests
     [Fact]
     public async Task IServiceCollection_AddAspNetCoreTraceEnricher_RegistersEnricher()
     {
-        var enricher1 = new Mock<BaseAspNetCoreTraceEnricher>();
-        var enricher2 = new Mock<BaseAspNetCoreTraceEnricher>();
+        var enricher1 = new Mock<AspNetCoreTraceEnricher>();
+        var enricher2 = new Mock<AspNetCoreTraceEnricher>();
 
         var webHostBuilder = new WebHostBuilder()
             .UseTestServer()

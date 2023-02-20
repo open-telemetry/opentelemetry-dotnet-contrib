@@ -18,7 +18,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests;
 
-internal class MyAspNetCoreTraceEnricher2 : BaseAspNetCoreTraceEnricher
+internal class MyAspNetCoreTraceEnricher2 : AspNetCoreTraceEnricher
 {
     public const string RequestKey = "with request 2";
     public const string ResponseKey = "with response 2";

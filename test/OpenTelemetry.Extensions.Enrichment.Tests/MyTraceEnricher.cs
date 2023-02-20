@@ -16,7 +16,7 @@
 
 namespace OpenTelemetry.Extensions.Enrichment.Tests;
 
-internal class MyTraceEnricher : BaseTraceEnricher
+internal class MyTraceEnricher : TraceEnricher
 {
     public const string Key = nameof(MyTraceEnricher);
 

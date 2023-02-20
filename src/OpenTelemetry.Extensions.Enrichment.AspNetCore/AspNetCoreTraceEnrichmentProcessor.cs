@@ -24,17 +24,17 @@ namespace OpenTelemetry.Extensions.Enrichment.AspNetCore;
 
 internal sealed class AspNetCoreTraceEnrichmentProcessor
 {
-    private readonly List<BaseAspNetCoreTraceEnricher> enrichers = new();
+    private readonly List<AspNetCoreTraceEnricher> enrichers = new();
 
     private readonly ObjectPool<TraceEnrichmentBag> propertyBagPool =
         new DefaultObjectPool<TraceEnrichmentBag>(PooledBagPolicy<TraceEnrichmentBag>.Instance);
 
-    public AspNetCoreTraceEnrichmentProcessor(IEnumerable<BaseAspNetCoreTraceEnricher> enrichers)
+    public AspNetCoreTraceEnrichmentProcessor(IEnumerable<AspNetCoreTraceEnricher> enrichers)
     {
         this.enrichers.AddRange(enrichers);
     }
 
-    public void AddEnricher(BaseAspNetCoreTraceEnricher enrichers)
+    public void AddEnricher(AspNetCoreTraceEnricher enrichers)
     {
         Debug.Assert(enrichers != null, "enricher was null");
 

@@ -1,8 +1,8 @@
 OpenTelemetry.Extensions.Enrichment.AspNetCore.AspNetCoreEnrichmentExtensions
+OpenTelemetry.Extensions.Enrichment.AspNetCore.AspNetCoreTraceEnricher
+OpenTelemetry.Extensions.Enrichment.AspNetCore.AspNetCoreTraceEnricher.AspNetCoreTraceEnricher() -> void
 OpenTelemetry.Extensions.Enrichment.AspNetCore.BaseAspNetCoreEnricher<T>
 OpenTelemetry.Extensions.Enrichment.AspNetCore.BaseAspNetCoreEnricher<T>.BaseAspNetCoreEnricher() -> void
-OpenTelemetry.Extensions.Enrichment.AspNetCore.BaseAspNetCoreTraceEnricher
-OpenTelemetry.Extensions.Enrichment.AspNetCore.BaseAspNetCoreTraceEnricher.BaseAspNetCoreTraceEnricher() -> void
 OpenTelemetry.Extensions.Enrichment.BaseAspNetCoreEnricher<T>
 OpenTelemetry.Extensions.Enrichment.BaseAspNetCoreEnricher<T>.BaseAspNetCoreEnricher() -> void
 OpenTelemetry.Extensions.Enrichment.BaseAspNetCoreTraceEnricher

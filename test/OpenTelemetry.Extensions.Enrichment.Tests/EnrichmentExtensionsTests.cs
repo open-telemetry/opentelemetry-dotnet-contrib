@@ -50,8 +50,8 @@ public sealed class EnrichmentExtensionsTests
     [Fact]
     public void TracerProviderBuilder_AddTraceEnricher_RegistersEnricher()
     {
-        var enricher1 = new Mock<BaseTraceEnricher>();
-        var enricher2 = new Mock<BaseTraceEnricher>();
+        var enricher1 = new Mock<TraceEnricher>();
+        var enricher2 = new Mock<TraceEnricher>();
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddSource(SourceName)
@@ -84,7 +84,7 @@ public sealed class EnrichmentExtensionsTests
 
         await host.StartAsync().ConfigureAwait(false);
 
-        var enrichers = host.Services.GetServices<BaseTraceEnricher>().ToArray();
+        var enrichers = host.Services.GetServices<TraceEnricher>().ToArray();
         Assert.NotNull(enrichers);
         Assert.Equal(2, enrichers.Length);
 
@@ -104,8 +104,8 @@ public sealed class EnrichmentExtensionsTests
     [Fact]
     public async Task IServiceCollection_AddTraceEnricher_RegistersEnricher()
     {
-        var enricher1 = new Mock<BaseTraceEnricher>();
-        var enricher2 = new Mock<BaseTraceEnricher>();
+        var enricher1 = new Mock<TraceEnricher>();
+        var enricher2 = new Mock<TraceEnricher>();
 
         using var host = Host.CreateDefaultBuilder()
             .ConfigureServices(services => services
@@ -119,7 +119,7 @@ public sealed class EnrichmentExtensionsTests
 
         await host.StartAsync().ConfigureAwait(false);
 
-        var enrichers = host.Services.GetServices<BaseTraceEnricher>().ToArray();
+        var enrichers = host.Services.GetServices<TraceEnricher>().ToArray();
         Assert.NotNull(enrichers);
         Assert.Equal(2, enrichers.Length);
 
