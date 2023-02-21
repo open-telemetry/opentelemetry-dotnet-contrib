@@ -47,7 +47,7 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
 
 Refer to [Program.cs](../../examples/process-instrumentation/Program.cs) for a
 complete demo. This examples sets up the OpenTelemetry Prometheus exporter,
-which requires adding the package [`OpenTelemetry.Exporter.Prometheus`][2] to
+which requires adding the package [`OpenTelemetry.Exporter.Prometheus.HttpListener`][2] to
 the application.
 
 Additionally, this [document][3] shows how to use Prometheus and Grafana to
