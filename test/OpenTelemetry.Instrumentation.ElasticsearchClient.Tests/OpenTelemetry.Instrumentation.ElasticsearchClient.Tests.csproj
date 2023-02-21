@@ -24,4 +24,10 @@
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.ElasticsearchClient\OpenTelemetry.Instrumentation.ElasticsearchClient.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs"/>
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\EnumerationHelper.cs" Link="Includes\EnumerationHelper.cs"/>
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\IActivityEnumerator.cs" Link="Includes\IActivityEnumerator.cs"/>
+  </ItemGroup>
+
 </Project>
