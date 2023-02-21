@@ -61,7 +61,7 @@ dashboard by uploading the JSON template file.
 
 [2]: https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Prometheus.HttpListener/README.md
 [3]: https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/docs/metrics/getting-started-prometheus-grafana/README.md
-[4]: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/tree/main/examples/process-instrumentation/process-instrumentation-grafana-dashboard-sample.json
+[4]: ../../examples/process-instrumentation/process-instrumentation-grafana-dashboard-sample.json
 [5]: https://grafana.com/docs/grafana/v9.0/dashboards/export-import/
 
 ## Metrics
