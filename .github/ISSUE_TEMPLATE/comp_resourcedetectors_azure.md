@@ -1,7 +1,7 @@
 ---
 name: OpenTelemetry.ResourceDetectors.Azure
 about: OpenTelemetry.ResourceDetectors.Azure
-labels: comp:ResourceDetectors.Azure
+labels: comp:resourcedetectors.azure
 ---
 
 # Issue with OpenTelemetry.ResourceDetectors.Azure
