@@ -8,6 +8,11 @@ Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main
 which instruments [.NET](https://docs.microsoft.com/dotnet) and
 collect telemetry about process behavior.
 
+The process metric instruments being implemented are following OpenTelemetry
+[metrics semantic conventions][1].
+
+[1]: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md#metric-instruments
+
 ## Steps to enable OpenTelemetry.Instrumentation.Process
 
 ### Step 1: Install package
@@ -63,7 +68,7 @@ allocated for the associated process.
 
 The amount of committed virtual memory for this process.
 One way to think of this is all the address space this process can read from
-without trigerring an access violation; this includes memory backed solely by RAM,
+without triggering an access violation; this includes memory backed solely by RAM,
 by a swapfile/pagefile and by other mapped files on disk.
 
 | Units | Instrument Type         | Value Type |
@@ -91,6 +96,23 @@ Gets the user processor time for this process.
 
 * [Process.PrivilegedProcessorTime](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.privilegedprocessortime):
 Gets the privileged processor time for this process.
+
+### process.cpu.count
+
+The number of processors (CPU cores) available to the current process.
+
+| Units         | Instrument Type         | Value Type |
+|---------------|-------------------------|------------|
+| `{processors}`| ObservableUpDownCounter | `Int32`    |
+
+The API used to retrieve the value is [System.Environment.ProcessorCount](https://learn.microsoft.com/dotnet/api/system.environment.processorcount).
+
+> **Note**
+> This metric is under [discussion][2] and not part of the
+[Process Metrics Spec][3] at this time.
+
+[2]: https://github.com/open-telemetry/opentelemetry-specification/issues/3200
+[3]: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md
 
 ### process.threads
 
