@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Updated OTel SDK package version to 1.4.0-rc.4
+* Add new method parameter to support named options injection [(#1020)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1020)
+
 ## 1.0.0-beta.4
 
 Released 2023-Jan-25
