@@ -46,7 +46,23 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
 ```
 
 Refer to [Program.cs](../../examples/process-instrumentation/Program.cs) for a
-complete demo.
+complete demo. This examples sets up the OpenTelemetry Prometheus exporter,
+which requires adding the package [`OpenTelemetry.Exporter.Prometheus`][2] to
+the application.
+
+Additionally, this [document][3] shows how to use Prometheus and Grafana to
+build a dashboard for your application. [This][4] is the Grafana dashboard
+template which has all the metrics currently supported by this package; plus
+an additional aggregated metric `CPU utilization` calculated with the raw
+metrics, `CPU time` and `CPU count`.
+
+Please follow the instructions in this [document][5] to import a Grafana
+dashboard by uploading the JSON template file.
+
+[2]: https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Prometheus.HttpListener/README.md
+[3]: https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/docs/metrics/getting-started-prometheus-grafana/README.md
+[4]: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/tree/main/examples/process-instrumentation/process-instrumentation-grafana-dashboard-sample.json
+[5]: https://grafana.com/docs/grafana/v9.0/dashboards/export-import/
 
 ## Metrics
 
@@ -108,11 +124,11 @@ The number of processors (CPU cores) available to the current process.
 The API used to retrieve the value is [System.Environment.ProcessorCount](https://learn.microsoft.com/dotnet/api/system.environment.processorcount).
 
 > **Note**
-> This metric is under [discussion][2] and not part of the
-[Process Metrics Spec][3] at this time.
+> This metric is under [discussion][6] and not part of the
+[Process Metrics Spec][7] at this time.
 
-[2]: https://github.com/open-telemetry/opentelemetry-specification/issues/3200
-[3]: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md
+[6]: https://github.com/open-telemetry/opentelemetry-specification/issues/3200
+[7]: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md
 
 ### process.threads
 
