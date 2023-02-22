@@ -5,7 +5,7 @@
 
 This is an [Instrumentation
 Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library),
-which instruments [.NET](https://docs.microsoft.com/dotnet) and collect
+which instruments [.NET](https://docs.microsoft.com/dotnet) and collects
 telemetry about process behavior.
 
 The process metric instruments being implemented are following OpenTelemetry
