@@ -16,17 +16,34 @@ dotnet add package OpenTelemetry.Instrumentation.ElasticsearchClient
 
 ### Configuration
 
-ASP.NET Core instrumentation example:
+This instrumentation can be configured to change the default behavior by using
+`ElasticsearchClientInstrumentationOptions`.  
 
 ```csharp
-// Add OpenTelemetry and Elasticsearch client instrumentation
-services.AddOpenTelemetryTracing(x =>
+services.AddOpenTelemetry()
+    .WithTracing(builder => builder
+        .AddElasticsearchClientInstrumentation(options =>
+        {
+            options.SetDbStatementForRequest = false;
+        })
+        .UseJaegerExporter());
+```
+
+When used with [`OpenTelemetry.Extensions.Hosting`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Extensions.Hosting/README.md),
+all configurations to `ElasticsearchClientInstrumentationOptions` can be done in the `ConfigureServices`
+method of you applications `Startup` class as shown below.
+
+```csharp
+// ConfigureServices
+services.Configure<ElasticsearchClientInstrumentationOptions>(options =>
 {
-    x.AddElasticsearchClientInstrumentation();
-    x.UseJaegerExporter(config => {
-      // Configure Jaeger
-    });
+    options.SetDbStatementForRequest = false;
 });
+
+services.AddOpenTelemetry()
+    .WithTracing(builder => builder
+        .AddElasticsearchClientInstrumentation()
+        .UseJaegerExporter());
 ```
 
 ## Elastic.Clients.Elasticsearch

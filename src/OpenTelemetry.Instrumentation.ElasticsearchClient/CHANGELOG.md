@@ -12,7 +12,9 @@
   ([#425](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/425))
 * Remove method with default attribute
   ([#1019](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1019))
-* Add new method parameter to support named options injection
+* Added overloads which accept a name to the `TracerProviderBuilder`
+  `AddElasticsearchClientInstrumentation` extension to allow for more fine-grained
+  options management
   ([#1019](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1019))
 
 ## 1.0.0-beta.3
