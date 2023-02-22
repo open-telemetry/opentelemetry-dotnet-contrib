@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.3
+
+Released 2023-Feb-21
+
 * Fixes issue in span serialization process introduced in 1.0.2 version.
   ([#979](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/979))
 * Update OTel SDK version to `1.3.2`.
