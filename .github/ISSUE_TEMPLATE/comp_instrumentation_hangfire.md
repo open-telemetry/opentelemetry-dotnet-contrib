@@ -8,11 +8,11 @@ labels: comp:instrumentation.hangfire
 
 List of [all OpenTelemetry NuGet
 packages](https://www.nuget.org/profiles/OpenTelemetry) and version that you are
-using (e.g. `OpenTelemetry 1.0.2`):
+using (e.g. `OpenTelemetry 1.3.2`):
 
 * TBD
 
-Runtime version (e.g. `net462`, `net48`, `netcoreapp3.1`, `net6.0` etc. You can
+Runtime version (e.g. `net462`, `net48`, `net6.0`, `net7.0` etc. You can
 find this information from the `*.csproj` file):
 
 * TBD
