@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -40,6 +41,27 @@ public class AzureResourceDetectorTests : IDisposable
     {
         var resource = new AppServiceResourceDetector().Detect();
         Assert.Empty(resource.Attributes);
+    }
+
+    [Fact]
+    public void ResourceDetectorReturnsNullOutsideOfAppService()
+    {
+        var resource = new AzureResourceDetector().Detect();
+        Assert.Equal(1, resource.Attributes.Count());
+        Assert.Equal(ResourceSemanticConventions.AttributeServiceName, resource.Attributes.First().Key);
+    }
+
+    [Fact]
+    public void ResourceDetectorReturnsResourceWithAttributes()
+    {
+        Environment.SetEnvironmentVariable("WEBSITE_SITE_NAME", "AzureAppService");
+        Environment.SetEnvironmentVariable("WEBSITE_INSTANCE_ID", "AzureInstance");
+        var resource = ResourceBuilder.CreateEmpty()
+            .AddDetector(new AzureResourceDetector { UseSiteNameAsServiceName = true })
+            .Build();
+        Assert.NotNull(resource);
+        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "AzureAppService"), resource.Attributes);
+        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceInstance, "AzureInstance"), resource.Attributes);
     }
 
     public void Dispose()

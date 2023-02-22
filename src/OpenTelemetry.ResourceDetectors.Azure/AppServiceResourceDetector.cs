@@ -24,6 +24,7 @@ namespace OpenTelemetry.ResourceDetectors.Azure;
 /// <summary>
 /// Resource detector for Azure AppService environment.
 /// </summary>
+[Obsolete("Use AzureResourceDetector instead")]
 public sealed class AppServiceResourceDetector : IResourceDetector
 {
     /// <inheritdoc/>
