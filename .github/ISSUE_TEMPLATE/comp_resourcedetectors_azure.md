@@ -1,10 +1,10 @@
 ---
-name: OpenTelemetry.Extensions.PersistentStorage
-about: Issue with OpenTelemetry.Extensions.PersistentStorage
-labels: comp:extensions.persistentstorage
+name: OpenTelemetry.ResourceDetectors.Azure
+about: OpenTelemetry.ResourceDetectors.Azure
+labels: comp:resourcedetectors.azure
 ---
 
-# Issue with OpenTelemetry.Extensions.PersistentStorage
+# Issue with OpenTelemetry.ResourceDetectors.Azure
 
 List of [all OpenTelemetry NuGet
 packages](https://www.nuget.org/profiles/OpenTelemetry) and version that you are
