@@ -33,7 +33,7 @@ public sealed class OneCollectorExporterTransportOptions
 
     /// <summary>
     /// Gets or sets OneCollector endpoint address. Default value:
-    /// https://mobile.events.data.microsoft.com/OneCollector/1.0/.
+    /// <c>https://mobile.events.data.microsoft.com/OneCollector/1.0/</c>.
     /// </summary>
     public Uri Endpoint { get; set; } = new Uri(DefaultOneCollectorEndpoint);
 
@@ -45,7 +45,7 @@ public sealed class OneCollectorExporterTransportOptions
 
     /// <summary>
     /// Gets or sets the maximum request payload size in bytes when sending data
-    /// to OneCollector. Default value: 4,194,304.
+    /// to OneCollector. Default value: <c>4,194,304</c>.
     /// </summary>
     /// <remarks>
     /// Note: Set to -1 for unlimited request payload size.
@@ -54,7 +54,7 @@ public sealed class OneCollectorExporterTransportOptions
 
     /// <summary>
     /// Gets or sets the maximum number of items per request payload when
-    /// sending data to OneCollector. Default value: 1500.
+    /// sending data to OneCollector. Default value: <c>1500</c>.
     /// </summary>
     /// <remarks>
     /// Note: Set to -1 for unlimited number of items per request payload.
