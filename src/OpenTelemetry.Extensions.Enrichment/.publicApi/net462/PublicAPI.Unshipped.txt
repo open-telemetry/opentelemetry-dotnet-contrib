@@ -5,8 +5,6 @@ OpenTelemetry.Extensions.Enrichment.BaseEnrichmentBag
 OpenTelemetry.Extensions.Enrichment.BaseEnrichmentBag.BaseEnrichmentBag() -> void
 OpenTelemetry.Extensions.Enrichment.BaseEnrichmentBag.EnrichmentBag.get -> System.Collections.Generic.IReadOnlyList<System.Collections.Generic.KeyValuePair<string!, object!>>!
 OpenTelemetry.Extensions.Enrichment.EnrichmentExtensions
-OpenTelemetry.Extensions.Enrichment.PooledBagPolicy<T>
-OpenTelemetry.Extensions.Enrichment.PooledBagPolicy<T>.PooledBagPolicy() -> void
 OpenTelemetry.Extensions.Enrichment.TraceEnricher
 OpenTelemetry.Extensions.Enrichment.TraceEnricher.TraceEnricher() -> void
 OpenTelemetry.Extensions.Enrichment.TraceEnrichmentBag
