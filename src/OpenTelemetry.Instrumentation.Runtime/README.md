@@ -36,7 +36,7 @@ Refer to [Program.cs](../../examples/runtime-instrumentation/Program.cs) for a
 complete demo.
 
 Additionally, this examples sets up the OpenTelemetry Prometheus Exporter
-HttpListener, which requires adding the package
+HttpListener as well, which requires adding the package
 [`OpenTelemetry.Exporter.Prometheus.HttpListener`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Prometheus.HttpListener/README.md)
 to the application.
 
