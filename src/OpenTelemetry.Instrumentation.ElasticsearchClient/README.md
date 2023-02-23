@@ -101,7 +101,7 @@ services.Configure<ElasticsearchClientInstrumentationOptions>(options =>
 
 services.AddOpenTelemetry()
     .WithTracing(builder => builder
-        .AddAspNetCoreInstrumentation()
+        .AddElasticsearchClientInstrumentation()
         .AddConsoleExporter());
 ```
 
