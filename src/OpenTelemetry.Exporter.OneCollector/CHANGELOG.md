@@ -9,7 +9,7 @@
 
 * Switched to using a connection string design instead of passing
   instrumentation key directly.
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#1037](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1037))
 
 ## 0.1.0-alpha.1
 
