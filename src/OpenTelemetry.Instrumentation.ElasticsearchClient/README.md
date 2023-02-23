@@ -80,7 +80,8 @@ services.AddOpenTelemetry()
     .WithTracing(builder => builder
         .AddElasticsearchClientInstrumentation(options =>
         {
-            options.SetDbStatementForRequest = false;
+            // add request json as db.statement attribute tag
+            options.SetDbStatementForRequest = true;
         })
         .AddConsoleExporter());
 ```
@@ -94,7 +95,8 @@ method of you applications `Startup` class as shown below.
 // Configure
 services.Configure<ElasticsearchClientInstrumentationOptions>(options =>
 {
-    options.SetDbStatementForRequest = false;
+    // add request json as db.statement attribute tag
+    options.SetDbStatementForRequest = true;
 });
 
 services.AddOpenTelemetry()
