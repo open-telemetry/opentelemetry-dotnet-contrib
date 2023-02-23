@@ -25,7 +25,7 @@ namespace OpenTelemetry.Exporter.OneCollector;
 public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions, ISinkFactory<LogRecord>
 {
     /// <summary>
-    /// Gets or sets the default event name. Default value: Log.
+    /// Gets or sets the default event name. Default value: <c>Log</c>.
     /// </summary>
     /// <remarks>
     /// Note: The default event name is used when an <see
@@ -41,7 +41,7 @@ public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions
 
     /// <summary>
     /// Gets or sets the default event namespace. Default value:
-    /// OpenTelemetry.Logs.
+    /// <c>OpenTelemetry.Logs</c>.
     /// </summary>
     /// <remarks>
     /// Note: The default event namespace is used if a <see
