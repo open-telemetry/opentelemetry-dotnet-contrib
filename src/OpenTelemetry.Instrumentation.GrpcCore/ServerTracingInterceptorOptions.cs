@@ -27,7 +27,7 @@ public class ServerTracingInterceptorOptions
     /// <summary>
     /// Gets or sets a value indicating whether or not to record individual message events.
     /// </summary>
-    public bool RecordMessageEvents { get; set; } = false;
+    public bool RecordMessageEvents { get; set; }
 
     /// <summary>
     /// Gets the propagator.
