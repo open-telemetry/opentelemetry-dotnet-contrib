@@ -14,12 +14,12 @@
 // limitations under the License.
 // </copyright>
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Moq;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -50,13 +50,13 @@ public sealed class EnrichmentExtensionsTests
     [Fact]
     public void TracerProviderBuilder_AddTraceEnricher_RegistersEnricher()
     {
-        var enricher1 = new Mock<TraceEnricher>();
-        var enricher2 = new Mock<TraceEnricher>();
+        var exportedItems = new List<Activity>();
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddSource(SourceName)
-            .AddTraceEnricher(enricher1.Object)
-            .AddTraceEnricher(enricher2.Object)
+            .AddTraceEnricher(new MyTraceEnricher())
+            .AddTraceEnricher(new MyTraceEnricher2())
+            .AddInMemoryExporter(exportedItems)
             .Build();
 
         using var source1 = new ActivitySource(SourceName);
@@ -64,8 +64,12 @@ public sealed class EnrichmentExtensionsTests
         using (var activity = source1.StartActivity(SourceName))
         {
             activity.Stop();
-            enricher1.Verify(e => e.Enrich(It.IsAny<TraceEnrichmentBag>()), Times.Once);
-            enricher2.Verify(e => e.Enrich(It.IsAny<TraceEnrichmentBag>()), Times.Once);
+
+            Assert.Single(exportedItems);
+            var tagObjects = exportedItems[0].TagObjects;
+
+            Assert.Single(tagObjects.Where(tag => tag.Key == MyTraceEnricher.Key && (int)tag.Value == 1));
+            Assert.Single(tagObjects.Where(tag => tag.Key == MyTraceEnricher2.Key && (int)tag.Value == 1));
         }
     }
 
@@ -124,17 +128,17 @@ public sealed class EnrichmentExtensionsTests
     [Fact]
     public async Task IServiceCollection_AddTraceEnricher_RegistersEnricher()
     {
-        var enricher1 = new Mock<TraceEnricher>();
-        var enricher2 = new Mock<TraceEnricher>();
+        var exportedItems = new List<Activity>();
 
         using var host = Host.CreateDefaultBuilder()
             .ConfigureServices(services => services
                 .AddOpenTelemetry()
                 .WithTracing(builder => builder
-                    .AddSource(SourceName))
+                    .AddSource(SourceName)
+                    .AddInMemoryExporter(exportedItems))
                 .Services
-                .AddTraceEnricher(enricher1.Object)
-                .AddTraceEnricher(enricher2.Object))
+                .AddTraceEnricher(new MyTraceEnricher())
+                .AddTraceEnricher(new MyTraceEnricher2()))
             .Build();
 
         await host.StartAsync().ConfigureAwait(false);
@@ -147,8 +151,12 @@ public sealed class EnrichmentExtensionsTests
         using (var activity = source.StartActivity(SourceName))
         {
             activity.Stop();
-            enricher1.Verify(e => e.Enrich(It.IsAny<TraceEnrichmentBag>()), Times.Once);
-            enricher2.Verify(e => e.Enrich(It.IsAny<TraceEnrichmentBag>()), Times.Once);
+
+            Assert.Single(exportedItems);
+            var tagObjects = exportedItems[0].TagObjects;
+
+            Assert.Single(tagObjects.Where(tag => tag.Key == MyTraceEnricher.Key && (int)tag.Value == 1));
+            Assert.Single(tagObjects.Where(tag => tag.Key == MyTraceEnricher2.Key && (int)tag.Value == 1));
         }
 
         await host.StopAsync().ConfigureAwait(false);

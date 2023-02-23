@@ -25,7 +25,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -68,11 +67,11 @@ public sealed class AspNetCoreEnrichmentExtensionsTests
         Assert.Single(exportedItems);
         var tagObjects = exportedItems[0].TagObjects;
 
-        Assert.NotEmpty(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher.RequestKey && (int)tag.Value == 1));
-        Assert.NotEmpty(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher.ResponseKey && (int)tag.Value == 1));
+        Assert.Single(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher.RequestKey && (int)tag.Value == 1));
+        Assert.Single(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher.ResponseKey && (int)tag.Value == 1));
 
-        Assert.NotEmpty(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher2.RequestKey && (int)tag.Value == 1));
-        Assert.NotEmpty(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher2.ResponseKey && (int)tag.Value == 1));
+        Assert.Single(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher2.RequestKey && (int)tag.Value == 1));
+        Assert.Single(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher2.ResponseKey && (int)tag.Value == 1));
 
         await server.Host.StopAsync().ConfigureAwait(false);
     }
@@ -80,17 +79,17 @@ public sealed class AspNetCoreEnrichmentExtensionsTests
     [Fact]
     public async Task TraceProviderBuilder_AddAspNetCoreTraceEnricher_RegistersEnricher()
     {
-        var enricher1 = new Mock<AspNetCoreTraceEnricher>();
-        var enricher2 = new Mock<AspNetCoreTraceEnricher>();
+        var exportedItems = new List<Activity>();
 
         var webHostBuilder = new WebHostBuilder()
             .UseTestServer()
             .ConfigureServices(services =>
             {
                 Sdk.CreateTracerProviderBuilder()
-                    .AddAspNetCoreTraceEnricher(enricher1.Object)
-                    .AddAspNetCoreTraceEnricher(enricher2.Object)
+                    .AddAspNetCoreTraceEnricher(new MyAspNetCoreTraceEnricher())
+                    .AddAspNetCoreTraceEnricher(new MyAspNetCoreTraceEnricher2())
                     .AddAspNetCoreInstrumentation()
+                    .AddInMemoryExporter(exportedItems)
                     .Build();
                 services.AddRouting();
             })
@@ -105,12 +104,18 @@ public sealed class AspNetCoreEnrichmentExtensionsTests
         {
             using var response = await client.GetAsync("/api/values").ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
+
+            WaitForActivityExport(exportedItems, 1);
         }
 
-        enricher1.Verify(e => e.EnrichWithHttpRequest(It.IsAny<TraceEnrichmentBag>(), It.IsAny<HttpRequest>()), Times.Once);
-        enricher1.Verify(e => e.EnrichWithHttpResponse(It.IsAny<TraceEnrichmentBag>(), It.IsAny<HttpResponse>()), Times.Once);
-        enricher2.Verify(e => e.EnrichWithHttpRequest(It.IsAny<TraceEnrichmentBag>(), It.IsAny<HttpRequest>()), Times.Once);
-        enricher2.Verify(e => e.EnrichWithHttpResponse(It.IsAny<TraceEnrichmentBag>(), It.IsAny<HttpResponse>()), Times.Once);
+        Assert.Single(exportedItems);
+        var tagObjects = exportedItems[0].TagObjects;
+
+        Assert.Single(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher.RequestKey && (int)tag.Value == 1));
+        Assert.Single(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher.ResponseKey && (int)tag.Value == 1));
+
+        Assert.Single(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher2.RequestKey && (int)tag.Value == 1));
+        Assert.Single(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher2.ResponseKey && (int)tag.Value == 1));
 
         await server.Host.StopAsync().ConfigureAwait(false);
     }
@@ -152,11 +157,11 @@ public sealed class AspNetCoreEnrichmentExtensionsTests
         Assert.Single(exportedItems);
         var tagObjects = exportedItems[0].TagObjects;
 
-        Assert.NotEmpty(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher.RequestKey && (int)tag.Value == 1));
-        Assert.NotEmpty(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher.ResponseKey && (int)tag.Value == 1));
+        Assert.Single(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher.RequestKey && (int)tag.Value == 1));
+        Assert.Single(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher.ResponseKey && (int)tag.Value == 1));
 
-        Assert.NotEmpty(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher2.RequestKey && (int)tag.Value == 1));
-        Assert.NotEmpty(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher2.ResponseKey && (int)tag.Value == 1));
+        Assert.Single(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher2.RequestKey && (int)tag.Value == 1));
+        Assert.Single(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher2.ResponseKey && (int)tag.Value == 1));
 
         await server.Host.StopAsync().ConfigureAwait(false);
     }
@@ -164,8 +169,7 @@ public sealed class AspNetCoreEnrichmentExtensionsTests
     [Fact]
     public async Task IServiceCollection_AddAspNetCoreTraceEnricher_RegistersEnricher()
     {
-        var enricher1 = new Mock<AspNetCoreTraceEnricher>();
-        var enricher2 = new Mock<AspNetCoreTraceEnricher>();
+        var exportedItems = new List<Activity>();
 
         var webHostBuilder = new WebHostBuilder()
             .UseTestServer()
@@ -174,10 +178,11 @@ public sealed class AspNetCoreEnrichmentExtensionsTests
                 services
                     .AddOpenTelemetry()
                     .WithTracing(builder => builder
-                        .AddAspNetCoreInstrumentation())
+                        .AddAspNetCoreInstrumentation()
+                        .AddInMemoryExporter(exportedItems))
                         .Services
-                    .AddAspNetCoreTraceEnricher(enricher1.Object)
-                    .AddAspNetCoreTraceEnricher(enricher2.Object)
+                    .AddAspNetCoreTraceEnricher(new MyAspNetCoreTraceEnricher())
+                    .AddAspNetCoreTraceEnricher(new MyAspNetCoreTraceEnricher2())
                     .AddRouting();
             })
             .Configure(app => app
@@ -191,12 +196,18 @@ public sealed class AspNetCoreEnrichmentExtensionsTests
         {
             using var response = await client.GetAsync("/api/values").ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
+
+            WaitForActivityExport(exportedItems, 1);
         }
 
-        enricher1.Verify(e => e.EnrichWithHttpRequest(It.IsAny<TraceEnrichmentBag>(), It.IsAny<HttpRequest>()), Times.Once);
-        enricher1.Verify(e => e.EnrichWithHttpResponse(It.IsAny<TraceEnrichmentBag>(), It.IsAny<HttpResponse>()), Times.Once);
-        enricher2.Verify(e => e.EnrichWithHttpRequest(It.IsAny<TraceEnrichmentBag>(), It.IsAny<HttpRequest>()), Times.Once);
-        enricher2.Verify(e => e.EnrichWithHttpResponse(It.IsAny<TraceEnrichmentBag>(), It.IsAny<HttpResponse>()), Times.Once);
+        Assert.Single(exportedItems);
+        var tagObjects = exportedItems[0].TagObjects;
+
+        Assert.Single(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher.RequestKey && (int)tag.Value == 1));
+        Assert.Single(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher.ResponseKey && (int)tag.Value == 1));
+
+        Assert.Single(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher2.RequestKey && (int)tag.Value == 1));
+        Assert.Single(tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher2.ResponseKey && (int)tag.Value == 1));
 
         await server.Host.StopAsync().ConfigureAwait(false);
     }
