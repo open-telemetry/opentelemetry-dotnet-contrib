@@ -34,10 +34,8 @@ public static class TracerProviderBuilderExtensions
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddElasticsearchClientInstrumentation(
-        this TracerProviderBuilder builder)
-    {
-        return AddElasticsearchClientInstrumentation(builder, name: null, configure: null);
-    }
+        this TracerProviderBuilder builder) =>
+        AddElasticsearchClientInstrumentation(builder, name: null, configure: null);
 
     /// <summary>
     /// Enables Elasticsearch client Instrumentation.
@@ -47,10 +45,8 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddElasticsearchClientInstrumentation(
         this TracerProviderBuilder builder,
-        Action<ElasticsearchClientInstrumentationOptions> configure)
-    {
-        return AddElasticsearchClientInstrumentation(builder, name: null, configure);
-    }
+        Action<ElasticsearchClientInstrumentationOptions> configure) =>
+        AddElasticsearchClientInstrumentation(builder, name: null, configure);
 
     /// <summary>
     /// Enables Elasticsearch client Instrumentation.
