@@ -5,13 +5,12 @@
 
 This is an [Instrumentation
 Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library),
-which instruments [.NET](https://docs.microsoft.com/dotnet) and
-collect telemetry about process behavior.
+which instruments [.NET](https://docs.microsoft.com/dotnet) and collects
+telemetry about process behavior.
 
 The process metric instruments being implemented are following OpenTelemetry
-[metrics semantic conventions][1].
-
-[1]: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md#metric-instruments
+[metrics semantic
+conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md#metric-instruments).
 
 ## Steps to enable OpenTelemetry.Instrumentation.Process
 
@@ -46,7 +45,23 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
 ```
 
 Refer to [Program.cs](../../examples/process-instrumentation/Program.cs) for a
-complete demo.
+complete demo. This examples sets up the OpenTelemetry Prometheus exporter,
+which requires adding the package
+[`OpenTelemetry.Exporter.Prometheus.HttpListener`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Prometheus.HttpListener/README.md)
+to the application.
+
+Additionally, this
+[document](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/docs/metrics/getting-started-prometheus-grafana/README.md)
+shows how to use Prometheus and Grafana to build a dashboard for your
+application.
+[This](../../examples/process-instrumentation/process-instrumentation-grafana-dashboard-sample.json)
+is the Grafana dashboard template which has all the metrics currently supported
+by this package; plus an additional aggregated metric `CPU utilization`
+calculated with the raw metrics, `CPU time` and `CPU count`.
+
+Please follow the instructions in this
+[document](https://grafana.com/docs/grafana/v9.0/dashboards/export-import/) to
+import a Grafana dashboard by uploading the JSON template file.
 
 ## Metrics
 
@@ -61,15 +76,15 @@ The amount of physical memory allocated for this process.
 The API used to retrieve the value is:
 
 * [Process.WorkingSet64](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.workingset64):
-Gets the amount of physical memory, in bytes,
-allocated for the associated process.
+Gets the amount of physical memory, in bytes, allocated for the associated
+process.
 
 ### process.memory.virtual
 
-The amount of committed virtual memory for this process.
-One way to think of this is all the address space this process can read from
-without triggering an access violation; this includes memory backed solely by RAM,
-by a swapfile/pagefile and by other mapped files on disk.
+The amount of committed virtual memory for this process. One way to think of
+this is all the address space this process can read from without triggering an
+access violation; this includes memory backed solely by RAM, by a
+swapfile/pagefile and by other mapped files on disk.
 
 | Units | Instrument Type         | Value Type |
 |-------|-------------------------|------------|
@@ -78,8 +93,8 @@ by a swapfile/pagefile and by other mapped files on disk.
 The API used to retrieve the value is:
 
 * [Process.VirtualMemorySize64](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.virtualmemorysize64):
-Gets the amount of the virtual memory, in bytes,
-allocated for the associated process.
+Gets the amount of the virtual memory, in bytes, allocated for the associated
+process.
 
 ### process.cpu.time
 
@@ -105,14 +120,14 @@ The number of processors (CPU cores) available to the current process.
 |---------------|-------------------------|------------|
 | `{processors}`| ObservableUpDownCounter | `Int32`    |
 
-The API used to retrieve the value is [System.Environment.ProcessorCount](https://learn.microsoft.com/dotnet/api/system.environment.processorcount).
+The API used to retrieve the value is
+[System.Environment.ProcessorCount](https://learn.microsoft.com/dotnet/api/system.environment.processorcount).
 
-> **Note**
-> This metric is under [discussion][2] and not part of the
-[Process Metrics Spec][3] at this time.
-
-[2]: https://github.com/open-telemetry/opentelemetry-specification/issues/3200
-[3]: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md
+> **Note** This metric is under
+> [discussion](https://github.com/open-telemetry/opentelemetry-specification/issues/3200)
+and not part of the [Process Metrics
+Spec](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md)
+at this time.
 
 ### process.threads
 
@@ -125,8 +140,7 @@ Process threads count.
 The API used to retrieve the value is:
 
 * [Process.Threads](https://learn.microsoft.com/dotnet/api/system.diagnostics.process.threads):
-Gets the set of threads that are running
-in the associated process.
+Gets the set of threads that are running in the associated process.
 
 ## References
 
