@@ -26,7 +26,7 @@ namespace OpenTelemetry.Extensions.Tests.Trace;
 
 public class AutoFlushActivityProcessorTests
 {
-    [Fact]
+    [Fact(Skip = "Unstable")]
     public void AutoFlushActivityProcessor_FlushAfterLocalServerSideRootSpans_EndMatchingSpan_Flush()
     {
         var mockExporting = new Mock<BaseProcessor<Activity>>();

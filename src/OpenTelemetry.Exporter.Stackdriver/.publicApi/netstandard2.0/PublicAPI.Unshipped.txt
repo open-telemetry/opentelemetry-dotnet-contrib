@@ -15,7 +15,7 @@ OpenTelemetry.Exporter.Stackdriver.StackdriverTraceExporter
 OpenTelemetry.Exporter.Stackdriver.StackdriverTraceExporter.StackdriverTraceExporter(string projectId) -> void
 OpenTelemetry.Exporter.Stackdriver.Utils.CommonUtils
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
-override OpenTelemetry.Exporter.Stackdriver.StackdriverTraceExporter.Export(in OpenTelemetry.Batch<System.Diagnostics.Activity> batchActivity) -> OpenTelemetry.ExportResult
+override OpenTelemetry.Exporter.Stackdriver.StackdriverTraceExporter.Export(in OpenTelemetry.Batch<System.Diagnostics.Activity> batch) -> OpenTelemetry.ExportResult
 static OpenTelemetry.Exporter.Stackdriver.Implementation.GoogleCloudResourceUtils.GetDefaultResource(string projectId) -> Google.Api.MonitoredResource
 static OpenTelemetry.Exporter.Stackdriver.Implementation.GoogleCloudResourceUtils.GetProjectId() -> string
 static OpenTelemetry.Exporter.Stackdriver.Implementation.StackdriverStatsConfiguration.Default.get -> OpenTelemetry.Exporter.Stackdriver.Implementation.StackdriverStatsConfiguration
