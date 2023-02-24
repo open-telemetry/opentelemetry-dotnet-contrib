@@ -1,0 +1,61 @@
+name: Bug report
+description: Create a report to help us improve
+labels: ["bug", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! Please make sure to fill out the entire form below, providing as much context as you can in order to help us triage and track down your bug as quickly as possible.
+
+        Before filing a bug, please be sure you have searched through existing bugs to see if an existing issue covers your bug.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component(s)
+      description: Which component(s) does your bug report concern?
+      multiple: true
+      options:
+      # Start contrib components list
+      - OpenTelemetry.Contrib.Extensions.AWSXRay
+      - OpenTelemetry.Contrib.Instrumentation.AWS
+      - OpenTelemetry.Instrumentation.AWSLambda
+      - OpenTelemetry.Exporter.Geneva
+      - OpenTelemetry.Exporter.Instana
+      - OpenTelemetry.Exporter.Stackdriver
+      - OpenTelemetry.Extensions.AzureMonitor
+      - OpenTelemetry.Extensions.Docker
+      - penTelemetry.Extensions.PersistentStorage.Abstractions
+      - OpenTelemetry.Extensions.PersistentStorage
+      - OpenTelemetry.Extensions
+      - OpenTelemetry.Instrumentation.AspNet
+      - OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule
+      - OpenTelemetry.Instrumentation.ElasticsearchClient
+      - OpenTelemetry.Instrumentation.EntityFrameworkCore
+      - OpenTelemetry.Instrumentation.EventCounters
+      - OpenTelemetry.Instrumentation.GrpcCore
+      - OpenTelemetry.Instrumentation.Hangfire
+      - OpenTelemetry.Instrumentation.MySqlData
+      - OpenTelemetry.Instrumentation.Owin
+      - OpenTelemetry.Instrumentation.Process
+      - OpenTelemetry.Instrumentation.Quartz
+      - OpenTelemetry.Instrumentation.Runtime
+      - OpenTelemetry.Instrumentation.StackExchangeRedis
+      - OpenTelemetry.Instrumentation.Wcf
+      - OpenTelemetry.ResourceDetectors.Azure
+      - Other
+      # End contrib components list
+  - type: textarea
+    attributes:
+      label: What happened?
+      description: Please provide as much detail as you reasonably can.
+      value: |
+        ## Description
+
+        ## Steps to Reproduce
+
+        ## Expected Result
+
+        ## Actual Result
+
+    validations:
+      required: true
