@@ -25,27 +25,46 @@ public class OneCollectorOpenTelemetryLoggerOptionsExtensionsTests
     [Fact]
     public void InstrumentationKeyAndTenantTokenValidationTest()
     {
-        Assert.Throws<InvalidOperationException>(() =>
         {
             using var loggerFactory = LoggerFactory.Create(builder => builder
                 .AddOpenTelemetry(builder =>
                 {
-                    builder.AddOneCollectorExporter(options => { });
+                    builder.AddOneCollectorExporter("InstrumentationKey=token-extrainformation");
+                }));
+        }
+
+        {
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(builder =>
+                {
+                    builder.AddOneCollectorExporter(configure => configure.SetConnectionString("InstrumentationKey=token-extrainformation"));
+                }));
+        }
+
+        Assert.Throws<OneCollectorExporterValidationException>(() =>
+        {
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(builder =>
+                {
+                    builder.AddOneCollectorExporter(configure => { });
                 }));
         });
 
-        using var loggerFactory = LoggerFactory.Create(builder => builder
-            .AddOpenTelemetry(builder =>
-            {
-                builder.AddOneCollectorExporter("token-extrainformation");
-            }));
-
-        Assert.Throws<InvalidOperationException>(() =>
+        Assert.Throws<OneCollectorExporterValidationException>(() =>
         {
             using var loggerFactory = LoggerFactory.Create(builder => builder
                 .AddOpenTelemetry(builder =>
                 {
-                    builder.AddOneCollectorExporter("invalidinstrumentationkey");
+                    builder.AddOneCollectorExporter("InstrumentationKey=invalidinstrumentationkey");
+                }));
+        });
+
+        Assert.Throws<OneCollectorExporterValidationException>(() =>
+        {
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(builder =>
+                {
+                    builder.AddOneCollectorExporter("UnknownKey=invalidinstrumentationkey");
                 }));
         });
     }

@@ -53,7 +53,7 @@ public static class OneCollectorOpenTelemetryLoggerOptionsExtensions
     {
         Guard.ThrowIfNull(configure);
 
-        return AddOneCollectorExporter(options, instrumentationKey: null, configuration: null, configure);
+        return AddOneCollectorExporter(options, connectionString: null, configuration: null, configure);
     }
 
     /// <summary>
@@ -61,16 +61,16 @@ public static class OneCollectorOpenTelemetryLoggerOptionsExtensions
     /// cref="OpenTelemetryLoggerOptions"/>.
     /// </summary>
     /// <param name="options"><see cref="OpenTelemetryLoggerOptions"/>.</param>
-    /// <param name="instrumentationKey">OneCollector instrumentation key.</param>
+    /// <param name="connectionString">OneCollector connection string.</param>
     /// <returns>The supplied <see cref="OpenTelemetryLoggerOptions"/> for call
     /// chaining.</returns>
     public static OpenTelemetryLoggerOptions AddOneCollectorExporter(
         this OpenTelemetryLoggerOptions options,
-        string instrumentationKey)
+        string connectionString)
     {
-        Guard.ThrowIfNullOrWhitespace(instrumentationKey);
+        Guard.ThrowIfNullOrWhitespace(connectionString);
 
-        return AddOneCollectorExporter(options, instrumentationKey, configuration: null, configure: null);
+        return AddOneCollectorExporter(options, connectionString, configuration: null, configure: null);
     }
 
     /// <summary>
@@ -78,18 +78,18 @@ public static class OneCollectorOpenTelemetryLoggerOptionsExtensions
     /// cref="OpenTelemetryLoggerOptions"/>.
     /// </summary>
     /// <param name="options"><see cref="OpenTelemetryLoggerOptions"/>.</param>
-    /// <param name="instrumentationKey">OneCollector instrumentation key.</param>
+    /// <param name="connectionString">OneCollector connection string.</param>
     /// <param name="configure">Callback action for configuring <see cref="OneCollectorLogExporterBuilder"/>.</param>
     /// <returns>The supplied <see cref="OpenTelemetryLoggerOptions"/> for call
     /// chaining.</returns>
     public static OpenTelemetryLoggerOptions AddOneCollectorExporter(
         this OpenTelemetryLoggerOptions options,
-        string instrumentationKey,
+        string connectionString,
         Action<OneCollectorLogExporterBuilder> configure)
     {
-        Guard.ThrowIfNullOrWhitespace(instrumentationKey);
+        Guard.ThrowIfNullOrWhitespace(connectionString);
 
-        return AddOneCollectorExporter(options, instrumentationKey, configuration: null, configure);
+        return AddOneCollectorExporter(options, connectionString, configuration: null, configure);
     }
 
     /// <summary>
@@ -106,7 +106,7 @@ public static class OneCollectorOpenTelemetryLoggerOptionsExtensions
     {
         Guard.ThrowIfNull(configuration);
 
-        return AddOneCollectorExporter(options, instrumentationKey: null, configuration, configure: null);
+        return AddOneCollectorExporter(options, connectionString: null, configuration, configure: null);
     }
 
     /// <summary>
@@ -125,19 +125,19 @@ public static class OneCollectorOpenTelemetryLoggerOptionsExtensions
     {
         Guard.ThrowIfNull(configuration);
 
-        return AddOneCollectorExporter(options, instrumentationKey: null, configuration, configure);
+        return AddOneCollectorExporter(options, connectionString: null, configuration, configure);
     }
 
     internal static OpenTelemetryLoggerOptions AddOneCollectorExporter(
         this OpenTelemetryLoggerOptions options,
-        string? instrumentationKey,
+        string? connectionString,
         IConfiguration? configuration,
         Action<OneCollectorLogExporterBuilder>? configure)
     {
         Guard.ThrowIfNull(options);
 
         var builder = configuration == null
-            ? new OneCollectorLogExporterBuilder(instrumentationKey)
+            ? new OneCollectorLogExporterBuilder(connectionString)
             : new OneCollectorLogExporterBuilder(configuration);
 
         configure?.Invoke(builder);
