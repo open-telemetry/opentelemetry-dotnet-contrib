@@ -36,6 +36,7 @@
     <StackExchangeRedisPkgVer>[2.1.58,3.0)</StackExchangeRedisPkgVer>
     <StyleCopAnalyzersPkgVer>[1.2.0-beta.435,2.0)</StyleCopAnalyzersPkgVer>
     <SystemNetHttp>[4.3.4,)</SystemNetHttp>
+    <SystemReflectionEmitLightweightPkgVer>4.7.0</SystemReflectionEmitLightweightPkgVer>
     <SystemTextJsonPkgVer>[6.0.0,)</SystemTextJsonPkgVer>
   </PropertyGroup>
 
@@ -57,14 +58,17 @@
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\ListenerHandler.cs" Link="Includes\ListenerHandler.cs" />
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\MultiTypePropertyFetcher.cs" Link="Includes\MultiTypePropertyFetcher.cs" />
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\PropertyFetcher.cs" Link="Includes\PropertyFetcher.cs" />
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs" />
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\EnumerationHelper.cs" Link="Includes\EnumerationHelper.cs" />
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\IActivityEnumerator.cs" Link="Includes\IActivityEnumerator.cs" />
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\SpanAttributeConstants.cs" Link="Includes\SpanAttributeConstants.cs" />
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\SpanHelper.cs" Link="Includes\SpanHelper.cs" />
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\StatusHelper.cs" Link="Includes\StatusHelper.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(IncludeActivityHelperExtensionSource)'=='true'">
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs" />
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\EnumerationHelper.cs" Link="Includes\EnumerationHelper.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(IncludeSharedTestSource)'=='true'">

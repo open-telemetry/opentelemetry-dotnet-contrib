@@ -4,6 +4,9 @@
 
 * Update OTel API version to `1.3.2`.
   ([#917](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/917))
+* Added a direct dependency on System.Reflection.Emit.Lightweight which
+  previously came transitively through the OpenTelemetry API.
+  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet/pull/XXXX))
 
 ## 1.0.0-rc9.7
 
