@@ -62,9 +62,7 @@ body:
   - type: input
     attributes:
       label: Component version
-      description: List of [all OpenTelemetry NuGet
-packages](https://www.nuget.org/profiles/OpenTelemetry) and version that you are
-using (e.g. `OpenTelemetry 1.3.2`)
+      description: List of [all OpenTelemetry NuGet packages](https://www.nuget.org/profiles/OpenTelemetry) and version that you are using (e.g. `OpenTelemetry 1.3.2`)
     validations:
       required: true
   - type: textarea
