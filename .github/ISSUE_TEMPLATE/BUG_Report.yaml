@@ -42,7 +42,6 @@ body:
       - OpenTelemetry.Instrumentation.StackExchangeRedis
       - OpenTelemetry.Instrumentation.Wcf
       - OpenTelemetry.ResourceDetectors.Azure
-      - Other
       # End contrib components list
   - type: textarea
     attributes:
