@@ -66,6 +66,6 @@ body:
     validations:
       required: true
   - type: textarea
-      attributes:
-        label: Additional context
-        description: Any additional information you think may be relevant to this issue.
+    attributes:
+      label: Additional context
+      description: Any additional information you think may be relevant to this issue.
