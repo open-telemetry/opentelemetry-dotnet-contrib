@@ -55,7 +55,7 @@ public class MySqlDataTests
 
         var traceListener = (TraceListener)Assert.Single(MySqlTrace.Listeners);
 
-        this.ExecuteSuccessQuery(traceListener, commandText, isFailure);
+        ExecuteSuccessQuery(traceListener, commandText, isFailure);
 
         Assert.Equal(3, activityProcessor.Invocations.Count);
 
@@ -170,7 +170,7 @@ public class MySqlDataTests
         }
     }
 
-    private void ExecuteSuccessQuery(TraceListener listener, string query, bool isFailure)
+    private static void ExecuteSuccessQuery(TraceListener listener, string query, bool isFailure)
     {
         // Connection opened
         listener.TraceEvent(

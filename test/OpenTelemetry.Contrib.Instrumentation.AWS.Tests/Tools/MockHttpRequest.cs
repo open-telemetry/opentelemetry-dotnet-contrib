@@ -212,7 +212,7 @@ internal class MockHttpRequest : IHttpRequest<HttpContent>
 
     public Task<HttpContent> GetRequestContentAsync()
     {
-        return Task.FromResult<HttpContent>(new HttpRequestMessage().Content);
+        return Task.FromResult(new HttpRequestMessage().Content);
     }
 
     public IWebResponseData GetResponse()
@@ -227,7 +227,7 @@ internal class MockHttpRequest : IHttpRequest<HttpContent>
     {
         this.GetResponseAction?.Invoke();
         var response = this.ResponseCreator(this);
-        return Task.FromResult<IWebResponseData>(CustomWebResponse.GenerateWebResponse(response));
+        return Task.FromResult(CustomWebResponse.GenerateWebResponse(response));
     }
 
     public void SetRequestHeaders(IDictionary<string, string> headers)
