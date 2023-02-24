@@ -27,9 +27,9 @@ internal class ServerCertificateValidationProvider
     private static readonly ServerCertificateValidationProvider InvalidProvider =
         new ServerCertificateValidationProvider(null);
 
-    private readonly X509Certificate2Collection trustedCertificates;
+    private readonly X509Certificate2Collection? trustedCertificates;
 
-    private ServerCertificateValidationProvider(X509Certificate2Collection trustedCertificates)
+    private ServerCertificateValidationProvider(X509Certificate2Collection? trustedCertificates)
     {
         if (trustedCertificates == null)
         {
@@ -45,9 +45,9 @@ internal class ServerCertificateValidationProvider
         this.IsCertificateLoaded = true;
     }
 
-    public bool IsCertificateLoaded { get; }
+    public bool? IsCertificateLoaded { get; }
 
-    public RemoteCertificateValidationCallback ValidationCallback { get; }
+    public RemoteCertificateValidationCallback? ValidationCallback { get; }
 
     public static ServerCertificateValidationProvider FromCertificateFile(string certificateFile)
     {
@@ -129,9 +129,12 @@ internal class ServerCertificateValidationProvider
             }
 
             var trustCertificates = string.Empty;
-            foreach (var trustCertificate in this.trustedCertificates)
+            if (this.trustedCertificates != null)
             {
-                trustCertificates += " " + trustCertificate.Subject;
+                foreach (var trustCertificate in this.trustedCertificates)
+                {
+                    trustCertificates += " " + trustCertificate.Subject;
+                }
             }
 
             AWSXRayEventSource.Log.FailedToValidateCertificate(
@@ -142,8 +145,13 @@ internal class ServerCertificateValidationProvider
         return isSslPolicyPassed && isValidChain && isTrusted;
     }
 
-    private bool HasCommonCertificate(X509Chain chain, X509Certificate2Collection collection)
+    private bool HasCommonCertificate(X509Chain chain, X509Certificate2Collection? collection)
     {
+        if (collection == null)
+        {
+            return false;
+        }
+
         foreach (var chainElement in chain.ChainElements)
         {
             foreach (var certificate in collection)

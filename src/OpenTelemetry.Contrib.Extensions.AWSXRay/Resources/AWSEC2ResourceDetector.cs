@@ -35,9 +35,9 @@ public class AWSEC2ResourceDetector : IResourceDetector
     /// Detector the required and optional resource attributes from AWS EC2.
     /// </summary>
     /// <returns>List of key-value pairs of resource attributes.</returns>
-    public IEnumerable<KeyValuePair<string, object>> Detect()
+    public IEnumerable<KeyValuePair<string, object?>>? Detect()
     {
-        List<KeyValuePair<string, object>> resourceAttributes = null;
+        List<KeyValuePair<string, object?>>? resourceAttributes = null;
 
         try
         {
@@ -55,24 +55,24 @@ public class AWSEC2ResourceDetector : IResourceDetector
         return resourceAttributes;
     }
 
-    internal List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEC2IdentityDocumentModel identity, string hostName)
+    internal List<KeyValuePair<string, object?>> ExtractResourceAttributes(AWSEC2IdentityDocumentModel? identity, string hostName)
     {
-        var resourceAttributes = new List<KeyValuePair<string, object>>()
+        var resourceAttributes = new List<KeyValuePair<string, object?>>()
         {
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_ec2"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudAccountID, identity.AccountId),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudAvailableZone, identity.AvailabilityZone),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeHostID, identity.InstanceId),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeHostType, identity.InstanceType),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudRegion, identity.Region),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeHostName, hostName),
+            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
+            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudPlatform, "aws_ec2"),
+            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudAccountID, identity?.AccountId),
+            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudAvailableZone, identity?.AvailabilityZone),
+            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeHostID, identity?.InstanceId),
+            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeHostType, identity?.InstanceType),
+            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudRegion, identity?.Region),
+            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeHostName, hostName),
         };
 
         return resourceAttributes;
     }
 
-    internal AWSEC2IdentityDocumentModel DeserializeResponse(string response)
+    internal AWSEC2IdentityDocumentModel? DeserializeResponse(string response)
     {
         return ResourceDetectorUtils.DeserializeFromString<AWSEC2IdentityDocumentModel>(response);
     }
@@ -82,7 +82,7 @@ public class AWSEC2ResourceDetector : IResourceDetector
         return ResourceDetectorUtils.SendOutRequest(AWSEC2MetadataTokenUrl, "PUT", new KeyValuePair<string, string>(AWSEC2MetadataTokenTTLHeader, "60")).Result;
     }
 
-    private AWSEC2IdentityDocumentModel GetAWSEC2Identity(string token)
+    private AWSEC2IdentityDocumentModel? GetAWSEC2Identity(string token)
     {
         var identity = this.GetIdentityResponse(token);
         var identityDocument = this.DeserializeResponse(identity);

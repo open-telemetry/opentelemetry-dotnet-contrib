@@ -39,7 +39,7 @@ public static class AWSXRayIdGenerator
     private static readonly Random Global = new Random();
     private static object randLock = new object();
 
-    internal static void ReplaceTraceId(Sampler sampler = null)
+    internal static void ReplaceTraceId(Sampler? sampler = null)
     {
         var awsXRayActivityListener = new ActivityListener
         {
