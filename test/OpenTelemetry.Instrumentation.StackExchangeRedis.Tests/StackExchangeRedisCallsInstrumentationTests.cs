@@ -336,7 +336,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         {
             optionsPickedFromDI = true;
         });
-        services.AddOpenTelemetryTracing(builder => builder.AddRedisInstrumentation());
+        services.AddOpenTelemetry().WithTracing(builder => builder.AddRedisInstrumentation());
 
         using var serviceProvider = services.BuildServiceProvider();
 
@@ -351,7 +351,7 @@ public class StackExchangeRedisCallsInstrumentationTests
     {
         var services = new ServiceCollection();
 
-        services.AddOpenTelemetryTracing(builder => builder.AddRedisInstrumentation());
+        services.AddOpenTelemetry().WithTracing(builder => builder.AddRedisInstrumentation());
 
         using var serviceProvider = services.BuildServiceProvider();
 
