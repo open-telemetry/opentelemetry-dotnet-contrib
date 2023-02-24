@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System.Collections.Generic;
 using System.Linq;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 using Xunit;
@@ -26,9 +25,10 @@ public class TestAWSEC2ResourceDetector
     [Fact]
     public void TestDetect()
     {
-        IEnumerable<KeyValuePair<string, object>> resourceAttributes;
         var ec2ResourceDetector = new AWSEC2ResourceDetector();
-        resourceAttributes = ec2ResourceDetector.Detect();
+
+        var resourceAttributes = ec2ResourceDetector.Detect();
+
         Assert.Null(resourceAttributes); // will be null as it's not in ec2 environment
     }
 
@@ -59,6 +59,7 @@ public class TestAWSEC2ResourceDetector
 
         var ec2IdentityDocumentModel = ec2ResourceDetector.DeserializeResponse(ec2IdentityDocument);
 
+        Assert.NotNull(ec2IdentityDocumentModel);
         Assert.Equal("123456789012", ec2IdentityDocumentModel.AccountId);
         Assert.Equal("us-east-1a", ec2IdentityDocumentModel.AvailabilityZone);
         Assert.Equal("i-12345678901234567", ec2IdentityDocumentModel.InstanceId);
