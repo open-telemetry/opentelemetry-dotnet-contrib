@@ -17,7 +17,6 @@
 using System;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
@@ -31,8 +30,7 @@ public static class EnrichmentExtensions
         Guard.ThrowIfNull(builder);
 
         return builder
-            .TryAddEnrichment()
-            .ConfigureServices(services => services.AddSingleton<TraceEnricher, T>());
+            .ConfigureServices(services => services.AddTraceEnricher<T>());
     }
 
     public static TracerProviderBuilder AddTraceEnricher(this TracerProviderBuilder builder, TraceEnricher enricher)
@@ -40,18 +38,8 @@ public static class EnrichmentExtensions
         Guard.ThrowIfNull(builder);
         Guard.ThrowIfNull(enricher);
 
-        _ = builder.TryAddEnrichment();
-
-        if (builder is IDeferredTracerProviderBuilder deferredTracerProviderBuilder)
-        {
-            deferredTracerProviderBuilder.Configure((sp, builder) =>
-            {
-                var proc = sp.GetRequiredService<TraceEnrichmentProcessor>();
-                proc.AddEnricher(enricher);
-            });
-        }
-
-        return builder;
+        return builder
+            .ConfigureServices(services => services.AddTraceEnricher(enricher));
     }
 
     public static TracerProviderBuilder AddTraceEnricher(this TracerProviderBuilder builder, Action<TraceEnrichmentBag> enrichmentAction)
@@ -59,16 +47,10 @@ public static class EnrichmentExtensions
         Guard.ThrowIfNull(builder);
         Guard.ThrowIfNull(enrichmentAction);
 
-        _ = builder.TryAddEnrichment();
+        EnrichmentActions.Actions.Add(enrichmentAction);
 
-        if (builder is IDeferredTracerProviderBuilder deferredTracerProviderBuilder)
-        {
-            EnrichmentActions.Actions.Add(enrichmentAction);
-
-            builder.ConfigureServices(services => services.TryAddSingleton<TraceEnricher, EnrichmentActions>());
-        }
-
-        return builder;
+        return builder
+            .ConfigureServices(services => services.AddTraceEnricher<EnrichmentActions>());
     }
 
     public static IServiceCollection AddTraceEnricher<T>(this IServiceCollection services)
@@ -89,18 +71,6 @@ public static class EnrichmentExtensions
         return services
             .TryAddEnrichment()
             .AddSingleton(enricher);
-    }
-
-    private static TracerProviderBuilder TryAddEnrichment(this TracerProviderBuilder builder)
-    {
-        return builder
-            .ConfigureServices(services =>
-            {
-                if (!services.Any(x => x.ServiceType == typeof(TraceEnrichmentProcessor)))
-                {
-                    builder.AddProcessor<TraceEnrichmentProcessor>();
-                }
-            });
     }
 
     private static IServiceCollection TryAddEnrichment(this IServiceCollection services)

@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -30,14 +29,6 @@ internal sealed class TraceEnrichmentProcessor : BaseProcessor<Activity>
     public TraceEnrichmentProcessor(IEnumerable<TraceEnricher> traceEnrichers)
     {
         this.traceEnrichers = traceEnrichers.ToArray();
-    }
-
-    public void AddEnricher(TraceEnricher traceEnricher)
-    {
-        Debug.Assert(traceEnricher != null, "trace enricher was null");
-
-        Array.Resize(ref this.traceEnrichers, this.traceEnrichers.Length + 1);
-        this.traceEnrichers[this.traceEnrichers.Length - 1] = traceEnricher!;
     }
 
     public override void OnEnd(Activity activity)
