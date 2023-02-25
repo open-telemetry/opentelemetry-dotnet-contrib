@@ -359,6 +359,7 @@ public class GenevaTraceExporterTests
                         options.ConnectionString = "Endpoint=unix:" + path;
                     })
                     .Build();
+
                 // GenevaExporter would not throw if it was not able to connect to the UDS socket in ctor. It would
                 // keep attempting to connect to the socket when sending telemetry.
                 Assert.True(true, "GenevaTraceExporter should not fail in constructor.");
