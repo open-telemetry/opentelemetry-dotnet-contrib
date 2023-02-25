@@ -8,7 +8,6 @@
   would return success and the exporting background thread will try to
   establish the connection.
   ([#935](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/935))
-  
 ## 1.4.0-rc.4
 
 Released 2023-Feb-13
