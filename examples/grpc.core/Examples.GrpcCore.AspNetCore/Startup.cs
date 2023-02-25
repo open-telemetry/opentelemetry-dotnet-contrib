@@ -110,7 +110,7 @@ public class Startup
                     tcs.SetResult(true);
                 });
 
-            return tcs.Task.ContinueWith(antecedent => tokenRegistration.Dispose());
+            return tcs.Task.ContinueWith(antecedent => tokenRegistration.Dispose(), stoppingToken);
         }
     }
 }

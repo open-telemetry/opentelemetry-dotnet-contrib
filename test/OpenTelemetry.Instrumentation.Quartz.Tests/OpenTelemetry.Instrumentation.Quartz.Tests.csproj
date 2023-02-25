@@ -2,7 +2,8 @@
 
     <PropertyGroup>
         <Description>Unit test project for OpenTelemetry Quartz.NET instrumentation</Description>
-        <TargetFrameworks>net7.0;net6.0;net472</TargetFrameworks>
+        <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
+        <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net472</TargetFrameworks>
         <IncludeSharedTestSource>true</IncludeSharedTestSource>
     </PropertyGroup>
 
@@ -13,7 +14,7 @@
         <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
         <PackageReference Include="Quartz" Version="3.3.2" />
         <PackageReference Include="xunit" Version="$(XUnitPkgVer)" />
-        <PackageReference Condition="$([MSBuild]::IsOsPlatform('Windows'))" Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)">
+        <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>

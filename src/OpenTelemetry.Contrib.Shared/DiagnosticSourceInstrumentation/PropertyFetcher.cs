@@ -24,7 +24,9 @@ namespace OpenTelemetry.Instrumentation;
 /// PropertyFetcher fetches a property from an object.
 /// </summary>
 /// <typeparam name="T">The type of the property being fetched.</typeparam>
-internal class PropertyFetcher<T>
+#pragma warning disable CA1812
+internal sealed class PropertyFetcher<T>
+#pragma warning restore CA1812
 {
     private readonly string propertyName;
     private PropertyFetch innerFetcher;
@@ -70,7 +72,7 @@ internal class PropertyFetcher<T>
         if (this.innerFetcher == null)
         {
             var type = obj.GetType().GetTypeInfo();
-            var property = type.DeclaredProperties.FirstOrDefault(p => string.Equals(p.Name, this.propertyName, StringComparison.InvariantCultureIgnoreCase));
+            var property = type.DeclaredProperties.FirstOrDefault(p => string.Equals(p.Name, this.propertyName, StringComparison.OrdinalIgnoreCase));
             if (property == null)
             {
                 property = type.GetProperty(this.propertyName);
@@ -109,7 +111,9 @@ internal class PropertyFetcher<T>
             return false;
         }
 
-        private class TypedPropertyFetch<TDeclaredObject, TDeclaredProperty> : PropertyFetch
+#pragma warning disable CA1812
+        private sealed class TypedPropertyFetch<TDeclaredObject, TDeclaredProperty> : PropertyFetch
+#pragma warning restore CA1812
             where TDeclaredProperty : T
         {
             private readonly Func<TDeclaredObject, TDeclaredProperty> propertyFetch;
