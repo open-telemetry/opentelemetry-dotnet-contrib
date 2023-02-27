@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Xml.Linq;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
@@ -240,9 +239,9 @@ internal class ConnectionStringBuilder
                 return false;
             }
 
-            return string.Equals("true", value, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(bool.TrueString, value, StringComparison.OrdinalIgnoreCase);
         }
-        set => this._parts[nameof(this.DisableMetricNameValidation)] = value ? "true" : "false";
+        set => this._parts[nameof(this.DisableMetricNameValidation)] = value ? bool.TrueString : bool.FalseString;
     }
 
     private T ThrowIfNotExists<T>(string name)
