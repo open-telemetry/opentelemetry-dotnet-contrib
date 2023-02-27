@@ -25,7 +25,7 @@ namespace OpenTelemetry.Exporter.OneCollector;
 public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions, ISinkFactory<LogRecord>
 {
     /// <summary>
-    /// Gets or sets the default event name. Default value: Log.
+    /// Gets or sets the default event name. Default value: <c>Log</c>.
     /// </summary>
     /// <remarks>
     /// Note: The default event name is used when an <see
@@ -41,7 +41,7 @@ public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions
 
     /// <summary>
     /// Gets or sets the default event namespace. Default value:
-    /// OpenTelemetry.Logs.
+    /// <c>OpenTelemetry.Logs</c>.
     /// </summary>
     /// <remarks>
     /// Note: The default event namespace is used if a <see
@@ -68,7 +68,7 @@ public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions
                 this.InstrumentationKey!,
                 transportOptions.Endpoint,
                 transportOptions.HttpCompression,
-                transportOptions.HttpClientFactory() ?? throw new InvalidOperationException($"{nameof(OneCollectorLogExporterOptions)} was missing HttpClientFactory or it returned null.")));
+                transportOptions.HttpClientFactory() ?? throw new OneCollectorExporterValidationException($"{nameof(OneCollectorLogExporterOptions)} was missing HttpClientFactory or it returned null.")));
 #pragma warning restore CA2000 // Dispose objects before losing scope
     }
 
@@ -76,12 +76,12 @@ public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions
     {
         if (string.IsNullOrWhiteSpace(this.DefaultEventNamespace))
         {
-            throw new InvalidOperationException($"{nameof(this.DefaultEventNamespace)} was not specified on {nameof(OneCollectorLogExporterOptions)} options.");
+            throw new OneCollectorExporterValidationException($"{nameof(this.DefaultEventNamespace)} was not specified on {nameof(OneCollectorLogExporterOptions)} options.");
         }
 
         if (string.IsNullOrWhiteSpace(this.DefaultEventName))
         {
-            throw new InvalidOperationException($"{nameof(this.DefaultEventName)} was not specified on {nameof(OneCollectorLogExporterOptions)} options.");
+            throw new OneCollectorExporterValidationException($"{nameof(this.DefaultEventName)} was not specified on {nameof(OneCollectorLogExporterOptions)} options.");
         }
 
         base.Validate();

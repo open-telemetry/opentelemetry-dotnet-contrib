@@ -1,7 +1,7 @@
 # Changelog
 
-* Update OpenTelemetry to 1.4.0-rc.4
-  ([#990](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/990))
+* Update OpenTelemetry to 1.4.0
+  ([#1038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1038))
 
 ## Unreleased
 

@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using Microsoft.Extensions.Configuration;
 using OpenTelemetry.Exporter.OneCollector;
 using OpenTelemetry.Internal;
 
@@ -24,6 +25,8 @@ namespace OpenTelemetry.Logs;
 /// </summary>
 public static class OneCollectorOpenTelemetryLoggerOptionsExtensions
 {
+    /*
+    TODO: Enable this once logging supports DI/options binding.
     /// <summary>
     /// Add OneCollector exporter to the <see
     /// cref="OpenTelemetryLoggerOptions"/>.
@@ -34,32 +37,119 @@ public static class OneCollectorOpenTelemetryLoggerOptionsExtensions
     public static OpenTelemetryLoggerOptions AddOneCollectorExporter(
         this OpenTelemetryLoggerOptions options)
         => AddOneCollectorExporter(options, _ => { });
+    */
 
     /// <summary>
     /// Add OneCollector exporter to the <see
     /// cref="OpenTelemetryLoggerOptions"/>.
     /// </summary>
     /// <param name="options"><see cref="OpenTelemetryLoggerOptions"/>.</param>
-    /// <param name="configure">Callback action for configuring <see cref="OneCollectorLogExporterOptions"/>.</param>
+    /// <param name="configure">Callback action for configuring <see cref="OneCollectorLogExporterBuilder"/>.</param>
     /// <returns>The supplied <see cref="OpenTelemetryLoggerOptions"/> for call
     /// chaining.</returns>
     public static OpenTelemetryLoggerOptions AddOneCollectorExporter(
         this OpenTelemetryLoggerOptions options,
-        Action<OneCollectorLogExporterOptions> configure)
+        Action<OneCollectorLogExporterBuilder> configure)
     {
-        Guard.ThrowIfNull(options);
         Guard.ThrowIfNull(configure);
 
-        var logExporterOptions = new OneCollectorLogExporterOptions();
+        return AddOneCollectorExporter(options, connectionString: null, configuration: null, configure);
+    }
 
-        configure?.Invoke(logExporterOptions);
+    /// <summary>
+    /// Add OneCollector exporter to the <see
+    /// cref="OpenTelemetryLoggerOptions"/>.
+    /// </summary>
+    /// <param name="options"><see cref="OpenTelemetryLoggerOptions"/>.</param>
+    /// <param name="connectionString">OneCollector connection string.</param>
+    /// <returns>The supplied <see cref="OpenTelemetryLoggerOptions"/> for call
+    /// chaining.</returns>
+    public static OpenTelemetryLoggerOptions AddOneCollectorExporter(
+        this OpenTelemetryLoggerOptions options,
+        string connectionString)
+    {
+        Guard.ThrowIfNullOrWhitespace(connectionString);
 
-        var batchOptions = logExporterOptions.BatchOptions;
+        return AddOneCollectorExporter(options, connectionString, configuration: null, configure: null);
+    }
+
+    /// <summary>
+    /// Add OneCollector exporter to the <see
+    /// cref="OpenTelemetryLoggerOptions"/>.
+    /// </summary>
+    /// <param name="options"><see cref="OpenTelemetryLoggerOptions"/>.</param>
+    /// <param name="connectionString">OneCollector connection string.</param>
+    /// <param name="configure">Callback action for configuring <see cref="OneCollectorLogExporterBuilder"/>.</param>
+    /// <returns>The supplied <see cref="OpenTelemetryLoggerOptions"/> for call
+    /// chaining.</returns>
+    public static OpenTelemetryLoggerOptions AddOneCollectorExporter(
+        this OpenTelemetryLoggerOptions options,
+        string connectionString,
+        Action<OneCollectorLogExporterBuilder> configure)
+    {
+        Guard.ThrowIfNullOrWhitespace(connectionString);
+
+        return AddOneCollectorExporter(options, connectionString, configuration: null, configure);
+    }
+
+    /// <summary>
+    /// Add OneCollector exporter to the <see
+    /// cref="OpenTelemetryLoggerOptions"/>.
+    /// </summary>
+    /// <param name="options"><see cref="OpenTelemetryLoggerOptions"/>.</param>
+    /// <param name="configuration">Configuration used to build <see cref="OneCollectorLogExporterOptions"/>.</param>
+    /// <returns>The supplied <see cref="OpenTelemetryLoggerOptions"/> for call
+    /// chaining.</returns>
+    public static OpenTelemetryLoggerOptions AddOneCollectorExporter(
+        this OpenTelemetryLoggerOptions options,
+        IConfiguration configuration)
+    {
+        Guard.ThrowIfNull(configuration);
+
+        return AddOneCollectorExporter(options, connectionString: null, configuration, configure: null);
+    }
+
+    /// <summary>
+    /// Add OneCollector exporter to the <see
+    /// cref="OpenTelemetryLoggerOptions"/>.
+    /// </summary>
+    /// <param name="options"><see cref="OpenTelemetryLoggerOptions"/>.</param>
+    /// <param name="configuration">Configuration used to build <see cref="OneCollectorLogExporterOptions"/>.</param>
+    /// <param name="configure">Callback action for configuring <see cref="OneCollectorLogExporterBuilder"/>.</param>
+    /// <returns>The supplied <see cref="OpenTelemetryLoggerOptions"/> for call
+    /// chaining.</returns>
+    public static OpenTelemetryLoggerOptions AddOneCollectorExporter(
+        this OpenTelemetryLoggerOptions options,
+        IConfiguration configuration,
+        Action<OneCollectorLogExporterBuilder> configure)
+    {
+        Guard.ThrowIfNull(configuration);
+
+        return AddOneCollectorExporter(options, connectionString: null, configuration, configure);
+    }
+
+    internal static OpenTelemetryLoggerOptions AddOneCollectorExporter(
+        this OpenTelemetryLoggerOptions options,
+        string? connectionString,
+        IConfiguration? configuration,
+        Action<OneCollectorLogExporterBuilder>? configure)
+    {
+        Guard.ThrowIfNull(options);
+
+        var builder = configuration == null
+            ? new OneCollectorLogExporterBuilder(connectionString)
+            : new OneCollectorLogExporterBuilder(configuration);
+
+        configure?.Invoke(builder);
+
+        var exporterOptions = builder.Options;
+
+        var batchOptions = exporterOptions.BatchOptions;
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
         options.AddProcessor(
             new BatchLogRecordExportProcessor(
-                new OneCollectorLogExporter(logExporterOptions),
+                new OneCollectorLogExporter(exporterOptions),
                 batchOptions.MaxQueueSize,
                 batchOptions.ScheduledDelayMilliseconds,
                 batchOptions.ExporterTimeoutMilliseconds,

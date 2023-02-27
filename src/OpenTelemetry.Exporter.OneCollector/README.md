@@ -25,11 +25,7 @@ using var logFactory = LoggerFactory.Create(builder => builder
     {
         builder.ParseStateValues = true;
         builder.IncludeScopes = true;
-        builder.AddOneCollectorExporter(o =>
-        {
-            o.TenantToken = "tenant-token-here";
-            o.InstrumentationKey = "instrumentation-key-here";
-        });
+        builder.AddOneCollectorExporter("InstrumentationKey=instrumentation-key-here");
     }));
 
 var logger = logFactory.CreateLogger<MyService>();

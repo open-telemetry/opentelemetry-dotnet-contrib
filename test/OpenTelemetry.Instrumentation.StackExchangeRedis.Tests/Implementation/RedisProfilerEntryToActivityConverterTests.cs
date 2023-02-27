@@ -19,6 +19,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using Moq;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using StackExchange.Redis;
 using StackExchange.Redis.Profiling;
