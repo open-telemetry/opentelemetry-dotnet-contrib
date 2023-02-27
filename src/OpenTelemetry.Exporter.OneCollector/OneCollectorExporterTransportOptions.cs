@@ -14,6 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+using System.ComponentModel.DataAnnotations;
+
 namespace OpenTelemetry.Exporter.OneCollector;
 
 /// <summary>
@@ -35,6 +37,10 @@ public sealed class OneCollectorExporterTransportOptions
     /// Gets or sets OneCollector endpoint address. Default value:
     /// <c>https://mobile.events.data.microsoft.com/OneCollector/1.0/</c>.
     /// </summary>
+    /// <remarks>
+    /// Note: Endpoint is required.
+    /// </remarks>
+    [Required]
     public Uri Endpoint { get; set; } = new Uri(DefaultOneCollectorEndpoint);
 
     /// <summary>
@@ -88,22 +94,22 @@ public sealed class OneCollectorExporterTransportOptions
     {
         if (this.Endpoint == null)
         {
-            throw new InvalidOperationException($"{nameof(this.Endpoint)} was not specified on {this.GetType().Name} options.");
+            throw new OneCollectorExporterValidationException($"{nameof(this.Endpoint)} was not specified on {this.GetType().Name} options.");
         }
 
         if (this.HttpClientFactory == null)
         {
-            throw new InvalidOperationException($"{nameof(this.HttpClientFactory)} was not specified on {this.GetType().Name} options.");
+            throw new OneCollectorExporterValidationException($"{nameof(this.HttpClientFactory)} was not specified on {this.GetType().Name} options.");
         }
 
         if (this.MaxPayloadSizeInBytes <= 0 && this.MaxPayloadSizeInBytes != -1)
         {
-            throw new InvalidOperationException($"{nameof(this.MaxPayloadSizeInBytes)} was invalid on {this.GetType().Name} options.");
+            throw new OneCollectorExporterValidationException($"{nameof(this.MaxPayloadSizeInBytes)} was invalid on {this.GetType().Name} options.");
         }
 
         if (this.MaxNumberOfItemsPerPayload <= 0 && this.MaxNumberOfItemsPerPayload != -1)
         {
-            throw new InvalidOperationException($"{nameof(this.MaxNumberOfItemsPerPayload)} was invalid on {this.GetType().Name} options.");
+            throw new OneCollectorExporterValidationException($"{nameof(this.MaxNumberOfItemsPerPayload)} was invalid on {this.GetType().Name} options.");
         }
     }
 }
