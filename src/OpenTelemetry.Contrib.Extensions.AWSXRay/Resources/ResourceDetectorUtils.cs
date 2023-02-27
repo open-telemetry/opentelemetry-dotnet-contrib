@@ -29,7 +29,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 /// </summary>
 public class ResourceDetectorUtils
 {
-    internal static async Task<string> SendOutRequest(string url, string method, KeyValuePair<string, string> header, HttpClientHandler handler = null)
+    internal static async Task<string> SendOutRequest(string url, string method, KeyValuePair<string, string> header, HttpClientHandler? handler = null)
     {
         using (var httpRequestMessage = new HttpRequestMessage())
         {
@@ -46,16 +46,16 @@ public class ResourceDetectorUtils
         }
     }
 
-    internal static T DeserializeFromFile<T>(string filePath)
+    internal static T? DeserializeFromFile<T>(string filePath)
     {
         using (var streamReader = GetStreamReader(filePath))
         {
             JsonSerializer serializer = new JsonSerializer();
-            return (T)serializer.Deserialize(streamReader, typeof(T));
+            return (T?)serializer.Deserialize(streamReader, typeof(T));
         }
     }
 
-    internal static T DeserializeFromString<T>(string json)
+    internal static T? DeserializeFromString<T>(string json)
     {
         return JsonConvert.DeserializeObject<T>(json);
     }
