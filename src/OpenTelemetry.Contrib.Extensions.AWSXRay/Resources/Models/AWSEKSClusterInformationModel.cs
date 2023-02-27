@@ -18,5 +18,5 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Models;
 
 internal class AWSEKSClusterInformationModel
 {
-    public AWSEKSClusterDataModel Data { get; set; }
+    public AWSEKSClusterDataModel? Data { get; set; }
 }
