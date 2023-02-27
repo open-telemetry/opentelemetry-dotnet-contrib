@@ -6,7 +6,7 @@
   ([#1038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1038))
 * Added a direct dependency on System.Reflection.Emit.Lightweight which
   previously came transitively through the OpenTelemetry API.
-  ([#1038](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1038))
+  ([#1038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1038))
 
 ## 1.0.0-rc9.7
 
