@@ -24,8 +24,8 @@
     <CoverletCollectorPkgVer>[3.2.0,4.0.0)</CoverletCollectorPkgVer>
     <DotNetXUnitCliVer>[2.3.1,3.0)</DotNetXUnitCliVer>
     <MicrosoftExtensionsLoggingPkgVer>[5.0.0,7.0)</MicrosoftExtensionsLoggingPkgVer>
-    <MicrosoftNETTestSdkPkgVer>[17.3.2,18.0)</MicrosoftNETTestSdkPkgVer>
-    <MoqPkgVer>[4.18.3,5.0)</MoqPkgVer>
+    <MicrosoftNETTestSdkPkgVer>[17.5.0,18.0)</MicrosoftNETTestSdkPkgVer>
+    <MoqPkgVer>[4.18.4,5.0)</MoqPkgVer>
     <MoqNet45PkgVer>[4.17.2,5.0)</MoqNet45PkgVer>
     <OpenTelemetryExporterInMemoryPkgVer>$(OpenTelemetryCoreLatestVersion)</OpenTelemetryExporterInMemoryPkgVer>
     <OpenTelemetryExporterInMemoryLatestPreReleasePkgVer>$(OpenTelemetryCoreLatestPrereleaseVersion)</OpenTelemetryExporterInMemoryLatestPreReleasePkgVer>
