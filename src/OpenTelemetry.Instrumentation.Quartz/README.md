@@ -42,7 +42,7 @@ public void ConfigureServices(IServiceCollection services)
 }
 
 // Add OpenTelemetry and Quartz instrumentation
-services.AddOpenTelemetryTracing(x =>
+services.AddOpenTelemetry().WithTracing(x =>
 {
     x.AddQuartzInstrumentation();
     x.UseJaegerExporter(config => {
