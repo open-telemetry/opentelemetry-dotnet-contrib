@@ -17,7 +17,7 @@ using OpenTelemetry.Trace;
 public void ConfigureServices(IServiceCollection services)
 {
     services.AddControllers();
-    services.AddOpenTelemetry().WithTracing(builder => builder
+    services.AddOpenTelemetryTracing((builder) => builder
         // for tracing calls to AWS services via AWS SDK for .Net
         .AddAWSInstrumentation()
         .AddAspNetCoreInstrumentation()
