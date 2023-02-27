@@ -68,7 +68,7 @@ public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions
                 this.InstrumentationKey!,
                 transportOptions.Endpoint,
                 transportOptions.HttpCompression,
-                transportOptions.HttpClientFactory() ?? throw new InvalidOperationException($"{nameof(OneCollectorLogExporterOptions)} was missing HttpClientFactory or it returned null.")));
+                transportOptions.HttpClientFactory() ?? throw new OneCollectorExporterValidationException($"{nameof(OneCollectorLogExporterOptions)} was missing HttpClientFactory or it returned null.")));
 #pragma warning restore CA2000 // Dispose objects before losing scope
     }
 
@@ -76,12 +76,12 @@ public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions
     {
         if (string.IsNullOrWhiteSpace(this.DefaultEventNamespace))
         {
-            throw new InvalidOperationException($"{nameof(this.DefaultEventNamespace)} was not specified on {nameof(OneCollectorLogExporterOptions)} options.");
+            throw new OneCollectorExporterValidationException($"{nameof(this.DefaultEventNamespace)} was not specified on {nameof(OneCollectorLogExporterOptions)} options.");
         }
 
         if (string.IsNullOrWhiteSpace(this.DefaultEventName))
         {
-            throw new InvalidOperationException($"{nameof(this.DefaultEventName)} was not specified on {nameof(OneCollectorLogExporterOptions)} options.");
+            throw new OneCollectorExporterValidationException($"{nameof(this.DefaultEventName)} was not specified on {nameof(OneCollectorLogExporterOptions)} options.");
         }
 
         base.Validate();

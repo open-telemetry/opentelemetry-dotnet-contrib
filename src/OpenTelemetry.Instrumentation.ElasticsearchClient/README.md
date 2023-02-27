@@ -20,7 +20,7 @@ ASP.NET Core instrumentation example:
 
 ```csharp
 // Add OpenTelemetry and Elasticsearch client instrumentation
-services.AddOpenTelemetryTracing(x =>
+services.AddOpenTelemetry().WithTracing(x =>
 {
     x.AddElasticsearchClientInstrumentation();
     x.UseJaegerExporter(config => {
