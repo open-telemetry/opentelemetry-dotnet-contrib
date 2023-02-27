@@ -28,5 +28,5 @@ public interface IResourceDetector
     /// Called to get key-value pairs of attribute from detector.
     /// </summary>
     /// <returns>List of key-value pairs of resource attributes.</returns>
-    IEnumerable<KeyValuePair<string, object>> Detect();
+    IEnumerable<KeyValuePair<string, object?>>? Detect();
 }

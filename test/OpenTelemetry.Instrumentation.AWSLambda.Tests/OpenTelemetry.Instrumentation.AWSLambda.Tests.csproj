@@ -4,7 +4,6 @@
     <Description>Unit test project of OpenTelemetry instrumentation for AWS Lambda</Description>
     <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
     <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
-    <IncludeActivityHelperExtensionSource>true</IncludeActivityHelperExtensionSource>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,6 +19,10 @@
 
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.AWSLambda\OpenTelemetry.Instrumentation.AWSLambda.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs" />
   </ItemGroup>
 
 </Project>

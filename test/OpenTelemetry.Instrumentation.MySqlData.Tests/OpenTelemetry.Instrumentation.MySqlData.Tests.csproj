@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
     <IncludeSharedTestSource>true</IncludeSharedTestSource>
-    <IncludeActivityHelperExtensionSource>true</IncludeActivityHelperExtensionSource>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,6 +21,10 @@
 
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.MySqlData\OpenTelemetry.Instrumentation.MySqlData.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs" />
   </ItemGroup>
 
 </Project>
