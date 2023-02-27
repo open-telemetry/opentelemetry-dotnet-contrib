@@ -632,6 +632,7 @@ public class GenevaMetricExporterTests
     {
         var instrumentNameRegexProperty = GenevaMetricExporter.GetOpenTelemetryInstrumentNameRegexProperty();
         var initialInstrumentNameRegexValue = instrumentNameRegexProperty.GetValue(null);
+        Socket server = null;
         try
         {
             var exportedMetrics = new List<Metric>();
@@ -651,6 +652,11 @@ public class GenevaMetricExporterTests
                     {
                         var path = GenerateTempFilePath();
                         options.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+
+                        var endpoint = new UnixDomainSocketEndPoint(path);
+                        server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                        server.Bind(endpoint);
+                        server.Listen(1);
                     }
                 })
                 .AddInMemoryExporter(exportedMetrics)
@@ -672,6 +678,7 @@ public class GenevaMetricExporterTests
         finally
         {
             instrumentNameRegexProperty.SetValue(null, initialInstrumentNameRegexValue);
+            server?.Dispose();
         }
     }
 
