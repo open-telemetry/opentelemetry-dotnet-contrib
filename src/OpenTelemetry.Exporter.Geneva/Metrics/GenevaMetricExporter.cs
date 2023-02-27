@@ -111,7 +111,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
             this.fixedPayloadStartIndex = sizeof(BinaryHeader);
         }
 
-        if (options.DisableMetricNameValidation)
+        if (connectionStringBuilder.DisableMetricNameValidation)
         {
             DisableOpenTelemetrySdkMetricNameValidation();
         }

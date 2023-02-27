@@ -90,11 +90,4 @@ public class GenevaMetricExporterOptions
             this._prepopulatedMetricDimensions = copy;
         }
     }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether or not OpenTelemetry SDK metric
-    /// name validation should be disabled. Default value: <see
-    /// langword="false"/>.
-    /// </summary>
-    public bool DisableMetricNameValidation { get; set; }
 }

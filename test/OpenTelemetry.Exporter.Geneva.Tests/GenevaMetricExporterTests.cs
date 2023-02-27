@@ -643,15 +643,14 @@ public class GenevaMetricExporterTests
                 .AddMeter(meter.Name)
                 .AddGenevaMetricExporter(options =>
                 {
-                    options.DisableMetricNameValidation = disableMetricNameValidation;
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
-                        options.ConnectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+                        options.ConnectionString = $"Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace;DisableMetricNameValidation={disableMetricNameValidation}";
                     }
                     else
                     {
                         var path = GenerateTempFilePath();
-                        options.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+                        options.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace;DisableMetricNameValidation={disableMetricNameValidation}";
 
                         var endpoint = new UnixDomainSocketEndPoint(path);
                         server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);

@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Xml.Linq;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
@@ -228,6 +229,20 @@ internal class ConnectionStringBuilder
     {
         get => this.ThrowIfNotExists<string>(nameof(this.Namespace));
         set => this._parts[nameof(this.Namespace)] = value;
+    }
+
+    public bool DisableMetricNameValidation
+    {
+        get
+        {
+            if (!this._parts.TryGetValue(nameof(this.DisableMetricNameValidation), out var value))
+            {
+                return false;
+            }
+
+            return string.Equals("true", value, StringComparison.OrdinalIgnoreCase);
+        }
+        set => this._parts[nameof(this.DisableMetricNameValidation)] = value ? "true" : "false";
     }
 
     private T ThrowIfNotExists<T>(string name)
