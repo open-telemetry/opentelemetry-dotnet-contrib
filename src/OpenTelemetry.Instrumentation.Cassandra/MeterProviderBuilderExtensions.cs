@@ -26,7 +26,7 @@ public static class MeterProviderBuilderExtensions
 {
     private static readonly string[] Meters =
     {
-        DriverTimer.MeterName, DriverCounter.MeterName, DriverMeter.MeterName, DriverGauge.MeterName
+        DriverTimer.MeterName, DriverCounter.MeterName, DriverMeter.MeterName, DriverGauge.MeterName,
     };
 
     /// <summary>
