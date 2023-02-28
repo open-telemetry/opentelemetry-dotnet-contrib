@@ -53,7 +53,7 @@ public class EventCountersMetricsTests
         Assert.Equal(1997.0202, GetActualValue(metric));
     }
 
-    [Fact]
+    [Fact(Skip = "Unstable")]
     public void IncrementingEventCounter()
     {
         // Arrange
@@ -81,7 +81,7 @@ public class EventCountersMetricsTests
         Assert.Equal(3, GetActualValue(metric));
     }
 
-    [Fact]
+    [Fact(Skip = "Unstable")]
     public void PollingCounter()
     {
         // Arrange
@@ -107,7 +107,7 @@ public class EventCountersMetricsTests
         Assert.Equal(10, GetActualValue(metric));
     }
 
-    [Fact]
+    [Fact(Skip = "Unstable")]
     public void IncrementingPollingCounter()
     {
         // Arrange

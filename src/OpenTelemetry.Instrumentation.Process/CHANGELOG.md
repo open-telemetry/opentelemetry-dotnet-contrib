@@ -2,7 +2,24 @@
 
 ## Unreleased
 
-TBD
+## 0.5.0-beta.2
+
+Released 2023-Feb-27
+
+* Update OpenTelemetry API to 1.4.0
+  ([#1038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1038))
+
+## 0.5.0-beta.1
+
+Released 2023-Feb-17
+
+> **Note**
+> The version number was lowered from 1.0.0 to 0.5.0 to better reflect the
+experimental state of Opentelemetry process metrics specification status.
+Packages that were older than this release will be delisted to avoid confusion.
+
+* Added `process.cpu.count` metric.
+  ([#981](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/981))
 
 ## 1.0.0-alpha.6
 

@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Description>An OpenTelemetry .NET exporter that sends telemetry to Microsoft OneCollector</Description>
+    <Authors>OpenTelemetry Authors</Authors>
+    <TargetFrameworks>net7.0;net6.0;netstandard2.1;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
+    <MinVerTagPrefix>Exporter.OneCollector-</MinVerTagPrefix>
+    <Nullable>enable</Nullable>
+    <EnableAnalysis>true</EnableAnalysis>
+    <ImplicitUsings>true</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonPkgVer)" Condition="'$(TargetFramework)' != 'net7.0' AND '$(TargetFramework)' != 'net6.0'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\Guard.cs" Link="Includes\Guard.cs" />
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\IsExternalInit.cs" Link="Includes\IsExternalInit.cs" />
+  </ItemGroup>
+
+</Project>

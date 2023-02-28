@@ -21,5 +21,5 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Models;
 internal class AWSEKSClusterDataModel
 {
     [JsonProperty(PropertyName = "cluster.name")]
-    public string ClusterName { get; set; }
+    public string? ClusterName { get; set; }
 }

@@ -22,22 +22,17 @@ using Xunit;
 
 namespace OpenTelemetry.ResourceDetectors.Azure.Tests;
 
-public class AzureResourceDetectorTests
+public class AzureResourceDetectorTests : IDisposable
 {
     [Fact]
     public void AppServiceResourceDetectorReturnsResourceWithAttributes()
     {
-        try
-        {
-            Environment.SetEnvironmentVariable("WEBSITE_SITE_NAME", "AzureAppService");
-            var resource = ResourceBuilder.CreateEmpty().AddDetector(new AppServiceResourceDetector()).Build();
-            Assert.NotNull(resource);
-            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "AzureAppService"), resource.Attributes);
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable("WEBSITE_SITE_NAME", null);
-        }
+        Environment.SetEnvironmentVariable("WEBSITE_SITE_NAME", "AzureAppService");
+        Environment.SetEnvironmentVariable("WEBSITE_INSTANCE_ID", "AzureInstance");
+        var resource = ResourceBuilder.CreateEmpty().AddDetector(new AppServiceResourceDetector()).Build();
+        Assert.NotNull(resource);
+        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "AzureAppService"), resource.Attributes);
+        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceInstance, "AzureInstance"), resource.Attributes);
     }
 
     [Fact]
@@ -45,5 +40,11 @@ public class AzureResourceDetectorTests
     {
         var resource = new AppServiceResourceDetector().Detect();
         Assert.Empty(resource.Attributes);
+    }
+
+    public void Dispose()
+    {
+        Environment.SetEnvironmentVariable("WEBSITE_SITE_NAME", null);
+        Environment.SetEnvironmentVariable("WEBSITE_INSTANCE_ID", null);
     }
 }

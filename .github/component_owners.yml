@@ -17,6 +17,9 @@ components:
     - Yun-Ting
   src/OpenTelemetry.Exporter.Instana/:
     - zivaninstana
+  src/OpenTelemetry.Exporter.OneCollector/:
+    - codeblanch
+    - reyang
   src/OpenTelemetry.Exporter.Stackdriver/:
     - SergeyKanzhelev
   src/OpenTelemetry.Extensions/:
@@ -86,6 +89,9 @@ components:
     - Yun-Ting
   test/OpenTelemetry.Exporter.Instana.Tests/:
     - zivaninstana
+  test/OpenTelemetry.Exporter.OneCollector.Tests/:
+    - codeblanch
+    - reyang
   test/OpenTelemetry.Exporter.Stackdriver.Tests/:
     - SergeyKanzhelev
   test/OpenTelemetry.Extensions.Tests/:

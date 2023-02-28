@@ -1,4 +1,4 @@
-// <copyright file="IActivityEnumerator.cs" company="OpenTelemetry Authors">
+// <copyright file="OneCollectorExporterHttpTransportCompressionType.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,20 +14,20 @@
 // limitations under the License.
 // </copyright>
 
-using System.Diagnostics;
-
-namespace OpenTelemetry.Trace;
+namespace OpenTelemetry.Exporter.OneCollector;
 
 /// <summary>
-/// An interface used to perform zero-allocation enumeration of <see cref="Activity"/> elements. Implementation must be a struct.
+/// Describes the OneCollector compression algorithm type to use when sending telemetry over HTTP.
 /// </summary>
-/// <typeparam name="T">Enumerated item type.</typeparam>
-internal interface IActivityEnumerator<T>
+internal enum OneCollectorExporterHttpTransportCompressionType
 {
     /// <summary>
-    /// Called for each <see cref="Activity"/> item while the enumeration is executing.
+    /// Uncompressed telemetry data.
     /// </summary>
-    /// <param name="item">Enumeration item.</param>
-    /// <returns><see langword="true"/> to continue the enumeration of records or <see langword="false"/> to stop (break) the enumeration.</returns>
-    bool ForEach(T item);
+    None,
+
+    /// <summary>
+    /// Compressed telemetry data using the Deflate algorithm.
+    /// </summary>
+    Deflate,
 }
