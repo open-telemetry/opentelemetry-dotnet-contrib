@@ -43,8 +43,8 @@ public class Startup
         services.AddControllers();
 
         // Wire in otel
-        services.AddOpenTelemetryTracing(
-            (builder) => builder
+        services.AddOpenTelemetry().WithTracing(
+            builder => builder
                 .AddAspNetCoreInstrumentation()
                 .AddGrpcCoreInstrumentation()
                 .AddConsoleExporter());
