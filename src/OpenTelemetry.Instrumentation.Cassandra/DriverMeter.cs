@@ -21,7 +21,7 @@ namespace OpenTelemetry.Instrumentation.Cassandra;
 
 internal class DriverMeter : IDriverMeter
 {
-    public const string MeterName = nameof(DriverMeter);
+    public static readonly string MeterName = typeof(DriverMeter).FullName;
 
     private readonly Histogram<long> meter;
 

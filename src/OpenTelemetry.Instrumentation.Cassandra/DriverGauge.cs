@@ -22,7 +22,7 @@ namespace OpenTelemetry.Instrumentation.Cassandra;
 
 internal class DriverGauge : IDriverGauge
 {
-    public const string MeterName = nameof(DriverGauge);
+    public static readonly string MeterName = typeof(DriverGauge).FullName;
 
     private readonly ObservableGauge<double> gauge;
 

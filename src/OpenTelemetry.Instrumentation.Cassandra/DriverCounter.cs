@@ -21,7 +21,7 @@ namespace OpenTelemetry.Instrumentation.Cassandra;
 
 internal class DriverCounter : IDriverCounter
 {
-    public const string MeterName = nameof(DriverCounter);
+    public static readonly string MeterName = typeof(DriverCounter).FullName;
 
     private readonly Counter<long> counter;
 
