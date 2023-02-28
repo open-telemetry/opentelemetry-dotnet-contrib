@@ -2,8 +2,16 @@
 
 ## Unreleased
 
+## 1.4.0
+
+Released 2023-Feb-27
+
 * Update OpenTelemetry to 1.4.0
   ([#1038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1038))
+
+* Add `DisableMetricNameValidation` connection string flag for controlling
+  metric name validation performed by the OpenTelemetry SDK.
+  ([#1006](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1006))
 
 ## 1.4.0-rc.4
 
