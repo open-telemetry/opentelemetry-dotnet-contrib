@@ -24,7 +24,7 @@ namespace OpenTelemetry.Extensions.Enrichment;
 internal sealed class TraceEnrichmentProcessor : BaseProcessor<Activity>
 #pragma warning restore CA1812 // Class is instantiated through dependency injection
 {
-    private TraceEnricher[] traceEnrichers;
+    private readonly TraceEnricher[] traceEnrichers;
 
     public TraceEnrichmentProcessor(IEnumerable<TraceEnricher> traceEnrichers)
     {

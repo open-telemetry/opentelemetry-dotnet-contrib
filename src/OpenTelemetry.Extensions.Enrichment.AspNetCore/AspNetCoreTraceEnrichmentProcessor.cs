@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.AspNetCore.Http;
 
 namespace OpenTelemetry.Extensions.Enrichment.AspNetCore;
@@ -25,18 +26,11 @@ namespace OpenTelemetry.Extensions.Enrichment.AspNetCore;
 internal sealed class AspNetCoreTraceEnrichmentProcessor
 #pragma warning restore CA1815 // Class is instantiated through dependency injection
 {
-    private readonly List<AspNetCoreTraceEnricher> enrichers = new();
+    private readonly AspNetCoreTraceEnricher[] enrichers;
 
     public AspNetCoreTraceEnrichmentProcessor(IEnumerable<AspNetCoreTraceEnricher> enrichers)
     {
-        this.enrichers.AddRange(enrichers);
-    }
-
-    public void AddEnricher(AspNetCoreTraceEnricher enrichers)
-    {
-        Debug.Assert(enrichers != null, "enricher was null");
-
-        this.enrichers.Add(enrichers!);
+        this.enrichers = enrichers.ToArray();
     }
 
     public void EnrichWithHttpRequest(Activity activity, HttpRequest request)
