@@ -28,9 +28,19 @@ public static class CassandraBuilderExtensions
     /// Configuring open telemetry metrics for cassandra.
     /// </summary>
     /// <param name="builder">Cassandra builder.</param>
+    /// <returns>Returning Cassandra builder.</returns>
+    public static Builder WithOpenTelemetryMetrics(this Builder builder)
+    {
+        return builder.WithMetrics(new CassandraDriverMetricsProvider(), GetDefaultOptions());
+    }
+
+    /// <summary>
+    /// Configuring open telemetry metrics for cassandra.
+    /// </summary>
+    /// <param name="builder">Cassandra builder.</param>
     /// <param name="options">Cassandra driver metrics options.</param>
     /// <returns>Returning Cassandra builder.</returns>
-    public static Builder WithOpenTelemetryMetrics(this Builder builder, DriverMetricsOptions options = null)
+    public static Builder WithOpenTelemetryMetrics(this Builder builder, DriverMetricsOptions? options)
     {
         return builder.WithMetrics(new CassandraDriverMetricsProvider(), options ?? GetDefaultOptions());
     }
