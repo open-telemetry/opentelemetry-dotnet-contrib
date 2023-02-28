@@ -24,7 +24,10 @@ namespace OpenTelemetry.Metrics;
 /// </summary>
 public static class MeterProviderBuilderExtensions
 {
-    private static readonly string[] Meters = { DriverTimer.MeterName, DriverCounter.MeterName, DriverMeter.MeterName, DriverGauge.MeterName };
+    private static readonly string[] Meters =
+    {
+        DriverTimer.MeterName, DriverCounter.MeterName, DriverMeter.MeterName, DriverGauge.MeterName
+    };
 
     /// <summary>
     /// Enables Cassandra instrumentation.
@@ -35,10 +38,7 @@ public static class MeterProviderBuilderExtensions
     {
         Guard.ThrowIfNull(builder);
 
-        foreach (var meter in Meters)
-        {
-            builder.AddMeter(meter);
-        }
+        builder.AddMeter(Meters);
 
         return builder;
     }
