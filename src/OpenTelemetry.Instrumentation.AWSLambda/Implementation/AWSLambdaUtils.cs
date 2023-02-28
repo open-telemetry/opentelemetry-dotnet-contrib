@@ -20,6 +20,8 @@ using System.Diagnostics;
 using System.Linq;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
+using Amazon.Lambda.SNSEvents;
+using Amazon.Lambda.SQSEvents;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
 
@@ -73,6 +75,18 @@ internal static class AWSLambdaUtils
                 break;
             case APIGatewayHttpApiV2ProxyRequest apiGatewayHttpApiV2ProxyRequest:
                 propagationContext = Propagators.DefaultTextMapPropagator.Extract(default, apiGatewayHttpApiV2ProxyRequest, GetHeaderValues);
+                break;
+            case SQSEvent sqsEvent:
+                propagationContext = AWSMessagingUtils.ExtractParentContext(sqsEvent);
+                break;
+            case SQSEvent.SQSMessage sqsMessage:
+                propagationContext = AWSMessagingUtils.ExtractParentContext(sqsMessage);
+                break;
+            case SNSEvent snsEvent:
+                propagationContext = AWSMessagingUtils.ExtractParentContext(snsEvent);
+                break;
+            case SNSEvent.SNSRecord snsRecord:
+                propagationContext = AWSMessagingUtils.ExtractParentContext(snsRecord);
                 break;
         }
 

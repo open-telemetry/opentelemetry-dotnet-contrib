@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using System.Collections.Generic;
 using Amazon.Runtime;
 
@@ -24,8 +23,8 @@ internal class AWSServiceHelper
 {
     internal static IReadOnlyDictionary<string, string> ServiceParameterMap = new Dictionary<string, string>()
     {
-        { DynamoDbService, "TableName" },
-        { SQSService, "QueueUrl" },
+        { AWSServiceType.DynamoDbService, "TableName" },
+        { AWSServiceType.SQSService, "QueueUrl" },
     };
 
     internal static IReadOnlyDictionary<string, string> ParameterAttributeMap = new Dictionary<string, string>()
@@ -33,9 +32,6 @@ internal class AWSServiceHelper
         { "TableName", AWSSemanticConventions.AttributeAWSDynamoTableName },
         { "QueueUrl", AWSSemanticConventions.AttributeAWSSQSQueueUrl },
     };
-
-    private const string DynamoDbService = "DynamoDBv2";
-    private const string SQSService = "SQS";
 
     internal static string GetAWSServiceName(IRequestContext requestContext)
         => Utils.RemoveAmazonPrefixFromServiceName(requestContext.Request.ServiceName);
@@ -47,7 +43,4 @@ internal class AWSServiceHelper
         var operationName = Utils.RemoveSuffix(completeRequestName, suffix);
         return operationName;
     }
-
-    internal static bool IsDynamoDbService(string service)
-        => DynamoDbService.Equals(service, StringComparison.OrdinalIgnoreCase);
 }
