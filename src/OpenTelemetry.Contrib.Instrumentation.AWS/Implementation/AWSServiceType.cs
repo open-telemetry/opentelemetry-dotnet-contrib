@@ -1,4 +1,4 @@
-﻿// <copyright file="AWSServiceType.cs" company="OpenTelemetry Authors">
+// <copyright file="AWSServiceType.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@ internal class AWSServiceType
 {
     internal const string DynamoDbService = "DynamoDBv2";
     internal const string SQSService = "SQS";
-    internal const string SNSService = "SimpleNotificationService";
+    internal const string SNSService = "SimpleNotificationService"; // SNS
 
     internal static bool IsDynamoDbService(string service)
         => DynamoDbService.Equals(service, StringComparison.OrdinalIgnoreCase);
