@@ -2,8 +2,15 @@
 
 ## Unreleased
 
-* Update OTel API version to `1.3.2`.
-  ([#917](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/917))
+## 1.0.0-rc9.8
+
+Released 2023-Feb-27
+
+* Update OTel API version to `1.4.0`.
+  ([#1038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1038))
+* Added a direct dependency on System.Reflection.Emit.Lightweight which
+  previously came transitively through the OpenTelemetry API.
+  ([#1038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1038))
 
 ## 1.0.0-rc9.7
 

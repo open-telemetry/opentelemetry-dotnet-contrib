@@ -27,7 +27,7 @@ ASP.NET Core instrumentation example:
 
 ```csharp
 // Add OpenTelemetry and gRPC Core instrumentation
-services.AddOpenTelemetryTracing(x =>
+services.AddOpenTelemetry().WithTracing(x =>
 {
     x.AddGrpcCoreInstrumentation();
     ...
