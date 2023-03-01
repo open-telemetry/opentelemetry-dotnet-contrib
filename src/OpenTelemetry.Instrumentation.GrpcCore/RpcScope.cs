@@ -18,8 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using global::Grpc.Core;
 using Google.Protobuf;
+using Grpc.Core;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.GrpcCore;
@@ -46,7 +46,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// <summary>
     /// The complete flag.
     /// </summary>
-    private long complete = 0;
+    private long complete;
 
     /// <summary>
     /// The request message counter.
@@ -197,7 +197,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
             this.activity.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, statusCode);
             if (statusDescription != null)
             {
-                this.activity.SetStatus(OpenTelemetry.Trace.Status.Error.WithDescription(statusDescription));
+                this.activity.SetStatus(Trace.Status.Error.WithDescription(statusDescription));
             }
 
             this.activity.Stop();

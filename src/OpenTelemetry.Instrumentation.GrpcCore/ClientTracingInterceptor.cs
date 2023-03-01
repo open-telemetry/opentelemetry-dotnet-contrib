@@ -17,8 +17,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using global::Grpc.Core;
-using global::Grpc.Core.Interceptors;
+using System.Threading.Tasks;
+using Grpc.Core;
+using Grpc.Core.Interceptors;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
 
@@ -27,7 +28,7 @@ namespace OpenTelemetry.Instrumentation.GrpcCore;
 /// <summary>
 /// A client interceptor that starts and stops an Activity for each outbound RPC.
 /// </summary>
-/// <seealso cref="global::Grpc.Core.Interceptors.Interceptor" />
+/// <seealso cref="Interceptor" />
 public class ClientTracingInterceptor : Interceptor
 {
     /// <summary>
@@ -52,6 +53,9 @@ public class ClientTracingInterceptor : Interceptor
         ClientInterceptorContext<TRequest, TResponse> context,
         BlockingUnaryCallContinuation<TRequest, TResponse> continuation)
     {
+        Guard.ThrowIfNull(context);
+        Guard.ThrowIfNull(continuation);
+
         ClientRpcScope<TRequest, TResponse> rpcScope = null;
 
         try
@@ -81,11 +85,16 @@ public class ClientTracingInterceptor : Interceptor
         ClientInterceptorContext<TRequest, TResponse> context,
         AsyncUnaryCallContinuation<TRequest, TResponse> continuation)
     {
+        Guard.ThrowIfNull(context);
+        Guard.ThrowIfNull(continuation);
+
         ClientRpcScope<TRequest, TResponse> rpcScope = null;
 
         try
         {
+#pragma warning  disable CA2000
             rpcScope = new ClientRpcScope<TRequest, TResponse>(context, this.options);
+#pragma warning restore CA2000
             rpcScope.RecordRequest(request);
             var responseContinuation = continuation(request, rpcScope.Context);
             var responseAsync = responseContinuation.ResponseAsync.ContinueWith(
@@ -103,7 +112,8 @@ public class ClientTracingInterceptor : Interceptor
                         rpcScope.CompleteWithException(ex.InnerException);
                         throw ex.InnerException;
                     }
-                });
+                },
+                TaskScheduler.Current);
 
             return new AsyncUnaryCall<TResponse>(
                 responseAsync,
@@ -128,11 +138,16 @@ public class ClientTracingInterceptor : Interceptor
         ClientInterceptorContext<TRequest, TResponse> context,
         AsyncClientStreamingCallContinuation<TRequest, TResponse> continuation)
     {
+        Guard.ThrowIfNull(context);
+        Guard.ThrowIfNull(continuation);
+
         ClientRpcScope<TRequest, TResponse> rpcScope = null;
 
         try
         {
+#pragma warning disable CA2000
             rpcScope = new ClientRpcScope<TRequest, TResponse>(context, this.options);
+#pragma warning restore CA2000
             var responseContinuation = continuation(rpcScope.Context);
             var clientRequestStreamProxy = new ClientStreamWriterProxy<TRequest>(
                 responseContinuation.RequestStream,
@@ -154,7 +169,8 @@ public class ClientTracingInterceptor : Interceptor
                         rpcScope.CompleteWithException(ex.InnerException);
                         throw ex.InnerException;
                     }
-                });
+                },
+                TaskScheduler.Current);
 
             return new AsyncClientStreamingCall<TRequest, TResponse>(
                 clientRequestStreamProxy,
@@ -181,11 +197,16 @@ public class ClientTracingInterceptor : Interceptor
         ClientInterceptorContext<TRequest, TResponse> context,
         AsyncServerStreamingCallContinuation<TRequest, TResponse> continuation)
     {
+        Guard.ThrowIfNull(context);
+        Guard.ThrowIfNull(continuation);
+
         ClientRpcScope<TRequest, TResponse> rpcScope = null;
 
         try
         {
+#pragma warning disable CA2000
             rpcScope = new ClientRpcScope<TRequest, TResponse>(context, this.options);
+#pragma warning restore CA2000
             rpcScope.RecordRequest(request);
             var responseContinuation = continuation(request, rpcScope.Context);
 
@@ -218,11 +239,16 @@ public class ClientTracingInterceptor : Interceptor
         ClientInterceptorContext<TRequest, TResponse> context,
         AsyncDuplexStreamingCallContinuation<TRequest, TResponse> continuation)
     {
+        Guard.ThrowIfNull(context);
+        Guard.ThrowIfNull(continuation);
+
         ClientRpcScope<TRequest, TResponse> rpcScope = null;
 
         try
         {
+#pragma warning disable CA2000
             rpcScope = new ClientRpcScope<TRequest, TResponse>(context, this.options);
+#pragma warning restore CA2000
             var responseContinuation = continuation(rpcScope.Context);
 
             var requestStreamProxy = new ClientStreamWriterProxy<TRequest>(
