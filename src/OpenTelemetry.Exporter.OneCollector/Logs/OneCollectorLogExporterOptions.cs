@@ -20,9 +20,10 @@ using OpenTelemetry.Logs;
 namespace OpenTelemetry.Exporter.OneCollector;
 
 /// <summary>
-/// Contains options for the <see cref="OneCollectorLogExporter"/> class.
+/// Contains options used to build a <see cref="OneCollectorExporter{T}"/>
+/// instance for exporting <see cref="LogRecord"/> telemetry data.
 /// </summary>
-public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions, ISinkFactory<LogRecord>
+public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions
 {
     /// <summary>
     /// Gets or sets the default event name. Default value: <c>Log</c>.
@@ -35,11 +36,6 @@ public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions
     public string DefaultEventName { get; set; } = "Log";
 
     /// <summary>
-    /// Gets the <see cref="BatchExportProcessorOptions{T}"/> options.
-    /// </summary>
-    public BatchExportProcessorOptions<LogRecord> BatchOptions { get; } = new();
-
-    /// <summary>
     /// Gets or sets the default event namespace. Default value:
     /// <c>OpenTelemetry.Logs</c>.
     /// </summary>
@@ -50,27 +46,6 @@ public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions
     /// always be a category name.
     /// </remarks>
     internal string DefaultEventNamespace { get; set; } = "OpenTelemetry.Logs";
-
-    ISink<LogRecord> ISinkFactory<LogRecord>.CreateSink()
-    {
-        this.Validate();
-
-        var transportOptions = this.TransportOptions;
-
-#pragma warning disable CA2000 // Dispose objects before losing scope
-        return new WriteDirectlyToTransportSink<LogRecord>(
-            new LogRecordCommonSchemaJsonSerializer(
-                new EventNameManager(this.DefaultEventNamespace, this.DefaultEventName),
-                this.TenantToken!,
-                transportOptions.MaxPayloadSizeInBytes == -1 ? int.MaxValue : transportOptions.MaxPayloadSizeInBytes,
-                transportOptions.MaxNumberOfItemsPerPayload == -1 ? int.MaxValue : transportOptions.MaxNumberOfItemsPerPayload),
-            new HttpJsonPostTransport(
-                this.InstrumentationKey!,
-                transportOptions.Endpoint,
-                transportOptions.HttpCompression,
-                transportOptions.HttpClientFactory() ?? throw new OneCollectorExporterValidationException($"{nameof(OneCollectorLogExporterOptions)} was missing HttpClientFactory or it returned null.")));
-#pragma warning restore CA2000 // Dispose objects before losing scope
-    }
 
     internal override void Validate()
     {

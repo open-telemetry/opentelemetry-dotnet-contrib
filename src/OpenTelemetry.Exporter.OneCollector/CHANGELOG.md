@@ -11,6 +11,9 @@
   instrumentation key directly.
   ([#1037](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1037))
 
+* Added `RegisterPayloadTransmittedCallback` API on `OneCollectorExporter<T>`.
+  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+
 ## 0.1.0-alpha.1
 
 Released 2023-Feb-16

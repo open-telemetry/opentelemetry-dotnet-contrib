@@ -166,6 +166,11 @@ public class WriteDirectlyToTransportSinkTests
 
         public List<byte[]> ExportedData { get; } = new();
 
+        public IDisposable RegisterPayloadTransmittedCallback(OneCollectorExporterPayloadTransmittedCallbackAction callback)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool Send(in TransportSendRequest sendRequest)
         {
             var stream = new MemoryStream();
