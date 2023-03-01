@@ -43,7 +43,14 @@ internal class UnixDomainSocketDataTransport : IDataTransport, IDisposable
     {
         this.unixEndpoint = new UnixDomainSocketEndPoint(unixDomainSocketPath);
         this.timeoutMilliseconds = timeoutMilliseconds;
-        this.Connect();
+        try
+        {
+            this.Connect();
+        }
+        catch (Exception ex)
+        {
+            ExporterEventSource.Log.ExporterException("UDS unavailable at startup.", ex);
+        }
     }
 
     public bool IsEnabled()
