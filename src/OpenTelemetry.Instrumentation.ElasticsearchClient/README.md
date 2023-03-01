@@ -23,8 +23,8 @@ ASP.NET Core instrumentation example:
 services.AddOpenTelemetry().WithTracing(x =>
 {
     x.AddElasticsearchClientInstrumentation();
-    x.UseJaegerExporter(config => {
-      // Configure Jaeger
+    x.AddOtlpExporter(config => {
+      // Configure OTLP
     });
 });
 ```
