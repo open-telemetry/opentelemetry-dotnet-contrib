@@ -14,61 +14,53 @@
 // limitations under the License.
 // </copyright>
 
-using Amazon.Runtime;
-using SNS = Amazon.SimpleNotificationService.Model;
-using SQS = Amazon.SQS.Model;
+using System.Collections.Generic;
+using OpenTelemetry.Context.Propagation;
 
 namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation;
 
 internal static class AWSMessagingUtils
 {
-    private static readonly AWSMessageAttributeHelper SqsAttributeHelper = new(new SqsMessageAttributeFormatter());
-    private static readonly AWSMessageAttributeHelper SnsAttributeHelper = new(new SnsMessageAttributeFormatter());
+    // SQS/SNS message attributes collection size limit according to
+    // https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-message-metadata.html and
+    // https://docs.aws.amazon.com/sns/latest/dg/sns-message-attributes.html
+    private const int MaxMessageAttributes = 10;
 
-    internal static void SqsMessageAttributeSetter(IRequestContext context, string name, string value)
+    internal static void Inject(IRequestContextAdapter requestAdapter, PropagationContext propagationContext)
     {
-        var parameters = context.Request?.ParameterCollection;
-        if (parameters == null ||
-            !parameters.ContainsKey("MessageBody") ||
-            context.OriginalRequest is not SQS::SendMessageRequest originalRequest)
+        if (!requestAdapter.HasMessageBody ||
+            !requestAdapter.HasOriginalRequest)
         {
             return;
         }
 
-        // Add trace data to parameters collection of the request.
-        if (SqsAttributeHelper.TryAddParameter(parameters, name, value))
-        {
-            // Add trace data to message attributes dictionary of the original request.
-            // This dictionary must be in sync with parameters collection to pass through the MD5 hash matching check.
-            if (!originalRequest.MessageAttributes.ContainsKey(name))
-            {
-                originalRequest.MessageAttributes.Add(
-                    name, new SQS::MessageAttributeValue
-                    { DataType = "String", StringValue = value });
-            }
-        }
-    }
+        var carrier = new Dictionary<string, string>();
+        Propagators.DefaultTextMapPropagator.Inject(propagationContext, carrier, Setter);
 
-    internal static void SnsMessageAttributeSetter(IRequestContext context, string name, string value)
-    {
-        var parameters = context.Request?.ParameterCollection;
-        if (parameters == null ||
-            !parameters.ContainsKey("Message") ||
-            context.OriginalRequest is not SNS::PublishRequest originalRequest)
+        int attributesCount = requestAdapter.AttributesCount;
+        if (carrier.Count + attributesCount > MaxMessageAttributes)
         {
+            // TODO: Add logging (event source).
             return;
         }
 
-        if (SnsAttributeHelper.TryAddParameter(parameters, name, value))
+        int nextAttributeIndex = attributesCount + 1;
+        foreach (var param in carrier)
         {
+            if (requestAdapter.ContainsAttribute(param.Key))
+            {
+                continue;
+            }
+
+            requestAdapter.AddAttribute(param.Key, param.Value, nextAttributeIndex);
+            nextAttributeIndex++;
+
             // Add trace data to message attributes dictionary of the original request.
             // This dictionary must be in sync with parameters collection to pass through the MD5 hash matching check.
-            if (!originalRequest.MessageAttributes.ContainsKey(name))
-            {
-                originalRequest.MessageAttributes.Add(
-                    name, new SNS::MessageAttributeValue
-                    { DataType = "String", StringValue = value });
-            }
+            requestAdapter.AddAttributeToOriginalRequest(param.Key, param.Value);
         }
     }
+
+    private static void Setter(IDictionary<string, string> carrier, string name, string value) =>
+        carrier[name] = value;
 }

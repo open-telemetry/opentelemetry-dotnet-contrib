@@ -202,11 +202,11 @@ internal class AWSTracingPipelineHandler : PipelineHandler
         }
         else if (AWSServiceType.IsSqsService(service))
         {
-            Propagators.DefaultTextMapPropagator.Inject(new PropagationContext(activity.Context, Baggage.Current), requestContext, AWSMessagingUtils.SqsMessageAttributeSetter);
+            AWSMessagingUtils.Inject(new SqsRequestContextAdapter(requestContext), new PropagationContext(activity.Context, Baggage.Current));
         }
         else if (AWSServiceType.IsSnsService(service))
         {
-            Propagators.DefaultTextMapPropagator.Inject(new PropagationContext(activity.Context, Baggage.Current), requestContext, AWSMessagingUtils.SnsMessageAttributeSetter);
+            AWSMessagingUtils.Inject(new SnsRequestContextAdapter(requestContext), new PropagationContext(activity.Context, Baggage.Current));
         }
     }
 

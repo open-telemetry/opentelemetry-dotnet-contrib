@@ -1,4 +1,4 @@
-// <copyright file="SqsMessageAttributeFormatter.cs" company="OpenTelemetry Authors">
+// <copyright file="IRequestContextAdapter.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,21 +14,18 @@
 // limitations under the License.
 // </copyright>
 
-using System.Text.RegularExpressions;
-
 namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation;
-
-internal class SqsMessageAttributeFormatter : IAWSMessageAttributeFormatter
+internal interface IRequestContextAdapter
 {
-    Regex IAWSMessageAttributeFormatter.AttributeNameRegex => new(@"MessageAttribute\.\d+\.Name");
+    bool HasMessageBody { get; }
 
-    string IAWSMessageAttributeFormatter.AttributeNamePrefix => "MessageAttribute";
+    bool HasOriginalRequest { get; }
 
-    int? IAWSMessageAttributeFormatter.GetAttributeIndex(string attributeName)
-    {
-        var parts = attributeName.Split('.');
-        return (parts.Length >= 2 && int.TryParse(parts[1], out int index)) ?
-            index :
-            null;
-    }
+    int AttributesCount { get; }
+
+    bool ContainsAttribute(string name);
+
+    void AddAttribute(string name, string value, int nextAttributeIndex);
+
+    void AddAttributeToOriginalRequest(string name, string value);
 }
