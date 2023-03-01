@@ -12,7 +12,7 @@
   ([#1037](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1037))
 
 * Added `RegisterPayloadTransmittedCallback` API on `OneCollectorExporter<T>`.
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#1058](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1058))
 
 ## 0.1.0-alpha.1
 
