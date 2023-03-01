@@ -3,7 +3,7 @@
 [![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.Instana.svg)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Instana)
 [![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Exporter.Instana.svg)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Instana)
 
-The Instana Exporter exports telemetry to Instana backand.
+The Instana Exporter exports telemetry to Instana backend.
 
 ## Installation
 
