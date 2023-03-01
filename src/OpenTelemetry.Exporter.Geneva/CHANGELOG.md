@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* Changed the behavior of Unix domain socket connection at startup. Before this
+  change, the exporter initialization would throw exception if the target Unix
+  Domain Socket does not exist. After this change, the exporter initialization
+  would return success and the exporting background thread will try to
+  establish the connection.
+  ([#935](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/935))
+
 ## 1.4.0
 
 Released 2023-Feb-27
