@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Amazon.Lambda.SNSEvents;
@@ -49,12 +50,19 @@ internal class AWSMessagingUtils
             return default;
         }
 
-        // SQS subscribed to SNS topic with raw delivery disabled case, i.e. SNS record serialized into SQS body.
-        // https://docs.aws.amazon.com/sns/latest/dg/sns-large-payload-raw-message-delivery.html
-        SNSEvent.SNSMessage snsMessage = GetSnsMessage(sqsMessage);
-        return snsMessage != null ?
-            ExtractParentContext(snsMessage) :
-            Propagators.DefaultTextMapPropagator.Extract(default, sqsMessage.MessageAttributes, SqsMessageAttributeGetter);
+        var parentContext = Propagators.DefaultTextMapPropagator.Extract(default, sqsMessage.MessageAttributes, SqsMessageAttributeGetter);
+        if (parentContext == default)
+        {
+            // SQS subscribed to SNS topic with raw delivery disabled case, i.e. SNS record serialized into SQS body.
+            // https://docs.aws.amazon.com/sns/latest/dg/sns-large-payload-raw-message-delivery.html
+            SNSEvent.SNSMessage snsMessage = GetSnsMessage(sqsMessage);
+            if (snsMessage != null)
+            {
+                parentContext = ExtractParentContext(snsMessage);
+            }
+        }
+
+        return parentContext;
     }
 
     internal static PropagationContext ExtractParentContext(SNSEvent snsEvent)
@@ -129,7 +137,7 @@ internal class AWSMessagingUtils
             {
                 snsMessage = JsonConvert.DeserializeObject<SNSEvent.SNSMessage>(body);
             }
-            catch (JsonException)
+            catch (Exception)
             {
                 // TODO: log exception.
                 return null;
