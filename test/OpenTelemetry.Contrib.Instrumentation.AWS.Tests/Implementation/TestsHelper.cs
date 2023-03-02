@@ -16,11 +16,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
-using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Contrib.Instrumentation.AWS.Implementation;
 using Xunit;
 using SNS = Amazon.SimpleNotificationService.Model;
@@ -113,7 +110,7 @@ internal static class TestsHelper
 
     internal static void AssertStringParameters(string serviceType, List<KeyValuePair<string, string>> expectedParameters, ParameterCollection parameters)
     {
-        Assert.Equal((expectedParameters.Count * 3) + 1, parameters.Count);
+        Assert.Equal(expectedParameters.Count * 3, parameters.Count);
 
         for (int i = 0; i < expectedParameters.Count; i++)
         {
@@ -131,30 +128,12 @@ internal static class TestsHelper
         }
     }
 
-    internal static ParameterCollection DefaultParameterCollection(string serviceType)
-    {
-        return new ParameterCollection
-        {
-            { GetMessageBodyAttributeName(serviceType), string.Empty },
-        };
-    }
-
     private static string GetNamePrefix(string serviceType)
     {
         return serviceType switch
         {
             AWSServiceType.SQSService => "MessageAttribute",
             AWSServiceType.SNSService => "MessageAttributes.entry",
-            _ => throw new NotSupportedException($"Tests for service type {serviceType} not supported."),
-        };
-    }
-
-    private static string GetMessageBodyAttributeName(string serviceType)
-    {
-        return serviceType switch
-        {
-            AWSServiceType.SQSService => "MessageBody",
-            AWSServiceType.SNSService => "Message",
             _ => throw new NotSupportedException($"Tests for service type {serviceType} not supported."),
         };
     }

@@ -30,10 +30,7 @@ internal class SnsRequestContextAdapter : IRequestContextAdapter
         this.originalRequest = context.OriginalRequest as PublishRequest;
     }
 
-    public bool HasMessageBody =>
-        this.parameters?.ContainsKey("Message") ?? false;
-
-    public bool HasOriginalRequest => this.originalRequest != null;
+    public bool CanInject => this.originalRequest != null;
 
     public int AttributesCount =>
         this.originalRequest?.MessageAttributes.Count ?? 0;
@@ -45,14 +42,15 @@ internal class SnsRequestContextAdapter : IRequestContextAdapter
             return;
         }
 
-        var attributePrefix = "MessageAttributes.entry." + nextAttributeIndex;
-        this.parameters.Add(attributePrefix + ".Name", name);
-        this.parameters.Add(attributePrefix + ".Value.DataType", "String");
-        this.parameters.Add(attributePrefix + ".Value.StringValue", value);
-    }
+        var prefix = "MessageAttributes.entry." + nextAttributeIndex;
+        this.parameters.Add(prefix + ".Name", name);
+        this.parameters.Add(prefix + ".Value.DataType", "String");
+        this.parameters.Add(prefix + ".Value.StringValue", value);
 
-    public void AddAttributeToOriginalRequest(string name, string value) =>
+        // Add injected attributes to the original request as well.
+        // This dictionary must be in sync with parameters collection to pass through the MD5 hash matching check.
         this.originalRequest?.MessageAttributes.Add(name, new MessageAttributeValue { DataType = "String", StringValue = value });
+    }
 
     public bool ContainsAttribute(string name)
         => this.originalRequest?.MessageAttributes.ContainsKey(name) ?? false;

@@ -15,6 +15,7 @@
 // </copyright>
 
 using System.Collections.Generic;
+using System.Linq;
 using OpenTelemetry.Context.Propagation;
 
 namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation;
@@ -26,41 +27,38 @@ internal static class AWSMessagingUtils
     // https://docs.aws.amazon.com/sns/latest/dg/sns-message-attributes.html
     private const int MaxMessageAttributes = 10;
 
-    internal static void Inject(IRequestContextAdapter requestAdapter, PropagationContext propagationContext)
+    internal static void Inject(IRequestContextAdapter request, PropagationContext propagationContext)
     {
-        if (!requestAdapter.HasMessageBody ||
-            !requestAdapter.HasOriginalRequest)
+        if (!request.CanInject)
         {
             return;
         }
 
         var carrier = new Dictionary<string, string>();
-        Propagators.DefaultTextMapPropagator.Inject(propagationContext, carrier, Setter);
+        Propagators.DefaultTextMapPropagator.Inject(propagationContext, carrier, (c, k, v) => c[k] = v);
+        if (carrier.Keys.Any(k => request.ContainsAttribute(k)))
+        {
+            // If at least one attribute is already present in the request then we skip the injection.
+            return;
+        }
 
-        int attributesCount = requestAdapter.AttributesCount;
+        int attributesCount = request.AttributesCount;
         if (carrier.Count + attributesCount > MaxMessageAttributes)
         {
-            // TODO: Add logging (event source).
+            // TODO: add logging (event source).
             return;
         }
 
         int nextAttributeIndex = attributesCount + 1;
         foreach (var param in carrier)
         {
-            if (requestAdapter.ContainsAttribute(param.Key))
+            if (request.ContainsAttribute(param.Key))
             {
                 continue;
             }
 
-            requestAdapter.AddAttribute(param.Key, param.Value, nextAttributeIndex);
+            request.AddAttribute(param.Key, param.Value, nextAttributeIndex);
             nextAttributeIndex++;
-
-            // Add trace data to message attributes dictionary of the original request.
-            // This dictionary must be in sync with parameters collection to pass through the MD5 hash matching check.
-            requestAdapter.AddAttributeToOriginalRequest(param.Key, param.Value);
         }
     }
-
-    private static void Setter(IDictionary<string, string> carrier, string name, string value) =>
-        carrier[name] = value;
 }

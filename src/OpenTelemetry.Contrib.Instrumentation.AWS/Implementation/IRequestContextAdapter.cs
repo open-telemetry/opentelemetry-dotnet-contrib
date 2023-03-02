@@ -17,15 +17,11 @@
 namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation;
 internal interface IRequestContextAdapter
 {
-    bool HasMessageBody { get; }
-
-    bool HasOriginalRequest { get; }
+    bool CanInject { get; }
 
     int AttributesCount { get; }
 
     bool ContainsAttribute(string name);
 
-    void AddAttribute(string name, string value, int nextAttributeIndex);
-
-    void AddAttributeToOriginalRequest(string name, string value);
+    void AddAttribute(string name, string value, int attributeIndex);
 }

@@ -30,25 +30,26 @@ internal class SqsRequestContextAdapter : IRequestContextAdapter
         this.originalRequest = context.OriginalRequest as SendMessageRequest;
     }
 
-    public bool HasMessageBody =>
-        this.parameters?.ContainsKey("MessageBody") ?? false;
-
-    public bool HasOriginalRequest => this.originalRequest != null;
+    public bool CanInject => this.originalRequest != null;
 
     public int AttributesCount =>
         this.originalRequest?.MessageAttributes.Count ?? 0;
 
-    public void AddAttribute(string name, string value, int nextAttributeIndex)
+    public void AddAttribute(string name, string value, int attributeIndex)
     {
         if (this.parameters == null)
         {
             return;
         }
 
-        var attributePrefix = "MessageAttribute." + nextAttributeIndex;
-        this.parameters.Add(attributePrefix + ".Name", name);
-        this.parameters.Add(attributePrefix + ".Value.DataType", "String");
-        this.parameters.Add(attributePrefix + ".Value.StringValue", value);
+        var prefix = "MessageAttribute." + attributeIndex;
+        this.parameters.Add(prefix + ".Name", name);
+        this.parameters.Add(prefix + ".Value.DataType", "String");
+        this.parameters.Add(prefix + ".Value.StringValue", value);
+
+        // Add injected attributes to the original request as well.
+        // This dictionary must be in sync with parameters collection to pass through the MD5 hash matching check.
+        this.originalRequest?.MessageAttributes.Add(name, new MessageAttributeValue { DataType = "String", StringValue = value });
     }
 
     public void AddAttributeToOriginalRequest(string name, string value) =>

@@ -33,19 +33,14 @@ internal class AWSMessagingUtils
 
     internal static PropagationContext ExtractParentContext(SQSEvent sqsEvent)
     {
-        if (sqsEvent == null)
-        {
-            return default;
-        }
-
         // We assume there can be only one parent that's why we consider only a single (the last) record as the carrier.
-        var message = sqsEvent.Records.LastOrDefault();
+        var message = sqsEvent?.Records?.LastOrDefault();
         return ExtractParentContext(message);
     }
 
     internal static PropagationContext ExtractParentContext(SQSEvent.SQSMessage sqsMessage)
     {
-        if (sqsMessage == null)
+        if (sqsMessage?.MessageAttributes == null)
         {
             return default;
         }
@@ -67,52 +62,45 @@ internal class AWSMessagingUtils
 
     internal static PropagationContext ExtractParentContext(SNSEvent snsEvent)
     {
-        if (snsEvent == null)
-        {
-            return default;
-        }
-
         // We assume there can be only one parent that's why we consider only a single (the last) record as the carrier.
-        var record = snsEvent.Records.LastOrDefault();
+        var record = snsEvent?.Records?.LastOrDefault();
         return ExtractParentContext(record);
     }
 
     internal static PropagationContext ExtractParentContext(SNSEvent.SNSRecord record)
     {
-        return (record?.Sns != null) ?
+        return (record?.Sns?.MessageAttributes != null) ?
             Propagators.DefaultTextMapPropagator.Extract(default, record.Sns.MessageAttributes, SnsMessageAttributeGetter) :
             default;
     }
 
     internal static PropagationContext ExtractParentContext(SNSEvent.SNSMessage message)
     {
-        return (message != null) ?
+        return (message?.MessageAttributes != null) ?
             Propagators.DefaultTextMapPropagator.Extract(default, message.MessageAttributes, SnsMessageAttributeGetter) :
             default;
     }
 
     private static IEnumerable<string> SqsMessageAttributeGetter(IDictionary<string, SQSEvent.MessageAttribute> attributes, string attributeName)
     {
-        SQSEvent.MessageAttribute attribute = attributes.GetValueByKeyIgnoringCase(attributeName);
-        if (attribute == null)
+        if (!attributes.TryGetValue(attributeName, out var attribute))
         {
             return null;
         }
 
-        return attribute.StringValue != null ?
+        return attribute?.StringValue != null ?
             new[] { attribute.StringValue } :
-            attribute.StringListValues;
+            attribute?.StringListValues;
     }
 
     private static IEnumerable<string> SnsMessageAttributeGetter(IDictionary<string, SNSEvent.MessageAttribute> attributes, string attributeName)
     {
-        SNSEvent.MessageAttribute attribute = attributes.GetValueByKeyIgnoringCase(attributeName);
-        if (attribute == null)
+        if (!attributes.TryGetValue(attributeName, out var attribute))
         {
             return null;
         }
 
-        switch (attribute.Type)
+        switch (attribute?.Type)
         {
             case SnsAttributeTypeString when attribute.Value != null:
                 return new[] { attribute.Value };
