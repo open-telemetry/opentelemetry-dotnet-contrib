@@ -21,9 +21,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation;
 
 internal class Utils
 {
-    internal static object GetTagValue(Activity activity, string tagName)
+    internal static object? GetTagValue(Activity activity, string tagName)
     {
-        foreach (KeyValuePair<string, object> tag in activity.TagObjects)
+        foreach (KeyValuePair<string, object?> tag in activity.TagObjects)
         {
             if (tag.Key.Equals(tagName))
             {
