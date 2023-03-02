@@ -1,4 +1,7 @@
 Microsoft.Extensions.Logging.GenevaLoggingExtensions
+OpenTelemetry.Exporter.Geneva.ExceptionStackExportMode
+OpenTelemetry.Exporter.Geneva.ExceptionStackExportMode.Drop = 0 -> OpenTelemetry.Exporter.Geneva.ExceptionStackExportMode
+OpenTelemetry.Exporter.Geneva.ExceptionStackExportMode.ExportAsString = 1 -> OpenTelemetry.Exporter.Geneva.ExceptionStackExportMode
 OpenTelemetry.Exporter.Geneva.GenevaBaseExporter<T>
 OpenTelemetry.Exporter.Geneva.GenevaBaseExporter<T>.GenevaBaseExporter() -> void
 OpenTelemetry.Exporter.Geneva.GenevaExporterHelperExtensions
@@ -7,6 +10,8 @@ OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.ConnectionString.get -> stri
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.ConnectionString.set -> void
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.CustomFields.get -> System.Collections.Generic.IEnumerable<string>
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.CustomFields.set -> void
+OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.ExceptionStackExportMode.get -> OpenTelemetry.Exporter.Geneva.ExceptionStackExportMode
+OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.ExceptionStackExportMode.set -> void
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.GenevaExporterOptions() -> void
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.PrepopulatedFields.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.PrepopulatedFields.set -> void

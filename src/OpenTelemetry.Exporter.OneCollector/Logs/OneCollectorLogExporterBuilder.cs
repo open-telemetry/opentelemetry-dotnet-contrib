@@ -26,16 +26,16 @@ namespace OpenTelemetry.Logs;
 /// </summary>
 public sealed class OneCollectorLogExporterBuilder
 {
-    internal OneCollectorLogExporterBuilder(string? instrumentationKey)
+    internal OneCollectorLogExporterBuilder(string? connectionString)
     {
         this.Options = new()
         {
-            InstrumentationKey = instrumentationKey,
+            ConnectionString = connectionString,
         };
     }
 
     internal OneCollectorLogExporterBuilder(IConfiguration configuration)
-        : this(instrumentationKey: null)
+        : this(connectionString: null)
     {
         Debug.Assert(configuration != null, "configuration was null");
 
@@ -79,6 +79,25 @@ public sealed class OneCollectorLogExporterBuilder
     }
 
     /// <summary>
+    /// Sets the <see cref="OneCollectorExporterOptions.ConnectionString"/>
+    /// property.
+    /// </summary>
+    /// <remarks><inheritdoc
+    /// cref="OneCollectorExporterOptions.ConnectionString"
+    /// path="/remarks"/></remarks>
+    /// <param name="connectionString">Connection string.</param>
+    /// <returns>The supplied <see cref="OneCollectorLogExporterBuilder"/> for
+    /// call chaining.</returns>
+    public OneCollectorLogExporterBuilder SetConnectionString(string connectionString)
+    {
+        Guard.ThrowIfNullOrWhitespace(connectionString);
+
+        this.Options.ConnectionString = connectionString;
+
+        return this;
+    }
+
+    /// <summary>
     /// Sets the <see cref="OneCollectorLogExporterOptions.DefaultEventName"/>
     /// property. Default value: <c>Log</c>.
     /// </summary>
@@ -93,25 +112,6 @@ public sealed class OneCollectorLogExporterBuilder
         Guard.ThrowIfNullOrWhitespace(defaultEventName);
 
         this.Options.DefaultEventName = defaultEventName;
-
-        return this;
-    }
-
-    /// <summary>
-    /// Sets the <see cref="OneCollectorExporterOptions.InstrumentationKey"/>
-    /// property.
-    /// </summary>
-    /// <remarks><inheritdoc
-    /// cref="OneCollectorExporterOptions.InstrumentationKey"
-    /// path="/remarks"/></remarks>
-    /// <param name="instrumentationKey">Instrumentation key.</param>
-    /// <returns>The supplied <see cref="OneCollectorLogExporterBuilder"/> for
-    /// call chaining.</returns>
-    public OneCollectorLogExporterBuilder SetInstrumentationKey(string instrumentationKey)
-    {
-        Guard.ThrowIfNullOrWhitespace(instrumentationKey);
-
-        this.Options.InstrumentationKey = instrumentationKey;
 
         return this;
     }

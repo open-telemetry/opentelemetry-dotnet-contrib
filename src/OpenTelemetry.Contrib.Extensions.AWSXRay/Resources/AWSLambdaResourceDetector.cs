@@ -32,9 +32,9 @@ public class AWSLambdaResourceDetector : IResourceDetector
     /// Detector the required and optional resource attributes from AWS Lambda.
     /// </summary>
     /// <returns>List of key-value pairs of resource attributes.</returns>
-    public IEnumerable<KeyValuePair<string, object>> Detect()
+    public IEnumerable<KeyValuePair<string, object?>>? Detect()
     {
-        List<KeyValuePair<string, object>> resourceAttributes = null;
+        List<KeyValuePair<string, object?>>? resourceAttributes = null;
 
         try
         {
@@ -48,15 +48,15 @@ public class AWSLambdaResourceDetector : IResourceDetector
         return resourceAttributes;
     }
 
-    internal List<KeyValuePair<string, object>> ExtractResourceAttributes()
+    internal List<KeyValuePair<string, object?>> ExtractResourceAttributes()
     {
-        var resourceAttributes = new List<KeyValuePair<string, object>>()
+        var resourceAttributes = new List<KeyValuePair<string, object?>>()
         {
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_lambda"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudRegion, GetAWSRegion()),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeFaasName, GetFunctionName()),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeFaasVersion, GetFunctionVersion()),
+            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
+            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudPlatform, "aws_lambda"),
+            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudRegion, GetAWSRegion()),
+            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeFaasName, GetFunctionName()),
+            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeFaasVersion, GetFunctionVersion()),
         };
 
         return resourceAttributes;
