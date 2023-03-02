@@ -29,16 +29,24 @@ public static class TracerProviderBuilderExtensions
     /// Enables SqlClient instrumentation.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-    /// <param name="configureMySqlDataInstrumentationOptions">SqlClient configuration options.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddMySqlDataInstrumentation(this TracerProviderBuilder builder) =>
+        AddMySqlDataInstrumentation(builder, configure: null);
+
+    /// <summary>
+    /// Enables SqlClient instrumentation.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="configure">SqlClient configuration options.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddMySqlDataInstrumentation(
         this TracerProviderBuilder builder,
-        Action<MySqlDataInstrumentationOptions> configureMySqlDataInstrumentationOptions = null)
+        Action<MySqlDataInstrumentationOptions> configure)
     {
         Guard.ThrowIfNull(builder);
 
         var sqlOptions = new MySqlDataInstrumentationOptions();
-        configureMySqlDataInstrumentationOptions?.Invoke(sqlOptions);
+        configure?.Invoke(sqlOptions);
 
         builder.AddInstrumentation(() => new MySqlDataInstrumentation(sqlOptions));
         builder.AddSource(MySqlActivitySourceHelper.ActivitySourceName);
