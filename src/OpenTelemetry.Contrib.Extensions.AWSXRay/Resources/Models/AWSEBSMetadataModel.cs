@@ -21,11 +21,11 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Models;
 internal class AWSEBSMetadataModel
 {
     [JsonProperty(PropertyName = "deployment_id")]
-    public string DeploymentId { get; set; }
+    public string? DeploymentId { get; set; }
 
     [JsonProperty(PropertyName = "environment_name")]
-    public string EnvironmentName { get; set; }
+    public string? EnvironmentName { get; set; }
 
     [JsonProperty(PropertyName = "version_label")]
-    public string VersionLabel { get; set; }
+    public string? VersionLabel { get; set; }
 }

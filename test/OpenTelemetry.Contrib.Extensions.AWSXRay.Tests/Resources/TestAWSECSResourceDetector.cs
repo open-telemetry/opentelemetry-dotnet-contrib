@@ -15,7 +15,6 @@
 // </copyright>
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 using Xunit;
@@ -31,9 +30,10 @@ public class TestAWSECSResourceDetector
     [Fact]
     public void TestDetect()
     {
-        IEnumerable<KeyValuePair<string, object>> resourceAttributes;
         var ecsResourceDetector = new AWSECSResourceDetector();
-        resourceAttributes = ecsResourceDetector.Detect();
+
+        var resourceAttributes = ecsResourceDetector?.Detect();
+
         Assert.Null(resourceAttributes); // will be null as it's not in ecs environment
     }
 
