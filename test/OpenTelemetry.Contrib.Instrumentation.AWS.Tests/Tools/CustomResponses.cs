@@ -36,7 +36,7 @@ internal static class CustomResponses
 {
 #if NET452
     public static void SetResponse(
-        AmazonServiceClient client, string content, string requestId, bool isOK)
+        AmazonServiceClient client, string? content, string requestId, bool isOK)
     {
         var response = Create(content, requestId, isOK);
         SetResponse(client, response);
@@ -44,22 +44,22 @@ internal static class CustomResponses
 
     public static void SetResponse(
         AmazonServiceClient client,
-        Func<MockHttpRequest, HttpWebResponse> responseCreator)
+        Func<MockHttpRequest, HttpWebResponse?> responseCreator)
     {
         var pipeline = client
             .GetType()
-            .GetProperty("RuntimePipeline", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            .GetProperty("RuntimePipeline", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)?
             .GetValue(client, null)
             as RuntimePipeline;
 
         var requestFactory = new MockHttpRequestFactory();
         requestFactory.ResponseCreator = responseCreator;
         var httpHandler = new HttpHandler<Stream>(requestFactory, client);
-        pipeline.ReplaceHandler<HttpHandler<Stream>>(httpHandler);
+        pipeline?.ReplaceHandler<HttpHandler<Stream>>(httpHandler);
     }
 
-    private static Func<MockHttpRequest, HttpWebResponse> Create(
-        string content, string requestId, bool isOK)
+    private static Func<MockHttpRequest, HttpWebResponse?> Create(
+        string? content, string requestId, bool isOK)
     {
         var status = isOK ? HttpStatusCode.OK : HttpStatusCode.NotFound;
 
@@ -82,7 +82,7 @@ internal static class CustomResponses
         };
     }
 #else
-    public static void SetResponse(AmazonServiceClient client, string content, string requestId, bool isOK)
+    public static void SetResponse(AmazonServiceClient client, string? content, string requestId, bool isOK)
     {
         var response = Create(content, requestId, isOK);
         SetResponse(client, response);
@@ -92,18 +92,18 @@ internal static class CustomResponses
     {
         var pipeline = client
                 .GetType()
-                .GetProperty("RuntimePipeline", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                .GetProperty("RuntimePipeline", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)?
                 .GetValue(client, null)
             as RuntimePipeline;
 
         var requestFactory = new MockHttpRequestFactory();
         requestFactory.ResponseCreator = responseCreator;
         var httpHandler = new HttpHandler<HttpContent>(requestFactory, client);
-        pipeline.ReplaceHandler<HttpHandler<HttpContent>>(httpHandler);
+        pipeline?.ReplaceHandler<HttpHandler<HttpContent>>(httpHandler);
     }
 
     private static Func<MockHttpRequest, HttpResponseMessage> Create(
-        string content, string requestId, bool isOK)
+        string? content, string requestId, bool isOK)
     {
         var status = isOK ? HttpStatusCode.OK : HttpStatusCode.NotFound;
 

@@ -34,7 +34,7 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddAWSInstrumentation(
         this TracerProviderBuilder builder,
-        Action<AWSClientInstrumentationOptions> configure = null)
+        Action<AWSClientInstrumentationOptions>? configure = null)
     {
         Guard.ThrowIfNull(builder);
 
