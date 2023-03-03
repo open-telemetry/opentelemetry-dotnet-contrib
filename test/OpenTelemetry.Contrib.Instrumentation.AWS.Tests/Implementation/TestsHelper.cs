@@ -26,12 +26,12 @@ using SQS = Amazon.SQS.Model;
 namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests.Implementation;
 internal static class TestsHelper
 {
-    internal static Action<IReadOnlyDictionary<string, string>>? CreateAddAttributesAction(string serviceType, IRequestContext context)
+    internal static Action<IRequestContext, IReadOnlyDictionary<string, string>>? CreateAddAttributesAction(string serviceType, IRequestContext context)
     {
         return serviceType switch
         {
-            AWSServiceType.SQSService => SqsRequestContextAdapter.CreateAddAttributesAction(context),
-            AWSServiceType.SNSService => SnsRequestContextAdapter.CreateAddAttributesAction(context),
+            AWSServiceType.SQSService => SqsRequestContextHelper.AddAttributes,
+            AWSServiceType.SNSService => SnsRequestContextHelper.AddAttributes,
             _ => throw new NotSupportedException($"Tests for service type {serviceType} not supported."),
         };
     }

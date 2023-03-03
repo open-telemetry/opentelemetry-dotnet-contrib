@@ -1,4 +1,4 @@
-// <copyright file="SqsRequestContextAdapter.cs" company="OpenTelemetry Authors">
+// <copyright file="SqsRequestContextHelper.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Amazon.Runtime;
@@ -22,31 +21,29 @@ using Amazon.Runtime.Internal;
 using Amazon.SQS.Model;
 
 namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation;
-internal class SqsRequestContextAdapter
+internal class SqsRequestContextHelper
 {
     // SQS/SNS message attributes collection size limit according to
     // https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-message-metadata.html and
     // https://docs.aws.amazon.com/sns/latest/dg/sns-message-attributes.html
     private const int MaxMessageAttributes = 10;
 
-    private readonly ParameterCollection parameters;
-    private readonly SendMessageRequest originalRequest;
-
-    private SqsRequestContextAdapter(ParameterCollection parameters, SendMessageRequest originalRequest)
+    internal static void AddAttributes(IRequestContext context, IReadOnlyDictionary<string, string> attributes)
     {
-        this.parameters = parameters;
-        this.originalRequest = originalRequest;
-    }
+        var parameters = context.Request?.ParameterCollection;
+        var originalRequest = context.OriginalRequest as SendMessageRequest;
+        if (originalRequest?.MessageAttributes == null || parameters == null)
+        {
+            return;
+        }
 
-    public void AddAttributes(IReadOnlyDictionary<string, string> attributes)
-    {
-        if (attributes.Keys.Any(k => this.ContainsAttribute(k)))
+        if (attributes.Keys.Any(k => originalRequest.MessageAttributes.ContainsKey(k)))
         {
             // If at least one attribute is already present in the request then we skip the injection.
             return;
         }
 
-        int attributesCount = this.originalRequest.MessageAttributes.Count;
+        int attributesCount = originalRequest.MessageAttributes.Count;
         if (attributes.Count + attributesCount > MaxMessageAttributes)
         {
             // TODO: add logging (event source).
@@ -56,36 +53,20 @@ internal class SqsRequestContextAdapter
         int nextAttributeIndex = attributesCount + 1;
         foreach (var param in attributes)
         {
-            this.AddAttribute(param.Key, param.Value, nextAttributeIndex);
+            AddAttribute(parameters, originalRequest, param.Key, param.Value, nextAttributeIndex);
             nextAttributeIndex++;
         }
     }
 
-    internal static Action<IReadOnlyDictionary<string, string>>? CreateAddAttributesAction(IRequestContext context)
-    {
-        var parameters = context.Request?.ParameterCollection;
-        var originalRequest = context.OriginalRequest as SendMessageRequest;
-        if (originalRequest?.MessageAttributes == null || parameters == null)
-        {
-            return null;
-        }
-
-        var request = new SqsRequestContextAdapter(parameters, originalRequest);
-        return request.AddAttributes;
-    }
-
-    private void AddAttribute(string name, string value, int attributeIndex)
+    private static void AddAttribute(ParameterCollection parameters, SendMessageRequest originalRequest, string name, string value, int attributeIndex)
     {
         var prefix = "MessageAttribute." + attributeIndex;
-        this.parameters.Add(prefix + ".Name", name);
-        this.parameters.Add(prefix + ".Value.DataType", "String");
-        this.parameters.Add(prefix + ".Value.StringValue", value);
+        parameters.Add(prefix + ".Name", name);
+        parameters.Add(prefix + ".Value.DataType", "String");
+        parameters.Add(prefix + ".Value.StringValue", value);
 
         // Add injected attributes to the original request as well.
         // This dictionary must be in sync with parameters collection to pass through the MD5 hash matching check.
-        this.originalRequest.MessageAttributes.Add(name, new MessageAttributeValue { DataType = "String", StringValue = value });
+        originalRequest.MessageAttributes.Add(name, new MessageAttributeValue { DataType = "String", StringValue = value });
     }
-
-    private bool ContainsAttribute(string name) =>
-        this.originalRequest.MessageAttributes.ContainsKey(name);
 }
