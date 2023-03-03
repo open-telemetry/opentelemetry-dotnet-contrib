@@ -73,7 +73,7 @@ internal class AWSTracingPipelineHandler : PipelineHandler
 
     public override async Task<T> InvokeAsync<T>(IExecutionContext executionContext)
     {
-        T ret = null;
+        T? ret = null;
 
         var activity = this.ProcessBeginRequest(executionContext);
         try
@@ -100,9 +100,9 @@ internal class AWSTracingPipelineHandler : PipelineHandler
         return ret;
     }
 
-    private Activity ProcessBeginRequest(IExecutionContext executionContext)
+    private Activity? ProcessBeginRequest(IExecutionContext executionContext)
     {
-        Activity activity = null;
+        Activity? activity = null;
 
         var requestContext = executionContext.RequestContext;
         var service = AWSServiceHelper.GetAWSServiceName(requestContext);

@@ -35,17 +35,23 @@ internal static class Utils
         return stream;
     }
 
-    public static Stream GetResourceStream(string resourceName)
+    public static Stream? GetResourceStream(string resourceName)
     {
         Assembly assembly = typeof(Utils).Assembly;
         var resource = FindResourceName(resourceName);
-        Stream stream = assembly.GetManifestResourceStream(resource);
+        Stream? stream = assembly.GetManifestResourceStream(resource);
         return stream;
     }
 
     public static string GetResourceText(string resourceName)
     {
-        using (StreamReader reader = new StreamReader(GetResourceStream(resourceName)))
+        var stream = GetResourceStream(resourceName);
+        if (stream == null)
+        {
+            return string.Empty;
+        }
+
+        using (StreamReader reader = new StreamReader(stream))
         {
             return reader.ReadToEnd();
         }
@@ -69,7 +75,7 @@ internal static class Utils
         }
     }
 
-    public static object GetTagValue(Activity activity, string tagName)
+    public static object? GetTagValue(Activity activity, string tagName)
     {
         return AWS.Implementation.Utils.GetTagValue(activity, tagName);
     }
