@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using OpenTelemetry.Context.Propagation;
 
@@ -21,15 +22,15 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation;
 
 internal static class AWSMessagingUtils
 {
-    internal static void Inject(IRequestContextAdapter request, PropagationContext propagationContext)
+    internal static void Inject(Action<IReadOnlyDictionary<string, string>>? addAttributes, PropagationContext propagationContext)
     {
-        if (!request.CanInject)
+        if (addAttributes == null)
         {
             return;
         }
 
         var carrier = new Dictionary<string, string>();
         Propagators.DefaultTextMapPropagator.Inject(propagationContext, carrier, (c, k, v) => c[k] = v);
-        request.AddAttributes(carrier);
+        addAttributes(carrier);
     }
 }

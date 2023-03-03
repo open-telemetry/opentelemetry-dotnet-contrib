@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Amazon.Runtime;
@@ -21,38 +22,31 @@ using Amazon.Runtime.Internal;
 using Amazon.SimpleNotificationService.Model;
 
 namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation;
-internal class SnsRequestContextAdapter : IRequestContextAdapter
+internal class SnsRequestContextAdapter
 {
     // SQS/SNS message attributes collection size limit according to
     // https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-message-metadata.html and
     // https://docs.aws.amazon.com/sns/latest/dg/sns-message-attributes.html
     private const int MaxMessageAttributes = 10;
 
-    private readonly ParameterCollection? parameters;
-    private readonly PublishRequest? originalRequest;
+    private readonly ParameterCollection parameters;
+    private readonly PublishRequest originalRequest;
 
-    public SnsRequestContextAdapter(IRequestContext context)
+    private SnsRequestContextAdapter(ParameterCollection parameters, PublishRequest originalRequest)
     {
-        this.parameters = context.Request?.ParameterCollection;
-        this.originalRequest = context.OriginalRequest as PublishRequest;
+        this.parameters = parameters;
+        this.originalRequest = originalRequest;
     }
-
-    public bool CanInject => this.originalRequest?.MessageAttributes != null && this.parameters != null;
 
     public void AddAttributes(IReadOnlyDictionary<string, string> attributes)
     {
-        if (!this.CanInject)
-        {
-            return;
-        }
-
         if (attributes.Keys.Any(k => this.ContainsAttribute(k)))
         {
             // If at least one attribute is already present in the request then we skip the injection.
             return;
         }
 
-        int attributesCount = this.originalRequest?.MessageAttributes.Count ?? 0;
+        int attributesCount = this.originalRequest.MessageAttributes.Count;
         if (attributes.Count + attributesCount > MaxMessageAttributes)
         {
             // TODO: add logging (event source).
@@ -67,23 +61,31 @@ internal class SnsRequestContextAdapter : IRequestContextAdapter
         }
     }
 
-    private void AddAttribute(string name, string value, int nextAttributeIndex)
+    internal static Action<IReadOnlyDictionary<string, string>>? CreateAddAttributesAction(IRequestContext context)
     {
-        if (!this.CanInject)
+        var parameters = context.Request?.ParameterCollection;
+        var originalRequest = context.OriginalRequest as PublishRequest;
+        if (originalRequest?.MessageAttributes == null || parameters == null)
         {
-            return;
+            return null;
         }
 
+        var request = new SnsRequestContextAdapter(parameters, originalRequest);
+        return request.AddAttributes;
+    }
+
+    private void AddAttribute(string name, string value, int nextAttributeIndex)
+    {
         var prefix = "MessageAttributes.entry." + nextAttributeIndex;
-        this.parameters?.Add(prefix + ".Name", name);
-        this.parameters?.Add(prefix + ".Value.DataType", "String");
-        this.parameters?.Add(prefix + ".Value.StringValue", value);
+        this.parameters.Add(prefix + ".Name", name);
+        this.parameters.Add(prefix + ".Value.DataType", "String");
+        this.parameters.Add(prefix + ".Value.StringValue", value);
 
         // Add injected attributes to the original request as well.
         // This dictionary must be in sync with parameters collection to pass through the MD5 hash matching check.
-        this.originalRequest?.MessageAttributes.Add(name, new MessageAttributeValue { DataType = "String", StringValue = value });
+        this.originalRequest.MessageAttributes.Add(name, new MessageAttributeValue { DataType = "String", StringValue = value });
     }
 
     private bool ContainsAttribute(string name)
-        => this.originalRequest?.MessageAttributes.ContainsKey(name) ?? false;
+        => this.originalRequest.MessageAttributes.ContainsKey(name);
 }

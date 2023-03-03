@@ -58,9 +58,9 @@ public class AWSMessagingUtilsTests
         context.Setup(x => x.Request)
             .Returns(request.Object);
 
-        var adapter = TestsHelper.CreateRequestContextAdapter(serviceType, context.Object);
+        var addAttributes = TestsHelper.CreateAddAttributesAction(serviceType, context.Object);
 
-        AWSMessagingUtils.Inject(adapter, CreatePropagationContext());
+        AWSMessagingUtils.Inject(addAttributes, CreatePropagationContext());
 
         Assert.Equal(30, parameters.Count);
     }
@@ -89,9 +89,9 @@ public class AWSMessagingUtilsTests
         context.Setup(x => x.Request)
             .Returns(request.Object);
 
-        var adapter = TestsHelper.CreateRequestContextAdapter(serviceType, context.Object);
+        var addAttributes = TestsHelper.CreateAddAttributesAction(serviceType, context.Object);
 
-        AWSMessagingUtils.Inject(adapter, CreatePropagationContext());
+        AWSMessagingUtils.Inject(addAttributes, CreatePropagationContext());
 
         TestsHelper.AssertStringParameters(serviceType, expectedParameters, parameters);
     }
@@ -122,9 +122,9 @@ public class AWSMessagingUtilsTests
         context.Setup(x => x.Request)
             .Returns(request.Object);
 
-        var adapter = TestsHelper.CreateRequestContextAdapter(serviceType, context.Object);
+        var addAttributes = TestsHelper.CreateAddAttributesAction(serviceType, context.Object);
 
-        AWSMessagingUtils.Inject(adapter, CreatePropagationContext());
+        AWSMessagingUtils.Inject(addAttributes, CreatePropagationContext());
 
         TestsHelper.AssertStringParameters(serviceType, expectedParameters, parameters);
     }
@@ -159,9 +159,9 @@ public class AWSMessagingUtilsTests
         context.Setup(x => x.Request)
             .Returns(request.Object);
 
-        var adapter = TestsHelper.CreateRequestContextAdapter(serviceType, context.Object);
+        var addAttributes = TestsHelper.CreateAddAttributesAction(serviceType, context.Object);
 
-        AWSMessagingUtils.Inject(adapter, CreatePropagationContext());
+        AWSMessagingUtils.Inject(addAttributes, CreatePropagationContext());
 
         TestsHelper.AssertStringParameters(serviceType, expectedParameters, parameters);
     }
