@@ -20,16 +20,16 @@ using OpenTelemetry.Trace;
 namespace OpenTelemetry.Exporter.Instana;
 
 /// <summary>
-/// Todo.
+/// Extension methods for <see cref="TracerProviderBuilder"/> for using Instana.
 /// </summary>
 public static class TracerProviderBuilderExtensions
 {
     /// <summary>
-    /// Instana test provider builder extension.
+    /// Instana tracer provider builder extension.
     /// </summary>
-    /// <param name="options">Test provider builder.</param>
+    /// <param name="options">Tracer provider builder.</param>
     /// <returns>todo.</returns>
-    /// <exception cref="ArgumentNullException">Test provider builder is null.</exception>
+    /// <exception cref="ArgumentNullException">Tracer provider builder is null.</exception>
     public static TracerProviderBuilder AddInstanaExporter(this TracerProviderBuilder options)
     {
         if (options == null)
@@ -37,6 +37,8 @@ public static class TracerProviderBuilderExtensions
             throw new ArgumentNullException(nameof(options));
         }
 
+#pragma warning disable CA2000
         return options.AddProcessor(new BatchActivityExportProcessor(new InstanaExporter()));
+#pragma warning restore CA2000
     }
 }
