@@ -26,8 +26,8 @@ internal class HttpResponseMessageBody : IHttpResponseBody
 {
     private HttpClient? httpClient;
     private HttpResponseMessage response;
-    private bool disposeClient = false;
-    private bool disposed = false;
+    private bool disposeClient;
+    private bool disposed;
 
     public HttpResponseMessageBody(HttpResponseMessage response, HttpClient? httpClient, bool disposeClient)
     {
