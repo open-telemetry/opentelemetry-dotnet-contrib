@@ -43,7 +43,7 @@ public class LogToActivityEventConversionOptions
     /// processed logRecord and should return a boolean.
     /// <list type="bullet">
     /// <item>If filter returns <see langword="true"/> the event is collected.</item>
-    /// <item>If filter returns <see langword="false"/> the event is filtered out (NOT collected).</item>
+    /// <item>If filter returns <see langword="false"/> or throws an exception the event is filtered out (NOT collected).</item>
     /// </list>
     /// </remarks>
     public Func<LogRecord, bool>? Filter { get; set; }
