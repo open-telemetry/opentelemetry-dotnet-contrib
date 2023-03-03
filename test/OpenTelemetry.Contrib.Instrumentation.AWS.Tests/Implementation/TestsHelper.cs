@@ -115,7 +115,7 @@ internal static class TestsHelper
         for (int i = 0; i < expectedParameters.Count; i++)
         {
             var prefix = $"{GetNamePrefix(serviceType)}.{i + 1}";
-            static string Value(ParameterValue p) => (p as StringParameterValue).Value;
+            static string? Value(ParameterValue p) => (p as StringParameterValue)?.Value;
 
             Assert.True(parameters.ContainsKey($"{prefix}.Name"));
             Assert.Equal(expectedParameters[i].Key, Value(parameters[$"{prefix}.Name"]));

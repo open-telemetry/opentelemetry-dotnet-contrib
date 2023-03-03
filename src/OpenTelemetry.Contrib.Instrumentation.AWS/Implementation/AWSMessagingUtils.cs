@@ -15,18 +15,12 @@
 // </copyright>
 
 using System.Collections.Generic;
-using System.Linq;
 using OpenTelemetry.Context.Propagation;
 
 namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation;
 
 internal static class AWSMessagingUtils
 {
-    // SQS/SNS message attributes collection size limit according to
-    // https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-message-metadata.html and
-    // https://docs.aws.amazon.com/sns/latest/dg/sns-message-attributes.html
-    private const int MaxMessageAttributes = 10;
-
     internal static void Inject(IRequestContextAdapter request, PropagationContext propagationContext)
     {
         if (!request.CanInject)
@@ -35,30 +29,7 @@ internal static class AWSMessagingUtils
         }
 
         var carrier = new Dictionary<string, string>();
-        Propagators.DefaultTextMapPropagator.Inject(propagationContext, carrier, (c, k, v) => c[k] = v);
-        if (carrier.Keys.Any(k => request.ContainsAttribute(k)))
-        {
-            // If at least one attribute is already present in the request then we skip the injection.
-            return;
-        }
-
-        int attributesCount = request.AttributesCount;
-        if (carrier.Count + attributesCount > MaxMessageAttributes)
-        {
-            // TODO: add logging (event source).
-            return;
-        }
-
-        int nextAttributeIndex = attributesCount + 1;
-        foreach (var param in carrier)
-        {
-            if (request.ContainsAttribute(param.Key))
-            {
-                continue;
-            }
-
-            request.AddAttribute(param.Key, param.Value, nextAttributeIndex);
-            nextAttributeIndex++;
-        }
+        Propagators.DefaultTextMapPropagator.Inject(propagationContext, carrier, (c, k, v) => c[k] = v);        
+        request.AddAttributes(carrier);
     }
 }

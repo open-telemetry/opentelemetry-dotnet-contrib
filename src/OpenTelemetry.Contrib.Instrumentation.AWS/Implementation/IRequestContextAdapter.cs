@@ -14,14 +14,12 @@
 // limitations under the License.
 // </copyright>
 
+using System.Collections.Generic;
+
 namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation;
 internal interface IRequestContextAdapter
 {
     bool CanInject { get; }
 
-    int AttributesCount { get; }
-
-    bool ContainsAttribute(string name);
-
-    void AddAttribute(string name, string value, int attributeIndex);
+    void AddAttributes(IReadOnlyDictionary<string, string> attributes);
 }
