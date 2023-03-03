@@ -29,7 +29,7 @@ internal static class AWSMessagingUtils
         }
 
         var carrier = new Dictionary<string, string>();
-        Propagators.DefaultTextMapPropagator.Inject(propagationContext, carrier, (c, k, v) => c[k] = v);        
+        Propagators.DefaultTextMapPropagator.Inject(propagationContext, carrier, (c, k, v) => c[k] = v);
         request.AddAttributes(carrier);
     }
 }

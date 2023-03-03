@@ -67,7 +67,6 @@ internal class SqsRequestContextAdapter : IRequestContextAdapter
         }
     }
 
-
     private void AddAttribute(string name, string value, int attributeIndex)
     {
         if (!this.CanInject)
