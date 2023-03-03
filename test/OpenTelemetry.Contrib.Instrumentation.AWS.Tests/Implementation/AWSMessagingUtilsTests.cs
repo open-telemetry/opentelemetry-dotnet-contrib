@@ -42,7 +42,7 @@ public class AWSMessagingUtilsTests
     [Theory]
     [InlineData(AWSServiceType.SQSService)]
     [InlineData(AWSServiceType.SNSService)]
-    public void Inject_ParametersCollectionSizeReachesLimit_TraceDataNotInjected(string serviceType)
+    public void InjectIntoDictionary_ParametersCollectionSizeReachesLimit_TraceDataNotInjected(string serviceType)
     {
         AmazonWebServiceRequest originalRequest = TestsHelper.CreateOriginalRequest(serviceType, 10);
         var parameters = new ParameterCollection();
@@ -59,8 +59,7 @@ public class AWSMessagingUtilsTests
             .Returns(request.Object);
 
         var addAttributes = TestsHelper.CreateAddAttributesAction(serviceType, context.Object);
-
-        AWSMessagingUtils.Inject(addAttributes, CreatePropagationContext());
+        addAttributes?.Invoke(AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
 
         Assert.Equal(30, parameters.Count);
     }
@@ -68,7 +67,7 @@ public class AWSMessagingUtilsTests
     [Theory]
     [InlineData(AWSServiceType.SQSService)]
     [InlineData(AWSServiceType.SNSService)]
-    public void Inject_ParametersCollection_TraceDataInjected(string serviceType)
+    public void InjectIntoDictionary_ParametersCollection_TraceDataInjected(string serviceType)
     {
         var expectedParameters = new List<KeyValuePair<string, string>>()
         {
@@ -90,8 +89,7 @@ public class AWSMessagingUtilsTests
             .Returns(request.Object);
 
         var addAttributes = TestsHelper.CreateAddAttributesAction(serviceType, context.Object);
-
-        AWSMessagingUtils.Inject(addAttributes, CreatePropagationContext());
+        addAttributes?.Invoke(AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
 
         TestsHelper.AssertStringParameters(serviceType, expectedParameters, parameters);
     }
@@ -99,7 +97,7 @@ public class AWSMessagingUtilsTests
     [Theory]
     [InlineData(AWSServiceType.SQSService)]
     [InlineData(AWSServiceType.SNSService)]
-    public void Inject_ParametersCollectionWithCustomParameter_TraceDataInjected(string serviceType)
+    public void InjectIntoDictionary_ParametersCollectionWithCustomParameter_TraceDataInjected(string serviceType)
     {
         var expectedParameters = new List<KeyValuePair<string, string>>()
         {
@@ -123,8 +121,7 @@ public class AWSMessagingUtilsTests
             .Returns(request.Object);
 
         var addAttributes = TestsHelper.CreateAddAttributesAction(serviceType, context.Object);
-
-        AWSMessagingUtils.Inject(addAttributes, CreatePropagationContext());
+        addAttributes?.Invoke(AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
 
         TestsHelper.AssertStringParameters(serviceType, expectedParameters, parameters);
     }
@@ -132,7 +129,7 @@ public class AWSMessagingUtilsTests
     [Theory]
     [InlineData(AWSServiceType.SQSService)]
     [InlineData(AWSServiceType.SNSService)]
-    public void Inject_ParametersCollectionWithTraceParent_TraceStateNotInjected(string serviceType)
+    public void InjectIntoDictionary_ParametersCollectionWithTraceParent_TraceStateNotInjected(string serviceType)
     {
         // This test just checks the common implementation logic:
         // if at least one attribute is already present the whole injection is skipped.
@@ -160,8 +157,7 @@ public class AWSMessagingUtilsTests
             .Returns(request.Object);
 
         var addAttributes = TestsHelper.CreateAddAttributesAction(serviceType, context.Object);
-
-        AWSMessagingUtils.Inject(addAttributes, CreatePropagationContext());
+        addAttributes?.Invoke(AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
 
         TestsHelper.AssertStringParameters(serviceType, expectedParameters, parameters);
     }
