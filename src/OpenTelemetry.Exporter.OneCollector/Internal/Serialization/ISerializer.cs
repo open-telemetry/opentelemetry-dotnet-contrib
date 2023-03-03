@@ -23,6 +23,8 @@ internal interface ISerializer<T>
 {
     string Description { get; }
 
+    OneCollectorExporterSerializationFormatType SerializationFormat { get; }
+
     void SerializeBatchOfItemsToStream(
         Resource resource,
         in Batch<T> batch,

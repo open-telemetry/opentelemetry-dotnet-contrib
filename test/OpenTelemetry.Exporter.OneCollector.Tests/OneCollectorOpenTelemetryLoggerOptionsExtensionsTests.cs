@@ -23,6 +23,30 @@ namespace OpenTelemetry.Exporter.OneCollector.Tests;
 public class OneCollectorOpenTelemetryLoggerOptionsExtensionsTests
 {
     [Fact]
+    public void ConfigureExporterTest()
+    {
+        OneCollectorExporter<LogRecord>? exporterInstance = null;
+
+        using var loggerFactory = LoggerFactory.Create(builder => builder
+            .AddOpenTelemetry(builder =>
+            {
+                builder.AddOneCollectorExporter(
+                    "InstrumentationKey=token-extrainformation",
+                    configure => configure.ConfigureExporter(exporter => exporterInstance = exporter));
+            }));
+
+        Assert.NotNull(exporterInstance);
+
+        using var payloadTransmittedRegistration = exporterInstance.RegisterPayloadTransmittedCallback(OnPayloadTransmitted);
+
+        Assert.NotNull(payloadTransmittedRegistration);
+
+        static void OnPayloadTransmitted(in OneCollectorExporterPayloadTransmittedCallbackArguments args)
+        {
+        }
+    }
+
+    [Fact]
     public void InstrumentationKeyAndTenantTokenValidationTest()
     {
         {
