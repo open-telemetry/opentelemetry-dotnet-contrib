@@ -17,9 +17,11 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Metrics;
 
@@ -107,6 +109,11 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         unsafe
         {
             this.fixedPayloadStartIndex = sizeof(BinaryHeader);
+        }
+
+        if (connectionStringBuilder.DisableMetricNameValidation)
+        {
+            DisableOpenTelemetrySdkMetricNameValidation();
         }
     }
 
@@ -256,6 +263,22 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
         this.isDisposed = true;
         base.Dispose(disposing);
+    }
+
+    internal static PropertyInfo GetOpenTelemetryInstrumentNameRegexProperty()
+    {
+        var meterProviderBuilderSdkType = typeof(Sdk).Assembly.GetType("OpenTelemetry.Metrics.MeterProviderBuilderSdk", throwOnError: false)
+            ?? throw new InvalidOperationException("OpenTelemetry.Metrics.MeterProviderBuilderSdk type could not be found reflectively.");
+
+        var instrumentNameRegexProperty = meterProviderBuilderSdkType.GetProperty("InstrumentNameRegex", BindingFlags.Public | BindingFlags.Static)
+            ?? throw new InvalidOperationException("OpenTelemetry.Metrics.MeterProviderBuilderSdk.InstrumentNameRegex property could not be found reflectively.");
+
+        return instrumentNameRegexProperty;
+    }
+
+    internal static void DisableOpenTelemetrySdkMetricNameValidation()
+    {
+        GetOpenTelemetryInstrumentNameRegexProperty().SetValue(null, new Regex(".*", RegexOptions.Compiled));
     }
 
     internal unsafe ushort SerializeMetric(

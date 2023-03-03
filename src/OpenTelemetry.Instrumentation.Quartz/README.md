@@ -9,7 +9,7 @@ Automatically instruments the Quartz jobs from
 ## Supported Frameworks
 
 QuartzNET Instrumentation is only supported when using .NET Framework >=
-`net472` and netstandard >= `netstandard2.0`. Quartz`net461` support for
+`net472` and .NET Standard >= `netstandard2.0`. Quartz`net461` support for
 activity sources has been removed, more information can be found
 [here](https://www.quartz-scheduler.net/2021/04/07/quartznet-3-3-released/).
 
@@ -42,11 +42,11 @@ public void ConfigureServices(IServiceCollection services)
 }
 
 // Add OpenTelemetry and Quartz instrumentation
-services.AddOpenTelemetryTracing(x =>
+services.AddOpenTelemetry().WithTracing(x =>
 {
     x.AddQuartzInstrumentation();
-    x.UseJaegerExporter(config => {
-      // Configure Jaeger
+    x.AddOtlpExporter(config => {
+      // Configure OTLP
     });
 });
 ```

@@ -35,13 +35,13 @@ public class AWSEBSResourceDetector : IResourceDetector
     /// Detector the required and optional resource attributes from AWS ElasticBeanstalk.
     /// </summary>
     /// <returns>List of key-value pairs of resource attributes.</returns>
-    public IEnumerable<KeyValuePair<string, object>> Detect()
+    public IEnumerable<KeyValuePair<string, object?>>? Detect()
     {
-        List<KeyValuePair<string, object>> resourceAttributes = null;
+        List<KeyValuePair<string, object?>>? resourceAttributes = null;
 
         try
         {
-            string filePath = null;
+            string? filePath = null;
 #if NETSTANDARD
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -67,22 +67,22 @@ public class AWSEBSResourceDetector : IResourceDetector
         return resourceAttributes;
     }
 
-    internal List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEBSMetadataModel metadata)
+    internal List<KeyValuePair<string, object?>>? ExtractResourceAttributes(AWSEBSMetadataModel? metadata)
     {
-        var resourceAttributes = new List<KeyValuePair<string, object>>()
+        var resourceAttributes = new List<KeyValuePair<string, object?>>()
         {
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_elastic_beanstalk"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceName, "aws_elastic_beanstalk"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceNamespace, metadata.EnvironmentName),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceInstanceID, metadata.DeploymentId),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceVersion, metadata.VersionLabel),
+            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
+            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudPlatform, "aws_elastic_beanstalk"),
+            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeServiceName, "aws_elastic_beanstalk"),
+            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeServiceNamespace, metadata?.EnvironmentName),
+            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeServiceInstanceID, metadata?.DeploymentId),
+            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeServiceVersion, metadata?.VersionLabel),
         };
 
         return resourceAttributes;
     }
 
-    internal AWSEBSMetadataModel GetEBSMetadata(string filePath)
+    internal AWSEBSMetadataModel? GetEBSMetadata(string filePath)
     {
         return ResourceDetectorUtils.DeserializeFromFile<AWSEBSMetadataModel>(filePath);
     }

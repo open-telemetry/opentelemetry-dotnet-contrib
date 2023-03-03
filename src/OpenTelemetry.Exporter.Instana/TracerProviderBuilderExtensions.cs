@@ -37,8 +37,6 @@ public static class TracerProviderBuilderExtensions
             throw new ArgumentNullException(nameof(options));
         }
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
         return options.AddProcessor(new BatchActivityExportProcessor(new InstanaExporter()));
-#pragma warning restore CA2000 // Dispose objects before losing scope
     }
 }

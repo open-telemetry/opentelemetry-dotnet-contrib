@@ -1,4 +1,4 @@
-// <copyright file="AWSEKSClusterDataModel.cs" company="OpenTelemetry Authors">
+// <copyright file="ActivityHelperExtensions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,12 +14,24 @@
 // limitations under the License.
 // </copyright>
 
-using Newtonsoft.Json;
+using System.Diagnostics;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Models;
+namespace OpenTelemetry.Tests;
 
-internal class AWSEKSClusterDataModel
+internal static class ActivityHelperExtensions
 {
-    [JsonProperty(PropertyName = "cluster.name")]
-    public string? ClusterName { get; set; }
+    public static object GetTagValue(this Activity activity, string tagName)
+    {
+        Debug.Assert(activity != null, "Activity should not be null");
+
+        foreach (var tag in activity.TagObjects)
+        {
+            if (tag.Key == tagName)
+            {
+                return tag.Value;
+            }
+        }
+
+        return null;
+    }
 }

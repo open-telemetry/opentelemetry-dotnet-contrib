@@ -153,7 +153,7 @@ public class TelemetryClientMessageInspectorTests : IDisposable
         bool emptyOrNullAction = false)
     {
 #if NETFRAMEWORK
-        const string OutgoingHttpOperationName = "OpenTelemetry.HttpWebRequest.HttpRequestOut";
+        const string OutgoingHttpOperationName = "OpenTelemetry.Instrumentation.Http.HttpWebRequest.HttpRequestOut";
 #else
         const string OutgoingHttpOperationName = "System.Net.Http.HttpRequestOut";
 #endif

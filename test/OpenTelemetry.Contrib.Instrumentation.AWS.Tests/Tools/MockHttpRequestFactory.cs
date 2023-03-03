@@ -27,11 +27,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests;
 #if NET452
 internal class MockHttpRequestFactory : IHttpRequestFactory<Stream>
 {
-    public Action GetResponseAction { get; set; }
+    public Action? GetResponseAction { get; set; }
 
-    public Func<MockHttpRequest, HttpWebResponse> ResponseCreator { get; set; }
+    public Func<MockHttpRequest, HttpWebResponse?>? ResponseCreator { get; set; }
 
-    public MockHttpRequest LastCreatedRequest { get; private set; }
+    public MockHttpRequest? LastCreatedRequest { get; private set; }
 
     public IHttpRequest<Stream> CreateHttpRequest(Uri requestUri)
     {
@@ -46,11 +46,11 @@ internal class MockHttpRequestFactory : IHttpRequestFactory<Stream>
 #else
 internal class MockHttpRequestFactory : IHttpRequestFactory<HttpContent>
 {
-    public Action GetResponseAction { get; set; }
+    public Action? GetResponseAction { get; set; }
 
-    public MockHttpRequest LastCreatedRequest { get; private set; }
+    public MockHttpRequest? LastCreatedRequest { get; private set; }
 
-    public Func<MockHttpRequest, HttpResponseMessage> ResponseCreator { get; set; }
+    public Func<MockHttpRequest, HttpResponseMessage>? ResponseCreator { get; set; }
 
     public IHttpRequest<HttpContent> CreateHttpRequest(Uri requestUri)
     {

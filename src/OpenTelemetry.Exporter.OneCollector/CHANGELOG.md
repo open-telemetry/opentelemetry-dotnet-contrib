@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Update OpenTelemetry to 1.4.0
+  ([#1038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1038))
+
 * Tenant token is no longer exposed on `OneCollectorExporterOptions` and will be
   set automatically from the instrumentation key. Added new registration
   overloads and a builder to help with configuration.
