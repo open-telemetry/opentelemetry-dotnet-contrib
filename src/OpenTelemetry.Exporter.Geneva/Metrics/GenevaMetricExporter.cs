@@ -41,23 +41,17 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
     private readonly int fixedPayloadStartIndex;
 
-    private readonly string monitoringAccount;
-
-    private readonly string metricNamespace;
-
     private readonly IMetricDataTransport metricDataTransport;
 
     private readonly List<byte[]> serializedPrepopulatedDimensionsKeys;
 
     private readonly List<byte[]> serializedPrepopulatedDimensionsValues;
 
-    private readonly byte[] bufferForNonHistogramMetrics = new byte[BufferSize];
+    private readonly byte[] buffer = new byte[BufferSize];
 
-    private readonly byte[] bufferForHistogramMetrics = new byte[BufferSize];
+    private readonly string defaultMonitoringAccount;
 
-    private readonly int bufferIndexForNonHistogramMetrics;
-
-    private readonly int bufferIndexForHistogramMetrics;
+    private readonly string defaultMetricNamespace;
 
     private bool isDisposed;
 
@@ -67,8 +61,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
-        this.monitoringAccount = connectionStringBuilder.Account;
-        this.metricNamespace = connectionStringBuilder.Namespace;
+        this.defaultMonitoringAccount = connectionStringBuilder.Account;
+        this.defaultMetricNamespace = connectionStringBuilder.Namespace;
 
         if (options.PrepopulatedMetricDimensions != null)
         {
@@ -103,9 +97,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                 throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
         }
 
-        this.bufferIndexForNonHistogramMetrics = this.InitializeBufferForNonHistogramMetrics();
-        this.bufferIndexForHistogramMetrics = this.InitializeBufferForHistogramMetrics();
-
         unsafe
         {
             this.fixedPayloadStartIndex = sizeof(BinaryHeader);
@@ -119,6 +110,9 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
     public override ExportResult Export(in Batch<Metric> batch)
     {
+        string monitoringAccount = this.defaultMonitoringAccount;
+        string metricNamespace = this.defaultMetricNamespace;
+
         var result = ExportResult.Success;
         foreach (var metric in batch)
         {
@@ -137,8 +131,10 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metric.Name,
                                     metricPoint.EndTime.ToFileTime(), // Using the endTime here as the timestamp as Geneva Metrics only allows for one field for timestamp
                                     metricPoint.Tags,
-                                    metricData);
-                                this.metricDataTransport.Send(MetricEventType.ULongMetric, this.bufferForNonHistogramMetrics, bodyLength);
+                                    metricData,
+                                    out monitoringAccount,
+                                    out metricNamespace);
+                                this.metricDataTransport.Send(MetricEventType.ULongMetric, this.buffer, bodyLength);
                                 break;
                             }
 
@@ -154,8 +150,10 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metric.Name,
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
-                                    metricData);
-                                this.metricDataTransport.Send(MetricEventType.DoubleMetric, this.bufferForNonHistogramMetrics, bodyLength);
+                                    metricData,
+                                    out monitoringAccount,
+                                    out metricNamespace);
+                                this.metricDataTransport.Send(MetricEventType.DoubleMetric, this.buffer, bodyLength);
                                 break;
                             }
 
@@ -171,8 +169,10 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metric.Name,
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
-                                    metricData);
-                                this.metricDataTransport.Send(MetricEventType.DoubleMetric, this.bufferForNonHistogramMetrics, bodyLength);
+                                    metricData,
+                                    out monitoringAccount,
+                                    out metricNamespace);
+                                this.metricDataTransport.Send(MetricEventType.DoubleMetric, this.buffer, bodyLength);
                                 break;
                             }
 
@@ -186,8 +186,10 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metric.Name,
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
-                                    metricData);
-                                this.metricDataTransport.Send(MetricEventType.DoubleMetric, this.bufferForNonHistogramMetrics, bodyLength);
+                                    metricData,
+                                    out monitoringAccount,
+                                    out metricNamespace);
+                                this.metricDataTransport.Send(MetricEventType.DoubleMetric, this.buffer, bodyLength);
                                 break;
                             }
 
@@ -200,8 +202,10 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metric.Name,
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
-                                    metricData);
-                                this.metricDataTransport.Send(MetricEventType.DoubleMetric, this.bufferForNonHistogramMetrics, bodyLength);
+                                    metricData,
+                                    out monitoringAccount,
+                                    out metricNamespace);
+                                this.metricDataTransport.Send(MetricEventType.DoubleMetric, this.buffer, bodyLength);
                                 break;
                             }
 
@@ -225,15 +229,17 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     sum,
                                     count,
                                     min,
-                                    max);
-                                this.metricDataTransport.Send(MetricEventType.ExternallyAggregatedULongDistributionMetric, this.bufferForHistogramMetrics, bodyLength);
+                                    max,
+                                    out monitoringAccount,
+                                    out metricNamespace);
+                                this.metricDataTransport.Send(MetricEventType.ExternallyAggregatedULongDistributionMetric, this.buffer, bodyLength);
                                 break;
                             }
                     }
                 }
                 catch (Exception ex)
                 {
-                    ExporterEventSource.Log.FailedToSendMetricData(this.monitoringAccount, this.metricNamespace, metric.Name, ex); // TODO: preallocate exception or no exception
+                    ExporterEventSource.Log.FailedToSendMetricData(monitoringAccount, metricNamespace, metric.Name, ex); // TODO: preallocate exception or no exception
                     result = ExportResult.Failure;
                 }
             }
@@ -286,26 +292,61 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         string metricName,
         long timestamp,
         in ReadOnlyTagCollection tags,
-        MetricData value)
+        MetricData value,
+        out string monitoringAccount,
+        out string metricNamespace)
     {
+        monitoringAccount = this.defaultMonitoringAccount;
+        metricNamespace = this.defaultMetricNamespace;
+
         ushort bodyLength;
         try
         {
-            var bufferIndex = this.bufferIndexForNonHistogramMetrics;
-            MetricSerializer.SerializeString(this.bufferForNonHistogramMetrics, ref bufferIndex, metricName);
+            // The buffer format is as follows:
+            // -- BinaryHeader
+            // -- MetricPayload
+            // -- Variable length content
+
+            // Leave enough space for the header and fixed payload
+            var bufferIndex = sizeof(BinaryHeader) + sizeof(MetricPayload);
+
+            foreach (var tag in tags)
+            {
+                if (tag.Key.Equals("_microsoft_metrics_account", StringComparison.OrdinalIgnoreCase) && tag.Value is string metricsAccount)
+                {
+                    if (!string.IsNullOrWhiteSpace(metricsAccount))
+                    {
+                        monitoringAccount = metricsAccount;
+                    }
+                }
+                else if (tag.Key.Equals("_microsoft_metrics_namespace", StringComparison.OrdinalIgnoreCase) && tag.Value is string metricsNamespace)
+                {
+                    if (!string.IsNullOrWhiteSpace(metricsNamespace))
+                    {
+                        metricNamespace = metricsNamespace;
+                    }
+                }
+            }
+
+            MetricSerializer.SerializeString(this.buffer, ref bufferIndex, monitoringAccount);
+            MetricSerializer.SerializeString(this.buffer, ref bufferIndex, metricNamespace);
+
+            MetricSerializer.SerializeString(this.buffer, ref bufferIndex, metricName);
 
             ushort dimensionsWritten = 0;
 
             // Serialize PrepopulatedDimensions keys
             for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
             {
-                MetricSerializer.SerializeEncodedString(this.bufferForNonHistogramMetrics, ref bufferIndex, this.serializedPrepopulatedDimensionsKeys[i]);
+                MetricSerializer.SerializeEncodedString(this.buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsKeys[i]);
             }
 
             if (this.prepopulatedDimensionsCount > 0)
             {
                 dimensionsWritten += this.prepopulatedDimensionsCount;
             }
+
+            int reservedTags = 0;
 
             // Serialize MetricPoint Dimension keys
             foreach (var tag in tags)
@@ -315,37 +356,50 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                     // TODO: Data Validation
                 }
 
-                MetricSerializer.SerializeString(this.bufferForNonHistogramMetrics, ref bufferIndex, tag.Key);
+                if (tag.Key.Equals("_microsoft_metrics_account", StringComparison.OrdinalIgnoreCase) ||
+                    tag.Key.Equals("_microsoft_metrics_namespace", StringComparison.OrdinalIgnoreCase))
+                {
+                    reservedTags++;
+                    continue;
+                }
+
+                MetricSerializer.SerializeString(this.buffer, ref bufferIndex, tag.Key);
             }
 
-            dimensionsWritten += (ushort)tags.Count;
+            dimensionsWritten += (ushort)(tags.Count - reservedTags);
 
             // Serialize PrepopulatedDimensions values
             for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
             {
-                MetricSerializer.SerializeEncodedString(this.bufferForNonHistogramMetrics, ref bufferIndex, this.serializedPrepopulatedDimensionsValues[i]);
+                MetricSerializer.SerializeEncodedString(this.buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsValues[i]);
             }
 
             // Serialize MetricPoint Dimension values
             foreach (var tag in tags)
             {
+                if (tag.Key.Equals("_microsoft_metrics_account", StringComparison.OrdinalIgnoreCase) ||
+                    tag.Key.Equals("_microsoft_metrics_namespace", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
                 var dimensionValue = Convert.ToString(tag.Value, CultureInfo.InvariantCulture);
                 if (dimensionValue.Length > MaxDimensionValueSize)
                 {
                     // TODO: Data Validation
                 }
 
-                MetricSerializer.SerializeString(this.bufferForNonHistogramMetrics, ref bufferIndex, dimensionValue);
+                MetricSerializer.SerializeString(this.buffer, ref bufferIndex, dimensionValue);
             }
 
             // The Autopilot container name is optional but still preserve the location with zero length if it is empty.
-            MetricSerializer.SerializeInt16(this.bufferForNonHistogramMetrics, ref bufferIndex, 0);
+            MetricSerializer.SerializeInt16(this.buffer, ref bufferIndex, 0);
 
             // Write the final size of the payload
             bodyLength = (ushort)(bufferIndex - this.fixedPayloadStartIndex);
 
             // Copy in the final structures to the front
-            fixed (byte* bufferBytes = this.bufferForNonHistogramMetrics)
+            fixed (byte* bufferBytes = this.buffer)
             {
                 var ptr = (BinaryHeader*)bufferBytes;
                 ptr->EventId = (ushort)eventType;
@@ -374,26 +428,61 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         MetricData sum,
         uint count,
         MetricData min,
-        MetricData max)
+        MetricData max,
+        out string monitoringAccount,
+        out string metricNamespace)
     {
+        monitoringAccount = this.defaultMonitoringAccount;
+        metricNamespace = this.defaultMetricNamespace;
+
         ushort bodyLength;
         try
         {
-            var bufferIndex = this.bufferIndexForHistogramMetrics;
-            MetricSerializer.SerializeString(this.bufferForHistogramMetrics, ref bufferIndex, metricName);
+            // The buffer format is as follows:
+            // -- BinaryHeader
+            // -- ExternalPayload
+            // -- Variable length content
+
+            // Leave enough space for the header and fixed payload
+            var bufferIndex = sizeof(BinaryHeader) + sizeof(ExternalPayload);
+
+            foreach (var tag in tags)
+            {
+                if (tag.Key.Equals("_microsoft_metrics_account", StringComparison.OrdinalIgnoreCase) && tag.Value is string metricsAccount)
+                {
+                    if (!string.IsNullOrWhiteSpace(metricsAccount))
+                    {
+                        monitoringAccount = metricsAccount;
+                    }
+                }
+                else if (tag.Key.Equals("_microsoft_metrics_namespace", StringComparison.OrdinalIgnoreCase) && tag.Value is string metricsNamespace)
+                {
+                    if (!string.IsNullOrWhiteSpace(metricsNamespace))
+                    {
+                        metricNamespace = metricsNamespace;
+                    }
+                }
+            }
+
+            MetricSerializer.SerializeString(this.buffer, ref bufferIndex, monitoringAccount);
+            MetricSerializer.SerializeString(this.buffer, ref bufferIndex, metricNamespace);
+
+            MetricSerializer.SerializeString(this.buffer, ref bufferIndex, metricName);
 
             ushort dimensionsWritten = 0;
 
             // Serialize PrepopulatedDimensions keys
             for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
             {
-                MetricSerializer.SerializeEncodedString(this.bufferForHistogramMetrics, ref bufferIndex, this.serializedPrepopulatedDimensionsKeys[i]);
+                MetricSerializer.SerializeEncodedString(this.buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsKeys[i]);
             }
 
             if (this.prepopulatedDimensionsCount > 0)
             {
                 dimensionsWritten += this.prepopulatedDimensionsCount;
             }
+
+            int reservedTags = 0;
 
             // Serialize MetricPoint Dimension keys
             foreach (var tag in tags)
@@ -403,42 +492,55 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                     // TODO: Data Validation
                 }
 
-                MetricSerializer.SerializeString(this.bufferForHistogramMetrics, ref bufferIndex, tag.Key);
+                if (tag.Key.Equals("_microsoft_metrics_account", StringComparison.OrdinalIgnoreCase) ||
+                    tag.Key.Equals("_microsoft_metrics_namespace", StringComparison.OrdinalIgnoreCase))
+                {
+                    reservedTags++;
+                    continue;
+                }
+
+                MetricSerializer.SerializeString(this.buffer, ref bufferIndex, tag.Key);
             }
 
-            dimensionsWritten += (ushort)tags.Count;
+            dimensionsWritten += (ushort)(tags.Count - reservedTags);
 
             // Serialize PrepopulatedDimensions values
             for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
             {
-                MetricSerializer.SerializeEncodedString(this.bufferForHistogramMetrics, ref bufferIndex, this.serializedPrepopulatedDimensionsValues[i]);
+                MetricSerializer.SerializeEncodedString(this.buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsValues[i]);
             }
 
             // Serialize MetricPoint Dimension values
             foreach (var tag in tags)
             {
+                if (tag.Key.Equals("_microsoft_metrics_account", StringComparison.OrdinalIgnoreCase) ||
+                    tag.Key.Equals("_microsoft_metrics_namespace", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
                 var dimensionValue = Convert.ToString(tag.Value, CultureInfo.InvariantCulture);
                 if (dimensionValue.Length > MaxDimensionValueSize)
                 {
                     // TODO: Data Validation
                 }
 
-                MetricSerializer.SerializeString(this.bufferForHistogramMetrics, ref bufferIndex, dimensionValue);
+                MetricSerializer.SerializeString(this.buffer, ref bufferIndex, dimensionValue);
             }
 
             // The Autopilot container name is optional but still preserve the location with zero length if it is empty.
-            MetricSerializer.SerializeInt16(this.bufferForHistogramMetrics, ref bufferIndex, 0);
+            MetricSerializer.SerializeInt16(this.buffer, ref bufferIndex, 0);
 
             // Version
-            MetricSerializer.SerializeByte(this.bufferForHistogramMetrics, ref bufferIndex, 0);
+            MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, 0);
 
             // Meta-data
             // Value-count pairs is associated with the constant value of 2 in the distribution_type enum.
-            MetricSerializer.SerializeByte(this.bufferForHistogramMetrics, ref bufferIndex, 2);
+            MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, 2);
 
             // Keep a position to record how many buckets are added
             var itemsWrittenIndex = bufferIndex;
-            MetricSerializer.SerializeUInt16(this.bufferForHistogramMetrics, ref bufferIndex, 0);
+            MetricSerializer.SerializeUInt16(this.buffer, ref bufferIndex, 0);
 
             // Bucket values
             ushort bucketCount = 0;
@@ -455,13 +557,13 @@ public class GenevaMetricExporter : BaseExporter<Metric>
             }
 
             // Write the number of items in distribution emitted and reset back to end.
-            MetricSerializer.SerializeUInt16(this.bufferForHistogramMetrics, ref itemsWrittenIndex, bucketCount);
+            MetricSerializer.SerializeUInt16(this.buffer, ref itemsWrittenIndex, bucketCount);
 
             // Write the final size of the payload
             bodyLength = (ushort)(bufferIndex - this.fixedPayloadStartIndex);
 
             // Copy in the final structures to the front
-            fixed (byte* bufferBytes = this.bufferForHistogramMetrics)
+            fixed (byte* bufferBytes = this.buffer)
             {
                 var ptr = (BinaryHeader*)bufferBytes;
                 ptr->EventId = (ushort)MetricEventType.ExternallyAggregatedULongDistributionMetric;
@@ -489,15 +591,15 @@ public class GenevaMetricExporter : BaseExporter<Metric>
     {
         if (bucket.ExplicitBound != double.PositiveInfinity)
         {
-            MetricSerializer.SerializeUInt64(this.bufferForHistogramMetrics, ref bufferIndex, Convert.ToUInt64(bucket.ExplicitBound));
+            MetricSerializer.SerializeUInt64(this.buffer, ref bufferIndex, Convert.ToUInt64(bucket.ExplicitBound));
         }
         else
         {
             // The bucket to catch the overflows is one greater than the last bound provided
-            MetricSerializer.SerializeUInt64(this.bufferForHistogramMetrics, ref bufferIndex, Convert.ToUInt64(lastExplicitBound + 1));
+            MetricSerializer.SerializeUInt64(this.buffer, ref bufferIndex, Convert.ToUInt64(lastExplicitBound + 1));
         }
 
-        MetricSerializer.SerializeUInt32(this.bufferForHistogramMetrics, ref bufferIndex, Convert.ToUInt32(bucket.BucketCount));
+        MetricSerializer.SerializeUInt32(this.buffer, ref bufferIndex, Convert.ToUInt32(bucket.BucketCount));
     }
 
     private List<byte[]> SerializePrepopulatedDimensionsKeys(IEnumerable<string> keys)
@@ -521,37 +623,5 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         }
 
         return serializedValues;
-    }
-
-    private unsafe int InitializeBufferForNonHistogramMetrics()
-    {
-        // The buffer format is as follows:
-        // -- BinaryHeader
-        // -- MetricPayload
-        // -- Variable length content
-
-        // Leave enough space for the header and fixed payload
-        var bufferIndex = sizeof(BinaryHeader) + sizeof(MetricPayload);
-
-        MetricSerializer.SerializeString(this.bufferForNonHistogramMetrics, ref bufferIndex, this.monitoringAccount);
-        MetricSerializer.SerializeString(this.bufferForNonHistogramMetrics, ref bufferIndex, this.metricNamespace);
-
-        return bufferIndex;
-    }
-
-    private unsafe int InitializeBufferForHistogramMetrics()
-    {
-        // The buffer format is as follows:
-        // -- BinaryHeader
-        // -- ExternalPayload
-        // -- Variable length content
-
-        // Leave enough space for the header and fixed payload
-        var bufferIndex = sizeof(BinaryHeader) + sizeof(ExternalPayload);
-
-        MetricSerializer.SerializeString(this.bufferForHistogramMetrics, ref bufferIndex, this.monitoringAccount);
-        MetricSerializer.SerializeString(this.bufferForHistogramMetrics, ref bufferIndex, this.metricNamespace);
-
-        return bufferIndex;
     }
 }
