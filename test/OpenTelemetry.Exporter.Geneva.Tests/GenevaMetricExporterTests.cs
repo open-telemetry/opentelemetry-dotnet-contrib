@@ -679,7 +679,9 @@ public class GenevaMetricExporterTests
         finally
         {
             instrumentNameRegexProperty.SetValue(null, initialInstrumentNameRegexValue);
+#pragma warning disable CA1508
             server?.Dispose();
+#pragma warning restore CA1508
         }
     }
 
