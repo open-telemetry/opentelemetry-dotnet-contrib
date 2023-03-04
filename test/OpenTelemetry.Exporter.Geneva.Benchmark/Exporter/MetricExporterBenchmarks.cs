@@ -23,31 +23,31 @@ using BenchmarkDotNet.Attributes;
 using OpenTelemetry.Metrics;
 
 /*
-BenchmarkDotNet=v0.13.2, OS=Windows 11 (10.0.22621.963)
+BenchmarkDotNet=v0.13.3, OS=Windows 11 (10.0.22621.1391)
 Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
-.NET SDK=7.0.101
-  [Host]     : .NET 7.0.1 (7.0.122.56804), X64 RyuJIT AVX2
-  DefaultJob : .NET 7.0.1 (7.0.122.56804), X64 RyuJIT AVX2
+.NET SDK=7.0.201
+  [Host]     : .NET 7.0.3 (7.0.323.6910), X64 RyuJIT AVX2
+  DefaultJob : .NET 7.0.3 (7.0.323.6910), X64 RyuJIT AVX2
 
 
-|                                                   Method |      Mean |    Error |   StdDev | Allocated |
-|--------------------------------------------------------- |----------:|---------:|---------:|----------:|
-|                      InstrumentWithNoListener3Dimensions |  64.11 ns | 0.169 ns | 0.132 ns |         - |
-|                      InstrumentWithNoListener4Dimensions | 116.30 ns | 0.547 ns | 0.427 ns |         - |
-|                    InstrumentWithWithListener3Dimensions |  65.40 ns | 0.422 ns | 0.395 ns |         - |
-|                    InstrumentWithWithListener4Dimensions | 112.80 ns | 0.465 ns | 0.435 ns |         - |
-|                 InstrumentWithWithDummyReader3Dimensions | 189.56 ns | 0.994 ns | 0.930 ns |         - |
-|                 InstrumentWithWithDummyReader4Dimensions | 258.45 ns | 3.355 ns | 2.974 ns |         - |
-| InstrumentWithWithGenevaCounterMetricExporter3Dimensions | 193.18 ns | 2.468 ns | 2.309 ns |         - |
-| InstrumentWithWithGenevaCounterMetricExporter4Dimensions | 257.24 ns | 1.017 ns | 0.901 ns |         - |
-|                SerializeCounterMetricItemWith3Dimensions | 153.20 ns | 0.609 ns | 0.540 ns |         - |
-|                SerializeCounterMetricItemWith4Dimensions | 176.57 ns | 0.708 ns | 0.662 ns |         - |
-|                   ExportCounterMetricItemWith3Dimensions | 420.11 ns | 2.434 ns | 2.033 ns |         - |
-|                   ExportCounterMetricItemWith4Dimensions | 440.69 ns | 6.733 ns | 5.968 ns |         - |
-|              SerializeHistogramMetricItemWith3Dimensions | 264.51 ns | 2.299 ns | 2.038 ns |         - |
-|              SerializeHistogramMetricItemWith4Dimensions | 294.36 ns | 1.159 ns | 1.084 ns |         - |
-|                 ExportHistogramMetricItemWith3Dimensions | 565.85 ns | 6.144 ns | 4.797 ns |         - |
-|                 ExportHistogramMetricItemWith4Dimensions | 591.38 ns | 4.704 ns | 4.170 ns |         - |
+|                                                   Method |      Mean |     Error |    StdDev |    Median | Allocated |
+|--------------------------------------------------------- |----------:|----------:|----------:|----------:|----------:|
+|                      InstrumentWithNoListener3Dimensions |  66.76 ns |  0.144 ns |  0.127 ns |  66.73 ns |         - |
+|                      InstrumentWithNoListener4Dimensions | 114.13 ns |  0.520 ns |  0.486 ns | 113.99 ns |         - |
+|                    InstrumentWithWithListener3Dimensions |  66.81 ns |  0.307 ns |  0.287 ns |  66.89 ns |         - |
+|                    InstrumentWithWithListener4Dimensions | 118.10 ns |  0.597 ns |  0.559 ns | 117.97 ns |         - |
+|                 InstrumentWithWithDummyReader3Dimensions | 193.24 ns |  0.691 ns |  0.612 ns | 193.25 ns |         - |
+|                 InstrumentWithWithDummyReader4Dimensions | 256.62 ns |  1.257 ns |  1.176 ns | 257.01 ns |         - |
+| InstrumentWithWithGenevaCounterMetricExporter3Dimensions | 188.73 ns |  0.845 ns |  0.706 ns | 188.99 ns |         - |
+| InstrumentWithWithGenevaCounterMetricExporter4Dimensions | 261.20 ns |  1.237 ns |  1.096 ns | 260.95 ns |         - |
+|                SerializeCounterMetricItemWith3Dimensions | 204.78 ns |  0.835 ns |  0.781 ns | 204.86 ns |         - |
+|                SerializeCounterMetricItemWith4Dimensions | 239.87 ns |  1.137 ns |  1.064 ns | 239.83 ns |         - |
+|                   ExportCounterMetricItemWith3Dimensions | 719.68 ns | 14.344 ns | 29.942 ns | 706.28 ns |         - |
+|                   ExportCounterMetricItemWith4Dimensions | 753.31 ns | 15.039 ns | 23.854 ns | 740.62 ns |         - |
+|              SerializeHistogramMetricItemWith3Dimensions | 319.78 ns |  3.057 ns |  2.860 ns | 319.03 ns |         - |
+|              SerializeHistogramMetricItemWith4Dimensions | 347.63 ns |  2.053 ns |  1.820 ns | 347.05 ns |         - |
+|                 ExportHistogramMetricItemWith3Dimensions | 860.14 ns | 17.114 ns | 37.924 ns | 836.86 ns |         - |
+|                 ExportHistogramMetricItemWith4Dimensions | 868.52 ns | 16.890 ns | 15.799 ns | 862.97 ns |         - |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark;
@@ -571,7 +571,9 @@ public class MetricExporterBenchmarks
             this.counterMetricWith3Dimensions.Name,
             this.counterMetricPointWith3Dimensions.EndTime.ToFileTime(),
             this.counterMetricPointWith3Dimensions.Tags,
-            this.counterMetricDataWith3Dimensions);
+            this.counterMetricDataWith3Dimensions,
+            out string monitoringAccount,
+            out string metricNamespace);
     }
 
     [Benchmark]
@@ -582,7 +584,9 @@ public class MetricExporterBenchmarks
             this.counterMetricWith4Dimensions.Name,
             this.counterMetricPointWith4Dimensions.EndTime.ToFileTime(),
             this.counterMetricPointWith4Dimensions.Tags,
-            this.counterMetricDataWith4Dimensions);
+            this.counterMetricDataWith4Dimensions,
+            out string monitoringAccount,
+            out string metricNamespace);
     }
 
     [Benchmark]
@@ -608,7 +612,9 @@ public class MetricExporterBenchmarks
             this.histogramSumWith3Dimensions,
             this.histogramCountWith3Dimensions,
             this.histogramMinWith3Dimensions,
-            this.histogramMaxWith3Dimensions);
+            this.histogramMaxWith3Dimensions,
+            out string monitoringAccount,
+            out string metricNamespace);
     }
 
     [Benchmark]
@@ -622,7 +628,9 @@ public class MetricExporterBenchmarks
             this.histogramSumWith4Dimensions,
             this.histogramCountWith4Dimensions,
             this.histogramMinWith4Dimensions,
-            this.histogramMaxWith4Dimensions);
+            this.histogramMaxWith4Dimensions,
+            out string monitoringAccount,
+            out string metricNamespace);
     }
 
     [Benchmark]
