@@ -23,29 +23,72 @@ namespace OpenTelemetry.Exporter.OneCollector.Tests;
 public class OneCollectorOpenTelemetryLoggerOptionsExtensionsTests
 {
     [Fact]
-    public void InstrumentationKeyAndTenantTokenValidationTest()
+    public void ConfigureExporterTest()
     {
-        Assert.Throws<InvalidOperationException>(() =>
-        {
-            using var loggerFactory = LoggerFactory.Create(builder => builder
-                .AddOpenTelemetry(builder =>
-                {
-                    builder.AddOneCollectorExporter(options => { });
-                }));
-        });
+        OneCollectorExporter<LogRecord>? exporterInstance = null;
 
         using var loggerFactory = LoggerFactory.Create(builder => builder
             .AddOpenTelemetry(builder =>
             {
-                builder.AddOneCollectorExporter("token-extrainformation");
+                builder.AddOneCollectorExporter(
+                    "InstrumentationKey=token-extrainformation",
+                    configure => configure.ConfigureExporter(exporter => exporterInstance = exporter));
             }));
 
-        Assert.Throws<InvalidOperationException>(() =>
+        Assert.NotNull(exporterInstance);
+
+        using var payloadTransmittedRegistration = exporterInstance.RegisterPayloadTransmittedCallback(OnPayloadTransmitted);
+
+        Assert.NotNull(payloadTransmittedRegistration);
+
+        static void OnPayloadTransmitted(in OneCollectorExporterPayloadTransmittedCallbackArguments args)
+        {
+        }
+    }
+
+    [Fact]
+    public void InstrumentationKeyAndTenantTokenValidationTest()
+    {
         {
             using var loggerFactory = LoggerFactory.Create(builder => builder
                 .AddOpenTelemetry(builder =>
                 {
-                    builder.AddOneCollectorExporter("invalidinstrumentationkey");
+                    builder.AddOneCollectorExporter("InstrumentationKey=token-extrainformation");
+                }));
+        }
+
+        {
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(builder =>
+                {
+                    builder.AddOneCollectorExporter(configure => configure.SetConnectionString("InstrumentationKey=token-extrainformation"));
+                }));
+        }
+
+        Assert.Throws<OneCollectorExporterValidationException>(() =>
+        {
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(builder =>
+                {
+                    builder.AddOneCollectorExporter(configure => { });
+                }));
+        });
+
+        Assert.Throws<OneCollectorExporterValidationException>(() =>
+        {
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(builder =>
+                {
+                    builder.AddOneCollectorExporter("InstrumentationKey=invalidinstrumentationkey");
+                }));
+        });
+
+        Assert.Throws<OneCollectorExporterValidationException>(() =>
+        {
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(builder =>
+                {
+                    builder.AddOneCollectorExporter("UnknownKey=invalidinstrumentationkey");
                 }));
         });
     }

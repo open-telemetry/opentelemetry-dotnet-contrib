@@ -1,4 +1,4 @@
-// <copyright file="ISinkFactory.cs" company="OpenTelemetry Authors">
+// <copyright file="ActivityHelperExtensions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,10 +14,24 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Exporter.OneCollector;
+using System.Diagnostics;
 
-internal interface ISinkFactory<T>
-    where T : class
+namespace OpenTelemetry.Tests;
+
+internal static class ActivityHelperExtensions
 {
-    ISink<T> CreateSink();
+    public static object GetTagValue(this Activity activity, string tagName)
+    {
+        Debug.Assert(activity != null, "Activity should not be null");
+
+        foreach (var tag in activity.TagObjects)
+        {
+            if (tag.Key == tagName)
+            {
+                return tag.Value;
+            }
+        }
+
+        return null;
+    }
 }

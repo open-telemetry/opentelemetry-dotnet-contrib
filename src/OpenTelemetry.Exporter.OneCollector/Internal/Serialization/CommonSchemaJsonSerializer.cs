@@ -53,6 +53,8 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
 
     public abstract string Description { get; }
 
+    public OneCollectorExporterSerializationFormatType SerializationFormat => OneCollectorExporterSerializationFormatType.CommonSchemaV4JsonStream;
+
     protected JsonEncodedText TenantTokenWithTenancySystemSymbol { get; }
 
     public void SerializeBatchOfItemsToStream(Resource resource, in Batch<T> batch, Stream stream, int initialSizeOfPayloadInBytes, out BatchSerializationResult result)
@@ -62,25 +64,20 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
         var numberOfSerializedItems = 0;
         long payloadSizeInBytes = initialSizeOfPayloadInBytes;
 
-        var writer = ThreadStorageHelper.Utf8JsonWriter ??= new(
-            stream,
-            new JsonWriterOptions
-            {
-#if DEBUG
-                SkipValidation = false,
-#else
-                SkipValidation = true,
-#endif
-            });
+        var writer = ThreadStorageHelper.Utf8JsonWriter;
+        if (writer == null)
+        {
+            writer = ThreadStorageHelper.Utf8JsonWriter = new(
+                stream,
+                new JsonWriterOptions { SkipValidation = true });
+        }
+        else
+        {
+            writer.Reset(stream);
+        }
 
         foreach (var item in batch)
         {
-            // Note: This is a slow operation. We call this each iteration
-            // (instead of once per batch) to reset _currentDepth on
-            // Utf8JsonWriter so it doesn't write a comma after each record.
-            // Need a faster solution here!
-            writer.Reset(stream);
-
             this.SerializeItemToJson(resource, item, writer);
 
             var currentItemSizeInBytes = writer.BytesCommitted + writer.BytesPending + 1;
@@ -88,6 +85,7 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
             payloadSizeInBytes += currentItemSizeInBytes;
 
             writer.Flush();
+            writer.Reset();
 
             stream.Write(NewLine, 0, 1);
 

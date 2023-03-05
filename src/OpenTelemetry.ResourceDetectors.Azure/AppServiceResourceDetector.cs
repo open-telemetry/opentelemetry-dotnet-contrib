@@ -27,7 +27,7 @@ namespace OpenTelemetry.ResourceDetectors.Azure;
 public sealed class AppServiceResourceDetector : IResourceDetector
 {
     /// <inheritdoc/>
-    public Resource? Detect()
+    public Resource Detect()
     {
         List<KeyValuePair<string, object>>? attributeList = null;
 

@@ -84,6 +84,9 @@ services.AddOpenTelemetry()
             options.SetDbStatementForRequest = true;
         })
         .AddConsoleExporter());
+	{
+          // Configure OTLP
+        });
 ```
 
 When used with

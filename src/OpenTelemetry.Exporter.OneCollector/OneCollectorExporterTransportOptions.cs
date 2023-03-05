@@ -14,6 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+using System.ComponentModel.DataAnnotations;
+
 namespace OpenTelemetry.Exporter.OneCollector;
 
 /// <summary>
@@ -25,8 +27,6 @@ public sealed class OneCollectorExporterTransportOptions
     internal const int DefaultMaxPayloadSizeInBytes = 1024 * 1024 * 4;
     internal const int DefaultMaxNumberOfItemsPerPayload = 1500;
 
-    internal static readonly Func<HttpClient> DefaultHttpClientFactory = () => new HttpClient();
-
     internal OneCollectorExporterTransportOptions()
     {
     }
@@ -35,6 +35,10 @@ public sealed class OneCollectorExporterTransportOptions
     /// Gets or sets OneCollector endpoint address. Default value:
     /// <c>https://mobile.events.data.microsoft.com/OneCollector/1.0/</c>.
     /// </summary>
+    /// <remarks>
+    /// Note: Endpoint is required.
+    /// </remarks>
+    [Required]
     public Uri Endpoint { get; set; } = new Uri(DefaultOneCollectorEndpoint);
 
     /// <summary>
@@ -68,42 +72,21 @@ public sealed class OneCollectorExporterTransportOptions
     /// </summary>
     internal OneCollectorExporterHttpTransportCompressionType HttpCompression { get; set; } = OneCollectorExporterHttpTransportCompressionType.Deflate;
 
-    /// <summary>
-    /// Gets or sets the factory function called to create the <see
-    /// cref="HttpClient"/> instance that will be used at runtime to transmit
-    /// telemetry over HTTP. The returned instance will be reused for all export
-    /// invocations.
-    /// </summary>
-    /// <remarks>
-    /// Notes:
-    /// <list type="bullet">
-    /// <item>The default behavior when using the <see
-    /// cref="OneCollectorLogExporterOptions"/> class is an <see
-    /// cref="HttpClient"/> will be instantiated directly.</item>
-    /// </list>
-    /// </remarks>
-    internal Func<HttpClient> HttpClientFactory { get; set; } = DefaultHttpClientFactory;
-
     internal void Validate()
     {
         if (this.Endpoint == null)
         {
-            throw new InvalidOperationException($"{nameof(this.Endpoint)} was not specified on {this.GetType().Name} options.");
-        }
-
-        if (this.HttpClientFactory == null)
-        {
-            throw new InvalidOperationException($"{nameof(this.HttpClientFactory)} was not specified on {this.GetType().Name} options.");
+            throw new OneCollectorExporterValidationException($"{nameof(this.Endpoint)} was not specified on {this.GetType().Name} options.");
         }
 
         if (this.MaxPayloadSizeInBytes <= 0 && this.MaxPayloadSizeInBytes != -1)
         {
-            throw new InvalidOperationException($"{nameof(this.MaxPayloadSizeInBytes)} was invalid on {this.GetType().Name} options.");
+            throw new OneCollectorExporterValidationException($"{nameof(this.MaxPayloadSizeInBytes)} was invalid on {this.GetType().Name} options.");
         }
 
         if (this.MaxNumberOfItemsPerPayload <= 0 && this.MaxNumberOfItemsPerPayload != -1)
         {
-            throw new InvalidOperationException($"{nameof(this.MaxNumberOfItemsPerPayload)} was invalid on {this.GetType().Name} options.");
+            throw new OneCollectorExporterValidationException($"{nameof(this.MaxNumberOfItemsPerPayload)} was invalid on {this.GetType().Name} options.");
         }
     }
 }

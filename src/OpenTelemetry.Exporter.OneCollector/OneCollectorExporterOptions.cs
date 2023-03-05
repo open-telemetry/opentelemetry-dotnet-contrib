@@ -28,13 +28,13 @@ public abstract class OneCollectorExporterOptions
     }
 
     /// <summary>
-    /// Gets or sets the OneCollector instrumentation key.
+    /// Gets or sets the OneCollector connection string.
     /// </summary>
     /// <remarks>
-    /// Note: Instrumentation key is required.
+    /// Note: Connection string is required.
     /// </remarks>
     [Required]
-    public string? InstrumentationKey { get; set; }
+    public string? ConnectionString { get; set; }
 
     /// <summary>
     /// Gets the OneCollector transport options.
@@ -42,15 +42,32 @@ public abstract class OneCollectorExporterOptions
     public OneCollectorExporterTransportOptions TransportOptions { get; } = new();
 
     /// <summary>
+    /// Gets the OneCollector instrumentation key.
+    /// </summary>
+    internal string? InstrumentationKey { get; private set; }
+
+    /// <summary>
     /// Gets the OneCollector tenant token.
     /// </summary>
     internal string? TenantToken { get; private set; }
 
+    /// <summary>
+    /// Gets or sets OneCollector serialization format. Default value: <see
+    /// cref="OneCollectorExporterSerializationFormatType.CommonSchemaV4JsonStream"/>.
+    /// </summary>
+    internal OneCollectorExporterSerializationFormatType SerializationFormat { get; set; } = OneCollectorExporterSerializationFormatType.CommonSchemaV4JsonStream;
+
     internal virtual void Validate()
     {
+        if (string.IsNullOrWhiteSpace(this.ConnectionString))
+        {
+            throw new OneCollectorExporterValidationException($"{nameof(this.ConnectionString)} was not specified on {this.GetType().Name} options.");
+        }
+
+        this.InstrumentationKey = new ConnectionStringParser(this.ConnectionString!).InstrumentationKey;
         if (string.IsNullOrWhiteSpace(this.InstrumentationKey))
         {
-            throw new InvalidOperationException($"{nameof(this.InstrumentationKey)} was not specified on {this.GetType().Name} options.");
+            throw new OneCollectorExporterValidationException("Instrumentation key was not specified on connection string.");
         }
 
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -60,7 +77,7 @@ public abstract class OneCollectorExporterOptions
 #endif
         if (positionOfFirstDash < 0)
         {
-            throw new InvalidOperationException($"{nameof(this.InstrumentationKey)} specified on {this.GetType().Name} options is invalid.");
+            throw new OneCollectorExporterValidationException($"Instrumentation key specified as part of {nameof(this.ConnectionString)} on {this.GetType().Name} options is invalid.");
         }
 
         this.TenantToken = this.InstrumentationKey.Substring(0, positionOfFirstDash);
