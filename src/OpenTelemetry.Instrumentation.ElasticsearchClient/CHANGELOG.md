@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* Updated OTel SDK package version to 1.4.0-rc.4
+* Updated OTel SDK package version to 1.4.0
   ([#1019](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1019))
 * Update minimum full framework support to net462
 * Requests that get an HTTP status code of 404 are not marked as an error span status

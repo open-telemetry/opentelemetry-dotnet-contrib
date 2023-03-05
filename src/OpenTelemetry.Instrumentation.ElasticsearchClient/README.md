@@ -40,9 +40,9 @@ dotnet add package --prerelease OpenTelemetry.Instrumentation.ElasticsearchClien
 
 `NEST/Elasticsearch.Net` instrumentation must be enabled at application startup.
 
-The following example demonstrates adding `NEST/Elasticsearch.Net` instrumentation to a console
-application. This example also sets up the OpenTelemetry Console exporter, which
-requires adding the package
+The following example demonstrates adding `NEST/Elasticsearch.Net`
+instrumentation to a console application. This example also sets up the
+OpenTelemetry Console exporter, which requires adding the package
 [`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md)
 to the application.
 
@@ -84,15 +84,13 @@ services.AddOpenTelemetry()
             options.SetDbStatementForRequest = true;
         })
         .AddConsoleExporter());
-	{
-          // Configure OTLP
-        });
 ```
 
 When used with
 [`OpenTelemetry.Extensions.Hosting`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Extensions.Hosting/README.md),
-all configurations to `ElasticsearchClientInstrumentationOptions` can be done in the `ConfigureServices`
-method of you applications `Startup` class as shown below.
+all configurations to `ElasticsearchClientInstrumentationOptions`
+can be done in the `ConfigureServices` method of you applications `Startup`
+class as shown below.
 
 ```csharp
 // Configure
