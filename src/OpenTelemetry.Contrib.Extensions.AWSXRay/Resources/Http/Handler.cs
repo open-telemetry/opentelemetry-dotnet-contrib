@@ -21,16 +21,21 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Http;
 
 internal class Handler
 {
-    public static HttpClientHandler Create(string certificateFile)
+    public static HttpClientHandler? Create(string certificateFile)
     {
         try
         {
             ServerCertificateValidationProvider serverCertificateValidationProvider =
                 ServerCertificateValidationProvider.FromCertificateFile(certificateFile);
 
-            if (!serverCertificateValidationProvider.IsCertificateLoaded)
+            if (!serverCertificateValidationProvider.IsCertificateLoaded ?? false)
             {
                 AWSXRayEventSource.Log.FailedToValidateCertificate(nameof(Handler), "Failed to Load the certificate file into trusted collection");
+                return null;
+            }
+
+            if (serverCertificateValidationProvider.ValidationCallback == null)
+            {
                 return null;
             }
 
