@@ -22,15 +22,15 @@ namespace OpenTelemetry.Extensions.Enrichment;
 public struct TraceEnrichmentBag
 #pragma warning restore CA1815 // Override equals and operator equals on value types
 {
+    private readonly Activity activity;
+
     public TraceEnrichmentBag(Activity activity)
     {
-        this.Activity = activity;
+        this.activity = activity;
     }
-
-    public Activity Activity { get; init; }
 
     public void Add(string key, object? value)
     {
-        this.Activity.AddTag(key, value);
+        this.activity.AddTag(key, value);
     }
 }
