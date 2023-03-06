@@ -5,7 +5,8 @@
 
 This is an [Instrumentation
 Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library),
-which instruments [Microsoft.EntityFrameworkCore](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore)
+which instruments
+[Microsoft.EntityFrameworkCore](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore)
 and collects traces about outgoing requests.
 
 **Note: This component is based on the OpenTelemetry semantic conventions for
@@ -59,8 +60,8 @@ public class Program
 }
 ```
 
-For an ASP.NET Core application, adding instrumentation is typically done in the
-`ConfigureServices` of your `Startup` class. Refer to documentation for
+For an ASP.NET Core application, adding instrumentation is typically done in
+the `ConfigureServices` of your `Startup` class. Refer to documentation for
 [OpenTelemetry.Instrumentation.AspNetCore](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Instrumentation.AspNetCore/README.md).
 
 For an ASP.NET application, adding instrumentation is typically done in the
