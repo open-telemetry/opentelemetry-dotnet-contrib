@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace OpenTelemetry.Extensions.Enrichment;
 
@@ -23,13 +24,11 @@ namespace OpenTelemetry.Extensions.Enrichment;
 internal sealed class EnrichmentActions : TraceEnricher
 #pragma warning restore CA1812 // Class is instantiated through dependency injection
 {
-    public static readonly List<Action<TraceEnrichmentBag>> Actions = new();
-
     private readonly Action<TraceEnrichmentBag>[] actions;
 
-    public EnrichmentActions()
+    public EnrichmentActions(IEnumerable<Action<TraceEnrichmentBag>> actions)
     {
-        this.actions = Actions.ToArray();
+        this.actions = actions.ToArray();
     }
 
     public override void Enrich(TraceEnrichmentBag enrichmentBag)

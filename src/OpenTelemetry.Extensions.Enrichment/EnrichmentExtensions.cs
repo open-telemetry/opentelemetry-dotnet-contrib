@@ -47,10 +47,10 @@ public static class EnrichmentExtensions
         Guard.ThrowIfNull(builder);
         Guard.ThrowIfNull(enrichmentAction);
 
-        EnrichmentActions.Actions.Add(enrichmentAction);
-
         return builder
-            .ConfigureServices(services => services.AddTraceEnricher<EnrichmentActions>());
+            .ConfigureServices(services => services
+                .AddSingleton(enrichmentAction)
+                .AddTraceEnricher<EnrichmentActions>());
     }
 
     public static IServiceCollection AddTraceEnricher<T>(this IServiceCollection services)
