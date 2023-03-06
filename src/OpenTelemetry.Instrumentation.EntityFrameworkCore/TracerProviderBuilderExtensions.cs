@@ -34,10 +34,8 @@ public static class TracerProviderBuilderExtensions
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddEntityFrameworkCoreInstrumentation(
-        this TracerProviderBuilder builder)
-    {
-        return AddEntityFrameworkCoreInstrumentation(builder, name: null, configure: null);
-    }
+        this TracerProviderBuilder builder) =>
+        AddEntityFrameworkCoreInstrumentation(builder, name: null, configure: null);
 
     /// <summary>
     /// Enables Microsoft.EntityFrameworkCore instrumentation.
@@ -47,10 +45,8 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddEntityFrameworkCoreInstrumentation(
         this TracerProviderBuilder builder,
-        Action<EntityFrameworkInstrumentationOptions> configure)
-    {
-        return AddEntityFrameworkCoreInstrumentation(builder, name: null, configure);
-    }
+        Action<EntityFrameworkInstrumentationOptions> configure) =>
+        AddEntityFrameworkCoreInstrumentation(builder, name: null, configure);
 
     /// <summary>
     /// Enables Microsoft.EntityFrameworkCore instrumentation.
