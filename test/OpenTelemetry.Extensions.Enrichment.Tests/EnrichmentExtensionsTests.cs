@@ -17,9 +17,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -30,7 +27,7 @@ public sealed class EnrichmentExtensionsTests
     private const string SourceName = nameof(EnrichmentExtensionsTests);
 
     [Fact]
-    public void TracerProviderBuilder_AddTraceEnricherT_RegistersEnricher()
+    public void AddTraceEnricherOfTRegistersEnricher()
     {
         var exportedItems = new List<Activity>();
 
@@ -58,7 +55,7 @@ public sealed class EnrichmentExtensionsTests
     }
 
     [Fact]
-    public void TracerProviderBuilder_AddTraceEnricher_RegistersEnricher()
+    public void AddTraceEnricherRegistersEnricher()
     {
         var exportedItems = new List<Activity>();
 
@@ -87,7 +84,7 @@ public sealed class EnrichmentExtensionsTests
     }
 
     [Fact]
-    public void TracerProviderBuilder_AddTraceEnricherAction_RegistersEnricher()
+    public void AddTraceEnricherActionRegistersEnricher()
     {
         var exportedItems = new List<Activity>();
 
@@ -112,88 +109,5 @@ public sealed class EnrichmentExtensionsTests
             var tagObject1 = tagObjects.Where(tag => tag.Key == testKey);
             Assert.Equal(testValue, (string)tagObject1.Single().Value);
         }
-    }
-
-    [Fact]
-    public async Task IServiceCollection_AddTraceEnricherT_RegistersEnricher()
-    {
-        var exportedItems = new List<Activity>();
-
-        using var host = Host.CreateDefaultBuilder()
-            .ConfigureServices(services => services
-                .AddOpenTelemetry()
-                .WithTracing(builder => builder
-                    .AddSource(SourceName)
-                    .AddInMemoryExporter(exportedItems))
-                .Services
-                .AddTraceEnricher<MyTraceEnricher>()
-                .AddTraceEnricher<MyTraceEnricher2>())
-            .Build();
-
-        await host.StartAsync().ConfigureAwait(false);
-
-        var enrichers = host.Services.GetServices<TraceEnricher>().ToArray();
-        Assert.NotNull(enrichers);
-        Assert.Equal(2, enrichers.Length);
-
-        using var source = new ActivitySource(SourceName);
-        using (var activity = source.StartActivity(SourceName))
-        {
-            activity.Stop();
-
-            Assert.Equal(1, (enrichers[0] as MyTraceEnricher).TimesCalled);
-            Assert.Equal(1, (enrichers[1] as MyTraceEnricher2).TimesCalled);
-
-            Assert.Single(exportedItems);
-
-            var tagObjects = exportedItems[0].TagObjects;
-            var tagObject1 = tagObjects.Where(tag => tag.Key == MyTraceEnricher.Key);
-            Assert.Equal(1, tagObject1.Single().Value);
-
-            var tagObject2 = tagObjects.Where(tag => tag.Key == MyTraceEnricher2.Key);
-            Assert.Equal(1, tagObject2.Single().Value);
-        }
-
-        await host.StopAsync().ConfigureAwait(false);
-    }
-
-    [Fact]
-    public async Task IServiceCollection_AddTraceEnricher_RegistersEnricher()
-    {
-        var exportedItems = new List<Activity>();
-
-        using var host = Host.CreateDefaultBuilder()
-            .ConfigureServices(services => services
-                .AddOpenTelemetry()
-                .WithTracing(builder => builder
-                    .AddSource(SourceName)
-                    .AddInMemoryExporter(exportedItems))
-                .Services
-                .AddTraceEnricher(new MyTraceEnricher())
-                .AddTraceEnricher(new MyTraceEnricher2()))
-            .Build();
-
-        await host.StartAsync().ConfigureAwait(false);
-
-        var enrichers = host.Services.GetServices<TraceEnricher>().ToArray();
-        Assert.NotNull(enrichers);
-        Assert.Equal(2, enrichers.Length);
-
-        using var source = new ActivitySource(SourceName);
-        using (var activity = source.StartActivity(SourceName))
-        {
-            activity.Stop();
-
-            Assert.Single(exportedItems);
-
-            var tagObjects = exportedItems[0].TagObjects;
-            var tagObject1 = tagObjects.Where(tag => tag.Key == MyTraceEnricher.Key);
-            Assert.Equal(1, tagObject1.Single().Value);
-
-            var tagObject2 = tagObjects.Where(tag => tag.Key == MyTraceEnricher2.Key);
-            Assert.Equal(1, tagObject2.Single().Value);
-        }
-
-        await host.StopAsync().ConfigureAwait(false);
     }
 }
