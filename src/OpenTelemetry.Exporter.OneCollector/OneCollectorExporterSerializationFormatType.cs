@@ -1,4 +1,4 @@
-// <copyright file="ISinkFactory.cs" company="OpenTelemetry Authors">
+// <copyright file="OneCollectorExporterSerializationFormatType.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,8 +16,13 @@
 
 namespace OpenTelemetry.Exporter.OneCollector;
 
-internal interface ISinkFactory<T>
-    where T : class
+/// <summary>
+/// Describes the OneCollector serialization format to use when writing telemetry.
+/// </summary>
+internal enum OneCollectorExporterSerializationFormatType
 {
-    ISink<T> CreateSink();
+    /// <summary>
+    /// Common Schema v4.0 UTF-8 JSON stream serialization format.
+    /// </summary>
+    CommonSchemaV4JsonStream,
 }
