@@ -27,6 +27,10 @@ Released 2023-Jan-25
 * Added support to `EnrichWithIDbCommand`
   ([#868](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/868))
 
+* Map missing dbs to db.system:
+`OpenTelemetry.Instrumentation.EntityFrameworkCore`
+  [#898](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/898)
+
 ## 1.0.0-beta.3
 
 Released 2022-Mar-18
