@@ -15,7 +15,6 @@
 // </copyright>
 
 using System;
-using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
@@ -51,41 +50,5 @@ public static class EnrichmentExtensions
             .ConfigureServices(services => services
                 .AddSingleton(enrichmentAction)
                 .AddTraceEnricher<EnrichmentActions>());
-    }
-
-    public static IServiceCollection AddTraceEnricher<T>(this IServiceCollection services)
-        where T : TraceEnricher
-    {
-        Guard.ThrowIfNull(services);
-
-        return services
-            .TryAddEnrichment()
-            .AddSingleton<TraceEnricher, T>();
-    }
-
-    public static IServiceCollection AddTraceEnricher(this IServiceCollection services, TraceEnricher enricher)
-    {
-        Guard.ThrowIfNull(services);
-        Guard.ThrowIfNull(enricher);
-
-        return services
-            .TryAddEnrichment()
-            .AddSingleton(enricher);
-    }
-
-    private static IServiceCollection TryAddEnrichment(this IServiceCollection services)
-    {
-        if (!services.Any(x => x.ServiceType == typeof(TraceEnrichmentProcessor)))
-        {
-            services
-                .AddSingleton<TraceEnrichmentProcessor>()
-                .ConfigureOpenTelemetryTracerProvider((sp, builder) =>
-                {
-                    var proc = sp.GetRequiredService<TraceEnrichmentProcessor>();
-                    builder.AddProcessor(proc);
-                });
-        }
-
-        return services;
     }
 }
