@@ -25,31 +25,18 @@ namespace OpenTelemetry.Logs;
 /// </summary>
 public static class OneCollectorOpenTelemetryLoggerOptionsExtensions
 {
-    /*
-    TODO: Enable this once logging supports DI/options binding.
     /// <summary>
     /// Add OneCollector exporter to the <see
     /// cref="OpenTelemetryLoggerOptions"/>.
     /// </summary>
     /// <param name="options"><see cref="OpenTelemetryLoggerOptions"/>.</param>
-    /// <returns>The supplied <see cref="OpenTelemetryLoggerOptions"/> for call
-    /// chaining.</returns>
-    public static OpenTelemetryLoggerOptions AddOneCollectorExporter(
-        this OpenTelemetryLoggerOptions options)
-        => AddOneCollectorExporter(options, _ => { });
-    */
-
-    /// <summary>
-    /// Add OneCollector exporter to the <see
-    /// cref="OpenTelemetryLoggerOptions"/>.
-    /// </summary>
-    /// <param name="options"><see cref="OpenTelemetryLoggerOptions"/>.</param>
-    /// <param name="configure">Callback action for configuring <see cref="OneCollectorLogExporterBuilder"/>.</param>
+    /// <param name="configure">Callback action for configuring <see
+    /// cref="OneCollectorLogExportProcessorBuilder"/>.</param>
     /// <returns>The supplied <see cref="OpenTelemetryLoggerOptions"/> for call
     /// chaining.</returns>
     public static OpenTelemetryLoggerOptions AddOneCollectorExporter(
         this OpenTelemetryLoggerOptions options,
-        Action<OneCollectorLogExporterBuilder> configure)
+        Action<OneCollectorLogExportProcessorBuilder> configure)
     {
         Guard.ThrowIfNull(configure);
 
@@ -79,13 +66,14 @@ public static class OneCollectorOpenTelemetryLoggerOptionsExtensions
     /// </summary>
     /// <param name="options"><see cref="OpenTelemetryLoggerOptions"/>.</param>
     /// <param name="connectionString">OneCollector connection string.</param>
-    /// <param name="configure">Callback action for configuring <see cref="OneCollectorLogExporterBuilder"/>.</param>
+    /// <param name="configure">Callback action for configuring <see
+    /// cref="OneCollectorLogExportProcessorBuilder"/>.</param>
     /// <returns>The supplied <see cref="OpenTelemetryLoggerOptions"/> for call
     /// chaining.</returns>
     public static OpenTelemetryLoggerOptions AddOneCollectorExporter(
         this OpenTelemetryLoggerOptions options,
         string connectionString,
-        Action<OneCollectorLogExporterBuilder> configure)
+        Action<OneCollectorLogExportProcessorBuilder> configure)
     {
         Guard.ThrowIfNullOrWhitespace(connectionString);
 
@@ -96,8 +84,14 @@ public static class OneCollectorOpenTelemetryLoggerOptionsExtensions
     /// Add OneCollector exporter to the <see
     /// cref="OpenTelemetryLoggerOptions"/>.
     /// </summary>
+    /// <remarks>Note: Batch options (<see
+    /// cref="BatchExportProcessorOptions{T}"/>) are bound to the "BatchOptions"
+    /// sub-section of the <see cref="IConfiguration"/> supplied in the
+    /// <paramref name="configuration"/> parameter.</remarks>
     /// <param name="options"><see cref="OpenTelemetryLoggerOptions"/>.</param>
-    /// <param name="configuration">Configuration used to build <see cref="OneCollectorLogExporterOptions"/>.</param>
+    /// <param name="configuration">Configuration used to build <see
+    /// cref="OneCollectorLogExporterOptions"/> and <see
+    /// cref="BatchExportProcessorOptions{T}"/>.</param>
     /// <returns>The supplied <see cref="OpenTelemetryLoggerOptions"/> for call
     /// chaining.</returns>
     public static OpenTelemetryLoggerOptions AddOneCollectorExporter(
@@ -113,47 +107,47 @@ public static class OneCollectorOpenTelemetryLoggerOptionsExtensions
     /// Add OneCollector exporter to the <see
     /// cref="OpenTelemetryLoggerOptions"/>.
     /// </summary>
+    /// <remarks><inheritdoc
+    /// cref="AddOneCollectorExporter(OpenTelemetryLoggerOptions,
+    /// IConfiguration)" path="/remarks"/></remarks>
     /// <param name="options"><see cref="OpenTelemetryLoggerOptions"/>.</param>
-    /// <param name="configuration">Configuration used to build <see cref="OneCollectorLogExporterOptions"/>.</param>
-    /// <param name="configure">Callback action for configuring <see cref="OneCollectorLogExporterBuilder"/>.</param>
+    /// <param name="configuration"><inheritdoc
+    /// cref="AddOneCollectorExporter(OpenTelemetryLoggerOptions,
+    /// IConfiguration)" path="/param[@name='configuration']"/></param>
+    /// <param name="configure">Callback action for configuring <see
+    /// cref="OneCollectorLogExportProcessorBuilder"/>.</param>
     /// <returns>The supplied <see cref="OpenTelemetryLoggerOptions"/> for call
     /// chaining.</returns>
     public static OpenTelemetryLoggerOptions AddOneCollectorExporter(
         this OpenTelemetryLoggerOptions options,
         IConfiguration configuration,
-        Action<OneCollectorLogExporterBuilder> configure)
+        Action<OneCollectorLogExportProcessorBuilder> configure)
     {
         Guard.ThrowIfNull(configuration);
 
         return AddOneCollectorExporter(options, connectionString: null, configuration, configure);
     }
 
-    internal static OpenTelemetryLoggerOptions AddOneCollectorExporter(
+    private static OpenTelemetryLoggerOptions AddOneCollectorExporter(
         this OpenTelemetryLoggerOptions options,
         string? connectionString,
         IConfiguration? configuration,
-        Action<OneCollectorLogExporterBuilder>? configure)
+        Action<OneCollectorLogExportProcessorBuilder>? configure)
     {
         Guard.ThrowIfNull(options);
 
-        var builder = configuration == null
-            ? new OneCollectorLogExporterBuilder(connectionString)
-            : new OneCollectorLogExporterBuilder(configuration);
+        var builder = new OneCollectorLogExportProcessorBuilder(configuration);
+
+        if (!string.IsNullOrWhiteSpace(connectionString))
+        {
+            builder.SetConnectionString(connectionString!);
+        }
 
         configure?.Invoke(builder);
 
-        var exporterOptions = builder.Options;
-
-        var batchOptions = exporterOptions.BatchOptions;
-
 #pragma warning disable CA2000 // Dispose objects before losing scope
         options.AddProcessor(
-            new BatchLogRecordExportProcessor(
-                new OneCollectorLogExporter(exporterOptions),
-                batchOptions.MaxQueueSize,
-                batchOptions.ScheduledDelayMilliseconds,
-                batchOptions.ExporterTimeoutMilliseconds,
-                batchOptions.MaxExportBatchSize));
+            builder.BuildProcessor());
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
         return options;

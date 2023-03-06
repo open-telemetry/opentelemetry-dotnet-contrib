@@ -28,7 +28,6 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
 {
     private readonly string typeName;
     private readonly ISerializer<T> serializer;
-    private readonly ITransport transport;
     private readonly MemoryStream buffer;
 
     public WriteDirectlyToTransportSink(
@@ -42,11 +41,13 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
 
         this.typeName = typeof(T).Name;
         this.serializer = serializer;
-        this.transport = transport;
+        this.Transport = transport;
         this.buffer = new(initialBufferCapacity);
     }
 
     public string Description => "WriteDirectlyToTransportSink";
+
+    public ITransport Transport { get; }
 
     internal MemoryStream Buffer => this.buffer;
 
@@ -55,7 +56,7 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
         this.TrySendRemainingData();
 
         (this.serializer as IDisposable)?.Dispose();
-        (this.transport as IDisposable)?.Dispose();
+        (this.Transport as IDisposable)?.Dispose();
     }
 
     public int Write(Resource resource, in Batch<T> batch)
@@ -97,10 +98,11 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
 
             buffer.Position = 0;
 
-            if (!this.transport.Send(
+            if (!this.Transport.Send(
                 new TransportSendRequest
                 {
                     ItemType = this.typeName,
+                    ItemSerializationFormat = this.serializer.SerializationFormat,
                     ItemStream = buffer,
                     NumberOfItems = numberOfItemsToSend,
                 }))
@@ -147,10 +149,11 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
 
             try
             {
-                if (!this.transport.Send(
+                if (!this.Transport.Send(
                     new TransportSendRequest
                     {
                         ItemType = this.typeName,
+                        ItemSerializationFormat = this.serializer.SerializationFormat,
                         ItemStream = buffer,
                         NumberOfItems = 1,
                     }))

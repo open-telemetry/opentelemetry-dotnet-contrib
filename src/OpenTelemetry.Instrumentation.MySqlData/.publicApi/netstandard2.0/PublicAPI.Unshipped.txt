@@ -7,4 +7,5 @@ OpenTelemetry.Instrumentation.MySqlData.MySqlDataInstrumentationOptions.RecordEx
 OpenTelemetry.Instrumentation.MySqlData.MySqlDataInstrumentationOptions.SetDbStatement.get -> bool
 OpenTelemetry.Instrumentation.MySqlData.MySqlDataInstrumentationOptions.SetDbStatement.set -> void
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
-static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddMySqlDataInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder, System.Action<OpenTelemetry.Instrumentation.MySqlData.MySqlDataInstrumentationOptions> configureMySqlDataInstrumentationOptions = null) -> OpenTelemetry.Trace.TracerProviderBuilder
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddMySqlDataInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder) -> OpenTelemetry.Trace.TracerProviderBuilder
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddMySqlDataInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder, System.Action<OpenTelemetry.Instrumentation.MySqlData.MySqlDataInstrumentationOptions> configure) -> OpenTelemetry.Trace.TracerProviderBuilder
