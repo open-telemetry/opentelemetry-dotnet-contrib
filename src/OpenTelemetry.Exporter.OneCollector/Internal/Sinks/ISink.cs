@@ -23,5 +23,7 @@ internal interface ISink<T>
 {
     string Description { get; }
 
+    ITransport? Transport { get; }
+
     int Write(Resource resource, in Batch<T> batch);
 }

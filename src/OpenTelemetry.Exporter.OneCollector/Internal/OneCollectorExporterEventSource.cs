@@ -73,6 +73,15 @@ internal sealed class OneCollectorExporterEventSource : EventSource
         }
     }
 
+    [NonEvent]
+    public void WriteExceptionThrownFromUserCodeEventIfEnabled(string userCodeType, Exception exception)
+    {
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        {
+            this.ExceptionThrownFromUserCode(userCodeType, ExceptionToInvariantString(exception));
+        }
+    }
+
     [Event(1, Message = "Exception thrown exporting '{0}' batch: {1}.", Level = EventLevel.Error)]
     public void ExportExceptionThrown(string itemType, string exception)
     {
@@ -125,6 +134,12 @@ internal sealed class OneCollectorExporterEventSource : EventSource
     public void EventNameInvalid(string eventName)
     {
         this.WriteEvent(9, eventName);
+    }
+
+    [Event(10, Message = "Exception thrown by '{0}' user code: {1}", Level = EventLevel.Error)]
+    public void ExceptionThrownFromUserCode(string userCodeType, string exception)
+    {
+        this.WriteEvent(10, userCodeType, exception);
     }
 
     /// <summary>
