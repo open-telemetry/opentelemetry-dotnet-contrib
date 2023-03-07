@@ -16,6 +16,7 @@
 
 using System;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using OpenTelemetry.Extensions.Enrichment;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
@@ -59,6 +60,42 @@ public static class OpenTelemetryEnrichmentServiceCollectionExtensions
         return services
             .TryAddEnrichment()
             .AddSingleton(enricher);
+    }
+
+    /// <summary>
+    /// Adds trace enricher.
+    /// </summary>
+    /// <param name="services"><see cref="IServiceCollection"/> being configured.</param>
+    /// <param name="enrichmentAction">The <see cref="Action"/> delegate to enrich traces.</param>
+    /// <exception cref="ArgumentNullException">Thrown when the <paramref name="services"/> or <paramref name="enrichmentAction"/> is <see langword="null" />.</exception>
+    /// <returns>The instance of <see cref="IServiceCollection"/> to chain the calls.</returns>
+    public static IServiceCollection AddTraceEnricher(this IServiceCollection services, Action<TraceEnrichmentBag> enrichmentAction)
+    {
+        Guard.ThrowIfNull(services);
+        Guard.ThrowIfNull(enrichmentAction);
+
+        services.TryAddSingleton<TraceEnricher, EnrichmentActions>();
+
+        return services
+            .TryAddEnrichment()
+            .AddSingleton(enrichmentAction);
+    }
+
+    /// <summary>
+    /// Adds trace enricher.
+    /// </summary>
+    /// <param name="services"><see cref="IServiceCollection"/> being configured.</param>
+    /// <param name="enricherImplementationFactory">The <see cref="TraceEnricher"/> object being added using implementation factory.</param>
+    /// <exception cref="ArgumentNullException">Thrown when the <paramref name="services"/> or <paramref name="enricherImplementationFactory"/> is <see langword="null" />.</exception>
+    /// <returns>The instance of <see cref="IServiceCollection"/> to chain the calls.</returns>
+    public static IServiceCollection AddTraceEnricher(this IServiceCollection services, Func<IServiceProvider, TraceEnricher> enricherImplementationFactory)
+    {
+        Guard.ThrowIfNull(services);
+        Guard.ThrowIfNull(enricherImplementationFactory);
+
+        return services
+            .TryAddEnrichment()
+            .AddSingleton((serviceProvider) => enricherImplementationFactory(serviceProvider));
     }
 
     private static IServiceCollection TryAddEnrichment(this IServiceCollection services)

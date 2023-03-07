@@ -58,14 +58,36 @@ public static class OpenTelemetryEnrichmentProviderBuilderExtensions
             .ConfigureServices(services => services.AddTraceEnricher(enricher));
     }
 
+    /// <summary>
+    /// Adds trace enricher.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="enrichmentAction">The <see cref="Action"/> delegate to enrich traces.</param>
+    /// <exception cref="ArgumentNullException">Thrown when the <paramref name="builder"/> or <paramref name="enrichmentAction"/> is <see langword="null" />.</exception>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddTraceEnricher(this TracerProviderBuilder builder, Action<TraceEnrichmentBag> enrichmentAction)
     {
         Guard.ThrowIfNull(builder);
         Guard.ThrowIfNull(enrichmentAction);
 
         return builder
+            .ConfigureServices(services => services.AddTraceEnricher(enrichmentAction));
+    }
+
+    /// <summary>
+    /// Adds trace enricher.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="enricherImplementationFactory">The <see cref="TraceEnricher"/> object being added using implementation factory.</param>
+    /// <exception cref="ArgumentNullException">Thrown when the <paramref name="builder"/> or <paramref name="enricherImplementationFactory"/> is <see langword="null" />.</exception>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddTraceEnricher(this TracerProviderBuilder builder, Func<IServiceProvider, TraceEnricher> enricherImplementationFactory)
+    {
+        Guard.ThrowIfNull(builder);
+        Guard.ThrowIfNull(enricherImplementationFactory);
+
+        return builder
             .ConfigureServices(services => services
-                .AddSingleton(enrichmentAction)
-                .AddTraceEnricher<EnrichmentActions>());
+                .AddTraceEnricher(enricherImplementationFactory));
     }
 }

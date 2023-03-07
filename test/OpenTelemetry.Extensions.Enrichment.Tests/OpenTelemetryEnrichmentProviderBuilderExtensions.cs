@@ -88,12 +88,15 @@ public sealed class OpenTelemetryEnrichmentProviderBuilderExtensions
     {
         var exportedItems = new List<Activity>();
 
-        const string testKey = "key";
-        const string testValue = "value";
+        const string testKey1 = "key1";
+        const string testValue1 = "value1";
+        const string testKey2 = "key2";
+        const string testValue2 = "value2";
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddSource(SourceName)
-            .AddTraceEnricher(bag => bag.Add(testKey, testValue))
+            .AddTraceEnricher(bag => bag.Add(testKey1, testValue1))
+            .AddTraceEnricher(bag => bag.Add(testKey2, testValue2))
             .AddInMemoryExporter(exportedItems)
             .Build();
 
@@ -106,8 +109,40 @@ public sealed class OpenTelemetryEnrichmentProviderBuilderExtensions
             Assert.Single(exportedItems);
 
             var tagObjects = exportedItems[0].TagObjects;
-            var tagObject1 = tagObjects.Where(tag => tag.Key == testKey);
-            Assert.Equal(testValue, (string)tagObject1.Single().Value);
+            var tagObject1 = tagObjects.Where(tag => tag.Key == testKey1);
+            Assert.Equal(testValue1, tagObject1.Single().Value);
+
+            var tagObject2 = tagObjects.Where(tag => tag.Key == testKey2);
+            Assert.Equal(testValue2, tagObject2.Single().Value);
+        }
+    }
+
+    [Fact]
+    public void AddTraceEnricherFactoryRegistersEnricher()
+    {
+        var exportedItems = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSource(SourceName)
+            .AddTraceEnricher(sp => new MyTraceEnricher())
+            .AddTraceEnricher(sp => new MyTraceEnricher2())
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        using var source1 = new ActivitySource(SourceName);
+
+        using (var activity = source1.StartActivity(SourceName))
+        {
+            activity.Stop();
+
+            Assert.Single(exportedItems);
+
+            var tagObjects = exportedItems[0].TagObjects;
+            var tagObject1 = tagObjects.Where(tag => tag.Key == MyTraceEnricher.Key);
+            Assert.Equal(1, tagObject1.Single().Value);
+
+            var tagObject2 = tagObjects.Where(tag => tag.Key == MyTraceEnricher2.Key);
+            Assert.Equal(1, tagObject2.Single().Value);
         }
     }
 }
