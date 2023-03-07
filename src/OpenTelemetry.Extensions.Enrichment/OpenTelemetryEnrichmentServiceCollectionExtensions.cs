@@ -1,4 +1,4 @@
-// <copyright file="EnrichmentServicesExtensions.cs" company="OpenTelemetry Authors">
+// <copyright file="OpenTelemetryEnrichmentServiceCollectionExtensions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ using OpenTelemetry.Trace;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-public static class EnrichmentServicesExtensions
+public static class OpenTelemetryEnrichmentServiceCollectionExtensions
 {
     public static IServiceCollection AddTraceEnricher<T>(this IServiceCollection services)
         where T : TraceEnricher
