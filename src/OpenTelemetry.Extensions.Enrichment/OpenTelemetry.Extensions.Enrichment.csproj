@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\Guard.cs" Link="Includes\Guard.cs" />
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\IsExternalInit.cs" Link="Includes\IsExternalInit.cs" />
   </ItemGroup>
 
 </Project>
