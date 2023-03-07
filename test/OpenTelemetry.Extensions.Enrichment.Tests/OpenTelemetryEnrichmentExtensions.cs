@@ -1,4 +1,4 @@
-// <copyright file="EnrichmentExtensionsTests.cs" company="OpenTelemetry Authors">
+// <copyright file="OpenTelemetryEnrichmentExtensions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,9 @@ using Xunit;
 
 namespace OpenTelemetry.Extensions.Enrichment.Tests;
 
-public sealed class EnrichmentExtensionsTests
+public sealed class OpenTelemetryEnrichmentExtensions
 {
-    private const string SourceName = nameof(EnrichmentExtensionsTests);
+    private const string SourceName = nameof(OpenTelemetryEnrichmentExtensions);
 
     [Fact]
     public void AddTraceEnricherOfTRegistersEnricher()
