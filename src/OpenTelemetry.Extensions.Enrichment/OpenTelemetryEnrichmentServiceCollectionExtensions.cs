@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Linq;
 using OpenTelemetry.Extensions.Enrichment;
 using OpenTelemetry.Internal;
@@ -21,8 +22,18 @@ using OpenTelemetry.Trace;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
+/// <summary>
+/// Extension methods to register telemery enrichers.
+/// </summary>
 public static class OpenTelemetryEnrichmentServiceCollectionExtensions
 {
+    /// <summary>
+    /// Adds trace enricher.
+    /// </summary>
+    /// <param name="services"><see cref="IServiceCollection"/> being configured.</param>
+    /// <typeparam name="T">Enricher object type.</typeparam>
+    /// <exception cref="ArgumentNullException">Thrown when the <paramref name="services"/> is <see langword="null" />.</exception>
+    /// <returns>The instance of <see cref="IServiceCollection"/> to chain the calls.</returns>
     public static IServiceCollection AddTraceEnricher<T>(this IServiceCollection services)
         where T : TraceEnricher
     {
@@ -33,6 +44,13 @@ public static class OpenTelemetryEnrichmentServiceCollectionExtensions
             .AddSingleton<TraceEnricher, T>();
     }
 
+    /// <summary>
+    /// Adds trace enricher.
+    /// </summary>
+    /// <param name="services"><see cref="IServiceCollection"/> being configured.</param>
+    /// <param name="enricher">The <see cref="TraceEnricher"/> object being added.</param>
+    /// <exception cref="ArgumentNullException">Thrown when the <paramref name="services"/> or <paramref name="enricher"/> is <see langword="null" />.</exception>
+    /// <returns>The instance of <see cref="IServiceCollection"/> to chain the calls.</returns>
     public static IServiceCollection AddTraceEnricher(this IServiceCollection services, TraceEnricher enricher)
     {
         Guard.ThrowIfNull(services);

@@ -21,8 +21,18 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Extensions.Enrichment;
 
+/// <summary>
+/// Extension methods to register telemery enrichers.
+/// </summary>
 public static class OpenTelemetryEnrichmentExtensions
 {
+    /// <summary>
+    /// Adds trace enricher.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <typeparam name="T">Enricher object type.</typeparam>
+    /// <exception cref="ArgumentNullException">Thrown when the <paramref name="builder"/> is <see langword="null" />.</exception>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddTraceEnricher<T>(this TracerProviderBuilder builder)
         where T : TraceEnricher
     {
@@ -32,6 +42,13 @@ public static class OpenTelemetryEnrichmentExtensions
             .ConfigureServices(services => services.AddTraceEnricher<T>());
     }
 
+    /// <summary>
+    /// Adds trace enricher.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="enricher">The <see cref="TraceEnricher"/> object being added.</param>
+    /// <exception cref="ArgumentNullException">Thrown when the <paramref name="builder"/> or <paramref name="enricher"/> is <see langword="null" />.</exception>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddTraceEnricher(this TracerProviderBuilder builder, TraceEnricher enricher)
     {
         Guard.ThrowIfNull(builder);
