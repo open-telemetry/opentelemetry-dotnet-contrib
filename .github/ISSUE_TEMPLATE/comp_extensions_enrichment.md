@@ -6,37 +6,49 @@ labels: comp:extensions.enrichment
 
 # Issue with OpenTelemetry.Extensions.Enrichment
 
-List of [all OpenTelemetry NuGet
-packages](https://www.nuget.org/profiles/OpenTelemetry) and version that you are
-using (e.g. `OpenTelemetry 1.0.2`):
-
-* [OpenTelemetry.Exporter.Geneva
-  1.2.6](https://www.nuget.org/packages/OpenTelemetry.Exporter.Geneva/1.2.6)
-
-Runtime version (e.g. `net462`, `net48`, `netcoreapp3.1`, `net6.0` etc. You can
-find this information from the `*.csproj` file):
-
-* TBD
-
-**Is this a feature request or a bug?**
+**What type of request is this?**
 
 * [ ] Feature Request
 * [ ] Bug
+* [ ] Question
+
+## Request Details
+
+**What are the OpenTelemetry packages and versions you are using?**
+
+_List [all OpenTelemetry NuGet
+packages](https://www.nuget.org/profiles/OpenTelemetry) and version that you are
+using (e.g. `OpenTelemetry 1.4.0`)._
+
+**What environment are you using?**
+
+_Please include the runtime versions (e.g. `net462`, `net48`, `net6.0`, `net7.0`
+etc.), OS details (e.g.Windows, Linux, etc.), architecture (e.g. 32bit, 64bit,
+etc.), and anything else important (e.g. IIS, container, etc.)._
 
 **What is the expected behavior?**
 
-What do you expect to see?
+_Describe what you expected to see._
 
 **What is the actual behavior?**
 
-What did you see instead? If you are reporting a bug, create a self-contained
-project using the template of your choice and apply the minimum required code to
-result in the issue you're observing. We will close this issue if:
+_Describe what you saw instead._
 
-* The repro project you share with us is complex. We can't investigate custom
-  projects, so don't point us to such, please.
-* If we can not reproduce the behavior you're reporting.
+**What are the steps to reproduce the issue?**
+
+_Describe how to reproduce the issue._
+
+If you are reporting a non-obvious bug, please create a self-contained project
+and apply the minimum required code to result in the issue you're observing.
+
+We will close this issue if:
+
+* The repro project you share with us is too complex. We can't investigate
+  custom projects please try to keep it to just what is needed to demonstrate
+  the issue.
+
+* We can't reproduce the behavior you're reporting.
 
 ## Additional Context
 
-Add any other context about the feature request here.
+_Include any other context about the bug or feature request here._
