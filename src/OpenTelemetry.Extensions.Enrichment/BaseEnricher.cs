@@ -18,5 +18,9 @@ namespace OpenTelemetry.Extensions.Enrichment;
 
 public abstract class BaseEnricher<T>
 {
+    protected BaseEnricher()
+    {
+    }
+
     public abstract void Enrich(T enrichmentBag);
 }

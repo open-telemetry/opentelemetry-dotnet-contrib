@@ -20,6 +20,10 @@ namespace OpenTelemetry.Extensions.Enrichment;
 
 public abstract class TraceEnricher : BaseEnricher<TraceEnrichmentBag>
 {
+    protected TraceEnricher()
+    {
+    }
+
     public virtual void Enrich(ref TraceEnrichmentBag traceEnrichmentBag)
     {
         throw new NotImplementedException();
