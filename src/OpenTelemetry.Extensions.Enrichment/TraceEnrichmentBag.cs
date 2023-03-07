@@ -19,7 +19,7 @@ using System.Diagnostics;
 namespace OpenTelemetry.Extensions.Enrichment;
 
 #pragma warning disable CA1815 // Override equals and operator equals on value types
-public struct TraceEnrichmentBag
+public readonly struct TraceEnrichmentBag
 #pragma warning restore CA1815 // Override equals and operator equals on value types
 {
     private readonly Activity activity;
