@@ -193,6 +193,28 @@ internal static class MetricSerializer
         buffer[bufferIndex + 7] = (byte)(value >> 0x38);
         bufferIndex += sizeof(ulong);
     }
+
+    /// <summary>
+    /// Writes the double to buffer.
+    /// </summary>
+    /// <param name="buffer">The buffer.</param>
+    /// <param name="bufferIndex">Index of the buffer.</param>
+    /// <param name="value">The value.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe void SerializeFloat64(byte[] buffer, ref int bufferIndex, double value)
+    {
+        if (bufferIndex + sizeof(double) >= buffer.Length)
+        {
+            // TODO: What should we do when the data is invalid?
+        }
+
+        fixed (byte* bp = buffer)
+        {
+            *(double*)(bp + bufferIndex) = value;
+        }
+
+        bufferIndex += sizeof(double);
+    }
 }
 
 internal enum MetricEventType
@@ -200,6 +222,20 @@ internal enum MetricEventType
     ULongMetric = 50,
     DoubleMetric = 55,
     ExternallyAggregatedULongDistributionMetric = 56,
+    TLV = 70,
+}
+
+internal enum PayloadType
+{
+    AccountName = 1,
+    Namespace = 2,
+    MetricName = 3,
+    Dimensions = 4,
+    ULongMetric = 5,
+    DoubleMetric = 6,
+    ExternallyAggregatedULongDistributionMetric = 8,
+    HistogramULongValueCountPairs = 12,
+    Exemplars = 15,
 }
 
 /// <summary>
