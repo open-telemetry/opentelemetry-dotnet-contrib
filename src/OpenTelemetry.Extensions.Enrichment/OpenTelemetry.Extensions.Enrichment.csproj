@@ -6,7 +6,7 @@
     <NoWarn>$(NoWarn),CS1591</NoWarn>
     <MinVerTagPrefix>Extensions.Enrichment-</MinVerTagPrefix>
     <Nullable>enable</Nullable>
-    <EnableAnalysis>true</EnableAnalysis>
+    <AnalysisLevel>latest-all</AnalysisLevel>
   </PropertyGroup>
 
   <ItemGroup>
