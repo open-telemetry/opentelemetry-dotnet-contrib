@@ -33,6 +33,9 @@ public static class OpenTelemetryEnrichmentProviderBuilderExtensions
     /// <typeparam name="T">Enricher object type.</typeparam>
     /// <exception cref="ArgumentNullException">Thrown when the <paramref name="builder"/> is <see langword="null" />.</exception>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    /// <remarks>
+    /// Add this enricher *before* exporter related Activity processors.
+    /// </remarks>
     public static TracerProviderBuilder AddTraceEnricher<T>(this TracerProviderBuilder builder)
         where T : TraceEnricher
     {
@@ -49,6 +52,9 @@ public static class OpenTelemetryEnrichmentProviderBuilderExtensions
     /// <param name="enricher">The <see cref="TraceEnricher"/> object being added.</param>
     /// <exception cref="ArgumentNullException">Thrown when the <paramref name="builder"/> or <paramref name="enricher"/> is <see langword="null" />.</exception>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    /// <remarks>
+    /// Add this enricher *before* exporter related Activity processors.
+    /// </remarks>
     public static TracerProviderBuilder AddTraceEnricher(this TracerProviderBuilder builder, TraceEnricher enricher)
     {
         Guard.ThrowIfNull(builder);
@@ -65,6 +71,9 @@ public static class OpenTelemetryEnrichmentProviderBuilderExtensions
     /// <param name="enrichmentAction">The <see cref="Action"/> delegate to enrich traces.</param>
     /// <exception cref="ArgumentNullException">Thrown when the <paramref name="builder"/> or <paramref name="enrichmentAction"/> is <see langword="null" />.</exception>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    /// <remarks>
+    /// Add this enricher *before* exporter related Activity processors.
+    /// </remarks>
     public static TracerProviderBuilder AddTraceEnricher(this TracerProviderBuilder builder, Action<TraceEnrichmentBag> enrichmentAction)
     {
         Guard.ThrowIfNull(builder);
@@ -81,6 +90,9 @@ public static class OpenTelemetryEnrichmentProviderBuilderExtensions
     /// <param name="enricherImplementationFactory">The <see cref="TraceEnricher"/> object being added using implementation factory.</param>
     /// <exception cref="ArgumentNullException">Thrown when the <paramref name="builder"/> or <paramref name="enricherImplementationFactory"/> is <see langword="null" />.</exception>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    /// <remarks>
+    /// Add this enricher *before* exporter related Activity processors.
+    /// </remarks>
     public static TracerProviderBuilder AddTraceEnricher(this TracerProviderBuilder builder, Func<IServiceProvider, TraceEnricher> enricherImplementationFactory)
     {
         Guard.ThrowIfNull(builder);
