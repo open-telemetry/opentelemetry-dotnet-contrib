@@ -140,7 +140,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metricPoint.Tags,
                                     metricData);
 
-                                string fileName = @"C:\Users\utpilla.REDMOND\Downloads\OTelLongCounterWithTLV.bin";
+                                string fileName = @"C:\Users\utpilla.REDMOND\Downloads\OTelLongCounterExemplarsWithTLV.bin";
                                 using BinaryWriter binWriter = new BinaryWriter(File.Open(fileName, FileMode.Create));
                                 binWriter.Write(this.buffer);
 
@@ -194,7 +194,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metricPoint.Tags,
                                     metricData);
 
-                                string fileName = @"C:\Users\utpilla.REDMOND\Downloads\OTelDoubleCounterWithTLV.bin";
+                                string fileName = @"C:\Users\utpilla.REDMOND\Downloads\OTelDoubleCounterExemplarsWithTLV.bin";
                                 using BinaryWriter binWriter = new BinaryWriter(File.Open(fileName, FileMode.Create));
                                 binWriter.Write(this.buffer);
 
@@ -221,6 +221,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                 var sum = Convert.ToUInt64(metricPoint.GetHistogramSum());
                                 var count = Convert.ToUInt32(metricPoint.GetHistogramCount());
                                 _ = metricPoint.TryGetHistogramMinMaxValues(out double min, out double max);
+                                var exemplars = metricPoint.GetExemplars();
 
                                 var bodyLength = this.SerializeHistogramMetricWithTLV(
                                     metric.Name,
@@ -230,9 +231,10 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     sum,
                                     count,
                                     min,
-                                    max);
+                                    max,
+                                    exemplars);
 
-                                string fileName = @"C:\Users\utpilla.REDMOND\Downloads\OTelHistogramWithTLV.bin";
+                                string fileName = @"C:\Users\utpilla.REDMOND\Downloads\OTelHistogramExemplarsWithTLV.bin";
                                 using BinaryWriter binWriter = new BinaryWriter(File.Open(fileName, FileMode.Create));
                                 binWriter.Write(this.buffer);
 
@@ -637,7 +639,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         double sum,
         uint count,
         double min,
-        double max)
+        double max,
+        Exemplar[] exemplars)
     {
         ushort bodyLength;
         try
@@ -770,6 +773,43 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
             #endregion
 
+            #region Serialize exemplars
+
+            if (exemplars.Length > 0)
+            {
+                MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, (byte)PayloadType.Exemplars);
+
+                // Get a placeholder to add the payloadType length
+                payloadTypeStartIndex = bufferIndex;
+                bufferIndex += 2;
+
+                MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, 0); // version
+
+                var exemplarsCount = 0;
+                foreach (var exemplar in exemplars)
+                {
+                    if (exemplar.Timestamp != default)
+                    {
+                        exemplarsCount++;
+                    }
+                }
+
+                MetricSerializer.SerializeInt32AsBase128(this.buffer, ref bufferIndex, exemplarsCount);
+
+                foreach (var exemplar in exemplars)
+                {
+                    if (exemplar.Timestamp != default)
+                    {
+                        this.SerializeExemplar(exemplar, ref bufferIndex);
+                    }
+                }
+            }
+
+            payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
+            MetricSerializer.SerializeUInt16(this.buffer, ref payloadTypeStartIndex, payloadTypeLength);
+
+            #endregion
+
             // Serialize monitoring account
             MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, (byte)PayloadType.AccountName);
             MetricSerializer.SerializeEncodedString(this.buffer, ref bufferIndex, Encoding.UTF8.GetBytes(this.monitoringAccount));
@@ -826,6 +866,85 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         }
 
         MetricSerializer.SerializeUInt32(this.buffer, ref bufferIndex, Convert.ToUInt32(bucket.BucketCount));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void SerializeExemplar(Exemplar exemplar, ref int bufferIndex)
+    {
+        MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, 0); // version
+
+        var bufferIndexForLength = bufferIndex;
+        bufferIndex++;
+
+        var bufferIndexForFlags = bufferIndex;
+        bufferIndex++;
+
+        var flags = ExemplarFlags.IsTimestampAvailable; // we only serialize exemplars with Timestamp != default
+
+        // TODO: Update the code whenn Exemplars support long values
+        var value = exemplar.DoubleValue;
+
+        // Check if the double value is actually a whole number that can be serialized as a long instead
+        bool isWholeNumber;
+        var valueAsLong = Convert.ToInt64(value);
+        var diff = Math.Abs(value - valueAsLong);
+        isWholeNumber = diff < .000000001;
+        if (isWholeNumber)
+        {
+            flags |= ExemplarFlags.IsMetricValueDoubleStoredAsLong;
+            MetricSerializer.SerializeInt64AsBase128(this.buffer, ref bufferIndex, valueAsLong); // serialize long value
+        }
+        else
+        {
+            MetricSerializer.SerializeFloat64(this.buffer, ref bufferIndex, value); // serialize double value
+        }
+
+        var bufferIndexForNumberOfLabels = bufferIndex;
+        MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, 0); // serialize zero as the count of labels; this would be updated later if the exemplar has labels
+        bool hasLabels = exemplar.FilteredTags != null && exemplar.FilteredTags.Count > 0;
+        byte numberOfLabels = 0;
+
+        var unixNanoSeconds = DateTime.FromFileTimeUtc(exemplar.Timestamp.ToFileTime())
+                        .ToUniversalTime()
+                        .Subtract(new DateTime(1970, 1, 1))
+                        .TotalMilliseconds * 1000000;
+
+        MetricSerializer.SerializeInt64(this.buffer, ref bufferIndex, (long)unixNanoSeconds); // serialize timestamp
+
+        if (exemplar.TraceId.HasValue)
+        {
+            Span<byte> traceIdBytes = stackalloc byte[16];
+            exemplar.TraceId.Value.CopyTo(traceIdBytes);
+            MetricSerializer.SerializeSpanOfBytes(this.buffer, ref bufferIndex, traceIdBytes, traceIdBytes.Length); // serialize traceId
+
+            flags |= ExemplarFlags.TraceIdExists;
+        }
+
+        if (exemplar.SpanId.HasValue)
+        {
+            Span<byte> spanIdBytes = stackalloc byte[8];
+            exemplar.SpanId.Value.CopyTo(spanIdBytes);
+            MetricSerializer.SerializeSpanOfBytes(this.buffer, ref bufferIndex, spanIdBytes, spanIdBytes.Length); // serialize spanId
+
+            flags |= ExemplarFlags.SpanIdExists;
+        }
+
+        if (hasLabels)
+        {
+            foreach (var tag in exemplar.FilteredTags)
+            {
+                MetricSerializer.SerializeBase128String(this.buffer, ref bufferIndex, tag.Key);
+                MetricSerializer.SerializeBase128String(this.buffer, ref bufferIndex, Convert.ToString(tag.Value, CultureInfo.InvariantCulture));
+                numberOfLabels++;
+            }
+
+            MetricSerializer.SerializeByte(this.buffer, ref bufferIndexForNumberOfLabels, numberOfLabels);
+        }
+
+        MetricSerializer.SerializeByte(this.buffer, ref bufferIndexForFlags, (byte)flags);
+
+        var exemplarLength = bufferIndex - bufferIndexForLength + 1;
+        MetricSerializer.SerializeByte(this.buffer, ref bufferIndexForLength, (byte)exemplarLength);
     }
 
     private List<byte[]> SerializePrepopulatedDimensionsKeys(IEnumerable<string> keys)
