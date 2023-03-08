@@ -42,13 +42,6 @@ public class WebApiApplication : HttpApplication
 
         switch (ConfigurationManager.AppSettings["UseExporter"].ToLowerInvariant())
         {
-            case "jaeger":
-                builder.AddJaegerExporter(jaegerOptions =>
-                 {
-                     jaegerOptions.AgentHost = ConfigurationManager.AppSettings["JaegerHost"];
-                     jaegerOptions.AgentPort = int.Parse(ConfigurationManager.AppSettings["JaegerPort"]);
-                 });
-                break;
             case "zipkin":
                 builder.AddZipkinExporter(zipkinOptions =>
                 {

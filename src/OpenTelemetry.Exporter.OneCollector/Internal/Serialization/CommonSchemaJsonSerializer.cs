@@ -53,6 +53,8 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
 
     public abstract string Description { get; }
 
+    public OneCollectorExporterSerializationFormatType SerializationFormat => OneCollectorExporterSerializationFormatType.CommonSchemaV4JsonStream;
+
     protected JsonEncodedText TenantTokenWithTenancySystemSymbol { get; }
 
     public void SerializeBatchOfItemsToStream(Resource resource, in Batch<T> batch, Stream stream, int initialSizeOfPayloadInBytes, out BatchSerializationResult result)
