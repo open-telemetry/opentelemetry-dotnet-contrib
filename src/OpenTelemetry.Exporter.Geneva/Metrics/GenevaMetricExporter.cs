@@ -144,7 +144,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                 using BinaryWriter binWriter = new BinaryWriter(File.Open(fileName, FileMode.Create));
                                 binWriter.Write(this.buffer);
 
-                                this.metricDataTransport.Send(MetricEventType.ULongMetric, this.buffer, bodyLength);
+                                this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
 
@@ -161,7 +161,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
                                     metricData);
-                                this.metricDataTransport.Send(MetricEventType.DoubleMetric, this.bufferForNonHistogramMetrics, bodyLength);
+                                this.metricDataTransport.Send(MetricEventType.TLV, this.bufferForNonHistogramMetrics, bodyLength);
                                 break;
                             }
 
@@ -178,7 +178,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
                                     metricData);
-                                this.metricDataTransport.Send(MetricEventType.DoubleMetric, this.bufferForNonHistogramMetrics, bodyLength);
+                                this.metricDataTransport.Send(MetricEventType.TLV, this.bufferForNonHistogramMetrics, bodyLength);
                                 break;
                             }
 
@@ -198,7 +198,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                 using BinaryWriter binWriter = new BinaryWriter(File.Open(fileName, FileMode.Create));
                                 binWriter.Write(this.buffer);
 
-                                this.metricDataTransport.Send(MetricEventType.DoubleMetric, this.buffer, bodyLength);
+                                this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
 
@@ -212,7 +212,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
                                     metricData);
-                                this.metricDataTransport.Send(MetricEventType.DoubleMetric, this.bufferForNonHistogramMetrics, bodyLength);
+                                this.metricDataTransport.Send(MetricEventType.TLV, this.bufferForNonHistogramMetrics, bodyLength);
                                 break;
                             }
 
@@ -238,7 +238,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                 using BinaryWriter binWriter = new BinaryWriter(File.Open(fileName, FileMode.Create));
                                 binWriter.Write(this.buffer);
 
-                                this.metricDataTransport.Send(MetricEventType.ExternallyAggregatedULongDistributionMetric, this.buffer, bodyLength);
+                                this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
                     }
