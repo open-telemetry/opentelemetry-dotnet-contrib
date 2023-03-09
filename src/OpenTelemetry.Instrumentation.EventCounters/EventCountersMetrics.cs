@@ -19,6 +19,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Diagnostics.Tracing;
+using System.Linq;
 
 namespace OpenTelemetry.Instrumentation.EventCounters;
 
@@ -30,9 +31,10 @@ internal sealed class EventCountersMetrics : EventListener
     internal static readonly Meter MeterInstance = new(typeof(EventCountersMetrics).Assembly.GetName().Name, typeof(EventCountersMetrics).Assembly.GetName().Version.ToString());
 
     private readonly EventCountersInstrumentationOptions options;
-    private readonly ConcurrentQueue<EventSource> preInitEventSources = new();
     private readonly ConcurrentDictionary<(string, string), Instrument> instruments = new();
     private readonly ConcurrentDictionary<(string, string), double> values = new();
+
+    private readonly Dictionary<string, string> enableEventsArguments = new() { { "EventCounterIntervalSec", "1" } };
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EventCountersMetrics"/> class.
@@ -41,27 +43,13 @@ internal sealed class EventCountersMetrics : EventListener
     public EventCountersMetrics(EventCountersInstrumentationOptions options)
     {
         this.options = options;
-
-        while (this.preInitEventSources.TryDequeue(out EventSource eventSource))
-        {
-            if (this.options.ShouldListenToSource(eventSource.Name))
-            {
-                this.EnableEvents(eventSource, EventLevel.LogAlways, EventKeywords.None, GetEnableEventsArguments(this.options));
-            }
-        }
     }
 
     /// <inheritdoc />
-    protected override void OnEventSourceCreated(EventSource source)
+    protected override void OnEventSourceCreated(EventSource eventSource)
     {
-        if (this.options == null)
-        {
-            this.preInitEventSources.Enqueue(source);
-        }
-        else if (this.options.ShouldListenToSource(source.Name))
-        {
-            this.EnableEvents(source, EventLevel.LogAlways, EventKeywords.None, GetEnableEventsArguments(this.options));
-        }
+        this.EnableEvents(eventSource, EventLevel.LogAlways, EventKeywords.None, this.enableEventsArguments);
+        base.OnEventSourceCreated(eventSource);
     }
 
     /// <inheritdoc />
@@ -74,28 +62,31 @@ internal sealed class EventCountersMetrics : EventListener
 
         var eventSourceName = eventData.EventSource.Name;
 
+        if (!this.options.ShouldListenToSource(eventSourceName))
+        {
+            this.DisableEvents(eventData.EventSource);
+            return;
+        }
+
         if (eventData.EventName != "EventCounters")
         {
             EventCountersInstrumentationEventSource.Log.IgnoreNonEventCountersName(eventSourceName);
             return;
         }
 
-        if (eventData.Payload == null || eventData.Payload.Count == 0 || eventData.Payload[0] is not IDictionary<string, object> payload)
+        if (eventData?.Payload.First() is not IDictionary<string, object> payload)
         {
             EventCountersInstrumentationEventSource.Log.IgnoreEventWrittenEventArgsPayloadNotParseable(eventSourceName);
             return;
         }
 
-        var hasName = payload.TryGetValue("Name", out var nameObj);
-
-        if (!hasName)
+        if (!payload.TryGetValue("Name", out var nameObj))
         {
             EventCountersInstrumentationEventSource.Log.IgnoreEventWrittenEventArgsWithoutName(eventSourceName);
             return;
         }
 
         var name = nameObj.ToString();
-
         var hasMean = payload.TryGetValue("Mean", out var mean);
         var hasIncrement = payload.TryGetValue("Increment", out var increment);
 
@@ -109,9 +100,6 @@ internal sealed class EventCountersMetrics : EventListener
         this.UpdateInstrumentWithEvent(hasMean, eventSourceName, name, value);
     }
 
-    private static Dictionary<string, string> GetEnableEventsArguments(EventCountersInstrumentationOptions options) =>
-        new() { { "EventCounterIntervalSec", options.RefreshIntervalSecs.ToString() } };
-
     private void UpdateInstrumentWithEvent(bool isGauge, string eventSourceName, string name, double value)
     {
         try
@@ -119,7 +107,7 @@ internal sealed class EventCountersMetrics : EventListener
             ValueTuple<string, string> metricKey = new(eventSourceName, name);
             _ = this.values.AddOrUpdate(metricKey, value, isGauge ? (_, _) => value : (_, existing) => existing + value);
 
-            var instrumentName = $"EventCounters.{eventSourceName}.{name}";
+            var instrumentName = $"ec.{eventSourceName}.{name}";
 
             if (!this.instruments.ContainsKey(metricKey))
             {
