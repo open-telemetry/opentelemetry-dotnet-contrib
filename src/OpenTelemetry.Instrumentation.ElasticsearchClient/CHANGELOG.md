@@ -2,12 +2,24 @@
 
 ## Unreleased
 
-* Updated OTel SDK package version to 1.2.0
+## 1.0.0-beta.4
+
+Released 2023-Mar-06
+
+* Updated OTel SDK package version to 1.4.0
+  ([#1019](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1019))
 * Update minimum full framework support to net462
 * Requests that get an HTTP status code of 404 are not marked as an error span status
 * Add MaxDbStatementLength option with default of 4096
 * Remove duplicated HTTP method and URL from db.statement attribute value
-* Fix faulty logic of MaxDbStatementLength option [(#425)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/425)
+* Fix faulty logic of MaxDbStatementLength option
+  ([#425](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/425))
+* Remove method with default attribute
+  ([#1019](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1019))
+* Added overloads which accept a name to the `TracerProviderBuilder`
+  `AddElasticsearchClientInstrumentation` extension to allow for more fine-grained
+  options management
+  ([#1019](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1019))
 
 ## 1.0.0-beta.3
 
