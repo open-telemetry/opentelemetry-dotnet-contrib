@@ -29,6 +29,8 @@ components:
     - vishweshbankwar
   src/OpenTelemetry.Extensions.Docker/:
     - iskiselev
+  src/OpenTelemetry.Extensions.Enrichment/:
+    - xakep139
   src/OpenTelemetry.Extensions.PersistentStorage.Abstractions/:
     - vishweshbankwar
   src/OpenTelemetry.Extensions.PersistentStorage/:
@@ -98,6 +100,8 @@ components:
     - codeblanch
   test/OpenTelemetry.Extensions.Docker.Tests/:
     - iskiselev
+  test/OpenTelemetry.Extensions.Enrichment.Tests/:
+    - xakep139
   test/OpenTelemetry.Extensions.PersistentStorage.Tests/:
     - vishweshbankwar
   test/OpenTelemetry.Instrumentation.AWSLambda.Tests/:
