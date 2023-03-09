@@ -1,4 +1,4 @@
-// <copyright file="IsExternalInit.cs" company="OpenTelemetry Authors">
+// <copyright file="TraceEnrichmentBag.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,11 +14,23 @@
 // limitations under the License.
 // </copyright>
 
-#if NETFRAMEWORK || NETSTANDARD2_0_OR_GREATER
-namespace System.Runtime.CompilerServices;
+using System.Diagnostics;
 
-// This enabled "init" keyword in net462 + netstandard2.0 targets.
-internal static class IsExternalInit
+namespace OpenTelemetry.Extensions.Enrichment;
+
+#pragma warning disable CA1815 // Override equals and operator equals on value types
+public readonly struct TraceEnrichmentBag
+#pragma warning restore CA1815 // Override equals and operator equals on value types
 {
+    private readonly Activity activity;
+
+    public TraceEnrichmentBag(Activity activity)
+    {
+        this.activity = activity;
+    }
+
+    public void Add(string key, object? value)
+    {
+        this.activity.SetTag(key, value);
+    }
 }
-#endif

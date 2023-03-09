@@ -1,4 +1,4 @@
-// <copyright file="IsExternalInit.cs" company="OpenTelemetry Authors">
+// <copyright file="BaseEnricher.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,11 +14,13 @@
 // limitations under the License.
 // </copyright>
 
-#if NETFRAMEWORK || NETSTANDARD2_0_OR_GREATER
-namespace System.Runtime.CompilerServices;
+namespace OpenTelemetry.Extensions.Enrichment;
 
-// This enabled "init" keyword in net462 + netstandard2.0 targets.
-internal static class IsExternalInit
+public abstract class BaseEnricher<T>
 {
+    protected BaseEnricher()
+    {
+    }
+
+    public abstract void Enrich(T enrichmentBag);
 }
-#endif
