@@ -53,40 +53,39 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using OpenTelemetry.Instrumentation.AspNet;
 
-namespace Examples.AspNet
+namespace Examples.AspNet;
+
+public class WebApiApplication : HttpApplication
 {
-    public class WebApiApplication : HttpApplication
+    private ActivityListener aspNetActivityListener;
+
+    protected void Application_Start()
     {
-        private ActivityListener aspNetActivityListener;
-
-        protected void Application_Start()
+        this.aspNetActivityListener = new ActivityListener
         {
-            this.aspNetActivityListener = new ActivityListener
+            ShouldListenTo = (activitySource) =>
             {
-                ShouldListenTo = (activitySource) =>
-                {
-                    // Only listen to TelemetryHttpModule's ActivitySource.
-                    return activitySource.Name == TelemetryHttpModule.AspNetSourceName;
-                },
-                Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
-                {
-                    // Sample everything created by TelemetryHttpModule's ActivitySource.
-                    return ActivitySamplingResult.AllDataAndRecorded;
-                },
-            };
+                // Only listen to TelemetryHttpModule's ActivitySource.
+                return activitySource.Name == TelemetryHttpModule.AspNetSourceName;
+            },
+            Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
+            {
+                // Sample everything created by TelemetryHttpModule's ActivitySource.
+                return ActivitySamplingResult.AllDataAndRecorded;
+            },
+        };
 
-            ActivitySource.AddActivityListener(this.aspNetActivityListener);
+        ActivitySource.AddActivityListener(this.aspNetActivityListener);
 
-            GlobalConfiguration.Configure(WebApiConfig.Register);
+        GlobalConfiguration.Configure(WebApiConfig.Register);
 
-            AreaRegistration.RegisterAllAreas();
-            RouteConfig.RegisterRoutes(RouteTable.Routes);
-        }
+        AreaRegistration.RegisterAllAreas();
+        RouteConfig.RegisterRoutes(RouteTable.Routes);
+    }
 
-        protected void Application_End()
-        {
-            this.aspNetActivityListener?.Dispose();
-        }
+    protected void Application_End()
+    {
+        this.aspNetActivityListener?.Dispose();
     }
 }
 ```
@@ -121,7 +120,8 @@ TelemetryHttpModuleOptions.TextMapPropagator = new CompositeTextMapPropagator(
     });
 ```
 
-Note: When using the `OpenTelemetry.Instrumentation.AspNet`
+> **Note**
+> When using the `OpenTelemetry.Instrumentation.AspNet`
 `TelemetryHttpModuleOptions.TextMapPropagator` is automatically initialized to
 the SDK default propagator (`Propagators.DefaultTextMapPropagator`) which by
 default supports W3C Trace Context & Baggage.

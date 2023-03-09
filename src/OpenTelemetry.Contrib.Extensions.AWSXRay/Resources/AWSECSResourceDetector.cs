@@ -32,9 +32,9 @@ public class AWSECSResourceDetector : IResourceDetector
     /// Detector the required and optional resource attributes from AWS ECS.
     /// </summary>
     /// <returns>List of key-value pairs of resource attributes.</returns>
-    public IEnumerable<KeyValuePair<string, object>> Detect()
+    public IEnumerable<KeyValuePair<string, object?>>? Detect()
     {
-        List<KeyValuePair<string, object>> resourceAttributes = null;
+        List<KeyValuePair<string, object?>>? resourceAttributes = null;
 
         if (!this.IsECSProcess())
         {
@@ -55,21 +55,21 @@ public class AWSECSResourceDetector : IResourceDetector
         return resourceAttributes;
     }
 
-    internal List<KeyValuePair<string, object>> ExtractResourceAttributes(string containerId)
+    internal List<KeyValuePair<string, object?>> ExtractResourceAttributes(string? containerId)
     {
-        var resourceAttributes = new List<KeyValuePair<string, object>>()
+        var resourceAttributes = new List<KeyValuePair<string, object?>>()
         {
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_ecs"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeContainerID, containerId),
+            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
+            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudPlatform, "aws_ecs"),
+            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeContainerID, containerId),
         };
 
         return resourceAttributes;
     }
 
-    internal string GetECSContainerId(string path)
+    internal string? GetECSContainerId(string path)
     {
-        string containerId = null;
+        string? containerId = null;
 
         using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
         {

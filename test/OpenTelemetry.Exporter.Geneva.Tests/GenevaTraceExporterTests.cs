@@ -85,7 +85,7 @@ public class GenevaTraceExporterTests
         // Supported types for PrepopulatedFields should not throw an exception
         var exception = Record.Exception(() =>
         {
-            new GenevaExporterOptions
+            _ = new GenevaExporterOptions
             {
                 ConnectionString = "EtwSession=OpenTelemetry",
                 PrepopulatedFields = new Dictionary<string, object>
@@ -359,7 +359,10 @@ public class GenevaTraceExporterTests
                         options.ConnectionString = "Endpoint=unix:" + path;
                     })
                     .Build();
-                Assert.True(false, "Should never reach here. GenevaTraceExporter should fail in constructor.");
+
+                // GenevaExporter would not throw if it was not able to connect to the UDS socket in ctor. It would
+                // keep attempting to connect to the socket when sending telemetry.
+                Assert.True(true, "GenevaTraceExporter should not fail in constructor.");
             }
             catch (SocketException ex)
             {
@@ -373,7 +376,7 @@ public class GenevaTraceExporterTests
                 {
                     ConnectionString = "Endpoint=unix:" + path,
                 });
-                Assert.True(false, "Should never reach here. GenevaTraceExporter should fail in constructor.");
+                Assert.True(true, "GenevaTraceExporter should not fail in constructor.");
             }
             catch (SocketException ex)
             {
@@ -471,6 +474,42 @@ public class GenevaTraceExporterTests
                 catch
                 {
                 }
+            }
+        }
+    }
+
+    [Fact]
+    public void TLDTraceExporter_Success_Windows()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+            // the ActivitySource used by other unit tests.
+            var sourceName = GetTestMethodName();
+
+            // TODO: Setup a mock or spy for eventLogger to assert that eventLogger.LogInformationalEvent is actually called.
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new AlwaysOnSampler())
+                .AddSource(sourceName)
+                .AddGenevaTraceExporter(options =>
+                {
+                    options.ConnectionString = "EtwSession=OpenTelemetry;PrivatePreviewEnableTraceLoggingDynamic=true";
+                    options.PrepopulatedFields = new Dictionary<string, object>
+                    {
+                        ["cloud.role"] = "BusyWorker",
+                        ["cloud.roleInstance"] = "CY1SCH030021417",
+                        ["cloud.roleVer"] = "9.0.15289.2",
+                    };
+                })
+                .Build();
+
+            var source = new ActivitySource(sourceName);
+            using (var activity = source.StartActivity("SayHello"))
+            {
+                activity?.SetTag("foo", 1);
+                activity?.SetTag("bar", "Hello, World!");
+                activity?.SetTag("baz", new int[] { 1, 2, 3 });
+                activity?.SetStatus(ActivityStatusCode.Ok);
             }
         }
     }
@@ -627,7 +666,7 @@ public class GenevaTraceExporterTests
             else
             {
                 // If CustomFields are proivded, dedicatedFields will be populated
-                if (exporterOptions.CustomFields == null || dedicatedFields.ContainsKey(tag.Key))
+                if (exporterOptions.CustomFields == null || dedicatedFields.TryGetValue(tag.Key, out _))
                 {
                     Assert.Equal(tag.Value.ToString(), mapping[tag.Key].ToString());
                 }

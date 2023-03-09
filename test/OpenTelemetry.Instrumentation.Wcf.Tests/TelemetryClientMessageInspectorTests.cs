@@ -53,7 +53,7 @@ public class TelemetryClientMessageInspectorTests : IDisposable
             }
             catch
             {
-                this.listener.Stop();
+                this.listener.Close();
                 this.listener = null;
                 retryCount--;
             }
@@ -128,7 +128,10 @@ public class TelemetryClientMessageInspectorTests : IDisposable
 
     public void Dispose()
     {
-        this.listener?.Stop();
+        if (this.listener != null)
+        {
+            (this.listener as IDisposable).Dispose();
+        }
     }
 
     [Theory]
@@ -150,7 +153,7 @@ public class TelemetryClientMessageInspectorTests : IDisposable
         bool emptyOrNullAction = false)
     {
 #if NETFRAMEWORK
-        const string OutgoingHttpOperationName = "OpenTelemetry.HttpWebRequest.HttpRequestOut";
+        const string OutgoingHttpOperationName = "OpenTelemetry.Instrumentation.Http.HttpWebRequest.HttpRequestOut";
 #else
         const string OutgoingHttpOperationName = "System.Net.Http.HttpRequestOut";
 #endif

@@ -29,19 +29,18 @@ public static class MeterProviderBuilderExtensions
     /// Enables EventCounter instrumentation.
     /// </summary>
     /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
-    /// <param name="configure">Runtime metrics options.</param>
+    /// <param name="configure">EventCounters instrumentation options.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
     public static MeterProviderBuilder AddEventCountersInstrumentation(
         this MeterProviderBuilder builder,
-        Action<EventCountersInstrumentationOptions> configure = null)
+        Action<EventCountersInstrumentationOptions>? configure = null)
     {
         Guard.ThrowIfNull(builder);
 
         var options = new EventCountersInstrumentationOptions();
         configure?.Invoke(options);
 
-        var instrumentation = new EventCountersMetrics(options);
         builder.AddMeter(EventCountersMetrics.MeterInstance.Name);
-        return builder.AddInstrumentation(() => instrumentation);
+        return builder.AddInstrumentation(() => new EventCountersMetrics(options));
     }
 }

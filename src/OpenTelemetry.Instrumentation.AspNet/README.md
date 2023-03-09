@@ -8,17 +8,18 @@ Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main
 which instruments [ASP.NET](https://docs.microsoft.com/aspnet/overview) and
 collect metrics and traces about incoming web requests.
 
-**Note: This component is based on the OpenTelemetry semantic conventions for
+> **Note**
+> This component is based on the OpenTelemetry semantic conventions for
 [metrics](https://github.com/open-telemetry/opentelemetry-specification/tree/main/specification/metrics/semantic_conventions)
 and
 [traces](https://github.com/open-telemetry/opentelemetry-specification/tree/main/specification/trace/semantic_conventions).
 These conventions are
 [Experimental](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/document-status.md),
-and hence, this package is a [pre-release](../../VERSIONING.md#pre-releases).
+and hence, this package is a [pre-release](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/VERSIONING.md#pre-releases).
 Until a [stable
 version](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/telemetry-stability.md)
 is released, there can be breaking changes. You can track the progress from
-[milestones](https://github.com/open-telemetry/opentelemetry-dotnet/milestone/23).**
+[milestones](https://github.com/open-telemetry/opentelemetry-dotnet/milestone/23).
 
 ## Steps to enable OpenTelemetry.Instrumentation.AspNet
 
@@ -56,9 +57,9 @@ following shows changes required to your `Web.config` when using IIS web server.
 
 ASP.NET instrumentation must be enabled at application startup. This is
 typically done in the `Global.asax.cs` as shown below. This example also sets up
-the OpenTelemetry Jaeger exporter, which requires adding the package
-[`OpenTelemetry.Exporter.Jaeger`](../OpenTelemetry.Exporter.Jaeger/README.md) to
-the application.
+the OpenTelemetry OTLP exporter, which requires adding the package
+[`OpenTelemetry.Exporter.OpenTelemetryProtocol`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.OpenTelemetryProtocol/README.md)
+to the application.
 
 ```csharp
 using OpenTelemetry;
@@ -71,7 +72,7 @@ public class WebApiApplication : HttpApplication
     {
         this.tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddAspNetInstrumentation()
-            .AddJaegerExporter()
+            .AddOtlpExporter()
             .Build();
     }
     protected void Application_End()
@@ -150,9 +151,9 @@ this.tracerProvider = Sdk.CreateTracerProviderBuilder()
     .Build();
 ```
 
-[Processor](../../docs/trace/extending-the-sdk/README.md#processor), is the
-general extensibility point to add additional properties to any activity. The
-`Enrich` option is specific to this instrumentation, and is provided to get
+[Processor](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/docs/trace/extending-the-sdk/README.md#processor),
+is the general extensibility point to add additional properties to any activity.
+The `Enrich` option is specific to this instrumentation, and is provided to get
 access to `HttpRequest` and `HttpResponse`.
 
 ### RecordException

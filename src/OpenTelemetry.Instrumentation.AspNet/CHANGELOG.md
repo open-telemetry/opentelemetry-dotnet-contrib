@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 1.0.0-rc9.8
+
+Released 2023-Feb-27
+
+* Removes `AddAspNetInstrumentation` method with default configure parameter.
+  ([#942](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/942))
+
+## 1.0.0-rc9.7
+
+Released 2022-Nov-28
+
 ## 1.0.0-rc9.6
 
 Released 2022-Sep-28
@@ -71,7 +82,7 @@ Released 2021-Oct-08
   [Microsoft.AspNet.TelemetryCorrelation](https://www.nuget.org/packages/Microsoft.AspNet.TelemetryCorrelation/)
   to listen for incoming http requests to the process. Please see the (Step 2:
   Modify
-  Web.config)[https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/src/OpenTelemetry.Instrumentation.AspNet#step-2-modify-webconfig]
+  Web.config)[https://github.com/open-telemetry/opentelemetry-dotnet-contrib/tree/main/src/OpenTelemetry.Instrumentation.AspNet#step-2-modify-webconfig]
   README section for details on the new HttpModule definition required.
   ([#2222](https://github.com/open-telemetry/opentelemetry-dotnet/issues/2222))
 

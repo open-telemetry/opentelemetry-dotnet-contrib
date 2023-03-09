@@ -14,7 +14,9 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Data;
+using System.Diagnostics;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
@@ -32,5 +34,14 @@ public class EntityFrameworkInstrumentationOptions
     /// <summary>
     /// Gets or sets a value indicating whether or not the <see cref="EntityFrameworkInstrumentation"/> should add the text of <see cref="CommandType.Text"/> commands as the <see cref="SemanticConventions.AttributeDbStatement"/> tag. Default value: False.
     /// </summary>
-    public bool SetDbStatementForText { get; set; } = false;
+    public bool SetDbStatementForText { get; set; }
+
+    /// <summary>
+    /// Gets or sets an action to enrich an Activity from the db command.
+    /// </summary>
+    /// <remarks>
+    /// <para><see cref="Activity"/>: the activity being enriched.</para>
+    /// <para><see cref="IDbCommand"/>: db command to allow access to command.</para>
+    /// </remarks>
+    public Action<Activity, IDbCommand> EnrichWithIDbCommand { get; set; }
 }

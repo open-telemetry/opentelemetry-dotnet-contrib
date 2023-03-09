@@ -1,13 +1,18 @@
-# Event Counters Instrumentation for OpenTelemetry .NET
+# EventCounters Instrumentation for OpenTelemetry .NET
 
 [![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.EventCounters.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EventCounters)
 [![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.EventCounters.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EventCounters)
 
-This is an
-[Instrumentation Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library)
-, which **republishes EventCounters using Metrics Api.**
+This is an [Instrumentation
+Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library)
+, which republishes
+[EventCounters](https://learn.microsoft.com/dotnet/core/diagnostics/event-counters)
+using OpenTelemetry Metrics API.
 
 ## Steps to enable OpenTelemetry.Instrumentation.EventCounters
+
+You can view an example project using EventCounters at
+`/examples/event-counters/Examples.EventCounters`.
 
 ### Step 1: Install Package
 
@@ -16,7 +21,7 @@ Add a reference to the
 package.
 
 ```shell
-dotnet add package OpenTelemetry.Instrumentation.EventCounters
+dotnet add package OpenTelemetry.Instrumentation.EventCounters --prerelease
 ```
 
 ### Step 2: Enable EventCounters Instrumentation
@@ -28,23 +33,21 @@ EventCounters instrumentation should be enabled at application startup using the
 using var meterProvider = Sdk.CreateMeterProviderBuilder()
     .AddEventCountersInstrumentation(options => {
         options.RefreshIntervalSecs = 1;
-        options.Sources.Add("MyEventSourceName");
+        options.AddEventSources("MyEventSource");
     })
-    .AddPrometheusExporter()
+    .AddPrometheusHttpListener()
     .Build();
-}
 ```
 
-Additionally, this examples sets up the OpenTelemetry Prometheus exporter, which
+Additionally, the above snippet sets up the OpenTelemetry Prometheus exporter, which
 requires adding the package
 [`OpenTelemetry.Exporter.Prometheus`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Prometheus.HttpListener/README.md)
 to the application.
 
 ### Step 3: Create EventCounters
 
-Learn about
-[EventCounters in .NET](https://docs.microsoft.com/en-us/dotnet/core/diagnostics/event-counters)
-.
+Learn about [EventCounters in
+.NET](https://docs.microsoft.com/en-us/dotnet/core/diagnostics/event-counters) .
 
 ```csharp
 EventSource eventSource = new("MyEventSource");

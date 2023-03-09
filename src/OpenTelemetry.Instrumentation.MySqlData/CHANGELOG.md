@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+* Removes `AddMySqlDataInstrumentation` method with default configure parameter.
+  ([#930](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/930))
+
+## 1.0.0-beta.6
+
+Released 2023-Feb-27
+
+* Update OTel API version to `1.4.0`.
+  ([#1038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1038))
+
+## 1.0.0-beta.5
+
+Released 2023-Jan-19
+
+* Compatibility with Mysql.Data 8.0.32 or later.
+  ([#901](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/901))
+
+## 1.0.0-beta.4
+
+Released 2022-Oct-17
+
 * Update OTel API version to `1.3.1`.
   ([#631](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/631))
 * Compatibility with `Mysql.Data` 8.0.31 or later, Users must set `Logging=true`

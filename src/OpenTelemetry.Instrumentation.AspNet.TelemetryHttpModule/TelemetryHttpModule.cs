@@ -18,6 +18,7 @@ using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Web;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.AspNet;
 
@@ -57,13 +58,15 @@ public class TelemetryHttpModule : IHttpModule
     /// <inheritdoc />
     public void Init(HttpApplication context)
     {
+        Guard.ThrowIfNull(context);
+
         context.BeginRequest += this.Application_BeginRequest;
         context.EndRequest += this.Application_EndRequest;
         context.Error += this.Application_Error;
 
         if (HttpRuntime.UsingIntegratedPipeline && OnExecuteRequestStepMethodInfo != null)
         {
-            // OnExecuteRequestStep is availabile starting with 4.7.1
+            // OnExecuteRequestStep is available starting with 4.7.1
             try
             {
                 OnExecuteRequestStepMethodInfo.Invoke(context, new object[] { (Action<HttpContextBase, Action>)this.OnExecuteRequestStep });
@@ -84,12 +87,7 @@ public class TelemetryHttpModule : IHttpModule
     private void OnExecuteRequestStep(HttpContextBase context, Action step)
     {
         // Called only on 4.7.1+ runtimes
-
-        if (context.CurrentNotification == RequestNotification.ExecuteRequestHandler && !context.IsPostNotification)
-        {
-            ActivityHelper.RestoreContextIfNeeded(context.ApplicationInstance.Context);
-        }
-
+        ActivityHelper.RestoreContextIfNeeded(context.ApplicationInstance.Context);
         step();
     }
 

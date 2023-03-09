@@ -17,6 +17,9 @@ components:
     - Yun-Ting
   src/OpenTelemetry.Exporter.Instana/:
     - zivaninstana
+  src/OpenTelemetry.Exporter.OneCollector/:
+    - codeblanch
+    - reyang
   src/OpenTelemetry.Exporter.Stackdriver/:
     - SergeyKanzhelev
   src/OpenTelemetry.Extensions/:
@@ -26,6 +29,8 @@ components:
     - vishweshbankwar
   src/OpenTelemetry.Extensions.Docker/:
     - iskiselev
+  src/OpenTelemetry.Extensions.Enrichment/:
+    - xakep139
   src/OpenTelemetry.Extensions.PersistentStorage.Abstractions/:
     - vishweshbankwar
   src/OpenTelemetry.Extensions.PersistentStorage/:
@@ -42,8 +47,6 @@ components:
     - pcwiese
   src/OpenTelemetry.Instrumentation.Hangfire/:
     - fred2u
-  src/OpenTelemetry.Instrumentation.MassTransit/:
-    - alexvaluyskiy
   src/OpenTelemetry.Instrumentation.MySqlData/:
     - moonheart
   src/OpenTelemetry.Instrumentation.Owin/:
@@ -57,6 +60,9 @@ components:
     - xiang17
   src/OpenTelemetry.Instrumentation.Wcf/:
     - codeblanch
+  src/OpenTelemetry.ResourceDetectors.Azure/:
+    - rajkumar-rangaraj
+    - vishweshbankwar
   test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/:
     - srprash
     - lupengamzn
@@ -85,12 +91,17 @@ components:
     - Yun-Ting
   test/OpenTelemetry.Exporter.Instana.Tests/:
     - zivaninstana
+  test/OpenTelemetry.Exporter.OneCollector.Tests/:
+    - codeblanch
+    - reyang
   test/OpenTelemetry.Exporter.Stackdriver.Tests/:
     - SergeyKanzhelev
   test/OpenTelemetry.Extensions.Tests/:
     - codeblanch
   test/OpenTelemetry.Extensions.Docker.Tests/:
-    - swetharavichandrancisco
+    - iskiselev
+  test/OpenTelemetry.Extensions.Enrichment.Tests/:
+    - xakep139
   test/OpenTelemetry.Extensions.PersistentStorage.Tests/:
     - vishweshbankwar
   test/OpenTelemetry.Instrumentation.AWSLambda.Tests/:
@@ -105,8 +116,6 @@ components:
     - pcwiese
   test/OpenTelemetry.Instrumentation.Hangfire.Tests/:
     - fred2u
-  test/OpenTelemetry.Instrumentation.MassTransit.Tests/:
-    - alexvaluyskiy
   test/OpenTelemetry.Instrumentation.MySqlData.Tests/:
     - moonheart
   test/OpenTelemetry.Instrumentation.Owin.Tests/:
@@ -118,3 +127,6 @@ components:
     - xiang17
   test/OpenTelemetry.Instrumentation.Wcf.Tests/:
     - codeblanch
+  test/OpenTelemetry.ResourceDetectors.Azure.Tests/:
+    - rajkumar-rangaraj
+    - vishweshbankwar

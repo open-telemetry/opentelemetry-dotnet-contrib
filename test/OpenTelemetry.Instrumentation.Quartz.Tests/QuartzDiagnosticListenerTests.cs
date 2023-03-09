@@ -98,18 +98,17 @@ public class QuartzDiagnosticListenerTests
 
         var activityProcessor = new Mock<BaseProcessor<Activity>>();
 
-        var jobDataMapPropertyFetcher = new PropertyFetcher<object>("JobDataMap");
         using var tel = Sdk.CreateTracerProviderBuilder()
             .SetSampler(new AlwaysOnSampler())
             .AddQuartzInstrumentation(q =>
-                q.Enrich = (a, s, payload) =>
+                q.Enrich = (a, _, payload) =>
                 {
                     if (payload is IJobDetail jobDetail)
                     {
                         var dataMap = jobDetail.JobDataMap;
-                        if (dataMap.ContainsKey("TestId"))
+                        if (dataMap.TryGetValue("TestId", out var value))
                         {
-                            a.SetTag("test.id", dataMap["TestId"]);
+                            a.SetTag("test.id", value);
                         }
                     }
                 })
@@ -225,14 +224,14 @@ public class QuartzDiagnosticListenerTests
             .AddQuartzInstrumentation(q =>
             {
                 q.RecordException = true;
-                q.Enrich = (a, s, p) =>
+                q.Enrich = (a, _, p) =>
                 {
                     if (p is IJobDetail jobDetail)
                     {
                         var dataMap = jobDetail.JobDataMap;
-                        if (dataMap.ContainsKey("TestId"))
+                        if (dataMap.TryGetValue("TestId", out var value))
                         {
-                            a.SetTag("test.id", dataMap["TestId"]);
+                            a.SetTag("test.id", value);
                         }
                     }
                 };
@@ -291,7 +290,7 @@ public class QuartzDiagnosticListenerTests
             .AddQuartzInstrumentation(q =>
             {
                 q.RecordException = true;
-                q.Enrich = (a, s, p) =>
+                q.Enrich = (_, s, _) =>
                 {
                     if (s.Equals("OnException"))
                     {

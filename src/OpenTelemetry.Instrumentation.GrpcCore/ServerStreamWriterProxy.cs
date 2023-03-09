@@ -16,7 +16,7 @@
 
 using System;
 using System.Threading.Tasks;
-using global::Grpc.Core;
+using Grpc.Core;
 
 namespace OpenTelemetry.Instrumentation.GrpcCore;
 
@@ -28,7 +28,7 @@ namespace OpenTelemetry.Instrumentation.GrpcCore;
 /// https://github.com/opentracing-contrib/csharp-grpc/blob/master/src/OpenTracing.Contrib.Grpc/Streaming/TracingServerStreamWriter.cs.
 /// </remarks>
 /// <typeparam name="T">The message type.</typeparam>
-/// <seealso cref="global::Grpc.Core.IServerStreamWriter{T}" />
+/// <seealso cref="IServerStreamWriter{T}" />
 internal class ServerStreamWriterProxy<T> : IServerStreamWriter<T>
 {
     /// <summary>

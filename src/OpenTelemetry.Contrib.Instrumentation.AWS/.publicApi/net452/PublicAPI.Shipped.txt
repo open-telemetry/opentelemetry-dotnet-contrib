@@ -1,0 +1,7 @@
+#nullable enable
+OpenTelemetry.Contrib.Instrumentation.AWS.AWSClientInstrumentationOptions
+OpenTelemetry.Contrib.Instrumentation.AWS.AWSClientInstrumentationOptions.AWSClientInstrumentationOptions() -> void
+OpenTelemetry.Contrib.Instrumentation.AWS.AWSClientInstrumentationOptions.SuppressDownstreamInstrumentation.get -> bool
+OpenTelemetry.Contrib.Instrumentation.AWS.AWSClientInstrumentationOptions.SuppressDownstreamInstrumentation.set -> void
+OpenTelemetry.Trace.TracerProviderBuilderExtensions
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddAWSInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder, System.Action<OpenTelemetry.Contrib.Instrumentation.AWS.AWSClientInstrumentationOptions!>? configure = null) -> OpenTelemetry.Trace.TracerProviderBuilder!

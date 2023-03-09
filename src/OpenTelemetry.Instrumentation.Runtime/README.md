@@ -28,16 +28,16 @@ Runtime instrumentation should be enabled at application startup using the
 ```csharp
 using var meterProvider = Sdk.CreateMeterProviderBuilder()
     .AddRuntimeInstrumentation()
-    .AddPrometheusExporter()
+    .AddPrometheusHttpListener()
     .Build();
 ```
 
 Refer to [Program.cs](../../examples/runtime-instrumentation/Program.cs) for a
 complete demo.
 
-Additionally, this examples sets up the OpenTelemetry Prometheus exporter, which
-requires adding the package
-[`OpenTelemetry.Exporter.Prometheus`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Prometheus.HttpListener/README.md)
+Additionally, the above example snippet sets up the OpenTelemetry Prometheus Exporter
+HttpListener as well, which requires adding the package
+[`OpenTelemetry.Exporter.Prometheus.HttpListener`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Prometheus.HttpListener/README.md)
 to the application.
 
 ## Metrics
@@ -48,20 +48,53 @@ to the application.
 
 Number of garbage collections that have occurred since process start.
 
-Note: Collecting a generation means collecting objects in that generation and all
-its younger generations. However, each dimension for this metrics doesn't include
-the collection counts for the lower generation.
-e.g. count for gen1 is `GC.CollectionCount(1) - GC.CollectionCount(0)`.
+> **Note**
+> .NET uses a [generational GC](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/fundamentals#generations)
+which divides the heap into different generations numbered 0, 1, and 2. In each
+collection the GC decides which generation to search for reclaimable memory,
+then it searches that generation and all the lower ones. A GC collection that
+searches generations 0, 1, and 2 is called a "gen2" collection, searching
+generations 0 and 1 is a "gen1" collection and searching generation 0 only is a
+"gen0" collection. The gen0, gen1, and gen2 attribute values for this metric
+count respectively the number of gen0, gen1, and gen2 collections which have
+occurred since the process started.
 
 | Units           | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |-----------------|-------------------|------------|------------------|------------------|
 | `{collections}` | ObservableCounter | `Int64`    | generation       | gen0, gen1, gen2 |
 
+The metric can be computed using the [GC.CollectionCount](https://docs.microsoft.com/dotnet/api/system.gc.collectioncount)
+API:
+
+* `count_gen0_collections = GC.CollectionCount(0) - GC.CollectionCount(1)`
+* `count_gen1_collections = GC.CollectionCount(1) - GC.CollectionCount(2)`
+* `count_gen2_collections = GC.CollectionCount(2)`
+
+GC.CollectionCount(X) counts the number of times objects in generation X have
+been searched during any GC collection. Although it may sound similar, notice
+this is not the same as the number of genX collections. For example objects in
+generation 0 are searched during gen0, gen1, and gen2 collections so
+`GC.CollectionCount(0) = count_gen0_collections + count_gen1_collections + count_gen2_collections`.
+This is why the expressions above are not direct assignments.
+
+#### process.runtime.dotnet.**gc.objects.size**
+
+Count of bytes currently in use by objects in the GC heap that haven't been
+collected yet.
+Fragmentation and other GC committed memory pools are excluded.
+The value is available even before first garbage collection has occurred.
+
+| Units   | Instrument Type         | Value Type | Attribute Key(s)  | Attribute Values |
+|---------|-------------------------|------------|-------------------|------------------|
+| `bytes` | ObservableUpDownCounter | `Int64`    | No Attributes     | N/A              |
+
 The API used to retrieve the value is:
 
-* [GC.CollectionCount](https://docs.microsoft.com/dotnet/api/system.gc.collectioncount):
-  The number of times garbage collection has occurred for the specified generation
-of objects.
+* [GC.GetTotalMemory](https://docs.microsoft.com/dotnet/api/system.gc.gettotalmemory):
+  Retrieves the number of bytes currently thought to be allocated.
+The value is an approximate count. API is called with `false`
+as a value of forceFullCollection parameter. Returns an instantaneous
+value at the time of observation.
 
 #### process.runtime.dotnet.**gc.allocations.size**
 
@@ -69,7 +102,8 @@ Count of bytes allocated on the managed GC heap since the process start.
 .NET objects are allocated from this heap. Object allocations from unmanaged languages
 such as C/C++ do not use this heap.
 
-Note: This metric is only available when targeting .NET Core 3.1 or later.
+> **Note**
+> This metric is only available when targeting .NET 6 or later.
 
 | Units   | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
 |---------|-------------------|------------|------------------|------------------|
@@ -90,15 +124,12 @@ objects (the heap size) and some extra memory that is ready to handle newly
 allocated objects in the future. The value will be unavailable until at least one
 garbage collection has occurred.
 
-Note: `ObservableGauge` should be changed to `ObservableUpDownCounter` once available,
-as `ObservableUpDownCounter` is the best fit of instrument type. The same applies
-to all the `ObservableGauge` below.
+> **Note**
+> This metric is only available when targeting .NET 6 or later.
 
-Note: This metric is only available when targeting .NET6 or later.
-
-| Units   | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
-|---------|-----------------|------------|------------------|------------------|
-| `bytes` | ObservableGauge | `Int64`    | No Attributes    | N/A              |
+| Units   | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
+|---------|-------------------------|------------|------------------|------------------|
+| `bytes` | ObservableUpDownCounter | `Int64`    | No Attributes    | N/A              |
 
 The API used to retrieve the value is:
 
@@ -111,11 +142,12 @@ The heap size (including fragmentation), as observed during the
 latest garbage collection. The value will be unavailable until at least one
 garbage collection has occurred.
 
-Note: This metric is only available when targeting .NET6 or later.
+> **Note**
+> This metric is only available when targeting .NET 6 or later.
 
-| Units   | Instrument Type | Value Type | Attribute Key(s) | Attribute Values           |
-|---------|-----------------|------------|------------------|----------------------------|
-| `bytes` | ObservableGauge | `Int64`    | generation       | gen0, gen1, gen2, loh, poh |
+| Units   | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values           |
+|---------|-------------------------|------------|------------------|----------------------------|
+| `bytes` | ObservableUpDownCounter | `Int64`    | generation       | gen0, gen1, gen2, loh, poh |
 
 The API used to retrieve the value is:
 
@@ -132,11 +164,12 @@ The API used to retrieve the value is:
 The heap fragmentation, as observed during the latest garbage collection.
 The value will be unavailable until at least one garbage collection has occurred.
 
-Note: This metric is only available when targeting .NET 7 or later.
+> **Note**
+> This metric is only available when targeting .NET 7 or later.
 
-| Units   | Instrument Type | Value Type | Attribute Key(s) | Attribute Values           |
-|---------|-----------------|------------|------------------|----------------------------|
-| `bytes` | ObservableGauge | `Int64`    | generation       | gen0, gen1, gen2, loh, poh |
+| Units   | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values           |
+|---------|-------------------------|------------|------------------|----------------------------|
+| `bytes` | ObservableUpDownCounter | `Int64`    | generation       | gen0, gen1, gen2, loh, poh |
 
 The API used to retrieve the value is:
 
@@ -190,7 +223,7 @@ The scope of this value is global. The same applies for other JIT related metric
 
 ### Threading related metrics
 
-These metrics are only available when targeting .NET Core 3.1 or later.
+These metrics are only available when targeting .NET 6 or later.
 
 #### process.runtime.dotnet.**monitor.lock_contention.count**
 
@@ -206,9 +239,9 @@ the lock keyword in C#, or by calling Monitor.Enter() and Monitor.TryEnter().
 
 The number of thread pool threads that currently exist.
 
-| Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|-------------|-------------------|------------|------------------|------------------|
-| `{threads}` | ObservableGauge   | `Int32`    | No Attributes    | N/A              |
+| Units       | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
+|-------------|-------------------------|------------|------------------|------------------|
+| `{threads}` | ObservableUpDownCounter | `Int32`    | No Attributes    | N/A              |
 
 #### process.runtime.dotnet.**thread_pool.completed_items.count**
 
@@ -224,9 +257,9 @@ since the process start.
 The number of work items that are currently queued to be processed
 by the thread pool.
 
-| Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|-------------|-------------------|------------|------------------|------------------|
-| `{items}`   | ObservableGauge   | `Int64`    | No Attributes    | N/A              |
+| Units     | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
+|-----------|-------------------------|------------|------------------|------------------|
+| `{items}` | ObservableUpDownCounter | `Int64`    | No Attributes    | N/A              |
 
 #### process.runtime.dotnet.**timer.count**
 
@@ -235,9 +268,9 @@ be created by many sources such as System.Threading.Timer, Task.Delay, or the
 timeout in a CancellationSource. An active timer is registered to tick at some
 point in the future and has not yet been canceled.
 
-| Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|-------------|-------------------|------------|------------------|------------------|
-| `{timers}`  | ObservableGauge   | `Int64`    | No Attributes    | N/A              |
+| Units      | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
+|------------|-------------------------|------------|------------------|------------------|
+| `{timers}` | ObservableUpDownCounter | `Int64`    | No Attributes    | N/A              |
 
 The APIs used to retrieve the values are:
 
@@ -260,9 +293,9 @@ The APIs used to retrieve the values are:
 
 The number of .NET assemblies that are currently loaded.
 
-| Units          | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
-|----------------|-----------------|------------|------------------|------------------|
-| `{assemblies}` | ObservableGauge | `Int64`    | No Attributes    | N/A              |
+| Units          | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
+|----------------|-------------------------|------------|------------------|------------------|
+| `{assemblies}` | ObservableUpDownCounter | `Int64`    | No Attributes    | N/A              |
 
 The API used to retrieve the value is:
 
@@ -278,7 +311,8 @@ Count of exceptions that have been thrown in managed code, since the
 observation started. The value will be unavailable until an exception has been
 thrown after OpenTelemetry.Instrumentation.Runtime initialization.
 
-Note: The value is tracked by incrementing a counter whenever an AppDomain.FirstChanceException
+> **Note**
+> The value is tracked by incrementing a counter whenever an AppDomain.FirstChanceException
 event occurs. The observation starts when the Runtime instrumentation library is
 initialized, so the value will be unavailable until an exception has been
 thrown after the initialization.

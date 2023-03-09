@@ -21,11 +21,11 @@ using System.Linq;
 namespace OpenTelemetry.Instrumentation.EventCounters;
 
 /// <summary>
-/// EventCounterListener Options.
+/// EventCounters Instrumentation Options.
 /// </summary>
 public class EventCountersInstrumentationOptions
 {
-    private readonly HashSet<string> eventSourceNames = new();
+    internal readonly HashSet<string> EventSourceNames = new();
 
     /// <summary>
     /// Gets or sets the subscription interval in seconds for reading values
@@ -44,7 +44,7 @@ public class EventCountersInstrumentationOptions
             throw new NotSupportedException("Use the `OpenTelemetry.Instrumentation.Runtime` or `OpenTelemetry.Instrumentation.Process` instrumentations.");
         }
 
-        this.eventSourceNames.UnionWith(names);
+        this.EventSourceNames.UnionWith(names);
     }
 
     /// <summary>
@@ -54,6 +54,6 @@ public class EventCountersInstrumentationOptions
     /// <returns><c>true</c> when an EventSource with the name <paramref name="eventSourceName"/> should be enabled.</returns>
     internal bool ShouldListenToSource(string eventSourceName)
     {
-        return this.eventSourceNames.Contains(eventSourceName);
+        return this.EventSourceNames.Contains(eventSourceName);
     }
 }

@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -40,6 +41,13 @@ public class GenevaLogExporterTests
         {
             using var exporter = new GenevaLogExporter(exporterOptions);
         });
+    }
+
+    [Fact]
+    public void ExportExceptionStackDefaultIsDrop()
+    {
+        GenevaExporterOptions exporterOptions = new GenevaExporterOptions();
+        Assert.Equal(ExceptionStackExportMode.Drop, exporterOptions.ExceptionStackExportMode);
     }
 
     [Fact]
@@ -69,7 +77,7 @@ public class GenevaLogExporterTests
                 TableNameMappings = new Dictionary<string, string> { ["TestCategory"] = null },
             };
         });
-        Assert.Contains("A string-typed value provided for TableNameMappings must not be null, empty, or consist only of white-space characters.", ex.Message);
+        Assert.Contains("The table name mapping value provided for key 'TestCategory' was null, empty, or consisted only of white-space characters.", ex.Message);
 
         // Throw when TableNameMappings is null
         Assert.Throws<ArgumentNullException>(() =>
@@ -350,8 +358,10 @@ public class GenevaLogExporterTests
         }
     }
 
-    [Fact]
-    public void SerializeILoggerScopes()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void SerializeILoggerScopes(bool hasCustomFields)
     {
         string path = string.Empty;
         Socket senderSocket = null;
@@ -374,13 +384,22 @@ public class GenevaLogExporterTests
                 senderSocket.Listen(1);
             }
 
+            if (hasCustomFields)
+            {
+                exporterOptions.CustomFields = new string[] { "Food", "Name", "Key1" };
+            }
+
+            var exportedItems = new List<LogRecord>();
+
             using var loggerFactory = LoggerFactory.Create(builder => builder
                 .AddOpenTelemetry(options =>
                 {
                     options.IncludeScopes = true;
+                    options.AddInMemoryExporter(exportedItems);
                     options.AddGenevaLogExporter(options =>
                     {
                         options.ConnectionString = exporterOptions.ConnectionString;
+                        options.CustomFields = exporterOptions.CustomFields;
                     });
                 }));
 
@@ -398,10 +417,10 @@ public class GenevaLogExporterTests
 
             using (logger.BeginScope("MyOuterScope"))
             using (logger.BeginScope("MyInnerScope"))
-            using (logger.BeginScope("MyInnerInnerScope with {name} and {age} of custom", "John Doe", 35))
-            using (logger.BeginScope(new List<KeyValuePair<string, object>> { new KeyValuePair<string, object>("MyKey", "MyValue") }))
+            using (logger.BeginScope("MyInnerInnerScope with {Name} and {Age} of custom", "John Doe", 25))
+            using (logger.BeginScope(new List<KeyValuePair<string, object>> { new("Key1", "Value1"), new("Key2", "Value2") }))
             {
-                logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+                logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
             }
 
             byte[] serializedData;
@@ -421,31 +440,45 @@ public class GenevaLogExporterTests
             var signal = (fluentdData as object[])[0] as string;
             var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
             var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
-            var serializedScopes = mapping["scopes"] as object[];
 
-            Assert.Equal(4, serializedScopes.Length);
+            if (hasCustomFields)
+            {
+                var envProperties = mapping["env_properties"] as Dictionary<object, object>;
 
-            // Test 1st scope
-            var scope = serializedScopes[0] as ICollection<KeyValuePair<object, object>>;
-            Assert.Single(scope);
-            Assert.Contains(new KeyValuePair<object, object>("scope", "MyOuterScope"), scope);
+                // Custom Fields
+                Assert.Equal("artichoke", mapping["Food"]);
+                Assert.Equal("John Doe", mapping["Name"]);
+                Assert.Equal("Value1", mapping["Key1"]);
 
-            // Test 2nd scope
-            scope = serializedScopes[1] as ICollection<KeyValuePair<object, object>>;
-            Assert.Single(scope);
-            Assert.Contains(new KeyValuePair<object, object>("scope", "MyInnerScope"), scope);
+                Assert.False(mapping.ContainsKey("MyOuterScope"));
+                Assert.False(mapping.ContainsKey("MyInnerScope"));
 
-            // Test 3rd scope
-            scope = serializedScopes[2] as ICollection<KeyValuePair<object, object>>;
-            Assert.Equal(3, scope.Count);
-            Assert.Contains(new KeyValuePair<object, object>("name", "John Doe"), scope);
-            Assert.Contains(new KeyValuePair<object, object>("age", (byte)35), scope);
-            Assert.Contains(new KeyValuePair<object, object>("{OriginalFormat}", "MyInnerInnerScope with {name} and {age} of custom"), scope);
+                // env_properties
+                Assert.True(Equals(envProperties["Price"], 3.99));
+                Assert.Equal((byte)25, envProperties["Age"]);
+                Assert.Equal("Value2", envProperties["Key2"]);
 
-            // Test 4th scope
-            scope = serializedScopes[3] as ICollection<KeyValuePair<object, object>>;
-            Assert.Single(scope);
-            Assert.Contains(new KeyValuePair<object, object>("MyKey", "MyValue"), scope);
+                Assert.False(envProperties.ContainsKey("MyOuterScope"));
+                Assert.False(envProperties.ContainsKey("MyInnerScope"));
+            }
+            else
+            {
+                Assert.Equal("artichoke", mapping["Food"]);
+                Assert.True(Equals(mapping["Price"], 3.99));
+                Assert.Equal("John Doe", mapping["Name"]);
+                Assert.Equal((byte)25, mapping["Age"]);
+                Assert.Equal("Value1", mapping["Key1"]);
+                Assert.Equal("Value2", mapping["Key2"]);
+
+                Assert.False(mapping.ContainsKey("MyOuterScope"));
+                Assert.False(mapping.ContainsKey("MyInnerScope"));
+            }
+
+            // Check other fields
+            Assert.Single(exportedItems);
+            var logRecord = exportedItems[0];
+
+            this.AssertFluentdForwardModeForLogRecord(exporterOptions, fluentdData, logRecord);
         }
         finally
         {
@@ -725,24 +758,24 @@ public class GenevaLogExporterTests
             using (var activity = source.StartActivity("Activity"))
             {
                 // Log inside an activity to set LogRecord.TraceId and LogRecord.SpanId
-                logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99); // structured logging
+                logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99); // structured logging
             }
 
             // When the exporter options are configured with TableMappings only "customField" will be logged as a separate key in the mapping
             // "property" will be logged under "env_properties" in the mapping
-            logger.Log(LogLevel.Trace, 101, "Log a {customField} and {property}", "CustomFieldValue", "PropertyValue");
-            logger.Log(LogLevel.Trace, 101, "Log a {customField} and {property}", "CustomFieldValue", null);
-            logger.Log(LogLevel.Trace, 101, "Log a {customField} and {property}", null, "PropertyValue");
-            logger.Log(LogLevel.Debug, 101, "Log a {customField} and {property}", "CustomFieldValue", "PropertyValue");
-            logger.Log(LogLevel.Information, 101, "Log a {customField} and {property}", "CustomFieldValue", "PropertyValue");
-            logger.Log(LogLevel.Warning, 101, "Log a {customField} and {property}", "CustomFieldValue", "PropertyValue");
-            logger.Log(LogLevel.Error, 101, "Log a {customField} and {property}", "CustomFieldValue", "PropertyValue");
-            logger.Log(LogLevel.Critical, 101, "Log a {customField} and {property}", "CustomFieldValue", "PropertyValue");
+            logger.Log(LogLevel.Trace, 101, "Log a {CustomField} and {Property}", "CustomFieldValue", "PropertyValue");
+            logger.Log(LogLevel.Trace, 101, "Log a {CustomField} and {Property}", "CustomFieldValue", null);
+            logger.Log(LogLevel.Trace, 101, "Log a {CustomField} and {Property}", null, "PropertyValue");
+            logger.Log(LogLevel.Debug, 101, "Log a {CustomField} and {Property}", "CustomFieldValue", "PropertyValue");
+            logger.Log(LogLevel.Information, 101, "Log a {CustomField} and {Property}", "CustomFieldValue", "PropertyValue");
+            logger.Log(LogLevel.Warning, 101, "Log a {CustomField} and {Property}", "CustomFieldValue", "PropertyValue");
+            logger.Log(LogLevel.Error, 101, "Log a {CustomField} and {Property}", "CustomFieldValue", "PropertyValue");
+            logger.Log(LogLevel.Critical, 101, "Log a {CustomField} and {Property}", "CustomFieldValue", "PropertyValue");
             logger.LogInformation("Hello World!"); // unstructured logging
-            logger.LogError(new InvalidOperationException("Oops! Food is spoiled!"), "Hello from {food} {price}.", "artichoke", 3.99);
+            logger.LogError(new InvalidOperationException("Oops! Food is spoiled!"), "Hello from {Food} {Price}.", "artichoke", 3.99);
 
             // Exception with a non-ASCII character in its type name
-            logger.LogError(new CustomException\u0418(), "Hello from {food} {price}.", "artichoke", 3.99);
+            logger.LogError(new CustomException\u0418(), "Hello from {Food} {Price}.", "artichoke", 3.99);
 
             var loggerWithDefaultCategory = loggerFactory.CreateLogger("DefaultCategory");
             loggerWithDefaultCategory.LogInformation("Basic test");
@@ -805,7 +838,7 @@ public class GenevaLogExporterTests
 
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
 
-            logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+            logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
         }
     }
 
@@ -856,7 +889,7 @@ public class GenevaLogExporterTests
                 // Emit a LogRecord and grab a copy of internal buffer for validation.
                 var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
 
-                logger.LogInformation("Hello from {food} {price}.", "artichoke", 3.99);
+                logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
 
                 // logRecordList should have a singleLogRecord entry after the logger.LogInformation call
                 Assert.Single(logRecordList);
@@ -876,7 +909,7 @@ public class GenevaLogExporterTests
                 // Emit log on a different thread to test for multithreading scenarios
                 var thread = new Thread(() =>
                 {
-                    logger.LogInformation("Hello from another thread {food} {price}.", "artichoke", 3.99);
+                    logger.LogInformation("Hello from another thread {Food} {Price}.", "artichoke", 3.99);
                 });
                 thread.Start();
                 thread.Join();
@@ -1050,6 +1083,32 @@ public class GenevaLogExporterTests
         }
     }
 
+    [Fact]
+    public void TLDLogExporter_Success_Windows()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+            .AddOpenTelemetry(loggerOptions =>
+            {
+                loggerOptions.AddGenevaLogExporter(exporterOptions =>
+                {
+                    exporterOptions.ConnectionString = "EtwSession=OpenTelemetry;PrivatePreviewEnableTraceLoggingDynamic=true";
+                    exporterOptions.PrepopulatedFields = new Dictionary<string, object>
+                    {
+                        ["cloud.role"] = "BusyWorker",
+                        ["cloud.roleInstance"] = "CY1SCH030021417",
+                        ["cloud.roleVer"] = "9.0.15289.2",
+                    };
+                });
+            }));
+
+            var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
+
+            logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
+        }
+    }
+
     private static string GenerateTempFilePath()
     {
         while (true)
@@ -1082,9 +1141,9 @@ public class GenevaLogExporterTests
         var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
         var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
 
-        if (mapping.ContainsKey(key))
+        if (mapping.TryGetValue(key, out var value))
         {
-            return mapping[key];
+            return value;
         }
         else
         {
@@ -1228,7 +1287,7 @@ public class GenevaLogExporterTests
 
         if (logRecord.EventId != default)
         {
-            Assert.Equal(logRecord.EventId.Id, int.Parse(mapping["eventId"].ToString()));
+            Assert.Equal(logRecord.EventId.Id, int.Parse(mapping["eventId"].ToString(), CultureInfo.InvariantCulture));
         }
 
         // Epilouge

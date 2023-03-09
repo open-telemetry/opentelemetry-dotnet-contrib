@@ -1,15 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net462;netcoreapp3.1;net6.0</TargetFrameworks>
+    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
+    <TargetFrameworks>net6.0;netstandard2.0;net462</TargetFrameworks>
     <Description>dotnet runtime instrumentation for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);runtime</PackageTags>
     <MinVerTagPrefix>Instrumentation.Runtime-</MinVerTagPrefix>
     <EnableAnalysis>true</EnableAnalysis>
-    <EnablePublicApi>true</EnablePublicApi>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryApiPkgVer)" />
+    <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryCoreLatestVersion)" />
   </ItemGroup>
 
   <ItemGroup>

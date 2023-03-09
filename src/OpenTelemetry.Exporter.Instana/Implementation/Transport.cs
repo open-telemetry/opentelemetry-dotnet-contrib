@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -24,69 +25,85 @@ using System.Threading.Tasks;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation;
 
-internal class Transport
+internal static class Transport
 {
-    private static readonly InstanaSpanSerializer InstanaSpanSerializer = new InstanaSpanSerializer();
+    private const int MultiSpanBufferSize = 4096000;
+    private const int MultiSpanBufferLimit = 4070000;
     private static readonly MediaTypeHeaderValue MEDIAHEADER = new MediaTypeHeaderValue("application/json");
-
-    private static bool isConfigured = false;
-    private static int backendTimeout = 0;
+    private static readonly byte[] TracesBuffer = new byte[MultiSpanBufferSize];
+    private static bool isConfigured;
+    private static int backendTimeout;
     private static string configuredEndpoint = string.Empty;
     private static string configuredAgentKey = string.Empty;
     private static string bundleUrl = string.Empty;
-    private static InstanaHttpClient client = null;
-
-    private readonly byte[] tracesBuffer = new byte[4096000];
+    private static InstanaHttpClient client;
 
     static Transport()
     {
         Configure();
     }
 
-    internal bool IsAvailable
+    internal static bool IsAvailable
     {
         get { return isConfigured && client != null; }
     }
 
-    internal async Task SendSpansAsync(ConcurrentQueue<InstanaSpan> spanQueue)
+    internal static async Task SendSpansAsync(ConcurrentQueue<InstanaSpan> spanQueue)
     {
-        using (MemoryStream sendBuffer = new MemoryStream(this.tracesBuffer))
+        try
         {
-            using (StreamWriter writer = new StreamWriter(sendBuffer))
+            using (MemoryStream sendBuffer = new MemoryStream(TracesBuffer))
             {
-                await writer.WriteAsync("{\"spans\":[");
-                bool first = true;
-                while (spanQueue.TryDequeue(out InstanaSpan span) && sendBuffer.Position < 4070000)
+                using (StreamWriter writer = new StreamWriter(sendBuffer))
                 {
-                    if (!first)
+                    await writer.WriteAsync("{\"spans\":[").ConfigureAwait(false);
+                    bool first = true;
+
+                    // peek instead of dequeue, because we don't yet know whether the next span
+                    // fits within our MULTI_SPAN_BUFFER_LIMIT
+                    while (spanQueue.TryPeek(out InstanaSpan span) && sendBuffer.Position < MultiSpanBufferLimit)
                     {
-                        await writer.WriteAsync(",");
+                        if (!first)
+                        {
+                            await writer.WriteAsync(",").ConfigureAwait(false);
+                        }
+
+                        await InstanaSpanSerializer.SerializeToStreamWriterAsync(span, writer).ConfigureAwait(false);
+                        await writer.FlushAsync().ConfigureAwait(false);
+
+                        first = false;
+
+                        // Now we can dequeue. Note, this means we'll be giving up/losing
+                        // this span if we fail to send for any reason.
+                        spanQueue.TryDequeue(out _);
                     }
 
-                    first = false;
-                    await InstanaSpanSerializer.SerializeToStreamWriterAsync(span, writer);
-                }
+                    await writer.WriteAsync("]}").ConfigureAwait(false);
+                    await writer.FlushAsync().ConfigureAwait(false);
 
-                await writer.WriteAsync("]}");
+                    long length = sendBuffer.Position;
+                    sendBuffer.Position = 0;
+                    sendBuffer.SetLength(length);
 
-                await writer.FlushAsync();
-                long length = sendBuffer.Position;
-                sendBuffer.Position = 0;
+                    HttpContent content = new StreamContent(sendBuffer, (int)length);
+                    content.Headers.ContentType = MEDIAHEADER;
+                    content.Headers.Add("X-INSTANA-TIME", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture));
 
-                HttpContent content = new StreamContent(sendBuffer, (int)length);
-                content.Headers.ContentType = MEDIAHEADER;
-                content.Headers.Add("X-INSTANA-TIME", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString());
-
-                using (var httpMsg = new HttpRequestMessage()
-                {
-                    Method = HttpMethod.Post,
-                    RequestUri = new Uri(bundleUrl),
-                })
-                {
-                    httpMsg.Content = content;
-                    var res = client.SendAsync(httpMsg).GetAwaiter().GetResult();
+                    using (var httpMsg = new HttpRequestMessage()
+                    {
+                        Method = HttpMethod.Post,
+                        RequestUri = new Uri(bundleUrl),
+                    })
+                    {
+                        httpMsg.Content = content;
+                        await client.SendAsync(httpMsg).ConfigureAwait(false);
+                    }
                 }
             }
+        }
+        catch (Exception e)
+        {
+            InstanaExporterEventSource.Log.FailedExport(e);
         }
     }
 
@@ -138,7 +155,9 @@ internal class Transport
             return;
         }
 
+#pragma warning disable CA2000
         var configuredHandler = new HttpClientHandler();
+#pragma warning restore CA2000
         string proxy = Environment.GetEnvironmentVariable(InstanaExporterConstants.ENVVAR_INSTANA_ENDPOINT_PROXY);
         if (Uri.TryCreate(proxy, UriKind.Absolute, out Uri proxyAddress))
         {
@@ -149,7 +168,9 @@ internal class Transport
 #pragma warning restore SA1130 // Use lambda syntax
         }
 
+#pragma warning disable CA5400
         client = new InstanaHttpClient(backendTimeout, configuredHandler);
+#pragma warning restore CA5400
 
         client.DefaultRequestHeaders.Add("X-INSTANA-KEY", configuredAgentKey);
     }

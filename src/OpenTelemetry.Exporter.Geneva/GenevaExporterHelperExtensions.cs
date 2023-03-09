@@ -43,7 +43,13 @@ public static class GenevaExporterHelperExtensions
         var exporter = new GenevaTraceExporter(options);
         if (exporter.IsUsingUnixDomainSocket)
         {
-            return builder.AddProcessor(new BatchActivityExportProcessor(exporter));
+            var batchOptions = new BatchExportActivityProcessorOptions();
+            return builder.AddProcessor(new BatchActivityExportProcessor(
+                exporter,
+                batchOptions.MaxQueueSize,
+                batchOptions.ScheduledDelayMilliseconds,
+                batchOptions.ExporterTimeoutMilliseconds,
+                batchOptions.MaxExportBatchSize));
         }
         else
         {

@@ -10,14 +10,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		CONTRIBUTING.md = CONTRIBUTING.md
+		global.json = global.json
 		NuGet.config = NuGet.config
 		opentelemetry-dotnet-contrib.proj = opentelemetry-dotnet-contrib.proj
+		examples\process-instrumentation\process-instrumentation.csproj = examples\process-instrumentation\process-instrumentation.csproj
 		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{1A06E14B-DD2F-4536-9D2E-F708C0C43555}"
 	ProjectSection(SolutionItems) = preProject
-		.github\codecov.yml = .github\codecov.yml
 		CODEOWNERS = CODEOWNERS
 		.github\component_owners.yml = .github\component_owners.yml
 	EndProjectSection
@@ -25,16 +26,18 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{43CAFE52-F329-4431-87DA-7FEE1454D9A9}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\assign-reviewers.yml = .github\workflows\assign-reviewers.yml
+		.github\workflows\ci-md.yml = .github\workflows\ci-md.yml
+		.github\workflows\ci.yml = .github\workflows\ci.yml
 		.github\workflows\codeql-analysis.yml = .github\workflows\codeql-analysis.yml
 		.github\workflows\dotnet-core-cov.yml = .github\workflows\dotnet-core-cov.yml
 		.github\workflows\dotnet-format-md.yml = .github\workflows\dotnet-format-md.yml
 		.github\workflows\dotnet-format.yml = .github\workflows\dotnet-format.yml
+		.github\workflows\integration-md.yml = .github\workflows\integration-md.yml
 		.github\workflows\integration.yml = .github\workflows\integration.yml
-		.github\workflows\linux-ci-md.yml = .github\workflows\linux-ci-md.yml
-		.github\workflows\linux-ci.yml = .github\workflows\linux-ci.yml
 		.github\workflows\markdownlint.yml = .github\workflows\markdownlint.yml
 		.github\workflows\package-Exporter.Geneva.yml = .github\workflows\package-Exporter.Geneva.yml
 		.github\workflows\package-Exporter.Instana.yml = .github\workflows\package-Exporter.Instana.yml
+		.github\workflows\package-Exporter.OneCollector.yml = .github\workflows\package-Exporter.OneCollector.yml
 		.github\workflows\package-Exporter.Stackdriver.yml = .github\workflows\package-Exporter.Stackdriver.yml
 		.github\workflows\package-Extensions.AWSXRay.yml = .github\workflows\package-Extensions.AWSXRay.yml
 		.github\workflows\package-Extensions.AzureMonitor.yml = .github\workflows\package-Extensions.AzureMonitor.yml
@@ -61,8 +64,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\package-Instrumentation.Wcf.yml = .github\workflows\package-Instrumentation.Wcf.yml
 		.github\workflows\sanitycheck.yml = .github\workflows\sanitycheck.yml
 		.github\workflows\stale.yml = .github\workflows\stale.yml
-		.github\workflows\windows-ci-md.yml = .github\workflows\windows-ci-md.yml
-		.github\workflows\windows-ci.yml = .github\workflows\windows-ci.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}"
@@ -73,6 +74,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{824BD1DE
 		build\Common.targets = build\Common.targets
 		build\debug.snk = build\debug.snk
 		build\docker-compose.net6.0.yml = build\docker-compose.net6.0.yml
+		build\docker-compose.net7.0.yml = build\docker-compose.net7.0.yml
 		build\docker-compose.netcoreapp3.1.yml = build\docker-compose.netcoreapp3.1.yml
 		build\opentelemetry-icon-color.png = build\opentelemetry-icon-color.png
 		build\OpenTelemetryContrib.prod.ruleset = build\OpenTelemetryContrib.prod.ruleset
@@ -104,7 +106,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "wcf", "wcf", "{73474960-8F9
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Wcf.Shared", "examples\wcf\shared\Examples.Wcf.Shared.csproj", "{21716C26-3B2A-4208-BDFB-8E58E2AF49EA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Wcf.Client.Core", "examples\wcf\client-core\Examples.Wcf.Client.Core.csproj", "{3AF5D7E4-CA7D-401B-9729-A6D8F63B023C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Wcf.Client.DotNet", "examples\wcf\client-core\Examples.Wcf.Client.DotNet.csproj", "{3AF5D7E4-CA7D-401B-9729-A6D8F63B023C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Wcf.Client.NetFramework", "examples\wcf\client-netframework\Examples.Wcf.Client.NetFramework.csproj", "{2A7867E5-0FD6-42F8-B594-19E897EDA54C}"
 EndProject
@@ -150,10 +152,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.AzureMonitor", "src\OpenTelemetry.Extensions.AzureMonitor\OpenTelemetry.Extensions.AzureMonitor.csproj", "{426D8AE8-EC39-48EA-AC66-1BF84C4CE529}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.AzureMonitor.Tests", "test\OpenTelemetry.Extensions.AzureMonitor.Tests\OpenTelemetry.Extensions.AzureMonitor.Tests.csproj", "{47ABABE1-62CC-4655-AA95-352F4DC20C96}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.MassTransit", "src\OpenTelemetry.Instrumentation.MassTransit\OpenTelemetry.Instrumentation.MassTransit.csproj", "{D4120D09-93F6-4D5C-98C6-A98B459EA83D}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.MassTransit.Tests", "test\OpenTelemetry.Instrumentation.MassTransit.Tests\OpenTelemetry.Instrumentation.MassTransit.Tests.csproj", "{4F8D7FF0-8D2C-4AD3-A033-2B165E59A701}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.MySqlData", "src\OpenTelemetry.Instrumentation.MySqlData\OpenTelemetry.Instrumentation.MySqlData.csproj", "{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}"
 EndProject
@@ -238,6 +236,22 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.AWSLambda.Tests", "test\OpenTelemetry.Instrumentation.AWSLambda.Tests\OpenTelemetry.Instrumentation.AWSLambda.Tests.csproj", "{0F18B7C8-B192-4236-9578-7AD02BFC7128}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.AWSLambda", "src\OpenTelemetry.Instrumentation.AWSLambda\OpenTelemetry.Instrumentation.AWSLambda.csproj", "{B40B975E-78B2-4712-8B4D-BADA67DF0C0A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "process-instrumentation", "examples\process-instrumentation\process-instrumentation.csproj", "{C3B3BBAF-CC38-4D5C-AFA2-33184D07BF75}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.EventCounters", "examples\event-counters\Examples.EventCounters\Examples.EventCounters.csproj", "{BA58CC8B-F5CA-4DC7-A3A8-D01B2E10731E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.Azure", "src\OpenTelemetry.ResourceDetectors.Azure\OpenTelemetry.ResourceDetectors.Azure.csproj", "{B07DC3CB-F724-40A5-889A-DA6601F462F3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.Azure.Tests", "test\OpenTelemetry.ResourceDetectors.Azure.Tests\OpenTelemetry.ResourceDetectors.Azure.Tests.csproj", "{DFC6A4A9-5262-4507-B747-CC6B814205E6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.OneCollector", "src\OpenTelemetry.Exporter.OneCollector\OpenTelemetry.Exporter.OneCollector.csproj", "{73C10993-03AC-42F4-85BB-96EAAA8212D9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.OneCollector.Tests", "test\OpenTelemetry.Exporter.OneCollector.Tests\OpenTelemetry.Exporter.OneCollector.Tests.csproj", "{61520801-1CAA-4041-A3EF-CFFB9D4A180B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.Enrichment", "src\OpenTelemetry.Extensions.Enrichment\OpenTelemetry.Extensions.Enrichment.csproj", "{5BA85306-64B8-4E04-90EB-7069C187E250}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.Enrichment.Tests", "test\OpenTelemetry.Extensions.Enrichment.Tests\OpenTelemetry.Extensions.Enrichment.Tests.csproj", "{5A7BE9DA-3582-49D8-A8E7-164C1E3CDB38}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -333,14 +347,6 @@ Global
 		{47ABABE1-62CC-4655-AA95-352F4DC20C96}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{47ABABE1-62CC-4655-AA95-352F4DC20C96}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{47ABABE1-62CC-4655-AA95-352F4DC20C96}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D4120D09-93F6-4D5C-98C6-A98B459EA83D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D4120D09-93F6-4D5C-98C6-A98B459EA83D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D4120D09-93F6-4D5C-98C6-A98B459EA83D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D4120D09-93F6-4D5C-98C6-A98B459EA83D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4F8D7FF0-8D2C-4AD3-A033-2B165E59A701}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4F8D7FF0-8D2C-4AD3-A033-2B165E59A701}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4F8D7FF0-8D2C-4AD3-A033-2B165E59A701}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4F8D7FF0-8D2C-4AD3-A033-2B165E59A701}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -501,6 +507,38 @@ Global
 		{B40B975E-78B2-4712-8B4D-BADA67DF0C0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B40B975E-78B2-4712-8B4D-BADA67DF0C0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B40B975E-78B2-4712-8B4D-BADA67DF0C0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3B3BBAF-CC38-4D5C-AFA2-33184D07BF75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3B3BBAF-CC38-4D5C-AFA2-33184D07BF75}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3B3BBAF-CC38-4D5C-AFA2-33184D07BF75}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3B3BBAF-CC38-4D5C-AFA2-33184D07BF75}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA58CC8B-F5CA-4DC7-A3A8-D01B2E10731E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA58CC8B-F5CA-4DC7-A3A8-D01B2E10731E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA58CC8B-F5CA-4DC7-A3A8-D01B2E10731E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA58CC8B-F5CA-4DC7-A3A8-D01B2E10731E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B07DC3CB-F724-40A5-889A-DA6601F462F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B07DC3CB-F724-40A5-889A-DA6601F462F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B07DC3CB-F724-40A5-889A-DA6601F462F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B07DC3CB-F724-40A5-889A-DA6601F462F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DFC6A4A9-5262-4507-B747-CC6B814205E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DFC6A4A9-5262-4507-B747-CC6B814205E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DFC6A4A9-5262-4507-B747-CC6B814205E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DFC6A4A9-5262-4507-B747-CC6B814205E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73C10993-03AC-42F4-85BB-96EAAA8212D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73C10993-03AC-42F4-85BB-96EAAA8212D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73C10993-03AC-42F4-85BB-96EAAA8212D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73C10993-03AC-42F4-85BB-96EAAA8212D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61520801-1CAA-4041-A3EF-CFFB9D4A180B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61520801-1CAA-4041-A3EF-CFFB9D4A180B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61520801-1CAA-4041-A3EF-CFFB9D4A180B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61520801-1CAA-4041-A3EF-CFFB9D4A180B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5BA85306-64B8-4E04-90EB-7069C187E250}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5BA85306-64B8-4E04-90EB-7069C187E250}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5BA85306-64B8-4E04-90EB-7069C187E250}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5BA85306-64B8-4E04-90EB-7069C187E250}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A7BE9DA-3582-49D8-A8E7-164C1E3CDB38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A7BE9DA-3582-49D8-A8E7-164C1E3CDB38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A7BE9DA-3582-49D8-A8E7-164C1E3CDB38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A7BE9DA-3582-49D8-A8E7-164C1E3CDB38}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -534,8 +572,6 @@ Global
 		{970B604C-C57F-4767-A080-67976E69F76E} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{426D8AE8-EC39-48EA-AC66-1BF84C4CE529} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{47ABABE1-62CC-4655-AA95-352F4DC20C96} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
-		{D4120D09-93F6-4D5C-98C6-A98B459EA83D} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
-		{4F8D7FF0-8D2C-4AD3-A033-2B165E59A701} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{662A00CA-B152-40D4-B9A4-6061490B8B3D} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{C2B9190B-E2F6-4D40-B298-91521E383A50} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
@@ -578,6 +614,14 @@ Global
 		{61421ACF-5F90-491B-AFB3-14EF12CCA255} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{0F18B7C8-B192-4236-9578-7AD02BFC7128} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{B40B975E-78B2-4712-8B4D-BADA67DF0C0A} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{C3B3BBAF-CC38-4D5C-AFA2-33184D07BF75} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
+		{BA58CC8B-F5CA-4DC7-A3A8-D01B2E10731E} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
+		{B07DC3CB-F724-40A5-889A-DA6601F462F3} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{DFC6A4A9-5262-4507-B747-CC6B814205E6} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{73C10993-03AC-42F4-85BB-96EAAA8212D9} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{61520801-1CAA-4041-A3EF-CFFB9D4A180B} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{5BA85306-64B8-4E04-90EB-7069C187E250} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{5A7BE9DA-3582-49D8-A8E7-164C1E3CDB38} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}

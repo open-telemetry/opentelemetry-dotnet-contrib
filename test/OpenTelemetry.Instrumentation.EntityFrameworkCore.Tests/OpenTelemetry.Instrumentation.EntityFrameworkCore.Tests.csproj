@@ -1,22 +1,23 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Description>Unit test project for OpenTelemetry Microsoft.EntityFrameworkCore instrumentation</Description>
-    <TargetFrameworks>netcoreapp3.1;net6.0</TargetFrameworks>
+    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
+    <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
   </PropertyGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.4" />
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net7.0' ">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.1" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.16" />
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.12" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkPkgVer)" />
     <PackageReference Include="Moq" Version="$(MoqPkgVer)" />
     <PackageReference Include="xunit" Version="$(XUnitPkgVer)" />
-    <PackageReference Condition="$([MSBuild]::IsOsPlatform('Windows'))" Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)">
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
@@ -28,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry" Version="1.2.0" />
+    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
   </ItemGroup>
 
 </Project>

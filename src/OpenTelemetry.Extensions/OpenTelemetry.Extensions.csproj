@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net462;netstandard2.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(Configuration)' == 'Debug'">$(TargetFrameworks);net6.0</TargetFrameworks> <!-- Added just to get proper nullable analysis in IDE -->
+    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
+    <TargetFrameworks>netstandard2.0;net462;</TargetFrameworks>
+    <TargetFrameworks Condition="'$(Configuration)' == 'Debug'">net6.0;$(TargetFrameworks)</TargetFrameworks> <!-- Added just to get proper nullable analysis in IDE -->
     <Description>OpenTelemetry .NET SDK preview features and extensions</Description>
-    <MinVerTagPrefix>Preview-</MinVerTagPrefix>
+    <MinVerTagPrefix>Extensions-</MinVerTagPrefix>
     <Nullable>enable</Nullable>
     <EnableAnalysis>true</EnableAnalysis>
-    <EnablePublicApi>true</EnablePublicApi>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry" Version="1.1.0" />
+    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
   </ItemGroup>
 
 </Project>

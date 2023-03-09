@@ -141,8 +141,10 @@ dotnet_diagnostic.IDE0002.severity = warning
 
 # IDE0005: Remove unnecessary import
 dotnet_diagnostic.IDE0005.severity = warning
+csharp_style_namespace_declarations = file_scoped:warning
 
 [obj/**.cs]
+[**/External/**.cs]
 generated_code = true
 
 [*.csproj]

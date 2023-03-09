@@ -56,6 +56,7 @@ public class RuntimeMetricsTests
         Assert.NotNull(assembliesCountMetric);
 
         var exceptionsCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.exceptions.count");
+        Assert.NotNull(exceptionsCountMetric);
         Assert.True(GetValue(exceptionsCountMetric) >= 1);
     }
 
@@ -75,12 +76,14 @@ public class RuntimeMetricsTests
         var gcCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.collections.count");
         Assert.NotNull(gcCountMetric);
 
-#if NETCOREAPP3_1_OR_GREATER
-        var gcAllocationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.allocations.size");
-        Assert.NotNull(gcAllocationSizeMetric);
-#endif
+        var totalObjectsSize = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.objects.size");
+        Assert.NotNull(totalObjectsSize);
 
 #if NET6_0_OR_GREATER
+
+        var gcAllocationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.allocations.size");
+        Assert.NotNull(gcAllocationSizeMetric);
+
         var gcCommittedMemorySizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.committed_memory.size");
         Assert.NotNull(gcCommittedMemorySizeMetric);
 
@@ -116,9 +119,7 @@ public class RuntimeMetricsTests
         var jitCompilationTimeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.jit.compilation_time");
         Assert.NotNull(jitCompilationTimeMetric);
     }
-#endif
 
-#if NETCOREAPP3_1_OR_GREATER
     [Fact]
     public void ThreadingRelatedMetricsTest()
     {
@@ -133,7 +134,7 @@ public class RuntimeMetricsTests
         List<Task> tasks = new List<Task>();
         for (int i = 0; i < taskCount; i++)
         {
-            tasks.Add(Task.Run(() => { Console.Write("Hi"); }));
+            tasks.Add(Task.Run(() => { }));
         }
 
         Task.WaitAll(tasks.ToArray());
@@ -147,6 +148,7 @@ public class RuntimeMetricsTests
         Assert.NotNull(threadCountMetric);
 
         var completedItemsCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.thread_pool.completed_items.count");
+        Assert.NotNull(completedItemsCountMetric);
         Assert.True(GetValue(completedItemsCountMetric) >= taskCount);
 
         var queueLengthMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.thread_pool.queue.length");
@@ -167,6 +169,7 @@ public class RuntimeMetricsTests
             meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
             var timerCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.timer.count");
+            Assert.NotNull(timerCountMetric);
             Assert.True(GetValue(timerCountMetric) >= timerCount);
         }
         finally
@@ -181,7 +184,6 @@ public class RuntimeMetricsTests
 
     private static double GetValue(Metric metric)
     {
-        Assert.NotNull(metric);
         double sum = 0;
 
         foreach (ref readonly var metricPoint in metric.GetMetricPoints())

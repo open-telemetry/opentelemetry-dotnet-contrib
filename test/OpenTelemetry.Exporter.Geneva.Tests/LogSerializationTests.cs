@@ -45,16 +45,57 @@ public class LogSerializationTests
     public void SerializationTestForException()
     {
         var exceptionMessage = "Exception Message";
-        var exportedFields = GetExportedFieldsAfterLogging(logger => logger.Log<object>(
-            logLevel: LogLevel.Information,
-            eventId: default,
-            state: null,
-            exception: new Exception(exceptionMessage),
-            formatter: null));
+        var exStack = "Exception StackTrace";
+        var ex = new MyException(exceptionMessage, exStack);
+        var exportedFields = GetExportedFieldsAfterLogging(
+            logger =>
+            {
+                logger.Log<object>(
+                            logLevel: LogLevel.Information,
+                            eventId: default,
+                            state: null,
+                            exception: ex,
+                            formatter: null);
+            },
+            (genevaOptions) =>
+            genevaOptions.ExceptionStackExportMode = ExceptionStackExportMode.ExportAsString);
 
-        PrintFields(this.output, exportedFields);
         var actualExceptionMessage = exportedFields["env_ex_msg"];
         Assert.Equal(exceptionMessage, actualExceptionMessage);
+
+        var actualExceptionType = exportedFields["env_ex_type"];
+        Assert.Equal(typeof(MyException).FullName, actualExceptionType);
+
+        var actualExceptionStack = exportedFields["env_ex_stack"];
+        Assert.Equal(exStack, actualExceptionStack);
+    }
+
+    [Fact]
+    public void SerializationTestForExceptionTrim()
+    {
+        var exceptionMessage = "Exception Message";
+        var exStack = new string('e', 16383 + 1);
+        var ex = new MyException(exceptionMessage, exStack);
+        var exportedFields = GetExportedFieldsAfterLogging(
+            logger => logger.LogError(ex, "Error occurred. {Field1} {Field2}", "value1", "value2"),
+            (genevaOptions) => genevaOptions.ExceptionStackExportMode = ExceptionStackExportMode.ExportAsString);
+
+        var actualExceptionMessage = exportedFields["env_ex_msg"];
+        Assert.Equal(exceptionMessage, actualExceptionMessage);
+
+        var actualExceptionType = exportedFields["env_ex_type"];
+        Assert.Equal(typeof(MyException).FullName, actualExceptionType);
+
+        var actualExceptionStack = exportedFields["env_ex_stack"];
+        Assert.EndsWith("...", (string)actualExceptionStack);
+
+        var actualValue = exportedFields["Field1"];
+        Assert.Equal("value1", actualValue);
+
+        actualValue = exportedFields["Field2"];
+        Assert.Equal("value2", actualValue);
+
+        // PrintFields(this.output, exportedFields);
     }
 
     private static void PrintFields(ITestOutputHelper output, Dictionary<object, object> fields)
@@ -65,7 +106,7 @@ public class LogSerializationTests
         }
     }
 
-    private static Dictionary<object, object> GetExportedFieldsAfterLogging(Action<ILogger> doLog)
+    private static Dictionary<object, object> GetExportedFieldsAfterLogging(Action<ILogger> doLog, Action<GenevaExporterOptions> configureGeneva = null)
     {
         Socket server = null;
         string path = string.Empty;
@@ -77,9 +118,9 @@ public class LogSerializationTests
                     {
                         options.AddInMemoryExporter(logRecordList);
                     })
-                    .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
+                    .AddFilter(typeof(LogSerializationTests).FullName, LogLevel.Trace)); // Enable all LogLevels
 
-            var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
+            var logger = loggerFactory.CreateLogger<LogSerializationTests>();
             doLog(logger);
 
             Assert.Single(logRecordList);
@@ -97,6 +138,8 @@ public class LogSerializationTests
                 server.Bind(endpoint);
                 server.Listen(1);
             }
+
+            configureGeneva?.Invoke(exporterOptions);
 
             using var exporter = new MsgPackLogExporter(exporterOptions);
             var m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
@@ -145,5 +188,21 @@ public class LogSerializationTests
         var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
         var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
         return mapping;
+    }
+
+    private class MyException : Exception
+    {
+        private string stackTrace;
+
+        public MyException(string message, string stackTrace)
+        : base(message)
+        {
+            this.stackTrace = stackTrace;
+        }
+
+        public override string ToString()
+        {
+            return this.stackTrace;
+        }
     }
 }

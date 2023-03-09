@@ -18,11 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
-#if NETCOREAPP3_1_OR_GREATER
-using System.Threading;
-#endif
-
 #if NET6_0_OR_GREATER
+using System.Threading;
 using JitInfo = System.Runtime.JitInfo;
 #endif
 
@@ -34,7 +31,7 @@ namespace OpenTelemetry.Instrumentation.Runtime;
 internal class RuntimeMetrics
 {
     internal static readonly AssemblyName AssemblyName = typeof(RuntimeMetrics).Assembly.GetName();
-    internal static readonly Meter MeterInstance = new(AssemblyName.Name, AssemblyName.Version.ToString());
+    internal static readonly Meter MeterInstance = new(AssemblyName.Name!, AssemblyName.Version?.ToString());
 
 #if NET6_0_OR_GREATER
     private const long NanosecondsPerTick = 100;
@@ -51,17 +48,20 @@ internal class RuntimeMetrics
             () => GetGarbageCollectionCounts(),
             description: "Number of garbage collections that have occurred since process start.");
 
-#if NETCOREAPP3_1_OR_GREATER
+        MeterInstance.CreateObservableUpDownCounter(
+            "process.runtime.dotnet.gc.objects.size",
+            () => GC.GetTotalMemory(false),
+            unit: "bytes",
+            description: "Count of bytes currently in use by objects in the GC heap that haven't been collected yet. Fragmentation and other GC committed memory pools are excluded.");
+
+#if NET6_0_OR_GREATER
         MeterInstance.CreateObservableCounter(
             "process.runtime.dotnet.gc.allocations.size",
             () => GC.GetTotalAllocatedBytes(),
             unit: "bytes",
             description: "Count of bytes allocated on the managed GC heap since the process start. .NET objects are allocated from this heap. Object allocations from unmanaged languages such as C/C++ do not use this heap.");
-#endif
 
-#if NET6_0_OR_GREATER
-        // TODO: change to ObservableUpDownCounter
-        MeterInstance.CreateObservableGauge(
+        MeterInstance.CreateObservableUpDownCounter(
             "process.runtime.dotnet.gc.committed_memory.size",
             () =>
             {
@@ -76,11 +76,11 @@ internal class RuntimeMetrics
             description: "The amount of committed virtual memory for the managed GC heap, as observed during the latest garbage collection. Committed virtual memory may be larger than the heap size because it includes both memory for storing existing objects (the heap size) and some extra memory that is ready to handle newly allocated objects in the future. The value will be unavailable until at least one garbage collection has occurred.");
 
         // GC.GetGCMemoryInfo().GenerationInfo[i].SizeAfterBytes is better but it has a bug in .NET 6. See context in https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/496
-        Func<int, ulong> getGenerationSize = null;
+        Func<int, ulong>? getGenerationSize = null;
         bool isCodeRunningOnBuggyRuntimeVersion = Environment.Version.Major == 6;
         if (isCodeRunningOnBuggyRuntimeVersion)
         {
-            MethodInfo mi = typeof(GC).GetMethod("GetGenerationSize", BindingFlags.NonPublic | BindingFlags.Static);
+            var mi = typeof(GC).GetMethod("GetGenerationSize", BindingFlags.NonPublic | BindingFlags.Static);
             if (mi != null)
             {
                 getGenerationSize = mi.CreateDelegate<Func<int, ulong>>();
@@ -90,8 +90,7 @@ internal class RuntimeMetrics
         // Either Environment.Version is not 6 or (it's 6 but internal API GC.GetGenerationSize is valid)
         if (!isCodeRunningOnBuggyRuntimeVersion || getGenerationSize != null)
         {
-            // TODO: change to ObservableUpDownCounter
-            MeterInstance.CreateObservableGauge(
+            MeterInstance.CreateObservableUpDownCounter(
                 "process.runtime.dotnet.gc.heap.size",
                 () =>
                 {
@@ -107,11 +106,11 @@ internal class RuntimeMetrics
                     {
                         if (isCodeRunningOnBuggyRuntimeVersion)
                         {
-                            measurements[i] = new((long)getGenerationSize(i), new KeyValuePair<string, object>("generation", GenNames[i]));
+                            measurements[i] = new((long)getGenerationSize!(i), new KeyValuePair<string, object?>("generation", GenNames[i]));
                         }
                         else
                         {
-                            measurements[i] = new(generationInfo[i].SizeAfterBytes, new KeyValuePair<string, object>("generation", GenNames[i]));
+                            measurements[i] = new(generationInfo[i].SizeAfterBytes, new KeyValuePair<string, object?>("generation", GenNames[i]));
                         }
                     }
 
@@ -124,8 +123,7 @@ internal class RuntimeMetrics
         // Not valid until .NET 7 where the bug in the API is fixed. See context in https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/496
         if (Environment.Version.Major >= 7)
         {
-            // TODO: change to ObservableUpDownCounter
-            MeterInstance.CreateObservableGauge(
+            MeterInstance.CreateObservableUpDownCounter(
                 "process.runtime.dotnet.gc.heap.fragmentation.size",
                 () =>
                 {
@@ -139,7 +137,7 @@ internal class RuntimeMetrics
                     int maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
                     for (int i = 0; i < maxSupportedLength; ++i)
                     {
-                        measurements[i] = new(generationInfo[i].FragmentationAfterBytes, new KeyValuePair<string, object>("generation", GenNames[i]));
+                        measurements[i] = new(generationInfo[i].FragmentationAfterBytes, new KeyValuePair<string, object?>("generation", GenNames[i]));
                     }
 
                     return measurements;
@@ -147,9 +145,7 @@ internal class RuntimeMetrics
                 unit: "bytes",
                 description: "The heap fragmentation, as observed during the latest garbage collection. The value will be unavailable until at least one garbage collection has occurred.");
         }
-#endif
 
-#if NET6_0_OR_GREATER
         MeterInstance.CreateObservableCounter(
             "process.runtime.dotnet.jit.il_compiled.size",
             () => JitInfo.GetCompiledILBytes(),
@@ -166,16 +162,13 @@ internal class RuntimeMetrics
             () => JitInfo.GetCompilationTime().Ticks * NanosecondsPerTick,
             unit: "ns",
             description: "The amount of time the JIT compiler has spent compiling methods since the process start.");
-#endif
 
-#if NETCOREAPP3_1_OR_GREATER
         MeterInstance.CreateObservableCounter(
             "process.runtime.dotnet.monitor.lock_contention.count",
             () => Monitor.LockContentionCount,
             description: "The number of times there was contention when trying to acquire a monitor lock since the process start. Monitor locks are commonly acquired by using the lock keyword in C#, or by calling Monitor.Enter() and Monitor.TryEnter().");
 
-        // TODO: change to ObservableUpDownCounter
-        MeterInstance.CreateObservableGauge(
+        MeterInstance.CreateObservableUpDownCounter(
             "process.runtime.dotnet.thread_pool.threads.count",
             () => (long)ThreadPool.ThreadCount,
             description: "The number of thread pool threads that currently exist.");
@@ -185,21 +178,18 @@ internal class RuntimeMetrics
             () => ThreadPool.CompletedWorkItemCount,
             description: "The number of work items that have been processed by the thread pool since the process start.");
 
-        // TODO: change to ObservableUpDownCounter
-        MeterInstance.CreateObservableGauge(
+        MeterInstance.CreateObservableUpDownCounter(
             "process.runtime.dotnet.thread_pool.queue.length",
             () => ThreadPool.PendingWorkItemCount,
             description: "The number of work items that are currently queued to be processed by the thread pool.");
 
-        // TODO: change to ObservableUpDownCounter
-        MeterInstance.CreateObservableGauge(
+        MeterInstance.CreateObservableUpDownCounter(
             "process.runtime.dotnet.timer.count",
             () => Timer.ActiveCount,
             description: "The number of timer instances that are currently active. Timers can be created by many sources such as System.Threading.Timer, Task.Delay, or the timeout in a CancellationSource. An active timer is registered to tick at some point in the future and has not yet been canceled.");
 #endif
 
-        // TODO: change to ObservableUpDownCounter
-        MeterInstance.CreateObservableGauge(
+        MeterInstance.CreateObservableUpDownCounter(
             "process.runtime.dotnet.assemblies.count",
             () => (long)AppDomain.CurrentDomain.GetAssemblies().Length,
             description: "The number of .NET assemblies that are currently loaded.");
@@ -248,7 +238,7 @@ internal class RuntimeMetrics
         {
             long collectionsFromThisGeneration = GC.CollectionCount(gen);
 
-            yield return new(collectionsFromThisGeneration - collectionsFromHigherGeneration, new KeyValuePair<string, object>("generation", GenNames[gen]));
+            yield return new(collectionsFromThisGeneration - collectionsFromHigherGeneration, new KeyValuePair<string, object?>("generation", GenNames[gen]));
 
             collectionsFromHigherGeneration = collectionsFromThisGeneration;
         }

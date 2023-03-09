@@ -31,5 +31,5 @@ internal static class WcfInstrumentationConstants
     public const string WcfChannelSchemeTag = "wcf.channel.scheme";
     public const string WcfChannelPathTag = "wcf.channel.path";
 
-    public const string WcfSystemValue = "wcf";
+    public const string WcfSystemValue = "dotnet_wcf";
 }

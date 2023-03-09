@@ -44,6 +44,6 @@ internal class AWSTracingPipelineCustomizer : IRuntimePipelineCustomizer
             return;
         }
 
-        pipeline.AddHandlerAfter<EndpointResolver>(new AWSTracingPipelineHandler(this.options));
+        pipeline.AddHandlerBefore<RetryHandler>(new AWSTracingPipelineHandler(this.options));
     }
 }

@@ -19,6 +19,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Diagnostics.Tracing;
+using System.Globalization;
 using System.Linq;
 
 namespace OpenTelemetry.Instrumentation.EventCounters;
@@ -30,11 +31,14 @@ internal sealed class EventCountersMetrics : EventListener
 {
     internal static readonly Meter MeterInstance = new(typeof(EventCountersMetrics).Assembly.GetName().Name, typeof(EventCountersMetrics).Assembly.GetName().Version.ToString());
 
+    private const string Prefix = "ec";
+    private const int MaxInstrumentNameLength = 63;
+
+    private static readonly Dictionary<string, string> EnableEventsArguments = new() { { "EventCounterIntervalSec", "1" } };
+
     private readonly EventCountersInstrumentationOptions options;
     private readonly ConcurrentDictionary<(string, string), Instrument> instruments = new();
     private readonly ConcurrentDictionary<(string, string), double> values = new();
-
-    private readonly Dictionary<string, string> enableEventsArguments = new() { { "EventCounterIntervalSec", "1" } };
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EventCountersMetrics"/> class.
@@ -48,7 +52,7 @@ internal sealed class EventCountersMetrics : EventListener
     /// <inheritdoc />
     protected override void OnEventSourceCreated(EventSource eventSource)
     {
-        this.EnableEvents(eventSource, EventLevel.LogAlways, EventKeywords.None, this.enableEventsArguments);
+        this.EnableEvents(eventSource, EventLevel.LogAlways, EventKeywords.None, EnableEventsArguments);
         base.OnEventSourceCreated(eventSource);
     }
 
@@ -76,7 +80,7 @@ internal sealed class EventCountersMetrics : EventListener
 
         if (eventData?.Payload.First() is not IDictionary<string, object> payload)
         {
-            EventCountersInstrumentationEventSource.Log.IgnoreEventWrittenEventArgsPayloadNotParseable(eventSourceName);
+            EventCountersInstrumentationEventSource.Log.IgnoreEventWrittenEventArgsPayloadNotParsable(eventSourceName);
             return;
         }
 
@@ -96,8 +100,41 @@ internal sealed class EventCountersMetrics : EventListener
             return;
         }
 
-        var value = Convert.ToDouble(hasMean ? mean : increment);
+        var value = Convert.ToDouble(hasMean ? mean : increment, CultureInfo.InvariantCulture);
         this.UpdateInstrumentWithEvent(hasMean, eventSourceName, name, value);
+    }
+
+    /// <summary>
+    /// If the resulting instrument name is too long, it trims the event source name
+    /// to fit in as many characters as possible keeping the event name intact.
+    /// E.g. instrument for `Microsoft-AspNetCore-Server-Kestrel`, `tls-handshakes-per-second`
+    /// would be too long (64 chars), so it's shortened to `ec.Microsoft-AspNetCore-Server-Kestre.tls-handshakes-per-second`.
+    ///
+    /// If there is no room for event source name, returns `ec.{event name}` and
+    /// if it's still too long, it will be validated and ignored later in the pipeline.
+    /// </summary>
+    private static string GetInstrumentName(string sourceName, string eventName)
+    {
+        int totalLength = Prefix.Length + 1 + sourceName.Length + 1 + eventName.Length;
+        if (totalLength <= MaxInstrumentNameLength)
+        {
+            return string.Concat(Prefix, ".", sourceName, ".", eventName);
+        }
+
+        var maxEventSourceLength = MaxInstrumentNameLength - Prefix.Length - 2 - eventName.Length;
+        if (maxEventSourceLength < 1)
+        {
+            // event name is too long, there is not enough space for sourceName.
+            // let ec.<eventName> flow to metrics SDK and it will suppress it if needed.
+            return string.Concat(Prefix, ".", eventName);
+        }
+
+        while (maxEventSourceLength > 0 && (sourceName[maxEventSourceLength - 1] == '.' || sourceName[maxEventSourceLength - 1] == '-'))
+        {
+            maxEventSourceLength--;
+        }
+
+        return string.Concat(Prefix, ".", sourceName.Substring(0, maxEventSourceLength), ".", eventName);
     }
 
     private void UpdateInstrumentWithEvent(bool isGauge, string eventSourceName, string name, double value)
@@ -107,10 +144,9 @@ internal sealed class EventCountersMetrics : EventListener
             ValueTuple<string, string> metricKey = new(eventSourceName, name);
             _ = this.values.AddOrUpdate(metricKey, value, isGauge ? (_, _) => value : (_, existing) => existing + value);
 
-            var instrumentName = $"ec.{eventSourceName}.{name}";
-
             if (!this.instruments.ContainsKey(metricKey))
             {
+                var instrumentName = GetInstrumentName(eventSourceName, name);
                 Instrument instrument = isGauge
                     ? MeterInstance.CreateObservableGauge(instrumentName, () => this.values[metricKey])
                     : MeterInstance.CreateObservableCounter(instrumentName, () => this.values[metricKey]);

@@ -17,6 +17,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Globalization;
+using System.Linq.Expressions;
 using System.Reflection;
 using MySql.Data.MySqlClient;
 using OpenTelemetry.Trace;
@@ -28,9 +30,11 @@ namespace OpenTelemetry.Instrumentation.MySqlData;
 /// </summary>
 internal class MySqlDataInstrumentation : DefaultTraceListener
 {
-    private readonly ConcurrentDictionary<long, MySqlConnectionStringBuilder> dbConn = new ConcurrentDictionary<long, MySqlConnectionStringBuilder>();
+    private readonly ConcurrentDictionary<long, MySqlConnectionStringBuilder> dbConn = new();
 
     private readonly MySqlDataInstrumentationOptions options;
+
+    private readonly Func<string, MySqlConnectionStringBuilder> builderFactory;
 
     public MySqlDataInstrumentation(MySqlDataInstrumentationOptions options = null)
     {
@@ -40,15 +44,49 @@ internal class MySqlDataInstrumentation : DefaultTraceListener
         MySqlTrace.Switch.Level = SourceLevels.Information;
 
         // Mysql.Data removed `MySql.Data.MySqlClient.MySqlTrace.QueryAnalysisEnabled` since 8.0.31 so we need to set this using reflection.
-        var queryAnalysisEnabled = typeof(MySqlTrace).GetProperty("QueryAnalysisEnabled", BindingFlags.Public | BindingFlags.Static);
+        var queryAnalysisEnabled =
+            typeof(MySqlTrace).GetProperty("QueryAnalysisEnabled", BindingFlags.Public | BindingFlags.Static);
         if (queryAnalysisEnabled != null)
         {
             queryAnalysisEnabled.SetValue(null, true);
         }
+
+        // Mysql.Data add optional param `isAnalyzed` to MySqlConnectionStringBuilder constructor since 8.0.32
+        var ctor = typeof(MySqlConnectionStringBuilder).GetConstructor(new[] { typeof(string), typeof(bool) });
+        if (ctor == null)
+        {
+            ctor = typeof(MySqlConnectionStringBuilder).GetConstructor(new[] { typeof(string) });
+            if (ctor == null)
+            {
+                MySqlDataInstrumentationEventSource.Log.ErrorInitialize(
+                    "Failed to get proper MySqlConnectionStringBuilder constructor, maybe unsupported Mysql.Data version. Connection Level Details will not be available.",
+                    string.Empty);
+                return;
+            }
+
+            var p1 = Expression.Parameter(typeof(string), "connectionString");
+            var newExpression = Expression.New(ctor, p1);
+            var func = Expression.Lambda<Func<string, MySqlConnectionStringBuilder>>(newExpression, p1).Compile();
+            this.builderFactory = s => func(s);
+        }
+        else
+        {
+            var p1 = Expression.Parameter(typeof(string));
+            var p2 = Expression.Parameter(typeof(bool));
+            var newExpression = Expression.New(ctor, p1, p2);
+            var func = Expression.Lambda<Func<string, bool, MySqlConnectionStringBuilder>>(newExpression, p1, p2).Compile();
+            this.builderFactory = s => func(s, false);
+        }
     }
 
     /// <inheritdoc />
-    public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
+    public override void TraceEvent(
+        TraceEventCache eventCache,
+        string source,
+        TraceEventType eventType,
+        int id,
+        string format,
+        params object[] args)
     {
         try
         {
@@ -56,9 +94,13 @@ internal class MySqlDataInstrumentation : DefaultTraceListener
             {
                 case MySqlTraceEventType.ConnectionOpened:
                     // args: [driverId, connStr, threadId]
-                    var driverId = (long)args[0];
-                    var connStr = args[1].ToString();
-                    this.dbConn[driverId] = new MySqlConnectionStringBuilder(connStr);
+                    if (this.builderFactory != null)
+                    {
+                        var driverId = (long)args[0];
+                        var connStr = args[1].ToString();
+                        this.dbConn[driverId] = this.builderFactory(connStr);
+                    }
+
                     break;
                 case MySqlTraceEventType.ConnectionClosed:
                     break;
@@ -72,7 +114,7 @@ internal class MySqlDataInstrumentation : DefaultTraceListener
                     break;
                 case MySqlTraceEventType.QueryClosed:
                     // args: [driverId]
-                    this.AfterExecuteCommand();
+                    AfterExecuteCommand();
                     break;
                 case MySqlTraceEventType.StatementPrepared:
                     break;
@@ -88,7 +130,7 @@ internal class MySqlDataInstrumentation : DefaultTraceListener
                     break;
                 case MySqlTraceEventType.Error:
                     // args: [driverId, exNumber, exMessage]
-                    this.ErrorExecuteCommand(this.GetMySqlErrorException(args[2]));
+                    this.ErrorExecuteCommand(GetMySqlErrorException(args[2]));
                     break;
                 case MySqlTraceEventType.QueryNormalized:
                     // Should use QueryNormalized event when it exists. Because cmdText in QueryOpened event is incomplete when cmdText.length>300
@@ -96,13 +138,46 @@ internal class MySqlDataInstrumentation : DefaultTraceListener
                     this.OverwriteDbStatement(this.GetCommand(args[0], args[2]));
                     break;
                 default:
-                    MySqlDataInstrumentationEventSource.Log.UnknownMySqlTraceEventType(id, string.Format(format, args));
+                    MySqlDataInstrumentationEventSource.Log.UnknownMySqlTraceEventType(id, string.Format(CultureInfo.InvariantCulture, format, args));
                     break;
             }
         }
         catch (Exception e)
         {
-            MySqlDataInstrumentationEventSource.Log.ErrorTraceEvent(id, string.Format(format, args), e.ToString());
+            MySqlDataInstrumentationEventSource.Log.ErrorTraceEvent(id, string.Format(CultureInfo.InvariantCulture, format, args), e.ToString());
+        }
+    }
+
+    private static Exception GetMySqlErrorException(object errorMsg)
+    {
+#pragma warning disable CA2201 // Do not raise reserved exception types
+        return new Exception(errorMsg?.ToString());
+#pragma warning restore CA2201 // Do not raise reserved exception types
+    }
+
+    private static void AfterExecuteCommand()
+    {
+        var activity = Activity.Current;
+        if (activity == null)
+        {
+            return;
+        }
+
+        if (activity.Source != MySqlActivitySourceHelper.ActivitySource)
+        {
+            return;
+        }
+
+        try
+        {
+            if (activity.IsAllDataRequested)
+            {
+                activity.SetStatus(Status.Unset);
+            }
+        }
+        finally
+        {
+            activity.Stop();
         }
     }
 
@@ -157,32 +232,6 @@ internal class MySqlDataInstrumentation : DefaultTraceListener
         }
     }
 
-    private void AfterExecuteCommand()
-    {
-        var activity = Activity.Current;
-        if (activity == null)
-        {
-            return;
-        }
-
-        if (activity.Source != MySqlActivitySourceHelper.ActivitySource)
-        {
-            return;
-        }
-
-        try
-        {
-            if (activity.IsAllDataRequested)
-            {
-                activity.SetStatus(Status.Unset);
-            }
-        }
-        finally
-        {
-            activity.Stop();
-        }
-    }
-
     private void ErrorExecuteCommand(Exception exception)
     {
         var activity = Activity.Current;
@@ -223,11 +272,6 @@ internal class MySqlDataInstrumentation : DefaultTraceListener
 
         command.SqlText = cmd == null ? string.Empty : cmd.ToString();
         return command;
-    }
-
-    private Exception GetMySqlErrorException(object errorMsg)
-    {
-        return new Exception($"{errorMsg}");
     }
 
     private void AddConnectionLevelDetailsToActivity(MySqlConnectionStringBuilder dataSource, Activity sqlActivity)

@@ -25,87 +25,79 @@ using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
-namespace Examples.AspNet
-{
+namespace Examples.AspNet;
+
 #pragma warning disable SA1649 // File name should match first type name
-    public class WebApiApplication : HttpApplication
+public class WebApiApplication : HttpApplication
 #pragma warning restore SA1649 // File name should match first type name
+{
+    private IDisposable tracerProvider;
+    private IDisposable meterProvider;
+
+    protected void Application_Start()
     {
-        private IDisposable tracerProvider;
-        private IDisposable meterProvider;
+        var builder = Sdk.CreateTracerProviderBuilder()
+             .AddAspNetInstrumentation()
+             .AddHttpClientInstrumentation();
 
-        protected void Application_Start()
+        switch (ConfigurationManager.AppSettings["UseExporter"].ToLowerInvariant())
         {
-            var builder = Sdk.CreateTracerProviderBuilder()
-                 .AddAspNetInstrumentation()
-                 .AddHttpClientInstrumentation();
-
-            switch (ConfigurationManager.AppSettings["UseExporter"].ToLowerInvariant())
-            {
-                case "jaeger":
-                    builder.AddJaegerExporter(jaegerOptions =>
-                     {
-                         jaegerOptions.AgentHost = ConfigurationManager.AppSettings["JaegerHost"];
-                         jaegerOptions.AgentPort = int.Parse(ConfigurationManager.AppSettings["JaegerPort"]);
-                     });
-                    break;
-                case "zipkin":
-                    builder.AddZipkinExporter(zipkinOptions =>
-                    {
-                        zipkinOptions.Endpoint = new Uri(ConfigurationManager.AppSettings["ZipkinEndpoint"]);
-                    });
-                    break;
-                case "otlp":
-                    builder.AddOtlpExporter(otlpOptions =>
-                        {
-                            otlpOptions.Endpoint = new Uri(ConfigurationManager.AppSettings["OtlpEndpoint"]);
-                        });
-                    break;
-                default:
-                    builder.AddConsoleExporter(options => options.Targets = ConsoleExporterOutputTargets.Debug);
-                    break;
-            }
-
-            this.tracerProvider = builder.Build();
-
-            // Metrics
-            // Note: Tracerprovider is needed for metrics to work
-            // https://github.com/open-telemetry/opentelemetry-dotnet/issues/2994
-
-            var meterBuilder = Sdk.CreateMeterProviderBuilder()
-                 .AddAspNetInstrumentation();
-
-            switch (ConfigurationManager.AppSettings["UseMetricsExporter"].ToLowerInvariant())
-            {
-                case "otlp":
-                    meterBuilder.AddOtlpExporter(otlpOptions =>
+            case "zipkin":
+                builder.AddZipkinExporter(zipkinOptions =>
+                {
+                    zipkinOptions.Endpoint = new Uri(ConfigurationManager.AppSettings["ZipkinEndpoint"]);
+                });
+                break;
+            case "otlp":
+                builder.AddOtlpExporter(otlpOptions =>
                     {
                         otlpOptions.Endpoint = new Uri(ConfigurationManager.AppSettings["OtlpEndpoint"]);
                     });
-                    break;
-                case "prometheus":
-                    meterBuilder.AddPrometheusExporter();
-                    break;
-                default:
-                    meterBuilder.AddConsoleExporter((exporterOptions, metricReaderOptions) =>
-                    {
-                        exporterOptions.Targets = ConsoleExporterOutputTargets.Debug;
-                    });
-                    break;
-            }
-
-            this.meterProvider = meterBuilder.Build();
-
-            GlobalConfiguration.Configure(WebApiConfig.Register);
-
-            AreaRegistration.RegisterAllAreas();
-            RouteConfig.RegisterRoutes(RouteTable.Routes);
+                break;
+            default:
+                builder.AddConsoleExporter(options => options.Targets = ConsoleExporterOutputTargets.Debug);
+                break;
         }
 
-        protected void Application_End()
+        this.tracerProvider = builder.Build();
+
+        // Metrics
+        // Note: Tracerprovider is needed for metrics to work
+        // https://github.com/open-telemetry/opentelemetry-dotnet/issues/2994
+
+        var meterBuilder = Sdk.CreateMeterProviderBuilder()
+             .AddAspNetInstrumentation();
+
+        switch (ConfigurationManager.AppSettings["UseMetricsExporter"].ToLowerInvariant())
         {
-            this.tracerProvider?.Dispose();
-            this.meterProvider?.Dispose();
+            case "otlp":
+                meterBuilder.AddOtlpExporter(otlpOptions =>
+                {
+                    otlpOptions.Endpoint = new Uri(ConfigurationManager.AppSettings["OtlpEndpoint"]);
+                });
+                break;
+            case "prometheus":
+                meterBuilder.AddPrometheusExporter();
+                break;
+            default:
+                meterBuilder.AddConsoleExporter((exporterOptions, metricReaderOptions) =>
+                {
+                    exporterOptions.Targets = ConsoleExporterOutputTargets.Debug;
+                });
+                break;
         }
+
+        this.meterProvider = meterBuilder.Build();
+
+        GlobalConfiguration.Configure(WebApiConfig.Register);
+
+        AreaRegistration.RegisterAllAreas();
+        RouteConfig.RegisterRoutes(RouteTable.Routes);
+    }
+
+    protected void Application_End()
+    {
+        this.tracerProvider?.Dispose();
+        this.meterProvider?.Dispose();
     }
 }
