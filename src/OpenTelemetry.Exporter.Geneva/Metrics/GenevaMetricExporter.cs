@@ -933,6 +933,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, 0); // serialize zero as the count of labels; this would be updated later if the exemplar has labels
         byte numberOfLabels = 0;
 
+        // Convert exemplar timestamp to unix nanoseconds
         var unixNanoSeconds = DateTime.FromFileTimeUtc(exemplar.Timestamp.ToFileTime())
                         .ToUniversalTime()
                         .Subtract(new DateTime(1970, 1, 1))
