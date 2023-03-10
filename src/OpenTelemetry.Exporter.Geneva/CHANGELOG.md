@@ -9,6 +9,12 @@
   establish the connection.
   ([#935](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/935))
 
+* Update OTel SDK version to `1.5.0-alpha.1`.
+* Update GenevaMetricExporter to use TLV format serialization.
+* Add support for exporting exemplars.
+  ([#1069](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1069))
+
+
 ## 1.4.0
 
 Released 2023-Feb-27
