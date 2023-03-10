@@ -35,7 +35,7 @@ public class AWSXRayPropagator : TextMapPropagator
     private const char TraceHeaderDelimiter = ';';
 
     private const string RootKey = "Root";
-    private const string Version = "1";
+    private const char Version = '1';
     private const int RandomNumberHexDigits = 24;
     private const int EpochHexDigits = 8;
     private const int TotalLength = 35;
@@ -232,7 +232,7 @@ public class AWSXRayPropagator : TextMapPropagator
             return false;
         }
 
-        if (!traceId.StartsWith(Version.AsSpan()))
+        if (traceId.Length < 1 || traceId[0] != Version)
         {
             return false;
         }
@@ -308,7 +308,7 @@ public class AWSXRayPropagator : TextMapPropagator
         sb.Append(Version);
 #pragma warning restore CA1834
 #else
-        sb.Append(Version[0]);
+        sb.Append(Version);
 #endif
         sb.Append(TraceIdDelimiter);
         sb.Append(traceId.Substring(0, EpochHexDigits));
