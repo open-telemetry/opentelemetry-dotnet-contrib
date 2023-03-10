@@ -127,6 +127,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
             {
                 try
                 {
+                    var exemplars = metricPoint.GetExemplars();
+
                     switch (metric.MetricType)
                     {
                         case MetricType.LongSum:
@@ -138,12 +140,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metric.Name,
                                     metricPoint.EndTime.ToFileTime(), // Using the endTime here as the timestamp as Geneva Metrics only allows for one field for timestamp
                                     metricPoint.Tags,
-                                    metricData);
-
-                                string fileName = @"C:\Users\utpilla.REDMOND\Downloads\OTelLongCounterExemplarsWithTLV.bin";
-                                using BinaryWriter binWriter = new BinaryWriter(File.Open(fileName, FileMode.Create));
-                                binWriter.Write(this.buffer);
-
+                                    metricData,
+                                    exemplars);
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
@@ -160,8 +158,9 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metric.Name,
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
-                                    metricData);
-                                this.metricDataTransport.Send(MetricEventType.TLV, this.bufferForNonHistogramMetrics, bodyLength);
+                                    metricData,
+                                    exemplars);
+                                this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
 
@@ -177,8 +176,9 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metric.Name,
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
-                                    metricData);
-                                this.metricDataTransport.Send(MetricEventType.TLV, this.bufferForNonHistogramMetrics, bodyLength);
+                                    metricData,
+                                    exemplars);
+                                this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
 
@@ -192,12 +192,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metric.Name,
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
-                                    metricData);
-
-                                string fileName = @"C:\Users\utpilla.REDMOND\Downloads\OTelDoubleCounterExemplarsWithTLV.bin";
-                                using BinaryWriter binWriter = new BinaryWriter(File.Open(fileName, FileMode.Create));
-                                binWriter.Write(this.buffer);
-
+                                    metricData,
+                                    exemplars);
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
@@ -211,8 +207,9 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metric.Name,
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
-                                    metricData);
-                                this.metricDataTransport.Send(MetricEventType.TLV, this.bufferForNonHistogramMetrics, bodyLength);
+                                    metricData,
+                                    exemplars);
+                                this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
 
@@ -221,7 +218,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                 var sum = Convert.ToUInt64(metricPoint.GetHistogramSum());
                                 var count = Convert.ToUInt32(metricPoint.GetHistogramCount());
                                 _ = metricPoint.TryGetHistogramMinMaxValues(out double min, out double max);
-                                var exemplars = metricPoint.GetExemplars();
 
                                 var bodyLength = this.SerializeHistogramMetricWithTLV(
                                     metric.Name,
@@ -233,11 +229,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     min,
                                     max,
                                     exemplars);
-
-                                string fileName = @"C:\Users\utpilla.REDMOND\Downloads\OTelHistogramExemplarsWithTLV.bin";
-                                using BinaryWriter binWriter = new BinaryWriter(File.Open(fileName, FileMode.Create));
-                                binWriter.Write(this.buffer);
-
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
@@ -501,7 +492,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         string metricName,
         long timestamp,
         in ReadOnlyTagCollection tags,
-        MetricData value)
+        MetricData value,
+        Exemplar[] exemplars)
     {
         ushort bodyLength;
         try
@@ -599,6 +591,43 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
             // Backfill the number of dimensions written
             MetricSerializer.SerializeUInt16(this.buffer, ref bufferIndexForDimensionsCount, dimensionsWritten);
+
+            payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
+            MetricSerializer.SerializeUInt16(this.buffer, ref payloadTypeStartIndex, payloadTypeLength);
+
+            #endregion
+
+            #region Serialize exemplars
+
+            if (exemplars.Length > 0)
+            {
+                MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, (byte)PayloadType.Exemplars);
+
+                // Get a placeholder to add the payloadType length
+                payloadTypeStartIndex = bufferIndex;
+                bufferIndex += 2;
+
+                MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, 0); // version
+
+                var exemplarsCount = 0;
+                foreach (var exemplar in exemplars)
+                {
+                    if (exemplar.Timestamp != default)
+                    {
+                        exemplarsCount++;
+                    }
+                }
+
+                MetricSerializer.SerializeInt32AsBase128(this.buffer, ref bufferIndex, exemplarsCount);
+
+                foreach (var exemplar in exemplars)
+                {
+                    if (exemplar.Timestamp != default)
+                    {
+                        this.SerializeExemplar(exemplar, ref bufferIndex);
+                    }
+                }
+            }
 
             payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
             MetricSerializer.SerializeUInt16(this.buffer, ref payloadTypeStartIndex, payloadTypeLength);
@@ -885,10 +914,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         var value = exemplar.DoubleValue;
 
         // Check if the double value is actually a whole number that can be serialized as a long instead
-        bool isWholeNumber;
-        var valueAsLong = Convert.ToInt64(value);
-        var diff = Math.Abs(value - valueAsLong);
-        isWholeNumber = diff < .000000001;
+        var valueAsLong = (long)value;
+        bool isWholeNumber = valueAsLong == value;
         if (isWholeNumber)
         {
             flags |= ExemplarFlags.IsMetricValueDoubleStoredAsLong;
