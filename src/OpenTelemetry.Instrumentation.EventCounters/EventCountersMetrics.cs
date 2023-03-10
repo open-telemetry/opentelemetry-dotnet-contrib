@@ -20,7 +20,6 @@ using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Diagnostics.Tracing;
 using System.Globalization;
-using System.Linq;
 
 namespace OpenTelemetry.Instrumentation.EventCounters;
 
@@ -78,7 +77,7 @@ internal sealed class EventCountersMetrics : EventListener
             return;
         }
 
-        if (eventData?.Payload.First() is not IDictionary<string, object> payload)
+        if (eventData.Payload?[0] is not IDictionary<string, object> payload)
         {
             EventCountersInstrumentationEventSource.Log.IgnoreEventWrittenEventArgsPayloadNotParsable(eventSourceName);
             return;
