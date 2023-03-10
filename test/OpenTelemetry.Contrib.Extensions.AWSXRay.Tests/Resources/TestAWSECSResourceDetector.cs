@@ -45,6 +45,9 @@ public class TestAWSECSResourceDetector : IDisposable
     public void Dispose()
     {
         this.ResetEnvironment();
+        var resourceAttributes = ecsResourceDetector.Detect();
+
+        Assert.Null(resourceAttributes); // will be null as it's not in ecs environment
     }
 
     [Fact]
