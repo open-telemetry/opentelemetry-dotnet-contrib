@@ -29,7 +29,6 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
     .AddEventCountersInstrumentation(options =>
     {
         options.AddEventSources(eventSource.Name);
-        options.RefreshIntervalSecs = 1;
     })
     .AddConsoleExporter()
     .Build();

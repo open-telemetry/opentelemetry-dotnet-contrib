@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Fix occasional deadlock issue.
+  ([#1068](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1068))
+
 * Update OpenTelemetry.Api to 1.4.0.
   ([#1038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1038))
 
