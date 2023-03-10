@@ -216,7 +216,11 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                             {
                                 var sum = Convert.ToUInt64(metricPoint.GetHistogramSum());
                                 var count = Convert.ToUInt32(metricPoint.GetHistogramCount());
-                                _ = metricPoint.TryGetHistogramMinMaxValues(out double min, out double max);
+                                if (!metricPoint.TryGetHistogramMinMaxValues(out double min, out double max))
+                                {
+                                    min = 0;
+                                    max = 0;
+                                }
 
                                 var bodyLength = this.SerializeHistogramMetricWithTLV(
                                     metric.Name,
@@ -927,7 +931,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
         var bufferIndexForNumberOfLabels = bufferIndex;
         MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, 0); // serialize zero as the count of labels; this would be updated later if the exemplar has labels
-        bool hasLabels = exemplar.FilteredTags != null && exemplar.FilteredTags.Count > 0;
         byte numberOfLabels = 0;
 
         var unixNanoSeconds = DateTime.FromFileTimeUtc(exemplar.Timestamp.ToFileTime())
@@ -955,6 +958,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
             flags |= ExemplarFlags.SpanIdExists;
         }
 
+        bool hasLabels = exemplar.FilteredTags != null && exemplar.FilteredTags.Count > 0;
         if (hasLabels)
         {
             foreach (var tag in exemplar.FilteredTags)
