@@ -1,4 +1,4 @@
-// <copyright file="IsExternalInit.cs" company="OpenTelemetry Authors">
+// <copyright file="MyTraceEnricher.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,11 +14,16 @@
 // limitations under the License.
 // </copyright>
 
-#if NETFRAMEWORK || NETSTANDARD2_0_OR_GREATER
-namespace System.Runtime.CompilerServices;
+namespace OpenTelemetry.Extensions.Enrichment.Tests;
 
-// This enabled "init" keyword in net462 + netstandard2.0 targets.
-internal static class IsExternalInit
+internal class MyTraceEnricher : TraceEnricher
 {
+    public const string Key = nameof(MyTraceEnricher);
+
+    public int TimesCalled { get; private set; }
+
+    public override void Enrich(TraceEnrichmentBag enrichmentBag)
+    {
+        enrichmentBag.Add(Key, ++this.TimesCalled);
+    }
 }
-#endif
