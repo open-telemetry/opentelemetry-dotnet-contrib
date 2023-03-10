@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-* Add new method parameter to support named options injection
+* Added overloads which accept a name to the `TracerProviderBuilder`
+  `EntityFrameworkInstrumentationOptions` extension to allow for more fine-grained
+  options management
    ([#1020](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1020))
 
 ## 1.0.0-beta.5
