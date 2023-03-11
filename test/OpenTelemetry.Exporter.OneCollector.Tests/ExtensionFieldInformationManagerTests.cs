@@ -23,7 +23,7 @@ public class ExtensionFieldInformationManagerTests
     [Fact]
     public void FieldInformationIsCachedTest()
     {
-        Assert.Empty(ExtensionFieldInformationManager.FieldInformationCache);
+        ExtensionFieldInformationManager.FieldInformationCache.Clear();
 
         var result = ExtensionFieldInformationManager.TryResolveExtensionFieldInformation("ext.something.fieldName1", out var fieldInformation);
 
@@ -48,14 +48,12 @@ public class ExtensionFieldInformationManagerTests
         Assert.True(result);
         Assert.Equal("something", fieldInformation.ExtensionName);
         Assert.Equal("field.Name2", fieldInformation.FieldName);
-
-        ExtensionFieldInformationManager.FieldInformationCache.Clear();
     }
 
     [Fact]
     public void InvalidFieldNamesIgnoredTest()
     {
-        Assert.Empty(ExtensionFieldInformationManager.FieldInformationCache);
+        ExtensionFieldInformationManager.FieldInformationCache.Clear();
 
         Assert.False(ExtensionFieldInformationManager.TryResolveExtensionFieldInformation("ext.", out _));
 
@@ -69,14 +67,12 @@ public class ExtensionFieldInformationManagerTests
         Assert.False(ExtensionFieldInformationManager.TryResolveExtensionFieldInformation("ext.something.", out _));
 
         Assert.Equal(3, ExtensionFieldInformationManager.FieldInformationCache.Count);
-
-        ExtensionFieldInformationManager.FieldInformationCache.Clear();
     }
 
     [Fact]
     public void FieldInformationCacheLimitTest()
     {
-        Assert.Empty(ExtensionFieldInformationManager.FieldInformationCache);
+        ExtensionFieldInformationManager.FieldInformationCache.Clear();
 
         for (int i = 0; i < ExtensionFieldInformationManager.MaxNumberOfCachedFieldInformations + 128; i++)
         {
@@ -90,7 +86,5 @@ public class ExtensionFieldInformationManagerTests
         }
 
         Assert.Equal(ExtensionFieldInformationManager.MaxNumberOfCachedFieldInformations, ExtensionFieldInformationManager.FieldInformationCache.Count);
-
-        ExtensionFieldInformationManager.FieldInformationCache.Clear();
     }
 }

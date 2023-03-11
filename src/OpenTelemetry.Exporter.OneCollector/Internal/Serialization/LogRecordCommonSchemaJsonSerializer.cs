@@ -176,9 +176,16 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
 
     private static void SerializeExtensionPropertiesToJson(LogRecord item, Utf8JsonWriter writer, CommonSchemaJsonSerializationState serializationState)
     {
+        var hasTraceContext = item.TraceId != default;
+
+        if (!hasTraceContext && serializationState.ExtensionAttributeCount <= 0)
+        {
+            return;
+        }
+
         writer.WriteStartObject(CommonSchemaJsonSerializationHelper.ExtensionsProperty);
 
-        if (item.TraceId != default)
+        if (hasTraceContext)
         {
             writer.WriteStartObject(DistributedTraceExtensionProperty);
             writer.WriteString(DistributedTraceExtensionTraceIdProperty, item.TraceId.ToHexString());
