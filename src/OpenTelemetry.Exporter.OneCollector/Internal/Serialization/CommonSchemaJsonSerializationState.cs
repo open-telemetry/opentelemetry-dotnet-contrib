@@ -14,7 +14,9 @@
 // limitations under the License.
 // </copyright>
 
+#if NET6_0_OR_GREATER
 using System.Runtime.InteropServices;
+#endif
 using System.Text.Json;
 
 namespace OpenTelemetry.Exporter.OneCollector;
@@ -24,11 +26,13 @@ internal sealed class CommonSchemaJsonSerializationState
     private const int MaxNumberOfExtensionKeys = 64;
     private readonly Dictionary<string, int> keys = new(4, StringComparer.OrdinalIgnoreCase);
     private readonly List<KeyValuePair<string, object?>> allValues = new(16);
+    private string itemType;
     private int nextKeysToAllValuesLookupIndex;
     private KeyValueLookup[] keysToAllValuesLookup = new KeyValueLookup[4];
 
-    public CommonSchemaJsonSerializationState(Utf8JsonWriter writer)
+    public CommonSchemaJsonSerializationState(string itemType, Utf8JsonWriter writer)
     {
+        this.itemType = itemType;
         this.Writer = writer;
     }
 
@@ -42,7 +46,7 @@ internal sealed class CommonSchemaJsonSerializationState
     {
         if (!ExtensionFieldInformationManager.TryResolveExtensionFieldInformation(attribute.Key, out (string ExtensionName, string FieldName) fieldInformation))
         {
-            // TODO: Log dropped invalid attribute
+            OneCollectorExporterEventSource.Log.AttributeDropped(this.itemType, attribute.Key, "Invalid extension field name");
             return;
         }
 
@@ -62,7 +66,7 @@ internal sealed class CommonSchemaJsonSerializationState
 
         if (lookupIndex == -1)
         {
-            // TODO: Log dropped attribute
+            OneCollectorExporterEventSource.Log.AttributeDropped(this.itemType, attribute.Key, "Extension limit reached");
             return;
         }
 
@@ -70,7 +74,7 @@ internal sealed class CommonSchemaJsonSerializationState
 
         if (keyLookup.Count >= KeyValueLookup.MaxNumberOfValues)
         {
-            // TODO: Log dropped attribute
+            OneCollectorExporterEventSource.Log.AttributeDropped(this.itemType, attribute.Key, "Extension value limit reached");
             return;
         }
 
@@ -127,8 +131,9 @@ internal sealed class CommonSchemaJsonSerializationState
         }
     }
 
-    public void Reset(Utf8JsonWriter writer)
+    public void Reset(string itemType, Utf8JsonWriter writer)
     {
+        this.itemType = itemType;
         this.Writer = writer;
 
         for (int i = 0; i < this.nextKeysToAllValuesLookupIndex; i++)

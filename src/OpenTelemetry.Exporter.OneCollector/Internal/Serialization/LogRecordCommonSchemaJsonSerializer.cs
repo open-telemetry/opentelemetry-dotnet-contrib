@@ -58,7 +58,7 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
                 return;
             }
 
-            if (scopeAttribute.Key.StartsWith("ext.", StringComparison.OrdinalIgnoreCase))
+            if (AttributeKeyStartWithExtensionPrefix(scopeAttribute.Key))
             {
                 serializationState.AddExtensionAttribute(scopeAttribute!);
                 continue;
@@ -67,9 +67,6 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
             CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(scopeAttribute.Key, scopeAttribute.Value, writer);
         }
     };
-
-    [ThreadStatic]
-    private static CommonSchemaJsonSerializationState? serializationState;
 
     private readonly EventNameManager eventNameManager;
 
@@ -87,78 +84,19 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
 
     public override string Description => "LogRecord Common Schema JSON";
 
-    protected override void SerializeItemToJson(Resource resource, LogRecord item, Utf8JsonWriter writer)
+    protected override void SerializeItemToJson(Resource resource, LogRecord item, CommonSchemaJsonSerializationState serializationState)
     {
-        var serializationState = LogRecordCommonSchemaJsonSerializer.serializationState;
-        if (serializationState == null)
-        {
-            serializationState = LogRecordCommonSchemaJsonSerializer.serializationState ??= new(writer);
-        }
-        else
-        {
-            serializationState.Reset(writer);
-        }
+        Debug.Assert(serializationState != null, "serializationState was null");
 
-        this.SerializeItemToJson(resource, item, writer, serializationState);
-    }
+        var writer = serializationState!.Writer;
 
-    private static void SerializeResourceToJson(Resource resource, Utf8JsonWriter writer, CommonSchemaJsonSerializationState serializationState)
-    {
-        if (resource.Attributes is IReadOnlyList<KeyValuePair<string, object?>> resourceAttributeList)
-        {
-            for (int i = 0; i < resourceAttributeList.Count; i++)
-            {
-                var resourceAttribute = resourceAttributeList[i];
+        Debug.Assert(writer != null, "writer was null");
 
-                if (resourceAttribute.Key.StartsWith("ext.", StringComparison.OrdinalIgnoreCase))
-                {
-                    serializationState.AddExtensionAttribute(resourceAttribute);
-                    continue;
-                }
-
-                CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(resourceAttribute.Key, resourceAttribute.Value, writer);
-            }
-        }
-        else
-        {
-            foreach (KeyValuePair<string, object> resourceAttribute in resource.Attributes)
-            {
-                if (resourceAttribute.Key.StartsWith("ext.", StringComparison.OrdinalIgnoreCase))
-                {
-                    serializationState.AddExtensionAttribute(resourceAttribute!);
-                    continue;
-                }
-
-                CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(resourceAttribute.Key, resourceAttribute.Value, writer);
-            }
-        }
-    }
-
-    private static void SerializeExtensionPropertiesToJson(LogRecord item, Utf8JsonWriter writer, CommonSchemaJsonSerializationState serializationState)
-    {
-        writer.WriteStartObject(CommonSchemaJsonSerializationHelper.ExtensionsProperty);
-
-        if (item.TraceId != default)
-        {
-            writer.WriteStartObject(DistributedTraceExtensionProperty);
-            writer.WriteString(DistributedTraceExtensionTraceIdProperty, item.TraceId.ToHexString());
-            writer.WriteString(DistributedTraceExtensionSpanIdProperty, item.SpanId.ToHexString());
-            writer.WriteNumber(DistributedTraceExtensionTraceFlagsProperty, (int)item.TraceFlags);
-            writer.WriteEndObject();
-        }
-
-        serializationState.SerializeExtensionPropertiesToJson(writeExtensionObjectEnvelope: false);
-
-        writer.WriteEndObject();
-    }
-
-    private void SerializeItemToJson(Resource resource, LogRecord item, Utf8JsonWriter writer, CommonSchemaJsonSerializationState serializationState)
-    {
         var eventName = this.eventNameManager.ResolveEventFullName(
             item.CategoryName,
             item.EventId.Name);
 
-        writer.WriteStartObject();
+        writer!.WriteStartObject();
 
         writer.WriteString(CommonSchemaJsonSerializationHelper.VersionProperty, CommonSchemaJsonSerializationHelper.Version4Value);
 
@@ -206,7 +144,7 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
                     continue;
                 }
 
-                if (attribute.Key.StartsWith("ext.", StringComparison.OrdinalIgnoreCase))
+                if (AttributeKeyStartWithExtensionPrefix(attribute.Key))
                 {
                     serializationState.AddExtensionAttribute(attribute);
                     continue;
@@ -225,13 +163,31 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
             writer.WriteString(BodyProperty, item.FormattedMessage);
         }
 
-        SerializeResourceToJson(resource, writer, serializationState);
+        SerializeResourceToJsonInsideCurrentObject(resource, serializationState);
 
         item.ForEachScope(SerializeScopeItemToJson, serializationState);
 
         writer.WriteEndObject();
 
         SerializeExtensionPropertiesToJson(item, writer, serializationState);
+
+        writer.WriteEndObject();
+    }
+
+    private static void SerializeExtensionPropertiesToJson(LogRecord item, Utf8JsonWriter writer, CommonSchemaJsonSerializationState serializationState)
+    {
+        writer.WriteStartObject(CommonSchemaJsonSerializationHelper.ExtensionsProperty);
+
+        if (item.TraceId != default)
+        {
+            writer.WriteStartObject(DistributedTraceExtensionProperty);
+            writer.WriteString(DistributedTraceExtensionTraceIdProperty, item.TraceId.ToHexString());
+            writer.WriteString(DistributedTraceExtensionSpanIdProperty, item.SpanId.ToHexString());
+            writer.WriteNumber(DistributedTraceExtensionTraceFlagsProperty, (int)item.TraceFlags);
+            writer.WriteEndObject();
+        }
+
+        serializationState.SerializeExtensionPropertiesToJson(writeExtensionObjectEnvelope: false);
 
         writer.WriteEndObject();
     }

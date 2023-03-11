@@ -28,7 +28,7 @@ public class CommonSchemaJsonSerializationStateTests
         using var stream = new MemoryStream();
         using var writer = new Utf8JsonWriter(stream);
 
-        var state = new CommonSchemaJsonSerializationState(writer);
+        var state = new CommonSchemaJsonSerializationState("Test", writer);
 
         state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.something.field1", 1));
         state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.something.field2", 2));
@@ -55,7 +55,7 @@ public class CommonSchemaJsonSerializationStateTests
 
         stream.SetLength(0);
         writer.Reset(stream);
-        state.Reset(writer);
+        state.Reset("Test", writer);
 
         Assert.Equal(0, state.ExtensionPropertyCount);
         Assert.Equal(0, state.ExtensionAttributeCount);
@@ -84,7 +84,7 @@ public class CommonSchemaJsonSerializationStateTests
         using var stream = new MemoryStream();
         using var writer = new Utf8JsonWriter(stream);
 
-        var state = new CommonSchemaJsonSerializationState(writer);
+        var state = new CommonSchemaJsonSerializationState("Test", writer);
 
         // Note: This test is just to verify de-duping is NOT currently supported.
 
