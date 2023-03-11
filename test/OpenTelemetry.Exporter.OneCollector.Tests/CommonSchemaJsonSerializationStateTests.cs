@@ -105,4 +105,38 @@ public class CommonSchemaJsonSerializationStateTests
             "{\"ext\":{\"something\":{\"field1\":1,\"field1\":2}}}",
             json);
     }
+
+    [Fact]
+    public void AddExtensionAttributeKeyLimitTest()
+    {
+        using var stream = new MemoryStream();
+        using var writer = new Utf8JsonWriter(stream);
+
+        var state = new CommonSchemaJsonSerializationState("Test", writer);
+
+        for (int i = 0; i < CommonSchemaJsonSerializationState.MaxNumberOfExtensionKeys + 10; i++)
+        {
+            state.AddExtensionAttribute(new KeyValuePair<string, object?>($"ext.something{i}.field1", 1));
+        }
+
+        Assert.Equal(CommonSchemaJsonSerializationState.MaxNumberOfExtensionKeys, state.ExtensionPropertyCount);
+        Assert.Equal(CommonSchemaJsonSerializationState.MaxNumberOfExtensionKeys, state.ExtensionAttributeCount);
+    }
+
+    [Fact]
+    public void AddExtensionAttributeKeyValueLimitTest()
+    {
+        using var stream = new MemoryStream();
+        using var writer = new Utf8JsonWriter(stream);
+
+        var state = new CommonSchemaJsonSerializationState("Test", writer);
+
+        for (int i = 0; i < CommonSchemaJsonSerializationState.MaxNumberOfExtensionValuesPerKey + 10; i++)
+        {
+            state.AddExtensionAttribute(new KeyValuePair<string, object?>($"ext.something.field{i}", i));
+        }
+
+        Assert.Equal(1, state.ExtensionPropertyCount);
+        Assert.Equal(CommonSchemaJsonSerializationState.MaxNumberOfExtensionValuesPerKey, state.ExtensionAttributeCount);
+    }
 }

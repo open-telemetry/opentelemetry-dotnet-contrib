@@ -23,7 +23,8 @@ namespace OpenTelemetry.Exporter.OneCollector;
 
 internal sealed class CommonSchemaJsonSerializationState
 {
-    private const int MaxNumberOfExtensionKeys = 64;
+    public const int MaxNumberOfExtensionKeys = 64;
+    public const int MaxNumberOfExtensionValuesPerKey = 16;
     private readonly Dictionary<string, int> keys = new(4, StringComparer.OrdinalIgnoreCase);
     private readonly List<KeyValuePair<string, object?>> allValues = new(16);
     private string itemType;
@@ -38,7 +39,7 @@ internal sealed class CommonSchemaJsonSerializationState
 
     public Utf8JsonWriter Writer { get; private set; }
 
-    public int ExtensionPropertyCount => this.keys.Count;
+    public int ExtensionPropertyCount => this.nextKeysToAllValuesLookupIndex;
 
     public int ExtensionAttributeCount => this.allValues.Count;
 
@@ -72,7 +73,7 @@ internal sealed class CommonSchemaJsonSerializationState
 
         ref KeyValueLookup keyLookup = ref this.keysToAllValuesLookup[lookupIndex];
 
-        if (keyLookup.Count >= KeyValueLookup.MaxNumberOfValues)
+        if (keyLookup.Count >= MaxNumberOfExtensionValuesPerKey)
         {
             OneCollectorExporterEventSource.Log.AttributeDropped(this.itemType, attribute.Key, "Extension value limit reached");
             return;
@@ -171,9 +172,7 @@ internal sealed class CommonSchemaJsonSerializationState
 
     private unsafe struct KeyValueLookup
     {
-        public const int MaxNumberOfValues = 16;
-
         public int Count;
-        public fixed int ValueIndicies[MaxNumberOfValues];
+        public fixed int ValueIndicies[MaxNumberOfExtensionValuesPerKey];
     }
 }
