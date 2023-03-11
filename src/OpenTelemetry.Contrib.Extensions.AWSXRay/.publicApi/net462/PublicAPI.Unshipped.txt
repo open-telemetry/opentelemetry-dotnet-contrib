@@ -1,4 +1,3 @@
-#nullable enable
 OpenTelemetry.Contrib.Extensions.AWSXRay.AWSXRayIdGenerator
 OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEBSResourceDetector
 OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEBSResourceDetector.AWSEBSResourceDetector() -> void
@@ -15,4 +14,4 @@ override OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayPropagator.Extrac
 override OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayPropagator.Fields.get -> System.Collections.Generic.ISet<string>
 override OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayPropagator.Inject<T>(OpenTelemetry.Context.Propagation.PropagationContext context, T carrier, System.Action<T, string, string> setter) -> void
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddXRayTraceId(this OpenTelemetry.Trace.TracerProviderBuilder builder) -> OpenTelemetry.Trace.TracerProviderBuilder
-static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddXRayTraceIdWithSampler(this OpenTelemetry.Trace.TracerProviderBuilder builder, OpenTelemetry.Trace.Sampler sampler) -> OpenTelemetry.Trace.TracerProviderBuilder
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddXRayTraceIdWithSampler(this OpenTelemetry.Trace.TracerProviderBuilder! builder, OpenTelemetry.Trace.Sampler! sampler) -> OpenTelemetry.Trace.TracerProviderBuilder!
