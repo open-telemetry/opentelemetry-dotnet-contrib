@@ -26,6 +26,10 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
     private static readonly JsonEncodedText SeverityTextProperty = JsonEncodedText.Encode("severityText");
     private static readonly JsonEncodedText SeverityNumberProperty = JsonEncodedText.Encode("severityNumber");
     private static readonly JsonEncodedText BodyProperty = JsonEncodedText.Encode("body");
+    private static readonly JsonEncodedText DistributedTraceExtensionProperty = JsonEncodedText.Encode("dt");
+    private static readonly JsonEncodedText DistributedTraceExtensionTraceIdProperty = JsonEncodedText.Encode("traceId");
+    private static readonly JsonEncodedText DistributedTraceExtensionSpanIdProperty = JsonEncodedText.Encode("spanId");
+    private static readonly JsonEncodedText DistributedTraceExtensionTraceFlagsProperty = JsonEncodedText.Encode("traceFlags");
 
     private static readonly JsonEncodedText[] LogLevelToSeverityTextMappings = new JsonEncodedText[]
     {
@@ -43,18 +47,29 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
         1, 5, 9, 13, 17, 21, 1,
     };
 
-    private static readonly Action<LogRecordScope, Utf8JsonWriter> SerializeScopeItemToJson = (s, w) =>
+    private static readonly Action<LogRecordScope, CommonSchemaJsonSerializationState> SerializeScopeItemToJson = (scope, serializationState) =>
     {
-        foreach (KeyValuePair<string, object?> scopeAttribute in s)
+        var writer = serializationState.Writer;
+
+        foreach (KeyValuePair<string, object?> scopeAttribute in scope)
         {
             if (scopeAttribute.Key == "{OriginalFormat}")
             {
                 return;
             }
 
-            CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(scopeAttribute.Key, scopeAttribute.Value, w);
+            if (scopeAttribute.Key.StartsWith("ext.", StringComparison.OrdinalIgnoreCase))
+            {
+                serializationState.AddExtensionAttribute(scopeAttribute!);
+                continue;
+            }
+
+            CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(scopeAttribute.Key, scopeAttribute.Value, writer);
         }
     };
+
+    [ThreadStatic]
+    private static CommonSchemaJsonSerializationState? serializationState;
 
     private readonly EventNameManager eventNameManager;
 
@@ -74,26 +89,91 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
 
     protected override void SerializeItemToJson(Resource resource, LogRecord item, Utf8JsonWriter writer)
     {
+        var serializationState = LogRecordCommonSchemaJsonSerializer.serializationState;
+        if (serializationState == null)
+        {
+            serializationState = LogRecordCommonSchemaJsonSerializer.serializationState ??= new(writer);
+        }
+        else
+        {
+            serializationState.Reset(writer);
+        }
+
+        this.SerializeItemToJson(resource, item, writer, serializationState);
+    }
+
+    private static void SerializeResourceToJson(Resource resource, Utf8JsonWriter writer, CommonSchemaJsonSerializationState serializationState)
+    {
+        if (resource.Attributes is IReadOnlyList<KeyValuePair<string, object?>> resourceAttributeList)
+        {
+            for (int i = 0; i < resourceAttributeList.Count; i++)
+            {
+                var resourceAttribute = resourceAttributeList[i];
+
+                if (resourceAttribute.Key.StartsWith("ext.", StringComparison.OrdinalIgnoreCase))
+                {
+                    serializationState.AddExtensionAttribute(resourceAttribute);
+                    continue;
+                }
+
+                CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(resourceAttribute.Key, resourceAttribute.Value, writer);
+            }
+        }
+        else
+        {
+            foreach (KeyValuePair<string, object> resourceAttribute in resource.Attributes)
+            {
+                if (resourceAttribute.Key.StartsWith("ext.", StringComparison.OrdinalIgnoreCase))
+                {
+                    serializationState.AddExtensionAttribute(resourceAttribute!);
+                    continue;
+                }
+
+                CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(resourceAttribute.Key, resourceAttribute.Value, writer);
+            }
+        }
+    }
+
+    private static void SerializeExtensionPropertiesToJson(LogRecord item, Utf8JsonWriter writer, CommonSchemaJsonSerializationState serializationState)
+    {
+        writer.WriteStartObject(CommonSchemaJsonSerializationHelper.ExtensionsProperty);
+
+        if (item.TraceId != default)
+        {
+            writer.WriteStartObject(DistributedTraceExtensionProperty);
+            writer.WriteString(DistributedTraceExtensionTraceIdProperty, item.TraceId.ToHexString());
+            writer.WriteString(DistributedTraceExtensionSpanIdProperty, item.SpanId.ToHexString());
+            writer.WriteNumber(DistributedTraceExtensionTraceFlagsProperty, (int)item.TraceFlags);
+            writer.WriteEndObject();
+        }
+
+        serializationState.SerializeExtensionPropertiesToJson(writeExtensionObjectEnvelope: false);
+
+        writer.WriteEndObject();
+    }
+
+    private void SerializeItemToJson(Resource resource, LogRecord item, Utf8JsonWriter writer, CommonSchemaJsonSerializationState serializationState)
+    {
         var eventName = this.eventNameManager.ResolveEventFullName(
             item.CategoryName,
             item.EventId.Name);
 
         writer.WriteStartObject();
 
-        writer.WriteString(VersionProperty, Version4Value);
+        writer.WriteString(CommonSchemaJsonSerializationHelper.VersionProperty, CommonSchemaJsonSerializationHelper.Version4Value);
 
-        writer.WritePropertyName(NameProperty);
+        writer.WritePropertyName(CommonSchemaJsonSerializationHelper.NameProperty);
 #if DEBUG
         writer.WriteRawValue(eventName, skipInputValidation: false);
 #else
         writer.WriteRawValue(eventName, skipInputValidation: true);
 #endif
 
-        writer.WriteString(TimeProperty, item.Timestamp);
+        writer.WriteString(CommonSchemaJsonSerializationHelper.TimeProperty, item.Timestamp);
 
-        writer.WriteString(IKeyProperty, this.TenantTokenWithTenancySystemSymbol);
+        writer.WriteString(CommonSchemaJsonSerializationHelper.IKeyProperty, this.TenantTokenWithTenancySystemSymbol);
 
-        writer.WriteStartObject(DataProperty);
+        writer.WriteStartObject(CommonSchemaJsonSerializationHelper.DataProperty);
 
         /* TODO: There doesn't seem to be a spot in common schema defined for
         event.id so we will drop for now.
@@ -126,6 +206,12 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
                     continue;
                 }
 
+                if (attribute.Key.StartsWith("ext.", StringComparison.OrdinalIgnoreCase))
+                {
+                    serializationState.AddExtensionAttribute(attribute);
+                    continue;
+                }
+
                 CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(attribute.Key, attribute.Value, writer);
             }
         }
@@ -139,26 +225,13 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
             writer.WriteString(BodyProperty, item.FormattedMessage);
         }
 
-        if (resource.Attributes is IReadOnlyList<KeyValuePair<string, object?>> resourceAttributeList)
-        {
-            for (int i = 0; i < resourceAttributeList.Count; i++)
-            {
-                var resourceAttribute = resourceAttributeList[i];
+        SerializeResourceToJson(resource, writer, serializationState);
 
-                CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(resourceAttribute.Key, resourceAttribute.Value, writer);
-            }
-        }
-        else
-        {
-            foreach (KeyValuePair<string, object> resourceAttribute in resource.Attributes)
-            {
-                CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(resourceAttribute.Key, resourceAttribute.Value, writer);
-            }
-        }
-
-        item.ForEachScope(SerializeScopeItemToJson, writer);
+        item.ForEachScope(SerializeScopeItemToJson, serializationState);
 
         writer.WriteEndObject();
+
+        SerializeExtensionPropertiesToJson(item, writer, serializationState);
 
         writer.WriteEndObject();
     }

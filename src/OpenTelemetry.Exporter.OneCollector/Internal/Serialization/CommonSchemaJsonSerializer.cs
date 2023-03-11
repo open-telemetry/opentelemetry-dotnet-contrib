@@ -24,17 +24,6 @@ namespace OpenTelemetry.Exporter.OneCollector;
 internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
     where T : class
 {
-    protected static readonly JsonEncodedText VersionProperty = JsonEncodedText.Encode("ver");
-    protected static readonly JsonEncodedText Version4Value = JsonEncodedText.Encode("4.0");
-    protected static readonly JsonEncodedText NameProperty = JsonEncodedText.Encode("name");
-    protected static readonly JsonEncodedText TimeProperty = JsonEncodedText.Encode("time");
-    protected static readonly JsonEncodedText IKeyProperty = JsonEncodedText.Encode("iKey");
-    protected static readonly JsonEncodedText DataProperty = JsonEncodedText.Encode("data");
-
-    private const char OneCollectorTenancySymbol = 'o';
-
-    private static readonly byte[] NewLine = "\n"u8.ToArray();
-
     private readonly int maxPayloadSizeInBytes;
     private readonly int maxNumberOfItemsPerPayload;
 
@@ -48,7 +37,7 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
         this.maxPayloadSizeInBytes = maxPayloadSizeInBytes;
         this.maxNumberOfItemsPerPayload = maxNumberOfItemsPerPayload;
 
-        this.TenantTokenWithTenancySystemSymbol = JsonEncodedText.Encode($"{OneCollectorTenancySymbol}:{tenantToken}");
+        this.TenantTokenWithTenancySystemSymbol = JsonEncodedText.Encode($"{CommonSchemaJsonSerializationHelper.OneCollectorTenancySymbol}:{tenantToken}");
     }
 
     public abstract string Description { get; }
@@ -87,7 +76,7 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
             writer.Flush();
             writer.Reset();
 
-            stream.Write(NewLine, 0, 1);
+            stream.Write(CommonSchemaJsonSerializationHelper.NewLine, 0, 1);
 
             if (++numberOfSerializedItems >= this.maxNumberOfItemsPerPayload)
             {
