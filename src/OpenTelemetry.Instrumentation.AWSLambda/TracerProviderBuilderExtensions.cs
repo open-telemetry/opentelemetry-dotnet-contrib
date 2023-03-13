@@ -31,11 +31,19 @@ public static class TracerProviderBuilderExtensions
     /// Add AWS Lambda configurations.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddAWSLambdaConfigurations(this TracerProviderBuilder builder) =>
+        AddAWSLambdaConfigurations(builder, configure: null);
+
+    /// <summary>
+    /// Add AWS Lambda configurations.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
     /// <param name="configure">AWS lambda instrumentation options.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddAWSLambdaConfigurations(
         this TracerProviderBuilder builder,
-        Action<AWSLambdaInstrumentationOptions> configure = null)
+        Action<AWSLambdaInstrumentationOptions> configure)
     {
         Guard.ThrowIfNull(builder);
 
