@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using Microsoft.Extensions.Logging;
@@ -164,6 +165,51 @@ public class LogRecordCommonSchemaJsonSerializerTests
 
         Assert.Equal(
             $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1,\"stateKey1\":\"stateValue1\",\"stateKey2\":\"stateValue2\"}}}}\n",
+            json);
+    }
+
+    [Fact]
+    public void LogRecordTraceContextJsonTest()
+    {
+        var traceId = ActivityTraceId.CreateRandom();
+        var spanId = ActivitySpanId.CreateRandom();
+
+        string json = GetLogRecordJson(1, (index, logRecord) =>
+        {
+            logRecord.TraceId = traceId;
+            logRecord.SpanId = spanId;
+            logRecord.TraceFlags = ActivityTraceFlags.Recorded;
+        });
+
+        Assert.Equal(
+            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1}},\"ext\":{{\"dt\":{{\"traceId\":\"{traceId}\",\"spanId\":\"{spanId}\",\"traceFlags\":1}}}}}}\n",
+            json);
+    }
+
+    [Fact]
+    public void LogRecordExtensionsJsonTest()
+    {
+        var scopeProvider = new ScopeProvider(
+            new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("ext.scope.field", "scopeValue1") });
+
+        var resource = ResourceBuilder.CreateEmpty()
+            .AddAttributes(new Dictionary<string, object>
+            {
+                ["ext.resource.field"] = "resourceValue1",
+            })
+            .Build();
+
+        string json = GetLogRecordJson(
+            1,
+            (index, logRecord) =>
+            {
+                logRecord.StateValues = new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("ext.state.field", "stateValue1") };
+            },
+            resource,
+            scopeProvider);
+
+        Assert.Equal(
+            "{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{\"severityText\":\"Trace\",\"severityNumber\":1},\"ext\":{\"state\":{\"field\":\"stateValue1\"},\"resource\":{\"field\":\"resourceValue1\"},\"scope\":{\"field\":\"scopeValue1\"}}}\n",
             json);
     }
 

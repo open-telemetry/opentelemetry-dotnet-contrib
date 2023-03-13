@@ -15,7 +15,6 @@
 // </copyright>
 
 using System.Text;
-using System.Text.Json;
 using OpenTelemetry.Resources;
 using Xunit;
 
@@ -154,9 +153,9 @@ public class WriteDirectlyToTransportSinkTests
 
         public override string Description => nameof(TestSerializer);
 
-        protected override void SerializeItemToJson(Resource resource, string item, Utf8JsonWriter writer)
+        protected override void SerializeItemToJson(Resource resource, string item, CommonSchemaJsonSerializationState serializationState)
         {
-            writer.WriteStringValue(item);
+            serializationState.Writer.WriteStringValue(item);
         }
     }
 
