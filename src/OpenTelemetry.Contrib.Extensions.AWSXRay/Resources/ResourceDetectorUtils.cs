@@ -31,13 +31,16 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 public class ResourceDetectorUtils
 #pragma warning restore CA1052
 {
-    internal static async Task<string> SendOutRequest(string url, string method, KeyValuePair<string, string> header, HttpClientHandler? handler = null)
+    internal static async Task<string> SendOutRequest(string url, string method, KeyValuePair<string, string>? header, HttpClientHandler? handler = null)
     {
         using (var httpRequestMessage = new HttpRequestMessage())
         {
             httpRequestMessage.RequestUri = new Uri(url);
             httpRequestMessage.Method = new HttpMethod(method);
-            httpRequestMessage.Headers.Add(header.Key, header.Value);
+            if (header.HasValue)
+            {
+                httpRequestMessage.Headers.Add(header.Value.Key, header.Value.Value);
+            }
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var httpClient = handler == null ? new HttpClient() : new HttpClient(handler);
