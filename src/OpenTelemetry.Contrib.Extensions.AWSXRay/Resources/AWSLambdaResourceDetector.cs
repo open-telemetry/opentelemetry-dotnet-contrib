@@ -38,7 +38,7 @@ public class AWSLambdaResourceDetector : IResourceDetector
 
         try
         {
-            resourceAttributes = this.ExtractResourceAttributes();
+            resourceAttributes = ExtractResourceAttributes();
         }
         catch (Exception ex)
         {
@@ -48,7 +48,7 @@ public class AWSLambdaResourceDetector : IResourceDetector
         return resourceAttributes;
     }
 
-    internal List<KeyValuePair<string, object?>> ExtractResourceAttributes()
+    internal static List<KeyValuePair<string, object?>> ExtractResourceAttributes()
     {
         var resourceAttributes = new List<KeyValuePair<string, object?>>()
         {
