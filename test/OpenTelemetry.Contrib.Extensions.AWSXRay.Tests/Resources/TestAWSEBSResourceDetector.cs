@@ -27,20 +27,15 @@ public class TestAWSEBSResourceDetector
     [Fact]
     public void TestDetect()
     {
-        var ebsResourceDetector = new AWSEBSResourceDetector();
-
-        var resourceAttributes = ebsResourceDetector.Detect();
-
-        Assert.Null(resourceAttributes); // will be null as it's not in ebs environment
+        Assert.Empty(new AWSEBSResourceDetector().Detect().Attributes); // will be null as it's not in ebs environment
     }
 
     [Fact]
     public void TestExtractResourceAttributes()
     {
-        var ebsResourceDetector = new AWSEBSResourceDetector();
         var sampleModel = new SampleAWSEBSMetadataModel();
 
-        var resourceAttributes = ebsResourceDetector.ExtractResourceAttributes(sampleModel).ToDictionary(x => x.Key, x => x.Value);
+        var resourceAttributes = AWSEBSResourceDetector.ExtractResourceAttributes(sampleModel).ToDictionary(x => x.Key, x => x.Value);
 
         Assert.Equal("aws", resourceAttributes[AWSSemanticConventions.AttributeCloudProvider]);
         Assert.Equal("aws_elastic_beanstalk", resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform]);
@@ -53,8 +48,7 @@ public class TestAWSEBSResourceDetector
     [Fact]
     public void TestGetEBSMetadata()
     {
-        var ebsResourceDetector = new AWSEBSResourceDetector();
-        var ebsMetadata = ebsResourceDetector.GetEBSMetadata(AWSEBSMetadataFilePath);
+        var ebsMetadata = AWSEBSResourceDetector.GetEBSMetadata(AWSEBSMetadataFilePath);
 
         Assert.NotNull(ebsMetadata);
         Assert.Equal("1234567890", ebsMetadata.DeploymentId);

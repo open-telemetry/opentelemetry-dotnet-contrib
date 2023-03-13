@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-beta.4
+
+Released 2023-Mar-06
+
 * Updated OTel SDK package version to 1.4.0
   ([#1019](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1019))
 * Update minimum full framework support to net462
