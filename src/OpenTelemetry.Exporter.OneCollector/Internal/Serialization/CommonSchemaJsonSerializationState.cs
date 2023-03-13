@@ -45,7 +45,9 @@ internal sealed class CommonSchemaJsonSerializationState
 
     public void AddExtensionAttribute(KeyValuePair<string, object?> attribute)
     {
-        if (!ExtensionFieldInformationManager.TryResolveExtensionFieldInformation(attribute.Key, out (string ExtensionName, string FieldName) fieldInformation))
+        if (!ExtensionFieldInformationManager.SharedCache.TryResolveExtensionFieldInformation(
+            attribute.Key,
+            out (string ExtensionName, string FieldName) fieldInformation))
         {
             OneCollectorExporterEventSource.Log.AttributeDropped(this.itemType, attribute.Key, "Invalid extension field name");
             return;

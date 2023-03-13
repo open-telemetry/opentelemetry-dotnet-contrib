@@ -19,16 +19,20 @@ using System.Diagnostics;
 
 namespace OpenTelemetry.Exporter.OneCollector;
 
-internal static class ExtensionFieldInformationManager
+internal sealed class ExtensionFieldInformationManager
 {
     public const int MaxNumberOfCachedFieldInformations = 2048;
-    public static readonly Hashtable FieldInformationCache = new(16, StringComparer.OrdinalIgnoreCase);
+    private readonly Hashtable fieldInformationCache = new(16, StringComparer.OrdinalIgnoreCase);
 
-    public static bool TryResolveExtensionFieldInformation(string fullFieldName, out (string ExtensionName, string FieldName) resolvedFieldInformation)
+    public static ExtensionFieldInformationManager SharedCache { get; } = new();
+
+    public int CountOfCachedExtensionFields => this.fieldInformationCache.Count;
+
+    public bool TryResolveExtensionFieldInformation(string fullFieldName, out (string ExtensionName, string FieldName) resolvedFieldInformation)
     {
-        if (FieldInformationCache[fullFieldName] is not FieldInformation fieldInformation)
+        if (this.fieldInformationCache[fullFieldName] is not FieldInformation fieldInformation)
         {
-            fieldInformation = ResolveExtensionFieldInformationRare(fullFieldName);
+            fieldInformation = this.ResolveExtensionFieldInformationRare(fullFieldName);
         }
 
         if (!fieldInformation.IsValid)
@@ -39,28 +43,6 @@ internal static class ExtensionFieldInformationManager
 
         resolvedFieldInformation = new(fieldInformation.ExtensionName!, fieldInformation.FieldName!);
         return true;
-    }
-
-    private static FieldInformation ResolveExtensionFieldInformationRare(string fullFieldName)
-    {
-        if (FieldInformationCache.Count >= MaxNumberOfCachedFieldInformations)
-        {
-            return BuildFieldInformation(fullFieldName);
-        }
-
-        lock (FieldInformationCache)
-        {
-            if (FieldInformationCache[fullFieldName] is not FieldInformation fieldInformation)
-            {
-                fieldInformation = BuildFieldInformation(fullFieldName);
-                if (FieldInformationCache.Count < MaxNumberOfCachedFieldInformations)
-                {
-                    FieldInformationCache[fullFieldName] = fieldInformation;
-                }
-            }
-
-            return fieldInformation;
-        }
     }
 
     private static FieldInformation BuildFieldInformation(string fullFieldName)
@@ -89,6 +71,28 @@ internal static class ExtensionFieldInformationManager
             FieldName = fieldName.ToString(),
             IsValid = true,
         };
+    }
+
+    private FieldInformation ResolveExtensionFieldInformationRare(string fullFieldName)
+    {
+        if (this.fieldInformationCache.Count >= MaxNumberOfCachedFieldInformations)
+        {
+            return BuildFieldInformation(fullFieldName);
+        }
+
+        lock (this.fieldInformationCache)
+        {
+            if (this.fieldInformationCache[fullFieldName] is not FieldInformation fieldInformation)
+            {
+                fieldInformation = BuildFieldInformation(fullFieldName);
+                if (this.fieldInformationCache.Count < MaxNumberOfCachedFieldInformations)
+                {
+                    this.fieldInformationCache[fullFieldName] = fieldInformation;
+                }
+            }
+
+            return fieldInformation;
+        }
     }
 
     private sealed class FieldInformation

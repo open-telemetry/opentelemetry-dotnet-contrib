@@ -23,27 +23,27 @@ public class ExtensionFieldInformationManagerTests
     [Fact]
     public void FieldInformationIsCachedTest()
     {
-        ExtensionFieldInformationManager.FieldInformationCache.Clear();
+        var extensionFieldInformationManager = new ExtensionFieldInformationManager();
 
-        var result = ExtensionFieldInformationManager.TryResolveExtensionFieldInformation("ext.something.fieldName1", out var fieldInformation);
-
-        Assert.True(result);
-        Assert.Equal("something", fieldInformation.ExtensionName);
-        Assert.Equal("fieldName1", fieldInformation.FieldName);
-
-        Assert.Single(ExtensionFieldInformationManager.FieldInformationCache);
-
-        result = ExtensionFieldInformationManager.TryResolveExtensionFieldInformation("ext.something.fieldName1", out fieldInformation);
-
-        Assert.Single(ExtensionFieldInformationManager.FieldInformationCache);
+        var result = extensionFieldInformationManager.TryResolveExtensionFieldInformation("ext.something.fieldName1", out var fieldInformation);
 
         Assert.True(result);
         Assert.Equal("something", fieldInformation.ExtensionName);
         Assert.Equal("fieldName1", fieldInformation.FieldName);
 
-        result = ExtensionFieldInformationManager.TryResolveExtensionFieldInformation("ext.something.field.Name2", out fieldInformation);
+        Assert.Equal(1, extensionFieldInformationManager.CountOfCachedExtensionFields);
 
-        Assert.Equal(2, ExtensionFieldInformationManager.FieldInformationCache.Count);
+        result = extensionFieldInformationManager.TryResolveExtensionFieldInformation("ext.something.fieldName1", out fieldInformation);
+
+        Assert.Equal(1, extensionFieldInformationManager.CountOfCachedExtensionFields);
+
+        Assert.True(result);
+        Assert.Equal("something", fieldInformation.ExtensionName);
+        Assert.Equal("fieldName1", fieldInformation.FieldName);
+
+        result = extensionFieldInformationManager.TryResolveExtensionFieldInformation("ext.something.field.Name2", out fieldInformation);
+
+        Assert.Equal(2, extensionFieldInformationManager.CountOfCachedExtensionFields);
 
         Assert.True(result);
         Assert.Equal("something", fieldInformation.ExtensionName);
@@ -53,38 +53,38 @@ public class ExtensionFieldInformationManagerTests
     [Fact]
     public void InvalidFieldNamesIgnoredTest()
     {
-        ExtensionFieldInformationManager.FieldInformationCache.Clear();
+        var extensionFieldInformationManager = new ExtensionFieldInformationManager();
 
-        Assert.False(ExtensionFieldInformationManager.TryResolveExtensionFieldInformation("ext.", out _));
+        Assert.False(extensionFieldInformationManager.TryResolveExtensionFieldInformation("ext.", out _));
 
-        Assert.Single(ExtensionFieldInformationManager.FieldInformationCache);
+        Assert.Equal(1, extensionFieldInformationManager.CountOfCachedExtensionFields);
 
-        Assert.False(ExtensionFieldInformationManager.TryResolveExtensionFieldInformation("ext.", out _));
+        Assert.False(extensionFieldInformationManager.TryResolveExtensionFieldInformation("ext.", out _));
 
-        Assert.Single(ExtensionFieldInformationManager.FieldInformationCache);
+        Assert.Equal(1, extensionFieldInformationManager.CountOfCachedExtensionFields);
 
-        Assert.False(ExtensionFieldInformationManager.TryResolveExtensionFieldInformation("ext.something", out _));
-        Assert.False(ExtensionFieldInformationManager.TryResolveExtensionFieldInformation("ext.something.", out _));
+        Assert.False(extensionFieldInformationManager.TryResolveExtensionFieldInformation("ext.something", out _));
+        Assert.False(extensionFieldInformationManager.TryResolveExtensionFieldInformation("ext.something.", out _));
 
-        Assert.Equal(3, ExtensionFieldInformationManager.FieldInformationCache.Count);
+        Assert.Equal(3, extensionFieldInformationManager.CountOfCachedExtensionFields);
     }
 
     [Fact]
     public void FieldInformationCacheLimitTest()
     {
-        ExtensionFieldInformationManager.FieldInformationCache.Clear();
+        var extensionFieldInformationManager = new ExtensionFieldInformationManager();
 
         for (int i = 0; i < ExtensionFieldInformationManager.MaxNumberOfCachedFieldInformations + 128; i++)
         {
             var fieldName = $"fieldName{i}";
 
-            var result = ExtensionFieldInformationManager.TryResolveExtensionFieldInformation($"ext.something.{fieldName}", out var fieldInformation);
+            var result = extensionFieldInformationManager.TryResolveExtensionFieldInformation($"ext.something.{fieldName}", out var fieldInformation);
 
             Assert.True(result);
             Assert.Equal("something", fieldInformation.ExtensionName);
             Assert.Equal(fieldName, fieldInformation.FieldName);
         }
 
-        Assert.Equal(ExtensionFieldInformationManager.MaxNumberOfCachedFieldInformations, ExtensionFieldInformationManager.FieldInformationCache.Count);
+        Assert.Equal(ExtensionFieldInformationManager.MaxNumberOfCachedFieldInformations, extensionFieldInformationManager.CountOfCachedExtensionFields);
     }
 }
