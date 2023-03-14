@@ -24,7 +24,7 @@ namespace OpenTelemetry.Extensions.Enrichment.AspNetCore;
 
 #pragma warning disable CA1812 // Class is instantiated through dependency injection
 internal sealed class AspNetCoreTraceEnrichmentProcessor
-#pragma warning restore CA1815 // Class is instantiated through dependency injection
+#pragma warning restore CA1812 // Class is instantiated through dependency injection
 {
     private readonly AspNetCoreTraceEnricher[] enrichers;
 
