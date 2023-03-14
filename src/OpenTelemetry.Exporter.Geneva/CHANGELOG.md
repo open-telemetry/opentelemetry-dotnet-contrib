@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.5.0-alpha.1
+
+Released 2023-Mar-13
+
 * Changed the behavior of Unix domain socket connection at startup. Before this
   change, the exporter initialization would throw exception if the target Unix
   Domain Socket does not exist. After this change, the exporter initialization
