@@ -28,11 +28,7 @@ public class TestAWSEKSResourceDetector
     [Fact]
     public void TestDetect()
     {
-        var eksResourceDetector = new AWSEKSResourceDetector();
-
-        var resourceAttributes = eksResourceDetector?.Detect();
-
-        Assert.Null(resourceAttributes); // will be null as it's not in eks environment
+        Assert.Empty(new AWSEKSResourceDetector().Detect().Attributes); // will be null as it's not in eks environment
     }
 
     [Fact]

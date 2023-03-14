@@ -2,12 +2,21 @@
 
 ## Unreleased
 
+## 1.5.0-alpha.1
+
+Released 2023-Mar-13
+
 * Changed the behavior of Unix domain socket connection at startup. Before this
   change, the exporter initialization would throw exception if the target Unix
   Domain Socket does not exist. After this change, the exporter initialization
-  would return success and the exporting background thread will try to
-  establish the connection.
+  would return success and the exporting background thread will try to establish
+  the connection.
   ([#935](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/935))
+
+* Update OTel SDK version to `1.5.0-alpha.1`.
+* Update GenevaMetricExporter to use TLV format serialization.
+* Add support for exporting exemplars.
+  ([#1069](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1069))
 
 ## 1.4.0
 
