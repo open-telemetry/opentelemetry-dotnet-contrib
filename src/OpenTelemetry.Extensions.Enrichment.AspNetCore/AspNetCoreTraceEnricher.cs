@@ -46,7 +46,7 @@ public abstract class AspNetCoreTraceEnricher : BaseAspNetCoreEnricher<TraceEnri
     /// Enrich trace with desired tags at exception time.
     /// </summary>
     /// <param name="enrichmentBag">Bag used to store enrichment tags.</param>
-    /// <param name="exception"><see cref="Exception"/> object representing the exception occured.</param>
+    /// <param name="exception"><see cref="Exception"/> object representing the exception occurred.</param>
     public virtual void EnrichWithException(ref TraceEnrichmentBag enrichmentBag, Exception exception)
     {
     }
