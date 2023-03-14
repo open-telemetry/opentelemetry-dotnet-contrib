@@ -20,6 +20,9 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Extensions.Enrichment.AspNetCore;
 
+/// <summary>
+/// Extension methods to register ASP.NET Core telemery enrichers.
+/// </summary>
 public static class OpenTelemetryAspNetCoreEnrichmentProviderBuilderExtensions
 {
     /// <summary>

@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFrameworks>$(NetMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry .NET SDK ASP.NET Core telemetry enrichment.</Description>
-    <NoWarn>$(NoWarn),CS1591</NoWarn>
     <MinVerTagPrefix>Extensions.Enrichment.AspNetCore-</MinVerTagPrefix>
     <Nullable>enable</Nullable>
     <AnalysisLevel>latest-all</AnalysisLevel>

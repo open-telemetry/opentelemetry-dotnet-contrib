@@ -19,16 +19,34 @@ using Microsoft.AspNetCore.Http;
 
 namespace OpenTelemetry.Extensions.Enrichment.AspNetCore;
 
+/// <summary>
+/// Represents ASP.NET Core trace enricher class.
+/// </summary>
 public abstract class AspNetCoreTraceEnricher : BaseAspNetCoreEnricher<TraceEnrichmentBag>
 {
+    /// <summary>
+    /// Enrich trace with desired tags at HTTP request time.
+    /// </summary>
+    /// <param name="enrichmentBag">Bag used to store enrichment tags.</param>
+    /// <param name="request"><see cref="HttpRequest"/> object associated with the incoming HTTP request for the trace.</param>
     public virtual void EnrichWithHttpRequest(ref TraceEnrichmentBag enrichmentBag, HttpRequest request)
     {
     }
 
+    /// <summary>
+    /// Enrich trace with desired tags at HTTP response time.
+    /// </summary>
+    /// <param name="enrichmentBag">Bag used to store enrichment tags.</param>
+    /// <param name="response"><see cref="HttpResponse"/> object associated with the incoming HTTP request for the trace.</param>
     public virtual void EnrichWithHttpResponse(ref TraceEnrichmentBag enrichmentBag, HttpResponse response)
     {
     }
 
+    /// <summary>
+    /// Enrich trace with desired tags at exception time.
+    /// </summary>
+    /// <param name="enrichmentBag">Bag used to store enrichment tags.</param>
+    /// <param name="exception"><see cref="Exception"/> object representing the exception occured.</param>
     public virtual void EnrichWithException(ref TraceEnrichmentBag enrichmentBag, Exception exception)
     {
     }
