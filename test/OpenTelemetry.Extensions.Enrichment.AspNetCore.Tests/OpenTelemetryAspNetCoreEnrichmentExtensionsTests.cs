@@ -33,7 +33,7 @@ namespace OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests;
 public sealed class OpenTelemetryAspNetCoreEnrichmentExtensionsTests
 {
     [Fact]
-    public async Task TracerProviderBuilder_AddAspNetCoreTraceEnricherT_RegistersEnricher()
+    public async Task TracerProviderBuilderAddAspNetCoreTraceEnricherTRegistersEnricher()
     {
         var exportedItems = new List<Activity>();
 
@@ -80,7 +80,7 @@ public sealed class OpenTelemetryAspNetCoreEnrichmentExtensionsTests
     }
 
     [Fact]
-    public async Task TracerProviderBuilder_AddAspNetCoreTraceEnricher_RegistersEnricher()
+    public async Task TracerProviderBuilderAddAspNetCoreTraceEnricherRegistersEnricher()
     {
         var exportedItems = new List<Activity>();
 
@@ -127,7 +127,7 @@ public sealed class OpenTelemetryAspNetCoreEnrichmentExtensionsTests
     }
 
     [Fact]
-    public async Task IServiceCollection_AddAspNetCoreTraceEnricherT_RegistersEnricher()
+    public async Task IServiceCollectionAddAspNetCoreTraceEnricherTRegistersEnricher()
     {
         var exportedItems = new List<Activity>();
 
@@ -176,7 +176,7 @@ public sealed class OpenTelemetryAspNetCoreEnrichmentExtensionsTests
     }
 
     [Fact]
-    public async Task IServiceCollection_AddAspNetCoreTraceEnricher_RegistersEnricher()
+    public async Task IServiceCollectionAddAspNetCoreTraceEnricherRegistersEnricher()
     {
         var exportedItems = new List<Activity>();
 
