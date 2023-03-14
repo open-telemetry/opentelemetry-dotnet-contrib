@@ -1,7 +1,7 @@
 ---
 name: OpenTelemetry.Extensions.Enrichment.AspNetCore
 about: Issue with OpenTelemetry.Extensions.Enrichment.AspNetCore
-labels: comp:extensions.enrichment.AspNetCore
+labels: comp:extensions.enrichment.aspnetcore
 ---
 
 # Issue with OpenTelemetry.Extensions.Enrichment.AspNetCore
