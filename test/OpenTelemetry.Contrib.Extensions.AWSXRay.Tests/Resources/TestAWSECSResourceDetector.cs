@@ -50,7 +50,11 @@ public class TestAWSECSResourceDetector : IDisposable
     [Fact]
     public void TestNotOnEcs()
     {
-        Assert.Empty(new AWSECSResourceDetector().Detect().Attributes);
+        var ecsResourceDetector = new AWSECSResourceDetector();
+        var resourceAttributes = ecsResourceDetector.Detect();
+
+        Assert.NotNull(resourceAttributes);
+        Assert.Empty(resourceAttributes.Attributes);
     }
 
     [Fact]
@@ -151,14 +155,14 @@ public class TestAWSECSResourceDetector : IDisposable
                         var content = await File.ReadAllTextAsync($"{Environment.CurrentDirectory}/Resources/{containerJsonPath}");
                         var data = Encoding.UTF8.GetBytes(content);
                         context.Response.ContentType = "application/json";
-                        await context.Response.Body.WriteAsync(data, 0, data.Length);
+                        await context.Response.Body.WriteAsync(data);
                     }
                     else if (context.Request.Method == HttpMethods.Get && context.Request.Path == "/task")
                     {
                         var content = await File.ReadAllTextAsync($"{Environment.CurrentDirectory}/Resources/{taskJsonPath}");
                         var data = Encoding.UTF8.GetBytes(content);
                         context.Response.ContentType = "application/json";
-                        await context.Response.Body.WriteAsync(data, 0, data.Length);
+                        await context.Response.Body.WriteAsync(data);
                     }
                     else
                     {
