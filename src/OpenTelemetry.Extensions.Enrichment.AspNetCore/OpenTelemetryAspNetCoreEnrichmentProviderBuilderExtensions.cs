@@ -15,6 +15,7 @@
 // </copyright>
 
 using System;
+using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 

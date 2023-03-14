@@ -15,10 +15,9 @@
 // </copyright>
 
 using Microsoft.Extensions.Options;
-using OpenTelemetry.Extensions.Enrichment.AspNetCore;
 using OpenTelemetry.Instrumentation.AspNetCore;
 
-namespace Microsoft.R9.Extensions.HttpClient.Tracing.Internal;
+namespace OpenTelemetry.Extensions.Enrichment.AspNetCore.Internal;
 
 #pragma warning disable CA1812 // Class is instantiated through dependency injection
 internal sealed class ConfigureAspNetCoreInstrumentationOptions : IConfigureOptions<AspNetCoreInstrumentationOptions>

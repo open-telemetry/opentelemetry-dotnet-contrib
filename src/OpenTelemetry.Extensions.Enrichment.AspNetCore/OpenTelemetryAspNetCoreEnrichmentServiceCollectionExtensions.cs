@@ -15,14 +15,14 @@
 // </copyright>
 
 using System;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using Microsoft.R9.Extensions.HttpClient.Tracing.Internal;
+using OpenTelemetry.Extensions.Enrichment.AspNetCore;
+using OpenTelemetry.Extensions.Enrichment.AspNetCore.Internal;
 using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Extensions.Enrichment.AspNetCore;
+namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 /// Extension methods to register ASP.NET Core telemery enrichers.
