@@ -1,4 +1,4 @@
-// <copyright file="GetSamplingRulesResponse.cs" company="OpenTelemetry Authors">
+// <copyright file="SamplingRuleRecord.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,15 +14,18 @@
 // limitations under the License.
 // </copyright>
 
-using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
-internal class GetSamplingRulesResponse
-{
-    [JsonProperty(nameof(NextToken))]
-    public string? NextToken { get; set; }
 
-    [JsonProperty(nameof(SamplingRuleRecords))]
-    public List<SamplingRuleRecord>? SamplingRuleRecords { get; set; }
+internal class SamplingRuleRecord
+{
+    [JsonProperty(nameof(CreatedAt))]
+    public double CreatedAt { get; set; }
+
+    [JsonProperty(nameof(ModifiedAt))]
+    public double ModifiedAt { get; set; }
+
+    [JsonProperty(nameof(SamplingRule))]
+    public SamplingRule? SamplingRule { get; set; }
 }

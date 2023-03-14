@@ -9,9 +9,17 @@ OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.ResourceDetectorUtils
 OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.ResourceDetectorUtils.ResourceDetectorUtils() -> void
 OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayPropagator
 OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayPropagator.AWSXRayPropagator() -> void
+OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSampler
+OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSampler.Dispose() -> void
+OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSamplerBuilder
+OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSamplerBuilder.Build() -> OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSampler!
+OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSamplerBuilder.SetEndpoint(string! endpoint) -> OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSamplerBuilder!
+OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSamplerBuilder.SetPollingInterval(System.TimeSpan pollingInterval) -> OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSamplerBuilder!
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
 override OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayPropagator.Extract<T>(OpenTelemetry.Context.Propagation.PropagationContext context, T carrier, System.Func<T, string!, System.Collections.Generic.IEnumerable<string!>!>! getter) -> OpenTelemetry.Context.Propagation.PropagationContext
 override OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayPropagator.Fields.get -> System.Collections.Generic.ISet<string!>!
 override OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayPropagator.Inject<T>(OpenTelemetry.Context.Propagation.PropagationContext context, T carrier, System.Action<T, string!, string!>! setter) -> void
+override OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSampler.ShouldSample(in OpenTelemetry.Trace.SamplingParameters samplingParameters) -> OpenTelemetry.Trace.SamplingResult
+static OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSampler.Builder() -> OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSamplerBuilder!
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddXRayTraceId(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder!
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddXRayTraceIdWithSampler(this OpenTelemetry.Trace.TracerProviderBuilder! builder, OpenTelemetry.Trace.Sampler! sampler) -> OpenTelemetry.Trace.TracerProviderBuilder!

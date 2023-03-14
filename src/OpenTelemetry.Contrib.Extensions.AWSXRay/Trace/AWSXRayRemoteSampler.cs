@@ -15,83 +15,61 @@
 // </copyright>
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
 
-public class AWSXRayRemoteSampler : Sampler
+/// <summary>
+/// Remote sampler that gets sampling configuration from AWS X-Ray.
+/// </summary>
+public sealed class AWSXRayRemoteSampler : Sampler, IDisposable
 {
-    private TimeSpan pollingInterval;
-    private string endpoint;
-    private AWSXRaySamplerClient client;
+    internal TimeSpan PollingInterval { get; }
 
-    private Timer rulePollerTimer;
-    private Timer targetPollerTimer;
+    internal string Endpoint { get; }
+
+    internal AWSXRaySamplerClient Client { get; }
+
+    internal Timer RulePollerTimer { get; }
 
     internal AWSXRayRemoteSampler(TimeSpan pollingInterval, string endpoint)
     {
-        this.pollingInterval = pollingInterval;
-        this.endpoint = endpoint;
-        this.client = new AWSXRaySamplerClient(endpoint);
-
-        // this.StartBackgroundThread();
+        this.PollingInterval = pollingInterval;
+        this.Endpoint = endpoint;
+        this.Client = new AWSXRaySamplerClient(endpoint);
 
         // execute the first update right away
-        this.GetAndUpdateSampler(new Object());
-        //this.rulePollerTimer = new Timer(this.GetAndUpdateSampler, null, 0, 10000000);
-        //this.targetPollerTimer = new Timer(this.GetTargets, null, 1000, 0); // start with an initial delay of 10 seconds
+        this.RulePollerTimer = new Timer(this.GetAndUpdateSampler, null, 0, Convert.ToInt32(pollingInterval.TotalMilliseconds));
     }
 
+    /// <summary>
+    /// Initializes a <see cref="AWSXRayRemoteSamplerBuilder"/> for the sampler.
+    /// </summary>
+    /// <returns>an instance of <see cref="AWSXRayRemoteSamplerBuilder"/>.</returns>
     public static AWSXRayRemoteSamplerBuilder Builder()
     {
         return new AWSXRayRemoteSamplerBuilder();
     }
 
+    /// <inheritdoc/>
     public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
     {
+        // TODO: add the actual functionality for sampling.
         throw new System.NotImplementedException();
     }
 
-    private void GetAndUpdateSampler(Object state)
+    /// <inheritdoc/>
+    public void Dispose()
     {
-        //Timer ruleTimer = new Timer(this.RefreshRules, null, 0, this.pollingInterval.Ticks / 10000); // 1 tick is 100 nanoseconds
-        this.RefreshRules();
+        this.RulePollerTimer.Dispose();
+        this.Client.Dispose();
     }
 
-    private void RefreshRules()
+    private async void GetAndUpdateSampler(Object state)
     {
-        Console.WriteLine("Getting Sampling Rules...");
-        Console.WriteLine("ThreadID: " + Thread.CurrentThread.ManagedThreadId);
-        Thread.Sleep(500);
+        await this.Client.GetSamplingRules().ConfigureAwait(false);
 
-        List<SamplingRule> rules = this.client.GetSamplingRules().Result;
-        Console.WriteLine("Got the rules::" + rules.Count);
-    }
-
-    private void GetTargets(Object state)
-    {
-        Console.WriteLine("Getting Sampling Targets...");
-        Console.WriteLine("ThreadID: " + Thread.CurrentThread.ManagedThreadId);
-        Thread.Sleep(500);
-        Console.WriteLine("Got the targets");
-        targetPollerTimer.Change(1000, 0);
-    }
-
-    private void StartBackgroundThread()
-    {
-        Thread t1 = new Thread(() =>
-        {
-            Console.WriteLine("Inside thread t1");
-            for (int i = 0; i < 10; i++)
-            {
-                Console.WriteLine("thread is in process");
-                Thread.Sleep(1000);
-            }
-        });
-        t1.IsBackground = true;
-
-        t1.Start();
+        // TODO: more functionality to be added.
     }
 }

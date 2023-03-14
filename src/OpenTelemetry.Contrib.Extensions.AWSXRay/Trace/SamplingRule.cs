@@ -1,3 +1,19 @@
+// <copyright file="SamplingRule.cs" company="OpenTelemetry Authors">
+// Copyright The OpenTelemetry Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
@@ -31,28 +47,38 @@ internal class SamplingRule : IComparable<SamplingRule>
         this.Attributes = attributes;
     }
 
-    [JsonProperty("RuleName")]
-    public string RuleName { get; }
+    [JsonProperty(nameof(RuleName))]
+    public string RuleName { get; set; }
 
-    public int Priority { get; }
+    [JsonProperty(nameof(Priority))]
+    public int Priority { get; set; }
 
-    public double FixedRate { get; }
+    [JsonProperty(nameof(FixedRate))]
+    public double FixedRate { get; set; }
 
-    public int ReservoirSize { get; }
+    [JsonProperty(nameof(ReservoirSize))]
+    public int ReservoirSize { get; set; }
 
-    public string Host { get; }
+    [JsonProperty(nameof(Host))]
+    public string Host { get; set; }
 
-    public string HttpMethod { get; }
+    [JsonProperty(nameof(HttpMethod))]
+    public string HttpMethod { get; set; }
 
-    public string ResourceArn { get; }
+    [JsonProperty(nameof(ResourceArn))]
+    public string ResourceArn { get; set; }
 
-    public string ServiceName { get; }
+    [JsonProperty(nameof(ServiceName))]
+    public string ServiceName { get; set; }
 
-    public string UrlPath { get; }
+    [JsonProperty(nameof(UrlPath))]
+    public string UrlPath { get; set; }
 
-    public int Version { get; }
+    [JsonProperty(nameof(Version))]
+    public int Version { get; set; }
 
-    public Dictionary<string, string> Attributes { get; }
+    [JsonProperty(nameof(Attributes))]
+    public Dictionary<string, string>? Attributes { get; set; }
 
     public int CompareTo(SamplingRule other)
     {

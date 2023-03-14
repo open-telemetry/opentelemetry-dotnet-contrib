@@ -71,6 +71,28 @@ container id.
 - **AWSLambdaResourceDetector**: cloud provider, cloud platform, aws region,
 function name, function version.
 
+### AWS X-Ray Remote Sampler
+
+The ADOT .Net SDK provides a sampler which can get sampling
+configurations from AWS X-Ray to make sampling decisions.
+See: [AWS X-Ray Sampling](https://docs.aws.amazon.com/xray/latest/devguide/xray-concepts.html#xray-concepts-sampling)
+
+You can configure the `AWSXRayRemoteSampler` as per the following example.
+
+```csharp
+using OpenTelemetry;
+using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
+using OpenTelemetry.Trace;
+
+var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                        // other configurations
+                        .SetSampler(AWSXRayRemoteSampler.Builder()
+                                                        .SetPollingInterval(TimeSpan.FromSeconds(10))
+                                                        .SetEndpoint("http://localhost:2000)
+                                                        .Build())
+                        .Build();
+```
+
 ## References
 
 - [OpenTelemetry Project](https://opentelemetry.io/)
