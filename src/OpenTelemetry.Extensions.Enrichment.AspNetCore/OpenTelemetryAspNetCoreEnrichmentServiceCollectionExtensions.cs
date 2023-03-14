@@ -27,7 +27,7 @@ namespace OpenTelemetry.Extensions.Enrichment.AspNetCore;
 public static class OpenTelemetryAspNetCoreEnrichmentServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds trace enricher for inbound HTTP requests.
+    /// Adds trace enricher for incoming HTTP requests.
     /// </summary>
     /// <param name="services"><see cref="IServiceCollection"/> being configured.</param>
     /// <typeparam name="T">Enricher object type.</typeparam>
@@ -47,7 +47,7 @@ public static class OpenTelemetryAspNetCoreEnrichmentServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds trace enricher for inbound HTTP requests.
+    /// Adds trace enricher for incoming HTTP requests.
     /// </summary>
     /// <param name="services"><see cref="IServiceCollection"/> being configured.</param>
     /// <param name="enricher">The <see cref="AspNetCoreTraceEnricher"/> object being added.</param>
@@ -67,7 +67,7 @@ public static class OpenTelemetryAspNetCoreEnrichmentServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds trace enricher for inbound HTTP requests.
+    /// Adds trace enricher for incoming HTTP requests.
     /// </summary>
     /// <param name="services"><see cref="IServiceCollection"/> being configured.</param>
     /// <param name="enricherImplementationFactory">The <see cref="AspNetCoreTraceEnricher"/> object being added using implementation factory.</param>

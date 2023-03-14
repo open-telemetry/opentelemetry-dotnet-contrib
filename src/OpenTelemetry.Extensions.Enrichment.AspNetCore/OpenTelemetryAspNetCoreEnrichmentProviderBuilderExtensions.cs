@@ -23,7 +23,7 @@ namespace OpenTelemetry.Extensions.Enrichment.AspNetCore;
 public static class OpenTelemetryAspNetCoreEnrichmentProviderBuilderExtensions
 {
     /// <summary>
-    /// Adds trace enricher for inbound HTTP requests.
+    /// Adds trace enricher for incoming HTTP requests.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
     /// <typeparam name="T">Enricher object type.</typeparam>
