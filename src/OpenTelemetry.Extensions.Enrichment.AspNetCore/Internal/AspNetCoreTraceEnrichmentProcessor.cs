@@ -20,7 +20,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 
-namespace OpenTelemetry.Extensions.Enrichment.AspNetCore;
+namespace OpenTelemetry.Extensions.Enrichment.AspNetCore.Internal;
 
 #pragma warning disable CA1812 // Class is instantiated through dependency injection
 internal sealed class AspNetCoreTraceEnrichmentProcessor
