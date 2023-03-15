@@ -9,7 +9,7 @@ on:
         default: 'warning'
   push:
     tags:
-      - 'Extensions.Enrichment.AspNetCore-*' # trigger when we create a tag with prefix "Extensions.Enrichment-"
+      - 'Extensions.Enrichment.AspNetCore-*' # trigger when we create a tag with prefix "Extensions.Enrichment.AspNetCore-"
 
 jobs:
   build-test-pack:
