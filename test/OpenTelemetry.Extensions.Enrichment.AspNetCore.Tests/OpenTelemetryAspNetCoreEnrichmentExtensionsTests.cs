@@ -42,16 +42,15 @@ public sealed class OpenTelemetryAspNetCoreEnrichmentExtensionsTests
 
         var webHostBuilder = new WebHostBuilder()
             .UseTestServer()
-            .ConfigureServices(services =>
-            {
-                services.AddOpenTelemetry()
+            .ConfigureServices(services => services
+                .AddOpenTelemetry()
                     .WithTracing(builder => builder
                         .AddAspNetCoreTraceEnricher<MyAspNetCoreTraceEnricher>()
                         .AddAspNetCoreTraceEnricher<MyAspNetCoreTraceEnricher2>()
                         .AddAspNetCoreInstrumentation()
-                        .AddInMemoryExporter(exportedItems));
-                services.AddRouting();
-            })
+                        .AddInMemoryExporter(exportedItems))
+                    .Services
+                    .AddRouting())
             .Configure(app => app
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGet(UriPattern, context => context.Response.WriteAsync("GetCompleted"))));
@@ -82,16 +81,15 @@ public sealed class OpenTelemetryAspNetCoreEnrichmentExtensionsTests
 
         var webHostBuilder = new WebHostBuilder()
             .UseTestServer()
-            .ConfigureServices(services =>
-            {
-                services.AddOpenTelemetry()
+            .ConfigureServices(services => services
+                .AddOpenTelemetry()
                     .WithTracing(builder => builder
                         .AddAspNetCoreTraceEnricher(new MyAspNetCoreTraceEnricher())
                         .AddAspNetCoreTraceEnricher(new MyAspNetCoreTraceEnricher2())
                         .AddAspNetCoreInstrumentation()
-                        .AddInMemoryExporter(exportedItems));
-                services.AddRouting();
-            })
+                        .AddInMemoryExporter(exportedItems))
+                    .Services
+                    .AddRouting())
             .Configure(app => app
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGet(UriPattern, context => context.Response.WriteAsync("GetCompleted"))));
@@ -122,16 +120,15 @@ public sealed class OpenTelemetryAspNetCoreEnrichmentExtensionsTests
 
         var webHostBuilder = new WebHostBuilder()
             .UseTestServer()
-            .ConfigureServices(services =>
-            {
-                services.AddOpenTelemetry()
+            .ConfigureServices(services => services
+                .AddOpenTelemetry()
                     .WithTracing(builder => builder
                         .AddAspNetCoreTraceEnricher(sp => new MyAspNetCoreTraceEnricher())
                         .AddAspNetCoreTraceEnricher(sp => new MyAspNetCoreTraceEnricher2())
                         .AddAspNetCoreInstrumentation()
-                        .AddInMemoryExporter(exportedItems));
-                services.AddRouting();
-            })
+                        .AddInMemoryExporter(exportedItems))
+                    .Services
+                    .AddRouting())
             .Configure(app => app
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGet(UriPattern, context => context.Response.WriteAsync("GetCompleted"))));
@@ -156,24 +153,66 @@ public sealed class OpenTelemetryAspNetCoreEnrichmentExtensionsTests
     }
 
     [Fact]
+    public async Task TracerProviderBuilderAddAspNetCoreTraceEnricherTEnrichesActivityWithException()
+    {
+        var exportedItems = new List<Activity>();
+
+        var webHostBuilder = new WebHostBuilder()
+            .UseTestServer()
+            .ConfigureServices(services => services
+                .AddOpenTelemetry()
+                    .WithTracing(builder => builder
+                        .AddAspNetCoreTraceEnricher<MyAspNetCoreTraceEnricher>()
+                        .AddAspNetCoreTraceEnricher<MyAspNetCoreTraceEnricher2>()
+                        .AddAspNetCoreInstrumentation()
+                        .AddInMemoryExporter(exportedItems))
+                    .Services
+                    .AddRouting())
+            .Configure(app => app
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGet("/error", context => throw new Exception("CustomException"))));
+
+        using var server = new TestServer(webHostBuilder);
+        using var client = server.CreateClient();
+
+        try
+        {
+            using var response = await client.GetAsync(new Uri("/error", UriKind.Relative)).ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // an exception should be thrown here for the purpose of this test
+        }
+
+        WaitForActivityExport(exportedItems, 1);
+
+        Assert.Single(exportedItems);
+        var tagObjects = exportedItems[0].TagObjects;
+
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher.RequestKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher.ResponseKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher2.RequestKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher2.ResponseKey, 1);
+        AssertTagHasValue(tagObjects, nameof(MyAspNetCoreTraceEnricher), 1);
+        AssertTagHasValue(tagObjects, nameof(MyAspNetCoreTraceEnricher2), 1);
+    }
+
+    [Fact]
     public async Task IServiceCollectionAddAspNetCoreTraceEnricherTEnrichesActivity()
     {
         var exportedItems = new List<Activity>();
 
         var webHostBuilder = new WebHostBuilder()
             .UseTestServer()
-            .ConfigureServices(services =>
-            {
-                services
-                    .AddAspNetCoreTraceEnricher<MyAspNetCoreTraceEnricher>()
-                    .AddAspNetCoreTraceEnricher<MyAspNetCoreTraceEnricher2>()
-                    .AddOpenTelemetry()
+            .ConfigureServices(services => services
+                .AddAspNetCoreTraceEnricher<MyAspNetCoreTraceEnricher>()
+                .AddAspNetCoreTraceEnricher<MyAspNetCoreTraceEnricher2>()
+                .AddOpenTelemetry()
                     .WithTracing(builder => builder
                         .AddAspNetCoreInstrumentation()
                         .AddInMemoryExporter(exportedItems))
                         .Services
-                    .AddRouting();
-            })
+                        .AddRouting())
             .Configure(app => app
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGet(UriPattern, context => context.Response.WriteAsync("GetCompleted"))));
@@ -204,18 +243,15 @@ public sealed class OpenTelemetryAspNetCoreEnrichmentExtensionsTests
 
         var webHostBuilder = new WebHostBuilder()
             .UseTestServer()
-            .ConfigureServices(services =>
-            {
-                services
-                    .AddAspNetCoreTraceEnricher(new MyAspNetCoreTraceEnricher())
-                    .AddAspNetCoreTraceEnricher(new MyAspNetCoreTraceEnricher2())
-                    .AddOpenTelemetry()
+            .ConfigureServices(services => services
+                .AddAspNetCoreTraceEnricher(new MyAspNetCoreTraceEnricher())
+                .AddAspNetCoreTraceEnricher(new MyAspNetCoreTraceEnricher2())
+                .AddOpenTelemetry()
                     .WithTracing(builder => builder
                         .AddAspNetCoreInstrumentation()
                         .AddInMemoryExporter(exportedItems))
                         .Services
-                    .AddRouting();
-            })
+                        .AddRouting())
             .Configure(app => app
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGet(UriPattern, context => context.Response.WriteAsync("GetCompleted"))));
@@ -279,6 +315,51 @@ public sealed class OpenTelemetryAspNetCoreEnrichmentExtensionsTests
         AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher.ResponseKey, 1);
         AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher2.RequestKey, 1);
         AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher2.ResponseKey, 1);
+    }
+
+    [Fact]
+    public async Task IServiceCollectionAddAspNetCoreTraceEnricherTEnrichesActivityWithException()
+    {
+        var exportedItems = new List<Activity>();
+
+        var webHostBuilder = new WebHostBuilder()
+            .UseTestServer()
+            .ConfigureServices(services => services
+                .AddAspNetCoreTraceEnricher<MyAspNetCoreTraceEnricher>()
+                .AddAspNetCoreTraceEnricher<MyAspNetCoreTraceEnricher2>()
+                .AddOpenTelemetry()
+                    .WithTracing(builder => builder
+                        .AddAspNetCoreInstrumentation()
+                        .AddInMemoryExporter(exportedItems))
+                        .Services
+                        .AddRouting())
+            .Configure(app => app
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGet("/error", context => throw new Exception("CustomException"))));
+
+        using var server = new TestServer(webHostBuilder);
+        using var client = server.CreateClient();
+
+        try
+        {
+            using var response = await client.GetAsync(new Uri("/error", UriKind.Relative)).ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // an exception should be thrown here for the purpose of this test
+        }
+
+        WaitForActivityExport(exportedItems, 1);
+
+        Assert.Single(exportedItems);
+        var tagObjects = exportedItems[0].TagObjects;
+
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher.RequestKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher.ResponseKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher2.RequestKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher2.ResponseKey, 1);
+        AssertTagHasValue(tagObjects, nameof(MyAspNetCoreTraceEnricher), 1);
+        AssertTagHasValue(tagObjects, nameof(MyAspNetCoreTraceEnricher2), 1);
     }
 
     private static void WaitForActivityExport(List<Activity> exportedItems, int count)

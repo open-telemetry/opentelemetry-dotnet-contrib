@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using Microsoft.AspNetCore.Http;
 
 namespace OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests;
@@ -27,6 +28,8 @@ internal class MyAspNetCoreTraceEnricher2 : AspNetCoreTraceEnricher
 
     public int TimesCalledWithResponse { get; private set; }
 
+    public int TimesCalledWithException { get; private set; }
+
     public override void EnrichWithHttpRequest(TraceEnrichmentBag enrichmentBag, HttpRequest request)
     {
         enrichmentBag.Add(RequestKey, ++this.TimesCalledWithRequest);
@@ -35,5 +38,10 @@ internal class MyAspNetCoreTraceEnricher2 : AspNetCoreTraceEnricher
     public override void EnrichWithHttpResponse(TraceEnrichmentBag enrichmentBag, HttpResponse response)
     {
         enrichmentBag.Add(ResponseKey, ++this.TimesCalledWithResponse);
+    }
+
+    public override void EnrichWithException(TraceEnrichmentBag enrichmentBag, Exception exception)
+    {
+        enrichmentBag.Add(nameof(MyAspNetCoreTraceEnricher2), ++this.TimesCalledWithException);
     }
 }
