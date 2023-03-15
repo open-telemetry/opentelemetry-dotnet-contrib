@@ -18,6 +18,7 @@ using System.Runtime.CompilerServices;
 
 [assembly: CLSCompliant(false)]
 
+[assembly: InternalsVisibleTo("OpenTelemetry.Exporter.OneCollector.Benchmarks" + AssemblyInfo.PublicKey)]
 [assembly: InternalsVisibleTo("OpenTelemetry.Exporter.OneCollector.Tests" + AssemblyInfo.PublicKey)]
 
 internal static class AssemblyInfo

@@ -51,12 +51,6 @@ public abstract class OneCollectorExporterOptions
     /// </summary>
     internal string? TenantToken { get; private set; }
 
-    /// <summary>
-    /// Gets or sets OneCollector serialization format. Default value: <see
-    /// cref="OneCollectorExporterSerializationFormatType.CommonSchemaV4JsonStream"/>.
-    /// </summary>
-    internal OneCollectorExporterSerializationFormatType SerializationFormat { get; set; } = OneCollectorExporterSerializationFormatType.CommonSchemaV4JsonStream;
-
     internal virtual void Validate()
     {
         if (string.IsNullOrWhiteSpace(this.ConnectionString))
