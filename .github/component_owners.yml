@@ -33,7 +33,7 @@ components:
     - xakep139
   src/OpenTelemetry.Extensions.Enrichment.AspNetCore/:
     - xakep139
-  src/OpenTelemetry.Extensions.PersistentStorage.Abstractions/:
+  src/OpenTelemetry.PersistentStorage.Abstractions/:
     - vishweshbankwar
   src/OpenTelemetry.PersistentStorage.FileSystem/:
     - vishweshbankwar
