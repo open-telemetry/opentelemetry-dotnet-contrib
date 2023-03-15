@@ -24,21 +24,13 @@ namespace OpenTelemetry.Extensions.Enrichment.AspNetCore;
 /// </summary>
 public abstract class AspNetCoreTraceEnricher : BaseAspNetCoreEnricher<TraceEnrichmentBag>
 {
-    /// <summary>
-    /// Enrich trace with desired tags at HTTP request time.
-    /// </summary>
-    /// <param name="enrichmentBag">Bag used to store enrichment tags.</param>
-    /// <param name="request"><see cref="HttpRequest"/> object associated with the incoming HTTP request for the trace.</param>
-    public virtual void EnrichWithHttpRequest(ref TraceEnrichmentBag enrichmentBag, HttpRequest request)
+    /// <inheritdoc/>
+    public override void EnrichWithHttpRequest(TraceEnrichmentBag enrichmentBag, HttpRequest request)
     {
     }
 
-    /// <summary>
-    /// Enrich trace with desired tags at HTTP response time.
-    /// </summary>
-    /// <param name="enrichmentBag">Bag used to store enrichment tags.</param>
-    /// <param name="response"><see cref="HttpResponse"/> object associated with the incoming HTTP request for the trace.</param>
-    public virtual void EnrichWithHttpResponse(ref TraceEnrichmentBag enrichmentBag, HttpResponse response)
+    /// <inheritdoc/>
+    public override void EnrichWithHttpResponse(TraceEnrichmentBag enrichmentBag, HttpResponse response)
     {
     }
 
@@ -47,7 +39,7 @@ public abstract class AspNetCoreTraceEnricher : BaseAspNetCoreEnricher<TraceEnri
     /// </summary>
     /// <param name="enrichmentBag">Bag used to store enrichment tags.</param>
     /// <param name="exception"><see cref="Exception"/> object representing the exception occurred.</param>
-    public virtual void EnrichWithException(ref TraceEnrichmentBag enrichmentBag, Exception exception)
+    public override void EnrichWithException(TraceEnrichmentBag enrichmentBag, Exception exception)
     {
     }
 }
