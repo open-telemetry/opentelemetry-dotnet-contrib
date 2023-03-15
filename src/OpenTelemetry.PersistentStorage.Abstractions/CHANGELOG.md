@@ -12,7 +12,7 @@
 
   * In code update namespaces (eg `using
     OpenTelemetry.Extensions.PersistentStorage.Abstractions` -> `using
-    OpenTelemetry.PersistentStaorage.Abstractions`)
+    OpenTelemetry.PersistentStorage.Abstractions`)
 
 ## 1.0.0-beta.1
 

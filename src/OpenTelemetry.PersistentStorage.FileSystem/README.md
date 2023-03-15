@@ -13,7 +13,7 @@ exporters to improve the reliability of data delivery.
 ## Installation
 
 ```shell
-dotnet add package OpenTelemetry.PersistentStorage.FileSystem
+dotnet add package --prerelease OpenTelemetry.PersistentStorage.FileSystem
 ```
 
 ## Basic Usage
