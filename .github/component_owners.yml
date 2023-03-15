@@ -35,7 +35,7 @@ components:
     - xakep139
   src/OpenTelemetry.Extensions.PersistentStorage.Abstractions/:
     - vishweshbankwar
-  src/OpenTelemetry.Extensions.PersistentStorage/:
+  src/OpenTelemetry.PersistentStorage.FileSystem/:
     - vishweshbankwar
   src/OpenTelemetry.Instrumentation.AWSLambda/:
     - rypdal
@@ -107,6 +107,7 @@ components:
   test/OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests/:
     - xakep139
   test/OpenTelemetry.Extensions.PersistentStorage.Tests/:
+  test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
     - vishweshbankwar
   test/OpenTelemetry.Instrumentation.AWSLambda.Tests/:
     - rypdal
