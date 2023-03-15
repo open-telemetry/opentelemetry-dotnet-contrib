@@ -12,7 +12,7 @@
 
 * Added support for sending common schema `ex` (Exception) extension when
   exception is present on `LogRecord`s.
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#1082](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1082))
 
 ## 0.1.0-alpha.2
 
