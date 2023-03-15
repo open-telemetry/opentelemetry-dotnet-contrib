@@ -32,8 +32,11 @@ namespace OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests;
 
 public sealed class OpenTelemetryAspNetCoreEnrichmentExtensionsTests
 {
+    private const string UriPattern = "/api/values";
+    private readonly Uri uri = new Uri(UriPattern, UriKind.Relative);
+
     [Fact]
-    public async Task TracerProviderBuilderAddAspNetCoreTraceEnricherTRegistersEnricher()
+    public async Task TracerProviderBuilderAddAspNetCoreTraceEnricherTEnrichesActivity()
     {
         var exportedItems = new List<Activity>();
 
@@ -51,13 +54,13 @@ public sealed class OpenTelemetryAspNetCoreEnrichmentExtensionsTests
             })
             .Configure(app => app
                 .UseRouting()
-                .UseEndpoints(endpoints => endpoints.MapGet("/api/values", context => context.Response.WriteAsync("GetCompleted"))));
+                .UseEndpoints(endpoints => endpoints.MapGet(UriPattern, context => context.Response.WriteAsync("GetCompleted"))));
 
         using var server = new TestServer(webHostBuilder);
 
         using var client = server.CreateClient();
         {
-            using var response = await client.GetAsync("/api/values").ConfigureAwait(false);
+            using var response = await client.GetAsync(this.uri).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
             WaitForActivityExport(exportedItems, 1);
@@ -66,21 +69,14 @@ public sealed class OpenTelemetryAspNetCoreEnrichmentExtensionsTests
         Assert.Single(exportedItems);
         var tagObjects = exportedItems[0].TagObjects;
 
-        var tagObject1 = tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher.RequestKey);
-        Assert.Equal(1, tagObject1.Single().Value);
-
-        var tagObject2 = tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher.ResponseKey);
-        Assert.Equal(1, tagObject2.Single().Value);
-
-        var tagObject3 = tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher2.RequestKey);
-        Assert.Equal(1, tagObject3.Single().Value);
-
-        var tagObject4 = tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher2.ResponseKey);
-        Assert.Equal(1, tagObject4.Single().Value);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher.RequestKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher.ResponseKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher2.RequestKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher2.ResponseKey, 1);
     }
 
     [Fact]
-    public async Task TracerProviderBuilderAddAspNetCoreTraceEnricherRegistersEnricher()
+    public async Task TracerProviderBuilderAddAspNetCoreTraceEnricherEnrichesActivity()
     {
         var exportedItems = new List<Activity>();
 
@@ -98,13 +94,13 @@ public sealed class OpenTelemetryAspNetCoreEnrichmentExtensionsTests
             })
             .Configure(app => app
                 .UseRouting()
-                .UseEndpoints(endpoints => endpoints.MapGet("/api/values", context => context.Response.WriteAsync("GetCompleted"))));
+                .UseEndpoints(endpoints => endpoints.MapGet(UriPattern, context => context.Response.WriteAsync("GetCompleted"))));
 
         using var server = new TestServer(webHostBuilder);
 
         using var client = server.CreateClient();
         {
-            using var response = await client.GetAsync("/api/values").ConfigureAwait(false);
+            using var response = await client.GetAsync(this.uri).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
             WaitForActivityExport(exportedItems, 1);
@@ -113,21 +109,54 @@ public sealed class OpenTelemetryAspNetCoreEnrichmentExtensionsTests
         Assert.Single(exportedItems);
         var tagObjects = exportedItems[0].TagObjects;
 
-        var tagObject1 = tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher.RequestKey);
-        Assert.Equal(1, tagObject1.Single().Value);
-
-        var tagObject2 = tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher.ResponseKey);
-        Assert.Equal(1, tagObject2.Single().Value);
-
-        var tagObject3 = tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher2.RequestKey);
-        Assert.Equal(1, tagObject3.Single().Value);
-
-        var tagObject4 = tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher2.ResponseKey);
-        Assert.Equal(1, tagObject4.Single().Value);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher.RequestKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher.ResponseKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher2.RequestKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher2.ResponseKey, 1);
     }
 
     [Fact]
-    public async Task IServiceCollectionAddAspNetCoreTraceEnricherTRegistersEnricher()
+    public async Task TracerProviderBuilderAddAspNetCoreTraceEnricherFactoryEnrichesActivity()
+    {
+        var exportedItems = new List<Activity>();
+
+        var webHostBuilder = new WebHostBuilder()
+            .UseTestServer()
+            .ConfigureServices(services =>
+            {
+                services.AddOpenTelemetry()
+                    .WithTracing(builder => builder
+                        .AddAspNetCoreTraceEnricher(sp => new MyAspNetCoreTraceEnricher())
+                        .AddAspNetCoreTraceEnricher(sp => new MyAspNetCoreTraceEnricher2())
+                        .AddAspNetCoreInstrumentation()
+                        .AddInMemoryExporter(exportedItems));
+                services.AddRouting();
+            })
+            .Configure(app => app
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGet(UriPattern, context => context.Response.WriteAsync("GetCompleted"))));
+
+        using var server = new TestServer(webHostBuilder);
+
+        using var client = server.CreateClient();
+        {
+            using var response = await client.GetAsync(this.uri).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+
+            WaitForActivityExport(exportedItems, 1);
+        }
+
+        Assert.Single(exportedItems);
+        var tagObjects = exportedItems[0].TagObjects;
+
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher.RequestKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher.ResponseKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher2.RequestKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher2.ResponseKey, 1);
+    }
+
+    [Fact]
+    public async Task IServiceCollectionAddAspNetCoreTraceEnricherTEnrichesActivity()
     {
         var exportedItems = new List<Activity>();
 
@@ -147,13 +176,13 @@ public sealed class OpenTelemetryAspNetCoreEnrichmentExtensionsTests
             })
             .Configure(app => app
                 .UseRouting()
-                .UseEndpoints(endpoints => endpoints.MapGet("/api/values", context => context.Response.WriteAsync("GetCompleted"))));
+                .UseEndpoints(endpoints => endpoints.MapGet(UriPattern, context => context.Response.WriteAsync("GetCompleted"))));
 
         using var server = new TestServer(webHostBuilder);
 
         using var client = server.CreateClient();
         {
-            using var response = await client.GetAsync("/api/values").ConfigureAwait(false);
+            using var response = await client.GetAsync(this.uri).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
             WaitForActivityExport(exportedItems, 1);
@@ -162,21 +191,14 @@ public sealed class OpenTelemetryAspNetCoreEnrichmentExtensionsTests
         Assert.Single(exportedItems);
         var tagObjects = exportedItems[0].TagObjects;
 
-        var tagObject1 = tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher.RequestKey);
-        Assert.Equal(1, tagObject1.Single().Value);
-
-        var tagObject2 = tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher.ResponseKey);
-        Assert.Equal(1, tagObject2.Single().Value);
-
-        var tagObject3 = tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher2.RequestKey);
-        Assert.Equal(1, tagObject3.Single().Value);
-
-        var tagObject4 = tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher2.ResponseKey);
-        Assert.Equal(1, tagObject4.Single().Value);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher.RequestKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher.ResponseKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher2.RequestKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher2.ResponseKey, 1);
     }
 
     [Fact]
-    public async Task IServiceCollectionAddAspNetCoreTraceEnricherRegistersEnricher()
+    public async Task IServiceCollectionAddAspNetCoreTraceEnricherEnrichesActivity()
     {
         var exportedItems = new List<Activity>();
 
@@ -196,13 +218,13 @@ public sealed class OpenTelemetryAspNetCoreEnrichmentExtensionsTests
             })
             .Configure(app => app
                 .UseRouting()
-                .UseEndpoints(endpoints => endpoints.MapGet("/api/values", context => context.Response.WriteAsync("GetCompleted"))));
+                .UseEndpoints(endpoints => endpoints.MapGet(UriPattern, context => context.Response.WriteAsync("GetCompleted"))));
 
         using var server = new TestServer(webHostBuilder);
 
         using var client = server.CreateClient();
         {
-            using var response = await client.GetAsync("/api/values").ConfigureAwait(false);
+            using var response = await client.GetAsync(this.uri).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
             WaitForActivityExport(exportedItems, 1);
@@ -211,17 +233,52 @@ public sealed class OpenTelemetryAspNetCoreEnrichmentExtensionsTests
         Assert.Single(exportedItems);
         var tagObjects = exportedItems[0].TagObjects;
 
-        var tagObject1 = tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher.RequestKey);
-        Assert.Equal(1, tagObject1.Single().Value);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher.RequestKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher.ResponseKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher2.RequestKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher2.ResponseKey, 1);
+    }
 
-        var tagObject2 = tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher.ResponseKey);
-        Assert.Equal(1, tagObject2.Single().Value);
+    [Fact]
+    public async Task IServiceCollectionAddAspNetCoreTraceEnricherFactoryEnrichesActivity()
+    {
+        var exportedItems = new List<Activity>();
 
-        var tagObject3 = tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher2.RequestKey);
-        Assert.Equal(1, tagObject3.Single().Value);
+        var webHostBuilder = new WebHostBuilder()
+            .UseTestServer()
+            .ConfigureServices(services =>
+            {
+                services
+                    .AddAspNetCoreTraceEnricher(sp => new MyAspNetCoreTraceEnricher())
+                    .AddAspNetCoreTraceEnricher(sp => new MyAspNetCoreTraceEnricher2())
+                    .AddOpenTelemetry()
+                    .WithTracing(builder => builder
+                        .AddAspNetCoreInstrumentation()
+                        .AddInMemoryExporter(exportedItems))
+                        .Services
+                    .AddRouting();
+            })
+            .Configure(app => app
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGet(UriPattern, context => context.Response.WriteAsync("GetCompleted"))));
 
-        var tagObject4 = tagObjects.Where(tag => tag.Key == MyAspNetCoreTraceEnricher2.ResponseKey);
-        Assert.Equal(1, tagObject4.Single().Value);
+        using var server = new TestServer(webHostBuilder);
+
+        using var client = server.CreateClient();
+        {
+            using var response = await client.GetAsync(this.uri).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+
+            WaitForActivityExport(exportedItems, 1);
+        }
+
+        Assert.Single(exportedItems);
+        var tagObjects = exportedItems[0].TagObjects;
+
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher.RequestKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher.ResponseKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher2.RequestKey, 1);
+        AssertTagHasValue(tagObjects, MyAspNetCoreTraceEnricher2.ResponseKey, 1);
     }
 
     private static void WaitForActivityExport(List<Activity> exportedItems, int count)
@@ -236,5 +293,11 @@ public sealed class OpenTelemetryAspNetCoreEnrichmentExtensionsTests
                 return exportedItems.Count >= count;
             },
             TimeSpan.FromSeconds(1)));
+    }
+
+    private static void AssertTagHasValue(IEnumerable<KeyValuePair<string, object>> tagObjects, string key, object value)
+    {
+        var tagObject = tagObjects.Where(tag => tag.Key == key);
+        Assert.Equal(value, tagObject.Single().Value);
     }
 }
