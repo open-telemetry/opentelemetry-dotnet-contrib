@@ -1,10 +1,10 @@
 ---
-name: OpenTelemetry.Extensions.PersistentStorage.Abstractions
-about: Issue with OpenTelemetry.Extensions.PersistentStorage.Abstractions
-labels: comp:extensions.persistentstorage.abstractions
+name: OpenTelemetry.PersistentStorage.Abstractions
+about: Issue with OpenTelemetry.PersistentStorage.Abstractions
+labels: comp:persistentstorage.abstractions
 ---
 
-# Issue with OpenTelemetry.Extensions.PersistentStorage.Abstractions
+# Issue with OpenTelemetry.PersistentStorage.Abstractions
 
 List of [all OpenTelemetry NuGet
 packages](https://www.nuget.org/profiles/OpenTelemetry) and version that you are
