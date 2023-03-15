@@ -106,7 +106,6 @@ components:
     - xakep139
   test/OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests/:
     - xakep139
-  test/OpenTelemetry.Extensions.PersistentStorage.Tests/:
   test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
     - vishweshbankwar
   test/OpenTelemetry.Instrumentation.AWSLambda.Tests/:
