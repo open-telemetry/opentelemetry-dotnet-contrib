@@ -31,14 +31,14 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
     private readonly Uri endpoint;
     private readonly string instrumentationKey;
     private readonly OneCollectorExporterHttpTransportCompressionType compressionType;
-    private readonly HttpClient httpClient;
+    private readonly IHttpClient httpClient;
     private MemoryStream? buffer;
 
     public HttpJsonPostTransport(
         string instrumentationKey,
         Uri endpoint,
         OneCollectorExporterHttpTransportCompressionType compressionType,
-        HttpClient httpClient)
+        IHttpClient httpClient)
     {
         Debug.Assert(!string.IsNullOrWhiteSpace(instrumentationKey), "instrumentationKey was null or whitespace");
         Debug.Assert(endpoint != null, "endpoint was null");
@@ -104,11 +104,7 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
                 request.Headers.TryAddWithoutValidation("NoResponseBody", "true");
             }
 
-#if NET6_0_OR_GREATER
             using var response = this.httpClient.Send(request, CancellationToken.None);
-#else
-            using var response = this.httpClient.SendAsync(request, CancellationToken.None).GetAwaiter().GetResult();
-#endif
 
             try
             {

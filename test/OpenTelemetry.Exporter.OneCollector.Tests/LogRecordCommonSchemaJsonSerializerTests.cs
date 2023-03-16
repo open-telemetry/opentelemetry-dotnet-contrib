@@ -186,6 +186,28 @@ public class LogRecordCommonSchemaJsonSerializerTests
             json);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void LogRecordExceptionJsonTest(bool includeStackTraceAsString)
+    {
+        string json = GetLogRecordJson(
+            1,
+            (index, logRecord) =>
+            {
+                logRecord.Exception = new InvalidOperationException();
+            },
+            includeStackTraceAsString: includeStackTraceAsString);
+
+        var stackJson = includeStackTraceAsString
+            ? $",\"stack\":\"System.InvalidOperationException: Operation is not valid due to the current state of the object.\""
+            : string.Empty;
+
+        Assert.Equal(
+            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1}},\"ext\":{{\"ex\":{{\"type\":\"System.InvalidOperationException\",\"msg\":\"Operation is not valid due to the current state of the object.\"{stackJson}}}}}}}\n",
+            json);
+    }
+
     [Fact]
     public void LogRecordExtensionsJsonTest()
     {
@@ -217,11 +239,13 @@ public class LogRecordCommonSchemaJsonSerializerTests
         int numberOfLogRecords,
         Action<int, LogRecord> writeLogRecordCallback,
         Resource? resource = null,
-        ScopeProvider? scopeProvider = null)
+        ScopeProvider? scopeProvider = null,
+        bool includeStackTraceAsString = false)
     {
         var serializer = new LogRecordCommonSchemaJsonSerializer(
             new("Namespace", "Name"),
-            "tenant-token");
+            "tenant-token",
+            exceptionStackTraceHandling: includeStackTraceAsString ? OneCollectorExporterSerializationExceptionStackTraceHandlingType.IncludeAsString : OneCollectorExporterSerializationExceptionStackTraceHandlingType.Ignore);
 
         using var stream = new MemoryStream();
 

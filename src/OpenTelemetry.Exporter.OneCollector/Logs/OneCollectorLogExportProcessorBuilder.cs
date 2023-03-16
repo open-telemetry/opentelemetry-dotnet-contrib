@@ -82,6 +82,26 @@ public sealed class OneCollectorLogExportProcessorBuilder
     }
 
     /// <summary>
+    /// Register a callback action for configuring the serialization options
+    /// used by the <see cref="OneCollectorExporter{T}"/> created by the
+    /// builder.
+    /// </summary>
+    /// <param name="configure">Callback action for configuring <see
+    /// cref="OneCollectorLogExporterSerializationOptions"/>.</param>
+    /// <returns>The supplied <see
+    /// cref="OneCollectorLogExportProcessorBuilder"/> for call
+    /// chaining.</returns>
+    public OneCollectorLogExportProcessorBuilder ConfigureSerializationOptions(
+        Action<OneCollectorLogExporterSerializationOptions> configure)
+    {
+        Guard.ThrowIfNull(configure);
+
+        configure(this.exporterOptions.SerializationOptions);
+
+        return this;
+    }
+
+    /// <summary>
     /// Register a callback action for configuring the transport options used by
     /// the <see cref="OneCollectorExporter{T}"/> created by the builder.
     /// </summary>
@@ -208,18 +228,21 @@ public sealed class OneCollectorLogExportProcessorBuilder
 
         var transportOptions = this.exporterOptions.TransportOptions;
 
+        var httpClient = (this.httpClientFactory ?? DefaultHttpClientFactory)() ?? throw new NotSupportedException("HttpClientFactory cannot return a null instance.");
+
 #pragma warning disable CA2000 // Dispose objects before losing scope
         return new WriteDirectlyToTransportSink<LogRecord>(
             new LogRecordCommonSchemaJsonSerializer(
                 new EventNameManager(this.exporterOptions.DefaultEventNamespace, this.exporterOptions.DefaultEventName),
                 this.exporterOptions.TenantToken!,
+                this.exporterOptions.SerializationOptions.ExceptionStackTraceHandling,
                 transportOptions.MaxPayloadSizeInBytes == -1 ? int.MaxValue : transportOptions.MaxPayloadSizeInBytes,
                 transportOptions.MaxNumberOfItemsPerPayload == -1 ? int.MaxValue : transportOptions.MaxNumberOfItemsPerPayload),
             new HttpJsonPostTransport(
                 this.exporterOptions.InstrumentationKey!,
                 transportOptions.Endpoint,
                 transportOptions.HttpCompression,
-                (this.httpClientFactory ?? DefaultHttpClientFactory)() ?? throw new NotSupportedException("HttpClientFactory cannot return a null instance.")));
+                new HttpClientWrapper(httpClient)));
 #pragma warning restore CA2000 // Dispose objects before losing scope
     }
 }
