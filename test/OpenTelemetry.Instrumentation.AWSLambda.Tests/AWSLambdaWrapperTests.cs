@@ -69,7 +69,7 @@ public class AWSLambdaWrapperTests
         Assert.Equal(6, processor.Invocations.Count);
 
         var activity = (Activity)processor.Invocations[1].Arguments[0];
-        this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
+        this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : default);
         this.AssertSpanAttributes(activity);
     }
 
@@ -95,7 +95,7 @@ public class AWSLambdaWrapperTests
         Assert.Equal(6, processor.Invocations.Count);
 
         var activity = (Activity)processor.Invocations[1].Arguments[0];
-        this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
+        this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : default);
         this.AssertSpanAttributes(activity);
     }
 
@@ -121,7 +121,7 @@ public class AWSLambdaWrapperTests
         Assert.Equal(6, processor.Invocations.Count);
 
         var activity = (Activity)processor.Invocations[1].Arguments[0];
-        this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
+        this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : default);
         this.AssertSpanAttributes(activity);
     }
 
@@ -147,7 +147,7 @@ public class AWSLambdaWrapperTests
         Assert.Equal(6, processor.Invocations.Count);
 
         var activity = (Activity)processor.Invocations[1].Arguments[0];
-        this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
+        this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : default);
         this.AssertSpanAttributes(activity);
     }
 
@@ -179,7 +179,7 @@ public class AWSLambdaWrapperTests
         Assert.Equal(6, processor.Invocations.Count);
 
         var activity = (Activity)processor.Invocations[1].Arguments[0];
-        this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
+        this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : default);
         this.AssertSpanAttributes(activity);
         this.AssertSpanException(activity);
     }
@@ -187,7 +187,10 @@ public class AWSLambdaWrapperTests
     [Fact]
     public void TestLambdaHandlerNotSampled()
     {
-        Environment.SetEnvironmentVariable("_X_AMZN_TRACE_ID", "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=0");
+        var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
+        var parentId = ActivitySpanId.CreateFromString(CustomParentId.AsSpan());
+        var parentContext = new ActivityContext(traceId, parentId, ActivityTraceFlags.None);
+
 
         var processor = new Mock<BaseProcessor<Activity>>();
 
@@ -196,7 +199,7 @@ public class AWSLambdaWrapperTests
                    .AddProcessor(processor.Object)
                    .Build())
         {
-            var result = AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncInputAndReturn, "TestStream", this.sampleLambdaContext);
+            var result = AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncInputAndReturn, "TestStream", this.sampleLambdaContext, parentContext);
             var resource = tracerProvider.GetResource();
             this.AssertResourceAttributes(resource);
         }
@@ -249,12 +252,18 @@ public class AWSLambdaWrapperTests
 
     private void AssertSpanProperties(Activity activity, string parentId)
     {
-        Assert.Equal(TraceId, activity.TraceId.ToHexString());
-        Assert.Equal(parentId, activity.ParentSpanId.ToHexString());
+        if (parentId != default)
+        {
+            Assert.Equal(TraceId, activity.TraceId.ToHexString());
+            Assert.Equal(parentId, activity.ParentSpanId.ToHexString());
+        }
+
         Assert.Equal(ActivityTraceFlags.Recorded, activity.ActivityTraceFlags);
         Assert.Equal(ActivityKind.Server, activity.Kind);
         Assert.Equal("testfunction", activity.DisplayName);
         Assert.Equal("OpenTelemetry.Instrumentation.AWSLambda", activity.Source.Name);
+
+        Assert.Equal(XRayParentId, activity.Links.First().Context.SpanId.ToHexString());
 
         // Version should consist of four decimals separated by dots.
         Assert.Matches(@"^\d+(\.\d+){3}$", activity.Source.Version);

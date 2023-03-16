@@ -15,12 +15,14 @@
 // </copyright>
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
+using Newtonsoft.Json.Linq;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
@@ -173,10 +175,6 @@ public static class AWSLambdaWrapper
         if (parentContext == default)
         {
             parentContext = AWSLambdaUtils.ExtractParentContext(input);
-            if (parentContext == default && !DisableAwsXRayContextExtraction)
-            {
-                parentContext = AWSLambdaUtils.GetXRayParentContext();
-            }
         }
 
         var functionTags = AWSLambdaUtils.GetFunctionTags(input, context);
@@ -184,8 +182,24 @@ public static class AWSLambdaWrapper
 
         // We assume that functionTags and httpTags have no intersection.
         var activityName = AWSLambdaUtils.GetFunctionName(context) ?? "AWS Lambda Invoke";
-        var activity = AWSLambdaActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext, functionTags.Concat(httpTags));
+        var links = Enumerable.Empty<ActivityLink>();
+        if (!DisableAwsXRayContextExtraction)
+        {
+            var xrayContext = AWSLambdaUtils.GetXRayContext();
+            if (xrayContext != null)
+            {
+                var tags = new ActivityTagsCollection();
+                tags.Add("source", "x-ray-env");
+                links = Enumerable.Repeat(new ActivityLink(xrayContext, tags), 1);
+            }
+        }
 
+        var activity = AWSLambdaActivitySource.StartActivity(
+            name: activityName,
+            kind: ActivityKind.Server,
+            parentContext: parentContext,
+            tags: functionTags.Concat(httpTags),
+            links: links);
         return activity;
     }
 

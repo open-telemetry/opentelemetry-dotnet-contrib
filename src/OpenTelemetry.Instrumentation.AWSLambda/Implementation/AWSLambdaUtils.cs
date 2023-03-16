@@ -47,7 +47,7 @@ internal static class AWSLambdaUtils
         return Array.Empty<string>();
     };
 
-    internal static ActivityContext GetXRayParentContext()
+    internal static ActivityContext GetXRayContext()
     {
         // Currently get trace header from Lambda runtime environment variable
         // https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html#configuration-envvars-runtime
