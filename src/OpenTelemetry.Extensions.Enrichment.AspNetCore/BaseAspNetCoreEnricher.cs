@@ -37,7 +37,7 @@ public abstract class BaseAspNetCoreEnricher<T>
     /// </summary>
     /// <param name="enrichmentBag">Bag used to store enrichment tags.</param>
     /// <param name="request"><see cref="HttpRequest"/> object associated with the incoming HTTP request for the trace.</param>
-    public virtual void EnrichWithHttpRequest(T enrichmentBag, HttpRequest request)
+    public virtual void EnrichWithHttpRequest(ref T enrichmentBag, HttpRequest request)
     {
     }
 
@@ -46,7 +46,7 @@ public abstract class BaseAspNetCoreEnricher<T>
     /// </summary>
     /// <param name="enrichmentBag">Bag used to store enrichment tags.</param>
     /// <param name="response"><see cref="HttpResponse"/> object associated with the incoming HTTP request for the trace.</param>
-    public virtual void EnrichWithHttpResponse(T enrichmentBag, HttpResponse response)
+    public virtual void EnrichWithHttpResponse(ref T enrichmentBag, HttpResponse response)
     {
     }
 
@@ -55,7 +55,7 @@ public abstract class BaseAspNetCoreEnricher<T>
     /// </summary>
     /// <param name="enrichmentBag">Bag used to store enrichment tags.</param>
     /// <param name="exception"><see cref="Exception"/> object representing the exception occurred.</param>
-    public virtual void EnrichWithException(T enrichmentBag, Exception exception)
+    public virtual void EnrichWithException(ref T enrichmentBag, Exception exception)
     {
     }
 }

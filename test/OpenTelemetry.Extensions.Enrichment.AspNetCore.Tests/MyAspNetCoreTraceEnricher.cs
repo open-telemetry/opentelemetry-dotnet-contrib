@@ -30,17 +30,17 @@ internal class MyAspNetCoreTraceEnricher : AspNetCoreTraceEnricher
 
     public int TimesCalledWithException { get; private set; }
 
-    public override void EnrichWithHttpRequest(TraceEnrichmentBag enrichmentBag, HttpRequest request)
+    public override void EnrichWithHttpRequest(ref TraceEnrichmentBag enrichmentBag, HttpRequest request)
     {
         enrichmentBag.Add(RequestKey, ++this.TimesCalledWithRequest);
     }
 
-    public override void EnrichWithHttpResponse(TraceEnrichmentBag enrichmentBag, HttpResponse response)
+    public override void EnrichWithHttpResponse(ref TraceEnrichmentBag enrichmentBag, HttpResponse response)
     {
         enrichmentBag.Add(ResponseKey, ++this.TimesCalledWithResponse);
     }
 
-    public override void EnrichWithException(TraceEnrichmentBag enrichmentBag, Exception exception)
+    public override void EnrichWithException(ref TraceEnrichmentBag enrichmentBag, Exception exception)
     {
         enrichmentBag.Add(nameof(MyAspNetCoreTraceEnricher), ++this.TimesCalledWithException);
     }

@@ -39,7 +39,7 @@ internal sealed class AspNetCoreTraceEnrichmentProcessor
 
         foreach (var enricher in this.enrichers)
         {
-            enricher.EnrichWithHttpRequest(propertyBag, request);
+            enricher.EnrichWithHttpRequest(ref propertyBag, request);
         }
     }
 
@@ -49,7 +49,7 @@ internal sealed class AspNetCoreTraceEnrichmentProcessor
 
         foreach (var enricher in this.enrichers)
         {
-            enricher.EnrichWithHttpResponse(propertyBag, response);
+            enricher.EnrichWithHttpResponse(ref propertyBag, response);
         }
     }
 
@@ -59,7 +59,7 @@ internal sealed class AspNetCoreTraceEnrichmentProcessor
 
         foreach (var enricher in this.enrichers)
         {
-            enricher.EnrichWithException(propertyBag, exception);
+            enricher.EnrichWithException(ref propertyBag, exception);
         }
     }
 }
