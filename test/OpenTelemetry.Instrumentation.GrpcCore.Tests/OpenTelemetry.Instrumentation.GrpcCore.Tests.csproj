@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
+    <NoWarn>$(NoWarn),CS8981</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="$(CoverletCollectorPkgVer)" />
