@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -184,9 +185,9 @@ public class FileBlobTests
     [Fact]
     public void FileBlobTests_FailedWrite()
     {
-        var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-        FileBlob blob = new FileBlob(testFile.FullName);
+        var nonExistingPath = Path.Combine("FakePath:/", Path.GetRandomFileName());
+        FileBlob blob = new FileBlob(nonExistingPath);
 
-        Assert.False(blob.TryWrite(null));
+        Assert.False(blob.TryWrite(Array.Empty<byte>()));
     }
 }

@@ -137,28 +137,28 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
         }
     }
 
-    protected override bool OnTryCreateBlob(byte[] buffer, int leasePeriodMilliseconds, [NotNullWhen(true)] out PersistentBlob blob)
+    protected override bool OnTryCreateBlob(byte[] buffer, int leasePeriodMilliseconds, [NotNullWhen(true)] out PersistentBlob? blob)
     {
         blob = this.CreateFileBlob(buffer, leasePeriodMilliseconds);
 
         return blob != null;
     }
 
-    protected override bool OnTryCreateBlob(byte[] buffer, [NotNullWhen(true)] out PersistentBlob blob)
+    protected override bool OnTryCreateBlob(byte[] buffer, [NotNullWhen(true)] out PersistentBlob? blob)
     {
         blob = this.CreateFileBlob(buffer);
 
         return blob != null;
     }
 
-    protected override bool OnTryGetBlob([NotNullWhen(true)] out PersistentBlob blob)
+    protected override bool OnTryGetBlob([NotNullWhen(true)] out PersistentBlob? blob)
     {
         blob = this.OnGetBlobs().FirstOrDefault();
 
         return blob != null;
     }
 
-    private void OnMaintenanceEvent(object source, ElapsedEventArgs e)
+    private void OnMaintenanceEvent(object? source, ElapsedEventArgs e)
     {
         try
         {
@@ -191,7 +191,7 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
         return true;
     }
 
-    private PersistentBlob CreateFileBlob(byte[] buffer, int leasePeriodMilliseconds = 0)
+    private PersistentBlob? CreateFileBlob(byte[] buffer, int leasePeriodMilliseconds = 0)
     {
         if (!this.CheckStorageSize())
         {

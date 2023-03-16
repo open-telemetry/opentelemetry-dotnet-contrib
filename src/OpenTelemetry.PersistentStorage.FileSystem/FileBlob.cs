@@ -40,7 +40,7 @@ public class FileBlob : PersistentBlob
 
     public string FullPath { get; private set; }
 
-    protected override bool OnTryRead([NotNullWhen(true)] out byte[] buffer)
+    protected override bool OnTryRead([NotNullWhen(true)] out byte[]? buffer)
     {
         try
         {

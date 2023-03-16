@@ -67,12 +67,6 @@ public class FileBlobProviderTests
     }
 
     [Fact]
-    public void FileBlobProvider_PathIsRequired()
-    {
-        Assert.Throws<ArgumentNullException>(() => new FileBlobProvider(null));
-    }
-
-    [Fact]
     public void FileBlobProvider_TestRetentionPeriod()
     {
         var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
