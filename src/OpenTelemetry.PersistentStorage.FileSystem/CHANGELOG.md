@@ -1,6 +1,6 @@
 # Changelog - OpenTelemetry.PersistentStorage.FileSystem
 
-## 1.0.0-beta.1 (Unreleased)
+## 1.0.0-beta.2 (Unreleased)
 
 * Going forward the NuGet package will be
   [`OpenTelemetry.PersistentStorage.FileSystem`](https://www.nuget.org/packages/OpenTelemetry.Extensions.FileSystem).
@@ -10,7 +10,7 @@
 
   Migration:
 
-  * In code update namespaces (eg `using
+  * In code update namespaces (e.g. `using
     OpenTelemetry.Extensions.PersistentStorage` -> `using
     OpenTelemetry.Extensions.FileSystem`)
 
