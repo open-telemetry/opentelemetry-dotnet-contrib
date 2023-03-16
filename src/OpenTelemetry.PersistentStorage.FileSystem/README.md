@@ -2,18 +2,18 @@
 
 // TODO: Update Readme
 
-[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Extensions.PersistentStorage.svg)](https://www.nuget.org/packages/OpenTelemetry.Extensions.PersistentStorage)
-[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Extensions.PersistentStorage.svg)](https://www.nuget.org/packages/OpenTelemetry.Extensions.PersistentStorage)
+[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.PersistentStorage.FileSystem.svg)](https://www.nuget.org/packages/OpenTelemetry.PersistentStorage.FileSystem)
+[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.PersistentStorage.FileSystem.svg)](https://www.nuget.org/packages/OpenTelemetry.PersistentStorage.FileSystem)
 
 This package provides an implementation of
-[persistent-storage-abstractions](../OpenTelemetry.Extensions.PersistentStorage.Abstractions/README.md#Persistent-Storage-Abstractions)
+[persistent-storage-abstractions](../OpenTelemetry.PersistentStorage.Abstractions/README.md#Persistent-Storage-Abstractions)
 based on local file system. This component can be used by OpenTelemetry
 exporters to improve the reliability of data delivery.
 
 ## Installation
 
 ```shell
-dotnet add package OpenTelemetry.Extensions.PersistentStorage
+dotnet add package --prerelease OpenTelemetry.PersistentStorage.FileSystem
 ```
 
 ## Basic Usage
