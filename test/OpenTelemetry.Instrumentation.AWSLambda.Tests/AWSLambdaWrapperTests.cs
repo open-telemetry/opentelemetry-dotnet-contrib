@@ -191,7 +191,6 @@ public class AWSLambdaWrapperTests
         var parentId = ActivitySpanId.CreateFromString(CustomParentId.AsSpan());
         var parentContext = new ActivityContext(traceId, parentId, ActivityTraceFlags.None);
 
-
         var processor = new Mock<BaseProcessor<Activity>>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
