@@ -15,14 +15,12 @@
 // </copyright>
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
-using Newtonsoft.Json.Linq;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
