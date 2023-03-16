@@ -24,7 +24,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="$(MicrosoftPublicApiAnalyzersPkgVer)" Condition=" $(OS) == 'Windows_NT' and '$(EnablePublicApi)'!='false'" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="$(MicrosoftPublicApiAnalyzersPkgVer)" Condition="'$(EnablePublicApi)'!='false'" PrivateAssets="All" />
   </ItemGroup>
 
   <Target Name="AssemblyVersionTarget" AfterTargets="MinVer" Condition="'$(MinVerVersion)'!=''">
