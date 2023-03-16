@@ -25,6 +25,9 @@ internal static class Program
     {
         if (Debugger.IsAttached)
         {
+            // Note: This block is so you can start the project with debugger
+            // attached and step through the code. It is helpful when working on
+            // it.
             var benchmarks = new LogRecordCommonSchemaJsonHttpPostBenchmarks
             {
                 NumberOfBatches = 10_000,
