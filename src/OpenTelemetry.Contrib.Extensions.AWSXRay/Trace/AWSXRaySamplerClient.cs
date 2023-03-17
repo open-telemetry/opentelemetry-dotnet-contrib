@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -48,12 +47,18 @@ internal class AWSXRaySamplerClient : IDisposable
 
         try
         {
-            var getSamplingRulesResponse = JsonConvert.DeserializeObject<GetSamplingRulesResponse>(responseJson);
-            if (getSamplingRulesResponse != null)
+            GetSamplingRulesResponse? getSamplingRulesResponse = JsonConvert.DeserializeObject<GetSamplingRulesResponse>(responseJson);
+            if (getSamplingRulesResponse is not null)
             {
-                foreach (var samplingRuleRecord in getSamplingRulesResponse.SamplingRuleRecords)
+                if (getSamplingRulesResponse.SamplingRuleRecords is not null)
                 {
-                    samplingRules.Add(samplingRuleRecord.SamplingRule);
+                    foreach (var samplingRuleRecord in getSamplingRulesResponse.SamplingRuleRecords)
+                    {
+                        if (samplingRuleRecord.SamplingRule is not null)
+                        {
+                            samplingRules.Add(samplingRuleRecord.SamplingRule);
+                        }
+                    }
                 }
 
                 // TODO: this line here is only for testing. Remove in next more complete iterations.
@@ -62,7 +67,13 @@ internal class AWSXRaySamplerClient : IDisposable
         }
         catch (Exception ex)
         {
-            AWSXRayEventSource.Log.FailedToDeserializeResponse(nameof(AWSXRaySamplerClient.GetSamplingRules), ex.Message);
+            AWSXRayEventSource.Log.FailedToDeserializeResponse(
+                nameof(AWSXRaySamplerClient.GetSamplingRules),
+                ex.Message);
+        }
+        finally
+        {
+            request.Dispose();
         }
 
         return samplingRules;

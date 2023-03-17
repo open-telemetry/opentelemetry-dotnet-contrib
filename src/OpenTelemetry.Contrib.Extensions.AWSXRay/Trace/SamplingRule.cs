@@ -85,7 +85,7 @@ internal class SamplingRule : IComparable<SamplingRule>
         int result = this.Priority.CompareTo(other.Priority);
         if (result == 0)
         {
-            result = this.RuleName.CompareTo(other.RuleName);
+            result = string.Compare(this.RuleName, other.RuleName, StringComparison.Ordinal);
         }
 
         return result;

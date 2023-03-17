@@ -25,14 +25,6 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
 /// </summary>
 public sealed class AWSXRayRemoteSampler : Sampler, IDisposable
 {
-    internal TimeSpan PollingInterval { get; }
-
-    internal string Endpoint { get; }
-
-    internal AWSXRaySamplerClient Client { get; }
-
-    internal Timer RulePollerTimer { get; }
-
     internal AWSXRayRemoteSampler(TimeSpan pollingInterval, string endpoint)
     {
         this.PollingInterval = pollingInterval;
@@ -42,6 +34,14 @@ public sealed class AWSXRayRemoteSampler : Sampler, IDisposable
         // execute the first update right away
         this.RulePollerTimer = new Timer(this.GetAndUpdateSampler, null, 0, Convert.ToInt32(pollingInterval.TotalMilliseconds));
     }
+
+    internal TimeSpan PollingInterval { get; }
+
+    internal string Endpoint { get; }
+
+    internal AWSXRaySamplerClient Client { get; }
+
+    internal Timer RulePollerTimer { get; }
 
     /// <summary>
     /// Initializes a <see cref="AWSXRayRemoteSamplerBuilder"/> for the sampler.
@@ -66,7 +66,7 @@ public sealed class AWSXRayRemoteSampler : Sampler, IDisposable
         this.Client.Dispose();
     }
 
-    private async void GetAndUpdateSampler(Object state)
+    private async void GetAndUpdateSampler(object state)
     {
         await this.Client.GetSamplingRules().ConfigureAwait(false);
 

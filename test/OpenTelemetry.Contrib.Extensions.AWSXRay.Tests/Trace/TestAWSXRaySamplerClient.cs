@@ -38,7 +38,7 @@ public class TestAWSXRaySamplerClient : IDisposable
     [Fact]
     public void TestGetSamplingRules()
     {
-        this.CreateResponse("/GetSamplingRule", "Trace/Data/GetSamplingRuleResponse.json");
+        this.CreateResponse("/GetSamplingRules", "Trace/Data/GetSamplingRulesResponse.json");
 
         var responseTask = this.client.GetSamplingRules();
         responseTask.Wait();
