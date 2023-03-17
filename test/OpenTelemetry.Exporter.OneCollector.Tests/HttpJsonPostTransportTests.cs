@@ -39,7 +39,7 @@ public class HttpJsonPostTransportTests
                     "instrumentation-key",
                     requestUri,
                     OneCollectorExporterHttpTransportCompressionType.None,
-                    httpClient);
+                    new HttpClientWrapper(httpClient));
             },
             (req, body) =>
             {
@@ -64,7 +64,7 @@ public class HttpJsonPostTransportTests
                     "instrumentation-key",
                     requestUri,
                     OneCollectorExporterHttpTransportCompressionType.Deflate,
-                    httpClient);
+                    new HttpClientWrapper(httpClient));
             },
             (req, body) =>
             {
@@ -112,7 +112,7 @@ public class HttpJsonPostTransportTests
                     "instrumentation-key",
                     requestUri,
                     OneCollectorExporterHttpTransportCompressionType.None,
-                    httpClient);
+                    new HttpClientWrapper(httpClient));
 
                 return transport;
             },
