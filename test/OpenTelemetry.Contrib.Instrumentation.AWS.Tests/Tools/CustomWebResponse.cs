@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using Amazon.Runtime.Internal.Transform;
 
 namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests;
@@ -93,7 +92,7 @@ internal class CustomWebResponse : IWebResponseData
         foreach (KeyValuePair<string, IEnumerable<string>> kvp in response.Headers)
         {
             headerNames.Add(kvp.Key);
-            var headerValue = this.GetFirstHeaderValue(response.Headers, kvp.Key);
+            var headerValue = kvp.Value.First();
             this.headers.Add(kvp.Key, headerValue);
         }
 
@@ -104,7 +103,7 @@ internal class CustomWebResponse : IWebResponseData
                 if (!headerNames.Contains(kvp.Key))
                 {
                     headerNames.Add(kvp.Key);
-                    var headerValue = this.GetFirstHeaderValue(response.Content.Headers, kvp.Key);
+                    var headerValue = kvp.Value.First();
                     this.headers.Add(kvp.Key, headerValue);
                 }
             }
@@ -112,16 +111,5 @@ internal class CustomWebResponse : IWebResponseData
 
         this.headerNames = headerNames.ToArray();
         this.headerNamesSet = new HashSet<string>(this.headerNames, StringComparer.OrdinalIgnoreCase);
-    }
-
-    private string GetFirstHeaderValue(HttpHeaders headers, string key)
-    {
-        IEnumerable<string>? headerValues = null;
-        if (headers.TryGetValues(key, out headerValues))
-        {
-            return headerValues.FirstOrDefault();
-        }
-
-        return string.Empty;
     }
 }

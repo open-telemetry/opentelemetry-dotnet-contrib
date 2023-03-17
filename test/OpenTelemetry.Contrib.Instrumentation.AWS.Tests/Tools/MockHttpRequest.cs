@@ -202,7 +202,7 @@ internal class MockHttpRequest : IHttpRequest<HttpContent>
         this.IsGetRequestContentCalled = true;
         try
         {
-            return new HttpRequestMessage().Content;
+            return new StringContent(string.Empty);
         }
         catch (AggregateException e)
         {
@@ -212,7 +212,7 @@ internal class MockHttpRequest : IHttpRequest<HttpContent>
 
     public Task<HttpContent> GetRequestContentAsync()
     {
-        return Task.FromResult(new HttpRequestMessage().Content);
+        return Task.FromResult<HttpContent>(new StringContent(string.Empty));
     }
 
     public IWebResponseData GetResponse()
