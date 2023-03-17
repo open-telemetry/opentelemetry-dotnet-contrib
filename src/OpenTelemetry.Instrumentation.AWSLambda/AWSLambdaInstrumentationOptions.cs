@@ -25,9 +25,4 @@ public class AWSLambdaInstrumentationOptions
     /// Gets or sets a value indicating whether AWS X-Ray context extraction should be disabled.
     /// </summary>
     public bool DisableAwsXRayContextExtraction { get; set; }
-
-    /// <summary>
-    /// Gets or sets a value for overriding OpenTelemetry service name if different than Lambda function name.
-    /// </summary>
-    public string ServiceNameOverride { get; set; }
 }

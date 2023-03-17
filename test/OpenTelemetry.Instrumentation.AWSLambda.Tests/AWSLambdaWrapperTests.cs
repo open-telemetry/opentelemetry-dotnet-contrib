@@ -240,27 +240,6 @@ public class AWSLambdaWrapperTests
         Assert.NotNull(activity);
     }
 
-    [Fact]
-    public void AddAWSLambdaConfigurations_WithServiceNameOverride_ServiceNameSet()
-    {
-        var processor = new Mock<BaseProcessor<Activity>>();
-
-        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                   .AddAWSLambdaConfigurations(options =>
-                   {
-                       options.ServiceNameOverride = "test_override";
-                   })
-                   .AddProcessor(processor.Object)
-                   .Build())
-        {
-            var result = AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncInputAndReturn, "TestStream", this.sampleLambdaContext);
-            var resource = tracerProvider.GetResource();
-            var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
-
-            Assert.Equal("test_override", resourceAttributes["service.name"]);
-        }
-    }
-
     private static ActivityContext CreateParentContext()
     {
         var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());

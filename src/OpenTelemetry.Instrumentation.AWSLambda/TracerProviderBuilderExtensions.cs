@@ -55,11 +55,6 @@ public static class TracerProviderBuilderExtensions
         builder.AddSource(AWSLambdaWrapper.ActivitySourceName);
         builder.SetResourceBuilder(ResourceBuilder
             .CreateEmpty()
-            .AddService(
-                string.IsNullOrWhiteSpace(options.ServiceNameOverride) ? AWSLambdaUtils.GetFunctionName() : options.ServiceNameOverride,
-                null,
-                null,
-                false)
             .AddTelemetrySdk()
             .AddAttributes(AWSLambdaResourceDetector.Detect()));
 
