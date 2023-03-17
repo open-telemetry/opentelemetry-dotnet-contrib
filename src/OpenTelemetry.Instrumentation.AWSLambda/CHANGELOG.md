@@ -6,6 +6,8 @@
   ([#626](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/626))
 * Removes `AddAWSLambdaConfigurations` method with default configure parameter.
   ([#943](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/943))
+* Add X-Ray context as link, not parent.
+  ([#1087](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1087))
 
 ## 1.1.0-beta.2
 
