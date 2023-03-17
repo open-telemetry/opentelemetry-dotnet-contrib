@@ -76,7 +76,7 @@ internal class MockHttpRequest : IHttpRequest<Stream>
         return this.requestStream;
     }
 
-    public Amazon.Runtime.Internal.Transform.IWebResponseData GetResponse()
+    public IWebResponseData GetResponse()
     {
         if (this.GetResponseAction != null)
         {
