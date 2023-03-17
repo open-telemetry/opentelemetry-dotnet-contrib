@@ -31,9 +31,9 @@ components:
     - iskiselev
   src/OpenTelemetry.Extensions.Enrichment/:
     - xakep139
-  src/OpenTelemetry.Extensions.PersistentStorage.Abstractions/:
+  src/OpenTelemetry.PersistentStorage.Abstractions/:
     - vishweshbankwar
-  src/OpenTelemetry.Extensions.PersistentStorage/:
+  src/OpenTelemetry.PersistentStorage.FileSystem/:
     - vishweshbankwar
   src/OpenTelemetry.Instrumentation.AWSLambda/:
     - rypdal
@@ -91,6 +91,9 @@ components:
     - Yun-Ting
   test/OpenTelemetry.Exporter.Instana.Tests/:
     - zivaninstana
+  test/OpenTelemetry.Exporter.OneCollector.Benchmarks/:
+    - codeblanch
+    - reyang
   test/OpenTelemetry.Exporter.OneCollector.Tests/:
     - codeblanch
     - reyang
@@ -102,7 +105,7 @@ components:
     - iskiselev
   test/OpenTelemetry.Extensions.Enrichment.Tests/:
     - xakep139
-  test/OpenTelemetry.Extensions.PersistentStorage.Tests/:
+  test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
     - vishweshbankwar
   test/OpenTelemetry.Instrumentation.AWSLambda.Tests/:
     - rypdal
