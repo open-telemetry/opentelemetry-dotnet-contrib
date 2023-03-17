@@ -91,6 +91,9 @@ components:
     - Yun-Ting
   test/OpenTelemetry.Exporter.Instana.Tests/:
     - zivaninstana
+  test/OpenTelemetry.Exporter.OneCollector.Benchmarks/:
+    - codeblanch
+    - reyang
   test/OpenTelemetry.Exporter.OneCollector.Tests/:
     - codeblanch
     - reyang
