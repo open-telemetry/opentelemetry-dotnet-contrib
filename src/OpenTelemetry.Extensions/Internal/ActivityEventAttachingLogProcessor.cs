@@ -61,7 +61,7 @@ internal sealed class ActivityEventAttachingLogProcessor : BaseProcessor<LogReco
             catch (Exception ex)
 #pragma warning restore CA1031 // Do not catch general exception types
             {
-                OpenTelemetryExtensionsEventSource.Log.LogProcessorException($"Processing filter of category [{data.CategoryName}]", ex);
+                OpenTelemetryExtensionsEventSource.Log.LogRecordFilterException(data.CategoryName, ex);
                 return;
             }
 
