@@ -40,9 +40,7 @@ internal class Handler
             }
 
             var clientHandler = new HttpClientHandler();
-            clientHandler.ServerCertificateCustomValidationCallback =
-                (sender, x509Certificate2, x509Chain, sslPolicyErrors) =>
-                    serverCertificateValidationProvider.ValidationCallback(null, x509Certificate2, x509Chain, sslPolicyErrors);
+            clientHandler.ServerCertificateCustomValidationCallback = serverCertificateValidationProvider.ValidationCallback;
             return clientHandler;
         }
         catch (Exception ex)
