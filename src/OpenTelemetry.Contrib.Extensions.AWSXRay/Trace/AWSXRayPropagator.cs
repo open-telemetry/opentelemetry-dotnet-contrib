@@ -306,9 +306,9 @@ public class AWSXRayPropagator : TextMapPropagator
 
         sb.Append(Version);
         sb.Append(TraceIdDelimiter);
-        sb.Append(traceId.Substring(0, EpochHexDigits));
+        sb.Append(traceId, 0, EpochHexDigits);
         sb.Append(TraceIdDelimiter);
-        sb.Append(traceId.Substring(EpochHexDigits));
+        sb.Append(traceId, EpochHexDigits, traceId.Length - EpochHexDigits);
 
         return sb.ToString();
     }
