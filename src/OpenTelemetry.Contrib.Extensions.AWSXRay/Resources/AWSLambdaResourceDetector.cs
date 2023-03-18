@@ -53,26 +53,17 @@ public class AWSLambdaResourceDetector : IResourceDetector
         {
             new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
             new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_lambda"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudRegion, GetAWSRegion()),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeFaasName, GetFunctionName()),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeFaasVersion, GetFunctionVersion()),
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudRegion, GetLambdaEnvironmentVariable(AWSLambdaRegion)),
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeFaasName, GetLambdaEnvironmentVariable(AWSLambdaFunctionName)),
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeFaasVersion, GetLambdaEnvironmentVariable(AWSLambdaFunctionVersion)),
         };
 
         return resourceAttributes;
     }
 
-    private static string GetAWSRegion()
+    private static string GetLambdaEnvironmentVariable(string variable)
     {
-        return Environment.GetEnvironmentVariable(AWSLambdaRegion);
-    }
-
-    private static string GetFunctionName()
-    {
-        return Environment.GetEnvironmentVariable(AWSLambdaFunctionName);
-    }
-
-    private static string GetFunctionVersion()
-    {
-        return Environment.GetEnvironmentVariable(AWSLambdaFunctionVersion);
+        return Environment.GetEnvironmentVariable(variable)
+            ?? throw new InvalidOperationException($"Not running in AWS Lambda (missing environment variable '{variable}')");
     }
 }

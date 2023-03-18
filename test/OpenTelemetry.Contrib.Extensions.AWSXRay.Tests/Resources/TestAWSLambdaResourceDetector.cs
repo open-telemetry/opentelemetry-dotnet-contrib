@@ -17,6 +17,7 @@
 using System;
 using System.Linq;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
+using OpenTelemetry.Resources;
 using Xunit;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Resources;
@@ -41,5 +42,83 @@ public class TestAWSLambdaResourceDetector
         Environment.SetEnvironmentVariable("AWS_REGION", null);
         Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_NAME", null);
         Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_VERSION", null);
+    }
+
+    [Fact]
+    public void TestDetectWithNullEnvironmentVariables()
+    {
+        Environment.SetEnvironmentVariable("AWS_REGION", null);
+        Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_NAME", null);
+        Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_VERSION", null);
+
+        var resource = new AWSLambdaResourceDetector().Detect();
+
+        Assert.Same(Resource.Empty, resource);
+    }
+
+    [Fact]
+    public void TestExtractResourceAttributesWithNullAwsRegion()
+    {
+        Environment.SetEnvironmentVariable("AWS_REGION", null);
+        Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_NAME", "testfunction");
+        Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_VERSION", "latest");
+
+        try
+        {
+            var ex = Assert.Throws<InvalidOperationException>(
+                () => AWSLambdaResourceDetector.ExtractResourceAttributes());
+
+            Assert.Contains("AWS_REGION", ex.Message);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("AWS_REGION", null);
+            Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_NAME", null);
+            Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_VERSION", null);
+        }
+    }
+
+    [Fact]
+    public void TestExtractResourceAttributesWithNullAwsLambdaFunctionName()
+    {
+        Environment.SetEnvironmentVariable("AWS_REGION", "us-east-1");
+        Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_NAME", null);
+        Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_VERSION", "latest");
+
+        try
+        {
+            var ex = Assert.Throws<InvalidOperationException>(
+                () => AWSLambdaResourceDetector.ExtractResourceAttributes());
+
+            Assert.Contains("AWS_LAMBDA_FUNCTION_NAME", ex.Message);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("AWS_REGION", null);
+            Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_NAME", null);
+            Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_VERSION", null);
+        }
+    }
+
+    [Fact]
+    public void TestExtractResourceAttributesWithNullAwsLambdaFunctionVersion()
+    {
+        Environment.SetEnvironmentVariable("AWS_REGION", "us-east-1");
+        Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_NAME", "testfunction");
+        Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_VERSION", null);
+
+        try
+        {
+            var ex = Assert.Throws<InvalidOperationException>(
+                () => AWSLambdaResourceDetector.ExtractResourceAttributes());
+
+            Assert.Contains("AWS_LAMBDA_FUNCTION_VERSION", ex.Message);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("AWS_REGION", null);
+            Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_NAME", null);
+            Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_VERSION", null);
+        }
     }
 }
