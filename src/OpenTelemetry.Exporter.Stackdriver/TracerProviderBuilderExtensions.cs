@@ -36,8 +36,10 @@ public static class TracerProviderBuilderExtensions
     {
         Guard.ThrowIfNull(builder);
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
         var activityExporter = new StackdriverTraceExporter(projectId);
 
         return builder.AddProcessor(new BatchActivityExportProcessor(activityExporter));
+#pragma warning restore CA2000 // Dispose objects before losing scope
     }
 }

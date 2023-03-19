@@ -37,7 +37,9 @@ public class StackdriverTraceExporter : BaseExporter<Activity>
     private readonly TraceServiceSettings traceServiceSettings;
     private readonly TraceServiceClient traceServiceClient;
 
+#pragma warning disable CA1810 // Initialize reference type static fields inline
     static StackdriverTraceExporter()
+#pragma warning restore CA1810 // Initialize reference type static fields inline
     {
         try
         {
@@ -87,7 +89,7 @@ public class StackdriverTraceExporter : BaseExporter<Activity>
     }
 
     /// <inheritdoc/>
-    public override ExportResult Export(in Batch<Activity> batchActivity)
+    public override ExportResult Export(in Batch<Activity> batch)
     {
         TraceServiceClient traceWriter = this.traceServiceClient;
         if (this.traceServiceClient == null)
@@ -103,7 +105,7 @@ public class StackdriverTraceExporter : BaseExporter<Activity>
             ProjectName = this.googleCloudProjectId,
         };
 
-        foreach (var activity in batchActivity)
+        foreach (var activity in batch)
         {
             // It should never happen that the time has no correct kind, only if OpenTelemetry is used incorrectly.
             if (activity.StartTimeUtc.Kind == DateTimeKind.Utc)

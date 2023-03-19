@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System.Collections.Generic;
 using System.Linq;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 using Xunit;
@@ -26,19 +25,15 @@ public class TestAWSEC2ResourceDetector
     [Fact]
     public void TestDetect()
     {
-        IEnumerable<KeyValuePair<string, object>> resourceAttributes;
-        var ec2ResourceDetector = new AWSEC2ResourceDetector();
-        resourceAttributes = ec2ResourceDetector.Detect();
-        Assert.Null(resourceAttributes); // will be null as it's not in ec2 environment
+        Assert.Empty(new AWSEC2ResourceDetector().Detect().Attributes); // will be null as it's not in ec2 environment
     }
 
     [Fact]
     public void TestExtractResourceAttributes()
     {
-        var ec2ResourceDetector = new AWSEC2ResourceDetector();
         var sampleEC2IdentityDocumentModel = new SampleAWSEC2IdentityDocumentModel();
         var hostName = "Test host name";
-        var resourceAttributes = ec2ResourceDetector.ExtractResourceAttributes(sampleEC2IdentityDocumentModel, hostName).ToDictionary(x => x.Key, x => x.Value);
+        var resourceAttributes = AWSEC2ResourceDetector.ExtractResourceAttributes(sampleEC2IdentityDocumentModel, hostName).ToDictionary(x => x.Key, x => x.Value);
 
         Assert.Equal("aws", resourceAttributes[AWSSemanticConventions.AttributeCloudProvider]);
         Assert.Equal("aws_ec2", resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform]);
@@ -55,10 +50,9 @@ public class TestAWSEC2ResourceDetector
     {
         var ec2IdentityDocument = "{\"accountId\": \"123456789012\", \"architecture\": \"x86_64\", \"availabilityZone\": \"us-east-1a\", \"billingProducts\": null, \"devpayProductCodes\": null, \"marketplaceProductCodes\": null, \"imageId\": \"ami-12345678901234567\", \"instanceId\": \"i-12345678901234567\", \"instanceType\": \"t2.micro\", \"kernelId\": null, \"pendingTime\": \"2021-08-11T22:41:54Z\", \"privateIp\": \"123.456.789.123\", \"ramdiskId\": null, \"region\": \"us-east-1\", \"version\": \"2021-08-11\"}";
 
-        var ec2ResourceDetector = new AWSEC2ResourceDetector();
+        var ec2IdentityDocumentModel = AWSEC2ResourceDetector.DeserializeResponse(ec2IdentityDocument);
 
-        var ec2IdentityDocumentModel = ec2ResourceDetector.DeserializeResponse(ec2IdentityDocument);
-
+        Assert.NotNull(ec2IdentityDocumentModel);
         Assert.Equal("123456789012", ec2IdentityDocumentModel.AccountId);
         Assert.Equal("us-east-1a", ec2IdentityDocumentModel.AvailabilityZone);
         Assert.Equal("i-12345678901234567", ec2IdentityDocumentModel.InstanceId);

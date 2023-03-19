@@ -35,7 +35,7 @@ public class GrpcCoreServerInterceptorTests
     [Fact]
     public async Task UnaryServerHandlerSuccess()
     {
-        await this.TestHandlerSuccess(FoobarService.MakeUnaryAsyncRequest).ConfigureAwait(false);
+        await TestHandlerSuccess(FoobarService.MakeUnaryAsyncRequest).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -45,7 +45,7 @@ public class GrpcCoreServerInterceptorTests
     [Fact]
     public async Task UnaryServerHandlerFail()
     {
-        await this.TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest).ConfigureAwait(false);
+        await TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -55,7 +55,7 @@ public class GrpcCoreServerInterceptorTests
     [Fact]
     public async Task ClientStreamingServerHandlerSuccess()
     {
-        await this.TestHandlerSuccess(FoobarService.MakeClientStreamingRequest).ConfigureAwait(false);
+        await TestHandlerSuccess(FoobarService.MakeClientStreamingRequest).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -65,7 +65,7 @@ public class GrpcCoreServerInterceptorTests
     [Fact]
     public async Task ClientStreamingServerHandlerFail()
     {
-        await this.TestHandlerFailure(FoobarService.MakeClientStreamingRequest).ConfigureAwait(false);
+        await TestHandlerFailure(FoobarService.MakeClientStreamingRequest).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -75,7 +75,7 @@ public class GrpcCoreServerInterceptorTests
     [Fact]
     public async Task ServerStreamingServerHandlerSuccess()
     {
-        await this.TestHandlerSuccess(FoobarService.MakeServerStreamingRequest).ConfigureAwait(false);
+        await TestHandlerSuccess(FoobarService.MakeServerStreamingRequest).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -85,7 +85,7 @@ public class GrpcCoreServerInterceptorTests
     [Fact]
     public async Task ServerStreamingServerHandlerFail()
     {
-        await this.TestHandlerFailure(FoobarService.MakeServerStreamingRequest).ConfigureAwait(false);
+        await TestHandlerFailure(FoobarService.MakeServerStreamingRequest).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -95,7 +95,7 @@ public class GrpcCoreServerInterceptorTests
     [Fact]
     public async Task DuplexStreamingServerHandlerSuccess()
     {
-        await this.TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest).ConfigureAwait(false);
+        await TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -105,7 +105,7 @@ public class GrpcCoreServerInterceptorTests
     [Fact]
     public async Task DuplexStreamingServerHandlerFail()
     {
-        await this.TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest).ConfigureAwait(false);
+        await TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -114,7 +114,7 @@ public class GrpcCoreServerInterceptorTests
     /// <param name="clientRequestFunc">The specific client request function.</param>
     /// <param name="additionalMetadata">The additional metadata, if any.</param>
     /// <returns>A Task.</returns>
-    private async Task TestHandlerSuccess(Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc, Metadata additionalMetadata = null)
+    private static async Task TestHandlerSuccess(Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc, Metadata additionalMetadata = null)
     {
         // starts the server with the server interceptor
         var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), RecordMessageEvents = true, ActivityIdentifierValue = Guid.NewGuid() };
@@ -155,7 +155,7 @@ public class GrpcCoreServerInterceptorTests
     /// <param name="clientRequestFunc">The specific client request function.</param>
     /// <param name="additionalMetadata">The additional metadata, if any.</param>
     /// <returns>A Task.</returns>
-    private async Task TestHandlerFailure(Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc, Metadata additionalMetadata = null)
+    private static async Task TestHandlerFailure(Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc, Metadata additionalMetadata = null)
     {
         // starts the server with the server interceptor
         var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), ActivityIdentifierValue = Guid.NewGuid() };

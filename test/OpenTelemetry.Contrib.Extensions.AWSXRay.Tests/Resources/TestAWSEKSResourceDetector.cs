@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System.Collections.Generic;
 using System.Linq;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 using Xunit;
@@ -29,20 +28,20 @@ public class TestAWSEKSResourceDetector
     [Fact]
     public void TestDetect()
     {
-        IEnumerable<KeyValuePair<string, object>> resourceAttributes;
         var eksResourceDetector = new AWSEKSResourceDetector();
-        resourceAttributes = eksResourceDetector.Detect();
-        Assert.Null(resourceAttributes); // will be null as it's not in eks environment
+        var resourceAttributes = eksResourceDetector.Detect();
+
+        Assert.NotNull(resourceAttributes);
+        Assert.Empty(resourceAttributes.Attributes);
     }
 
     [Fact]
     public void TestExtractResourceAttributes()
     {
-        var eksResourceDetector = new AWSEKSResourceDetector();
         var clusterName = "Test cluster name";
         var containerId = "Test container id";
 
-        var resourceAttributes = eksResourceDetector.ExtractResourceAttributes(clusterName, containerId).ToDictionary(x => x.Key, x => x.Value);
+        var resourceAttributes = AWSEKSResourceDetector.ExtractResourceAttributes(clusterName, containerId).ToDictionary(x => x.Key, x => x.Value);
 
         Assert.Equal(4, resourceAttributes.Count);
         Assert.Equal("aws", resourceAttributes[AWSSemanticConventions.AttributeCloudProvider]);
@@ -54,10 +53,9 @@ public class TestAWSEKSResourceDetector
     [Fact]
     public void TestExtractResourceAttributesWithEmptyClusterName()
     {
-        var eksResourceDetector = new AWSEKSResourceDetector();
         var containerId = "Test container id";
 
-        var resourceAttributes = eksResourceDetector.ExtractResourceAttributes(string.Empty, containerId).ToDictionary(x => x.Key, x => x.Value);
+        var resourceAttributes = AWSEKSResourceDetector.ExtractResourceAttributes(string.Empty, containerId).ToDictionary(x => x.Key, x => x.Value);
 
         // Validate the count of resourceAttributes -> Excluding cluster name, there will be only three resourceAttributes
         Assert.Equal(3, resourceAttributes.Count);
@@ -69,10 +67,9 @@ public class TestAWSEKSResourceDetector
     [Fact]
     public void TestExtractResourceAttributesWithEmptyContainerId()
     {
-        var eksResourceDetector = new AWSEKSResourceDetector();
         var clusterName = "Test cluster name";
 
-        var resourceAttributes = eksResourceDetector.ExtractResourceAttributes(clusterName, string.Empty).ToDictionary(x => x.Key, x => x.Value);
+        var resourceAttributes = AWSEKSResourceDetector.ExtractResourceAttributes(clusterName, string.Empty).ToDictionary(x => x.Key, x => x.Value);
 
         // Validate the count of resourceAttributes -> Excluding container id, there will be only three resourceAttributes
         Assert.Equal(3, resourceAttributes.Count);
@@ -84,8 +81,7 @@ public class TestAWSEKSResourceDetector
     [Fact]
     public void TestGetEKSCredentials()
     {
-        var eksResourceDetector = new AWSEKSResourceDetector();
-        var eksCredentials = eksResourceDetector.GetEKSCredentials(AWSEKSCredentialsPath);
+        var eksCredentials = AWSEKSResourceDetector.GetEKSCredentials(AWSEKSCredentialsPath);
 
         Assert.Equal("Bearer Test AWS EKS Token", eksCredentials);
     }
@@ -93,8 +89,7 @@ public class TestAWSEKSResourceDetector
     [Fact]
     public void TestGetEKSContainerId()
     {
-        var eksResourceDetector = new AWSEKSResourceDetector();
-        var eksContainerId = eksResourceDetector.GetEKSContainerId(AWSEKSMetadataFilePath);
+        var eksContainerId = AWSEKSResourceDetector.GetEKSContainerId(AWSEKSMetadataFilePath);
 
         Assert.Equal("a4d00c9dd675d67f866c786181419e1b44832d4696780152e61afd44a3e02856", eksContainerId);
     }
@@ -104,9 +99,10 @@ public class TestAWSEKSResourceDetector
     {
         var awsEKSClusterInformation = "{\"kind\": \"ConfigMap\", \"apiVersion\": \"v1\", \"metadata\": {\"name\": \"cluster-info\", \"namespace\": \"amazon-cloudwatch\", \"selfLink\": \"/api/v1/namespaces/amazon-cloudwatch/configmaps/cluster-info\", \"uid\": \"0734438c-48f4-45c3-b06d-b6f16f7f0e1e\", \"resourceVersion\": \"25911\", \"creationTimestamp\": \"2021-07-23T18:41:56Z\", \"annotations\": {\"kubectl.kubernetes.io/last-applied-configuration\": \"{\\\"apiVersion\\\":\\\"v1\\\",\\\"data\\\":{\\\"cluster.name\\\":\\\"Test\\\",\\\"logs.region\\\":\\\"us-west-2\\\"},\\\"kind\\\":\\\"ConfigMap\\\",\\\"metadata\\\":{\\\"annotations\\\":{},\\\"name\\\":\\\"cluster-info\\\",\\\"namespace\\\":\\\"amazon-cloudwatch\\\"}}\\n\"}}, \"data\": {\"cluster.name\": \"Test\", \"logs.region\": \"us-west-2\"}}";
 
-        var eksResourceDetector = new AWSEKSResourceDetector();
-        var eksClusterInformation = eksResourceDetector.DeserializeResponse(awsEKSClusterInformation);
+        var eksClusterInformation = AWSEKSResourceDetector.DeserializeResponse(awsEKSClusterInformation);
 
+        Assert.NotNull(eksClusterInformation);
+        Assert.NotNull(eksClusterInformation.Data);
         Assert.Equal("Test", eksClusterInformation.Data.ClusterName);
     }
 }

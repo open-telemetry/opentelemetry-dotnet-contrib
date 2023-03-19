@@ -32,6 +32,11 @@ public static class CommonUtils
     /// <returns><see cref="IEnumerable{T}"/>.</returns>
     public static IEnumerable<IEnumerable<T>> Partition<T>(this IEnumerable<T> source, int size)
     {
+        if (source == null)
+        {
+            throw new System.ArgumentNullException(nameof(source));
+        }
+
         using var enumerator = source.GetEnumerator();
         while (enumerator.MoveNext())
         {

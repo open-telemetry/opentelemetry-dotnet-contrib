@@ -47,6 +47,8 @@ public class TestServerCertificateValidationProvider
                 chain.Build(certificate);
 
                 // validates if certificate is valid
+                Assert.NotNull(serverCertificateValidationProvider);
+                Assert.NotNull(serverCertificateValidationProvider.ValidationCallback);
                 Assert.True(serverCertificateValidationProvider.ValidationCallback(null, certificate, chain, System.Net.Security.SslPolicyErrors.None));
             }
         }

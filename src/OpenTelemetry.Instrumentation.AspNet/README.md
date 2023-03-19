@@ -57,8 +57,8 @@ following shows changes required to your `Web.config` when using IIS web server.
 
 ASP.NET instrumentation must be enabled at application startup. This is
 typically done in the `Global.asax.cs` as shown below. This example also sets up
-the OpenTelemetry Jaeger exporter, which requires adding the package
-[`OpenTelemetry.Exporter.Jaeger`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Jaeger/README.md)
+the OpenTelemetry OTLP exporter, which requires adding the package
+[`OpenTelemetry.Exporter.OpenTelemetryProtocol`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.OpenTelemetryProtocol/README.md)
 to the application.
 
 ```csharp
@@ -72,7 +72,7 @@ public class WebApiApplication : HttpApplication
     {
         this.tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddAspNetInstrumentation()
-            .AddJaegerExporter()
+            .AddOtlpExporter()
             .Build();
     }
     protected void Application_End()

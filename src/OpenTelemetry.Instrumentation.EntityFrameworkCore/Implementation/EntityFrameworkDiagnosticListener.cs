@@ -104,17 +104,46 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 activity.AddTag(AttributeDbSystem, "cosmosdb");
                                 break;
                             case "Microsoft.EntityFrameworkCore.Sqlite":
+                            case "Devart.Data.SQLite.EFCore":
                                 activity.AddTag(AttributeDbSystem, "sqlite");
                                 break;
                             case "MySql.Data.EntityFrameworkCore":
                             case "Pomelo.EntityFrameworkCore.MySql":
+                            case "Devart.Data.MySql.EFCore":
                                 activity.AddTag(AttributeDbSystem, "mysql");
                                 break;
                             case "Npgsql.EntityFrameworkCore.PostgreSQL":
+                            case "Devart.Data.PostgreSql.EFCore":
                                 activity.AddTag(AttributeDbSystem, "postgresql");
                                 break;
                             case "Oracle.EntityFrameworkCore":
+                            case "Devart.Data.Oracle.EFCore":
                                 activity.AddTag(AttributeDbSystem, "oracle");
+                                break;
+                            case "Microsoft.EntityFrameworkCore.InMemory":
+                                activity.AddTag(AttributeDbSystem, "efcoreinmemory");
+                                break;
+                            case "FirebirdSql.EntityFrameworkCore.Firebird":
+                                activity.AddTag(AttributeDbSystem, "firebird");
+                                break;
+                            case "FileContextCore":
+                                activity.AddTag(AttributeDbSystem, "filecontextcore");
+                                break;
+                            case "EntityFrameworkCore.SqlServerCompact35":
+                            case "EntityFrameworkCore.SqlServerCompact40":
+                                activity.AddTag(AttributeDbSystem, "mssqlcompact");
+                                break;
+                            case "EntityFrameworkCore.OpenEdge":
+                                activity.AddTag(AttributeDbSystem, "openedge");
+                                break;
+                            case "EntityFrameworkCore.Jet":
+                                activity.AddTag(AttributeDbSystem, "jet");
+                                break;
+                            case "Google.Cloud.EntityFrameworkCore.Spanner":
+                                activity.AddTag(AttributeDbSystem, "spanner");
+                                break;
+                            case "Teradata.EntityFrameworkCore":
+                                activity.AddTag(AttributeDbSystem, "teradata");
                                 break;
                             default:
                                 activity.AddTag(AttributeDbSystem, "other_sql");

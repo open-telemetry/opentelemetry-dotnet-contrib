@@ -46,7 +46,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// <summary>
     /// The complete flag.
     /// </summary>
-    private long complete = 0;
+    private long complete;
 
     /// <summary>
     /// The request message counter.

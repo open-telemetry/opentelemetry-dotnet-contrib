@@ -19,7 +19,6 @@ using System.Collections.Generic;
 #if NET452
 using System.IO;
 #endif
-using System.Linq;
 using System.Net;
 #if !NET452
 using System.Net.Http;
@@ -31,7 +30,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests;
 internal class MockWebResponse
 {
 #if NET452
-    public static HttpWebResponse CreateFromResource(string resourceName)
+    public static HttpWebResponse? CreateFromResource(string resourceName)
     {
         var rawResponse = Utils.GetResourceText(resourceName);
         var response = ParseRawReponse(rawResponse);
@@ -39,11 +38,16 @@ internal class MockWebResponse
         return Create(statusCode, response.Headers, response.Body);
     }
 
-    public static HttpWebResponse Create(HttpStatusCode statusCode, IDictionary<string, string> headers, string body = null)
+    public static HttpWebResponse? Create(HttpStatusCode statusCode, IDictionary<string, string>? headers, string? body = null)
     {
         var type = typeof(HttpWebResponse);
         var assembly = Assembly.GetAssembly(type);
-        var obj = assembly.CreateInstance("System.Net.HttpWebResponse");
+        var obj = assembly?.CreateInstance("System.Net.HttpWebResponse") as HttpWebResponse;
+
+        if (obj == null)
+        {
+            return null;
+        }
 
         var webHeaders = new WebHeaderCollection();
         if (headers != null)
@@ -54,9 +58,8 @@ internal class MockWebResponse
             }
         }
 
-        Stream responseBodyStream = null;
-        body = body ?? string.Empty;
-        responseBodyStream = Utils.CreateStreamFromString(body);
+        body ??= string.Empty;
+        Stream responseBodyStream = Utils.CreateStreamFromString(body);
 
         var statusFieldInfo = type.GetField(
             "m_StatusCode",
@@ -71,10 +74,10 @@ internal class MockWebResponse
             "m_ContentLength",
             BindingFlags.NonPublic | BindingFlags.Instance);
 
-        statusFieldInfo.SetValue(obj, statusCode);
-        headersFieldInfo.SetValue(obj, webHeaders);
-        streamFieldInfo.SetValue(obj, responseBodyStream);
-        contentLengthFieldInfo.SetValue(obj, responseBodyStream.Length);
+        statusFieldInfo?.SetValue(obj, statusCode);
+        headersFieldInfo?.SetValue(obj, webHeaders);
+        streamFieldInfo?.SetValue(obj, responseBodyStream);
+        contentLengthFieldInfo?.SetValue(obj, responseBodyStream.Length);
 
         return obj as HttpWebResponse;
     }
@@ -84,26 +87,31 @@ internal class MockWebResponse
     {
         var rawResponse = Utils.GetResourceText(resourceName);
 
-        var response = ParseRawReponse(rawResponse);
+        HttpResponse response = ParseRawReponse(rawResponse);
         var statusCode = ParseStatusCode(response.StatusLine);
 
         return Create(statusCode, response.Headers, response.Body);
     }
 
-    public static HttpResponseMessage Create(HttpStatusCode statusCode, IDictionary<string, string> headers, string body = null)
+    public static HttpResponseMessage Create(HttpStatusCode statusCode, IDictionary<string, string>? headers, string? body = null)
     {
+        HttpResponseMessage? httpResponseMessage = null;
         var type = typeof(HttpResponseMessage);
         var assembly = Assembly.GetAssembly(type);
-        var obj = assembly.CreateInstance("System.Net.Http.HttpResponseMessage");
+        if (assembly != null)
+        {
+            httpResponseMessage = assembly.CreateInstance("System.Net.Http.HttpResponseMessage") as HttpResponseMessage;
+        }
 
-        HttpResponseMessage httpResponseMessage = obj as HttpResponseMessage;
+        httpResponseMessage ??= new HttpResponseMessage(statusCode);
+
         var webHeaders = new WebHeaderCollection();
         if (headers != null)
         {
             foreach (var header in headers)
             {
                 webHeaders.Add(header.Key, header.Value);
-                httpResponseMessage.Headers.Add(header.Key, header.Value);
+                httpResponseMessage?.Headers.Add(header.Key, header.Value);
             }
         }
 
@@ -116,55 +124,54 @@ internal class MockWebResponse
 #endif
     public static HttpResponse ParseRawReponse(string rawResponse)
     {
-        var response = new HttpResponse();
+        HttpResponse response = new HttpResponse();
         response.StatusLine = rawResponse;
 
         var responseLines = rawResponse.Split('\n');
 
-        if (responseLines.Count() == 0)
+        if (responseLines.Length == 0)
         {
             throw new ArgumentException(
                 "The resource does not contain a valid HTTP response.",
-                "resourceName");
+                nameof(rawResponse));
         }
 
         response.StatusLine = responseLines[0];
         var currentLine = responseLines[0];
-        var statusCode = ParseStatusCode(currentLine);
+        _ = ParseStatusCode(currentLine);
 
-        var lineIndex = 0;
-        if (responseLines.Count() > 1)
+        int lineIndex;
+        if (responseLines.Length > 1)
         {
-            for (lineIndex = 1; lineIndex < responseLines.Count(); lineIndex++)
+            for (lineIndex = 1; lineIndex < responseLines.Length; lineIndex++)
             {
                 currentLine = responseLines[lineIndex];
-                if (currentLine.Trim() == string.Empty)
+                if (string.IsNullOrEmpty(currentLine.Trim()))
                 {
                     currentLine = responseLines[lineIndex - 1];
                     break;
                 }
 
-                var index = currentLine.IndexOf(":");
+                var index = currentLine.IndexOf(":", StringComparison.Ordinal);
                 if (index != -1)
                 {
                     var headerKey = currentLine.Substring(0, index);
                     var headerValue = currentLine.Substring(index + 1);
-                    response.Headers.Add(headerKey.Trim(), headerValue.Trim());
+                    response.Headers?.Add(headerKey.Trim(), headerValue.Trim());
                 }
             }
         }
 
-        var startOfBody = rawResponse.IndexOf(currentLine) + currentLine.Length;
+        var startOfBody = rawResponse.IndexOf(currentLine, StringComparison.Ordinal) + currentLine.Length;
         response.Body = rawResponse.Substring(startOfBody).Trim();
         return response;
     }
 
-    private static HttpStatusCode ParseStatusCode(string statusLine)
+    private static HttpStatusCode ParseStatusCode(string? statusLine)
     {
-        var statusCode = string.Empty;
         try
         {
-            statusCode = statusLine.Split(' ')[1];
+            string statusCode = statusLine?.Split(' ')[1] ?? string.Empty;
             return (HttpStatusCode)Enum.Parse(typeof(HttpStatusCode), statusCode);
         }
         catch (Exception exception)
@@ -180,10 +187,10 @@ internal class MockWebResponse
             this.Headers = new Dictionary<string, string>();
         }
 
-        public string StatusLine { get; set; }
+        public string? StatusLine { get; set; }
 
-        public IDictionary<string, string> Headers { get; private set; }
+        public IDictionary<string, string>? Headers { get; private set; }
 
-        public string Body { get; set; }
+        public string? Body { get; set; }
     }
 }

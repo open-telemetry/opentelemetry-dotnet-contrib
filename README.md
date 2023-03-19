@@ -28,8 +28,6 @@ expected to directly contribute to every component.
 Approvers
 ([@open-telemetry/dotnet-contrib-approvers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-approvers)):
 
-* [Piotr Kie&#x142;kowicz](https://github.com/Kielek), Splunk
-
 *Find more about the approver role in [community
 repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#approver).*
 
@@ -39,6 +37,7 @@ Maintainers
 * [Alan West](https://github.com/alanwest), New Relic
 * [Cijo Thomas](https://github.com/cijothomas), Microsoft
 * [Mikel Blanchard](https://github.com/CodeBlanch), Microsoft
+* [Piotr Kie&#x142;kowicz](https://github.com/Kielek), Splunk
 * [Utkarsh Umesan Pillai](https://github.com/utpilla), Microsoft
 
 *Find more about the maintainer role in [community

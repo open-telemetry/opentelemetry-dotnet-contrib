@@ -57,7 +57,7 @@ internal class AWSTracingPipelineHandler : PipelineHandler
         {
             if (activity != null)
             {
-                this.ProcessException(activity, ex);
+                ProcessException(activity, ex);
             }
 
             throw;
@@ -66,14 +66,14 @@ internal class AWSTracingPipelineHandler : PipelineHandler
         {
             if (activity != null)
             {
-                this.ProcessEndRequest(executionContext, activity);
+                ProcessEndRequest(executionContext, activity);
             }
         }
     }
 
     public override async Task<T> InvokeAsync<T>(IExecutionContext executionContext)
     {
-        T ret = null;
+        T? ret = null;
 
         var activity = this.ProcessBeginRequest(executionContext);
         try
@@ -84,7 +84,7 @@ internal class AWSTracingPipelineHandler : PipelineHandler
         {
             if (activity != null)
             {
-                this.ProcessException(activity, ex);
+                ProcessException(activity, ex);
             }
 
             throw;
@@ -93,53 +93,14 @@ internal class AWSTracingPipelineHandler : PipelineHandler
         {
             if (activity != null)
             {
-                this.ProcessEndRequest(executionContext, activity);
+                ProcessEndRequest(executionContext, activity);
             }
         }
 
         return ret;
     }
 
-    private Activity ProcessBeginRequest(IExecutionContext executionContext)
-    {
-        Activity activity = null;
-
-        var requestContext = executionContext.RequestContext;
-        var service = AWSServiceHelper.GetAWSServiceName(requestContext);
-        var operation = AWSServiceHelper.GetAWSOperationName(requestContext);
-
-        activity = AWSSDKActivitySource.StartActivity(service + "." + operation, ActivityKind.Client);
-
-        if (activity == null)
-        {
-            return null;
-        }
-
-        if (this.options.SuppressDownstreamInstrumentation)
-        {
-            SuppressInstrumentationScope.Enter();
-        }
-
-        if (activity.IsAllDataRequested)
-        {
-            activity.SetTag(AWSSemanticConventions.AttributeAWSServiceName, service);
-            activity.SetTag(AWSSemanticConventions.AttributeAWSOperationName, operation);
-            var client = executionContext.RequestContext.ClientConfig;
-            if (client != null)
-            {
-                var region = client.RegionEndpoint?.SystemName;
-                activity.SetTag(AWSSemanticConventions.AttributeAWSRegion, region ?? AWSSDKUtils.DetermineRegion(client.ServiceURL));
-            }
-
-            this.AddRequestSpecificInformation(activity, requestContext, service);
-        }
-
-        AwsPropagator.Inject(new PropagationContext(activity.Context, Baggage.Current), requestContext.Request.Headers, Setter);
-
-        return activity;
-    }
-
-    private void ProcessEndRequest(IExecutionContext executionContext, Activity activity)
+    private static void ProcessEndRequest(IExecutionContext executionContext, Activity activity)
     {
         var responseContext = executionContext.ResponseContext;
         var requestContext = executionContext.RequestContext;
@@ -148,7 +109,7 @@ internal class AWSTracingPipelineHandler : PipelineHandler
         {
             if (Utils.GetTagValue(activity, AWSSemanticConventions.AttributeAWSRequestId) == null)
             {
-                activity.SetTag(AWSSemanticConventions.AttributeAWSRequestId, this.FetchRequestId(requestContext, responseContext));
+                activity.SetTag(AWSSemanticConventions.AttributeAWSRequestId, FetchRequestId(requestContext, responseContext));
             }
 
             var httpResponse = responseContext.HttpResponse;
@@ -156,7 +117,7 @@ internal class AWSTracingPipelineHandler : PipelineHandler
             {
                 int statusCode = (int)httpResponse.StatusCode;
 
-                this.AddStatusCodeToActivity(activity, statusCode);
+                AddStatusCodeToActivity(activity, statusCode);
                 activity.SetTag(AWSSemanticConventions.AttributeHttpResponseContentLength, httpResponse.ContentLength);
             }
         }
@@ -164,7 +125,7 @@ internal class AWSTracingPipelineHandler : PipelineHandler
         activity.Stop();
     }
 
-    private void ProcessException(Activity activity, Exception ex)
+    private static void ProcessException(Activity activity, Exception ex)
     {
         if (activity.IsAllDataRequested)
         {
@@ -174,13 +135,13 @@ internal class AWSTracingPipelineHandler : PipelineHandler
 
             if (ex is AmazonServiceException amazonServiceException)
             {
-                this.AddStatusCodeToActivity(activity, (int)amazonServiceException.StatusCode);
+                AddStatusCodeToActivity(activity, (int)amazonServiceException.StatusCode);
                 activity.SetTag(AWSSemanticConventions.AttributeAWSRequestId, amazonServiceException.RequestId);
             }
         }
     }
 
-    private void AddRequestSpecificInformation(Activity activity, IRequestContext requestContext, string service)
+    private static void AddRequestSpecificInformation(Activity activity, IRequestContext requestContext, string service)
     {
         if (AWSServiceHelper.ServiceParameterMap.TryGetValue(service, out string parameter))
         {
@@ -202,12 +163,12 @@ internal class AWSTracingPipelineHandler : PipelineHandler
         }
     }
 
-    private void AddStatusCodeToActivity(Activity activity, int status_code)
+    private static void AddStatusCodeToActivity(Activity activity, int status_code)
     {
         activity.SetTag(AWSSemanticConventions.AttributeHttpStatusCode, status_code);
     }
 
-    private string FetchRequestId(IRequestContext requestContext, IResponseContext responseContext)
+    private static string FetchRequestId(IRequestContext requestContext, IResponseContext responseContext)
     {
         string request_id = string.Empty;
         var response = responseContext.Response;
@@ -235,5 +196,42 @@ internal class AWSTracingPipelineHandler : PipelineHandler
         }
 
         return request_id;
+    }
+
+    private Activity? ProcessBeginRequest(IExecutionContext executionContext)
+    {
+        var requestContext = executionContext.RequestContext;
+        var service = AWSServiceHelper.GetAWSServiceName(requestContext);
+        var operation = AWSServiceHelper.GetAWSOperationName(requestContext);
+
+        Activity? activity = AWSSDKActivitySource.StartActivity(service + "." + operation, ActivityKind.Client);
+
+        if (activity == null)
+        {
+            return null;
+        }
+
+        if (this.options.SuppressDownstreamInstrumentation)
+        {
+            SuppressInstrumentationScope.Enter();
+        }
+
+        if (activity.IsAllDataRequested)
+        {
+            activity.SetTag(AWSSemanticConventions.AttributeAWSServiceName, service);
+            activity.SetTag(AWSSemanticConventions.AttributeAWSOperationName, operation);
+            var client = executionContext.RequestContext.ClientConfig;
+            if (client != null)
+            {
+                var region = client.RegionEndpoint?.SystemName;
+                activity.SetTag(AWSSemanticConventions.AttributeAWSRegion, region ?? AWSSDKUtils.DetermineRegion(client.ServiceURL));
+            }
+
+            AddRequestSpecificInformation(activity, requestContext, service);
+        }
+
+        AwsPropagator.Inject(new PropagationContext(activity.Context, Baggage.Current), requestContext.Request.Headers, Setter);
+
+        return activity;
     }
 }

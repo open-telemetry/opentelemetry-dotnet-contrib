@@ -27,16 +27,16 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests;
 internal class CustomWebResponse : IWebResponseData
 {
     private HttpResponseMessageBody response;
-    private string[] headerNames;
-    private Dictionary<string, string> headers;
-    private HashSet<string> headerNamesSet;
+    private string[]? headerNames;
+    private Dictionary<string, string>? headers;
+    private HashSet<string>? headerNamesSet;
 
     public CustomWebResponse(HttpResponseMessage response)
         : this(response, null, false)
     {
     }
 
-    public CustomWebResponse(HttpResponseMessage responseMsg, HttpClient httpClient, bool disposeClient)
+    public CustomWebResponse(HttpResponseMessage responseMsg, HttpClient? httpClient, bool disposeClient)
     {
         this.response = new HttpResponseMessageBody(responseMsg, httpClient, disposeClient);
 
@@ -50,7 +50,7 @@ internal class CustomWebResponse : IWebResponseData
 
     public bool IsSuccessStatusCode { get; private set; }
 
-    public string ContentType { get; private set; }
+    public string? ContentType { get; private set; }
 
     public long ContentLength { get; private set; }
 
@@ -66,8 +66,8 @@ internal class CustomWebResponse : IWebResponseData
 
     public string GetHeaderValue(string headerName)
     {
-        string headerValue;
-        if (this.headers.TryGetValue(headerName, out headerValue))
+        string? headerValue;
+        if (this.headers != null && this.headers.TryGetValue(headerName, out headerValue))
         {
             return headerValue;
         }
@@ -77,10 +77,10 @@ internal class CustomWebResponse : IWebResponseData
 
     public bool IsHeaderPresent(string headerName)
     {
-        return this.headerNamesSet.Contains(headerName);
+        return this.headerNamesSet != null && this.headerNamesSet.Contains(headerName);
     }
 
-    public string[] GetHeaderNames()
+    public string[]? GetHeaderNames()
     {
         return this.headerNames;
     }
@@ -116,7 +116,7 @@ internal class CustomWebResponse : IWebResponseData
 
     private string GetFirstHeaderValue(HttpHeaders headers, string key)
     {
-        IEnumerable<string> headerValues = null;
+        IEnumerable<string>? headerValues = null;
         if (headers.TryGetValues(key, out headerValues))
         {
             return headerValues.FirstOrDefault();

@@ -25,18 +25,15 @@ using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Instana;
 
-internal class InstanaExporter : BaseExporter<Activity>
+internal sealed class InstanaExporter : BaseExporter<Activity>
 {
     private readonly IActivityProcessor activityProcessor;
-    private string name;
     private ISpanSender spanSender = new SpanSender();
     private IInstanaExporterHelper instanaExporterHelper = new InstanaExporterHelper();
     private bool shutdownCalled;
 
-    public InstanaExporter(string name = "InstanaExporter", IActivityProcessor activityProcessor = null)
+    public InstanaExporter(IActivityProcessor activityProcessor = null)
     {
-        this.name = name;
-
         if (activityProcessor != null)
         {
             this.activityProcessor = activityProcessor;

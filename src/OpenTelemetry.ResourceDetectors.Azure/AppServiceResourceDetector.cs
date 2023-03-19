@@ -27,31 +27,37 @@ namespace OpenTelemetry.ResourceDetectors.Azure;
 public sealed class AppServiceResourceDetector : IResourceDetector
 {
     /// <inheritdoc/>
-    public Resource? Detect()
+    public Resource Detect()
     {
-        string? serviceName = null;
+        List<KeyValuePair<string, object>>? attributeList = null;
+
         try
         {
+            string? serviceName = null;
+            string? serviceInstanceId = null;
+
             // https://learn.microsoft.com/azure/app-service/reference-app-settings?tabs=kudu%2Cdotnet#app-environment
             serviceName = Environment.GetEnvironmentVariable("WEBSITE_SITE_NAME");
+            serviceInstanceId = Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID");
+            if (serviceName != null)
+            {
+                attributeList = new();
+
+                attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, serviceName));
+
+                if (serviceInstanceId != null)
+                {
+                    attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceInstance, serviceInstanceId));
+                }
+            }
+            else
+            {
+                return Resource.Empty;
+            }
         }
         catch
         {
             // TODO: log exception.
-        }
-
-        List<KeyValuePair<string, object>>? attributeList = null;
-
-        if (serviceName != null)
-        {
-            attributeList = new();
-
-            attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, serviceName));
-
-            // TODO: Add other attributes e.g. service.instance.id
-        }
-        else
-        {
             return Resource.Empty;
         }
 

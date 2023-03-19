@@ -18,6 +18,7 @@ using System.Diagnostics;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Headers;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.OneCollector;
 
@@ -26,17 +27,18 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
     private static readonly string SdkVersion = $"OTel-{Environment.OSVersion.Platform}-.net-{typeof(OneCollectorExporter<>).Assembly.GetName()?.Version?.ToString() ?? "0.0.0"}";
     private static readonly string UserAgent = $".NET/{Environment.Version} HttpClient";
 
+    private readonly CallbackManager<OneCollectorExporterPayloadTransmittedCallbackAction> payloadTransmittedCallbacks = new();
     private readonly Uri endpoint;
     private readonly string instrumentationKey;
     private readonly OneCollectorExporterHttpTransportCompressionType compressionType;
-    private readonly HttpClient httpClient;
+    private readonly IHttpClient httpClient;
     private MemoryStream? buffer;
 
     public HttpJsonPostTransport(
         string instrumentationKey,
         Uri endpoint,
         OneCollectorExporterHttpTransportCompressionType compressionType,
-        HttpClient httpClient)
+        IHttpClient httpClient)
     {
         Debug.Assert(!string.IsNullOrWhiteSpace(instrumentationKey), "instrumentationKey was null or whitespace");
         Debug.Assert(endpoint != null, "endpoint was null");
@@ -54,11 +56,26 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
 
     public void Dispose()
     {
+        this.payloadTransmittedCallbacks.Dispose();
         this.buffer?.Dispose();
+    }
+
+    public IDisposable RegisterPayloadTransmittedCallback(OneCollectorExporterPayloadTransmittedCallbackAction callback)
+    {
+        Guard.ThrowIfNull(callback);
+
+        return this.payloadTransmittedCallbacks.Add(callback);
     }
 
     public bool Send(in TransportSendRequest sendRequest)
     {
+        Debug.Assert(sendRequest.ItemStream.CanSeek, "ItemStream was not seekable.");
+        Debug.Assert(
+            sendRequest.ItemSerializationFormat == OneCollectorExporterSerializationFormatType.CommonSchemaV4JsonStream,
+            "sendRequest.ItemSerializationFormat was not CommonSchemaV4JsonStream");
+
+        var streamStartingPosition = sendRequest.ItemStream.Position;
+
         // Prevent OneCollector's HTTP operations from being instrumented.
         using var scope = SuppressInstrumentationScope.Begin();
 
@@ -87,17 +104,24 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
                 request.Headers.TryAddWithoutValidation("NoResponseBody", "true");
             }
 
-#if NET6_0_OR_GREATER
             using var response = this.httpClient.Send(request, CancellationToken.None);
-#else
-            using var response = this.httpClient.SendAsync(request, CancellationToken.None).GetAwaiter().GetResult();
-#endif
 
             try
             {
                 response.EnsureSuccessStatusCode();
 
                 OneCollectorExporterEventSource.Log.WriteTransportDataSentEventIfEnabled(sendRequest.ItemType, sendRequest.NumberOfItems, this.Description);
+
+                var root = this.payloadTransmittedCallbacks.Root;
+                if (root != null)
+                {
+                    this.InvokePayloadTransmittedCallbacks(
+                        root,
+                        streamStartingPosition,
+                        in sendRequest);
+                }
+
+                return true;
             }
             catch
             {
@@ -120,8 +144,6 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
 
             return false;
         }
-
-        return true;
     }
 
     private HttpContent BuildRequestContent(Stream stream)
@@ -160,6 +182,36 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
         }
     }
 
+    private void InvokePayloadTransmittedCallbacks(
+        OneCollectorExporterPayloadTransmittedCallbackAction callback,
+        long streamStartingPosition,
+        in TransportSendRequest sendRequest)
+    {
+        var stream = sendRequest.ItemStream;
+
+        var currentPosition = stream.Position;
+
+        try
+        {
+            stream.Position = streamStartingPosition;
+
+            callback(
+                new OneCollectorExporterPayloadTransmittedCallbackArguments(
+                    sendRequest.ItemSerializationFormat,
+                    stream,
+                    OneCollectorExporterTransportProtocolType.HttpJsonPost,
+                    this.endpoint));
+        }
+        catch (Exception ex)
+        {
+            OneCollectorExporterEventSource.Log.WriteExceptionThrownFromUserCodeEventIfEnabled("PayloadTransmittedCallback", ex);
+        }
+        finally
+        {
+            stream.Position = currentPosition;
+        }
+    }
+
     private sealed class NonDisposingStreamContent : HttpContent
     {
 #pragma warning disable CA2213 // Disposable fields should be disposed
@@ -176,16 +228,8 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
         protected override bool TryComputeLength(out long length)
         {
             var stream = this.stream;
-            if (stream.CanSeek)
-            {
-                length = stream.Length - stream.Position;
-                return true;
-            }
-            else
-            {
-                length = 0;
-                return false;
-            }
+            length = stream.Length - stream.Position;
+            return true;
         }
 
 #if NET6_0_OR_GREATER

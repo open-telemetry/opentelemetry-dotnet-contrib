@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -21,11 +22,11 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Implementation;
 
 internal class Utils
 {
-    internal static object GetTagValue(Activity activity, string tagName)
+    internal static object? GetTagValue(Activity activity, string tagName)
     {
-        foreach (KeyValuePair<string, object> tag in activity.TagObjects)
+        foreach (KeyValuePair<string, object?> tag in activity.TagObjects)
         {
-            if (tag.Key.Equals(tagName))
+            if (tag.Key.Equals(tagName, StringComparison.Ordinal))
             {
                 return tag.Value;
             }
@@ -41,7 +42,7 @@ internal class Utils
             return string.Empty;
         }
 
-        if (originalString.EndsWith(suffix))
+        if (originalString.EndsWith(suffix, StringComparison.Ordinal))
         {
             return originalString.Substring(0, originalString.Length - suffix.Length);
         }
@@ -69,7 +70,7 @@ internal class Utils
             return string.Empty;
         }
 
-        if (originalString.StartsWith(prefix))
+        if (originalString.StartsWith(prefix, StringComparison.Ordinal))
         {
             return originalString.Substring(prefix.Length);
         }

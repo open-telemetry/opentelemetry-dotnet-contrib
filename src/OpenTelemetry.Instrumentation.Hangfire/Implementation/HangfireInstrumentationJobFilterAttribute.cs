@@ -28,7 +28,7 @@ using global::Hangfire.Server;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Trace;
 
-internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, IServerFilter, IClientFilter
+internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, IServerFilter, IClientFilter
 {
     private readonly HangfireInstrumentationOptions options;
 
@@ -36,6 +36,8 @@ internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, I
     {
         this.options = options;
     }
+
+    public HangfireInstrumentationOptions Options { get; }
 
     public void OnPerforming(PerformingContext performingContext)
     {
@@ -123,7 +125,7 @@ internal class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, I
 
     private static IEnumerable<string> ExtractActivityProperties(Dictionary<string, string> telemetryData, string key)
     {
-        return telemetryData.ContainsKey(key) ? new[] { telemetryData[key] } : Enumerable.Empty<string>();
+        return telemetryData.TryGetValue(key, out var value) ? new[] { value } : Enumerable.Empty<string>();
     }
 
     private void SetStatusAndRecordException(Activity activity, Exception exception)

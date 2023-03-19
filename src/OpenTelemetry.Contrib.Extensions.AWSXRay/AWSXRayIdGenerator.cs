@@ -39,8 +39,9 @@ public static class AWSXRayIdGenerator
     private static readonly Random Global = new Random();
     private static object randLock = new object();
 
-    internal static void ReplaceTraceId(Sampler sampler = null)
+    internal static void ReplaceTraceId(Sampler? sampler = null)
     {
+#pragma warning disable CA2000 // Dispose objects before losing scope
         var awsXRayActivityListener = new ActivityListener
         {
             ActivityStarted = (activity) =>
@@ -63,6 +64,7 @@ public static class AWSXRayIdGenerator
 
             ShouldListenTo = (_) => true,
         };
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
         ActivitySource.AddActivityListener(awsXRayActivityListener);
     }
@@ -141,7 +143,9 @@ public static class AWSXRayIdGenerator
     /// <param name="buffer">An array of bytes to contain random numbers.</param>
     private static void NextBytes(byte[] buffer)
     {
+#pragma warning disable CA5394 // Do not use insecure randomness
         Global.NextBytes(buffer);
+#pragma warning restore CA5394 // Do not use insecure randomness
     }
 
     /// <summary>
@@ -151,7 +155,9 @@ public static class AWSXRayIdGenerator
     /// <returns>A 32-bit signed integer that is greater than or equal to 0, and less than maxValue.</returns>
     private static int Next(int maxValue)
     {
+#pragma warning disable CA5394 // Do not use insecure randomness
         return Global.Next(maxValue);
+#pragma warning restore CA5394 // Do not use insecure randomness
     }
 
     private static ActivitySamplingResult ComputeRootActivitySamplingResult(

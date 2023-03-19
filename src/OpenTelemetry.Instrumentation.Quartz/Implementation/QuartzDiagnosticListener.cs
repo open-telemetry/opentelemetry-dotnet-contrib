@@ -53,10 +53,10 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
                 return;
             }
 
-            activity.DisplayName = this.GetDisplayName(activity);
+            activity.DisplayName = GetDisplayName(activity);
 
             ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
-            ActivityInstrumentationHelper.SetKindProperty(activity, this.GetActivityKind(activity));
+            ActivityInstrumentationHelper.SetKindProperty(activity, GetActivityKind(activity));
 
             try
             {
@@ -115,17 +115,17 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
         }
     }
 
-    private string GetDisplayName(Activity activity)
+    private static string GetDisplayName(Activity activity)
     {
         return activity.OperationName switch
         {
-            OperationName.Job.Execute => $"execute {this.GetTag(activity.Tags, TagName.JobName)}",
-            OperationName.Job.Veto => $"veto {this.GetTag(activity.Tags, TagName.JobName)}",
+            OperationName.Job.Execute => $"execute {GetTag(activity.Tags, TagName.JobName)}",
+            OperationName.Job.Veto => $"veto {GetTag(activity.Tags, TagName.JobName)}",
             _ => activity.DisplayName,
         };
     }
 
-    private ActivityKind GetActivityKind(Activity activity)
+    private static ActivityKind GetActivityKind(Activity activity)
     {
         return activity.OperationName switch
         {
@@ -135,7 +135,7 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
         };
     }
 
-    private string GetTag(IEnumerable<KeyValuePair<string, string>> tags, string tagName)
+    private static string GetTag(IEnumerable<KeyValuePair<string, string>> tags, string tagName)
     {
         var tag = tags.SingleOrDefault(kv => kv.Key == tagName);
         return tag.Value;

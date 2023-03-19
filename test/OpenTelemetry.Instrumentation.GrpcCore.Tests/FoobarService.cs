@@ -33,7 +33,17 @@ internal class FoobarService : Foobar.FoobarBase
     /// <summary>
     /// Default traceparent header value with the sampling bit on.
     /// </summary>
-    internal static readonly string DefaultTraceparentWithSampling = "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01";
+    internal const string DefaultTraceparentWithSampling = "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01";
+
+    /// <summary>
+    /// The request header fail with status code.
+    /// </summary>
+    internal const string RequestHeaderFailWithStatusCode = "failurestatuscode";
+
+    /// <summary>
+    /// The request header error description.
+    /// </summary>
+    internal const string RequestHeaderErrorDescription = "failuredescription";
 
     /// <summary>
     /// The default parent from a traceparent header.
@@ -59,16 +69,6 @@ internal class FoobarService : Foobar.FoobarBase
     /// The default request message size.
     /// </summary>
     internal static readonly int DefaultResponseMessageSize = ((IMessage)DefaultResponseMessage).CalculateSize();
-
-    /// <summary>
-    /// The request header fail with status code.
-    /// </summary>
-    internal static readonly string RequestHeaderFailWithStatusCode = "failurestatuscode";
-
-    /// <summary>
-    /// The request header error description.
-    /// </summary>
-    internal static readonly string RequestHeaderErrorDescription = "failuredescription";
 
     /// <summary>
     /// Starts the specified service.

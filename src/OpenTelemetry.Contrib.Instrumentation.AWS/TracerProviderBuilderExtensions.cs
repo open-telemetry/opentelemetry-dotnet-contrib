@@ -34,14 +34,14 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddAWSInstrumentation(
         this TracerProviderBuilder builder,
-        Action<AWSClientInstrumentationOptions> configure = null)
+        Action<AWSClientInstrumentationOptions>? configure = null)
     {
         Guard.ThrowIfNull(builder);
 
         var awsClientOptions = new AWSClientInstrumentationOptions();
         configure?.Invoke(awsClientOptions);
 
-        new AWSClientsInstrumentation(awsClientOptions);
+        _ = new AWSClientsInstrumentation(awsClientOptions);
         builder.AddSource("Amazon.AWS.AWSClientInstrumentation");
         return builder;
     }

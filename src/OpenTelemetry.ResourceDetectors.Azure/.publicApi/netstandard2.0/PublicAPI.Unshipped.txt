@@ -1,3 +1,3 @@
 OpenTelemetry.ResourceDetectors.Azure.AppServiceResourceDetector
 OpenTelemetry.ResourceDetectors.Azure.AppServiceResourceDetector.AppServiceResourceDetector() -> void
-OpenTelemetry.ResourceDetectors.Azure.AppServiceResourceDetector.Detect() -> OpenTelemetry.Resources.Resource?
+OpenTelemetry.ResourceDetectors.Azure.AppServiceResourceDetector.Detect() -> OpenTelemetry.Resources.Resource!

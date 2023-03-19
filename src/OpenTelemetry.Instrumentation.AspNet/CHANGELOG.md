@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-rc9.8
+
+Released 2023-Feb-27
+
 * Removes `AddAspNetInstrumentation` method with default configure parameter.
   ([#942](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/942))
 

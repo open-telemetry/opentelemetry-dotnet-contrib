@@ -106,9 +106,9 @@ public class QuartzDiagnosticListenerTests
                     if (payload is IJobDetail jobDetail)
                     {
                         var dataMap = jobDetail.JobDataMap;
-                        if (dataMap.ContainsKey("TestId"))
+                        if (dataMap.TryGetValue("TestId", out var value))
                         {
-                            a.SetTag("test.id", dataMap["TestId"]);
+                            a.SetTag("test.id", value);
                         }
                     }
                 })
@@ -229,9 +229,9 @@ public class QuartzDiagnosticListenerTests
                     if (p is IJobDetail jobDetail)
                     {
                         var dataMap = jobDetail.JobDataMap;
-                        if (dataMap.ContainsKey("TestId"))
+                        if (dataMap.TryGetValue("TestId", out var value))
                         {
-                            a.SetTag("test.id", dataMap["TestId"]);
+                            a.SetTag("test.id", value);
                         }
                     }
                 };

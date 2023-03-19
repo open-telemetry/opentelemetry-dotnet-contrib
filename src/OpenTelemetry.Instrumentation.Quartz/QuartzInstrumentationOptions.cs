@@ -56,5 +56,7 @@ public class QuartzInstrumentationOptions
     /// <summary>
     /// Gets or sets traced operations set.
     /// </summary>
+#pragma warning disable CA2227 // Collection properties should be read only
     public HashSet<string> TracedOperations { get; set; } = new(DefaultTracedOperations);
+#pragma warning restore CA2227 // Collection properties should be read only
 }

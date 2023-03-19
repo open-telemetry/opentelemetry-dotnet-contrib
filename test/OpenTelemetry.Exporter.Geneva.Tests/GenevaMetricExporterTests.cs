@@ -569,12 +569,15 @@ public class GenevaMetricExporterTests
                 var metricPoint = metricPointsEnumerator.Current;
                 var metricDataValue = Convert.ToUInt64(metricPoint.GetSumLong());
                 var metricData = new MetricData { UInt64Value = metricDataValue };
-                var bodyLength = exporter.SerializeMetric(
+
+                var exemplars = metricPoint.GetExemplars();
+                var bodyLength = exporter.SerializeMetricWithTLV(
                     MetricEventType.ULongMetric,
                     metric.Name,
                     metricPoint.EndTime.ToFileTime(),
                     metricPoint.Tags,
-                    metricData);
+                    metricData,
+                    exemplars);
 
                 // Wait a little more than the ExportInterval for the exporter to export the data.
                 Task.Delay(5500).Wait();
@@ -589,6 +592,9 @@ public class GenevaMetricExporterTests
                 // BinaryHeader (fixed payload) + variable payload which starts with MetricPayload
                 Assert.Equal(bodyLength + fixedPayloadLength, receivedDataSize);
 
+                // TODO: Update the unit test to test TLV based serialization
+
+                /*
                 var stream = new KaitaiStream(receivedData);
                 var data = new MetricsContract(stream);
 
@@ -611,6 +617,7 @@ public class GenevaMetricExporterTests
 
                 Assert.Equal((ushort)MetricEventType.ULongMetric, data.EventId);
                 Assert.Equal(bodyLength, data.LenBody);
+                */
             }
             finally
             {
@@ -622,6 +629,64 @@ public class GenevaMetricExporterTests
                 {
                 }
             }
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void DisableMetricNameValidationTest(bool disableMetricNameValidation)
+    {
+        var instrumentNameRegexProperty = GenevaMetricExporter.GetOpenTelemetryInstrumentNameRegexProperty();
+        var initialInstrumentNameRegexValue = instrumentNameRegexProperty.GetValue(null);
+        Socket server = null;
+        try
+        {
+            var exportedMetrics = new List<Metric>();
+
+            using var meter = new Meter(Guid.NewGuid().ToString());
+
+            using (var provider = Sdk.CreateMeterProviderBuilder()
+                .AddMeter(meter.Name)
+                .AddGenevaMetricExporter(options =>
+                {
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        options.ConnectionString = $"Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace;DisableMetricNameValidation={disableMetricNameValidation}";
+                    }
+                    else
+                    {
+                        var path = GenerateTempFilePath();
+                        options.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace;DisableMetricNameValidation={disableMetricNameValidation}";
+
+                        var endpoint = new UnixDomainSocketEndPoint(path);
+                        server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                        server.Bind(endpoint);
+                        server.Listen(1);
+                    }
+                })
+                .AddInMemoryExporter(exportedMetrics)
+                .Build())
+            {
+                var counter = meter.CreateCounter<int>("count/invalid");
+                counter.Add(1);
+            }
+
+            if (disableMetricNameValidation)
+            {
+                Assert.Single(exportedMetrics);
+            }
+            else
+            {
+                Assert.Empty(exportedMetrics);
+            }
+        }
+        finally
+        {
+            instrumentNameRegexProperty.SetValue(null, initialInstrumentNameRegexValue);
+#pragma warning disable CA1508
+            server?.Dispose();
+#pragma warning restore CA1508
         }
     }
 

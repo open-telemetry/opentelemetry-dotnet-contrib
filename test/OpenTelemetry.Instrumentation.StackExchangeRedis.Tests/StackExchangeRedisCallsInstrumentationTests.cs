@@ -307,11 +307,12 @@ public class StackExchangeRedisCallsInstrumentationTests
         Assert.Throws<ArgumentNullException>(() => builder.AddRedisInstrumentation(null));
 
         var activityProcessor = new Mock<BaseProcessor<Activity>>();
-        Assert.Throws<NotSupportedException>(() =>
+        var exception = Assert.Throws<InvalidOperationException>(() =>
             Sdk.CreateTracerProviderBuilder()
                 .AddProcessor(activityProcessor.Object)
                 .AddRedisInstrumentation(null)
                 .Build());
+        Assert.Equal("StackExchange.Redis IConnectionMultiplexer could not be resolved through application IServiceProvider", exception.Message);
     }
 
     [Fact]
@@ -336,7 +337,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         {
             optionsPickedFromDI = true;
         });
-        services.AddOpenTelemetryTracing(builder => builder.AddRedisInstrumentation());
+        services.AddOpenTelemetry().WithTracing(builder => builder.AddRedisInstrumentation());
 
         using var serviceProvider = services.BuildServiceProvider();
 
@@ -351,7 +352,7 @@ public class StackExchangeRedisCallsInstrumentationTests
     {
         var services = new ServiceCollection();
 
-        services.AddOpenTelemetryTracing(builder => builder.AddRedisInstrumentation());
+        services.AddOpenTelemetry().WithTracing(builder => builder.AddRedisInstrumentation());
 
         using var serviceProvider = services.BuildServiceProvider();
 

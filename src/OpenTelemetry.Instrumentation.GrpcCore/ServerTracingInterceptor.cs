@@ -54,6 +54,9 @@ public class ServerTracingInterceptor : Interceptor
         ServerCallContext context,
         UnaryServerMethod<TRequest, TResponse> continuation)
     {
+        Guard.ThrowIfNull(context);
+        Guard.ThrowIfNull(continuation);
+
         using var rpcScope = new ServerRpcScope<TRequest, TResponse>(context, this.options);
 
         try
@@ -77,6 +80,9 @@ public class ServerTracingInterceptor : Interceptor
         ServerCallContext context,
         ClientStreamingServerMethod<TRequest, TResponse> continuation)
     {
+        Guard.ThrowIfNull(context);
+        Guard.ThrowIfNull(continuation);
+
         using var rpcScope = new ServerRpcScope<TRequest, TResponse>(context, this.options);
 
         try
@@ -104,6 +110,9 @@ public class ServerTracingInterceptor : Interceptor
         ServerCallContext context,
         ServerStreamingServerMethod<TRequest, TResponse> continuation)
     {
+        Guard.ThrowIfNull(context);
+        Guard.ThrowIfNull(continuation);
+
         using var rpcScope = new ServerRpcScope<TRequest, TResponse>(context, this.options);
 
         try
@@ -127,6 +136,9 @@ public class ServerTracingInterceptor : Interceptor
     /// <inheritdoc/>
     public override async Task DuplexStreamingServerHandler<TRequest, TResponse>(IAsyncStreamReader<TRequest> requestStream, IServerStreamWriter<TResponse> responseStream, ServerCallContext context, DuplexStreamingServerMethod<TRequest, TResponse> continuation)
     {
+        Guard.ThrowIfNull(context);
+        Guard.ThrowIfNull(continuation);
+
         using var rpcScope = new ServerRpcScope<TRequest, TResponse>(context, this.options);
 
         try

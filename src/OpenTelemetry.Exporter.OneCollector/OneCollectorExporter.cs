@@ -24,7 +24,7 @@ namespace OpenTelemetry.Exporter.OneCollector;
 /// Microsoft OneCollector.
 /// </summary>
 /// <typeparam name="T">Item type.</typeparam>
-public class OneCollectorExporter<T> : BaseExporter<T>
+public sealed class OneCollectorExporter<T> : BaseExporter<T>
     where T : class
 {
     private readonly string typeName;
@@ -34,13 +34,13 @@ public class OneCollectorExporter<T> : BaseExporter<T>
     /// <summary>
     /// Initializes a new instance of the <see cref="OneCollectorExporter{T}"/> class.
     /// </summary>
-    /// <param name="sinkFactory"><see cref="ISinkFactory{T}"/>.</param>
-    internal OneCollectorExporter(ISinkFactory<T> sinkFactory)
+    /// <param name="sink"><see cref="ISink{T}"/>.</param>
+    internal OneCollectorExporter(ISink<T> sink)
     {
-        Guard.ThrowIfNull(sinkFactory);
+        Guard.ThrowIfNull(sink);
 
         this.typeName = typeof(T).Name;
-        this.sink = sinkFactory.CreateSink();
+        this.sink = sink;
     }
 
     /// <inheritdoc/>
@@ -63,6 +63,19 @@ public class OneCollectorExporter<T> : BaseExporter<T>
             return ExportResult.Failure;
         }
     }
+
+    /// <summary>
+    /// Register a callback action that will be triggered any time a payload is
+    /// transmitted by the exporter.
+    /// </summary>
+    /// <param name="callback"><see
+    /// cref="OneCollectorExporterPayloadTransmittedCallbackAction"/>.</param>
+    /// <returns><see langword="null"/> if no transport is tied to the exporter
+    /// or an <see cref="IDisposable"/> representing the registered callback.
+    /// Call <see cref="IDisposable.Dispose"/> on the returned instance to
+    /// cancel the registration.</returns>
+    public IDisposable? RegisterPayloadTransmittedCallback(OneCollectorExporterPayloadTransmittedCallbackAction callback)
+        => this.sink.Transport?.RegisterPayloadTransmittedCallback(callback);
 
     /// <inheritdoc/>
     protected override void Dispose(bool disposing)

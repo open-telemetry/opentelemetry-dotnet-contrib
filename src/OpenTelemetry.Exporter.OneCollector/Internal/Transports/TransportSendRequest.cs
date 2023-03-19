@@ -36,12 +36,18 @@ internal readonly struct TransportSendRequest
 #if NET7_0_OR_GREATER
     public required string ItemType { get; init; }
 
+    public required OneCollectorExporterSerializationFormatType ItemSerializationFormat { get; init; }
+
     public required Stream ItemStream { get; init; }
+
+    public required int NumberOfItems { get; init; }
 #else
     public string ItemType { get; init; }
 
-    public Stream ItemStream { get; init; }
-#endif
+    public OneCollectorExporterSerializationFormatType ItemSerializationFormat { get; init; }
 
-    public int? NumberOfItems { get; init; }
+    public Stream ItemStream { get; init; }
+
+    public int NumberOfItems { get; init; }
+#endif
 }

@@ -24,7 +24,9 @@ public static class OperationName
     /// <summary>
     /// Quartz Job category constants.
     /// </summary>
+#pragma warning disable CA1034 // Nested types should not be visible
     public static class Job
+#pragma warning restore CA1034 // Nested types should not be visible
     {
         /// <summary>
         /// Quartz job execute diagnostic source operation name.

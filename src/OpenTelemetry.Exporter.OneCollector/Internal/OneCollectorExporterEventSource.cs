@@ -73,6 +73,15 @@ internal sealed class OneCollectorExporterEventSource : EventSource
         }
     }
 
+    [NonEvent]
+    public void WriteExceptionThrownFromUserCodeEventIfEnabled(string userCodeType, Exception exception)
+    {
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        {
+            this.ExceptionThrownFromUserCode(userCodeType, ExceptionToInvariantString(exception));
+        }
+    }
+
     [Event(1, Message = "Exception thrown exporting '{0}' batch: {1}.", Level = EventLevel.Error)]
     public void ExportExceptionThrown(string itemType, string exception)
     {
@@ -127,11 +136,19 @@ internal sealed class OneCollectorExporterEventSource : EventSource
         this.WriteEvent(9, eventName);
     }
 
-    /// <summary>
-    /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
-    /// appropriate for diagnostics tracing.
-    /// </summary>
-    private static string ExceptionToInvariantString(Exception exception)
+    [Event(10, Message = "Exception thrown by '{0}' user code: {1}", Level = EventLevel.Error)]
+    public void ExceptionThrownFromUserCode(string userCodeType, string exception)
+    {
+        this.WriteEvent(10, userCodeType, exception);
+    }
+
+    [Event(11, Message = "Dropped {0} attribute '{1}': {2}", Level = EventLevel.Warning)]
+    public void AttributeDropped(string itemType, string name, string reason)
+    {
+        this.WriteEvent(11, itemType, name, reason);
+    }
+
+    internal static string ExceptionToInvariantString(Exception exception)
     {
         var originalUICulture = Thread.CurrentThread.CurrentUICulture;
 

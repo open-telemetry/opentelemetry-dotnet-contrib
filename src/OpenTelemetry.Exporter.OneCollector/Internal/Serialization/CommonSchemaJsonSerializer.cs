@@ -24,19 +24,9 @@ namespace OpenTelemetry.Exporter.OneCollector;
 internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
     where T : class
 {
-    protected static readonly JsonEncodedText VersionProperty = JsonEncodedText.Encode("ver");
-    protected static readonly JsonEncodedText Version4Value = JsonEncodedText.Encode("4.0");
-    protected static readonly JsonEncodedText NameProperty = JsonEncodedText.Encode("name");
-    protected static readonly JsonEncodedText TimeProperty = JsonEncodedText.Encode("time");
-    protected static readonly JsonEncodedText IKeyProperty = JsonEncodedText.Encode("iKey");
-    protected static readonly JsonEncodedText DataProperty = JsonEncodedText.Encode("data");
-
-    private const char OneCollectorTenancySymbol = 'o';
-
-    private static readonly byte[] NewLine = "\n"u8.ToArray();
-
     private readonly int maxPayloadSizeInBytes;
     private readonly int maxNumberOfItemsPerPayload;
+    private readonly string itemType = typeof(T).Name;
 
     protected CommonSchemaJsonSerializer(
         string tenantToken,
@@ -48,10 +38,12 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
         this.maxPayloadSizeInBytes = maxPayloadSizeInBytes;
         this.maxNumberOfItemsPerPayload = maxNumberOfItemsPerPayload;
 
-        this.TenantTokenWithTenancySystemSymbol = JsonEncodedText.Encode($"{OneCollectorTenancySymbol}:{tenantToken}");
+        this.TenantTokenWithTenancySystemSymbol = JsonEncodedText.Encode($"{CommonSchemaJsonSerializationHelper.OneCollectorTenancySymbol}:{tenantToken}");
     }
 
     public abstract string Description { get; }
+
+    public OneCollectorExporterSerializationFormatType SerializationFormat => OneCollectorExporterSerializationFormatType.CommonSchemaV4JsonStream;
 
     protected JsonEncodedText TenantTokenWithTenancySystemSymbol { get; }
 
@@ -62,34 +54,22 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
         var numberOfSerializedItems = 0;
         long payloadSizeInBytes = initialSizeOfPayloadInBytes;
 
-        var writer = ThreadStorageHelper.Utf8JsonWriter ??= new(
-            stream,
-            new JsonWriterOptions
-            {
-#if DEBUG
-                SkipValidation = false,
-#else
-                SkipValidation = true,
-#endif
-            });
+        var state = ThreadStorageHelper.GetCommonSchemaJsonSerializationState(this.itemType, stream);
+
+        var writer = state.Writer;
 
         foreach (var item in batch)
         {
-            // Note: This is a slow operation. We call this each iteration
-            // (instead of once per batch) to reset _currentDepth on
-            // Utf8JsonWriter so it doesn't write a comma after each record.
-            // Need a faster solution here!
-            writer.Reset(stream);
-
-            this.SerializeItemToJson(resource, item, writer);
+            this.SerializeItemToJson(resource, item, state);
 
             var currentItemSizeInBytes = writer.BytesCommitted + writer.BytesPending + 1;
 
             payloadSizeInBytes += currentItemSizeInBytes;
 
             writer.Flush();
+            writer.Reset();
 
-            stream.Write(NewLine, 0, 1);
+            stream.Write(CommonSchemaJsonSerializationHelper.NewLine, 0, 1);
 
             if (++numberOfSerializedItems >= this.maxNumberOfItemsPerPayload)
             {
@@ -115,5 +95,49 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
         };
     }
 
-    protected abstract void SerializeItemToJson(Resource resource, T item, Utf8JsonWriter writer);
+    protected static bool AttributeKeyStartWithExtensionPrefix(string attributeKey)
+    {
+        return attributeKey.StartsWith("ext.", StringComparison.OrdinalIgnoreCase);
+    }
+
+    protected static void SerializeResourceToJsonInsideCurrentObject(Resource resource, CommonSchemaJsonSerializationState serializationState)
+    {
+        Debug.Assert(resource != null, "resource was null");
+        Debug.Assert(serializationState != null, "serializationState was null");
+
+        var writer = serializationState!.Writer;
+
+        Debug.Assert(writer != null, "writer was null");
+
+        if (resource!.Attributes is IReadOnlyList<KeyValuePair<string, object?>> resourceAttributeList)
+        {
+            for (int i = 0; i < resourceAttributeList.Count; i++)
+            {
+                var resourceAttribute = resourceAttributeList[i];
+
+                if (AttributeKeyStartWithExtensionPrefix(resourceAttribute.Key))
+                {
+                    serializationState.AddExtensionAttribute(resourceAttribute);
+                    continue;
+                }
+
+                CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(resourceAttribute.Key, resourceAttribute.Value, writer!);
+            }
+        }
+        else
+        {
+            foreach (KeyValuePair<string, object> resourceAttribute in resource.Attributes)
+            {
+                if (AttributeKeyStartWithExtensionPrefix(resourceAttribute.Key))
+                {
+                    serializationState.AddExtensionAttribute(resourceAttribute!);
+                    continue;
+                }
+
+                CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(resourceAttribute.Key, resourceAttribute.Value, writer!);
+            }
+        }
+    }
+
+    protected abstract void SerializeItemToJson(Resource resource, T item, CommonSchemaJsonSerializationState serializationState);
 }

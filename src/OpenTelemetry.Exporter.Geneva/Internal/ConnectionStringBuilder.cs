@@ -230,6 +230,20 @@ internal class ConnectionStringBuilder
         set => this._parts[nameof(this.Namespace)] = value;
     }
 
+    public bool DisableMetricNameValidation
+    {
+        get
+        {
+            if (!this._parts.TryGetValue(nameof(this.DisableMetricNameValidation), out var value))
+            {
+                return false;
+            }
+
+            return string.Equals(bool.TrueString, value, StringComparison.OrdinalIgnoreCase);
+        }
+        set => this._parts[nameof(this.DisableMetricNameValidation)] = value ? bool.TrueString : bool.FalseString;
+    }
+
     private T ThrowIfNotExists<T>(string name)
     {
         if (!this._parts.TryGetValue(name, out var value))

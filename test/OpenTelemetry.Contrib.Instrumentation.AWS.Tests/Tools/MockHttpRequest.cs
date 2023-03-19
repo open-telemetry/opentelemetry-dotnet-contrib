@@ -32,9 +32,9 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests;
 #if NET452
 internal class MockHttpRequest : IHttpRequest<Stream>
 {
-    private Stream requestStream = null;
+    private Stream? requestStream;
 
-    public MockHttpRequest(Uri requestUri, Action action, Func<MockHttpRequest, HttpWebResponse> responseCreator = null)
+    public MockHttpRequest(Uri requestUri, Action? action, Func<MockHttpRequest, HttpWebResponse?>? responseCreator = null)
     {
         this.RequestUri = requestUri;
         this.GetResponseAction = action;
@@ -51,13 +51,13 @@ internal class MockHttpRequest : IHttpRequest<Stream>
 
     public bool IsGetRequestContentCalled { get; set; }
 
-    public string Method { get; set; }
+    public string? Method { get; set; }
 
     public Uri RequestUri { get; set; }
 
-    public Action GetResponseAction { get; set; }
+    public Action? GetResponseAction { get; set; }
 
-    public Func<MockHttpRequest, HttpWebResponse> ResponseCreator { get; set; }
+    public Func<MockHttpRequest, HttpWebResponse?> ResponseCreator { get; set; }
 
     public void ConfigureRequest(IRequestContext requestContext)
     {
@@ -106,7 +106,7 @@ internal class MockHttpRequest : IHttpRequest<Stream>
         return Task.FromResult<Stream>(new MemoryStream());
     }
 
-    public Task<IWebResponseData> GetResponseAsync(System.Threading.CancellationToken cancellationToken)
+    public Task<IWebResponseData> GetResponseAsync(CancellationToken cancellationToken)
     {
         this.GetResponseAction?.Invoke();
 
@@ -144,7 +144,7 @@ internal class MockHttpRequest : IHttpRequest<Stream>
         var resourceName = request.RequestUri.Host.Split('.').Last();
         var response = MockWebResponse.CreateFromResource(resourceName);
 
-        if (response.StatusCode >= HttpStatusCode.OK && response.StatusCode <= (HttpStatusCode)299)
+        if (response?.StatusCode >= HttpStatusCode.OK && response.StatusCode <= (HttpStatusCode)299)
         {
             return response;
         }
@@ -157,7 +157,7 @@ internal class MockHttpRequest : IHttpRequest<Stream>
 #else
 internal class MockHttpRequest : IHttpRequest<HttpContent>
 {
-    public MockHttpRequest(Uri requestUri, Action action, Func<MockHttpRequest, HttpResponseMessage> responseCreator = null)
+    public MockHttpRequest(Uri requestUri, Action? action, Func<MockHttpRequest, HttpResponseMessage>? responseCreator = null)
     {
         this.RequestUri = requestUri;
         this.GetResponseAction = action;
@@ -174,11 +174,11 @@ internal class MockHttpRequest : IHttpRequest<HttpContent>
 
     public bool IsGetRequestContentCalled { get; set; }
 
-    public string Method { get; set; }
+    public string? Method { get; set; }
 
     public Uri RequestUri { get; set; }
 
-    public Action GetResponseAction { get; set; }
+    public Action? GetResponseAction { get; set; }
 
     public Func<MockHttpRequest, HttpResponseMessage> ResponseCreator { get; set; }
 
@@ -206,7 +206,7 @@ internal class MockHttpRequest : IHttpRequest<HttpContent>
         }
         catch (AggregateException e)
         {
-            throw e.InnerException;
+            throw e.InnerException ?? e;
         }
     }
 

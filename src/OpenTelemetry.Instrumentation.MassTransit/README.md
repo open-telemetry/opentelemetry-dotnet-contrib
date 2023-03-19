@@ -52,8 +52,8 @@ services.AddMassTransitHostedService();
 services.AddOpenTelemetrySdk(x =>
 {
     x.AddMassTransitInstrumentation();
-    x.UseJaegerExporter(config => {
-      // Configure Jaeger
+    x.AddOtlpExporter(config => {
+      // Configure OTLP
     });
 });
 ```

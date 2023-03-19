@@ -24,12 +24,12 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests;
 
 internal class HttpResponseMessageBody : IHttpResponseBody
 {
-    private HttpClient httpClient;
+    private HttpClient? httpClient;
     private HttpResponseMessage response;
-    private bool disposeClient = false;
-    private bool disposed = false;
+    private bool disposeClient;
+    private bool disposed;
 
-    public HttpResponseMessageBody(HttpResponseMessage response, HttpClient httpClient, bool disposeClient)
+    public HttpResponseMessageBody(HttpResponseMessage response, HttpClient? httpClient, bool disposeClient)
     {
         this.httpClient = httpClient;
         this.response = response;
@@ -65,7 +65,8 @@ internal class HttpResponseMessageBody : IHttpResponseBody
         }
         else
         {
-            return null;
+            var ms = new MemoryStream();
+            return Task.FromResult<Stream>(ms);
         }
     }
 
