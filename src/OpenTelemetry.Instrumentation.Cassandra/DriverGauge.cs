@@ -22,14 +22,10 @@ namespace OpenTelemetry.Instrumentation.Cassandra;
 
 internal class DriverGauge : IDriverGauge
 {
-    public static readonly string MeterName = typeof(DriverGauge).FullName;
-
     private readonly ObservableGauge<double> gauge;
 
     public DriverGauge(string name, Func<double> value)
     {
-        var meter = new Meter(MeterName);
-
-        this.gauge = meter.CreateObservableGauge(name, value);
+        this.gauge = CassandraMeter.Instance.CreateObservableGauge(name, value);
     }
 }

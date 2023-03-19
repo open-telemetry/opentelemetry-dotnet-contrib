@@ -21,14 +21,11 @@ namespace OpenTelemetry.Instrumentation.Cassandra;
 
 internal class DriverMeter : IDriverMeter
 {
-    public static readonly string MeterName = typeof(DriverMeter).FullName;
-
     private readonly Histogram<long> meter;
 
     public DriverMeter(string name)
     {
-        var meter = new Meter(MeterName);
-        this.meter = meter.CreateHistogram<long>(name);
+        this.meter = CassandraMeter.Instance.CreateHistogram<long>(name);
     }
 
     public void Mark(long amount)

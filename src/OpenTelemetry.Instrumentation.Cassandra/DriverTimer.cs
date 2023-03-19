@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Diagnostics.Metrics;
 using Cassandra.Metrics.Abstractions;
 
@@ -21,14 +22,11 @@ namespace OpenTelemetry.Instrumentation.Cassandra;
 
 internal class DriverTimer : IDriverTimer
 {
-    public static readonly string MeterName = typeof(DriverTimer).FullName;
-
     private readonly Histogram<double> timer;
 
     public DriverTimer(string name)
     {
-        var meter = new Meter(MeterName);
-        this.timer = meter.CreateHistogram<double>(name, "ms");
+        this.timer = CassandraMeter.Instance.CreateHistogram<double>(name, "ms");
     }
 
     public void Record(long elapsedNanoseconds)

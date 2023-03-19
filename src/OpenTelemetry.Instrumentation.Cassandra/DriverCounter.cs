@@ -21,14 +21,11 @@ namespace OpenTelemetry.Instrumentation.Cassandra;
 
 internal class DriverCounter : IDriverCounter
 {
-    public static readonly string MeterName = typeof(DriverCounter).FullName;
-
     private readonly Counter<long> counter;
 
     public DriverCounter(string name)
     {
-        var meter = new Meter(MeterName);
-        this.counter = meter.CreateCounter<long>(name);
+        this.counter = CassandraMeter.Instance.CreateCounter<long>(name);
     }
 
     public void Increment()
