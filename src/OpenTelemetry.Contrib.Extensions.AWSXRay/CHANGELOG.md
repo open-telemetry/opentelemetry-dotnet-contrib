@@ -5,6 +5,8 @@
 * Enhancement - AWSXRayIdGenerator - Generate X-Ray IDs with global Random
   instance instead of recreating with ThreadLocal
   ([#380](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/380))
+* Added a `net6.0` build target and removed the package reference to System.Net.Http
+  ([#1093](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1093))
 * Raised minimum .NET version to `net462`
   ([#875](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/875))
 * Updated OTel SDK package version to 1.3.1
