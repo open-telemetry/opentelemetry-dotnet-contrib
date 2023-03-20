@@ -25,11 +25,7 @@ public class TestAWSEC2ResourceDetector
     [Fact]
     public void TestDetect()
     {
-        var ec2ResourceDetector = new AWSEC2ResourceDetector();
-
-        var resourceAttributes = ec2ResourceDetector.Detect();
-
-        Assert.Null(resourceAttributes); // will be null as it's not in ec2 environment
+        Assert.Empty(new AWSEC2ResourceDetector().Detect().Attributes); // will be null as it's not in ec2 environment
     }
 
     [Fact]

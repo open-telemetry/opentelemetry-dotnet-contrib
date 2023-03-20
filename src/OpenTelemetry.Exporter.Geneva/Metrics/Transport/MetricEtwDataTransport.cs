@@ -58,4 +58,9 @@ internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
     private void ExternallyAggregatedDoubleDistributionMetric()
     {
     }
+
+    [Event((int)MetricEventType.TLV)]
+    private void TLVMetricEvent()
+    {
+    }
 }

@@ -16,7 +16,9 @@
 
 using System;
 using System.Collections.Generic;
+
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Models;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 
@@ -34,40 +36,61 @@ public class AWSEC2ResourceDetector : IResourceDetector
     /// <summary>
     /// Detector the required and optional resource attributes from AWS EC2.
     /// </summary>
-    /// <returns>List of key-value pairs of resource attributes.</returns>
-    public IEnumerable<KeyValuePair<string, object?>>? Detect()
+    /// <returns>Resource with key-value pairs of resource attributes.</returns>
+    public Resource Detect()
     {
-        List<KeyValuePair<string, object?>>? resourceAttributes = null;
-
         try
         {
             var token = GetAWSEC2Token();
             var identity = GetAWSEC2Identity(token);
             var hostName = GetAWSEC2HostName(token);
 
-            resourceAttributes = ExtractResourceAttributes(identity, hostName);
+            return new Resource(ExtractResourceAttributes(identity, hostName));
         }
         catch (Exception ex)
         {
             AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSEC2ResourceDetector), ex);
         }
 
-        return resourceAttributes;
+        return Resource.Empty;
     }
 
-    internal static List<KeyValuePair<string, object?>> ExtractResourceAttributes(AWSEC2IdentityDocumentModel? identity, string hostName)
+    internal static List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEC2IdentityDocumentModel? identity, string hostName)
     {
-        var resourceAttributes = new List<KeyValuePair<string, object?>>()
+        var resourceAttributes = new List<KeyValuePair<string, object>>()
         {
-            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudPlatform, "aws_ec2"),
-            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudAccountID, identity?.AccountId),
-            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudAvailableZone, identity?.AvailabilityZone),
-            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeHostID, identity?.InstanceId),
-            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeHostType, identity?.InstanceType),
-            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudRegion, identity?.Region),
-            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeHostName, hostName),
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_ec2"),
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeHostName, hostName),
         };
+
+        if (identity != null)
+        {
+            if (identity.AccountId != null)
+            {
+                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudAccountID, identity.AccountId));
+            }
+
+            if (identity.AvailabilityZone != null)
+            {
+                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudAvailableZone, identity.AvailabilityZone));
+            }
+
+            if (identity.InstanceId != null)
+            {
+                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeHostID, identity.InstanceId));
+            }
+
+            if (identity.InstanceType != null)
+            {
+                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeHostType, identity.InstanceType));
+            }
+
+            if (identity.Region != null)
+            {
+                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudRegion, identity.Region));
+            }
+        }
 
         return resourceAttributes;
     }

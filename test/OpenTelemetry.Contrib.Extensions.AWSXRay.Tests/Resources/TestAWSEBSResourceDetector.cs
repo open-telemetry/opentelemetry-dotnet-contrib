@@ -27,11 +27,7 @@ public class TestAWSEBSResourceDetector
     [Fact]
     public void TestDetect()
     {
-        var ebsResourceDetector = new AWSEBSResourceDetector();
-
-        var resourceAttributes = ebsResourceDetector.Detect();
-
-        Assert.Null(resourceAttributes); // will be null as it's not in ebs environment
+        Assert.Empty(new AWSEBSResourceDetector().Detect().Attributes); // will be null as it's not in ebs environment
     }
 
     [Fact]

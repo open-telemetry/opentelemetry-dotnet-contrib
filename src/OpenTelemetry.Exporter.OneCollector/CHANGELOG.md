@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+* Added support for sending common schema extensions using `ext.[name].[field]`
+  syntax.
+  ([#1073](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1073))
+
+* Added support for sending common schema `dt` (Distributed Tracing) extension
+  when trace context is present on `LogRecord`s.
+  ([#1073](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1073))
+
+* Added support for sending common schema `ex` (Exception) extension when
+  exception is present on `LogRecord`s.
+  ([#1082](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1082))
+
 ## 0.1.0-alpha.2
 
 Released 2023-Mar-6

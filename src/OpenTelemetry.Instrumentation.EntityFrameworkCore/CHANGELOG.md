@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-beta.6
+
+Released 2023-Mar-13
+
 * Added overloads which accept a name to the `TracerProviderBuilder`
   `EntityFrameworkInstrumentationOptions` extension to allow for more fine-grained
   options management

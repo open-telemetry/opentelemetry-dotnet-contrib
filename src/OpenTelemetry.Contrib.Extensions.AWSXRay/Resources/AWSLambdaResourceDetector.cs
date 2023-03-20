@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 
@@ -31,32 +32,30 @@ public class AWSLambdaResourceDetector : IResourceDetector
     /// <summary>
     /// Detector the required and optional resource attributes from AWS Lambda.
     /// </summary>
-    /// <returns>List of key-value pairs of resource attributes.</returns>
-    public IEnumerable<KeyValuePair<string, object?>>? Detect()
+    /// <returns>Resource with key-value pairs of resource attributes.</returns>
+    public Resource Detect()
     {
-        List<KeyValuePair<string, object?>>? resourceAttributes = null;
-
         try
         {
-            resourceAttributes = ExtractResourceAttributes();
+            return new Resource(ExtractResourceAttributes());
         }
         catch (Exception ex)
         {
             AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSLambdaResourceDetector), ex);
         }
 
-        return resourceAttributes;
+        return Resource.Empty;
     }
 
-    internal static List<KeyValuePair<string, object?>> ExtractResourceAttributes()
+    internal static List<KeyValuePair<string, object>> ExtractResourceAttributes()
     {
-        var resourceAttributes = new List<KeyValuePair<string, object?>>()
+        var resourceAttributes = new List<KeyValuePair<string, object>>()
         {
-            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudPlatform, "aws_lambda"),
-            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudRegion, GetAWSRegion()),
-            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeFaasName, GetFunctionName()),
-            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeFaasVersion, GetFunctionVersion()),
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_lambda"),
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudRegion, GetAWSRegion()),
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeFaasName, GetFunctionName()),
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeFaasVersion, GetFunctionVersion()),
         };
 
         return resourceAttributes;

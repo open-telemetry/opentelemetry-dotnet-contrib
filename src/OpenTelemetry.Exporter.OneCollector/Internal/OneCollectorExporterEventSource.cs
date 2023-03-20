@@ -142,11 +142,13 @@ internal sealed class OneCollectorExporterEventSource : EventSource
         this.WriteEvent(10, userCodeType, exception);
     }
 
-    /// <summary>
-    /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
-    /// appropriate for diagnostics tracing.
-    /// </summary>
-    private static string ExceptionToInvariantString(Exception exception)
+    [Event(11, Message = "Dropped {0} attribute '{1}': {2}", Level = EventLevel.Warning)]
+    public void AttributeDropped(string itemType, string name, string reason)
+    {
+        this.WriteEvent(11, itemType, name, reason);
+    }
+
+    internal static string ExceptionToInvariantString(Exception exception)
     {
         var originalUICulture = Thread.CurrentThread.CurrentUICulture;
 
