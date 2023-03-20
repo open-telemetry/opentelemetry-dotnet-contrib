@@ -9,8 +9,10 @@ which is used for enrichment of traces.
 ## Introduction
 
 Telemetry enrichment attaches various types of information to traces.
-Examples of the types of information that can be attached are environment
-information, machine information, and user details.
+Examples of the types of information that can be attached are any
+dynamic or static information that is available in your application
+or just any custom information which you would like every of your traces
+to have and so on.
 
 With the enrichment framework, you don't need to worry about attaching
 the information carefully to each telemetry object you touch.
