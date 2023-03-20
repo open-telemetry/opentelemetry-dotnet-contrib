@@ -23,7 +23,7 @@ namespace OpenTelemetry.Instrumentation.MySqlData;
 /// </summary>
 internal class MySqlDataTraceCommand
 {
-    public MySqlConnectionStringBuilder ConnectionStringBuilder { get; set; }
+    public MySqlConnectionStringBuilder? ConnectionStringBuilder { get; set; }
 
-    public string SqlText { get; set; }
+    public string SqlText { get; set; } = string.Empty;
 }

@@ -9,6 +9,7 @@
     <NetFrameworkMinimumSupportedVersion>net462</NetFrameworkMinimumSupportedVersion>
     <NetMinimumSupportedVersion>net6.0</NetMinimumSupportedVersion>
     <NetStandardMinimumSupportedVersion>netstandard2.0</NetStandardMinimumSupportedVersion>
+    <AnalysisLevel>latest-All</AnalysisLevel>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">

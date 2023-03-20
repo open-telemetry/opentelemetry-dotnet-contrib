@@ -14,6 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 
@@ -21,8 +23,8 @@ namespace OpenTelemetry.Tests;
 
 internal sealed class TestActivityProcessor : BaseProcessor<Activity>
 {
-    public Action<Activity> StartAction;
-    public Action<Activity> EndAction;
+    public Action<Activity>? StartAction;
+    public Action<Activity>? EndAction;
 
     public TestActivityProcessor()
     {
