@@ -28,7 +28,7 @@ Currently this package supports trace enrichment only.
 Download the `OpenTelemetry.Extensions.Enrichment` package:
 
 ```shell
-dotnet add package OpenTelemetry.Extensions.Enrichment
+dotnet add package OpenTelemetry.Extensions.Enrichment --prerelease
 ```
 
 ### Usage
