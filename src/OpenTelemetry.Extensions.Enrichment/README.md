@@ -71,6 +71,21 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .Build();
 ```
 
+Alternatively, you can add your custom enricher to the `IServiceCollection`
+(as well as `ActivitySource` and exporter), typically
+this is done inside the [ConfigureServices()](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.hosting.startupbase.configureservices)
+method:
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddOpenTelemetry().WithTracing((builder) => builder
+        .AddSource("MyCompany.MyProduct.MyLibrary")
+        .AddTraceEnricher<MyTraceEnricher>()
+        .AddConsoleExporter());
+}
+```
+
 > **Note**
 > The `AddTraceEnricher()` method call should be done *before* registering exporter
 related Activity processors.
