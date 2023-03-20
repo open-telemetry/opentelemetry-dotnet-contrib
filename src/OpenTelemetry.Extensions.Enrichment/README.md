@@ -9,8 +9,8 @@ which is used for enrichment of traces.
 ## Introduction
 
 Telemetry enrichment attaches various types of information to traces.
-You can use the telemetry enrichment framework to attach any custom information that you would
-like to be present in all of your traces.
+You can use the telemetry enrichment framework to attach any custom information
+that you would like to be present in all of your traces.
 
 With telemetry enrichment framework, you don't need to worry about attaching
 the information carefully to each telemetry object you touch.
@@ -146,8 +146,8 @@ public static AddTraceEnricher(this TracerProviderBuilder builder, TraceEnricher
 ```
 
 If you only need to enrich a small amount of data, it may not be necessary to create
-an enricher class. Instead, you can make use of the following methods which accept an
-`Action<TraceEnrichmentBag>` delegate:
+an enricher class. Instead, you can make use of the following methods which accept
+an `Action<TraceEnrichmentBag>` delegate:
 
 ```csharp
 public static AddTraceEnricher(this IServiceCollection services, Action<TraceEnrichmentBag> enrichmentAction)
