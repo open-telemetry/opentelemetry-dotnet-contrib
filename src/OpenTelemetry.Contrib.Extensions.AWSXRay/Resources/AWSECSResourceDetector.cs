@@ -84,7 +84,7 @@ public class AWSECSResourceDetector : IResourceDetector
             return new List<KeyValuePair<string, object>>();
         }
 
-        var httpClientHandler = new HttpClientHandler();
+        using var httpClientHandler = new HttpClientHandler();
         var metadataV4ContainerResponse = ResourceDetectorUtils.SendOutRequest(metadataV4Url, "GET", null, httpClientHandler).Result;
         var metadataV4TaskResponse = ResourceDetectorUtils.SendOutRequest($"{metadataV4Url.TrimEnd('/')}/task", "GET", null, httpClientHandler).Result;
 
@@ -105,9 +105,9 @@ public class AWSECSResourceDetector : IResourceDetector
             return new List<KeyValuePair<string, object>>();
         }
 
-        if (!clusterArn.StartsWith("arn:"))
+        if (!clusterArn.StartsWith("arn:", StringComparison.Ordinal))
         {
-            var baseArn = containerArn.Substring(containerArn.LastIndexOf(":"));
+            var baseArn = containerArn.Substring(containerArn.LastIndexOf(":", StringComparison.Ordinal));
             clusterArn = $"{baseArn}:cluster/{clusterArn}";
         }
 
@@ -119,8 +119,8 @@ public class AWSECSResourceDetector : IResourceDetector
 
         var launchType = taskResponse.Value<string>("LaunchType") switch
         {
-            string type when "ec2".Equals(type.ToLower()) => AWSSemanticConventions.ValueEcsLaunchTypeEc2,
-            string type when "fargate".Equals(type.ToLower()) => AWSSemanticConventions.ValueEcsLaunchTypeFargate,
+            string type when string.Equals("ec2", type, StringComparison.OrdinalIgnoreCase) => AWSSemanticConventions.ValueEcsLaunchTypeEc2,
+            string type when string.Equals("fargate", type, StringComparison.OrdinalIgnoreCase) => AWSSemanticConventions.ValueEcsLaunchTypeFargate,
             _ => null,
         };
 
@@ -151,7 +151,7 @@ public class AWSECSResourceDetector : IResourceDetector
             resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeEcsTaskRevision, revision));
         }
 
-        if ("awslogs".Equals(containerResponse.Value<string>("LogDriver")))
+        if (string.Equals("awslogs", containerResponse.Value<string>("LogDriver"), StringComparison.Ordinal))
         {
             JObject? logOptions = containerResponse.Value<JObject>("LogOptions");
             if (logOptions != null)

@@ -36,6 +36,11 @@ public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions
     public string DefaultEventName { get; set; } = "Log";
 
     /// <summary>
+    /// Gets the OneCollector log serialization options.
+    /// </summary>
+    public OneCollectorLogExporterSerializationOptions SerializationOptions { get; } = new();
+
+    /// <summary>
     /// Gets or sets the default event namespace. Default value:
     /// <c>OpenTelemetry.Logs</c>.
     /// </summary>
@@ -58,6 +63,8 @@ public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions
         {
             throw new OneCollectorExporterValidationException($"{nameof(this.DefaultEventName)} was not specified on {nameof(OneCollectorLogExporterOptions)} options.");
         }
+
+        this.SerializationOptions.Validate();
 
         base.Validate();
     }
