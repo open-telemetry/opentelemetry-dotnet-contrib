@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Added a `net6.0` build target and raised the minimum .NET version to `net462`
+  ([#1093](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1093))
+
 ## 1.0.2
 
 Released 2022-Nov-11
