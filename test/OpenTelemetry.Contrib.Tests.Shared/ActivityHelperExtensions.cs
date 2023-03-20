@@ -14,16 +14,16 @@
 // limitations under the License.
 // </copyright>
 
+#nullable enable
+
 using System.Diagnostics;
 
 namespace OpenTelemetry.Tests;
 
 internal static class ActivityHelperExtensions
 {
-    public static object GetTagValue(this Activity activity, string tagName)
+    public static object? GetTagValue(this Activity activity, string tagName)
     {
-        Debug.Assert(activity != null, "Activity should not be null");
-
         foreach (var tag in activity.TagObjects)
         {
             if (tag.Key == tagName)

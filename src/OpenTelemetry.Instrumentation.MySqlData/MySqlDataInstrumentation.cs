@@ -34,9 +34,9 @@ internal class MySqlDataInstrumentation : DefaultTraceListener
 
     private readonly MySqlDataInstrumentationOptions options;
 
-    private readonly Func<string, MySqlConnectionStringBuilder> builderFactory;
+    private readonly Func<string, MySqlConnectionStringBuilder>? builderFactory;
 
-    public MySqlDataInstrumentation(MySqlDataInstrumentationOptions options = null)
+    public MySqlDataInstrumentation(MySqlDataInstrumentationOptions? options = null)
     {
         this.options = options ?? new MySqlDataInstrumentationOptions();
         MySqlTrace.Listeners.Clear();
@@ -186,7 +186,7 @@ internal class MySqlDataInstrumentation : DefaultTraceListener
         var activity = MySqlActivitySourceHelper.ActivitySource.StartActivity(
             MySqlActivitySourceHelper.ActivityName,
             ActivityKind.Client,
-            Activity.Current?.Context ?? default(ActivityContext),
+            Activity.Current?.Context ?? default,
             MySqlActivitySourceHelper.CreationTags);
         if (activity == null)
         {
@@ -262,7 +262,7 @@ internal class MySqlDataInstrumentation : DefaultTraceListener
         }
     }
 
-    private MySqlDataTraceCommand GetCommand(object driverIdObj, object cmd)
+    private MySqlDataTraceCommand GetCommand(object driverIdObj, object? cmd)
     {
         var command = new MySqlDataTraceCommand();
         if (this.dbConn.TryGetValue((long)driverIdObj, out var database))
