@@ -253,6 +253,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.En
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.Enrichment.Tests", "test\OpenTelemetry.Extensions.Enrichment.Tests\OpenTelemetry.Extensions.Enrichment.Tests.csproj", "{5A7BE9DA-3582-49D8-A8E7-164C1E3CDB38}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples.Enrichment", "examples\enrichment\Examples.Enrichment\Examples.Enrichment.csproj", "{9B7F7605-ADFF-4A47-9B64-FFF3E2EC9DEA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -539,6 +541,10 @@ Global
 		{5A7BE9DA-3582-49D8-A8E7-164C1E3CDB38}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A7BE9DA-3582-49D8-A8E7-164C1E3CDB38}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A7BE9DA-3582-49D8-A8E7-164C1E3CDB38}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B7F7605-ADFF-4A47-9B64-FFF3E2EC9DEA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B7F7605-ADFF-4A47-9B64-FFF3E2EC9DEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B7F7605-ADFF-4A47-9B64-FFF3E2EC9DEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B7F7605-ADFF-4A47-9B64-FFF3E2EC9DEA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -622,6 +628,7 @@ Global
 		{61520801-1CAA-4041-A3EF-CFFB9D4A180B} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{5BA85306-64B8-4E04-90EB-7069C187E250} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{5A7BE9DA-3582-49D8-A8E7-164C1E3CDB38} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{9B7F7605-ADFF-4A47-9B64-FFF3E2EC9DEA} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
