@@ -9,9 +9,9 @@ namespace OpenTelemetry.Exporter.Geneva.Tests;
 /// A variable-length unsigned integer using base128 encoding. 1-byte groups
 /// consist of 1-bit flag of continuation and 7-bit value chunk, and are ordered
 /// &quot;least significant group first&quot;, i.e. in &quot;little-endian&quot; manner.
-/// 
+///
 /// This particular encoding is specified and used in:
-/// 
+///
 /// * DWARF debug file format, where it's dubbed &quot;unsigned LEB128&quot; or &quot;ULEB128&quot;.
 ///   http://dwarfstd.org/doc/dwarf-2.0.0.pdf - page 139
 /// * Google Protocol Buffers, where it's called &quot;Base 128 Varints&quot;.
@@ -21,9 +21,9 @@ namespace OpenTelemetry.Exporter.Geneva.Tests;
 /// * Apache Avro uses this as a basis for integer encoding, adding ZigZag on
 ///   top of it for signed ints
 ///   http://avro.apache.org/docs/current/spec.html#binary_encode_primitive
-/// 
+///
 /// More information on this encoding is available at https://en.wikipedia.org/wiki/LEB128
-/// 
+///
 /// This particular implementation supports serialized values to up 8 bytes long.
 /// </summary>
 public partial class VlqBase128Le : KaitaiStruct
