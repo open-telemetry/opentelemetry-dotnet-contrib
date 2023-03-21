@@ -193,12 +193,17 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
     }
 
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    [InlineData(true, 18, true, true, true)]
-    [InlineData(true, 0, false, false, true, true)]
+    [InlineData(true, true)]
+    [InlineData(false, true)]
+    [InlineData(true, true, 18, true, true, true)]
+    [InlineData(true, true, 0, false, false, true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, false)]
+    [InlineData(true, false, 18, true, true, true)]
+    [InlineData(true, false, 0, false, false, true, true)]
     public void AttachLogsToActivityEventTest_Filter(
         bool sampled,
+        bool filterThrows,
         int eventId = 0,
         bool includeFormattedMessage = false,
         bool parseStateValues = false,
@@ -214,7 +219,9 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
                     options.IncludeScopes = includeScopes;
                     options.IncludeFormattedMessage = includeFormattedMessage;
                     options.ParseStateValues = parseStateValues;
-                    options.AttachLogsToActivityEvent(x => x.Filter = _ => false);
+                    options.AttachLogsToActivityEvent(x => x.Filter = _ => filterThrows
+                        ? throw new Exception()
+                        : false);
                 });
                 builder.AddFilter(typeof(ActivityEventAttachingLogProcessorTests).FullName, LogLevel.Trace);
             });
