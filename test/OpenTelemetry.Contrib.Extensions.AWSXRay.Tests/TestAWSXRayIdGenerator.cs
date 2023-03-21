@@ -86,16 +86,13 @@ public class TestAWSXRayIdGenerator
     [Fact]
     public void TestGenerateTraceIdForRootNodeUsingActivitySourceWithTraceIdBasedSamplerOn()
     {
+#pragma warning disable CS0618 // Type or member is obsolete
         using (Sdk.CreateTracerProviderBuilder()
-#if NET6_0_OR_GREATER
-                   // the net6.0 version of AWSXRayIdGenerator uses Activity.TraceIdGenerator, which runs before the sampler
-                   .AddXRayTraceId()
-#else
                    .AddXRayTraceIdWithSampler(new TraceIdRatioBasedSampler(1.0))
-#endif
                    .AddSource("TestTraceIdBasedSamplerOn")
                    .SetSampler(new TraceIdRatioBasedSampler(1.0))
                    .Build())
+#pragma warning restore CS0618 // Type or member is obsolete
         {
             using (var activitySource = new ActivitySource("TestTraceIdBasedSamplerOn"))
             {
@@ -110,16 +107,13 @@ public class TestAWSXRayIdGenerator
     [Fact]
     public void TestGenerateTraceIdForRootNodeUsingActivitySourceWithTraceIdBasedSamplerOff()
     {
+#pragma warning disable CS0618 // Type or member is obsolete
         using (Sdk.CreateTracerProviderBuilder()
-#if NET6_0_OR_GREATER
-                   // the net6.0 version of AWSXRayIdGenerator uses Activity.TraceIdGenerator, which runs before the sampler
-                   .AddXRayTraceId()
-#else
                    .AddXRayTraceIdWithSampler(new TraceIdRatioBasedSampler(0.0))
-#endif
                    .AddSource("TestTraceIdBasedSamplerOff")
                    .SetSampler(new TraceIdRatioBasedSampler(0.0))
                    .Build())
+#pragma warning restore CS0618 // Type or member is obsolete
         {
             using (var activitySource = new ActivitySource("TestTraceIdBasedSamplerOff"))
             {

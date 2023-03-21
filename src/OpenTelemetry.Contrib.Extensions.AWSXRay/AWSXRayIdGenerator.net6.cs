@@ -18,6 +18,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Diagnostics;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay;
 
@@ -33,6 +34,16 @@ public static class AWSXRayIdGenerator
     public static void ReplaceTraceId()
     {
         Activity.TraceIdGenerator = GenerateAWSXRayCompatibleTraceId;
+    }
+
+    /// <summary>
+    /// Sets <see cref="Activity.TraceIdGenerator"/> to <see cref="GenerateAWSXRayCompatibleTraceId"/>.
+    /// </summary>
+    /// <param name="sampler">Unused. (See deprecation message.)</param>
+    [Obsolete($"When targeting .NET 6.0 or later, the X-Ray ID generator does not need to update the sampling decision. Use ${nameof(ReplaceTraceId)}() instead.")]
+    public static void ReplaceTraceId(Sampler sampler)
+    {
+        ReplaceTraceId();
     }
 
     /// <summary>
