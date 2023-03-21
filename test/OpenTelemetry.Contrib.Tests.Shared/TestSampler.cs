@@ -14,6 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+#nullable enable
+
 using System;
 using OpenTelemetry.Trace;
 
@@ -21,7 +23,7 @@ namespace OpenTelemetry.Tests;
 
 internal class TestSampler : Sampler
 {
-    public Func<SamplingParameters, SamplingResult> SamplingAction { get; set; }
+    public Func<SamplingParameters, SamplingResult>? SamplingAction { get; set; }
 
     public SamplingParameters LatestSamplingParameters { get; private set; }
 

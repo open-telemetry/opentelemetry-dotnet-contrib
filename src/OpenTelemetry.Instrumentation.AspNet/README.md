@@ -82,6 +82,12 @@ public class WebApiApplication : HttpApplication
 }
 ```
 
+## Metrics
+
+This package produces following metrics:
+
+* [`http.server.duration`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/http-metrics.md#metric-httpserverduration)
+
 ## Advanced configuration
 
 This instrumentation can be configured to change the default behavior by using
