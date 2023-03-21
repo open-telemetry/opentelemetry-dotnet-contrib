@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+#if !NET6_0_OR_GREATER
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -48,9 +49,8 @@ public static class AWSXRayIdGenerator
             {
                 if (string.IsNullOrEmpty(activity.ParentId))
                 {
-                    var awsXRayTraceId = GenerateAWSXRayCompatiableTraceId();
+                    var awsXRayTraceId = GenerateAWSXRayCompatibleTraceId();
 
-                    // TODO: Apply API to directly modify trace id once .NET runtime publicizes it.
                     activity.SetParentId(awsXRayTraceId, default, activity.ActivityTraceFlags);
 
                     // When not using instrumented library and creating root activity using ActivitySource.StartActivity(),
@@ -69,7 +69,7 @@ public static class AWSXRayIdGenerator
         ActivitySource.AddActivityListener(awsXRayActivityListener);
     }
 
-    internal static ActivityTraceId GenerateAWSXRayCompatiableTraceId()
+    internal static ActivityTraceId GenerateAWSXRayCompatibleTraceId()
     {
         var epoch = (int)DateTime.UtcNow.ToUnixTimeSeconds(); // first 8 digit as time stamp
 
@@ -197,3 +197,4 @@ public static class AWSXRayIdGenerator
         return ActivitySamplingResult.PropagationData;
     }
 }
+#endif

@@ -36,6 +36,7 @@ public static class TracerProviderBuilderExtensions
         AWSXRayIdGenerator.ReplaceTraceId();
         return builder;
     }
+#if !NET6_0_OR_GREATER
 
     /// <summary>
     /// 1. Replace the trace id of root activity.
@@ -51,4 +52,5 @@ public static class TracerProviderBuilderExtensions
         AWSXRayIdGenerator.ReplaceTraceId(sampler);
         return builder;
     }
+#endif
 }

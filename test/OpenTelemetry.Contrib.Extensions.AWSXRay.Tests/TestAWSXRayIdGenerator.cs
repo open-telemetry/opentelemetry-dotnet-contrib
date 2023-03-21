@@ -36,7 +36,12 @@ public class TestAWSXRayIdGenerator
             activity.Start();
 
             Assert.NotEqual(originalTraceId, activity.TraceId);
+#if NET6_0_OR_GREATER
+            // the net6.0 version of AWSXRayIdGenerator uses Activity.TraceIdGenerator, which does not change the parent ID
+            Assert.Equal(originalParentSpanId, activity.ParentSpanId);
+#else
             Assert.NotEqual(originalParentSpanId, activity.ParentSpanId);
+#endif
             Assert.Equal("0000000000000000", activity.ParentSpanId.ToHexString());
             Assert.Equal(originalTraceFlag, activity.ActivityTraceFlags);
         }
@@ -82,7 +87,12 @@ public class TestAWSXRayIdGenerator
     public void TestGenerateTraceIdForRootNodeUsingActivitySourceWithTraceIdBasedSamplerOn()
     {
         using (Sdk.CreateTracerProviderBuilder()
+#if NET6_0_OR_GREATER
+                   // the net6.0 version of AWSXRayIdGenerator uses Activity.TraceIdGenerator, which runs before the sampler
+                   .AddXRayTraceId()
+#else
                    .AddXRayTraceIdWithSampler(new TraceIdRatioBasedSampler(1.0))
+#endif
                    .AddSource("TestTraceIdBasedSamplerOn")
                    .SetSampler(new TraceIdRatioBasedSampler(1.0))
                    .Build())
@@ -101,7 +111,12 @@ public class TestAWSXRayIdGenerator
     public void TestGenerateTraceIdForRootNodeUsingActivitySourceWithTraceIdBasedSamplerOff()
     {
         using (Sdk.CreateTracerProviderBuilder()
+#if NET6_0_OR_GREATER
+                   // the net6.0 version of AWSXRayIdGenerator uses Activity.TraceIdGenerator, which runs before the sampler
+                   .AddXRayTraceId()
+#else
                    .AddXRayTraceIdWithSampler(new TraceIdRatioBasedSampler(0.0))
+#endif
                    .AddSource("TestTraceIdBasedSamplerOff")
                    .SetSampler(new TraceIdRatioBasedSampler(0.0))
                    .Build())
