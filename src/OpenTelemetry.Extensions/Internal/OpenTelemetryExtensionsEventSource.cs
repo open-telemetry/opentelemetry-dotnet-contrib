@@ -52,7 +52,7 @@ internal sealed class OpenTelemetryExtensionsEventSource : EventSource
         }
     }
 
-    [Event(2, Message = "Filter threw an exception, log record will not be attached to an activity. CategoryName: '{0}', Exception: {1}.", Level = EventLevel.Warning)]
+    [Event(2, Message = "Filter threw an exception, log record will not be attached to an activity, the log record would flow to its pipeline unaffected. CategoryName: '{0}', Exception: {1}.", Level = EventLevel.Warning)]
     public void LogRecordFilterException(string? categoryName, string exception)
     {
         this.WriteEvent(2, categoryName, exception);
