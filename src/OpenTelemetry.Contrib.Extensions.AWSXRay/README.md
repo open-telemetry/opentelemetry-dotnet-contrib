@@ -73,11 +73,13 @@ function name, function version.
 
 ### AWS X-Ray Remote Sampler
 
-The ADOT .Net SDK provides a sampler which can get sampling
+This package provides a sampler which can get sampling
 configurations from AWS X-Ray to make sampling decisions.
 See: [AWS X-Ray Sampling](https://docs.aws.amazon.com/xray/latest/devguide/xray-concepts.html#xray-concepts-sampling)
 
 You can configure the `AWSXRayRemoteSampler` as per the following example.
+Note that you will need to configure your [OpenTelemetry Collector for
+X-Ray remote sampling](https://aws-otel.github.io/docs/getting-started/remote-sampling)
 
 ```csharp
 using OpenTelemetry;

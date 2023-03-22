@@ -20,6 +20,7 @@ using OpenTelemetry.Trace;
 using Xunit;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Trace;
+
 public class TestAWSXRayRemoteSampler
 {
     [Fact]

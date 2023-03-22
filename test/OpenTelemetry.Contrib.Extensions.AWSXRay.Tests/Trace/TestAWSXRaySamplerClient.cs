@@ -24,15 +24,23 @@ using WireMock.Server;
 using Xunit;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.Trace;
+
 public class TestAWSXRaySamplerClient : IDisposable
 {
-    private WireMockServer mockServer = WireMockServer.Start();
+    private WireMockServer mockServer;
 
     private AWSXRaySamplerClient client;
 
     public TestAWSXRaySamplerClient()
     {
+        this.mockServer = WireMockServer.Start();
         this.client = new AWSXRaySamplerClient(this.mockServer.Url);
+    }
+
+    public void Dispose()
+    {
+        this.mockServer.Dispose();
+        this.client.Dispose();
     }
 
     [Fact]
@@ -100,12 +108,6 @@ public class TestAWSXRaySamplerClient : IDisposable
         List<SamplingRule> rules = responseTask.Result;
 
         Assert.Empty(rules);
-    }
-
-    public void Dispose()
-    {
-        this.mockServer.Dispose();
-        this.client.Dispose();
     }
 
     private void CreateResponse(string endpoint, string filePath)

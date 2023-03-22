@@ -22,6 +22,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
+
 internal class AWSXRaySamplerClient : IDisposable
 {
     private readonly string getSamplingRulesEndpoint;
@@ -38,42 +39,39 @@ internal class AWSXRaySamplerClient : IDisposable
     {
         List<SamplingRule> samplingRules = new List<SamplingRule>();
 
-        var request = new HttpRequestMessage(HttpMethod.Post, this.getSamplingRulesEndpoint)
+        using (var request = new HttpRequestMessage(HttpMethod.Post, this.getSamplingRulesEndpoint)
         {
             Content = new StringContent(string.Empty, Encoding.UTF8, this.jsonContentType),
-        };
-
-        var responseJson = await this.DoRequestAsync(this.getSamplingRulesEndpoint, request).ConfigureAwait(false);
-
-        try
+        })
         {
-            GetSamplingRulesResponse? getSamplingRulesResponse = JsonConvert.DeserializeObject<GetSamplingRulesResponse>(responseJson);
-            if (getSamplingRulesResponse is not null)
+            var responseJson = await this.DoRequestAsync(this.getSamplingRulesEndpoint, request).ConfigureAwait(false);
+
+            try
             {
-                if (getSamplingRulesResponse.SamplingRuleRecords is not null)
+                GetSamplingRulesResponse? getSamplingRulesResponse = JsonConvert.DeserializeObject<GetSamplingRulesResponse>(responseJson);
+                if (getSamplingRulesResponse is not null)
                 {
-                    foreach (var samplingRuleRecord in getSamplingRulesResponse.SamplingRuleRecords)
+                    if (getSamplingRulesResponse.SamplingRuleRecords is not null)
                     {
-                        if (samplingRuleRecord.SamplingRule is not null)
+                        foreach (var samplingRuleRecord in getSamplingRulesResponse.SamplingRuleRecords)
                         {
-                            samplingRules.Add(samplingRuleRecord.SamplingRule);
+                            if (samplingRuleRecord.SamplingRule is not null)
+                            {
+                                samplingRules.Add(samplingRuleRecord.SamplingRule);
+                            }
                         }
                     }
-                }
 
-                // TODO: this line here is only for testing. Remove in next more complete iterations.
-                Console.WriteLine("Got sampling rules! Count: " + samplingRules.Count);
+                    // TODO: this line here is only for testing. Remove in next more complete iterations.
+                    // Console.WriteLine("Got sampling rules! Count: " + samplingRules.Count);
+                }
             }
-        }
-        catch (Exception ex)
-        {
-            AWSXRayEventSource.Log.FailedToDeserializeResponse(
-                nameof(AWSXRaySamplerClient.GetSamplingRules),
-                ex.Message);
-        }
-        finally
-        {
-            request.Dispose();
+            catch (Exception ex)
+            {
+                AWSXRayEventSource.Log.FailedToDeserializeResponse(
+                    nameof(AWSXRaySamplerClient.GetSamplingRules),
+                    ex.Message);
+            }
         }
 
         return samplingRules;
@@ -81,7 +79,16 @@ internal class AWSXRaySamplerClient : IDisposable
 
     public void Dispose()
     {
-        this.httpClient.Dispose();
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    private void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            this.httpClient?.Dispose();
+        }
     }
 
     private async Task<string> DoRequestAsync(string endpoint, HttpRequestMessage request)

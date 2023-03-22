@@ -32,7 +32,7 @@ public sealed class AWSXRayRemoteSampler : Sampler, IDisposable
         this.Client = new AWSXRaySamplerClient(endpoint);
 
         // execute the first update right away
-        this.RulePollerTimer = new Timer(this.GetAndUpdateSampler, null, 0, Convert.ToInt32(pollingInterval.TotalMilliseconds));
+        this.RulePollerTimer = new Timer(this.GetAndUpdateSampler, null, TimeSpan.Zero, this.PollingInterval);
     }
 
     internal TimeSpan PollingInterval { get; }
@@ -62,8 +62,17 @@ public sealed class AWSXRayRemoteSampler : Sampler, IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
-        this.RulePollerTimer.Dispose();
-        this.Client.Dispose();
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    private void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            this.RulePollerTimer?.Dispose();
+            this.Client?.Dispose();
+        }
     }
 
     private async void GetAndUpdateSampler(object state)

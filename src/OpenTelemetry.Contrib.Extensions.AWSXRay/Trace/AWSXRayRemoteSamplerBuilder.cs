@@ -23,15 +23,16 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
 /// </summary>
 public class AWSXRayRemoteSamplerBuilder
 {
-    private const long DefaultPollingInterval = 300;
     private const string DefaultEndpoint = "http://localhost:2000";
+
+    private static readonly TimeSpan DefaultPollingInterval = TimeSpan.FromMinutes(5);
 
     private TimeSpan pollingInterval;
     private string endpoint;
 
     internal AWSXRayRemoteSamplerBuilder()
     {
-        this.pollingInterval = TimeSpan.FromSeconds(DefaultPollingInterval);
+        this.pollingInterval = DefaultPollingInterval;
         this.endpoint = DefaultEndpoint;
     }
 

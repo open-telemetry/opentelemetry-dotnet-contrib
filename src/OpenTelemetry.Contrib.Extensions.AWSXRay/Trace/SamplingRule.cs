@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
+
 internal class SamplingRule : IComparable<SamplingRule>
 {
     public SamplingRule(
