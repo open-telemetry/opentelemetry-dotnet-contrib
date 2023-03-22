@@ -19,7 +19,7 @@ using Cassandra.Metrics.Abstractions;
 
 namespace OpenTelemetry.Instrumentation.Cassandra;
 
-internal class DriverTimer : IDriverTimer
+internal sealed class DriverTimer : IDriverTimer
 {
     private readonly Histogram<double> timer;
 

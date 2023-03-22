@@ -20,7 +20,7 @@ using Cassandra.Metrics.Abstractions;
 
 namespace OpenTelemetry.Instrumentation.Cassandra;
 
-internal class CassandraDriverMetricsProvider : IDriverMetricsProvider
+internal sealed class CassandraDriverMetricsProvider : IDriverMetricsProvider
 {
     private const string Prefix = "cassandra";
 

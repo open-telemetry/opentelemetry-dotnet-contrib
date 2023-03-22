@@ -1,4 +1,4 @@
-﻿// <copyright file="DriverMeter.cs" company="OpenTelemetry Authors">
+// <copyright file="DriverMeter.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@ using Cassandra.Metrics.Abstractions;
 
 namespace OpenTelemetry.Instrumentation.Cassandra;
 
-internal class DriverMeter : IDriverMeter
+internal sealed class DriverMeter : IDriverMeter
 {
     private readonly Histogram<long> meter;
 
