@@ -6,6 +6,8 @@
   ([#626](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/626))
 * Removes `AddAWSLambdaConfigurations` method with default configure parameter.
   ([#943](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/943))
+* BREAKING (behavior): `AddAWSLambdaConfigurations` no longer calls `AddService`
+  ([#1080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1080))
 
 ## 1.1.0-beta.2
 
