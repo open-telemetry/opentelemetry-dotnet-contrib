@@ -18,9 +18,9 @@ using OpenTelemetry.Extensions.Enrichment;
 
 namespace Examples.Enrichment;
 
-internal class MyTraceEnricher : TraceEnricher
+internal sealed class MyTraceEnricher : TraceEnricher
 {
-    public override void Enrich(TraceEnrichmentBag bag)
+    public override void Enrich(in TraceEnrichmentBag bag)
     {
         bag.Add("my key", "my value");
     }

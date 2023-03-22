@@ -21,7 +21,7 @@ using OpenTelemetry.Trace;
 
 namespace Examples.Enrichment;
 
-public class Program
+public static class Program
 {
     public static void Main()
     {
