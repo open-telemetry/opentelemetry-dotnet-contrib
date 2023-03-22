@@ -124,7 +124,7 @@ styles. The methods relying on `TracerProviderBuilder` are for OpenTelemetry
 .NET component authors. Conversely, the methods that utilize `IServiceCollection`
 are for general library authors who may not have a reference to
 `TracerProviderBuilder` or who want to register enrichers with other general services.
-Anyway, both ways can be used withing the same app.
+Anyway, both ways can be used within the same app.
 
 In case you would like to use a comprehensive enricher class that may require
 injection or interaction with other classes, you may utilize either of these
