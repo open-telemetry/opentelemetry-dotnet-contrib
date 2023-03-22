@@ -57,7 +57,8 @@ For an ASP.NET application, adding instrumentation is typically done in the
 ## Configuration options
 
 You are able to configure your own cassandra driver metrics options in
-`WithOpenTelemetryMetrics` the by default configuration includes all the metrics that the driver can provide.
+`WithOpenTelemetryMetrics` the by default configuration includes all the metrics
+ that the driver can provide.
 
 ```csharp
 var options = new DriverMetricsOptions();
