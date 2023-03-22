@@ -22,6 +22,7 @@ services:
     environment:
       - OTEL_CASSANDRA_CONNECTION_STRING=Contact Points=cassandra;Port=9042;Default Keyspace=OT_Cassandra_Testing
     depends_on:
-       cassandra:
-         condition: service_healthy
+      cassandra:
+        condition: service_healthy
+
 
