@@ -26,7 +26,7 @@ Currently this package supports trace enrichment only.
 ### Steps to enable OpenTelemetry.Extensions.Enrichment
 
 You can view an example project using Enrichment at
-`/examples/enrichment/Examples.Enrichment`.
+[Examples.Enrichment](../../examples/enrichment/Examples.Enrichment/Program.cs).
 
 ### Step 1: Install package
 
@@ -39,12 +39,12 @@ dotnet add package OpenTelemetry.Extensions.Enrichment --prerelease
 ### Step 2: Create enricher class
 
 Create your custom enricher class that inherits from the `TraceEnricher` class
-and override the `public override void Enrich(TraceEnrichmentBag bag)` method:
+and override the `public abstract void Enrich(in TraceEnrichmentBag bag)` method:
 
 ```csharp
 public class MyTraceEnricher : TraceEnricher
 {
-    public override void Enrich(TraceEnrichmentBag bag)
+    public override void Enrich(in TraceEnrichmentBag bag)
     {
         bag.Add("my key", "my value");
     }
@@ -119,12 +119,12 @@ Resource associated with Activity:
 
 ### Extension methods
 
-There are a bunch of extension methods available for registering your custom trace
-enricher class. The methods that utilize `IServiceCollection` are tailored for
-Dependency Injection-based situations, allowing for registration of
-`TracerProviderBuilder` and `IServiceCollection` at different locations
-within your codebase. Conversely, the methods relying on `TracerProviderBuilder`
-are meant to be employed in non-DI scenarios.
+Extension methods with different signatures are provided to enable common registration
+styles. The methods relying on `TracerProviderBuilder` are for OpenTelemetry
+.NET component authors. Conversely, the methods that utilize `IServiceCollection`
+are for general library authors who may not have a reference to
+`TracerProviderBuilder` or who want to register enrichers with other general services.
+Anyway, both ways can be used withing the same app.
 
 In case you would like to use a comprehensive enricher class that may require
 injection or interaction with other classes, you may utilize either of these
@@ -167,4 +167,4 @@ public static AddTraceEnricher(this TracerProviderBuilder builder, Func<IService
 
 You can add any number of custom enrichers, but it is advisable to only include
 properties that are truly beneficial to prevent an excessive increase in the
-number of dimensions associated with each `Activity`.
+number of tags associated with each `Activity`.
