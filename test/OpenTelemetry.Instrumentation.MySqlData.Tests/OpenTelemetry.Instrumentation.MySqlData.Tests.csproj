@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
     <IncludeSharedTestSource>true</IncludeSharedTestSource>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
