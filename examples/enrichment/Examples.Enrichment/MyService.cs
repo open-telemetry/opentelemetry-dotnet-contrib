@@ -19,7 +19,7 @@ using System.Collections.Generic;
 
 namespace Examples.Enrichment;
 
-internal class MyService : IMyService
+internal sealed class MyService : IMyService
 {
     private readonly List<string> statuses = new()
     {

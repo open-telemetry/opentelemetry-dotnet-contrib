@@ -94,7 +94,7 @@ method:
 ```csharp
 public void ConfigureServices(IServiceCollection services)
 {
-    services => services.AddSingleton<IMyService, MyService>();
+    services.AddSingleton<IMyService, MyService>();
     services.AddOpenTelemetry().WithTracing((builder) => builder
         .AddSource("MyCompany.MyProduct.MyLibrary")
         .AddTraceEnricher<MyTraceEnricher>()
