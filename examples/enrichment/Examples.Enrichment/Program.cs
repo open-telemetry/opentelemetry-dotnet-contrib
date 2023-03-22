@@ -15,6 +15,7 @@
 // </copyright>
 
 using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry;
 using OpenTelemetry.Extensions.Enrichment;
 using OpenTelemetry.Trace;
@@ -29,6 +30,9 @@ public static class Program
         using var myActivitySource = new ActivitySource("MyCompany.MyProduct.MyLibrary");
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+
+            // Register MyService in the DI container.
+            .ConfigureServices(services => services.AddSingleton<IMyService, MyService>())
 
             // Register the ActivitySource as usual.
             .AddSource("MyCompany.MyProduct.MyLibrary")

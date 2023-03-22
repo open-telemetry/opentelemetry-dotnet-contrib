@@ -1,4 +1,4 @@
-// <copyright file="MyTraceEnricher.cs" company="OpenTelemetry Authors">
+// <copyright file="MyService.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,23 +14,27 @@
 // limitations under the License.
 // </copyright>
 
-using OpenTelemetry.Extensions.Enrichment;
+using System;
+using System.Collections.Generic;
 
 namespace Examples.Enrichment;
 
-internal sealed class MyTraceEnricher : TraceEnricher
+internal class MyService : IMyService
 {
-    private readonly IMyService myService;
-
-    public MyTraceEnricher(IMyService myService)
+    private readonly List<string> statuses = new()
     {
-        this.myService = myService;
-    }
+        "Blocked",
+        "No blockers",
+        "Out of office",
+    };
 
-    public override void Enrich(in TraceEnrichmentBag bag)
+    /// <summary>
+    /// Returns daily status.
+    /// </summary>
+    /// <returns>A tuple with service name and status.</returns>
+    public (string Service, string Status) MyDailyStatus()
     {
-        var (service, status) = this.myService.MyDailyStatus();
-
-        bag.Add(service, status);
+        var statusNumber = Random.Shared.Next(0, this.statuses.Count);
+        return new(nameof(MyService), this.statuses[statusNumber]);
     }
 }

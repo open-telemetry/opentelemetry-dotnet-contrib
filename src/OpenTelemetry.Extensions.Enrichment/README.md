@@ -39,32 +39,47 @@ dotnet add package OpenTelemetry.Extensions.Enrichment --prerelease
 ### Step 2: Create enricher class
 
 Create your custom enricher class that inherits from the `TraceEnricher` class
-and override the `public abstract void Enrich(in TraceEnrichmentBag bag)` method:
+and override the `public abstract void Enrich(in TraceEnrichmentBag bag)` method.
+Optionally, inject other services you enricher class depends on:
 
 ```csharp
-public class MyTraceEnricher : TraceEnricher
+internal sealed class MyTraceEnricher : TraceEnricher
 {
+    private readonly IMyService myService;
+
+    public MyTraceEnricher(IMyService myService)
+    {
+        this.myService = myService;
+    }
+
     public override void Enrich(in TraceEnrichmentBag bag)
     {
-        bag.Add("my key", "my value");
+        var (service, status) = this.myService.MyDailyStatus();
+
+        bag.Add(service, status);
     }
 }
 ```
 
-For every `Activity`, the `public override void Enrich(TraceEnrichmentBag bag)`
+An example of IMyService implementation is available
+[here](../../examples/enrichment/Examples.Enrichment/MyService.cs).
+
+For every `Activity`, the `Enrich()`
 method is guaranteed to be called exactly once. Semantically,
 for the example above it means that a new [tag object](https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.activity.tagobjects?view=net-7.0)
-with the `my key` key and the `my value` value will be added to every `Activity`
+with the service key and the status  value will be added to every `Activity`
 in your application.
 
 ### Step 3: Register enricher class
 
 Add your custom enricher class to the `TracerProviderBuilder` by calling the
-`AddTraceEnricher<T>()` method. Configure `ActivitySource` and an exporter as usual:
+`AddTraceEnricher<T>()` method. Configure other services via
+`ConfigureServices()`, add `ActivitySource` and an exporter as usual:
 
 ```csharp
 using var MyActivitySource = new ActivitySource("MyCompany.MyProduct.MyLibrary");
 using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .ConfigureServices(services => services.AddSingleton<IMyService, MyService>())
     .AddSource("MyCompany.MyProduct.MyLibrary")
     .AddTraceEnricher<MyTraceEnricher>()
     .AddConsoleExporter()
@@ -79,6 +94,7 @@ method:
 ```csharp
 public void ConfigureServices(IServiceCollection services)
 {
+    services => services.AddSingleton<IMyService, MyService>();
     services.AddOpenTelemetry().WithTracing((builder) => builder
         .AddSource("MyCompany.MyProduct.MyLibrary")
         .AddTraceEnricher<MyTraceEnricher>()
@@ -99,7 +115,7 @@ using var activity = myActivitySource.StartActivity("SayHello");
 activity?.SetTag("hello", "world");
 ```
 
-Run your application and verify that the `my key` tag is added to `Activity`:
+Run your application and verify that the `MyService` tag is added to `Activity`:
 
 ```shell
 Activity.TraceId:            0e1dc24e2e63796bfc8186e24f916f5f
@@ -112,7 +128,7 @@ Activity.StartTime:          2023-03-20T09:39:21.9642338Z
 Activity.Duration:           00:00:00.0016887
 Activity.Tags:
     hello: world
-    my key: my value
+    MyService: No blockers
 Resource associated with Activity:
     service.name: unknown_service:Examples.Enrichment
 ```
