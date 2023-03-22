@@ -1,4 +1,4 @@
-﻿// <copyright file="DriverTimer.cs" company="OpenTelemetry Authors">
+// <copyright file="DriverTimer.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using System.Diagnostics.Metrics;
 using Cassandra.Metrics.Abstractions;
 

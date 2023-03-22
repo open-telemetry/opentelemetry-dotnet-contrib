@@ -1,4 +1,4 @@
-﻿// <copyright file="CassandraDriverMetricsProvider.cs" company="OpenTelemetry Authors">
+// <copyright file="CassandraDriverMetricsProvider.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,14 +41,14 @@ internal class CassandraDriverMetricsProvider : IDriverMetricsProvider
 
     public IDriverGauge Gauge(string bucket, IMetric metric, Func<double?> valueProvider)
     {
-        return new DriverGauge($"{Prefix}.{metric.Name}", this.Value(valueProvider));
+        return new DriverGauge($"{Prefix}.{metric.Name}", Value(valueProvider));
     }
 
     public void ShutdownMetricsBucket(string bucket)
     {
     }
 
-    private Func<double> Value(Func<double?> valueProvider)
+    private static Func<double> Value(Func<double?> valueProvider)
     {
         return () => valueProvider.Invoke() ?? 0;
     }

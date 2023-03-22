@@ -1,4 +1,4 @@
-﻿// <copyright file="CassandraBuilderExtensions.cs" company="OpenTelemetry Authors">
+// <copyright file="CassandraBuilderExtensions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,7 @@
 
 using Cassandra;
 using Cassandra.Metrics;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Cassandra;
 
@@ -31,6 +32,8 @@ public static class CassandraBuilderExtensions
     /// <returns>Returning Cassandra builder.</returns>
     public static Builder WithOpenTelemetryMetrics(this Builder builder)
     {
+        Guard.ThrowIfNull(builder);
+
         return builder.WithMetrics(new CassandraDriverMetricsProvider(), GetDefaultOptions());
     }
 
@@ -42,6 +45,8 @@ public static class CassandraBuilderExtensions
     /// <returns>Returning Cassandra builder.</returns>
     public static Builder WithOpenTelemetryMetrics(this Builder builder, DriverMetricsOptions? options)
     {
+        Guard.ThrowIfNull(builder);
+
         return builder.WithMetrics(new CassandraDriverMetricsProvider(), options ?? GetDefaultOptions());
     }
 
