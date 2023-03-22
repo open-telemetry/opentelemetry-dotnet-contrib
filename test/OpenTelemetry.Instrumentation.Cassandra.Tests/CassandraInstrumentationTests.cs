@@ -34,7 +34,12 @@ public class CassandraInstrumentationTests
     private const int MaxTimeToAllowForFlush = 20000;
 
     private const string CassandraConnectionStringEnvName = "OTEL_CASSANDRA_CONNECTION_STRING";
-    private static readonly string? CassandraConnectionString = SkipUnlessEnvVarFoundFactAttribute.GetEnvironmentVariable(CassandraConnectionStringEnvName);
+    private readonly string? cassandraConnectionString;
+
+    public CassandraInstrumentationTests()
+    {
+        this.cassandraConnectionString = Environment.GetEnvironmentVariable(CassandraConnectionStringEnvName);
+    }
 
     [Trait("CategoryName", "CassandraIntegrationTests")]
     [SkipUnlessEnvVarFoundFact(CassandraConnectionStringEnvName)]
@@ -48,7 +53,7 @@ public class CassandraInstrumentationTests
             .Build();
 
         var cluster = new Builder()
-            .WithConnectionString(CassandraConnectionString)
+            .WithConnectionString(this.cassandraConnectionString)
             .WithOpenTelemetryMetrics()
             .Build();
 
@@ -88,7 +93,7 @@ public class CassandraInstrumentationTests
         options.SetEnabledSessionMetrics(new List<SessionMetric>());
 
         var cluster = new Builder()
-            .WithConnectionString(CassandraConnectionString)
+            .WithConnectionString(this.cassandraConnectionString)
             .WithOpenTelemetryMetrics(options)
             .Build();
 
@@ -125,7 +130,7 @@ public class CassandraInstrumentationTests
             .Build();
 
         var cluster = new Builder()
-            .WithConnectionString(CassandraConnectionString)
+            .WithConnectionString(this.cassandraConnectionString)
             .WithOpenTelemetryMetrics()
             .Build();
 
