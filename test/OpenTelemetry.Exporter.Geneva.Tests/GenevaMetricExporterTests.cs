@@ -723,6 +723,7 @@ public class GenevaMetricExporterTests
         metricPointsEnumerator.MoveNext();
         var metricPoint = metricPointsEnumerator.Current;
         MetricsContract data = null;
+        Userdata userData = null;
 
         // Check metric value, timestamp, eventId, and length of payload
         if (metricType == MetricType.LongSum)
@@ -738,7 +739,8 @@ public class GenevaMetricExporterTests
             var buffer = typeof(GenevaMetricExporter).GetField("bufferForNonHistogramMetrics", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
             data = new MetricsContract(stream);
-            var valueSection = data.Body.ValueSection as SingleUint64Value;
+            userData = data.Body as Userdata;
+            var valueSection = userData.ValueSection as SingleUint64Value;
             Assert.Equal(metricDataValue, valueSection.Value);
             Assert.Equal((ulong)metricPoint.EndTime.ToFileTime(), valueSection.Timestamp);
             Assert.Equal((ushort)MetricEventType.ULongMetric, data.EventId);
@@ -757,7 +759,8 @@ public class GenevaMetricExporterTests
             var buffer = typeof(GenevaMetricExporter).GetField("bufferForNonHistogramMetrics", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
             data = new MetricsContract(stream);
-            var valueSection = data.Body.ValueSection as SingleDoubleValue;
+            userData = data.Body as Userdata;
+            var valueSection = userData.ValueSection as SingleDoubleValue;
             Assert.Equal(metricDataValue, valueSection.Value);
             Assert.Equal((ulong)metricPoint.EndTime.ToFileTime(), valueSection.Timestamp);
             Assert.Equal((ushort)MetricEventType.DoubleMetric, data.EventId);
@@ -778,7 +781,8 @@ public class GenevaMetricExporterTests
             var buffer = typeof(GenevaMetricExporter).GetField("bufferForNonHistogramMetrics", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
             data = new MetricsContract(stream);
-            var valueSection = data.Body.ValueSection as SingleDoubleValue;
+            userData = data.Body as Userdata;
+            var valueSection = userData.ValueSection as SingleDoubleValue;
             Assert.Equal(metricDataValue, valueSection.Value);
             Assert.Equal((ulong)metricPoint.EndTime.ToFileTime(), valueSection.Timestamp);
             Assert.Equal((ushort)MetricEventType.DoubleMetric, data.EventId);
@@ -799,7 +803,8 @@ public class GenevaMetricExporterTests
             var buffer = typeof(GenevaMetricExporter).GetField("bufferForNonHistogramMetrics", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
             data = new MetricsContract(stream);
-            var valueSection = data.Body.ValueSection as SingleDoubleValue;
+            userData = data.Body as Userdata;
+            var valueSection = userData.ValueSection as SingleDoubleValue;
             Assert.Equal(metricDataValue, valueSection.Value);
             Assert.Equal((ulong)metricPoint.EndTime.ToFileTime(), valueSection.Timestamp);
             Assert.Equal((ushort)MetricEventType.DoubleMetric, data.EventId);
@@ -832,11 +837,13 @@ public class GenevaMetricExporterTests
             var buffer = typeof(GenevaMetricExporter).GetField("bufferForHistogramMetrics", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
             data = new MetricsContract(stream);
-            var valueSection = data.Body.ValueSection as ExtAggregatedUint64Value;
-            var valueCountPairs = data.Body.Histogram.Body as HistogramValueCountPairs;
+            userData = data.Body as Userdata;
+            var valueSection = userData.ValueSection as ExtAggregatedUint64Value;
+            var histogram = userData.Histogram;
+            var valueCountPairs = userData.Histogram.Body as HistogramValueCountPairs;
 
-            Assert.Equal(0, data.Body.Histogram.Version);
-            Assert.Equal(2, (int)data.Body.Histogram.Type);
+            Assert.Equal(0, histogram.Version);
+            Assert.Equal(2, (int)histogram.Type);
 
             int listIterator = 0;
             int bucketsWithPositiveCount = 0;
@@ -866,17 +873,17 @@ public class GenevaMetricExporterTests
 
         // Check metric name, account, and namespace
         var connectionStringBuilder = new ConnectionStringBuilder(exporterOptions.ConnectionString);
-        Assert.Equal(metric.Name, data.Body.MetricName.Value);
-        Assert.Equal(connectionStringBuilder.Account, data.Body.MetricAccount.Value);
-        Assert.Equal(connectionStringBuilder.Namespace, data.Body.MetricNamespace.Value);
+        Assert.Equal(metric.Name, userData.MetricName.Value);
+        Assert.Equal(connectionStringBuilder.Account, userData.MetricAccount.Value);
+        Assert.Equal(connectionStringBuilder.Namespace, userData.MetricNamespace.Value);
 
         var dimensionsCount = 0;
         if (exporterOptions.PrepopulatedMetricDimensions != null)
         {
             foreach (var entry in exporterOptions.PrepopulatedMetricDimensions)
             {
-                Assert.Contains(data.Body.DimensionsNames, dim => dim.Value == entry.Key);
-                Assert.Contains(data.Body.DimensionsValues, dim => dim.Value == Convert.ToString(entry.Value, CultureInfo.InvariantCulture));
+                Assert.Contains(userData.DimensionsNames, dim => dim.Value == entry.Key);
+                Assert.Contains(userData.DimensionsValues, dim => dim.Value == Convert.ToString(entry.Value, CultureInfo.InvariantCulture));
             }
 
             dimensionsCount += exporterOptions.PrepopulatedMetricDimensions.Count;
@@ -886,20 +893,20 @@ public class GenevaMetricExporterTests
         int i = 0;
         foreach (var item in exporterOptions.PrepopulatedMetricDimensions)
         {
-            Assert.Equal(item.Key, data.Body.DimensionsNames[i].Value);
-            Assert.Equal(item.Value, data.Body.DimensionsValues[i].Value);
+            Assert.Equal(item.Key, userData.DimensionsNames[i].Value);
+            Assert.Equal(item.Value, userData.DimensionsValues[i].Value);
             i++;
         }
 
         foreach (var tag in metricPoint.Tags)
         {
-            Assert.Equal(tag.Key, data.Body.DimensionsNames[i].Value);
-            Assert.Equal(tag.Value, data.Body.DimensionsValues[i].Value);
+            Assert.Equal(tag.Key, userData.DimensionsNames[i].Value);
+            Assert.Equal(tag.Value, userData.DimensionsValues[i].Value);
             i++;
         }
 
         dimensionsCount += metricPoint.Tags.Count;
 
-        Assert.Equal(dimensionsCount, data.Body.NumDimensions);
+        Assert.Equal(dimensionsCount, userData.NumDimensions);
     }
 }
