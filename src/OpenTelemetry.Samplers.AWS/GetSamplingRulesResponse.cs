@@ -15,15 +15,15 @@
 // </copyright>
 
 using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace OpenTelemetry.Samplers.AWS;
 
 internal class GetSamplingRulesResponse
 {
-    [JsonProperty(nameof(NextToken))]
+    [JsonPropertyName("NextToken")]
     public string? NextToken { get; set; }
 
-    [JsonProperty(nameof(SamplingRuleRecords))]
+    [JsonPropertyName("SamplingRuleRecords")]
     public List<SamplingRuleRecord>? SamplingRuleRecords { get; set; }
 }

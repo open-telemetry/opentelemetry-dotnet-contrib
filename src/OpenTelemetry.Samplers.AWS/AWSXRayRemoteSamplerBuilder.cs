@@ -45,15 +45,12 @@ public class AWSXRayRemoteSamplerBuilder
     /// <exception cref="ArgumentException">if the argument is non-positive.</exception>
     public AWSXRayRemoteSamplerBuilder SetPollingInterval(TimeSpan pollingInterval)
     {
-        if (pollingInterval != null)
+        if (pollingInterval < TimeSpan.Zero)
         {
-            if (pollingInterval < TimeSpan.Zero)
-            {
-                throw new ArgumentException("Polling interval must be non-negative.");
-            }
-
-            this.pollingInterval = pollingInterval;
+            throw new ArgumentException("Polling interval must be non-negative.");
         }
+
+        this.pollingInterval = pollingInterval;
 
         return this;
     }

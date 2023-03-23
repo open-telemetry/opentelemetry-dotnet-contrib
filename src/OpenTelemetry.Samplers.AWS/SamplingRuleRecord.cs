@@ -14,18 +14,18 @@
 // limitations under the License.
 // </copyright>
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace OpenTelemetry.Samplers.AWS;
 
 internal class SamplingRuleRecord
 {
-    [JsonProperty(nameof(CreatedAt))]
+    [JsonPropertyName("CreatedAt")]
     public double CreatedAt { get; set; }
 
-    [JsonProperty(nameof(ModifiedAt))]
+    [JsonPropertyName("ModifiedAt")]
     public double ModifiedAt { get; set; }
 
-    [JsonProperty(nameof(SamplingRule))]
+    [JsonPropertyName("SamplingRule")]
     public SamplingRule? SamplingRule { get; set; }
 }

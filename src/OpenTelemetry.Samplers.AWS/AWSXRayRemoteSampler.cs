@@ -75,7 +75,7 @@ public sealed class AWSXRayRemoteSampler : Sampler, IDisposable
         }
     }
 
-    private async void GetAndUpdateSampler(object state)
+    private async void GetAndUpdateSampler(object? state)
     {
         await this.Client.GetSamplingRules().ConfigureAwait(false);
 

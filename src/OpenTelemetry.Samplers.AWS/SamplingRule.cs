@@ -16,7 +16,7 @@
 
 using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace OpenTelemetry.Samplers.AWS;
 
@@ -48,45 +48,45 @@ internal class SamplingRule : IComparable<SamplingRule>
         this.Attributes = attributes;
     }
 
-    [JsonProperty(nameof(RuleName))]
+    [JsonPropertyName("RuleName")]
     public string RuleName { get; set; }
 
-    [JsonProperty(nameof(Priority))]
+    [JsonPropertyName("Priority")]
     public int Priority { get; set; }
 
-    [JsonProperty(nameof(FixedRate))]
+    [JsonPropertyName("FixedRate")]
     public double FixedRate { get; set; }
 
-    [JsonProperty(nameof(ReservoirSize))]
+    [JsonPropertyName("ReservoirSize")]
     public int ReservoirSize { get; set; }
 
-    [JsonProperty(nameof(Host))]
+    [JsonPropertyName("Host")]
     public string Host { get; set; }
 
-    [JsonProperty(nameof(HttpMethod))]
+    [JsonPropertyName("HTTPMethod")]
     public string HttpMethod { get; set; }
 
-    [JsonProperty(nameof(ResourceArn))]
+    [JsonPropertyName("ResourceARN")]
     public string ResourceArn { get; set; }
 
-    [JsonProperty(nameof(ServiceName))]
+    [JsonPropertyName("ServiceName")]
     public string ServiceName { get; set; }
 
-    [JsonProperty(nameof(UrlPath))]
+    [JsonPropertyName("URLPath")]
     public string UrlPath { get; set; }
 
-    [JsonProperty(nameof(Version))]
+    [JsonPropertyName("Version")]
     public int Version { get; set; }
 
-    [JsonProperty(nameof(Attributes))]
+    [JsonPropertyName("Attributes")]
     public Dictionary<string, string>? Attributes { get; set; }
 
-    public int CompareTo(SamplingRule other)
+    public int CompareTo(SamplingRule? other)
     {
-        int result = this.Priority.CompareTo(other.Priority);
+        int result = this.Priority.CompareTo(other?.Priority);
         if (result == 0)
         {
-            result = string.Compare(this.RuleName, other.RuleName, StringComparison.Ordinal);
+            result = string.Compare(this.RuleName, other?.RuleName, StringComparison.Ordinal);
         }
 
         return result;

@@ -18,8 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace OpenTelemetry.Samplers.AWS;
 
@@ -48,7 +48,7 @@ internal class AWSXRaySamplerClient : IDisposable
 
             try
             {
-                GetSamplingRulesResponse? getSamplingRulesResponse = JsonConvert.DeserializeObject<GetSamplingRulesResponse>(responseJson);
+                GetSamplingRulesResponse? getSamplingRulesResponse = JsonSerializer.Deserialize<GetSamplingRulesResponse>(responseJson);
                 if (getSamplingRulesResponse is not null)
                 {
                     if (getSamplingRulesResponse.SamplingRuleRecords is not null)
