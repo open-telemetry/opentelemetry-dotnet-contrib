@@ -612,6 +612,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
                 MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, 0); // version
 
+                // TODO: Avoid this additional enumeration
                 var exemplarsCount = 0;
                 foreach (var exemplar in exemplars)
                 {
@@ -630,10 +631,10 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                         this.SerializeExemplar(exemplar, ref bufferIndex);
                     }
                 }
-            }
 
-            payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
-            MetricSerializer.SerializeUInt16(this.buffer, ref payloadTypeStartIndex, payloadTypeLength);
+                payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
+                MetricSerializer.SerializeUInt16(this.buffer, ref payloadTypeStartIndex, payloadTypeLength);
+            }
 
             #endregion
 
@@ -817,6 +818,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
                 MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, 0); // version
 
+                // TODO: Avoid this additional enumeration
                 var exemplarsCount = 0;
                 foreach (var exemplar in exemplars)
                 {
@@ -835,10 +837,10 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                         this.SerializeExemplar(exemplar, ref bufferIndex);
                     }
                 }
-            }
 
-            payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
-            MetricSerializer.SerializeUInt16(this.buffer, ref payloadTypeStartIndex, payloadTypeLength);
+                payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
+                MetricSerializer.SerializeUInt16(this.buffer, ref payloadTypeStartIndex, payloadTypeLength);
+            }
 
             #endregion
 
@@ -913,7 +915,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
         var flags = ExemplarFlags.IsTimestampAvailable; // we only serialize exemplars with Timestamp != default
 
-        // TODO: Update the code whenn Exemplars support long values
+        // TODO: Update the code when Exemplars support long values
         var value = exemplar.DoubleValue;
 
         // Check if the double value is actually a whole number that can be serialized as a long instead
