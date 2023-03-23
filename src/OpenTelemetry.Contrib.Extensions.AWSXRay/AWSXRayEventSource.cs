@@ -68,24 +68,6 @@ internal class AWSXRayEventSource : EventSource
         this.WriteEvent(4, format, error);
     }
 
-    [Event(5, Message = "Error response from {0} with status code {1}", Level = EventLevel.Warning)]
-    public void FailedToGetSuccessResponse(string endpoint, string statusCode)
-    {
-        this.WriteEvent(5, endpoint, statusCode);
-    }
-
-    [Event(6, Message = "Exception from AWSXRayRemoteSampler while executing request {0})}", Level = EventLevel.Warning)]
-    public void ExceptionFromSampler(string message)
-    {
-        this.WriteEvent(6, message);
-    }
-
-    [Event(7, Message = "Failed to deserialize to object in format: '{0}', error: '{1}'.", Level = EventLevel.Warning)]
-    public void FailedToDeserializeResponse(string format, string error)
-    {
-        this.WriteEvent(7, format, error);
-    }
-
     /// <summary>
     /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
     /// appropriate for diagnostics tracing.

@@ -16,8 +16,6 @@
   supporting ResourceBuilderExtensions extension, and migrate all detectors to
   implement OpenTelemetry.Resources.IResourceDetector
   ([#875](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/875))
-* Feature - AWSXRayRemoteSampler - Add support for AWS X-Ray remote sampling
-  ([#1091](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1091))
 
 ## 1.2.0
 

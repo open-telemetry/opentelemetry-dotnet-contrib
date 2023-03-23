@@ -19,11 +19,3 @@ OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSLambdaResourceDetector.Det
 *REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.IResourceDetector.Detect() -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, object?>>?
 *REMOVED*OpenTelemetry.Resources.ResourceBuilderExtensions
 *REMOVED*static OpenTelemetry.Resources.ResourceBuilderExtensions.AddDetector(this OpenTelemetry.Resources.ResourceBuilder resourceBuilder, OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.IResourceDetector resourceDetector) -> OpenTelemetry.Resources.ResourceBuilder
-OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSampler
-OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSampler.Dispose() -> void
-OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSamplerBuilder
-OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSamplerBuilder.Build() -> OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSampler!
-OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSamplerBuilder.SetEndpoint(string! endpoint) -> OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSamplerBuilder!
-OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSamplerBuilder.SetPollingInterval(System.TimeSpan pollingInterval) -> OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSamplerBuilder!
-override OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSampler.ShouldSample(in OpenTelemetry.Trace.SamplingParameters samplingParameters) -> OpenTelemetry.Trace.SamplingResult
-static OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSampler.Builder() -> OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayRemoteSamplerBuilder!
