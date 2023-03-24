@@ -56,8 +56,14 @@ following shows changes required to your `Web.config` when using IIS web server.
 ### Step 3: Enable ASP.NET Instrumentation at application startup
 
 ASP.NET instrumentation must be enabled at application startup. This is
-typically done in the `Global.asax.cs` as shown below. This example also sets up
-the OpenTelemetry OTLP exporter, which requires adding the package
+typically done in the `Global.asax.cs`.
+
+#### Traces
+
+The following example demonstrates adding ASP.NET instrumentation with the
+extension method `.AddAspNetInstrumentation()` on `TracerProviderBuilder` to
+an application. This example also sets up
+the OTLP (OpenTelemetry Protocol) exporter, which requires adding the package
 [`OpenTelemetry.Exporter.OpenTelemetryProtocol`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.OpenTelemetryProtocol/README.md)
 to the application.
 
@@ -82,11 +88,45 @@ public class WebApiApplication : HttpApplication
 }
 ```
 
-## Metrics
+#### Metrics
 
-This package produces following metrics:
+The following example demonstrates adding ASP.NET instrumentation with the
+extension method `.AddAspNetInstrumentation()` on `MeterProviderBuilder` to
+an application. This example also sets up
+the OTLP (OpenTelemetry Protocol) exporter, which requires adding the package
+[`OpenTelemetry.Exporter.OpenTelemetryProtocol`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.OpenTelemetryProtocol/README.md)
+to the application.
 
-* [`http.server.duration`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/http-metrics.md#metric-httpserverduration)
+```csharp
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
+
+public class WebApiApplication : HttpApplication
+{
+    private MeterProvider meterProvider;
+    protected void Application_Start()
+    {
+        this.meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddAspNetInstrumentation()
+            .AddOtlpExporter()
+            .Build();
+    }
+    protected void Application_End()
+    {
+        this.meterProvider?.Dispose();
+    }
+}
+```
+
+#### List of metrics produced
+
+The instrumentation is implemented based on [metrics semantic
+conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/http-metrics.md#metric-httpserverduration).
+Currently, the instrumentation supports the following metric.
+
+| Name  | Instrument Type | Unit | Description |
+|-------|-----------------|------|-------------|
+| `http.server.duration` | Histogram | `ms` | Measures the duration of inbound HTTP requests. |
 
 ## Advanced configuration
 

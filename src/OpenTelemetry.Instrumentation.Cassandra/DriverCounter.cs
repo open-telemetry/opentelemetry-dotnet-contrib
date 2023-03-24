@@ -1,4 +1,4 @@
-// <copyright file="AWSEKSClusterDataModel.cs" company="OpenTelemetry Authors">
+// <copyright file="DriverCounter.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,12 +14,27 @@
 // limitations under the License.
 // </copyright>
 
-using System.Text.Json.Serialization;
+using System.Diagnostics.Metrics;
+using Cassandra.Metrics.Abstractions;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Models;
+namespace OpenTelemetry.Instrumentation.Cassandra;
 
-internal class AWSEKSClusterDataModel
+internal sealed class DriverCounter : IDriverCounter
 {
-    [JsonPropertyName("cluster.name")]
-    public string? ClusterName { get; set; }
+    private readonly Counter<long> counter;
+
+    public DriverCounter(string name)
+    {
+        this.counter = CassandraMeter.Instance.CreateCounter<long>(name);
+    }
+
+    public void Increment()
+    {
+        this.counter.Add(1);
+    }
+
+    public void Increment(long value)
+    {
+        this.counter.Add(value);
+    }
 }
