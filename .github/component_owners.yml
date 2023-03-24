@@ -65,6 +65,8 @@ components:
   src/OpenTelemetry.ResourceDetectors.Azure/:
     - rajkumar-rangaraj
     - vishweshbankwar
+  src/OpenTelemetry.Sampler.AWS/:
+    - srprash
   test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/:
     - srprash
     - lupengamzn
@@ -137,4 +139,5 @@ components:
   test/OpenTelemetry.ResourceDetectors.Azure.Tests/:
     - rajkumar-rangaraj
     - vishweshbankwar
-
+  test/OpenTelemetry.Sampler.AWS.Tests/:
+    - srprash
