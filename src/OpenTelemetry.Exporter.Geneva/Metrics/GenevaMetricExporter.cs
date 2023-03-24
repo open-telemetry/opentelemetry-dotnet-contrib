@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -142,11 +141,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metricPoint.Tags,
                                     metricData,
                                     exemplars);
-
-                                string fileName = @"C:\Users\utpilla.REDMOND\Downloads\OTelCounter.bin";
-                                using BinaryWriter binWriter = new BinaryWriter(File.Open(fileName, FileMode.Create));
-                                binWriter.Write(this.buffer);
-
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
@@ -199,11 +193,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metricPoint.Tags,
                                     metricData,
                                     exemplars);
-
-                                string fileName = @"C:\Users\utpilla.REDMOND\Downloads\OTelDoubleCounter.bin";
-                                using BinaryWriter binWriter = new BinaryWriter(File.Open(fileName, FileMode.Create));
-                                binWriter.Write(this.buffer);
-
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
@@ -243,11 +232,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     min,
                                     max,
                                     exemplars);
-
-                                string fileName = @"C:\Users\utpilla.REDMOND\Downloads\OTelHistogram.bin";
-                                using BinaryWriter binWriter = new BinaryWriter(File.Open(fileName, FileMode.Create));
-                                binWriter.Write(this.buffer);
-
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
