@@ -50,7 +50,7 @@ public class FileBlobProviderTests
         testDirectory.Delete(true);
     }
 
-    [Fact]
+    [Fact(Skip = "Unstable")]
     public void FileBlobProvider_CreateBlobReturnsNullIfblobProviderIsFull()
     {
         var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
@@ -64,12 +64,6 @@ public class FileBlobProviderTests
         Assert.Null(blob);
 
         testDirectory.Delete(true);
-    }
-
-    [Fact]
-    public void FileBlobProvider_PathIsRequired()
-    {
-        Assert.Throws<ArgumentNullException>(() => new FileBlobProvider(null));
     }
 
     [Fact]

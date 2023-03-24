@@ -1,10 +1,10 @@
 ---
-name: OpenTelemetry.Extensions.PersistentStorage
-about: Issue with OpenTelemetry.Extensions.PersistentStorage
-labels: comp:extensions.persistentstorage
+name: OpenTelemetry.PersistentStorage.FileSystem
+about: Issue with OpenTelemetry.PersistentStorage.FileSystem
+labels: comp:persistentstorage.filesystem
 ---
 
-# Issue with OpenTelemetry.Extensions.PersistentStorage
+# Issue with PersistentStorage.FileSystem
 
 List of [all OpenTelemetry NuGet
 packages](https://www.nuget.org/profiles/OpenTelemetry) and version that you are

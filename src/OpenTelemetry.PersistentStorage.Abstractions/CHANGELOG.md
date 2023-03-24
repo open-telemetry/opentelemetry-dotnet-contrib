@@ -1,6 +1,18 @@
 # Changelog
 
-// TODO: update changelog
+## 1.0.0-beta.2 (Unreleased)
+
+* Going forward the NuGet package will be
+ [`OpenTelemetry.PersistentStorage.Abstractions`](https://www.nuget.org/packages/OpenTelemetry.PersistentStorage.Abstractions).
+ Older versions will remain at
+ [`OpenTelemetry.Extensions.PersistentStorage.Abstractions`](https://www.nuget.org/packages/OpenTelemetry.Extensions.PersistentStorage.Abstractions)
+ [#1079](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1079)
+
+  Migration:
+
+  * In code update namespaces (e.g. `using
+    OpenTelemetry.Extensions.PersistentStorage.Abstractions` -> `using
+    OpenTelemetry.PersistentStorage.Abstractions`)
 
 ## 1.0.0-beta.1
 
