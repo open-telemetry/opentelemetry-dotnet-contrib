@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -141,6 +142,11 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metricPoint.Tags,
                                     metricData,
                                     exemplars);
+
+                                string fileName = @"C:\Users\utpilla.REDMOND\Downloads\OTelCounter.bin";
+                                using BinaryWriter binWriter = new BinaryWriter(File.Open(fileName, FileMode.Create));
+                                binWriter.Write(this.buffer);
+
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
@@ -193,6 +199,11 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metricPoint.Tags,
                                     metricData,
                                     exemplars);
+
+                                string fileName = @"C:\Users\utpilla.REDMOND\Downloads\OTelDoubleCounter.bin";
+                                using BinaryWriter binWriter = new BinaryWriter(File.Open(fileName, FileMode.Create));
+                                binWriter.Write(this.buffer);
+
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
@@ -232,6 +243,11 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     min,
                                     max,
                                     exemplars);
+
+                                string fileName = @"C:\Users\utpilla.REDMOND\Downloads\OTelHistogram.bin";
+                                using BinaryWriter binWriter = new BinaryWriter(File.Open(fileName, FileMode.Create));
+                                binWriter.Write(this.buffer);
+
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
@@ -512,7 +528,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
             SerializeNonHistogramMetricData(eventType, value, timestamp, this.buffer, ref bufferIndex);
 
-            SerializeMetricDimensions(tags, this.serializedPrepopulatedDimensionsKeys, this.serializedPrepopulatedDimensionsValues, this.buffer, ref bufferIndex);
+            SerializeMetricDimensions(tags, this.prepopulatedDimensionsCount, this.serializedPrepopulatedDimensionsKeys, this.serializedPrepopulatedDimensionsValues, this.buffer, ref bufferIndex);
 
             SerializeExemplars(exemplars, this.buffer, ref bufferIndex);
 
@@ -563,7 +579,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
             SerializeHistogramMetricData(buckets, sum, count, min, max, timestamp, this.buffer, ref bufferIndex);
 
-            SerializeMetricDimensions(tags, this.serializedPrepopulatedDimensionsKeys, this.serializedPrepopulatedDimensionsValues, this.buffer, ref bufferIndex);
+            SerializeMetricDimensions(tags, this.prepopulatedDimensionsCount, this.serializedPrepopulatedDimensionsKeys, this.serializedPrepopulatedDimensionsValues, this.buffer, ref bufferIndex);
 
             SerializeExemplars(exemplars, this.buffer, ref bufferIndex);
 
@@ -611,7 +627,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SerializeMetricDimensions(in ReadOnlyTagCollection tags, List<byte[]> serializedPrepopulatedDimensionsKeys, List<byte[]> serializedPrepopulatedDimensionsValues, byte[] buffer, ref int bufferIndex)
+    private static void SerializeMetricDimensions(in ReadOnlyTagCollection tags, ushort prepopulatedDimensionsCount, List<byte[]> serializedPrepopulatedDimensionsKeys, List<byte[]> serializedPrepopulatedDimensionsValues, byte[] buffer, ref int bufferIndex)
     {
         MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)PayloadType.Dimensions);
 
@@ -624,8 +640,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         bufferIndex += 2;
 
         ushort dimensionsWritten = 0;
-
-        ushort prepopulatedDimensionsCount = (ushort)serializedPrepopulatedDimensionsKeys.Count;
 
         // Serialize PrepopulatedDimensions keys
         for (ushort i = 0; i < prepopulatedDimensionsCount; i++)
