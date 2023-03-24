@@ -14,12 +14,12 @@
 // limitations under the License.
 // </copyright>
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Models;
 
 internal class AWSEKSClusterDataModel
 {
-    [JsonProperty(PropertyName = "cluster.name")]
+    [JsonPropertyName("cluster.name")]
     public string? ClusterName { get; set; }
 }
