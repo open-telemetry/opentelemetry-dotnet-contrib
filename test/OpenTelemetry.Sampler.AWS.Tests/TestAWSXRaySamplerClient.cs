@@ -17,13 +17,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using OpenTelemetry.Samplers.AWS;
+using OpenTelemetry.Sampler.AWS;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
 using Xunit;
 
-namespace OpenTelemetry.Samplers.AWS.Tests;
+namespace OpenTelemetry.Sampler.AWS.Tests;
 
 public class TestAWSXRaySamplerClient : IDisposable
 {

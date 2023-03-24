@@ -19,7 +19,7 @@ using System.Diagnostics.Tracing;
 using System.Globalization;
 using System.Threading;
 
-namespace OpenTelemetry.Samplers.AWS;
+namespace OpenTelemetry.Sampler.AWS;
 
 [EventSource(Name = "OpenTelemetry-Samplers-AWS")]
 internal class AWSSamplerEventSource : EventSource

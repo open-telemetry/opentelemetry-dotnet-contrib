@@ -18,12 +18,12 @@ using System;
 using System.Threading;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Samplers.AWS;
+namespace OpenTelemetry.Sampler.AWS;
 
 /// <summary>
 /// Remote sampler that gets sampling configuration from AWS X-Ray.
 /// </summary>
-public sealed class AWSXRayRemoteSampler : Sampler, IDisposable
+public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
 {
     internal AWSXRayRemoteSampler(TimeSpan pollingInterval, string endpoint)
     {

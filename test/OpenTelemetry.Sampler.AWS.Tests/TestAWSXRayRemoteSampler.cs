@@ -15,11 +15,11 @@
 // </copyright>
 
 using System;
-using OpenTelemetry.Samplers.AWS;
+using OpenTelemetry.Sampler.AWS;
 using OpenTelemetry.Trace;
 using Xunit;
 
-namespace OpenTelemetry.Samplers.AWS.Tests;
+namespace OpenTelemetry.Sampler.AWS.Tests;
 
 public class TestAWSXRayRemoteSampler
 {
@@ -54,7 +54,7 @@ public class TestAWSXRayRemoteSampler
     [Fact]
     public void TestSamplerShouldSample()
     {
-        Sampler sampler = AWSXRayRemoteSampler.Builder().Build();
+        Trace.Sampler sampler = AWSXRayRemoteSampler.Builder().Build();
 
         // TODO: update the test when the method is implemented.
         Assert.Throws<NotImplementedException>(() => sampler.ShouldSample(default(SamplingParameters)));

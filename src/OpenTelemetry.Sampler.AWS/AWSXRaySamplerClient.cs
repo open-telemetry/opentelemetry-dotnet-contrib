@@ -21,7 +21,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace OpenTelemetry.Samplers.AWS;
+namespace OpenTelemetry.Sampler.AWS;
 
 internal class AWSXRaySamplerClient : IDisposable
 {

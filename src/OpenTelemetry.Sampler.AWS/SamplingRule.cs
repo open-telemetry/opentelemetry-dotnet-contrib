@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace OpenTelemetry.Samplers.AWS;
+namespace OpenTelemetry.Sampler.AWS;
 
 internal class SamplingRule : IComparable<SamplingRule>
 {

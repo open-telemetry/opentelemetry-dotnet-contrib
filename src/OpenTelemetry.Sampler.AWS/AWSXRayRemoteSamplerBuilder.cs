@@ -16,7 +16,7 @@
 
 using System;
 
-namespace OpenTelemetry.Samplers.AWS;
+namespace OpenTelemetry.Sampler.AWS;
 
 /// <summary>
 /// A builder for AWSXRayRemoteSampler.

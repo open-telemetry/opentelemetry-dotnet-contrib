@@ -256,9 +256,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.PersistentSto
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.PersistentStorage.FileSystem.Tests", "test\OpenTelemetry.PersistentStorage.FileSystem.Tests\OpenTelemetry.PersistentStorage.FileSystem.Tests.csproj", "{C7215B69-0D77-4D52-AFBB-A6662249B3AC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Samplers.AWS", "src\OpenTelemetry.Samplers.AWS\OpenTelemetry.Samplers.AWS.csproj", "{54002B08-F6AE-4B2B-AB0C-86E5A05926A3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Sampler.AWS", "src\OpenTelemetry.Sampler.AWS\OpenTelemetry.Sampler.AWS.csproj", "{54002B08-F6AE-4B2B-AB0C-86E5A05926A3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Samplers.AWS.Tests", "test\OpenTelemetry.Samplers.AWS.Tests\OpenTelemetry.Samplers.AWS.Tests.csproj", "{48C29501-3FA2-46A7-B5BA-D282EA8F1274}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Sampler.AWS.Tests", "test\OpenTelemetry.Sampler.AWS.Tests\OpenTelemetry.Sampler.AWS.Tests.csproj", "{48C29501-3FA2-46A7-B5BA-D282EA8F1274}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.OneCollector.Benchmarks", "test\OpenTelemetry.Exporter.OneCollector.Benchmarks\OpenTelemetry.Exporter.OneCollector.Benchmarks.csproj", "{C42868C8-968A-473F-AC39-AC97C5D47E84}"
 EndProject
