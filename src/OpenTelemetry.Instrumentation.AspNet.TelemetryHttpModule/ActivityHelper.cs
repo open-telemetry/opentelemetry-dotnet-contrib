@@ -78,7 +78,7 @@ internal static class ActivityHelper
 
         PropagationContext propagationContext = textMapPropagator.Extract(default, context.Request, HttpRequestHeaderValuesGetter);
 
-        Activity activity = AspNetSource.StartActivity(TelemetryHttpModule.AspNetActivityName, ActivityKind.Server, propagationContext.ActivityContext);
+        Activity activity = AspNetSource.CreateActivity(TelemetryHttpModule.AspNetActivityName, ActivityKind.Server, propagationContext.ActivityContext);
 
         if (activity != null)
         {
@@ -101,6 +101,8 @@ internal static class ActivityHelper
             {
                 AspNetTelemetryEventSource.Log.CallbackException(activity, "OnStarted", callbackEx);
             }
+
+            activity.Start();
 
             AspNetTelemetryEventSource.Log.ActivityStarted(activity);
         }
@@ -138,7 +140,6 @@ internal static class ActivityHelper
 
         var currentActivity = Activity.Current;
 
-        aspNetActivity.Stop();
         context.Items[ContextKey] = null;
 
         try
@@ -149,6 +150,8 @@ internal static class ActivityHelper
         {
             AspNetTelemetryEventSource.Log.CallbackException(aspNetActivity, "OnStopped", callbackEx);
         }
+
+        aspNetActivity.Stop();
 
         AspNetTelemetryEventSource.Log.ActivityStopped(currentActivity);
 
