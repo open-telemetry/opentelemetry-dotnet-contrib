@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using Microsoft.Extensions.Logging;
@@ -167,15 +168,84 @@ public class LogRecordCommonSchemaJsonSerializerTests
             json);
     }
 
+    [Fact]
+    public void LogRecordTraceContextJsonTest()
+    {
+        var traceId = ActivityTraceId.CreateRandom();
+        var spanId = ActivitySpanId.CreateRandom();
+
+        string json = GetLogRecordJson(1, (index, logRecord) =>
+        {
+            logRecord.TraceId = traceId;
+            logRecord.SpanId = spanId;
+            logRecord.TraceFlags = ActivityTraceFlags.Recorded;
+        });
+
+        Assert.Equal(
+            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1}},\"ext\":{{\"dt\":{{\"traceId\":\"{traceId}\",\"spanId\":\"{spanId}\",\"traceFlags\":1}}}}}}\n",
+            json);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void LogRecordExceptionJsonTest(bool includeStackTraceAsString)
+    {
+        string json = GetLogRecordJson(
+            1,
+            (index, logRecord) =>
+            {
+                logRecord.Exception = new InvalidOperationException();
+            },
+            includeStackTraceAsString: includeStackTraceAsString);
+
+        var stackJson = includeStackTraceAsString
+            ? $",\"stack\":\"System.InvalidOperationException: Operation is not valid due to the current state of the object.\""
+            : string.Empty;
+
+        Assert.Equal(
+            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1}},\"ext\":{{\"ex\":{{\"type\":\"System.InvalidOperationException\",\"msg\":\"Operation is not valid due to the current state of the object.\"{stackJson}}}}}}}\n",
+            json);
+    }
+
+    [Fact]
+    public void LogRecordExtensionsJsonTest()
+    {
+        var scopeProvider = new ScopeProvider(
+            new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("ext.scope.field", "scopeValue1") });
+
+        var resource = ResourceBuilder.CreateEmpty()
+            .AddAttributes(new Dictionary<string, object>
+            {
+                ["ext.resource.field"] = "resourceValue1",
+            })
+            .Build();
+
+        string json = GetLogRecordJson(
+            1,
+            (index, logRecord) =>
+            {
+                logRecord.StateValues = new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("ext.state.field", "stateValue1") };
+            },
+            resource,
+            scopeProvider);
+
+        Assert.Equal(
+            "{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{\"severityText\":\"Trace\",\"severityNumber\":1},\"ext\":{\"state\":{\"field\":\"stateValue1\"},\"resource\":{\"field\":\"resourceValue1\"},\"scope\":{\"field\":\"scopeValue1\"}}}\n",
+            json);
+    }
+
     private static string GetLogRecordJson(
         int numberOfLogRecords,
         Action<int, LogRecord> writeLogRecordCallback,
         Resource? resource = null,
-        ScopeProvider? scopeProvider = null)
+        ScopeProvider? scopeProvider = null,
+        bool includeStackTraceAsString = false)
     {
         var serializer = new LogRecordCommonSchemaJsonSerializer(
             new("Namespace", "Name"),
-            "tenant-token");
+            "tenant-token",
+            exceptionStackTraceHandling: includeStackTraceAsString ? OneCollectorExporterSerializationExceptionStackTraceHandlingType.IncludeAsString : OneCollectorExporterSerializationExceptionStackTraceHandlingType.Ignore);
 
         using var stream = new MemoryStream();
 

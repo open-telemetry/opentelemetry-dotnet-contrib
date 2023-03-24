@@ -29,13 +29,17 @@ components:
     - vishweshbankwar
   src/OpenTelemetry.Extensions.Docker/:
     - iskiselev
-  src/OpenTelemetry.Extensions.PersistentStorage.Abstractions/:
+  src/OpenTelemetry.Extensions.Enrichment/:
+    - xakep139
+  src/OpenTelemetry.PersistentStorage.Abstractions/:
     - vishweshbankwar
-  src/OpenTelemetry.Extensions.PersistentStorage/:
+  src/OpenTelemetry.PersistentStorage.FileSystem/:
     - vishweshbankwar
   src/OpenTelemetry.Instrumentation.AWSLambda/:
     - rypdal
     - Oberon00
+  src/OpenTelemetry.Instrumentation.Cassandra/:
+    - xsoheilalizadeh
   src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
     - ejsmith
   src/OpenTelemetry.Instrumentation.EventCounters/:
@@ -89,6 +93,9 @@ components:
     - Yun-Ting
   test/OpenTelemetry.Exporter.Instana.Tests/:
     - zivaninstana
+  test/OpenTelemetry.Exporter.OneCollector.Benchmarks/:
+    - codeblanch
+    - reyang
   test/OpenTelemetry.Exporter.OneCollector.Tests/:
     - codeblanch
     - reyang
@@ -98,11 +105,15 @@ components:
     - codeblanch
   test/OpenTelemetry.Extensions.Docker.Tests/:
     - iskiselev
-  test/OpenTelemetry.Extensions.PersistentStorage.Tests/:
+  test/OpenTelemetry.Extensions.Enrichment.Tests/:
+    - xakep139
+  test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
     - vishweshbankwar
   test/OpenTelemetry.Instrumentation.AWSLambda.Tests/:
     - rypdal
     - Oberon00
+  test/OpenTelemetry.Instrumentation.Cassandra.Tests/:
+    - xsoheilalizadeh
   test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/:
     - ejsmith
   test/OpenTelemetry.Instrumentation.EventCounters.Tests/:
@@ -126,3 +137,4 @@ components:
   test/OpenTelemetry.ResourceDetectors.Azure.Tests/:
     - rajkumar-rangaraj
     - vishweshbankwar
+

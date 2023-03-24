@@ -32,7 +32,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests;
 #if NET452
 internal class MockHttpRequest : IHttpRequest<Stream>
 {
-    private Stream? requestStream = null;
+    private Stream? requestStream;
 
     public MockHttpRequest(Uri requestUri, Action? action, Func<MockHttpRequest, HttpWebResponse?>? responseCreator = null)
     {

@@ -4,8 +4,14 @@
 
 * Add HTTP server span attributes for API Gateway triggers
   ([#626](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/626))
+* Removes `AddAWSLambdaConfigurations` method with default configure parameter.
+  ([#943](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/943))
+* BREAKING (behavior): `AddAWSLambdaConfigurations` no longer calls `AddService`
+  ([#1080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1080))
 
 ## 1.1.0-beta.2
+
+Released 2022-Sep-14
 
 Release PR: [#590](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/590)
 & [#639](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/639).

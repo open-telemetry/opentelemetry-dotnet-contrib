@@ -26,6 +26,18 @@ internal static class CommonSchemaJsonSerializationHelper
     public const int MaximumStackAllocSizeInBytes = 256;
 #endif
 
+    public const char OneCollectorTenancySymbol = 'o';
+
+    public static readonly byte[] NewLine = "\n"u8.ToArray();
+
+    public static readonly JsonEncodedText VersionProperty = JsonEncodedText.Encode("ver");
+    public static readonly JsonEncodedText Version4Value = JsonEncodedText.Encode("4.0");
+    public static readonly JsonEncodedText NameProperty = JsonEncodedText.Encode("name");
+    public static readonly JsonEncodedText TimeProperty = JsonEncodedText.Encode("time");
+    public static readonly JsonEncodedText IKeyProperty = JsonEncodedText.Encode("iKey");
+    public static readonly JsonEncodedText ExtensionsProperty = JsonEncodedText.Encode("ext");
+    public static readonly JsonEncodedText DataProperty = JsonEncodedText.Encode("data");
+
     public static void SerializeKeyValueToJson(string key, object? value, Utf8JsonWriter writer)
     {
         writer.WritePropertyName(key);

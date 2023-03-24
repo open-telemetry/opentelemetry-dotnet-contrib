@@ -19,7 +19,6 @@ using System.Collections.Generic;
 #if NET452
 using System.IO;
 #endif
-using System.Linq;
 using System.Net;
 #if !NET452
 using System.Net.Http;
@@ -130,30 +129,30 @@ internal class MockWebResponse
 
         var responseLines = rawResponse.Split('\n');
 
-        if (responseLines.Count() == 0)
+        if (responseLines.Length == 0)
         {
             throw new ArgumentException(
                 "The resource does not contain a valid HTTP response.",
-                "resourceName");
+                nameof(rawResponse));
         }
 
         response.StatusLine = responseLines[0];
         var currentLine = responseLines[0];
-        var statusCode = ParseStatusCode(currentLine);
+        _ = ParseStatusCode(currentLine);
 
-        var lineIndex = 0;
-        if (responseLines.Count() > 1)
+        int lineIndex;
+        if (responseLines.Length > 1)
         {
-            for (lineIndex = 1; lineIndex < responseLines.Count(); lineIndex++)
+            for (lineIndex = 1; lineIndex < responseLines.Length; lineIndex++)
             {
                 currentLine = responseLines[lineIndex];
-                if (currentLine.Trim() == string.Empty)
+                if (string.IsNullOrEmpty(currentLine.Trim()))
                 {
                     currentLine = responseLines[lineIndex - 1];
                     break;
                 }
 
-                var index = currentLine.IndexOf(":");
+                var index = currentLine.IndexOf(":", StringComparison.Ordinal);
                 if (index != -1)
                 {
                     var headerKey = currentLine.Substring(0, index);
@@ -163,17 +162,16 @@ internal class MockWebResponse
             }
         }
 
-        var startOfBody = rawResponse.IndexOf(currentLine) + currentLine.Length;
+        var startOfBody = rawResponse.IndexOf(currentLine, StringComparison.Ordinal) + currentLine.Length;
         response.Body = rawResponse.Substring(startOfBody).Trim();
         return response;
     }
 
     private static HttpStatusCode ParseStatusCode(string? statusLine)
     {
-        var statusCode = string.Empty;
         try
         {
-            statusCode = (statusLine ?? string.Empty).Split(' ')[1];
+            string statusCode = statusLine?.Split(' ')[1] ?? string.Empty;
             return (HttpStatusCode)Enum.Parse(typeof(HttpStatusCode), statusCode);
         }
         catch (Exception exception)
