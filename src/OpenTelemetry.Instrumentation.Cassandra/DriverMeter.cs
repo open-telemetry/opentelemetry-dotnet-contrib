@@ -1,4 +1,4 @@
-// <copyright file="AWSEKSClusterDataModel.cs" company="OpenTelemetry Authors">
+// <copyright file="DriverMeter.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,12 +14,22 @@
 // limitations under the License.
 // </copyright>
 
-using System.Text.Json.Serialization;
+using System.Diagnostics.Metrics;
+using Cassandra.Metrics.Abstractions;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Models;
+namespace OpenTelemetry.Instrumentation.Cassandra;
 
-internal class AWSEKSClusterDataModel
+internal sealed class DriverMeter : IDriverMeter
 {
-    [JsonPropertyName("cluster.name")]
-    public string? ClusterName { get; set; }
+    private readonly Histogram<long> meter;
+
+    public DriverMeter(string name)
+    {
+        this.meter = CassandraMeter.Instance.CreateHistogram<long>(name);
+    }
+
+    public void Mark(long amount)
+    {
+        this.meter.Record(amount);
+    }
 }

@@ -1,4 +1,4 @@
-// <copyright file="AWSEKSClusterDataModel.cs" company="OpenTelemetry Authors">
+// <copyright file="BooksEntity.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,12 +14,24 @@
 // limitations under the License.
 // </copyright>
 
-using System.Text.Json.Serialization;
+using System;
+using Cassandra.Mapping.Attributes;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Models;
+namespace OpenTelemetry.Instrumentation.Cassandra.Tests;
 
-internal class AWSEKSClusterDataModel
+[Table("books")]
+public class BooksEntity
 {
-    [JsonPropertyName("cluster.name")]
-    public string? ClusterName { get; set; }
+    public BooksEntity(Guid id, string name)
+    {
+        this.Id = id;
+        this.Name = name;
+    }
+
+    [PartitionKey]
+    [Column("id")]
+    public Guid Id { get; set; }
+
+    [Column("name")]
+    public string Name { get; set; }
 }
