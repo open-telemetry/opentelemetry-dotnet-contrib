@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add LogToActivityEventConversionOptions.Filter callback
+  ([#1059](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1059))
+
 ## 1.0.0-beta.4
 
 Released 2023-Feb-27
