@@ -10,7 +10,7 @@ See: [AWS X-Ray Sampling](https://docs.aws.amazon.com/xray/latest/devguide/xray-
 Start with installing the package
 
 ```shell
-dotnet add package OpenTelemetry.Samplers.AWS
+dotnet add package OpenTelemetry.Sampler.AWS
 ```
 
 You can configure the `AWSXRayRemoteSampler` as per the following example.
