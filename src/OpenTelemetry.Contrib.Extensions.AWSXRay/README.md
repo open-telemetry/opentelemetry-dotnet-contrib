@@ -70,3 +70,8 @@ service namespace, instance id, service version.
 container id.
 - **AWSLambdaResourceDetector**: cloud provider, cloud platform, aws region,
 function name, function version.
+
+## References
+
+- [OpenTelemetry Project](https://opentelemetry.io/)
+- [AWS Distro for OpenTelemetry .NET](https://aws-otel.github.io/docs/getting-started/dotnet-sdk)
