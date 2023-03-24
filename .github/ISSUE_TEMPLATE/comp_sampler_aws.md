@@ -1,7 +1,7 @@
 ---
-name: OpenTelemetry.Samplers.AWS
-about: Issue with OpenTelemetry.Samplers.AWS
-labels: comp:samplers.aws
+name: OpenTelemetry.Sampler.AWS
+about: Issue with OpenTelemetry.Sampler.AWS
+labels: comp:sampler.aws
 ---
 
 # Issue with OpenTelemetry.Samplers.AWS

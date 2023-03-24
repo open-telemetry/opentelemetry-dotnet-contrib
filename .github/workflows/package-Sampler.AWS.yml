@@ -1,4 +1,4 @@
-name: Pack OpenTelemetry.Samplers.AWS
+name: Pack OpenTelemetry.Sampler.AWS
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ on:
         default: 'warning'
   push:
     tags:
-      - 'Samplers.AWS-*' # trigger when we create a tag with prefix "Samplers.AWS-"
+      - 'Sampler.AWS-*' # trigger when we create a tag with prefix "Sampler.AWS-"
 
 jobs:
   build-test-pack:
@@ -17,7 +17,7 @@ jobs:
     permissions:
       contents: write
     env:
-      PROJECT: OpenTelemetry.Samplers.AWS
+      PROJECT: OpenTelemetry.Sampler.AWS
 
     strategy:
       matrix:
