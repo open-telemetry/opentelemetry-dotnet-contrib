@@ -4,7 +4,7 @@ about: Issue with OpenTelemetry.Sampler.AWS
 labels: comp:sampler.aws
 ---
 
-# Issue with OpenTelemetry.Samplers.AWS
+# Issue with OpenTelemetry.Sampler.AWS
 
 List of [all OpenTelemetry NuGet
 packages](https://www.nuget.org/profiles/OpenTelemetry) and version that you are
