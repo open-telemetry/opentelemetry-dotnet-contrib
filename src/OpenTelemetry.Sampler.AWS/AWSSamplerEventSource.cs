@@ -21,7 +21,7 @@ using System.Threading;
 
 namespace OpenTelemetry.Sampler.AWS;
 
-[EventSource(Name = "OpenTelemetry-Samplers-AWS")]
+[EventSource(Name = "OpenTelemetry-Sampler-AWS")]
 internal class AWSSamplerEventSource : EventSource
 {
     public static AWSSamplerEventSource Log = new AWSSamplerEventSource();
