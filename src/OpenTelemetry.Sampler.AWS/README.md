@@ -1,7 +1,7 @@
 # AWS X-Ray Remote Sampler
 
-[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Samplers.AWS.svg)](https://www.nuget.org/packages/OpenTelemetry.Samplers.AWS)
-[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Samplers.AWS.svg)](https://www.nuget.org/packages/OpenTelemetry.Samplers.AWS)
+[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Sampler.AWS.svg)](https://www.nuget.org/packages/OpenTelemetry.Sampler.AWS)
+[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Sampler.AWS.svg)](https://www.nuget.org/packages/OpenTelemetry.Sampler.AWS)
 
 This package provides a sampler which can get sampling
 configurations from AWS X-Ray to make sampling decisions.
