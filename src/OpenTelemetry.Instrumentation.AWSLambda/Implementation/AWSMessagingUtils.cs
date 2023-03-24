@@ -118,7 +118,7 @@ internal class AWSMessagingUtils
 
         var body = sqsMessage.Body;
         if (body != null &&
-            body.TrimStart().StartsWith("{") &&
+            body.TrimStart().StartsWith("{", StringComparison.Ordinal) &&
             body.Contains(SnsMessageAttributes))
         {
             try
