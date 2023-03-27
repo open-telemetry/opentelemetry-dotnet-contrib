@@ -65,32 +65,33 @@ internal static class AWSLambdaUtils
         return activityContext;
     }
 
-    internal static ActivityContext ExtractParentContext<TInput>(TInput input)
+    internal static (ActivityContext ParentContext, IEnumerable<ActivityLink> Links) ExtractParentContext<TInput>(TInput input)
     {
-        PropagationContext propagationContext = default;
+        PropagationContext parentContext = default;
+        IEnumerable<ActivityLink> links = null;
         switch (input)
         {
             case APIGatewayProxyRequest apiGatewayProxyRequest:
-                propagationContext = Propagators.DefaultTextMapPropagator.Extract(default, apiGatewayProxyRequest, GetHeaderValues);
+                parentContext = Propagators.DefaultTextMapPropagator.Extract(default, apiGatewayProxyRequest, GetHeaderValues);
                 break;
             case APIGatewayHttpApiV2ProxyRequest apiGatewayHttpApiV2ProxyRequest:
-                propagationContext = Propagators.DefaultTextMapPropagator.Extract(default, apiGatewayHttpApiV2ProxyRequest, GetHeaderValues);
+                parentContext = Propagators.DefaultTextMapPropagator.Extract(default, apiGatewayHttpApiV2ProxyRequest, GetHeaderValues);
                 break;
             case SQSEvent sqsEvent:
-                propagationContext = AWSMessagingUtils.ExtractParentContext(sqsEvent);
+                (parentContext, links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
                 break;
             case SQSEvent.SQSMessage sqsMessage:
-                propagationContext = AWSMessagingUtils.ExtractParentContext(sqsMessage);
+                parentContext = AWSMessagingUtils.ExtractParentContext(sqsMessage);
                 break;
             case SNSEvent snsEvent:
-                propagationContext = AWSMessagingUtils.ExtractParentContext(snsEvent);
+                parentContext = AWSMessagingUtils.ExtractParentContext(snsEvent);
                 break;
             case SNSEvent.SNSRecord snsRecord:
-                propagationContext = AWSMessagingUtils.ExtractParentContext(snsRecord);
+                parentContext = AWSMessagingUtils.ExtractParentContext(snsRecord);
                 break;
         }
 
-        return propagationContext.ActivityContext;
+        return (parentContext.ActivityContext, links);
     }
 
     internal static string GetCloudProvider()

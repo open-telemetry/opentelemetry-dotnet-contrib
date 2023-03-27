@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Amazon.Lambda.SNSEvents;
 using Amazon.Lambda.SQSEvents;
@@ -31,11 +32,28 @@ internal class AWSMessagingUtils
     private const string SnsAttributeTypeStringArray = "String.Array";
     private const string SnsMessageAttributes = "MessageAttributes";
 
-    internal static PropagationContext ExtractParentContext(SQSEvent sqsEvent)
+    internal static (PropagationContext ParentContext, IEnumerable<ActivityLink> Links) ExtractParentContext(SQSEvent sqsEvent)
     {
+        if (sqsEvent?.Records == null)
+        {
+            return (default, null);
+        }
+
         // We assume there can be only one parent that's why we consider only a single (the last) record as the carrier.
-        var message = sqsEvent?.Records?.LastOrDefault();
-        return ExtractParentContext(message);
+        var parentRecord = sqsEvent.Records.LastOrDefault();
+        var parentContext = ExtractParentContext(parentRecord);
+
+        var links = new List<ActivityLink>();
+        foreach (var record in sqsEvent.Records)
+        {
+            var context = ExtractParentContext(record);
+            if (context != default)
+            {
+                links.Add(new ActivityLink(context.ActivityContext));
+            }
+        }
+
+        return (parentContext, links);
     }
 
     internal static PropagationContext ExtractParentContext(SQSEvent.SQSMessage sqsMessage)
