@@ -50,6 +50,21 @@ internal sealed class ActivityEventAttachingLogProcessor : BaseProcessor<LogReco
 
         if (activity?.IsAllDataRequested == true)
         {
+            try
+            {
+                if (this.options.Filter?.Invoke(data) == false)
+                {
+                    return;
+                }
+            }
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch (Exception ex)
+#pragma warning restore CA1031 // Do not catch general exception types
+            {
+                OpenTelemetryExtensionsEventSource.Log.LogRecordFilterException(data.CategoryName, ex);
+                return;
+            }
+
             var tags = new ActivityTagsCollection
             {
                 { nameof(data.CategoryName), data.CategoryName },

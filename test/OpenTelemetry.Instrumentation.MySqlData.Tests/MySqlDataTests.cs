@@ -53,7 +53,7 @@ public class MySqlDataTests
             })
             .Build();
 
-        var traceListener = (TraceListener)Assert.Single(MySqlTrace.Listeners);
+        var traceListener = (TraceListener)Assert.Single(MySqlTrace.Listeners)!;
 
         ExecuteSuccessQuery(traceListener, commandText, isFailure);
 
@@ -93,7 +93,7 @@ public class MySqlDataTests
             .AddMySqlDataInstrumentation()
             .Build();
 
-        var traceListener = (TraceListener)Assert.Single(MySqlTrace.Listeners);
+        var traceListener = (TraceListener?)Assert.Single(MySqlTrace.Listeners);
 
         traceListener?.TraceEvent(
             new TraceEventCache(),

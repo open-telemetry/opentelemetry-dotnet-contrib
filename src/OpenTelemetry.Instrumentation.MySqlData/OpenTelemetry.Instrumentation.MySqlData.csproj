@@ -1,22 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
-        <Description>OpenTelemetry instrumentation for MySql.Data</Description>
-        <PackageTags>$(PackageTags);distributed-tracing;MySql.Data</PackageTags>
-        <MinVerTagPrefix>Instrumentation.MySqlData-</MinVerTagPrefix>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <PackageReference Include="MySql.Data" Version="6.10.7" />
-        <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryCoreLatestVersion)" />
-    </ItemGroup>
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>OpenTelemetry instrumentation for MySql.Data</Description>
+    <PackageTags>$(PackageTags);distributed-tracing;MySql.Data</PackageTags>
+    <MinVerTagPrefix>Instrumentation.MySqlData-</MinVerTagPrefix>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
 
   <ItemGroup>
-        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
-        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\SpanAttributeConstants.cs" Link="Includes\SpanAttributeConstants.cs" />
-        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\StatusHelper.cs" Link="Includes\StatusHelper.cs" />
-        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\Guard.cs" Link="Includes\Guard.cs" />
-    </ItemGroup>
+    <PackageReference Include="MySql.Data" Version="6.10.7" />
+    <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryCoreLatestVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\SpanAttributeConstants.cs" Link="Includes\SpanAttributeConstants.cs" />
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\StatusHelper.cs" Link="Includes\StatusHelper.cs" />
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\Guard.cs" Link="Includes\Guard.cs" />
+  </ItemGroup>
 
 </Project>
