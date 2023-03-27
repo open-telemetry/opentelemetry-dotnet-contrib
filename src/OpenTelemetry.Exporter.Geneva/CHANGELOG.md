@@ -4,7 +4,7 @@
 
 * Relaxed table name mapping validation rules to restore the previous behavior
   from version 1.3.0.
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/XXXX))
+  ([#1109](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1109))
 
 ## 1.5.0-alpha.1
 
