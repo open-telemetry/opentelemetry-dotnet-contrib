@@ -25,6 +25,20 @@ namespace OpenTelemetry.PersistentStorage.FileSystem.Tests;
 public class FileBlobProviderTests
 {
     [Fact]
+    public void FileBlobProvider_CreatesSubDirectory()
+    {
+        var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
+
+        using var blobProvider = new FileBlobProvider(testDirectory.FullName);
+
+        Assert.Equal(testDirectory.FullName, blobProvider.DirectoryPath);
+        Directory.Exists(testDirectory.FullName);
+
+        // clean up
+        Directory.Delete(testDirectory.FullName, true);
+    }
+
+    [Fact]
     public void FileBlobProvider_E2E_Test()
     {
         var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
