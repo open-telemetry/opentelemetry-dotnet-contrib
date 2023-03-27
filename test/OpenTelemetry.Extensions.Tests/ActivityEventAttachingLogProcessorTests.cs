@@ -57,13 +57,16 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
     [InlineData(false)]
     [InlineData(true, 18, true, true, true)]
     [InlineData(true, 0, false, false, true, true)]
+    [InlineData(true, 18, true, true, true, false, true)]
+    [InlineData(true, 0, false, false, true, true, true)]
     public void AttachLogsToActivityEventTest(
         bool sampled,
         int eventId = 0,
         bool includeFormattedMessage = false,
         bool parseStateValues = false,
         bool includeScopes = false,
-        bool recordException = false)
+        bool recordException = false,
+        bool? filter = null)
     {
         this.sampled = sampled;
 
@@ -74,7 +77,15 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
                     options.IncludeScopes = includeScopes;
                     options.IncludeFormattedMessage = includeFormattedMessage;
                     options.ParseStateValues = parseStateValues;
-                    options.AttachLogsToActivityEvent();
+                    options.AttachLogsToActivityEvent(x =>
+                    {
+                        x.Filter = filter switch
+                        {
+                            true => _ => true,
+                            false => _ => false,
+                            null => null,
+                        };
+                    });
                 });
                 builder.AddFilter(typeof(ActivityEventAttachingLogProcessorTests).FullName, LogLevel.Trace);
             });
@@ -174,6 +185,70 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
                 Assert.Equal("Goodbye OpenTelemetry.", exTags["exception.message"]);
                 Assert.Contains(exTags, kvp => kvp.Key == "exception.stacktrace");
             }
+        }
+        else
+        {
+            Assert.Empty(activity.Events);
+        }
+    }
+
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(false, true)]
+    [InlineData(true, true, 18, true, true, true)]
+    [InlineData(true, true, 0, false, false, true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, false)]
+    [InlineData(true, false, 18, true, true, true)]
+    [InlineData(true, false, 0, false, false, true, true)]
+    public void AttachLogsToActivityEventTest_Filter(
+        bool sampled,
+        bool filterThrows,
+        int eventId = 0,
+        bool includeFormattedMessage = false,
+        bool parseStateValues = false,
+        bool includeScopes = false,
+        bool recordException = false)
+    {
+        this.sampled = sampled;
+
+        using ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder.AddOpenTelemetry(options =>
+                {
+                    options.IncludeScopes = includeScopes;
+                    options.IncludeFormattedMessage = includeFormattedMessage;
+                    options.ParseStateValues = parseStateValues;
+                    options.AttachLogsToActivityEvent(x => x.Filter = _ => filterThrows
+                        ? throw new Exception()
+                        : false);
+                });
+                builder.AddFilter(typeof(ActivityEventAttachingLogProcessorTests).FullName, LogLevel.Trace);
+            });
+
+        ILogger logger = loggerFactory.CreateLogger<ActivityEventAttachingLogProcessorTests>();
+        Activity activity = this.activitySource.StartActivity("Test");
+
+        using IDisposable scope = logger.BeginScope("{NodeId}", 99);
+
+        logger.LogInformation(eventId, "Hello OpenTelemetry {UserId}!", 8);
+
+        if (recordException)
+        {
+            var innerActivity = this.activitySource.StartActivity("InnerTest");
+
+            using IDisposable innerScope = logger.BeginScope("{RequestId}", "1234");
+
+            logger.LogError(new InvalidOperationException("Goodbye OpenTelemetry."), "Exception event.");
+
+            innerActivity.Dispose();
+        }
+
+        activity.Dispose();
+
+        if (sampled)
+        {
+            Assert.DoesNotContain(activity.Events, x => x.Name == "log");
         }
         else
         {
