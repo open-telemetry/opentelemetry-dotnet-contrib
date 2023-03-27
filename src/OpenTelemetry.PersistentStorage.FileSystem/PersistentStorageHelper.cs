@@ -160,21 +160,10 @@ internal static class PersistentStorageHelper
 
     internal static string CreateSubdirectory(string path)
     {
-        string subdirectoryPath = string.Empty;
-        string baseDirectory = string.Empty;
-#if !NETSTANDARD
-        baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-#else
-        baseDirectory = AppContext.BaseDirectory;
-#endif
+        Directory.CreateDirectory(path);
 
-        string appIdentity = Environment.UserName + "@" + Path.Combine(baseDirectory, Process.GetCurrentProcess().ProcessName);
-        string subdirectoryName = GetSHA256Hash(appIdentity);
-        subdirectoryPath = Path.Combine(path, subdirectoryName);
-        Directory.CreateDirectory(subdirectoryPath);
-
-        directorySize = CalculateFolderSize(subdirectoryPath);
-        return subdirectoryPath;
+        directorySize = CalculateFolderSize(path);
+        return path;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
