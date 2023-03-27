@@ -1,0 +1,28 @@
+# Start a redis container and then run OpenTelemetry redis integration tests.
+# This should be run from the root of the repo:
+#  opentelemetry>docker-compose --file=test/OpenTelemetry.Instrumentation.Cassandra.Tests/docker-compose.yml --project-directory=. up --exit-code-from=tests --build
+version: '3.7'
+
+services:
+  cassandra:
+    image: cassandra
+    ports:
+      - "9042:9042"
+    healthcheck:
+      test: [ "CMD", "cqlsh", "-u cassandra", "-p cassandra" ,"-e describe keyspaces" ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  tests:
+    build:
+      context: .
+      dockerfile: ./test/OpenTelemetry.Instrumentation.Cassandra.Tests/Dockerfile
+    command: --TestCaseFilter:CategoryName=CassandraIntegrationTests
+    environment:
+      - OTEL_CASSANDRA_CONNECTION_STRING=Contact Points=cassandra;Port=9042;Default Keyspace=OT_Cassandra_Testing
+    depends_on:
+      cassandra:
+        condition: service_healthy
+
+
