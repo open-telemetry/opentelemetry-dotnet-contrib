@@ -31,7 +31,7 @@ namespace OpenTelemetry.PersistentStorage.FileSystem;
 /// </summary>
 public class FileBlobProvider : PersistentBlobProvider, IDisposable
 {
-    private readonly string directoryPath;
+    internal readonly string directoryPath;
     private readonly long maxSizeInBytes;
     private readonly long retentionPeriodInMilliseconds;
     private readonly int writeTimeoutInMilliseconds;
