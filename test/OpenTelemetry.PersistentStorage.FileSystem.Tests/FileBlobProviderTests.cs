@@ -31,7 +31,7 @@ public class FileBlobProviderTests
 
         using var blobProvider = new FileBlobProvider(testDirectory.FullName);
 
-        Assert.Equal(testDirectory.FullName, blobProvider.directoryPath);
+        Assert.Equal(testDirectory.FullName, blobProvider.DirectoryPath);
         Directory.Exists(testDirectory.FullName);
 
         // clean up
