@@ -31,7 +31,7 @@ namespace OpenTelemetry.PersistentStorage.FileSystem;
 /// </summary>
 public class FileBlobProvider : PersistentBlobProvider, IDisposable
 {
-    private readonly string directoryPath;
+    internal readonly string DirectoryPath;
     private readonly long maxSizeInBytes;
     private readonly long retentionPeriodInMilliseconds;
     private readonly int writeTimeoutInMilliseconds;
@@ -93,7 +93,7 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
         Guard.ThrowIfNull(path);
 
         // TODO: Validate time period values
-        this.directoryPath = PersistentStorageHelper.CreateSubdirectory(path);
+        this.DirectoryPath = PersistentStorageHelper.CreateSubdirectory(path);
         this.maxSizeInBytes = maxSizeInBytes;
         this.retentionPeriodInMilliseconds = retentionPeriodInMilliseconds;
         this.writeTimeoutInMilliseconds = writeTimeoutInMilliseconds;
@@ -127,7 +127,7 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
     {
         var retentionDeadline = DateTime.UtcNow - TimeSpan.FromMilliseconds(this.retentionPeriodInMilliseconds);
 
-        foreach (var file in Directory.EnumerateFiles(this.directoryPath, "*.blob", SearchOption.TopDirectoryOnly).OrderByDescending(f => f))
+        foreach (var file in Directory.EnumerateFiles(this.DirectoryPath, "*.blob", SearchOption.TopDirectoryOnly).OrderByDescending(f => f))
         {
             DateTime fileDateTime = PersistentStorageHelper.GetDateTimeFromBlobName(file);
             if (fileDateTime > retentionDeadline)
@@ -162,18 +162,18 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
     {
         try
         {
-            if (!Directory.Exists(this.directoryPath))
+            if (!Directory.Exists(this.DirectoryPath))
             {
-                Directory.CreateDirectory(this.directoryPath);
+                Directory.CreateDirectory(this.DirectoryPath);
             }
         }
         catch (Exception ex)
         {
-            PersistentStorageEventSource.Log.PersistentStorageException(nameof(FileBlobProvider), $"Error creating directory {this.directoryPath}", ex);
+            PersistentStorageEventSource.Log.PersistentStorageException(nameof(FileBlobProvider), $"Error creating directory {this.DirectoryPath}", ex);
             return;
         }
 
-        PersistentStorageHelper.RemoveExpiredBlobs(this.directoryPath, this.retentionPeriodInMilliseconds, this.writeTimeoutInMilliseconds);
+        PersistentStorageHelper.RemoveExpiredBlobs(this.DirectoryPath, this.retentionPeriodInMilliseconds, this.writeTimeoutInMilliseconds);
     }
 
     private bool CheckStorageSize()
@@ -200,7 +200,7 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
 
         try
         {
-            var blobFilePath = Path.Combine(this.directoryPath, PersistentStorageHelper.GetUniqueFileName(".blob"));
+            var blobFilePath = Path.Combine(this.DirectoryPath, PersistentStorageHelper.GetUniqueFileName(".blob"));
             var blob = new FileBlob(blobFilePath);
 
             if (blob.TryWrite(buffer, leasePeriodMilliseconds))
