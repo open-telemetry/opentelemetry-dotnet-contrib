@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\OpenTelemetry.Sampler.AWS\OpenTelemetry.Sampler.AWS.csproj" />
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Sampler.AWS\OpenTelemetry.Sampler.AWS.csproj" />
   </ItemGroup>
 
   <ItemGroup>
