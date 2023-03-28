@@ -10,7 +10,14 @@
   ([#1109](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1109))
 
 * Add support for exporting metrics to more than a single account/namespace
-  combination.
+  combination using a single GenevaMetricExporter instance. Users can now export
+  individual metric streams to:
+  * An account of their choice by adding the dimension
+    `_microsoft_metrics_account` and providing a `string` value for it as the
+    account name.
+  * A metric namespace of their choice by adding the dimension
+  `_microsoft_metrics_namespace` and providing a `string` value for it as the
+  namespace name.
   ([#1111](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1111))
 
 ## 1.5.0-alpha.1

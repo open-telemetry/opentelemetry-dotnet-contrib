@@ -533,12 +533,16 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
             SerializeNonHistogramMetricData(eventType, value, timestamp, this.buffer, ref bufferIndex);
 
-            SerializeMetricDimensions(tags, this.prepopulatedDimensionsCount, this.serializedPrepopulatedDimensionsKeys, this.serializedPrepopulatedDimensionsValues, this.buffer, ref bufferIndex);
+            // Serializes metric dimensions and also gets the custom account name and metric namespace
+            // if specified by adding custom tags: _microsoft_metrics_namespace and _microsoft_metrics_namespace
+            this.SerializeDimensionsAndGetCustomAccountNamespace(
+                tags,
+                this.buffer,
+                ref bufferIndex,
+                out monitoringAccount,
+                out metricNamespace);
 
             SerializeExemplars(exemplars, this.buffer, ref bufferIndex);
-
-            // Gets the account name and metric namespace provided in the connection string by default
-            this.GetCustomAccountAndNamespaceIfAny(tags, out monitoringAccount, out metricNamespace);
 
             SerializeMonitoringAccount(monitoringAccount, this.buffer, ref bufferIndex);
 
@@ -589,12 +593,16 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
             SerializeHistogramMetricData(buckets, sum, count, min, max, timestamp, this.buffer, ref bufferIndex);
 
-            SerializeMetricDimensions(tags, this.prepopulatedDimensionsCount, this.serializedPrepopulatedDimensionsKeys, this.serializedPrepopulatedDimensionsValues, this.buffer, ref bufferIndex);
+            // Serializes metric dimensions and also gets the custom account name and metric namespace
+            // if specified by adding custom tags: _microsoft_metrics_namespace and _microsoft_metrics_namespace
+            this.SerializeDimensionsAndGetCustomAccountNamespace(
+                tags,
+                this.buffer,
+                ref bufferIndex,
+                out monitoringAccount,
+                out metricNamespace);
 
             SerializeExemplars(exemplars, this.buffer, ref bufferIndex);
-
-            // Gets the account name and metric namespace provided in the connection string by default
-            this.GetCustomAccountAndNamespaceIfAny(tags, out monitoringAccount, out metricNamespace);
 
             SerializeMonitoringAccount(monitoringAccount, this.buffer, ref bufferIndex);
 
@@ -637,85 +645,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
     {
         MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)PayloadType.AccountName);
         MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, Encoding.UTF8.GetBytes(monitoringAccount));
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SerializeMetricDimensions(in ReadOnlyTagCollection tags, ushort prepopulatedDimensionsCount, List<byte[]> serializedPrepopulatedDimensionsKeys, List<byte[]> serializedPrepopulatedDimensionsValues, byte[] buffer, ref int bufferIndex)
-    {
-        MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)PayloadType.Dimensions);
-
-        // Get a placeholder to add the payloadType length
-        var payloadTypeStartIndex = bufferIndex;
-        bufferIndex += 2;
-
-        // Get a placeholder to add dimensions count later
-        var bufferIndexForDimensionsCount = bufferIndex;
-        bufferIndex += 2;
-
-        ushort dimensionsWritten = 0;
-
-        // Serialize PrepopulatedDimensions keys
-        for (ushort i = 0; i < prepopulatedDimensionsCount; i++)
-        {
-            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, serializedPrepopulatedDimensionsKeys[i]);
-        }
-
-        if (prepopulatedDimensionsCount > 0)
-        {
-            dimensionsWritten += prepopulatedDimensionsCount;
-        }
-
-        int reservedTags = 0;
-
-        // Serialize MetricPoint Dimension keys
-        foreach (var tag in tags)
-        {
-            if (tag.Key.Length > MaxDimensionNameSize)
-            {
-                // TODO: Data Validation
-            }
-
-            if (tag.Key.Equals(DimensionKeyForCustomMonitoringAccount, StringComparison.OrdinalIgnoreCase) ||
-                tag.Key.Equals(DimensionKeyForCustomMetricsNamespace, StringComparison.OrdinalIgnoreCase))
-            {
-                reservedTags++;
-                continue;
-            }
-
-            MetricSerializer.SerializeString(buffer, ref bufferIndex, tag.Key);
-        }
-
-        dimensionsWritten += (ushort)(tags.Count - reservedTags);
-
-        // Serialize PrepopulatedDimensions values
-        for (ushort i = 0; i < prepopulatedDimensionsCount; i++)
-        {
-            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, serializedPrepopulatedDimensionsValues[i]);
-        }
-
-        // Serialize MetricPoint Dimension values
-        foreach (var tag in tags)
-        {
-            if (tag.Key.Equals(DimensionKeyForCustomMonitoringAccount, StringComparison.OrdinalIgnoreCase) ||
-                tag.Key.Equals(DimensionKeyForCustomMetricsNamespace, StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
-
-            var dimensionValue = Convert.ToString(tag.Value, CultureInfo.InvariantCulture);
-            if (dimensionValue.Length > MaxDimensionValueSize)
-            {
-                // TODO: Data Validation
-            }
-
-            MetricSerializer.SerializeString(buffer, ref bufferIndex, dimensionValue);
-        }
-
-        // Backfill the number of dimensions written
-        MetricSerializer.SerializeUInt16(buffer, ref bufferIndexForDimensionsCount, dimensionsWritten);
-
-        var payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
-        MetricSerializer.SerializeUInt16(buffer, ref payloadTypeStartIndex, payloadTypeLength);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -930,11 +859,63 @@ public class GenevaMetricExporter : BaseExporter<Metric>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void GetCustomAccountAndNamespaceIfAny(in ReadOnlyTagCollection tags, out string monitoringAccount, out string metricNamespace)
+    private void SerializeDimensionsAndGetCustomAccountNamespace(in ReadOnlyTagCollection tags, byte[] buffer, ref int bufferIndex, out string monitoringAccount, out string metricNamespace)
     {
         monitoringAccount = this.defaultMonitoringAccount;
         metricNamespace = this.defaultMetricNamespace;
 
+        MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)PayloadType.Dimensions);
+
+        // Get a placeholder to add the payloadType length
+        var payloadTypeStartIndex = bufferIndex;
+        bufferIndex += 2;
+
+        // Get a placeholder to add dimensions count later
+        var bufferIndexForDimensionsCount = bufferIndex;
+        bufferIndex += 2;
+
+        ushort dimensionsWritten = 0;
+
+        // Serialize PrepopulatedDimensions keys
+        for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
+        {
+            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsKeys[i]);
+        }
+
+        if (this.prepopulatedDimensionsCount > 0)
+        {
+            dimensionsWritten += this.prepopulatedDimensionsCount;
+        }
+
+        int reservedTags = 0;
+
+        // Serialize MetricPoint Dimension keys
+        foreach (var tag in tags)
+        {
+            if (tag.Key.Length > MaxDimensionNameSize)
+            {
+                // TODO: Data Validation
+            }
+
+            if (tag.Key.Equals(DimensionKeyForCustomMonitoringAccount, StringComparison.OrdinalIgnoreCase) ||
+                tag.Key.Equals(DimensionKeyForCustomMetricsNamespace, StringComparison.OrdinalIgnoreCase))
+            {
+                reservedTags++;
+                continue;
+            }
+
+            MetricSerializer.SerializeString(buffer, ref bufferIndex, tag.Key);
+        }
+
+        dimensionsWritten += (ushort)(tags.Count - reservedTags);
+
+        // Serialize PrepopulatedDimensions values
+        for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
+        {
+            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsValues[i]);
+        }
+
+        // Serialize MetricPoint Dimension values
         foreach (var tag in tags)
         {
             if (tag.Key.Equals(DimensionKeyForCustomMonitoringAccount, StringComparison.OrdinalIgnoreCase) && tag.Value is string metricsAccount)
@@ -943,15 +924,34 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                 {
                     monitoringAccount = metricsAccount;
                 }
+
+                continue;
             }
-            else if (tag.Key.Equals(DimensionKeyForCustomMetricsNamespace, StringComparison.OrdinalIgnoreCase) && tag.Value is string metricsNamespace)
+
+            if (tag.Key.Equals(DimensionKeyForCustomMetricsNamespace, StringComparison.OrdinalIgnoreCase) && tag.Value is string metricsNamespace)
             {
                 if (!string.IsNullOrWhiteSpace(metricsNamespace))
                 {
                     metricNamespace = metricsNamespace;
                 }
+
+                continue;
             }
+
+            var dimensionValue = Convert.ToString(tag.Value, CultureInfo.InvariantCulture);
+            if (dimensionValue.Length > MaxDimensionValueSize)
+            {
+                // TODO: Data Validation
+            }
+
+            MetricSerializer.SerializeString(buffer, ref bufferIndex, dimensionValue);
         }
+
+        // Backfill the number of dimensions written
+        MetricSerializer.SerializeUInt16(buffer, ref bufferIndexForDimensionsCount, dimensionsWritten);
+
+        var payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
+        MetricSerializer.SerializeUInt16(buffer, ref payloadTypeStartIndex, payloadTypeLength);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
