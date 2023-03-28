@@ -235,6 +235,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "process-instrumentation", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.EventCounters", "examples\event-counters\Examples.EventCounters\Examples.EventCounters.csproj", "{BA58CC8B-F5CA-4DC7-A3A8-D01B2E10731E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Instrumentation.Cassandra", "src\OpenTelemetry.Instrumentation.Cassandra\OpenTelemetry.Instrumentation.Cassandra.csproj", "{3313F7DF-E3A5-4A7F-965D-86807A017131}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Instrumentation.Cassandra.Tests", "test\OpenTelemetry.Instrumentation.Cassandra.Tests\OpenTelemetry.Instrumentation.Cassandra.Tests.csproj", "{FB48DC44-8C56-4329-9988-AEDF931E81E8}"
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.Azure", "src\OpenTelemetry.ResourceDetectors.Azure\OpenTelemetry.ResourceDetectors.Azure.csproj", "{B07DC3CB-F724-40A5-889A-DA6601F462F3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.Azure.Tests", "test\OpenTelemetry.ResourceDetectors.Azure.Tests\OpenTelemetry.ResourceDetectors.Azure.Tests.csproj", "{DFC6A4A9-5262-4507-B747-CC6B814205E6}"
@@ -505,6 +508,14 @@ Global
 		{BA58CC8B-F5CA-4DC7-A3A8-D01B2E10731E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA58CC8B-F5CA-4DC7-A3A8-D01B2E10731E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA58CC8B-F5CA-4DC7-A3A8-D01B2E10731E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3313F7DF-E3A5-4A7F-965D-86807A017131}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3313F7DF-E3A5-4A7F-965D-86807A017131}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3313F7DF-E3A5-4A7F-965D-86807A017131}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3313F7DF-E3A5-4A7F-965D-86807A017131}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB48DC44-8C56-4329-9988-AEDF931E81E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB48DC44-8C56-4329-9988-AEDF931E81E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB48DC44-8C56-4329-9988-AEDF931E81E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB48DC44-8C56-4329-9988-AEDF931E81E8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B07DC3CB-F724-40A5-889A-DA6601F462F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B07DC3CB-F724-40A5-889A-DA6601F462F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B07DC3CB-F724-40A5-889A-DA6601F462F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -619,6 +630,8 @@ Global
 		{B40B975E-78B2-4712-8B4D-BADA67DF0C0A} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{C3B3BBAF-CC38-4D5C-AFA2-33184D07BF75} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
 		{BA58CC8B-F5CA-4DC7-A3A8-D01B2E10731E} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
+		{3313F7DF-E3A5-4A7F-965D-86807A017131} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{FB48DC44-8C56-4329-9988-AEDF931E81E8} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{B07DC3CB-F724-40A5-889A-DA6601F462F3} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{DFC6A4A9-5262-4507-B747-CC6B814205E6} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{73C10993-03AC-42F4-85BB-96EAAA8212D9} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}

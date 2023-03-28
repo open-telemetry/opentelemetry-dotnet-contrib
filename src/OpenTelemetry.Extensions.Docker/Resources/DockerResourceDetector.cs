@@ -79,7 +79,7 @@ public class DockerResourceDetector : IResourceDetector
         }
         else
         {
-            return new Resource(new List<KeyValuePair<string, object>>() { new KeyValuePair<string, object>(DockerSemanticConventions.AttributeContainerID, containerId), });
+            return new Resource(new List<KeyValuePair<string, object>>(1) { new(DockerSemanticConventions.AttributeContainerID, containerId!) });
         }
     }
 
@@ -88,7 +88,7 @@ public class DockerResourceDetector : IResourceDetector
     /// </summary>
     /// <param name="line">line read from cgroup file.</param>
     /// <returns>Container Id, Null if not found.</returns>
-    private static string GetIdFromLineV1(string line)
+    private static string? GetIdFromLineV1(string line)
     {
         // This cgroup output line should have the container id in it
         int lastSlashIndex = line.LastIndexOf('/');
@@ -101,7 +101,7 @@ public class DockerResourceDetector : IResourceDetector
         int startIndex = lastSection.LastIndexOf('-');
         int endIndex = lastSection.LastIndexOf('.');
 
-        string containerId = RemovePrefixAndSuffixIfneeded(lastSection, startIndex, endIndex);
+        string containerId = RemovePrefixAndSuffixIfNeeded(lastSection, startIndex, endIndex);
 
         if (string.IsNullOrEmpty(containerId) || !EncodingUtils.IsValidHexString(containerId))
         {
@@ -116,16 +116,16 @@ public class DockerResourceDetector : IResourceDetector
     /// </summary>
     /// <param name="line">line read from cgroup file.</param>
     /// <returns>Container Id, Null if not found.</returns>
-    private static string GetIdFromLineV2(string line)
+    private static string? GetIdFromLineV2(string line)
     {
-        string containerId = null;
+        string? containerId = null;
         var match = Regex.Match(line, @".*/.+/([\w+-.]{64})/.*$");
         if (match.Success)
         {
             containerId = match.Groups[1].Value;
         }
 
-        if (string.IsNullOrEmpty(containerId) || !EncodingUtils.IsValidHexString(containerId))
+        if (string.IsNullOrEmpty(containerId) || !EncodingUtils.IsValidHexString(containerId!))
         {
             return null;
         }
@@ -133,7 +133,7 @@ public class DockerResourceDetector : IResourceDetector
         return containerId;
     }
 
-    private static string RemovePrefixAndSuffixIfneeded(string input, int startIndex, int endIndex)
+    private static string RemovePrefixAndSuffixIfNeeded(string input, int startIndex, int endIndex)
     {
         startIndex = (startIndex == -1) ? 0 : startIndex + 1;
 
@@ -151,7 +151,7 @@ public class DockerResourceDetector : IResourceDetector
     /// <param name="path">cgroup path.</param>
     /// <param name="cgroupVersion">CGroup Version of file to parse from.</param>
     /// <returns>Container Id, Null if not found or exception being thrown.</returns>
-    private string ExtractContainerId(string path, ParseMode cgroupVersion)
+    private string? ExtractContainerId(string path, ParseMode cgroupVersion)
     {
         try
         {
@@ -162,7 +162,7 @@ public class DockerResourceDetector : IResourceDetector
 
             foreach (string line in File.ReadLines(path))
             {
-                string containerId = null;
+                string? containerId = null;
                 if (!string.IsNullOrEmpty(line))
                 {
                     if (cgroupVersion == ParseMode.V1)

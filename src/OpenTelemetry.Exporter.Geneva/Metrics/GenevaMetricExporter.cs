@@ -508,142 +508,17 @@ public class GenevaMetricExporter : BaseExporter<Metric>
             // Leave enough space for the header
             var bufferIndex = sizeof(BinaryHeader);
 
-            // Serialize metric name
-            MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, (byte)PayloadType.MetricName);
-            MetricSerializer.SerializeEncodedString(this.buffer, ref bufferIndex, Encoding.UTF8.GetBytes(metricName));
+            SerializeMetricName(metricName, this.buffer, ref bufferIndex);
 
-            #region Serialize metric data
+            SerializeNonHistogramMetricData(eventType, value, timestamp, this.buffer, ref bufferIndex);
 
-            var payloadType = eventType == MetricEventType.ULongMetric ? PayloadType.ULongMetric : PayloadType.DoubleMetric;
-            MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, (byte)payloadType);
+            SerializeMetricDimensions(tags, this.prepopulatedDimensionsCount, this.serializedPrepopulatedDimensionsKeys, this.serializedPrepopulatedDimensionsValues, this.buffer, ref bufferIndex);
 
-            // Get a placeholder to add the payloadType length
-            int payloadTypeStartIndex = bufferIndex;
-            bufferIndex += 2;
+            SerializeExemplars(exemplars, this.buffer, ref bufferIndex);
 
-            MetricSerializer.SerializeUInt64(this.buffer, ref bufferIndex, (ulong)timestamp); // timestamp
+            SerializeMonitoringAccount(this.monitoringAccount, this.buffer, ref bufferIndex);
 
-            if (payloadType == PayloadType.ULongMetric)
-            {
-                MetricSerializer.SerializeUInt64(this.buffer, ref bufferIndex, value.UInt64Value);
-            }
-            else
-            {
-                MetricSerializer.SerializeFloat64(this.buffer, ref bufferIndex, value.DoubleValue);
-            }
-
-            var payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
-            MetricSerializer.SerializeUInt16(this.buffer, ref payloadTypeStartIndex, payloadTypeLength);
-
-            #endregion
-
-            #region Serialize metric dimensions
-            MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, (byte)PayloadType.Dimensions);
-
-            // Get a placeholder to add the payloadType length
-            payloadTypeStartIndex = bufferIndex;
-            bufferIndex += 2;
-
-            // Get a placeholder to add dimensions count later
-            var bufferIndexForDimensionsCount = bufferIndex;
-            bufferIndex += 2;
-
-            ushort dimensionsWritten = 0;
-
-            // Serialize PrepopulatedDimensions keys
-            for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
-            {
-                MetricSerializer.SerializeEncodedString(this.buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsKeys[i]);
-            }
-
-            if (this.prepopulatedDimensionsCount > 0)
-            {
-                dimensionsWritten += this.prepopulatedDimensionsCount;
-            }
-
-            // Serialize MetricPoint Dimension keys
-            foreach (var tag in tags)
-            {
-                if (tag.Key.Length > MaxDimensionNameSize)
-                {
-                    // TODO: Data Validation
-                }
-
-                MetricSerializer.SerializeString(this.buffer, ref bufferIndex, tag.Key);
-            }
-
-            dimensionsWritten += (ushort)tags.Count;
-
-            // Serialize PrepopulatedDimensions values
-            for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
-            {
-                MetricSerializer.SerializeEncodedString(this.buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsValues[i]);
-            }
-
-            // Serialize MetricPoint Dimension values
-            foreach (var tag in tags)
-            {
-                var dimensionValue = Convert.ToString(tag.Value, CultureInfo.InvariantCulture);
-                if (dimensionValue.Length > MaxDimensionValueSize)
-                {
-                    // TODO: Data Validation
-                }
-
-                MetricSerializer.SerializeString(this.buffer, ref bufferIndex, dimensionValue);
-            }
-
-            // Backfill the number of dimensions written
-            MetricSerializer.SerializeUInt16(this.buffer, ref bufferIndexForDimensionsCount, dimensionsWritten);
-
-            payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
-            MetricSerializer.SerializeUInt16(this.buffer, ref payloadTypeStartIndex, payloadTypeLength);
-
-            #endregion
-
-            #region Serialize exemplars
-
-            if (exemplars.Length > 0)
-            {
-                MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, (byte)PayloadType.Exemplars);
-
-                // Get a placeholder to add the payloadType length
-                payloadTypeStartIndex = bufferIndex;
-                bufferIndex += 2;
-
-                MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, 0); // version
-
-                var exemplarsCount = 0;
-                foreach (var exemplar in exemplars)
-                {
-                    if (exemplar.Timestamp != default)
-                    {
-                        exemplarsCount++;
-                    }
-                }
-
-                MetricSerializer.SerializeInt32AsBase128(this.buffer, ref bufferIndex, exemplarsCount);
-
-                foreach (var exemplar in exemplars)
-                {
-                    if (exemplar.Timestamp != default)
-                    {
-                        this.SerializeExemplar(exemplar, ref bufferIndex);
-                    }
-                }
-            }
-
-            payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
-            MetricSerializer.SerializeUInt16(this.buffer, ref payloadTypeStartIndex, payloadTypeLength);
-
-            #endregion
-
-            // Serialize monitoring account
-            MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, (byte)PayloadType.AccountName);
-            MetricSerializer.SerializeEncodedString(this.buffer, ref bufferIndex, Encoding.UTF8.GetBytes(this.monitoringAccount));
-
-            // Serialize metric namespace
-            MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, (byte)PayloadType.Namespace);
-            MetricSerializer.SerializeEncodedString(this.buffer, ref bufferIndex, Encoding.UTF8.GetBytes(this.metricNamespace));
+            SerializeMetricNamespace(this.metricNamespace, this.buffer, ref bufferIndex);
 
             // Write the final size of the payload
             bodyLength = (ushort)(bufferIndex - this.fixedPayloadStartIndex);
@@ -684,171 +559,17 @@ public class GenevaMetricExporter : BaseExporter<Metric>
             // Leave enough space for the header
             var bufferIndex = sizeof(BinaryHeader);
 
-            // Serialize metric name
-            MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, (byte)PayloadType.MetricName);
-            MetricSerializer.SerializeEncodedString(this.buffer, ref bufferIndex, Encoding.UTF8.GetBytes(metricName));
+            SerializeMetricName(metricName, this.buffer, ref bufferIndex);
 
-            #region Serialize histogram metric data
+            SerializeHistogramMetricData(buckets, sum, count, min, max, timestamp, this.buffer, ref bufferIndex);
 
-            MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, (byte)PayloadType.ExternallyAggregatedULongDistributionMetric);
+            SerializeMetricDimensions(tags, this.prepopulatedDimensionsCount, this.serializedPrepopulatedDimensionsKeys, this.serializedPrepopulatedDimensionsValues, this.buffer, ref bufferIndex);
 
-            // Get a placeholder to add the payloadType length
-            int payloadTypeStartIndex = bufferIndex;
-            bufferIndex += 2;
+            SerializeExemplars(exemplars, this.buffer, ref bufferIndex);
 
-            // Serialize sum, count, min, and max
-            MetricSerializer.SerializeUInt32(this.buffer, ref bufferIndex, count); // histogram count
-            MetricSerializer.SerializeUInt32(this.buffer, ref bufferIndex, 0); // padding
-            MetricSerializer.SerializeUInt64(this.buffer, ref bufferIndex, (ulong)timestamp); // timestamp
-            MetricSerializer.SerializeUInt64(this.buffer, ref bufferIndex, Convert.ToUInt64(sum)); // histogram sum
-            MetricSerializer.SerializeUInt64(this.buffer, ref bufferIndex, Convert.ToUInt64(min)); // histogram min
-            MetricSerializer.SerializeUInt64(this.buffer, ref bufferIndex, Convert.ToUInt64(max)); // histogram max
+            SerializeMonitoringAccount(this.monitoringAccount, this.buffer, ref bufferIndex);
 
-            var payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
-            MetricSerializer.SerializeUInt16(this.buffer, ref payloadTypeStartIndex, payloadTypeLength);
-
-            // Serialize histogram buckets as value-count pairs
-            MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, (byte)PayloadType.HistogramULongValueCountPairs);
-
-            // Get a placeholder to add the payloadType length
-            payloadTypeStartIndex = bufferIndex;
-            bufferIndex += 2;
-
-            // Get a placeholder to add the number of value-count pairs added
-            // with value being the bucket boundary and count being the respective count
-
-            var itemsWrittenIndex = bufferIndex;
-            MetricSerializer.SerializeUInt16(this.buffer, ref bufferIndex, 0);
-
-            // Bucket values
-            ushort bucketCount = 0;
-            double lastExplicitBound = default;
-            foreach (var bucket in buckets)
-            {
-                if (bucket.BucketCount > 0)
-                {
-                    this.SerializeHistogramBucketWithTLV(bucket, ref bufferIndex, lastExplicitBound);
-                    bucketCount++;
-                }
-
-                lastExplicitBound = bucket.ExplicitBound;
-            }
-
-            // Write the number of items in distribution emitted and reset back to end.
-            MetricSerializer.SerializeUInt16(this.buffer, ref itemsWrittenIndex, bucketCount);
-
-            payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
-            MetricSerializer.SerializeUInt16(this.buffer, ref payloadTypeStartIndex, payloadTypeLength);
-
-            #endregion
-
-            #region Serialize metric dimensions
-            MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, (byte)PayloadType.Dimensions);
-
-            // Get a placeholder to add the payloadType length
-            payloadTypeStartIndex = bufferIndex;
-            bufferIndex += 2;
-
-            // Get a placeholder to add dimensions count later
-            var bufferIndexForDimensionsCount = bufferIndex;
-            bufferIndex += 2;
-
-            ushort dimensionsWritten = 0;
-
-            // Serialize PrepopulatedDimensions keys
-            for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
-            {
-                MetricSerializer.SerializeEncodedString(this.buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsKeys[i]);
-            }
-
-            if (this.prepopulatedDimensionsCount > 0)
-            {
-                dimensionsWritten += this.prepopulatedDimensionsCount;
-            }
-
-            // Serialize MetricPoint Dimension keys
-            foreach (var tag in tags)
-            {
-                if (tag.Key.Length > MaxDimensionNameSize)
-                {
-                    // TODO: Data Validation
-                }
-
-                MetricSerializer.SerializeString(this.buffer, ref bufferIndex, tag.Key);
-            }
-
-            dimensionsWritten += (ushort)tags.Count;
-
-            // Serialize PrepopulatedDimensions values
-            for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
-            {
-                MetricSerializer.SerializeEncodedString(this.buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsValues[i]);
-            }
-
-            // Serialize MetricPoint Dimension values
-            foreach (var tag in tags)
-            {
-                var dimensionValue = Convert.ToString(tag.Value, CultureInfo.InvariantCulture);
-                if (dimensionValue.Length > MaxDimensionValueSize)
-                {
-                    // TODO: Data Validation
-                }
-
-                MetricSerializer.SerializeString(this.buffer, ref bufferIndex, dimensionValue);
-            }
-
-            // Backfill the number of dimensions written
-            MetricSerializer.SerializeUInt16(this.buffer, ref bufferIndexForDimensionsCount, dimensionsWritten);
-
-            payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
-            MetricSerializer.SerializeUInt16(this.buffer, ref payloadTypeStartIndex, payloadTypeLength);
-
-            #endregion
-
-            #region Serialize exemplars
-
-            if (exemplars.Length > 0)
-            {
-                MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, (byte)PayloadType.Exemplars);
-
-                // Get a placeholder to add the payloadType length
-                payloadTypeStartIndex = bufferIndex;
-                bufferIndex += 2;
-
-                MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, 0); // version
-
-                var exemplarsCount = 0;
-                foreach (var exemplar in exemplars)
-                {
-                    if (exemplar.Timestamp != default)
-                    {
-                        exemplarsCount++;
-                    }
-                }
-
-                MetricSerializer.SerializeInt32AsBase128(this.buffer, ref bufferIndex, exemplarsCount);
-
-                foreach (var exemplar in exemplars)
-                {
-                    if (exemplar.Timestamp != default)
-                    {
-                        this.SerializeExemplar(exemplar, ref bufferIndex);
-                    }
-                }
-            }
-
-            payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
-            MetricSerializer.SerializeUInt16(this.buffer, ref payloadTypeStartIndex, payloadTypeLength);
-
-            #endregion
-
-            // Serialize monitoring account
-            MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, (byte)PayloadType.AccountName);
-            MetricSerializer.SerializeEncodedString(this.buffer, ref bufferIndex, Encoding.UTF8.GetBytes(this.monitoringAccount));
-
-            // Serialize metric namespace
-            MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, (byte)PayloadType.Namespace);
-            MetricSerializer.SerializeEncodedString(this.buffer, ref bufferIndex, Encoding.UTF8.GetBytes(this.metricNamespace));
+            SerializeMetricNamespace(this.metricNamespace, this.buffer, ref bufferIndex);
 
             // Write the final size of the payload
             bodyLength = (ushort)(bufferIndex - this.fixedPayloadStartIndex);
@@ -869,6 +590,302 @@ public class GenevaMetricExporter : BaseExporter<Metric>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void SerializeMetricName(string metricName, byte[] buffer, ref int bufferIndex)
+    {
+        MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)PayloadType.MetricName);
+        MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, Encoding.UTF8.GetBytes(metricName));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void SerializeMetricNamespace(string metricNamespace, byte[] buffer, ref int bufferIndex)
+    {
+        MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)PayloadType.Namespace);
+        MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, Encoding.UTF8.GetBytes(metricNamespace));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void SerializeMonitoringAccount(string monitoringAccount, byte[] buffer, ref int bufferIndex)
+    {
+        MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)PayloadType.AccountName);
+        MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, Encoding.UTF8.GetBytes(monitoringAccount));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void SerializeMetricDimensions(in ReadOnlyTagCollection tags, ushort prepopulatedDimensionsCount, List<byte[]> serializedPrepopulatedDimensionsKeys, List<byte[]> serializedPrepopulatedDimensionsValues, byte[] buffer, ref int bufferIndex)
+    {
+        MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)PayloadType.Dimensions);
+
+        // Get a placeholder to add the payloadType length
+        var payloadTypeStartIndex = bufferIndex;
+        bufferIndex += 2;
+
+        // Get a placeholder to add dimensions count later
+        var bufferIndexForDimensionsCount = bufferIndex;
+        bufferIndex += 2;
+
+        ushort dimensionsWritten = 0;
+
+        // Serialize PrepopulatedDimensions keys
+        for (ushort i = 0; i < prepopulatedDimensionsCount; i++)
+        {
+            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, serializedPrepopulatedDimensionsKeys[i]);
+        }
+
+        if (prepopulatedDimensionsCount > 0)
+        {
+            dimensionsWritten += prepopulatedDimensionsCount;
+        }
+
+        // Serialize MetricPoint Dimension keys
+        foreach (var tag in tags)
+        {
+            if (tag.Key.Length > MaxDimensionNameSize)
+            {
+                // TODO: Data Validation
+            }
+
+            MetricSerializer.SerializeString(buffer, ref bufferIndex, tag.Key);
+        }
+
+        dimensionsWritten += (ushort)tags.Count;
+
+        // Serialize PrepopulatedDimensions values
+        for (ushort i = 0; i < prepopulatedDimensionsCount; i++)
+        {
+            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, serializedPrepopulatedDimensionsValues[i]);
+        }
+
+        // Serialize MetricPoint Dimension values
+        foreach (var tag in tags)
+        {
+            var dimensionValue = Convert.ToString(tag.Value, CultureInfo.InvariantCulture);
+            if (dimensionValue.Length > MaxDimensionValueSize)
+            {
+                // TODO: Data Validation
+            }
+
+            MetricSerializer.SerializeString(buffer, ref bufferIndex, dimensionValue);
+        }
+
+        // Backfill the number of dimensions written
+        MetricSerializer.SerializeUInt16(buffer, ref bufferIndexForDimensionsCount, dimensionsWritten);
+
+        var payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
+        MetricSerializer.SerializeUInt16(buffer, ref payloadTypeStartIndex, payloadTypeLength);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void SerializeExemplars(Exemplar[] exemplars, byte[] buffer, ref int bufferIndex)
+    {
+        if (exemplars.Length > 0)
+        {
+            MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)PayloadType.Exemplars);
+
+            // Get a placeholder to add the payloadType length
+            var payloadTypeStartIndex = bufferIndex;
+            bufferIndex += 2;
+
+            MetricSerializer.SerializeByte(buffer, ref bufferIndex, 0); // version
+
+            // TODO: Avoid this additional enumeration
+            var exemplarsCount = 0;
+            foreach (var exemplar in exemplars)
+            {
+                if (exemplar.Timestamp != default)
+                {
+                    exemplarsCount++;
+                }
+            }
+
+            MetricSerializer.SerializeInt32AsBase128(buffer, ref bufferIndex, exemplarsCount);
+
+            foreach (var exemplar in exemplars)
+            {
+                if (exemplar.Timestamp != default)
+                {
+                    SerializeSingleExmeplar(exemplar, buffer, ref bufferIndex);
+                }
+            }
+
+            var payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
+            MetricSerializer.SerializeUInt16(buffer, ref payloadTypeStartIndex, payloadTypeLength);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void SerializeSingleExmeplar(Exemplar exemplar, byte[] buffer, ref int bufferIndex)
+    {
+        MetricSerializer.SerializeByte(buffer, ref bufferIndex, 0); // version
+
+        var bufferIndexForLength = bufferIndex;
+        bufferIndex++;
+
+        var bufferIndexForFlags = bufferIndex;
+        bufferIndex++;
+
+        var flags = ExemplarFlags.IsTimestampAvailable; // we only serialize exemplars with Timestamp != default
+
+        // TODO: Update the code when Exemplars support long values
+        var value = exemplar.DoubleValue;
+
+        // Check if the double value is actually a whole number that can be serialized as a long instead
+        var valueAsLong = (long)value;
+        bool isWholeNumber = valueAsLong == value;
+        if (isWholeNumber)
+        {
+            flags |= ExemplarFlags.IsMetricValueDoubleStoredAsLong;
+            MetricSerializer.SerializeInt64AsBase128(buffer, ref bufferIndex, valueAsLong); // serialize long value
+        }
+        else
+        {
+            MetricSerializer.SerializeFloat64(buffer, ref bufferIndex, value); // serialize double value
+        }
+
+        var bufferIndexForNumberOfLabels = bufferIndex;
+        MetricSerializer.SerializeByte(buffer, ref bufferIndex, 0); // serialize zero as the count of labels; this would be updated later if the exemplar has labels
+        byte numberOfLabels = 0;
+
+        // Convert exemplar timestamp to unix nanoseconds
+        var unixNanoSeconds = DateTime.FromFileTimeUtc(exemplar.Timestamp.ToFileTime())
+                        .ToUniversalTime()
+                        .Subtract(new DateTime(1970, 1, 1))
+                        .TotalMilliseconds * 1000000;
+
+        MetricSerializer.SerializeInt64(buffer, ref bufferIndex, (long)unixNanoSeconds); // serialize timestamp
+
+        if (exemplar.TraceId.HasValue)
+        {
+            Span<byte> traceIdBytes = stackalloc byte[16];
+            exemplar.TraceId.Value.CopyTo(traceIdBytes);
+            MetricSerializer.SerializeSpanOfBytes(buffer, ref bufferIndex, traceIdBytes, traceIdBytes.Length); // serialize traceId
+
+            flags |= ExemplarFlags.TraceIdExists;
+        }
+
+        if (exemplar.SpanId.HasValue)
+        {
+            Span<byte> spanIdBytes = stackalloc byte[8];
+            exemplar.SpanId.Value.CopyTo(spanIdBytes);
+            MetricSerializer.SerializeSpanOfBytes(buffer, ref bufferIndex, spanIdBytes, spanIdBytes.Length); // serialize spanId
+
+            flags |= ExemplarFlags.SpanIdExists;
+        }
+
+        bool hasLabels = exemplar.FilteredTags != null && exemplar.FilteredTags.Count > 0;
+        if (hasLabels)
+        {
+            foreach (var tag in exemplar.FilteredTags)
+            {
+                MetricSerializer.SerializeBase128String(buffer, ref bufferIndex, tag.Key);
+                MetricSerializer.SerializeBase128String(buffer, ref bufferIndex, Convert.ToString(tag.Value, CultureInfo.InvariantCulture));
+                numberOfLabels++;
+            }
+
+            MetricSerializer.SerializeByte(buffer, ref bufferIndexForNumberOfLabels, numberOfLabels);
+        }
+
+        MetricSerializer.SerializeByte(buffer, ref bufferIndexForFlags, (byte)flags);
+
+        var exemplarLength = bufferIndex - bufferIndexForLength + 1;
+        MetricSerializer.SerializeByte(buffer, ref bufferIndexForLength, (byte)exemplarLength);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void SerializeNonHistogramMetricData(MetricEventType eventType, MetricData value, long timestamp, byte[] buffer, ref int bufferIndex)
+    {
+        var payloadType = eventType == MetricEventType.ULongMetric ? PayloadType.ULongMetric : PayloadType.DoubleMetric;
+        MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)payloadType);
+
+        // Get a placeholder to add the payloadType length
+        int payloadTypeStartIndex = bufferIndex;
+        bufferIndex += 2;
+
+        MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, (ulong)timestamp); // timestamp
+
+        if (payloadType == PayloadType.ULongMetric)
+        {
+            MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, value.UInt64Value);
+        }
+        else
+        {
+            MetricSerializer.SerializeFloat64(buffer, ref bufferIndex, value.DoubleValue);
+        }
+
+        var payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
+        MetricSerializer.SerializeUInt16(buffer, ref payloadTypeStartIndex, payloadTypeLength);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void SerializeHistogramMetricData(HistogramBuckets buckets, double sum, uint count, double min, double max, long timestamp, byte[] buffer, ref int bufferIndex)
+    {
+        MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)PayloadType.ExternallyAggregatedULongDistributionMetric);
+
+        // Get a placeholder to add the payloadType length
+        int payloadTypeStartIndex = bufferIndex;
+        bufferIndex += 2;
+
+        // Serialize sum, count, min, and max
+        MetricSerializer.SerializeUInt32(buffer, ref bufferIndex, count); // histogram count
+        MetricSerializer.SerializeUInt32(buffer, ref bufferIndex, 0); // padding
+        MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, (ulong)timestamp); // timestamp
+        MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, Convert.ToUInt64(sum)); // histogram sum
+        MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, Convert.ToUInt64(min)); // histogram min
+        MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, Convert.ToUInt64(max)); // histogram max
+
+        var payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
+        MetricSerializer.SerializeUInt16(buffer, ref payloadTypeStartIndex, payloadTypeLength);
+
+        // Serialize histogram buckets as value-count pairs
+        MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)PayloadType.HistogramULongValueCountPairs);
+
+        // Get a placeholder to add the payloadType length
+        payloadTypeStartIndex = bufferIndex;
+        bufferIndex += 2;
+
+        // Get a placeholder to add the number of value-count pairs added
+        // with value being the bucket boundary and count being the respective count
+
+        var itemsWrittenIndex = bufferIndex;
+        MetricSerializer.SerializeUInt16(buffer, ref bufferIndex, 0);
+
+        // Bucket values
+        ushort bucketCount = 0;
+        double lastExplicitBound = default;
+        foreach (var bucket in buckets)
+        {
+            if (bucket.BucketCount > 0)
+            {
+                SerializeHistogramBucketWithTLV(bucket, buffer, ref bufferIndex, lastExplicitBound);
+                bucketCount++;
+            }
+
+            lastExplicitBound = bucket.ExplicitBound;
+        }
+
+        // Write the number of items in distribution emitted and reset back to end.
+        MetricSerializer.SerializeUInt16(buffer, ref itemsWrittenIndex, bucketCount);
+
+        payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
+        MetricSerializer.SerializeUInt16(buffer, ref payloadTypeStartIndex, payloadTypeLength);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void SerializeHistogramBucketWithTLV(in HistogramBucket bucket, byte[] buffer, ref int bufferIndex, double lastExplicitBound)
+    {
+        if (bucket.ExplicitBound != double.PositiveInfinity)
+        {
+            MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, Convert.ToUInt64(bucket.ExplicitBound));
+        }
+        else
+        {
+            // The bucket to catch the overflows is one greater than the last bound provided
+            MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, Convert.ToUInt64(lastExplicitBound + 1));
+        }
+
+        MetricSerializer.SerializeUInt32(buffer, ref bufferIndex, Convert.ToUInt32(bucket.BucketCount));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void SerializeHistogramBucket(in HistogramBucket bucket, ref int bufferIndex, double lastExplicitBound)
     {
         if (bucket.ExplicitBound != double.PositiveInfinity)
@@ -882,100 +899,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         }
 
         MetricSerializer.SerializeUInt32(this.bufferForHistogramMetrics, ref bufferIndex, Convert.ToUInt32(bucket.BucketCount));
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void SerializeHistogramBucketWithTLV(in HistogramBucket bucket, ref int bufferIndex, double lastExplicitBound)
-    {
-        if (bucket.ExplicitBound != double.PositiveInfinity)
-        {
-            MetricSerializer.SerializeUInt64(this.buffer, ref bufferIndex, Convert.ToUInt64(bucket.ExplicitBound));
-        }
-        else
-        {
-            // The bucket to catch the overflows is one greater than the last bound provided
-            MetricSerializer.SerializeUInt64(this.buffer, ref bufferIndex, Convert.ToUInt64(lastExplicitBound + 1));
-        }
-
-        MetricSerializer.SerializeUInt32(this.buffer, ref bufferIndex, Convert.ToUInt32(bucket.BucketCount));
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void SerializeExemplar(Exemplar exemplar, ref int bufferIndex)
-    {
-        MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, 0); // version
-
-        var bufferIndexForLength = bufferIndex;
-        bufferIndex++;
-
-        var bufferIndexForFlags = bufferIndex;
-        bufferIndex++;
-
-        var flags = ExemplarFlags.IsTimestampAvailable; // we only serialize exemplars with Timestamp != default
-
-        // TODO: Update the code whenn Exemplars support long values
-        var value = exemplar.DoubleValue;
-
-        // Check if the double value is actually a whole number that can be serialized as a long instead
-        var valueAsLong = (long)value;
-        bool isWholeNumber = valueAsLong == value;
-        if (isWholeNumber)
-        {
-            flags |= ExemplarFlags.IsMetricValueDoubleStoredAsLong;
-            MetricSerializer.SerializeInt64AsBase128(this.buffer, ref bufferIndex, valueAsLong); // serialize long value
-        }
-        else
-        {
-            MetricSerializer.SerializeFloat64(this.buffer, ref bufferIndex, value); // serialize double value
-        }
-
-        var bufferIndexForNumberOfLabels = bufferIndex;
-        MetricSerializer.SerializeByte(this.buffer, ref bufferIndex, 0); // serialize zero as the count of labels; this would be updated later if the exemplar has labels
-        byte numberOfLabels = 0;
-
-        // Convert exemplar timestamp to unix nanoseconds
-        var unixNanoSeconds = DateTime.FromFileTimeUtc(exemplar.Timestamp.ToFileTime())
-                        .ToUniversalTime()
-                        .Subtract(new DateTime(1970, 1, 1))
-                        .TotalMilliseconds * 1000000;
-
-        MetricSerializer.SerializeInt64(this.buffer, ref bufferIndex, (long)unixNanoSeconds); // serialize timestamp
-
-        if (exemplar.TraceId.HasValue)
-        {
-            Span<byte> traceIdBytes = stackalloc byte[16];
-            exemplar.TraceId.Value.CopyTo(traceIdBytes);
-            MetricSerializer.SerializeSpanOfBytes(this.buffer, ref bufferIndex, traceIdBytes, traceIdBytes.Length); // serialize traceId
-
-            flags |= ExemplarFlags.TraceIdExists;
-        }
-
-        if (exemplar.SpanId.HasValue)
-        {
-            Span<byte> spanIdBytes = stackalloc byte[8];
-            exemplar.SpanId.Value.CopyTo(spanIdBytes);
-            MetricSerializer.SerializeSpanOfBytes(this.buffer, ref bufferIndex, spanIdBytes, spanIdBytes.Length); // serialize spanId
-
-            flags |= ExemplarFlags.SpanIdExists;
-        }
-
-        bool hasLabels = exemplar.FilteredTags != null && exemplar.FilteredTags.Count > 0;
-        if (hasLabels)
-        {
-            foreach (var tag in exemplar.FilteredTags)
-            {
-                MetricSerializer.SerializeBase128String(this.buffer, ref bufferIndex, tag.Key);
-                MetricSerializer.SerializeBase128String(this.buffer, ref bufferIndex, Convert.ToString(tag.Value, CultureInfo.InvariantCulture));
-                numberOfLabels++;
-            }
-
-            MetricSerializer.SerializeByte(this.buffer, ref bufferIndexForNumberOfLabels, numberOfLabels);
-        }
-
-        MetricSerializer.SerializeByte(this.buffer, ref bufferIndexForFlags, (byte)flags);
-
-        var exemplarLength = bufferIndex - bufferIndexForLength + 1;
-        MetricSerializer.SerializeByte(this.buffer, ref bufferIndexForLength, (byte)exemplarLength);
     }
 
     private List<byte[]> SerializePrepopulatedDimensionsKeys(IEnumerable<string> keys)

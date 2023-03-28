@@ -38,6 +38,8 @@ components:
   src/OpenTelemetry.Instrumentation.AWSLambda/:
     - rypdal
     - Oberon00
+  src/OpenTelemetry.Instrumentation.Cassandra/:
+    - xsoheilalizadeh
   src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
     - ejsmith
   src/OpenTelemetry.Instrumentation.EventCounters/:
@@ -101,6 +103,9 @@ components:
     - SergeyKanzhelev
   test/OpenTelemetry.Extensions.Tests/:
     - codeblanch
+  test/OpenTelemetry.Extensions.AzureMonitor.Tests/:
+    - rajkumar-rangaraj
+    - vishweshbankwar
   test/OpenTelemetry.Extensions.Docker.Tests/:
     - iskiselev
   test/OpenTelemetry.Extensions.Enrichment.Tests/:
@@ -110,6 +115,8 @@ components:
   test/OpenTelemetry.Instrumentation.AWSLambda.Tests/:
     - rypdal
     - Oberon00
+  test/OpenTelemetry.Instrumentation.Cassandra.Tests/:
+    - xsoheilalizadeh
   test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/:
     - ejsmith
   test/OpenTelemetry.Instrumentation.EventCounters.Tests/:
@@ -133,3 +140,4 @@ components:
   test/OpenTelemetry.ResourceDetectors.Azure.Tests/:
     - rajkumar-rangaraj
     - vishweshbankwar
+
