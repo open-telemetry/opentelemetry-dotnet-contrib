@@ -26,7 +26,7 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
                         // other configurations
                         .SetSampler(AWSXRayRemoteSampler.Builder()
                                                         .SetPollingInterval(TimeSpan.FromSeconds(10))
-                                                        .SetEndpoint("http://localhost:2000)
+                                                        .SetEndpoint("http://localhost:2000")
                                                         .Build())
                         .Build();
 ```
