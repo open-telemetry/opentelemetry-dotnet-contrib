@@ -15,7 +15,7 @@
 // </copyright>
 
 using System;
-#if NET452
+#if NETFRAMEWORK
 using System.IO;
 using System.Net;
 #else
@@ -24,7 +24,7 @@ using System.Net.Http;
 using Amazon.Runtime;
 
 namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests;
-#if NET452
+#if NETFRAMEWORK
 internal class MockHttpRequestFactory : IHttpRequestFactory<Stream>
 {
     public Action? GetResponseAction { get; set; }
