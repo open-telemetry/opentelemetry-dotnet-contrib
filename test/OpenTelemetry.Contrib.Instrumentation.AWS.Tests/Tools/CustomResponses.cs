@@ -16,16 +16,16 @@
 
 using System;
 using System.Collections.Generic;
-#if NET452
+#if NETFRAMEWORK
 using System.IO;
 #endif
 using System.Net;
-#if !NET452
+#if !NETFRAMEWORK
 using System.Net.Http;
 #endif
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
-#if NET452
+#if NETFRAMEWORK
 using Amazon.Runtime.Internal.Transform;
 #endif
 using Amazon.Util;
@@ -34,7 +34,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests;
 
 internal static class CustomResponses
 {
-#if NET452
+#if NETFRAMEWORK
     public static void SetResponse(
         AmazonServiceClient client, string? content, string requestId, bool isOK)
     {

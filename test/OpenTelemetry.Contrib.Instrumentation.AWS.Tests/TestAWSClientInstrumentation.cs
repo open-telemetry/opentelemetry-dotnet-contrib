@@ -53,7 +53,7 @@ public class TestAWSClientInstrumentation
 
             scan_request.TableName = "SampleProduct";
             scan_request.AttributesToGet = new List<string>() { "Id", "Name" };
-#if NET452
+#if NETFRAMEWORK
             ddb.Scan(scan_request);
 #else
             ddb.ScanAsync(scan_request).Wait();
@@ -73,7 +73,7 @@ public class TestAWSClientInstrumentation
     }
 
     [Fact]
-#if NET452
+#if NETFRAMEWORK
     public void TestDDBScanUnsuccessful()
 #else
     public async Task TestDDBScanUnsuccessful()
@@ -103,7 +103,7 @@ public class TestAWSClientInstrumentation
 
             try
             {
-#if NET452
+#if NETFRAMEWORK
                 ddb.Scan(scan_request);
 #else
                 await ddb.ScanAsync(scan_request);
@@ -148,7 +148,7 @@ public class TestAWSClientInstrumentation
             var send_msg_req = new SendMessageRequest();
             send_msg_req.QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue";
             send_msg_req.MessageBody = "Hello from OT";
-#if NET452
+#if NETFRAMEWORK
             sqs.SendMessage(send_msg_req);
 #else
             sqs.SendMessageAsync(send_msg_req).Wait();
