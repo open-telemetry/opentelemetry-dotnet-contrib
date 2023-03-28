@@ -49,7 +49,6 @@ internal sealed class TableNameSerializer
     {
         Debug.Assert(options != null, "options were null");
         Debug.Assert(!string.IsNullOrWhiteSpace(defaultTableName), "defaultEventName was null or whitespace");
-        Debug.Assert(IsValidTableName(defaultTableName), "defaultEventName was invalid");
 
         this.m_defaultTableName = BuildStr8BufferForAsciiString(defaultTableName);
 
@@ -81,45 +80,6 @@ internal sealed class TableNameSerializer
 
             this.m_tableMappings = tempTableMappings;
         }
-    }
-
-    public static bool IsReservedTableName(string tableName)
-    {
-        Debug.Assert(!string.IsNullOrWhiteSpace(tableName), "tableName was null or whitespace");
-
-        // TODO: Implement this if needed.
-
-        return false;
-    }
-
-    public static bool IsValidTableName(string tableName)
-    {
-        Debug.Assert(!string.IsNullOrWhiteSpace(tableName), "tableName was null or whitespace");
-
-        var length = tableName.Length;
-        if (length > MaxSanitizedCategoryNameLength)
-        {
-            return false;
-        }
-
-        char firstChar = tableName[0];
-        if (firstChar < 'A' || firstChar > 'Z')
-        {
-            return false;
-        }
-
-        for (int i = 1; i < length; i++)
-        {
-            char cur = tableName[i];
-            if ((cur >= 'a' && cur <= 'z') || (cur >= 'A' && cur <= 'Z') || (cur >= '0' && cur <= '9'))
-            {
-                continue;
-            }
-
-            return false;
-        }
-
-        return true;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
