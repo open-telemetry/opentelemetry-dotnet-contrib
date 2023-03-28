@@ -142,6 +142,11 @@ internal static class ActivityHelper
 
         context.Items[ContextKey] = null;
 
+        if (aspNetActivity.Duration == TimeSpan.Zero)
+        {
+            aspNetActivity.SetEndTime(DateTime.UtcNow);
+        }
+
         try
         {
             onRequestStoppedCallback?.Invoke(aspNetActivity, context);
