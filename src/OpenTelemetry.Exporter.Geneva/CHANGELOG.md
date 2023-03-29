@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.5.0-alpha.2
+
+Released 2023-Mar-29
+
 * Fix a bug where metrics without exemplars were not getting exported.
   ([#1099](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1099))
 
