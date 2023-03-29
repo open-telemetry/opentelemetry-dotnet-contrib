@@ -16,11 +16,11 @@
 
 using System;
 using System.Collections.Generic;
-#if NET452
+#if NETFRAMEWORK
 using System.IO;
 #endif
 using System.Net;
-#if !NET452
+#if !NETFRAMEWORK
 using System.Net.Http;
 #endif
 using System.Reflection;
@@ -29,7 +29,7 @@ namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests;
 
 internal class MockWebResponse
 {
-#if NET452
+#if NETFRAMEWORK
     public static HttpWebResponse? CreateFromResource(string resourceName)
     {
         var rawResponse = Utils.GetResourceText(resourceName);

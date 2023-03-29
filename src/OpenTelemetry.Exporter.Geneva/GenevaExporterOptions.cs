@@ -62,6 +62,7 @@ public class GenevaExporterOptions
                     throw new ArgumentException($"The table name mapping value '{entry.Value}' provided for key '{entry.Key}' contained non-ASCII characters.", nameof(this.TableNameMappings));
                 }
 
+                /* Note: Validation disabled because it broke previously released versions.
                 if (entry.Value != "*")
                 {
                     if (!TableNameSerializer.IsValidTableName(entry.Value))
@@ -73,7 +74,7 @@ public class GenevaExporterOptions
                     {
                         throw new ArgumentException($"The table name mapping value '{entry.Value}' provided for key '{entry.Key}' is reserved and cannot be specified.", nameof(this.TableNameMappings));
                     }
-                }
+                }*/
 
                 copy[entry.Key] = entry.Value;
             }
