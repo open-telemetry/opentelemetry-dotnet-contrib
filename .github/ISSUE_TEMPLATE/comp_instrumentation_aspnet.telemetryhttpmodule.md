@@ -1,10 +1,10 @@
 ---
-name: OpenTelemetry.Instrumentation.AspNet
-about: Issue with OpenTelemetry.Instrumentation.AspNet
-labels: comp:instrumentation.AspNet
+name: OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule
+about: Issue with OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule
+labels: comp:instrumentation.aspnet.telemetryhttpmodule
 ---
 
-# Issue with OpenTelemetry.Instrumentation.AspNet
+# Issue with OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule
 
 List of [all OpenTelemetry NuGet
 packages](https://www.nuget.org/profiles/OpenTelemetry) and version that you are
