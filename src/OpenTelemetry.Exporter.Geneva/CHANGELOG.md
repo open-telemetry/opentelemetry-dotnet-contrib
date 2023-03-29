@@ -20,6 +20,9 @@
   namespace name.
   ([#1111](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1111))
 
+* Fix a bug in TldTraceExporter for incorrect serialization of special tags.
+  ([#1115](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1115))
+
 ## 1.5.0-alpha.1
 
 Released 2023-Mar-13
