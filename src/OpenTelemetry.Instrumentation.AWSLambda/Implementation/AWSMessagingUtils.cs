@@ -46,7 +46,7 @@ internal class AWSMessagingUtils
         var links = new List<ActivityLink>();
         foreach (var record in sqsEvent.Records)
         {
-            var context = ExtractParentContext(record);
+            var context = ReferenceEquals(record, parentRecord) ? parentContext : ExtractParentContext(record);
             if (context != default)
             {
                 links.Add(new ActivityLink(context.ActivityContext));
