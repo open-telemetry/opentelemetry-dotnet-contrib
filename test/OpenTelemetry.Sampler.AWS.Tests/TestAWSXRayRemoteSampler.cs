@@ -15,7 +15,8 @@
 // </copyright>
 
 using System;
-using OpenTelemetry.Sampler.AWS;
+using System.Collections.Generic;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -29,7 +30,7 @@ public class TestAWSXRayRemoteSampler
         TimeSpan pollingInterval = TimeSpan.FromSeconds(5);
         string endpoint = "http://localhost:3000";
 
-        AWSXRayRemoteSampler sampler = AWSXRayRemoteSampler.Builder()
+        AWSXRayRemoteSampler sampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build())
             .SetPollingInterval(pollingInterval)
             .SetEndpoint(endpoint)
             .Build();
@@ -43,7 +44,7 @@ public class TestAWSXRayRemoteSampler
     [Fact]
     public void TestSamplerWithDefaults()
     {
-        AWSXRayRemoteSampler sampler = AWSXRayRemoteSampler.Builder().Build();
+        AWSXRayRemoteSampler sampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build()).Build();
 
         Assert.Equal(TimeSpan.FromMinutes(5), sampler.PollingInterval);
         Assert.Equal("http://localhost:2000", sampler.Endpoint);
@@ -54,9 +55,11 @@ public class TestAWSXRayRemoteSampler
     [Fact]
     public void TestSamplerShouldSample()
     {
-        Trace.Sampler sampler = AWSXRayRemoteSampler.Builder().Build();
+        Trace.Sampler sampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build()).Build();
 
-        // TODO: update the test when the method is implemented.
-        Assert.Throws<NotImplementedException>(() => sampler.ShouldSample(default(SamplingParameters)));
+        // for now the fallback sampler should be making the sampling decision
+        Assert.Equal(
+            SamplingDecision.RecordAndSample,
+            sampler.ShouldSample(Utils.CreateSamplingParametersWithTags(new Dictionary<string, string>())).Decision);
     }
 }

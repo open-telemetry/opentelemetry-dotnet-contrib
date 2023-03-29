@@ -15,7 +15,9 @@
 // </copyright>
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Sampler.AWS;
@@ -25,15 +27,20 @@ namespace OpenTelemetry.Sampler.AWS;
 /// </summary>
 public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
 {
-    internal AWSXRayRemoteSampler(TimeSpan pollingInterval, string endpoint)
+    internal AWSXRayRemoteSampler(Resource resource, TimeSpan pollingInterval, string endpoint)
     {
+        this.Resource = resource;
         this.PollingInterval = pollingInterval;
         this.Endpoint = endpoint;
         this.Client = new AWSXRaySamplerClient(endpoint);
 
         // execute the first update right away
         this.RulePollerTimer = new Timer(this.GetAndUpdateSampler, null, TimeSpan.Zero, this.PollingInterval);
+        this.RulesCache = new RulesCache();
+        this.FallbackSampler = new FallbackSampler();
     }
+
+    internal Resource Resource { get; }
 
     internal TimeSpan PollingInterval { get; }
 
@@ -43,20 +50,41 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
 
     internal Timer RulePollerTimer { get; }
 
+    private RulesCache RulesCache { get; }
+
+    private Trace.Sampler FallbackSampler { get; }
+
     /// <summary>
     /// Initializes a <see cref="AWSXRayRemoteSamplerBuilder"/> for the sampler.
     /// </summary>
+    /// <param name="resource">an instance of <see cref="Resources.Resource"/>
+    /// to identify the service attributes for sampling. This resource should
+    /// be the same as what the OpenTelemetry SDK is configured with.</param>
     /// <returns>an instance of <see cref="AWSXRayRemoteSamplerBuilder"/>.</returns>
-    public static AWSXRayRemoteSamplerBuilder Builder()
+    public static AWSXRayRemoteSamplerBuilder Builder(Resource resource)
     {
-        return new AWSXRayRemoteSamplerBuilder();
+        return new AWSXRayRemoteSamplerBuilder(resource);
     }
 
     /// <inheritdoc/>
     public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
     {
-        // TODO: add the actual functionality for sampling.
-        throw new System.NotImplementedException();
+        if (this.RulesCache.Expired())
+        {
+            return this.FallbackSampler.ShouldSample(samplingParameters);
+        }
+
+        SamplingRule? matchedRule = this.RulesCache.MatchRule(samplingParameters, this.Resource);
+
+        // ideally this check shouldn't be required
+        // since the default rule must have matched.
+        if (matchedRule != null)
+        {
+            return matchedRule.Sample(samplingParameters);
+        }
+
+        // and we shouldn't have reached here if the default rule is present.
+        return this.FallbackSampler.ShouldSample(samplingParameters);
     }
 
     /// <inheritdoc/>
@@ -77,8 +105,8 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
 
     private async void GetAndUpdateSampler(object? state)
     {
-        await this.Client.GetSamplingRules().ConfigureAwait(false);
+        List<SamplingRule> rules = await this.Client.GetSamplingRules().ConfigureAwait(false);
 
-        // TODO: more functionality to be added.
+        this.RulesCache.UpdateRules(rules);
     }
 }

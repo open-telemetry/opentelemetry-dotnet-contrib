@@ -19,16 +19,28 @@ X-Ray remote sampling](https://aws-otel.github.io/docs/getting-started/remote-sa
 
 ```csharp
 using OpenTelemetry;
+using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
+using OpenTelemetry.Sampler.AWS;
 using OpenTelemetry.Trace;
 
-var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                        // other configurations
-                        .SetSampler(AWSXRayRemoteSampler.Builder()
-                                                        .SetPollingInterval(TimeSpan.FromSeconds(10))
-                                                        .SetEndpoint("http://localhost:2000")
-                                                        .Build())
-                        .Build();
+var serviceName = "MyServiceName";
+
+var resourceBuilder = ResourceBuilder
+    .CreateDefault()
+    .AddService(serviceName: serviceName)
+    .AddDetector(new AWSEC2ResourceDetector());
+
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .AddSource(serviceName)
+    .SetResourceBuilder(resourceBuilder)
+    .AddConsoleExporter()
+    .AddOtlpExporter()
+    .SetSampler(AWSXRayRemoteSampler.Builder(resourceBuilder.Build()) // you must provide a resource
+        .SetPollingInterval(TimeSpan.FromSeconds(5))
+        .SetEndpoint("http://localhost:2000")
+        .Build())
+    .Build();
 ```
 
 ## References
