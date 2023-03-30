@@ -18,28 +18,22 @@ using System;
 using System.IO;
 using System.Threading;
 
-namespace OpenTelemetry.Extensions.Docker.Tests;
+namespace OpenTelemetry.ResourceDetectors.Container.Tests;
 
 internal class TempFile : IDisposable
 {
-    private string filePath;
-
     public TempFile()
     {
-        this.filePath = Path.GetTempFileName();
+        this.FilePath = Path.GetTempFileName();
     }
 
-    public string FilePath
-    {
-        get { return this.filePath; }
-        set { this.filePath = value; }
-    }
+    public string FilePath { get; set; }
 
     public void Write(string data)
     {
-        using (FileStream stream = new FileStream(this.filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite | FileShare.Delete))
+        using (var stream = new FileStream(this.FilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite | FileShare.Delete))
         {
-            using (StreamWriter sw = new StreamWriter(stream))
+            using (var sw = new StreamWriter(stream))
             {
                 sw.Write(data);
             }
@@ -48,11 +42,11 @@ internal class TempFile : IDisposable
 
     public void Dispose()
     {
-        for (int tries = 0; ; tries++)
+        for (var tries = 0; ; tries++)
         {
             try
             {
-                File.Delete(this.filePath);
+                File.Delete(this.FilePath);
                 return;
             }
             catch (IOException) when (tries < 3)

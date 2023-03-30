@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>Unit test project for Docker Detector for OpenTelemetry</Description>
+    <Description>Unit test project for Container Detector for OpenTelemetry</Description>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
@@ -19,7 +19,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Extensions.Docker\OpenTelemetry.Extensions.Docker.csproj" />
+    <ProjectReference Include="..\..\src\OpenTelemetry.ResourceDetectors.Container\OpenTelemetry.ResourceDetectors.Container.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Resources\" />
   </ItemGroup>
 
 </Project>
