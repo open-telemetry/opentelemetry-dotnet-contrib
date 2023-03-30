@@ -1,10 +1,5 @@
 <Project>
   <Import Project=".\Common.props" />
-
-  <PropertyGroup>
-    <IsTrimmable>true</IsTrimmable>
-    <EnableAotAnalyzer>true</EnableAotAnalyzer>
-  </PropertyGroup>
   
   <PropertyGroup>
     <RepositoryType>git</RepositoryType>
