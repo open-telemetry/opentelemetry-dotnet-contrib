@@ -1,10 +1,10 @@
 ---
-name: OpenTelemetry.Extensions.Docker
-about: Issue with OpenTelemetry.Extensions.Docker
-labels: comp:extensions.docker
+name: OpenTelemetry.ResourceDetectors.Container
+about: Issue with OpenTelemetry.ResourceDetectors.Container
+labels: comp:resourcedetectors.container
 ---
 
-# Issue with OpenTelemetry.Extensions.Docker
+# Issue with OpenTelemetry.ResourceDetectors.Container
 
 List of [all OpenTelemetry NuGet
 packages](https://www.nuget.org/profiles/OpenTelemetry) and version that you are

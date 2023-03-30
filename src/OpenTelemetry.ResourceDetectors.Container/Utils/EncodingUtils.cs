@@ -17,7 +17,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace OpenTelemetry.Extensions.Docker.Utils;
+namespace OpenTelemetry.ResourceDetectors.Container.Utils;
 
 internal class EncodingUtils
 {
@@ -28,9 +28,9 @@ internal class EncodingUtils
     /// <returns>true if valid else false.</returns>
     public static bool IsValidHexString(IEnumerable<char> hexString)
     {
-        return hexString.Select(currentCharacter =>
+        return hexString.All(currentCharacter =>
             (currentCharacter >= '0' && currentCharacter <= '9') ||
             (currentCharacter >= 'a' && currentCharacter <= 'f') ||
-            (currentCharacter >= 'A' && currentCharacter <= 'F')).All(isHexCharacter => isHexCharacter);
+            (currentCharacter >= 'A' && currentCharacter <= 'F'));
     }
 }
