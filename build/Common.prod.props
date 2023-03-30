@@ -1,6 +1,6 @@
 <Project>
   <Import Project=".\Common.props" />
-  
+
   <PropertyGroup>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/open-telemetry/opentelemetry-dotnet-contrib</RepositoryUrl>

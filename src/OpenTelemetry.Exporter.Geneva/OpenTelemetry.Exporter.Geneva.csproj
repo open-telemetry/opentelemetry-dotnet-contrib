@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
- <PropertyGroup>
+  <PropertyGroup>
     <IsTrimmable>true</IsTrimmable>
     <EnableAotAnalyzer>true</EnableAotAnalyzer>
   </PropertyGroup>
