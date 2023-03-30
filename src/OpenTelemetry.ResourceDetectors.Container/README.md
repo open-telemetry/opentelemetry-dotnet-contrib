@@ -1,37 +1,37 @@
-# Docker Resource Detectors
+# Container Resource Detectors
 
 ## Getting Started
 
 You need to install the
-`OpenTelemetry.Extensions.Docker` to be able to use the
-Docker Resource Detectors. It detects container.id from
-Docker environment.
+`OpenTelemetry.ResourceDetectors.Container` to be able to use the
+Container Resource Detectors. It detects container.id from
+Container environment.
 
 ```shell
-dotnet add package OpenTelemetry.Extensions.Docker
+dotnet add package OpenTelemetry.ResourceDetectors.Container --prerelease
 ```
 
 ## Usage
 
-You can configure Docker resource detector to
+You can configure Container resource detector to
 the `TracerProvider` with the following example below.
 
 ```csharp
 using OpenTelemetry;
-using OpenTelemetry.Extensions.Docker.Resources;
+using OpenTelemetry.ResourceDetectors.Container;
 
 var tracerProvider = Sdk.CreateTracerProviderBuilder()
                         // other configurations
                         .SetResourceBuilder(ResourceBuilder
                             .CreateEmpty()
-                            .AddDetector(new DockerResourceDetector()))
+                            .AddDetector(new ContainerResourceDetector()))
                         .Build();
 ```
 
 The resource detectors will record the following metadata based on where
 your application is running:
 
-- **DockerResourceDetector**: container.id.
+- **ContainerResourceDetector**: container.id.
 
 ## References
 
