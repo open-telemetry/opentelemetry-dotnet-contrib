@@ -1,7 +1,7 @@
 ---
 name: OpenTelemetry.Instrumentation.AspNet
 about: Issue with OpenTelemetry.Instrumentation.AspNet
-labels: comp:instrumentation.AspNet
+labels: comp:instrumentation.aspnet
 ---
 
 # Issue with OpenTelemetry.Instrumentation.AspNet

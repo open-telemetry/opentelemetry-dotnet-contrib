@@ -1,10 +1,10 @@
 ---
-name: OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule
-about: Issue with OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule
-labels: comp:instrumentation.AspNet.TelemetryHttpModule
+name: OpenTelemetry.Sampler.AWS
+about: Issue with OpenTelemetry.Sampler.AWS
+labels: comp:sampler.aws
 ---
 
-# Issue with OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule
+# Issue with OpenTelemetry.Sampler.AWS
 
 List of [all OpenTelemetry NuGet
 packages](https://www.nuget.org/profiles/OpenTelemetry) and version that you are
