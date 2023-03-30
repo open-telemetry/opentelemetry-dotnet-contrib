@@ -2,6 +2,11 @@
   <Import Project=".\Common.props" />
 
   <PropertyGroup>
+    <IsTrimmable>true</IsTrimmable>
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
+  </PropertyGroup>
+  
+  <PropertyGroup>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/open-telemetry/opentelemetry-dotnet-contrib</RepositoryUrl>
     <PackageProjectUrl>https://OpenTelemetry.io</PackageProjectUrl>
