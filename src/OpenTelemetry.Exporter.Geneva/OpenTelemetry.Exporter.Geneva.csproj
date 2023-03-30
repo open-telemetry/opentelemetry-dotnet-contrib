@@ -6,7 +6,7 @@
     <Authors>OpenTelemetry Authors</Authors>
     <NoWarn>$(NoWarn),CS1591,SA1123,SA1310,CA1810,CA1822,CA2000,CA2208,SA1201,SA1202,SA1308,SA1309,SA1311,SA1402,SA1602,SA1649</NoWarn>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net7.0;net6.0;netstandard2.0</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
     <MinVerTagPrefix>Exporter.Geneva-</MinVerTagPrefix>
     <EnableAnalysis>true</EnableAnalysis>
