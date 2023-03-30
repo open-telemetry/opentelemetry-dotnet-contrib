@@ -1,4 +1,4 @@
-// <copyright file="DockerResourceDetector.cs" company="OpenTelemetry Authors">
+// <copyright file="ContainerResourceDetector.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,19 +18,19 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using OpenTelemetry.Extensions.Docker.Utils;
+using OpenTelemetry.ResourceDetectors.Container.Utils;
 using OpenTelemetry.Resources;
 
-namespace OpenTelemetry.Extensions.Docker.Resources;
+namespace OpenTelemetry.ResourceDetectors.Container;
 
 /// <summary>
-/// Resource detector for application running in Docker environment.
+/// Resource detector for application running in Container environment.
 /// </summary>
-public class DockerResourceDetector : IResourceDetector
+public class ContainerResourceDetector : IResourceDetector
 {
-    private const string FILEPATH = "/proc/self/cgroup";
-    private const string FILEPATHV2 = "/proc/self/mountinfo";
-    private const string HOSTNAME = "hostname";
+    private const string Filepath = "/proc/self/cgroup";
+    private const string FilepathV2 = "/proc/self/mountinfo";
+    private const string Hostname = "hostname";
 
     /// <summary>
     /// CGroup Parse Versions.
@@ -49,15 +49,15 @@ public class DockerResourceDetector : IResourceDetector
     }
 
     /// <summary>
-    /// Detects the resource attributes from Docker.
+    /// Detects the resource attributes from Container.
     /// </summary>
     /// <returns>Resource with key-value pairs of resource attributes.</returns>
     public Resource Detect()
     {
-        var cGroupBuild = this.BuildResource(FILEPATH, ParseMode.V1);
+        var cGroupBuild = this.BuildResource(Filepath, ParseMode.V1);
         if (cGroupBuild == Resource.Empty)
         {
-            cGroupBuild = this.BuildResource(FILEPATHV2, ParseMode.V2);
+            cGroupBuild = this.BuildResource(FilepathV2, ParseMode.V2);
         }
 
         return cGroupBuild;
@@ -79,7 +79,7 @@ public class DockerResourceDetector : IResourceDetector
         }
         else
         {
-            return new Resource(new List<KeyValuePair<string, object>>(1) { new(DockerSemanticConventions.AttributeContainerID, containerId!) });
+            return new Resource(new List<KeyValuePair<string, object>>(1) { new(ContainerSemanticConventions.AttributeContainerId, containerId!) });
         }
     }
 
@@ -169,7 +169,7 @@ public class DockerResourceDetector : IResourceDetector
                     {
                         containerId = GetIdFromLineV1(line);
                     }
-                    else if (cgroupVersion == ParseMode.V2 && line.Contains(HOSTNAME))
+                    else if (cgroupVersion == ParseMode.V2 && line.Contains(Hostname))
                     {
                         containerId = GetIdFromLineV2(line);
                     }
@@ -183,7 +183,7 @@ public class DockerResourceDetector : IResourceDetector
         }
         catch (Exception ex)
         {
-            DockerExtensionsEventSource.Log.ExtractResourceAttributesException($"{nameof(DockerResourceDetector)} : Failed to extract Container id from path", ex);
+            ContainerExtensionsEventSource.Log.ExtractResourceAttributesException($"{nameof(ContainerResourceDetector)} : Failed to extract Container id from path", ex);
         }
 
         return null;

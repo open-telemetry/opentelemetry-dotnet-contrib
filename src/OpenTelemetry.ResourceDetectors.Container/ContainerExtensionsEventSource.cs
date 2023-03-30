@@ -1,4 +1,4 @@
-// <copyright file="DockerExtensionsEventSource.cs" company="OpenTelemetry Authors">
+// <copyright file="ContainerExtensionsEventSource.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,12 +19,12 @@ using System.Diagnostics.Tracing;
 using System.Globalization;
 using System.Threading;
 
-namespace OpenTelemetry.Extensions.Docker;
+namespace OpenTelemetry.ResourceDetectors.Container;
 
-[EventSource(Name = "OpenTelemetry-Extensions-Docker")]
-internal class DockerExtensionsEventSource : EventSource
+[EventSource(Name = "OpenTelemetry-ResourceDetectors-Container")]
+internal class ContainerExtensionsEventSource : EventSource
 {
-    public static DockerExtensionsEventSource Log = new DockerExtensionsEventSource();
+    public static ContainerExtensionsEventSource Log = new();
 
     [NonEvent]
     public void ExtractResourceAttributesException(string format, Exception ex)
