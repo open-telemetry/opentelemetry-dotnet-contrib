@@ -16,9 +16,7 @@
 
 #nullable enable
 
-using System;
 using System.Globalization;
-using System.Threading;
 
 namespace OpenTelemetry.Internal;
 
@@ -30,18 +28,18 @@ internal static class ExceptionExtensions
     /// </summary>
     /// <param name="exception">Exception to convert to string.</param>
     /// <returns>Exception as string with no culture.</returns>
-    public static string ToInvariantString(this Exception exception)
+    public static string ToInvariantString(this System.Exception exception)
     {
-        var originalUICulture = Thread.CurrentThread.CurrentUICulture;
+        var originalUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
 
         try
         {
-            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
+            System.Threading.Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
             return exception.ToString();
         }
         finally
         {
-            Thread.CurrentThread.CurrentUICulture = originalUICulture;
+            System.Threading.Thread.CurrentThread.CurrentUICulture = originalUICulture;
         }
     }
 }
