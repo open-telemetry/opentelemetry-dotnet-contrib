@@ -16,6 +16,7 @@
 
 using System.Diagnostics;
 using System.Text.Json;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
 
@@ -210,7 +211,7 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
 
             if (this.exceptionStackTraceHandling == OneCollectorExporterSerializationExceptionStackTraceHandlingType.IncludeAsString)
             {
-                writer.WriteString(ExceptionExtensionStackTraceProperty, OneCollectorExporterEventSource.ExceptionToInvariantString(item.Exception));
+                writer.WriteString(ExceptionExtensionStackTraceProperty, item.Exception.ToInvariantString());
             }
 
             writer.WriteEndObject();

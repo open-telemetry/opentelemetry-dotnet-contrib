@@ -4,6 +4,7 @@
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>netstandard2.0;net462;</TargetFrameworks>
     <TargetFrameworks Condition="'$(Configuration)' == 'Debug'">net6.0;$(TargetFrameworks)</TargetFrameworks> <!-- Added just to get proper nullable analysis in IDE -->
+    <IncludeSharedExceptionExtensionSource>true</IncludeSharedExceptionExtensionSource>
     <Description>OpenTelemetry .NET SDK preview features and extensions</Description>
     <MinVerTagPrefix>Extensions-</MinVerTagPrefix>
     <Nullable>enable</Nullable>
@@ -11,7 +12,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\ExceptionExtensions.cs" Link="Internal\ExceptionExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\Guard.cs" Link="Includes\Guard.cs" />
   </ItemGroup>
 

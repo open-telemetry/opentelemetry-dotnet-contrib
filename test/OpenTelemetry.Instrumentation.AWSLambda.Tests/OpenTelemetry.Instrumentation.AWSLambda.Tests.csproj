@@ -4,6 +4,7 @@
     <Description>Unit test project of OpenTelemetry instrumentation for AWS Lambda</Description>
     <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
     <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
+    <IncludeSharedExceptionExtensionSource>true</IncludeSharedExceptionExtensionSource>
   </PropertyGroup>
 
   <ItemGroup>

@@ -278,7 +278,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 // before running out of limit instead of STRING_SIZE_LIMIT_CHAR_COUNT.
                 // 2. Trim smarter, by trimming the middle of stack, an
                 // keep top and bottom.
-                var exceptionStack = ToInvariantString(logRecord.Exception);
+                var exceptionStack = logRecord.Exception.ToInvariantString();
                 eb.AddCountedAnsiString("ext_ex_stack", exceptionStack, Encoding.UTF8, 0, Math.Min(exceptionStack.Length, StringLengthLimit));
                 partAFieldsCount++;
             }
@@ -482,22 +482,6 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         }
 
         return result.Slice(0, validNameLength).ToString();
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static string ToInvariantString(Exception exception)
-    {
-        var originalUICulture = Thread.CurrentThread.CurrentUICulture;
-
-        try
-        {
-            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-            return exception.ToString();
-        }
-        finally
-        {
-            Thread.CurrentThread.CurrentUICulture = originalUICulture;
-        }
     }
 
     private static readonly Action<LogRecordScope, TldLogExporter> ProcessScopeForIndividualColumns = (scope, state) =>

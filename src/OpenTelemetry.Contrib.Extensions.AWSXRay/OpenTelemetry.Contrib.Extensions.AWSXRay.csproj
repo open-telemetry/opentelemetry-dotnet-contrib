@@ -5,6 +5,7 @@
     <Description>OpenTelemetry extensions for AWS X-Ray.</Description>
     <MinVerTagPrefix>Extensions.AWSXRay-</MinVerTagPrefix>
     <Nullable>enable</Nullable>
+    <IncludeSharedExceptionExtensionSource>true</IncludeSharedExceptionExtensionSource>
   </PropertyGroup>
 
   <ItemGroup>

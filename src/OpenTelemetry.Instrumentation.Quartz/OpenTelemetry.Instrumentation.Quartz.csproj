@@ -5,8 +5,7 @@
     <MinVerTagPrefix>Instrumentation.Quartz-</MinVerTagPrefix>
     <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <AssemblyName>OpenTelemetry.Instrumentation.Quartz</AssemblyName>
-    <RootNamespace>OpenTelemetry.Instrumentation.Quartz</RootNamespace>
+    <IncludeSharedExceptionExtensionSource>true</IncludeSharedExceptionExtensionSource>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryCoreLatestVersion)" />
