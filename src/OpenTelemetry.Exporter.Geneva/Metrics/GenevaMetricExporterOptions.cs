@@ -68,6 +68,12 @@ public class GenevaMetricExporterOptions
 
             foreach (var entry in value)
             {
+                if (entry.Key.Equals(GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, StringComparison.OrdinalIgnoreCase) ||
+                    entry.Key.Equals(GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new ArgumentException($"The dimension: {entry.Key} is reserved and cannot be used as a prepopulated dimension.");
+                }
+
                 if (entry.Key.Length > GenevaMetricExporter.MaxDimensionNameSize)
                 {
                     throw new ArgumentException($"The dimension: {entry.Key} exceeds the maximum allowed limit of {GenevaMetricExporter.MaxDimensionNameSize} characters for a dimension name.");

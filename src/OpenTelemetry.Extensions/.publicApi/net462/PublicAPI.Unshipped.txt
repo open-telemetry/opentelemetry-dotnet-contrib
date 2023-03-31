@@ -1,6 +1,8 @@
 #nullable enable
 Microsoft.Extensions.Logging.OpenTelemetryLoggingExtensions
 OpenTelemetry.Logs.LogToActivityEventConversionOptions
+OpenTelemetry.Logs.LogToActivityEventConversionOptions.Filter.get -> System.Func<OpenTelemetry.Logs.LogRecord!, bool>?
+OpenTelemetry.Logs.LogToActivityEventConversionOptions.Filter.set -> void
 OpenTelemetry.Logs.LogToActivityEventConversionOptions.LogToActivityEventConversionOptions() -> void
 OpenTelemetry.Logs.LogToActivityEventConversionOptions.ScopeConverter.get -> System.Action<System.Diagnostics.ActivityTagsCollection!, int, OpenTelemetry.Logs.LogRecordScope>!
 OpenTelemetry.Logs.LogToActivityEventConversionOptions.ScopeConverter.set -> void

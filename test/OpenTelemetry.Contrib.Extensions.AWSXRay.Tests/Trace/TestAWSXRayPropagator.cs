@@ -29,7 +29,8 @@ public class TestAWSXRayPropagator
     private const string TraceId = "5759e988bd862e3fe1be46a994272793";
     private const string ParentId = "53995c3f42cd8ad8";
 
-    private static readonly string[] Empty = new string[0];
+    private static readonly string[] Empty = Array.Empty<string>();
+
     private static readonly Func<IDictionary<string, string>, string, IEnumerable<string>> Getter = (headers, name) =>
     {
         if (headers.TryGetValue(name, out var value))

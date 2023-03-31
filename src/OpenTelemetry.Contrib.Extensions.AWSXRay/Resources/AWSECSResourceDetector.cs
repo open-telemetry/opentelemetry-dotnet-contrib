@@ -16,6 +16,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 
@@ -31,43 +36,159 @@ public class AWSECSResourceDetector : IResourceDetector
     /// <summary>
     /// Detector the required and optional resource attributes from AWS ECS.
     /// </summary>
-    /// <returns>List of key-value pairs of resource attributes.</returns>
-    public IEnumerable<KeyValuePair<string, object?>>? Detect()
+    /// <returns>Resource with key-value pairs of resource attributes.</returns>
+    public Resource Detect()
     {
-        List<KeyValuePair<string, object?>>? resourceAttributes = null;
-
-        if (!this.IsECSProcess())
+        if (!IsECSProcess())
         {
-            return resourceAttributes;
+            return Resource.Empty;
         }
+
+        var resourceAttributes = new List<KeyValuePair<string, object>>()
+        {
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_ecs"),
+        };
 
         try
         {
-            var containerId = this.GetECSContainerId(AWSECSMetadataPath);
-
-            resourceAttributes = this.ExtractResourceAttributes(containerId);
+            var containerId = GetECSContainerId(AWSECSMetadataPath);
+            if (containerId != null)
+            {
+                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeContainerID, containerId));
+            }
         }
         catch (Exception ex)
         {
             AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSResourceDetector), ex);
         }
 
-        return resourceAttributes;
+        try
+        {
+            resourceAttributes.AddRange(ExtractMetadataV4ResourceAttributes());
+        }
+        catch (Exception ex)
+        {
+            AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSResourceDetector), ex);
+        }
+
+        return new Resource(resourceAttributes);
     }
 
-    internal List<KeyValuePair<string, object?>> ExtractResourceAttributes(string? containerId)
+    internal static List<KeyValuePair<string, object>> ExtractMetadataV4ResourceAttributes()
     {
-        var resourceAttributes = new List<KeyValuePair<string, object?>>()
+        var metadataV4Url = Environment.GetEnvironmentVariable(AWSECSMetadataURLV4Key);
+        if (metadataV4Url == null)
         {
-            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudPlatform, "aws_ecs"),
-            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeContainerID, containerId),
+            return new List<KeyValuePair<string, object>>();
+        }
+
+        using var httpClientHandler = new HttpClientHandler();
+        var metadataV4ContainerResponse = ResourceDetectorUtils.SendOutRequest(metadataV4Url, "GET", null, httpClientHandler).Result;
+        var metadataV4TaskResponse = ResourceDetectorUtils.SendOutRequest($"{metadataV4Url.TrimEnd('/')}/task", "GET", null, httpClientHandler).Result;
+
+        using var containerResponse = JsonDocument.Parse(metadataV4ContainerResponse);
+        using var taskResponse = JsonDocument.Parse(metadataV4TaskResponse);
+
+        if (!containerResponse.RootElement.TryGetProperty("ContainerARN", out var containerArnElement)
+            || containerArnElement.GetString() is not string containerArn)
+        {
+            AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSResourceDetector), new ArgumentException("The ECS Metadata V4 response did not contain the 'ContainerARN' field"));
+            return new List<KeyValuePair<string, object>>();
+        }
+
+        if (!taskResponse.RootElement.TryGetProperty("Cluster", out var clusterArnElement)
+            || clusterArnElement.GetString() is not string clusterArn)
+        {
+            AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSResourceDetector), new ArgumentException("The ECS Metadata V4 response did not contain the 'Cluster' field"));
+            return new List<KeyValuePair<string, object>>();
+        }
+
+        if (!clusterArn.StartsWith("arn:", StringComparison.Ordinal))
+        {
+            var baseArn = containerArn.Substring(containerArn.LastIndexOf(":", StringComparison.Ordinal));
+            clusterArn = $"{baseArn}:cluster/{clusterArn}";
+        }
+
+        var resourceAttributes = new List<KeyValuePair<string, object>>()
+        {
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeEcsContainerArn, containerArn),
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeEcsClusterArn, clusterArn),
         };
 
+        if (!taskResponse.RootElement.TryGetProperty("LaunchType", out var launchTypeElement))
+        {
+            launchTypeElement = default;
+        }
+
+        var launchType = launchTypeElement switch
+        {
+            { ValueKind: JsonValueKind.String } when string.Equals("ec2", launchTypeElement.GetString(), StringComparison.OrdinalIgnoreCase) => AWSSemanticConventions.ValueEcsLaunchTypeEc2,
+            { ValueKind: JsonValueKind.String } when string.Equals("fargate", launchTypeElement.GetString(), StringComparison.OrdinalIgnoreCase) => AWSSemanticConventions.ValueEcsLaunchTypeFargate,
+            _ => null,
+        };
+
+        if (launchType != null)
+        {
+            resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeEcsLaunchtype, launchType));
+        }
+        else
+        {
+            AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSResourceDetector), new ArgumentException($"The ECS Metadata V4 response contained the unrecognized launch type '{launchTypeElement}'"));
+        }
+
+        if (taskResponse.RootElement.TryGetProperty("TaskARN", out var taskArnElement) && taskArnElement.ValueKind == JsonValueKind.String)
+        {
+            resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeEcsTaskArn, taskArnElement.GetString()!));
+        }
+
+        if (taskResponse.RootElement.TryGetProperty("Family", out var familyElement) && familyElement.ValueKind == JsonValueKind.String)
+        {
+            resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeEcsTaskFamily, familyElement.GetString()!));
+        }
+
+        if (taskResponse.RootElement.TryGetProperty("Revision", out var revisionElement) && revisionElement.ValueKind == JsonValueKind.String)
+        {
+            resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeEcsTaskRevision, revisionElement.GetString()!));
+        }
+
+        if (containerResponse.RootElement.TryGetProperty("LogDriver", out var logDriverElement)
+            && logDriverElement.ValueKind == JsonValueKind.String
+            && logDriverElement.ValueEquals("awslogs"))
+        {
+            if (containerResponse.RootElement.TryGetProperty("LogOptions", out var logOptionsElement))
+            {
+                var regex = new Regex(@"arn:aws:ecs:([^:]+):([^:]+):.*");
+                var match = regex.Match(containerArn);
+
+                if (!match.Success)
+                {
+                    throw new ArgumentOutOfRangeException($"Cannot parse region and account from the container ARN '{containerArn}'");
+                }
+
+                var logsRegion = match.Groups[1];
+                var logsAccount = match.Groups[2];
+
+                if (logOptionsElement.TryGetProperty("awslogs-group", out var logGroupElement) && logGroupElement.ValueKind == JsonValueKind.String)
+                {
+                    var logGroupName = logGroupElement.GetString()!;
+                    resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeLogGroupNames, new string[] { logGroupName }));
+                    resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeLogGroupArns, new string[] { $"arn:aws:logs:{logsRegion}:{logsAccount}:log-group:{logGroupName}:*" }));
+
+                    if (logOptionsElement.TryGetProperty("awslogs-stream", out var logStreamElement) && logStreamElement.ValueKind == JsonValueKind.String)
+                    {
+                        var logStreamName = logStreamElement.GetString()!;
+                        resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeLogStreamNames, new string[] { logStreamName }));
+                        resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeLogStreamArns, new string[] { $"arn:aws:logs:{logsRegion}:{logsAccount}:log-group:{logGroupName}:log-stream:{logStreamName}" }));
+                    }
+                }
+            }
+        }
+
         return resourceAttributes;
     }
 
-    internal string? GetECSContainerId(string path)
+    internal static string? GetECSContainerId(string path)
     {
         string? containerId = null;
 
@@ -87,7 +208,7 @@ public class AWSECSResourceDetector : IResourceDetector
         return containerId;
     }
 
-    internal bool IsECSProcess()
+    internal static bool IsECSProcess()
     {
         return Environment.GetEnvironmentVariable(AWSECSMetadataURLKey) != null || Environment.GetEnvironmentVariable(AWSECSMetadataURLV4Key) != null;
     }

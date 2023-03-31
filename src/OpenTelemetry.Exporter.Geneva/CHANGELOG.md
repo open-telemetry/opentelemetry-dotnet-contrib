@@ -2,12 +2,46 @@
 
 ## Unreleased
 
+## 1.5.0-alpha.2
+
+Released 2023-Mar-29
+
+* Fix a bug where metrics without exemplars were not getting exported.
+  ([#1099](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1099))
+
+* Relaxed table name mapping validation rules to restore the previous behavior
+  from version 1.3.0. ([Issue
+  #1105](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1105))
+
+* Add support for exporting metrics to more than a single account/namespace
+  combination using a single GenevaMetricExporter instance. Users can now export
+  individual metric streams to:
+  * An account of their choice by adding the dimension
+    `_microsoft_metrics_account` and providing a `string` value for it as the
+    account name.
+  * A metric namespace of their choice by adding the dimension
+    `_microsoft_metrics_namespace` and providing a `string` value for it as the
+    namespace name.
+  ([#1111](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1111))
+
+* Fix a bug in TldTraceExporter for incorrect serialization of special tags.
+  ([#1115](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1115))
+
+## 1.5.0-alpha.1
+
+Released 2023-Mar-13
+
 * Changed the behavior of Unix domain socket connection at startup. Before this
   change, the exporter initialization would throw exception if the target Unix
   Domain Socket does not exist. After this change, the exporter initialization
-  would return success and the exporting background thread will try to
-  establish the connection.
+  would return success and the exporting background thread will try to establish
+  the connection.
   ([#935](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/935))
+
+* Update OTel SDK version to `1.5.0-alpha.1`.
+* Update GenevaMetricExporter to use TLV format serialization.
+* Add support for exporting exemplars.
+  ([#1069](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1069))
 
 ## 1.4.0
 

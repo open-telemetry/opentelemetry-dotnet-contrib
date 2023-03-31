@@ -19,7 +19,9 @@ using System.Collections.Generic;
 #if NETSTANDARD
 using System.Runtime.InteropServices;
 #endif
+
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Models;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 
@@ -29,16 +31,16 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 public class AWSEBSResourceDetector : IResourceDetector
 {
     private const string AWSEBSMetadataWindowsFilePath = "C:\\Program Files\\Amazon\\XRay\\environment.conf";
+#if NETSTANDARD
     private const string AWSEBSMetadataLinuxFilePath = "/var/elasticbeanstalk/xray/environment.conf";
+#endif
 
     /// <summary>
     /// Detector the required and optional resource attributes from AWS ElasticBeanstalk.
     /// </summary>
-    /// <returns>List of key-value pairs of resource attributes.</returns>
-    public IEnumerable<KeyValuePair<string, object?>>? Detect()
+    /// <returns>Resource with key-value pairs of resource attributes.</returns>
+    public Resource Detect()
     {
-        List<KeyValuePair<string, object?>>? resourceAttributes = null;
-
         try
         {
             string? filePath = null;
@@ -55,34 +57,49 @@ public class AWSEBSResourceDetector : IResourceDetector
             filePath = AWSEBSMetadataWindowsFilePath;
 #endif
 
-            var metadata = this.GetEBSMetadata(filePath);
+            var metadata = GetEBSMetadata(filePath);
 
-            resourceAttributes = this.ExtractResourceAttributes(metadata);
+            return new Resource(ExtractResourceAttributes(metadata));
         }
         catch (Exception ex)
         {
             AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSEBSResourceDetector), ex);
         }
 
-        return resourceAttributes;
+        return Resource.Empty;
     }
 
-    internal List<KeyValuePair<string, object?>>? ExtractResourceAttributes(AWSEBSMetadataModel? metadata)
+    internal static List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEBSMetadataModel? metadata)
     {
-        var resourceAttributes = new List<KeyValuePair<string, object?>>()
+        var resourceAttributes = new List<KeyValuePair<string, object>>()
         {
-            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeCloudPlatform, "aws_elastic_beanstalk"),
-            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeServiceName, "aws_elastic_beanstalk"),
-            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeServiceNamespace, metadata?.EnvironmentName),
-            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeServiceInstanceID, metadata?.DeploymentId),
-            new KeyValuePair<string, object?>(AWSSemanticConventions.AttributeServiceVersion, metadata?.VersionLabel),
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_elastic_beanstalk"),
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceName, "aws_elastic_beanstalk"),
         };
 
+        if (metadata != null)
+        {
+            if (metadata.EnvironmentName != null)
+            {
+                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceNamespace, metadata.EnvironmentName));
+            }
+
+            if (metadata.DeploymentId != null)
+            {
+                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceInstanceID, metadata.DeploymentId));
+            }
+
+            if (metadata.VersionLabel != null)
+            {
+                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceVersion, metadata.VersionLabel));
+            }
+        }
+
         return resourceAttributes;
     }
 
-    internal AWSEBSMetadataModel? GetEBSMetadata(string filePath)
+    internal static AWSEBSMetadataModel? GetEBSMetadata(string filePath)
     {
         return ResourceDetectorUtils.DeserializeFromFile<AWSEBSMetadataModel>(filePath);
     }

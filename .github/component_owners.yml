@@ -27,15 +27,17 @@ components:
   src/OpenTelemetry.Extensions.AzureMonitor/:
     - rajkumar-rangaraj
     - vishweshbankwar
-  src/OpenTelemetry.Extensions.Docker/:
-    - iskiselev
-  src/OpenTelemetry.Extensions.PersistentStorage.Abstractions/:
+  src/OpenTelemetry.Extensions.Enrichment/:
+    - xakep139
+  src/OpenTelemetry.PersistentStorage.Abstractions/:
     - vishweshbankwar
-  src/OpenTelemetry.Extensions.PersistentStorage/:
+  src/OpenTelemetry.PersistentStorage.FileSystem/:
     - vishweshbankwar
   src/OpenTelemetry.Instrumentation.AWSLambda/:
     - rypdal
     - Oberon00
+  src/OpenTelemetry.Instrumentation.Cassandra/:
+    - xsoheilalizadeh
   src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
     - ejsmith
   src/OpenTelemetry.Instrumentation.EventCounters/:
@@ -61,6 +63,10 @@ components:
   src/OpenTelemetry.ResourceDetectors.Azure/:
     - rajkumar-rangaraj
     - vishweshbankwar
+  src/OpenTelemetry.ResourceDetectors.Container/:
+    - iskiselev
+  src/OpenTelemetry.Sampler.AWS/:
+    - srprash
   test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/:
     - srprash
     - lupengamzn
@@ -89,6 +95,9 @@ components:
     - Yun-Ting
   test/OpenTelemetry.Exporter.Instana.Tests/:
     - zivaninstana
+  test/OpenTelemetry.Exporter.OneCollector.Benchmarks/:
+    - codeblanch
+    - reyang
   test/OpenTelemetry.Exporter.OneCollector.Tests/:
     - codeblanch
     - reyang
@@ -96,13 +105,18 @@ components:
     - SergeyKanzhelev
   test/OpenTelemetry.Extensions.Tests/:
     - codeblanch
-  test/OpenTelemetry.Extensions.Docker.Tests/:
-    - iskiselev
-  test/OpenTelemetry.Extensions.PersistentStorage.Tests/:
+  test/OpenTelemetry.Extensions.AzureMonitor.Tests/:
+    - rajkumar-rangaraj
+    - vishweshbankwar
+  test/OpenTelemetry.Extensions.Enrichment.Tests/:
+    - xakep139
+  test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
     - vishweshbankwar
   test/OpenTelemetry.Instrumentation.AWSLambda.Tests/:
     - rypdal
     - Oberon00
+  test/OpenTelemetry.Instrumentation.Cassandra.Tests/:
+    - xsoheilalizadeh
   test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/:
     - ejsmith
   test/OpenTelemetry.Instrumentation.EventCounters.Tests/:
@@ -126,3 +140,7 @@ components:
   test/OpenTelemetry.ResourceDetectors.Azure.Tests/:
     - rajkumar-rangaraj
     - vishweshbankwar
+  test/OpenTelemetry.ResourceDetectors.Container.Tests/:
+    - iskiselev
+  test/OpenTelemetry.Sampler.AWS.Tests/:
+    - srprash
