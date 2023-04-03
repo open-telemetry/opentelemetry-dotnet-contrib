@@ -5,7 +5,7 @@
     <PackageTags>$(PackageTags);distributed-tracing</PackageTags>
     <MinVerTagPrefix>Instrumentation.EntityFrameworkCore-</MinVerTagPrefix>
     <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
-    <IncludeSharedExceptionExtensionSource>true</IncludeSharedExceptionExtensionSource>
+    <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
   </PropertyGroup>
 
   <ItemGroup>

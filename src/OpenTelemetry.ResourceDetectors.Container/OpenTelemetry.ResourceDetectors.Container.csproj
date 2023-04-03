@@ -5,7 +5,7 @@
     <Description>OpenTelemetry Extensions - Container Resource Detector from Container environment.</Description>
     <MinVerTagPrefix>ResourceDetectors.Container-</MinVerTagPrefix>
     <Nullable>enable</Nullable>
-    <IncludeSharedExceptionExtensionSource>true</IncludeSharedExceptionExtensionSource>
+    <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />

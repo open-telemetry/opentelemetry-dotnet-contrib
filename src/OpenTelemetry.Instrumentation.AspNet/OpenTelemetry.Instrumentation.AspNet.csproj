@@ -2,7 +2,7 @@
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
-    <IncludeSharedExceptionExtensionSource>true</IncludeSharedExceptionExtensionSource>
+    <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
     <Description>ASP.NET instrumentation for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);distributed-tracing;AspNet;MVC;WebAPI</PackageTags>
     <IncludeInstrumentationHelpers>true</IncludeInstrumentationHelpers>

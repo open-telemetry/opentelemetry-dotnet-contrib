@@ -6,7 +6,7 @@
     <PackageTags>$(PackageTags);distributed-tracing</PackageTags>
     <MinVerTagPrefix>Instrumentation.ElasticsearchClient-</MinVerTagPrefix>
     <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
-    <IncludeSharedExceptionExtensionSource>true</IncludeSharedExceptionExtensionSource>
+    <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />

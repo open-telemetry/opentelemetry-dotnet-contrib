@@ -5,7 +5,7 @@
     <Description>Stackdriver .NET Exporter for OpenTelemetry.</Description>
     <PackageTags>$(PackageTags);Stackdriver;Google;GCP;distributed-tracing</PackageTags>
     <MinVerTagPrefix>Exporter.Stackdriver-</MinVerTagPrefix>
-    <IncludeSharedExceptionExtensionSource>true</IncludeSharedExceptionExtensionSource>
+    <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Google.Cloud.Monitoring.V3" Version="[2.6.0,4.0)" />

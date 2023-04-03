@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
-    <IncludeSharedExceptionExtensionSource>true</IncludeSharedExceptionExtensionSource>
+    <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
     <Description>OpenTelemetry instrumentation for OWIN</Description>
     <PackageTags>$(PackageTags);distributed-tracing;OWIN</PackageTags>
     <MinVerTagPrefix>Instrumentation.Owin-</MinVerTagPrefix>

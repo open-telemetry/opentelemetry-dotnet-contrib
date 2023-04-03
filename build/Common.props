@@ -54,7 +54,7 @@
     <PackageReference Include="Microsoft.CodeCoverage" Version="$(MicrosoftCodeCoveragePkgVer)" Condition="'$(Configuration)'=='Release'" PrivateAssets="All" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(IncludeSharedExceptionExtensionSource)'=='true'">
+  <ItemGroup Condition="'$(IncludeSharedExceptionExtensionsSource)'=='true'">
     <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
   </ItemGroup>
 

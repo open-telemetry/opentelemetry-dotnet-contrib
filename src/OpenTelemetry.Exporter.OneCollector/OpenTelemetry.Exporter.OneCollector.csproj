@@ -10,7 +10,7 @@
     <Nullable>enable</Nullable>
     <EnableAnalysis>true</EnableAnalysis>
     <ImplicitUsings>true</ImplicitUsings>
-    <IncludeSharedExceptionExtensionSource>true</IncludeSharedExceptionExtensionSource>
+    <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
   </PropertyGroup>
 
   <ItemGroup>

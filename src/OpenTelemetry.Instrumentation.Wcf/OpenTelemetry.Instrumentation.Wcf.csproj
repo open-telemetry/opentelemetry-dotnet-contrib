@@ -3,7 +3,7 @@
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
-    <IncludeSharedExceptionExtensionSource>true</IncludeSharedExceptionExtensionSource>
+    <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
     <Description>OpenTelemetry instrumentation for WCF</Description>
     <PackageTags>$(PackageTags);distributed-tracing;WCF</PackageTags>
     <MinVerTagPrefix>Instrumentation.Wcf-</MinVerTagPrefix>

@@ -10,7 +10,7 @@
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
     <MinVerTagPrefix>Exporter.Geneva-</MinVerTagPrefix>
     <EnableAnalysis>true</EnableAnalysis>
-    <IncludeSharedExceptionExtensionSource>true</IncludeSharedExceptionExtensionSource>
+    <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
   </PropertyGroup>
 
   <ItemGroup>
