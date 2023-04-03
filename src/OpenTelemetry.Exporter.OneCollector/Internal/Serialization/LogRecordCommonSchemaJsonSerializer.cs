@@ -23,6 +23,7 @@ namespace OpenTelemetry.Exporter.OneCollector;
 
 internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSerializer<LogRecord>
 {
+    private static readonly JsonEncodedText EventIdProperty = JsonEncodedText.Encode("eventId");
     private static readonly JsonEncodedText SeverityTextProperty = JsonEncodedText.Encode("severityText");
     private static readonly JsonEncodedText SeverityNumberProperty = JsonEncodedText.Encode("severityNumber");
     private static readonly JsonEncodedText BodyProperty = JsonEncodedText.Encode("body");
@@ -120,13 +121,10 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
 
         writer.WriteStartObject(CommonSchemaJsonSerializationHelper.DataProperty);
 
-        /* TODO: There doesn't seem to be a spot in common schema defined for
-        event.id so we will drop for now.
-
         if (item.EventId.Id != 0)
         {
             writer.WriteNumber(EventIdProperty, item.EventId.Id);
-        }*/
+        }
 
         var logLevel = (int)item.LogLevel;
         writer.WriteString(SeverityTextProperty, LogLevelToSeverityTextMappings[logLevel]);
