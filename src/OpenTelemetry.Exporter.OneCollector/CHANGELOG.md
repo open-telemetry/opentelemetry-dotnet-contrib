@@ -16,7 +16,7 @@
 
 * Added support for sending common schema `eventId` field when `EventId.Id` is
   non-zero on `LogRecord`s.
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#1127](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1127))
 
 ## 0.1.0-alpha.2
 
