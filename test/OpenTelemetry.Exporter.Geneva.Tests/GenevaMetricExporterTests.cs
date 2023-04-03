@@ -77,8 +77,8 @@ public class GenevaMetricExporterTests
             }
 
             using var exporter = new GenevaMetricExporter(exporterOptions);
-            var monitoringAccount = typeof(GenevaMetricExporter).GetField("monitoringAccount", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as string;
-            var metricNamespace = typeof(GenevaMetricExporter).GetField("metricNamespace", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as string;
+            var monitoringAccount = typeof(GenevaMetricExporter).GetField("defaultMonitoringAccount", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as string;
+            var metricNamespace = typeof(GenevaMetricExporter).GetField("defaultMetricNamespace", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as string;
             Assert.Equal("OTelMonitoringAccount", monitoringAccount);
             Assert.Equal("OTelMetricNamespace", metricNamespace);
         }
@@ -93,6 +93,33 @@ public class GenevaMetricExporterTests
             {
             }
         }
+    }
+
+    [Fact]
+    public void CannotUseReservedDimensionsInPrepopulatedFields()
+    {
+        var exporterOptions = new GenevaMetricExporterOptions();
+        var prepopulatedMetricDimensions = new Dictionary<string, object>
+        {
+            ["_microsoft_metrics_account"] = "MetricsAccount",
+        };
+
+        Assert.Throws<ArgumentException>(() => { exporterOptions.PrepopulatedMetricDimensions = prepopulatedMetricDimensions; });
+
+        prepopulatedMetricDimensions = new Dictionary<string, object>
+        {
+            ["_microsoft_metrics_namespace"] = "MetricsNamespace",
+        };
+
+        Assert.Throws<ArgumentException>(() => { exporterOptions.PrepopulatedMetricDimensions = prepopulatedMetricDimensions; });
+
+        prepopulatedMetricDimensions = new Dictionary<string, object>
+        {
+            ["_microsoft_metrics_account"] = "MetricsAccount",
+            ["_microsoft_metrics_namespace"] = "MetricsNamespace",
+        };
+
+        Assert.Throws<ArgumentException>(() => { exporterOptions.PrepopulatedMetricDimensions = prepopulatedMetricDimensions; });
     }
 
     [Theory]
@@ -578,7 +605,9 @@ public class GenevaMetricExporterTests
                     metricPoint.EndTime.ToFileTime(),
                     metricPoint.Tags,
                     metricData,
-                    exemplars);
+                    exemplars,
+                    out _,
+                    out _);
 
                 // Wait a little more than the ExportInterval for the exporter to export the data.
                 Task.Delay(5500).Wait();
@@ -1130,6 +1159,124 @@ public class GenevaMetricExporterTests
         }
     }
 
+    [Fact]
+    public void SuccessfulSerializationWithCustomAccountAndNamespace()
+    {
+        using var meter = new Meter("SuccessfulSerializationWithCustomAccountAndNamespace", "0.0.1");
+        var longCounter = meter.CreateCounter<long>("longCounter");
+        var doubleCounter = meter.CreateCounter<double>("doubleCounter");
+        var histogram = meter.CreateHistogram<long>("histogram");
+        var exportedItems = new List<Metric>();
+        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+        {
+            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+        };
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter("SuccessfulSerializationWithCustomAccountAndNamespace")
+            .AddReader(inMemoryReader)
+            .Build();
+
+        long longValue = 123;
+        double doubleValue = 123.45;
+
+        longCounter.Add(
+            longValue, new("tag1", "value1"), new("tag2", "value2"), new("_microsoft_metrics_account", "AccountForLongCounter"));
+
+        doubleCounter.Add(
+            doubleValue, new("tag1", "value1"), new("tag2", "value2"), new("_microsoft_metrics_namespace", "NamespaceForDoubleCounter"));
+
+        // Record the following values from Histogram:
+        // (-inf - 0] : 1
+        // (0 - 5] : 0
+        // (5 - 10] : 0
+        // (10 - 25] : 0
+        // (25 - 50] : 0
+        // (50 - 75] : 0
+        // (75 - 100] : 0
+        // (100 - 250] : 2
+        // (250 - 500] : 0
+        // (500 - 1000] : 1
+        // (1000 - +inf) : 1
+        //
+        // The corresponding value-count pairs to be sent for the given distribution:
+        // 0: 1
+        // 250: 2
+        // 1000: 1
+        // 1001: 1 (We use one greater than the last bound provided (1000 + 1) as the value for the overflow bucket)
+
+        histogram.Record(0, new("tag1", "value1"), new("tag2", "value2"), new("_microsoft_metrics_account", "AccountForHistogram"), new("_microsoft_metrics_namespace", "NamespaceForHistogram"));
+        histogram.Record(150, new("tag1", "value1"), new("tag2", "value2"), new("_microsoft_metrics_account", "AccountForHistogram"), new("_microsoft_metrics_namespace", "NamespaceForHistogram"));
+        histogram.Record(150, new("tag1", "value1"), new("tag2", "value2"), new("_microsoft_metrics_account", "AccountForHistogram"), new("_microsoft_metrics_namespace", "NamespaceForHistogram"));
+        histogram.Record(750, new("tag1", "value1"), new("tag2", "value2"), new("_microsoft_metrics_account", "AccountForHistogram"), new("_microsoft_metrics_namespace", "NamespaceForHistogram"));
+        histogram.Record(2500, new("tag1", "value1"), new("tag2", "value2"), new("_microsoft_metrics_account", "AccountForHistogram"), new("_microsoft_metrics_namespace", "NamespaceForHistogram"));
+
+        string path = string.Empty;
+        Socket server = null;
+        try
+        {
+            var exporterOptions = new GenevaMetricExporterOptions();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+            }
+            else
+            {
+                path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            exporterOptions.PrepopulatedMetricDimensions = new Dictionary<string, object>
+            {
+                ["cloud.role"] = "BusyWorker",
+                ["cloud.roleInstance"] = "CY1SCH030021417",
+                ["cloud.roleVer"] = "9.0.15289.2",
+            };
+
+            using var exporter = new GenevaMetricExporter(exporterOptions);
+
+            inMemoryReader.Collect();
+
+            Assert.Equal(3, exportedItems.Count);
+
+            // check serialization for longCounter
+            CheckSerializationWithTLVForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
+            var data = GetSerializedData(exportedItems[0], exporter);
+            var fields = data.Fields;
+            Assert.Contains(fields, field => field.Type == PayloadTypes.AccountName && (field.Value as WrappedString).Value == "AccountForLongCounter");
+            Assert.Contains(fields, field => field.Type == PayloadTypes.NamespaceName && (field.Value as WrappedString).Value == "OTelMetricNamespace");
+
+            // check serialization for doubleCounter
+            CheckSerializationWithTLVForSingleMetricPoint(exportedItems[1], exporter, exporterOptions);
+            data = GetSerializedData(exportedItems[1], exporter);
+            fields = data.Fields;
+            Assert.Contains(fields, field => field.Type == PayloadTypes.AccountName && (field.Value as WrappedString).Value == "OTelMonitoringAccount");
+            Assert.Contains(fields, field => field.Type == PayloadTypes.NamespaceName && (field.Value as WrappedString).Value == "NamespaceForDoubleCounter");
+
+            // check serialization for histogram
+            CheckSerializationWithTLVForSingleMetricPoint(exportedItems[2], exporter, exporterOptions);
+            data = GetSerializedData(exportedItems[2], exporter);
+            fields = data.Fields;
+            Assert.Contains(fields, field => field.Type == PayloadTypes.AccountName && (field.Value as WrappedString).Value == "AccountForHistogram");
+            Assert.Contains(fields, field => field.Type == PayloadTypes.NamespaceName && (field.Value as WrappedString).Value == "NamespaceForHistogram");
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
     private static string GenerateTempFilePath()
     {
         while (true)
@@ -1371,7 +1518,9 @@ public class GenevaMetricExporterTests
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
                 metricData,
-                exemplars);
+                exemplars,
+                out _,
+                out _);
 
             var buffer = typeof(GenevaMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
@@ -1395,7 +1544,9 @@ public class GenevaMetricExporterTests
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
                 metricData,
-                exemplars);
+                exemplars,
+                out _,
+                out _);
 
             var buffer = typeof(GenevaMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
@@ -1421,7 +1572,9 @@ public class GenevaMetricExporterTests
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
                 metricData,
-                exemplars);
+                exemplars,
+                out _,
+                out _);
 
             var buffer = typeof(GenevaMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
@@ -1447,7 +1600,9 @@ public class GenevaMetricExporterTests
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
                 metricData,
-                exemplars);
+                exemplars,
+                out _,
+                out _);
 
             var buffer = typeof(GenevaMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
@@ -1480,7 +1635,9 @@ public class GenevaMetricExporterTests
                 count,
                 min,
                 max,
-                exemplars);
+                exemplars,
+                out _,
+                out _);
 
             var buffer = typeof(GenevaMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
@@ -1541,9 +1698,31 @@ public class GenevaMetricExporterTests
 
         // Check metric name, account, and namespace
         var connectionStringBuilder = new ConnectionStringBuilder(exporterOptions.ConnectionString);
+
+        string monitoringAccount = connectionStringBuilder.Account;
+        string metricNamespace = connectionStringBuilder.Namespace;
+
+        foreach (var tag in metricPoint.Tags)
+        {
+            if (tag.Key.Equals("_microsoft_metrics_account", StringComparison.OrdinalIgnoreCase) && tag.Value is string metricsAccount)
+            {
+                if (!string.IsNullOrWhiteSpace(metricsAccount))
+                {
+                    monitoringAccount = metricsAccount;
+                }
+            }
+            else if (tag.Key.Equals("_microsoft_metrics_namespace", StringComparison.OrdinalIgnoreCase) && tag.Value is string metricsNamespace)
+            {
+                if (!string.IsNullOrWhiteSpace(metricsNamespace))
+                {
+                    metricNamespace = metricsNamespace;
+                }
+            }
+        }
+
         Assert.Contains(fields, field => field.Type == PayloadTypes.MetricName && (field.Value as WrappedString).Value == metric.Name);
-        Assert.Contains(fields, field => field.Type == PayloadTypes.AccountName && (field.Value as WrappedString).Value == connectionStringBuilder.Account);
-        Assert.Contains(fields, field => field.Type == PayloadTypes.NamespaceName && (field.Value as WrappedString).Value == connectionStringBuilder.Namespace);
+        Assert.Contains(fields, field => field.Type == PayloadTypes.AccountName && (field.Value as WrappedString).Value == monitoringAccount);
+        Assert.Contains(fields, field => field.Type == PayloadTypes.NamespaceName && (field.Value as WrappedString).Value == metricNamespace);
 
         // Check dimensions
         var dimensions = fields.FirstOrDefault(field => field.Type == PayloadTypes.Dimensions).Value as Dimensions;
@@ -1568,14 +1747,22 @@ public class GenevaMetricExporterTests
             index++;
         }
 
+        int reservedTags = 0;
         foreach (var tag in metricPoint.Tags)
         {
+            if (tag.Key.Equals("_microsoft_metrics_account", StringComparison.OrdinalIgnoreCase) ||
+                tag.Key.Equals("_microsoft_metrics_namespace", StringComparison.OrdinalIgnoreCase))
+            {
+                reservedTags++;
+                continue;
+            }
+
             Assert.Equal(tag.Key, dimensions.DimensionsNames[index].Value);
             Assert.Equal(tag.Value, dimensions.DimensionsValues[index].Value);
             index++;
         }
 
-        dimensionsCount += metricPoint.Tags.Count;
+        dimensionsCount += (ushort)(metricPoint.Tags.Count - reservedTags);
 
         Assert.Equal(dimensionsCount, dimensions.NumDimensions);
     }
@@ -1628,5 +1815,126 @@ public class GenevaMetricExporterTests
                 Assert.Equal(expectedFilteredTag.Value, serializedFilteredTag.Value.Value);
             }
         }
+    }
+
+    private static UserdataV2 GetSerializedData(Metric metric, GenevaMetricExporter exporter)
+    {
+        var metricType = metric.MetricType;
+        var metricPointsEnumerator = metric.GetMetricPoints().GetEnumerator();
+        metricPointsEnumerator.MoveNext();
+        var metricPoint = metricPointsEnumerator.Current;
+        var exemplars = metricPoint.GetExemplars();
+        UserdataV2 result = null;
+
+        if (metricType == MetricType.LongSum)
+        {
+            var metricDataValue = Convert.ToUInt64(metricPoint.GetSumLong());
+            var metricData = new MetricData { UInt64Value = metricDataValue };
+            _ = exporter.SerializeMetricWithTLV(
+                MetricEventType.ULongMetric,
+                metric.Name,
+                metricPoint.EndTime.ToFileTime(),
+                metricPoint.Tags,
+                metricData,
+                exemplars,
+                out _,
+                out _);
+
+            var buffer = typeof(GenevaMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
+            var stream = new KaitaiStream(buffer);
+            var data = new MetricsContract(stream);
+            result = data.Body as UserdataV2;
+        }
+        else if (metricType == MetricType.LongGauge)
+        {
+            var metricDataValue = Convert.ToDouble(metricPoint.GetGaugeLastValueLong());
+            var metricData = new MetricData { DoubleValue = metricDataValue };
+            _ = exporter.SerializeMetricWithTLV(
+                MetricEventType.DoubleMetric,
+                metric.Name,
+                metricPoint.EndTime.ToFileTime(),
+                metricPoint.Tags,
+                metricData,
+                exemplars,
+                out _,
+                out _);
+
+            var buffer = typeof(GenevaMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
+            var stream = new KaitaiStream(buffer);
+            var data = new MetricsContract(stream);
+            result = data.Body as UserdataV2;
+        }
+        else if (metricType == MetricType.DoubleSum || metricType == MetricType.DoubleGauge)
+        {
+            var metricDataValue = metricType == MetricType.DoubleSum ?
+                metricPoint.GetSumDouble() :
+                metricPoint.GetGaugeLastValueDouble();
+            var metricData = new MetricData { DoubleValue = metricDataValue };
+            _ = exporter.SerializeMetricWithTLV(
+                MetricEventType.DoubleMetric,
+                metric.Name,
+                metricPoint.EndTime.ToFileTime(),
+                metricPoint.Tags,
+                metricData,
+                exemplars,
+                out _,
+                out _);
+
+            var buffer = typeof(GenevaMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
+            var stream = new KaitaiStream(buffer);
+            var data = new MetricsContract(stream);
+            result = data.Body as UserdataV2;
+        }
+        else if (metricType == MetricType.LongSumNonMonotonic || metricType == MetricType.DoubleSumNonMonotonic)
+        {
+            var metricDataValue = metricType == MetricType.LongSumNonMonotonic ?
+                Convert.ToDouble(metricPoint.GetSumLong()) :
+                Convert.ToDouble(metricPoint.GetSumDouble());
+            var metricData = new MetricData { DoubleValue = metricDataValue };
+            _ = exporter.SerializeMetricWithTLV(
+                MetricEventType.DoubleMetric,
+                metric.Name,
+                metricPoint.EndTime.ToFileTime(),
+                metricPoint.Tags,
+                metricData,
+                exemplars,
+                out _,
+                out _);
+
+            var buffer = typeof(GenevaMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
+            var stream = new KaitaiStream(buffer);
+            var data = new MetricsContract(stream);
+            result = data.Body as UserdataV2;
+        }
+        else if (metricType == MetricType.Histogram)
+        {
+            var sum = Convert.ToUInt64(metricPoint.GetHistogramSum());
+            var count = Convert.ToUInt32(metricPoint.GetHistogramCount());
+            if (!metricPoint.TryGetHistogramMinMaxValues(out double min, out double max))
+            {
+                min = 0;
+                max = 0;
+            }
+
+            _ = exporter.SerializeHistogramMetricWithTLV(
+                metric.Name,
+                metricPoint.EndTime.ToFileTime(),
+                metricPoint.Tags,
+                metricPoint.GetHistogramBuckets(),
+                sum,
+                count,
+                min,
+                max,
+                exemplars,
+                out _,
+                out _);
+
+            var buffer = typeof(GenevaMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
+            var stream = new KaitaiStream(buffer);
+            var data = new MetricsContract(stream);
+            result = data.Body as UserdataV2;
+        }
+
+        return result;
     }
 }

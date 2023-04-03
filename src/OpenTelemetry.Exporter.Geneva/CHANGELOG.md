@@ -2,9 +2,30 @@
 
 ## Unreleased
 
+## 1.5.0-alpha.2
+
+Released 2023-Mar-29
+
+* Fix a bug where metrics without exemplars were not getting exported.
+  ([#1099](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1099))
+
 * Relaxed table name mapping validation rules to restore the previous behavior
-  from version 1.3.0.
-  ([#1109](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1109))
+  from version 1.3.0. ([Issue
+  #1105](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1105))
+
+* Add support for exporting metrics to more than a single account/namespace
+  combination using a single GenevaMetricExporter instance. Users can now export
+  individual metric streams to:
+  * An account of their choice by adding the dimension
+    `_microsoft_metrics_account` and providing a `string` value for it as the
+    account name.
+  * A metric namespace of their choice by adding the dimension
+    `_microsoft_metrics_namespace` and providing a `string` value for it as the
+    namespace name.
+  ([#1111](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1111))
+
+* Fix a bug in TldTraceExporter for incorrect serialization of special tags.
+  ([#1115](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1115))
 
 ## 1.5.0-alpha.1
 

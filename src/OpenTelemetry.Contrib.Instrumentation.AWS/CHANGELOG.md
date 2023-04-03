@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Raised the minimum .NET version to `net462`
+  ([#1095](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1095))
+* Removes `AddAWSInstrumentation` method with default configure default parameter.
+  ([#1117](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1117))
+
 ## 1.0.2
 
 Released 2022-Nov-11
