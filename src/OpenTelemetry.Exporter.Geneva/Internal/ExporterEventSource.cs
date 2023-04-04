@@ -16,8 +16,7 @@
 
 using System;
 using System.Diagnostics.Tracing;
-using System.Globalization;
-using System.Threading;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
@@ -43,7 +42,7 @@ internal sealed class ExporterEventSource : EventSource
             // descrs[0].Size = ((arg1.Length + 1) * 2);
             // I'm assuming it calculates the size of string, then it should be:
             // (count of chars) * sizeof(char) + sizeof(Length:int) = (str.Length * 2 + 4).
-            this.FailedToSendTraceData(ToInvariantString(ex));
+            this.FailedToSendTraceData(ex.ToInvariantString());
         }
     }
 
@@ -53,7 +52,7 @@ internal sealed class ExporterEventSource : EventSource
         if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
             // TODO: Do not hit ETW size limit even for external library exception stack.
-            this.FailedToSendLogData(ToInvariantString(ex));
+            this.FailedToSendLogData(ex.ToInvariantString());
         }
     }
 
@@ -63,7 +62,7 @@ internal sealed class ExporterEventSource : EventSource
         if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
             // TODO: Do not hit ETW size limit even for external library exception stack.
-            this.FailedToSendMetricData(monitoringAccount, metricNamespace, metricName, ToInvariantString(ex));
+            this.FailedToSendMetricData(monitoringAccount, metricNamespace, metricName, ex.ToInvariantString());
         }
     }
 
@@ -73,7 +72,7 @@ internal sealed class ExporterEventSource : EventSource
         if (Log.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
             // TODO: Do not hit ETW size limit even for external library exception stack.
-            this.ExporterException(message, ToInvariantString(ex));
+            this.ExporterException(message, ex.ToInvariantString());
         }
     }
 
@@ -99,24 +98,5 @@ internal sealed class ExporterEventSource : EventSource
     public void ExporterException(string message, string error)
     {
         this.WriteEvent(EVENT_ID_ERROR, message, error);
-    }
-
-    /// <summary>
-    /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
-    /// appropriate for diagnostics tracing.
-    /// </summary>
-    private static string ToInvariantString(Exception exception)
-    {
-        var originalUICulture = Thread.CurrentThread.CurrentUICulture;
-
-        try
-        {
-            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-            return exception.ToString();
-        }
-        finally
-        {
-            Thread.CurrentThread.CurrentUICulture = originalUICulture;
-        }
     }
 }

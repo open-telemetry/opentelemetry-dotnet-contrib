@@ -21,6 +21,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 
 namespace OpenTelemetry.Exporter.Geneva;
@@ -370,7 +371,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 // before running out of limit instead of STRING_SIZE_LIMIT_CHAR_COUNT.
                 // 2. Trim smarter, by trimming the middle of stack, an
                 // keep top and bottom.
-                var exceptionStack = ToInvariantString(logRecord.Exception);
+                var exceptionStack = logRecord.Exception.ToInvariantString();
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_ex_stack");
                 cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, exceptionStack);
                 cntFields += 1;
@@ -410,21 +411,6 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             // should we throw here then?
             default:
                 return 1;
-        }
-    }
-
-    private static string ToInvariantString(Exception exception)
-    {
-        var originalUICulture = Thread.CurrentThread.CurrentUICulture;
-
-        try
-        {
-            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-            return exception.ToString();
-        }
-        finally
-        {
-            Thread.CurrentThread.CurrentUICulture = originalUICulture;
         }
     }
 

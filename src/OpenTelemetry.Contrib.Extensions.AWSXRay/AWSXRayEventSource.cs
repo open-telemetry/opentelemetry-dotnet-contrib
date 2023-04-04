@@ -16,8 +16,7 @@
 
 using System;
 using System.Diagnostics.Tracing;
-using System.Globalization;
-using System.Threading;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay;
 
@@ -31,7 +30,7 @@ internal class AWSXRayEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Warning, (EventKeywords)(-1)))
         {
-            this.FailedToExtractActivityContext(format, ToInvariantString(ex));
+            this.FailedToExtractActivityContext(format, ex.ToInvariantString());
         }
     }
 
@@ -40,7 +39,7 @@ internal class AWSXRayEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Warning, (EventKeywords)(-1)))
         {
-            this.FailedToExtractResourceAttributes(format, ToInvariantString(ex));
+            this.FailedToExtractResourceAttributes(format, ex.ToInvariantString());
         }
     }
 
@@ -66,24 +65,5 @@ internal class AWSXRayEventSource : EventSource
     public void FailedToValidateCertificate(string format, string error)
     {
         this.WriteEvent(4, format, error);
-    }
-
-    /// <summary>
-    /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
-    /// appropriate for diagnostics tracing.
-    /// </summary>
-    private static string ToInvariantString(Exception exception)
-    {
-        var originalUICulture = Thread.CurrentThread.CurrentUICulture;
-
-        try
-        {
-            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-            return exception.ToString();
-        }
-        finally
-        {
-            Thread.CurrentThread.CurrentUICulture = originalUICulture;
-        }
     }
 }
