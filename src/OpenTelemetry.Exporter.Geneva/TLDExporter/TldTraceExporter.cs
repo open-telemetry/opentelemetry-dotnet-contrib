@@ -260,7 +260,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
             // TODO: check name collision
             if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string replacementKey))
             {
-                Serialize(eb, entry.Key, replacementKey);
+                Serialize(eb, replacementKey, entry.Value);
                 partBFieldsCount++;
             }
             else if (string.Equals(entry.Key, "otel.status_code", StringComparison.Ordinal))
