@@ -14,10 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using System.Diagnostics.Tracing;
-using System.Globalization;
-using System.Threading;
 
 namespace OpenTelemetry.Sampler.AWS;
 
@@ -42,24 +39,5 @@ internal class AWSSamplerEventSource : EventSource
     public void FailedToDeserializeResponse(string format, string error)
     {
         this.WriteEvent(3, format, error);
-    }
-
-    /// <summary>
-    /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
-    /// appropriate for diagnostics tracing.
-    /// </summary>
-    private static string ToInvariantString(Exception exception)
-    {
-        var originalUICulture = Thread.CurrentThread.CurrentUICulture;
-
-        try
-        {
-            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-            return exception.ToString();
-        }
-        finally
-        {
-            Thread.CurrentThread.CurrentUICulture = originalUICulture;
-        }
     }
 }

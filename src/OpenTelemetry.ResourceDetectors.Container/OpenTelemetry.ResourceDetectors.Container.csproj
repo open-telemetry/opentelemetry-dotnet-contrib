@@ -2,9 +2,10 @@
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
-    <Description>OpenTelemetry Extensions - Container Resource Detector from Docker environment.</Description>
-    <MinVerTagPrefix>Extensions.Docker-</MinVerTagPrefix>
+    <Description>OpenTelemetry Extensions - Container Resource Detector from Container environment.</Description>
+    <MinVerTagPrefix>ResourceDetectors.Container-</MinVerTagPrefix>
     <Nullable>enable</Nullable>
+    <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />

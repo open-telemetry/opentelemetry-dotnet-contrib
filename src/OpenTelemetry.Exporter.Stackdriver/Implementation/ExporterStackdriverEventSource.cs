@@ -16,8 +16,7 @@
 
 using System;
 using System.Diagnostics.Tracing;
-using System.Globalization;
-using System.Threading;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Stackdriver.Implementation;
 
@@ -27,41 +26,11 @@ internal class ExporterStackdriverEventSource : EventSource
     public static readonly ExporterStackdriverEventSource Log = new ExporterStackdriverEventSource();
 
     [NonEvent]
-    public void UnknownProblemInWorkerThreadError(Exception ex)
-    {
-        if (Log.IsEnabled(EventLevel.Error, EventKeywords.All))
-        {
-            this.UnknownProblemInWorkerThreadError(ToInvariantString(ex));
-        }
-    }
-
-    [Event(1, Message = "Stackdriver exporter encountered an unknown error and will shut down. Exception: {0}", Level = EventLevel.Error)]
-    public void UnknownProblemInWorkerThreadError(string ex)
-    {
-        this.WriteEvent(1, ex);
-    }
-
-    [NonEvent]
-    public void UnknownProblemWhileCreatingStackdriverTimeSeriesError(Exception ex)
-    {
-        if (Log.IsEnabled(EventLevel.Error, EventKeywords.All))
-        {
-            this.UnknownProblemWhileCreatingStackdriverTimeSeriesError(ToInvariantString(ex));
-        }
-    }
-
-    [Event(2, Message = "Stackdriver exporter failed to create time series. Time series will be lost. Exception: {0}", Level = EventLevel.Error)]
-    public void UnknownProblemWhileCreatingStackdriverTimeSeriesError(string ex)
-    {
-        this.WriteEvent(2, ex);
-    }
-
-    [NonEvent]
     public void ExportMethodException(Exception ex)
     {
         if (Log.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
-            this.ExportMethodException(ToInvariantString(ex));
+            this.ExportMethodException(ex.ToInvariantString());
         }
     }
 
@@ -69,24 +38,5 @@ internal class ExporterStackdriverEventSource : EventSource
     public void ExportMethodException(string ex)
     {
         this.WriteEvent(1, ex);
-    }
-
-    /// <summary>
-    /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
-    /// appropriate for diagnostics tracing.
-    /// </summary>
-    private static string ToInvariantString(Exception exception)
-    {
-        var originalUICulture = Thread.CurrentThread.CurrentUICulture;
-
-        try
-        {
-            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-            return exception.ToString();
-        }
-        finally
-        {
-            Thread.CurrentThread.CurrentUICulture = originalUICulture;
-        }
     }
 }
