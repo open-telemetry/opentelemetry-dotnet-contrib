@@ -54,17 +54,17 @@ public class StackdriverStatsConfiguration
     /// <summary>
     /// Gets or sets the prefix to append to every OpenTelemetry metric name in Stackdriver.
     /// </summary>
-    public string MetricNamePrefix { get; set; }
+    public string? MetricNamePrefix { get; set; }
 
     /// <summary>
     /// Gets or sets google Cloud Project Id.
     /// </summary>
-    public string ProjectId { get; set; }
+    public string? ProjectId { get; set; }
 
     /// <summary>
     /// Gets or sets credential used to authenticate against Google Stackdriver Monitoring APIs.
     /// </summary>
-    public GoogleCredential GoogleCredential { get; set; }
+    public GoogleCredential? GoogleCredential { get; set; }
 
     /// <summary>
     /// Gets or sets monitored Resource associated with metrics collection.
@@ -72,5 +72,5 @@ public class StackdriverStatsConfiguration
     /// such as GKE/AWS/GCE. If the exporter is running on a different environment,
     /// monitored resource will be identified as "general".
     /// </summary>
-    public MonitoredResource MonitoredResource { get; set; }
+    public MonitoredResource? MonitoredResource { get; set; }
 }
