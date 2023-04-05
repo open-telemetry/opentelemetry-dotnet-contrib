@@ -135,6 +135,7 @@ public class GenevaLogExporterTests
     [InlineData("categoryB", "TableB")]
     [InlineData("categoryA", "TableA", "categoryB", "TableB")]
     [InlineData("categoryA", "TableA", "*", "CatchAll")]
+    [InlineData("Example.DefaultService", "myTableName")]
     [InlineData(null)]
     public void TableNameMappingTest(params string[] category)
     {
