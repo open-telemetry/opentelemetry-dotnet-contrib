@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-#if !NET452
+#if !NETFRAMEWORK
 using System.Net.Http;
 #endif
 using System.Threading;
@@ -29,7 +29,7 @@ using Amazon.Runtime.Internal;
 using Amazon.Runtime.Internal.Transform;
 
 namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests;
-#if NET452
+#if NETFRAMEWORK
 internal class MockHttpRequest : IHttpRequest<Stream>
 {
     private Stream? requestStream;
@@ -76,7 +76,7 @@ internal class MockHttpRequest : IHttpRequest<Stream>
         return this.requestStream;
     }
 
-    public Amazon.Runtime.Internal.Transform.IWebResponseData GetResponse()
+    public IWebResponseData GetResponse()
     {
         if (this.GetResponseAction != null)
         {

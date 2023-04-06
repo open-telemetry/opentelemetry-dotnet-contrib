@@ -6,9 +6,17 @@
   syntax.
   ([#1073](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1073))
 
-* Added support for sending common schema `dt` (Distributed Tracing) extensions
+* Added support for sending common schema `dt` (Distributed Tracing) extension
   when trace context is present on `LogRecord`s.
   ([#1073](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1073))
+
+* Added support for sending common schema `ex` (Exception) extension when
+  exception is present on `LogRecord`s.
+  ([#1082](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1082))
+
+* Added support for sending common schema `eventId` field when `EventId.Id` is
+  non-zero on `LogRecord`s.
+  ([#1127](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1127))
 
 ## 0.1.0-alpha.2
 

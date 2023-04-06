@@ -16,8 +16,7 @@
 
 using System;
 using System.Diagnostics.Tracing;
-using System.Globalization;
-using System.Threading;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.PersistentStorage.Abstractions;
 
@@ -32,7 +31,7 @@ internal sealed class PersistentStorageAbstractionsEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
-            this.PersistentStorageAbstractionsException(className, message, ToInvariantString(ex));
+            this.PersistentStorageAbstractionsException(className, message, ex.ToInvariantString());
         }
     }
 
@@ -40,24 +39,5 @@ internal sealed class PersistentStorageAbstractionsEventSource : EventSource
     public void PersistentStorageAbstractionsException(string className, string message, string ex)
     {
         this.WriteEvent(1, className, message, ex);
-    }
-
-    /// <summary>
-    /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
-    /// appropriate for diagnostics tracing.
-    /// </summary>
-    private static string ToInvariantString(Exception exception)
-    {
-        var originalUICulture = Thread.CurrentThread.CurrentUICulture;
-
-        try
-        {
-            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-            return exception.ToString();
-        }
-        finally
-        {
-            Thread.CurrentThread.CurrentUICulture = originalUICulture;
-        }
     }
 }

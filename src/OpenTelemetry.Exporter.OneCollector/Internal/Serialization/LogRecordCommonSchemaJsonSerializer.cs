@@ -16,6 +16,7 @@
 
 using System.Diagnostics;
 using System.Text.Json;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
 
@@ -23,6 +24,7 @@ namespace OpenTelemetry.Exporter.OneCollector;
 
 internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSerializer<LogRecord>
 {
+    private static readonly JsonEncodedText EventIdProperty = JsonEncodedText.Encode("eventId");
     private static readonly JsonEncodedText SeverityTextProperty = JsonEncodedText.Encode("severityText");
     private static readonly JsonEncodedText SeverityNumberProperty = JsonEncodedText.Encode("severityNumber");
     private static readonly JsonEncodedText BodyProperty = JsonEncodedText.Encode("body");
@@ -30,6 +32,10 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
     private static readonly JsonEncodedText DistributedTraceExtensionTraceIdProperty = JsonEncodedText.Encode("traceId");
     private static readonly JsonEncodedText DistributedTraceExtensionSpanIdProperty = JsonEncodedText.Encode("spanId");
     private static readonly JsonEncodedText DistributedTraceExtensionTraceFlagsProperty = JsonEncodedText.Encode("traceFlags");
+    private static readonly JsonEncodedText ExceptionExtensionProperty = JsonEncodedText.Encode("ex");
+    private static readonly JsonEncodedText ExceptionExtensionTypeProperty = JsonEncodedText.Encode("type");
+    private static readonly JsonEncodedText ExceptionExtensionMessageProperty = JsonEncodedText.Encode("msg");
+    private static readonly JsonEncodedText ExceptionExtensionStackTraceProperty = JsonEncodedText.Encode("stack");
 
     private static readonly JsonEncodedText[] LogLevelToSeverityTextMappings = new JsonEncodedText[]
     {
@@ -69,10 +75,12 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
     };
 
     private readonly EventNameManager eventNameManager;
+    private readonly OneCollectorExporterSerializationExceptionStackTraceHandlingType exceptionStackTraceHandling;
 
     public LogRecordCommonSchemaJsonSerializer(
         EventNameManager eventNameManager,
         string tenantToken,
+        OneCollectorExporterSerializationExceptionStackTraceHandlingType exceptionStackTraceHandling = OneCollectorExporterSerializationExceptionStackTraceHandlingType.Ignore,
         int maxPayloadSizeInBytes = int.MaxValue,
         int maxNumberOfItemsPerPayload = int.MaxValue)
         : base(tenantToken, maxPayloadSizeInBytes, maxNumberOfItemsPerPayload)
@@ -80,6 +88,7 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
         Debug.Assert(eventNameManager != null, "eventNameManager was null");
 
         this.eventNameManager = eventNameManager!;
+        this.exceptionStackTraceHandling = exceptionStackTraceHandling;
     }
 
     public override string Description => "LogRecord Common Schema JSON";
@@ -113,13 +122,10 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
 
         writer.WriteStartObject(CommonSchemaJsonSerializationHelper.DataProperty);
 
-        /* TODO: There doesn't seem to be a spot in common schema defined for
-        event.id so we will drop for now.
-
         if (item.EventId.Id != 0)
         {
             writer.WriteNumber(EventIdProperty, item.EventId.Id);
-        }*/
+        }
 
         var logLevel = (int)item.LogLevel;
         writer.WriteString(SeverityTextProperty, LogLevelToSeverityTextMappings[logLevel]);
@@ -169,16 +175,17 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
 
         writer.WriteEndObject();
 
-        SerializeExtensionPropertiesToJson(item, writer, serializationState);
+        this.SerializeExtensionPropertiesToJson(item, writer, serializationState);
 
         writer.WriteEndObject();
     }
 
-    private static void SerializeExtensionPropertiesToJson(LogRecord item, Utf8JsonWriter writer, CommonSchemaJsonSerializationState serializationState)
+    private void SerializeExtensionPropertiesToJson(LogRecord item, Utf8JsonWriter writer, CommonSchemaJsonSerializationState serializationState)
     {
         var hasTraceContext = item.TraceId != default;
+        var hasException = item.Exception != null;
 
-        if (!hasTraceContext && serializationState.ExtensionAttributeCount <= 0)
+        if (!hasTraceContext && !hasException && serializationState.ExtensionAttributeCount <= 0)
         {
             return;
         }
@@ -191,6 +198,20 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
             writer.WriteString(DistributedTraceExtensionTraceIdProperty, item.TraceId.ToHexString());
             writer.WriteString(DistributedTraceExtensionSpanIdProperty, item.SpanId.ToHexString());
             writer.WriteNumber(DistributedTraceExtensionTraceFlagsProperty, (int)item.TraceFlags);
+            writer.WriteEndObject();
+        }
+
+        if (hasException)
+        {
+            writer.WriteStartObject(ExceptionExtensionProperty);
+            writer.WriteString(ExceptionExtensionTypeProperty, item.Exception!.GetType().FullName);
+            writer.WriteString(ExceptionExtensionMessageProperty, item.Exception.Message);
+
+            if (this.exceptionStackTraceHandling == OneCollectorExporterSerializationExceptionStackTraceHandlingType.IncludeAsString)
+            {
+                writer.WriteString(ExceptionExtensionStackTraceProperty, item.Exception.ToInvariantString());
+            }
+
             writer.WriteEndObject();
         }
 

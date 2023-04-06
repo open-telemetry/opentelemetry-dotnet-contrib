@@ -15,8 +15,8 @@
 // </copyright>
 
 using System.Diagnostics.Tracing;
-using System.Globalization;
 using System.Runtime.CompilerServices;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.OneCollector;
 
@@ -33,7 +33,7 @@ internal sealed class OneCollectorExporterEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
-            this.ExportExceptionThrown(itemType, ExceptionToInvariantString(exception));
+            this.ExportExceptionThrown(itemType, exception.ToInvariantString());
         }
     }
 
@@ -60,7 +60,7 @@ internal sealed class OneCollectorExporterEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
-            this.TransportExceptionThrown(transportType, ExceptionToInvariantString(exception));
+            this.TransportExceptionThrown(transportType, exception.ToInvariantString());
         }
     }
 
@@ -78,7 +78,7 @@ internal sealed class OneCollectorExporterEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
-            this.ExceptionThrownFromUserCode(userCodeType, ExceptionToInvariantString(exception));
+            this.ExceptionThrownFromUserCode(userCodeType, exception.ToInvariantString());
         }
     }
 
@@ -146,24 +146,5 @@ internal sealed class OneCollectorExporterEventSource : EventSource
     public void AttributeDropped(string itemType, string name, string reason)
     {
         this.WriteEvent(11, itemType, name, reason);
-    }
-
-    /// <summary>
-    /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
-    /// appropriate for diagnostics tracing.
-    /// </summary>
-    private static string ExceptionToInvariantString(Exception exception)
-    {
-        var originalUICulture = Thread.CurrentThread.CurrentUICulture;
-
-        try
-        {
-            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-            return exception.ToString();
-        }
-        finally
-        {
-            Thread.CurrentThread.CurrentUICulture = originalUICulture;
-        }
     }
 }

@@ -4,7 +4,7 @@
     <Description>Unit test project for AWS client instrumentation for OpenTelemetry</Description>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
-    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net452</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -14,7 +14,7 @@
     <PackageReference Include="AWSSDK.Core" Version="3.5.1.24" />
     <PackageReference Include="AWSSDK.SQS" Version="3.5.0.26" />
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.5.1.2" />
-    <PackageReference Include="Moq" Version="$(MoqNet45PkgVer)" />
+    <PackageReference Include="Moq" Version="$(MoqPkgVer)" />
     <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
@@ -26,10 +26,9 @@
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Instrumentation.AWS\OpenTelemetry.Contrib.Instrumentation.AWS.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net452'">
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'">
     <Compile Remove="Tools\CustomWebResponse.cs" />
     <Compile Remove="Tools\HttpResponseMessageBody.cs" />
-    <Reference Include="System.Net.Http" />
   </ItemGroup>
 
 </Project>

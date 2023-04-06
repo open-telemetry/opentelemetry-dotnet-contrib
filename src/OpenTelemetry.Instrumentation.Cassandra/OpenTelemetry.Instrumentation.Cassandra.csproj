@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>OpenTelemetry Cassandra Instrumentation</Description>
+    <PackageTags>$(PackageTags);Cassandra;CassandraCSharpDriver</PackageTags>
+    <MinVerTagPrefix>Instrumentation.Cassandra-</MinVerTagPrefix>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CassandraCSharpDriver" Version="$(CassandraCSharpDriverPkgVer)" />
+    <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryCoreLatestVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\Guard.cs" Link="Includes\Guard.cs" />
+  </ItemGroup>
+
+</Project>

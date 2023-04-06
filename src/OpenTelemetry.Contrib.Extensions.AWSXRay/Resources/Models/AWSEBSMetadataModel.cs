@@ -14,18 +14,18 @@
 // limitations under the License.
 // </copyright>
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.Models;
 
 internal class AWSEBSMetadataModel
 {
-    [JsonProperty(PropertyName = "deployment_id")]
+    [JsonPropertyName("deployment_id")]
     public string? DeploymentId { get; set; }
 
-    [JsonProperty(PropertyName = "environment_name")]
+    [JsonPropertyName("environment_name")]
     public string? EnvironmentName { get; set; }
 
-    [JsonProperty(PropertyName = "version_label")]
+    [JsonPropertyName("version_label")]
     public string? VersionLabel { get; set; }
 }

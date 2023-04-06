@@ -41,7 +41,7 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddMySqlDataInstrumentation(
         this TracerProviderBuilder builder,
-        Action<MySqlDataInstrumentationOptions> configure)
+        Action<MySqlDataInstrumentationOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
 
