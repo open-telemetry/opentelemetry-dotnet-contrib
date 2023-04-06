@@ -2,8 +2,11 @@
 
 ## 1.0.0-beta.2 (Unreleased)
 
+* Fix a bug affecting the directory size when multiple `FileBlobProvider`s
+  were in a single process. [()]()
+
 * `FileBlobProvider` will now use the path provided during initialization as is
-* for storing blobs, without adding additional hash of current user and process.
+for storing blobs, without adding additional hash of current user and process.
 ([#1110](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1110))
 
 * Going forward the NuGet package will be

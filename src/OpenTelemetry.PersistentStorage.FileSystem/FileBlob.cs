@@ -28,14 +28,22 @@ namespace OpenTelemetry.PersistentStorage.FileSystem;
 /// </summary>
 public class FileBlob : PersistentBlob
 {
+    private readonly DirectorySizeTracker? directorySizeTracker;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="FileBlob"/>
     /// class.
     /// </summary>
     /// <param name="fullPath">Absolute file path of the blob.</param>
     public FileBlob(string fullPath)
+        : this(fullPath, null)
+    {
+    }
+
+    internal FileBlob(string fullPath, DirectorySizeTracker? directorySizeTracker)
     {
         this.FullPath = fullPath;
+        this.directorySizeTracker = directorySizeTracker;
     }
 
     public string FullPath { get; private set; }
@@ -80,6 +88,7 @@ public class FileBlob : PersistentBlob
             return false;
         }
 
+        this.directorySizeTracker?.FileAdded(buffer.LongLength);
         return true;
     }
 
@@ -113,7 +122,8 @@ public class FileBlob : PersistentBlob
     {
         try
         {
-            PersistentStorageHelper.RemoveFile(this.FullPath);
+            PersistentStorageHelper.RemoveFile(this.FullPath, out var fileSize);
+            this.directorySizeTracker?.FileRemoved(fileSize);
         }
         catch (Exception ex)
         {
