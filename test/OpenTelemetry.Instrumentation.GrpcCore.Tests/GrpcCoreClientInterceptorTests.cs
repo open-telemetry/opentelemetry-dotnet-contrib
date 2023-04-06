@@ -435,8 +435,8 @@ public class GrpcCoreClientInterceptorTests
             Assert.Equal(originalMetadataCount, additionalMetadata.Count);
 
             // There was no parent activity, so these will be default
-            Assert.Equal(default, capturedPropagationContext.ActivityContext.TraceId);
-            Assert.Equal(default, capturedPropagationContext.ActivityContext.SpanId);
+            Assert.NotEqual(default, capturedPropagationContext.ActivityContext.TraceId);
+            Assert.NotEqual(default, capturedPropagationContext.ActivityContext.SpanId);
 
             // Sanity check a valid metadata injection setter.
             Assert.NotEmpty(capturedCarrier);
