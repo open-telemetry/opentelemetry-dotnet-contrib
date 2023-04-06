@@ -94,7 +94,7 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
 
         // TODO: Validate time period values
         this.DirectoryPath = PersistentStorageHelper.CreateSubdirectory(path);
-        this.directorySizeTracker = new(maxSizeInBytes, path);
+        this.directorySizeTracker = new DirectorySizeTracker(maxSizeInBytes, path);
         this.retentionPeriodInMilliseconds = retentionPeriodInMilliseconds;
         this.writeTimeoutInMilliseconds = writeTimeoutInMilliseconds;
 
