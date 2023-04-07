@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* TldLogExporter to export `eventId.Id` as a Part B field instead of Part C
+  field.
+  ([#1134](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1134))
+
 ## 1.4.1
 
 Released 2023-Mar-29
