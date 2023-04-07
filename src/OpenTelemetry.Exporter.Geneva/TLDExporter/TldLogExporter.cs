@@ -296,6 +296,13 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         eb.AddUInt8("severityNumber", GetSeverityNumber(logLevel));
         eb.AddCountedAnsiString("name", categoryName, Encoding.UTF8);
 
+        var eventId = logRecord.EventId;
+        if (eventId != default)
+        {
+            eb.AddInt32("eventId", eventId.Id);
+            partBFieldsCount++;
+        }
+
         byte hasEnvProperties = 0;
         bool bodyPopulated = false;
 
@@ -393,13 +400,6 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
             // named "env_properties".
             var serializedEnvPropertiesStringAsBytes = JsonSerializer.SerializeKeyValuePairsListAsBytes(envPropertiesList, out var count);
             eb.AddCountedAnsiString("env_properties", serializedEnvPropertiesStringAsBytes, 0, count);
-        }
-
-        var eventId = logRecord.EventId;
-        if (eventId != default)
-        {
-            eb.AddInt32("eventId", eventId.Id);
-            partCFieldsCount++;
         }
 
         eb.SetStructFieldCount(partCFieldsCountPatch, (byte)partCFieldsCount);
