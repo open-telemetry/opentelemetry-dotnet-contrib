@@ -14,6 +14,10 @@
   exception is present on `LogRecord`s.
   ([#1082](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1082))
 
+* Added support for sending common schema `eventId` field when `EventId.Id` is
+  non-zero on `LogRecord`s.
+  ([#1127](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1127))
+
 ## 0.1.0-alpha.2
 
 Released 2023-Mar-6
