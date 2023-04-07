@@ -44,8 +44,9 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
         this.connection = ConnectionMultiplexer.Connect(connectionOptions);
 
         this.tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddRedisInstrumentation(this.connection)
+            .AddRedisInstrumentation(out var connectionRegistry)
             .Build();
+        connectionRegistry.Register(this.connection);
     }
 
     public void Dispose()

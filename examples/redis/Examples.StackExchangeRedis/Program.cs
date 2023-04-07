@@ -28,18 +28,20 @@ public class Program
          * docker run --name opentelemetry-redis-test -d -p 6379:6379 redis
          */
 
-        // connect to the redis server. The default port 6379 will be used.
-        var connection = ConnectionMultiplexer.Connect("localhost");
-
         // Configure exporter to export traces to Zipkin
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .AddConsoleExporter()
-                .AddRedisInstrumentation(connection, options =>
+                .AddRedisInstrumentation(out var registry, options =>
                 {
                     // changing flush interval from 10s to 5s
                     options.FlushInterval = TimeSpan.FromSeconds(5);
                 })
                 .Build();
+
+        // connect to the redis server. The default port 6379 will be used.
+
+        var connection = ConnectionMultiplexer.Connect("localhost");
+        registry.Register(connection);
 
         // select a database (by default, DB = 0)
         var db = connection.GetDatabase();

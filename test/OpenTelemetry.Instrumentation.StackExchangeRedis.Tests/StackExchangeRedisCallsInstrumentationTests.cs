@@ -110,11 +110,13 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         var activityProcessor = new Mock<BaseProcessor<Activity>>();
         var sampler = new TestSampler();
-        using (Sdk.CreateTracerProviderBuilder()
-                   .AddProcessor(activityProcessor.Object)
-                   .SetSampler(sampler)
-                   .AddRedisInstrumentation(connection, c => c.SetVerboseDatabaseStatements = false)
-                   .Build())
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddProcessor(activityProcessor.Object)
+            .SetSampler(sampler)
+            .AddRedisInstrumentation(out var connectionRegistry, c => c.SetVerboseDatabaseStatements = false)
+            .Build();
+        connectionRegistry.Register(connection);
+        using (tracerProvider)
         {
             var db = connection.GetDatabase();
 
@@ -140,15 +142,7 @@ public class StackExchangeRedisCallsInstrumentationTests
     [Fact]
     public async void ProfilerSessionUsesTheSameDefault()
     {
-        var connectionOptions = new ConfigurationOptions
-        {
-            AbortOnConnectFail = false,
-        };
-        connectionOptions.EndPoints.Add("localhost:6379");
-
-        var connection = ConnectionMultiplexer.Connect(connectionOptions);
-
-        using var instrumentation = new StackExchangeRedisCallsInstrumentation(connection, new StackExchangeRedisCallsInstrumentationOptions());
+        using var instrumentation = new StackExchangeRedisCallsInstrumentation(new StackExchangeRedisCallsInstrumentationOptions());
         var profilerFactory = instrumentation.GetProfilerSessionsFactory();
         var first = profilerFactory();
         var second = profilerFactory();
@@ -173,17 +167,19 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         var activityProcessor = new Mock<BaseProcessor<Activity>>();
         var sampler = new TestSampler();
-        using (Sdk.CreateTracerProviderBuilder()
-                   .AddProcessor(activityProcessor.Object)
-                   .SetSampler(sampler)
-                   .AddRedisInstrumentation(connection, c => c.Enrich = (activity, command) =>
-                   {
-                       if (command.ElapsedTime < TimeSpan.FromMilliseconds(100))
-                       {
-                           activity.AddTag("is_fast", true);
-                       }
-                   })
-                   .Build())
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddProcessor(activityProcessor.Object)
+            .SetSampler(sampler)
+            .AddRedisInstrumentation(out var connectionRegistry, c => c.Enrich = (activity, command) =>
+            {
+                if (command.ElapsedTime < TimeSpan.FromMilliseconds(100))
+                {
+                    activity.AddTag("is_fast", true);
+                }
+            })
+            .Build();
+        connectionRegistry.Register(connection);
+        using (tracerProvider)
         {
             var db = connection.GetDatabase();
 
@@ -210,15 +206,7 @@ public class StackExchangeRedisCallsInstrumentationTests
     [Fact]
     public void CheckCacheIsFlushedProperly()
     {
-        var connectionOptions = new ConfigurationOptions
-        {
-            AbortOnConnectFail = false,
-        };
-        connectionOptions.EndPoints.Add("localhost:6379");
-
-        var connection = ConnectionMultiplexer.Connect(connectionOptions);
-
-        using var instrumentation = new StackExchangeRedisCallsInstrumentation(connection, new StackExchangeRedisCallsInstrumentationOptions());
+        using var instrumentation = new StackExchangeRedisCallsInstrumentation(new StackExchangeRedisCallsInstrumentationOptions());
         var profilerFactory = instrumentation.GetProfilerSessionsFactory();
 
         // start a root level activity
@@ -250,15 +238,7 @@ public class StackExchangeRedisCallsInstrumentationTests
     [Fact]
     public async Task ProfilerSessionsHandleMultipleSpans()
     {
-        var connectionOptions = new ConfigurationOptions
-        {
-            AbortOnConnectFail = false,
-        };
-        connectionOptions.EndPoints.Add("localhost:6379");
-
-        var connection = ConnectionMultiplexer.Connect(connectionOptions);
-
-        using var instrumentation = new StackExchangeRedisCallsInstrumentation(connection, new StackExchangeRedisCallsInstrumentationOptions());
+        using var instrumentation = new StackExchangeRedisCallsInstrumentation(new StackExchangeRedisCallsInstrumentationOptions());
         var profilerFactory = instrumentation.GetProfilerSessionsFactory();
 
         // start a root level activity
@@ -304,13 +284,13 @@ public class StackExchangeRedisCallsInstrumentationTests
     public void StackExchangeRedis_BadArgs()
     {
         TracerProviderBuilder builder = null;
-        Assert.Throws<ArgumentNullException>(() => builder.AddRedisInstrumentation(null));
+        Assert.Throws<ArgumentNullException>(() => builder.AddRedisInstrumentation());
 
         var activityProcessor = new Mock<BaseProcessor<Activity>>();
         var exception = Assert.Throws<InvalidOperationException>(() =>
             Sdk.CreateTracerProviderBuilder()
                 .AddProcessor(activityProcessor.Object)
-                .AddRedisInstrumentation(null)
+                .AddRedisInstrumentation()
                 .Build());
         Assert.Equal("StackExchange.Redis IConnectionMultiplexer could not be resolved through application IServiceProvider", exception.Message);
     }

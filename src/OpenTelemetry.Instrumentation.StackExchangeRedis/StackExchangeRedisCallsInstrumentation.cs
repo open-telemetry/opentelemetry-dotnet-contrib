@@ -20,9 +20,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation;
-using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
-using StackExchange.Redis;
 using StackExchange.Redis.Profiling;
 
 namespace OpenTelemetry.Instrumentation.StackExchangeRedis;
@@ -55,12 +53,9 @@ internal class StackExchangeRedisCallsInstrumentation : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="StackExchangeRedisCallsInstrumentation"/> class.
     /// </summary>
-    /// <param name="connection"><see cref="IConnectionMultiplexer"/> to instrument.</param>
     /// <param name="options">Configuration options for redis instrumentation.</param>
-    public StackExchangeRedisCallsInstrumentation(IConnectionMultiplexer connection, StackExchangeRedisCallsInstrumentationOptions options)
+    public StackExchangeRedisCallsInstrumentation(StackExchangeRedisCallsInstrumentationOptions options)
     {
-        Guard.ThrowIfNull(connection);
-
         this.options = options ?? new StackExchangeRedisCallsInstrumentationOptions();
 
         this.drainThread = new Thread(this.DrainEntries)
@@ -69,8 +64,6 @@ internal class StackExchangeRedisCallsInstrumentation : IDisposable
             IsBackground = true,
         };
         this.drainThread.Start();
-
-        connection.RegisterProfiler(this.GetProfilerSessionsFactory());
     }
 
     /// <summary>

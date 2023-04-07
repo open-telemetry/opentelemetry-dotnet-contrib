@@ -29,6 +29,13 @@ public static class TracerProviderBuilderExtensions
     /// <summary>
     /// Enables automatic data collection of outgoing requests to Redis.
     /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddRedisInstrumentation(this TracerProviderBuilder builder) => AddRedisInstrumentation(builder, null, null);
+
+    /// <summary>
+    /// Enables automatic data collection of outgoing requests to Redis.
+    /// </summary>
     /// <remarks>
     /// Note: If an <see cref="IConnectionMultiplexer"/> is not supplied
     /// using the <paramref name="connection"/> parameter it will be
@@ -40,8 +47,8 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddRedisInstrumentation(
         this TracerProviderBuilder builder,
-        IConnectionMultiplexer connection = null,
-        Action<StackExchangeRedisCallsInstrumentationOptions> configure = null)
+        IConnectionMultiplexer connection,
+        Action<StackExchangeRedisCallsInstrumentationOptions> configure)
     {
         Guard.ThrowIfNull(builder);
 
@@ -52,7 +59,7 @@ public static class TracerProviderBuilderExtensions
                 throw new NotSupportedException($"StackExchange.Redis {nameof(IConnectionMultiplexer)} must be supplied when dependency injection is unavailable - to enable dependency injection use the OpenTelemetry.Extensions.Hosting package");
             }
 
-            return AddRedisInstrumentation(builder, connection, new StackExchangeRedisCallsInstrumentationOptions(), configure);
+            return AddRedisInstrumentation(builder, new StackExchangeRedisCallsInstrumentationOptions(), configure, out _, connection);
         }
 
         return deferredTracerProviderBuilder.Configure((sp, builder) =>
@@ -68,22 +75,78 @@ public static class TracerProviderBuilderExtensions
 
             AddRedisInstrumentation(
                 builder,
-                connection,
                 sp.GetOptions<StackExchangeRedisCallsInstrumentationOptions>(),
-                configure);
+                configure,
+                out _,
+                connection);
+        });
+    }
+
+    /// <summary>
+    /// Enables automatic data collection of outgoing requests to Redis.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="connectionRegistry">Registry to register connections with.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddRedisInstrumentation(
+        this TracerProviderBuilder builder,
+        out IConnectionRegistry connectionRegistry) => AddRedisInstrumentation(builder, out connectionRegistry, null);
+
+    /// <summary>
+    /// Enables automatic data collection of outgoing requests to Redis.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="connectionRegistry">Registry to register connections with.</param>
+    /// <param name="configure">Optional callback to configure options.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddRedisInstrumentation(
+        this TracerProviderBuilder builder,
+        out IConnectionRegistry connectionRegistry,
+        Action<StackExchangeRedisCallsInstrumentationOptions> configure)
+    {
+        Guard.ThrowIfNull(builder);
+
+        var defaultRegistry = new ConnectionRegistry();
+        connectionRegistry = defaultRegistry;
+
+        if (builder is not IDeferredTracerProviderBuilder deferredTracerProviderBuilder)
+        {
+            return AddRedisInstrumentation(builder, new StackExchangeRedisCallsInstrumentationOptions(), configure, out defaultRegistry.RegistrationCallback);
+        }
+
+        return deferredTracerProviderBuilder.Configure((sp, builder) =>
+        {
+            AddRedisInstrumentation(
+                builder,
+                sp.GetOptions<StackExchangeRedisCallsInstrumentationOptions>(),
+                configure,
+                out defaultRegistry.RegistrationCallback);
         });
     }
 
     private static TracerProviderBuilder AddRedisInstrumentation(
         TracerProviderBuilder builder,
-        IConnectionMultiplexer connection,
         StackExchangeRedisCallsInstrumentationOptions options,
-        Action<StackExchangeRedisCallsInstrumentationOptions> configure)
+        Action<StackExchangeRedisCallsInstrumentationOptions> configure,
+        out Action<IConnectionMultiplexer> registration,
+        IConnectionMultiplexer connection = null)
     {
         configure?.Invoke(options);
 
-        return builder
-            .AddInstrumentation(() => new StackExchangeRedisCallsInstrumentation(connection, options))
+        StackExchangeRedisCallsInstrumentation stackExchangeRedisCallsInstrumentation = null;
+
+        var redisInstrumentation = builder
+            .AddInstrumentation(() =>
+            {
+                stackExchangeRedisCallsInstrumentation = new StackExchangeRedisCallsInstrumentation(options);
+                connection?.RegisterProfiler(stackExchangeRedisCallsInstrumentation?.GetProfilerSessionsFactory());
+
+                return stackExchangeRedisCallsInstrumentation;
+            })
             .AddSource(StackExchangeRedisCallsInstrumentation.ActivitySourceName);
+
+        registration = connectionMultiplexer => connectionMultiplexer.RegisterProfiler(stackExchangeRedisCallsInstrumentation?.GetProfilerSessionsFactory());
+
+        return redisInstrumentation;
     }
 }
