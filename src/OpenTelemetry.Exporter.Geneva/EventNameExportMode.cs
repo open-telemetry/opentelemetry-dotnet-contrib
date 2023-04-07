@@ -22,13 +22,13 @@ namespace OpenTelemetry.Exporter.Geneva;
 public enum EventNameExportMode
 {
     /// <summary>
-    /// GenevaExporter will not export <a href="https://learn.microsoft.com/dotnet/api/microsoft.extensions.logging.eventid.id">eventId.Id</a>
+    /// GenevaExporter will not export <a href="https://learn.microsoft.com/dotnet/api/microsoft.extensions.logging.eventid.name">eventId.Name</a>
     /// if the enum instance has no other flag selected.
     /// </summary>
     None = 0,
 
     /// <summary>
-    /// GenevaExporter will export <a href="https://learn.microsoft.com/dotnet/api/microsoft.extensions.logging.eventid.id">eventId.Id</a>
+    /// GenevaExporter will export <a href="https://learn.microsoft.com/dotnet/api/microsoft.extensions.logging.eventid.name">eventId.Name</a>
     /// as an individual field with the name `eventName` when this flag is selected. There is no de-duplication of fields. If `eventName`
     /// is also present in the log message or scopes, all the `eventName` fields are exported.
     /// </summary>
@@ -36,7 +36,7 @@ public enum EventNameExportMode
 
     /* Note: This might be added in future.
     /// <summary>
-    /// GenevaExporter will export <a href="https://learn.microsoft.com/dotnet/api/microsoft.extensions.logging.eventid.id">eventId.Id</a>
+    /// GenevaExporter will export <a href="https://learn.microsoft.com/dotnet/api/microsoft.extensions.logging.eventid.name">eventId.Name</a>
     /// as the table name when this flag is selected.
     /// </summary>
     ExportAsTableName = 2,
