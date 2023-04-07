@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Update GenevaLogExporter to export `eventId.Name` when the
+  `EventNameExportMode` option is set to `ExportAsField`.
+  ([#1135](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1135))
+
 ## 1.5.0-alpha.2
 
 Released 2023-Mar-29
