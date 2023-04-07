@@ -1,6 +1,5 @@
 OpenTelemetry.Exporter.Geneva.EventNameExportMode
 OpenTelemetry.Exporter.Geneva.EventNameExportMode.ExportAsField = 1 -> OpenTelemetry.Exporter.Geneva.EventNameExportMode
-OpenTelemetry.Exporter.Geneva.EventNameExportMode.ExportAsTableName = 2 -> OpenTelemetry.Exporter.Geneva.EventNameExportMode
 OpenTelemetry.Exporter.Geneva.EventNameExportMode.None = 0 -> OpenTelemetry.Exporter.Geneva.EventNameExportMode
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.EventNameExportMode.get -> OpenTelemetry.Exporter.Geneva.EventNameExportMode
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.EventNameExportMode.set -> void
