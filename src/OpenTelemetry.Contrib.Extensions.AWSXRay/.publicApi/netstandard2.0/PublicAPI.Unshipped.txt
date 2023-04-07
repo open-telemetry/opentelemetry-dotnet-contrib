@@ -1,21 +1,19 @@
-#nullable enable
-*REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEBSResourceDetector.Detect() -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, object>>
-OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEBSResourceDetector.Detect() -> OpenTelemetry.Resources.Resource!
-*REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEC2ResourceDetector.Detect() -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, object>>
-OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEC2ResourceDetector.Detect() -> OpenTelemetry.Resources.Resource!
-*REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSECSResourceDetector.Detect() -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, object>>
-OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSECSResourceDetector.Detect() -> OpenTelemetry.Resources.Resource!
-*REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEKSResourceDetector.Detect() -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, object>>
-OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEKSResourceDetector.Detect() -> OpenTelemetry.Resources.Resource!
-*REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSLambdaResourceDetector.Detect() -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, object>>
-OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSLambdaResourceDetector.Detect() -> OpenTelemetry.Resources.Resource!
-*REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSLambdaResourceDetector.Detect() -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, object?>>?'
-*REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSLambdaResourceDetector.Detect() -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, object?>>?
+*REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEBSResourceDetector
+*REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEBSResourceDetector.AWSEBSResourceDetector() -> void
 *REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEBSResourceDetector.Detect() -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, object?>>?
+*REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEC2ResourceDetector
+*REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEC2ResourceDetector.AWSEC2ResourceDetector() -> void
 *REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEC2ResourceDetector.Detect() -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, object?>>?
+*REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSECSResourceDetector
+*REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSECSResourceDetector.AWSECSResourceDetector() -> void
 *REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSECSResourceDetector.Detect() -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, object?>>?
+*REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEKSResourceDetector
+*REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEKSResourceDetector.AWSEKSResourceDetector() -> void
 *REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEKSResourceDetector.Detect() -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, object?>>?
+*REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSLambdaResourceDetector
+*REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSLambdaResourceDetector.AWSLambdaResourceDetector() -> void
+*REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSLambdaResourceDetector.Detect() -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, object?>>?
 *REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.IResourceDetector
 *REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.IResourceDetector.Detect() -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, object?>>?
-*REMOVED*OpenTelemetry.Resources.ResourceBuilderExtensions
-*REMOVED*static OpenTelemetry.Resources.ResourceBuilderExtensions.AddDetector(this OpenTelemetry.Resources.ResourceBuilder resourceBuilder, OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.IResourceDetector resourceDetector) -> OpenTelemetry.Resources.ResourceBuilder
+*REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.ResourceDetectorUtils
+*REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.ResourceDetectorUtils.ResourceDetectorUtils() -> void
