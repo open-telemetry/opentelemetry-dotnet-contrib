@@ -19,8 +19,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 
 namespace OpenTelemetry.PersistentStorage.FileSystem;
@@ -188,29 +186,6 @@ internal static class PersistentStorageHelper
         var time = fileName.Substring(startIndex, fileName.Length - startIndex);
         DateTime.TryParseExact(time, "yyyy-MM-ddTHHmmss.fffffffZ", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime);
         return dateTime.ToUniversalTime();
-    }
-
-    internal static string GetSHA256Hash(string input)
-    {
-        byte[] inputBits = Encoding.Unicode.GetBytes(input);
-
-#if NET6_0_OR_GREATER
-#pragma warning disable CA1308 // Normalize strings to uppercase
-        return Convert.ToHexString(SHA256.HashData(inputBits)).ToLowerInvariant();
-#pragma warning restore CA1308 // Normalize strings to uppercase
-#else
-        var hashString = new StringBuilder();
-        using (var sha256 = SHA256.Create())
-        {
-            byte[] hashBits = sha256.ComputeHash(inputBits);
-            foreach (byte b in hashBits)
-            {
-                hashString.Append(b.ToString("x2", CultureInfo.InvariantCulture));
-            }
-        }
-
-        return hashString.ToString();
-#endif
     }
 
     private static long CalculateFolderSize(string path)
