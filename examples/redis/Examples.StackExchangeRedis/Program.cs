@@ -38,7 +38,7 @@ public class Program
                 })
                 .Build();
 
-        // connect to the redis server. The default port 6379 will be used.
+        // Connect to the Redis server. The default port 6379 will be used.
 
         var connection = ConnectionMultiplexer.Connect("localhost");
         registry.Register(connection);
