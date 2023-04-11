@@ -39,7 +39,7 @@ internal class AWSTracingPipelineCustomizer : IRuntimePipelineCustomizer
 
     public void Customize(Type serviceClientType, RuntimePipeline pipeline)
     {
-        if (serviceClientType.BaseType != typeof(AmazonServiceClient))
+        if (!typeof(AmazonServiceClient).IsAssignableFrom(serviceClientType))
         {
             return;
         }
