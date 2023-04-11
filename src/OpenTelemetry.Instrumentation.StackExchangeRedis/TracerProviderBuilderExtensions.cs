@@ -59,7 +59,7 @@ public static class TracerProviderBuilderExtensions
                 throw new NotSupportedException($"StackExchange.Redis {nameof(IConnectionMultiplexer)} must be supplied when dependency injection is unavailable - to enable dependency injection use the OpenTelemetry.Extensions.Hosting package");
             }
 
-            return AddRedisInstrumentation(builder, new StackExchangeRedisCallsInstrumentationOptions(), configure, out _, connection);
+            return AddRedisInstrumentation(builder, new StackExchangeRedisCallsInstrumentationOptions(), configure, null, connection);
         }
 
         return deferredTracerProviderBuilder.Configure((sp, builder) =>
@@ -77,7 +77,7 @@ public static class TracerProviderBuilderExtensions
                 builder,
                 sp.GetOptions<StackExchangeRedisCallsInstrumentationOptions>(),
                 configure,
-                out _,
+                null,
                 connection);
         });
     }
@@ -111,7 +111,7 @@ public static class TracerProviderBuilderExtensions
 
         if (builder is not IDeferredTracerProviderBuilder deferredTracerProviderBuilder)
         {
-            return AddRedisInstrumentation(builder, new StackExchangeRedisCallsInstrumentationOptions(), configure, out defaultRegistry.RegistrationCallback);
+            return AddRedisInstrumentation(builder, new StackExchangeRedisCallsInstrumentationOptions(), configure, defaultRegistry);
         }
 
         return deferredTracerProviderBuilder.Configure((sp, builder) =>
@@ -120,7 +120,7 @@ public static class TracerProviderBuilderExtensions
                 builder,
                 sp.GetOptions<StackExchangeRedisCallsInstrumentationOptions>(),
                 configure,
-                out defaultRegistry.RegistrationCallback);
+                defaultRegistry);
         });
     }
 
@@ -128,7 +128,7 @@ public static class TracerProviderBuilderExtensions
         TracerProviderBuilder builder,
         StackExchangeRedisCallsInstrumentationOptions options,
         Action<StackExchangeRedisCallsInstrumentationOptions> configure,
-        out Action<IConnectionMultiplexer> registration,
+        ConnectionRegistry registry,
         IConnectionMultiplexer connection = null)
     {
         configure?.Invoke(options);
@@ -145,8 +145,7 @@ public static class TracerProviderBuilderExtensions
             })
             .AddSource(StackExchangeRedisCallsInstrumentation.ActivitySourceName);
 
-        registration = connectionMultiplexer => connectionMultiplexer.RegisterProfiler(stackExchangeRedisCallsInstrumentation?.GetProfilerSessionsFactory());
-
+        registry?.Initialize(connectionMultiplexer => connectionMultiplexer.RegisterProfiler(stackExchangeRedisCallsInstrumentation?.GetProfilerSessionsFactory()));
         return redisInstrumentation;
     }
 }

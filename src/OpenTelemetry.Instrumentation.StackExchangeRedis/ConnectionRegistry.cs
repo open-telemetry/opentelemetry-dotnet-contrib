@@ -22,11 +22,16 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis;
 /// <inheritdoc />
 public class ConnectionRegistry : IConnectionRegistry
 {
-    internal Action<IConnectionMultiplexer> RegistrationCallback;
+    private Action<IConnectionMultiplexer> registrationCallback;
 
     /// <inheritdoc />
     public void Register(IConnectionMultiplexer connectionMultiplexer)
     {
-        this.RegistrationCallback?.Invoke(connectionMultiplexer);
+        this.registrationCallback?.Invoke(connectionMultiplexer);
+    }
+
+    internal void Initialize(Action<IConnectionMultiplexer> callback)
+    {
+        this.registrationCallback = callback;
     }
 }
