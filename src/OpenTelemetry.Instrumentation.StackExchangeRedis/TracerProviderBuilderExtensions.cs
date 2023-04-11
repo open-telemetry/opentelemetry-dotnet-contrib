@@ -31,7 +31,7 @@ public static class TracerProviderBuilderExtensions
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-    public static TracerProviderBuilder AddRedisInstrumentation(this TracerProviderBuilder builder) => AddRedisInstrumentation(builder, null, null);
+    public static TracerProviderBuilder AddRedisInstrumentation(this TracerProviderBuilder builder) => AddRedisInstrumentation(builder, connection: null, configure: null);
 
     /// <summary>
     /// Enables automatic data collection of outgoing requests to Redis.
@@ -90,7 +90,7 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddRedisInstrumentation(
         this TracerProviderBuilder builder,
-        out IConnectionRegistry connectionRegistry) => AddRedisInstrumentation(builder, out connectionRegistry, null);
+        out IConnectionRegistry connectionRegistry) => AddRedisInstrumentation(builder, out connectionRegistry, configure: null);
 
     /// <summary>
     /// Enables automatic data collection of outgoing requests to Redis.
