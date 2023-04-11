@@ -15,7 +15,7 @@ dotnet add package OpenTelemetry.ResourceDetectors.AWS --prerelease
 
 ## Usage
 
-You can configure Container resource detector to
+You can configure AWS resource detector to
 the `TracerProvider` with the following EC2 example below.
 
 ```csharp
