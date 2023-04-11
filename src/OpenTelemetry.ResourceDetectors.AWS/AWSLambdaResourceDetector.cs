@@ -37,7 +37,7 @@ public class AWSLambdaResourceDetector : IResourceDetector
     {
         try
         {
-            return new Resource(ExtractResourceAttributes());
+            return new(ExtractResourceAttributes());
         }
         catch (Exception ex)
         {
@@ -51,11 +51,11 @@ public class AWSLambdaResourceDetector : IResourceDetector
     {
         var resourceAttributes = new List<KeyValuePair<string, object>>()
         {
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_lambda"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudRegion, GetAWSRegion()),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeFaasName, GetFunctionName()),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeFaasVersion, GetFunctionVersion()),
+            new(AWSSemanticConventions.AttributeCloudProvider, "aws"),
+            new(AWSSemanticConventions.AttributeCloudPlatform, "aws_lambda"),
+            new(AWSSemanticConventions.AttributeCloudRegion, GetAWSRegion()),
+            new(AWSSemanticConventions.AttributeFaasName, GetFunctionName()),
+            new(AWSSemanticConventions.AttributeFaasVersion, GetFunctionVersion()),
         };
 
         return resourceAttributes;

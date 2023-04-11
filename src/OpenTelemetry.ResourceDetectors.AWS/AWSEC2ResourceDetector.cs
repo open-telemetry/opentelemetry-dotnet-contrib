@@ -58,9 +58,9 @@ public class AWSEC2ResourceDetector : IResourceDetector
     {
         var resourceAttributes = new List<KeyValuePair<string, object>>()
         {
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_ec2"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeHostName, hostName),
+            new(AWSSemanticConventions.AttributeCloudProvider, "aws"),
+            new(AWSSemanticConventions.AttributeCloudPlatform, "aws_ec2"),
+            new(AWSSemanticConventions.AttributeHostName, hostName),
         };
 
         if (identity != null)

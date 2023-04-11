@@ -42,7 +42,7 @@ public class AWSEBSResourceDetector : IResourceDetector
     {
         try
         {
-            string? filePath = null;
+            string? filePath;
 #if NETSTANDARD
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -72,9 +72,9 @@ public class AWSEBSResourceDetector : IResourceDetector
     {
         var resourceAttributes = new List<KeyValuePair<string, object>>()
         {
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_elastic_beanstalk"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceName, "aws_elastic_beanstalk"),
+            new(AWSSemanticConventions.AttributeCloudProvider, "aws"),
+            new(AWSSemanticConventions.AttributeCloudPlatform, "aws_elastic_beanstalk"),
+            new(AWSSemanticConventions.AttributeServiceName, "aws_elastic_beanstalk"),
         };
 
         if (metadata != null)
