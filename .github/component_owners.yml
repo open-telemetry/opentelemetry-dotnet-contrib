@@ -60,6 +60,9 @@ components:
     - xiang17
   src/OpenTelemetry.Instrumentation.Wcf/:
     - codeblanch
+  src/OpenTelemetry.ResourceDetectors.AWS/:
+    - srprash
+    - lupengamzn
   src/OpenTelemetry.ResourceDetectors.Azure/:
     - rajkumar-rangaraj
     - vishweshbankwar
@@ -137,6 +140,9 @@ components:
     - xiang17
   test/OpenTelemetry.Instrumentation.Wcf.Tests/:
     - codeblanch
+  test/OpenTelemetry.ResourceDetectors.AWS.Tests/:
+    - srprash
+    - lupengamzn
   test/OpenTelemetry.ResourceDetectors.Azure.Tests/:
     - rajkumar-rangaraj
     - vishweshbankwar
