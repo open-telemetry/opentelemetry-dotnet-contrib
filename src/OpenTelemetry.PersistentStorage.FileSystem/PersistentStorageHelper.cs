@@ -19,14 +19,11 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading;
 
 namespace OpenTelemetry.PersistentStorage.FileSystem;
 
 internal static class PersistentStorageHelper
 {
-    private static long directorySize;
-
     internal static void RemoveExpiredBlob(DateTime retentionDeadline, string filePath)
     {
         if (filePath.EndsWith(".blob", StringComparison.OrdinalIgnoreCase))
@@ -121,32 +118,20 @@ internal static class PersistentStorageHelper
                 RemoveExpiredBlob(retentionDeadline, file);
             }
         }
-
-        // It is faster to calculate the directory size, instead of removing length of expired files.
-        var size = CalculateFolderSize(directoryPath);
-        Interlocked.Exchange(ref directorySize, size);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static long GetDirectorySize()
-    {
-        return Interlocked.Read(ref directorySize);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteAllBytes(string path, byte[] buffer)
     {
         File.WriteAllBytes(path, buffer);
-        UpdateDirectorySize(buffer.Length);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void RemoveFile(string fileName)
+    internal static void RemoveFile(string fileName, out long fileSize)
     {
         var fileInfo = new FileInfo(fileName);
-        var fileSize = fileInfo.Length;
+        fileSize = fileInfo.Length;
         fileInfo.Delete();
-        UpdateDirectorySize(fileSize * -1);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -158,15 +143,7 @@ internal static class PersistentStorageHelper
     internal static string CreateSubdirectory(string path)
     {
         Directory.CreateDirectory(path);
-
-        directorySize = CalculateFolderSize(path);
         return path;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static long UpdateDirectorySize(long fileContentLength)
-    {
-        return Interlocked.Add(ref directorySize, fileContentLength);
     }
 
     internal static DateTime GetDateTimeFromBlobName(string filePath)
@@ -186,37 +163,5 @@ internal static class PersistentStorageHelper
         var time = fileName.Substring(startIndex, fileName.Length - startIndex);
         DateTime.TryParseExact(time, "yyyy-MM-ddTHHmmss.fffffffZ", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime);
         return dateTime.ToUniversalTime();
-    }
-
-    private static long CalculateFolderSize(string path)
-    {
-        if (!Directory.Exists(path))
-        {
-            return 0;
-        }
-
-        long directorySize = 0;
-        try
-        {
-            foreach (string file in Directory.EnumerateFiles(path))
-            {
-                if (File.Exists(file))
-                {
-                    FileInfo fileInfo = new FileInfo(file);
-                    directorySize += fileInfo.Length;
-                }
-            }
-
-            foreach (string dir in Directory.GetDirectories(path))
-            {
-                directorySize += CalculateFolderSize(dir);
-            }
-        }
-        catch (Exception ex)
-        {
-            PersistentStorageEventSource.Log.PersistentStorageException(nameof(PersistentStorageHelper), "Error calculating folder size", ex);
-        }
-
-        return directorySize;
     }
 }
