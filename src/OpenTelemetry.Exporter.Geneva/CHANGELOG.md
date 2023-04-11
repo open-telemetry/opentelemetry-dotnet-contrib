@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+* TldLogExporter to export `eventId.Id` as a Part B field instead of Part C
+  field.
+  ([#1134](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1134))
+
+## 1.4.1
+
+Released 2023-Mar-29
+
+* Relaxed table name mapping validation rules to restore the previous behavior
+  from version 1.3.0.
+  ([#1120](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1120))
+
 ## 1.5.0-alpha.2
 
 Released 2023-Mar-29
@@ -10,8 +22,8 @@ Released 2023-Mar-29
   ([#1099](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1099))
 
 * Relaxed table name mapping validation rules to restore the previous behavior
-  from version 1.3.0. ([Issue
-  #1105](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1105))
+  from version 1.3.0.
+  ([#1109](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1109))
 
 * Add support for exporting metrics to more than a single account/namespace
   combination using a single GenevaMetricExporter instance. Users can now export
