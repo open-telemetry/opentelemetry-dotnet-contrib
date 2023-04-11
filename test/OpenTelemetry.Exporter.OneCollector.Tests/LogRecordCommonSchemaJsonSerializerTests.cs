@@ -84,6 +84,19 @@ public class LogRecordCommonSchemaJsonSerializerTests
     }
 
     [Fact]
+    public void LogRecordEventIdJsonTest()
+    {
+        string json = GetLogRecordJson(1, (index, logRecord) =>
+        {
+            logRecord.EventId = new(18);
+        });
+
+        Assert.Equal(
+            "{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{\"eventId\":18,\"severityText\":\"Trace\",\"severityNumber\":1}}\n",
+            json);
+    }
+
+    [Fact]
     public void LogRecordTimestampJsonTest()
     {
         string json = GetLogRecordJson(1, (index, logRecord) =>

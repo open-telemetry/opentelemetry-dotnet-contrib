@@ -1,4 +1,4 @@
-// <copyright file="DockerExtensionsEventSource.cs" company="OpenTelemetry Authors">
+// <copyright file="ContainerExtensionsEventSource.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,22 +16,21 @@
 
 using System;
 using System.Diagnostics.Tracing;
-using System.Globalization;
-using System.Threading;
+using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Extensions.Docker;
+namespace OpenTelemetry.ResourceDetectors.Container;
 
-[EventSource(Name = "OpenTelemetry-Extensions-Docker")]
-internal class DockerExtensionsEventSource : EventSource
+[EventSource(Name = "OpenTelemetry-ResourceDetectors-Container")]
+internal class ContainerExtensionsEventSource : EventSource
 {
-    public static DockerExtensionsEventSource Log = new DockerExtensionsEventSource();
+    public static ContainerExtensionsEventSource Log = new();
 
     [NonEvent]
     public void ExtractResourceAttributesException(string format, Exception ex)
     {
         if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
         {
-            this.FailedToExtractResourceAttributes(format, ToInvariantString(ex));
+            this.FailedToExtractResourceAttributes(format, ex.ToInvariantString());
         }
     }
 
@@ -39,24 +38,5 @@ internal class DockerExtensionsEventSource : EventSource
     public void FailedToExtractResourceAttributes(string format, string exception)
     {
         this.WriteEvent(1, format, exception);
-    }
-
-    /// <summary>
-    /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
-    /// appropriate for diagnostics tracing.
-    /// </summary>
-    private static string ToInvariantString(Exception exception)
-    {
-        var originalUICulture = Thread.CurrentThread.CurrentUICulture;
-
-        try
-        {
-            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-            return exception.ToString();
-        }
-        finally
-        {
-            Thread.CurrentThread.CurrentUICulture = originalUICulture;
-        }
     }
 }

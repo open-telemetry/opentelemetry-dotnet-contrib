@@ -32,7 +32,7 @@ namespace OpenTelemetry.PersistentStorage.FileSystem;
 public class FileBlobProvider : PersistentBlobProvider, IDisposable
 {
     internal readonly string DirectoryPath;
-    private readonly long maxSizeInBytes;
+    private readonly DirectorySizeTracker directorySizeTracker;
     private readonly long retentionPeriodInMilliseconds;
     private readonly int writeTimeoutInMilliseconds;
     private readonly Timer maintenanceTimer;
@@ -94,7 +94,7 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
 
         // TODO: Validate time period values
         this.DirectoryPath = PersistentStorageHelper.CreateSubdirectory(path);
-        this.maxSizeInBytes = maxSizeInBytes;
+        this.directorySizeTracker = new DirectorySizeTracker(maxSizeInBytes, path);
         this.retentionPeriodInMilliseconds = retentionPeriodInMilliseconds;
         this.writeTimeoutInMilliseconds = writeTimeoutInMilliseconds;
 
@@ -132,7 +132,7 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
             DateTime fileDateTime = PersistentStorageHelper.GetDateTimeFromBlobName(file);
             if (fileDateTime > retentionDeadline)
             {
-                yield return new FileBlob(file);
+                yield return new FileBlob(file, this.directorySizeTracker);
             }
         }
     }
@@ -174,12 +174,14 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
         }
 
         PersistentStorageHelper.RemoveExpiredBlobs(this.DirectoryPath, this.retentionPeriodInMilliseconds, this.writeTimeoutInMilliseconds);
+
+        // It is faster to calculate the directory size, instead of removing length of expired files.
+        this.directorySizeTracker.RecountCurrentSize();
     }
 
     private bool CheckStorageSize()
     {
-        var size = PersistentStorageHelper.GetDirectorySize();
-        if (size >= this.maxSizeInBytes)
+        if (!this.directorySizeTracker.IsSpaceAvailable(out long size))
         {
             // TODO: check accuracy of size reporting.
             PersistentStorageEventSource.Log.PersistentStorageWarning(
@@ -201,7 +203,7 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
         try
         {
             var blobFilePath = Path.Combine(this.DirectoryPath, PersistentStorageHelper.GetUniqueFileName(".blob"));
-            var blob = new FileBlob(blobFilePath);
+            var blob = new FileBlob(blobFilePath, this.directorySizeTracker);
 
             if (blob.TryWrite(buffer, leasePeriodMilliseconds))
             {

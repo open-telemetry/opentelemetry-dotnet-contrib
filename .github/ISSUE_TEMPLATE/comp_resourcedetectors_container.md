@@ -1,10 +1,10 @@
 ---
-name: OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule
-about: Issue with OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule
-labels: comp:instrumentation.AspNet.TelemetryHttpModule
+name: OpenTelemetry.ResourceDetectors.Container
+about: Issue with OpenTelemetry.ResourceDetectors.Container
+labels: comp:resourcedetectors.container
 ---
 
-# Issue with OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule
+# Issue with OpenTelemetry.ResourceDetectors.Container
 
 List of [all OpenTelemetry NuGet
 packages](https://www.nuget.org/profiles/OpenTelemetry) and version that you are
