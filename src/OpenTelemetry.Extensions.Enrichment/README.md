@@ -66,7 +66,7 @@ An example of IMyService implementation is available
 
 For every `Activity`, the `Enrich()`
 method is guaranteed to be called exactly once. Semantically,
-for the example above it means that a new [tag object](https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.activity.tagobjects?view=net-7.0)
+for the example above it means that a new [tag object](https://learn.microsoft.com/dotnet/api/system.diagnostics.activity.tagobjects?view=net-7.0)
 with the service key and the status  value will be added to every `Activity`
 in your application.
 
@@ -88,7 +88,7 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
 
 Alternatively, you can add your custom enricher to the `IServiceCollection`
 (as well as `ActivitySource` and exporter), typically
-this is done inside the [ConfigureServices()](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.hosting.startupbase.configureservices)
+this is done inside the [ConfigureServices()](https://learn.microsoft.com/dotnet/api/microsoft.aspnetcore.hosting.startupbase.configureservices)
 method:
 
 ```csharp
