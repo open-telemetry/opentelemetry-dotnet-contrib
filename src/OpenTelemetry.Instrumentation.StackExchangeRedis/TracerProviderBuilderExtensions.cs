@@ -86,32 +86,32 @@ public static class TracerProviderBuilderExtensions
     /// Enables automatic data collection of outgoing requests to Redis.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-    /// <param name="connectionRegistry">Registry to register connections with.</param>
+    /// <param name="connectionInstrumenter">Instrumenter to instrument connections with.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddRedisInstrumentation(
         this TracerProviderBuilder builder,
-        out IConnectionRegistry connectionRegistry) => AddRedisInstrumentation(builder, out connectionRegistry, configure: null);
+        out IConnectionInstrumenter connectionInstrumenter) => AddRedisInstrumentation(builder, out connectionInstrumenter, configure: null);
 
     /// <summary>
     /// Enables automatic data collection of outgoing requests to Redis.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-    /// <param name="connectionRegistry">Registry to register connections with.</param>
+    /// <param name="connectionInstrumenter">Instrumenter to instrument connections with.</param>
     /// <param name="configure">Optional callback to configure options.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddRedisInstrumentation(
         this TracerProviderBuilder builder,
-        out IConnectionRegistry connectionRegistry,
+        out IConnectionInstrumenter connectionInstrumenter,
         Action<StackExchangeRedisCallsInstrumentationOptions> configure)
     {
         Guard.ThrowIfNull(builder);
 
-        var defaultRegistry = new ConnectionRegistry();
-        connectionRegistry = defaultRegistry;
+        var defaultInstrumenter = new ConnectionInstrumenter();
+        connectionInstrumenter = defaultInstrumenter;
 
         if (builder is not IDeferredTracerProviderBuilder deferredTracerProviderBuilder)
         {
-            return AddRedisInstrumentation(builder, new StackExchangeRedisCallsInstrumentationOptions(), configure, defaultRegistry);
+            return AddRedisInstrumentation(builder, new StackExchangeRedisCallsInstrumentationOptions(), configure, defaultInstrumenter);
         }
 
         return deferredTracerProviderBuilder.Configure((sp, builder) =>
@@ -120,7 +120,7 @@ public static class TracerProviderBuilderExtensions
                 builder,
                 sp.GetOptions<StackExchangeRedisCallsInstrumentationOptions>(),
                 configure,
-                defaultRegistry);
+                defaultInstrumenter);
         });
     }
 
@@ -128,7 +128,7 @@ public static class TracerProviderBuilderExtensions
         TracerProviderBuilder builder,
         StackExchangeRedisCallsInstrumentationOptions options,
         Action<StackExchangeRedisCallsInstrumentationOptions> configure,
-        ConnectionRegistry registry,
+        ConnectionInstrumenter instrumenter,
         IConnectionMultiplexer connection = null)
     {
         configure?.Invoke(options);
@@ -145,7 +145,7 @@ public static class TracerProviderBuilderExtensions
             })
             .AddSource(StackExchangeRedisCallsInstrumentation.ActivitySourceName);
 
-        registry?.Initialize(connectionMultiplexer => connectionMultiplexer.RegisterProfiler(stackExchangeRedisCallsInstrumentation?.GetProfilerSessionsFactory()));
+        instrumenter?.Initialize(connectionMultiplexer => connectionMultiplexer.RegisterProfiler(stackExchangeRedisCallsInstrumentation?.GetProfilerSessionsFactory()));
         return redisInstrumentation;
     }
 }

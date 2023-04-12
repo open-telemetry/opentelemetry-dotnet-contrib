@@ -113,9 +113,9 @@ public class StackExchangeRedisCallsInstrumentationTests
         var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddProcessor(activityProcessor.Object)
             .SetSampler(sampler)
-            .AddRedisInstrumentation(out var connectionRegistry, c => c.SetVerboseDatabaseStatements = false)
+            .AddRedisInstrumentation(out var instrumenter, c => c.SetVerboseDatabaseStatements = false)
             .Build();
-        connectionRegistry.Register(connection);
+        instrumenter.Instrument(connection);
         using (tracerProvider)
         {
             var db = connection.GetDatabase();
@@ -170,7 +170,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddProcessor(activityProcessor.Object)
             .SetSampler(sampler)
-            .AddRedisInstrumentation(out var connectionRegistry, c => c.Enrich = (activity, command) =>
+            .AddRedisInstrumentation(out var instrumenter, c => c.Enrich = (activity, command) =>
             {
                 if (command.ElapsedTime < TimeSpan.FromMilliseconds(100))
                 {
@@ -178,7 +178,7 @@ public class StackExchangeRedisCallsInstrumentationTests
                 }
             })
             .Build();
-        connectionRegistry.Register(connection);
+        instrumenter.Instrument(connection);
         using (tracerProvider)
         {
             var db = connection.GetDatabase();

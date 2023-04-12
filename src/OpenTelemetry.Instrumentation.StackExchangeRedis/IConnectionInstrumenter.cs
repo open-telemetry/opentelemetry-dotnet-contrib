@@ -1,4 +1,4 @@
-// <copyright file="IConnectionRegistry.cs" company="OpenTelemetry Authors">
+// <copyright file="IConnectionInstrumenter.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,11 +21,11 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis;
 /// <summary>
 /// Registers connection for instrumentation purposes.
 /// </summary>
-public interface IConnectionRegistry
+public interface IConnectionInstrumenter
 {
     /// <summary>
     /// Registers connection with current instrumentation instance.
     /// </summary>
     /// <param name="connectionMultiplexer">Connection to be tracked by instrumentation.</param>
-    void Register(IConnectionMultiplexer connectionMultiplexer);
+    void Instrument(IConnectionMultiplexer connectionMultiplexer);
 }

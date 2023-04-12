@@ -1,4 +1,4 @@
-// <copyright file="ConnectionRegistry.cs" company="OpenTelemetry Authors">
+// <copyright file="ConnectionInstrumenter.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,12 +20,12 @@ using StackExchange.Redis;
 namespace OpenTelemetry.Instrumentation.StackExchangeRedis;
 
 /// <inheritdoc />
-public class ConnectionRegistry : IConnectionRegistry
+public class ConnectionInstrumenter : IConnectionInstrumenter
 {
     private Action<IConnectionMultiplexer> registrationCallback;
 
     /// <inheritdoc />
-    public void Register(IConnectionMultiplexer connectionMultiplexer)
+    public void Instrument(IConnectionMultiplexer connectionMultiplexer)
     {
         this.registrationCallback?.Invoke(connectionMultiplexer);
     }

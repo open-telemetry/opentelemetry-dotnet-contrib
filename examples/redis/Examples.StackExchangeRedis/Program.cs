@@ -31,7 +31,7 @@ public class Program
         // Configure exporter to export traces to Zipkin
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .AddConsoleExporter()
-                .AddRedisInstrumentation(out var registry, options =>
+                .AddRedisInstrumentation(out var instrumenter, options =>
                 {
                     // changing flush interval from 10s to 5s
                     options.FlushInterval = TimeSpan.FromSeconds(5);
@@ -41,7 +41,7 @@ public class Program
         // Connect to the Redis server. The default port 6379 will be used.
 
         var connection = ConnectionMultiplexer.Connect("localhost");
-        registry.Register(connection);
+        instrumenter.Instrument(connection);
 
         // select a database (by default, DB = 0)
         var db = connection.GetDatabase();
