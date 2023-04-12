@@ -29,16 +29,25 @@ public static class TracerProviderBuilderExtensions
     /// Adds Hangfire instrumentation to the tracer provider.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-    /// <param name="configureHangfireInstrumentationOptions">Callback action for configuring <see cref="HangfireInstrumentationOptions"/>.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddHangfireInstrumentation(
+        this TracerProviderBuilder builder) =>
+        AddHangfireInstrumentation(builder, configure: null);
+
+    /// <summary>
+    /// Adds Hangfire instrumentation to the tracer provider.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="configure">Callback action for configuring <see cref="HangfireInstrumentationOptions"/>.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddHangfireInstrumentation(
         this TracerProviderBuilder builder,
-        Action<HangfireInstrumentationOptions> configureHangfireInstrumentationOptions = null)
+        Action<HangfireInstrumentationOptions> configure)
     {
         Guard.ThrowIfNull(builder);
 
         var options = new HangfireInstrumentationOptions();
-        configureHangfireInstrumentationOptions?.Invoke(options);
+        configure?.Invoke(options);
 
         Hangfire.GlobalJobFilters.Filters.Add(new HangfireInstrumentationJobFilterAttribute(options));
 
