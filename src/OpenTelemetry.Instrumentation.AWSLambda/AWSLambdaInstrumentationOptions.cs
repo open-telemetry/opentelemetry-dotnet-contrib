@@ -25,4 +25,10 @@ public class AWSLambdaInstrumentationOptions
     /// Gets or sets a value indicating whether AWS X-Ray context extraction should be disabled.
     /// </summary>
     public bool DisableAwsXRayContextExtraction { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the parent Activity should be set when SQS message batch is received.
+    /// If option is set to true then the parent is set using the last received message otherwise the parent is not set at all.
+    /// </summary>
+    public bool SetParentFromMessageBatch { get; set; }
 }

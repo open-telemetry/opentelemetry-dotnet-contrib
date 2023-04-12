@@ -32,6 +32,12 @@ internal class AWSMessagingUtils
     private const string SnsAttributeTypeStringArray = "String.Array";
     private const string SnsMessageAttributes = "MessageAttributes";
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the parent Activity should be set when SQS message batch is received.
+    /// If option is set to true then the parent is set using the last received message otherwise the parent is not set at all.
+    /// </summary>
+    internal static bool SetParentFromMessageBatch { get; set; }
+
     internal static (PropagationContext ParentContext, IEnumerable<ActivityLink> Links) ExtractParentContext(SQSEvent sqsEvent)
     {
         if (sqsEvent?.Records == null)
@@ -39,9 +45,9 @@ internal class AWSMessagingUtils
             return (default, null);
         }
 
-        // We assume there can be only one parent that's why we consider only a single (the last) record as the carrier.
-        var parentRecord = sqsEvent.Records.LastOrDefault();
-        var parentContext = ExtractParentContext(parentRecord);
+        // We choose the last message (record) as the carrier to set the parent.
+        var parentRecord = SetParentFromMessageBatch ? sqsEvent.Records.LastOrDefault() : null;
+        var parentContext = (parentRecord != null) ? ExtractParentContext(parentRecord) : default;
 
         var links = new List<ActivityLink>();
         foreach (var record in sqsEvent.Records)
@@ -80,7 +86,8 @@ internal class AWSMessagingUtils
 
     internal static PropagationContext ExtractParentContext(SNSEvent snsEvent)
     {
-        // We assume there can be only one parent that's why we consider only a single (the last) record as the carrier.
+        // We assume there can be only a single SNS record (message) and records list is kept in the model consistency.
+        // See https://aws.amazon.com/sns/faqs/ for details.
         var record = snsEvent?.Records?.LastOrDefault();
         return ExtractParentContext(record);
     }
