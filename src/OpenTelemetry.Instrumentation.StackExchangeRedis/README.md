@@ -37,7 +37,7 @@ dotnet add package OpenTelemetry.Instrumentation.StackExchangeRedis
 StackExchange.Redis instrumentation must be enabled at application startup.
 `AddRedisInstrumentation` method on `TracerProviderBuilder` must be called to
 enable Redis instrumentation. `AddRedisInstrumentation` returns
-`ConnectionRegistry` instance, that allows to register new connections with
+`ConnectionInstrumenter` instance, that allows to register new connections with
 instrumentation instance.
 
 The following example demonstrates adding StackExchange.Redis instrumentation to
@@ -54,13 +54,13 @@ public class Program
     public static void Main(string[] args)
     {
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddRedisInstrumentation(out var connectionRegistry)
+            .AddRedisInstrumentation(out var connectionInstrumenter)
             .AddConsoleExporter()
             .Build();
 
         // Connect to the server.
         using var connection = ConnectionMultiplexer.Connect("localhost:6379");
-        connectionRegistry.Register(connection);
+        connectionInstrumenter.Instrument(connection);
     }
 }
 ```

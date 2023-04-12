@@ -24,7 +24,7 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis;
 public interface IConnectionInstrumenter
 {
     /// <summary>
-    /// Registers connection with current instrumentation instance.
+    /// Instruments connection with current instrumentation instance.
     /// </summary>
     /// <param name="connectionMultiplexer">Connection to be tracked by instrumentation.</param>
     void Instrument(IConnectionMultiplexer connectionMultiplexer);
