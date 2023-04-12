@@ -1,4 +1,4 @@
-// <copyright file="MyTraceEnricher.cs" company="OpenTelemetry Authors">
+// <copyright file="IMyService.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,16 +14,9 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Extensions.Enrichment.Tests;
+namespace Examples.Enrichment;
 
-internal class MyTraceEnricher : TraceEnricher
+public interface IMyService
 {
-    public const string Key = nameof(MyTraceEnricher);
-
-    public int TimesCalled { get; private set; }
-
-    public override void Enrich(in TraceEnrichmentBag enrichmentBag)
-    {
-        enrichmentBag.Add(Key, ++this.TimesCalled);
-    }
+    public (string Service, string Status) MyDailyStatus();
 }

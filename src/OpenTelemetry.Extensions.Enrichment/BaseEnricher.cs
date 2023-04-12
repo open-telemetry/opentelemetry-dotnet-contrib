@@ -22,5 +22,5 @@ public abstract class BaseEnricher<T>
     {
     }
 
-    public abstract void Enrich(T enrichmentBag);
+    public abstract void Enrich(in T enrichmentBag);
 }
