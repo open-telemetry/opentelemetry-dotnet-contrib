@@ -2,8 +2,6 @@
 
 ## Unreleased
 
-Released 2023-Apr-12
-
 * Fix a bug affecting the directory size when multiple `FileBlobProvider`s
   were in a single process. [(#1133)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1133)
 
