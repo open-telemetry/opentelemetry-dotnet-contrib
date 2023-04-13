@@ -42,9 +42,9 @@ public class AWSMessagingUtilsTests
     public void ExtractParentContext_SetParentFromMessageBatchIsDisabled_ParentIsNotSet()
     {
         AWSMessagingUtils.SetParentFromMessageBatch = false;
-        var @event = CreateSqsEventWithMessages(new[] { SpanId1, SpanId2 });
+        var sqsEvent = CreateSqsEventWithMessages(new[] { SpanId1, SpanId2 });
 
-        (PropagationContext parentContext, IEnumerable<ActivityLink> links) = AWSMessagingUtils.ExtractParentContext(@event);
+        (PropagationContext parentContext, IEnumerable<ActivityLink> links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
 
         Assert.Equal(default, parentContext);
         Assert.Equal(2, links.Count());
@@ -54,9 +54,9 @@ public class AWSMessagingUtilsTests
     public void ExtractParentContext_SetParentFromMessageBatchIsEnabled_ParentIsSetFromLastMessage()
     {
         AWSMessagingUtils.SetParentFromMessageBatch = true;
-        var @event = CreateSqsEventWithMessages(new[] { SpanId1, SpanId2 });
+        var sqsEvent = CreateSqsEventWithMessages(new[] { SpanId1, SpanId2 });
 
-        (PropagationContext parentContext, IEnumerable<ActivityLink> links) = AWSMessagingUtils.ExtractParentContext(@event);
+        (PropagationContext parentContext, IEnumerable<ActivityLink> links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
 
         Assert.NotEqual(default, parentContext);
         Assert.Equal(SpanId2, parentContext.ActivityContext.SpanId.ToHexString());
