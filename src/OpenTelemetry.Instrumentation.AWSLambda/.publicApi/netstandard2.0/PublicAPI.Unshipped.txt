@@ -2,8 +2,8 @@ OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.AWSLambdaInstrumentationOptions() -> void
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.DisableAwsXRayContextExtraction.get -> bool
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.DisableAwsXRayContextExtraction.set -> void
-OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.SetParentFromMessageBatch.get -> bool
-OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.SetParentFromMessageBatch.set -> void
+OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.SetParentFromBatch.get -> bool
+OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.SetParentFromBatch.set -> void
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaWrapper
 OpenTelemetry.Instrumentation.AWSLambda.TracerProviderBuilderExtensions
 static OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaWrapper.Trace<TInput, TResult>(OpenTelemetry.Trace.TracerProvider tracerProvider, System.Func<TInput, Amazon.Lambda.Core.ILambdaContext, TResult> lambdaHandler, TInput input, Amazon.Lambda.Core.ILambdaContext context, System.Diagnostics.ActivityContext parentContext = default(System.Diagnostics.ActivityContext)) -> TResult
