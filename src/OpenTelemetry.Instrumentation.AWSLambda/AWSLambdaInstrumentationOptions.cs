@@ -27,8 +27,11 @@ public class AWSLambdaInstrumentationOptions
     public bool DisableAwsXRayContextExtraction { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether the parent Activity should be set when SQS message batch is received.
-    /// If option is set to true then the parent is set using the last received message otherwise the parent is not set at all.
+    /// Gets or sets a value indicating whether the parent Activity should be set when a potentially batched event is received where multiple parents are potentially available (e.g. SQS).
+    /// If set to true, the parent is set using the last received record (e.g. last message). Otherwise the parent is not set. In both cases, links will be created for such events.
     /// </summary>
-    public bool SetParentFromMessageBatch { get; set; }
+    /// <remarks>
+    /// Currently, the only event type to which this applies is SQS.
+    /// </remarks>
+    public bool SetParentFromBatch { get; set; }
 }
