@@ -87,7 +87,7 @@ internal class AWSMessagingUtils
     internal static PropagationContext ExtractParentContext(SNSEvent snsEvent)
     {
         // We assume there can be only a single SNS record (message) and records list is kept in the model consistency.
-        // See https://aws.amazon.com/sns/faqs/ for details.
+        // See https://aws.amazon.com/sns/faqs/#Reliability for details.
         var record = snsEvent?.Records?.LastOrDefault();
         return ExtractParentContext(record);
     }
