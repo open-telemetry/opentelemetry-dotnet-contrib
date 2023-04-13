@@ -6,6 +6,7 @@
     <PackageTags>Instana Tracing APM</PackageTags>
     <Description>Instana .NET Exporter for OpenTelemetry</Description>
     <MinVerTagPrefix>Exporter.Instana-</MinVerTagPrefix>
+    <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
   </PropertyGroup>
 
   <ItemGroup>

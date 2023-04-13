@@ -5,4 +5,5 @@ OpenTelemetry.Trace.HangfireInstrumentationOptions.HangfireInstrumentationOption
 OpenTelemetry.Trace.HangfireInstrumentationOptions.RecordException.get -> bool
 OpenTelemetry.Trace.HangfireInstrumentationOptions.RecordException.set -> void
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
-static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddHangfireInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder, System.Action<OpenTelemetry.Trace.HangfireInstrumentationOptions> configureHangfireInstrumentationOptions = null) -> OpenTelemetry.Trace.TracerProviderBuilder
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddHangfireInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder) -> OpenTelemetry.Trace.TracerProviderBuilder
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddHangfireInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder, System.Action<OpenTelemetry.Trace.HangfireInstrumentationOptions> configure) -> OpenTelemetry.Trace.TracerProviderBuilder
