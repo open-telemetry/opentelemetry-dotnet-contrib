@@ -1,4 +1,4 @@
-abstract OpenTelemetry.Extensions.Enrichment.BaseEnricher<T>.Enrich(T enrichmentBag) -> void
+abstract OpenTelemetry.Extensions.Enrichment.BaseEnricher<T>.Enrich(in T enrichmentBag) -> void
 Microsoft.Extensions.DependencyInjection.OpenTelemetryEnrichmentServiceCollectionExtensions
 OpenTelemetry.Extensions.Enrichment.BaseEnricher<T>
 OpenTelemetry.Extensions.Enrichment.BaseEnricher<T>.BaseEnricher() -> void
@@ -17,4 +17,3 @@ static OpenTelemetry.Extensions.Enrichment.OpenTelemetryEnrichmentProviderBuilde
 static OpenTelemetry.Extensions.Enrichment.OpenTelemetryEnrichmentProviderBuilderExtensions.AddTraceEnricher(this OpenTelemetry.Trace.TracerProviderBuilder! builder, System.Action<OpenTelemetry.Extensions.Enrichment.TraceEnrichmentBag>! enrichmentAction) -> OpenTelemetry.Trace.TracerProviderBuilder!
 static OpenTelemetry.Extensions.Enrichment.OpenTelemetryEnrichmentProviderBuilderExtensions.AddTraceEnricher(this OpenTelemetry.Trace.TracerProviderBuilder! builder, System.Func<System.IServiceProvider!, OpenTelemetry.Extensions.Enrichment.TraceEnricher!>! enricherImplementationFactory) -> OpenTelemetry.Trace.TracerProviderBuilder!
 static OpenTelemetry.Extensions.Enrichment.OpenTelemetryEnrichmentProviderBuilderExtensions.AddTraceEnricher<T>(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder!
-virtual OpenTelemetry.Extensions.Enrichment.TraceEnricher.Enrich(ref OpenTelemetry.Extensions.Enrichment.TraceEnrichmentBag traceEnrichmentBag) -> void
