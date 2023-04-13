@@ -1,8 +1,6 @@
 # Changelog - OpenTelemetry.PersistentStorage.FileSystem
 
-## 1.0.0-beta.3 (Unreleased)
-
-## 1.0.0-beta.2
+## Unreleased
 
 Released 2023-Apr-12
 

@@ -1,10 +1,10 @@
 # Changelog
 
-## 1.0.0-beta.3 (Unreleased)
+## Unreleased
 
 ## 1.0.0-beta.2
 
-Released 2023-Apr-12
+Released 2023-Apr-14
 
 * Going forward the NuGet package will be
  [`OpenTelemetry.PersistentStorage.Abstractions`](https://www.nuget.org/packages/OpenTelemetry.PersistentStorage.Abstractions).
