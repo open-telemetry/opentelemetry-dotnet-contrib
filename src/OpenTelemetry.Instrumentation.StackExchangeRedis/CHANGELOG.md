@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* Add an ability to track connections created after tracer is initialized.
+* Allow instrumentation of connections created after the tracer is initialized.
   ([#1139](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1139))
 
 ## 1.0.0-rc9.8
