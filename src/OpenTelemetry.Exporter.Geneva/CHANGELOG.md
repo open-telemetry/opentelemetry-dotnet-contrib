@@ -17,7 +17,6 @@ Released 2023-Mar-29
 * Relaxed table name mapping validation rules to restore the previous behavior
   from version 1.3.0.
   ([#1120](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1120))
->>>>>>> origin/main
 
 ## 1.5.0-alpha.2
 
