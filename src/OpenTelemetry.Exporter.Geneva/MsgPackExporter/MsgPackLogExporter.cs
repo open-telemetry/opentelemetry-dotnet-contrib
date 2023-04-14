@@ -204,9 +204,22 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         }
 
         // Part A - core envelope
-        cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, eventName);
 
-        cntFields += 1;
+        var eventId = logRecord.EventId;
+        bool hasEventId = eventId != default;
+
+        if (hasEventId && (this.m_eventNameExportMode & EventNameExportMode.ExportAsField) != 0 && !string.IsNullOrWhiteSpace(eventId.Name))
+        {
+            // Export `eventId.Name` as the value for `env_name`
+            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, eventId.Name);
+            cntFields += 1;
+        }
+        else
+        {
+            // Export the table name as the value for `env_name`
+            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, eventName);
+            cntFields += 1;
+        }
 
         cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_time");
         cursor = MessagePackSerializer.SerializeUtcDateTime(buffer, cursor, timestamp); // LogRecord.Timestamp should already be converted to UTC format in the SDK
@@ -243,29 +256,6 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "name");
         cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, categoryName);
         cntFields += 1;
-
-        bool exportEventNameAsEnvProperty = false;
-        var eventId = logRecord.EventId;
-        if (eventId != default)
-        {
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "eventId");
-            cursor = MessagePackSerializer.SerializeInt32(buffer, cursor, eventId.Id);
-            cntFields += 1;
-
-            if (this.m_eventNameExportMode.HasFlag(EventNameExportMode.ExportAsField) && eventId.Name != null)
-            {
-                if (this.m_customFields == null || this.m_customFields.ContainsKey("eventName"))
-                {
-                    cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "eventName");
-                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, eventId.Name);
-                    cntFields += 1;
-                }
-                else
-                {
-                    exportEventNameAsEnvProperty = true;
-                }
-            }
-        }
 
         bool hasEnvProperties = false;
         bool bodyPopulated = false;
@@ -354,13 +344,6 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 }
             }
 
-            if (exportEventNameAsEnvProperty)
-            {
-                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "eventName");
-                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, eventId.Name);
-                envPropertiesCount += 1;
-            }
-
             // Prepare state for scopes
             dataForScopes.Cursor = cursor;
             dataForScopes.EnvPropertiesCount = envPropertiesCount;
@@ -373,6 +356,13 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
             cntFields += 1;
             MessagePackSerializer.WriteUInt16(buffer, idxMapSizeEnvPropertiesPatch, envPropertiesCount);
+        }
+
+        if (hasEventId)
+        {
+            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "eventId");
+            cursor = MessagePackSerializer.SerializeInt32(buffer, cursor, eventId.Id);
+            cntFields += 1;
         }
 
         // Part A - ex extension

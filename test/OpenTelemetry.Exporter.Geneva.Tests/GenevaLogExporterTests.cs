@@ -1017,9 +1017,11 @@ public class GenevaLogExporterTests
     }
 
     [Theory]
-    [InlineData(EventNameExportMode.None)]
-    [InlineData(EventNameExportMode.ExportAsField)]
-    public void SerializationTestForEventName(EventNameExportMode eventNameExportMode)
+    [InlineData(EventNameExportMode.None, false)]
+    [InlineData(EventNameExportMode.None, true)]
+    [InlineData(EventNameExportMode.ExportAsField, false)]
+    [InlineData(EventNameExportMode.ExportAsField, true)]
+    public void SerializationTestForEventName(EventNameExportMode eventNameExportMode, bool hasTableNameMapping)
     {
         // ARRANGE
         string path = string.Empty;
@@ -1029,6 +1031,14 @@ public class GenevaLogExporterTests
         {
             var exporterOptions = new GenevaExporterOptions();
             exporterOptions.EventNameExportMode = eventNameExportMode;
+
+            if (hasTableNameMapping)
+            {
+                exporterOptions.TableNameMappings = new Dictionary<string, string>()
+                {
+                    ["*"] = "CustomTableName",
+                };
+            }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -1051,6 +1061,11 @@ public class GenevaLogExporterTests
                     {
                         options.ConnectionString = exporterOptions.ConnectionString;
                         options.EventNameExportMode = exporterOptions.EventNameExportMode;
+
+                        if (hasTableNameMapping)
+                        {
+                            options.TableNameMappings = exporterOptions.TableNameMappings;
+                        }
                     });
                     options.AddInMemoryExporter(logRecordList);
                 }));
@@ -1077,7 +1092,7 @@ public class GenevaLogExporterTests
             var m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
             _ = exporter.SerializeLogRecord(logRecordList[0]);
             object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
-            var eventName = GetField(fluentdData, "eventName");
+            var eventName = GetField(fluentdData, "env_name");
 
             if (eventNameExportMode.HasFlag(EventNameExportMode.ExportAsField))
             {
@@ -1085,7 +1100,7 @@ public class GenevaLogExporterTests
             }
             else
             {
-                Assert.Null(eventName);
+                Assert.Equal(hasTableNameMapping ? "CustomTableName" : "Log", eventName);
             }
 
             #endregion
@@ -1097,7 +1112,7 @@ public class GenevaLogExporterTests
 
             _ = exporter.SerializeLogRecord(logRecordList[0]);
             fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
-            eventName = GetField(fluentdData, "eventName");
+            eventName = GetField(fluentdData, "env_name");
 
             if (eventNameExportMode.HasFlag(EventNameExportMode.ExportAsField))
             {
@@ -1105,7 +1120,7 @@ public class GenevaLogExporterTests
             }
             else
             {
-                Assert.Null(eventName);
+                Assert.Equal(hasTableNameMapping ? "CustomTableName" : "Log", eventName);
             }
             #endregion
 
@@ -1116,8 +1131,8 @@ public class GenevaLogExporterTests
 
             _ = exporter.SerializeLogRecord(logRecordList[0]);
             fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
-            eventName = GetField(fluentdData, "eventName");
-            Assert.Null(eventName); // The exporter should not export eventName when it's null
+            eventName = GetField(fluentdData, "env_name");
+            Assert.Equal(hasTableNameMapping ? "CustomTableName" : "Log", eventName);
             #endregion
 
         }
