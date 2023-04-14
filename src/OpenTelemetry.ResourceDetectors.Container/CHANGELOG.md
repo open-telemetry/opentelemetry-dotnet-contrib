@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-beta.3
+
+Released 2023-Apr-7
+
 * Going forward the NuGet package will be
   [`OpenTelemetry.ResourceDetectors.Container`](https://www.nuget.org/packages/OpenTelemetry.ResourceDetectors.Container).
   Older versions will remain at
