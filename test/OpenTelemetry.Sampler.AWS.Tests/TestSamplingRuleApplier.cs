@@ -1,4 +1,4 @@
-// <copyright file="TestSamplingRule.cs" company="OpenTelemetry Authors">
+// <copyright file="TestSamplingRuleApplier.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@ using Xunit;
 
 namespace OpenTelemetry.Sampler.AWS.Tests;
 
-public class TestSamplingRule
+public class TestSamplingRuleApplier
 {
     [Fact]
     public void TestRuleMatchesWithAllAttributes()
@@ -45,7 +45,8 @@ public class TestSamplingRule
             { "http.url", @"http://127.0.0.1:5000/helloworld" },
         };
 
-        Assert.True(rule.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", "aws_ec2")));
+        var applier = new SamplingRuleApplier("clientId", new TestClock(), rule, new Statistics());
+        Assert.True(applier.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", "aws_ec2")));
     }
 
     [Fact]
@@ -72,7 +73,8 @@ public class TestSamplingRule
             { "http.url", @"http://127.0.0.1:5000/helloworld" },
         };
 
-        Assert.True(rule.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", "aws_ec2")));
+        var applier = new SamplingRuleApplier("clientId", new TestClock(), rule, new Statistics());
+        Assert.True(applier.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", "aws_ec2")));
     }
 
     [Fact]
@@ -94,7 +96,8 @@ public class TestSamplingRule
 
         var activityTags = new Dictionary<string, string>();
 
-        Assert.False(rule.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", "aws_ec2")));
+        var applier = new SamplingRuleApplier("clientId", new TestClock(), rule, new Statistics());
+        Assert.False(applier.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", "aws_ec2")));
     }
 
     [Fact]
@@ -116,7 +119,8 @@ public class TestSamplingRule
 
         var activityTags = new Dictionary<string, string>();
 
-        Assert.True(rule.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", "aws_ec2")));
+        var applier = new SamplingRuleApplier("clientId", new TestClock(), rule, new Statistics());
+        Assert.True(applier.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", "aws_ec2")));
     }
 
     [Fact]
@@ -141,7 +145,8 @@ public class TestSamplingRule
             { "http.target", "/helloworld" },
         };
 
-        Assert.True(rule.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", string.Empty)));
+        var applier = new SamplingRuleApplier("clientId", new TestClock(), rule, new Statistics());
+        Assert.True(applier.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", string.Empty)));
     }
 
     [Fact]
@@ -174,7 +179,8 @@ public class TestSamplingRule
             { "cat", "meow" },
         };
 
-        Assert.True(rule.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", "aws_ecs")));
+        var applier = new SamplingRuleApplier("clientId", new TestClock(), rule, new Statistics());
+        Assert.True(applier.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", "aws_ecs")));
     }
 
     [Fact]
@@ -206,68 +212,9 @@ public class TestSamplingRule
             { "dog", "bark" },
         };
 
-        Assert.False(rule.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", "aws_ecs")));
+        var applier = new SamplingRuleApplier("clientId", new TestClock(), rule, new Statistics());
+        Assert.False(applier.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", "aws_ecs")));
     }
 
-    [Fact]
-    public void TestDeepCopy()
-    {
-        var ruleAttributes = new Dictionary<string, string>()
-        {
-            { "dog", "bark" },
-            { "cat", "meow" },
-        };
-
-        var rule = new SamplingRule(
-            ruleName: "testRule",
-            priority: 1,
-            fixedRate: 0.05,
-            reservoirSize: 1,
-            host: "*",
-            httpMethod: "*",
-            resourceArn: "*",
-            serviceName: "myServiceName",
-            serviceType: "*",
-            urlPath: "*",
-            version: 1,
-            attributes: ruleAttributes)
-        {
-            Reservoir = new Reservoir(10),
-        };
-
-        var copy = rule.DeepCopy();
-
-        // assert that the objects are actually different
-        Assert.NotEqual(rule.GetHashCode(), copy.GetHashCode());
-        Assert.NotEqual(rule.Reservoir.GetHashCode(), copy.Reservoir.GetHashCode());
-        Assert.NotEqual(rule.Statistics.GetHashCode(), copy.Statistics.GetHashCode());
-
-        // assert that the property values are same
-        Assert.Equal(rule.RuleName, copy.RuleName);
-        Assert.Equal(rule.Priority, copy.Priority);
-        Assert.Equal(rule.FixedRate, copy.FixedRate);
-        Assert.Equal(rule.ReservoirSize, copy.ReservoirSize);
-        Assert.Equal(rule.Host, copy.Host);
-        Assert.Equal(rule.HttpMethod, copy.HttpMethod);
-        Assert.Equal(rule.ResourceArn, copy.ResourceArn);
-        Assert.Equal(rule.ServiceName, copy.ServiceName);
-        Assert.Equal(rule.ServiceType, copy.ServiceType);
-        Assert.Equal(rule.UrlPath, copy.UrlPath);
-        Assert.Equal(rule.Version, copy.Version);
-        Assert.True(this.CompareDicts(rule.Attributes, copy.Attributes));
-        Assert.Equal(rule.Reservoir.Quota, copy.Reservoir.Quota);
-    }
-
-    private bool CompareDicts(Dictionary<string, string> d1, Dictionary<string, string> d2)
-    {
-        foreach (var item in d1)
-        {
-            if (!d2.TryGetValue(item.Key, out var value) || value != item.Value)
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
+    // TODO: Add more test cases for ShouldSample once the sampling logic is added.
 }

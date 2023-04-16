@@ -29,42 +29,63 @@ internal class RulesCache : IDisposable
 
     private readonly ReaderWriterLockSlim rwLock;
 
-    public RulesCache()
+    public RulesCache(Clock clock, string clientId, Resource resource, Trace.Sampler fallbackSampler)
     {
-        this.Rules = new Dictionary<string, SamplingRule>();
         this.rwLock = new ReaderWriterLockSlim();
-        this.Clock = Clock.GetInstance;
+        this.Clock = clock;
+        this.ClientId = clientId;
+        this.Resource = resource;
+        this.FallbackSampler = fallbackSampler;
+        this.RuleAppliers = new List<SamplingRuleApplier>();
+        this.UpdatedAt = this.Clock.Now();
     }
 
-    public Dictionary<string, SamplingRule> Rules { get; internal set; }
+    internal Clock Clock { get; set; }
 
-    public Clock Clock { get; internal set; }
+    internal string ClientId { get; set; }
 
-    public DateTime? UpdatedAt { get; internal set; }
+    internal Resource Resource { get; set; }
+
+    internal Trace.Sampler FallbackSampler { get; set; }
+
+    internal List<SamplingRuleApplier> RuleAppliers { get; set; }
+
+    internal DateTime UpdatedAt { get; set; }
+
+    public bool Expired()
+    {
+        this.rwLock.EnterReadLock();
+        try
+        {
+            return this.Clock.Now() > this.UpdatedAt.AddSeconds(CacheTTL);
+        }
+        finally
+        {
+            this.rwLock.ExitReadLock();
+        }
+    }
 
     public void UpdateRules(List<SamplingRule> newRules)
     {
+        // sort the new rules
         newRules.Sort((x, y) => x.CompareTo(y));
 
-        var oldRulesCopy = this.DeepCopyRules();
-
-        foreach (var newRule in newRules)
+        List<SamplingRuleApplier> newRuleAppliers = new List<SamplingRuleApplier>();
+        foreach (var rule in newRules)
         {
-            if (oldRulesCopy.TryGetValue(newRule.RuleName, out SamplingRule? oldRule))
-            {
-                if (oldRule is not null)
-                {
-                    newRule.Reservoir = oldRule.Reservoir;
-                    newRule.Statistics = oldRule.Statistics;
-                }
-            }
+            var currentStatistics = this.RuleAppliers
+                .FirstOrDefault(currentApplier => currentApplier.RuleName == rule.RuleName)
+                ?.Statistics ?? new Statistics();
+
+            var ruleApplier = new SamplingRuleApplier(this.ClientId, this.Clock, rule, currentStatistics);
+            newRuleAppliers.Add(ruleApplier);
         }
 
         this.rwLock.EnterWriteLock();
         try
         {
-            this.Rules = newRules.ToDictionary(x => x.RuleName, x => x);
-            this.UpdatedAt = Clock.Now();
+            this.RuleAppliers = newRuleAppliers;
+            this.UpdatedAt = this.Clock.Now();
         }
         finally
         {
@@ -72,47 +93,19 @@ internal class RulesCache : IDisposable
         }
     }
 
-    public bool Expired()
+    public SamplingResult ShouldSample(in SamplingParameters samplingParameters)
     {
-        this.rwLock.EnterReadLock();
-        try
+        foreach (var ruleApplier in this.RuleAppliers)
         {
-            if (this.UpdatedAt is null)
+            if (ruleApplier.Matches(samplingParameters, this.Resource))
             {
-                return true;
-            }
-
-            return Clock.Now() > this.UpdatedAt.Value.AddSeconds(CacheTTL);
-        }
-        finally
-        {
-            this.rwLock.ExitReadLock();
-        }
-    }
-
-    public SamplingRule? MatchRule(SamplingParameters samplingParameters, Resource resource)
-    {
-        SamplingRule? matchedRule = null;
-
-        this.rwLock.EnterReadLock();
-        try
-        {
-            foreach (var ruleKeyValue in this.Rules)
-            {
-                if (ruleKeyValue.Value.Matches(samplingParameters, resource) ||
-                    string.Equals("Default", ruleKeyValue.Key, StringComparison.Ordinal))
-                {
-                    matchedRule = ruleKeyValue.Value;
-                    break;
-                }
+                return ruleApplier.ShouldSample(in samplingParameters);
             }
         }
-        finally
-        {
-            this.rwLock.ExitReadLock();
-        }
 
-        return matchedRule;
+        // ideally the default rule should have matched.
+        // if we are here then likely due to a bug.
+        return this.FallbackSampler.ShouldSample(in samplingParameters);
     }
 
     public void Dispose()
@@ -121,31 +114,24 @@ internal class RulesCache : IDisposable
         GC.SuppressFinalize(this);
     }
 
+    internal DateTime GetUpdatedAt()
+    {
+        this.rwLock.EnterReadLock();
+        try
+        {
+            return this.UpdatedAt;
+        }
+        finally
+        {
+            this.rwLock.ExitReadLock();
+        }
+    }
+
     private void Dispose(bool disposing)
     {
         if (disposing)
         {
             this.rwLock.Dispose();
         }
-    }
-
-    private Dictionary<string, SamplingRule> DeepCopyRules()
-    {
-        Dictionary<string, SamplingRule> copy = new Dictionary<string, SamplingRule>();
-
-        this.rwLock.EnterReadLock();
-        try
-        {
-            foreach (var ruleKeyValue in this.Rules)
-            {
-                copy.Add(ruleKeyValue.Key, ruleKeyValue.Value.DeepCopy());
-            }
-        }
-        finally
-        {
-            this.rwLock.ExitReadLock();
-        }
-
-        return copy;
     }
 }

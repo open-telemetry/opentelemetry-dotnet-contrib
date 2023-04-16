@@ -31,12 +31,14 @@ public class AWSXRayRemoteSamplerBuilder
     private Resource resource;
     private TimeSpan pollingInterval;
     private string endpoint;
+    private Clock clock;
 
     internal AWSXRayRemoteSamplerBuilder(Resource resource)
     {
         this.resource = resource;
         this.pollingInterval = DefaultPollingInterval;
         this.endpoint = DefaultEndpoint;
+        this.clock = Clock.GetDefault();
     }
 
     /// <summary>
@@ -81,6 +83,20 @@ public class AWSXRayRemoteSamplerBuilder
     /// <returns>an instance of <see cref="AWSXRayRemoteSampler"/>.</returns>
     public AWSXRayRemoteSampler Build()
     {
-        return new AWSXRayRemoteSampler(this.resource, this.pollingInterval, this.endpoint);
+        return new AWSXRayRemoteSampler(this.resource, this.pollingInterval, this.endpoint, this.clock);
+    }
+
+    // This is intended for testing with a mock clock.
+    // Should not be exposed to public.
+    internal AWSXRayRemoteSamplerBuilder SetClock(Clock clock)
+    {
+        if (clock == null)
+        {
+            throw new ArgumentNullException(nameof(clock));
+        }
+
+        this.clock = clock;
+
+        return this;
     }
 }

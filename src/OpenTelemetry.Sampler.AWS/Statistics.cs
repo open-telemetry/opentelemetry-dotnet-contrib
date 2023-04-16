@@ -14,55 +14,13 @@
 // limitations under the License.
 // </copyright>
 
-using System;
-using System.Threading;
-
 namespace OpenTelemetry.Sampler.AWS;
 
-internal class Statistics : IDisposable
+internal class Statistics
 {
-    private readonly ReaderWriterLockSlim rwLock;
-
-    public Statistics()
-    {
-        this.rwLock = new ReaderWriterLockSlim();
-    }
-
     public int RequestCount { get; internal set; }
 
     public int BorrowCount { get; internal set; }
 
     public int SampleCount { get; internal set; }
-
-    public Statistics DeepCopy()
-    {
-        this.rwLock.EnterReadLock();
-        try
-        {
-            return new Statistics()
-            {
-                RequestCount = this.RequestCount,
-                BorrowCount = this.BorrowCount,
-                SampleCount = this.SampleCount,
-            };
-        }
-        finally
-        {
-            this.rwLock.ExitReadLock();
-        }
-    }
-
-    public void Dispose()
-    {
-        this.Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    private void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            this.rwLock.Dispose();
-        }
-    }
 }

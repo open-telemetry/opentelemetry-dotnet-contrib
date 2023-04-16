@@ -19,24 +19,18 @@ using System;
 namespace OpenTelemetry.Sampler.AWS;
 
 // A time keeper for the purpose of this sampler.
-internal sealed class Clock
+internal abstract class Clock
 {
-    private static readonly Clock Instance = new Clock();
-
-    private Clock()
+    public static Clock GetDefault()
     {
+        return SystemClock.GetInstance();
     }
 
-    public static Clock GetInstance
-    {
-        get
-        {
-            return Instance;
-        }
-    }
+    public abstract DateTime Now();
 
-    public static DateTime Now()
-    {
-        return DateTime.UtcNow;
-    }
+    public abstract long NowInSeconds();
+
+    public abstract DateTime ToDateTime(double seconds);
+
+    public abstract double ToDouble(DateTime dateTime);
 }

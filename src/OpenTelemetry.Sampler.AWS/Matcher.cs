@@ -23,7 +23,7 @@ namespace OpenTelemetry.Sampler.AWS;
 
 internal static class Matcher
 {
-    public static readonly Dictionary<string, string> XRayCloudPlatform = new Dictionary<string, string>()
+    public static readonly IReadOnlyDictionary<string, string> XRayCloudPlatform = new Dictionary<string, string>()
     {
         { "aws_ec2", "AWS::EC2::Instance" },
         { "aws_ecs", "AWS::ECS::Container" },

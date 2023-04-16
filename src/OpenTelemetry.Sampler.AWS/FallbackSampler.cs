@@ -22,6 +22,13 @@ internal class FallbackSampler : Trace.Sampler
 {
     private static readonly Trace.Sampler AlwaysOn = new AlwaysOnSampler();
 
+    private readonly Clock clock;
+
+    public FallbackSampler(Clock clock)
+    {
+        this.clock = clock;
+    }
+
     public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
     {
         // For now just do an always on sampler.

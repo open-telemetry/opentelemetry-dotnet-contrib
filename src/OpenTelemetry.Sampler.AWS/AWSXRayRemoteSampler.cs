@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -27,32 +28,48 @@ namespace OpenTelemetry.Sampler.AWS;
 /// </summary>
 public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
 {
-    internal AWSXRayRemoteSampler(Resource resource, TimeSpan pollingInterval, string endpoint)
+    internal static readonly TimeSpan DefaultTargetInterval = TimeSpan.FromSeconds(10);
+
+    private static readonly Random Random = new Random();
+
+    [SuppressMessage("Performance", "CA5394: Do not use insecure randomness", Justification = "Secure random is not required for jitters.")]
+    internal AWSXRayRemoteSampler(Resource resource, TimeSpan pollingInterval, string endpoint, Clock clock)
     {
         this.Resource = resource;
         this.PollingInterval = pollingInterval;
         this.Endpoint = endpoint;
-        this.Client = new AWSXRaySamplerClient(endpoint);
+        this.Clock = clock;
+        this.ClientId = GenerateClientId();
+        this.Client = new AWSXRaySamplerClient(this.Endpoint);
+        this.FallbackSampler = new FallbackSampler(this.Clock);
+        this.RulesCache = new RulesCache(this.Clock, this.ClientId, this.Resource, this.FallbackSampler);
 
-        // execute the first update right away
-        this.RulePollerTimer = new Timer(this.GetAndUpdateSampler, null, TimeSpan.Zero, this.PollingInterval);
-        this.RulesCache = new RulesCache();
-        this.FallbackSampler = new FallbackSampler();
+        // upto 5 seconds of jitter for rule polling
+        this.RulePollerJitter = TimeSpan.FromMilliseconds(Random.Next(1, 5000));
+
+        // execute the first update right away and schedule subsequent update later.
+        this.RulePollerTimer = new Timer(this.GetAndUpdateRules, null, TimeSpan.Zero, Timeout.InfiniteTimeSpan);
     }
 
-    internal Resource Resource { get; }
+    internal TimeSpan RulePollerJitter { get; set; }
 
-    internal TimeSpan PollingInterval { get; }
+    internal Clock Clock { get; set; }
 
-    internal string Endpoint { get; }
+    internal string ClientId { get; set; }
 
-    internal AWSXRaySamplerClient Client { get; }
+    internal Resource Resource { get; set; }
 
-    internal Timer RulePollerTimer { get; }
+    internal string Endpoint { get; set; }
 
-    private RulesCache RulesCache { get; }
+    internal AWSXRaySamplerClient Client { get; set; }
 
-    private Trace.Sampler FallbackSampler { get; }
+    internal RulesCache RulesCache { get; set; }
+
+    internal Timer RulePollerTimer { get; set; }
+
+    internal TimeSpan PollingInterval { get; set; }
+
+    internal Trace.Sampler FallbackSampler { get; set; }
 
     /// <summary>
     /// Initializes a <see cref="AWSXRayRemoteSamplerBuilder"/> for the sampler.
@@ -71,20 +88,10 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
     {
         if (this.RulesCache.Expired())
         {
-            return this.FallbackSampler.ShouldSample(samplingParameters);
+            return this.FallbackSampler.ShouldSample(in samplingParameters);
         }
 
-        SamplingRule? matchedRule = this.RulesCache.MatchRule(samplingParameters, this.Resource);
-
-        // ideally this check shouldn't be required
-        // since the default rule must have matched.
-        if (matchedRule != null)
-        {
-            return matchedRule.Sample(samplingParameters);
-        }
-
-        // and we shouldn't have reached here if the default rule is present.
-        return this.FallbackSampler.ShouldSample(samplingParameters);
+        return this.RulesCache.ShouldSample(in samplingParameters);
     }
 
     /// <inheritdoc/>
@@ -94,19 +101,39 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
         GC.SuppressFinalize(this);
     }
 
+    [SuppressMessage(
+        "Usage",
+        "CA5394: Do not use insecure randomness",
+        Justification = "using insecure random is fine here since clientId doesn't need to be secure.")]
+    private static string GenerateClientId()
+    {
+        char[] hex = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+        char[] clientIdChars = new char[24];
+        for (int i = 0; i < clientIdChars.Length; i++)
+        {
+            clientIdChars[i] = hex[Random.Next(hex.Length)];
+        }
+
+        return new string(clientIdChars);
+    }
+
     private void Dispose(bool disposing)
     {
         if (disposing)
         {
             this.RulePollerTimer?.Dispose();
             this.Client?.Dispose();
+            this.RulesCache?.Dispose();
         }
     }
 
-    private async void GetAndUpdateSampler(object? state)
+    private async void GetAndUpdateRules(object? state)
     {
         List<SamplingRule> rules = await this.Client.GetSamplingRules().ConfigureAwait(false);
 
         this.RulesCache.UpdateRules(rules);
+
+        // schedule the next rule poll.
+        this.RulePollerTimer.Change(this.PollingInterval.Add(this.RulePollerJitter), Timeout.InfiniteTimeSpan);
     }
 }
