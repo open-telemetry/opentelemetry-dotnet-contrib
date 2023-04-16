@@ -27,9 +27,11 @@ public class TestRulesCache
     [Fact]
     public void TestExpiredRulesCache()
     {
-        var testClock = new TestClock(new DateTime(2023, 1, 1));
+        var testClock = new TestClock(new DateTime(2023, 4, 15));
         var rulesCache = new RulesCache(testClock, "testId", ResourceBuilder.CreateEmpty().Build(), new AlwaysOnSampler());
 
+        // advance the clock by 2 hours
+        testClock.Advance(TimeSpan.FromHours(2));
         Assert.True(rulesCache.Expired());
     }
 

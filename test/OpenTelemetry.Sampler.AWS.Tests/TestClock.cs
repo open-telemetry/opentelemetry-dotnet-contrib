@@ -55,4 +55,10 @@ internal class TestClock : Clock
     {
         throw new NotImplementedException();
     }
+
+    // Advnaces the clock by a given time span.
+    public void Advance(TimeSpan time)
+    {
+        this.nowTime = this.nowTime.Add(time);
+    }
 }
