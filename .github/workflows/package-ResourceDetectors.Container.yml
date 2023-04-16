@@ -1,4 +1,4 @@
-name: Pack OpenTelemetry.Extensions.Docker
+name: Pack OpenTelemetry.ResourceDetectors.Container
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ on:
         default: 'warning'
   push:
     tags:
-      - 'Extensions.Docker-*' # trigger when we create a tag with prefix "Extensions.Docker-"
+      - 'ResourceDetectors.Container-*' # trigger when we create a tag with prefix "ResourceDetectors.Container-"
 
 jobs:
   build-test-pack:
@@ -17,7 +17,7 @@ jobs:
     permissions:
       contents: write
     env:
-      PROJECT: OpenTelemetry.Extensions.Docker
+      PROJECT: OpenTelemetry.ResourceDetectors.Container
 
     strategy:
       matrix:
