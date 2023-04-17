@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -26,7 +27,7 @@ namespace OpenTelemetry.ResourceDetectors.Azure;
 /// </summary>
 public sealed class AppServiceResourceDetector : IResourceDetector
 {
-    internal static readonly Dictionary<string, string> AppServiceResourceAttributes = new Dictionary<string, string>
+    internal static IReadOnlyDictionary<string, string> AppServiceResourceAttributes = new Dictionary<string, string>
     {
         ["appSrv_SiteName"] = "WEBSITE_SITE_NAME",
         [ResourceSemanticConventions.AttributeServiceName] = "WEBSITE_SITE_NAME",
