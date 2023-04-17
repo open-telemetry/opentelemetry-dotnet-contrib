@@ -26,7 +26,7 @@ namespace OpenTelemetry.ResourceDetectors.Azure;
 /// </summary>
 public sealed class AppServiceResourceDetector : IResourceDetector
 {
-    internal static IReadOnlyDictionary<string, string> AppServiceResourceAttributes = new Dictionary<string, string>
+    internal static readonly IReadOnlyDictionary<string, string> AppServiceResourceAttributes = new Dictionary<string, string>
     {
         ["appSrv_SiteName"] = "WEBSITE_SITE_NAME",
         [ResourceSemanticConventions.AttributeServiceName] = "WEBSITE_SITE_NAME",
