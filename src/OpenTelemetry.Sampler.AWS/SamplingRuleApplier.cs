@@ -103,7 +103,8 @@ internal class SamplingRuleApplier
                Matcher.WildcardMatch(httpMethod, this.Rule.HttpMethod) &&
                Matcher.WildcardMatch(httpHost, this.Rule.Host) &&
                Matcher.WildcardMatch(serviceName, this.Rule.ServiceName) &&
-               Matcher.WildcardMatch(GetServiceType(resource), this.Rule.ServiceType);
+               Matcher.WildcardMatch(GetServiceType(resource), this.Rule.ServiceType) &&
+               Matcher.WildcardMatch(GetArn(in samplingParameters, resource), this.Rule.ResourceArn);
     }
 
     [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "method work in progress")]
@@ -125,5 +126,29 @@ internal class SamplingRuleApplier
         }
 
         return Matcher.XRayCloudPlatform.TryGetValue(cloudPlatform, out string? value) ? value : string.Empty;
+    }
+
+    private static string GetArn(in SamplingParameters samplingParameters, Resource resource)
+    {
+        // currently the aws resource detectors only capture ARNs for ECS and Lambda environments.
+        string? arn = (string?)resource.Attributes.FirstOrDefault(kvp =>
+            kvp.Key.Equals("aws.ecs.container.arn", StringComparison.Ordinal)).Value;
+
+        if (arn != null)
+        {
+            return arn;
+        }
+
+        if (GetServiceType(resource).Equals("AWS::Lambda::Function", StringComparison.Ordinal))
+        {
+            arn = (string?)samplingParameters.Tags?.FirstOrDefault(kvp => kvp.Key.Equals("faas.id", StringComparison.Ordinal)).Value;
+
+            if (arn != null)
+            {
+                return arn;
+            }
+        }
+
+        return string.Empty;
     }
 }

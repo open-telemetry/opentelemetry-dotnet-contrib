@@ -31,9 +31,9 @@ public class TestSamplingRuleApplier
             reservoirSize: 1,
             host: "localhost",
             httpMethod: "GET",
-            resourceArn: "*",
+            resourceArn: "arn:aws:lambda:us-west-2:123456789012:function:my-function",
             serviceName: "myServiceName",
-            serviceType: "AWS::EC2::Instance",
+            serviceType: "AWS::Lambda::Function",
             urlPath: "/helloworld",
             version: 1,
             attributes: new Dictionary<string, string>());
@@ -43,10 +43,11 @@ public class TestSamplingRuleApplier
             { "http.host", "localhost" },
             { "http.method", "GET" },
             { "http.url", @"http://127.0.0.1:5000/helloworld" },
+            { "faas.id", "arn:aws:lambda:us-west-2:123456789012:function:my-function" },
         };
 
         var applier = new SamplingRuleApplier("clientId", new TestClock(), rule, new Statistics());
-        Assert.True(applier.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", "aws_ec2")));
+        Assert.True(applier.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", "aws_lambda")));
     }
 
     [Fact]

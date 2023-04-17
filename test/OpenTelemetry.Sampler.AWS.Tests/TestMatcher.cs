@@ -21,20 +21,28 @@ namespace OpenTelemetry.Sampler.AWS.Tests;
 
 public class TestMatcher
 {
-    [Fact]
-    public void TestWildcardMatching()
+    [Theory]
+    [InlineData(null, "*")]
+    [InlineData("", "*")]
+    [InlineData("HelloWorld", "*")]
+    [InlineData("HelloWorld", "HelloWorld")]
+    [InlineData("HelloWorld", "Hello*")]
+    [InlineData("HelloWorld", "*World")]
+    [InlineData("HelloWorld", "?ello*")]
+    [InlineData("HelloWorld", "Hell?W*d")]
+    [InlineData("Hello.World", "*.World")]
+    [InlineData("Bye.World", "*.World")]
+    public void TestWildcardMatch(string input, string pattern)
     {
-        Assert.True(Matcher.WildcardMatch(null, "*"));
-        Assert.True(Matcher.WildcardMatch(string.Empty, "*"));
-        Assert.True(Matcher.WildcardMatch("HelloWorld", "*"));
+        Assert.True(Matcher.WildcardMatch(input, pattern));
+    }
 
-        Assert.False(Matcher.WildcardMatch(null, "Hello*"));
-        Assert.False(Matcher.WildcardMatch("HelloWorld", null));
-
-        Assert.True(Matcher.WildcardMatch("HelloWorld", "HelloWorld"));
-        Assert.True(Matcher.WildcardMatch("HelloWorld", "Hello*"));
-        Assert.True(Matcher.WildcardMatch("HelloWorld", "*World"));
-        Assert.True(Matcher.WildcardMatch("HelloWorld", "?ello*"));
+    [Theory]
+    [InlineData(null, "Hello*")]
+    [InlineData("HelloWorld", null)]
+    public void TestWildcardDoesNotMatch(string input, string pattern)
+    {
+        Assert.False(Matcher.WildcardMatch(input, pattern));
     }
 
     [Fact]

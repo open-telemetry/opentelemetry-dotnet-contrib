@@ -15,7 +15,10 @@ dotnet add package OpenTelemetry.Sampler.AWS
 
 You can configure the `AWSXRayRemoteSampler` as per the following example.
 Note that you will need to configure your [OpenTelemetry Collector for
-X-Ray remote sampling](https://aws-otel.github.io/docs/getting-started/remote-sampling)
+X-Ray remote sampling](https://aws-otel.github.io/docs/getting-started/remote-sampling).
+This example also sets up the Console Exporter,
+which requires adding the package [`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md)
+to the application.
 
 ```csharp
 using OpenTelemetry;
@@ -35,7 +38,6 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .AddSource(serviceName)
     .SetResourceBuilder(resourceBuilder)
     .AddConsoleExporter()
-    .AddOtlpExporter()
     .SetSampler(AWSXRayRemoteSampler.Builder(resourceBuilder.Build()) // you must provide a resource
         .SetPollingInterval(TimeSpan.FromSeconds(5))
         .SetEndpoint("http://localhost:2000")
