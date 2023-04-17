@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
