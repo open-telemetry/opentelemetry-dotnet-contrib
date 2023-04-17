@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.ResourceDetectors.Azure;
 
@@ -25,6 +26,18 @@ namespace OpenTelemetry.ResourceDetectors.Azure;
 /// </summary>
 public sealed class AppServiceResourceDetector : IResourceDetector
 {
+    internal static readonly Dictionary<string, string> AppServiceResourceAttributes = new Dictionary<string, string>
+    {
+        ["appSrv_SiteName"] = "WEBSITE_SITE_NAME",
+        [ResourceSemanticConventions.AttributeServiceName] = "WEBSITE_SITE_NAME",
+        [ResourceSemanticConventions.AttributeServiceInstance] = "WEBSITE_INSTANCE_ID",
+        ["appSrv_SlotName"] = "WEBSITE_SLOT_NAME",
+        ["appSrv_wsStamp"] = "WEBSITE_HOME_STAMPNAME",
+        ["appSrv_wsHost"] = "WEBSITE_HOSTNAME",
+        ["appSrv_wsOwner"] = "WEBSITE_OWNER_NAME",
+        ["appSrv_ResourceGroup"] = "WEBSITE_RESOURCE_GROUP",
+    };
+
     /// <inheritdoc/>
     public Resource Detect()
     {
@@ -32,40 +45,13 @@ public sealed class AppServiceResourceDetector : IResourceDetector
 
         try
         {
-            var website_SlotName = Environment.GetEnvironmentVariable("WEBSITE_SLOT_NAME");
-            if (website_SlotName != null)
+            foreach (var kvp in AppServiceResourceAttributes)
             {
-                attributeList.Add(new KeyValuePair<string, object>("appSrv_SiteName", website_SlotName));
-            }
-
-            var website_Name = Environment.GetEnvironmentVariable("WEBSITE_SITE_NAME");
-            if (website_Name != null)
-            {
-                attributeList.Add(new KeyValuePair<string, object>("appSrv_SiteName", website_Name));
-            }
-
-            var website_Home_Stampname = Environment.GetEnvironmentVariable("WEBSITE_HOME_STAMPNAME");
-            if (website_Home_Stampname != null)
-            {
-                attributeList.Add(new KeyValuePair<string, object>("appSrv_wsStamp", website_Home_Stampname));
-            }
-
-            var website_HostName = Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME");
-            if (website_HostName != null)
-            {
-                attributeList.Add(new KeyValuePair<string, object>("appSrv_wsHost", website_HostName));
-            }
-
-            var website_Owner_Name = Environment.GetEnvironmentVariable("WEBSITE_OWNER_NAME");
-            if (website_Owner_Name != null)
-            {
-                attributeList.Add(new KeyValuePair<string, object>("appSrv_wsOwner", website_Owner_Name));
-            }
-
-            var website_Resource_Group = Environment.GetEnvironmentVariable("WEBSITE_RESOURCE_GROUP");
-            if (website_Resource_Group != null)
-            {
-                attributeList.Add(new KeyValuePair<string, object>("appSrv_ResourceGroup", website_Resource_Group));
+                var attributeValue = Environment.GetEnvironmentVariable(kvp.Value);
+                if (attributeValue != null)
+                {
+                    attributeList.Add(new KeyValuePair<string, object>(kvp.Key, attributeValue));
+                }
             }
         }
         catch
