@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\NullableAttributes.cs" Link="Includes\NullableAttributes.cs" />
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\DataValidation\NullableAttributes.cs" Link="Includes\NullableAttributes.cs" />
   </ItemGroup>
 
 </Project>
