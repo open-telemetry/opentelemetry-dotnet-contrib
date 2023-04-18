@@ -1,4 +1,4 @@
-// <copyright file="Statistics.cs" company="OpenTelemetry Authors">
+// <copyright file="GetSamplingTargetsRequest.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,11 +14,18 @@
 // limitations under the License.
 // </copyright>
 
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
+
 namespace OpenTelemetry.Sampler.AWS;
 
-internal class Statistics
+internal class GetSamplingTargetsRequest
 {
-    public long RequestCount;
-    public long BorrowCount;
-    public long SampleCount;
+    public GetSamplingTargetsRequest(List<SamplingStatisticsDocument> documents)
+    {
+        this.SamplingStatisticsDocuments = documents;
+    }
+
+    [JsonPropertyName("SamplingStatisticsDocuments")]
+    public List<SamplingStatisticsDocument> SamplingStatisticsDocuments { get; set; }
 }

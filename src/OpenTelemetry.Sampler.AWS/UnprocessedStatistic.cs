@@ -1,4 +1,4 @@
-// <copyright file="Statistics.cs" company="OpenTelemetry Authors">
+// <copyright file="UnprocessedStatistic.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,11 +14,25 @@
 // limitations under the License.
 // </copyright>
 
+using System.Text.Json.Serialization;
+
 namespace OpenTelemetry.Sampler.AWS;
 
-internal class Statistics
+internal class UnprocessedStatistic
 {
-    public long RequestCount;
-    public long BorrowCount;
-    public long SampleCount;
+    public UnprocessedStatistic(string? errorCode, string? message, string? ruleName)
+    {
+        this.ErrorCode = errorCode;
+        this.Message = message;
+        this.RuleName = ruleName;
+    }
+
+    [JsonPropertyName("ErrorCode")]
+    public string? ErrorCode { get; set; }
+
+    [JsonPropertyName("Message")]
+    public string? Message { get; set; }
+
+    [JsonPropertyName("RuleName")]
+    public string? RuleName { get; set; }
 }
