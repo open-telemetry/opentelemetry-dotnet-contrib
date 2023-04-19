@@ -6,6 +6,10 @@
   field.
   ([#1134](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1134))
 
+* Update GenevaLogExporter to export `eventId.Name` as the value for Part A
+  `name` field when the `EventNameExportMode` option is set to `ExportAsPartAName`.
+  ([#1135](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1135))
+
 ## 1.4.1
 
 Released 2023-Mar-29
