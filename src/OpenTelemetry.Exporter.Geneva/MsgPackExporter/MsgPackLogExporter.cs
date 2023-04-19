@@ -36,11 +36,11 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None",
     };
 
+    private readonly bool m_shouldExportEventName;
     private readonly TableNameSerializer m_tableNameSerializer;
     private readonly Dictionary<string, object> m_customFields;
     private readonly Dictionary<string, object> m_prepopulatedFields;
     private readonly ExceptionStackExportMode m_exportExceptionStack;
-    private readonly EventNameExportMode m_eventNameExportMode;
     private readonly List<string> m_prepopulatedFieldKeys;
     private readonly byte[] m_bufferEpilogue;
     private readonly IDataTransport m_dataTransport;
@@ -53,7 +53,8 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     {
         this.m_tableNameSerializer = new(options, defaultTableName: "Log");
         this.m_exportExceptionStack = options.ExceptionStackExportMode;
-        this.m_eventNameExportMode = options.EventNameExportMode;
+
+        this.m_shouldExportEventName = (options.EventNameExportMode & EventNameExportMode.ExportAsPartAName) != 0;
 
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
         switch (connectionStringBuilder.Protocol)
@@ -208,7 +209,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         var eventId = logRecord.EventId;
         bool hasEventId = eventId != default;
 
-        if (hasEventId && (this.m_eventNameExportMode & EventNameExportMode.ExportAsField) != 0 && !string.IsNullOrWhiteSpace(eventId.Name))
+        if (hasEventId && this.m_shouldExportEventName && !string.IsNullOrWhiteSpace(eventId.Name))
         {
             // Export `eventId.Name` as the value for `env_name`
             cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, eventId.Name);

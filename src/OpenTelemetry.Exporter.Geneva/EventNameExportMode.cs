@@ -31,7 +31,7 @@ public enum EventNameExportMode
     /// GenevaExporter will export <a href="https://learn.microsoft.com/dotnet/api/microsoft.extensions.logging.eventid.name">eventId.Name</a>
     /// as Part A name field when this flag is selected.
     /// </summary>
-    ExportAsField = 1,
+    ExportAsPartAName = 1,
 
     /* Note: This might be added in future.
     /// <summary>

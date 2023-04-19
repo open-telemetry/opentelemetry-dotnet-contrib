@@ -1019,8 +1019,8 @@ public class GenevaLogExporterTests
     [Theory]
     [InlineData(EventNameExportMode.None, false)]
     [InlineData(EventNameExportMode.None, true)]
-    [InlineData(EventNameExportMode.ExportAsField, false)]
-    [InlineData(EventNameExportMode.ExportAsField, true)]
+    [InlineData(EventNameExportMode.ExportAsPartAName, false)]
+    [InlineData(EventNameExportMode.ExportAsPartAName, true)]
     public void SerializationTestForEventName(EventNameExportMode eventNameExportMode, bool hasTableNameMapping)
     {
         // ARRANGE
@@ -1094,7 +1094,7 @@ public class GenevaLogExporterTests
             object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
             var eventName = GetField(fluentdData, "env_name");
 
-            if (eventNameExportMode.HasFlag(EventNameExportMode.ExportAsField))
+            if (eventNameExportMode.HasFlag(EventNameExportMode.ExportAsPartAName))
             {
                 Assert.Equal("TestEventNameWithLogMethod", eventName);
             }
@@ -1114,7 +1114,7 @@ public class GenevaLogExporterTests
             fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
             eventName = GetField(fluentdData, "env_name");
 
-            if (eventNameExportMode.HasFlag(EventNameExportMode.ExportAsField))
+            if (eventNameExportMode.HasFlag(EventNameExportMode.ExportAsPartAName))
             {
                 Assert.Equal("TestEventNameWithLogExtensionMethod", eventName);
             }
