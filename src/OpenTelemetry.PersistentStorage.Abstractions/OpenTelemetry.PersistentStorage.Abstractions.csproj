@@ -7,7 +7,7 @@
     <TargetFrameworks Condition="'$(Configuration)' == 'Debug'">net6.0;$(TargetFrameworks)</TargetFrameworks> <!-- Added just to get proper nullable analysis in IDE -->
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
     <Description>OpenTelemetry Persistent Storage Abstractions</Description>
-    <MinVerTagPrefix>Extensions.PersistentStorage.Abstractions-</MinVerTagPrefix>
+    <MinVerTagPrefix>PersistentStorage.Abstractions-</MinVerTagPrefix>
     <NoWarn>$(NoWarn),1591</NoWarn>
     <Nullable>enable</Nullable>
     <EnableAnalysis>true</EnableAnalysis>
