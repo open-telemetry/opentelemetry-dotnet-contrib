@@ -1,9 +1,16 @@
 # Changelog - OpenTelemetry.PersistentStorage.FileSystem
 
-## 1.0.0-beta.2 (Unreleased)
+## Unreleased
+
+## 1.0.0-beta.2
+
+Released 2023-Apr-17
+
+* Fix a bug affecting the directory size when multiple `FileBlobProvider`s
+  were in a single process. [(#1133)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1133)
 
 * `FileBlobProvider` will now use the path provided during initialization as is
-* for storing blobs, without adding additional hash of current user and process.
+  for storing blobs, without adding additional hash of current user and process.
 ([#1110](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1110))
 
 * Going forward the NuGet package will be
