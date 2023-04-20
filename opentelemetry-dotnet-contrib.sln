@@ -264,36 +264,24 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Enrichment", "exam
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "enrichment", "enrichment", "{93503FAF-D43D-48C0-818C-92EB90F7606B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OpenTelemetry.Contrib.Shared", "OpenTelemetry.Contrib.Shared", "{1FCC8EEC-9E75-4FEA-AFCF-363DD33FF0B9}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{1FCC8EEC-9E75-4FEA-AFCF-363DD33FF0B9}"
 	ProjectSection(SolutionItems) = preProject
-		src\OpenTelemetry.Contrib.Shared\ServiceProviderExtensions.cs = src\OpenTelemetry.Contrib.Shared\ServiceProviderExtensions.cs
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Api", "Api", "{52F257EC-DEA2-4F2C-914C-01142E4E6A0C}"
-	ProjectSection(SolutionItems) = preProject
-		src\OpenTelemetry.Contrib.Shared\Api\ExceptionExtensions.cs = src\OpenTelemetry.Contrib.Shared\Api\ExceptionExtensions.cs
-		src\OpenTelemetry.Contrib.Shared\Api\ResourceSemanticConventions.cs = src\OpenTelemetry.Contrib.Shared\Api\ResourceSemanticConventions.cs
-		src\OpenTelemetry.Contrib.Shared\Api\SemanticConventions.cs = src\OpenTelemetry.Contrib.Shared\Api\SemanticConventions.cs
-		src\OpenTelemetry.Contrib.Shared\Api\SpanAttributeConstants.cs = src\OpenTelemetry.Contrib.Shared\Api\SpanAttributeConstants.cs
-		src\OpenTelemetry.Contrib.Shared\Api\SpanHelper.cs = src\OpenTelemetry.Contrib.Shared\Api\SpanHelper.cs
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataValidation", "DataValidation", "{E748E0D9-6B6E-43A8-95F7-B2FE1B595C3C}"
-	ProjectSection(SolutionItems) = preProject
-		src\OpenTelemetry.Contrib.Shared\DataValidation\Guard.cs = src\OpenTelemetry.Contrib.Shared\DataValidation\Guard.cs
-		src\OpenTelemetry.Contrib.Shared\DataValidation\IsExternalInit.cs = src\OpenTelemetry.Contrib.Shared\DataValidation\IsExternalInit.cs
-		src\OpenTelemetry.Contrib.Shared\DataValidation\NullableAttributes.cs = src\OpenTelemetry.Contrib.Shared\DataValidation\NullableAttributes.cs
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DiagnosticSourceInstrumentation", "DiagnosticSourceInstrumentation", "{0E000B45-17E8-4DA7-9070-DB3300ED7594}"
-	ProjectSection(SolutionItems) = preProject
-		src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\ActivityInstrumentationHelper.cs = src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\ActivityInstrumentationHelper.cs
-		src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\DiagnosticSourceListener.cs = src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\DiagnosticSourceListener.cs
-		src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\DiagnosticSourceSubscriber.cs = src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\DiagnosticSourceSubscriber.cs
-		src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\InstrumentationEventSource.cs = src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\InstrumentationEventSource.cs
-		src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\ListenerHandler.cs = src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\ListenerHandler.cs
-		src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\MultiTypePropertyFetcher.cs = src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\MultiTypePropertyFetcher.cs
-		src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\PropertyFetcher.cs = src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\PropertyFetcher.cs
+		src\Shared\ActivityInstrumentationHelper.cs = src\Shared\ActivityInstrumentationHelper.cs
+		src\Shared\DiagnosticSourceListener.cs = src\Shared\DiagnosticSourceListener.cs
+		src\Shared\DiagnosticSourceSubscriber.cs = src\Shared\DiagnosticSourceSubscriber.cs
+		src\Shared\ExceptionExtensions.cs = src\Shared\ExceptionExtensions.cs
+		src\Shared\Guard.cs = src\Shared\Guard.cs
+		src\Shared\InstrumentationEventSource.cs = src\Shared\InstrumentationEventSource.cs
+		src\Shared\IsExternalInit.cs = src\Shared\IsExternalInit.cs
+		src\Shared\ListenerHandler.cs = src\Shared\ListenerHandler.cs
+		src\Shared\MultiTypePropertyFetcher.cs = src\Shared\MultiTypePropertyFetcher.cs
+		src\Shared\NullableAttributes.cs = src\Shared\NullableAttributes.cs
+		src\Shared\PropertyFetcher.cs = src\Shared\PropertyFetcher.cs
+		src\Shared\ResourceSemanticConventions.cs = src\Shared\ResourceSemanticConventions.cs
+		src\Shared\SemanticConventions.cs = src\Shared\SemanticConventions.cs
+		src\Shared\ServiceProviderExtensions.cs = src\Shared\ServiceProviderExtensions.cs
+		src\Shared\SpanAttributeConstants.cs = src\Shared\SpanAttributeConstants.cs
+		src\Shared\SpanHelper.cs = src\Shared\SpanHelper.cs
 	EndProjectSection
 EndProject
 Global
@@ -692,9 +680,6 @@ Global
 		{9B7F7605-ADFF-4A47-9B64-FFF3E2EC9DEA} = {93503FAF-D43D-48C0-818C-92EB90F7606B}
 		{93503FAF-D43D-48C0-818C-92EB90F7606B} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
 		{1FCC8EEC-9E75-4FEA-AFCF-363DD33FF0B9} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
-		{52F257EC-DEA2-4F2C-914C-01142E4E6A0C} = {1FCC8EEC-9E75-4FEA-AFCF-363DD33FF0B9}
-		{E748E0D9-6B6E-43A8-95F7-B2FE1B595C3C} = {1FCC8EEC-9E75-4FEA-AFCF-363DD33FF0B9}
-		{0E000B45-17E8-4DA7-9070-DB3300ED7594} = {1FCC8EEC-9E75-4FEA-AFCF-363DD33FF0B9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}

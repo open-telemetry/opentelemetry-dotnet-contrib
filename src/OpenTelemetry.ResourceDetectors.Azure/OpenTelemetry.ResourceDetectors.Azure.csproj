@@ -13,7 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\DataValidation\Guard.cs" Link="Includes\Guard.cs" />
-        <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\ResourceSemanticConventions.cs" Link="Includes\ResourceSemanticConventions.cs"/>
+        <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
+        <Compile Include="$(RepoRoot)\src\Shared\ResourceSemanticConventions.cs" Link="Includes\ResourceSemanticConventions.cs"/>
     </ItemGroup>
 </Project>

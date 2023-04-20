@@ -9,9 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\SemanticConventions.cs" Link="Includes\SemanticConventions.cs"/>
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\SpanHelper.cs" Link="Includes\SpanHelper.cs"/>
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\DataValidation\Guard.cs" Link="Includes\Guard.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs"/>
+    <Compile Include="$(RepoRoot)\src\Shared\SpanHelper.cs" Link="Includes\SpanHelper.cs"/>
+    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
   </ItemGroup>
 
   <ItemGroup>
