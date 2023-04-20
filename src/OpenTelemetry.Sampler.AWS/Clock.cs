@@ -30,6 +30,10 @@ internal abstract class Clock
 
     public abstract long NowInSeconds();
 
+    public abstract long NowInMilliSeconds();
+
+    public abstract long NowInNanoseconds();
+
     public abstract DateTime ToDateTime(double seconds);
 
     public abstract double ToDouble(DateTime dateTime);

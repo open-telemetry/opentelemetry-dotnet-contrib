@@ -23,6 +23,11 @@ namespace OpenTelemetry.Sampler.AWS.Tests;
 
 internal static class Utils
 {
+    internal static SamplingParameters CreateSamplingParameters()
+    {
+        return CreateSamplingParametersWithTags(new Dictionary<string, string>());
+    }
+
     internal static SamplingParameters CreateSamplingParametersWithTags(Dictionary<string, string> tags)
     {
         ActivityTraceId traceId = ActivityTraceId.CreateRandom();

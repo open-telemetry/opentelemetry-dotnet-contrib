@@ -234,8 +234,8 @@ internal class SamplingRuleApplier
         }
 
         DateTime newNextSnapshotTime = target.Interval != null
-            ? this.Clock.Now().AddSeconds(target.Interval.Value)
-            : this.Clock.Now().AddTicks(AWSXRayRemoteSampler.DefaultTargetInterval.Ticks);
+            ? now.AddSeconds(target.Interval.Value)
+            : now.Add(AWSXRayRemoteSampler.DefaultTargetInterval);
 
         return new SamplingRuleApplier(
             this.ClientId,

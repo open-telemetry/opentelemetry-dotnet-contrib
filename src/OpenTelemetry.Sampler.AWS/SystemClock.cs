@@ -48,6 +48,22 @@ internal class SystemClock : Clock
         return (long)s;
     }
 
+    public override long NowInMilliSeconds()
+    {
+        double ts = Stopwatch.GetTimestamp();
+        double ms = 1.0e3 * ts / Stopwatch.Frequency;
+
+        return (long)ms;
+    }
+
+    public override long NowInNanoseconds()
+    {
+        double ts = Stopwatch.GetTimestamp();
+        double ns = 1.0e9 * ts / Stopwatch.Frequency;
+
+        return (long)ns;
+    }
+
     public override DateTime ToDateTime(double seconds)
     {
         return EpochStart.AddSeconds(seconds);

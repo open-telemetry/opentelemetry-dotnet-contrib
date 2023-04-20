@@ -165,6 +165,8 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
                 }
             }
 
+            Console.WriteLine("::::::IN GET AND UPDATE TARGETS:::::::::");
+
             this.RulesCache.UpdateTargets(targets);
 
             if (response.LastRuleModification > 0)

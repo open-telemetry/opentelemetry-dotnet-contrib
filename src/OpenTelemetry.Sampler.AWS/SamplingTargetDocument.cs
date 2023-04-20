@@ -20,15 +20,6 @@ namespace OpenTelemetry.Sampler.AWS;
 
 internal class SamplingTargetDocument
 {
-    public SamplingTargetDocument(double fixedRate, long interval, long reservoirQuota, double reservoirQuotaTTL, string ruleName)
-    {
-        this.FixedRate = fixedRate;
-        this.Interval = interval;
-        this.ReservoirQuota = reservoirQuota;
-        this.ReservoirQuotaTTL = reservoirQuotaTTL;
-        this.RuleName = ruleName;
-    }
-
     [JsonPropertyName("FixedRate")]
     public double? FixedRate { get; set; }
 
