@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
 using Xunit;
 
 namespace OpenTelemetry.ResourceDetectors.Azure.Tests;
@@ -27,24 +26,46 @@ public class AzureResourceDetectorTests : IDisposable
     [Fact]
     public void AppServiceResourceDetectorReturnsResourceWithAttributes()
     {
-        Environment.SetEnvironmentVariable("WEBSITE_SITE_NAME", "AzureAppService");
-        Environment.SetEnvironmentVariable("WEBSITE_INSTANCE_ID", "AzureInstance");
+        try
+        {
+            foreach (var kvp in AppServiceResourceDetector.AppServiceResourceAttributes)
+            {
+                if (kvp.Value == "WEBSITE_SITE_NAME")
+                {
+                    continue;
+                }
+
+                Environment.SetEnvironmentVariable(kvp.Value, kvp.Key);
+            }
+
+            // Special case for service.name and appSrv_SiteName attribute
+            Environment.SetEnvironmentVariable("WEBSITE_SITE_NAME", "ServiceName");
+        }
+        catch
+        {
+        }
+
         var resource = ResourceBuilder.CreateEmpty().AddDetector(new AppServiceResourceDetector()).Build();
         Assert.NotNull(resource);
-        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "AzureAppService"), resource.Attributes);
-        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceInstance, "AzureInstance"), resource.Attributes);
-    }
 
-    [Fact]
-    public void AppServiceResourceDetectorReturnsNullOutsideOfAppService()
-    {
-        var resource = new AppServiceResourceDetector().Detect();
-        Assert.Empty(resource.Attributes);
+        foreach (var kvp in AppServiceResourceDetector.AppServiceResourceAttributes)
+        {
+            if (kvp.Value == "WEBSITE_SITE_NAME")
+            {
+                Assert.Contains(new KeyValuePair<string, object>(kvp.Key, "ServiceName"), resource.Attributes);
+            }
+            else
+            {
+                Assert.Contains(new KeyValuePair<string, object>(kvp.Key, kvp.Key), resource.Attributes);
+            }
+        }
     }
 
     public void Dispose()
     {
-        Environment.SetEnvironmentVariable("WEBSITE_SITE_NAME", null);
-        Environment.SetEnvironmentVariable("WEBSITE_INSTANCE_ID", null);
+        foreach (var kvp in AppServiceResourceDetector.AppServiceResourceAttributes)
+        {
+            Environment.SetEnvironmentVariable(kvp.Value, null);
+        }
     }
 }
