@@ -64,13 +64,14 @@ public class FileBlobProviderTests
         testDirectory.Delete(true);
     }
 
-    [Fact(Skip = "Unstable")]
-    public void FileBlobProvider_CreateBlobReturnsNullIfblobProviderIsFull()
+    [Fact]
+    public void FileBlobProvider_CreateBlobReturnsNullIfBlobProviderIsFull()
     {
         var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-        using var blobProvider = new FileBlobProvider(testDirectory.FullName, 10000);
+        using var blobProvider = new FileBlobProvider(testDirectory.FullName, 100);
 
-        PersistentStorageHelper.UpdateDirectorySize(10000);
+        // write a file to fill up the configured max space.
+        Assert.True(blobProvider.TryCreateBlob(new byte[100], out _));
 
         var data = Encoding.UTF8.GetBytes("Hello, World!");
 

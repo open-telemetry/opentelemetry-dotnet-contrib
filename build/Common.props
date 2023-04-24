@@ -54,19 +54,21 @@
     <PackageReference Include="Microsoft.CodeCoverage" Version="$(MicrosoftCodeCoveragePkgVer)" Condition="'$(Configuration)'=='Release'" PrivateAssets="All" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(IncludeSharedExceptionExtensionsSource)'=='true'">
+    <Compile Include="$(RepoRoot)\src\Shared\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(IncludeSharedInstrumentationSource)'=='true'">
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\ActivityInstrumentationHelper.cs" Link="Includes\ActivityInstrumentationHelper.cs" />
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\DiagnosticSourceListener.cs" Link="Includes\DiagnosticSourceListener.cs" />
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\DiagnosticSourceSubscriber.cs" Link="Includes\DiagnosticSourceSubscriber.cs" />
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\InstrumentationEventSource.cs" Link="Includes\InstrumentationEventSource.cs" />
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\ListenerHandler.cs" Link="Includes\ListenerHandler.cs" />
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\MultiTypePropertyFetcher.cs" Link="Includes\MultiTypePropertyFetcher.cs" />
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\DiagnosticSourceInstrumentation\PropertyFetcher.cs" Link="Includes\PropertyFetcher.cs" />
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\SpanAttributeConstants.cs" Link="Includes\SpanAttributeConstants.cs" />
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\SpanHelper.cs" Link="Includes\SpanHelper.cs" />
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Contrib.Shared\Api\StatusHelper.cs" Link="Includes\StatusHelper.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\ActivityInstrumentationHelper.cs" Link="Includes\ActivityInstrumentationHelper.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\DiagnosticSourceListener.cs" Link="Includes\DiagnosticSourceListener.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\DiagnosticSourceSubscriber.cs" Link="Includes\DiagnosticSourceSubscriber.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\InstrumentationEventSource.cs" Link="Includes\InstrumentationEventSource.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\ListenerHandler.cs" Link="Includes\ListenerHandler.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\MultiTypePropertyFetcher.cs" Link="Includes\MultiTypePropertyFetcher.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\PropertyFetcher.cs" Link="Includes\PropertyFetcher.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\SpanAttributeConstants.cs" Link="Includes\SpanAttributeConstants.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\SpanHelper.cs" Link="Includes\SpanHelper.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(IncludeSharedTestSource)'=='true'">

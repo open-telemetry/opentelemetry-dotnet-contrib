@@ -21,6 +21,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 
 namespace OpenTelemetry.Exporter.Geneva;
@@ -35,6 +36,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None",
     };
 
+    private readonly bool m_shouldExportEventName;
     private readonly TableNameSerializer m_tableNameSerializer;
     private readonly Dictionary<string, object> m_customFields;
     private readonly Dictionary<string, object> m_prepopulatedFields;
@@ -51,6 +53,8 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     {
         this.m_tableNameSerializer = new(options, defaultTableName: "Log");
         this.m_exportExceptionStack = options.ExceptionStackExportMode;
+
+        this.m_shouldExportEventName = (options.EventNameExportMode & EventNameExportMode.ExportAsPartAName) != 0;
 
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
         switch (connectionStringBuilder.Protocol)
@@ -201,9 +205,22 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         }
 
         // Part A - core envelope
-        cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, eventName);
 
-        cntFields += 1;
+        var eventId = logRecord.EventId;
+        bool hasEventId = eventId != default;
+
+        if (hasEventId && this.m_shouldExportEventName && !string.IsNullOrWhiteSpace(eventId.Name))
+        {
+            // Export `eventId.Name` as the value for `env_name`
+            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, eventId.Name);
+            cntFields += 1;
+        }
+        else
+        {
+            // Export the table name as the value for `env_name`
+            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, eventName);
+            cntFields += 1;
+        }
 
         cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_time");
         cursor = MessagePackSerializer.SerializeUtcDateTime(buffer, cursor, timestamp); // LogRecord.Timestamp should already be converted to UTC format in the SDK
@@ -342,8 +359,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             MessagePackSerializer.WriteUInt16(buffer, idxMapSizeEnvPropertiesPatch, envPropertiesCount);
         }
 
-        var eventId = logRecord.EventId;
-        if (eventId != default)
+        if (hasEventId)
         {
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "eventId");
             cursor = MessagePackSerializer.SerializeInt32(buffer, cursor, eventId.Id);
@@ -370,7 +386,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 // before running out of limit instead of STRING_SIZE_LIMIT_CHAR_COUNT.
                 // 2. Trim smarter, by trimming the middle of stack, an
                 // keep top and bottom.
-                var exceptionStack = ToInvariantString(logRecord.Exception);
+                var exceptionStack = logRecord.Exception.ToInvariantString();
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_ex_stack");
                 cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, exceptionStack);
                 cntFields += 1;
@@ -410,21 +426,6 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             // should we throw here then?
             default:
                 return 1;
-        }
-    }
-
-    private static string ToInvariantString(Exception exception)
-    {
-        var originalUICulture = Thread.CurrentThread.CurrentUICulture;
-
-        try
-        {
-            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-            return exception.ToString();
-        }
-        finally
-        {
-            Thread.CurrentThread.CurrentUICulture = originalUICulture;
         }
     }
 

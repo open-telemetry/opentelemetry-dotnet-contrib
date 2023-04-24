@@ -16,8 +16,7 @@
 
 using System;
 using System.Diagnostics.Tracing;
-using System.Globalization;
-using System.Threading;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.PersistentStorage.FileSystem;
 
@@ -32,7 +31,7 @@ internal sealed class PersistentStorageEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Informational, EventKeywords.All))
         {
-            this.CouldNotReadFileBlob(filePath, ToInvariantString(ex));
+            this.CouldNotReadFileBlob(filePath, ex.ToInvariantString());
         }
     }
 
@@ -41,7 +40,7 @@ internal sealed class PersistentStorageEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Informational, EventKeywords.All))
         {
-            this.CouldNotWriteFileBlob(filePath, ToInvariantString(ex));
+            this.CouldNotWriteFileBlob(filePath, ex.ToInvariantString());
         }
     }
 
@@ -50,7 +49,7 @@ internal sealed class PersistentStorageEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Informational, EventKeywords.All))
         {
-            this.CouldNotLeaseFileBlob(filePath, ToInvariantString(ex));
+            this.CouldNotLeaseFileBlob(filePath, ex.ToInvariantString());
         }
     }
 
@@ -59,7 +58,7 @@ internal sealed class PersistentStorageEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Informational, EventKeywords.All))
         {
-            this.CouldNotDeleteFileBlob(filePath, ToInvariantString(ex));
+            this.CouldNotDeleteFileBlob(filePath, ex.ToInvariantString());
         }
     }
 
@@ -68,7 +67,7 @@ internal sealed class PersistentStorageEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Informational, EventKeywords.All))
         {
-            this.CouldNotCreateFileBlob(ToInvariantString(ex));
+            this.CouldNotCreateFileBlob(ex.ToInvariantString());
         }
     }
 
@@ -77,7 +76,7 @@ internal sealed class PersistentStorageEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Warning, EventKeywords.All))
         {
-            this.CouldNotRemoveExpiredBlob(filePath, ToInvariantString(ex));
+            this.CouldNotRemoveExpiredBlob(filePath, ex.ToInvariantString());
         }
     }
 
@@ -86,7 +85,7 @@ internal sealed class PersistentStorageEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Warning, EventKeywords.All))
         {
-            this.CouldNotRemoveTimedOutTmpFile(filePath, ToInvariantString(ex));
+            this.CouldNotRemoveTimedOutTmpFile(filePath, ex.ToInvariantString());
         }
     }
 
@@ -95,7 +94,7 @@ internal sealed class PersistentStorageEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Warning, EventKeywords.All))
         {
-            this.CouldNotRemoveExpiredLease(srcFilePath, destFilePath, ToInvariantString(ex));
+            this.CouldNotRemoveExpiredLease(srcFilePath, destFilePath, ex.ToInvariantString());
         }
     }
 
@@ -104,7 +103,7 @@ internal sealed class PersistentStorageEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
-            this.PersistentStorageException(className, message, ToInvariantString(ex));
+            this.PersistentStorageException(className, message, ex.ToInvariantString());
         }
     }
 
@@ -172,24 +171,5 @@ internal sealed class PersistentStorageEventSource : EventSource
     public void PersistentStorageInformation(string className, string message)
     {
         this.WriteEvent(11, className, message);
-    }
-
-    /// <summary>
-    /// Returns a culture-independent string representation of the given <paramref name="exception"/> object,
-    /// appropriate for diagnostics tracing.
-    /// </summary>
-    private static string ToInvariantString(Exception exception)
-    {
-        var originalUICulture = Thread.CurrentThread.CurrentUICulture;
-
-        try
-        {
-            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-            return exception.ToString();
-        }
-        finally
-        {
-            Thread.CurrentThread.CurrentUICulture = originalUICulture;
-        }
     }
 }
