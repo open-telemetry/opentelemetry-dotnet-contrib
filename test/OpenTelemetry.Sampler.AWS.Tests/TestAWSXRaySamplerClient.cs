@@ -109,6 +109,91 @@ public class TestAWSXRaySamplerClient : IDisposable
         Assert.Empty(rules);
     }
 
+    [Fact]
+    public void TestGetSamplingTargets()
+    {
+        TestClock clock = new TestClock();
+
+        this.CreateResponse("/SamplingTargets", "Data/GetSamplingTargetsResponse.json");
+
+        var request = new GetSamplingTargetsRequest(new List<SamplingStatisticsDocument>()
+        {
+            new SamplingStatisticsDocument(
+                "clientId",
+                "rule1",
+                100,
+                50,
+                10,
+                clock.ToDouble(clock.Now())),
+            new SamplingStatisticsDocument(
+                "clientId",
+                "rule2",
+                200,
+                100,
+                20,
+                clock.ToDouble(clock.Now())),
+            new SamplingStatisticsDocument(
+                "clientId",
+                "rule3",
+                20,
+                10,
+                2,
+                clock.ToDouble(clock.Now())),
+        });
+
+        var responseTask = this.client.GetSamplingTargets(request);
+        responseTask.Wait();
+
+        GetSamplingTargetsResponse targetsResponse = responseTask.Result;
+
+        Assert.Equal(2, targetsResponse.SamplingTargetDocuments.Count);
+        Assert.Single(targetsResponse.UnprocessedStatistics);
+
+        Assert.Equal("rule1", targetsResponse.SamplingTargetDocuments[0].RuleName);
+        Assert.Equal(0.1, targetsResponse.SamplingTargetDocuments[0].FixedRate);
+        Assert.Equal(2, targetsResponse.SamplingTargetDocuments[0].ReservoirQuota);
+        Assert.Equal(1530923107.0, targetsResponse.SamplingTargetDocuments[0].ReservoirQuotaTTL);
+        Assert.Equal(10, targetsResponse.SamplingTargetDocuments[0].Interval);
+
+        Assert.Equal("rule3", targetsResponse.SamplingTargetDocuments[1].RuleName);
+        Assert.Equal(0.003, targetsResponse.SamplingTargetDocuments[1].FixedRate);
+        Assert.Null(targetsResponse.SamplingTargetDocuments[1].ReservoirQuota);
+        Assert.Null(targetsResponse.SamplingTargetDocuments[1].ReservoirQuotaTTL);
+        Assert.Null(targetsResponse.SamplingTargetDocuments[1].Interval);
+
+        Assert.Equal("rule2", targetsResponse.UnprocessedStatistics[0].RuleName);
+        Assert.Equal("400", targetsResponse.UnprocessedStatistics[0].ErrorCode);
+        Assert.Equal("Unknown rule", targetsResponse.UnprocessedStatistics[0].Message);
+    }
+
+    [Fact]
+    public void TestGetSamplingTargetsWithMalformed()
+    {
+        TestClock clock = new TestClock();
+        this.mockServer
+            .Given(Request.Create().WithPath("/SamplingTargets").UsingPost())
+            .RespondWith(
+                Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json").WithBody("notJson"));
+
+        var request = new GetSamplingTargetsRequest(new List<SamplingStatisticsDocument>()
+        {
+            new SamplingStatisticsDocument(
+                "clientId",
+                "rule1",
+                100,
+                50,
+                10,
+                clock.ToDouble(clock.Now())),
+        });
+
+        var responseTask = this.client.GetSamplingTargets(request);
+        responseTask.Wait();
+
+        GetSamplingTargetsResponse targetsResponse = responseTask.Result;
+
+        Assert.Null(targetsResponse);
+    }
+
     private void CreateResponse(string endpoint, string filePath)
     {
         string mockResponse = File.ReadAllText(filePath);

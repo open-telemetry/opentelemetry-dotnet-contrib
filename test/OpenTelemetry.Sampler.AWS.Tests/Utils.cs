@@ -28,6 +28,17 @@ internal static class Utils
         return CreateSamplingParametersWithTags(new Dictionary<string, string>());
     }
 
+    internal static SamplingParameters CreateSamplingParametersWithRootContext()
+    {
+        return new SamplingParameters(
+            default,
+            ActivityTraceId.CreateRandom(),
+            "myActivityName",
+            ActivityKind.Server,
+            null,
+            null);
+    }
+
     internal static SamplingParameters CreateSamplingParametersWithTags(Dictionary<string, string> tags)
     {
         ActivityTraceId traceId = ActivityTraceId.CreateRandom();
