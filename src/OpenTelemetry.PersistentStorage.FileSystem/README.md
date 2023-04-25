@@ -1,7 +1,5 @@
 # Persistent Storage file based implementation
 
-// TODO: Update Readme
-
 [![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.PersistentStorage.FileSystem.svg)](https://www.nuget.org/packages/OpenTelemetry.PersistentStorage.FileSystem)
 [![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.PersistentStorage.FileSystem.svg)](https://www.nuget.org/packages/OpenTelemetry.PersistentStorage.FileSystem)
 
