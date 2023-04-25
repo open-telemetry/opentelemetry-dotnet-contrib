@@ -88,6 +88,7 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
     {
         if (this.RulesCache.Expired())
         {
+            AWSSamplerEventSource.Log.InfoUsingFallbackSampler();
             return this.FallbackSampler.ShouldSample(in samplingParameters);
         }
 

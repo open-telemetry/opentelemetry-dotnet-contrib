@@ -105,6 +105,7 @@ internal class RulesCache : IDisposable
 
         // ideally the default rule should have matched.
         // if we are here then likely due to a bug.
+        AWSSamplerEventSource.Log.InfoUsingFallbackSampler();
         return this.FallbackSampler.ShouldSample(in samplingParameters);
     }
 
