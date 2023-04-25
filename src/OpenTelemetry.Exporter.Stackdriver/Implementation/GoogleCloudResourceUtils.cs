@@ -32,7 +32,7 @@ public static class GoogleCloudResourceUtils
     /// the method returns null.
     /// </summary>
     /// <returns>Google Cloud Project ID.</returns>
-    public static string GetProjectId()
+    public static string? GetProjectId()
     {
         // Try to detect projectId from the environment where the code is running
         var instance = Google.Api.Gax.Platform.Instance();
@@ -60,7 +60,7 @@ public static class GoogleCloudResourceUtils
     /// </summary>
     /// <param name="projectId">The project id.</param>
     /// <returns>Stackdriver Monitored Resource.</returns>
-    public static MonitoredResource GetDefaultResource(string projectId)
+    public static MonitoredResource GetDefaultResource(string? projectId)
     {
         var resource = new MonitoredResource();
         resource.Type = Constants.Global;

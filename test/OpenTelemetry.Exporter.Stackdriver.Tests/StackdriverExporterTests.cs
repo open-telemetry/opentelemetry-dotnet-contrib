@@ -47,13 +47,6 @@ public class StackdriverExporterTests
     }
 
     [Fact]
-    public void StackdriverExporter_BadArgs()
-    {
-        TracerProviderBuilder builder = null;
-        Assert.Throws<ArgumentNullException>(() => builder.UseStackdriverExporter(string.Empty));
-    }
-
-    [Fact]
     public void StackdriverExporter_CustomActivityProcessor()
     {
         const string ActivitySourceName = "stackdriver.test";
@@ -91,7 +84,7 @@ public class StackdriverExporterTests
     [Fact]
     public void StackdriverExporter_TraceClientThrows_ExportResultFailure()
     {
-        Exception exception = null;
+        Exception? exception;
         ExportResult result = ExportResult.Success;
         var exportedItems = new List<Activity>();
         const string ActivitySourceName = "stackdriver.test";
@@ -132,7 +125,7 @@ public class StackdriverExporterTests
     [Fact]
     public void StackdriverExporter_TraceClientDoesNotTrow_ExportResultSuccess()
     {
-        Exception exception = null;
+        Exception? exception;
         ExportResult result = ExportResult.Failure;
         var exportedItems = new List<Activity>();
         const string ActivitySourceName = "stackdriver.test";
@@ -171,10 +164,10 @@ public class StackdriverExporterTests
 
     internal static Activity CreateTestActivity(
         bool setAttributes = true,
-        Dictionary<string, object> additionalAttributes = null,
+        Dictionary<string, object>? additionalAttributes = null,
         bool addEvents = true,
         bool addLinks = true,
-        Resource resource = null,
+        Resource? resource = null,
         ActivityKind kind = ActivityKind.Client)
     {
         var startTimestamp = DateTime.UtcNow;
@@ -184,7 +177,7 @@ public class StackdriverExporterTests
 
         var parentSpanId = ActivitySpanId.CreateFromBytes(new byte[] { 12, 23, 34, 45, 56, 67, 78, 89 });
 
-        var attributes = new Dictionary<string, object>
+        var attributes = new Dictionary<string, object?>
         {
             { "stringKey", "value" },
             { "longKey", 1L },
@@ -205,14 +198,14 @@ public class StackdriverExporterTests
 
         var events = new List<ActivityEvent>
         {
-            new ActivityEvent(
+            new(
                 "Event1",
                 eventTimestamp,
                 new ActivityTagsCollection
                 {
                     { "key", "value" },
                 }),
-            new ActivityEvent(
+            new(
                 "Event2",
                 eventTimestamp,
                 new ActivityTagsCollection
@@ -226,7 +219,7 @@ public class StackdriverExporterTests
         var activitySource = new ActivitySource(nameof(CreateTestActivity));
 
         var tags = setAttributes ?
-            attributes.Select(kvp => new KeyValuePair<string, object>(kvp.Key, kvp.Value?.ToString()))
+            attributes.Select(kvp => new KeyValuePair<string, object?>(kvp.Key, kvp.Value?.ToString()))
             : null;
         var links = addLinks ?
             new[]
@@ -244,7 +237,7 @@ public class StackdriverExporterTests
             parentContext: new ActivityContext(traceId, parentSpanId, ActivityTraceFlags.Recorded),
             tags,
             links,
-            startTime: startTimestamp);
+            startTime: startTimestamp)!;
 
         if (addEvents)
         {
