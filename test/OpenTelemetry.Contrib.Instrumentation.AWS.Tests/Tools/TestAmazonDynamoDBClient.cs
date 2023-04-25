@@ -1,4 +1,4 @@
-// <copyright file="Constants.cs" company="OpenTelemetry Authors">
+// <copyright file="TestAmazonDynamoDBClient.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,13 +14,16 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Exporter.Stackdriver.Implementation;
+using Amazon;
+using Amazon.DynamoDBv2;
+using Amazon.Runtime;
 
-internal class Constants
+namespace OpenTelemetry.Contrib.Instrumentation.AWS.Tests;
+
+internal class TestAmazonDynamoDBClient : AmazonDynamoDBClient
 {
-    public const string PackagVersionUndefined = "undefined";
-
-    public const string Global = "global";
-
-    public const string ProjectIdLabelKey = "project_id";
+    public TestAmazonDynamoDBClient(AWSCredentials credentials, RegionEndpoint region)
+        : base(credentials, region)
+    {
+    }
 }
