@@ -35,7 +35,7 @@ public class StackdriverTraceExporter : BaseExporter<Activity>
 
     private readonly Google.Api.Gax.ResourceNames.ProjectName googleCloudProjectId;
     private readonly TraceServiceSettings traceServiceSettings;
-    private readonly TraceServiceClient traceServiceClient;
+    private readonly TraceServiceClient? traceServiceClient;
 
 #pragma warning disable CA1810 // Initialize reference type static fields inline
     static StackdriverTraceExporter()
@@ -91,8 +91,8 @@ public class StackdriverTraceExporter : BaseExporter<Activity>
     /// <inheritdoc/>
     public override ExportResult Export(in Batch<Activity> batch)
     {
-        TraceServiceClient traceWriter = this.traceServiceClient;
-        if (this.traceServiceClient == null)
+        TraceServiceClient? traceWriter = this.traceServiceClient;
+        if (traceWriter == null)
         {
             traceWriter = new TraceServiceClientBuilder
             {

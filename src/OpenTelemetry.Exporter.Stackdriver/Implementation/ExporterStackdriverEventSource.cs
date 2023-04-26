@@ -23,7 +23,7 @@ namespace OpenTelemetry.Exporter.Stackdriver.Implementation;
 [EventSource(Name = "OpenTelemetry-Exporter-Stackdriver")]
 internal class ExporterStackdriverEventSource : EventSource
 {
-    public static readonly ExporterStackdriverEventSource Log = new ExporterStackdriverEventSource();
+    public static readonly ExporterStackdriverEventSource Log = new();
 
     [NonEvent]
     public void ExportMethodException(Exception ex)

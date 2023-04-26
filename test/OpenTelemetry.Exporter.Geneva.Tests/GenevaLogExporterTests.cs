@@ -51,6 +51,13 @@ public class GenevaLogExporterTests
     }
 
     [Fact]
+    public void ExportEventNameDefaultIsNone()
+    {
+        GenevaExporterOptions exporterOptions = new GenevaExporterOptions();
+        Assert.Equal(EventNameExportMode.None, exporterOptions.EventNameExportMode);
+    }
+
+    [Fact]
     public void SpecialCharactersInTableNameMappings()
     {
         Assert.Throws<ArgumentException>(() =>
@@ -995,6 +1002,139 @@ public class GenevaLogExporterTests
             var exceptionMessage = GetField(fluentdData, "env_ex_msg");
             Assert.Equal("System.Exception", exceptionType);
             Assert.Equal("Exception Message", exceptionMessage);
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Theory]
+    [InlineData(EventNameExportMode.None, false)]
+    [InlineData(EventNameExportMode.None, true)]
+    [InlineData(EventNameExportMode.ExportAsPartAName, false)]
+    [InlineData(EventNameExportMode.ExportAsPartAName, true)]
+    public void SerializationTestForEventName(EventNameExportMode eventNameExportMode, bool hasTableNameMapping)
+    {
+        // ARRANGE
+        string path = string.Empty;
+        Socket server = null;
+        var logRecordList = new List<LogRecord>();
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions();
+            exporterOptions.EventNameExportMode = eventNameExportMode;
+
+            if (hasTableNameMapping)
+            {
+                exporterOptions.TableNameMappings = new Dictionary<string, string>()
+                {
+                    ["*"] = "CustomTableName",
+                };
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(options =>
+                {
+                    options.AddGenevaLogExporter(options =>
+                    {
+                        options.ConnectionString = exporterOptions.ConnectionString;
+                        options.EventNameExportMode = exporterOptions.EventNameExportMode;
+
+                        if (hasTableNameMapping)
+                        {
+                            options.TableNameMappings = exporterOptions.TableNameMappings;
+                        }
+                    });
+                    options.AddInMemoryExporter(logRecordList);
+                }));
+
+            // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
+            using var exporter = new MsgPackLogExporter(exporterOptions);
+
+            // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
+            var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
+
+            // ACT
+            // This is treated as structured logging as the state can be converted to IReadOnlyList<KeyValuePair<string, object>>
+
+            #region Test for `ILogger.Log`
+            logger.Log<object>(
+                logLevel: LogLevel.Information,
+                eventId: new EventId(1, "TestEventNameWithLogMethod"),
+                state: null,
+                exception: new Exception("Exception Message"),
+                formatter: null);
+
+            // VALIDATE
+            Assert.Single(logRecordList);
+            var m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+            _ = exporter.SerializeLogRecord(logRecordList[0]);
+            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            var eventName = GetField(fluentdData, "env_name");
+
+            if (eventNameExportMode.HasFlag(EventNameExportMode.ExportAsPartAName))
+            {
+                Assert.Equal("TestEventNameWithLogMethod", eventName);
+            }
+            else
+            {
+                Assert.Equal(hasTableNameMapping ? "CustomTableName" : "Log", eventName);
+            }
+
+            #endregion
+
+            logRecordList.Clear();
+
+            #region Test for extension method
+            logger.LogInformation(eventId: new EventId(1, "TestEventNameWithLogExtensionMethod"), "Hello from {Name} {Price}.", "tomato", 2.99);
+
+            _ = exporter.SerializeLogRecord(logRecordList[0]);
+            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            eventName = GetField(fluentdData, "env_name");
+
+            if (eventNameExportMode.HasFlag(EventNameExportMode.ExportAsPartAName))
+            {
+                Assert.Equal("TestEventNameWithLogExtensionMethod", eventName);
+            }
+            else
+            {
+                Assert.Equal(hasTableNameMapping ? "CustomTableName" : "Log", eventName);
+            }
+            #endregion
+
+            logRecordList.Clear();
+
+            #region Test with eventName as null
+            logger.LogInformation(eventId: 1, "Hello from {Name} {Price}.", "tomato", 2.99);
+
+            _ = exporter.SerializeLogRecord(logRecordList[0]);
+            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            eventName = GetField(fluentdData, "env_name");
+            Assert.Equal(hasTableNameMapping ? "CustomTableName" : "Log", eventName);
+            #endregion
+
         }
         finally
         {

@@ -26,33 +26,32 @@ namespace OpenTelemetry.ResourceDetectors.Azure;
 /// </summary>
 public sealed class AppServiceResourceDetector : IResourceDetector
 {
+    internal static readonly IReadOnlyDictionary<string, string> AppServiceResourceAttributes = new Dictionary<string, string>
+    {
+        ["appSrv_SiteName"] = "WEBSITE_SITE_NAME",
+        [ResourceSemanticConventions.AttributeServiceName] = "WEBSITE_SITE_NAME",
+        [ResourceSemanticConventions.AttributeServiceInstance] = "WEBSITE_INSTANCE_ID",
+        ["appSrv_SlotName"] = "WEBSITE_SLOT_NAME",
+        ["appSrv_wsStamp"] = "WEBSITE_HOME_STAMPNAME",
+        ["appSrv_wsHost"] = "WEBSITE_HOSTNAME",
+        ["appSrv_wsOwner"] = "WEBSITE_OWNER_NAME",
+        ["appSrv_ResourceGroup"] = "WEBSITE_RESOURCE_GROUP",
+    };
+
     /// <inheritdoc/>
     public Resource Detect()
     {
-        List<KeyValuePair<string, object>>? attributeList = null;
+        List<KeyValuePair<string, object>> attributeList = new();
 
         try
         {
-            string? serviceName = null;
-            string? serviceInstanceId = null;
-
-            // https://learn.microsoft.com/azure/app-service/reference-app-settings?tabs=kudu%2Cdotnet#app-environment
-            serviceName = Environment.GetEnvironmentVariable("WEBSITE_SITE_NAME");
-            serviceInstanceId = Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID");
-            if (serviceName != null)
+            foreach (var kvp in AppServiceResourceAttributes)
             {
-                attributeList = new();
-
-                attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, serviceName));
-
-                if (serviceInstanceId != null)
+                var attributeValue = Environment.GetEnvironmentVariable(kvp.Value);
+                if (attributeValue != null)
                 {
-                    attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceInstance, serviceInstanceId));
+                    attributeList.Add(new KeyValuePair<string, object>(kvp.Key, attributeValue));
                 }
-            }
-            else
-            {
-                return Resource.Empty;
             }
         }
         catch
