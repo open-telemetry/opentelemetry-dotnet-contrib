@@ -31,6 +31,7 @@ internal class SamplingRule : IComparable<SamplingRule>
         string httpMethod,
         string resourceArn,
         string serviceName,
+        string serviceType,
         string urlPath,
         int version,
         Dictionary<string, string> attributes)
@@ -43,6 +44,7 @@ internal class SamplingRule : IComparable<SamplingRule>
         this.HttpMethod = httpMethod;
         this.ResourceArn = resourceArn;
         this.ServiceName = serviceName;
+        this.ServiceType = serviceType;
         this.UrlPath = urlPath;
         this.Version = version;
         this.Attributes = attributes;
@@ -72,6 +74,9 @@ internal class SamplingRule : IComparable<SamplingRule>
     [JsonPropertyName("ServiceName")]
     public string ServiceName { get; set; }
 
+    [JsonPropertyName("ServiceType")]
+    public string ServiceType { get; set; }
+
     [JsonPropertyName("URLPath")]
     public string UrlPath { get; set; }
 
@@ -79,7 +84,7 @@ internal class SamplingRule : IComparable<SamplingRule>
     public int Version { get; set; }
 
     [JsonPropertyName("Attributes")]
-    public Dictionary<string, string>? Attributes { get; set; }
+    public Dictionary<string, string> Attributes { get; set; }
 
     public int CompareTo(SamplingRule? other)
     {
