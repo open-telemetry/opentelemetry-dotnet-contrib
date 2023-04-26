@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>OpenTelemetry protocol exporter over ETW for OpenTelemetry .NET</Description>
+    <Authors>OpenTelemetry Authors</Authors>
+    <NoWarn>$(NoWarn),CS1591,SA1123,SA1310,CA1810,CA1822,CA2000,CA2208,SA1201,SA1202,SA1308,SA1309,SA1311,SA1402,SA1602,SA1649</NoWarn>
+    <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
+    <MinVerTagPrefix>Exporter.OpenTelemetryProtocol.Etw-</MinVerTagPrefix>
+    <EnableAnalysis>false</EnableAnalysis>
+  </PropertyGroup>
+
+  <!-- Guard.cs from OpenTelemetry.Exporter.OpenTelemetryProtocol.dll clashes with Shared\Guard.cs-->
+  <!--<ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
+  </ItemGroup>-->
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Options" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestPrereleaseVersion)" />
+  </ItemGroup>
+
+  <!-- The following references are temporarily added to compile the project. -->
+  <ItemGroup>
+    <Reference Include="Google.Protobuf">
+      <HintPath>..\..\..\opentelemetry-dotnet\src\OpenTelemetry.Exporter.OpenTelemetryProtocol\bin\Release\net462\Google.Protobuf.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol">
+      <HintPath>..\..\..\opentelemetry-dotnet\src\OpenTelemetry.Exporter.OpenTelemetryProtocol\bin\Release\net462\OpenTelemetry.Exporter.OpenTelemetryProtocol.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

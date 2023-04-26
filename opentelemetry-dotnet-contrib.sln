@@ -260,6 +260,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Sampler.AWS.T
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.OneCollector.Benchmarks", "test\OpenTelemetry.Exporter.OneCollector.Benchmarks\OpenTelemetry.Exporter.OneCollector.Benchmarks.csproj", "{C42868C8-968A-473F-AC39-AC97C5D47E84}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.OpenTelemetryProtocol.Etw", "src\OpenTelemetry.Exporter.OpenTelemetryProtocol.Etw\OpenTelemetry.Exporter.OpenTelemetryProtocol.Etw.csproj", "{A91DF3D3-BE2D-47E0-B600-E2838F47CE1A}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Enrichment", "examples\enrichment\Examples.Enrichment\Examples.Enrichment.csproj", "{9B7F7605-ADFF-4A47-9B64-FFF3E2EC9DEA}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "enrichment", "enrichment", "{93503FAF-D43D-48C0-818C-92EB90F7606B}"
@@ -590,6 +592,10 @@ Global
 		{9B7F7605-ADFF-4A47-9B64-FFF3E2EC9DEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B7F7605-ADFF-4A47-9B64-FFF3E2EC9DEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B7F7605-ADFF-4A47-9B64-FFF3E2EC9DEA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A91DF3D3-BE2D-47E0-B600-E2838F47CE1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A91DF3D3-BE2D-47E0-B600-E2838F47CE1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A91DF3D3-BE2D-47E0-B600-E2838F47CE1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A91DF3D3-BE2D-47E0-B600-E2838F47CE1A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -680,6 +686,7 @@ Global
 		{9B7F7605-ADFF-4A47-9B64-FFF3E2EC9DEA} = {93503FAF-D43D-48C0-818C-92EB90F7606B}
 		{93503FAF-D43D-48C0-818C-92EB90F7606B} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
 		{1FCC8EEC-9E75-4FEA-AFCF-363DD33FF0B9} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{A91DF3D3-BE2D-47E0-B600-E2838F47CE1A} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}

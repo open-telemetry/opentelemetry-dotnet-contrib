@@ -1,0 +1,8 @@
+OpenTelemetry.Exporter.OpenTelemetryProtocol.Etw.OtlpEtwExporterOptions
+OpenTelemetry.Exporter.OpenTelemetryProtocol.Etw.OtlpEtwExporterOptions.MaxEtwEventSizeBytes.get -> int
+OpenTelemetry.Exporter.OpenTelemetryProtocol.Etw.OtlpEtwExporterOptions.MaxEtwEventSizeBytes.set -> void
+OpenTelemetry.Exporter.OpenTelemetryProtocol.Etw.OtlpEtwExporterOptions.MetricExportIntervalMilliseconds.get -> int
+OpenTelemetry.Exporter.OpenTelemetryProtocol.Etw.OtlpEtwExporterOptions.MetricExportIntervalMilliseconds.set -> void
+OpenTelemetry.Exporter.OpenTelemetryProtocol.Etw.OtlpEtwExporterOptions.OtlpEtwExporterOptions() -> void
+OpenTelemetry.Exporter.OpenTelemetryProtocol.Etw.OtlpMetricEtwExporterExtensions
+static OpenTelemetry.Exporter.OpenTelemetryProtocol.Etw.OtlpMetricEtwExporterExtensions.AddOtlpEtwExporter(this OpenTelemetry.Metrics.MeterProviderBuilder builder, System.Action<OpenTelemetry.Exporter.OpenTelemetryProtocol.Etw.OtlpEtwExporterOptions, OpenTelemetry.Metrics.MetricReaderOptions> configureExporterAndMetricReader = null) -> OpenTelemetry.Metrics.MeterProviderBuilder
