@@ -20,30 +20,30 @@ namespace OpenTelemetry.Sampler.AWS;
 internal sealed class RateLimiter
 {
     private readonly Clock clock;
-    private readonly double creditsPerNanosecond;
+    private readonly double creditsPerMillisecond;
     private readonly long maxBalance;
     private long currentBalance;
 
     internal RateLimiter(double creditsPerSecond, double maxBalance, Clock clock)
     {
         this.clock = clock;
-        this.creditsPerNanosecond = creditsPerSecond / 1.0e3;
-        this.maxBalance = (long)(maxBalance / this.creditsPerNanosecond);
+        this.creditsPerMillisecond = creditsPerSecond / 1.0e3;
+        this.maxBalance = (long)(maxBalance / this.creditsPerMillisecond);
         this.currentBalance = this.clock.NowInMilliSeconds() - this.maxBalance;
     }
 
     public bool TrySpend(double itemCost)
     {
-        long cost = (long)(itemCost / this.creditsPerNanosecond);
-        long currentNanos;
-        long currentBalanceNanos;
+        long cost = (long)(itemCost / this.creditsPerMillisecond);
+        long currentMillis;
+        long currentBalanceMillis;
         long availableBalanceAfterWithdrawal;
 
         do
         {
-            currentBalanceNanos = Interlocked.Read(ref this.currentBalance);
-            currentNanos = this.clock.NowInMilliSeconds();
-            long currentAvailableBalance = currentNanos - currentBalanceNanos;
+            currentBalanceMillis = Interlocked.Read(ref this.currentBalance);
+            currentMillis = this.clock.NowInMilliSeconds();
+            long currentAvailableBalance = currentMillis - currentBalanceMillis;
             if (currentAvailableBalance > this.maxBalance)
             {
                 currentAvailableBalance = this.maxBalance;
@@ -55,7 +55,7 @@ internal sealed class RateLimiter
                 return false;
             }
         }
-        while (Interlocked.CompareExchange(ref this.currentBalance, currentNanos - availableBalanceAfterWithdrawal, currentBalanceNanos) != currentBalanceNanos);
+        while (Interlocked.CompareExchange(ref this.currentBalance, currentMillis - availableBalanceAfterWithdrawal, currentBalanceMillis) != currentBalanceMillis);
 
         return true;
     }

@@ -43,10 +43,9 @@ internal class TestClock : Clock
         return this.nowTime;
     }
 
-    public override long NowInSeconds()
+    public override long NowInMilliSeconds()
     {
-        double s = 1000.0 * (double)this.nowTime.Ticks / Stopwatch.Frequency;
-        return (long)s;
+        return (long)this.nowTime.ToUniversalTime().Subtract(EpochStart).TotalMilliseconds;
     }
 
     public override DateTime ToDateTime(double seconds)
@@ -56,7 +55,7 @@ internal class TestClock : Clock
 
     public override double ToDouble(DateTime dateTime)
     {
-        var current = new TimeSpan(dateTime.ToUniversalTime().Ticks - EpochStart.Ticks);
+        TimeSpan current = new TimeSpan(dateTime.ToUniversalTime().Ticks - EpochStart.Ticks);
         double timestamp = Math.Round(current.TotalMilliseconds, 0) / 1000.0;
         return timestamp;
     }
@@ -65,17 +64,5 @@ internal class TestClock : Clock
     public void Advance(TimeSpan time)
     {
         this.nowTime = this.nowTime.Add(time);
-    }
-
-    public override long NowInNanoseconds()
-    {
-        double ns = 1000000000.0 * (double)this.nowTime.Ticks / Stopwatch.Frequency;
-        return (long)ns;
-    }
-
-    public override long NowInMilliSeconds()
-    {
-        double ms = 1000.0 * (double)this.nowTime.Ticks / Stopwatch.Frequency;
-        return (long)ms;
     }
 }
