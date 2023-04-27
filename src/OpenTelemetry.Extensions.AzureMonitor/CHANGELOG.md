@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Updated `ApplicationInsightsSampler` constructor to accept
+  `ApplicationInsightsSamplerOptions` instead of a float `samplingRatio`, and
+  introduced `ApplicationInsightsSamplerOptions` for Dependency Injection
+  support.
+
 ## 1.0.0-beta.3
 
 Released 2023-Feb-07
