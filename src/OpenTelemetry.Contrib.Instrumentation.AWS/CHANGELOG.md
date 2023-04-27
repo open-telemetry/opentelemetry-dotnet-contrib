@@ -6,6 +6,8 @@
   ([#1095](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1095))
 * Removes `AddAWSInstrumentation` method with default configure default parameter.
   ([#1117](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1117))
+* Added tracing of outgoing SQS and SNS calls.
+  ([#1051](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1051))
 
 ## 1.0.2
 
