@@ -33,18 +33,19 @@ public class ApplicationInsightsSampler : Sampler
     /// <summary>
     /// Initializes a new instance of the <see cref="ApplicationInsightsSampler"/> class.
     /// </summary>
-    /// <param name="samplingRatio">
-    /// Ratio of telemetry that should be sampled.
-    /// For example; Specifying 0.4F means 40% of traces are sampled and 60% are dropped.
+    /// <param name="options">
+    /// <see cref="ApplicationInsightsSamplerOptions"/> for configuring the ApplicationInsightsSampler.
     /// </param>
-    public ApplicationInsightsSampler(float samplingRatio)
+    public ApplicationInsightsSampler(ApplicationInsightsSamplerOptions options)
     {
-        // Ensure passed ratio is between 0 and 1, inclusive
-        Guard.ThrowIfOutOfRange((double)samplingRatio, min: 0.0, max: 1.0);
+        Guard.ThrowIfNull(options);
 
-        this.samplingRatio = samplingRatio;
-        this.Description = "ApplicationInsightsSampler{" + samplingRatio + "}";
-        var sampleRate = (float)Math.Round(samplingRatio * 100);
+        // Ensure passed ratio is between 0 and 1, inclusive
+        Guard.ThrowIfOutOfRange((double)options.SamplingRatio, min: 0.0, max: 1.0);
+
+        this.samplingRatio = options.SamplingRatio;
+        this.Description = "ApplicationInsightsSampler{" + options.SamplingRatio + "}";
+        var sampleRate = (float)Math.Round(options.SamplingRatio * 100);
         this.recordAndSampleSamplingResult = new SamplingResult(
             SamplingDecision.RecordAndSample,
             new Dictionary<string, object>
