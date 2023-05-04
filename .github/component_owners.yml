@@ -62,7 +62,7 @@ components:
     - codeblanch
   src/OpenTelemetry.ResourceDetectors.AWS/:
     - srprash
-    - lupengamzn
+    - atshaw43
   src/OpenTelemetry.ResourceDetectors.Azure/:
     - rajkumar-rangaraj
     - vishweshbankwar
@@ -141,7 +141,7 @@ components:
     - codeblanch
   test/OpenTelemetry.ResourceDetectors.AWS.Tests/:
     - srprash
-    - lupengamzn
+    - atshaw43
   test/OpenTelemetry.ResourceDetectors.Azure.Tests/:
     - rajkumar-rangaraj
     - vishweshbankwar
