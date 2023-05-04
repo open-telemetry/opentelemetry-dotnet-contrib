@@ -10,7 +10,7 @@ The ADOT .NET SDK supports automatically recording metadata in
 EC2, Elastic Beanstalk, ECS, and EKS environments.
 
 ```shell
-dotnet add package OpenTelemetry.ResourceDetectors.AWS --prerelease
+dotnet add package OpenTelemetry.ResourceDetectors.AWS
 ```
 
 ## Usage
