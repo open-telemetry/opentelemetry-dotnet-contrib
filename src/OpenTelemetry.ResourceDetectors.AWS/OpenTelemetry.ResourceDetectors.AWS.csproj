@@ -18,7 +18,6 @@
   <ItemGroup Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'">
     <Compile Remove="Resources\AWSECSResourceDetector.cs" />
     <Compile Remove="Resources\AWSEKSResourceDetector.cs" />
-    <Compile Remove="Resources\AWSLambdaResourceDetector.cs" />
     <Compile Remove="Resources\Http\Handler.cs" />
     <Compile Remove="Resources\Http\ServerCertificateValidationProvider.cs" />
   </ItemGroup>

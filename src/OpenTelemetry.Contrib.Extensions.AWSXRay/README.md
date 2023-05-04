@@ -68,8 +68,6 @@ service namespace, instance id, service version.
 - **AWSECSResourceDetector**: cloud provider, cloud platform, container id.
 - **AWSEKSResourceDetector**: cloud provider, cloud platform, cluster name,
 container id.
-- **AWSLambdaResourceDetector**: cloud provider, cloud platform, aws region,
-function name, function version.
 
 ## References
 

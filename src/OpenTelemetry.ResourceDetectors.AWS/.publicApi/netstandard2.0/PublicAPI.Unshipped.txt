@@ -10,6 +10,3 @@ OpenTelemetry.ResourceDetectors.AWS.AWSECSResourceDetector.Detect() -> OpenTelem
 OpenTelemetry.ResourceDetectors.AWS.AWSEKSResourceDetector
 OpenTelemetry.ResourceDetectors.AWS.AWSEKSResourceDetector.AWSEKSResourceDetector() -> void
 OpenTelemetry.ResourceDetectors.AWS.AWSEKSResourceDetector.Detect() -> OpenTelemetry.Resources.Resource!
-OpenTelemetry.ResourceDetectors.AWS.AWSLambdaResourceDetector
-OpenTelemetry.ResourceDetectors.AWS.AWSLambdaResourceDetector.AWSLambdaResourceDetector() -> void
-OpenTelemetry.ResourceDetectors.AWS.AWSLambdaResourceDetector.Detect() -> OpenTelemetry.Resources.Resource!
