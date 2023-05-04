@@ -30,7 +30,7 @@ internal class Handler
 
             if (!serverCertificateValidationProvider.IsCertificateLoaded ?? false)
             {
-                AWSXRayEventSource.Log.FailedToValidateCertificate(nameof(Handler), "Failed to Load the certificate file into trusted collection");
+                AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(Handler), "Failed to Load the certificate file into trusted collection");
                 return null;
             }
 
@@ -47,7 +47,7 @@ internal class Handler
         }
         catch (Exception ex)
         {
-            AWSXRayEventSource.Log.ResourceAttributesExtractException($"{nameof(Handler)} : Failed to create HttpClientHandler", ex);
+            AWSResourcesEventSource.Log.ResourceAttributesExtractException($"{nameof(Handler)} : Failed to create HttpClientHandler", ex);
         }
 
         return null;

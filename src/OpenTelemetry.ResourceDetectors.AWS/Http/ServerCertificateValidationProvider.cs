@@ -52,14 +52,14 @@ internal class ServerCertificateValidationProvider
     {
         if (!File.Exists(certificateFile))
         {
-            AWSXRayEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "Certificate File does not exist");
+            AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "Certificate File does not exist");
             return InvalidProvider;
         }
 
         var trustedCertificates = new X509Certificate2Collection();
         if (!LoadCertificateToTrustedCollection(trustedCertificates, certificateFile))
         {
-            AWSXRayEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "Failed to load certificate in trusted collection");
+            AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "Failed to load certificate in trusted collection");
             return InvalidProvider;
         }
 
@@ -108,12 +108,12 @@ internal class ServerCertificateValidationProvider
         {
             if ((errors | SslPolicyErrors.RemoteCertificateNotAvailable) == errors)
             {
-                AWSXRayEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "Failed to validate certificate due to RemoteCertificateNotAvailable");
+                AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "Failed to validate certificate due to RemoteCertificateNotAvailable");
             }
 
             if ((errors | SslPolicyErrors.RemoteCertificateNameMismatch) == errors)
             {
-                AWSXRayEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "Failed to validate certificate due to RemoteCertificateNameMismatch");
+                AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "Failed to validate certificate due to RemoteCertificateNameMismatch");
             }
         }
 
@@ -135,7 +135,7 @@ internal class ServerCertificateValidationProvider
                 }
             }
 
-            AWSXRayEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), $"Failed to validate certificate due to {chainErrors}");
+            AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), $"Failed to validate certificate due to {chainErrors}");
         }
 
         // check if at least one certificate in the chain is in our trust list
@@ -157,7 +157,7 @@ internal class ServerCertificateValidationProvider
                 }
             }
 
-            AWSXRayEventSource.Log.FailedToValidateCertificate(
+            AWSResourcesEventSource.Log.FailedToValidateCertificate(
                 nameof(ServerCertificateValidationProvider),
                 $"Server Certificates Chain cannot be trusted. The chain doesn't match with the Trusted Certificates provided. Server Certificates:{serverCertificates}. Trusted Certificates:{trustCertificates}");
         }

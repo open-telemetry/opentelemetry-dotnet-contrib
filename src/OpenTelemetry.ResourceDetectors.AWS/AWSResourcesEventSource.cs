@@ -1,4 +1,4 @@
-// <copyright file="AWSXRayEventSource.cs" company="OpenTelemetry Authors">
+// <copyright file="AWSResourcesEventSource.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,9 +21,9 @@ using OpenTelemetry.Internal;
 namespace OpenTelemetry.ResourceDetectors.AWS;
 
 [EventSource(Name = "OpenTelemetry-ResourceDetectors-AWS")]
-internal class AWSXRayEventSource : EventSource
+internal class AWSResourcesEventSource : EventSource
 {
-    public static AWSXRayEventSource Log = new();
+    public static AWSResourcesEventSource Log = new();
 
     [NonEvent]
     public void ResourceAttributesExtractException(string format, Exception ex)

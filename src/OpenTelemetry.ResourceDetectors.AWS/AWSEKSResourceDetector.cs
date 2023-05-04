@@ -95,7 +95,7 @@ public class AWSEKSResourceDetector : IResourceDetector
         }
         catch (Exception ex)
         {
-            AWSXRayEventSource.Log.ResourceAttributesExtractException($"{nameof(AWSEKSResourceDetector)} : Failed to load client token", ex);
+            AWSResourcesEventSource.Log.ResourceAttributesExtractException($"{nameof(AWSEKSResourceDetector)} : Failed to load client token", ex);
         }
 
         return null;
@@ -119,7 +119,7 @@ public class AWSEKSResourceDetector : IResourceDetector
         }
         catch (Exception ex)
         {
-            AWSXRayEventSource.Log.ResourceAttributesExtractException($"{nameof(AWSEKSResourceDetector)} : Failed to get Container Id", ex);
+            AWSResourcesEventSource.Log.ResourceAttributesExtractException($"{nameof(AWSEKSResourceDetector)} : Failed to get Container Id", ex);
         }
 
         return null;
@@ -139,7 +139,7 @@ public class AWSEKSResourceDetector : IResourceDetector
         }
         catch (Exception ex)
         {
-            AWSXRayEventSource.Log.ResourceAttributesExtractException($"{nameof(AWSEKSResourceDetector)} : Failed to get cluster information", ex);
+            AWSResourcesEventSource.Log.ResourceAttributesExtractException($"{nameof(AWSEKSResourceDetector)} : Failed to get cluster information", ex);
         }
 
         return null;
@@ -154,7 +154,7 @@ public class AWSEKSResourceDetector : IResourceDetector
         }
         catch (Exception ex)
         {
-            AWSXRayEventSource.Log.ResourceAttributesExtractException($"{nameof(AWSEKSResourceDetector)} : Failed to get EKS information", ex);
+            AWSResourcesEventSource.Log.ResourceAttributesExtractException($"{nameof(AWSEKSResourceDetector)} : Failed to get EKS information", ex);
         }
 
         return !string.IsNullOrEmpty(awsAuth);

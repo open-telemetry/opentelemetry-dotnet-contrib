@@ -59,7 +59,7 @@ public class AWSECSResourceDetector : IResourceDetector
         }
         catch (Exception ex)
         {
-            AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSResourceDetector), ex);
+            AWSResourcesEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSResourceDetector), ex);
         }
 
         try
@@ -68,7 +68,7 @@ public class AWSECSResourceDetector : IResourceDetector
         }
         catch (Exception ex)
         {
-            AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSResourceDetector), ex);
+            AWSResourcesEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSResourceDetector), ex);
         }
 
         return new Resource(resourceAttributes);
@@ -92,14 +92,14 @@ public class AWSECSResourceDetector : IResourceDetector
         if (!containerResponse.RootElement.TryGetProperty("ContainerARN", out var containerArnElement)
             || containerArnElement.GetString() is not string containerArn)
         {
-            AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSResourceDetector), new ArgumentException("The ECS Metadata V4 response did not contain the 'ContainerARN' field"));
+            AWSResourcesEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSResourceDetector), new ArgumentException("The ECS Metadata V4 response did not contain the 'ContainerARN' field"));
             return new List<KeyValuePair<string, object>>();
         }
 
         if (!taskResponse.RootElement.TryGetProperty("Cluster", out var clusterArnElement)
             || clusterArnElement.GetString() is not string clusterArn)
         {
-            AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSResourceDetector), new ArgumentException("The ECS Metadata V4 response did not contain the 'Cluster' field"));
+            AWSResourcesEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSResourceDetector), new ArgumentException("The ECS Metadata V4 response did not contain the 'Cluster' field"));
             return new List<KeyValuePair<string, object>>();
         }
 
@@ -133,7 +133,7 @@ public class AWSECSResourceDetector : IResourceDetector
         }
         else
         {
-            AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSResourceDetector), new ArgumentException($"The ECS Metadata V4 response contained the unrecognized launch type '{launchTypeElement}'"));
+            AWSResourcesEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSResourceDetector), new ArgumentException($"The ECS Metadata V4 response contained the unrecognized launch type '{launchTypeElement}'"));
         }
 
         if (taskResponse.RootElement.TryGetProperty("TaskARN", out var taskArnElement) && taskArnElement.ValueKind == JsonValueKind.String)

@@ -41,7 +41,7 @@ public class AWSLambdaResourceDetector : IResourceDetector
         }
         catch (Exception ex)
         {
-            AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSLambdaResourceDetector), ex);
+            AWSResourcesEventSource.Log.ResourceAttributesExtractException(nameof(AWSLambdaResourceDetector), ex);
         }
 
         return Resource.Empty;

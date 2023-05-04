@@ -48,7 +48,7 @@ public class AWSEC2ResourceDetector : IResourceDetector
         }
         catch (Exception ex)
         {
-            AWSXRayEventSource.Log.ResourceAttributesExtractException(nameof(AWSEC2ResourceDetector), ex);
+            AWSResourcesEventSource.Log.ResourceAttributesExtractException(nameof(AWSEC2ResourceDetector), ex);
         }
 
         return Resource.Empty;
