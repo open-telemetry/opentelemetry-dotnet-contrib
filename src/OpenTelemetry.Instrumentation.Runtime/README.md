@@ -90,7 +90,7 @@ The value is available even before first garbage collection has occurred.
 
 The API used to retrieve the value is:
 
-* [GC.GetTotalMemory](https://docs.microsoft.com/dotnet/api/system.gc.gettotalmemory):
+* [`GC.GetTotalMemory`](https://docs.microsoft.com/dotnet/api/system.gc.gettotalmemory):
   Retrieves the number of bytes currently thought to be allocated.
 The value is an approximate count. API is called with `false`
 as a value of forceFullCollection parameter. Returns an instantaneous
@@ -111,7 +111,7 @@ such as C/C++ do not use this heap.
 
 The API used to retrieve the value is:
 
-* [GC.GetTotalAllocatedBytes](https://docs.microsoft.com/dotnet/api/system.gc.gettotalallocatedbytes):
+* [`GC.GetTotalAllocatedBytes`](https://docs.microsoft.com/dotnet/api/system.gc.gettotalallocatedbytes):
   Gets a count of the bytes allocated over the lifetime of the process. The returned
 value does not include any native allocations. The value is an approximate count.
 
@@ -133,7 +133,7 @@ garbage collection has occurred.
 
 The API used to retrieve the value is:
 
-* [GCMemoryInfo.TotalCommittedBytes](https://docs.microsoft.com/dotnet/api/system.gcmemoryinfo.totalcommittedbytes):
+* [`GCMemoryInfo.TotalCommittedBytes`](https://docs.microsoft.com/dotnet/api/system.gcmemoryinfo.totalcommittedbytes):
   Gets the total committed bytes of the managed heap.
 
 #### process.runtime.dotnet.**gc.heap.size**
@@ -151,7 +151,7 @@ garbage collection has occurred.
 
 The API used to retrieve the value is:
 
-* [GC.GetGCMemoryInfo().GenerationInfo[i].SizeAfterBytes](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo):
+* [`GC.GetGCMemoryInfo().GenerationInfo[i].SizeAfterBytes`](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo):
   Represents the size in bytes of a generation on exit of the GC reported in GCMemoryInfo.
   Note that this API on .NET 6 has a [bug](https://github.com/dotnet/runtime/pull/60309).
   For .NET 6, heap size is retrieved with an internal method `GC.GetGenerationSize`,
@@ -173,7 +173,7 @@ The value will be unavailable until at least one garbage collection has occurred
 
 The API used to retrieve the value is:
 
-* [GCGenerationInfo.FragmentationAfterBytes Property](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo.fragmentationafterbytes)
+* [`GCGenerationInfo.FragmentationAfterBytes` Property](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo.fragmentationafterbytes)
   Gets the fragmentation in bytes on exit from the reported collection.
 
 ### JIT Compiler related metrics
@@ -211,14 +211,14 @@ the process start.
 
 The APIs used to retrieve the values are:
 
-* [JitInfo.GetCompiledILBytes](https://docs.microsoft.com/dotnet/api/system.runtime.jitinfo.getcompiledilbytes):
+* [`JitInfo.GetCompiledILBytes`](https://docs.microsoft.com/dotnet/api/system.runtime.jitinfo.getcompiledilbytes):
   Gets the number of bytes of intermediate language that have been compiled.
 The scope of this value is global. The same applies for other JIT related metrics.
 
-* [JitInfo.GetCompiledMethodCount](https://docs.microsoft.com/dotnet/api/system.runtime.jitinfo.getcompiledmethodcount):
+* [`JitInfo.GetCompiledMethodCount`](https://docs.microsoft.com/dotnet/api/system.runtime.jitinfo.getcompiledmethodcount):
   Gets the number of methods that have been compiled.
 
-* [JitInfo.GetCompilationTime](https://docs.microsoft.com/dotnet/api/system.runtime.jitinfo.getcompilationtime):
+* [`JitInfo.GetCompilationTime`](https://docs.microsoft.com/dotnet/api/system.runtime.jitinfo.getcompilationtime):
   Gets the amount of time the JIT Compiler has spent compiling methods.
 
 ### Threading related metrics
