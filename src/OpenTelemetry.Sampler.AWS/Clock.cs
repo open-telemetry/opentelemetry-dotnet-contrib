@@ -1,4 +1,4 @@
-// <copyright file="Constants.cs" company="OpenTelemetry Authors">
+// <copyright file="Clock.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,13 +14,23 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Exporter.Stackdriver.Implementation;
+using System;
 
-internal class Constants
+namespace OpenTelemetry.Sampler.AWS;
+
+// A time keeper for the purpose of this sampler.
+internal abstract class Clock
 {
-    public const string PackagVersionUndefined = "undefined";
+    public static Clock GetDefault()
+    {
+        return SystemClock.GetInstance();
+    }
 
-    public const string Global = "global";
+    public abstract DateTime Now();
 
-    public const string ProjectIdLabelKey = "project_id";
+    public abstract long NowInSeconds();
+
+    public abstract DateTime ToDateTime(double seconds);
+
+    public abstract double ToDouble(DateTime dateTime);
 }

@@ -15,20 +15,34 @@ dotnet add package OpenTelemetry.Sampler.AWS
 
 You can configure the `AWSXRayRemoteSampler` as per the following example.
 Note that you will need to configure your [OpenTelemetry Collector for
-X-Ray remote sampling](https://aws-otel.github.io/docs/getting-started/remote-sampling)
+X-Ray remote sampling](https://aws-otel.github.io/docs/getting-started/remote-sampling).
+This example also sets up the Console Exporter,
+which requires adding the package [`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md)
+to the application.
 
 ```csharp
 using OpenTelemetry;
+using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
+using OpenTelemetry.Sampler.AWS;
 using OpenTelemetry.Trace;
 
-var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                        // other configurations
-                        .SetSampler(AWSXRayRemoteSampler.Builder()
-                                                        .SetPollingInterval(TimeSpan.FromSeconds(10))
-                                                        .SetEndpoint("http://localhost:2000")
-                                                        .Build())
-                        .Build();
+var serviceName = "MyServiceName";
+
+var resourceBuilder = ResourceBuilder
+    .CreateDefault()
+    .AddService(serviceName: serviceName)
+    .AddDetector(new AWSEC2ResourceDetector());
+
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .AddSource(serviceName)
+    .SetResourceBuilder(resourceBuilder)
+    .AddConsoleExporter()
+    .SetSampler(AWSXRayRemoteSampler.Builder(resourceBuilder.Build()) // you must provide a resource
+        .SetPollingInterval(TimeSpan.FromSeconds(5))
+        .SetEndpoint("http://localhost:2000")
+        .Build())
+    .Build();
 ```
 
 ## References

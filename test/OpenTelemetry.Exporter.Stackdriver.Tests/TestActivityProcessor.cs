@@ -21,8 +21,8 @@ namespace OpenTelemetry.Exporter.Stackdriver.Tests;
 
 public class TestActivityProcessor : BaseProcessor<Activity>, IDisposable
 {
-    public Action<Activity> StartAction;
-    public Action<Activity> EndAction;
+    public Action<Activity>? StartAction;
+    public Action<Activity>? EndAction;
 
     public TestActivityProcessor()
     {

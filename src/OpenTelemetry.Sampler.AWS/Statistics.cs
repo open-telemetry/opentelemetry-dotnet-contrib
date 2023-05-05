@@ -1,4 +1,4 @@
-// <copyright file="Constants.cs" company="OpenTelemetry Authors">
+// <copyright file="Statistics.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,13 +14,13 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.Exporter.Stackdriver.Implementation;
+namespace OpenTelemetry.Sampler.AWS;
 
-internal class Constants
+internal class Statistics
 {
-    public const string PackagVersionUndefined = "undefined";
+    public int RequestCount { get; internal set; }
 
-    public const string Global = "global";
+    public int BorrowCount { get; internal set; }
 
-    public const string ProjectIdLabelKey = "project_id";
+    public int SampleCount { get; internal set; }
 }

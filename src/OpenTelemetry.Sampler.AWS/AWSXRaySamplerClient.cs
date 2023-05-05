@@ -61,9 +61,6 @@ internal class AWSXRaySamplerClient : IDisposable
                             }
                         }
                     }
-
-                    // TODO: this line here is only for testing. Remove in next more complete iterations.
-                    // Console.WriteLine("Got sampling rules! Count: " + samplingRules.Count);
                 }
             }
             catch (Exception ex)
