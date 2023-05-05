@@ -4,7 +4,7 @@ about: Issue with OpenTelemetry.ResourceDetectors.AWS
 labels: comp:resourcedetectors.aws
 ---
 
-# Issue with OpenTelemetry.Contrib.Extensions.AWSXRay
+# Issue with OpenTelemetry.ResourceDetectors.AWS
 
 List of [all OpenTelemetry NuGet
 packages](https://www.nuget.org/profiles/OpenTelemetry) and version that you are
