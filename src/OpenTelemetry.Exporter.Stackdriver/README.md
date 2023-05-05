@@ -22,7 +22,7 @@ constructor for specifying path to the service account credential.
 ## Installation
 
 ```shell
-dotnet add package OpenTelemetry.Contrib.Instrumentation.Stackdriver --prerelease
+dotnet add package OpenTelemetry.Exporter.Stackdriver --prerelease
 ```
 
 ## Traces
