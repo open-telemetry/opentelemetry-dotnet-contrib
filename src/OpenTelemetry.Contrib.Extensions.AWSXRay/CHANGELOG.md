@@ -19,7 +19,8 @@
   implement OpenTelemetry.Resources.IResourceDetector
   ([#875](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/875))
 * Drop support for `AWSLambdaResourceDetector`.
-  Resources are detected by `OpenTelemetry.Instrumentation.AWSLambda` package
+  AWS Lambda Resources are detected by `OpenTelemetry.Instrumentation.AWSLambda`
+  package
   ([#1140](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1140))
 * Extract AWS Resource Detectors to dedicated package `OpenTelemetry.ResourceDetectors.AWS`
   ([#1140](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1140))
