@@ -88,8 +88,6 @@ internal class AWSXRaySamplerClient : IDisposable
 
         var responseJson = await this.DoRequestAsync(this.getSamplingTargetsEndpoint, request).ConfigureAwait(false);
 
-        Console.WriteLine("got targets:: " + responseJson);
-
         try
         {
             GetSamplingTargetsResponse? getSamplingTargetsResponse = JsonSerializer
