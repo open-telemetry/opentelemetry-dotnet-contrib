@@ -16,8 +16,8 @@
 
 #if !NETFRAMEWORK
 
-using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
+using Moq;
 using OpenTelemetry.ResourceDetectors.AWS.Http;
 using Xunit;
 
@@ -25,46 +25,62 @@ namespace OpenTelemetry.ResourceDetectors.AWS.Tests.Http;
 
 public class ServerCertificateValidationProviderTests
 {
-    private const string INVALIDCRTNAME = "invalidcert";
+    private const string InvalidCertificateName = "invalidcert";
 
     [Fact]
     public void TestValidCertificate()
     {
-        // This test fails on Linux in netcoreapp3.1, but passes in net6.0 and net7.0.
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            using (CertificateUploader certificateUploader = new CertificateUploader())
-            {
-                certificateUploader.Create();
+        using CertificateUploader certificateUploader = new CertificateUploader();
+        certificateUploader.Create();
 
-                // Loads the certificate to the trusted collection from the file
-                ServerCertificateValidationProvider serverCertificateValidationProvider =
-                    ServerCertificateValidationProvider.FromCertificateFile(certificateUploader.FilePath);
+        ServerCertificateValidationProvider serverCertificateValidationProvider =
+            ServerCertificateValidationProvider.FromCertificateFile(certificateUploader.FilePath);
 
-                // Validates if the certificate loaded into the trusted collection.
-                Assert.True(serverCertificateValidationProvider.IsCertificateLoaded);
+        Assert.NotNull(serverCertificateValidationProvider);
 
-                var certificate = new X509Certificate2(certificateUploader.FilePath);
-                X509Chain chain = new X509Chain();
-                chain.Build(certificate);
+        var certificate = new X509Certificate2(certificateUploader.FilePath);
+        X509Chain chain = new X509Chain();
+        chain.Build(certificate);
 
-                // validates if certificate is valid
-                Assert.NotNull(serverCertificateValidationProvider);
-                Assert.NotNull(serverCertificateValidationProvider.ValidationCallback);
-                Assert.True(serverCertificateValidationProvider.ValidationCallback(null, certificate, chain, System.Net.Security.SslPolicyErrors.None));
-            }
-        }
+        // validates if certificate is valid
+        Assert.NotNull(serverCertificateValidationProvider);
+        Assert.NotNull(serverCertificateValidationProvider.ValidationCallback);
+        Assert.True(serverCertificateValidationProvider.ValidationCallback(this, certificate, chain, System.Net.Security.SslPolicyErrors.None));
     }
 
     [Fact]
     public void TestInValidCertificate()
     {
-        // Loads the certificate to the trusted collection from the file
         ServerCertificateValidationProvider serverCertificateValidationProvider =
-            ServerCertificateValidationProvider.FromCertificateFile(INVALIDCRTNAME);
+            ServerCertificateValidationProvider.FromCertificateFile(InvalidCertificateName);
 
-        // Validates if the certificate file loaded.
-        Assert.False(serverCertificateValidationProvider.IsCertificateLoaded);
+        Assert.Null(serverCertificateValidationProvider);
+    }
+
+    [Fact]
+    public void TestTestCallbackWithNullCertificate()
+    {
+        using var certificateUploader = new CertificateUploader();
+        certificateUploader.Create();
+
+        ServerCertificateValidationProvider serverCertificateValidationProvider =
+            ServerCertificateValidationProvider.FromCertificateFile(certificateUploader.FilePath);
+
+        Assert.NotNull(serverCertificateValidationProvider);
+        Assert.False(serverCertificateValidationProvider.ValidationCallback(this, null, Mock.Of<X509Chain>(), default));
+    }
+
+    [Fact]
+    public void TestCallbackWithNullChain()
+    {
+        using var certificateUploader = new CertificateUploader();
+        certificateUploader.Create();
+
+        ServerCertificateValidationProvider serverCertificateValidationProvider =
+            ServerCertificateValidationProvider.FromCertificateFile(certificateUploader.FilePath);
+
+        Assert.NotNull(serverCertificateValidationProvider);
+        Assert.False(serverCertificateValidationProvider.ValidationCallback(this, Mock.Of<X509Certificate2>(), null, default));
     }
 }
 

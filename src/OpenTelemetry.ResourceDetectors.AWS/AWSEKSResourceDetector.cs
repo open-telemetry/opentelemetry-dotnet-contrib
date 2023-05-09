@@ -87,7 +87,7 @@ public class AWSEKSResourceDetector : IResourceDetector
             {
                 while (!streamReader.EndOfStream)
                 {
-                    stringBuilder.Append(streamReader.ReadLine().Trim());
+                    stringBuilder.Append(streamReader.ReadLine()?.Trim());
                 }
             }
 
@@ -111,8 +111,8 @@ public class AWSEKSResourceDetector : IResourceDetector
             {
                 while (!streamReader.EndOfStream)
                 {
-                    var trimmedLine = streamReader.ReadLine().Trim();
-                    if (trimmedLine.Length > 64)
+                    var trimmedLine = streamReader.ReadLine()?.Trim();
+                    if (trimmedLine?.Length > 64)
                     {
                         return trimmedLine.Substring(trimmedLine.Length - 64);
                     }

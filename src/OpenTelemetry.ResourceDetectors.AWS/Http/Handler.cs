@@ -27,24 +27,19 @@ internal class Handler
     {
         try
         {
-            ServerCertificateValidationProvider serverCertificateValidationProvider =
+            ServerCertificateValidationProvider? serverCertificateValidationProvider =
                 ServerCertificateValidationProvider.FromCertificateFile(certificateFile);
 
-            if (!serverCertificateValidationProvider.IsCertificateLoaded ?? false)
+            if (serverCertificateValidationProvider == null)
             {
                 AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(Handler), "Failed to Load the certificate file into trusted collection");
-                return null;
-            }
-
-            if (serverCertificateValidationProvider.ValidationCallback == null)
-            {
                 return null;
             }
 
             var clientHandler = new HttpClientHandler();
             clientHandler.ServerCertificateCustomValidationCallback =
                 (sender, x509Certificate2, x509Chain, sslPolicyErrors) =>
-                    serverCertificateValidationProvider.ValidationCallback(null, x509Certificate2, x509Chain, sslPolicyErrors);
+                    serverCertificateValidationProvider.ValidationCallback(sender, x509Certificate2, x509Chain, sslPolicyErrors);
             return clientHandler;
         }
         catch (Exception ex)

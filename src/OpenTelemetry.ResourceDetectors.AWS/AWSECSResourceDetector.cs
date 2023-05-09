@@ -196,8 +196,8 @@ public class AWSECSResourceDetector : IResourceDetector
         {
             while (!streamReader.EndOfStream)
             {
-                var trimmedLine = streamReader.ReadLine().Trim();
-                if (trimmedLine.Length > 64)
+                var trimmedLine = streamReader.ReadLine()?.Trim();
+                if (trimmedLine?.Length > 64)
                 {
                     containerId = trimmedLine.Substring(trimmedLine.Length - 64);
                     return containerId;
