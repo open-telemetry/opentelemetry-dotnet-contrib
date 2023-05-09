@@ -14,6 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+#if !NETFRAMEWORK
+
 using System.Linq;
 using Xunit;
 
@@ -105,3 +107,5 @@ public class AWSEKSResourceDetectorTests
         Assert.Equal("Test", eksClusterInformation.Data.ClusterName);
     }
 }
+
+#endif

@@ -16,10 +16,10 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'">
-    <Compile Remove="Resources\AWSECSResourceDetector.cs" />
-    <Compile Remove="Resources\AWSEKSResourceDetector.cs" />
-    <Compile Remove="Resources\Http\Handler.cs" />
-    <Compile Remove="Resources\Http\ServerCertificateValidationProvider.cs" />
+    <Compile Remove="AWSECSResourceDetector.cs" />
+    <Compile Remove="AWSEKSResourceDetector.cs" />
+    <Compile Remove="Http\Handler.cs" />
+    <Compile Remove="Http\ServerCertificateValidationProvider.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'">
