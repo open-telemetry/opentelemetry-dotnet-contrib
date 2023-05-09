@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+#if !NETFRAMEWORK
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -212,3 +213,4 @@ public class AWSECSResourceDetector : IResourceDetector
         return Environment.GetEnvironmentVariable(AWSECSMetadataURLKey) != null || Environment.GetEnvironmentVariable(AWSECSMetadataURLV4Key) != null;
     }
 }
+#endif

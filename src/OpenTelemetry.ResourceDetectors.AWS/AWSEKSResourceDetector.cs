@@ -14,6 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+#if  !NETFRAMEWORK
+
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -165,3 +167,4 @@ public class AWSEKSResourceDetector : IResourceDetector
         return ResourceDetectorUtils.SendOutRequest(AWSClusterInfoUrl, "GET", new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler).Result;
     }
 }
+#endif

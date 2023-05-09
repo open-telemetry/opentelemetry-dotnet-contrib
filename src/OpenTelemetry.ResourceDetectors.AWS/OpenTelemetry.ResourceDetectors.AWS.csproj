@@ -15,13 +15,6 @@
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'">
-    <Compile Remove="AWSECSResourceDetector.cs" />
-    <Compile Remove="AWSEKSResourceDetector.cs" />
-    <Compile Remove="Http\Handler.cs" />
-    <Compile Remove="Http\ServerCertificateValidationProvider.cs" />
-  </ItemGroup>
-
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'">
     <PackageReference Include="System.Text.Json" Version="6.0.0" />
   </ItemGroup>

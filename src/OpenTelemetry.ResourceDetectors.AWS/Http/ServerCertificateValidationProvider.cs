@@ -14,6 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+#if !NETFRAMEWORK
+
 using System;
 using System.IO;
 using System.Linq;
@@ -165,3 +167,4 @@ internal class ServerCertificateValidationProvider
         return isSslPolicyPassed && isValidChain && isTrusted;
     }
 }
+#endif
