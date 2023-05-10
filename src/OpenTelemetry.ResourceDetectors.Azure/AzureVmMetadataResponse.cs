@@ -18,7 +18,7 @@ using System.Text.Json.Serialization;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.ResourceDetectors.Azure;
-internal class AzureVmMetadataResponse
+internal sealed class AzureVmMetadataResponse
 {
     [JsonPropertyName("location")]
     public string? Location { get; set; }

@@ -23,7 +23,7 @@ namespace OpenTelemetry.ResourceDetectors.Azure;
 /// <summary>
 /// Resource detector for Azure VM environment.
 /// </summary>
-public class AzureVMResourceDetector : IResourceDetector
+public sealed class AzureVMResourceDetector : IResourceDetector
 {
     internal static readonly IReadOnlyCollection<string> ExpectedAzureAmsFields = new string[]
     {

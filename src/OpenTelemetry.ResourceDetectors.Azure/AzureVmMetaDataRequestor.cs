@@ -19,7 +19,7 @@ using System.Text.Json;
 
 namespace OpenTelemetry.ResourceDetectors.Azure;
 
-internal class AzureVmMetaDataRequestor : IAzureVmMetaDataRequestor
+internal sealed class AzureVmMetaDataRequestor : IAzureVmMetaDataRequestor
 {
     private const string AzureVmMetadataEndpointURL = "http://169.254.169.254/metadata/instance/compute?api-version=2021-12-13&format=json";
 
