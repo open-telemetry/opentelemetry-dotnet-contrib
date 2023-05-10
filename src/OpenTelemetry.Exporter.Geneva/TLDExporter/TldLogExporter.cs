@@ -476,7 +476,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
             var cur = categoryName[i];
             if ((cur >= 'a' && cur <= 'z') || (cur >= 'A' && cur <= 'Z') || (cur >= '0' && cur <= '9'))
             {
-                result[i] = cur;
+                result[validNameLength] = cur;
                 ++validNameLength;
             }
         }
