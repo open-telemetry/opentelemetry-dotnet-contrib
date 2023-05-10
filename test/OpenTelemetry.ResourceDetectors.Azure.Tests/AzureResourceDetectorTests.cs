@@ -94,17 +94,17 @@ public class AzureResourceDetectorTests : IDisposable
             return new AzureVmMetadataResponse()
             {
                 // using values same as key for test.
-               Location = "azInst_location",
-               Name = "azInst_name",
-               OsType = "azInst_osType",
-               ResourceGroupName = "azInst_resourceGroupName",
-               ResourceId = "azInst_resourceId",
-               Sku = "azInst_sku",
-               SubscriptionId = "azInst_subscriptionId",
-               Version = "azInst_version",
-               VmId = "azInst_vmId",
-               VmSize = "azInst_vmSize",
-               VmScaleSetName = "azInst_vmScaleSetName",
+                Location = "azInst_location",
+                Name = "azInst_name",
+                OsType = "azInst_osType",
+                ResourceGroupName = "azInst_resourceGroupName",
+                ResourceId = "azInst_resourceId",
+                Sku = "azInst_sku",
+                SubscriptionId = "azInst_subscriptionId",
+                Version = "azInst_version",
+                VmId = "azInst_vmId",
+                VmSize = "azInst_vmSize",
+                VmScaleSetName = "azInst_vmScaleSetName",
             };
         }
     }
