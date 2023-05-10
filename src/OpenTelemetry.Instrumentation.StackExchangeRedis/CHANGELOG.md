@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Added a dependency on `OpenTelemetry.Api.ProviderBuilderExtensions` and
+  updated `TracerProviderBuilder.AddRedisInstrumentation` to support named
+  options.
+  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+
 ## 1.0.0-rc9.8
 
 Released 2023-Feb-27
