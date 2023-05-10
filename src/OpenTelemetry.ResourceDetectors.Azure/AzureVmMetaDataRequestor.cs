@@ -1,4 +1,4 @@
-// <copyright file="AzureVMResourceDetector.cs" company="OpenTelemetry Authors">
+// <copyright file="AzureVmMetaDataRequestor.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,14 +21,14 @@ namespace OpenTelemetry.ResourceDetectors.Azure;
 
 internal class AzureVmMetaDataRequestor : IAzureVmMetaDataRequestor
 {
-    private const string AMSURL = "http://169.254.169.254/metadata/instance/compute?api-version=2021-12-13&format=json";
+    private const string AzureVmMetadataEndpointURL = "http://169.254.169.254/metadata/instance/compute?api-version=2021-12-13&format=json";
 
     public AzureVmMetadataResponse? GetAzureVmMetaDataResponse()
     {
         using var httpClient = new HttpClient();
 
         httpClient.DefaultRequestHeaders.Add("Metadata", "True");
-        var res = httpClient.GetStringAsync(AMSURL);
+        var res = httpClient.GetStringAsync(AzureVmMetadataEndpointURL);
 
         if (res != null)
         {
