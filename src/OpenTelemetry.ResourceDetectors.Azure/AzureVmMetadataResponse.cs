@@ -55,50 +55,50 @@ internal sealed class AzureVmMetadataResponse
 
     internal string GetValueForField(string fieldName)
     {
-        string? aimsValue = null;
+        string? amsValue = null;
         switch (fieldName)
         {
             case "azInst_osType":
-                aimsValue = this.OsType;
+                amsValue = this.OsType;
                 break;
             case "azInst_location":
-                aimsValue = this.Location;
+                amsValue = this.Location;
                 break;
             case "azInst_name":
-                aimsValue = this.Name;
+                amsValue = this.Name;
                 break;
             case "azInst_sku":
-                aimsValue = this.Sku;
+                amsValue = this.Sku;
                 break;
             case "azInst_version":
-                aimsValue = this.Version;
+                amsValue = this.Version;
                 break;
             case "azInst_vmId":
             case ResourceSemanticConventions.AttributeServiceInstance:
-                aimsValue = this.VmId;
+                amsValue = this.VmId;
                 break;
             case "azInst_vmSize":
-                aimsValue = this.VmSize;
+                amsValue = this.VmSize;
                 break;
             case "azInst_subscriptionId":
-                aimsValue = this.SubscriptionId;
+                amsValue = this.SubscriptionId;
                 break;
             case "azInst_resourceId":
-                aimsValue = this.ResourceId;
+                amsValue = this.ResourceId;
                 break;
             case "azInst_resourceGroupName":
-                aimsValue = this.ResourceGroupName;
+                amsValue = this.ResourceGroupName;
                 break;
             case "azInst_vmScaleSetName":
-                aimsValue = this.VmScaleSetName;
+                amsValue = this.VmScaleSetName;
                 break;
         }
 
-        if (aimsValue == null)
+        if (amsValue == null)
         {
-            aimsValue = string.Empty;
+            amsValue = string.Empty;
         }
 
-        return aimsValue;
+        return amsValue;
     }
 }
