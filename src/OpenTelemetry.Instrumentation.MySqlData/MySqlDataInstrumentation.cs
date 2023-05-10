@@ -168,17 +168,7 @@ internal class MySqlDataInstrumentation : DefaultTraceListener
             return;
         }
 
-        try
-        {
-            if (activity.IsAllDataRequested)
-            {
-                activity.SetStatus(Status.Unset);
-            }
-        }
-        finally
-        {
             activity.Stop();
-        }
     }
 
     private void BeforeExecuteCommand(MySqlDataTraceCommand command)
