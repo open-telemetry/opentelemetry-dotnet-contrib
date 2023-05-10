@@ -32,13 +32,13 @@ internal class MySqlDataInstrumentationEventSource : EventSource
         this.WriteEvent(1, mysqlEventId, message);
     }
 
-    [Event(2, Message = "Error accured while processing trace event, MySqlTraceEventType: {0}, Message {1}, Exception: {2}", Level = EventLevel.Error)]
+    [Event(2, Message = "Error while processing trace event, MySqlTraceEventType: {0}, Message {1}, Exception: {2}", Level = EventLevel.Error)]
     public void ErrorTraceEvent(int mysqlEventId, string message, string exception)
     {
         this.WriteEvent(1, mysqlEventId, message, exception);
     }
 
-    [Event(2, Message = "Error accured while initializing MySqlDataInstrumentation, Message {0}, Exception: {1}", Level = EventLevel.Warning)]
+    [Event(3, Message = "Error while initializing MySqlDataInstrumentation, Message {0}, Exception: {1}", Level = EventLevel.Warning)]
     public void ErrorInitialize(string message, string exception)
     {
         this.WriteEvent(1, message, exception);
