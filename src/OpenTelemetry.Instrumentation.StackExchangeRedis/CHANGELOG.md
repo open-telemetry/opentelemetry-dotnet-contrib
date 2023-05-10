@@ -5,7 +5,7 @@
 * Added a dependency on `OpenTelemetry.Api.ProviderBuilderExtensions` and
   updated `TracerProviderBuilder.AddRedisInstrumentation` to support named
   options.
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#1183](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1183))
 
 ## 1.0.0-rc9.8
 
