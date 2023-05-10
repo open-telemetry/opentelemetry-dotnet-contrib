@@ -16,7 +16,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Xunit;
 
 namespace OpenTelemetry.ResourceDetectors.Azure.Tests;
@@ -61,11 +63,50 @@ public class AzureResourceDetectorTests : IDisposable
         }
     }
 
+    [Fact]
+    public void TestAzureVmResourceDetector()
+    {
+        var resource = ResourceBuilder.CreateEmpty().AddDetector(new AzureVMResourceDetector(new MockAzureVmMetaDataRequestor())).Build();
+        Assert.NotNull(resource);
+        foreach (var field in AzureVMResourceDetector.ExpectedAzureAmsFields)
+        {
+            if (field == ResourceSemanticConventions.AttributeServiceInstance)
+            {
+                Assert.Contains(new KeyValuePair<string, object>(field, "azInst_vmId"), resource.Attributes);
+                continue;
+            }
+
+            Assert.Contains(new KeyValuePair<string, object>(field, field), resource.Attributes);
+        }
+    }
+
     public void Dispose()
     {
         foreach (var kvp in AppServiceResourceDetector.AppServiceResourceAttributes)
         {
             Environment.SetEnvironmentVariable(kvp.Value, null);
+        }
+    }
+
+    private class MockAzureVmMetaDataRequestor : IAzureVmMetaDataRequestor
+    {
+        public AzureVmMetadataResponse GetAzureVmMetaDataResponse()
+        {
+            return new AzureVmMetadataResponse()
+            {
+                // using values same as key for test.
+               Location = "azInst_location",
+               Name = "azInst_name",
+               OsType = "azInst_osType",
+               ResourceGroupName = "azInst_resourceGroupName",
+               ResourceId = "azInst_resourceId",
+               Sku = "azInst_sku",
+               SubscriptionId = "azInst_subscriptionId",
+               Version = "azInst_version",
+               VmId = "azInst_vmId",
+               VmSize = "azInst_vmSize",
+               VmScaleSetName = "azInst_vmScaleSetName",
+            };
         }
     }
 }
