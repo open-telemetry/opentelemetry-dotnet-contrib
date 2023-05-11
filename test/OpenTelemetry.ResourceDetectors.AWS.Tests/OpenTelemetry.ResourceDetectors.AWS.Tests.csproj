@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Unit test project for AWS Detector for OpenTelemetry</Description>
+    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
+    <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <Nullabe>enable</Nullabe>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkPkgVer)" />
+    <PackageReference Include="xunit" Version="$(XUnitPkgVer)" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <DotNetCliToolReference Include="dotnet-xunit" Version="$(DotNetXUnitCliVer)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.ResourceDetectors.AWS\OpenTelemetry.ResourceDetectors.AWS.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' != '$(NetFrameworkMinimumSupportedVersion)'">
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <None Update="ecs_metadata\metadatav4-response-container-ec2.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="ecs_metadata\metadatav4-response-task-ec2.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="ecs_metadata\metadatav4-response-container-fargate.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="ecs_metadata\metadatav4-response-task-fargate.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="SampleMetadataFiles\environment.conf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="SampleMetadataFiles\testcgroup">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="SampleMetadataFiles\testekstoken">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>
