@@ -1,22 +1,5 @@
 #nullable enable
 OpenTelemetry.Contrib.Extensions.AWSXRay.AWSXRayIdGenerator
-OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEBSResourceDetector
-OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEBSResourceDetector.AWSEBSResourceDetector() -> void
-OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEBSResourceDetector.Detect() -> OpenTelemetry.Resources.Resource!
-OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEC2ResourceDetector
-OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEC2ResourceDetector.AWSEC2ResourceDetector() -> void
-OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEC2ResourceDetector.Detect() -> OpenTelemetry.Resources.Resource!
-OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSECSResourceDetector
-OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSECSResourceDetector.AWSECSResourceDetector() -> void
-OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSECSResourceDetector.Detect() -> OpenTelemetry.Resources.Resource!
-OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEKSResourceDetector
-OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEKSResourceDetector.AWSEKSResourceDetector() -> void
-OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSEKSResourceDetector.Detect() -> OpenTelemetry.Resources.Resource!
-OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSLambdaResourceDetector
-OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSLambdaResourceDetector.AWSLambdaResourceDetector() -> void
-OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.AWSLambdaResourceDetector.Detect() -> OpenTelemetry.Resources.Resource!
-OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.ResourceDetectorUtils
-OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.ResourceDetectorUtils.ResourceDetectorUtils() -> void
 OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayPropagator
 OpenTelemetry.Contrib.Extensions.AWSXRay.Trace.AWSXRayPropagator.AWSXRayPropagator() -> void
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
