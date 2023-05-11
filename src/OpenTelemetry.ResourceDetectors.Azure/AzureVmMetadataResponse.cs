@@ -55,7 +55,7 @@ internal sealed class AzureVmMetadataResponse
 
     internal string GetValueForField(string fieldName)
     {
-        string? amsValue = null;
+        string? amsValue = string.Empty;
         switch (fieldName)
         {
             case "azInst_osType":
@@ -92,11 +92,6 @@ internal sealed class AzureVmMetadataResponse
             case "azInst_vmScaleSetName":
                 amsValue = this.VmScaleSetName;
                 break;
-        }
-
-        if (amsValue == null)
-        {
-            amsValue = string.Empty;
         }
 
         return amsValue;

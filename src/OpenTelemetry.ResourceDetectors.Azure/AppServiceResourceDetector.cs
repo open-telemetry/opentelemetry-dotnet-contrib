@@ -28,14 +28,14 @@ public sealed class AppServiceResourceDetector : IResourceDetector
 {
     internal static readonly IReadOnlyDictionary<string, string> AppServiceResourceAttributes = new Dictionary<string, string>
     {
-        ["appSrv_SiteName"] = "WEBSITE_SITE_NAME",
-        [ResourceSemanticConventions.AttributeServiceName] = "WEBSITE_SITE_NAME",
-        [ResourceSemanticConventions.AttributeServiceInstance] = "WEBSITE_INSTANCE_ID",
-        ["appSrv_SlotName"] = "WEBSITE_SLOT_NAME",
-        ["appSrv_wsStamp"] = "WEBSITE_HOME_STAMPNAME",
-        ["appSrv_wsHost"] = "WEBSITE_HOSTNAME",
-        ["appSrv_wsOwner"] = "WEBSITE_OWNER_NAME",
-        ["appSrv_ResourceGroup"] = "WEBSITE_RESOURCE_GROUP",
+        [ResourceAttributeConstants.AppserviceSiteName] = ResourceAttributeConstants.AppserviceSiteNameEnvVar,
+        [ResourceSemanticConventions.AttributeServiceName] = ResourceAttributeConstants.AppserviceSiteNameEnvVar,
+        [ResourceSemanticConventions.AttributeServiceInstance] = ResourceAttributeConstants.AppserviceInstanceIdEnvVar,
+        [ResourceAttributeConstants.AppserviceSlotName] = ResourceAttributeConstants.AppserviceSlotNameEnvVar,
+        [ResourceAttributeConstants.AppserviceWsStamp] = ResourceAttributeConstants.AppserviceStampNameEnvVar,
+        [ResourceAttributeConstants.AppserviceWsHost] = ResourceAttributeConstants.AppserviceHostNameEnvVar,
+        [ResourceAttributeConstants.AppserviceOwner] = ResourceAttributeConstants.AppserviceOwnerNameEnvVar,
+        [ResourceAttributeConstants.AppserviceResourceGroup] = ResourceAttributeConstants.AppserviceResourceGroupEnvVar,
     };
 
     /// <inheritdoc/>

@@ -31,7 +31,7 @@ public class AzureResourceDetectorTests : IDisposable
         {
             foreach (var kvp in AppServiceResourceDetector.AppServiceResourceAttributes)
             {
-                if (kvp.Value == "WEBSITE_SITE_NAME")
+                if (kvp.Value == ResourceAttributeConstants.AppserviceSiteNameEnvVar)
                 {
                     continue;
                 }
@@ -40,7 +40,7 @@ public class AzureResourceDetectorTests : IDisposable
             }
 
             // Special case for service.name and appSrv_SiteName attribute
-            Environment.SetEnvironmentVariable("WEBSITE_SITE_NAME", "ServiceName");
+            Environment.SetEnvironmentVariable(ResourceAttributeConstants.AppserviceSiteNameEnvVar, "ServiceName");
         }
         catch
         {
@@ -51,14 +51,13 @@ public class AzureResourceDetectorTests : IDisposable
 
         foreach (var kvp in AppServiceResourceDetector.AppServiceResourceAttributes)
         {
-            if (kvp.Value == "WEBSITE_SITE_NAME")
+            if (kvp.Value == ResourceAttributeConstants.AppserviceSiteNameEnvVar)
             {
                 Assert.Contains(new KeyValuePair<string, object>(kvp.Key, "ServiceName"), resource.Attributes);
+                continue;
             }
-            else
-            {
-                Assert.Contains(new KeyValuePair<string, object>(kvp.Key, kvp.Key), resource.Attributes);
-            }
+
+            Assert.Contains(new KeyValuePair<string, object>(kvp.Key, kvp.Key), resource.Attributes);
         }
     }
 
@@ -70,17 +69,17 @@ public class AzureResourceDetectorTests : IDisposable
             return new AzureVmMetadataResponse()
             {
                 // using values same as key for test.
-                Location = "azInst_location",
-                Name = "azInst_name",
-                OsType = "azInst_osType",
-                ResourceGroupName = "azInst_resourceGroupName",
-                ResourceId = "azInst_resourceId",
-                Sku = "azInst_sku",
-                SubscriptionId = "azInst_subscriptionId",
-                Version = "azInst_version",
-                VmId = "azInst_vmId",
-                VmSize = "azInst_vmSize",
-                VmScaleSetName = "azInst_vmScaleSetName",
+                VmId = ResourceAttributeConstants.AzureVmId,
+                Location = ResourceAttributeConstants.AzureVmLocation,
+                Name = ResourceAttributeConstants.AzureVmName,
+                OsType = ResourceAttributeConstants.AzureVmOsType,
+                ResourceGroupName = ResourceAttributeConstants.AzureVmResourceGroup,
+                ResourceId = ResourceAttributeConstants.AzureVmResourceId,
+                Sku = ResourceAttributeConstants.AzureVmsku,
+                Version = ResourceAttributeConstants.AzureVmVersion,
+                VmSize = ResourceAttributeConstants.AzureVmSize,
+                VmScaleSetName = ResourceAttributeConstants.AzureVmScaleSetName,
+                SubscriptionId = ResourceAttributeConstants.AzureVmSubscriptionId,
             };
         };
 
@@ -90,7 +89,7 @@ public class AzureResourceDetectorTests : IDisposable
         {
             if (field == ResourceSemanticConventions.AttributeServiceInstance)
             {
-                Assert.Contains(new KeyValuePair<string, object>(field, "azInst_vmId"), resource.Attributes);
+                Assert.Contains(new KeyValuePair<string, object>(field, ResourceAttributeConstants.AzureVmId), resource.Attributes);
                 continue;
             }
 
