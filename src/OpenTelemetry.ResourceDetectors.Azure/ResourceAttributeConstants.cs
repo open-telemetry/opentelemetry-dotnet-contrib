@@ -47,4 +47,3 @@ internal class ResourceAttributeConstants
     internal const string AppserviceOwnerNameEnvVar = "WEBSITE_OWNER_NAME";
     internal const string AppserviceResourceGroupEnvVar = "WEBSITE_RESOURCE_GROUP";
 }
-
