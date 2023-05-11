@@ -1,9 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>netstandard2.0;$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
-    <Description>OpenTelemetry extensions for AWS X-Ray.</Description>
-    <MinVerTagPrefix>Extensions.AWSXRay-</MinVerTagPrefix>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <Description>OpenTelemetry Extensions - AWS Resource Detectors for ElasticBeanstalk, EC2, ECS, EKS.</Description>
+    <MinVerTagPrefix>ResourceDetectors.AWS-</MinVerTagPrefix>
     <Nullable>enable</Nullable>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
   </PropertyGroup>
@@ -11,6 +13,13 @@
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'">
+    <Compile Remove="AWSECSResourceDetector.cs" />
+    <Compile Remove="AWSEKSResourceDetector.cs" />
+    <Compile Remove="Http\Handler.cs" />
+    <Compile Remove="Http\ServerCertificateValidationProvider.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'">

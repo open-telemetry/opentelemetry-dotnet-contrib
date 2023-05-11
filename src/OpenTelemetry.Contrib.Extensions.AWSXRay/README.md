@@ -38,39 +38,6 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 Sdk.SetDefaultTextMapPropagator(new AWSXRayPropagator());
 ```
 
-### AWS Resource Detectors
-
-The ADOT .NET SDK supports automatically recording metadata in
-EC2, Elastic Beanstalk, ECS, and EKS environments. You can configure
-the corresponding resource detector to the `TracerProvider` following
-the EC2 example below.
-
-```csharp
-using OpenTelemetry;
-using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
-using OpenTelemetry.Resources;
-
-var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                        // other configurations
-                        .SetResourceBuilder(ResourceBuilder
-                            .CreateDefault()
-                            .AddDetector(new AWSEC2ResourceDetector()))
-                        .Build();
-```
-
-The resource detectors will record the following metadata based on where
-your application is running:
-
-- **AWSEC2ResourceDetector**: cloud provider, cloud platform, account id,
-cloud available zone, host id, host type, aws region, host name.
-- **AWSEBSResourceDetector**: cloud provider, cloud platform, service name,
-service namespace, instance id, service version.
-- **AWSECSResourceDetector**: cloud provider, cloud platform, container id.
-- **AWSEKSResourceDetector**: cloud provider, cloud platform, cluster name,
-container id.
-- **AWSLambdaResourceDetector**: cloud provider, cloud platform, aws region,
-function name, function version.
-
 ## References
 
 - [OpenTelemetry Project](https://opentelemetry.io/)
