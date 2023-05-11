@@ -31,7 +31,7 @@ public class AzureResourceDetectorTests : IDisposable
         {
             foreach (var kvp in AppServiceResourceDetector.AppServiceResourceAttributes)
             {
-                if (kvp.Value == ResourceAttributeConstants.AppserviceSiteNameEnvVar)
+                if (kvp.Value == ResourceAttributeConstants.AppServiceSiteNameEnvVar)
                 {
                     continue;
                 }
@@ -40,7 +40,7 @@ public class AzureResourceDetectorTests : IDisposable
             }
 
             // Special case for service.name and appSrv_SiteName attribute
-            Environment.SetEnvironmentVariable(ResourceAttributeConstants.AppserviceSiteNameEnvVar, "ServiceName");
+            Environment.SetEnvironmentVariable(ResourceAttributeConstants.AppServiceSiteNameEnvVar, "ServiceName");
         }
         catch
         {
@@ -51,7 +51,7 @@ public class AzureResourceDetectorTests : IDisposable
 
         foreach (var kvp in AppServiceResourceDetector.AppServiceResourceAttributes)
         {
-            if (kvp.Value == ResourceAttributeConstants.AppserviceSiteNameEnvVar)
+            if (kvp.Value == ResourceAttributeConstants.AppServiceSiteNameEnvVar)
             {
                 Assert.Contains(new KeyValuePair<string, object>(kvp.Key, "ServiceName"), resource.Attributes);
                 continue;
@@ -75,7 +75,7 @@ public class AzureResourceDetectorTests : IDisposable
                 OsType = ResourceAttributeConstants.AzureVmOsType,
                 ResourceGroupName = ResourceAttributeConstants.AzureVmResourceGroup,
                 ResourceId = ResourceAttributeConstants.AzureVmResourceId,
-                Sku = ResourceAttributeConstants.AzureVmsku,
+                Sku = ResourceAttributeConstants.AzureVmSku,
                 Version = ResourceAttributeConstants.AzureVmVersion,
                 VmSize = ResourceAttributeConstants.AzureVmSize,
                 VmScaleSetName = ResourceAttributeConstants.AzureVmScaleSetName,

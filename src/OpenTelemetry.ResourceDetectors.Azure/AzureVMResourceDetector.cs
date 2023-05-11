@@ -33,7 +33,7 @@ public sealed class AzureVMResourceDetector : IResourceDetector
         ResourceAttributeConstants.AzureVmOsType,
         ResourceAttributeConstants.AzureVmResourceGroup,
         ResourceAttributeConstants.AzureVmResourceId,
-        ResourceAttributeConstants.AzureVmsku,
+        ResourceAttributeConstants.AzureVmSku,
         ResourceAttributeConstants.AzureVmVersion,
         ResourceAttributeConstants.AzureVmSize,
         ResourceAttributeConstants.AzureVmScaleSetName,

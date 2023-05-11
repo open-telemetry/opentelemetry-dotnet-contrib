@@ -17,13 +17,13 @@
 namespace OpenTelemetry.ResourceDetectors.Azure;
 internal class ResourceAttributeConstants
 {
-    // Appservice resource attributes
-    internal const string AppserviceSiteName = "appSrv_SiteName";
-    internal const string AppserviceSlotName = "appSrv_SlotName";
-    internal const string AppserviceWsStamp = "appSrv_wsStamp";
-    internal const string AppserviceWsHost = "appSrv_wsHost";
-    internal const string AppserviceOwner = "appSrv_wsOwner";
-    internal const string AppserviceResourceGroup = "appSrv_ResourceGroup";
+    // AppService resource attributes
+    internal const string AppServiceSiteName = "appSrv_SiteName";
+    internal const string AppServiceSlotName = "appSrv_SlotName";
+    internal const string AppServiceStamp = "appSrv_wsStamp";
+    internal const string AppServiceHost = "appSrv_wsHost";
+    internal const string AppServiceOwner = "appSrv_wsOwner";
+    internal const string AppServiceResourceGroup = "appSrv_ResourceGroup";
 
     // Azure VM resource attributes
     internal const string AzureVmId = "azInst_vmId";
@@ -32,18 +32,18 @@ internal class ResourceAttributeConstants
     internal const string AzureVmOsType = "azInst_osType";
     internal const string AzureVmResourceGroup = "azInst_resourceGroupName";
     internal const string AzureVmResourceId = "azInst_resourceId";
-    internal const string AzureVmsku = "azInst_sku";
+    internal const string AzureVmSku = "azInst_sku";
     internal const string AzureVmVersion = "azInst_version";
     internal const string AzureVmSize = "azInst_vmSize";
     internal const string AzureVmScaleSetName = "azInst_vmScaleSetName";
     internal const string AzureVmSubscriptionId = "azInst_subscriptionId";
 
-    // Appservice environment variables
-    internal const string AppserviceSiteNameEnvVar = "WEBSITE_SITE_NAME";
-    internal const string AppserviceInstanceIdEnvVar = "WEBSITE_INSTANCE_ID";
-    internal const string AppserviceSlotNameEnvVar = "WEBSITE_SLOT_NAME";
-    internal const string AppserviceStampNameEnvVar = "WEBSITE_HOME_STAMPNAME";
-    internal const string AppserviceHostNameEnvVar = "WEBSITE_HOSTNAME";
-    internal const string AppserviceOwnerNameEnvVar = "WEBSITE_OWNER_NAME";
-    internal const string AppserviceResourceGroupEnvVar = "WEBSITE_RESOURCE_GROUP";
+    // AppService environment variables
+    internal const string AppServiceSiteNameEnvVar = "WEBSITE_SITE_NAME";
+    internal const string AppServiceInstanceIdEnvVar = "WEBSITE_INSTANCE_ID";
+    internal const string AppServiceSlotNameEnvVar = "WEBSITE_SLOT_NAME";
+    internal const string AppServiceStampNameEnvVar = "WEBSITE_HOME_STAMPNAME";
+    internal const string AppServiceHostNameEnvVar = "WEBSITE_HOSTNAME";
+    internal const string AppServiceOwnerNameEnvVar = "WEBSITE_OWNER_NAME";
+    internal const string AppServiceResourceGroupEnvVar = "WEBSITE_RESOURCE_GROUP";
 }

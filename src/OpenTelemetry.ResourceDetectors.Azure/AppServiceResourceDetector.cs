@@ -28,14 +28,14 @@ public sealed class AppServiceResourceDetector : IResourceDetector
 {
     internal static readonly IReadOnlyDictionary<string, string> AppServiceResourceAttributes = new Dictionary<string, string>
     {
-        [ResourceAttributeConstants.AppserviceSiteName] = ResourceAttributeConstants.AppserviceSiteNameEnvVar,
-        [ResourceSemanticConventions.AttributeServiceName] = ResourceAttributeConstants.AppserviceSiteNameEnvVar,
-        [ResourceSemanticConventions.AttributeServiceInstance] = ResourceAttributeConstants.AppserviceInstanceIdEnvVar,
-        [ResourceAttributeConstants.AppserviceSlotName] = ResourceAttributeConstants.AppserviceSlotNameEnvVar,
-        [ResourceAttributeConstants.AppserviceWsStamp] = ResourceAttributeConstants.AppserviceStampNameEnvVar,
-        [ResourceAttributeConstants.AppserviceWsHost] = ResourceAttributeConstants.AppserviceHostNameEnvVar,
-        [ResourceAttributeConstants.AppserviceOwner] = ResourceAttributeConstants.AppserviceOwnerNameEnvVar,
-        [ResourceAttributeConstants.AppserviceResourceGroup] = ResourceAttributeConstants.AppserviceResourceGroupEnvVar,
+        [ResourceAttributeConstants.AppServiceSiteName] = ResourceAttributeConstants.AppServiceSiteNameEnvVar,
+        [ResourceSemanticConventions.AttributeServiceName] = ResourceAttributeConstants.AppServiceSiteNameEnvVar,
+        [ResourceSemanticConventions.AttributeServiceInstance] = ResourceAttributeConstants.AppServiceInstanceIdEnvVar,
+        [ResourceAttributeConstants.AppServiceSlotName] = ResourceAttributeConstants.AppServiceSlotNameEnvVar,
+        [ResourceAttributeConstants.AppServiceStamp] = ResourceAttributeConstants.AppServiceStampNameEnvVar,
+        [ResourceAttributeConstants.AppServiceHost] = ResourceAttributeConstants.AppServiceHostNameEnvVar,
+        [ResourceAttributeConstants.AppServiceOwner] = ResourceAttributeConstants.AppServiceOwnerNameEnvVar,
+        [ResourceAttributeConstants.AppServiceResourceGroup] = ResourceAttributeConstants.AppServiceResourceGroupEnvVar,
     };
 
     /// <inheritdoc/>
