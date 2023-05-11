@@ -28,11 +28,11 @@ internal sealed class AzureVmMetaDataRequestor : IAzureVmMetaDataRequestor
         using var httpClient = new HttpClient();
 
         httpClient.DefaultRequestHeaders.Add("Metadata", "True");
-        var res = httpClient.GetStringAsync(AzureVmMetadataEndpointURL);
+        var res = httpClient.GetStringAsync(AzureVmMetadataEndpointURL).ConfigureAwait(false).GetAwaiter().GetResult();
 
         if (res != null)
         {
-            return JsonSerializer.Deserialize<AzureVmMetadataResponse>(res.Result);
+            return JsonSerializer.Deserialize<AzureVmMetadataResponse>(res);
         }
 
         return null;

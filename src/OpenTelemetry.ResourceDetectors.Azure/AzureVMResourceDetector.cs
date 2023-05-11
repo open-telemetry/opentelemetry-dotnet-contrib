@@ -60,12 +60,13 @@ public sealed class AzureVMResourceDetector : IResourceDetector
     /// <inheritdoc/>
     public Resource Detect()
     {
-        List<KeyValuePair<string, object>> attributeList = new();
+        List<KeyValuePair<string, object>>? attributeList = null;
         try
         {
             var vmMetaDataResponse = this.azureVmMetaDataRequestor.GetAzureVmMetaDataResponse();
             if (vmMetaDataResponse != null)
             {
+                attributeList = new List<KeyValuePair<string, object>>(ExpectedAzureAmsFields.Count);
                 foreach (var field in ExpectedAzureAmsFields)
                 {
                     attributeList.Add(new KeyValuePair<string, object>(field, vmMetaDataResponse.GetValueForField(field)));
@@ -78,6 +79,6 @@ public sealed class AzureVMResourceDetector : IResourceDetector
             return Resource.Empty;
         }
 
-        return new Resource(attributeList);
+        return attributeList == null ? Resource.Empty : new Resource(attributeList);
     }
 }
