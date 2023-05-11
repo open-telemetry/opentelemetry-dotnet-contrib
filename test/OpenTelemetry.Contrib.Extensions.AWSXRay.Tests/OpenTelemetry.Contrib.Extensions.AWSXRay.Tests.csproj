@@ -27,40 +27,6 @@
 
   <ItemGroup Condition="'$(TargetFramework)' != '$(NetFrameworkMinimumSupportedVersion)'">
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <None Update="Resources\ecs_metadata\metadatav4-response-container-ec2.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\ecs_metadata\metadatav4-response-task-ec2.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\ecs_metadata\metadatav4-response-container-fargate.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\ecs_metadata\metadatav4-response-task-fargate.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'">
-    <Compile Remove="Resources\TestAWSECSResourceDetector.cs" />
-    <Compile Remove="Resources\TestAWSEKSResourceDetector.cs" />
-    <Compile Remove="Resources\TestAWSLambdaResourceDetector.cs" />
-    <Compile Remove="Resources\TestResourceBuilderExtensions.cs" />
-    <Compile Remove="Resources\Http\CertificateUploader.cs" />
-    <Compile Remove="Resources\Http\TestHandler.cs" />
-    <Compile Remove="Resources\Http\TestServerCertificateValidationProvider.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Resources\SampleMetadataFiles\environment.conf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\SampleMetadataFiles\testcgroup">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\SampleMetadataFiles\testekstoken">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

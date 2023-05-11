@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
+
 using System;
 using System.Diagnostics;
 using System.Net;
@@ -304,13 +305,13 @@ public class StackExchangeRedisCallsInstrumentationTests
     public void StackExchangeRedis_BadArgs()
     {
         TracerProviderBuilder builder = null;
-        Assert.Throws<ArgumentNullException>(() => builder.AddRedisInstrumentation(null));
+        Assert.Throws<ArgumentNullException>(() => builder.AddRedisInstrumentation(connection: null));
 
         var activityProcessor = new Mock<BaseProcessor<Activity>>();
         var exception = Assert.Throws<InvalidOperationException>(() =>
             Sdk.CreateTracerProviderBuilder()
                 .AddProcessor(activityProcessor.Object)
-                .AddRedisInstrumentation(null)
+                .AddRedisInstrumentation(name: null, connection: null, configure: null)
                 .Build());
         Assert.Equal("StackExchange.Redis IConnectionMultiplexer could not be resolved through application IServiceProvider", exception.Message);
     }

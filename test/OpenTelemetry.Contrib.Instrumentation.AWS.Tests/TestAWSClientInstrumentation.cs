@@ -73,6 +73,46 @@ public class TestAWSClientInstrumentation
     }
 
     [Fact]
+    public void TestDDBSubtypeScanSuccessful()
+    {
+        var processor = new Mock<BaseProcessor<Activity>>();
+
+        var parent = new Activity("parent").Start();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddXRayTraceId()
+                   .AddAWSInstrumentation()
+                   .AddProcessor(processor.Object)
+                   .Build())
+        {
+            var ddb = new TestAmazonDynamoDBClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+            CustomResponses.SetResponse(ddb, null, requestId, true);
+            var scan_request = new ScanRequest();
+
+            scan_request.TableName = "SampleProduct";
+            scan_request.AttributesToGet = new List<string>() { "Id", "Name" };
+#if NETFRAMEWORK
+            ddb.Scan(scan_request);
+#else
+            ddb.ScanAsync(scan_request).Wait();
+#endif
+            var count = processor.Invocations.Count;
+
+            Assert.Equal(3, count);
+
+            Activity awssdk_activity = (Activity)processor.Invocations[2].Arguments[0];
+
+            this.ValidateAWSActivity(awssdk_activity, parent);
+            this.ValidateDynamoActivityTags(awssdk_activity);
+
+            Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+            Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.requestId"));
+        }
+    }
+
+    [Fact]
 #if NETFRAMEWORK
     public void TestDDBScanUnsuccessful()
 #else

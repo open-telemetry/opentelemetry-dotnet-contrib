@@ -49,18 +49,18 @@ public class ApplicationInsightsSamplerTests
         SamplingParameters testParams2 = new SamplingParameters(parentContext, testId2, "TestActivity", ActivityKind.Internal);
 
         // Verify sample ratio: 0
-        ApplicationInsightsSampler zeroSampler = new ApplicationInsightsSampler(samplingRatio: 0);
+        ApplicationInsightsSampler zeroSampler = new ApplicationInsightsSampler(new ApplicationInsightsSamplerOptions { SamplingRatio = 0 });
         Assert.Equal(SamplingDecision.RecordOnly, zeroSampler.ShouldSample(testParams1).Decision);
         Assert.Equal(SamplingDecision.RecordOnly, zeroSampler.ShouldSample(testParams2).Decision);
 
         // Verify sample ratio: 1
-        ApplicationInsightsSampler oneSampler = new ApplicationInsightsSampler(samplingRatio: 1);
+        ApplicationInsightsSampler oneSampler = new ApplicationInsightsSampler(new ApplicationInsightsSamplerOptions { SamplingRatio = 1 });
         Assert.Equal(SamplingDecision.RecordAndSample, oneSampler.ShouldSample(testParams1).Decision);
         Assert.Equal(SamplingDecision.RecordAndSample, oneSampler.ShouldSample(testParams2).Decision);
 
         // Verify sample ratio: 0.5.
         // This is below the sample score for testId2, but strict enough to drop testId1
-        ApplicationInsightsSampler ratioSampler = new ApplicationInsightsSampler(samplingRatio: 0.5f);
+        ApplicationInsightsSampler ratioSampler = new ApplicationInsightsSampler(new ApplicationInsightsSamplerOptions { SamplingRatio = 0.5f });
         Assert.Equal(SamplingDecision.RecordOnly, ratioSampler.ShouldSample(testParams1).Decision);
         Assert.Equal(SamplingDecision.RecordAndSample, ratioSampler.ShouldSample(testParams2).Decision);
     }
@@ -68,27 +68,27 @@ public class ApplicationInsightsSamplerTests
     [Fact]
     public void ApplicationInsightsSamplerGoodArgs()
     {
-        ApplicationInsightsSampler pointFiveSampler = new ApplicationInsightsSampler(0.5f);
+        ApplicationInsightsSampler pointFiveSampler = new ApplicationInsightsSampler(new ApplicationInsightsSamplerOptions { SamplingRatio = 0.5f });
         Assert.NotNull(pointFiveSampler);
 
-        ApplicationInsightsSampler zeroSampler = new ApplicationInsightsSampler(0f);
+        ApplicationInsightsSampler zeroSampler = new ApplicationInsightsSampler(new ApplicationInsightsSamplerOptions { SamplingRatio = 0f });
         Assert.NotNull(zeroSampler);
 
-        ApplicationInsightsSampler oneSampler = new ApplicationInsightsSampler(1f);
+        ApplicationInsightsSampler oneSampler = new ApplicationInsightsSampler(new ApplicationInsightsSamplerOptions { SamplingRatio = 1f });
         Assert.NotNull(oneSampler);
     }
 
     [Fact]
     public void ApplicationInsightsSamplerBadArgs()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => new ApplicationInsightsSampler(-2f));
-        Assert.Throws<ArgumentOutOfRangeException>(() => new ApplicationInsightsSampler(2f));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ApplicationInsightsSampler(new ApplicationInsightsSamplerOptions { SamplingRatio = -2f }));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ApplicationInsightsSampler(new ApplicationInsightsSamplerOptions { SamplingRatio = 2f }));
     }
 
     [Fact]
     public void GetDescriptionMatchesSpec()
     {
         var expectedDescription = "ApplicationInsightsSampler{0.5}";
-        Assert.Equal(expectedDescription, new ApplicationInsightsSampler(0.5f).Description);
+        Assert.Equal(expectedDescription, new ApplicationInsightsSampler(new ApplicationInsightsSamplerOptions { SamplingRatio = 0.5f }).Description);
     }
 }

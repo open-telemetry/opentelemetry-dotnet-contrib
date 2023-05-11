@@ -40,4 +40,10 @@ internal class AWSSamplerEventSource : EventSource
     {
         this.WriteEvent(3, format, error);
     }
+
+    [Event(4, Message = "Using fallback sampler. Either rules cache has expired or no rules matched the request.", Level = EventLevel.Informational)]
+    public void InfoUsingFallbackSampler()
+    {
+        this.WriteEvent(4);
+    }
 }

@@ -5,9 +5,10 @@
 components:
   src/OpenTelemetry.Contrib.Extensions.AWSXRay/:
     - srprash
-    - lupengamzn
+    - atshaw43
   src/OpenTelemetry.Contrib.Instrumentation.AWS/:
     - srprash
+    - atshaw43
   src/OpenTelemetry.Exporter.Geneva/:
     - cijothomas
     - codeblanch
@@ -59,6 +60,9 @@ components:
     - xiang17
   src/OpenTelemetry.Instrumentation.Wcf/:
     - codeblanch
+  src/OpenTelemetry.ResourceDetectors.AWS/:
+    - srprash
+    - atshaw43
   src/OpenTelemetry.ResourceDetectors.Azure/:
     - rajkumar-rangaraj
     - vishweshbankwar
@@ -66,11 +70,13 @@ components:
     - iskiselev
   src/OpenTelemetry.Sampler.AWS/:
     - srprash
+    - atshaw43
   test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/:
     - srprash
-    - lupengamzn
+    - atshaw43
   test/OpenTelemetry.Contrib.Instrumentation.AWS.Tests/:
     - srprash
+    - atshaw43
   test/OpenTelemetry.Exporter.Geneva.Benchmark/:
     - cijothomas
     - codeblanch
@@ -133,6 +139,9 @@ components:
     - xiang17
   test/OpenTelemetry.Instrumentation.Wcf.Tests/:
     - codeblanch
+  test/OpenTelemetry.ResourceDetectors.AWS.Tests/:
+    - srprash
+    - atshaw43
   test/OpenTelemetry.ResourceDetectors.Azure.Tests/:
     - rajkumar-rangaraj
     - vishweshbankwar
@@ -140,3 +149,4 @@ components:
     - iskiselev
   test/OpenTelemetry.Sampler.AWS.Tests/:
     - srprash
+    - atshaw43

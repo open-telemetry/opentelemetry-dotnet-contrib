@@ -151,7 +151,7 @@ garbage collection has occurred.
 
 The API used to retrieve the value is:
 
-* [GC.GetGCMemoryInfo().GenerationInfo[i].SizeAfterBytes](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo):
+* [GC.GetGCMemoryInfo().GenerationInfo\[i\].SizeAfterBytes](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo):
   Represents the size in bytes of a generation on exit of the GC reported in GCMemoryInfo.
   Note that this API on .NET 6 has a [bug](https://github.com/dotnet/runtime/pull/60309).
   For .NET 6, heap size is retrieved with an internal method `GC.GetGenerationSize`,

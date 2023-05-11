@@ -6,6 +6,7 @@
     <PackageTags>$(PackageTags);Stackdriver;Google;GCP;distributed-tracing</PackageTags>
     <MinVerTagPrefix>Exporter.Stackdriver-</MinVerTagPrefix>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Google.Cloud.Monitoring.V3" Version="[2.6.0,4.0)" />
@@ -14,6 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\Guard.cs" Link="Includes\Guard.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
   </ItemGroup>
 </Project>

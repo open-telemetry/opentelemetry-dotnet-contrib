@@ -12,20 +12,12 @@
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'">
-    <Compile Remove="Resources\AWSECSResourceDetector.cs" />
-    <Compile Remove="Resources\AWSEKSResourceDetector.cs" />
-    <Compile Remove="Resources\AWSLambdaResourceDetector.cs" />
-    <Compile Remove="Resources\Http\Handler.cs" />
-    <Compile Remove="Resources\Http\ServerCertificateValidationProvider.cs" />
-  </ItemGroup>
-
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'">
     <PackageReference Include="System.Text.Json" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Internal\Guard.cs" Link="Includes\Guard.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
   </ItemGroup>
 
 </Project>

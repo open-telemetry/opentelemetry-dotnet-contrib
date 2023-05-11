@@ -21,6 +21,12 @@
 * Add a `net6.0` build with optimized trace ID generation using the new
   `Activity.TraceIdGenerator` API.
   ([#1096](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1096))
+* Drop support for `AWSLambdaResourceDetector`.
+  AWS Lambda Resources are detected by `OpenTelemetry.Instrumentation.AWSLambda`
+  package
+  ([#1140](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1140))
+* Extract AWS Resource Detectors to dedicated package `OpenTelemetry.ResourceDetectors.AWS`
+  ([#1140](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1140))
 
 ## 1.2.0
 
