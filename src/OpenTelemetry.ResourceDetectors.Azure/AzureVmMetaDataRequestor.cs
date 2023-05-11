@@ -14,16 +14,19 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Net.Http;
 using System.Text.Json;
 
 namespace OpenTelemetry.ResourceDetectors.Azure;
 
-internal sealed class AzureVmMetaDataRequestor : IAzureVmMetaDataRequestor
+internal static class AzureVmMetaDataRequestor
 {
     private const string AzureVmMetadataEndpointURL = "http://169.254.169.254/metadata/instance/compute?api-version=2021-12-13&format=json";
 
-    public AzureVmMetadataResponse? GetAzureVmMetaDataResponse()
+    public static Func<AzureVmMetadataResponse?> GetAzureVmMetaDataResponse { get; internal set; } = GetAzureVmMetaDataResponseDefault!;
+
+    public static AzureVmMetadataResponse? GetAzureVmMetaDataResponseDefault()
     {
         using var httpClient = new HttpClient();
 

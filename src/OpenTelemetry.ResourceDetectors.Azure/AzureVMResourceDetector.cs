@@ -41,29 +41,13 @@ public sealed class AzureVMResourceDetector : IResourceDetector
         ResourceSemanticConventions.AttributeServiceInstance,
     };
 
-    private IAzureVmMetaDataRequestor azureVmMetaDataRequestor;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="AzureVMResourceDetector"/> class.
-    /// </summary>
-    public AzureVMResourceDetector()
-        : this(new AzureVmMetaDataRequestor())
-    {
-    }
-
-    // used for test
-    internal AzureVMResourceDetector(IAzureVmMetaDataRequestor azureVmMetaDataRequestor)
-    {
-        this.azureVmMetaDataRequestor = azureVmMetaDataRequestor;
-    }
-
     /// <inheritdoc/>
     public Resource Detect()
     {
         List<KeyValuePair<string, object>>? attributeList = null;
         try
         {
-            var vmMetaDataResponse = this.azureVmMetaDataRequestor.GetAzureVmMetaDataResponse();
+            var vmMetaDataResponse = AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse();
             if (vmMetaDataResponse != null)
             {
                 attributeList = new List<KeyValuePair<string, object>>(ExpectedAzureAmsFields.Count);

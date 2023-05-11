@@ -65,7 +65,26 @@ public class AzureResourceDetectorTests : IDisposable
     [Fact]
     public void TestAzureVmResourceDetector()
     {
-        var resource = ResourceBuilder.CreateEmpty().AddDetector(new AzureVMResourceDetector(new MockAzureVmMetaDataRequestor())).Build();
+        AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse = () =>
+        {
+            return new AzureVmMetadataResponse()
+            {
+                // using values same as key for test.
+                Location = "azInst_location",
+                Name = "azInst_name",
+                OsType = "azInst_osType",
+                ResourceGroupName = "azInst_resourceGroupName",
+                ResourceId = "azInst_resourceId",
+                Sku = "azInst_sku",
+                SubscriptionId = "azInst_subscriptionId",
+                Version = "azInst_version",
+                VmId = "azInst_vmId",
+                VmSize = "azInst_vmSize",
+                VmScaleSetName = "azInst_vmScaleSetName",
+            };
+        };
+
+        var resource = ResourceBuilder.CreateEmpty().AddDetector(new AzureVMResourceDetector()).Build();
         Assert.NotNull(resource);
         foreach (var field in AzureVMResourceDetector.ExpectedAzureAmsFields)
         {
@@ -84,28 +103,6 @@ public class AzureResourceDetectorTests : IDisposable
         foreach (var kvp in AppServiceResourceDetector.AppServiceResourceAttributes)
         {
             Environment.SetEnvironmentVariable(kvp.Value, null);
-        }
-    }
-
-    private class MockAzureVmMetaDataRequestor : IAzureVmMetaDataRequestor
-    {
-        public AzureVmMetadataResponse GetAzureVmMetaDataResponse()
-        {
-            return new AzureVmMetadataResponse()
-            {
-                // using values same as key for test.
-                Location = "azInst_location",
-                Name = "azInst_name",
-                OsType = "azInst_osType",
-                ResourceGroupName = "azInst_resourceGroupName",
-                ResourceId = "azInst_resourceId",
-                Sku = "azInst_sku",
-                SubscriptionId = "azInst_subscriptionId",
-                Version = "azInst_version",
-                VmId = "azInst_vmId",
-                VmSize = "azInst_vmSize",
-                VmScaleSetName = "azInst_vmScaleSetName",
-            };
         }
     }
 }
