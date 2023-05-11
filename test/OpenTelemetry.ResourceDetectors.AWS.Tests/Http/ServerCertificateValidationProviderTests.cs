@@ -66,40 +66,6 @@ public class ServerCertificateValidationProviderTests
         // Validates if the certificate file loaded.
         Assert.False(serverCertificateValidationProvider.IsCertificateLoaded);
     }
-
-    [Fact]
-    public void TestValidationCallbackWithNullCertificate()
-    {
-        using (CertificateUploader certificateUploader = new CertificateUploader())
-        using (var chain = new X509Chain())
-        {
-            certificateUploader.Create();
-
-            // Loads the certificate to the trusted collection from the file
-            ServerCertificateValidationProvider serverCertificateValidationProvider =
-                ServerCertificateValidationProvider.FromCertificateFile(certificateUploader.FilePath);
-
-            Assert.False(serverCertificateValidationProvider.ValidationCallback(this, null, chain, default));
-        }
-    }
-
-    [Fact]
-    public void TestValidationCallbackWithNullChain()
-    {
-        using (CertificateUploader certificateUploader = new CertificateUploader())
-        {
-            certificateUploader.Create();
-
-            // Loads the certificate to the trusted collection from the file
-            ServerCertificateValidationProvider serverCertificateValidationProvider =
-                ServerCertificateValidationProvider.FromCertificateFile(certificateUploader.FilePath);
-
-            // borrow the certificate from the file just so we have a non-null cert to pass
-            using var serverCertificate = new X509Certificate2(certificateUploader.FilePath);
-
-            Assert.False(serverCertificateValidationProvider.ValidationCallback(this, serverCertificate, null, default));
-        }
-    }
 }
 
 #endif

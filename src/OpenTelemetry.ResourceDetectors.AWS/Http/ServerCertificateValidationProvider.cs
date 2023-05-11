@@ -39,14 +39,14 @@ internal class ServerCertificateValidationProvider
         }
 
         this.trustedCertificates = trustedCertificates;
-        this.ValidationCallback = (_, cert, chain, errors) =>
-            this.ValidateCertificate(cert, chain, errors);
+        this.ValidationCallback = (sender, cert, chain, errors) =>
+            this.ValidateCertificate(new X509Certificate2(cert), chain, errors);
         this.IsCertificateLoaded = true;
     }
 
     public bool? IsCertificateLoaded { get; }
 
-    public Func<object, X509Certificate2?, X509Chain?, SslPolicyErrors, bool>? ValidationCallback { get; }
+    public RemoteCertificateValidationCallback? ValidationCallback { get; }
 
     public static ServerCertificateValidationProvider FromCertificateFile(string certificateFile)
     {
@@ -100,7 +100,7 @@ internal class ServerCertificateValidationProvider
         return false;
     }
 
-    private bool ValidateCertificate(X509Certificate2? cert, X509Chain? chain, SslPolicyErrors errors)
+    private bool ValidateCertificate(X509Certificate2 cert, X509Chain chain, SslPolicyErrors errors)
     {
         var isSslPolicyPassed = errors == SslPolicyErrors.None ||
                                 errors == SslPolicyErrors.RemoteCertificateChainErrors;
@@ -117,15 +117,7 @@ internal class ServerCertificateValidationProvider
             }
         }
 
-        // when the above check passes, these parameters should not be null; if they are null, don't attempt remaining steps
-        if (cert == null || chain == null)
-        {
-            AWSXRayEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), $"Failed to validate certificate: {nameof(cert)} or {nameof(chain)} is null");
-            return false;
-        }
-
-        // this callback is invoked only when trustedCertificates is non-null
-        chain.ChainPolicy.ExtraStore.AddRange(this.trustedCertificates!);
+        chain.ChainPolicy.ExtraStore.AddRange(this.trustedCertificates);
         chain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllowUnknownCertificateAuthority;
 
         // building the chain to process basic validations e.g. signature, use, expiration, revocation
