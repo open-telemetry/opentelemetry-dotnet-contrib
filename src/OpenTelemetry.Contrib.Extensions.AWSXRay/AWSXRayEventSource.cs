@@ -23,7 +23,7 @@ namespace OpenTelemetry.Contrib.Extensions.AWSXRay;
 [EventSource(Name = "OpenTelemetry-AWS-XRay")]
 internal class AWSXRayEventSource : EventSource
 {
-    public static AWSXRayEventSource Log = new AWSXRayEventSource();
+    public static AWSXRayEventSource Log = new();
 
     [NonEvent]
     public void ActivityContextExtractException(string format, Exception ex)
@@ -31,15 +31,6 @@ internal class AWSXRayEventSource : EventSource
         if (this.IsEnabled(EventLevel.Warning, (EventKeywords)(-1)))
         {
             this.FailedToExtractActivityContext(format, ex.ToInvariantString());
-        }
-    }
-
-    [NonEvent]
-    public void ResourceAttributesExtractException(string format, Exception ex)
-    {
-        if (this.IsEnabled(EventLevel.Warning, (EventKeywords)(-1)))
-        {
-            this.FailedToExtractResourceAttributes(format, ex.ToInvariantString());
         }
     }
 
@@ -53,17 +44,5 @@ internal class AWSXRayEventSource : EventSource
     public void FailedToInjectActivityContext(string format, string error)
     {
         this.WriteEvent(2, format, error);
-    }
-
-    [Event(3, Message = "Failed to extract resource attributes in '{0}'.", Level = EventLevel.Warning)]
-    public void FailedToExtractResourceAttributes(string format, string exception)
-    {
-        this.WriteEvent(3, format, exception);
-    }
-
-    [Event(4, Message = "Failed to validate certificate in format: '{0}', error: '{1}'.", Level = EventLevel.Warning)]
-    public void FailedToValidateCertificate(string format, string error)
-    {
-        this.WriteEvent(4, format, error);
     }
 }
