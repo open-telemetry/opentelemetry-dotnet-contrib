@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Xunit;
 
 namespace OpenTelemetry.ResourceDetectors.Azure.Tests;
@@ -58,6 +59,42 @@ public class AzureResourceDetectorTests : IDisposable
             {
                 Assert.Contains(new KeyValuePair<string, object>(kvp.Key, kvp.Key), resource.Attributes);
             }
+        }
+    }
+
+    [Fact]
+    public void TestAzureVmResourceDetector()
+    {
+        AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse = () =>
+        {
+            return new AzureVmMetadataResponse()
+            {
+                // using values same as key for test.
+                Location = "azInst_location",
+                Name = "azInst_name",
+                OsType = "azInst_osType",
+                ResourceGroupName = "azInst_resourceGroupName",
+                ResourceId = "azInst_resourceId",
+                Sku = "azInst_sku",
+                SubscriptionId = "azInst_subscriptionId",
+                Version = "azInst_version",
+                VmId = "azInst_vmId",
+                VmSize = "azInst_vmSize",
+                VmScaleSetName = "azInst_vmScaleSetName",
+            };
+        };
+
+        var resource = ResourceBuilder.CreateEmpty().AddDetector(new AzureVMResourceDetector()).Build();
+        Assert.NotNull(resource);
+        foreach (var field in AzureVMResourceDetector.ExpectedAzureAmsFields)
+        {
+            if (field == ResourceSemanticConventions.AttributeServiceInstance)
+            {
+                Assert.Contains(new KeyValuePair<string, object>(field, "azInst_vmId"), resource.Attributes);
+                continue;
+            }
+
+            Assert.Contains(new KeyValuePair<string, object>(field, field), resource.Attributes);
         }
     }
 
