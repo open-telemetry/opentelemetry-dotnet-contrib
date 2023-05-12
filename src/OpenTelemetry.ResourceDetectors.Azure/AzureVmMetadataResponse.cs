@@ -94,10 +94,7 @@ internal sealed class AzureVmMetadataResponse
                 break;
         }
 
-        if (amsValue == null)
-        {
-            amsValue = string.Empty;
-        }
+        amsValue ??= string.Empty;
 
         return amsValue;
     }
