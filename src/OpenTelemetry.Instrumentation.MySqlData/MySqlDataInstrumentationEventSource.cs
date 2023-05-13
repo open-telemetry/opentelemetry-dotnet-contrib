@@ -24,21 +24,9 @@ namespace OpenTelemetry.Instrumentation.MySqlData;
 [EventSource(Name = "OpenTelemetry-Instrumentation-MySqlData")]
 internal class MySqlDataInstrumentationEventSource : EventSource
 {
-    public static readonly MySqlDataInstrumentationEventSource Log = new MySqlDataInstrumentationEventSource();
+    public static readonly MySqlDataInstrumentationEventSource Log = new();
 
-    [Event(1, Message = "Unknown MySqlTraceEventType: {0}, Message {1}", Level = EventLevel.Error)]
-    public void UnknownMySqlTraceEventType(int mysqlEventId, string message)
-    {
-        this.WriteEvent(1, mysqlEventId, message);
-    }
-
-    [Event(2, Message = "Error while processing trace event, MySqlTraceEventType: {0}, Message {1}, Exception: {2}", Level = EventLevel.Error)]
-    public void ErrorTraceEvent(int mysqlEventId, string message, string exception)
-    {
-        this.WriteEvent(1, mysqlEventId, message, exception);
-    }
-
-    [Event(3, Message = "Error while initializing MySqlDataInstrumentation, Message {0}, Exception: {1}", Level = EventLevel.Warning)]
+    [Event(1, Message = "Error while initializing MySqlDataPatchInstrumentation, Message {0}, Exception: {1}", Level = EventLevel.Warning)]
     public void ErrorInitialize(string message, string exception)
     {
         this.WriteEvent(1, message, exception);

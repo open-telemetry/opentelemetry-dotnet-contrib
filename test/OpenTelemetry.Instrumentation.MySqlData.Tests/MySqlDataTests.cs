@@ -15,8 +15,10 @@
 // </copyright>
 
 using System;
+using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Moq;
 using MySql.Data.MySqlClient;
 using OpenTelemetry.Tests;
@@ -27,13 +29,32 @@ namespace OpenTelemetry.Instrumentation.MySqlData.Tests;
 
 public class MySqlDataTests
 {
-    private const string ConnStr = "database=mysql;server=127.0.0.1;user id=root;password=123456;port=3306;pooling=False";
+    private const string ConnStr =
+        "database=mysql;server=127.0.0.1;user id=root;password=123456;port=3306;pooling=False";
 
     [Theory]
     [InlineData("select 1/1", true, true, true, false)]
+    [InlineData("select 1/1", false, true, true, false)]
+    [InlineData("select 1/1", true, false, true, false)]
     [InlineData("select 1/1", true, true, false, false)]
-    [InlineData("selext 1/1", true, true, true, true)]
-    public void SuccessTraceEventTest(
+    [InlineData("select throw", true, true, true, true)]
+    public async Task ExecuteCommandTest(
+        string commandText,
+        bool setDbStatement = false,
+        bool recordException = false,
+        bool enableConnectionLevelAttributes = false,
+        bool isFailure = false)
+    {
+        await this.SuccessTraceEventTest(c => c.ExecuteNonQuery(), commandText, setDbStatement, recordException, enableConnectionLevelAttributes, isFailure);
+        await this.SuccessTraceEventTest(c => c.ExecuteNonQueryAsync(), commandText, setDbStatement, recordException, enableConnectionLevelAttributes, isFailure);
+        await this.SuccessTraceEventTest(c => c.ExecuteReader(), commandText, setDbStatement, recordException, enableConnectionLevelAttributes, isFailure);
+        await this.SuccessTraceEventTest(c => c.ExecuteReaderAsync(), commandText, setDbStatement, recordException, enableConnectionLevelAttributes, isFailure);
+        await this.SuccessTraceEventTest(c => c.ExecuteScalar(), commandText, setDbStatement, recordException, enableConnectionLevelAttributes, isFailure);
+        await this.SuccessTraceEventTest(c => c.ExecuteScalarAsync(), commandText, setDbStatement, recordException, enableConnectionLevelAttributes, isFailure);
+    }
+
+    private async Task SuccessTraceEventTest<TResult>(
+        Func<DbCommand, TResult> execute,
         string commandText,
         bool setDbStatement = false,
         bool recordException = false,
@@ -45,7 +66,7 @@ public class MySqlDataTests
         using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
             .AddProcessor(activityProcessor.Object)
             .SetSampler(sampler)
-            .AddMySqlDataInstrumentation(options =>
+            .AddMySqlDataInstrumentation<MysqlCommandStub>(options =>
             {
                 options.SetDbStatement = setDbStatement;
                 options.RecordException = recordException;
@@ -53,62 +74,37 @@ public class MySqlDataTests
             })
             .Build();
 
-        var traceListener = (TraceListener)Assert.Single(MySqlTrace.Listeners)!;
+        var mySqlConnection = new MySqlConnection(ConnStr);
 
-        ExecuteSuccessQuery(traceListener, commandText, isFailure);
+        try
+        {
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
+            var result = execute(new MysqlCommandStub(commandText, mySqlConnection));
+#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
+            if (result is Task task)
+            {
+                await task;
+            }
+        }
+        catch
+        {
+            // exception ignored
+        }
 
         Assert.Equal(3, activityProcessor.Invocations.Count);
 
         var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
 
-        VerifyActivityData(commandText, setDbStatement, recordException, enableConnectionLevelAttributes, isFailure, activity);
+        this.VerifyActivityData(
+            commandText,
+            setDbStatement,
+            recordException,
+            enableConnectionLevelAttributes,
+            isFailure,
+            activity);
     }
 
-    [Fact]
-    public void MySqlDataInstrumentationEventSource_test()
-    {
-        MySqlDataInstrumentationEventSource.Log.UnknownMySqlTraceEventType(15, "UnknownMySqlTraceEventType");
-        MySqlDataInstrumentationEventSource.Log.ErrorTraceEvent(1, "ErrorTraceEvent", "ErrorTraceEvent exception");
-    }
-
-    [Theory]
-    [InlineData(MySqlTraceEventType.ConnectionClosed)]
-    [InlineData(MySqlTraceEventType.ResultOpened)]
-    [InlineData(MySqlTraceEventType.ResultClosed)]
-    [InlineData(MySqlTraceEventType.StatementPrepared)]
-    [InlineData(MySqlTraceEventType.StatementExecuted)]
-    [InlineData(MySqlTraceEventType.StatementClosed)]
-    [InlineData(MySqlTraceEventType.NonQuery)]
-    [InlineData(MySqlTraceEventType.UsageAdvisorWarning)]
-    [InlineData(MySqlTraceEventType.Warning)]
-    [InlineData(MySqlTraceEventType.QueryNormalized)]
-    [InlineData((MySqlTraceEventType)0)]
-    public void UnknownMySqlTraceEventType(MySqlTraceEventType eventType)
-    {
-        var activityProcessor = new Mock<BaseProcessor<Activity>>();
-        var sampler = new TestSampler();
-        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(activityProcessor.Object)
-            .SetSampler(sampler)
-            .AddMySqlDataInstrumentation()
-            .Build();
-
-        var traceListener = (TraceListener?)Assert.Single(MySqlTrace.Listeners);
-
-        traceListener?.TraceEvent(
-            new TraceEventCache(),
-            "mysql",
-            TraceEventType.Information,
-            (int)eventType,
-            "{0}: Connection Opened: connection string = '{1}'",
-            1L,
-            ConnStr,
-            10);
-
-        Assert.Equal(1, activityProcessor.Invocations.Count);
-    }
-
-    private static void VerifyActivityData(
+    private void VerifyActivityData(
         string commandText,
         bool setDbStatement,
         bool recordException,
@@ -167,56 +163,6 @@ public class MySqlDataTests
             {
                 Assert.Equal(dataSource, activity.GetTagValue(SemanticConventions.AttributeNetPeerName));
             }
-        }
-    }
-
-    private static void ExecuteSuccessQuery(TraceListener listener, string query, bool isFailure)
-    {
-        // Connection opened
-        listener.TraceEvent(
-            new TraceEventCache(),
-            "mysql",
-            TraceEventType.Information,
-            1,
-            "{0}: Connection Opened: connection string = '{1}'",
-            1L,
-            ConnStr,
-            10);
-
-        // Query opened
-        listener.TraceEvent(
-            new TraceEventCache(),
-            "mysql",
-            TraceEventType.Information,
-            3,
-            "{0}: Query Opened: {2}",
-            1L,
-            9,
-            query);
-
-        if (isFailure)
-        {
-            // Query error
-            listener.TraceEvent(
-                new TraceEventCache(),
-                "mysql",
-                TraceEventType.Information,
-                13,
-                "{0}: Error encountered attempting to open result: Number={1}, Message={2}",
-                1L,
-                1064,
-                "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'selext 1/1' at line 1");
-        }
-        else
-        {
-            // Query closed
-            listener.TraceEvent(
-                new TraceEventCache(),
-                "mysql",
-                TraceEventType.Information,
-                6,
-                "{0}: Query Closed",
-                1L);
         }
     }
 }

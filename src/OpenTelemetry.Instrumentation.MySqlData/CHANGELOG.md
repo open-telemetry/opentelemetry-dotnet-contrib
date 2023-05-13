@@ -4,6 +4,8 @@
 
 * Removes `AddMySqlDataInstrumentation` method with default configure parameter.
   ([#930](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/930))
+* Refactor to use [Harmony](https://github.com/pardeike/Harmony/)
+  to instrument to fix compatibility in 8.0.33.
 
 ## 1.0.0-beta.6
 

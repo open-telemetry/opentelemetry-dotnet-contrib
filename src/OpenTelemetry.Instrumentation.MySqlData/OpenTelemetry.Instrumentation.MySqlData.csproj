@@ -9,14 +9,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Lib.Harmony is not strong named -->
+    <PackageReference Include="Lib.Harmony" Version="2.3.0-alpha.5" />
     <PackageReference Include="MySql.Data" Version="6.10.7" />
     <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryCoreLatestVersion)" />
+    <!-- Strong Namer will automatically add strong names to referenced assemblies which do not already have a strong name. -->
+    <PackageReference Include="StrongNamer" Version="0.2.5" />
+    <PackageReference Include="System.ComponentModel.TypeConverter" Version="4.3.0" />
+    <PackageReference Include="System.IO.FileSystem.Primitives" Version="4.3.0" />
+    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
-    <Compile Include="$(RepoRoot)\src\Shared\SpanAttributeConstants.cs" Link="Includes\SpanAttributeConstants.cs" />
-    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
   </ItemGroup>
 
 </Project>

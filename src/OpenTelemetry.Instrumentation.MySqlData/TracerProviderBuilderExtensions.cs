@@ -15,8 +15,9 @@
 // </copyright>
 
 using System;
+using System.Data.Common;
+using MySql.Data.MySqlClient;
 using OpenTelemetry.Instrumentation.MySqlData;
-using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Trace;
 
@@ -43,12 +44,30 @@ public static class TracerProviderBuilderExtensions
         this TracerProviderBuilder builder,
         Action<MySqlDataInstrumentationOptions>? configure)
     {
-        Guard.ThrowIfNull(builder);
+        return AddMySqlDataInstrumentation<MySqlCommand>(builder, configure);
+    }
+
+    /// <summary>
+    /// Enables SqlClient instrumentation.
+    /// </summary>
+    /// <typeparam name="TCommand">MysqlCommand type, used internally for testing purpose.</typeparam>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="configure">SqlClient configuration options.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    internal static TracerProviderBuilder AddMySqlDataInstrumentation<TCommand>(
+        this TracerProviderBuilder builder,
+        Action<MySqlDataInstrumentationOptions>? configure)
+        where TCommand : DbCommand
+    {
+        if (builder == null)
+        {
+            throw new ArgumentNullException(nameof(builder), "Must not be null");
+        }
 
         var sqlOptions = new MySqlDataInstrumentationOptions();
         configure?.Invoke(sqlOptions);
 
-        builder.AddInstrumentation(() => new MySqlDataInstrumentation(sqlOptions));
+        MySqlDataPatchInstrumentation<TCommand>.Initialize(sqlOptions);
         builder.AddSource(MySqlActivitySourceHelper.ActivitySourceName);
 
         return builder;

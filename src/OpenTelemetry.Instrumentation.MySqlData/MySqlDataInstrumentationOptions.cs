@@ -19,7 +19,7 @@ using OpenTelemetry.Trace;
 namespace OpenTelemetry.Instrumentation.MySqlData;
 
 /// <summary>
-/// Options for <see cref="MySqlDataInstrumentation"/>.
+/// Options for <see cref="MySqlDataPatchInstrumentation{TCommand}"/>.
 /// </summary>
 public class MySqlDataInstrumentationOptions
 {
@@ -32,12 +32,12 @@ public class MySqlDataInstrumentationOptions
     public bool RecordException { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the <see cref="MySqlDataInstrumentation"/> should add the text as the <see cref="SemanticConventions.AttributeDbStatement"/> tag. Default value: False.
+    /// Gets or sets a value indicating whether or not the <see cref="MySqlDataPatchInstrumentation{TCommand}"/> should add the text as the <see cref="SemanticConventions.AttributeDbStatement"/> tag. Default value: False.
     /// </summary>
     public bool SetDbStatement { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the <see cref="MySqlDataInstrumentation"/> should parse the DataSource on a SqlConnection into server name, instance name, and/or port connection-level attribute tags. Default value: False.
+    /// Gets or sets a value indicating whether or not the <see cref="MySqlDataPatchInstrumentation{TCommand}"/> should parse the DataSource on a SqlConnection into server name, instance name, and/or port connection-level attribute tags. Default value: False.
     /// </summary>
     /// <remarks>
     /// The default behavior is to set the MySqlConnection DataSource as the <see cref="SemanticConventions.AttributePeerService"/> tag. If enabled, MySqlConnection DataSource will be parsed and the server name will be sent as the <see cref="SemanticConventions.AttributeNetPeerName"/> or <see cref="SemanticConventions.AttributeNetPeerIp"/> tag, the instance name will be sent as the <see cref="SemanticConventions.AttributeDbMsSqlInstanceName"/> tag, and the port will be sent as the <see cref="SemanticConventions.AttributeNetPeerPort"/> tag if it is not 1433 (the default port).
