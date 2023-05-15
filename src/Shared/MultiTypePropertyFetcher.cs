@@ -14,10 +14,14 @@
 // limitations under the License.
 // </copyright>
 
+#nullable disable
+
+#pragma warning disable IDE0005 // Using directive is unnecessary.
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
+#pragma warning restore IDE0005 // Using directive is unnecessary.
 
 namespace OpenTelemetry.Instrumentation;
 
