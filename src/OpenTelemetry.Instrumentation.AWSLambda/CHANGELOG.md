@@ -8,6 +8,8 @@
   ([#943](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/943))
 * BREAKING (behavior): `AddAWSLambdaConfigurations` no longer calls `AddService`
   ([#1080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1080))
+* Added tracing of AWS Lambda handlers receiving SQS and SNS messages.
+  ([#1051](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1051))
 
 ## 1.1.0-beta.2
 

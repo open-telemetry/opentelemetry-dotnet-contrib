@@ -51,6 +51,7 @@ public static class TracerProviderBuilderExtensions
         configure?.Invoke(options);
 
         AWSLambdaWrapper.DisableAwsXRayContextExtraction = options.DisableAwsXRayContextExtraction;
+        AWSMessagingUtils.SetParentFromMessageBatch = options.SetParentFromBatch;
 
         builder.AddSource(AWSLambdaWrapper.ActivitySourceName);
         builder.SetResourceBuilder(ResourceBuilder

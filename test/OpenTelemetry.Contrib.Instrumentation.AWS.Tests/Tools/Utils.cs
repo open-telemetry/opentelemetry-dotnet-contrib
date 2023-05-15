@@ -79,6 +79,6 @@ internal static class Utils
 
     public static object? GetTagValue(Activity activity, string tagName)
     {
-        return Implementation.Utils.GetTagValue(activity, tagName);
+        return AWS.Implementation.Utils.GetTagValue(activity, tagName);
     }
 }
