@@ -15,6 +15,7 @@
 // </copyright>
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.StackExchangeRedis;
 using OpenTelemetry.Internal;
@@ -67,7 +68,7 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddRedisInstrumentation(
         this TracerProviderBuilder builder,
-        Action<StackExchangeRedisCallsInstrumentationOptions> configure)
+        Action<StackExchangeRedisInstrumentationOptions> configure)
     {
         Guard.ThrowIfNull(configure);
 
@@ -84,7 +85,7 @@ public static class TracerProviderBuilderExtensions
     public static TracerProviderBuilder AddRedisInstrumentation(
         this TracerProviderBuilder builder,
         IConnectionMultiplexer connection,
-        Action<StackExchangeRedisCallsInstrumentationOptions> configure)
+        Action<StackExchangeRedisInstrumentationOptions> configure)
     {
         Guard.ThrowIfNull(connection);
         Guard.ThrowIfNull(configure);
@@ -109,33 +110,89 @@ public static class TracerProviderBuilderExtensions
         this TracerProviderBuilder builder,
         string? name,
         IConnectionMultiplexer? connection,
-        Action<StackExchangeRedisCallsInstrumentationOptions>? configure)
+        Action<StackExchangeRedisInstrumentationOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
 
         name ??= Options.DefaultName;
 
+        builder.AddRedisInstrumentationSharedServices();
+
         if (configure != null)
         {
-            builder.ConfigureServices(services => services.Configure(name, configure));
+            builder.ConfigureServices(services =>
+            {
+                services.Configure(name, configure);
+            });
         }
 
         return builder
-            .AddSource(StackExchangeRedisCallsInstrumentation.ActivitySourceName)
+            .AddSource(StackExchangeRedisConnectionInstrumentation.ActivitySourceName)
             .AddInstrumentation(sp =>
             {
-                if (connection == null)
+                var instrumentationManager = sp.GetRequiredService<StackExchangeRedisInstrumentation>();
+
+                connection ??= sp.GetService<IConnectionMultiplexer>();
+
+                if (connection != null)
                 {
-                    connection = sp.GetService<IConnectionMultiplexer>();
-                    if (connection == null)
-                    {
-                        throw new InvalidOperationException($"StackExchange.Redis {nameof(IConnectionMultiplexer)} could not be resolved through application {nameof(IServiceProvider)}");
-                    }
+                    instrumentationManager.AddConnection(name, connection);
                 }
 
-                return new StackExchangeRedisCallsInstrumentation(
-                    connection,
-                    sp.GetRequiredService<IOptionsMonitor<StackExchangeRedisCallsInstrumentationOptions>>().Get(name));
+                return instrumentationManager;
             });
+    }
+
+    /// <summary>
+    /// Registers a callback for configuring Redis instrumentation.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="configure">Callback to configure instrumentation.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder ConfigureRedisInstrumentation(
+        this TracerProviderBuilder builder,
+        Action<StackExchangeRedisInstrumentation> configure)
+    {
+        Guard.ThrowIfNull(configure);
+
+        return ConfigureRedisInstrumentation(builder, (sp, instrumentationManager) => configure(instrumentationManager));
+    }
+
+    /// <summary>
+    /// Registers a callback for configuring Redis instrumentation.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="configure">Callback to configure instrumentation.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder ConfigureRedisInstrumentation(
+        this TracerProviderBuilder builder,
+        Action<IServiceProvider, StackExchangeRedisInstrumentation> configure)
+    {
+        Guard.ThrowIfNull(configure);
+
+        if (builder is not IDeferredTracerProviderBuilder deferredTracerProviderBuilder)
+        {
+            throw new NotSupportedException("ConfigureRedisInstrumentationManager is not supported on the supplied builder type.");
+        }
+
+        builder.AddRedisInstrumentationSharedServices();
+
+        deferredTracerProviderBuilder.Configure(
+            (sp, builder) => configure(sp, sp.GetRequiredService<StackExchangeRedisInstrumentation>()));
+
+        return builder;
+    }
+
+    private static TracerProviderBuilder AddRedisInstrumentationSharedServices(
+        this TracerProviderBuilder builder)
+    {
+        Guard.ThrowIfNull(builder);
+
+        return builder.ConfigureServices(services =>
+        {
+            services.TryAddSingleton(
+                sp => new StackExchangeRedisInstrumentation(
+                    sp.GetRequiredService<IOptionsMonitor<StackExchangeRedisInstrumentationOptions>>()));
+        });
     }
 }

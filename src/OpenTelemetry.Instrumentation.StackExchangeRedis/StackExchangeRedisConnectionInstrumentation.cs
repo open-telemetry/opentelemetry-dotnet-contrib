@@ -1,4 +1,4 @@
-// <copyright file="StackExchangeRedisCallsInstrumentation.cs" company="OpenTelemetry Authors">
+// <copyright file="StackExchangeRedisConnectionInstrumentation.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,15 +25,15 @@ using StackExchange.Redis.Profiling;
 namespace OpenTelemetry.Instrumentation.StackExchangeRedis;
 
 /// <summary>
-/// Redis calls instrumentation.
+/// StackExchange.Redis <see cref="IConnectionMultiplexer"/> instrumentation.
 /// </summary>
-internal class StackExchangeRedisCallsInstrumentation : IDisposable
+internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
 {
     internal const string RedisDatabaseIndexKeyName = "db.redis.database_index";
     internal const string RedisFlagsKeyName = "db.redis.flags";
-    internal static readonly string ActivitySourceName = typeof(StackExchangeRedisCallsInstrumentation).Assembly.GetName().Name;
+    internal static readonly string ActivitySourceName = typeof(StackExchangeRedisConnectionInstrumentation).Assembly.GetName().Name;
     internal static readonly string ActivityName = ActivitySourceName + ".Execute";
-    internal static readonly Version Version = typeof(StackExchangeRedisCallsInstrumentation).Assembly.GetName().Version;
+    internal static readonly Version Version = typeof(StackExchangeRedisConnectionInstrumentation).Assembly.GetName().Version;
     internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version.ToString());
     internal static readonly IEnumerable<KeyValuePair<string, object?>> CreationTags = new[]
     {
@@ -43,22 +43,22 @@ internal class StackExchangeRedisCallsInstrumentation : IDisposable
     internal readonly ConcurrentDictionary<(ActivityTraceId TraceId, ActivitySpanId SpanId), (Activity Activity, ProfilingSession Session)> Cache
         = new();
 
-    private readonly StackExchangeRedisCallsInstrumentationOptions options;
+    private readonly StackExchangeRedisInstrumentationOptions options;
     private readonly EventWaitHandle stopHandle = new(false, EventResetMode.ManualReset);
     private readonly Thread drainThread;
 
     private readonly ProfilingSession defaultSession = new();
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="StackExchangeRedisCallsInstrumentation"/> class.
+    /// Initializes a new instance of the <see cref="StackExchangeRedisConnectionInstrumentation"/> class.
     /// </summary>
     /// <param name="connection"><see cref="IConnectionMultiplexer"/> to instrument.</param>
     /// <param name="options">Configuration options for redis instrumentation.</param>
-    public StackExchangeRedisCallsInstrumentation(IConnectionMultiplexer connection, StackExchangeRedisCallsInstrumentationOptions options)
+    public StackExchangeRedisConnectionInstrumentation(IConnectionMultiplexer connection, StackExchangeRedisInstrumentationOptions options)
     {
         Guard.ThrowIfNull(connection);
 
-        this.options = options ?? new StackExchangeRedisCallsInstrumentationOptions();
+        this.options = options ?? new StackExchangeRedisInstrumentationOptions();
 
         this.drainThread = new Thread(this.DrainEntries)
         {
