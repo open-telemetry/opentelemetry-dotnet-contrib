@@ -4,7 +4,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Description>An OpenTelemetry .NET exporter that exports to InfluxDB</Description>
     <Authors>OpenTelemetry Authors</Authors>
-    <NoWarn>$(NoWarn),SA1123,SA1310,CA1810,CA1822,CA2000,CA2208,SA1201,SA1202,SA1308,SA1309,SA1311,SA1402,SA1602,SA1649</NoWarn>
+    <NoWarn>$(NoWarn)</NoWarn>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>$(NetMinimumSupportedVersion);$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
     <MinVerTagPrefix>Exporter.InfluxDB-</MinVerTagPrefix>
