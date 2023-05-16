@@ -7,8 +7,9 @@
   options.
   ([#1183](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1183))
 
-* **\*\*BREAKING CHANGE\*\*** Renamed the `StackExchangeRedisCallsInstrumentationOptions` class
-  to `StackExchangeRedisInstrumentationOptions`.
+* **\*\*BREAKING CHANGE\*\*** Renamed the
+  `StackExchangeRedisCallsInstrumentationOptions` class to
+  `StackExchangeRedisInstrumentationOptions`.
   ([#1193](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1193))
 
 * Added a new extension `TracerProviderBuilder.ConfigureRedisInstrumentation`
