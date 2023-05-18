@@ -22,9 +22,9 @@
 
   <ItemGroup>
     <None Update="Data\GetSamplingRulesResponse.json" CopyToOutputDirectory="PreserveNewest" />
-    <None Update="Data\GetSamplingRulesResponse_1.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Data\GetSamplingRulesResponseOptionalFields.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Data\GetSamplingTargetsResponse.json" CopyToOutputDirectory="PreserveNewest" />
-    <None Update="Data\GetSamplingTargetsResponse_1.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Data\GetSamplingTargetsResponseOptionalFields.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

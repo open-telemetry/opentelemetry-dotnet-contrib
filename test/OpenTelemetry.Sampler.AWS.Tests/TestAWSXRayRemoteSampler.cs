@@ -83,7 +83,7 @@ public class TestAWSXRayRemoteSampler
                 Response.Create()
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json")
-                .WithBody(File.ReadAllText("Data/GetSamplingRulesResponse_1.json")));
+                .WithBody(File.ReadAllText("Data/GetSamplingRulesResponseOptionalFields.json")));
 
         // rules will be polled in 10 milliseconds
         Thread.Sleep(2000);
@@ -98,7 +98,7 @@ public class TestAWSXRayRemoteSampler
                 Response.Create()
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json")
-                .WithBody(File.ReadAllText("Data/GetSamplingTargetsResponse_1.json")));
+                .WithBody(File.ReadAllText("Data/GetSamplingTargetsResponseOptionalFields.json")));
 
         // targets will be polled in 10 seconds
         Thread.Sleep(11000);
