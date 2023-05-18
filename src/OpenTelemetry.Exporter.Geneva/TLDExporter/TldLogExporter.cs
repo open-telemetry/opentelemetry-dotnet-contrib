@@ -257,7 +257,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
 
         if (logRecord.SpanId != default)
         {
-            eb.AddCountedString("ext_dt_spanId", logRecord.TraceId.ToHexString());
+            eb.AddCountedString("ext_dt_spanId", logRecord.SpanId.ToHexString());
             partAFieldsCount++;
         }
 
