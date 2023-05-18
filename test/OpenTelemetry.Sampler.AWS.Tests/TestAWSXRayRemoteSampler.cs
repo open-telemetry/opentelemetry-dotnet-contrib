@@ -101,7 +101,7 @@ public class TestAWSXRayRemoteSampler
                 .WithBody(File.ReadAllText("Data/GetSamplingTargetsResponseOptionalFields.json")));
 
         // targets will be polled in 10 seconds
-        Thread.Sleep(11000);
+        Thread.Sleep(13000);
 
         // sampler will always sampler since target has 100% fixed rate
         Assert.Equal(SamplingDecision.RecordAndSample, this.DoSample(sampler, "cat-service"));
