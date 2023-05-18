@@ -10,6 +10,7 @@
 
     <ItemGroup>
         <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
+        <PackageReference Include="System.Text.Json" Version="7.0.2" />
     </ItemGroup>
 
     <ItemGroup>

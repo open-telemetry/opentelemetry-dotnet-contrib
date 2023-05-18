@@ -157,9 +157,19 @@ internal class AWSTracingPipelineHandler : PipelineHandler
             }
         }
 
-        if (AWSServiceHelper.IsDynamoDbService(service))
+        if (AWSServiceType.IsDynamoDbService(service))
         {
             activity.SetTag(SemanticConventions.AttributeDbSystem, AWSSemanticConventions.AttributeValueDynamoDb);
+        }
+        else if (AWSServiceType.IsSqsService(service))
+        {
+            SqsRequestContextHelper.AddAttributes(
+                requestContext, AWSMessagingUtils.InjectIntoDictionary(new PropagationContext(activity.Context, Baggage.Current)));
+        }
+        else if (AWSServiceType.IsSnsService(service))
+        {
+            SnsRequestContextHelper.AddAttributes(
+                requestContext, AWSMessagingUtils.InjectIntoDictionary(new PropagationContext(activity.Context, Baggage.Current)));
         }
     }
 
