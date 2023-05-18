@@ -60,56 +60,43 @@ public class GenevaMetricExporter : BaseExporter<Metric>
     public GenevaMetricExporter(GenevaMetricExporterOptions options)
     {
         Guard.ThrowIfNull(options);
+        Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
         this.defaultMonitoringAccount = connectionStringBuilder.Account;
         this.defaultMetricNamespace = connectionStringBuilder.Namespace;
-
-            switch (connectionStringBuilder.Protocol)
-            {
-                case TransportProtocol.Unix:
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    {
-                        throw new ArgumentException("Unix domain socket should not be used on Windows.");
-                    }
-
-                    var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
-                    this.metricDataTransport = new MetricUnixDataTransport(unixDomainSocketPath);
-                    break;
-                case TransportProtocol.Unspecified:
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    {
-                        this.metricDataTransport = new MetricEtwDataTransport();
-                        break;
-                    }
-                    else
-                    {
-                        throw new ArgumentException("Endpoint not specified");
-                    }
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
-            }
-        }
-        else
-        {
-            this.monitoringAccount = string.Empty;
-            this.metricNamespace = string.Empty;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                this.metricDataTransport = new MetricEtwDataTransport();
-            }
-            else
-            {
-                this.metricDataTransport = new MetricUnixDataTransport("/var/etw/mdm_ifx.socket");
-            }
-        }
 
         if (options.PrepopulatedMetricDimensions != null)
         {
             this.prepopulatedDimensionsCount = (ushort)options.PrepopulatedMetricDimensions.Count;
             this.serializedPrepopulatedDimensionsKeys = this.SerializePrepopulatedDimensionsKeys(options.PrepopulatedMetricDimensions.Keys);
             this.serializedPrepopulatedDimensionsValues = this.SerializePrepopulatedDimensionsValues(options.PrepopulatedMetricDimensions.Values);
+        }
+
+        switch (connectionStringBuilder.Protocol)
+        {
+            case TransportProtocol.Unix:
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    throw new ArgumentException("Unix domain socket should not be used on Windows.");
+                }
+
+                var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
+                this.metricDataTransport = new MetricUnixDataTransport(unixDomainSocketPath);
+                break;
+            case TransportProtocol.Unspecified:
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    this.metricDataTransport = new MetricEtwDataTransport();
+                    break;
+                }
+                else
+                {
+                    throw new ArgumentException("Endpoint not specified");
+                }
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
         }
 
         unsafe
