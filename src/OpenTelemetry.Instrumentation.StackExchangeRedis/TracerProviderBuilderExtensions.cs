@@ -183,19 +183,6 @@ public static class TracerProviderBuilderExtensions
         return builder;
     }
 
-    private static void Bla()
-    {
-        var builder = Sdk.CreateTracerProviderBuilder()
-            .AddRedisInstrumentation();
-
-        StackExchangeRedisInstrumentation redisInstrumentation = null;
-
-        ((IDeferredTracerProviderBuilder)builder).Configure((sp, builder) =>
-            redisInstrumentation = sp.GetRequiredService<StackExchangeRedisInstrumentation>());
-
-        using var tracerProvider = builder.Build();
-    }
-
     private static TracerProviderBuilder AddRedisInstrumentationSharedServices(
         this TracerProviderBuilder builder)
     {
