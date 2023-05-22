@@ -172,7 +172,7 @@ public static class TracerProviderBuilderExtensions
 
         if (builder is not IDeferredTracerProviderBuilder deferredTracerProviderBuilder)
         {
-            throw new NotSupportedException("ConfigureRedisInstrumentationManager is not supported on the supplied builder type.");
+            throw new NotSupportedException("ConfigureRedisInstrumentation is not supported on the supplied builder type.");
         }
 
         builder.AddRedisInstrumentationSharedServices();
@@ -181,6 +181,19 @@ public static class TracerProviderBuilderExtensions
             (sp, builder) => configure(sp, sp.GetRequiredService<StackExchangeRedisInstrumentation>()));
 
         return builder;
+    }
+
+    private static void Bla()
+    {
+        var builder = Sdk.CreateTracerProviderBuilder()
+            .AddRedisInstrumentation();
+
+        StackExchangeRedisInstrumentation redisInstrumentation = null;
+
+        ((IDeferredTracerProviderBuilder)builder).Configure((sp, builder) =>
+            redisInstrumentation = sp.GetRequiredService<StackExchangeRedisInstrumentation>());
+
+        using var tracerProvider = builder.Build();
     }
 
     private static TracerProviderBuilder AddRedisInstrumentationSharedServices(
