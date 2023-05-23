@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* TldLogExporter to export `SpanId` value in `ext_dt_spanId` field instead of
+  `TraceId` value.
+  ([#1184](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1184))
+
 ## 1.5.0-alpha.3
 
 Released 2023-Apr-19

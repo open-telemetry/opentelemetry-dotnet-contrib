@@ -15,6 +15,7 @@
 // </copyright>
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -170,9 +171,10 @@ public static class AWSLambdaWrapper
 
     internal static Activity OnFunctionStart<TInput>(TInput input, ILambdaContext context, ActivityContext parentContext = default)
     {
+        IEnumerable<ActivityLink> links = null;
         if (parentContext == default)
         {
-            parentContext = AWSLambdaUtils.ExtractParentContext(input);
+            (parentContext, links) = AWSLambdaUtils.ExtractParentContext(input);
             if (parentContext == default && !DisableAwsXRayContextExtraction)
             {
                 parentContext = AWSLambdaUtils.GetXRayParentContext();
@@ -184,7 +186,7 @@ public static class AWSLambdaWrapper
 
         // We assume that functionTags and httpTags have no intersection.
         var activityName = AWSLambdaUtils.GetFunctionName(context) ?? "AWS Lambda Invoke";
-        var activity = AWSLambdaActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext, functionTags.Concat(httpTags));
+        var activity = AWSLambdaActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext, functionTags.Concat(httpTags), links);
 
         return activity;
     }

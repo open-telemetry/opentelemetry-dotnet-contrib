@@ -27,17 +27,17 @@ public sealed class AzureVMResourceDetector : IResourceDetector
 {
     internal static readonly IReadOnlyCollection<string> ExpectedAzureAmsFields = new string[]
     {
-        "azInst_location",
-        "azInst_name",
-        "azInst_osType",
-        "azInst_resourceGroupName",
-        "azInst_resourceId",
-        "azInst_sku",
-        "azInst_subscriptionId",
-        "azInst_version",
-        "azInst_vmId",
-        "azInst_vmSize",
-        "azInst_vmScaleSetName",
+        ResourceAttributeConstants.AzureVmId,
+        ResourceAttributeConstants.AzureVmLocation,
+        ResourceAttributeConstants.AzureVmName,
+        ResourceAttributeConstants.AzureVmOsType,
+        ResourceAttributeConstants.AzureVmResourceGroup,
+        ResourceAttributeConstants.AzureVmResourceId,
+        ResourceAttributeConstants.AzureVmSku,
+        ResourceAttributeConstants.AzureVmVersion,
+        ResourceAttributeConstants.AzureVmSize,
+        ResourceAttributeConstants.AzureVmScaleSetName,
+        ResourceAttributeConstants.AzureVmSubscriptionId,
         ResourceSemanticConventions.AttributeServiceInstance,
     };
 
