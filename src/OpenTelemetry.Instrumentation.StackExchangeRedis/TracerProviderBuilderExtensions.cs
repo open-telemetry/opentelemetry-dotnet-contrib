@@ -130,16 +130,16 @@ public static class TracerProviderBuilderExtensions
             .AddSource(StackExchangeRedisConnectionInstrumentation.ActivitySourceName)
             .AddInstrumentation(sp =>
             {
-                var instrumentationManager = sp.GetRequiredService<StackExchangeRedisInstrumentation>();
+                var instrumentation = sp.GetRequiredService<StackExchangeRedisInstrumentation>();
 
                 connection ??= sp.GetService<IConnectionMultiplexer>();
 
                 if (connection != null)
                 {
-                    instrumentationManager.AddConnection(name, connection);
+                    instrumentation.AddConnection(name, connection);
                 }
 
-                return instrumentationManager;
+                return instrumentation;
             });
     }
 
@@ -155,7 +155,7 @@ public static class TracerProviderBuilderExtensions
     {
         Guard.ThrowIfNull(configure);
 
-        return ConfigureRedisInstrumentation(builder, (sp, instrumentationManager) => configure(instrumentationManager));
+        return ConfigureRedisInstrumentation(builder, (sp, instrumentation) => configure(instrumentation));
     }
 
     /// <summary>
