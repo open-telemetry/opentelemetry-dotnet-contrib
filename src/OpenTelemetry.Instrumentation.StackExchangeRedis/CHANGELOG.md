@@ -7,6 +7,17 @@
   options.
   ([#1183](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1183))
 
+* **\*\*BREAKING CHANGE\*\*** Renamed the
+  `StackExchangeRedisCallsInstrumentationOptions` class to
+  `StackExchangeRedisInstrumentationOptions`.
+  ([#1193](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1193))
+
+* Added a new extension `TracerProviderBuilder.ConfigureRedisInstrumentation`
+  which can be used to obtain the `StackExchangeRedisInstrumentation` instance
+  in order to dynamically add connections for instrumentation after the
+  `TracerProvider` has been created.
+  ([#1193](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1193))
+
 ## 1.0.0-rc9.8
 
 Released 2023-Feb-27
