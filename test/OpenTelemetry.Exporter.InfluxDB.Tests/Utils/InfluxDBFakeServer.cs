@@ -23,6 +23,7 @@ namespace OpenTelemetry.Exporter.InfluxDB.Tests.Utils;
 
 public class InfluxDBFakeServer : IDisposable
 {
+    private static readonly char[] SplitChars = Environment.NewLine.ToCharArray();
     private readonly IDisposable httpServer;
     private readonly BlockingCollection<string> lines;
 
@@ -35,7 +36,7 @@ public class InfluxDBFakeServer : IDisposable
                 byte[] buffer = new byte[context.Request.ContentLength64];
                 _ = context.Request.InputStream.Read(buffer, 0, buffer.Length);
                 string text = Encoding.UTF8.GetString(buffer);
-                foreach (var line in text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries))
+                foreach (var line in text.Split(SplitChars, StringSplitOptions.RemoveEmptyEntries))
                 {
                     this.lines.Add(line);
                 }

@@ -6,6 +6,8 @@
   ([#1038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1038))
 * Removes `AddHangfireInstrumentation` method with default configure default parameter.
   ([#1129](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1129))
+* Support Hangfire `1.8`.
+  ([#1202](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1202))
 
 ## 1.0.0-beta.4
 
