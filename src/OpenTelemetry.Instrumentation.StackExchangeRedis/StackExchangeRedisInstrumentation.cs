@@ -58,7 +58,7 @@ public sealed class StackExchangeRedisInstrumentation : IDisposable
 
         lock (this.InstrumentedConnections)
         {
-            var instrumentation = new StackExchangeRedisConnectionInstrumentation(connection, options);
+            var instrumentation = new StackExchangeRedisConnectionInstrumentation(connection, name, options);
 
             this.InstrumentedConnections.Add(instrumentation);
 

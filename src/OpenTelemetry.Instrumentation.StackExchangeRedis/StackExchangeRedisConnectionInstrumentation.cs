@@ -53,8 +53,12 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
     /// Initializes a new instance of the <see cref="StackExchangeRedisConnectionInstrumentation"/> class.
     /// </summary>
     /// <param name="connection"><see cref="IConnectionMultiplexer"/> to instrument.</param>
+    /// <param name="name">Optional name for the connection.</param>
     /// <param name="options">Configuration options for redis instrumentation.</param>
-    public StackExchangeRedisConnectionInstrumentation(IConnectionMultiplexer connection, StackExchangeRedisInstrumentationOptions options)
+    public StackExchangeRedisConnectionInstrumentation(
+        IConnectionMultiplexer connection,
+        string? name,
+        StackExchangeRedisInstrumentationOptions options)
     {
         Guard.ThrowIfNull(connection);
 
@@ -62,7 +66,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
 
         this.drainThread = new Thread(this.DrainEntries)
         {
-            Name = "OpenTelemetry.Redis",
+            Name = string.IsNullOrWhiteSpace(name) ? "OpenTelemetry.Redis" : $"OpenTelemetry.Redis{{{name}}}",
             IsBackground = true,
         };
         this.drainThread.Start();
