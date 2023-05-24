@@ -112,6 +112,28 @@ services.AddOpenTelemetry()
         .AddConsoleExporter());
 ```
 
+### Filter
+
+This option can be used to filter out activities based on the properties of the
+db command object being instrumented using a `Func<IDbCommand, bool>`. The
+function receives an instance of the db command and should return `true`
+if the telemetry is to be collected, and `false` if it should not.
+
+The following code snippet shows how to use `Filter` to collect traces for stored procedures only.
+
+```csharp
+services.AddOpenTelemetry()
+    .WithTracing(builder => builder
+        .AddEntityFrameworkCoreInstrumentation(options =>
+        {
+            options.Filter = (command) =>
+            {
+                return command.CommandType == System.Data.CommandType.StoredProcedure;
+            };
+        })
+        .AddConsoleExporter());
+```
+
 ## References
 
 * [OpenTelemetry Project](https://opentelemetry.io/)

@@ -1,5 +1,7 @@
 OpenTelemetry.Instrumentation.EntityFrameworkCore.EntityFrameworkInstrumentationOptions
 OpenTelemetry.Instrumentation.EntityFrameworkCore.EntityFrameworkInstrumentationOptions.EntityFrameworkInstrumentationOptions() -> void
+OpenTelemetry.Instrumentation.EntityFrameworkCore.EntityFrameworkInstrumentationOptions.Filter.get -> System.Func<System.Data.IDbCommand, bool>
+OpenTelemetry.Instrumentation.EntityFrameworkCore.EntityFrameworkInstrumentationOptions.Filter.set -> void
 OpenTelemetry.Instrumentation.EntityFrameworkCore.EntityFrameworkInstrumentationOptions.SetDbStatementForStoredProcedure.get -> bool
 OpenTelemetry.Instrumentation.EntityFrameworkCore.EntityFrameworkInstrumentationOptions.SetDbStatementForStoredProcedure.set -> void
 OpenTelemetry.Instrumentation.EntityFrameworkCore.EntityFrameworkInstrumentationOptions.SetDbStatementForText.get -> bool

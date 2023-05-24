@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Added `Filter` public API on `EntityFrameworkInstrumentationOptions` to enable filtering
+  of instrumentation based on the db command being executed.
+
 ## 1.0.0-beta.6
 
 Released 2023-Mar-13

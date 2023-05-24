@@ -131,6 +131,60 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         VerifyActivityData(activity, isError: true);
     }
 
+    [Fact]
+    public void ShouldCollectTelemetryWhenFilterEvaluatesToTrue()
+    {
+        var activityProcessor = new Mock<BaseProcessor<Activity>>();
+        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
+            .AddProcessor(activityProcessor.Object)
+            .AddEntityFrameworkCoreInstrumentation(options =>
+            {
+                options.Filter = (command) =>
+                {
+                    return command.CommandText.Contains("Item", StringComparison.OrdinalIgnoreCase);
+                };
+            }).Build();
+
+        using (var context = new ItemsContext(this.contextOptions))
+        {
+            _ = context.Set<Item>().OrderBy(e => e.Name).ToList();
+        }
+
+        Assert.Equal(3, activityProcessor.Invocations.Count);
+
+        var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
+
+        Assert.True(activity.IsAllDataRequested);
+        Assert.True(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
+    }
+
+    [Fact]
+    public void ShouldCollectTelemetryWhenFilterEvaluatesToFalse()
+    {
+        var activityProcessor = new Mock<BaseProcessor<Activity>>();
+        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
+            .AddProcessor(activityProcessor.Object)
+            .AddEntityFrameworkCoreInstrumentation(options =>
+            {
+                options.Filter = (command) =>
+                {
+                    return !command.CommandText.Contains("Item", StringComparison.OrdinalIgnoreCase);
+                };
+            }).Build();
+
+        using (var context = new ItemsContext(this.contextOptions))
+        {
+            _ = context.Set<Item>().OrderBy(e => e.Name).ToList();
+        }
+
+        Assert.Equal(2, activityProcessor.Invocations.Count);
+
+        var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
+
+        Assert.False(activity.IsAllDataRequested);
+        Assert.True(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.None));
+    }
+
     public void Dispose() => this.connection.Dispose();
 
     private static DbConnection CreateInMemoryDatabase()

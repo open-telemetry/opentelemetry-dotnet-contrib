@@ -179,6 +179,24 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                     {
                         var command = this.commandFetcher.Fetch(payload);
 
+                        try
+                        {
+                            if (command is IDbCommand typedCommand && this.options.Filter?.Invoke(typedCommand) == false)
+                            {
+                                EntityFrameworkInstrumentationEventSource.Log.CommandIsFilteredOut(activity.OperationName);
+                                activity.IsAllDataRequested = false;
+                                activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+                                return;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            EntityFrameworkInstrumentationEventSource.Log.CommandFilterException(ex);
+                            activity.IsAllDataRequested = false;
+                            activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+                            return;
+                        }
+
                         if (this.commandTypeFetcher.Fetch(command) is CommandType commandType)
                         {
                             var commandText = this.commandTextFetcher.Fetch(command);
