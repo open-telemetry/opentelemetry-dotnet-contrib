@@ -158,7 +158,7 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         var connection = ConnectionMultiplexer.Connect(connectionOptions);
 
-        using var instrumentation = new StackExchangeRedisConnectionInstrumentation(connection, new StackExchangeRedisInstrumentationOptions());
+        using var instrumentation = new StackExchangeRedisConnectionInstrumentation(connection, name: null, new StackExchangeRedisInstrumentationOptions());
         var profilerFactory = instrumentation.GetProfilerSessionsFactory();
         var first = profilerFactory();
         var second = profilerFactory();
@@ -236,7 +236,7 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         var connection = ConnectionMultiplexer.Connect(connectionOptions);
 
-        using var instrumentation = new StackExchangeRedisConnectionInstrumentation(connection, new StackExchangeRedisInstrumentationOptions());
+        using var instrumentation = new StackExchangeRedisConnectionInstrumentation(connection, name: null, new StackExchangeRedisInstrumentationOptions());
         var profilerFactory = instrumentation.GetProfilerSessionsFactory();
 
         // start a root level activity
@@ -276,7 +276,7 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         var connection = ConnectionMultiplexer.Connect(connectionOptions);
 
-        using var instrumentation = new StackExchangeRedisConnectionInstrumentation(connection, new StackExchangeRedisInstrumentationOptions());
+        using var instrumentation = new StackExchangeRedisConnectionInstrumentation(connection, name: null, new StackExchangeRedisInstrumentationOptions());
         var profilerFactory = instrumentation.GetProfilerSessionsFactory();
 
         // start a root level activity
