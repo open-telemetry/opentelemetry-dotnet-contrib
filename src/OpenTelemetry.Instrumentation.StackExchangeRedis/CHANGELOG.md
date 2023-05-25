@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-rc11
+
+Released 2023-May-25
+
 * Added a dependency on `OpenTelemetry.Api.ProviderBuilderExtensions` and
   updated `TracerProviderBuilder.AddRedisInstrumentation` to support named
   options.
