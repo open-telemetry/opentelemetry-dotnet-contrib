@@ -21,7 +21,7 @@
 * When using named options the name will now be applied to the background thread
   created for each instrumented connection in the format
   `OpenTelemetry.Redis{OPTIONS_NAME_HERE}`.
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#1205](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1205))
 
 ## 1.0.0-rc9.8
 
