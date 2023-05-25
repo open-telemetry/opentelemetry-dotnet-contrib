@@ -18,6 +18,11 @@
   `TracerProvider` has been created.
   ([#1193](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1193))
 
+* When using named options the name will now be applied to the background thread
+  created for each instrumented connection in the format
+  `OpenTelemetry.Redis{OPTIONS_NAME_HERE}`.
+  ([#1205](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1205))
+
 ## 1.0.0-rc9.8
 
 Released 2023-Feb-27
