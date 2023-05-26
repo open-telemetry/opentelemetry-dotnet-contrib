@@ -11,6 +11,7 @@
   ([#1184](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1184))
 
 * Update OTel SDK version to `1.5.0-alpha.1`.
+  ([#1210](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1210))
 
 ## 1.5.0-alpha.3
 
