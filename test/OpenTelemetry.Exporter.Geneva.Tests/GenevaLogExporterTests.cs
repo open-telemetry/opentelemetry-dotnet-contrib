@@ -1376,6 +1376,9 @@ public class GenevaLogExporterTests
 
         bool isUnstructuredLog = true;
         IReadOnlyList<KeyValuePair<string, object>> stateKeyValuePairList;
+
+        // `LogRecord.State` and `LogRecord.StateValues` were marked Obsolete in https://github.com/open-telemetry/opentelemetry-dotnet/pull/4334
+#pragma warning disable 0618
         if (logRecord.State == null)
         {
             stateKeyValuePairList = logRecord.StateValues;
@@ -1384,6 +1387,7 @@ public class GenevaLogExporterTests
         {
             stateKeyValuePairList = logRecord.State as IReadOnlyList<KeyValuePair<string, object>>;
         }
+#pragma warning restore 0618
 
         if (stateKeyValuePairList != null)
         {
@@ -1392,10 +1396,13 @@ public class GenevaLogExporterTests
 
         if (isUnstructuredLog)
         {
+            // `LogRecord.State` and `LogRecord.StateValues` were marked Obsolete in https://github.com/open-telemetry/opentelemetry-dotnet/pull/4334
+#pragma warning disable 0618
             if (logRecord.State != null)
             {
                 Assert.Equal(logRecord.State.ToString(), mapping["body"]);
             }
+#pragma warning restore 0618
             else
             {
                 Assert.Equal(stateKeyValuePairList[0].Value, mapping["body"]);
