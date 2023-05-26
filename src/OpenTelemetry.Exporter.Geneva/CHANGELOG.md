@@ -2,9 +2,15 @@
 
 ## Unreleased
 
+* Fix an issue with getting sanitized category name in pass-through table name
+  mapping cases for `TldLogExporter`.
+  ([#1175](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1175))
+
 * TldLogExporter to export `SpanId` value in `ext_dt_spanId` field instead of
   `TraceId` value.
   ([#1184](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1184))
+
+* Update OTel SDK version to `1.5.0-alpha.1`.
 
 ## 1.5.0-alpha.3
 
