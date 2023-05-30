@@ -5,6 +5,8 @@
 * TldLogExporter to export `SpanId` value in `ext_dt_spanId` field instead of
   `TraceId` value.
   ([#1184](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1184))
+* add support for abstract domain sockets
+  ([#1198](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1198))
 
 ## 1.5.0-alpha.3
 
