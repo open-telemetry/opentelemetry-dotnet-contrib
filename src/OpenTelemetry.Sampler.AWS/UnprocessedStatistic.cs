@@ -1,4 +1,4 @@
-// <copyright file="Clock.cs" company="OpenTelemetry Authors">
+// <copyright file="UnprocessedStatistic.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,23 +14,25 @@
 // limitations under the License.
 // </copyright>
 
-using System;
+using System.Text.Json.Serialization;
 
 namespace OpenTelemetry.Sampler.AWS;
 
-// A time keeper for the purpose of this sampler.
-internal abstract class Clock
+internal class UnprocessedStatistic
 {
-    public static Clock GetDefault()
+    public UnprocessedStatistic(string? errorCode, string? message, string? ruleName)
     {
-        return SystemClock.GetInstance();
+        this.ErrorCode = errorCode;
+        this.Message = message;
+        this.RuleName = ruleName;
     }
 
-    public abstract DateTime Now();
+    [JsonPropertyName("ErrorCode")]
+    public string? ErrorCode { get; set; }
 
-    public abstract long NowInMilliSeconds();
+    [JsonPropertyName("Message")]
+    public string? Message { get; set; }
 
-    public abstract DateTime ToDateTime(double seconds);
-
-    public abstract double ToDouble(DateTime dateTime);
+    [JsonPropertyName("RuleName")]
+    public string? RuleName { get; set; }
 }

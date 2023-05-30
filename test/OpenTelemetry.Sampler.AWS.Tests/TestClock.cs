@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ namespace OpenTelemetry.Sampler.AWS.Tests;
 
 internal class TestClock : Clock
 {
+    private static readonly DateTime EpochStart = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
     private DateTime nowTime;
 
     public TestClock()
@@ -41,19 +43,21 @@ internal class TestClock : Clock
         return this.nowTime;
     }
 
-    public override long NowInSeconds()
+    public override long NowInMilliSeconds()
     {
-        throw new NotImplementedException();
+        return (long)this.nowTime.ToUniversalTime().Subtract(EpochStart).TotalMilliseconds;
     }
 
     public override DateTime ToDateTime(double seconds)
     {
-        throw new NotImplementedException();
+        return EpochStart.AddSeconds(seconds);
     }
 
     public override double ToDouble(DateTime dateTime)
     {
-        throw new NotImplementedException();
+        TimeSpan current = new TimeSpan(dateTime.ToUniversalTime().Ticks - EpochStart.Ticks);
+        double timestamp = Math.Round(current.TotalMilliseconds, 0) / 1000.0;
+        return timestamp;
     }
 
     // Advnaces the clock by a given time span.

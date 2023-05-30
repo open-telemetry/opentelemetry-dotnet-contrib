@@ -1,4 +1,4 @@
-// <copyright file="Clock.cs" company="OpenTelemetry Authors">
+// <copyright file="RateLimitingSampler.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,23 +14,25 @@
 // limitations under the License.
 // </copyright>
 
-using System;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Sampler.AWS;
-
-// A time keeper for the purpose of this sampler.
-internal abstract class Clock
+internal class RateLimitingSampler : Trace.Sampler
 {
-    public static Clock GetDefault()
+    private readonly RateLimiter limiter;
+
+    public RateLimitingSampler(long numPerSecond, Clock clock)
     {
-        return SystemClock.GetInstance();
+        this.limiter = new RateLimiter(numPerSecond, numPerSecond, clock);
     }
 
-    public abstract DateTime Now();
+    public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
+    {
+        if (this.limiter.TrySpend(1))
+        {
+            return new SamplingResult(SamplingDecision.RecordAndSample);
+        }
 
-    public abstract long NowInMilliSeconds();
-
-    public abstract DateTime ToDateTime(double seconds);
-
-    public abstract double ToDouble(DateTime dateTime);
+        return new SamplingResult(SamplingDecision.Drop);
+    }
 }
