@@ -141,7 +141,7 @@ internal class ConnectionStringBuilder
     /// <returns>Updated string.</returns>
     internal static string ReplaceFirstChar(string str, char oldChar, char newChar)
     {
-        if (str.Length > 1 && str[0] == oldChar)
+        if (str.Length > 0 && str[0] == oldChar)
         {
             return $"{newChar}{str.Substring(1)}";
         }
