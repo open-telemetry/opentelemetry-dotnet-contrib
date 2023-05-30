@@ -20,6 +20,8 @@ namespace OpenTelemetry.Exporter.InfluxDB.Tests.Utils;
 
 public class LineProtocolParser
 {
+    private static readonly DateTime UnixEpoch = DateTime.SpecifyKind(new DateTime(1970, 1, 1), DateTimeKind.Utc);
+
     public static PointData ParseLine(string line)
     {
         var segments = line.Split(' ');
@@ -73,7 +75,8 @@ public class LineProtocolParser
             return boolValue;
         }
 
-        if (fieldValue.EndsWith("i", StringComparison.Ordinal) && long.TryParse(fieldValue.AsSpan(0, fieldValue.Length - 1), out long intValue))
+        if (fieldValue.EndsWith("i", StringComparison.Ordinal)
+            && long.TryParse(fieldValue.AsSpan(0, fieldValue.Length - 1).ToString(), out long intValue))
         {
             return intValue;
         }
@@ -94,6 +97,6 @@ public class LineProtocolParser
         }
 
         long ticks = unixTimeNanoseconds / 100;
-        return DateTime.UnixEpoch.AddTicks(ticks);
+        return UnixEpoch.AddTicks(ticks);
     }
 }

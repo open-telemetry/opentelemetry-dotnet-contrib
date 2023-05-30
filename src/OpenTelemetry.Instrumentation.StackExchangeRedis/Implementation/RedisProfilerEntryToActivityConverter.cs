@@ -68,19 +68,19 @@ internal static class RedisProfilerEntryToActivityConverter
         });
     });
 
-    public static Activity? ProfilerCommandToActivity(Activity? parentActivity, IProfiledCommand command, StackExchangeRedisCallsInstrumentationOptions options)
+    public static Activity? ProfilerCommandToActivity(Activity? parentActivity, IProfiledCommand command, StackExchangeRedisInstrumentationOptions options)
     {
         var name = command.Command; // Example: SET;
         if (string.IsNullOrEmpty(name))
         {
-            name = StackExchangeRedisCallsInstrumentation.ActivityName;
+            name = StackExchangeRedisConnectionInstrumentation.ActivityName;
         }
 
-        var activity = StackExchangeRedisCallsInstrumentation.ActivitySource.StartActivity(
+        var activity = StackExchangeRedisConnectionInstrumentation.ActivitySource.StartActivity(
             name,
             ActivityKind.Client,
             parentActivity?.Context ?? default,
-            StackExchangeRedisCallsInstrumentation.CreationTags,
+            StackExchangeRedisConnectionInstrumentation.CreationTags,
             startTime: command.CommandCreated);
 
         if (activity == null)
@@ -105,7 +105,7 @@ internal static class RedisProfilerEntryToActivityConverter
             // Total:
             // command.ElapsedTime;             // 00:00:32.4988020
 
-            activity.SetTag(StackExchangeRedisCallsInstrumentation.RedisFlagsKeyName, command.Flags.ToString());
+            activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName, command.Flags.ToString());
 
             if (options.SetVerboseDatabaseStatements)
             {
@@ -149,7 +149,7 @@ internal static class RedisProfilerEntryToActivityConverter
                 }
             }
 
-            activity.SetTag(StackExchangeRedisCallsInstrumentation.RedisDatabaseIndexKeyName, command.Db);
+            activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName, command.Db);
 
             // TODO: deal with the re-transmission
             // command.RetransmissionOf;
@@ -174,7 +174,7 @@ internal static class RedisProfilerEntryToActivityConverter
         return activity;
     }
 
-    public static void DrainSession(Activity? parentActivity, IEnumerable<IProfiledCommand> sessionCommands, StackExchangeRedisCallsInstrumentationOptions options)
+    public static void DrainSession(Activity? parentActivity, IEnumerable<IProfiledCommand> sessionCommands, StackExchangeRedisInstrumentationOptions options)
     {
         foreach (var command in sessionCommands)
         {
