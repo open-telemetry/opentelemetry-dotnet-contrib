@@ -26,12 +26,15 @@ namespace OpenTelemetry.Sampler.AWS;
 internal class AWSXRaySamplerClient : IDisposable
 {
     private readonly string getSamplingRulesEndpoint;
+    private readonly string getSamplingTargetsEndpoint;
+
     private readonly HttpClient httpClient;
     private readonly string jsonContentType = "application/json";
 
     public AWSXRaySamplerClient(string host)
     {
         this.getSamplingRulesEndpoint = host + "/GetSamplingRules";
+        this.getSamplingTargetsEndpoint = host + "/SamplingTargets";
         this.httpClient = new HttpClient();
     }
 
@@ -72,6 +75,34 @@ internal class AWSXRaySamplerClient : IDisposable
         }
 
         return samplingRules;
+    }
+
+    public async Task<GetSamplingTargetsResponse?> GetSamplingTargets(GetSamplingTargetsRequest getSamplingTargetsRequest)
+    {
+        var content = new StringContent(JsonSerializer.Serialize(getSamplingTargetsRequest), Encoding.UTF8, this.jsonContentType);
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, this.getSamplingTargetsEndpoint)
+        {
+            Content = content,
+        };
+
+        var responseJson = await this.DoRequestAsync(this.getSamplingTargetsEndpoint, request).ConfigureAwait(false);
+
+        try
+        {
+            GetSamplingTargetsResponse? getSamplingTargetsResponse = JsonSerializer
+                .Deserialize<GetSamplingTargetsResponse>(responseJson);
+
+            return getSamplingTargetsResponse;
+        }
+        catch (Exception ex)
+        {
+            AWSSamplerEventSource.Log.FailedToDeserializeResponse(
+                    nameof(AWSXRaySamplerClient.GetSamplingTargets),
+                    ex.Message);
+        }
+
+        return null;
     }
 
     public void Dispose()

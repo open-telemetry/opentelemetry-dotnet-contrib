@@ -97,7 +97,137 @@ public class TestRulesCache
         Assert.Equal("Default", rulesCache.RuleAppliers[0].RuleName);
     }
 
-    // TODO: Add tests for matching sampling rules once the reservoir and fixed rate samplers are added.
+    [Fact]
+    public void TestShouldSampleMatchesExactRule()
+    {
+        var clock = new TestClock();
+        var rulesCache = new RulesCache(clock, "clientId", ResourceBuilder.CreateEmpty().Build(), new AlwaysOffSampler())
+        {
+            RuleAppliers = new List<SamplingRuleApplier>()
+            {
+                { new SamplingRuleApplier("clientId", clock, this.CreateRule("ruleWillMatch", 1, 0.0, 1), new Statistics()) }, // higher priority rule will sample
+                { new SamplingRuleApplier("clientId", clock, this.CreateRule("ruleWillNotMatch", 0, 0.0, 2), new Statistics()) }, // this rule will not sample
+            },
+        };
+
+        // the rule will sample by borrowing from reservoir
+        Assert.Equal(SamplingDecision.RecordAndSample, rulesCache.ShouldSample(default).Decision);
+
+        var statistics = rulesCache.Snapshot(clock.Now());
+        Assert.Equal(2, statistics.Count);
+        Assert.Equal("ruleWillMatch", statistics[0].RuleName);
+        Assert.Equal(1, statistics[0].RequestCount);
+        Assert.Equal(1, statistics[0].SampledCount);
+        Assert.Equal(1, statistics[0].BorrowCount);
+        Assert.Equal("ruleWillNotMatch", statistics[1].RuleName);
+        Assert.Equal(0, statistics[1].RequestCount);
+        Assert.Equal(0, statistics[1].SampledCount);
+        Assert.Equal(0, statistics[1].BorrowCount);
+    }
+
+    [Fact]
+    public void TestFallbackSamplerMatchesWhenNoRules()
+    {
+        var clock = new TestClock();
+        var rulesCache = new RulesCache(clock, "clientId", ResourceBuilder.CreateEmpty().Build(), new AlwaysOffSampler())
+        {
+            RuleAppliers = new List<SamplingRuleApplier>(),
+        };
+
+        // the fallback sampler will not sample
+        Assert.Equal(SamplingDecision.Drop, rulesCache.ShouldSample(default).Decision);
+    }
+
+    [Fact]
+    public void TestUpdateTargets()
+    {
+        var clock = new TestClock();
+        var rulesCache = new RulesCache(clock, "clientId", ResourceBuilder.CreateEmpty().Build(), new AlwaysOffSampler())
+        {
+            RuleAppliers = new List<SamplingRuleApplier>()
+            {
+                { new SamplingRuleApplier("clientId", clock, this.CreateRule("rule1", 1, 0.0, 1), new Statistics()) }, // this rule will sample 1 req/sec
+                { new SamplingRuleApplier("clientId", clock, this.CreateRule("rule2", 0, 0.0, 2), new Statistics()) },
+            },
+        };
+
+        Assert.Equal(SamplingDecision.RecordAndSample, rulesCache.ShouldSample(default).Decision);
+        Assert.Equal(SamplingDecision.Drop, rulesCache.ShouldSample(default).Decision);
+
+        // update targets
+        var targetForRule1 = new SamplingTargetDocument()
+        {
+            FixedRate = 0.0,
+            Interval = 0,
+            ReservoirQuota = 2,
+            ReservoirQuotaTTL = clock.ToDouble(clock.Now().AddMinutes(5)),
+            RuleName = "rule1",
+        };
+        var targetForRule2 = new SamplingTargetDocument()
+        {
+            FixedRate = 0.0,
+            Interval = 0,
+            ReservoirQuota = 0,
+            ReservoirQuotaTTL = clock.ToDouble(clock.Now().AddMinutes(5)),
+            RuleName = "rule2",
+        };
+
+        var targets = new Dictionary<string, SamplingTargetDocument>()
+        {
+            { "rule1", targetForRule1 },
+            { "rule2", targetForRule2 },
+        };
+
+        rulesCache.UpdateTargets(targets);
+
+        // now rule1 will sample 2 req/sec
+        Assert.Equal(SamplingDecision.RecordAndSample, rulesCache.ShouldSample(default).Decision);
+        Assert.Equal(SamplingDecision.RecordAndSample, rulesCache.ShouldSample(default).Decision);
+        Assert.Equal(SamplingDecision.Drop, rulesCache.ShouldSample(default).Decision);
+    }
+
+    [Fact]
+    public void TestNextTargetFetchTime()
+    {
+        var clock = new TestClock();
+        var rulesCache = new RulesCache(clock, "clientId", ResourceBuilder.CreateEmpty().Build(), new AlwaysOffSampler())
+        {
+            RuleAppliers = new List<SamplingRuleApplier>()
+            {
+                { new SamplingRuleApplier("clientId", clock, this.CreateRule("rule1", 1, 0.0, 1), new Statistics()) },
+                { new SamplingRuleApplier("clientId", clock, this.CreateRule("rule2", 0, 0.0, 2), new Statistics()) },
+            },
+        };
+
+        // update targets
+        var targetForRule1 = new SamplingTargetDocument()
+        {
+            FixedRate = 0.0,
+            Interval = 10, // next target poll after 10s
+            ReservoirQuota = 2,
+            ReservoirQuotaTTL = clock.ToDouble(clock.Now().Add(TimeSpan.FromMinutes(5))),
+            RuleName = "rule1",
+        };
+        var targetForRule2 = new SamplingTargetDocument()
+        {
+            FixedRate = 0.0,
+            Interval = 5, // next target poll after 5s
+            ReservoirQuota = 0,
+            ReservoirQuotaTTL = clock.ToDouble(clock.Now().Add(TimeSpan.FromMinutes(5))),
+            RuleName = "rule2",
+        };
+
+        var targets = new Dictionary<string, SamplingTargetDocument>()
+        {
+            { "rule1", targetForRule1 },
+            { "rule2", targetForRule2 },
+        };
+
+        rulesCache.UpdateTargets(targets);
+
+        // next target will be fetched after 5s
+        Assert.Equal(clock.Now().AddSeconds(5), rulesCache.NextTargetFetchTime());
+    }
 
     private SamplingRule CreateDefaultRule(int reservoirSize, double fixedRate)
     {
