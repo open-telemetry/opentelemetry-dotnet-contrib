@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+#if !NETFRAMEWORK
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -195,8 +196,8 @@ public class AWSECSResourceDetector : IResourceDetector
         {
             while (!streamReader.EndOfStream)
             {
-                var trimmedLine = streamReader.ReadLine().Trim();
-                if (trimmedLine.Length > 64)
+                var trimmedLine = streamReader.ReadLine()?.Trim();
+                if (trimmedLine?.Length > 64)
                 {
                     containerId = trimmedLine.Substring(trimmedLine.Length - 64);
                     return containerId;
@@ -212,3 +213,4 @@ public class AWSECSResourceDetector : IResourceDetector
         return Environment.GetEnvironmentVariable(AWSECSMetadataURLKey) != null || Environment.GetEnvironmentVariable(AWSECSMetadataURLV4Key) != null;
     }
 }
+#endif
