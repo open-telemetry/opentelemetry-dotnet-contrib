@@ -137,7 +137,7 @@ internal class ConnectionStringBuilder
         try
         {
             var endpoint = new Uri(this.Endpoint);
-            return endpoint.AbsolutePath.Replace('@','\0');
+            return endpoint.AbsolutePath.Replace('@', '\0');
         }
         catch (UriFormatException ex)
         {
