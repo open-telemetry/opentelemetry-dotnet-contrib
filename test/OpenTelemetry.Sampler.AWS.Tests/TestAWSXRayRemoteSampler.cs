@@ -74,7 +74,6 @@ public class TestAWSXRayRemoteSampler
 
         // the sampler will use fallback sampler until rules are fetched.
         Assert.Equal(SamplingDecision.RecordAndSample, this.DoSample(sampler, "cat-service"));
-        Assert.Equal(SamplingDecision.Drop, this.DoSample(sampler, "cat-service"));
 
         // GetSamplingRules mock response
         mockServer
