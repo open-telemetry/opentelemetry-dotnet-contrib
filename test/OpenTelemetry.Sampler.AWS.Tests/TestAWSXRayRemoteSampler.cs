@@ -16,8 +16,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Threading;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using WireMock.RequestBuilders;
+using WireMock.ResponseBuilders;
+using WireMock.Server;
 using Xunit;
 
 namespace OpenTelemetry.Sampler.AWS.Tests;
@@ -53,13 +59,71 @@ public class TestAWSXRayRemoteSampler
     }
 
     [Fact]
-    public void TestSamplerShouldSample()
+    public void TestSamplerUpdateAndSample()
     {
-        Trace.Sampler sampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build()).Build();
+        // setup mock server
+        TestClock clock = new TestClock();
+        WireMockServer mockServer = WireMockServer.Start();
 
-        // for now the fallback sampler should be making the sampling decision
-        Assert.Equal(
-            SamplingDecision.RecordAndSample,
-            sampler.ShouldSample(Utils.CreateSamplingParametersWithTags(new Dictionary<string, string>())).Decision);
+        // create sampler
+        AWSXRayRemoteSampler sampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build())
+            .SetPollingInterval(TimeSpan.FromMilliseconds(10))
+            .SetEndpoint(mockServer.Url)
+            .SetClock(clock)
+            .Build();
+
+        // the sampler will use fallback sampler until rules are fetched.
+        Assert.Equal(SamplingDecision.RecordAndSample, this.DoSample(sampler, "cat-service"));
+        Assert.Equal(SamplingDecision.Drop, this.DoSample(sampler, "cat-service"));
+
+        // GetSamplingRules mock response
+        mockServer
+            .Given(Request.Create().WithPath("/GetSamplingRules").UsingPost())
+            .RespondWith(
+                Response.Create()
+                .WithStatusCode(200)
+                .WithHeader("Content-Type", "application/json")
+                .WithBody(File.ReadAllText("Data/GetSamplingRulesResponseOptionalFields.json")));
+
+        // rules will be polled in 10 milliseconds
+        Thread.Sleep(2000);
+
+        // sampler will drop because rule has 0 reservoir and 0 fixed rate
+        Assert.Equal(SamplingDecision.Drop, this.DoSample(sampler, "cat-service"));
+
+        // GetSamplingTargets mock response
+        mockServer
+            .Given(Request.Create().WithPath("/SamplingTargets").UsingPost())
+            .RespondWith(
+                Response.Create()
+                .WithStatusCode(200)
+                .WithHeader("Content-Type", "application/json")
+                .WithBody(File.ReadAllText("Data/GetSamplingTargetsResponseOptionalFields.json")));
+
+        // targets will be polled in 10 seconds
+        Thread.Sleep(13000);
+
+        // sampler will always sampler since target has 100% fixed rate
+        Assert.Equal(SamplingDecision.RecordAndSample, this.DoSample(sampler, "cat-service"));
+        Assert.Equal(SamplingDecision.RecordAndSample, this.DoSample(sampler, "cat-service"));
+        Assert.Equal(SamplingDecision.RecordAndSample, this.DoSample(sampler, "cat-service"));
+
+        mockServer.Stop();
+    }
+
+    private SamplingDecision DoSample(Trace.Sampler sampler, string serviceName)
+    {
+        var samplingParams = new SamplingParameters(
+            default,
+            ActivityTraceId.CreateRandom(),
+            "myActivityName",
+            ActivityKind.Server,
+            new List<KeyValuePair<string, object>>()
+            {
+                new KeyValuePair<string, object>("test", serviceName),
+            },
+            null);
+
+        return sampler.ShouldSample(samplingParams).Decision;
     }
 }

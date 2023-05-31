@@ -109,6 +109,66 @@ internal class RulesCache : IDisposable
         return this.FallbackSampler.ShouldSample(in samplingParameters);
     }
 
+    public List<SamplingStatisticsDocument> Snapshot(DateTime now)
+    {
+        List<SamplingStatisticsDocument> snapshots = new List<SamplingStatisticsDocument>();
+        foreach (var ruleApplier in this.RuleAppliers)
+        {
+            snapshots.Add(ruleApplier.Snapshot(now));
+        }
+
+        return snapshots;
+    }
+
+    public void UpdateTargets(Dictionary<string, SamplingTargetDocument> targets)
+    {
+        List<SamplingRuleApplier> newRuleAppliers = new List<SamplingRuleApplier>();
+        foreach (var ruleApplier in this.RuleAppliers)
+        {
+            targets.TryGetValue(ruleApplier.RuleName, out SamplingTargetDocument? target);
+            if (target != null)
+            {
+                newRuleAppliers.Add(ruleApplier.WithTarget(target, this.Clock.Now()));
+            }
+            else
+            {
+                // did not get target for this rule. Will be updated in future target poll.
+                newRuleAppliers.Add(ruleApplier);
+            }
+        }
+
+        this.rwLock.EnterWriteLock();
+        try
+        {
+            this.RuleAppliers = newRuleAppliers;
+        }
+        finally
+        {
+            this.rwLock.ExitWriteLock();
+        }
+    }
+
+    public DateTime NextTargetFetchTime()
+    {
+        var defaultPollingTime = this.Clock.Now().AddSeconds(AWSXRayRemoteSampler.DefaultTargetInterval.TotalSeconds);
+
+        if (this.RuleAppliers.Count == 0)
+        {
+            return defaultPollingTime;
+        }
+
+        var minPollingTime = this.RuleAppliers
+            .Select(r => r.NextSnapshotTime)
+            .Min();
+
+        if (minPollingTime < this.Clock.Now())
+        {
+            return defaultPollingTime;
+        }
+
+        return minPollingTime;
+    }
+
     public void Dispose()
     {
         this.Dispose(true);

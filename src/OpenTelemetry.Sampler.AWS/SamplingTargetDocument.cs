@@ -1,4 +1,4 @@
-// <copyright file="Clock.cs" company="OpenTelemetry Authors">
+// <copyright file="SamplingTargetDocument.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,23 +14,24 @@
 // limitations under the License.
 // </copyright>
 
-using System;
+using System.Text.Json.Serialization;
 
 namespace OpenTelemetry.Sampler.AWS;
 
-// A time keeper for the purpose of this sampler.
-internal abstract class Clock
+internal class SamplingTargetDocument
 {
-    public static Clock GetDefault()
-    {
-        return SystemClock.GetInstance();
-    }
+    [JsonPropertyName("FixedRate")]
+    public double? FixedRate { get; set; }
 
-    public abstract DateTime Now();
+    [JsonPropertyName("Interval")]
+    public long? Interval { get; set; }
 
-    public abstract long NowInMilliSeconds();
+    [JsonPropertyName("ReservoirQuota")]
+    public long? ReservoirQuota { get; set; }
 
-    public abstract DateTime ToDateTime(double seconds);
+    [JsonPropertyName("ReservoirQuotaTTL")]
+    public double? ReservoirQuotaTTL { get; set; }
 
-    public abstract double ToDouble(DateTime dateTime);
+    [JsonPropertyName("RuleName")]
+    public string? RuleName { get; set; }
 }
