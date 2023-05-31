@@ -6,7 +6,7 @@
   `TraceId` value.
   ([#1184](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1184))
 * Add support for abstract domain sockets
-  ([#1198](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1198))
+  ([#1199](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1199))
 
 ## 1.5.0-alpha.3
 
