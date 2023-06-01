@@ -14,6 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+#if  !NETFRAMEWORK
+
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -85,7 +87,7 @@ public class AWSEKSResourceDetector : IResourceDetector
             {
                 while (!streamReader.EndOfStream)
                 {
-                    stringBuilder.Append(streamReader.ReadLine().Trim());
+                    stringBuilder.Append(streamReader.ReadLine()?.Trim());
                 }
             }
 
@@ -109,8 +111,8 @@ public class AWSEKSResourceDetector : IResourceDetector
             {
                 while (!streamReader.EndOfStream)
                 {
-                    var trimmedLine = streamReader.ReadLine().Trim();
-                    if (trimmedLine.Length > 64)
+                    var trimmedLine = streamReader.ReadLine()?.Trim();
+                    if (trimmedLine?.Length > 64)
                     {
                         return trimmedLine.Substring(trimmedLine.Length - 64);
                     }
@@ -165,3 +167,4 @@ public class AWSEKSResourceDetector : IResourceDetector
         return ResourceDetectorUtils.SendOutRequest(AWSClusterInfoUrl, "GET", new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler).Result;
     }
 }
+#endif
