@@ -32,21 +32,18 @@ public static class GenevaMetricExporterExtensions
     {
         Guard.ThrowIfNull(builder);
 
-        if (builder is IDeferredMeterProviderBuilder deferredMeterProviderBuilder)
+        return builder.AddReader(sp =>
         {
-            return deferredMeterProviderBuilder.Configure((sp, builder) =>
-            {
-                AddGenevaMetricExporter(builder, sp.GetOptions<GenevaMetricExporterOptions>(), configure);
-            });
-        }
+            var exporterOptions = sp.GetOptions<GenevaMetricExporterOptions>();
 
-        return AddGenevaMetricExporter(builder, new GenevaMetricExporterOptions(), configure);
+            return BuildGenevaMetricExporter(exporterOptions, configure);
+        });
     }
 
-    private static MeterProviderBuilder AddGenevaMetricExporter(MeterProviderBuilder builder, GenevaMetricExporterOptions options, Action<GenevaMetricExporterOptions> configure = null)
+    private static MetricReader BuildGenevaMetricExporter(GenevaMetricExporterOptions options, Action<GenevaMetricExporterOptions> configure = null)
     {
         configure?.Invoke(options);
-        return builder.AddReader(new PeriodicExportingMetricReader(new GenevaMetricExporter(options), options.MetricExportIntervalMilliseconds)
-        { TemporalityPreference = MetricReaderTemporalityPreference.Delta });
+        return new PeriodicExportingMetricReader(new GenevaMetricExporter(options), options.MetricExportIntervalMilliseconds)
+        { TemporalityPreference = MetricReaderTemporalityPreference.Delta };
     }
 }

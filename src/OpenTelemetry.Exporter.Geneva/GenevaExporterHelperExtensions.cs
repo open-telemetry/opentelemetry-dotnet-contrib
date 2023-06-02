@@ -15,6 +15,7 @@
 // </copyright>
 
 using System;
+using System.Diagnostics;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
@@ -26,34 +27,31 @@ public static class GenevaExporterHelperExtensions
     {
         Guard.ThrowIfNull(builder);
 
-        if (builder is IDeferredTracerProviderBuilder deferredTracerProviderBuilder)
+        return builder.AddProcessor(sp =>
         {
-            return deferredTracerProviderBuilder.Configure((sp, builder) =>
-            {
-                AddGenevaTraceExporter(builder, sp.GetOptions<GenevaExporterOptions>(), configure);
-            });
-        }
+            var exporterOptions = sp.GetOptions<GenevaExporterOptions>();
 
-        return AddGenevaTraceExporter(builder, new GenevaExporterOptions(), configure);
+            return BuildGenevaTraceExporter(exporterOptions, configure);
+        });
     }
 
-    private static TracerProviderBuilder AddGenevaTraceExporter(this TracerProviderBuilder builder, GenevaExporterOptions options, Action<GenevaExporterOptions> configure)
+    private static BaseProcessor<Activity> BuildGenevaTraceExporter(GenevaExporterOptions options, Action<GenevaExporterOptions> configure)
     {
         configure?.Invoke(options);
         var exporter = new GenevaTraceExporter(options);
         if (exporter.IsUsingUnixDomainSocket)
         {
             var batchOptions = new BatchExportActivityProcessorOptions();
-            return builder.AddProcessor(new BatchActivityExportProcessor(
+            return new BatchActivityExportProcessor(
                 exporter,
                 batchOptions.MaxQueueSize,
                 batchOptions.ScheduledDelayMilliseconds,
                 batchOptions.ExporterTimeoutMilliseconds,
-                batchOptions.MaxExportBatchSize));
+                batchOptions.MaxExportBatchSize);
         }
         else
         {
-            return builder.AddProcessor(new ReentrantActivityExportProcessor(exporter));
+            return new ReentrantActivityExportProcessor(exporter);
         }
     }
 }

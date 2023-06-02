@@ -174,13 +174,13 @@ public class GenevaTraceExporterTests
             var source = new ActivitySource(sourceName);
             using (var parent = source.StartActivity("HttpIn", ActivityKind.Server))
             {
-                parent?.SetTag("http.method", "GET");
-                parent?.SetTag("http.url", "https://localhost/wiki/Rabbit");
+                parent.SetTag("http.method", "GET");
+                parent.SetTag("http.url", "https://localhost/wiki/Rabbit");
                 using (var child = source.StartActivity("HttpOut", ActivityKind.Client))
                 {
-                    child?.SetTag("http.method", "GET");
-                    child?.SetTag("http.url", "https://www.wikipedia.org/wiki/Rabbit");
-                    child?.SetTag("http.status_code", 404);
+                    child.SetTag("http.method", "GET");
+                    child.SetTag("http.url", "https://www.wikipedia.org/wiki/Rabbit");
+                    child.SetTag("http.status_code", 404);
                 }
 
                 parent?.SetTag("http.status_code", 200);
