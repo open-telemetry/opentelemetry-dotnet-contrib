@@ -6,6 +6,10 @@
 
 Released 2023-Jun-01
 
+* Bumped the version to `1.4.0` to keep it in sync with the release versions of
+  `OpenTelemetry.API`. This makes it more intuitive for the users to figure out
+  what version of core packages would work with a given version of this package.
+
 ## 1.1.0-rc.2
 
 Released 2023-Feb-27
