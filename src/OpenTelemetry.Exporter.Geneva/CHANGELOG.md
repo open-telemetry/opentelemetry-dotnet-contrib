@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.5.0-rc.1
+
+Released 2023-Jun-05
+
 * Fix an issue with getting sanitized category name in pass-through table name
   mapping cases for `TldLogExporter`.
   ([#1175](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1175))
