@@ -23,10 +23,8 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using OpenTelemetry.Trace;
 using Xunit;
 
