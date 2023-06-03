@@ -26,7 +26,9 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Kaitai;
+using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 using Xunit;
 using static OpenTelemetry.Exporter.Geneva.Tests.MetricsContract;
 
@@ -871,6 +873,34 @@ public class GenevaMetricExporterTests
             {
             }
         }
+    }
+
+    [Fact]
+    public void AddGenevaMetricExporterNamedOptionsSupport()
+    {
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .ConfigureServices(services =>
+            {
+                services.Configure<GenevaMetricExporterOptions>(options =>
+                {
+                    options.ConnectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+                });
+                services.Configure<GenevaMetricExporterOptions>("ExporterWithNamedOptions", options =>
+                {
+                    options.ConnectionString = "Account=OTelMonitoringAccount-NamedOptions;Namespace=OTelMetricNamespace-NamedOptions";
+                });
+            })
+            .AddGenevaMetricExporter(options =>
+            {
+                // ConnectionString for the options is already set in `IServiceCollection Configure<TOptions>` calls above
+                Assert.Equal("Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace", options.ConnectionString);
+            })
+            .AddGenevaMetricExporter("ExporterWithNamedOptions", options =>
+            {
+                // ConnectionString for the named options is already set in `IServiceCollection Configure<TOptions>` calls above
+                Assert.Equal("Account=OTelMonitoringAccount-NamedOptions;Namespace=OTelMetricNamespace-NamedOptions", options.ConnectionString);
+            })
+            .Build();
     }
 
     private static string GenerateTempFilePath()

@@ -24,6 +24,8 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -512,6 +514,34 @@ public class GenevaTraceExporterTests
                 activity?.SetStatus(ActivityStatusCode.Ok);
             }
         }
+    }
+
+    [Fact]
+    public void AddGenevaTraceExporterNamedOptionsSupport()
+    {
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .ConfigureServices(services =>
+            {
+                services.Configure<GenevaExporterOptions>(options =>
+                {
+                    options.ConnectionString = "EtwSession=OpenTelemetry";
+                });
+                services.Configure<GenevaExporterOptions>("ExporterWithNamedOptions", options =>
+                {
+                    options.ConnectionString = "EtwSession=OpenTelemetry-NamedOptions";
+                });
+            })
+            .AddGenevaTraceExporter(options =>
+            {
+                // ConnectionString for the options is already set in `IServiceCollection Configure<TOptions>` calls above
+                Assert.Equal("EtwSession=OpenTelemetry", options.ConnectionString);
+            })
+            .AddGenevaTraceExporter("ExporterWithNamedOptions", options =>
+            {
+                // ConnectionString for the named options is already set in `IServiceCollection Configure<TOptions>` calls above
+                Assert.Equal("EtwSession=OpenTelemetry-NamedOptions", options.ConnectionString);
+            })
+            .Build();
     }
 
     private static string GetRandomFilePath()
