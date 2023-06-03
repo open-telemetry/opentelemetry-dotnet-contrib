@@ -878,27 +878,41 @@ public class GenevaMetricExporterTests
     [Fact]
     public void AddGenevaMetricExporterNamedOptionsSupport()
     {
+        string connectionString;
+        string connectionStringForNamedOptions;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            connectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+            connectionStringForNamedOptions = "Account=OTelMonitoringAccount-NamedOptions;Namespace=OTelMetricNamespace-NamedOptions";
+        }
+        else
+        {
+            var path = GenerateTempFilePath();
+            connectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+            connectionStringForNamedOptions = $"Endpoint=unix:{path};Account=OTelMonitoringAccount-NamedOptions;Namespace=OTelMetricNamespace-NamedOptions";
+        }
+
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .ConfigureServices(services =>
             {
                 services.Configure<GenevaMetricExporterOptions>(options =>
                 {
-                    options.ConnectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+                    options.ConnectionString = connectionString;
                 });
                 services.Configure<GenevaMetricExporterOptions>("ExporterWithNamedOptions", options =>
                 {
-                    options.ConnectionString = "Account=OTelMonitoringAccount-NamedOptions;Namespace=OTelMetricNamespace-NamedOptions";
+                    options.ConnectionString = connectionStringForNamedOptions;
                 });
             })
             .AddGenevaMetricExporter(options =>
             {
                 // ConnectionString for the options is already set in `IServiceCollection Configure<TOptions>` calls above
-                Assert.Equal("Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace", options.ConnectionString);
+                Assert.Equal(connectionString, options.ConnectionString);
             })
             .AddGenevaMetricExporter("ExporterWithNamedOptions", options =>
             {
                 // ConnectionString for the named options is already set in `IServiceCollection Configure<TOptions>` calls above
-                Assert.Equal("Account=OTelMonitoringAccount-NamedOptions;Namespace=OTelMetricNamespace-NamedOptions", options.ConnectionString);
+                Assert.Equal(connectionStringForNamedOptions, options.ConnectionString);
             })
             .Build();
     }
