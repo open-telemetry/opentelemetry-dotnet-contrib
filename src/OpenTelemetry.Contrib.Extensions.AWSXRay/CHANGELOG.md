@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Updates to 1.5.0 of OpenTelemetry SDK.
+  ([#1220](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1220))
 * Enhancement - AWSXRayIdGenerator - Generate X-Ray IDs with global Random
   instance instead of recreating with ThreadLocal
   ([#380](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/380))
