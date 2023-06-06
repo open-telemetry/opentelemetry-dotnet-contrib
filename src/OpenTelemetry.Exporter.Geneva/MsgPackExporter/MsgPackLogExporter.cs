@@ -138,6 +138,8 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
     internal int SerializeLogRecord(LogRecord logRecord)
     {
+        // `LogRecord.State` and `LogRecord.StateValues` were marked Obsolete in https://github.com/open-telemetry/opentelemetry-dotnet/pull/4334
+#pragma warning disable 0618
         IReadOnlyList<KeyValuePair<string, object>> listKvp;
         if (logRecord.State == null)
         {
@@ -150,6 +152,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             // Attempt to see if State could be ROL_KVP.
             listKvp = logRecord.State as IReadOnlyList<KeyValuePair<string, object>>;
         }
+#pragma warning restore 0618
 
         var buffer = m_buffer.Value;
         if (buffer == null)

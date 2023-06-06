@@ -28,7 +28,7 @@ internal abstract class Clock
 
     public abstract DateTime Now();
 
-    public abstract long NowInSeconds();
+    public abstract long NowInMilliSeconds();
 
     public abstract DateTime ToDateTime(double seconds);
 

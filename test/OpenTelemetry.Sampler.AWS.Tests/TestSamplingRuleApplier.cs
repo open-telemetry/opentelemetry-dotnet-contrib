@@ -14,7 +14,9 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
+using OpenTelemetry.Trace;
 using Xunit;
 
 namespace OpenTelemetry.Sampler.AWS.Tests;
@@ -217,5 +219,207 @@ public class TestSamplingRuleApplier
         Assert.False(applier.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", "aws_ecs")));
     }
 
-    // TODO: Add more test cases for ShouldSample once the sampling logic is added.
+    // fixed rate is 1.0 and reservoir is 0
+    [Fact]
+    public void TestFixedRateAlwaysSample()
+    {
+        TestClock clock = new TestClock();
+        SamplingRule rule = new SamplingRule(
+            "rule1",
+            1,
+            1.0, // fixed rate
+            0, // reservoir
+            "*",
+            "*",
+            "*",
+            "*",
+            "*",
+            "*",
+            1,
+            new Dictionary<string, string>());
+
+        var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
+
+        Assert.Equal(SamplingDecision.RecordAndSample, applier.ShouldSample(default).Decision);
+
+        // test if the snapshot was correctly captured
+        var statistics = applier.Snapshot(clock.Now());
+        Assert.Equal("clientId", statistics.ClientID);
+        Assert.Equal("rule1", statistics.RuleName);
+        Assert.Equal(clock.ToDouble(clock.Now()), statistics.Timestamp);
+        Assert.Equal(1, statistics.RequestCount);
+        Assert.Equal(1, statistics.SampledCount);
+        Assert.Equal(0, statistics.BorrowCount);
+
+        // reset statistics
+        statistics = applier.Snapshot(clock.Now());
+        Assert.Equal(0, statistics.RequestCount);
+        Assert.Equal(0, statistics.SampledCount);
+        Assert.Equal(0, statistics.BorrowCount);
+    }
+
+    // fixed rate is 0.0 and reservoir is 0
+    [Fact]
+    public void TestFixedRateNeverSample()
+    {
+        TestClock clock = new TestClock();
+        SamplingRule rule = new SamplingRule(
+            "rule1",
+            1,
+            0.0, // fixed rate
+            0, // reservoir
+            "*",
+            "*",
+            "*",
+            "*",
+            "*",
+            "*",
+            1,
+            new Dictionary<string, string>());
+
+        var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
+
+        Assert.Equal(SamplingDecision.Drop, applier.ShouldSample(default).Decision);
+
+        // test if the snapshot was correctly captured
+        var statistics = applier.Snapshot(clock.Now());
+        Assert.Equal("clientId", statistics.ClientID);
+        Assert.Equal("rule1", statistics.RuleName);
+        Assert.Equal(clock.ToDouble(clock.Now()), statistics.Timestamp);
+        Assert.Equal(1, statistics.RequestCount);
+        Assert.Equal(0, statistics.SampledCount);
+        Assert.Equal(0, statistics.BorrowCount);
+    }
+
+    [Fact]
+    public void TestBorrowFromReservoir()
+    {
+        TestClock clock = new TestClock();
+        SamplingRule rule = new SamplingRule(
+           "rule1",
+           1,
+           0.0, // fixed rate
+           100, // reservoir
+           "*",
+           "*",
+           "*",
+           "*",
+           "*",
+           "*",
+           1,
+           new Dictionary<string, string>());
+
+        var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
+
+        // sampled by borrowing
+        Assert.Equal(SamplingDecision.RecordAndSample, applier.ShouldSample(default).Decision);
+
+        // can only borrow 1 req/sec
+        Assert.Equal(SamplingDecision.Drop, applier.ShouldSample(default).Decision);
+
+        // test if the snapshot was correctly captured
+        var statistics = applier.Snapshot(clock.Now());
+        Assert.Equal("clientId", statistics.ClientID);
+        Assert.Equal("rule1", statistics.RuleName);
+        Assert.Equal(clock.ToDouble(clock.Now()), statistics.Timestamp);
+        Assert.Equal(2, statistics.RequestCount);
+        Assert.Equal(1, statistics.SampledCount);
+        Assert.Equal(1, statistics.BorrowCount);
+    }
+
+    [Fact]
+    public void TestWithTarget()
+    {
+        TestClock clock = new TestClock();
+        SamplingRule rule = new SamplingRule(
+           "rule1",
+           1,
+           0.0, // fixed rate
+           100, // reservoir
+           "*",
+           "*",
+           "*",
+           "*",
+           "*",
+           "*",
+           1,
+           new Dictionary<string, string>());
+
+        var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
+
+        // no target assigned yet. so borrow 1 from reseroir every second
+        Assert.Equal(SamplingDecision.RecordAndSample, applier.ShouldSample(default).Decision);
+        Assert.Equal(SamplingDecision.Drop, applier.ShouldSample(default).Decision);
+        clock.Advance(TimeSpan.FromSeconds(1));
+        Assert.Equal(SamplingDecision.RecordAndSample, applier.ShouldSample(default).Decision);
+        Assert.Equal(SamplingDecision.Drop, applier.ShouldSample(default).Decision);
+
+        // get the target
+        SamplingTargetDocument target = new SamplingTargetDocument()
+        {
+            FixedRate = 0.0,
+            Interval = 10,
+            ReservoirQuota = 2,
+            ReservoirQuotaTTL = clock.ToDouble(clock.Now().Add(TimeSpan.FromSeconds(10))),
+            RuleName = "rule1",
+        };
+
+        applier = applier.WithTarget(target, clock.Now());
+
+        // 2 req/sec quota
+        Assert.Equal(SamplingDecision.RecordAndSample, applier.ShouldSample(default).Decision);
+        Assert.Equal(SamplingDecision.RecordAndSample, applier.ShouldSample(default).Decision);
+        Assert.Equal(SamplingDecision.Drop, applier.ShouldSample(default).Decision);
+    }
+
+    [Fact]
+    public void TestWithTargetWithoutQuota()
+    {
+        TestClock clock = new TestClock();
+        SamplingRule rule = new SamplingRule(
+           "rule1",
+           1,
+           0.0, // fixed rate
+           100, // reservoir
+           "*",
+           "*",
+           "*",
+           "*",
+           "*",
+           "*",
+           1,
+           new Dictionary<string, string>());
+
+        var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
+
+        // no target assigned yet. so borrow 1 from reseroir every second
+        Assert.Equal(SamplingDecision.RecordAndSample, applier.ShouldSample(default).Decision);
+        Assert.Equal(SamplingDecision.Drop, applier.ShouldSample(default).Decision);
+        clock.Advance(TimeSpan.FromSeconds(1));
+        Assert.Equal(SamplingDecision.RecordAndSample, applier.ShouldSample(default).Decision);
+        Assert.Equal(SamplingDecision.Drop, applier.ShouldSample(default).Decision);
+
+        var statistics = applier.Snapshot(clock.Now());
+        Assert.Equal(4, statistics.RequestCount);
+        Assert.Equal(2, statistics.SampledCount);
+        Assert.Equal(2, statistics.BorrowCount);
+
+        // get the target
+        SamplingTargetDocument target = new SamplingTargetDocument()
+        {
+            FixedRate = 1.0,
+            Interval = 10,
+            ReservoirQuota = null,
+            ReservoirQuotaTTL = null,
+            RuleName = "rule1",
+        };
+        applier = applier.WithTarget(target, clock.Now());
+
+        // no reservoir, sample using fixed rate (100% sample)
+        Assert.Equal(SamplingDecision.RecordAndSample, applier.ShouldSample(default).Decision);
+        statistics = applier.Snapshot(clock.Now());
+        Assert.Equal(1, statistics.RequestCount);
+        Assert.Equal(1, statistics.SampledCount);
+        Assert.Equal(0, statistics.BorrowCount);
+    }
 }

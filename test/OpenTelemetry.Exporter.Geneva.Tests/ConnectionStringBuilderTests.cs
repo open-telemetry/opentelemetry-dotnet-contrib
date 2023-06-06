@@ -104,6 +104,11 @@ public class ConnectionStringBuilderTests
 
         builder = new ConnectionStringBuilder("EtwSession=OpenTelemetry");
         Assert.Throws<ArgumentException>(() => _ = builder.ParseUnixDomainSocketPath());
+
+        builder = new ConnectionStringBuilder("Endpoint=unix:@/var/run/default_fluent.socket");
+        Assert.Equal("unix:@/var/run/default_fluent.socket", builder.Endpoint);
+        Assert.Equal(TransportProtocol.Unix, builder.Protocol);
+        Assert.Equal("\0/var/run/default_fluent.socket", builder.ParseUnixDomainSocketPath());
     }
 
     [Fact]
