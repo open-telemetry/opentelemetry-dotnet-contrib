@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-* Added `Filter` public API on `EntityFrameworkInstrumentationOptions` to enable filtering
-  of instrumentation based on the db command being executed.
+* Added `Filter` public API on `EntityFrameworkInstrumentationOptions` to
+  enable filtering of instrumentation.
 
 ## 1.0.0-beta.6
 

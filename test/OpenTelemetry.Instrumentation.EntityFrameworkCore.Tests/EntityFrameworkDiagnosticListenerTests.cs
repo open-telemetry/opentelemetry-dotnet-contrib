@@ -132,14 +132,41 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     }
 
     [Fact]
-    public void ShouldCollectTelemetryWhenFilterEvaluatesToTrue()
+    public void ShouldNotCollectTelemetryWhenFilterEvaluatesToFalseByDbCommand()
     {
         var activityProcessor = new Mock<BaseProcessor<Activity>>();
         using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
             .AddProcessor(activityProcessor.Object)
             .AddEntityFrameworkCoreInstrumentation(options =>
             {
-                options.Filter = (command) =>
+                options.Filter = (providerName, command) =>
+                {
+                    return !command.CommandText.Contains("Item", StringComparison.OrdinalIgnoreCase);
+                };
+            }).Build();
+
+        using (var context = new ItemsContext(this.contextOptions))
+        {
+            _ = context.Set<Item>().OrderBy(e => e.Name).ToList();
+        }
+
+        Assert.Equal(2, activityProcessor.Invocations.Count);
+
+        var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
+
+        Assert.False(activity.IsAllDataRequested);
+        Assert.True(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.None));
+    }
+
+    [Fact]
+    public void ShouldCollectTelemetryWhenFilterEvaluatesToTrueByDbCommand()
+    {
+        var activityProcessor = new Mock<BaseProcessor<Activity>>();
+        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
+            .AddProcessor(activityProcessor.Object)
+            .AddEntityFrameworkCoreInstrumentation(options =>
+            {
+                options.Filter = (providerName, command) =>
                 {
                     return command.CommandText.Contains("Item", StringComparison.OrdinalIgnoreCase);
                 };
@@ -158,17 +185,36 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         Assert.True(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
     }
 
-    [Fact]
-    public void ShouldCollectTelemetryWhenFilterEvaluatesToFalse()
+    [Theory]
+    [InlineData("Microsoft.EntityFrameworkCore.SqlServer")]
+    [InlineData("Microsoft.EntityFrameworkCore.Cosmos")]
+    [InlineData("Devart.Data.SQLite.EFCore")]
+    [InlineData("MySql.Data.EntityFrameworkCore")]
+    [InlineData("Pomelo.EntityFrameworkCore.MySql")]
+    [InlineData("Devart.Data.MySql.EFCore")]
+    [InlineData("Npgsql.EntityFrameworkCore.PostgreSQL")]
+    [InlineData("Devart.Data.PostgreSql.EFCore")]
+    [InlineData("Oracle.EntityFrameworkCore")]
+    [InlineData("Devart.Data.Oracle.EFCore")]
+    [InlineData("Microsoft.EntityFrameworkCore.InMemory")]
+    [InlineData("FirebirdSql.EntityFrameworkCore.Firebird")]
+    [InlineData("FileContextCore")]
+    [InlineData("EntityFrameworkCore.SqlServerCompact35")]
+    [InlineData("EntityFrameworkCore.SqlServerCompact40")]
+    [InlineData("EntityFrameworkCore.OpenEdge")]
+    [InlineData("EntityFrameworkCore.Jet")]
+    [InlineData("Google.Cloud.EntityFrameworkCore.Spanner")]
+    [InlineData("Teradata.EntityFrameworkCore")]
+    public void ShouldNotCollectTelemetryWhenFilterEvaluatesToFalseByProviderName(string provider)
     {
         var activityProcessor = new Mock<BaseProcessor<Activity>>();
         using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
             .AddProcessor(activityProcessor.Object)
             .AddEntityFrameworkCoreInstrumentation(options =>
             {
-                options.Filter = (command) =>
+                options.Filter = (providerName, command) =>
                 {
-                    return !command.CommandText.Contains("Item", StringComparison.OrdinalIgnoreCase);
+                    return providerName.Equals(provider, StringComparison.OrdinalIgnoreCase);
                 };
             }).Build();
 
@@ -183,6 +229,32 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         Assert.False(activity.IsAllDataRequested);
         Assert.True(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.None));
+    }
+
+    [Fact]
+    public void ShouldCollectTelemetryWhenFilterEvaluatesToTrueByProviderName()
+    {
+        var activityProcessor = new Mock<BaseProcessor<Activity>>();
+        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
+            .AddProcessor(activityProcessor.Object)
+            .AddEntityFrameworkCoreInstrumentation(options =>
+            {
+                options.Filter = (providerName, command) =>
+                {
+                    return providerName.Equals("Microsoft.EntityFrameworkCore.Sqlite", StringComparison.OrdinalIgnoreCase);
+                };
+            }).Build();
+
+        using (var context = new ItemsContext(this.contextOptions))
+        {
+            _ = context.Set<Item>().OrderBy(e => e.Name).ToList();
+        }
+
+        Assert.Equal(3, activityProcessor.Invocations.Count);
+
+        var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
+        Assert.True(activity.IsAllDataRequested);
+        Assert.True(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
     }
 
     public void Dispose() => this.connection.Dispose();

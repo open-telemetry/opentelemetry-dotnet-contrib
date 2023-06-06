@@ -52,7 +52,8 @@ public class EntityFrameworkInstrumentationOptions
     /// <remarks>
     /// <b>Notes:</b>
     /// <list type="bullet">
-    /// <item>The first parameter passed to the filter function is <see cref="IDbCommand"/> from which additional
+    /// <item>The first parameter passed to the filter function is the provider name.</item>
+    /// <item>The second parameter passed to the filter function is <see cref="IDbCommand"/> from which additional
     /// information can be extracted.</item>
     /// <item>The return value for the filter:
     /// <list type="number">
@@ -63,5 +64,5 @@ public class EntityFrameworkInstrumentationOptions
     /// </list></item>
     /// </list>
     /// </remarks>
-    public Func<IDbCommand, bool> Filter { get; set; }
+    public Func<string, IDbCommand, bool> Filter { get; set; }
 }
