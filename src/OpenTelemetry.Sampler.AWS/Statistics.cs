@@ -18,9 +18,7 @@ namespace OpenTelemetry.Sampler.AWS;
 
 internal class Statistics
 {
-    public int RequestCount { get; internal set; }
-
-    public int BorrowCount { get; internal set; }
-
-    public int SampleCount { get; internal set; }
+    public long RequestCount;
+    public long BorrowCount;
+    public long SampleCount;
 }

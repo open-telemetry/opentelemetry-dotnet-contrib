@@ -47,11 +47,19 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
         // upto 5 seconds of jitter for rule polling
         this.RulePollerJitter = TimeSpan.FromMilliseconds(Random.Next(1, 5000));
 
+        // upto 100 milliseconds of jitter for target polling
+        this.TargetPollerJitter = TimeSpan.FromMilliseconds(Random.Next(1, 100));
+
         // execute the first update right away and schedule subsequent update later.
         this.RulePollerTimer = new Timer(this.GetAndUpdateRules, null, TimeSpan.Zero, Timeout.InfiniteTimeSpan);
+
+        // set up the target poller to go off once after the default interval. We will update the timer later.
+        this.TargetPollerTimer = new Timer(this.GetAndUpdateTargets, null, DefaultTargetInterval, Timeout.InfiniteTimeSpan);
     }
 
     internal TimeSpan RulePollerJitter { get; set; }
+
+    internal TimeSpan TargetPollerJitter { get; set; }
 
     internal Clock Clock { get; set; }
 
@@ -66,6 +74,8 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
     internal RulesCache RulesCache { get; set; }
 
     internal Timer RulePollerTimer { get; set; }
+
+    internal Timer TargetPollerTimer { get; set; }
 
     internal TimeSpan PollingInterval { get; set; }
 
@@ -136,5 +146,47 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
 
         // schedule the next rule poll.
         this.RulePollerTimer.Change(this.PollingInterval.Add(this.RulePollerJitter), Timeout.InfiniteTimeSpan);
+    }
+
+    private async void GetAndUpdateTargets(object? state)
+    {
+        List<SamplingStatisticsDocument> statistics = this.RulesCache.Snapshot(this.Clock.Now());
+
+        GetSamplingTargetsRequest request = new GetSamplingTargetsRequest(statistics);
+        GetSamplingTargetsResponse? response = await this.Client.GetSamplingTargets(request).ConfigureAwait(false);
+        if (response != null)
+        {
+            Dictionary<string, SamplingTargetDocument> targets = new Dictionary<string, SamplingTargetDocument>();
+            foreach (SamplingTargetDocument target in response.SamplingTargetDocuments)
+            {
+                if (target.RuleName != null)
+                {
+                    targets[target.RuleName] = target;
+                }
+            }
+
+            this.RulesCache.UpdateTargets(targets);
+
+            if (response.LastRuleModification > 0)
+            {
+                DateTime lastRuleModificationTime = this.Clock.ToDateTime(response.LastRuleModification);
+
+                if (lastRuleModificationTime > this.RulesCache.GetUpdatedAt())
+                {
+                    // rules have been updated. fetch the new ones right away.
+                    this.RulePollerTimer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan);
+                }
+            }
+        }
+
+        // schedule next target poll
+        DateTime nextTargetFetchTime = this.RulesCache.NextTargetFetchTime();
+        TimeSpan nextTargetFetchInterval = nextTargetFetchTime.Subtract(this.Clock.Now());
+        if (nextTargetFetchInterval < TimeSpan.Zero)
+        {
+            nextTargetFetchInterval = DefaultTargetInterval;
+        }
+
+        this.TargetPollerTimer.Change(nextTargetFetchInterval.Add(this.TargetPollerJitter), Timeout.InfiniteTimeSpan);
     }
 }

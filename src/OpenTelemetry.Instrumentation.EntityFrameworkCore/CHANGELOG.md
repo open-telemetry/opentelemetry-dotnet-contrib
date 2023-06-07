@@ -4,6 +4,10 @@
 
 * Added `Filter` public API on `EntityFrameworkInstrumentationOptions` to
   enable filtering of instrumentation.
+  ([#1203](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1203))
+
+* Updated OTel SDK package version to 1.5.0
+  ([#1220](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1220))
 
 ## 1.0.0-beta.6
 

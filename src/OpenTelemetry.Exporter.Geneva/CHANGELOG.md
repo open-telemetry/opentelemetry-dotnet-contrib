@@ -2,9 +2,32 @@
 
 ## Unreleased
 
+* Add named options support for `GenevaTraceExporter` and
+  `GenevaMetricExporter`.
+  ([#1218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1218))
+
+* Add a new overload for `AddGenevaMetricExporter` without any parameters to
+  avoid warning
+  [RS0026](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/Microsoft.CodeAnalysis.PublicApiAnalyzers.md#rs0026-do-not-add-multiple-public-overloads-with-optional-parameters).
+  ([#1218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1218))
+
+## 1.5.0-rc.1
+
+Released 2023-Jun-05
+
+* Fix an issue with getting sanitized category name in pass-through table name
+  mapping cases for `TldLogExporter`.
+  ([#1175](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1175))
+
 * TldLogExporter to export `SpanId` value in `ext_dt_spanId` field instead of
   `TraceId` value.
   ([#1184](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1184))
+
+* Add support for abstract domain sockets.
+  ([#1199](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1199))
+
+* Update OTel SDK version to `1.5.0-rc.1`.
+  ([#1210](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1210))
 
 ## 1.5.0-alpha.3
 

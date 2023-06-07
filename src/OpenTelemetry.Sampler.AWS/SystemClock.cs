@@ -15,7 +15,6 @@
 // </copyright>
 
 using System;
-using System.Diagnostics;
 
 namespace OpenTelemetry.Sampler.AWS;
 
@@ -40,12 +39,9 @@ internal class SystemClock : Clock
         return DateTime.UtcNow;
     }
 
-    public override long NowInSeconds()
+    public override long NowInMilliSeconds()
     {
-        double ts = Stopwatch.GetTimestamp();
-        double s = ts / Stopwatch.Frequency;
-
-        return (long)s;
+        return (long)this.Now().ToUniversalTime().Subtract(EpochStart).TotalMilliseconds;
     }
 
     public override DateTime ToDateTime(double seconds)
