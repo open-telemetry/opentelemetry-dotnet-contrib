@@ -87,7 +87,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
             case TransportProtocol.Unspecified:
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    this.metricDataTransport = new MetricEtwDataTransport();
+                    this.metricDataTransport = MetricEtwDataTransport.Shared;
                     break;
                 }
                 else
