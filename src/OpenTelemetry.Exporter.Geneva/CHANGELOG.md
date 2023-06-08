@@ -11,8 +11,10 @@
   [RS0026](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/Microsoft.CodeAnalysis.PublicApiAnalyzers.md#rs0026-do-not-add-multiple-public-overloads-with-optional-parameters).
   ([#1218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1218))
 
-* Update `MetricEtwDataTransport` which is  the `EventSource` implementation for
-  `GenevaMetricExporter` to be a singleton.
+* Fix the issue of running into the `ArgumentException`: `An instance of
+  EventSource with Guid edc24920-e004-40f6-a8e1-0e6e48f39d84 already exists.`
+  when using multiple instances of `GenevaMetricExporter` by updating
+  `MetricEtwDataTransport` to be a singleton.
   ([#1225](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1225))
 
 ## 1.5.0-rc.1
