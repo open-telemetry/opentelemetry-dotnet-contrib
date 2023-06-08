@@ -11,6 +11,10 @@
   [RS0026](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/Microsoft.CodeAnalysis.PublicApiAnalyzers.md#rs0026-do-not-add-multiple-public-overloads-with-optional-parameters).
   ([#1218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1218))
 
+* Update `MetricEtwDataTransport` which is  the `EventSource` implementation for
+  `GenevaMetricExporter` to be a singleton.
+  ([#1225](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1225))
+
 ## 1.5.0-rc.1
 
 Released 2023-Jun-05
