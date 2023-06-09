@@ -25,7 +25,7 @@ namespace OpenTelemetry.Exporter.Geneva;
 // we can get rid of this class.
 // This is currently only used in ETW export, where we know
 // that the underlying system is safe under concurrent calls.
-internal sealed class ReentrantExportProcessor<T> : BaseExportProcessor<T>
+internal class ReentrantExportProcessor<T> : BaseExportProcessor<T>
     where T : class
 {
     static ReentrantExportProcessor()
