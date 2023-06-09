@@ -19,7 +19,7 @@ using System.Diagnostics;
 using OpenTelemetry.Trace;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests;
+namespace OpenTelemetry.Extensions.AWS.Tests;
 
 public class TestAWSXRayIdGenerator
 {

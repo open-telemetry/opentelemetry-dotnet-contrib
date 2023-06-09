@@ -111,9 +111,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Wcf.Client.NetFram
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Wcf.Server.NetFramework", "examples\wcf\server-netframework\Examples.Wcf.Server.NetFramework.csproj", "{E205AA70-36BD-461D-8B87-909ED1BCA721}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Extensions.AWSXRay", "src\OpenTelemetry.Contrib.Extensions.AWSXRay\OpenTelemetry.Contrib.Extensions.AWSXRay.csproj", "{D8C9AD2A-5C6A-46F5-A216-3D67E6C0FA94}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.AWS", "src\OpenTelemetry.Extensions.AWS\OpenTelemetry.Extensions.AWS.csproj", "{D8C9AD2A-5C6A-46F5-A216-3D67E6C0FA94}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Extensions.AWSXRay.Tests", "test\OpenTelemetry.Contrib.Extensions.AWSXRay.Tests\OpenTelemetry.Contrib.Extensions.AWSXRay.Tests.csproj", "{9CE513AC-CFC5-4DD1-9F16-8719EDCE9BF9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.AWS.Tests", "test\OpenTelemetry.Extensions.AWS.Tests\OpenTelemetry.Extensions.AWS.Tests.csproj", "{9CE513AC-CFC5-4DD1-9F16-8719EDCE9BF9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.AWS", "src\OpenTelemetry.Contrib.Instrumentation.AWS\OpenTelemetry.Contrib.Instrumentation.AWS.csproj", "{970673DA-F308-4960-A58D-ECCEA44CEF6B}"
 EndProject
@@ -288,13 +288,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetec
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.AWS.Tests", "test\OpenTelemetry.ResourceDetectors.AWS.Tests\OpenTelemetry.ResourceDetectors.AWS.Tests.csproj", "{DE898A1E-920E-476F-B0DB-A98AFD6E3BF4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Exporter.InfluxDB", "src\OpenTelemetry.Exporter.InfluxDB\OpenTelemetry.Exporter.InfluxDB.csproj", "{FD5E9AC8-DC05-4C64-BDC6-D26F5552808E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.InfluxDB", "src\OpenTelemetry.Exporter.InfluxDB\OpenTelemetry.Exporter.InfluxDB.csproj", "{FD5E9AC8-DC05-4C64-BDC6-D26F5552808E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Exporter.InfluxDB.Tests", "test\OpenTelemetry.Exporter.InfluxDB.Tests\OpenTelemetry.Exporter.InfluxDB.Tests.csproj", "{4847A991-D0C3-4421-B0D3-EA189959E639}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.InfluxDB.Tests", "test\OpenTelemetry.Exporter.InfluxDB.Tests\OpenTelemetry.Exporter.InfluxDB.Tests.csproj", "{4847A991-D0C3-4421-B0D3-EA189959E639}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "InfluxDB", "InfluxDB", "{2D354354-BAFB-490B-A26F-6A16A52A1A45}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples.InfluxDB", "examples\InfluxDB\Examples.InfluxDB\Examples.InfluxDB.csproj", "{B4951583-D432-4E87-85CF-498FDD6A35E6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.InfluxDB", "examples\InfluxDB\Examples.InfluxDB\Examples.InfluxDB.csproj", "{B4951583-D432-4E87-85CF-498FDD6A35E6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

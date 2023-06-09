@@ -21,7 +21,7 @@ using System.Linq;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay;
+namespace OpenTelemetry.Extensions.AWS;
 
 /// <summary>
 /// Generate AWS X-Ray compatible trace id and replace the trace id of root activity.
@@ -48,7 +48,7 @@ public static class AWSXRayIdGenerator
             {
                 if (string.IsNullOrEmpty(activity.ParentId))
                 {
-                    var awsXRayTraceId = GenerateAWSXRayCompatiableTraceId();
+                    var awsXRayTraceId = GenerateAWSXRayCompatibleTraceId();
 
                     // TODO: Apply API to directly modify trace id once .NET runtime publicizes it.
                     activity.SetParentId(awsXRayTraceId, default, activity.ActivityTraceFlags);
@@ -69,7 +69,7 @@ public static class AWSXRayIdGenerator
         ActivitySource.AddActivityListener(awsXRayActivityListener);
     }
 
-    internal static ActivityTraceId GenerateAWSXRayCompatiableTraceId()
+    internal static ActivityTraceId GenerateAWSXRayCompatibleTraceId()
     {
         var epoch = (int)DateTime.UtcNow.ToUnixTimeSeconds(); // first 8 digit as time stamp
 

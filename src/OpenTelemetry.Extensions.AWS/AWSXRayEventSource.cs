@@ -18,7 +18,7 @@ using System;
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay;
+namespace OpenTelemetry.Extensions.AWS;
 
 [EventSource(Name = "OpenTelemetry-AWS-XRay")]
 internal class AWSXRayEventSource : EventSource

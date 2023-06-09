@@ -18,10 +18,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
+using OpenTelemetry.Extensions.AWS.Trace;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests;
+namespace OpenTelemetry.Extensions.AWS.Tests;
 
 public class TestAWSXRayPropagator
 {

@@ -17,3 +17,9 @@
 *REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.IResourceDetector.Detect() -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, object?>>?
 *REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.ResourceDetectorUtils
 *REMOVED*OpenTelemetry.Contrib.Extensions.AWSXRay.Resources.ResourceDetectorUtils.ResourceDetectorUtils() -> void
+OpenTelemetry.Extensions.AWS.AWSXRayIdGenerator
+OpenTelemetry.Extensions.AWS.Trace.AWSXRayPropagator
+OpenTelemetry.Extensions.AWS.Trace.AWSXRayPropagator.AWSXRayPropagator() -> void
+override OpenTelemetry.Extensions.AWS.Trace.AWSXRayPropagator.Extract<T>(OpenTelemetry.Context.Propagation.PropagationContext context, T carrier, System.Func<T, string!, System.Collections.Generic.IEnumerable<string!>!>! getter) -> OpenTelemetry.Context.Propagation.PropagationContext
+override OpenTelemetry.Extensions.AWS.Trace.AWSXRayPropagator.Fields.get -> System.Collections.Generic.ISet<string!>!
+override OpenTelemetry.Extensions.AWS.Trace.AWSXRayPropagator.Inject<T>(OpenTelemetry.Context.Propagation.PropagationContext context, T carrier, System.Action<T, string!, string!>! setter) -> void

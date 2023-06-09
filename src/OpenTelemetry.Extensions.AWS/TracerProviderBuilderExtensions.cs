@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-using OpenTelemetry.Contrib.Extensions.AWSXRay;
+using OpenTelemetry.Extensions.AWS;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Trace;

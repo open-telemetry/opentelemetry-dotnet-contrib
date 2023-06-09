@@ -1,10 +1,10 @@
 ---
-name: OpenTelemetry.Contrib.Extensions.AWSXRay
-about: Issue with OpenTelemetry.Contrib.Extensions.AWSXRay
-labels: comp:contrib.extensions.awsxray
+name: OpenTelemetry.Extensions.AWS
+about: Issue with OpenTelemetry.Extensions.AWS
+labels: comp:extensions.aws
 ---
 
-# Issue with OpenTelemetry.Contrib.Extensions.AWSXRay
+# Issue with OpenTelemetry.Extensions.AWS
 
 List of [all OpenTelemetry NuGet
 packages](https://www.nuget.org/profiles/OpenTelemetry) and version that you are

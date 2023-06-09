@@ -1,4 +1,4 @@
-name: Pack OpenTelemetry.Contrib.Extensions.AWSXRay
+name: Pack OpenTelemetry.Extensions.AWS
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ on:
         default: 'warning'
   push:
     tags:
-      - 'Extensions.AWSXRay-*' # trigger when we create a tag with prefix "Extensions.AWSXRay-"
+      - 'Extensions.AWS-*' # trigger when we create a tag with prefix "Extensions.AWS-"
 
 jobs:
   build-test-pack:
@@ -17,7 +17,7 @@ jobs:
     permissions:
       contents: write
     env:
-      PROJECT: OpenTelemetry.Contrib.Extensions.AWSXRay
+      PROJECT: OpenTelemetry.Extensions.AWS
 
     strategy:
       matrix:
