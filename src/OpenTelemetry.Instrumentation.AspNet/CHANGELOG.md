@@ -4,7 +4,7 @@
 
 ## 1.0.0-rc9.9
 
-Released 2023-Jun-07
+Released 2023-Jun-09
 
 * Release together with `OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule`
   due to update `OpenTelemetry.Api` to `1.5.0`.
