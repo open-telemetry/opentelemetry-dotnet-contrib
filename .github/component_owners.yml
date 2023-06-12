@@ -3,9 +3,6 @@
 # Each component identified by its path prefix has a list of users
 # Please add the entries in alphabetically sorted order
 components:
-  src/OpenTelemetry.Extensions.AWS/:
-    - srprash
-    - atshaw43
   src/OpenTelemetry.Contrib.Instrumentation.AWS/:
     - srprash
     - atshaw43
@@ -26,6 +23,9 @@ components:
     - SergeyKanzhelev
   src/OpenTelemetry.Extensions/:
     - codeblanch
+  src/OpenTelemetry.Extensions.AWS/:
+    - srprash
+    - atshaw43
   src/OpenTelemetry.Extensions.AzureMonitor/:
     - rajkumar-rangaraj
     - vishweshbankwar
@@ -73,9 +73,6 @@ components:
   src/OpenTelemetry.Sampler.AWS/:
     - srprash
     - atshaw43
-  test/OpenTelemetry.Extensions.AWS.Tests/:
-    - srprash
-    - atshaw43
   test/OpenTelemetry.Contrib.Instrumentation.AWS.Tests/:
     - srprash
     - atshaw43
@@ -111,6 +108,9 @@ components:
     - SergeyKanzhelev
   test/OpenTelemetry.Extensions.Tests/:
     - codeblanch
+  test/OpenTelemetry.Extensions.AWS.Tests/:
+    - srprash
+    - atshaw43
   test/OpenTelemetry.Extensions.AzureMonitor.Tests/:
     - rajkumar-rangaraj
     - vishweshbankwar
