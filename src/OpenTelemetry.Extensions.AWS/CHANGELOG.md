@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Rename package from `OpenTelemetry.Contrib.Extensions.AWSXRay`
+  to `OpenTelemetry.Extensions.AWS`
+  ([#1232](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1232))
 * Updates to 1.5.0 of OpenTelemetry SDK.
   ([#1220](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1220))
 * Enhancement - AWSXRayIdGenerator - Generate X-Ray IDs with global Random
@@ -11,8 +14,6 @@
   ([#875](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/875))
 * Replaced Newtonsoft.Json dependency with System.Text.Json
   ([#1092](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1092))
-* Updated OTel SDK package version to 1.3.1
-  ([#875](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/875))
 * Enhancement - AWSECSResourceDetector - Implement `aws.{ecs.*,log.*}` resource
   attributes with data from ECS Metadata endpoint v4
   ([#875](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/875))

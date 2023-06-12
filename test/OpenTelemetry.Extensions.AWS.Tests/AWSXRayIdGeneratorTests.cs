@@ -1,4 +1,4 @@
-// <copyright file="TestAWSXRayIdGenerator.cs" company="OpenTelemetry Authors">
+// <copyright file="AWSXRayIdGeneratorTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ using Xunit;
 
 namespace OpenTelemetry.Extensions.AWS.Tests;
 
-public class TestAWSXRayIdGenerator
+public class AWSXRayIdGeneratorTests
 {
     [Fact]
     public void TestGenerateTraceIdForRootNode()
