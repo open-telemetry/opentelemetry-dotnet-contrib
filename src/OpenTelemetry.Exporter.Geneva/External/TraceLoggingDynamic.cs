@@ -651,7 +651,7 @@ internal sealed class EventProvider
 /// responsible for caching objects such that only one thread uses a particular
 /// instance of EventBuilder at any one time.
 /// </remarks>
-internal class EventBuilder
+internal sealed class EventBuilder
 {
     private enum InType : byte
     {
