@@ -36,7 +36,7 @@ Currently, the only event type to which this applies is SQS. Default value is fa
 ## Instrumentation
 
 `AWSLambdaWrapper` class contains tracing methods covering different types of function handler method signatures. `AWSLambdaWrapper.Trace()` and `AWSLambdaWrapper.TraceAsync()` methods are
-used for wrapping synchronious and asynchronious function handlers respectively. The `ActivityContext parentContext` parameter is optional and used to pass the explicitely extracted parent. If the parent
+used for wrapping synchronious and asynchronious function handlers respectively. The `ActivityContext parentContext` parameter is optional and used to pass the explicitly extracted parent. If the parent
 is not passed from the customer's code then it's either extracted from the input parameter or uses AWS X-Ray headers if AWS X-Ray context extraction is enabled (see configuration property `DisableAwsXRayContextExtraction`).
 The sequence of the parent extraction: `explicit parent` -> `parent from input parameter` -> `parent from AWS X-Ray headers` -> `default context`
 The parent extraction is supported for the following input types:
