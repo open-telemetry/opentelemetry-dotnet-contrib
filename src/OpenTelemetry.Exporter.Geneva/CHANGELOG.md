@@ -5,6 +5,11 @@
 * Update OpenTelemetry SDK version to `1.5.0`.
   ([#1238](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1238))
 
+* Removed support for exporting `Exemplars`. This would be added back in the
+  `1.6.*` prerelease versions right after `1.5.0` stable version is released.
+  ([#1238](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1238))
+
+
 * Add named options support for `GenevaTraceExporter` and
   `GenevaMetricExporter`.
   ([#1218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1218))
