@@ -26,7 +26,9 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Kaitai;
+using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 using Xunit;
 using static OpenTelemetry.Exporter.Geneva.Tests.MetricsContract;
 
@@ -871,6 +873,48 @@ public class GenevaMetricExporterTests
             {
             }
         }
+    }
+
+    [Fact]
+    public void AddGenevaMetricExporterNamedOptionsSupport()
+    {
+        string connectionString;
+        string connectionStringForNamedOptions;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            connectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+            connectionStringForNamedOptions = "Account=OTelMonitoringAccount-NamedOptions;Namespace=OTelMetricNamespace-NamedOptions";
+        }
+        else
+        {
+            var path = GenerateTempFilePath();
+            connectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+            connectionStringForNamedOptions = $"Endpoint=unix:{path};Account=OTelMonitoringAccount-NamedOptions;Namespace=OTelMetricNamespace-NamedOptions";
+        }
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .ConfigureServices(services =>
+            {
+                services.Configure<GenevaMetricExporterOptions>(options =>
+                {
+                    options.ConnectionString = connectionString;
+                });
+                services.Configure<GenevaMetricExporterOptions>("ExporterWithNamedOptions", options =>
+                {
+                    options.ConnectionString = connectionStringForNamedOptions;
+                });
+            })
+            .AddGenevaMetricExporter(options =>
+            {
+                // ConnectionString for the options is already set in `IServiceCollection Configure<TOptions>` calls above
+                Assert.Equal(connectionString, options.ConnectionString);
+            })
+            .AddGenevaMetricExporter("ExporterWithNamedOptions", options =>
+            {
+                // ConnectionString for the named options is already set in `IServiceCollection Configure<TOptions>` calls above
+                Assert.Equal(connectionStringForNamedOptions, options.ConnectionString);
+            })
+            .Build();
     }
 
     private static string GenerateTempFilePath()

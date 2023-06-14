@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.0.0-rc9.10
+
+Released 2023-Jun-09
+
+* Update OTel API version to `1.5.0`.
+  ([#1220](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1220))
+
 ## 1.0.0-rc9.9
 
 Released 2023-May-25

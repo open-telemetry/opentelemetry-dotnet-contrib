@@ -20,7 +20,7 @@ using System.Net.Sockets;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
-internal class UnixDomainSocketDataTransport : IDataTransport, IDisposable
+internal sealed class UnixDomainSocketDataTransport : IDataTransport, IDisposable
 {
     public const int DefaultTimeoutMilliseconds = 15000;
     private readonly EndPoint unixEndpoint;

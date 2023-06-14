@@ -24,7 +24,14 @@ internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
 {
     private readonly int fixedPayloadEndIndex;
 
-    public MetricEtwDataTransport()
+    static MetricEtwDataTransport()
+    {
+        Shared = new();
+    }
+
+    public static readonly MetricEtwDataTransport Shared;
+
+    private MetricEtwDataTransport()
     {
         unsafe
         {
