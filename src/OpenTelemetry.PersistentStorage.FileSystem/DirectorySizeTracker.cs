@@ -23,7 +23,7 @@ namespace OpenTelemetry.PersistentStorage.FileSystem;
 /// <summary>
 /// Tracks the available storage in a specified directory.
 /// </summary>
-internal class DirectorySizeTracker
+internal sealed class DirectorySizeTracker
 {
     private readonly long maxSizeInBytes;
     private readonly string path;
