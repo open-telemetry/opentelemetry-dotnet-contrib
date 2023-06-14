@@ -42,8 +42,8 @@ applies is SQS. Default value is false.
 
 `AWSLambdaWrapper` class contains tracing methods covering different types of
 function handler method signatures. `AWSLambdaWrapper.Trace()` and
-`AWSLambdaWrapper.TraceAsync()` methods are used for wrapping synchronious
-and asynchronious function handlers respectively. The `ActivityContext parentContext`
+`AWSLambdaWrapper.TraceAsync()` methods are used for wrapping synchronous
+and asynchronous function handlers respectively. The `ActivityContext parentContext`
 parameter is optional and used to pass the explicitly extracted parent. If the parent
 is not passed from the customer's code then it's either extracted from the
 input parameter or uses AWS X-Ray headers if AWS X-Ray context extraction is
