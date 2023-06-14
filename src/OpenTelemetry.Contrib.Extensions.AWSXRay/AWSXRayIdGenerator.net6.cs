@@ -18,6 +18,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Diagnostics;
+using System.Security.Cryptography;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Contrib.Extensions.AWSXRay;
@@ -62,9 +63,7 @@ public static class AWSXRayIdGenerator
         _ = BinaryPrimitives.TryWriteUInt32BigEndian(buffer, seconds);
 
         // fill the rest of the buffer with random bytes
-#pragma warning disable CA5394 // Do not use insecure randomness
-        Random.Shared.NextBytes(buffer.Slice(4, 12));
-#pragma warning restore CA5394 // Do not use insecure randomness
+        RandomNumberGenerator.Fill(buffer.Slice(4, 12));
 
         return ActivityTraceId.CreateFromBytes(buffer);
     }
