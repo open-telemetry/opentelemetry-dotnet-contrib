@@ -19,6 +19,6 @@ namespace OpenTelemetry.Instrumentation.Process;
 /// <summary>
 /// Options to define the process metrics.
 /// </summary>
-internal class ProcessInstrumentationOptions
+internal sealed class ProcessInstrumentationOptions
 {
 }
