@@ -24,8 +24,8 @@ TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
 `AWSLambdaInstrumentationOptions` contains various properties to configure
 AWS lambda instrumentation.
 
-- [`DisableAwsXRayContextExtraction`](/blob/main/src/OpenTelemetry.Instrumentation.AWSLambda/AWSLambdaInstrumentationOptions.cs#L25)
-- [`SetParentFromBatch`](/blob/main/src/OpenTelemetry.Instrumentation.AWSLambda/AWSLambdaInstrumentationOptions.cs#L30)
+- [`DisableAwsXRayContextExtraction`](/src/OpenTelemetry.Instrumentation.AWSLambda/AWSLambdaInstrumentationOptions.cs#L25)
+- [`SetParentFromBatch`](/src/OpenTelemetry.Instrumentation.AWSLambda/AWSLambdaInstrumentationOptions.cs#L30)
 
 Boolean value indicating whether the parent Activity should be set when
 a potentially batched event is received where multiple parents are potentially
