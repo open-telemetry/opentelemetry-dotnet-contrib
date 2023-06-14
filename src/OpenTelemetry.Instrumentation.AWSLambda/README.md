@@ -45,7 +45,7 @@ function handler method signatures. `AWSLambdaWrapper.Trace()` and
 `AWSLambdaWrapper.TraceAsync()` methods are used for wrapping synchronous
 and asynchronous function handlers respectively. The `ActivityContext parentContext`
 parameter is optional and used to pass a custom parent context. If the parent
-is not passed from the customer's code then it's either extracted from the
+is not passed explicitly then it's either extracted from the
 input parameter or uses AWS X-Ray headers if AWS X-Ray context extraction is
 enabled (see configuration property `DisableAwsXRayContextExtraction`).
 The sequence of the parent extraction:
