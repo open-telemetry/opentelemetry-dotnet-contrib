@@ -566,7 +566,6 @@ public class MetricExporterBenchmarks
             this.counterMetricPointWith3Dimensions.EndTime.ToFileTime(),
             this.counterMetricPointWith3Dimensions.Tags,
             this.counterMetricDataWith3Dimensions,
-            Array.Empty<Exemplar>(),
             out _,
             out _);
     }
@@ -580,7 +579,6 @@ public class MetricExporterBenchmarks
             this.counterMetricPointWith4Dimensions.EndTime.ToFileTime(),
             this.counterMetricPointWith4Dimensions.Tags,
             this.counterMetricDataWith4Dimensions,
-            Array.Empty<Exemplar>(),
             out _,
             out _);
     }
@@ -609,7 +607,6 @@ public class MetricExporterBenchmarks
             this.histogramCountWith3Dimensions,
             this.histogramMinWith3Dimensions,
             this.histogramMaxWith3Dimensions,
-            Array.Empty<Exemplar>(),
             out _,
             out _);
     }
@@ -626,7 +623,6 @@ public class MetricExporterBenchmarks
             this.histogramCountWith4Dimensions,
             this.histogramMinWith4Dimensions,
             this.histogramMaxWith4Dimensions,
-            Array.Empty<Exemplar>(),
             out _,
             out _);
     }
