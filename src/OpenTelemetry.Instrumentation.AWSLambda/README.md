@@ -24,12 +24,8 @@ TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
 `AWSLambdaInstrumentationOptions` contains various properties to configure
 AWS lambda instrumentation.
 
-#### `DisableAwsXRayContextExtraction` (optional)
-
-Boolean value indicating whether AWS X-Ray context extraction should be disabled.
-Default value is false.
-
-#### `SetParentFromBatch` (optional)
+- [`DisableAwsXRayContextExtraction`](/AWSLambdaInstrumentationOptions.cs#L25)
+- [`SetParentFromBatch`](/AWSLambdaInstrumentationOptions.cs#L30)
 
 Boolean value indicating whether the parent Activity should be set when
 a potentially batched event is received where multiple parents are potentially
@@ -50,13 +46,15 @@ input parameter or uses AWS X-Ray headers if AWS X-Ray context extraction is
 enabled (see configuration property `DisableAwsXRayContextExtraction`).
 The sequence of the parent extraction:
 `explicit parent` -> `parent from input parameter` -> `AWS X-Ray headers` -> `default`
-The parent extraction is supported for the following input types:
+The parent extraction is supported for the input types listed in the table below.
+Although the `SQSEvent` and `SNSEvent` consist of multiple
+records (`SQSMessage` and `SNSRecord`) it's recommended to pass the full event.
 
 | Package | Types |
 |---------|-------|
 | `Amazon.Lambda.APIGatewayEvents` | `APIGatewayProxyRequest, APIGatewayHttpApiV2ProxyRequest` |
-| `Amazon.Lambda.SQSEvents` | `SQSEvent, SQSMessage` |
-| `Amazon.Lambda.SNSEvents` | `SNSEvent, SNSRecord` |
+| `Amazon.Lambda.SQSEvents` | `SQSEvent` |
+| `Amazon.Lambda.SNSEvents` | `SNSEvent` |
 
 ### Lambda Function
 
@@ -113,7 +111,7 @@ public class Function
                 .AddHttpClientInstrumentation()
                 .AddAWSInstrumentation()
                 .AddOtlpExporter()
-                .AddAWSLambdaConfigurations()
+                .AddAWSLambdaConfigurations(options => options.DisableAwsXRayContextExtraction = true)
                 .Build();
     }
 
