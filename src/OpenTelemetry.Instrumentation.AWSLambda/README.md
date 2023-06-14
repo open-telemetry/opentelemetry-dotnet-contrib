@@ -27,13 +27,6 @@ AWS lambda instrumentation.
 * [`DisableAwsXRayContextExtraction`](/src/OpenTelemetry.Instrumentation.AWSLambda/AWSLambdaInstrumentationOptions.cs)
 * [`SetParentFromBatch`](/src/OpenTelemetry.Instrumentation.AWSLambda/AWSLambdaInstrumentationOptions.cs)
 
-Boolean value indicating whether the parent Activity should be set when
-a potentially batched event is received where multiple parents are potentially
-available (e.g. SQS). If set to true, the parent is set using the last received
-record (e.g. last message). Otherwise the parent is not set. In both cases, links
-will be created for such events. Currently, the only event type to which this
-applies is SQS. Default value is false.
-
 ## Instrumentation
 
 `AWSLambdaWrapper` class contains tracing methods covering different types of
