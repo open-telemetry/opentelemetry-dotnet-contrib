@@ -21,24 +21,35 @@ TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
 
 ### AWSLambdaInstrumentationOptions
 
-`AWSLambdaInstrumentationOptions` contains various properties to configure AWS lambda instrumentation.
+`AWSLambdaInstrumentationOptions` contains various properties to configure
+AWS lambda instrumentation.
 
 #### `DisableAwsXRayContextExtraction` (optional)
 
-Boolean value indicating whether AWS X-Ray context extraction should be disabled. Default value is false.
+Boolean value indicating whether AWS X-Ray context extraction should be disabled.
+Default value is false.
 
 #### `SetParentFromBatch` (optional)
 
-Boolean value indicating whether the parent Activity should be set when a potentially batched event is received where multiple parents are potentially available (e.g. SQS).
-If set to true, the parent is set using the last received record (e.g. last message). Otherwise the parent is not set. In both cases, links will be created for such events.
-Currently, the only event type to which this applies is SQS. Default value is false.
+Boolean value indicating whether the parent Activity should be set when
+a potentially batched event is received where multiple parents are potentially
+available (e.g. SQS). If set to true, the parent is set using the last received
+record (e.g. last message). Otherwise the parent is not set. In both cases, links
+will be created for such events. Currently, the only event type to which this
+applies is SQS. Default value is false.
 
 ## Instrumentation
 
-`AWSLambdaWrapper` class contains tracing methods covering different types of function handler method signatures. `AWSLambdaWrapper.Trace()` and `AWSLambdaWrapper.TraceAsync()` methods are
-used for wrapping synchronious and asynchronious function handlers respectively. The `ActivityContext parentContext` parameter is optional and used to pass the explicitly extracted parent. If the parent
-is not passed from the customer's code then it's either extracted from the input parameter or uses AWS X-Ray headers if AWS X-Ray context extraction is enabled (see configuration property `DisableAwsXRayContextExtraction`).
-The sequence of the parent extraction: `explicit parent` -> `parent from input parameter` -> `parent from AWS X-Ray headers` -> `default context`
+`AWSLambdaWrapper` class contains tracing methods covering different types of
+function handler method signatures. `AWSLambdaWrapper.Trace()` and
+`AWSLambdaWrapper.TraceAsync()` methods are used for wrapping synchronious
+and asynchronious function handlers respectively. The `ActivityContext parentContext`
+parameter is optional and used to pass the explicitly extracted parent. If the parent
+is not passed from the customer's code then it's either extracted from the
+input parameter or uses AWS X-Ray headers if AWS X-Ray context extraction is
+enabled (see configuration property `DisableAwsXRayContextExtraction`).
+The sequence of the parent extraction:
+`explicit parent` -> `parent from input parameter` -> `AWS X-Ray headers` -> `default`
 The parent extraction is supported for the following input types:
 
 | Package | Types |
