@@ -22,7 +22,7 @@ using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
-internal class UnixDomainSocketEndPoint : EndPoint
+internal sealed class UnixDomainSocketEndPoint : EndPoint
 {
     // sockaddr_un.sun_path at http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_un.h.html, -1 for terminator
     private const int MaximumNativePathLength = 92 - 1;

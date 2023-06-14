@@ -31,7 +31,7 @@ internal enum TransportProtocol
     Unspecified,
 }
 
-internal class ConnectionStringBuilder
+internal sealed class ConnectionStringBuilder
 {
     private readonly Dictionary<string, string> _parts = new Dictionary<string, string>(StringComparer.Ordinal);
 
