@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -26,16 +27,24 @@ using static Amazon.Lambda.SQSEvents.SQSEvent;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation;
 
-public class AWSMessagingUtilsTests
+[Collection("TracerProviderDependent")]
+public class AWSMessagingUtilsTests : IDisposable
 {
     private const string TraceId = "0af7651916cd43dd8448eb211c80319c";
     private const string SpanId1 = "b9c7c989f97918e1";
     private const string SpanId2 = "b9c7c989f97918e2";
 
+    private readonly TracerProvider tracerProvider;
+
     public AWSMessagingUtilsTests()
     {
-        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+        this.tracerProvider = Sdk.CreateTracerProviderBuilder()
             .Build();
+    }
+
+    public void Dispose()
+    {
+        this.tracerProvider.Dispose();
     }
 
     [Fact]
