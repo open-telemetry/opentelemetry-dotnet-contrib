@@ -28,7 +28,7 @@ namespace OpenTelemetry.Instrumentation.Runtime;
 /// <summary>
 /// .NET runtime instrumentation.
 /// </summary>
-internal class RuntimeMetrics
+internal sealed class RuntimeMetrics
 {
     internal static readonly AssemblyName AssemblyName = typeof(RuntimeMetrics).Assembly.GetName();
     internal static readonly Meter MeterInstance = new(AssemblyName.Name!, AssemblyName.Version?.ToString());
