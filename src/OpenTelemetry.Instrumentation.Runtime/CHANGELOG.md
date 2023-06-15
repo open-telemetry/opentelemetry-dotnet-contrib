@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add a metric for total paused duration in GC
+  ([#1239](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1239))
+
 ## 1.5.0
 
 Released 2023-Jun-06
