@@ -44,8 +44,8 @@ The parent extraction is supported for the input types listed in the table below
 | Type | Parent extraction source |
 |------|--------------------------|
 | `APIGatewayProxyRequest, APIGatewayHttpApiV2ProxyRequest` | HTTP headers of the request |
-| `SQSEvent` | Last `SQSMessage` of the event (if `SetParentFromMessageBatch` is `true`) |
-| `SNSEvent` | Last `SNSRecord` of the event |
+| `SQSEvent` | Attributes of the last `SQSMessage` (if `SetParentFromMessageBatch` is `true`) |
+| `SNSEvent` | Attributes of the last `SNSRecord` |
 
 ### Lambda Function
 
