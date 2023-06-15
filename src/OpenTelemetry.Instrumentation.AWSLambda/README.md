@@ -29,7 +29,7 @@ AWS lambda instrumentation:
 
 ## Instrumentation
 
-`AWSLambdaWrapper` class contains tracing methods covering different types of
+`AWSLambdaWrapper` contains tracing methods covering different types of
 function handler method signatures. `AWSLambdaWrapper.Trace()` and
 `AWSLambdaWrapper.TraceAsync()` methods are used for wrapping synchronous
 and asynchronous function handlers respectively. The `ActivityContext parentContext`
