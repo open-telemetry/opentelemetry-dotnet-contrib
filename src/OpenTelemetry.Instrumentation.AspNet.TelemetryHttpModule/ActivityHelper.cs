@@ -215,7 +215,7 @@ internal static class ActivityHelper
         }
     }
 
-    internal class ContextHolder
+    internal sealed class ContextHolder
     {
         public Activity Activity;
         public object Baggage;

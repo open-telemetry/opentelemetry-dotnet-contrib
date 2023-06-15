@@ -530,7 +530,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         }
     };
 
-    private class SerializationDataForScopes
+    private sealed class SerializationDataForScopes
     {
         public byte HasEnvProperties;
         public byte PartCFieldsCountFromState;

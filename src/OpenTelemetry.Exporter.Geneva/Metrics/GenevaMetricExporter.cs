@@ -122,7 +122,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
             {
                 try
                 {
-                    var exemplars = metricPoint.GetExemplars();
+                    // var exemplars = metricPoint.GetExemplars();
 
                     switch (metric.MetricType)
                     {
@@ -136,7 +136,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metricPoint.EndTime.ToFileTime(), // Using the endTime here as the timestamp as Geneva Metrics only allows for one field for timestamp
                                     metricPoint.Tags,
                                     metricData,
-                                    exemplars,
                                     out monitoringAccount,
                                     out metricNamespace);
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
@@ -156,7 +155,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
                                     metricData,
-                                    exemplars,
                                     out monitoringAccount,
                                     out metricNamespace);
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
@@ -176,7 +174,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
                                     metricData,
-                                    exemplars,
                                     out monitoringAccount,
                                     out metricNamespace);
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
@@ -194,7 +191,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
                                     metricData,
-                                    exemplars,
                                     out monitoringAccount,
                                     out metricNamespace);
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
@@ -211,7 +207,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
                                     metricData,
-                                    exemplars,
                                     out monitoringAccount,
                                     out metricNamespace);
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
@@ -237,7 +232,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     count,
                                     min,
                                     max,
-                                    exemplars,
                                     out monitoringAccount,
                                     out metricNamespace);
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
@@ -301,7 +295,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         long timestamp,
         in ReadOnlyTagCollection tags,
         MetricData value,
-        Exemplar[] exemplars,
         out string monitoringAccount,
         out string metricNamespace)
     {
@@ -328,7 +321,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                 out monitoringAccount,
                 out metricNamespace);
 
-            SerializeExemplars(exemplars, this.buffer, ref bufferIndex);
+            // SerializeExemplars(exemplars, this.buffer, ref bufferIndex);
 
             SerializeMonitoringAccount(monitoringAccount, this.buffer, ref bufferIndex);
 
@@ -361,7 +354,6 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         uint count,
         double min,
         double max,
-        Exemplar[] exemplars,
         out string monitoringAccount,
         out string metricNamespace)
     {
@@ -388,7 +380,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                 out monitoringAccount,
                 out metricNamespace);
 
-            SerializeExemplars(exemplars, this.buffer, ref bufferIndex);
+            // SerializeExemplars(exemplars, this.buffer, ref bufferIndex);
 
             SerializeMonitoringAccount(monitoringAccount, this.buffer, ref bufferIndex);
 
@@ -433,6 +425,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         MetricSerializer.SerializeString(buffer, ref bufferIndex, monitoringAccount);
     }
 
+    /* Commenting out Exemplar related code as it's removed from `1.5.0` stable version of OpenTelemetry SDK
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void SerializeExemplars(Exemplar[] exemplars, byte[] buffer, ref int bufferIndex)
     {
@@ -548,6 +541,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         var exemplarLength = bufferIndex - bufferIndexForLength + 1;
         MetricSerializer.SerializeByte(buffer, ref bufferIndexForLength, (byte)exemplarLength);
     }
+    */
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void SerializeNonHistogramMetricData(MetricEventType eventType, MetricData value, long timestamp, byte[] buffer, ref int bufferIndex)
