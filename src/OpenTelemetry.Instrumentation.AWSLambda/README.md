@@ -49,7 +49,7 @@ The parent extraction is supported for the input types listed in the table below
 
 ### Lambda Function
 
-1. Create a wrapper function with the same signature as the original Lambda 
+1. Create a wrapper function with the same signature as the original Lambda
 function but an added ILambdaContext parameter if it was not already present.
 Call `AWSLambdaWrapper.Trace()` or `AWSLambdaWrapper.TraceAsync()` API and pass
 `TracerProvider`, original Lambda function and its parameters.
