@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 1.5.0
+
+Released 2023-Jun-14
+
+* **Important Note:** Starting `1.5.0` version, `GenevaExporter` uses a newer
+  format for exporting metrics. Please use `>= v2.2.2023.316.006` version of the
+  MetricsExtension if you are using the metric exporter.
+
 * Update OpenTelemetry SDK version to `1.5.0`.
   ([#1238](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1238))
 
