@@ -19,8 +19,7 @@ using System.Diagnostics.Tracing;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
-[EventSource(Name = "OpenTelemetry")]
-internal class EtwEventSource : EventSource
+internal sealed class EtwEventSource : EventSource
 {
     public EtwEventSource(string providerName)
         : base(providerName, EventSourceSettings.EtwManifestEventFormat)
@@ -50,7 +49,7 @@ internal class EtwEventSource : EventSource
     }
 }
 
-internal class EtwDataTransport : IDataTransport, IDisposable
+internal sealed class EtwDataTransport : IDataTransport, IDisposable
 {
     public EtwDataTransport(string providerName)
     {
@@ -72,20 +71,12 @@ internal class EtwDataTransport : IDataTransport, IDisposable
 
     public void Dispose()
     {
-        this.Dispose(true);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
         if (this.m_disposed)
         {
             return;
         }
 
-        if (disposing)
-        {
-            this.m_eventSource.Dispose();
-        }
+        this.m_eventSource.Dispose();
 
         this.m_disposed = true;
     }
