@@ -51,7 +51,7 @@ records (`SQSMessage` and `SNSRecord`) it's recommended to pass the full event.
 
 ### Lambda Function
 
-1. Create a wrapper function with the same signature as the original Lambda function.
+1. Create a wrapper function with the same signature as the original Lambda function but an added ILambdaContext parameter if it was not already present.
 Call `AWSLambdaWrapper.Trace()` or `AWSLambdaWrapper.TraceAsync()` API and pass
 `TracerProvider`, original Lambda function
 and its inputs as parameters.
