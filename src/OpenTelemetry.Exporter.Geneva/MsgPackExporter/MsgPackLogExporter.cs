@@ -504,7 +504,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         }
     };
 
-    private class SerializationDataForScopes
+    private sealed class SerializationDataForScopes
     {
         public bool HasEnvProperties;
         public ushort EnvPropertiesCount;
