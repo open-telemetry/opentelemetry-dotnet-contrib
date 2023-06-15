@@ -39,19 +39,18 @@ input parameter or uses AWS X-Ray headers if AWS X-Ray context extraction is
 enabled (see configuration property `DisableAwsXRayContextExtraction`).
 The sequence of the parent extraction:
 `explicit parent` -> `parent from input parameter` -> `AWS X-Ray headers` -> `default`
-The parent extraction is supported for the input types listed in the table below.
-Although the `SQSEvent` and `SNSEvent` consist of multiple
-records (`SQSMessage` and `SNSRecord`) it's recommended to pass the full event.
+The parent extraction is supported for the input types listed in the table below:
 
-| Package | Types |
-|---------|-------|
-| `Amazon.Lambda.APIGatewayEvents` | `APIGatewayProxyRequest, APIGatewayHttpApiV2ProxyRequest` |
-| `Amazon.Lambda.SQSEvents` | `SQSEvent` |
-| `Amazon.Lambda.SNSEvents` | `SNSEvent` |
+| Type | Parent extraction source |
+|------|--------------------------|
+| `APIGatewayProxyRequest, APIGatewayHttpApiV2ProxyRequest` | HTTP headers of the request |
+| `SQSEvent` | Last `SQSMessage` of the event (if `SetParentFromMessageBatch` is `true`) |
+| `SNSEvent` | Last `SNSRecord` of the event |
 
 ### Lambda Function
 
-1. Create a wrapper function with the same signature as the original Lambda function but an added ILambdaContext parameter if it was not already present.
+1. Create a wrapper function with the same signature as the original Lambda 
+function but an added ILambdaContext parameter if it was not already present.
 Call `AWSLambdaWrapper.Trace()` or `AWSLambdaWrapper.TraceAsync()` API and pass
 `TracerProvider`, original Lambda function and its parameters.
 
