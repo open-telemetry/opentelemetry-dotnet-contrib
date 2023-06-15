@@ -22,7 +22,7 @@ TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
 ### AWSLambdaInstrumentationOptions
 
 `AWSLambdaInstrumentationOptions` contains various properties to configure
-AWS lambda instrumentation.
+AWS lambda instrumentation:
 
 * [`DisableAwsXRayContextExtraction`](/src/OpenTelemetry.Instrumentation.AWSLambda/AWSLambdaInstrumentationOptions.cs)
 * [`SetParentFromBatch`](/src/OpenTelemetry.Instrumentation.AWSLambda/AWSLambdaInstrumentationOptions.cs)
