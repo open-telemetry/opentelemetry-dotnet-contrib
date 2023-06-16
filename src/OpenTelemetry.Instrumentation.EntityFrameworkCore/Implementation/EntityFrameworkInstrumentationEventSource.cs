@@ -43,6 +43,15 @@ internal class EntityFrameworkInstrumentationEventSource : EventSource
         }
     }
 
+    [NonEvent]
+    public void CommandFilterException(Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        {
+            this.CommandFilterException(ex.ToInvariantString());
+        }
+    }
+
     [Event(1, Message = "Unknown error processing event '{1}' from handler '{0}', Exception: {2}", Level = EventLevel.Error)]
     public void UnknownErrorProcessingEvent(string handlerName, string eventName, string ex)
     {
@@ -74,5 +83,17 @@ internal class EntityFrameworkInstrumentationEventSource : EventSource
         {
             this.WriteEvent(5, eventName, exception);
         }
+    }
+
+    [Event(6, Message = "Command is filtered out. Activity {0}", Level = EventLevel.Verbose)]
+    public void CommandIsFilteredOut(string activityName)
+    {
+        this.WriteEvent(6, activityName);
+    }
+
+    [Event(7, Message = "Command filter threw exception. Command will not be collected. Exception {0}.", Level = EventLevel.Error)]
+    public void CommandFilterException(string exception)
+    {
+        this.WriteEvent(7, exception);
     }
 }
