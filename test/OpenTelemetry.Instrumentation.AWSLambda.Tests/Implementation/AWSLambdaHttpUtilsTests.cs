@@ -25,6 +25,7 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation;
 
+[Collection("TracerProviderDependent")]
 public class AWSLambdaHttpUtilsTests
 {
     [Fact]
