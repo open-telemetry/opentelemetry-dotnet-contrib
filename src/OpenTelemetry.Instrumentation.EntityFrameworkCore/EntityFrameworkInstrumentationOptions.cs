@@ -47,7 +47,7 @@ public class EntityFrameworkInstrumentationOptions
 
     /// <summary>
     /// Gets or sets a filter function that determines whether or not to
-    /// collect telemetry about a command.
+    /// collect telemetry about a command from a particular provider.
     /// </summary>
     /// <remarks>
     /// <b>Notes:</b>
