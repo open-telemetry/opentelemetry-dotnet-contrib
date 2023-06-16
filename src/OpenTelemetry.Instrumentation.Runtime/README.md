@@ -176,6 +176,22 @@ The API used to retrieve the value is:
 * [GCGenerationInfo.FragmentationAfterBytes Property](https://docs.microsoft.com/dotnet/api/system.gcgenerationinfo.fragmentationafterbytes)
   Gets the fragmentation in bytes on exit from the reported collection.
 
+#### process.runtime.dotnet.**gc.duration**
+
+The total amount of time paused in GC since the process start.
+
+> **Note**
+> This metric is only available when targeting .NET 7 or later.
+
+| Units | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
+|-------|-------------------|------------|------------------|------------------|
+| `ns`  | ObservableCounter | `Int64`    | No Attributes    | N/A              |
+
+The API used to retrieve the value is:
+
+* [GC.GetTotalPauseDuration](https://learn.microsoft.com/dotnet/api/system.gc.gettotalpauseduration)
+  Gets the total amount of time paused in GC since the beginning of the process.
+
 ### JIT Compiler related metrics
 
 These metrics are only available when targeting .NET6 or later.
