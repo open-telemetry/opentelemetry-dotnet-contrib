@@ -24,7 +24,7 @@ namespace OpenTelemetry.Instrumentation.AspNet;
 /// <summary>
 /// Asp.Net Requests instrumentation.
 /// </summary>
-internal class AspNetMetrics : IDisposable
+internal sealed class AspNetMetrics : IDisposable
 {
     internal static readonly AssemblyName AssemblyName = typeof(HttpInMetricsListener).Assembly.GetName();
     internal static readonly string InstrumentationName = AssemblyName.Name;

@@ -9,12 +9,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry.Contrib.Extensions.AWSXRay" Version="1.0.1" />
     <PackageReference Include="AWSSDK.Core" Version="3.5.1.24" />
+    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.5.0.27" />
+    <PackageReference Include="AWSSDK.SQS" Version="3.5.0.26" />
+    <PackageReference Include="OpenTelemetry.Contrib.Extensions.AWSXRay" Version="1.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs"/>
   </ItemGroup>
+
 </Project>

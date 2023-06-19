@@ -14,8 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Reflection;
@@ -27,7 +25,7 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation;
 
 internal static class RedisProfilerEntryToActivityConverter
 {
-    private static readonly Lazy<Func<object, (string, string)>> MessageDataGetter = new(() =>
+    private static readonly Lazy<Func<object, (string?, string?)>> MessageDataGetter = new(() =>
     {
         var redisAssembly = typeof(IProfiledCommand).Assembly;
         Type profiledCommandType = redisAssembly.GetType("StackExchange.Redis.Profiling.ProfiledCommand");
@@ -39,10 +37,10 @@ internal static class RedisProfilerEntryToActivityConverter
 
         if (messageDelegate == null)
         {
-            return new Func<object, (string, string)>(source => (null, null));
+            return new Func<object, (string?, string?)>(source => (null, null));
         }
 
-        return new Func<object, (string, string)>(source =>
+        return new Func<object, (string?, string?)>(source =>
         {
             if (source == null)
             {
@@ -55,10 +53,10 @@ internal static class RedisProfilerEntryToActivityConverter
                 return (null, null);
             }
 
-            string script = null;
+            string? script = null;
             if (message.GetType() == scriptMessageType)
             {
-                script = scriptDelegate.Invoke(message);
+                script = scriptDelegate?.Invoke(message);
             }
 
             if (commandAndKeyFetcher.TryFetch(message, out var value))
@@ -70,19 +68,19 @@ internal static class RedisProfilerEntryToActivityConverter
         });
     });
 
-    public static Activity ProfilerCommandToActivity(Activity parentActivity, IProfiledCommand command, StackExchangeRedisCallsInstrumentationOptions options)
+    public static Activity? ProfilerCommandToActivity(Activity? parentActivity, IProfiledCommand command, StackExchangeRedisInstrumentationOptions options)
     {
         var name = command.Command; // Example: SET;
         if (string.IsNullOrEmpty(name))
         {
-            name = StackExchangeRedisCallsInstrumentation.ActivityName;
+            name = StackExchangeRedisConnectionInstrumentation.ActivityName;
         }
 
-        var activity = StackExchangeRedisCallsInstrumentation.ActivitySource.StartActivity(
+        var activity = StackExchangeRedisConnectionInstrumentation.ActivitySource.StartActivity(
             name,
             ActivityKind.Client,
             parentActivity?.Context ?? default,
-            StackExchangeRedisCallsInstrumentation.CreationTags,
+            StackExchangeRedisConnectionInstrumentation.CreationTags,
             startTime: command.CommandCreated);
 
         if (activity == null)
@@ -107,9 +105,7 @@ internal static class RedisProfilerEntryToActivityConverter
             // Total:
             // command.ElapsedTime;             // 00:00:32.4988020
 
-            activity.SetStatus(Status.Unset);
-
-            activity.SetTag(StackExchangeRedisCallsInstrumentation.RedisFlagsKeyName, command.Flags.ToString());
+            activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName, command.Flags.ToString());
 
             if (options.SetVerboseDatabaseStatements)
             {
@@ -153,7 +149,7 @@ internal static class RedisProfilerEntryToActivityConverter
                 }
             }
 
-            activity.SetTag(StackExchangeRedisCallsInstrumentation.RedisDatabaseIndexKeyName, command.Db);
+            activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName, command.Db);
 
             // TODO: deal with the re-transmission
             // command.RetransmissionOf;
@@ -178,7 +174,7 @@ internal static class RedisProfilerEntryToActivityConverter
         return activity;
     }
 
-    public static void DrainSession(Activity parentActivity, IEnumerable<IProfiledCommand> sessionCommands, StackExchangeRedisCallsInstrumentationOptions options)
+    public static void DrainSession(Activity? parentActivity, IEnumerable<IProfiledCommand> sessionCommands, StackExchangeRedisInstrumentationOptions options)
     {
         foreach (var command in sessionCommands)
         {
@@ -190,7 +186,7 @@ internal static class RedisProfilerEntryToActivityConverter
     /// Creates getter for a field defined in private or internal type
     /// represented with classType variable.
     /// </summary>
-    private static Func<object, TField> CreateFieldGetter<TField>(Type classType, string fieldName, BindingFlags flags)
+    private static Func<object, TField>? CreateFieldGetter<TField>(Type classType, string fieldName, BindingFlags flags)
     {
         FieldInfo field = classType.GetField(fieldName, flags);
         if (field != null)

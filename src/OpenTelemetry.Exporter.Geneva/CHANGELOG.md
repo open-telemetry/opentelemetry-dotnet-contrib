@@ -2,6 +2,53 @@
 
 ## Unreleased
 
+## 1.5.0
+
+Released 2023-Jun-14
+
+* **Important Note:** Starting `1.5.0` version, `GenevaExporter` uses a newer
+  format for exporting metrics. Please use `>= v2.2.2023.316.006` version of the
+  MetricsExtension if you are using the metric exporter.
+
+* Update OpenTelemetry SDK version to `1.5.0`.
+  ([#1238](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1238))
+
+* Removed support for exporting `Exemplars`. This would be added back in the
+  `1.6.*` prerelease versions right after `1.5.0` stable version is released.
+  ([#1238](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1238))
+
+* Add named options support for `GenevaTraceExporter` and
+  `GenevaMetricExporter`.
+  ([#1218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1218))
+
+* Add a new overload for `AddGenevaMetricExporter` without any parameters to
+  avoid warning
+  [RS0026](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/Microsoft.CodeAnalysis.PublicApiAnalyzers.md#rs0026-do-not-add-multiple-public-overloads-with-optional-parameters).
+  ([#1218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1218))
+
+* Fix the issue of running into the `ArgumentException`: `An instance of
+  EventSource with Guid edc24920-e004-40f6-a8e1-0e6e48f39d84 already exists.`
+  when using multiple instances of `GenevaMetricExporter`.
+  ([#1225](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1225))
+
+## 1.5.0-rc.1
+
+Released 2023-Jun-05
+
+* Fix an issue with getting sanitized category name in pass-through table name
+  mapping cases for `TldLogExporter`.
+  ([#1175](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1175))
+
+* TldLogExporter to export `SpanId` value in `ext_dt_spanId` field instead of
+  `TraceId` value.
+  ([#1184](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1184))
+
+* Add support for abstract domain sockets.
+  ([#1199](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1199))
+
+* Update OTel SDK version to `1.5.0-rc.1`.
+  ([#1210](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1210))
+
 ## 1.5.0-alpha.3
 
 Released 2023-Apr-19

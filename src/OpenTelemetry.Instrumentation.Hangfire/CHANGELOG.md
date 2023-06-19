@@ -2,10 +2,12 @@
 
 ## Unreleased
 
-* Update OTel API version to `1.4.0`.
-  ([#1038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1038))
+* Update OTel API version to `1.5.0`.
+  ([#1220](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1220))
 * Removes `AddHangfireInstrumentation` method with default configure default parameter.
   ([#1129](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1129))
+* Support Hangfire `1.8`.
+  ([#1202](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1202))
 
 ## 1.0.0-beta.4
 

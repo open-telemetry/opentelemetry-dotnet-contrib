@@ -28,7 +28,7 @@ namespace OpenTelemetry.Instrumentation.Runtime;
 /// <summary>
 /// .NET runtime instrumentation.
 /// </summary>
-internal class RuntimeMetrics
+internal sealed class RuntimeMetrics
 {
     internal static readonly AssemblyName AssemblyName = typeof(RuntimeMetrics).Assembly.GetName();
     internal static readonly Meter MeterInstance = new(AssemblyName.Name!, AssemblyName.Version?.ToString());
@@ -120,9 +120,9 @@ internal class RuntimeMetrics
                 description: "The heap size (including fragmentation), as observed during the latest garbage collection. The value will be unavailable until at least one garbage collection has occurred.");
         }
 
-        // Not valid until .NET 7 where the bug in the API is fixed. See context in https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/496
         if (Environment.Version.Major >= 7)
         {
+            // Not valid until .NET 7 where the bug in the API is fixed. See context in https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/496
             MeterInstance.CreateObservableUpDownCounter(
                 "process.runtime.dotnet.gc.heap.fragmentation.size",
                 () =>
@@ -144,6 +144,18 @@ internal class RuntimeMetrics
                 },
                 unit: "bytes",
                 description: "The heap fragmentation, as observed during the latest garbage collection. The value will be unavailable until at least one garbage collection has occurred.");
+
+            // GC.GetTotalPauseDuration() is not available until .NET 7. See context in https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1163
+            var mi = typeof(GC).GetMethod("GetTotalPauseDuration", BindingFlags.Public | BindingFlags.Static);
+            var getTotalPauseDuration = mi?.CreateDelegate<Func<TimeSpan>>();
+            if (getTotalPauseDuration != null)
+            {
+                MeterInstance.CreateObservableCounter(
+                    "process.runtime.dotnet.gc.duration",
+                    () => getTotalPauseDuration().Ticks * NanosecondsPerTick,
+                    unit: "ns",
+                    description: "The total amount of time paused in GC since the process start.");
+            }
         }
 
         MeterInstance.CreateObservableCounter(

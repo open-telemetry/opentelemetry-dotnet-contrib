@@ -569,14 +569,9 @@ public class GenevaLogExporterTests
             _ = exporter.SerializeLogRecord(logRecordList[0]);
             object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
             var body = GetField(fluentdData, "body");
-            if (includeFormattedMessage)
-            {
-                Assert.Equal("Formatted Message", body);
-            }
-            else
-            {
-                Assert.Null(body);
-            }
+
+            // Body gets populated as "Formatted Message" regardless of the value of `IncludeFormattedMessage`
+            Assert.Equal("Formatted Message", body);
 
             Assert.Equal("Value1", GetField(fluentdData, "Key1"));
             Assert.Equal("Value2", GetField(fluentdData, "Key2"));
@@ -599,14 +594,9 @@ public class GenevaLogExporterTests
             _ = exporter.SerializeLogRecord(logRecordList[0]);
             fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
             body = GetField(fluentdData, "body");
-            if (includeFormattedMessage)
-            {
-                Assert.Equal("Formatted Message", body);
-            }
-            else
-            {
-                Assert.Null(body);
-            }
+
+            // Body gets populated as "Formatted Message" regardless of the value of `IncludeFormattedMessage`
+            Assert.Equal("Formatted Message", body);
 
             // ARRANGE
             logRecordList.Clear();
@@ -627,8 +617,8 @@ public class GenevaLogExporterTests
             fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
             body = GetField(fluentdData, "body");
 
-            // Formatter is null, hence body is always null
-            Assert.Null(body);
+            // Even though Formatter is null, body is populated with the state
+            Assert.Equal("somestringasdata", body);
 
             // ARRANGE
             logRecordList.Clear();
@@ -654,15 +644,8 @@ public class GenevaLogExporterTests
 
             body = GetField(fluentdData, "body");
 
-            // Only populate body if FormattedMessage is enabled
-            if (includeFormattedMessage)
-            {
-                Assert.Equal("Example formatted message.", body);
-            }
-            else
-            {
-                Assert.Null(body);
-            }
+            // Body gets populated as "Formatted Message" regardless of the value of `IncludeFormattedMessage`
+            Assert.Equal("Example formatted message.", body);
         }
         finally
         {
@@ -1376,6 +1359,9 @@ public class GenevaLogExporterTests
 
         bool isUnstructuredLog = true;
         IReadOnlyList<KeyValuePair<string, object>> stateKeyValuePairList;
+
+        // `LogRecord.State` and `LogRecord.StateValues` were marked Obsolete in https://github.com/open-telemetry/opentelemetry-dotnet/pull/4334
+#pragma warning disable 0618
         if (logRecord.State == null)
         {
             stateKeyValuePairList = logRecord.StateValues;
@@ -1384,6 +1370,7 @@ public class GenevaLogExporterTests
         {
             stateKeyValuePairList = logRecord.State as IReadOnlyList<KeyValuePair<string, object>>;
         }
+#pragma warning restore 0618
 
         if (stateKeyValuePairList != null)
         {
@@ -1392,10 +1379,13 @@ public class GenevaLogExporterTests
 
         if (isUnstructuredLog)
         {
+            // `LogRecord.State` and `LogRecord.StateValues` were marked Obsolete in https://github.com/open-telemetry/opentelemetry-dotnet/pull/4334
+#pragma warning disable 0618
             if (logRecord.State != null)
             {
                 Assert.Equal(logRecord.State.ToString(), mapping["body"]);
             }
+#pragma warning restore 0618
             else
             {
                 Assert.Equal(stateKeyValuePairList[0].Value, mapping["body"]);

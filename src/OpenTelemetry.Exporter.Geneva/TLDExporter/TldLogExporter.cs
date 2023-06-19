@@ -187,6 +187,9 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
     internal void SerializeLogRecord(LogRecord logRecord)
     {
         IReadOnlyList<KeyValuePair<string, object>> listKvp;
+
+        // `LogRecord.State` and `LogRecord.StateValues` were marked Obsolete in https://github.com/open-telemetry/opentelemetry-dotnet/pull/4334
+#pragma warning disable 0618
         if (logRecord.State == null)
         {
             // When State is null, OTel SDK guarantees StateValues is populated
@@ -198,6 +201,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
             // Attempt to see if State could be ROL_KVP.
             listKvp = logRecord.State as IReadOnlyList<KeyValuePair<string, object>>;
         }
+#pragma warning restore 0618
 
         // Structured log.
         // 2 scenarios.
@@ -257,7 +261,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
 
         if (logRecord.SpanId != default)
         {
-            eb.AddCountedString("ext_dt_spanId", logRecord.TraceId.ToHexString());
+            eb.AddCountedString("ext_dt_spanId", logRecord.SpanId.ToHexString());
             partAFieldsCount++;
         }
 
@@ -476,7 +480,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
             var cur = categoryName[i];
             if ((cur >= 'a' && cur <= 'z') || (cur >= 'A' && cur <= 'Z') || (cur >= '0' && cur <= '9'))
             {
-                result[i] = cur;
+                result[validNameLength] = cur;
                 ++validNameLength;
             }
         }
@@ -526,7 +530,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         }
     };
 
-    private class SerializationDataForScopes
+    private sealed class SerializationDataForScopes
     {
         public byte HasEnvProperties;
         public byte PartCFieldsCountFromState;

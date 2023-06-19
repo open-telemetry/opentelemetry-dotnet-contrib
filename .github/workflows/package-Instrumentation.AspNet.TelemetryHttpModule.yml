@@ -28,7 +28,7 @@ jobs:
       with:
         fetch-depth: 0 # fetching all
 
-    - uses: actions/setup-dotnet@v3.0.3
+    - uses: actions/setup-dotnet@v3.2.0
       with:
         dotnet-version: '7.0.x'
 
@@ -55,13 +55,13 @@ jobs:
         nuget push **/${{env.PROJECT}}/bin/**/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_TOKEN }} -SymbolApiKey ${{ secrets.NUGET_TOKEN }}
 
     - name: Create GitHub Prerelease
-      if: ${{ (contains(github.ref_name, '-alpha.') || contains(github.ref_name, '-beta.') || contains(github.ref_name, '-rc.')) }}
+      if: ${{ (contains(github.ref_name, '-alpha.') || contains(github.ref_name, '-beta.') || contains(github.ref_name, '-rc.') || contains(github.ref_name, '-rc9.')) }}
       run: gh release create ${{ github.ref_name }} --title ${{ github.ref_name }} --verify-tag --notes "See [CHANGELOG](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/${{ github.ref_name }}/src/${{env.PROJECT}}/CHANGELOG.md) for details." --prerelease
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Create GitHub Release
-      if: ${{ !(contains(github.ref_name, '-alpha.') || contains(github.ref_name, '-beta.') || contains(github.ref_name, '-rc.')) }}
+      if: ${{ !(contains(github.ref_name, '-alpha.') || contains(github.ref_name, '-beta.') || contains(github.ref_name, '-rc.') || contains(github.ref_name, '-rc9.')) }}
       run: gh release create ${{ github.ref_name }} --title ${{ github.ref_name }} --verify-tag --notes "See [CHANGELOG](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/${{ github.ref_name }}/src/${{env.PROJECT}}/CHANGELOG.md) for details." --latest
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

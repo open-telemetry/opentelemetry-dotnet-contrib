@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Updates to 1.5.0 of OpenTelemetry SDK.
+  ([#1220](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1220))
 * Enhancement - AWSXRayIdGenerator - Generate X-Ray IDs with global Random
   instance instead of recreating with ThreadLocal
   ([#380](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/380))
@@ -18,6 +20,12 @@
   supporting ResourceBuilderExtensions extension, and migrate all detectors to
   implement OpenTelemetry.Resources.IResourceDetector
   ([#875](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/875))
+* Drop support for `AWSLambdaResourceDetector`.
+  AWS Lambda Resources are detected by `OpenTelemetry.Instrumentation.AWSLambda`
+  package
+  ([#1140](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1140))
+* Extract AWS Resource Detectors to dedicated package `OpenTelemetry.ResourceDetectors.AWS`
+  ([#1140](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1140))
 
 ## 1.2.0
 

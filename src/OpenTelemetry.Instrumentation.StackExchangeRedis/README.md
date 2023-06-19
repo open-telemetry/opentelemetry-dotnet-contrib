@@ -71,6 +71,68 @@ the `ConfigureServices` of your `Startup` class. Refer to documentation for
 For an ASP.NET application, adding instrumentation is typically done in the
 `Global.asax.cs`. Refer to documentation for [OpenTelemetry.Instrumentation.AspNet](../OpenTelemetry.Instrumentation.AspNet/README.md).
 
+## Specify the Redis connection
+
+The following sections cover different ways to specify the `StackExchange.Redis`
+connection(s) that will be instrumented and captured by OpenTelemetry.
+
+### Pass a Redis connection when calling AddRedisInstrumentation
+
+The simplest thing to do is pass a created connection to the
+`AddRedisInstrumentation` extension method:
+
+```csharp
+using var connection = ConnectionMultiplexer.Connect("localhost:6379");
+
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .AddRedisInstrumentation(connection)
+    .Build();
+```
+
+Whatever connection is specified will be collected by OpenTelemetry.
+
+### Use the application IServiceProvider
+
+Users using the `OpenTelemetry.Extensions.Hosting` package may prefer to manage
+the Redis connection via the application `IServiceCollection`. To support this
+scenario, if a connection is not passed to the `AddRedisInstrumentation`
+extension manually one will be resolved one using the `IServiceProvider`:
+
+```csharp
+appBuilder.Services.AddSingleton<IConnectionMultiplexer>(
+    sp => MyRedisConnectionHelper.CreateConnection(sp));
+
+appBuilder.Services
+    .AddOpenTelemetry()
+    .WithTracing(tracing => tracing.AddRedisInstrumentation());
+```
+
+Whatever connection is found in the `IServiceProvider` will be collected by
+OpenTelemetry.
+
+### Interact with StackExchangeRedisInstrumentation directly
+
+For full control of the Redis connection(s) being instrumented the
+`ConfigureRedisInstrumentation` extension is provided to expose the
+`StackExchangeRedisInstrumentation` class directly:
+
+```csharp
+StackExchangeRedisInstrumentation redisInstrumentation = null;
+
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .AddRedisInstrumentation()
+    .ConfigureRedisInstrumentation(instrumentation => redisInstrumentation = instrumentation)
+    .Build();
+
+using var connection1 = ConnectionMultiplexer.Connect("localhost:6379");
+redisInstrumentation.AddConnection(connection1);
+
+using var connection2 = ConnectionMultiplexer.Connect("localhost:6380");
+redisInstrumentation.AddConnection(connection2);
+```
+
+Connections may be added or removed at any time.
+
 ## Advanced configuration
 
 This instrumentation can be configured to change the default behavior by using

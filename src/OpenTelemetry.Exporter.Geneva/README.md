@@ -26,7 +26,7 @@ Install the latest stable version of
 [`Microsoft.Extensions.Logging`](https://www.nuget.org/packages/Microsoft.Extensions.Logging/)
 
 ```shell
-dotnet add package OpenTelemetry.Exporter.Geneva
+dotnet add package Microsoft.Extensions.Logging
 ```
 
 This snippet shows how to configure the Geneva Exporter for Logs
@@ -94,6 +94,9 @@ On Windows the connection string has the format `EtwSession={ETW session}`.
 #### `CustomFields` (optional)
 
 A list of fields which should be stored as individual table columns.
+
+* If null, all fields will be stored as individual columns.
+* If non-null, only those fields named in the list will be stored as individual columns.
 
 #### `PrepopulatedFields` (optional)
 

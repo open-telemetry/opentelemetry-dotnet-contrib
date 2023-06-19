@@ -24,6 +24,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -174,13 +175,13 @@ public class GenevaTraceExporterTests
             var source = new ActivitySource(sourceName);
             using (var parent = source.StartActivity("HttpIn", ActivityKind.Server))
             {
-                parent?.SetTag("http.method", "GET");
-                parent?.SetTag("http.url", "https://localhost/wiki/Rabbit");
+                parent.SetTag("http.method", "GET");
+                parent.SetTag("http.url", "https://localhost/wiki/Rabbit");
                 using (var child = source.StartActivity("HttpOut", ActivityKind.Client))
                 {
-                    child?.SetTag("http.method", "GET");
-                    child?.SetTag("http.url", "https://www.wikipedia.org/wiki/Rabbit");
-                    child?.SetTag("http.status_code", 404);
+                    child.SetTag("http.method", "GET");
+                    child.SetTag("http.url", "https://www.wikipedia.org/wiki/Rabbit");
+                    child.SetTag("http.status_code", 404);
                 }
 
                 parent?.SetTag("http.status_code", 200);
@@ -512,6 +513,48 @@ public class GenevaTraceExporterTests
                 activity?.SetStatus(ActivityStatusCode.Ok);
             }
         }
+    }
+
+    [Fact]
+    public void AddGenevaTraceExporterNamedOptionsSupport()
+    {
+        string connectionString;
+        string connectionStringForNamedOptions;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            connectionString = "EtwSession=OpenTelemetry";
+            connectionStringForNamedOptions = "EtwSession=OpenTelemetry-NamedOptions";
+        }
+        else
+        {
+            var path = GetRandomFilePath();
+            connectionString = "Endpoint=unix:" + path;
+            connectionStringForNamedOptions = "Endpoint=unix:" + path + "NamedOptions";
+        }
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .ConfigureServices(services =>
+            {
+                services.Configure<GenevaExporterOptions>(options =>
+                {
+                    options.ConnectionString = connectionString;
+                });
+                services.Configure<GenevaExporterOptions>("ExporterWithNamedOptions", options =>
+                {
+                    options.ConnectionString = connectionStringForNamedOptions;
+                });
+            })
+            .AddGenevaTraceExporter(options =>
+            {
+                // ConnectionString for the options is already set in `IServiceCollection Configure<TOptions>` calls above
+                Assert.Equal(connectionString, options.ConnectionString);
+            })
+            .AddGenevaTraceExporter("ExporterWithNamedOptions", options =>
+            {
+                // ConnectionString for the named options is already set in `IServiceCollection Configure<TOptions>` calls above
+                Assert.Equal(connectionStringForNamedOptions, options.ConnectionString);
+            })
+            .Build();
     }
 
     private static string GetRandomFilePath()

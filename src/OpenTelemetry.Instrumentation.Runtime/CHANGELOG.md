@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+* Add a metric `process.runtime.dotnet.gc.duration` for total paused duration in
+  GC for .NET 7 and greater versions
+  ([#1239](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1239))
+
+## 1.5.0
+
+Released 2023-Jun-06
+
+* Update OpenTelemetry API to 1.5.0
+  ([#1220](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1220))
+
+## 1.4.0
+
+Released 2023-Jun-01
+
+* Bumped the version to `1.4.0` to keep it in sync with the release versions of
+  `OpenTelemetry.API`. This makes it more intuitive for the users to figure out
+  what version of core packages would work with a given version of this package.
+
 ## 1.1.0-rc.2
 
 Released 2023-Feb-27

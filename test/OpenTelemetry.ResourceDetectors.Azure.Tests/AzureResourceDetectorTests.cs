@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Xunit;
 
 namespace OpenTelemetry.ResourceDetectors.Azure.Tests;
@@ -30,7 +31,7 @@ public class AzureResourceDetectorTests : IDisposable
         {
             foreach (var kvp in AppServiceResourceDetector.AppServiceResourceAttributes)
             {
-                if (kvp.Value == "WEBSITE_SITE_NAME")
+                if (kvp.Value == ResourceAttributeConstants.AppServiceSiteNameEnvVar)
                 {
                     continue;
                 }
@@ -39,7 +40,7 @@ public class AzureResourceDetectorTests : IDisposable
             }
 
             // Special case for service.name and appSrv_SiteName attribute
-            Environment.SetEnvironmentVariable("WEBSITE_SITE_NAME", "ServiceName");
+            Environment.SetEnvironmentVariable(ResourceAttributeConstants.AppServiceSiteNameEnvVar, "ServiceName");
         }
         catch
         {
@@ -50,14 +51,49 @@ public class AzureResourceDetectorTests : IDisposable
 
         foreach (var kvp in AppServiceResourceDetector.AppServiceResourceAttributes)
         {
-            if (kvp.Value == "WEBSITE_SITE_NAME")
+            if (kvp.Value == ResourceAttributeConstants.AppServiceSiteNameEnvVar)
             {
                 Assert.Contains(new KeyValuePair<string, object>(kvp.Key, "ServiceName"), resource.Attributes);
+                continue;
             }
-            else
+
+            Assert.Contains(new KeyValuePair<string, object>(kvp.Key, kvp.Key), resource.Attributes);
+        }
+    }
+
+    [Fact]
+    public void TestAzureVmResourceDetector()
+    {
+        AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse = () =>
+        {
+            return new AzureVmMetadataResponse()
             {
-                Assert.Contains(new KeyValuePair<string, object>(kvp.Key, kvp.Key), resource.Attributes);
+                // using values same as key for test.
+                VmId = ResourceAttributeConstants.AzureVmId,
+                Location = ResourceAttributeConstants.AzureVmLocation,
+                Name = ResourceAttributeConstants.AzureVmName,
+                OsType = ResourceAttributeConstants.AzureVmOsType,
+                ResourceGroupName = ResourceAttributeConstants.AzureVmResourceGroup,
+                ResourceId = ResourceAttributeConstants.AzureVmResourceId,
+                Sku = ResourceAttributeConstants.AzureVmSku,
+                Version = ResourceAttributeConstants.AzureVmVersion,
+                VmSize = ResourceAttributeConstants.AzureVmSize,
+                VmScaleSetName = ResourceAttributeConstants.AzureVmScaleSetName,
+                SubscriptionId = ResourceAttributeConstants.AzureVmSubscriptionId,
+            };
+        };
+
+        var resource = ResourceBuilder.CreateEmpty().AddDetector(new AzureVMResourceDetector()).Build();
+        Assert.NotNull(resource);
+        foreach (var field in AzureVMResourceDetector.ExpectedAzureAmsFields)
+        {
+            if (field == ResourceSemanticConventions.AttributeServiceInstance)
+            {
+                Assert.Contains(new KeyValuePair<string, object>(field, ResourceAttributeConstants.AzureVmId), resource.Attributes);
+                continue;
             }
+
+            Assert.Contains(new KeyValuePair<string, object>(field, field), resource.Attributes);
         }
     }
 
