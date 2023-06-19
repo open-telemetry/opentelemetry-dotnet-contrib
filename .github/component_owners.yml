@@ -26,9 +26,6 @@ components:
     - SergeyKanzhelev
   src/OpenTelemetry.Extensions/:
     - codeblanch
-  src/OpenTelemetry.Extensions.AzureMonitor/:
-    - rajkumar-rangaraj
-    - vishweshbankwar
   src/OpenTelemetry.Extensions.Enrichment/:
     - xakep139
   src/OpenTelemetry.PersistentStorage.Abstractions/:
@@ -111,9 +108,6 @@ components:
     - SergeyKanzhelev
   test/OpenTelemetry.Extensions.Tests/:
     - codeblanch
-  test/OpenTelemetry.Extensions.AzureMonitor.Tests/:
-    - rajkumar-rangaraj
-    - vishweshbankwar
   test/OpenTelemetry.Extensions.Enrichment.Tests/:
     - xakep139
   test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
