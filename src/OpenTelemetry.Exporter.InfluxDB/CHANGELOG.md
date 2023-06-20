@@ -3,7 +3,7 @@
 ## Unreleased
 
 * Support for Resource attributes in OpenTelemetry.Exporter.InfluxDB, allowing
-resource attributes to be passed as InfluxDB tags.
+  resource attributes to be passed as InfluxDB tags.
   ([#1241](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1241))
 * Updates to 1.5.0 of OpenTelemetry SDK.
   ([#1220](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1220))
