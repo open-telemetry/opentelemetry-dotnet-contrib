@@ -50,7 +50,7 @@ internal sealed class InfluxDBMetricsExporter : BaseExporter<Metric>
         {
             foreach (var metric in batch)
             {
-                this.writer.Write(metric, this.writeApi);
+                this.writer.Write(metric, this.ParentProvider?.GetResource(), this.writeApi);
             }
 
             return ExportResult.Success;
