@@ -202,7 +202,9 @@ internal class MockHttpRequest : IHttpRequest<HttpContent>
         this.IsGetRequestContentCalled = true;
         try
         {
+#pragma warning disable CS8603 // Possible null reference return.
             return new HttpRequestMessage().Content;
+#pragma warning restore CS8603 // Possible null reference return.
         }
         catch (AggregateException e)
         {
@@ -212,7 +214,9 @@ internal class MockHttpRequest : IHttpRequest<HttpContent>
 
     public Task<HttpContent> GetRequestContentAsync()
     {
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
         return Task.FromResult(new HttpRequestMessage().Content);
+#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
     }
 
     public IWebResponseData GetResponse()

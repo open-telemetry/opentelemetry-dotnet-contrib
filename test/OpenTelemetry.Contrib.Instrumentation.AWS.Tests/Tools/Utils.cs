@@ -57,7 +57,7 @@ internal static class Utils
         }
     }
 
-    public static string FindResourceName(string partialName)
+    public static string? FindResourceName(string partialName)
     {
 #pragma warning disable CA2249 // Consider using 'string.Contains' instead of 'string.IndexOf'
         return FindResourceName(s => s.IndexOf(partialName, StringComparison.OrdinalIgnoreCase) >= 0).SingleOrDefault();

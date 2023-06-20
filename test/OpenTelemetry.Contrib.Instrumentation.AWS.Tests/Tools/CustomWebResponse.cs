@@ -114,7 +114,7 @@ internal class CustomWebResponse : IWebResponseData
         this.headerNamesSet = new HashSet<string>(this.headerNames, StringComparer.OrdinalIgnoreCase);
     }
 
-    private string GetFirstHeaderValue(HttpHeaders headers, string key)
+    private string? GetFirstHeaderValue(HttpHeaders headers, string key)
     {
         IEnumerable<string>? headerValues = null;
         if (headers.TryGetValues(key, out headerValues))
