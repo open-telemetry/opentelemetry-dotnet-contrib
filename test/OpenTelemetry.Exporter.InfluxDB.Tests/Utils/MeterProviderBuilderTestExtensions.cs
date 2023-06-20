@@ -1,4 +1,4 @@
-// <copyright file="IMetricsWriter.cs" company="OpenTelemetry Authors">
+// <copyright file="MeterProviderBuilderTestExtensions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,13 +14,19 @@
 // limitations under the License.
 // </copyright>
 
-using InfluxDB.Client;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 
-namespace OpenTelemetry.Exporter.InfluxDB;
+namespace OpenTelemetry.Exporter.InfluxDB.Tests.Utils;
 
-internal interface IMetricsWriter
+public static class MeterProviderBuilderTestExtensions
 {
-    void Write(Metric metric, Resource resource, WriteApi writeApi);
+    public static MeterProviderBuilder ConfigureDefaultTestResource(this MeterProviderBuilder meterProviderBuilder)
+    {
+        return meterProviderBuilder.ConfigureResource(builder => builder.AddService(
+            serviceName: "my-service",
+            serviceNamespace: "my-service-namespace",
+            serviceVersion: "1.0",
+            serviceInstanceId: "my-service-id"));
+    }
 }
