@@ -94,7 +94,10 @@ internal class CustomWebResponse : IWebResponseData
         {
             headerNames.Add(kvp.Key);
             var headerValue = this.GetFirstHeaderValue(response.Headers, kvp.Key);
-            this.headers.Add(kvp.Key, headerValue);
+            if (headerValue != null)
+            {
+                this.headers.Add(kvp.Key, headerValue);
+            }
         }
 
         if (response.Content != null)
@@ -105,7 +108,10 @@ internal class CustomWebResponse : IWebResponseData
                 {
                     headerNames.Add(kvp.Key);
                     var headerValue = this.GetFirstHeaderValue(response.Content.Headers, kvp.Key);
-                    this.headers.Add(kvp.Key, headerValue);
+                    if (headerValue != null)
+                    {
+                        this.headers.Add(kvp.Key, headerValue);
+                    }
                 }
             }
         }

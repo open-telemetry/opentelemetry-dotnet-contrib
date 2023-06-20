@@ -39,8 +39,13 @@ internal static class Utils
     {
         Assembly assembly = typeof(Utils).Assembly;
         var resource = FindResourceName(resourceName);
-        Stream? stream = assembly.GetManifestResourceStream(resource);
-        return stream;
+        if (resource != null)
+        {
+            Stream? stream = assembly.GetManifestResourceStream(resource);
+            return stream;
+        }
+
+        return null;
     }
 
     public static string GetResourceText(string resourceName)
