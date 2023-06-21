@@ -288,13 +288,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetec
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.AWS.Tests", "test\OpenTelemetry.ResourceDetectors.AWS.Tests\OpenTelemetry.ResourceDetectors.AWS.Tests.csproj", "{DE898A1E-920E-476F-B0DB-A98AFD6E3BF4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Exporter.InfluxDB", "src\OpenTelemetry.Exporter.InfluxDB\OpenTelemetry.Exporter.InfluxDB.csproj", "{FD5E9AC8-DC05-4C64-BDC6-D26F5552808E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.InfluxDB", "src\OpenTelemetry.Exporter.InfluxDB\OpenTelemetry.Exporter.InfluxDB.csproj", "{FD5E9AC8-DC05-4C64-BDC6-D26F5552808E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Exporter.InfluxDB.Tests", "test\OpenTelemetry.Exporter.InfluxDB.Tests\OpenTelemetry.Exporter.InfluxDB.Tests.csproj", "{4847A991-D0C3-4421-B0D3-EA189959E639}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.InfluxDB.Tests", "test\OpenTelemetry.Exporter.InfluxDB.Tests\OpenTelemetry.Exporter.InfluxDB.Tests.csproj", "{4847A991-D0C3-4421-B0D3-EA189959E639}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "InfluxDB", "InfluxDB", "{2D354354-BAFB-490B-A26F-6A16A52A1A45}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples.InfluxDB", "examples\InfluxDB\Examples.InfluxDB\Examples.InfluxDB.csproj", "{B4951583-D432-4E87-85CF-498FDD6A35E6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.InfluxDB", "examples\InfluxDB\Examples.InfluxDB\Examples.InfluxDB.csproj", "{B4951583-D432-4E87-85CF-498FDD6A35E6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples.Wcf.Server.AspNet", "examples\wcf\Examples.Wcf.Server.AspNet\Examples.Wcf.Server.AspNet.csproj", "{23AA75F6-403F-4867-BF0E-BAF0A44F9A7A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -622,6 +624,10 @@ Global
 		{B4951583-D432-4E87-85CF-498FDD6A35E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B4951583-D432-4E87-85CF-498FDD6A35E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B4951583-D432-4E87-85CF-498FDD6A35E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23AA75F6-403F-4867-BF0E-BAF0A44F9A7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23AA75F6-403F-4867-BF0E-BAF0A44F9A7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23AA75F6-403F-4867-BF0E-BAF0A44F9A7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23AA75F6-403F-4867-BF0E-BAF0A44F9A7A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -718,6 +724,7 @@ Global
 		{4847A991-D0C3-4421-B0D3-EA189959E639} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{2D354354-BAFB-490B-A26F-6A16A52A1A45} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
 		{B4951583-D432-4E87-85CF-498FDD6A35E6} = {2D354354-BAFB-490B-A26F-6A16A52A1A45}
+		{23AA75F6-403F-4867-BF0E-BAF0A44F9A7A} = {73474960-8F91-4EE5-8E3E-F7E7ADA99238}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
