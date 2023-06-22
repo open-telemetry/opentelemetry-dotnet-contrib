@@ -59,4 +59,10 @@ public class AspNetInstrumentationOptions
     /// See: <see href="https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/exceptions.md"/>.
     /// </remarks>
     public bool RecordException { get; set; }
+
+    /// <summary>
+    /// Mutate incoming request headers to have context of activity started by AspNetInstrumentation.
+    /// Useful for downstream instrumentation.
+    /// </summary>
+    public bool SetActivityContextOnIncomingRequest { get; set; }
 }

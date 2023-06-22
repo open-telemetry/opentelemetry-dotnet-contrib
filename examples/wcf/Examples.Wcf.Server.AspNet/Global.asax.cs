@@ -42,7 +42,7 @@ public class WebApiApplication : HttpApplication
             })
             .AddSource("StatusService")
             .AddWcfInstrumentation()
-            .AddAspNetInstrumentation();
+            .AddAspNetInstrumentation(options => options.SetActivityContextOnIncomingRequest = true);
 
         switch (ConfigurationManager.AppSettings["UseExporter"].ToLowerInvariant())
         {

@@ -15,7 +15,9 @@
 // </copyright>
 
 using System;
+using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Reflection;
 using System.Web;
 using System.Web.Routing;
 using OpenTelemetry.Context.Propagation;
@@ -29,6 +31,8 @@ internal sealed class HttpInListener : IDisposable
     private readonly PropertyFetcher<object> routeFetcher = new("Route");
     private readonly PropertyFetcher<string> routeTemplateFetcher = new("RouteTemplate");
     private readonly AspNetInstrumentationOptions options;
+
+    private static readonly PropertyInfo IsReadOnlyProperty = typeof(NameValueCollection).GetProperty("IsReadOnly", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
 
     public HttpInListener(AspNetInstrumentationOptions options)
     {
@@ -116,6 +120,18 @@ internal sealed class HttpInListener : IDisposable
             catch (Exception ex)
             {
                 AspNetInstrumentationEventSource.Log.EnrichmentException("OnStartActivity", ex);
+            }
+
+            if (this.options.SetActivityContextOnIncomingRequest)
+            {
+                IsReadOnlyProperty.SetValue(context.Request.Headers, false, null);
+
+                TelemetryHttpModule.Options.TextMapPropagator.Inject(
+                    new PropagationContext(activity.Context, Baggage.Current),
+                    context.Request.Headers,
+                    (headers, name, value) => headers[name] = value);
+
+                IsReadOnlyProperty.SetValue(context.Request.Headers, true, null);
             }
         }
     }
