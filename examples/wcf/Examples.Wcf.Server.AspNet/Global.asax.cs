@@ -41,7 +41,7 @@ public class WebApiApplication : HttpApplication
                 resource.AddService("Examples.Wcf.Server.AspNet");
             })
             .AddSource("StatusService")
-            .AddWcfInstrumentation()
+            .AddWcfInstrumentation(options => options.ReadContextFromHttpHeaders = true)
             .AddAspNetInstrumentation(options => options.SetActivityContextOnIncomingRequest = true);
 
         switch (ConfigurationManager.AppSettings["UseExporter"].ToLowerInvariant())

@@ -45,6 +45,15 @@ internal static class WcfInstrumentationActivitySource
                 : new[] { request.Headers.GetHeader<string>(headerIndex) };
         };
 
+#if NETFRAMEWORK
+    public static Func<Message, string, IEnumerable<string>> HttpHeaderValuesGetter { get; }
+        = (request, name) =>
+        {
+            request.Properties.TryGetValue(HttpRequestMessageProperty.Name, out var prop);
+            return (prop as HttpRequestMessageProperty)?.Headers.GetValues(name);
+        };
+#endif
+
     public static Action<Message, string, string> MessageHeaderValueSetter { get; }
         = (request, name, value) => request.Headers.Add(MessageHeader.CreateHeader(name, "https://www.w3.org/TR/trace-context/", value, false));
 

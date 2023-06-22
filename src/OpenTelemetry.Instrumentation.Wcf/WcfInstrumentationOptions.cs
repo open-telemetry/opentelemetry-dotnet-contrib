@@ -62,4 +62,11 @@ public class WcfInstrumentationOptions
     /// Gets or sets a value indicating whether or not the SOAP message version should be added as the <see cref="WcfInstrumentationConstants.SoapMessageVersionTag"/> tag. Default value: False.
     /// </summary>
     public bool SetSoapMessageVersion { get; set; }
+
+#if NETFRAMEWORK
+    /// <summary>
+    /// Read context from HTTP headers instead of from SOAP headers.
+    /// </summary>
+    public bool ReadContextFromHttpHeaders { get; set; }
+#endif
 }

@@ -63,7 +63,16 @@ public class TelemetryDispatchMessageInspector : IDispatchMessageInspector
         }
 
         var textMapPropagator = Propagators.DefaultTextMapPropagator;
-        var ctx = textMapPropagator.Extract(default, request, WcfInstrumentationActivitySource.MessageHeaderValuesGetter);
+
+        PropagationContext ctx;
+        if (WcfInstrumentationActivitySource.Options.ReadContextFromHttpHeaders)
+        {
+            ctx = textMapPropagator.Extract(default, request, WcfInstrumentationActivitySource.HttpHeaderValuesGetter);
+        }
+        else
+        {
+            ctx = textMapPropagator.Extract(default, request, WcfInstrumentationActivitySource.MessageHeaderValuesGetter);
+        }
 
         Activity activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
             WcfInstrumentationActivitySource.IncomingRequestActivityName,
