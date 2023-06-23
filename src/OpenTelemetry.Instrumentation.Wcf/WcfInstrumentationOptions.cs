@@ -15,6 +15,7 @@
 // </copyright>
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.ServiceModel.Channels;
 
@@ -62,4 +63,28 @@ public class WcfInstrumentationOptions
     /// Gets or sets a value indicating whether or not the SOAP message version should be added as the <see cref="WcfInstrumentationConstants.SoapMessageVersionTag"/> tag. Default value: False.
     /// </summary>
     public bool SetSoapMessageVersion { get; set; }
+
+    /// <summary>
+    /// Gets or sets the reader function which controls exactly how the propagated trace context is extracted from the incoming request.
+    /// Default value: Composed <see cref="TelemetryPropagationReader.HttpRequestHeaders"/> and <see cref="TelemetryPropagationReader.SoapMessageHeaders"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para><see cref="Message"/>: The incoming request (carrier) to read trace context from.</para>
+    /// <para>string: The header name being requested.</para>
+    /// <para>IEnumerable&lt;string&gt; (return): All the values for the requested header, or null if the requested header was not present on the request.</para>
+    /// </remarks>
+    public Func<Message, string, IEnumerable<string>> PropagationReader { get; set; } = TelemetryPropagationReader.Default;
+
+    /// <summary>
+    /// Gets or sets the writer function which controls exactly how the propagated trace context is inscribed on the outgoing request.
+    /// Default value: When <see cref="SuppressDownstreamInstrumentation"/> is true it is composed <see cref="TelemetryPropagationWriter.SoapMessageHeaders"/> and
+    /// <see cref="TelemetryPropagationWriter.HttpRequestHeaders"/>. When <see cref="SuppressDownstreamInstrumentation"/> is false it is just
+    /// <see cref="TelemetryPropagationWriter.SoapMessageHeaders"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para><see cref="Message"/>: The outgoing request (carrier) to write trace context to.</para>
+    /// <para>string: The name of the header being written.</para>
+    /// <para>string: The header value to be written.</para>
+    /// </remarks>
+    public Action<Message, string, string> PropagationWriter { get; set; } = TelemetryPropagationWriter.Default;
 }

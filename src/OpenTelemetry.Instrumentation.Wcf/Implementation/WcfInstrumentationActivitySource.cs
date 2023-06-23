@@ -36,17 +36,23 @@ internal static class WcfInstrumentationActivitySource
 
     public static ActivitySource ActivitySource { get; } = new ActivitySource(ActivitySourceName, Version.ToString());
 
-    public static Func<Message, string, IEnumerable<string>> MessageHeaderValuesGetter { get; }
-        = (request, name) =>
-        {
-            var headerIndex = request.Headers.FindHeader(name, "https://www.w3.org/TR/trace-context/");
-            return headerIndex < 0
-                ? null
-                : new[] { request.Headers.GetHeader<string>(headerIndex) };
-        };
-
-    public static Action<Message, string, string> MessageHeaderValueSetter { get; }
-        = (request, name, value) => request.Headers.Add(MessageHeader.CreateHeader(name, "https://www.w3.org/TR/trace-context/", value, false));
-
     public static WcfInstrumentationOptions Options { get; set; }
+
+    public static IEnumerable<string> MessageHeaderValuesGetter(Message request, string name)
+    {
+        if (Options.PropagationReader != null)
+        {
+            return Options.PropagationReader(request, name);
+        }
+
+        return null;
+    }
+
+    public static void MessageHeaderValueSetter(Message request, string name, string value)
+    {
+        if (Options.PropagationWriter != null)
+        {
+            Options.PropagationWriter(request, name, value);
+        }
+    }
 }
