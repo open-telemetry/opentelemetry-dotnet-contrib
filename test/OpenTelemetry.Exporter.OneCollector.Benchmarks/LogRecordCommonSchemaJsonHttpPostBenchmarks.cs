@@ -114,7 +114,7 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
                 logRecord.EventId = new EventId(1);
             }
 
-            logRecord.StateValues = new List<KeyValuePair<string, object?>>
+            logRecord.Attributes = new List<KeyValuePair<string, object?>>
             {
                 new KeyValuePair<string, object?>("userId", 18),
                 new KeyValuePair<string, object?>("greeting", "hello world"),
