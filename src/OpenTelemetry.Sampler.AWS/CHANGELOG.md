@@ -9,4 +9,4 @@ Initial release of `OpenTelemetry.Sampler.AWS`.
    [#1124](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1124))
 
 * Update OTel SDK version to `1.5.1`.
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#1255](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1255))
