@@ -7,4 +7,4 @@
   ([#1140](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1140))
 
 * Update OTel SDK version to `1.5.1`.
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#1255](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1255))

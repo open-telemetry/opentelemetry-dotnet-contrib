@@ -7,7 +7,7 @@
 * Removes `AddOwinInstrumentation` method with default configure parameter.
   ([#929](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/929))
 * Updated OpenTelemetry SDK to 1.5.1
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#1255](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1255))
 
 ## 1.0.0-rc.3
 

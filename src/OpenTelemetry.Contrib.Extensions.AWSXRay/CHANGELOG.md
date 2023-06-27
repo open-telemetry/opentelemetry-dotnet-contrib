@@ -27,7 +27,7 @@
 * Extract AWS Resource Detectors to dedicated package `OpenTelemetry.ResourceDetectors.AWS`
   ([#1140](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1140))
 * Updates to 1.5.1 of OpenTelemetry SDK.
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#1255](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1255))
 
 ## 1.2.0
 

@@ -19,7 +19,7 @@
   ([#1127](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1127))
 
 * Update OpenTelemetry to 1.5.1
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#1255](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1255))
 
 ## 0.1.0-alpha.2
 
