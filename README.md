@@ -46,8 +46,8 @@ repository](https://github.com/open-telemetry/community/blob/main/community-memb
 [Emeritus
 Maintainer/Approver/Triager](https://github.com/open-telemetry/community/blob/main/community-membership.md#emeritus-maintainerapprovertriager):
 
-* [Prashant Srivastava](https://github.com/srprash), AWS
-* [Sergey Kanzhelev](https://github.com/SergeyKanzhelev), Google
+* [Prashant Srivastava](https://github.com/srprash)
+* [Sergey Kanzhelev](https://github.com/SergeyKanzhelev)
 
 Even though, anybody can contribute, there are benefits of being a member of our
 community. See to the [community membership
