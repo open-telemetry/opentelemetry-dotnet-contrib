@@ -4,6 +4,8 @@
 
 * Updated OTel SDK package version to 1.5.0
   ([#1220](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1220))
+* Updated OTel SDK package version to 1.5.1
+  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
 
 ## 1.0.0-beta.4
 

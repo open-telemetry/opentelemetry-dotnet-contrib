@@ -18,6 +18,9 @@
   non-zero on `LogRecord`s.
   ([#1127](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1127))
 
+* Update OpenTelemetry to 1.5.1
+  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+
 ## 0.1.0-alpha.2
 
 Released 2023-Mar-6

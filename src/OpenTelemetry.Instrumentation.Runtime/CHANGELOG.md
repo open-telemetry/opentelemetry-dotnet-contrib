@@ -6,6 +6,9 @@
   GC for .NET 7 and greater versions
   ([#1239](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1239))
 
+* Update OpenTelemetry API to 1.5.1
+  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+
 ## 1.5.0
 
 Released 2023-Jun-06

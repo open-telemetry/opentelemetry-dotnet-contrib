@@ -7,6 +7,8 @@
 * Drop support for .NET Framework 4.6.1.
   The lowest supported version is .NET Framework 4.6.2.
   ([#1050](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1050))
+* Update OTel SDK version to `1.5.1`.
+  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
 
 ## 1.0.3
 
