@@ -11,8 +11,6 @@
   ([#875](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/875))
 * Replaced Newtonsoft.Json dependency with System.Text.Json
   ([#1092](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1092))
-* Updated OpenTelemetry SDK package version to 1.3.1
-  ([#875](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/875))
 * Enhancement - AWSECSResourceDetector - Implement `aws.{ecs.*,log.*}` resource
   attributes with data from ECS Metadata endpoint v4
   ([#875](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/875))
