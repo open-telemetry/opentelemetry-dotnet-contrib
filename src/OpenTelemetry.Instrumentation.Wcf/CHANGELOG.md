@@ -2,21 +2,21 @@
 
 ## Unreleased
 
-* Update OTel SDK version to `1.5.1`.
+* Update OpenTelemetry SDK version to `1.5.1`.
   ([#1255](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1255))
 
 ## 1.0.0-rc.10
 
 Released 2023-Jun-09
 
-* Update OTel SDK version to `1.5.0`.
+* Update OpenTelemetry SDK version to `1.5.0`.
   ([#1220](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1220))
 
 ## 1.0.0-rc.9
 
 Released 2023-Feb-27
 
-* Update OTel SDK version to `1.4.0`.
+* Update OpenTelemetry SDK version to `1.4.0`.
   ([#1038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1038))
 * Removes `AddWcfInstrumentation` method with default configure parameter.
   ([#928](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/928))
@@ -25,7 +25,7 @@ Released 2023-Feb-27
 
 Released 2022-Dec-28
 
-* Update OTel SDK version to `1.3.1`.
+* Update OpenTelemetry SDK version to `1.3.1`.
   ([#631](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/631))
 * Change value `rpc.system` from `wcf` to `dotnet_wcf`.
   ([#837](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/837))
@@ -34,7 +34,7 @@ Released 2022-Dec-28
 
 Released 2022-Aug-23
 
-* Updated OTel SDK package version to 1.3.0
+* Updated OpenTelemetry SDK package version to 1.3.0
   ([#569](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/569))
 * Changed activity source name from `OpenTelemetry.WCF`
   to `OpenTelemetry.Instrumentation.Wcf`
@@ -103,7 +103,7 @@ Released 2021-Sep-13
 
 Released 2021-Jun-16
 
-* Updated OTel SDK package version to 1.1.0-beta1
+* Updated OpenTelemetry SDK package version to 1.1.0-beta1
   ([#100](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/100))
 
 * Added enricher for WCF activity

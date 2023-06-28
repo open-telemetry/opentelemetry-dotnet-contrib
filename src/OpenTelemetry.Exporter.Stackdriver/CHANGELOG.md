@@ -2,9 +2,7 @@
 
 ## Unreleased
 
-* Update OTel SDK version to `1.5.0`.
-  ([#1220](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1220))
-* Update OTel SDK version to `1.5.1`.
+* Update OpenTelemetry SDK version to `1.5.1`.
   ([#1255](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1255))
 
 ## 1.0.0-beta.4
@@ -14,14 +12,14 @@ Released 2022-Dec-07
 * Fix the issue of incorrect handling of null attributes.
   ([#566](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/566))
 * Support for Google Cloud Dependencies up to 3.x.x
-  and OTel SDK package to 1.3.1
+  and OpenTelemetry SDK package to 1.3.1
   ([#794](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/794))
 
 ## 1.0.0-beta.3
 
 Released 2022-Jul-22
 
-* Updated OTel SDK package version to 1.2.0
+* Updated OpenTelemetry SDK package version to 1.2.0
 * Updated minimum full framework support to net462
 * Update Google.Cloud.Monitoring.V3 2.1.0 -> 2.6.0
 * Update Google.Cloud.Monitoring.V3 2.0.0 -> 2.3.0
@@ -45,10 +43,10 @@ Released 2022-Jul-22
 
 ## 1.0.0-beta1
 
-* Update OTel SDK package version to 1.1.0
+* Update OpenTelemetry SDK package version to 1.1.0
 * Log exceptions when failing to export data to stackdriver
 
 ## Initial Release
 
-* Updated OTel SDK package version to 1.1.0-beta1
+* Updated OpenTelemetry SDK package version to 1.1.0-beta1
   ([#100](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/100))

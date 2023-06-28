@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-* Updates to 1.5.0 of OpenTelemetry SDK.
-  ([#1220](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1220))
+* Updates to 1.5.1 of OpenTelemetry SDK.
+  ([#1255](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1255))
 * Enhancement - AWSXRayIdGenerator - Generate X-Ray IDs with global Random
   instance instead of recreating with ThreadLocal
   ([#380](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/380))
@@ -11,7 +11,7 @@
   ([#875](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/875))
 * Replaced Newtonsoft.Json dependency with System.Text.Json
   ([#1092](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1092))
-* Updated OTel SDK package version to 1.3.1
+* Updated OpenTelemetry SDK package version to 1.3.1
   ([#875](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/875))
 * Enhancement - AWSECSResourceDetector - Implement `aws.{ecs.*,log.*}` resource
   attributes with data from ECS Metadata endpoint v4
@@ -26,8 +26,6 @@
   ([#1140](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1140))
 * Extract AWS Resource Detectors to dedicated package `OpenTelemetry.ResourceDetectors.AWS`
   ([#1140](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1140))
-* Updates to 1.5.1 of OpenTelemetry SDK.
-  ([#1255](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1255))
 
 ## 1.2.0
 
@@ -45,7 +43,7 @@ Released 2022-May-18
 Released 2021-Sep-20
 
 * Added AWS resource detectors ([#149](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/149))
-* Updated OTel SDK package version to 1.1.0
+* Updated OpenTelemetry SDK package version to 1.1.0
   ([#100](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/100))
 
 ## 1.0.1

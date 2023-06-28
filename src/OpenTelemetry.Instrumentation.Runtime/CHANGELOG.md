@@ -141,7 +141,7 @@ which are not .NET Runtime specific.
 
 ## 0.2.0-alpha.1
 
-* Updated OTel SDK package version to 1.3.0
+* Updated OpenTelemetry SDK package version to 1.3.0
   ([#411](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/411))
 * Fix some bugs in Runtime metrics
   ([#409](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/409))
