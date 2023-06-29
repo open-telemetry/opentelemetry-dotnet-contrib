@@ -190,10 +190,8 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
 
         // `LogRecord.State` and `LogRecord.StateValues` were marked Obsolete in https://github.com/open-telemetry/opentelemetry-dotnet/pull/4334
 #pragma warning disable 0618
-        if (logRecord.State == null)
+        if (logRecord.StateValues != null)
         {
-            // When State is null, OTel SDK guarantees StateValues is populated
-            // TODO: Debug.Assert?
             listKvp = logRecord.StateValues;
         }
         else

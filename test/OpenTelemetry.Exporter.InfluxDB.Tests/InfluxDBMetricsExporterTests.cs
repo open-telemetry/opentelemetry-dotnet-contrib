@@ -15,15 +15,32 @@
 // </copyright>
 
 using System.Diagnostics.Metrics;
+using System.Reflection;
 using OpenTelemetry.Exporter.InfluxDB.Tests.Utils;
 using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
 using Xunit;
 
 namespace OpenTelemetry.Exporter.InfluxDB.Tests;
 
 public class InfluxDBMetricsExporterTests
 {
+    private static readonly string OpenTelemetrySdkVersion;
+
+#pragma warning disable CA1810 // Initialize reference type static fields inline
+    static InfluxDBMetricsExporterTests()
+#pragma warning restore CA1810 // Initialize reference type static fields inline
+    {
+        var sdkVersion = typeof(Sdk).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
+        if (sdkVersion != null)
+        {
+            OpenTelemetrySdkVersion = Version.Parse(sdkVersion).ToString(3);
+        }
+        else
+        {
+            OpenTelemetrySdkVersion = "0.0.0";
+        }
+    }
+
     [Theory]
     [InlineData(MetricsSchema.TelegrafPrometheusV1, "test-gauge", "gauge")]
     [InlineData(MetricsSchema.TelegrafPrometheusV2, "prometheus", "test-gauge")]
@@ -440,7 +457,7 @@ public class InfluxDBMetricsExporterTests
             AssertUtils.HasTag("tag_key_2", "tag_value_2", 6, dataPoint.Tags);
             AssertUtils.HasTag("telemetry.sdk.language", "dotnet", 7, dataPoint.Tags);
             AssertUtils.HasTag("telemetry.sdk.name", "opentelemetry", 8, dataPoint.Tags);
-            AssertUtils.HasTag("telemetry.sdk.version", "1.5.0", 9, dataPoint.Tags);
+            AssertUtils.HasTag("telemetry.sdk.version", OpenTelemetrySdkVersion, 9, dataPoint.Tags);
         }
     }
 
@@ -490,6 +507,6 @@ public class InfluxDBMetricsExporterTests
         AssertUtils.HasTag("tag_key_2", "tag_value_2", 5, dataPoint.Tags);
         AssertUtils.HasTag("telemetry.sdk.language", "dotnet", 6, dataPoint.Tags);
         AssertUtils.HasTag("telemetry.sdk.name", "opentelemetry", 7, dataPoint.Tags);
-        AssertUtils.HasTag("telemetry.sdk.version", "1.5.0", 8, dataPoint.Tags);
+        AssertUtils.HasTag("telemetry.sdk.version", OpenTelemetrySdkVersion, 8, dataPoint.Tags);
     }
 }

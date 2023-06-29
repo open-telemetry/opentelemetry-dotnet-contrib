@@ -23,7 +23,6 @@ dotnet add package --prerelease OpenTelemetry.Exporter.OneCollector
 using var logFactory = LoggerFactory.Create(builder => builder
     .AddOpenTelemetry(builder =>
     {
-        builder.ParseStateValues = true;
         builder.IncludeScopes = true;
         builder.AddOneCollectorExporter("InstrumentationKey=instrumentation-key-here");
     }));
