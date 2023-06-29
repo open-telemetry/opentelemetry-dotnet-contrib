@@ -28,6 +28,7 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Tests;
 
+[Collection("TracerProviderDependent")]
 public class AWSLambdaWrapperTests
 {
     private const string TraceId = "5759e988bd862e3fe1be46a994272793";
