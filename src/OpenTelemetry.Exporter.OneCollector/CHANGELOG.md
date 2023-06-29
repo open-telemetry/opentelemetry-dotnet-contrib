@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.5.1-rc.1
+
+Released 2023-Jun-29
+
 * Added support for sending common schema extensions using `ext.[name].[field]`
   syntax.
   ([#1073](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1073))
