@@ -1,7 +1,7 @@
 # Geneva Exporter for OpenTelemetry .NET
 
-[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.Geneva.svg)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Geneva)
-[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Exporter.Geneva.svg)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Geneva)
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.Geneva.svg)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Geneva)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Exporter.Geneva.svg)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Geneva)
 
 The Geneva Exporter exports telemetry to
 [Event Tracing for Windows (ETW)](https://docs.microsoft.com/windows/win32/etw/about-event-tracing)

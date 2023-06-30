@@ -1,7 +1,7 @@
 # MassTransit Instrumentation for OpenTelemetry .NET
 
-[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.MassTransit.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.MassTransit)
-[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.MassTransit.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.MassTransit)
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.MassTransit.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.MassTransit)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.MassTransit.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.MassTransit)
 
 Automatically instruments
 [DiagnosticSource](https://masstransit-project.com/advanced/monitoring/diagnostic-source.html)

@@ -1,7 +1,7 @@
 # Application Insights Sampler for OpenTelemetry .NET
 
-[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Extensions.AzureMonitor.svg)](https://www.nuget.org/packages/OpenTelemetry.Extensions.AzureMonitor)
-[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Extensions.AzureMonitor.svg)](https://www.nuget.org/packages/OpenTelemetry.Extensions.AzureMonitor)
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Extensions.AzureMonitor.svg)](https://www.nuget.org/packages/OpenTelemetry.Extensions.AzureMonitor)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Extensions.AzureMonitor.svg)](https://www.nuget.org/packages/OpenTelemetry.Extensions.AzureMonitor)
 
 The ```Application Insights Sampler``` should be utilized when
 compatibility with Application Insights SDKs is desired, as it

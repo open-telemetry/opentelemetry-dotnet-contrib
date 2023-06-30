@@ -1,7 +1,7 @@
 # QuartzNET Instrumentation for OpenTelemetry .NET
 
-[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Quartz.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Quartz)
-[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Quartz.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Quartz)
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Quartz.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Quartz)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Quartz.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Quartz)
 
 Automatically instruments the Quartz jobs from
 [Quartz](https://www.nuget.org/packages/Quartz/).

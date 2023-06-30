@@ -1,7 +1,7 @@
 # OneCollector Exporter for OpenTelemetry .NET
 
-[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.OneCollector.svg)](https://www.nuget.org/packages/OpenTelemetry.Exporter.OneCollector)
-[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Exporter.OneCollector.svg)](https://www.nuget.org/packages/OpenTelemetry.Exporter.OneCollector)
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.OneCollector.svg)](https://www.nuget.org/packages/OpenTelemetry.Exporter.OneCollector)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Exporter.OneCollector.svg)](https://www.nuget.org/packages/OpenTelemetry.Exporter.OneCollector)
 
 > **Warning**
 > This is an early preview version breaking changes should be expected.

@@ -1,7 +1,7 @@
 # MySqlData Instrumentation for OpenTelemetry
 
-[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.MySqlData.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.MySqlData)
-[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.MySqlData.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.MySqlData)
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.MySqlData.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.MySqlData)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.MySqlData.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.MySqlData)
 
 This is an
 [Instrumentation Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library),

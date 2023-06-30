@@ -1,7 +1,7 @@
 # Stackdriver Exporter for OpenTelemetry .NET
 
-[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.Stackdriver.svg)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Stackdriver)
-[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Exporter.Stackdriver.svg)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Stackdriver)
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.Stackdriver.svg)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Stackdriver)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Exporter.Stackdriver.svg)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Stackdriver)
 
 **NOTE: This exporter is not affiliated with or officially supported by
 Google.**

@@ -1,7 +1,7 @@
 # OWIN Instrumentation for OpenTelemetry .NET
 
-[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Owin.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Owin)
-[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Owin.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Owin)
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Owin.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Owin)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Owin.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Owin)
 
 This is an [Instrumentation
 Library](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/glossary.md#instrumentation-library),
