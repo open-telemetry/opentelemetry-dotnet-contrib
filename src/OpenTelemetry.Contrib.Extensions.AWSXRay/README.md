@@ -1,5 +1,8 @@
 # Tracing with AWS Distro for OpenTelemetry .Net SDK
 
+[![nuget](https://img.shields.io/nuget/v/OpenTelemetry.Contrib.Extensions.AWSXRay.svg)](https://www.nuget.org/packages/OpenTelemetry.Contrib.Extensions.AWSXRay)
+[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Contrib.Extensions.AWSXRay.svg)](https://www.nuget.org/packages/OpenTelemetry.Contrib.Extensions.AWSXRay)
+
 If you want to send the traces to AWS X-Ray, you can do so
 by using AWS Distro with the OpenTelemetry SDK.
 

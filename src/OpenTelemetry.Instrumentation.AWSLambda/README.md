@@ -1,5 +1,8 @@
 # AWS OTel .NET SDK for Lambda
 
+[![nuget](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.AWSLambda.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AWSLambda)
+[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.AWSLambda.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AWSLambda)
+
 This repo contains SDK to instrument Lambda handler to create incoming span.
 
 ## Installation

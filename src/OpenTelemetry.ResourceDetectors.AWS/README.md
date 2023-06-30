@@ -1,5 +1,8 @@
 # AWS Resource Detectors
 
+[![nuget](https://img.shields.io/nuget/v/OpenTelemetry.ResourceDetectors.AWS.svg)](https://www.nuget.org/packages/OpenTelemetry.ResourceDetectors.AWS)
+[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.ResourceDetectors.AWS.svg)](https://www.nuget.org/packages/OpenTelemetry.ResourceDetectors.AWS)
+
 ## Getting Started
 
 You need to install the

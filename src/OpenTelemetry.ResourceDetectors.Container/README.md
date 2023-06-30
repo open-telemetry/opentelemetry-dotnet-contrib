@@ -1,5 +1,8 @@
 # Container Resource Detectors
 
+[![nuget](https://img.shields.io/nuget/v/OpenTelemetry.ResourceDetectors.Container.svg)](https://www.nuget.org/packages/OpenTelemetry.ResourceDetectors.Container)
+[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.ResourceDetectors.Container.svg)](https://www.nuget.org/packages/OpenTelemetry.ResourceDetectors.Container)
+
 ## Getting Started
 
 You need to install the
