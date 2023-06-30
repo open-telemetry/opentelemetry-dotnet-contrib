@@ -1,7 +1,7 @@
 # ASP.NET Telemetry HttpModule for OpenTelemetry
 
-[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule/)
-[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule/)
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule/)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule/)
 
 The ASP.NET Telemetry HttpModule enables distributed tracing of incoming ASP.NET
 requests using the OpenTelemetry API.

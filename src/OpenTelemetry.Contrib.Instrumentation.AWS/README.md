@@ -1,7 +1,7 @@
 # AWS SDK client instrumentation for OpenTelemetry
 
-[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Contrib.Instrumentation.AWS.svg)](https://www.nuget.org/packages/OpenTelemetry.Contrib.Instrumentation.AWS)
-[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Contrib.Instrumentation.AWS.svg)](https://www.nuget.org/packages/OpenTelemetry.Contrib.Instrumentation.AWS)
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Contrib.Instrumentation.AWS)](https://www.nuget.org/packages/OpenTelemetry.Contrib.Instrumentation.AWS)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Contrib.Instrumentation.AWS)](https://www.nuget.org/packages/OpenTelemetry.Contrib.Instrumentation.AWS)
 
 Download the `OpenTelemetry.Contrib.Instrumentation.AWS` package:
 

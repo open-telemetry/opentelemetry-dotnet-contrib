@@ -255,6 +255,6 @@ the main branch. The workflow file should be named as
   package. You can use the below snippet for reference:
 
 ```md
-[![NuGet version badge](https://img.shields.io/nuget/v/{your_package_name}.svg)](https://www.nuget.org/packages/{your_package_name})
-[![NuGet download count badge](https://img.shields.io/nuget/dt/{your_package_name}.svg)](https://www.nuget.org/packages/{your_package_name})
+[![NuGet version badge](https://img.shields.io/nuget/v/{your_package_name})](https://www.nuget.org/packages/{your_package_name})
+[![NuGet download count badge](https://img.shields.io/nuget/dt/{your_package_name})](https://www.nuget.org/packages/{your_package_name})
 ```

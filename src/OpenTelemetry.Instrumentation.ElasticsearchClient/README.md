@@ -2,8 +2,8 @@
 
 ## NEST/Elasticsearch.Net
 
-[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.ElasticsearchClient.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ElasticsearchClient)
-[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.ElasticsearchClient.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ElasticsearchClient)
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.ElasticsearchClient)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ElasticsearchClient)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.ElasticsearchClient)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ElasticsearchClient)
 
 This is an [Instrumentation
 Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library),

@@ -1,7 +1,7 @@
 # Persistent Storage file based implementation
 
-[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.PersistentStorage.FileSystem.svg)](https://www.nuget.org/packages/OpenTelemetry.PersistentStorage.FileSystem)
-[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.PersistentStorage.FileSystem.svg)](https://www.nuget.org/packages/OpenTelemetry.PersistentStorage.FileSystem)
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.PersistentStorage.FileSystem)](https://www.nuget.org/packages/OpenTelemetry.PersistentStorage.FileSystem)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.PersistentStorage.FileSystem)](https://www.nuget.org/packages/OpenTelemetry.PersistentStorage.FileSystem)
 
 This package provides an implementation of
 [persistent-storage-abstractions](../OpenTelemetry.PersistentStorage.Abstractions/README.md#Persistent-Storage-Abstractions)

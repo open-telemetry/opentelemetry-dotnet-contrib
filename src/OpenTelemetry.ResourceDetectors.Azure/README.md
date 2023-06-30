@@ -1,7 +1,7 @@
 # Resource Detectors for Azure cloud environments
 
-[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.ResourceDetectors.Azure.svg)](https://www.nuget.org/packages/OpenTelemetry.ResourceDetectors.Azure)
-[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.ResourceDetectors.Azure.svg)](https://www.nuget.org/packages/OpenTelemetry.ResourceDetectors.Azure)
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.ResourceDetectors.Azure)](https://www.nuget.org/packages/OpenTelemetry.ResourceDetectors.Azure)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.ResourceDetectors.Azure)](https://www.nuget.org/packages/OpenTelemetry.ResourceDetectors.Azure)
 
 This package contains [Resource
 Detectors](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/resource/sdk.md#detecting-resource-information-from-the-environment)
