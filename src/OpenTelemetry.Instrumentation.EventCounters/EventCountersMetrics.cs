@@ -46,6 +46,7 @@ internal sealed class EventCountersMetrics : EventListener
     /// <param name="options">The options to define the metrics.</param>
     public EventCountersMetrics(EventCountersInstrumentationOptions options)
     {
+        _ = EventCountersInstrumentationEventSource.Log;
         lock (this.preInitEventSources)
         {
             this.options = options;
