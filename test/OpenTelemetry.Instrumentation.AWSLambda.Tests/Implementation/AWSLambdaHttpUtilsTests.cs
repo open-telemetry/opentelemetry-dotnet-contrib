@@ -64,6 +64,28 @@ public class AWSLambdaHttpUtilsTests
     }
 
     [Fact]
+    public void GetHttpTags_APIGatewayProxyRequestWithEmptyContext_ReturnsCorrectHttpTarget()
+    {
+        var request = new APIGatewayProxyRequest
+        {
+            MultiValueQueryStringParameters = new Dictionary<string, IList<string>>
+            {
+                { "q1", new[] { "value1" } },
+            },
+            Path = "/path/test",
+        };
+
+        var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
+
+        var expectedTags = new Dictionary<string, object>
+        {
+            { "http.target", "/path/test?q1=value1" },
+        };
+
+        AssertTags(expectedTags, actualTags);
+    }
+
+    [Fact]
     public void GetHttpTags_APIGatewayProxyRequestWithMultiValueHeader_UsesLastValue()
     {
         var request = new APIGatewayProxyRequest
