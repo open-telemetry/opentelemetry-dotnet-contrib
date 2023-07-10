@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-alpha.3
+
+Released 2023-Jul-10
+
 * Added a static constructor to ensure `EventCountersInstrumentationEventSource`
 got initialized when `EventCountersMetrics` was accessed for the first time to
 prevent potential deadlock;
