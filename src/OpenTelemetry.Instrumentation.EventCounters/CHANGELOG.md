@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* Added a static constructor to ensure `EventCountersInstrumentationEventSource`
+got initialized when `EventCountersMetrics` was accessed for the first time to
+prevent potential deadlock;
+e.g.: <https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1024>.
+  ([#1260](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1260))
+
 * Update OpenTelemetry.Api to 1.5.1.
   ([#1255](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1255))
 
