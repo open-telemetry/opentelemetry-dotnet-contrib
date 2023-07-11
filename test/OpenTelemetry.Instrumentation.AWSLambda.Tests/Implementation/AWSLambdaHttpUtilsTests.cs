@@ -43,10 +43,7 @@ public class AWSLambdaHttpUtilsTests
             {
                 { "q1", new[] { "value1" } },
             },
-            RequestContext = new APIGatewayProxyRequest.ProxyRequestContext
-            {
-                Path = "/path/test",
-            },
+            Path = "/path/test",
         };
 
         var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
@@ -64,7 +61,7 @@ public class AWSLambdaHttpUtilsTests
     }
 
     [Fact]
-    public void GetHttpTags_APIGatewayProxyRequestWithEmptyContext_ReturnsCorrectHttpTarget()
+    public void GetHttpTags_APIGatewayProxyRequestWithContext_ReturnsTagsFromContext()
     {
         var request = new APIGatewayProxyRequest
         {
@@ -72,13 +69,18 @@ public class AWSLambdaHttpUtilsTests
             {
                 { "q1", new[] { "value1" } },
             },
-            Path = "/path/test",
+            RequestContext = new APIGatewayProxyRequest.ProxyRequestContext
+            {
+                HttpMethod = "POST",
+                Path = "/path/test",
+            },
         };
 
         var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
 
         var expectedTags = new Dictionary<string, object>
         {
+            { "http.method", "POST" },
             { "http.target", "/path/test?q1=value1" },
         };
 
