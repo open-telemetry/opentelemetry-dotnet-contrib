@@ -44,9 +44,9 @@ internal class AWSLambdaHttpUtils
         {
             case APIGatewayProxyRequest request:
                 httpScheme = AWSLambdaUtils.GetHeaderValues(request, HeaderXForwardedProto)?.LastOrDefault();
-                var path = request.Path ?? request.RequestContext?.Path ?? string.Empty;
+                var path = request.RequestContext?.Path ?? request.Path ?? string.Empty;
                 httpTarget = string.Concat(path, GetQueryString(request));
-                httpMethod = request.HttpMethod ?? request.RequestContext?.HttpMethod;
+                httpMethod = request.RequestContext?.HttpMethod ?? request.HttpMethod;
                 var hostHeader = AWSLambdaUtils.GetHeaderValues(request, HeaderHost)?.LastOrDefault();
                 (hostName, hostPort) = GetHostAndPort(httpScheme, hostHeader);
                 break;

@@ -38,12 +38,15 @@ public class AWSLambdaHttpUtilsTests
                 { "X-Forwarded-Proto", new List<string> { "https" } },
                 { "Host", new List<string> { "localhost:1234" } },
             },
-            HttpMethod = "GET",
             MultiValueQueryStringParameters = new Dictionary<string, IList<string>>
             {
                 { "q1", new[] { "value1" } },
             },
-            Path = "/path/test",
+            RequestContext = new APIGatewayProxyRequest.ProxyRequestContext
+            {
+                HttpMethod = "GET",
+                Path = "/path/test",
+            },
         };
 
         var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
@@ -61,7 +64,7 @@ public class AWSLambdaHttpUtilsTests
     }
 
     [Fact]
-    public void GetHttpTags_APIGatewayProxyRequestWithContext_ReturnsTagsFromContext()
+    public void GetHttpTags_APIGatewayProxyRequestWithEmptyContext_ReturnsTagsFromRequest()
     {
         var request = new APIGatewayProxyRequest
         {
@@ -69,11 +72,8 @@ public class AWSLambdaHttpUtilsTests
             {
                 { "q1", new[] { "value1" } },
             },
-            RequestContext = new APIGatewayProxyRequest.ProxyRequestContext
-            {
-                HttpMethod = "POST",
-                Path = "/path/test",
-            },
+            HttpMethod = "POST",
+            Path = "/path/test",
         };
 
         var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
