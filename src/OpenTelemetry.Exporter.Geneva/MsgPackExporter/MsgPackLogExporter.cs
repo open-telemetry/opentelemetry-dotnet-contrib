@@ -245,7 +245,11 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         }
 
         // Part B
+
+        // `LogRecord.LogLevel` was marked Obsolete in https://github.com/open-telemetry/opentelemetry-dotnet/pull/4568
+#pragma warning disable 0618
         var logLevel = logRecord.LogLevel;
+#pragma warning restore 0618
 
         cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "severityText");
         cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, logLevels[(int)logLevel]);

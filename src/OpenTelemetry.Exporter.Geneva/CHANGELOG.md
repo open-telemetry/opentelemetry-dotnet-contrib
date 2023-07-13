@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* Update OpenTelemetry SDK version to `1.6.0-alpha.1`.
+  ([#1264](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1264))
+
+* Add back support for exporting `Exemplar`.
+  ([#1264](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1264))
+
 ## 1.5.1
 
 Released 2023-Jun-29
