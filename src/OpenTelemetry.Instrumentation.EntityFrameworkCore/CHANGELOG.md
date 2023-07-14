@@ -6,11 +6,14 @@
   enable filtering of instrumentation.
   ([#1203](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1203))
 
+* Updated OpenTelemetry SDK package version to 1.5.1
+  ([#1255](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1255))
+
 ## 1.0.0-beta.7
 
 Released 2023-Jun-09
 
-* Updated OTel SDK package version to 1.5.0
+* Updated OpenTelemetry SDK package version to 1.5.0
   ([#1220](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1220))
 
 ## 1.0.0-beta.6
@@ -26,14 +29,14 @@ Released 2023-Mar-13
 
 Released 2023-Feb-27
 
-* Updated OTel SDK package version to 1.4.0
+* Updated OpenTelemetry SDK package version to 1.4.0
   ([#1038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1038))
 
 ## 1.0.0-beta.4
 
 Released 2023-Jan-25
 
-* Updated OTel SDK package version to 1.3.2
+* Updated OpenTelemetry SDK package version to 1.3.2
   ([#917](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/917))
 
 * Update the `ActivitySource` name used to the assembly name:

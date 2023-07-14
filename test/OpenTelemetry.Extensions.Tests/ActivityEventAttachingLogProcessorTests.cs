@@ -55,15 +55,14 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    [InlineData(true, 18, true, true, true)]
-    [InlineData(true, 0, false, false, true, true)]
-    [InlineData(true, 18, true, true, true, false, true)]
-    [InlineData(true, 0, false, false, true, true, true)]
+    [InlineData(true, 18, true, true)]
+    [InlineData(true, 0, false, true, true)]
+    [InlineData(true, 18, true, true, false, true)]
+    [InlineData(true, 0, false, true, true, true)]
     public void AttachLogsToActivityEventTest(
         bool sampled,
         int eventId = 0,
         bool includeFormattedMessage = false,
-        bool parseStateValues = false,
         bool includeScopes = false,
         bool recordException = false,
         bool? filter = null)
@@ -76,7 +75,6 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
                 {
                     options.IncludeScopes = includeScopes;
                     options.IncludeFormattedMessage = includeFormattedMessage;
-                    options.ParseStateValues = parseStateValues;
                     options.AttachLogsToActivityEvent(x =>
                     {
                         x.Filter = filter switch
@@ -142,14 +140,7 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
                 Assert.DoesNotContain(tags, kvp => kvp.Key == nameof(LogRecord.FormattedMessage));
             }
 
-            if (parseStateValues)
-            {
-                Assert.Equal(8, tags["state.UserId"]);
-            }
-            else
-            {
-                Assert.DoesNotContain(tags, kvp => kvp.Key == "state.UserId");
-            }
+            Assert.Equal(8, tags["state.UserId"]);
 
             if (includeScopes)
             {

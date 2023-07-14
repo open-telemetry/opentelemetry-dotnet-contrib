@@ -133,11 +133,11 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
 
         string? body = null;
 
-        if (item.StateValues != null)
+        if (item.Attributes != null)
         {
-            for (int i = 0; i < item.StateValues.Count; i++)
+            for (int i = 0; i < item.Attributes.Count; i++)
             {
-                var attribute = item.StateValues[i];
+                var attribute = item.Attributes[i];
 
                 if (string.IsNullOrEmpty(attribute.Key))
                 {

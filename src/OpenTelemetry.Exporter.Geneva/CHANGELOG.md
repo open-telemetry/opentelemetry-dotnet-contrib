@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## 1.6.0-alpha.1
+
+Released 2023-Jul-12
+
+* Update OpenTelemetry SDK version to `1.6.0-alpha.1`.
+  ([#1264](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1264))
+
+* Add back support for exporting `Exemplar`.
+  ([#1264](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1264))
+
+## 1.5.1
+
+Released 2023-Jun-29
+
+* Update OpenTelemetry SDK version to `1.5.1`.
+  ([#1255](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1255))
+
 ## 1.5.0
 
 Released 2023-Jun-14
@@ -46,7 +63,7 @@ Released 2023-Jun-05
 * Add support for abstract domain sockets.
   ([#1199](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1199))
 
-* Update OTel SDK version to `1.5.0-rc.1`.
+* Update OpenTelemetry SDK version to `1.5.0-rc.1`.
   ([#1210](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1210))
 
 ## 1.5.0-alpha.3
@@ -106,7 +123,7 @@ Released 2023-Mar-13
   the connection.
   ([#935](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/935))
 
-* Update OTel SDK version to `1.5.0-alpha.1`.
+* Update OpenTelemetry SDK version to `1.5.0-alpha.1`.
 * Update GenevaMetricExporter to use TLV format serialization.
 * Add support for exporting exemplars.
   ([#1069](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1069))
@@ -239,9 +256,9 @@ Released 2022-Oct-17
   It will also not support string values that contain non-ASCII characters.
   [646](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/646)
 
-* Update OTel SDK version to `1.4.0-beta.2`. Add support for exporting Histogram
-  Min and Max. If the histogram does not contain min and max, the exporter
-  exports both the values as zero.
+* Update OpenTelemetry SDK version to `1.4.0-beta.2`. Add support for exporting
+  Histogram Min and Max. If the histogram does not contain min and max,
+  the exporter exports both the values as zero.
   [#704](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/704)
 
 ## 1.4.0-beta.1
@@ -263,7 +280,7 @@ Released 2022-Jul-28
 `GenevaMetricExporter`.
 [397](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/397)
 
-* Update OTel SDK version to `1.3.0`.
+* Update OpenTelemetry SDK version to `1.3.0`.
 [427](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/427)
 
 * Remove support for .NET Framework 4.6.1. The minimum .NET Framework version
@@ -337,7 +354,7 @@ NuGet.
 [303](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/303)
 is the PR that introduced this bug to GenevaMetricExporterExtensions.cs
 
-* Update OTel SDK version to `1.2.0`.
+* Update OpenTelemetry SDK version to `1.2.0`.
 [319](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/319)
 
 ## 1.2.4 Broken
@@ -357,5 +374,5 @@ special casing "{OriginalFormat}" only.
 had a single KeyValuePair.
 [295](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/295)
 
-* Update OTel SDK version to `1.2.0-rc5`.
+* Update OpenTelemetry SDK version to `1.2.0-rc5`.
 [308](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/308)
