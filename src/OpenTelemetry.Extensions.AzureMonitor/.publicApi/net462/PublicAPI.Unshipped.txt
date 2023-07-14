@@ -1,7 +1,0 @@
-OpenTelemetry.Extensions.AzureMonitor.ApplicationInsightsSampler
-OpenTelemetry.Extensions.AzureMonitor.ApplicationInsightsSampler.ApplicationInsightsSampler(OpenTelemetry.Extensions.AzureMonitor.ApplicationInsightsSamplerOptions! options) -> void
-OpenTelemetry.Extensions.AzureMonitor.ApplicationInsightsSamplerOptions
-OpenTelemetry.Extensions.AzureMonitor.ApplicationInsightsSamplerOptions.ApplicationInsightsSamplerOptions() -> void
-OpenTelemetry.Extensions.AzureMonitor.ApplicationInsightsSamplerOptions.SamplingRatio.get -> float
-OpenTelemetry.Extensions.AzureMonitor.ApplicationInsightsSamplerOptions.SamplingRatio.set -> void
-override OpenTelemetry.Extensions.AzureMonitor.ApplicationInsightsSampler.ShouldSample(in OpenTelemetry.Trace.SamplingParameters samplingParameters) -> OpenTelemetry.Trace.SamplingResult
