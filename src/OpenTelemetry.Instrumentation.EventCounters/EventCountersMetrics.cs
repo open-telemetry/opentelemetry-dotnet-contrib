@@ -40,6 +40,14 @@ internal sealed class EventCountersMetrics : EventListener
     private readonly ConcurrentDictionary<(string, string), double> values = new();
     private bool isDisposed;
 
+    static EventCountersMetrics()
+    {
+        // Ensure EventCountersInstrumentationEventSource got initialized when the class was accessed for the first time
+        // to prevent potential deadlock:
+        // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1024.
+        _ = EventCountersInstrumentationEventSource.Log;
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="EventCountersMetrics"/> class.
     /// </summary>

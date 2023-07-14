@@ -114,7 +114,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
     {
         string json = GetLogRecordJson(1, (index, logRecord) =>
         {
-            logRecord.StateValues = new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("{OriginalFormat}", "hello world") };
+            logRecord.Attributes = new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("{OriginalFormat}", "hello world") };
             logRecord.FormattedMessage = "goodbye world";
         });
 
@@ -173,7 +173,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
     {
         string json = GetLogRecordJson(1, (index, logRecord) =>
         {
-            logRecord.StateValues = new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("stateKey1", "stateValue1"), new KeyValuePair<string, object?>("stateKey2", "stateValue2") };
+            logRecord.Attributes = new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("stateKey1", "stateValue1"), new KeyValuePair<string, object?>("stateKey2", "stateValue2") };
         });
 
         Assert.Equal(
@@ -238,7 +238,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
             1,
             (index, logRecord) =>
             {
-                logRecord.StateValues = new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("ext.state.field", "stateValue1") };
+                logRecord.Attributes = new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("ext.state.field", "stateValue1") };
             },
             resource,
             scopeProvider);
@@ -272,10 +272,20 @@ public class LogRecordCommonSchemaJsonSerializerTests
 
             if (scopeProvider != null)
             {
-                var setScopeProviderMethod = typeof(LogRecord).GetProperty("ScopeProvider", BindingFlags.Instance | BindingFlags.NonPublic)?.SetMethod
-                    ?? throw new InvalidOperationException("LogRecord.ScopeProvider.Set could not be found reflectively.");
+                var logRecordILoggerDataType = typeof(LogRecord).Assembly.GetType("OpenTelemetry.Logs.LogRecord+LogRecordILoggerData")
+                    ?? throw new InvalidOperationException("OpenTelemetry.Logs.LogRecord+LogRecordILoggerData could not be found reflectively.");
 
-                setScopeProviderMethod.Invoke(logRecord, new object[] { scopeProvider });
+                var iLoggerDataField = typeof(LogRecord).GetField("ILoggerData", BindingFlags.Instance | BindingFlags.NonPublic)
+                    ?? throw new InvalidOperationException("LogRecord.ILoggerData could not be found reflectively.");
+
+                var scopeProviderField = logRecordILoggerDataType.GetField("ScopeProvider", BindingFlags.Instance | BindingFlags.Public)
+                    ?? throw new InvalidOperationException("LogRecordILoggerData.ScopeProvider could not be found reflectively.");
+
+                var iLoggerData = iLoggerDataField.GetValue(logRecord);
+
+                scopeProviderField.SetValue(iLoggerData, scopeProvider);
+
+                iLoggerDataField.SetValue(logRecord, iLoggerData);
             }
 
             writeLogRecordCallback(i, logRecord);

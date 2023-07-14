@@ -34,8 +34,8 @@
     <MicrosoftOwinPkgVer>[4.2.2,5.0)</MicrosoftOwinPkgVer>
     <MicrosoftPublicApiAnalyzersPkgVer>[3.3.3]</MicrosoftPublicApiAnalyzersPkgVer>
     <MicrosoftSourceLinkGitHubPkgVer>[1.1.1,2.0)</MicrosoftSourceLinkGitHubPkgVer>
-    <OpenTelemetryCoreLatestVersion>[1.5.0,2.0)</OpenTelemetryCoreLatestVersion>
-    <OpenTelemetryCoreLatestPrereleaseVersion>[1.5.0-rc.1]</OpenTelemetryCoreLatestPrereleaseVersion>
+    <OpenTelemetryCoreLatestVersion>[1.5.1,2.0)</OpenTelemetryCoreLatestVersion>
+    <OpenTelemetryCoreLatestPrereleaseVersion>[1.6.0-alpha.1]</OpenTelemetryCoreLatestPrereleaseVersion>
     <StackExchangeRedisPkgVer>[2.1.58,3.0)</StackExchangeRedisPkgVer>
     <CassandraCSharpDriverPkgVer>[3.16.0,4.0)</CassandraCSharpDriverPkgVer>
     <StyleCopAnalyzersPkgVer>[1.2.0-beta.435,2.0)</StyleCopAnalyzersPkgVer>

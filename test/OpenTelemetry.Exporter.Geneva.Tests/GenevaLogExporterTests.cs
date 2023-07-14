@@ -1352,8 +1352,12 @@ public class GenevaLogExporterTests
         }
 
         // Part B fields
+
+        // `LogRecord.LogLevel` was marked Obsolete in https://github.com/open-telemetry/opentelemetry-dotnet/pull/4568
+#pragma warning disable 0618
         Assert.Equal(logRecord.LogLevel.ToString(), mapping["severityText"]);
         Assert.Equal((byte)(((int)logRecord.LogLevel * 4) + 1), mapping["severityNumber"]);
+#pragma warning restore 0618
 
         Assert.Equal(logRecord.CategoryName, mapping["name"]);
 

@@ -1,7 +1,7 @@
 # EventCounters Instrumentation for OpenTelemetry .NET
 
-[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.EventCounters.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EventCounters)
-[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.EventCounters.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EventCounters)
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.EventCounters)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EventCounters)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.EventCounters)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EventCounters)
 
 This is an [Instrumentation
 Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library)

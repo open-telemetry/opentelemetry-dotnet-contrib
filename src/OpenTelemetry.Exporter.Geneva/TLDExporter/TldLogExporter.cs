@@ -190,10 +190,8 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
 
         // `LogRecord.State` and `LogRecord.StateValues` were marked Obsolete in https://github.com/open-telemetry/opentelemetry-dotnet/pull/4334
 #pragma warning disable 0618
-        if (logRecord.State == null)
+        if (logRecord.StateValues != null)
         {
-            // When State is null, OTel SDK guarantees StateValues is populated
-            // TODO: Debug.Assert?
             listKvp = logRecord.StateValues;
         }
         else
@@ -295,7 +293,12 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         byte partBFieldsCount = 4;
         var partBFieldsCountPatch = eb.AddStruct("PartB", partBFieldsCount); // We at least have three fields in Part B: _typeName, severityText, severityNumber, name
         eb.AddCountedString("_typeName", "Log");
+
+        // `LogRecord.LogLevel` was marked Obsolete in https://github.com/open-telemetry/opentelemetry-dotnet/pull/4568
+#pragma warning disable 0618
         var logLevel = logRecord.LogLevel;
+#pragma warning restore 0618
+
         eb.AddCountedString("severityText", logLevels[(int)logLevel]);
         eb.AddUInt8("severityNumber", GetSeverityNumber(logLevel));
         eb.AddCountedAnsiString("name", categoryName, Encoding.UTF8);

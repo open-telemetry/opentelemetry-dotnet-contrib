@@ -1,7 +1,7 @@
 # gRPC Core-based Client and Server Interceptors for OpenTelemetry .NET
 
-[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.GrpcCore.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.GrpcCore)
-[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.GrpcCore.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.GrpcCore)
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.GrpcCore)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.GrpcCore)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.GrpcCore)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.GrpcCore)
 
 Adds OpenTelemetry instrumentation for gRPC Core-based client and server calls.
 
