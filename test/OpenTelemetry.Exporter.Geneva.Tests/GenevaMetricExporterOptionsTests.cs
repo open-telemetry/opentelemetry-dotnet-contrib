@@ -91,4 +91,35 @@ public class GenevaMetricExporterOptionsTests
 
         Assert.Null(exception);
     }
+
+    [Fact]
+    public void InvalidMeterNamespaceOverrides()
+    {
+        var exception = Assert.Throws<ArgumentNullException>(() =>
+        {
+            var exporterOptions = new GenevaMetricExporterOptions { MeterNamespaceOverrides = null };
+        });
+
+        Assert.Throws<ArgumentException>(() =>
+        {
+            var exporterOptions = new GenevaMetricExporterOptions
+            {
+                MeterNamespaceOverrides = new Dictionary<string, string>
+                {
+                    ["Meter"] = null,
+                },
+            };
+        });
+
+        Assert.Throws<ArgumentException>(() =>
+        {
+            var exporterOptions = new GenevaMetricExporterOptions
+            {
+                MeterNamespaceOverrides = new Dictionary<string, string>
+                {
+                    ["Meter"] = " ",
+                },
+            };
+        });
+    }
 }

@@ -220,6 +220,10 @@ is 20000 milliseconds.
 This is a collection of the dimensions that will be applied to _every_ metric
 exported by the exporter.
 
+#### `MeterNamespaceOverrides` (optional)
+
+This is a collection of the Namespace overrides per Meter.
+
 ## Troubleshooting
 
 Before digging into a problem, check if you hit a known issue by looking at the

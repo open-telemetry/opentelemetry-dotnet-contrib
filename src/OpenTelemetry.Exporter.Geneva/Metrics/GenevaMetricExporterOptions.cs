@@ -24,6 +24,7 @@ namespace OpenTelemetry.Exporter.Geneva;
 public class GenevaMetricExporterOptions
 {
     private IReadOnlyDictionary<string, object> _prepopulatedMetricDimensions;
+    private IReadOnlyDictionary<string, string> _meterNamespaceOverrides;
     private int _metricExporterIntervalMilliseconds = 60000;
 
     /// <summary>
@@ -94,6 +95,36 @@ public class GenevaMetricExporterOptions
             }
 
             this._prepopulatedMetricDimensions = copy;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the per Meter namespace override.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> MeterNamespaceOverrides
+    {
+        get
+        {
+            return this._meterNamespaceOverrides;
+        }
+
+        set
+        {
+            Guard.ThrowIfNull(value);
+
+            var copy = new Dictionary<string, string>(value.Count);
+
+            foreach (var entry in value)
+            {
+                if (string.IsNullOrWhiteSpace(entry.Value))
+                {
+                    throw new ArgumentException($"Value provided for the meter: {entry.Key} is null or consists exclusively of white-space characters.");
+                }
+
+                copy[entry.Key] = entry.Value;
+            }
+
+            this._meterNamespaceOverrides = copy;
         }
     }
 }

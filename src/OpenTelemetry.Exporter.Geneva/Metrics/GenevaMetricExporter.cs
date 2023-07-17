@@ -55,9 +55,11 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
     private readonly string defaultMetricNamespace;
 
+    private readonly GenevaMetricExporterOptions options;
+
     private bool isDisposed;
 
-    public GenevaMetricExporter(GenevaMetricExporterOptions options)
+    internal GenevaMetricExporter(GenevaMetricExporterOptions options, IMetricDataTransport dataTransport)
     {
         Guard.ThrowIfNull(options);
         Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
@@ -73,30 +75,37 @@ public class GenevaMetricExporter : BaseExporter<Metric>
             this.serializedPrepopulatedDimensionsValues = this.SerializePrepopulatedDimensionsValues(options.PrepopulatedMetricDimensions.Values);
         }
 
-        switch (connectionStringBuilder.Protocol)
+        if (dataTransport != null)
         {
-            case TransportProtocol.Unix:
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    throw new ArgumentException("Unix domain socket should not be used on Windows.");
-                }
+            this.metricDataTransport = dataTransport;
+        }
+        else
+        {
+            switch (connectionStringBuilder.Protocol)
+            {
+                case TransportProtocol.Unix:
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        throw new ArgumentException("Unix domain socket should not be used on Windows.");
+                    }
 
-                var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
-                this.metricDataTransport = new MetricUnixDataTransport(unixDomainSocketPath);
-                break;
-            case TransportProtocol.Unspecified:
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    this.metricDataTransport = MetricEtwDataTransport.Shared;
+                    var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
+                    this.metricDataTransport = new MetricUnixDataTransport(unixDomainSocketPath);
                     break;
-                }
-                else
-                {
-                    throw new ArgumentException("Endpoint not specified");
-                }
+                case TransportProtocol.Unspecified:
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        this.metricDataTransport = MetricEtwDataTransport.Shared;
+                        break;
+                    }
+                    else
+                    {
+                        throw new ArgumentException("Endpoint not specified");
+                    }
 
-            default:
-                throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
+            }
         }
 
         unsafe
@@ -108,16 +117,28 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         {
             DisableOpenTelemetrySdkMetricNameValidation();
         }
+
+        this.options = options;
+    }
+
+    public GenevaMetricExporter(GenevaMetricExporterOptions options)
+        : this(options, null)
+    {
     }
 
     public override ExportResult Export(in Batch<Metric> batch)
     {
-        string monitoringAccount = this.defaultMonitoringAccount;
-        string metricNamespace = this.defaultMetricNamespace;
+        var monitoringAccount = this.defaultMonitoringAccount;
 
         var result = ExportResult.Success;
         foreach (var metric in batch)
         {
+            var metricNamespace = this.defaultMetricNamespace;
+            if (this.options.MeterNamespaceOverrides != null && this.options.MeterNamespaceOverrides.TryGetValue(metric.MeterName, out var namespaceOverride))
+            {
+                metricNamespace = namespaceOverride;
+            }
+
             foreach (ref readonly var metricPoint in metric.GetMetricPoints())
             {
                 try
@@ -137,8 +158,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metricPoint.Tags,
                                     metricData,
                                     exemplars,
-                                    out monitoringAccount,
-                                    out metricNamespace);
+                                    monitoringAccount,
+                                    metricNamespace);
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
@@ -157,8 +178,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metricPoint.Tags,
                                     metricData,
                                     exemplars,
-                                    out monitoringAccount,
-                                    out metricNamespace);
+                                    monitoringAccount,
+                                    metricNamespace);
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
@@ -177,8 +198,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metricPoint.Tags,
                                     metricData,
                                     exemplars,
-                                    out monitoringAccount,
-                                    out metricNamespace);
+                                    monitoringAccount,
+                                    metricNamespace);
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
@@ -195,8 +216,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metricPoint.Tags,
                                     metricData,
                                     exemplars,
-                                    out monitoringAccount,
-                                    out metricNamespace);
+                                    monitoringAccount,
+                                    metricNamespace);
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
@@ -212,8 +233,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     metricPoint.Tags,
                                     metricData,
                                     exemplars,
-                                    out monitoringAccount,
-                                    out metricNamespace);
+                                    monitoringAccount,
+                                    metricNamespace);
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
@@ -238,8 +259,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                                     min,
                                     max,
                                     exemplars,
-                                    out monitoringAccount,
-                                    out metricNamespace);
+                                    monitoringAccount,
+                                    metricNamespace);
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
@@ -302,8 +323,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         in ReadOnlyTagCollection tags,
         MetricData value,
         Exemplar[] exemplars,
-        out string monitoringAccount,
-        out string metricNamespace)
+        string monitoringAccount,
+        string metricNamespace)
     {
         ushort bodyLength;
         try
@@ -325,14 +346,14 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                 tags,
                 this.buffer,
                 ref bufferIndex,
-                out monitoringAccount,
-                out metricNamespace);
+                out var monitoringAccountOverride,
+                out var metricNamespaceOverride);
 
             SerializeExemplars(exemplars, this.buffer, ref bufferIndex);
 
-            SerializeMonitoringAccount(monitoringAccount, this.buffer, ref bufferIndex);
+            SerializeMonitoringAccount(monitoringAccountOverride ?? monitoringAccount, this.buffer, ref bufferIndex);
 
-            SerializeMetricNamespace(metricNamespace, this.buffer, ref bufferIndex);
+            SerializeMetricNamespace(metricNamespaceOverride ?? metricNamespace, this.buffer, ref bufferIndex);
 
             // Write the final size of the payload
             bodyLength = (ushort)(bufferIndex - this.fixedPayloadStartIndex);
@@ -362,8 +383,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         double min,
         double max,
         Exemplar[] exemplars,
-        out string monitoringAccount,
-        out string metricNamespace)
+        string monitoringAccount,
+        string metricNamespace)
     {
         ushort bodyLength;
         try
@@ -385,14 +406,14 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                 tags,
                 this.buffer,
                 ref bufferIndex,
-                out monitoringAccount,
-                out metricNamespace);
+                out var monitoringAccountOverride,
+                out var metricNamespaceOverride);
 
             SerializeExemplars(exemplars, this.buffer, ref bufferIndex);
 
-            SerializeMonitoringAccount(monitoringAccount, this.buffer, ref bufferIndex);
+            SerializeMonitoringAccount(monitoringAccountOverride ?? monitoringAccount, this.buffer, ref bufferIndex);
 
-            SerializeMetricNamespace(metricNamespace, this.buffer, ref bufferIndex);
+            SerializeMetricNamespace(metricNamespaceOverride ?? metricNamespace, this.buffer, ref bufferIndex);
 
             // Write the final size of the payload
             bodyLength = (ushort)(bufferIndex - this.fixedPayloadStartIndex);
@@ -647,8 +668,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void SerializeDimensionsAndGetCustomAccountNamespace(in ReadOnlyTagCollection tags, byte[] buffer, ref int bufferIndex, out string monitoringAccount, out string metricNamespace)
     {
-        monitoringAccount = this.defaultMonitoringAccount;
-        metricNamespace = this.defaultMetricNamespace;
+        monitoringAccount = null;
+        metricNamespace = null;
 
         MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)PayloadType.Dimensions);
 
