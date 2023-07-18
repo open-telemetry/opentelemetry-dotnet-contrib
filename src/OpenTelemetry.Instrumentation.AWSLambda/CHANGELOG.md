@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+* The minimum required .NET version is now .NET Core 3.1 (previously any netstandard2.0-compliant).
+  As the minimum .NET version in AWS Lambda is already 6.0, no compatibility problems are expected.
+
+  This resolves a warning that some dependency analyzers may produce where this package would transitively
+  depend on a vulnerable version of `Newtonsoft.Json` through
+  [Amazon.Lambda.APIGatewayEvents](https://www.nuget.org/packages/Amazon.Lambda.APIGatewayEvents/2.4.1#dependencies-body-tab).
+
+  This also avoids a potential issue where the instrumentation would try to call a Newtonsoft.Json function
+  when no other package nor the app itself depends on Newtonsoft.Json, since the transitive dependency would be
+  ignored unless using application were compiled against a TargetFramework older than Core 3.1.
+
 ## 1.1.0-beta.3
 
 Released 2023-Jun-13

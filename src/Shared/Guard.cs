@@ -34,7 +34,7 @@ using System.Threading;
 #pragma warning disable SA1403 // File may only contain a single namespace
 #pragma warning disable SA1649 // File name should match first type name
 
-#if !NET6_0_OR_GREATER
+#if !NETCOREAPP3_0_OR_GREATER
 namespace System.Runtime.CompilerServices
 {
     /// <summary>Allows capturing of the expressions passed to a method.</summary>
