@@ -83,6 +83,8 @@ public class AWSMessagingUtilsTests : IDisposable
                 new SQSMessage
                 {
                     MessageAttributes = new(),
+
+#pragma warning disable format // dotnet-format butchers the raw string & all following code (use dotnet format instead?)
                     Body = /*lang=json,strict*/ """
                     {
                       "Type" : "Notification",
