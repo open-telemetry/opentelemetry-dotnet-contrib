@@ -18,11 +18,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.Json;
 using Amazon.Lambda.SNSEvents;
 using Amazon.Lambda.SQSEvents;
 using OpenTelemetry.Context.Propagation;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 
