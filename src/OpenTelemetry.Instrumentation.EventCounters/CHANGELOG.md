@@ -2,8 +2,23 @@
 
 ## Unreleased
 
-* Update OpenTelemetry.Api to 1.5.0.
-  ([#1220](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1220))
+## 1.5.1-alpha.1
+
+Released 2023-Jul-11
+
+* Bumped the package version to `1.5.1-alpha.1` to keep its major and minor
+  version in sync with that of the core packages. This would make it more
+  intuitive for users to figure out what version of core packages would work
+  with a given version of this package.
+
+* Added a static constructor to ensure `EventCountersInstrumentationEventSource`
+got initialized when `EventCountersMetrics` was accessed for the first time to
+prevent potential deadlock;
+e.g.: <https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1024>.
+  ([#1260](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1260))
+
+* Update OpenTelemetry.Api to 1.5.1.
+  ([#1255](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1255))
 
 ## 1.0.0-alpha.2
 

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.5.1-rc.1
+
+Released 2023-Jun-29
+
 * Added support for sending common schema extensions using `ext.[name].[field]`
   syntax.
   ([#1073](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1073))
@@ -17,6 +21,9 @@
 * Added support for sending common schema `eventId` field when `EventId.Id` is
   non-zero on `LogRecord`s.
   ([#1127](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1127))
+
+* Update OpenTelemetry to 1.5.1
+  ([#1255](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1255))
 
 ## 0.1.0-alpha.2
 
