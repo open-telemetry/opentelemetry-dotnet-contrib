@@ -146,10 +146,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentati
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.ElasticsearchClient.Tests", "test\OpenTelemetry.Instrumentation.ElasticsearchClient.Tests\OpenTelemetry.Instrumentation.ElasticsearchClient.Tests.csproj", "{970B604C-C57F-4767-A080-67976E69F76E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.AzureMonitor", "src\OpenTelemetry.Extensions.AzureMonitor\OpenTelemetry.Extensions.AzureMonitor.csproj", "{426D8AE8-EC39-48EA-AC66-1BF84C4CE529}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.AzureMonitor.Tests", "test\OpenTelemetry.Extensions.AzureMonitor.Tests\OpenTelemetry.Extensions.AzureMonitor.Tests.csproj", "{47ABABE1-62CC-4655-AA95-352F4DC20C96}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.MySqlData", "src\OpenTelemetry.Instrumentation.MySqlData\OpenTelemetry.Instrumentation.MySqlData.csproj", "{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.MySqlData.Tests", "test\OpenTelemetry.Instrumentation.MySqlData.Tests\OpenTelemetry.Instrumentation.MySqlData.Tests.csproj", "{662A00CA-B152-40D4-B9A4-6061490B8B3D}"
@@ -288,13 +284,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetec
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.AWS.Tests", "test\OpenTelemetry.ResourceDetectors.AWS.Tests\OpenTelemetry.ResourceDetectors.AWS.Tests.csproj", "{DE898A1E-920E-476F-B0DB-A98AFD6E3BF4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Exporter.InfluxDB", "src\OpenTelemetry.Exporter.InfluxDB\OpenTelemetry.Exporter.InfluxDB.csproj", "{FD5E9AC8-DC05-4C64-BDC6-D26F5552808E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.InfluxDB", "src\OpenTelemetry.Exporter.InfluxDB\OpenTelemetry.Exporter.InfluxDB.csproj", "{FD5E9AC8-DC05-4C64-BDC6-D26F5552808E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Exporter.InfluxDB.Tests", "test\OpenTelemetry.Exporter.InfluxDB.Tests\OpenTelemetry.Exporter.InfluxDB.Tests.csproj", "{4847A991-D0C3-4421-B0D3-EA189959E639}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.InfluxDB.Tests", "test\OpenTelemetry.Exporter.InfluxDB.Tests\OpenTelemetry.Exporter.InfluxDB.Tests.csproj", "{4847A991-D0C3-4421-B0D3-EA189959E639}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "InfluxDB", "InfluxDB", "{2D354354-BAFB-490B-A26F-6A16A52A1A45}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples.InfluxDB", "examples\InfluxDB\Examples.InfluxDB\Examples.InfluxDB.csproj", "{B4951583-D432-4E87-85CF-498FDD6A35E6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.InfluxDB", "examples\InfluxDB\Examples.InfluxDB\Examples.InfluxDB.csproj", "{B4951583-D432-4E87-85CF-498FDD6A35E6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -378,14 +374,6 @@ Global
 		{970B604C-C57F-4767-A080-67976E69F76E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{970B604C-C57F-4767-A080-67976E69F76E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{970B604C-C57F-4767-A080-67976E69F76E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{426D8AE8-EC39-48EA-AC66-1BF84C4CE529}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{426D8AE8-EC39-48EA-AC66-1BF84C4CE529}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{426D8AE8-EC39-48EA-AC66-1BF84C4CE529}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{426D8AE8-EC39-48EA-AC66-1BF84C4CE529}.Release|Any CPU.Build.0 = Release|Any CPU
-		{47ABABE1-62CC-4655-AA95-352F4DC20C96}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{47ABABE1-62CC-4655-AA95-352F4DC20C96}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{47ABABE1-62CC-4655-AA95-352F4DC20C96}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{47ABABE1-62CC-4655-AA95-352F4DC20C96}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -652,8 +640,6 @@ Global
 		{8DABC11A-624E-4554-ACA4-D5B80146B9C6} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{96F5B85B-402B-4DFB-AF31-33D5A2EBE35B} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{970B604C-C57F-4767-A080-67976E69F76E} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
-		{426D8AE8-EC39-48EA-AC66-1BF84C4CE529} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
-		{47ABABE1-62CC-4655-AA95-352F4DC20C96} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{662A00CA-B152-40D4-B9A4-6061490B8B3D} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{D4468444-69EF-4BF3-B13F-61F4AB728813} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
