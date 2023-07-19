@@ -27,6 +27,27 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
 public class EntityFrameworkInstrumentationOptions
 {
     /// <summary>
+    /// Initializes a new instance of the <see cref="EntityFrameworkInstrumentationOptions"/> class.
+    /// Default constructor, uses environment variables if possible.
+    /// </summary>
+    public EntityFrameworkInstrumentationOptions()
+    {
+        var envSetDbStatement =
+            Environment.GetEnvironmentVariable(EntityFrameworkConstants.OTEL_ENTITYFRAMEWORKCORE_SET_DB_STATEMENT_TEXT);
+        if (envSetDbStatement != null && bool.TryParse(envSetDbStatement, out var boolEnvSetDbStatement))
+        {
+            this.SetDbStatementForText = boolEnvSetDbStatement;
+        }
+
+        var envSetDbStatementStoredProcedure =
+            Environment.GetEnvironmentVariable(EntityFrameworkConstants.OTEL_ENTITYFRAMEWORKCORE_SET_DB_STATEMENT_STORED_PROCEDURE);
+        if (envSetDbStatement != null && bool.TryParse(envSetDbStatementStoredProcedure, out var boolEnvSetDbStatementStoredProcedure))
+        {
+            this.SetDbStatementForStoredProcedure = boolEnvSetDbStatementStoredProcedure;
+        }
+    }
+
+    /// <summary>
     /// Gets or sets a value indicating whether or not the <see cref="EntityFrameworkInstrumentation"/> should add the names of <see cref="CommandType.StoredProcedure"/> commands as the <see cref="SemanticConventions.AttributeDbStatement"/> tag. Default value: True.
     /// </summary>
     public bool SetDbStatementForStoredProcedure { get; set; } = true;
