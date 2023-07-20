@@ -18,7 +18,7 @@ namespace OpenTelemetry.ResourceDetectors.Azure;
 internal class ResourceAttributeConstants
 {
     // AppService resource attributes
-    internal const string AppServiceStamp = "azure.app.service.stamp";
+    internal const string AzureAppServiceStamp = "azure.app.service.stamp";
 
     // Azure VM resource attributes
     internal const string AzureVmScaleSetName = "azure.vm.scaleset.name";
@@ -33,4 +33,9 @@ internal class ResourceAttributeConstants
     internal const string AppServiceSiteNameEnvVar = "WEBSITE_SITE_NAME";
     internal const string AppServiceSlotNameEnvVar = "WEBSITE_SLOT_NAME";
     internal const string AppServiceStampNameEnvVar = "WEBSITE_HOME_STAMPNAME";
+
+    // Azure resource attributes constant values
+    internal const string AzureAppServicePlatformValue = "azure_app_service";
+    internal const string AzureCloudProviderValue = "azure";
+    internal const string AzureVmCloudPlatformValue = "azure_vm";
 }

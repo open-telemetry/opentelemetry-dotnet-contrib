@@ -59,10 +59,10 @@ internal sealed class AzureVmMetadataResponse
         switch (fieldName)
         {
             case ResourceSemanticConventions.AttributeCloudPlatform:
-                amsValue = "azure_vm";
+                amsValue = ResourceAttributeConstants.AzureVmCloudPlatformValue;
                 break;
             case ResourceSemanticConventions.AttributeCloudProvider:
-                amsValue = "azure";
+                amsValue = ResourceAttributeConstants.AzureCloudProviderValue;
                 break;
             case ResourceSemanticConventions.AttributeCloudRegion:
                 amsValue = this.Location;

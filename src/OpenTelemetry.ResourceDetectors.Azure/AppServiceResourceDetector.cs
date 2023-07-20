@@ -32,7 +32,7 @@ public sealed class AppServiceResourceDetector : IResourceDetector
         { ResourceSemanticConventions.AttributeDeploymentEnvironment, ResourceAttributeConstants.AppServiceSlotNameEnvVar },
         { ResourceSemanticConventions.AttributeHostId, ResourceAttributeConstants.AppServiceHostNameEnvVar },
         { ResourceSemanticConventions.AttributeServiceInstance, ResourceAttributeConstants.AppServiceInstanceIdEnvVar },
-        { ResourceAttributeConstants.AppServiceStamp, ResourceAttributeConstants.AppServiceStampNameEnvVar },
+        { ResourceAttributeConstants.AzureAppServiceStamp, ResourceAttributeConstants.AppServiceStampNameEnvVar },
     };
 
     /// <inheritdoc/>
@@ -47,8 +47,8 @@ public sealed class AppServiceResourceDetector : IResourceDetector
             if (websiteSiteName != null)
             {
                 attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, websiteSiteName));
-                attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudProvider, "azure"));
-                attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudProvider, "azure_app_service"));
+                attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudProvider, ResourceAttributeConstants.AzureCloudProviderValue));
+                attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudPlatform, ResourceAttributeConstants.AzureAppServicePlatformValue));
 
                 var azureResourceUri = GetAzureResourceURI(websiteSiteName);
                 if (azureResourceUri != null)

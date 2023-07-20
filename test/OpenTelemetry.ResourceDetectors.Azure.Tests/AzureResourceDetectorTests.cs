@@ -93,11 +93,11 @@ public class AzureResourceDetectorTests : IDisposable
             }
             else if (field == ResourceSemanticConventions.AttributeCloudPlatform)
             {
-                expectedValue = new KeyValuePair<string, object>(field, "azure_vm");
+                expectedValue = new KeyValuePair<string, object>(field, ResourceAttributeConstants.AzureVmCloudPlatformValue);
             }
             else if (field == ResourceSemanticConventions.AttributeCloudProvider)
             {
-                expectedValue = new KeyValuePair<string, object>(field, "azure");
+                expectedValue = new KeyValuePair<string, object>(field, ResourceAttributeConstants.AzureCloudProviderValue);
             }
             else
             {
