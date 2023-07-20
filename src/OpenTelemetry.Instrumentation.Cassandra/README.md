@@ -74,6 +74,18 @@ var cluster = new Builder()
     .Build();
 ```
 
+## List of metrics produced
+
+| Name  | Instrument Type | Unit | Description |
+|-------|-----------------|------|-------------|
+| `cassandra.cql-requests` | Histogram | `ms` | Measures the duration of Cassandra CQL requests from the client's perspective. |
+| `cassandra.bytes-sent` | Histogram | `bytes` | Measures the amount of bytes sent by the client to Cassandra. |
+| `cassandra.bytes-received` | Histogram | `bytes` | Measures the amount of bytes received by the client from Cassandra. |
+| `cassandra.cql-messages` | Histogram | `ms` | Measures the duration of CQL messages from the client's perspective. |
+| `cassandra.connected-nodes` | Gauge | `nodes` | Represents the number of nodes in Cassandra to which the client is connected. |
+| `cassandra.pool.open-connections` | Gauge | `connections` | Represents the number of open connections from the client to Cassandra. |
+| `cassandra.pool.in-flight` | Gauge | `requests` | Represents the number of in-flight requests from the client to Cassandra. |
+
 ## References
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
