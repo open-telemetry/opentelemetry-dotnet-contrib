@@ -27,42 +27,43 @@ public sealed class AzureVMResourceDetector : IResourceDetector
 {
     internal static readonly IReadOnlyCollection<string> ExpectedAzureAmsFields = new string[]
     {
-        ResourceAttributeConstants.AzureVmId,
-        ResourceAttributeConstants.AzureVmLocation,
-        ResourceAttributeConstants.AzureVmName,
-        ResourceAttributeConstants.AzureVmOsType,
-        ResourceAttributeConstants.AzureVmResourceGroup,
-        ResourceAttributeConstants.AzureVmResourceId,
-        ResourceAttributeConstants.AzureVmSku,
-        ResourceAttributeConstants.AzureVmVersion,
-        ResourceAttributeConstants.AzureVmSize,
         ResourceAttributeConstants.AzureVmScaleSetName,
-        ResourceAttributeConstants.AzureVmSubscriptionId,
+        ResourceAttributeConstants.AzureVmSku,
+        ResourceSemanticConventions.AttributeCloudPlatform,
+        ResourceSemanticConventions.AttributeCloudProvider,
+        ResourceSemanticConventions.AttributeCloudRegion,
+        ResourceSemanticConventions.AttributeCloudResourceId,
+        ResourceSemanticConventions.AttributeHostId,
+        ResourceSemanticConventions.AttributeHostName,
+        ResourceSemanticConventions.AttributeHostType,
+        ResourceSemanticConventions.AttributeOsType,
+        ResourceSemanticConventions.AttributeOsVersion,
         ResourceSemanticConventions.AttributeServiceInstance,
     };
 
     /// <inheritdoc/>
     public Resource Detect()
     {
-        List<KeyValuePair<string, object>>? attributeList = null;
         try
         {
             var vmMetaDataResponse = AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse();
-            if (vmMetaDataResponse != null)
+            if (vmMetaDataResponse == null)
             {
-                attributeList = new List<KeyValuePair<string, object>>(ExpectedAzureAmsFields.Count);
-                foreach (var field in ExpectedAzureAmsFields)
-                {
-                    attributeList.Add(new KeyValuePair<string, object>(field, vmMetaDataResponse.GetValueForField(field)));
-                }
+                return Resource.Empty;
             }
+
+            var attributeList = new List<KeyValuePair<string, object>>(ExpectedAzureAmsFields.Count);
+            foreach (var field in ExpectedAzureAmsFields)
+            {
+                attributeList.Add(new KeyValuePair<string, object>(field, vmMetaDataResponse.GetValueForField(field)));
+            }
+
+            return new Resource(attributeList);
         }
         catch
         {
             // TODO: log exception.
             return Resource.Empty;
         }
-
-        return attributeList == null ? Resource.Empty : new Resource(attributeList);
     }
 }
