@@ -33,14 +33,14 @@ public class EntityFrameworkInstrumentationOptions
     public EntityFrameworkInstrumentationOptions()
     {
         var envSetDbStatement =
-            Environment.GetEnvironmentVariable(EntityFrameworkConstants.OTEL_ENTITYFRAMEWORKCORE_SET_DB_STATEMENT_TEXT);
+            Environment.GetEnvironmentVariable(EntityFrameworkConstants.OTEL_DOTNET_EF_SET_DB_STATEMENT_TEXT);
         if (envSetDbStatement != null && bool.TryParse(envSetDbStatement, out var boolEnvSetDbStatement))
         {
             this.SetDbStatementForText = boolEnvSetDbStatement;
         }
 
         var envSetDbStatementStoredProcedure =
-            Environment.GetEnvironmentVariable(EntityFrameworkConstants.OTEL_ENTITYFRAMEWORKCORE_SET_DB_STATEMENT_STORED_PROCEDURE);
+            Environment.GetEnvironmentVariable(EntityFrameworkConstants.OTEL_DOTNET_EF_SET_DB_STATEMENT_STORED_PROCEDURE);
         if (envSetDbStatement != null && bool.TryParse(envSetDbStatementStoredProcedure, out var boolEnvSetDbStatementStoredProcedure))
         {
             this.SetDbStatementForStoredProcedure = boolEnvSetDbStatementStoredProcedure;

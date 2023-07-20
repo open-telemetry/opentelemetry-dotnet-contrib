@@ -27,8 +27,8 @@ public class EnvironmentVariablesOptionsTests
     [Fact]
     public void TestEnvVariablesTrue()
     {
-        Environment.SetEnvironmentVariable(EntityFrameworkConstants.OTEL_ENTITYFRAMEWORKCORE_SET_DB_STATEMENT_STORED_PROCEDURE, "true");
-        Environment.SetEnvironmentVariable(EntityFrameworkConstants.OTEL_ENTITYFRAMEWORKCORE_SET_DB_STATEMENT_TEXT, "true");
+        Environment.SetEnvironmentVariable(EntityFrameworkConstants.OTEL_DOTNET_EF_SET_DB_STATEMENT_STORED_PROCEDURE, "true");
+        Environment.SetEnvironmentVariable(EntityFrameworkConstants.OTEL_DOTNET_EF_SET_DB_STATEMENT_TEXT, "true");
 
         var services = new ServiceCollection();
 
@@ -47,8 +47,8 @@ public class EnvironmentVariablesOptionsTests
     [Fact]
     public void TestEnvVariablesFalse()
     {
-        Environment.SetEnvironmentVariable(EntityFrameworkConstants.OTEL_ENTITYFRAMEWORKCORE_SET_DB_STATEMENT_STORED_PROCEDURE, "false");
-        Environment.SetEnvironmentVariable(EntityFrameworkConstants.OTEL_ENTITYFRAMEWORKCORE_SET_DB_STATEMENT_TEXT, "false");
+        Environment.SetEnvironmentVariable(EntityFrameworkConstants.OTEL_DOTNET_EF_SET_DB_STATEMENT_STORED_PROCEDURE, "false");
+        Environment.SetEnvironmentVariable(EntityFrameworkConstants.OTEL_DOTNET_EF_SET_DB_STATEMENT_TEXT, "false");
 
         var services = new ServiceCollection();
 
