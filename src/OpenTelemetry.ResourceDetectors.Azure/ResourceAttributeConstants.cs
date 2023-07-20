@@ -15,7 +15,7 @@
 // </copyright>
 
 namespace OpenTelemetry.ResourceDetectors.Azure;
-internal class ResourceAttributeConstants
+internal sealed class ResourceAttributeConstants
 {
     // AppService resource attributes
     internal const string AzureAppServiceStamp = "azure.app.service.stamp";
