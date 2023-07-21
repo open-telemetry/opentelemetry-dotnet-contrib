@@ -1,10 +1,10 @@
 ---
-name: OpenTelemetry.Contrib.Instrumentation.AWS
-about: Issue with OpenTelemetry.Contrib.Instrumentation.AWS
-labels: comp:contrib.instrumentation.aws
+name: OpenTelemetry.Instrumentation.AWS
+about: Issue with OpenTelemetry.Instrumentation.AWS
+labels: comp:instrumentation.aws
 ---
 
-# Issue with OpenTelemetry.Contrib.Instrumentation.AWS
+# Issue with OpenTelemetry.Instrumentation.AWS
 
 List of [all OpenTelemetry NuGet
 packages](https://www.nuget.org/profiles/OpenTelemetry) and version that you are

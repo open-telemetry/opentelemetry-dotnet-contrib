@@ -6,7 +6,7 @@ components:
   src/OpenTelemetry.Contrib.Extensions.AWSXRay/:
     - srprash
     - atshaw43
-  src/OpenTelemetry.Contrib.Instrumentation.AWS/:
+  src/OpenTelemetry.Instrumentation.AWS/:
     - srprash
     - atshaw43
   src/OpenTelemetry.Exporter.Geneva/:
@@ -73,7 +73,7 @@ components:
   test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/:
     - srprash
     - atshaw43
-  test/OpenTelemetry.Contrib.Instrumentation.AWS.Tests/:
+  test/OpenTelemetry.Instrumentation.AWS.Tests/:
     - srprash
     - atshaw43
   test/OpenTelemetry.Exporter.Geneva.Benchmark/:
