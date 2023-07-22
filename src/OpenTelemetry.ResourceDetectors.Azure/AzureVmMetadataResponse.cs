@@ -58,39 +58,39 @@ internal sealed class AzureVmMetadataResponse
         string? amsValue = null;
         switch (fieldName)
         {
-            case "azInst_osType":
-                amsValue = this.OsType;
+            case ResourceSemanticConventions.AttributeCloudPlatform:
+                amsValue = ResourceAttributeConstants.AzureVmCloudPlatformValue;
                 break;
-            case "azInst_location":
+            case ResourceSemanticConventions.AttributeCloudProvider:
+                amsValue = ResourceAttributeConstants.AzureCloudProviderValue;
+                break;
+            case ResourceSemanticConventions.AttributeCloudRegion:
                 amsValue = this.Location;
                 break;
-            case "azInst_name":
-                amsValue = this.Name;
+            case ResourceSemanticConventions.AttributeCloudResourceId:
+                amsValue = this.ResourceId;
                 break;
-            case "azInst_sku":
-                amsValue = this.Sku;
-                break;
-            case "azInst_version":
-                amsValue = this.Version;
-                break;
-            case "azInst_vmId":
+            case ResourceSemanticConventions.AttributeHostId:
             case ResourceSemanticConventions.AttributeServiceInstance:
                 amsValue = this.VmId;
                 break;
-            case "azInst_vmSize":
+            case ResourceSemanticConventions.AttributeHostName:
+                amsValue = this.Name;
+                break;
+            case ResourceSemanticConventions.AttributeHostType:
                 amsValue = this.VmSize;
                 break;
-            case "azInst_subscriptionId":
-                amsValue = this.SubscriptionId;
+            case ResourceSemanticConventions.AttributeOsType:
+                amsValue = this.OsType;
                 break;
-            case "azInst_resourceId":
-                amsValue = this.ResourceId;
+            case ResourceSemanticConventions.AttributeOsVersion:
+                amsValue = this.Version;
                 break;
-            case "azInst_resourceGroupName":
-                amsValue = this.ResourceGroupName;
-                break;
-            case "azInst_vmScaleSetName":
+            case ResourceAttributeConstants.AzureVmScaleSetName:
                 amsValue = this.VmScaleSetName;
+                break;
+            case ResourceAttributeConstants.AzureVmSku:
+                amsValue = this.Sku;
                 break;
         }
 
