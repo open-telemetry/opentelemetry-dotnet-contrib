@@ -62,11 +62,6 @@ internal class RequestTelemetryStateTracker
                     this.state.Remove(relatesTo);
                     returnValue = telemetryState;
                 }
-
-                while (this.messageIdQueue.Count > 0 && !this.state.ContainsKey(this.messageIdQueue.Peek()))
-                {
-                    this.messageIdQueue.Dequeue();
-                }
             }
         }
 
