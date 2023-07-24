@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* BREAKING (renaming): renamed `OpenTelemetry.Contrib.Instrumentation.AWS` to `OpenTelemetry.Instrumentation.AWS`
+  ([#1275](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1275))
 * Raised the minimum .NET version to `net462`
   ([#1095](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1095))
 * Removes `AddAWSInstrumentation` method with default configure default parameter.
@@ -9,8 +11,6 @@
 * Global propagator is now used to inject into sent SQS and SNS message
   attributes (in addition to X-Ray propagation).
   ([#1051](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1051))
-* BREAKING (renaming): renamed `OpenTelemetry.Contrib.Instrumentation.AWS` to `OpenTelemetry.Instrumentation.AWS`
-  ([#1275](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1275))
 
 ## 1.0.2
 
