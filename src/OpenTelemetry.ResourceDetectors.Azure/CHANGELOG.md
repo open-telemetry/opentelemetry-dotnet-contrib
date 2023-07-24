@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.0-beta.1
 
 * For Azure VM Resource Detector:
   ([#1272](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1272/files))
