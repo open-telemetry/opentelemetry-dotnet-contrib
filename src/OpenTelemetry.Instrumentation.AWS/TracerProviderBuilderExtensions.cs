@@ -32,7 +32,7 @@ public static class TracerProviderBuilderExtensions
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddAWSInstrumentation(
-        this TracerProviderBuilder builder) => builder.AddAWSInstrumentation(configure: null);
+        this TracerProviderBuilder builder) => AddAWSInstrumentation(builder, configure: null);
 
     /// <summary>
     /// Enables AWS Instrumentation.
