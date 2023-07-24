@@ -36,7 +36,7 @@ The resource detector will record the following attributes:
 
 |                         |
 |-------------------------|
-| service.name            |
+| azure.app.service.stamp |
 | cloud.provider          |
 | cloud.platform          |
 | cloud.resource_id       |
@@ -44,7 +44,7 @@ The resource detector will record the following attributes:
 | deployment.environment  |
 | host.id                 |
 | service.instance.id     |
-| azure.app.service.stamp |
+| service.name            |
 
 ## VM Resource Detector
 
