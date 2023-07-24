@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>Unit test project for AWS client instrumentation for OpenTelemetry</Description>
+    <Description>Unit test project for AWS client instrumentation for OpenTelemetry.</Description>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
@@ -23,7 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.AWS\OpenTelemetry.Instrumentation.AWS.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'">
     <Compile Remove="Tools\CustomWebResponse.cs" />
     <Compile Remove="Tools\HttpResponseMessageBody.cs" />
