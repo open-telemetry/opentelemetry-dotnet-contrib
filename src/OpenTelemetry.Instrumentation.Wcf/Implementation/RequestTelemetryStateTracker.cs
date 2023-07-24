@@ -28,12 +28,7 @@ internal class RequestTelemetryStateTracker
 
     public RequestTelemetryStateTracker(TimeSpan timeout)
     {
-        if (timeout.TotalMilliseconds > int.MaxValue)
-        {
-            throw new ArgumentOutOfRangeException(nameof(timeout), "Timeout must be less than 2^31 milliseconds");
-        }
-
-        this.timeout = (int)timeout.TotalMilliseconds;
+        this.timeout = (int)Math.Min(timeout.TotalMilliseconds, int.MaxValue);
     }
 
     public event EventHandler<RequestTelemetryState> TelemetryStateTimedOut;
