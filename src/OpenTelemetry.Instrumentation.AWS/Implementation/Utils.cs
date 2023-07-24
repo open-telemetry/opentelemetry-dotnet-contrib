@@ -15,6 +15,7 @@
 // </copyright>
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation;
@@ -23,7 +24,7 @@ internal class Utils
 {
     internal static object? GetTagValue(Activity activity, string tagName)
     {
-        foreach (var tag in activity.TagObjects)
+        foreach (KeyValuePair<string, object?> tag in activity.TagObjects)
         {
             if (tag.Key.Equals(tagName, StringComparison.Ordinal))
             {

@@ -57,7 +57,7 @@ internal static class TestsHelper
                 throw new NotSupportedException($"Tests for service type {serviceType} not supported.");
         }
 
-        for (var i = 1; i <= attributesCount; i++)
+        for (int i = 1; i <= attributesCount; i++)
         {
             addAttribute(i);
         }
@@ -91,19 +91,19 @@ internal static class TestsHelper
     {
         var sendRequest = serviceRequest as SQS::SendMessageRequest;
         var publishRequest = serviceRequest as SNS::PublishRequest;
-        var index = 1;
+        int index = 1;
         if (sendRequest != null)
         {
             foreach (var a in sendRequest.MessageAttributes)
             {
-                parameters.AddStringParameter(serviceType, a.Key, a.Value.StringValue, index++);
+                AddStringParameter(parameters, serviceType, a.Key, a.Value.StringValue, index++);
             }
         }
         else if (publishRequest != null)
         {
             foreach (var a in publishRequest.MessageAttributes)
             {
-                parameters.AddStringParameter(serviceType, a.Key, a.Value.StringValue, index++);
+                AddStringParameter(parameters, serviceType, a.Key, a.Value.StringValue, index++);
             }
         }
     }
@@ -112,7 +112,7 @@ internal static class TestsHelper
     {
         Assert.Equal(expectedParameters.Count * 3, parameters.Count);
 
-        for (var i = 0; i < expectedParameters.Count; i++)
+        for (int i = 0; i < expectedParameters.Count; i++)
         {
             var prefix = $"{GetNamePrefix(serviceType)}.{i + 1}";
             static string? Value(ParameterValue p) => (p as StringParameterValue)?.Value;

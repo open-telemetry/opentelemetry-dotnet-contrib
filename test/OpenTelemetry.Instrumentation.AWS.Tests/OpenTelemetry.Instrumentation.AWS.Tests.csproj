@@ -20,13 +20,13 @@
     <DotNetCliToolReference Include="dotnet-xunit" Version="$(DotNetXUnitCliVer)" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.AWS\OpenTelemetry.Instrumentation.AWS.csproj" />
+  </ItemGroup>
+  
   <ItemGroup Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'">
     <Compile Remove="Tools\CustomWebResponse.cs" />
     <Compile Remove="Tools\HttpResponseMessageBody.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\OpenTelemetry.Instrumentation.AWS\OpenTelemetry.Instrumentation.AWS.csproj" />
   </ItemGroup>
 
 </Project>

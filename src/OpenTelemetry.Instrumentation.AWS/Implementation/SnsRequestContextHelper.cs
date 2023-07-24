@@ -43,14 +43,14 @@ internal class SnsRequestContextHelper
             return;
         }
 
-        var attributesCount = originalRequest.MessageAttributes.Count;
+        int attributesCount = originalRequest.MessageAttributes.Count;
         if (attributes.Count + attributesCount > MaxMessageAttributes)
         {
             // TODO: add logging (event source).
             return;
         }
 
-        var nextAttributeIndex = attributesCount + 1;
+        int nextAttributeIndex = attributesCount + 1;
         foreach (var param in attributes)
         {
             AddAttribute(parameters, originalRequest, param.Key, param.Value, nextAttributeIndex);

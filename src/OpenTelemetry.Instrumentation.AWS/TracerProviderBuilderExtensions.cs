@@ -15,11 +15,11 @@
 // </copyright>
 
 using System;
+using OpenTelemetry.Instrumentation.AWS;
 using OpenTelemetry.Instrumentation.AWS.Implementation;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Instrumentation.AWS;
+namespace OpenTelemetry.Trace;
 
 /// <summary>
 /// Extension methods to simplify registering of dependency instrumentation.

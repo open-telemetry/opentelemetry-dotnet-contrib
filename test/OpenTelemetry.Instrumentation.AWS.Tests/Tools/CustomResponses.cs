@@ -65,7 +65,7 @@ internal static class CustomResponses
 
         return (request) =>
         {
-            var headers = new Dictionary<string, string>(StringComparer.Ordinal);
+            Dictionary<string, string> headers = new Dictionary<string, string>(StringComparer.Ordinal);
             if (!string.IsNullOrEmpty(requestId))
             {
                 headers.Add(HeaderKeys.RequestIdHeader, requestId);
@@ -109,7 +109,7 @@ internal static class CustomResponses
 
         return (request) =>
         {
-            var headers = new Dictionary<string, string>(StringComparer.Ordinal);
+            Dictionary<string, string> headers = new Dictionary<string, string>(StringComparer.Ordinal);
             if (!string.IsNullOrEmpty(requestId))
             {
                 headers.Add(HeaderKeys.RequestIdHeader, requestId);

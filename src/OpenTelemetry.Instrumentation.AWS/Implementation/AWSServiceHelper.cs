@@ -38,8 +38,8 @@ internal class AWSServiceHelper
 
     internal static string GetAWSOperationName(IRequestContext requestContext)
     {
-        var completeRequestName = requestContext.OriginalRequest.GetType().Name;
-        var suffix = "Request";
+        string completeRequestName = requestContext.OriginalRequest.GetType().Name;
+        string suffix = "Request";
         var operationName = Utils.RemoveSuffix(completeRequestName, suffix);
         return operationName;
     }

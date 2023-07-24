@@ -115,7 +115,7 @@ internal class AWSTracingPipelineHandler : PipelineHandler
             var httpResponse = responseContext.HttpResponse;
             if (httpResponse != null)
             {
-                var statusCode = (int)httpResponse.StatusCode;
+                int statusCode = (int)httpResponse.StatusCode;
 
                 AddStatusCodeToActivity(activity, statusCode);
                 activity.SetTag(AWSSemanticConventions.AttributeHttpResponseContentLength, httpResponse.ContentLength);
@@ -143,14 +143,14 @@ internal class AWSTracingPipelineHandler : PipelineHandler
 
     private static void AddRequestSpecificInformation(Activity activity, IRequestContext requestContext, string service)
     {
-        if (AWSServiceHelper.ServiceParameterMap.TryGetValue(service, out var parameter))
+        if (AWSServiceHelper.ServiceParameterMap.TryGetValue(service, out string parameter))
         {
-            var request = requestContext.OriginalRequest;
+            AmazonWebServiceRequest request = requestContext.OriginalRequest;
 
             var property = request.GetType().GetProperty(parameter);
             if (property != null)
             {
-                if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
+                if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out string attribute))
                 {
                     activity.SetTag(attribute, property.GetValue(request));
                 }
@@ -180,7 +180,7 @@ internal class AWSTracingPipelineHandler : PipelineHandler
 
     private static string FetchRequestId(IRequestContext requestContext, IResponseContext responseContext)
     {
-        var request_id = string.Empty;
+        string request_id = string.Empty;
         var response = responseContext.Response;
         if (response != null)
         {
@@ -189,7 +189,7 @@ internal class AWSTracingPipelineHandler : PipelineHandler
         else
         {
             var request_headers = requestContext.Request.Headers;
-            if (string.IsNullOrEmpty(request_id) && request_headers.TryGetValue("x-amzn-RequestId", out var req_id))
+            if (string.IsNullOrEmpty(request_id) && request_headers.TryGetValue("x-amzn-RequestId", out string req_id))
             {
                 request_id = req_id;
             }
@@ -214,7 +214,7 @@ internal class AWSTracingPipelineHandler : PipelineHandler
         var service = AWSServiceHelper.GetAWSServiceName(requestContext);
         var operation = AWSServiceHelper.GetAWSOperationName(requestContext);
 
-        var activity = AWSSDKActivitySource.StartActivity(service + "." + operation, ActivityKind.Client);
+        Activity? activity = AWSSDKActivitySource.StartActivity(service + "." + operation, ActivityKind.Client);
 
         if (activity == null)
         {

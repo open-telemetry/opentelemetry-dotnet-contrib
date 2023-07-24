@@ -44,7 +44,7 @@ public class RequestContextHelperTests
     [InlineData(AWSServiceType.SNSService)]
     public void AddAttributes_ParametersCollectionSizeReachesLimit_TraceDataNotInjected(string serviceType)
     {
-        var originalRequest = TestsHelper.CreateOriginalRequest(serviceType, 10);
+        AmazonWebServiceRequest originalRequest = TestsHelper.CreateOriginalRequest(serviceType, 10);
         var parameters = new ParameterCollection();
         parameters.AddStringParameters(serviceType, originalRequest);
 
@@ -75,7 +75,7 @@ public class RequestContextHelperTests
             new KeyValuePair<string, string>("tracestate", "trace-state"),
         };
 
-        var originalRequest = TestsHelper.CreateOriginalRequest(serviceType, 0);
+        AmazonWebServiceRequest originalRequest = TestsHelper.CreateOriginalRequest(serviceType, 0);
         var parameters = new ParameterCollection();
 
         var request = new Mock<IRequest>();
@@ -106,7 +106,7 @@ public class RequestContextHelperTests
             new KeyValuePair<string, string>("tracestate", "trace-state"),
         };
 
-        var originalRequest = TestsHelper.CreateOriginalRequest(serviceType, 1);
+        AmazonWebServiceRequest originalRequest = TestsHelper.CreateOriginalRequest(serviceType, 1);
         var parameters = new ParameterCollection();
         parameters.AddStringParameters(serviceType, originalRequest);
 
@@ -140,7 +140,7 @@ public class RequestContextHelperTests
             new KeyValuePair<string, string>("traceparent", $"00-{TraceId}-{ParentId}-00"),
         };
 
-        var originalRequest = TestsHelper.CreateOriginalRequest(serviceType, 0);
+        AmazonWebServiceRequest originalRequest = TestsHelper.CreateOriginalRequest(serviceType, 0);
         originalRequest.AddAttribute("traceparent", $"00-{TraceId}-{ParentId}-00");
 
         var parameters = new ParameterCollection();

@@ -87,10 +87,10 @@ internal class CustomWebResponse : IWebResponseData
 
     private void CopyHeaderValues(HttpResponseMessage response)
     {
-        var headerNames = new List<string>();
+        List<string> headerNames = new List<string>();
         this.headers = new Dictionary<string, string>(10, StringComparer.OrdinalIgnoreCase);
 
-        foreach (var kvp in response.Headers)
+        foreach (KeyValuePair<string, IEnumerable<string>> kvp in response.Headers)
         {
             headerNames.Add(kvp.Key);
             var headerValue = this.GetFirstHeaderValue(response.Headers, kvp.Key);

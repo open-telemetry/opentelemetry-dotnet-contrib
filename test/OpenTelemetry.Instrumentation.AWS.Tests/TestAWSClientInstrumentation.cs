@@ -48,7 +48,7 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var ddb = new AmazonDynamoDBClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+            string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
             CustomResponses.SetResponse(ddb, null, requestId, true);
             var scan_request = new ScanRequest();
 
@@ -63,7 +63,7 @@ public class TestAWSClientInstrumentation
 
             Assert.Equal(3, count);
 
-            var awssdk_activity = (Activity)processor.Invocations[2].Arguments[0];
+            Activity awssdk_activity = (Activity)processor.Invocations[2].Arguments[0];
 
             this.ValidateAWSActivity(awssdk_activity, parent);
             this.ValidateDynamoActivityTags(awssdk_activity);
@@ -88,7 +88,7 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var ddb = new TestAmazonDynamoDBClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+            string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
             CustomResponses.SetResponse(ddb, null, requestId, true);
             var scan_request = new ScanRequest();
 
@@ -103,7 +103,7 @@ public class TestAWSClientInstrumentation
 
             Assert.Equal(3, count);
 
-            var awssdk_activity = (Activity)processor.Invocations[2].Arguments[0];
+            Activity awssdk_activity = (Activity)processor.Invocations[2].Arguments[0];
 
             this.ValidateAWSActivity(awssdk_activity, parent);
             this.ValidateDynamoActivityTags(awssdk_activity);
@@ -132,8 +132,8 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var ddb = new AmazonDynamoDBClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
-            var amazonServiceException = new AmazonServiceException();
+            string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+            AmazonServiceException amazonServiceException = new AmazonServiceException();
             amazonServiceException.StatusCode = System.Net.HttpStatusCode.NotFound;
             amazonServiceException.RequestId = requestId;
             CustomResponses.SetResponse(ddb, (request) => { throw amazonServiceException; });
@@ -155,7 +155,7 @@ public class TestAWSClientInstrumentation
                 var count = processor.Invocations.Count;
                 Assert.Equal(3, count);
 
-                var awssdk_activity = (Activity)processor.Invocations[2].Arguments[0];
+                Activity awssdk_activity = (Activity)processor.Invocations[2].Arguments[0];
 
                 this.ValidateAWSActivity(awssdk_activity, parent);
                 this.ValidateDynamoActivityTags(awssdk_activity);
@@ -182,8 +182,8 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
-            var dummyResponse = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+            string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+            string dummyResponse = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                                    "<ReceiveMessageResponse>SomeDummyResponse</ReceiveMessageResponse>";
             CustomResponses.SetResponse(sqs, dummyResponse, requestId, true);
             var send_msg_req = new SendMessageRequest();
@@ -197,7 +197,7 @@ public class TestAWSClientInstrumentation
 
             var count = processor.Invocations.Count;
             Assert.Equal(3, count);
-            var awssdk_activity = (Activity)processor.Invocations[2].Arguments[0];
+            Activity awssdk_activity = (Activity)processor.Invocations[2].Arguments[0];
 
             this.ValidateAWSActivity(awssdk_activity, parent);
             this.ValidateSqsActivityTags(awssdk_activity);

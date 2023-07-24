@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests.Tools;
 
@@ -26,8 +27,8 @@ internal static class Utils
 {
     public static Stream CreateStreamFromString(string s)
     {
-        var stream = new MemoryStream();
-        var writer = new StreamWriter(stream);
+        MemoryStream stream = new MemoryStream();
+        StreamWriter writer = new StreamWriter(stream);
         writer.Write(s);
         writer.Flush();
         stream.Position = 0;
@@ -36,9 +37,9 @@ internal static class Utils
 
     public static Stream? GetResourceStream(string resourceName)
     {
-        var assembly = typeof(Utils).Assembly;
+        Assembly assembly = typeof(Utils).Assembly;
         var resource = FindResourceName(resourceName);
-        var stream = assembly.GetManifestResourceStream(resource);
+        Stream? stream = assembly.GetManifestResourceStream(resource);
         return stream;
     }
 
@@ -50,7 +51,7 @@ internal static class Utils
             return string.Empty;
         }
 
-        using (var reader = new StreamReader(stream))
+        using (StreamReader reader = new StreamReader(stream))
         {
             return reader.ReadToEnd();
         }
@@ -65,7 +66,7 @@ internal static class Utils
 
     public static IEnumerable<string> FindResourceName(Predicate<string> match)
     {
-        var assembly = typeof(Utils).Assembly;
+        Assembly assembly = typeof(Utils).Assembly;
         var allResources = assembly.GetManifestResourceNames();
         foreach (var resource in allResources)
         {
