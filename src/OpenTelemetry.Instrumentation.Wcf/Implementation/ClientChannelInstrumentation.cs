@@ -96,7 +96,7 @@ internal static class ClientChannelInstrumentation
         };
     }
 
-    public static void AfterReceiveReply(Message reply, RequestTelemetryState state)
+    public static void AfterRequestCompleted(Message reply, RequestTelemetryState state)
     {
         Guard.ThrowIfNull(state);
 

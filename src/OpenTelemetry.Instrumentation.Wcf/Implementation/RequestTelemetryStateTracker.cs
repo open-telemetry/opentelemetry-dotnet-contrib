@@ -14,57 +14,88 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.ServiceModel.Channels;
+using System.Threading;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
 internal class RequestTelemetryStateTracker
 {
-    private Dictionary<string, RequestTelemetryState> state = new Dictionary<string, RequestTelemetryState>();
-    private Queue<string> messageIdQueue = new Queue<string>();
-    private object sync = new object();
-    private int maxTrackedRequestCount;
+    private Dictionary<string, Entry> outstandingRequestStates = new Dictionary<string, Entry>();
+    private int timeout;
 
-    public RequestTelemetryStateTracker(int maxTrackedRequestCount)
+    public RequestTelemetryStateTracker(TimeSpan timeout)
     {
-        this.maxTrackedRequestCount = maxTrackedRequestCount;
+        if (timeout.TotalMilliseconds > int.MaxValue)
+        {
+            throw new ArgumentOutOfRangeException(nameof(timeout), "Timeout must be less than 2^31 milliseconds");
+        }
+
+        this.timeout = (int)timeout.TotalMilliseconds;
     }
+
+    public event EventHandler<RequestTelemetryState> TelemetryStateTimedOut;
 
     public void PushTelemetryState(Message request, RequestTelemetryState telemetryState)
     {
-        var msgId = request?.Headers.MessageId?.ToString();
-        if (msgId != null)
+        var messageId = request?.Headers.MessageId?.ToString();
+        if (messageId != null)
         {
-            lock (this.sync)
+            var entry = new Entry(telemetryState);
+            lock (this.outstandingRequestStates)
             {
-                while (this.state.Count >= this.maxTrackedRequestCount || this.messageIdQueue.Count >= this.maxTrackedRequestCount)
-                {
-                    this.state.Remove(this.messageIdQueue.Dequeue());
-                }
-
-                this.state[msgId] = telemetryState;
-                this.messageIdQueue.Enqueue(msgId);
+                this.outstandingRequestStates[messageId] = entry;
             }
+
+            entry.TimeoutTimer = new Timer(this.OnTimer, messageId, this.timeout, Timeout.Infinite);
         }
     }
 
     public RequestTelemetryState PopTelemetryState(Message reply)
     {
-        RequestTelemetryState returnValue = null;
         var relatesTo = reply?.Headers.RelatesTo?.ToString();
-        if (relatesTo != null)
+        return relatesTo == null ? null : this.PopTelemetryState(relatesTo);
+    }
+
+    private RequestTelemetryState PopTelemetryState(string messageId)
+    {
+        Entry entry = null;
+        lock (this.outstandingRequestStates)
         {
-            lock (this.sync)
+            if (this.outstandingRequestStates.TryGetValue(messageId, out entry))
             {
-                if (this.state.TryGetValue(relatesTo, out var telemetryState))
-                {
-                    this.state.Remove(relatesTo);
-                    returnValue = telemetryState;
-                }
+                this.outstandingRequestStates.Remove(messageId);
             }
         }
 
-        return returnValue;
+        entry?.TimeoutTimer.Dispose();
+        return entry?.State;
+    }
+
+    private void OnTimer(object state)
+    {
+        var messageId = (string)state;
+        var telemetryState = this.PopTelemetryState(messageId);
+        if (telemetryState != null)
+        {
+            var handlers = this.TelemetryStateTimedOut;
+            if (handlers != null)
+            {
+                handlers(this, telemetryState);
+            }
+        }
+    }
+
+    private class Entry
+    {
+        public Timer TimeoutTimer;
+        public RequestTelemetryState State;
+
+        public Entry(RequestTelemetryState state)
+        {
+            this.State = state;
+        }
     }
 }

@@ -23,15 +23,13 @@ namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
 internal class InstrumentedDuplexSessionChannel : InstrumentedChannel, IDuplexSessionChannel
 {
-    /// <summary>
-    /// This is effectively the number of simultaneously open requests on a single client channel which we will track.
-    /// </summary>
-    private const int MAXTRACKEDREQUESTCOUNT = 1000;
-    private RequestTelemetryStateTracker stateTracker = new RequestTelemetryStateTracker(MAXTRACKEDREQUESTCOUNT);
+    private RequestTelemetryStateTracker stateTracker;
 
-    public InstrumentedDuplexSessionChannel(IDuplexSessionChannel inner)
+    public InstrumentedDuplexSessionChannel(IDuplexSessionChannel inner, TimeSpan telemetryTimeout)
         : base(inner)
     {
+        this.stateTracker = new RequestTelemetryStateTracker(telemetryTimeout);
+        this.stateTracker.TelemetryStateTimedOut += this.OnTelemetryStateTimedOut;
     }
 
     public EndpointAddress LocalAddress => this.Inner.LocalAddress;
@@ -73,7 +71,7 @@ internal class InstrumentedDuplexSessionChannel : InstrumentedChannel, IDuplexSe
         }
         catch (Exception)
         {
-            ClientChannelInstrumentation.AfterReceiveReply(null, asyncResult.TelemetryState);
+            ClientChannelInstrumentation.AfterRequestCompleted(null, asyncResult.TelemetryState);
             throw;
         }
     }
@@ -170,7 +168,7 @@ internal class InstrumentedDuplexSessionChannel : InstrumentedChannel, IDuplexSe
         }
         catch (Exception)
         {
-            ClientChannelInstrumentation.AfterReceiveReply(null, telemetryState);
+            ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState);
             throw;
         }
     }
@@ -180,7 +178,12 @@ internal class InstrumentedDuplexSessionChannel : InstrumentedChannel, IDuplexSe
         var telemetryState = this.stateTracker.PopTelemetryState(message);
         if (telemetryState != null)
         {
-            ClientChannelInstrumentation.AfterReceiveReply(message, telemetryState);
+            ClientChannelInstrumentation.AfterRequestCompleted(message, telemetryState);
         }
+    }
+
+    private void OnTelemetryStateTimedOut(object sender, RequestTelemetryState telemetryState)
+    {
+        ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState);
     }
 }

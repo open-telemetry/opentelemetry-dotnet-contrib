@@ -44,11 +44,11 @@ internal class InstrumentedRequestChannel : InstrumentedChannel, IRequestChannel
         }
         catch (Exception)
         {
-            ClientChannelInstrumentation.AfterReceiveReply(null, telemetryState);
+            ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState);
             throw;
         }
 
-        ClientChannelInstrumentation.AfterReceiveReply(reply, telemetryState);
+        ClientChannelInstrumentation.AfterRequestCompleted(reply, telemetryState);
         return reply;
     }
 
@@ -62,11 +62,11 @@ internal class InstrumentedRequestChannel : InstrumentedChannel, IRequestChannel
         }
         catch (Exception)
         {
-            ClientChannelInstrumentation.AfterReceiveReply(null, telemetryState);
+            ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState);
             throw;
         }
 
-        ClientChannelInstrumentation.AfterReceiveReply(reply, telemetryState);
+        ClientChannelInstrumentation.AfterRequestCompleted(reply, telemetryState);
         return reply;
     }
 
@@ -90,11 +90,11 @@ internal class InstrumentedRequestChannel : InstrumentedChannel, IRequestChannel
         }
         catch (Exception)
         {
-            ClientChannelInstrumentation.AfterReceiveReply(null, asyncResult.TelemetryState);
+            ClientChannelInstrumentation.AfterRequestCompleted(null, asyncResult.TelemetryState);
             throw;
         }
 
-        ClientChannelInstrumentation.AfterReceiveReply(reply, asyncResult.TelemetryState);
+        ClientChannelInstrumentation.AfterRequestCompleted(reply, asyncResult.TelemetryState);
         return reply;
     }
 

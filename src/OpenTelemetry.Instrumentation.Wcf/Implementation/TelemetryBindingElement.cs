@@ -37,7 +37,7 @@ internal class TelemetryBindingElement : BindingElement
 
         if (typeof(TChannel) == typeof(IDuplexSessionChannel))
         {
-            return (IChannelFactory<TChannel>)new InstrumentedDuplexSessionChannelFactory(context.BuildInnerChannelFactory<IDuplexSessionChannel>());
+            return (IChannelFactory<TChannel>)new InstrumentedDuplexSessionChannelFactory(context.BuildInnerChannelFactory<IDuplexSessionChannel>(), context.Binding.SendTimeout);
         }
 
         throw new NotSupportedException();

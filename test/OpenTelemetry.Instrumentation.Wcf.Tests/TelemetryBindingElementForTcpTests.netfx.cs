@@ -372,5 +372,53 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         var children = stoppedActivities.Where(activity => activity != parent);
         Assert.All(children, activity => Assert.Equal(parent.SpanId, activity.ParentSpanId));
     }
+
+    [Fact]
+    public async void OrphanedTelemetryTimesOut()
+    {
+        var stoppedActivities = new List<Activity>();
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(stoppedActivities)
+            .AddWcfInstrumentation()
+            .Build();
+
+        var binding = new NetTcpBinding(SecurityMode.None);
+        binding.SendTimeout = TimeSpan.FromMilliseconds(1000);
+        var client = new ServiceClient(binding, new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
+        try
+        {
+            client.Endpoint.EndpointBehaviors.Add(new DownstreamInstrumentationEndpointBehavior());
+            client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
+            DownstreamInstrumentationChannel.FailNextReceive();
+            await Assert.ThrowsAnyAsync<Exception>(() => client.ExecuteAsync(new ServiceRequest { Payload = "Hello Open Telemetry!" }));
+
+            for (var i = 0; i < 50; i++)
+            {
+                if (stoppedActivities.Count > 0)
+                {
+                    break;
+                }
+
+                await Task.Delay(100);
+            }
+
+            Assert.Single(stoppedActivities);
+        }
+        finally
+        {
+            if (client.State == CommunicationState.Faulted)
+            {
+                client.Abort();
+            }
+            else
+            {
+                client.Close();
+            }
+
+            tracerProvider.Shutdown();
+            tracerProvider.Dispose();
+            WcfInstrumentationActivitySource.Options = null;
+        }
+    }
 }
 #endif

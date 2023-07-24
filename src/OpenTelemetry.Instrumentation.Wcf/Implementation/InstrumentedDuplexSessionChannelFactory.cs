@@ -22,20 +22,23 @@ namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
 internal class InstrumentedDuplexSessionChannelFactory : InstrumentedChannelFactory, IChannelFactory<IDuplexSessionChannel>
 {
-    public InstrumentedDuplexSessionChannelFactory(IChannelFactory<IDuplexSessionChannel> inner)
+    private TimeSpan telemetryTimeOut;
+
+    public InstrumentedDuplexSessionChannelFactory(IChannelFactory<IDuplexSessionChannel> inner, TimeSpan telemetryTimeOut)
         : base(inner)
     {
+        this.telemetryTimeOut = telemetryTimeOut;
     }
 
     private new IChannelFactory<IDuplexSessionChannel> Inner { get => (IChannelFactory<IDuplexSessionChannel>)base.Inner; }
 
     IDuplexSessionChannel IChannelFactory<IDuplexSessionChannel>.CreateChannel(EndpointAddress to)
     {
-        return new InstrumentedDuplexSessionChannel(this.Inner.CreateChannel(to));
+        return new InstrumentedDuplexSessionChannel(this.Inner.CreateChannel(to), this.telemetryTimeOut);
     }
 
     IDuplexSessionChannel IChannelFactory<IDuplexSessionChannel>.CreateChannel(EndpointAddress to, Uri via)
     {
-        return new InstrumentedDuplexSessionChannel(this.Inner.CreateChannel(to, via));
+        return new InstrumentedDuplexSessionChannel(this.Inner.CreateChannel(to, via), this.telemetryTimeOut);
     }
 }

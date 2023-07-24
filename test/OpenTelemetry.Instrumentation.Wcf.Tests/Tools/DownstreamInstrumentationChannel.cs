@@ -26,6 +26,7 @@ public class DownstreamInstrumentationChannel : DispatchProxy
 {
     public const string DownstreamInstrumentationSourceName = "DownstreamInstrumentationSource";
     private static readonly ActivitySource DownstreamInstrumentationSource = new ActivitySource(DownstreamInstrumentationSourceName);
+    private static bool failNextReceive;
 
     private object Target { get; set; }
 
@@ -34,6 +35,11 @@ public class DownstreamInstrumentationChannel : DispatchProxy
         var proxy = Create<TChannel, DownstreamInstrumentationChannel>() as DownstreamInstrumentationChannel;
         proxy.Target = target;
         return (TChannel)(object)proxy;
+    }
+
+    public static void FailNextReceive(bool shouldFail = true)
+    {
+        failNextReceive = shouldFail;
     }
 
     protected override object Invoke(MethodInfo targetMethod, object[] args)
@@ -46,8 +52,22 @@ public class DownstreamInstrumentationChannel : DispatchProxy
             nameof(IOutputChannel.BeginSend),
         };
 
-        var methodName = targetMethod.Name;
         using var activity = toInstrument.Contains(targetMethod.Name) ? DownstreamInstrumentationSource.StartActivity("DownstreamInstrumentation") : null;
+
+        var receiveMethods = new[]
+        {
+            nameof(IInputChannel.Receive),
+            nameof(IInputChannel.BeginReceive),
+            nameof(IInputChannel.TryReceive),
+            nameof(IInputChannel.BeginTryReceive),
+        };
+
+        if (failNextReceive && receiveMethods.Contains(targetMethod.Name))
+        {
+            failNextReceive = false;
+            throw new Exception();
+        }
+
         return targetMethod.Invoke(this.Target, args);
     }
 }
