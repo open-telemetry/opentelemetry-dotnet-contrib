@@ -44,7 +44,6 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 | service.instance.id                               |
 | service.name                                      |
 
-
 ## VM Resource Detector
 
 Adds resource attributes for the applications running in an Azure virtual machine.
