@@ -32,6 +32,20 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
                         .Build();
 ```
 
+The resource detector will record the following attributes:
+
+|                         |
+|-------------------------|
+| service.name            |
+| cloud.provider          |
+| cloud.platform          |
+| cloud.resource_id       |
+| cloud.region            |
+| deployment.environment  |
+| host.id                 |
+| service.instance.id     |
+| azure.app.service.stamp |
+
 ## VM Resource Detector
 
 Adds resource attributes for the applications running in an Azure virtual machine.
@@ -50,3 +64,20 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
                             .AddDetector(new AzureVMResourceDetector()))
                         .Build();
 ```
+
+The resource detector will record the following attributes:
+
+|                        |
+|------------------------|
+| azure.vm.scaleset.name |
+| azure.vm.sku           |
+| cloud.platform         |
+| cloud.provider         |
+| cloud.region           |
+| cloud.resource_id      |
+| host.id                |
+| host.name              |
+| host.type              |
+| os.type                |
+| os.version             |
+| service.instance.id    |
