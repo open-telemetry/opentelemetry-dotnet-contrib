@@ -17,7 +17,8 @@ dotnet add package --prerelease OpenTelemetry.ResourceDetectors.Azure
 
 Adds resource attributes for the applications running in Azure App Service.
 The following example shows how to add `AppServiceResourceDetector` to
-`TracerProvider` configuration:
+`TracerProvider` configuration, but this can be added to logs and metrics
+as well.
 
 ```csharp
 using OpenTelemetry;
@@ -48,7 +49,8 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 
 Adds resource attributes for the applications running in an Azure virtual machine.
 The following example shows how to add `AzureVMResourceDetector` to
-`TracerProvider` configuration:
+`TracerProvider` configuration, but this can be added to logs and metrics
+as well.
 
 ```csharp
 using OpenTelemetry;
