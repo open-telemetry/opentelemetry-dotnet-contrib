@@ -13,11 +13,12 @@ for applications running in Azure environment.
 dotnet add package --prerelease OpenTelemetry.ResourceDetectors.Azure
 ```
 
-## Appservice Resource Detector
+## App Service Resource Detector
 
-Adds resource attributes for the applications running in Appservice. The
-following example shows how to add `AppServiceResourceDetector` to
-`TracerProvider` configuration:
+Adds resource attributes for the applications running in Azure App Service.
+The following example shows how to add `AppServiceResourceDetector` to
+`TracerProvider` configuration, but this can be added to logs and metrics
+as well.
 
 ```csharp
 using OpenTelemetry;
@@ -31,3 +32,50 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
                             .AddDetector(new AppServiceResourceDetector()))
                         .Build();
 ```
+
+| Attributes recorded by AppServiceResourceDetector |
+|---------------------------------------------------|
+| azure.app.service.stamp                           |
+| cloud.provider                                    |
+| cloud.platform                                    |
+| cloud.resource_id                                 |
+| cloud.region                                      |
+| deployment.environment                            |
+| host.id                                           |
+| service.instance.id                               |
+| service.name                                      |
+
+## VM Resource Detector
+
+Adds resource attributes for the applications running in an Azure virtual machine.
+The following example shows how to add `AzureVMResourceDetector` to
+`TracerProvider` configuration, but this can be added to logs and metrics
+as well.
+
+```csharp
+using OpenTelemetry;
+using OpenTelemetry.ResourceDetectors.Azure;
+using OpenTelemetry.Resources;
+
+var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                        // other configurations
+                        .SetResourceBuilder(ResourceBuilder
+                            .CreateDefault()
+                            .AddDetector(new AzureVMResourceDetector()))
+                        .Build();
+```
+
+| Attributes recorded by AzureVMResourceDetector |
+|------------------------------------------------|
+| azure.vm.scaleset.name                         |
+| azure.vm.sku                                   |
+| cloud.platform                                 |
+| cloud.provider                                 |
+| cloud.region                                   |
+| cloud.resource_id                              |
+| host.id                                        |
+| host.name                                      |
+| host.type                                      |
+| os.type                                        |
+| os.version                                     |
+| service.instance.id                            |
