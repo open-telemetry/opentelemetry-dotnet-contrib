@@ -27,9 +27,7 @@ using OpenTelemetry.Resources;
 
 var tracerProvider = Sdk.CreateTracerProviderBuilder()
                         // other configurations
-                        .SetResourceBuilder(ResourceBuilder
-                            .CreateDefault()
-                            .AddDetector(new AppServiceResourceDetector()))
+                        .ConfigureResource(resource => resource.AddDetector(new AppServiceResourceDetector()))
                         .Build();
 ```
 
@@ -59,9 +57,7 @@ using OpenTelemetry.Resources;
 
 var tracerProvider = Sdk.CreateTracerProviderBuilder()
                         // other configurations
-                        .SetResourceBuilder(ResourceBuilder
-                            .CreateDefault()
-                            .AddDetector(new AzureVMResourceDetector()))
+                        .ConfigureResource(resource => resource.AddDetector(new AzureVMResourceDetector()))
                         .Build();
 ```
 
