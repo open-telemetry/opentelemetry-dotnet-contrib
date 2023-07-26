@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.0.0-beta.2
+
+Released 2023-Jul-26
+
+* Downgraded minimum required version for `System.Text.Json` to `4.7.2`.
+  ([#1279](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1279))
+
 ## 1.0.0-beta.1
 
 Released 2023-Jul-24
