@@ -23,7 +23,7 @@ using System.Numerics;
 using System.Text;
 using OpenTelemetry.Context.Propagation;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
+namespace OpenTelemetry.Extensions.AWS.Trace;
 
 /// <summary>
 /// Propagator for AWS X-Ray. See https://docs.aws.amazon.com/xray/latest/devguide/xray-concepts.html#xray-concepts-tracingheader.

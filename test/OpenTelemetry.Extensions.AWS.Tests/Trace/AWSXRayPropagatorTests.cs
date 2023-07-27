@@ -1,4 +1,4 @@
-// <copyright file="TestAWSXRayPropagator.cs" company="OpenTelemetry Authors">
+// <copyright file="AWSXRayPropagatorTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,12 +18,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
+using OpenTelemetry.Extensions.AWS.Trace;
 using Xunit;
 
-namespace OpenTelemetry.Contrib.Extensions.AWSXRay.Tests;
+namespace OpenTelemetry.Extensions.AWS.Tests;
 
-public class TestAWSXRayPropagator
+public class AWSXRayPropagatorTests
 {
     private const string AWSXRayTraceHeaderKey = "X-Amzn-Trace-Id";
     private const string TraceId = "5759e988bd862e3fe1be46a994272793";
