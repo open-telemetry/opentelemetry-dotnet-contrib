@@ -135,7 +135,7 @@ components:
     - xiang17
   test/OpenTelemetry.Instrumentation.Wcf.Tests/:
     - codeblanch
-    test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
+  test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
     - vishweshbankwar
   test/OpenTelemetry.ResourceDetectors.AWS.Tests/:
     - srprash
