@@ -16,10 +16,11 @@
 
 using InfluxDB.Client;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.InfluxDB;
 
 internal interface IMetricsWriter
 {
-    void Write(Metric metric, WriteApi writeApi);
+    void Write(Metric metric, Resource resource, WriteApi writeApi);
 }

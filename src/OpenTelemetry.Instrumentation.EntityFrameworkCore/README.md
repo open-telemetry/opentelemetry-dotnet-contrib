@@ -1,7 +1,7 @@
 # EntityFrameworkCore Instrumentation for OpenTelemetry .NET
 
-[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.EntityFrameworkCore.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EntityFrameworkCore)
-[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.EntityFrameworkCore.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EntityFrameworkCore)
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.EntityFrameworkCore)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EntityFrameworkCore)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.EntityFrameworkCore)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EntityFrameworkCore)
 
 This is an [Instrumentation
 Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library),
@@ -109,6 +109,30 @@ services.Configure<EntityFrameworkInstrumentationOptions>(options =>
 services.AddOpenTelemetry()
     .WithTracing(builder => builder
         .AddEntityFrameworkCoreInstrumentation()
+        .AddConsoleExporter());
+```
+
+### Filter
+
+This option can be used to filter out activities based on the provider name and
+the properties of the db command object being instrumented
+using a `Func<string, IDbCommand, bool>`. The function receives a provider name
+and an instance of the db command and should return `true`
+if the telemetry is to be collected, and `false` if it should not.
+
+The following code snippet shows how to use `Filter` to collect traces
+for stored procedures only.
+
+```csharp
+services.AddOpenTelemetry()
+    .WithTracing(builder => builder
+        .AddEntityFrameworkCoreInstrumentation(options =>
+        {
+            options.Filter = (providerName, command) =>
+            {
+                return command.CommandType == CommandType.StoredProcedure;
+            };
+        })
         .AddConsoleExporter());
 ```
 

@@ -94,6 +94,9 @@ public class RuntimeMetricsTests
         {
             var gcHeapFragmentationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.heap.fragmentation.size");
             Assert.NotNull(gcHeapFragmentationSizeMetric);
+
+            var gcDurationMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.duration");
+            Assert.NotNull(gcDurationMetric);
         }
 #endif
     }

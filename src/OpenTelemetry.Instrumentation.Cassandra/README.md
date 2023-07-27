@@ -1,5 +1,8 @@
 # Cassandra Instrumentation for OpenTelemetry
 
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Cassandra)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Cassandra)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Cassandra)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Cassandra)
+
 This is an
 [Instrumentation Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library),
 which instruments [CassandraCSharpDriver](https://github.com/datastax/csharp-driver)
@@ -70,6 +73,18 @@ var cluster = new Builder()
     .WithOpenTelemetryMetrics(options)
     .Build();
 ```
+
+## List of metrics produced
+
+| Name  | Instrument Type | Unit | Description |
+|-------|-----------------|------|-------------|
+| `cassandra.cql-requests` | Histogram | `ms` | Measures the duration of Cassandra CQL requests from the client's perspective. |
+| `cassandra.bytes-sent` | Histogram | `bytes` | Measures the amount of bytes sent by the client to Cassandra. |
+| `cassandra.bytes-received` | Histogram | `bytes` | Measures the amount of bytes received by the client from Cassandra. |
+| `cassandra.cql-messages` | Histogram | `ms` | Measures the duration of CQL messages from the client's perspective. |
+| `cassandra.connected-nodes` | Gauge | `nodes` | Represents the number of nodes in Cassandra to which the client is connected. |
+| `cassandra.pool.open-connections` | Gauge | `connections` | Represents the number of open connections from the client to Cassandra. |
+| `cassandra.pool.in-flight` | Gauge | `requests` | Represents the number of in-flight requests from the client to Cassandra. |
 
 ## References
 

@@ -15,6 +15,7 @@
 // </copyright>
 
 using System.Diagnostics.Metrics;
+using System.Reflection;
 using OpenTelemetry.Exporter.InfluxDB.Tests.Utils;
 using OpenTelemetry.Metrics;
 using Xunit;
@@ -23,6 +24,23 @@ namespace OpenTelemetry.Exporter.InfluxDB.Tests;
 
 public class InfluxDBMetricsExporterTests
 {
+    private static readonly string OpenTelemetrySdkVersion;
+
+#pragma warning disable CA1810 // Initialize reference type static fields inline
+    static InfluxDBMetricsExporterTests()
+#pragma warning restore CA1810 // Initialize reference type static fields inline
+    {
+        var sdkVersion = typeof(Sdk).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
+        if (sdkVersion != null)
+        {
+            OpenTelemetrySdkVersion = Version.Parse(sdkVersion).ToString(3);
+        }
+        else
+        {
+            OpenTelemetrySdkVersion = "0.0.0";
+        }
+    }
+
     [Theory]
     [InlineData(MetricsSchema.TelegrafPrometheusV1, "test-gauge", "gauge")]
     [InlineData(MetricsSchema.TelegrafPrometheusV2, "prometheus", "test-gauge")]
@@ -36,6 +54,7 @@ public class InfluxDBMetricsExporterTests
 
         using var provider = Sdk.CreateMeterProviderBuilder()
             .AddMeter(meter.Name)
+            .ConfigureDefaultTestResource()
             .AddInfluxDBMetricsExporter(options =>
             {
                 options.WithDefaultTestConfiguration();
@@ -61,9 +80,7 @@ public class InfluxDBMetricsExporterTests
         Assert.Equal(1, dataPoint.Fields.Count);
         AssertUtils.HasField(valueKey, 42L, dataPoint.Fields);
 
-        Assert.Equal(2, dataPoint.Tags.Count);
-        AssertUtils.HasTag("tag_key_1", "tag_value_1", 0, dataPoint.Tags);
-        AssertUtils.HasTag("tag_key_2", "tag_value_2", 1, dataPoint.Tags);
+        AssertTags(dataPoint);
 
         Assert.InRange(dataPoint.Timestamp, before, after);
     }
@@ -81,6 +98,7 @@ public class InfluxDBMetricsExporterTests
 
         using var provider = Sdk.CreateMeterProviderBuilder()
             .AddMeter(meter.Name)
+            .ConfigureDefaultTestResource()
             .AddInfluxDBMetricsExporter(options =>
             {
                 options.WithDefaultTestConfiguration();
@@ -106,9 +124,7 @@ public class InfluxDBMetricsExporterTests
         Assert.Equal(1, dataPoint.Fields.Count);
         AssertUtils.HasField(valueKey, 55.42D, dataPoint.Fields);
 
-        Assert.Equal(2, dataPoint.Tags.Count);
-        AssertUtils.HasTag("tag_key_1", "tag_value_1", 0, dataPoint.Tags);
-        AssertUtils.HasTag("tag_key_2", "tag_value_2", 1, dataPoint.Tags);
+        AssertTags(dataPoint);
 
         Assert.InRange(dataPoint.Timestamp, before, after);
     }
@@ -126,6 +142,7 @@ public class InfluxDBMetricsExporterTests
 
         using var provider = Sdk.CreateMeterProviderBuilder()
             .AddMeter(meter.Name)
+            .ConfigureDefaultTestResource()
             .AddInfluxDBMetricsExporter(options =>
             {
                 options.WithDefaultTestConfiguration();
@@ -149,9 +166,7 @@ public class InfluxDBMetricsExporterTests
         Assert.Equal(1, dataPoint.Fields.Count);
         AssertUtils.HasField(valueKey, 100L, dataPoint.Fields);
 
-        Assert.Equal(2, dataPoint.Tags.Count);
-        AssertUtils.HasTag("tag_key_1", "tag_value_1", 0, dataPoint.Tags);
-        AssertUtils.HasTag("tag_key_2", "tag_value_2", 1, dataPoint.Tags);
+        AssertTags(dataPoint);
 
         Assert.InRange(dataPoint.Timestamp, before, after);
     }
@@ -169,6 +184,7 @@ public class InfluxDBMetricsExporterTests
 
         using var provider = Sdk.CreateMeterProviderBuilder()
             .AddMeter(meter.Name)
+            .ConfigureDefaultTestResource()
             .AddInfluxDBMetricsExporter(options =>
             {
                 options.WithDefaultTestConfiguration();
@@ -192,9 +208,7 @@ public class InfluxDBMetricsExporterTests
         Assert.Equal(1, dataPoint.Fields.Count);
         AssertUtils.HasField(valueKey, 12.59D, dataPoint.Fields);
 
-        Assert.Equal(2, dataPoint.Tags.Count);
-        AssertUtils.HasTag("tag_key_1", "tag_value_1", 0, dataPoint.Tags);
-        AssertUtils.HasTag("tag_key_2", "tag_value_2", 1, dataPoint.Tags);
+        AssertTags(dataPoint);
 
         Assert.InRange(dataPoint.Timestamp, before, after);
     }
@@ -212,6 +226,7 @@ public class InfluxDBMetricsExporterTests
 
         using var provider = Sdk.CreateMeterProviderBuilder()
             .AddMeter(meter.Name)
+            .ConfigureDefaultTestResource()
             .AddInfluxDBMetricsExporter(options =>
             {
                 options.WithDefaultTestConfiguration();
@@ -236,9 +251,7 @@ public class InfluxDBMetricsExporterTests
         Assert.Equal(1, dataPoint.Fields.Count);
         AssertUtils.HasField(valueKey, -50L, dataPoint.Fields);
 
-        Assert.Equal(2, dataPoint.Tags.Count);
-        AssertUtils.HasTag("tag_key_1", "tag_value_1", 0, dataPoint.Tags);
-        AssertUtils.HasTag("tag_key_2", "tag_value_2", 1, dataPoint.Tags);
+        AssertTags(dataPoint);
 
         Assert.InRange(dataPoint.Timestamp, before, after);
     }
@@ -256,6 +269,7 @@ public class InfluxDBMetricsExporterTests
 
         using var provider = Sdk.CreateMeterProviderBuilder()
             .AddMeter(meter.Name)
+            .ConfigureDefaultTestResource()
             .AddInfluxDBMetricsExporter(options =>
             {
                 options.WithDefaultTestConfiguration();
@@ -280,9 +294,7 @@ public class InfluxDBMetricsExporterTests
         Assert.Equal(1, dataPoint.Fields.Count);
         AssertUtils.HasField(valueKey, -50.11D, dataPoint.Fields);
 
-        Assert.Equal(2, dataPoint.Tags.Count);
-        AssertUtils.HasTag("tag_key_1", "tag_value_1", 0, dataPoint.Tags);
-        AssertUtils.HasTag("tag_key_2", "tag_value_2", 1, dataPoint.Tags);
+        AssertTags(dataPoint);
 
         Assert.InRange(dataPoint.Timestamp, before, after);
     }
@@ -303,6 +315,7 @@ public class InfluxDBMetricsExporterTests
                 Boundaries = new[] { 10D, 20D, 100D, 200D },
                 RecordMinMax = true,
             })
+            .ConfigureDefaultTestResource()
             .AddInfluxDBMetricsExporter(options =>
             {
                 options.WithDefaultTestConfiguration();
@@ -337,9 +350,7 @@ public class InfluxDBMetricsExporterTests
         AssertUtils.HasField("200.00", 1L, dataPoint.Fields);
         AssertUtils.HasField("+Inf", 1L, dataPoint.Fields);
 
-        Assert.Equal(2, dataPoint.Tags.Count);
-        AssertUtils.HasTag("tag_key_1", "tag_value_1", 0, dataPoint.Tags);
-        AssertUtils.HasTag("tag_key_2", "tag_value_2", 1, dataPoint.Tags);
+        AssertTags(dataPoint);
 
         Assert.InRange(dataPoint.Timestamp, before, after);
     }
@@ -395,6 +406,7 @@ public class InfluxDBMetricsExporterTests
                 Boundaries = new[] { 10D, 20D, 100D, 200D },
                 RecordMinMax = true,
             })
+            .ConfigureDefaultTestResource()
             .AddInfluxDBMetricsExporter(options =>
             {
                 options.Endpoint = influxServerEndpoint;
@@ -422,9 +434,8 @@ public class InfluxDBMetricsExporterTests
         AssertUtils.HasField("histogram_metric_sum", 550D, headDataPoint.Fields);
         AssertUtils.HasField("histogram_metric_min", 50D, headDataPoint.Fields);
         AssertUtils.HasField("histogram_metric_max", 250D, headDataPoint.Fields);
-        Assert.Equal(2, headDataPoint.Tags.Count);
-        AssertUtils.HasTag("tag_key_1", "tag_value_1", 0, headDataPoint.Tags);
-        AssertUtils.HasTag("tag_key_2", "tag_value_2", 1, headDataPoint.Tags);
+
+        AssertTags(headDataPoint);
         Assert.InRange(headDataPoint.Timestamp, before, after);
 
         AssertBucketDataPoint(influxServer.ReadPoint(), "10.00", 0);
@@ -438,8 +449,15 @@ public class InfluxDBMetricsExporterTests
             Assert.Equal("prometheus", dataPoint.Measurement);
             AssertUtils.HasField("histogram_metric_bucket", count, dataPoint.Fields);
             AssertUtils.HasTag("le", bound, 0, dataPoint.Tags);
-            AssertUtils.HasTag("tag_key_1", "tag_value_1", 1, dataPoint.Tags);
-            AssertUtils.HasTag("tag_key_2", "tag_value_2", 2, dataPoint.Tags);
+            AssertUtils.HasTag("service.instance.id", "my-service-id", 1, dataPoint.Tags);
+            AssertUtils.HasTag("service.name", "my-service", 2, dataPoint.Tags);
+            AssertUtils.HasTag("service.namespace", "my-service-namespace", 3, dataPoint.Tags);
+            AssertUtils.HasTag("service.version", "1.0", 4, dataPoint.Tags);
+            AssertUtils.HasTag("tag_key_1", "tag_value_1", 5, dataPoint.Tags);
+            AssertUtils.HasTag("tag_key_2", "tag_value_2", 6, dataPoint.Tags);
+            AssertUtils.HasTag("telemetry.sdk.language", "dotnet", 7, dataPoint.Tags);
+            AssertUtils.HasTag("telemetry.sdk.name", "opentelemetry", 8, dataPoint.Tags);
+            AssertUtils.HasTag("telemetry.sdk.version", OpenTelemetrySdkVersion, 9, dataPoint.Tags);
         }
     }
 
@@ -476,5 +494,19 @@ public class InfluxDBMetricsExporterTests
         Assert.Equal("prometheus", pointData.Measurement);
         Assert.DoesNotContain("histogram_metric_min", pointData.Fields);
         Assert.DoesNotContain("histogram_metric_max", pointData.Fields);
+    }
+
+    private static void AssertTags(PointData dataPoint)
+    {
+        Assert.Equal(9, dataPoint.Tags.Count);
+        AssertUtils.HasTag("service.instance.id", "my-service-id", 0, dataPoint.Tags);
+        AssertUtils.HasTag("service.name", "my-service", 1, dataPoint.Tags);
+        AssertUtils.HasTag("service.namespace", "my-service-namespace", 2, dataPoint.Tags);
+        AssertUtils.HasTag("service.version", "1.0", 3, dataPoint.Tags);
+        AssertUtils.HasTag("tag_key_1", "tag_value_1", 4, dataPoint.Tags);
+        AssertUtils.HasTag("tag_key_2", "tag_value_2", 5, dataPoint.Tags);
+        AssertUtils.HasTag("telemetry.sdk.language", "dotnet", 6, dataPoint.Tags);
+        AssertUtils.HasTag("telemetry.sdk.name", "opentelemetry", 7, dataPoint.Tags);
+        AssertUtils.HasTag("telemetry.sdk.version", OpenTelemetrySdkVersion, 8, dataPoint.Tags);
     }
 }

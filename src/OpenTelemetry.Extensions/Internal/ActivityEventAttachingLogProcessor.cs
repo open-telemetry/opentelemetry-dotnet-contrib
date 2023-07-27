@@ -78,17 +78,17 @@ internal sealed class ActivityEventAttachingLogProcessor : BaseProcessor<LogReco
 
             data.ForEachScope(ProcessScope, new State(tags, this));
 
-            if (data.StateValues != null)
+            if (data.Attributes != null)
             {
                 try
                 {
-                    this.options.StateConverter?.Invoke(tags, data.StateValues);
+                    this.options.StateConverter?.Invoke(tags, data.Attributes);
                 }
 #pragma warning disable CA1031 // Do not catch general exception types
                 catch (Exception ex)
 #pragma warning restore CA1031 // Do not catch general exception types
                 {
-                    OpenTelemetryExtensionsEventSource.Log.LogProcessorException($"Processing state of type [{data.State?.GetType().FullName}]", ex);
+                    OpenTelemetryExtensionsEventSource.Log.LogProcessorException($"Processing attributes for LogRecord with CategoryName [{data.CategoryName}]", ex);
                 }
             }
 

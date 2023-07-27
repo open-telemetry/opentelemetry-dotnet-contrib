@@ -2,14 +2,14 @@
 
 ## Unreleased
 
-* Updated OTel SDK package version to 1.5.0
-  ([#1220](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1220))
+* Updated OpenTelemetry SDK package version to 1.5.1
+  ([#1255](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1255))
 
 ## 1.0.0-beta.4
 
 Released 2023-Mar-06
 
-* Updated OTel SDK package version to 1.4.0
+* Updated OpenTelemetry SDK package version to 1.4.0
   ([#1019](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1019))
 * Update minimum full framework support to net462
 * Requests that get an HTTP status code of 404 are not marked as an error span status
@@ -42,10 +42,10 @@ Released 2023-Mar-06
 
 Released 2021-June-17
 
-* Updated OTel SDK package version to 1.1.0-beta4
+* Updated OpenTelemetry SDK package version to 1.1.0-beta4
   ([#136](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/136))
 
 ## Initial Release
 
-* Updated OTel SDK package version to 1.1.0-beta1
+* Updated OpenTelemetry SDK package version to 1.1.0-beta1
   ([#100](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/100))

@@ -19,12 +19,13 @@ using InfluxDB.Client;
 using InfluxDB.Client.Api.Domain;
 using InfluxDB.Client.Writes;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.InfluxDB;
 
 internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
 {
-    public void Write(Metric metric, WriteApi writeApi)
+    public void Write(Metric metric, Resource resource, WriteApi writeApi)
     {
         var measurement = "prometheus";
         var metricName = metric.Name;
@@ -39,6 +40,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                             .Measurement(measurement)
                             .Field(metricName, metricPoint.GetGaugeLastValueLong())
                             .Tags(metricPoint.Tags)
+                            .Tags(resource?.Attributes)
                             .Timestamp(metricPoint.EndTime.UtcDateTime, WritePrecision.Ns);
                         writeApi.WritePoint(pointData);
                     }
@@ -54,6 +56,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                             .Measurement(measurement)
                             .Field(metricName, metricPoint.GetGaugeLastValueDouble())
                             .Tags(metricPoint.Tags)
+                            .Tags(resource?.Attributes)
                             .Timestamp(metricPoint.EndTime.UtcDateTime, WritePrecision.Ns);
                         writeApi.WritePoint(pointData);
                     }
@@ -69,6 +72,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                             .Measurement(measurement)
                             .Field(metricName, metricPoint.GetSumLong())
                             .Tags(metricPoint.Tags)
+                            .Tags(resource?.Attributes)
                             .Timestamp(metricPoint.EndTime.UtcDateTime, WritePrecision.Ns);
                         writeApi.WritePoint(pointData);
                     }
@@ -84,6 +88,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                             .Measurement(measurement)
                             .Field(metricName, metricPoint.GetSumDouble())
                             .Tags(metricPoint.Tags)
+                            .Tags(resource?.Attributes)
                             .Timestamp(metricPoint.EndTime.UtcDateTime, WritePrecision.Ns);
                         writeApi.WritePoint(pointData);
                     }
@@ -99,6 +104,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                             .Measurement(measurement)
                             .Field(metricName, dataPoint.GetSumLong())
                             .Tags(dataPoint.Tags)
+                            .Tags(resource?.Attributes)
                             .Timestamp(dataPoint.EndTime.UtcDateTime, WritePrecision.Ns);
                         writeApi.WritePoint(pointData);
                     }
@@ -114,6 +120,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                             .Measurement(measurement)
                             .Field(metricName, dataPoint.GetSumDouble())
                             .Tags(dataPoint.Tags)
+                            .Tags(resource?.Attributes)
                             .Timestamp(dataPoint.EndTime.UtcDateTime, WritePrecision.Ns);
                         writeApi.WritePoint(pointData);
                     }
@@ -127,6 +134,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                     var basePoint = PointData
                         .Measurement(measurement)
                         .Tags(metricPoint.Tags)
+                        .Tags(resource?.Attributes)
                         .Timestamp(metricPoint.EndTime.UtcDateTime, WritePrecision.Ns);
 
                     var headPoint = basePoint

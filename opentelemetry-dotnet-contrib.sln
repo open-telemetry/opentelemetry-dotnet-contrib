@@ -115,9 +115,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.AW
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.AWS.Tests", "test\OpenTelemetry.Extensions.AWS.Tests\OpenTelemetry.Extensions.AWS.Tests.csproj", "{9CE513AC-CFC5-4DD1-9F16-8719EDCE9BF9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.AWS", "src\OpenTelemetry.Contrib.Instrumentation.AWS\OpenTelemetry.Contrib.Instrumentation.AWS.csproj", "{970673DA-F308-4960-A58D-ECCEA44CEF6B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.AWS", "src\OpenTelemetry.Instrumentation.AWS\OpenTelemetry.Instrumentation.AWS.csproj", "{970673DA-F308-4960-A58D-ECCEA44CEF6B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Instrumentation.AWS.Tests", "test\OpenTelemetry.Contrib.Instrumentation.AWS.Tests\OpenTelemetry.Contrib.Instrumentation.AWS.Tests.csproj", "{CAB66B50-DAB6-49B8-83F9-6CCF520C4A36}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.AWS.Tests", "test\OpenTelemetry.Instrumentation.AWS.Tests\OpenTelemetry.Instrumentation.AWS.Tests.csproj", "{CAB66B50-DAB6-49B8-83F9-6CCF520C4A36}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Wcf.Tests", "test\OpenTelemetry.Instrumentation.Wcf.Tests\OpenTelemetry.Instrumentation.Wcf.Tests.csproj", "{76BAB24F-85DB-4FCE-89D0-EFB4185004C9}"
 EndProject
@@ -145,10 +145,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.ElasticsearchClient", "src\OpenTelemetry.Instrumentation.ElasticsearchClient\OpenTelemetry.Instrumentation.ElasticsearchClient.csproj", "{96F5B85B-402B-4DFB-AF31-33D5A2EBE35B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.ElasticsearchClient.Tests", "test\OpenTelemetry.Instrumentation.ElasticsearchClient.Tests\OpenTelemetry.Instrumentation.ElasticsearchClient.Tests.csproj", "{970B604C-C57F-4767-A080-67976E69F76E}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.AzureMonitor", "src\OpenTelemetry.Extensions.AzureMonitor\OpenTelemetry.Extensions.AzureMonitor.csproj", "{426D8AE8-EC39-48EA-AC66-1BF84C4CE529}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.AzureMonitor.Tests", "test\OpenTelemetry.Extensions.AzureMonitor.Tests\OpenTelemetry.Extensions.AzureMonitor.Tests.csproj", "{47ABABE1-62CC-4655-AA95-352F4DC20C96}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.MySqlData", "src\OpenTelemetry.Instrumentation.MySqlData\OpenTelemetry.Instrumentation.MySqlData.csproj", "{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}"
 EndProject
@@ -378,14 +374,6 @@ Global
 		{970B604C-C57F-4767-A080-67976E69F76E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{970B604C-C57F-4767-A080-67976E69F76E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{970B604C-C57F-4767-A080-67976E69F76E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{426D8AE8-EC39-48EA-AC66-1BF84C4CE529}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{426D8AE8-EC39-48EA-AC66-1BF84C4CE529}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{426D8AE8-EC39-48EA-AC66-1BF84C4CE529}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{426D8AE8-EC39-48EA-AC66-1BF84C4CE529}.Release|Any CPU.Build.0 = Release|Any CPU
-		{47ABABE1-62CC-4655-AA95-352F4DC20C96}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{47ABABE1-62CC-4655-AA95-352F4DC20C96}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{47ABABE1-62CC-4655-AA95-352F4DC20C96}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{47ABABE1-62CC-4655-AA95-352F4DC20C96}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -652,8 +640,6 @@ Global
 		{8DABC11A-624E-4554-ACA4-D5B80146B9C6} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{96F5B85B-402B-4DFB-AF31-33D5A2EBE35B} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{970B604C-C57F-4767-A080-67976E69F76E} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
-		{426D8AE8-EC39-48EA-AC66-1BF84C4CE529} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
-		{47ABABE1-62CC-4655-AA95-352F4DC20C96} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{662A00CA-B152-40D4-B9A4-6061490B8B3D} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{D4468444-69EF-4BF3-B13F-61F4AB728813} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}

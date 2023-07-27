@@ -949,6 +949,7 @@ public class GenevaMetricExporterTests
         var metricPointsEnumerator = metric.GetMetricPoints().GetEnumerator();
         metricPointsEnumerator.MoveNext();
         var metricPoint = metricPointsEnumerator.Current;
+
         var exemplars = metricPoint.GetExemplars();
 
         List<TlvField> fields = null;
@@ -1269,6 +1270,7 @@ public class GenevaMetricExporterTests
         var metricPointsEnumerator = metric.GetMetricPoints().GetEnumerator();
         metricPointsEnumerator.MoveNext();
         var metricPoint = metricPointsEnumerator.Current;
+
         var exemplars = metricPoint.GetExemplars();
         UserdataV2 result = null;
 

@@ -39,8 +39,10 @@ public class AzureResourceDetectorTests : IDisposable
                 Environment.SetEnvironmentVariable(kvp.Value, kvp.Key);
             }
 
-            // Special case for service.name and appSrv_SiteName attribute
-            Environment.SetEnvironmentVariable(ResourceAttributeConstants.AppServiceSiteNameEnvVar, "ServiceName");
+            // Special case for service.name and resource uri attribute
+            Environment.SetEnvironmentVariable(ResourceAttributeConstants.AppServiceSiteNameEnvVar, "sitename");
+            Environment.SetEnvironmentVariable(ResourceAttributeConstants.AppServiceResourceGroupEnvVar, "testResourceGroup");
+            Environment.SetEnvironmentVariable(ResourceAttributeConstants.AppServiceOwnerNameEnvVar, "testtestSubscriptionId+testResourceGroup-websiteOwnerName");
         }
         catch
         {
@@ -49,14 +51,12 @@ public class AzureResourceDetectorTests : IDisposable
         var resource = ResourceBuilder.CreateEmpty().AddDetector(new AppServiceResourceDetector()).Build();
         Assert.NotNull(resource);
 
+        var expectedResourceUri = "/subscriptions/testtestSubscriptionId/resourceGroups/testResourceGroup/providers/Microsoft.Web/sites/sitename";
+        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudResourceId, expectedResourceUri), resource.Attributes);
+        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "sitename"), resource.Attributes);
+
         foreach (var kvp in AppServiceResourceDetector.AppServiceResourceAttributes)
         {
-            if (kvp.Value == ResourceAttributeConstants.AppServiceSiteNameEnvVar)
-            {
-                Assert.Contains(new KeyValuePair<string, object>(kvp.Key, "ServiceName"), resource.Attributes);
-                continue;
-            }
-
             Assert.Contains(new KeyValuePair<string, object>(kvp.Key, kvp.Key), resource.Attributes);
         }
     }
@@ -69,31 +69,42 @@ public class AzureResourceDetectorTests : IDisposable
             return new AzureVmMetadataResponse()
             {
                 // using values same as key for test.
-                VmId = ResourceAttributeConstants.AzureVmId,
-                Location = ResourceAttributeConstants.AzureVmLocation,
-                Name = ResourceAttributeConstants.AzureVmName,
-                OsType = ResourceAttributeConstants.AzureVmOsType,
-                ResourceGroupName = ResourceAttributeConstants.AzureVmResourceGroup,
-                ResourceId = ResourceAttributeConstants.AzureVmResourceId,
+                VmId = ResourceSemanticConventions.AttributeHostId,
+                Location = ResourceSemanticConventions.AttributeCloudRegion,
+                Name = ResourceSemanticConventions.AttributeHostName,
+                OsType = ResourceSemanticConventions.AttributeOsType,
+                ResourceId = ResourceSemanticConventions.AttributeCloudResourceId,
                 Sku = ResourceAttributeConstants.AzureVmSku,
-                Version = ResourceAttributeConstants.AzureVmVersion,
-                VmSize = ResourceAttributeConstants.AzureVmSize,
+                Version = ResourceSemanticConventions.AttributeOsVersion,
+                VmSize = ResourceSemanticConventions.AttributeHostType,
                 VmScaleSetName = ResourceAttributeConstants.AzureVmScaleSetName,
-                SubscriptionId = ResourceAttributeConstants.AzureVmSubscriptionId,
             };
         };
 
         var resource = ResourceBuilder.CreateEmpty().AddDetector(new AzureVMResourceDetector()).Build();
         Assert.NotNull(resource);
+
         foreach (var field in AzureVMResourceDetector.ExpectedAzureAmsFields)
         {
+            KeyValuePair<string, object> expectedValue;
             if (field == ResourceSemanticConventions.AttributeServiceInstance)
             {
-                Assert.Contains(new KeyValuePair<string, object>(field, ResourceAttributeConstants.AzureVmId), resource.Attributes);
-                continue;
+                expectedValue = new KeyValuePair<string, object>(field, ResourceSemanticConventions.AttributeHostId);
+            }
+            else if (field == ResourceSemanticConventions.AttributeCloudPlatform)
+            {
+                expectedValue = new KeyValuePair<string, object>(field, ResourceAttributeConstants.AzureVmCloudPlatformValue);
+            }
+            else if (field == ResourceSemanticConventions.AttributeCloudProvider)
+            {
+                expectedValue = new KeyValuePair<string, object>(field, ResourceAttributeConstants.AzureCloudProviderValue);
+            }
+            else
+            {
+                expectedValue = new KeyValuePair<string, object>(field, field);
             }
 
-            Assert.Contains(new KeyValuePair<string, object>(field, field), resource.Attributes);
+            Assert.Contains(expectedValue, resource.Attributes);
         }
     }
 

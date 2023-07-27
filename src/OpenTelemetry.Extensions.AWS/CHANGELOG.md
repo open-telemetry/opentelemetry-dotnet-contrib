@@ -1,12 +1,12 @@
-# Changelog - OpenTelemetry.Contrib.Extensions.AWSXRay
+# Changelog - OpenTelemetry.Extensions.AWS
 
 ## Unreleased
 
 * Rename package from `OpenTelemetry.Contrib.Extensions.AWSXRay`
   to `OpenTelemetry.Extensions.AWS`
   ([#1232](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1232))
-* Updates to 1.5.0 of OpenTelemetry SDK.
-  ([#1220](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1220))
+* Updates to 1.5.1 of OpenTelemetry SDK.
+  ([#1255](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1255))
 * Enhancement - AWSXRayIdGenerator - Generate X-Ray IDs with global Random
   instance instead of recreating with ThreadLocal
   ([#380](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/380))
