@@ -21,7 +21,7 @@ using System.Threading;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
-internal class InstrumentedDuplexSessionChannel : InstrumentedChannel, IDuplexSessionChannel
+internal class InstrumentedDuplexSessionChannel : InstrumentedChannel, IDuplexSessionChannel, IDisposable
 {
     private RequestTelemetryStateTracker stateTracker;
 
@@ -139,6 +139,29 @@ internal class InstrumentedDuplexSessionChannel : InstrumentedChannel, IDuplexSe
     public bool EndWaitForMessage(IAsyncResult result)
     {
         return this.Inner.EndWaitForMessage(result);
+    }
+
+    public void Dispose()
+    {
+        this.stateTracker.Dispose();
+    }
+
+    void ICommunicationObject.Close(TimeSpan timeout)
+    {
+        this.Inner.Close(timeout);
+        this.Dispose();
+    }
+
+    void ICommunicationObject.Close()
+    {
+        this.Inner.Close();
+        this.Dispose();
+    }
+
+    void ICommunicationObject.EndClose(IAsyncResult result)
+    {
+        this.Inner.EndClose(result);
+        this.Dispose();
     }
 
     private IAsyncResult SendInternal(Message message, Func<AsyncCallback, object, IAsyncResult> executeSend, AsyncCallback callback, object state)
