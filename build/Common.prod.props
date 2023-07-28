@@ -8,6 +8,7 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageIcon>opentelemetry-icon-color.png</PackageIcon>
     <Authors>OpenTelemetry authors</Authors>
+    <Copyright>Copyright The OpenTelemetry Authors</Copyright>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)/OpenTelemetryContrib.prod.ruleset</CodeAnalysisRuleSet>
     <NoWarn>$(NoWarn),1573,1712</NoWarn>
