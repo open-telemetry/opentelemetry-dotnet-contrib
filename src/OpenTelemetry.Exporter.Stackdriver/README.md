@@ -47,15 +47,6 @@ using (tracer.StartActiveSpan("/getuser", out TelemetrySpan span))
 }
 ```
 
-## Metrics
-
-```csharp
-var metricExporter = new StackdriverExporter(
-    "YOUR-GOOGLE-PROJECT-ID",
-    Stats.ViewManager);
-metricExporter.Start();
-```
-
 ## References
 
 * [stackdriver-trace-setup](https://cloud.google.com/trace/docs/setup/)
