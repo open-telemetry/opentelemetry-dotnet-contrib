@@ -21,15 +21,14 @@ using System.Threading;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
-internal class InstrumentedDuplexSessionChannel : InstrumentedChannel, IDuplexSessionChannel, IDisposable
+internal class InstrumentedDuplexSessionChannel : InstrumentedChannel, IDuplexSessionChannel
 {
-    private RequestTelemetryStateTracker stateTracker;
+    private readonly TimeSpan telemetryTimeout;
 
     public InstrumentedDuplexSessionChannel(IDuplexSessionChannel inner, TimeSpan telemetryTimeout)
         : base(inner)
     {
-        this.stateTracker = new RequestTelemetryStateTracker(telemetryTimeout);
-        this.stateTracker.TelemetryStateTimedOut += this.OnTelemetryStateTimedOut;
+        this.telemetryTimeout = telemetryTimeout;
     }
 
     public EndpointAddress LocalAddress => this.Inner.LocalAddress;
@@ -79,14 +78,14 @@ internal class InstrumentedDuplexSessionChannel : InstrumentedChannel, IDuplexSe
     public Message Receive()
     {
         var message = this.Inner.Receive();
-        this.HandleReceivedMessage(message);
+        HandleReceivedMessage(message);
         return message;
     }
 
     public Message Receive(TimeSpan timeout)
     {
         var message = this.Inner.Receive(timeout);
-        this.HandleReceivedMessage(message);
+        HandleReceivedMessage(message);
         return message;
     }
 
@@ -103,14 +102,14 @@ internal class InstrumentedDuplexSessionChannel : InstrumentedChannel, IDuplexSe
     public Message EndReceive(IAsyncResult result)
     {
         var message = this.Inner.EndReceive(result);
-        this.HandleReceivedMessage(message);
+        HandleReceivedMessage(message);
         return message;
     }
 
     public bool TryReceive(TimeSpan timeout, out Message message)
     {
         var returnValue = this.Inner.TryReceive(timeout, out message);
-        this.HandleReceivedMessage(message);
+        HandleReceivedMessage(message);
         return returnValue;
     }
 
@@ -122,7 +121,7 @@ internal class InstrumentedDuplexSessionChannel : InstrumentedChannel, IDuplexSe
     public bool EndTryReceive(IAsyncResult result, out Message message)
     {
         var returnValue = this.Inner.EndTryReceive(result, out message);
-        this.HandleReceivedMessage(message);
+        HandleReceivedMessage(message);
         return returnValue;
     }
 
@@ -141,27 +140,18 @@ internal class InstrumentedDuplexSessionChannel : InstrumentedChannel, IDuplexSe
         return this.Inner.EndWaitForMessage(result);
     }
 
-    public void Dispose()
+    private static void HandleReceivedMessage(Message message)
     {
-        this.stateTracker.Dispose();
+        var telemetryState = RequestTelemetryStateTracker.PopTelemetryState(message);
+        if (telemetryState != null)
+        {
+            ClientChannelInstrumentation.AfterRequestCompleted(message, telemetryState);
+        }
     }
 
-    void ICommunicationObject.Close(TimeSpan timeout)
+    private static void OnTelemetryStateTimedOut(RequestTelemetryState telemetryState)
     {
-        this.Inner.Close(timeout);
-        this.Dispose();
-    }
-
-    void ICommunicationObject.Close()
-    {
-        this.Inner.Close();
-        this.Dispose();
-    }
-
-    void ICommunicationObject.EndClose(IAsyncResult result)
-    {
-        this.Inner.EndClose(result);
-        this.Dispose();
+        ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState);
     }
 
     private IAsyncResult SendInternal(Message message, Func<AsyncCallback, object, IAsyncResult> executeSend, AsyncCallback callback, object state)
@@ -181,7 +171,7 @@ internal class InstrumentedDuplexSessionChannel : InstrumentedChannel, IDuplexSe
         ContextCallback executeInChildContext = _ =>
         {
             telemetryState = ClientChannelInstrumentation.BeforeSendRequest(message, this.RemoteAddress?.Uri);
-            this.stateTracker.PushTelemetryState(message, telemetryState);
+            RequestTelemetryStateTracker.PushTelemetryState(message, telemetryState, this.telemetryTimeout, OnTelemetryStateTimedOut);
             executeSend(telemetryState);
         };
 
@@ -194,19 +184,5 @@ internal class InstrumentedDuplexSessionChannel : InstrumentedChannel, IDuplexSe
             ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState);
             throw;
         }
-    }
-
-    private void HandleReceivedMessage(Message message)
-    {
-        var telemetryState = this.stateTracker.PopTelemetryState(message);
-        if (telemetryState != null)
-        {
-            ClientChannelInstrumentation.AfterRequestCompleted(message, telemetryState);
-        }
-    }
-
-    private void OnTelemetryStateTimedOut(object sender, RequestTelemetryState telemetryState)
-    {
-        ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState);
     }
 }
