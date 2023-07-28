@@ -4,7 +4,7 @@
 
 * BREAKING (renaming): renamed `OpenTelemetry.Contrib.Instrumentation.AWS` to `OpenTelemetry.Instrumentation.AWS`
   ([#1275](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1275))
-* Raised the minimum .NET version to `net462`
+* Raised the minimum .NET Framework version to `net462`
   ([#1095](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1095))
 * Removes `AddAWSInstrumentation` method with default configure default parameter.
   ([#1117](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1117))
