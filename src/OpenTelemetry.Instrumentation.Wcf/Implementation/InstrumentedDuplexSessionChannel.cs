@@ -43,22 +43,22 @@ internal class InstrumentedDuplexSessionChannel : InstrumentedChannel, IDuplexSe
 
     public void Send(Message message)
     {
-        this.SendInternal(message, _ => this.Inner.Send(message));
+        this.SendInternal(message, this.telemetryTimeout, _ => this.Inner.Send(message));
     }
 
     public void Send(Message message, TimeSpan timeout)
     {
-        this.SendInternal(message, _ => this.Inner.Send(message, timeout));
+        this.SendInternal(message, timeout, _ => this.Inner.Send(message, timeout));
     }
 
     public IAsyncResult BeginSend(Message message, AsyncCallback callback, object state)
     {
-        return this.SendInternal(message, (cb, s) => this.Inner.BeginSend(message, cb, s), callback, state);
+        return this.SendInternal(message, this.telemetryTimeout, (cb, s) => this.Inner.BeginSend(message, cb, s), callback, state);
     }
 
     public IAsyncResult BeginSend(Message message, TimeSpan timeout, AsyncCallback callback, object state)
     {
-        return this.SendInternal(message, (cb, s) => this.Inner.BeginSend(message, timeout, cb, s), callback, state);
+        return this.SendInternal(message, timeout, (cb, s) => this.Inner.BeginSend(message, timeout, cb, s), callback, state);
     }
 
     public void EndSend(IAsyncResult result)
@@ -154,10 +154,10 @@ internal class InstrumentedDuplexSessionChannel : InstrumentedChannel, IDuplexSe
         ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState);
     }
 
-    private IAsyncResult SendInternal(Message message, Func<AsyncCallback, object, IAsyncResult> executeSend, AsyncCallback callback, object state)
+    private IAsyncResult SendInternal(Message message, TimeSpan timeout, Func<AsyncCallback, object, IAsyncResult> executeSend, AsyncCallback callback, object state)
     {
         IAsyncResult result = null;
-        this.SendInternal(message, telemetryState =>
+        this.SendInternal(message, timeout, telemetryState =>
         {
             var asyncCallback = AsyncResultWithTelemetryState.GetAsyncCallback(callback, telemetryState);
             result = new AsyncResultWithTelemetryState(executeSend(asyncCallback, state), telemetryState);
@@ -165,13 +165,13 @@ internal class InstrumentedDuplexSessionChannel : InstrumentedChannel, IDuplexSe
         return result;
     }
 
-    private void SendInternal(Message message, Action<RequestTelemetryState> executeSend)
+    private void SendInternal(Message message, TimeSpan timeout, Action<RequestTelemetryState> executeSend)
     {
         RequestTelemetryState telemetryState = null;
         ContextCallback executeInChildContext = _ =>
         {
             telemetryState = ClientChannelInstrumentation.BeforeSendRequest(message, this.RemoteAddress?.Uri);
-            RequestTelemetryStateTracker.PushTelemetryState(message, telemetryState, this.telemetryTimeout, OnTelemetryStateTimedOut);
+            RequestTelemetryStateTracker.PushTelemetryState(message, telemetryState, timeout, OnTelemetryStateTimedOut);
             executeSend(telemetryState);
         };
 

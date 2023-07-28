@@ -420,5 +420,56 @@ public class TelemetryBindingElementForTcpTests : IDisposable
             WcfInstrumentationActivitySource.Options = null;
         }
     }
+
+    [Fact]
+    public async void DynamicTimeoutValuesAreRespected()
+    {
+        var stoppedActivities = new List<Activity>();
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(stoppedActivities)
+            .AddWcfInstrumentation()
+            .Build();
+
+        var binding = new NetTcpBinding(SecurityMode.None);
+        binding.SendTimeout = TimeSpan.FromMilliseconds(15000);
+        var client = new ServiceClient(binding, new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
+        try
+        {
+            client.Endpoint.EndpointBehaviors.Add(new DownstreamInstrumentationEndpointBehavior());
+            client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
+            client.InnerChannel.OperationTimeout = TimeSpan.FromMilliseconds(1000);
+            DownstreamInstrumentationChannel.FailNextReceive();
+            await Assert.ThrowsAnyAsync<Exception>(() => client.ExecuteAsync(new ServiceRequest { Payload = "Hello Open Telemetry!" }));
+
+            var startedWaiting = DateTime.UtcNow;
+            for (var i = 0; i < 200; i++)
+            {
+                if (stoppedActivities.Count > 0)
+                {
+                    break;
+                }
+
+                await Task.Delay(100);
+            }
+
+            Assert.True(DateTime.UtcNow - startedWaiting < TimeSpan.FromSeconds(10));
+            Assert.Single(stoppedActivities);
+        }
+        finally
+        {
+            if (client.State == CommunicationState.Faulted)
+            {
+                client.Abort();
+            }
+            else
+            {
+                client.Close();
+            }
+
+            tracerProvider.Shutdown();
+            tracerProvider.Dispose();
+            WcfInstrumentationActivitySource.Options = null;
+        }
+    }
 }
 #endif
