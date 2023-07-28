@@ -60,7 +60,7 @@ internal static class Utils
     public static string FindResourceName(string partialName)
     {
 #pragma warning disable CA2249 // Consider using 'string.Contains' instead of 'string.IndexOf'
-        return FindResourceName(s => s.IndexOf(partialName, StringComparison.OrdinalIgnoreCase) >= 0).SingleOrDefault();
+        return FindResourceName(s => s.IndexOf(partialName, StringComparison.OrdinalIgnoreCase) >= 0).Single();
 #pragma warning restore CA2249 // Consider using 'string.Contains' instead of 'string.IndexOf'
     }
 

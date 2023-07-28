@@ -28,7 +28,7 @@ internal class CustomWebResponse : IWebResponseData
 {
     private HttpResponseMessageBody response;
     private string[]? headerNames;
-    private Dictionary<string, string>? headers;
+    private Dictionary<string, string?>? headers;
     private HashSet<string>? headerNamesSet;
 
     public CustomWebResponse(HttpResponseMessage response)
@@ -64,10 +64,9 @@ internal class CustomWebResponse : IWebResponseData
         return new CustomWebResponse(response);
     }
 
-    public string GetHeaderValue(string headerName)
+    public string? GetHeaderValue(string headerName)
     {
-        string? headerValue;
-        if (this.headers != null && this.headers.TryGetValue(headerName, out headerValue))
+        if (this.headers != null && this.headers.TryGetValue(headerName, out var headerValue))
         {
             return headerValue;
         }
@@ -88,7 +87,7 @@ internal class CustomWebResponse : IWebResponseData
     private void CopyHeaderValues(HttpResponseMessage response)
     {
         List<string> headerNames = new List<string>();
-        this.headers = new Dictionary<string, string>(10, StringComparer.OrdinalIgnoreCase);
+        this.headers = new Dictionary<string, string?>(10, StringComparer.OrdinalIgnoreCase);
 
         foreach (KeyValuePair<string, IEnumerable<string>> kvp in response.Headers)
         {
@@ -114,10 +113,9 @@ internal class CustomWebResponse : IWebResponseData
         this.headerNamesSet = new HashSet<string>(this.headerNames, StringComparer.OrdinalIgnoreCase);
     }
 
-    private string GetFirstHeaderValue(HttpHeaders headers, string key)
+    private string? GetFirstHeaderValue(HttpHeaders headers, string key)
     {
-        IEnumerable<string>? headerValues = null;
-        if (headers.TryGetValues(key, out headerValues))
+        if (headers.TryGetValues(key, out var headerValues))
         {
             return headerValues.FirstOrDefault();
         }
