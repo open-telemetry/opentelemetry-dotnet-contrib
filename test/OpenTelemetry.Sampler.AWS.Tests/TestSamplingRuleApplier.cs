@@ -347,7 +347,7 @@ public class TestSamplingRuleApplier
 
         var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
 
-        // no target assigned yet. so borrow 1 from reseroir every second
+        // no target assigned yet. so borrow 1 from reservoir every second
         Assert.Equal(SamplingDecision.RecordAndSample, applier.ShouldSample(default).Decision);
         Assert.Equal(SamplingDecision.Drop, applier.ShouldSample(default).Decision);
         clock.Advance(TimeSpan.FromSeconds(1));
@@ -392,7 +392,7 @@ public class TestSamplingRuleApplier
 
         var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
 
-        // no target assigned yet. so borrow 1 from reseroir every second
+        // no target assigned yet. so borrow 1 from reservoir every second
         Assert.Equal(SamplingDecision.RecordAndSample, applier.ShouldSample(default).Decision);
         Assert.Equal(SamplingDecision.Drop, applier.ShouldSample(default).Decision);
         clock.Advance(TimeSpan.FromSeconds(1));
