@@ -28,14 +28,11 @@ public sealed class AppServiceResourceDetector : IResourceDetector
 {
     internal static readonly IReadOnlyDictionary<string, string> AppServiceResourceAttributes = new Dictionary<string, string>
     {
-        [ResourceAttributeConstants.AppServiceSiteName] = ResourceAttributeConstants.AppServiceSiteNameEnvVar,
-        [ResourceSemanticConventions.AttributeServiceName] = ResourceAttributeConstants.AppServiceSiteNameEnvVar,
-        [ResourceSemanticConventions.AttributeServiceInstance] = ResourceAttributeConstants.AppServiceInstanceIdEnvVar,
-        [ResourceAttributeConstants.AppServiceSlotName] = ResourceAttributeConstants.AppServiceSlotNameEnvVar,
-        [ResourceAttributeConstants.AppServiceStamp] = ResourceAttributeConstants.AppServiceStampNameEnvVar,
-        [ResourceAttributeConstants.AppServiceHost] = ResourceAttributeConstants.AppServiceHostNameEnvVar,
-        [ResourceAttributeConstants.AppServiceOwner] = ResourceAttributeConstants.AppServiceOwnerNameEnvVar,
-        [ResourceAttributeConstants.AppServiceResourceGroup] = ResourceAttributeConstants.AppServiceResourceGroupEnvVar,
+        { ResourceSemanticConventions.AttributeCloudRegion, ResourceAttributeConstants.AppServiceRegionNameEnvVar },
+        { ResourceSemanticConventions.AttributeDeploymentEnvironment, ResourceAttributeConstants.AppServiceSlotNameEnvVar },
+        { ResourceSemanticConventions.AttributeHostId, ResourceAttributeConstants.AppServiceHostNameEnvVar },
+        { ResourceSemanticConventions.AttributeServiceInstance, ResourceAttributeConstants.AppServiceInstanceIdEnvVar },
+        { ResourceAttributeConstants.AzureAppServiceStamp, ResourceAttributeConstants.AppServiceStampNameEnvVar },
     };
 
     /// <inheritdoc/>
@@ -45,12 +42,27 @@ public sealed class AppServiceResourceDetector : IResourceDetector
 
         try
         {
-            foreach (var kvp in AppServiceResourceAttributes)
+            var websiteSiteName = Environment.GetEnvironmentVariable(ResourceAttributeConstants.AppServiceSiteNameEnvVar);
+
+            if (websiteSiteName != null)
             {
-                var attributeValue = Environment.GetEnvironmentVariable(kvp.Value);
-                if (attributeValue != null)
+                attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, websiteSiteName));
+                attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudProvider, ResourceAttributeConstants.AzureCloudProviderValue));
+                attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudPlatform, ResourceAttributeConstants.AzureAppServicePlatformValue));
+
+                var azureResourceUri = GetAzureResourceURI(websiteSiteName);
+                if (azureResourceUri != null)
                 {
-                    attributeList.Add(new KeyValuePair<string, object>(kvp.Key, attributeValue));
+                    attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudResourceId, azureResourceUri));
+                }
+
+                foreach (var kvp in AppServiceResourceAttributes)
+                {
+                    var attributeValue = Environment.GetEnvironmentVariable(kvp.Value);
+                    if (attributeValue != null)
+                    {
+                        attributeList.Add(new KeyValuePair<string, object>(kvp.Key, attributeValue));
+                    }
                 }
             }
         }
@@ -61,5 +73,21 @@ public sealed class AppServiceResourceDetector : IResourceDetector
         }
 
         return new Resource(attributeList);
+    }
+
+    private static string? GetAzureResourceURI(string websiteSiteName)
+    {
+        string websiteResourceGroup = Environment.GetEnvironmentVariable(ResourceAttributeConstants.AppServiceResourceGroupEnvVar);
+        string websiteOwnerName = Environment.GetEnvironmentVariable(ResourceAttributeConstants.AppServiceOwnerNameEnvVar) ?? string.Empty;
+
+        int idx = websiteOwnerName.IndexOf('+');
+        string subscriptionId = idx > 0 ? websiteOwnerName.Substring(0, idx) : websiteOwnerName;
+
+        if (string.IsNullOrEmpty(websiteResourceGroup) || string.IsNullOrEmpty(subscriptionId))
+        {
+            return null;
+        }
+
+        return $"/subscriptions/{subscriptionId}/resourceGroups/{websiteResourceGroup}/providers/Microsoft.Web/sites/{websiteSiteName}";
     }
 }

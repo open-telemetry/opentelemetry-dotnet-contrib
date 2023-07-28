@@ -15,35 +15,27 @@
 // </copyright>
 
 namespace OpenTelemetry.ResourceDetectors.Azure;
-internal class ResourceAttributeConstants
+internal sealed class ResourceAttributeConstants
 {
     // AppService resource attributes
-    internal const string AppServiceSiteName = "appSrv_SiteName";
-    internal const string AppServiceSlotName = "appSrv_SlotName";
-    internal const string AppServiceStamp = "appSrv_wsStamp";
-    internal const string AppServiceHost = "appSrv_wsHost";
-    internal const string AppServiceOwner = "appSrv_wsOwner";
-    internal const string AppServiceResourceGroup = "appSrv_ResourceGroup";
+    internal const string AzureAppServiceStamp = "azure.app.service.stamp";
 
     // Azure VM resource attributes
-    internal const string AzureVmId = "azInst_vmId";
-    internal const string AzureVmLocation = "azInst_location";
-    internal const string AzureVmName = "azInst_name";
-    internal const string AzureVmOsType = "azInst_osType";
-    internal const string AzureVmResourceGroup = "azInst_resourceGroupName";
-    internal const string AzureVmResourceId = "azInst_resourceId";
-    internal const string AzureVmSku = "azInst_sku";
-    internal const string AzureVmVersion = "azInst_version";
-    internal const string AzureVmSize = "azInst_vmSize";
-    internal const string AzureVmScaleSetName = "azInst_vmScaleSetName";
-    internal const string AzureVmSubscriptionId = "azInst_subscriptionId";
+    internal const string AzureVmScaleSetName = "azure.vm.scaleset.name";
+    internal const string AzureVmSku = "azure.vm.sku";
 
     // AppService environment variables
-    internal const string AppServiceSiteNameEnvVar = "WEBSITE_SITE_NAME";
+    internal const string AppServiceHostNameEnvVar = "WEBSITE_HOSTNAME";
     internal const string AppServiceInstanceIdEnvVar = "WEBSITE_INSTANCE_ID";
+    internal const string AppServiceOwnerNameEnvVar = "WEBSITE_OWNER_NAME";
+    internal const string AppServiceRegionNameEnvVar = "REGION_NAME";
+    internal const string AppServiceResourceGroupEnvVar = "WEBSITE_RESOURCE_GROUP";
+    internal const string AppServiceSiteNameEnvVar = "WEBSITE_SITE_NAME";
     internal const string AppServiceSlotNameEnvVar = "WEBSITE_SLOT_NAME";
     internal const string AppServiceStampNameEnvVar = "WEBSITE_HOME_STAMPNAME";
-    internal const string AppServiceHostNameEnvVar = "WEBSITE_HOSTNAME";
-    internal const string AppServiceOwnerNameEnvVar = "WEBSITE_OWNER_NAME";
-    internal const string AppServiceResourceGroupEnvVar = "WEBSITE_RESOURCE_GROUP";
+
+    // Azure resource attributes constant values
+    internal const string AzureAppServicePlatformValue = "azure_app_service";
+    internal const string AzureCloudProviderValue = "azure";
+    internal const string AzureVmCloudPlatformValue = "azure_vm";
 }
