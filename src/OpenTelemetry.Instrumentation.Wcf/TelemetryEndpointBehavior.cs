@@ -68,6 +68,13 @@ public class TelemetryEndpointBehavior : IEndpointBehavior
 
     internal static void ApplyBindingElementToServiceEndpoint(ServiceEndpoint endpoint)
     {
+#if NETFRAMEWORK
+        if (endpoint.IsSystemEndpoint)
+        {
+            return;
+        }
+#endif
+
         if (endpoint.Binding is CustomBinding customBinding && customBinding.Elements.Find<TelemetryBindingElement>() != null)
         {
             return;
