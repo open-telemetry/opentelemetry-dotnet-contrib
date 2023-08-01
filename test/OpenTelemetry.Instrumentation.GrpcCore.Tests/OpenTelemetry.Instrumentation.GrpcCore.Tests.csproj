@@ -14,7 +14,7 @@
     </PackageReference>
     <DotNetCliToolReference Include="dotnet-xunit" Version="$(DotNetXUnitCliVer)" />
     <PackageReference Include="Grpc.Tools" Version="1.17.0" />
-    <PackageReference Include="Grpc" Version="[2.32.0,3.0)" />
+    <PackageReference Include="Grpc" Version="[2.46.6,3.0)" />
   </ItemGroup>
   <ItemGroup>
     <Protobuf Include="proto/*.proto" />
