@@ -25,7 +25,7 @@ using Moq;
 using OpenTelemetry.Context.Propagation;
 using Xunit;
 
-namespace OpenTelemetry.Instrumentation.GrpcCore.Test;
+namespace OpenTelemetry.Instrumentation.GrpcCore.Tests;
 
 /// <summary>
 /// Grpc Core client interceptor tests.
@@ -333,7 +333,7 @@ public class GrpcCoreClientInterceptorTests
         // TagObjects contain non string values
         // Tags contains only string values
         Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcSystem && (string)t.Value == "grpc");
-        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcService && (string)t.Value == "OpenTelemetry.Instrumentation.GrpcCore.Test.Foobar");
+        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcService && (string)t.Value == "OpenTelemetry.Instrumentation.GrpcCore.Tests.Foobar");
         Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcMethod);
         Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcGrpcStatusCode && (int)t.Value == (int)expectedStatusCode);
 
