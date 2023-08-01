@@ -42,6 +42,11 @@ public class GrpcCoreClientInterceptorTests
     /// </summary>
     private static readonly Func<Metadata> DefaultMetadataFunc = () => new Metadata { new Metadata.Entry("foo", "bar") };
 
+    public GrpcCoreClientInterceptorTests()
+    {
+        System.Diagnostics.Activity.DefaultIdFormat = ActivityIdFormat.W3C;
+    }
+
     /// <summary>
     /// Validates a successful AsyncUnary call.
     /// </summary>
