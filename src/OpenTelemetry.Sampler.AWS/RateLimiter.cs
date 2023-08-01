@@ -17,6 +17,7 @@
 using System.Threading;
 
 namespace OpenTelemetry.Sampler.AWS;
+
 internal sealed class RateLimiter
 {
     private readonly Clock clock;
