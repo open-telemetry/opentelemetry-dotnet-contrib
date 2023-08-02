@@ -21,6 +21,7 @@ using Amazon.Runtime.Internal;
 using Amazon.SimpleNotificationService.Model;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation;
+
 internal class SnsRequestContextHelper
 {
     // SQS/SNS message attributes collection size limit according to

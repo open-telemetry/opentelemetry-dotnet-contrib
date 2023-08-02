@@ -24,6 +24,7 @@ using SNS = Amazon.SimpleNotificationService.Model;
 using SQS = Amazon.SQS.Model;
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests.Implementation;
+
 internal static class TestsHelper
 {
     internal static Action<IRequestContext, IReadOnlyDictionary<string, string>>? CreateAddAttributesAction(string serviceType, IRequestContext context)
