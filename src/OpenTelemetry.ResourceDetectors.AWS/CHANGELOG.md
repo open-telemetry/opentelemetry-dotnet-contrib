@@ -4,7 +4,7 @@
 
 ## 1.3.0-beta.1
 
-Released 2023-Aug-01
+Released 2023-Aug-02
 
 * Initial release. Previously it was part of `OpenTelemetry.Contrib.Extensions.AWSXRay`
   package.
