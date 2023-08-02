@@ -4,7 +4,7 @@
     <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry extensions for AWS.</Description>
-    <MinVerTagPrefix>Extensions.AWSXRay-</MinVerTagPrefix>
+    <MinVerTagPrefix>Extensions.AWS-</MinVerTagPrefix>
     <Nullable>enable</Nullable>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
   </PropertyGroup>

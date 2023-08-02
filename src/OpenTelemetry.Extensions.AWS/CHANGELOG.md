@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.3.0-beta.1
+
+Released 2023-Aug-02
+
 * Rename package from `OpenTelemetry.Contrib.Extensions.AWSXRay`
   to `OpenTelemetry.Extensions.AWS`
   ([#1232](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1232))
