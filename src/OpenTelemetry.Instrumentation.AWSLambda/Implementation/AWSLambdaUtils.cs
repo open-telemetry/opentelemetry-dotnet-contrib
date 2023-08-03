@@ -23,7 +23,7 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
 using Amazon.Lambda.SQSEvents;
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
+using OpenTelemetry.Extensions.AWS.Trace;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 
