@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: [netcoreapp3.1,net6.0,net7.0]
+        version: [net6.0,net7.0]
     steps:
       - run: 'echo "No build required"'
 

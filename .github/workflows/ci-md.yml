@@ -20,7 +20,7 @@ jobs:
     strategy:
       matrix:
         os: [ windows-latest, ubuntu-latest ]
-        version: [ net462, netcoreapp3.1, net6.0, net7.0 ]
+        version: [ net462, net6.0, net7.0 ]
         exclude:
         - os: ubuntu-latest
           version: net462

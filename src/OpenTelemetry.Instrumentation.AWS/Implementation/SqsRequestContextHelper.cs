@@ -21,6 +21,7 @@ using Amazon.Runtime.Internal;
 using Amazon.SQS.Model;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation;
+
 internal class SqsRequestContextHelper
 {
     // SQS/SNS message attributes collection size limit according to

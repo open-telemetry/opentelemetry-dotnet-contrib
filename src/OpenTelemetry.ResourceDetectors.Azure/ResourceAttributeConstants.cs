@@ -15,6 +15,7 @@
 // </copyright>
 
 namespace OpenTelemetry.ResourceDetectors.Azure;
+
 internal sealed class ResourceAttributeConstants
 {
     // AppService resource attributes

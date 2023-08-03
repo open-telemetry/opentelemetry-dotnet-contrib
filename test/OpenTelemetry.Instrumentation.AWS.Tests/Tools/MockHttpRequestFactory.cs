@@ -24,6 +24,7 @@ using System.Net.Http;
 using Amazon.Runtime;
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests.Tools;
+
 #if NETFRAMEWORK
 internal class MockHttpRequestFactory : IHttpRequestFactory<Stream>
 {
