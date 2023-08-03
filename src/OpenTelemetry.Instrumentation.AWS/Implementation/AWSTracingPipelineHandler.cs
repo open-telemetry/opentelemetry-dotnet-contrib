@@ -22,7 +22,7 @@ using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 using Amazon.Util;
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Contrib.Extensions.AWSXRay.Trace;
+using OpenTelemetry.Extensions.AWS.Trace;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation;

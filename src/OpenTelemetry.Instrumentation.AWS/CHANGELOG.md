@@ -11,6 +11,8 @@
 * Global propagator is now used to inject into sent SQS and SNS message
   attributes (in addition to X-Ray propagation).
   ([#1051](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1051))
+* Change dependency from `OpenTelemetry.Contrib.Extensions.AWSXRay` to `OpenTelemetry.Extensions.AWS`
+  ([#1288](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1288))
 
 ## 1.0.2
 
