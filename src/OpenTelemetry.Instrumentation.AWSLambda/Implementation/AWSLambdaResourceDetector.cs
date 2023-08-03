@@ -19,7 +19,7 @@ using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 
-internal class AWSLambdaResourceDetector : IResourceDetector
+internal sealed class AWSLambdaResourceDetector : IResourceDetector
 {
     /// <summary>
     /// Detect the resource attributes for AWS Lambda.
