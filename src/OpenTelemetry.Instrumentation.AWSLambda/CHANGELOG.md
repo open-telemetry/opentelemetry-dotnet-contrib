@@ -6,9 +6,12 @@
 
 Released 2023-Aug-03
 
-* BREAKING: `AddAWSLambdaConfigurations` no longer removes all existing resource attributes
-* BREAKING: Change dependency from `OpenTelemetry.Contrib.Extensions.AWSXRay` to `OpenTelemetry.Extensions.AWS`
-  ([#1289](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1289)). This now requires at least OpenTelemetry 1.5.1.
+* BREAKING: `AddAWSLambdaConfigurations` no longer removes all existing
+  resource attributes
+* BREAKING: Change dependency from `OpenTelemetry.Contrib.Extensions.AWSXRay`
+  to `OpenTelemetry.Extensions.AWS`
+  ([#1289](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1289)).
+  This now requires at least OpenTelemetry 1.5.1.
 * Add explicit dependency on Newtonsoft.Json, upgrading the minimum version.
 
   This resolves a warning that some dependency analyzers may produce where this
