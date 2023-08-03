@@ -13,8 +13,6 @@
   ([#1051](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1051))
 * Change dependency from `OpenTelemetry.Contrib.Extensions.AWSXRay` to `OpenTelemetry.Extensions.AWS`
   ([#1288](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1288))
-* Update OpenTelemetry SDK version to `1.5.1` by `OpenTelemetry.Extensions.AWS` package.
-  ([#1288](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1288))
 
 ## 1.0.2
 
