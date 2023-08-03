@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.2.0-beta.1
+
+Released 2023-Aug-03
+
 * Change dependency from `OpenTelemetry.Contrib.Extensions.AWSXRay` to `OpenTelemetry.Extensions.AWS`
   ([#1289](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1289))
 * Add explicit dependency on Newtonsoft.Json, upgrading the minimum version.
