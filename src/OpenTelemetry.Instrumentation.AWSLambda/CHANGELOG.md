@@ -4,8 +4,6 @@
 
 * Change dependency from `OpenTelemetry.Contrib.Extensions.AWSXRay` to `OpenTelemetry.Extensions.AWS`
   ([#1289](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1289))
-* Update OpenTelemetry SDK version to `1.5.1` by `OpenTelemetry.Extensions.AWS` package.
-  ([#1289](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1289))
 * Add explicit dependency on Newtonsoft.Json, upgrading the minimum version.
 
   This resolves a warning that some dependency analyzers may produce where this
