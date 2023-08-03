@@ -105,7 +105,7 @@ public class MySqlDataTests
             ConnStr,
             10);
 
-        Assert.Equal(1, activityProcessor.Invocations.Count);
+        Assert.Single(activityProcessor.Invocations);
     }
 
     private static void VerifyActivityData(

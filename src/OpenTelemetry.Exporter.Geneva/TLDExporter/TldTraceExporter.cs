@@ -24,6 +24,7 @@ using OpenTelemetry.Exporter.Geneva.External;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva.TldExporter;
+
 internal sealed class TldTraceExporter : TldExporter, IDisposable
 {
     // TODO: Is using a single ThreadLocal a better idea?
