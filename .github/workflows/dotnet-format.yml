@@ -2,43 +2,31 @@ name: dotnet format
 
 on:
   push:
-    branches:
-      [
-        'main*',
-        'instrumentation*',
-        'exporter*',
-        'extensions*'
-      ]
+    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths:
-      - '**.cs'
-      - '.editorconfig'
+    - '**.cs'
+    - '.editorconfig'
   pull_request:
-    branches:
-      [
-        'main*',
-        'instrumentation*',
-        'exporter*',
-        'extensions*'
-      ]
+    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths:
-      - '**.cs'
-      - '.editorconfig'
+    - '**.cs'
+    - '.editorconfig'
 
 jobs:
   check-format:
     runs-on: windows-latest
 
     steps:
-      - name: check out code
-        uses: actions/checkout@v3
+    - name: check out code
+      uses: actions/checkout@v3
 
-      - name: Install .NET 7 SDK
-        uses: actions/setup-dotnet@v3.2.0
-        with:
-          dotnet-version: '7.0.x'
+    - name: Install .NET 7 SDK
+      uses: actions/setup-dotnet@v3.2.0
+      with:
+        dotnet-version: '7.0.x'
 
-      - name: dotnet restore
-        run: dotnet restore
+    - name: dotnet restore
+      run: dotnet restore
 
-      - name: dotnet format
-        run: dotnet format .\opentelemetry-dotnet-contrib.sln --no-restore --verify-no-changes
+    - name: dotnet format
+      run: dotnet format .\opentelemetry-dotnet-contrib.sln --no-restore --verify-no-changes
