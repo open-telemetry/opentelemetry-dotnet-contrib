@@ -5,6 +5,7 @@
     <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
     <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

@@ -34,10 +34,10 @@ internal class AWSLambdaHttpUtils
     {
         var tags = new List<KeyValuePair<string, object>>();
 
-        string httpScheme = null;
-        string httpTarget = null;
-        string httpMethod = null;
-        string hostName = null;
+        string? httpScheme = null;
+        string? httpTarget = null;
+        string? httpMethod = null;
+        string? hostName = null;
         int? hostPort = null;
 
         switch (input)
@@ -68,8 +68,13 @@ internal class AWSLambdaHttpUtils
         return tags;
     }
 
-    internal static void SetHttpTagsFromResult(Activity activity, object result)
+    internal static void SetHttpTagsFromResult(Activity? activity, object? result)
     {
+        if (activity == null || result == null)
+        {
+            return;
+        }
+
         switch (result)
         {
             case APIGatewayProxyResponse response:
@@ -81,7 +86,7 @@ internal class AWSLambdaHttpUtils
         }
     }
 
-    internal static string GetQueryString(APIGatewayProxyRequest request)
+    internal static string? GetQueryString(APIGatewayProxyRequest request)
     {
         if (request.MultiValueQueryStringParameters == null)
         {
@@ -107,10 +112,10 @@ internal class AWSLambdaHttpUtils
         return queryString.ToString();
     }
 
-    internal static string GetQueryString(APIGatewayHttpApiV2ProxyRequest request) =>
+    internal static string? GetQueryString(APIGatewayHttpApiV2ProxyRequest request) =>
         string.IsNullOrEmpty(request.RawQueryString) ? string.Empty : "?" + request.RawQueryString;
 
-    internal static (string Host, int? Port) GetHostAndPort(string httpScheme, string hostHeader)
+    internal static (string? Host, int? Port) GetHostAndPort(string? httpScheme, string? hostHeader)
     {
         if (hostHeader == null)
         {
@@ -131,6 +136,6 @@ internal class AWSLambdaHttpUtils
         }
     }
 
-    private static int? GetDefaultPort(string httpScheme) =>
+    private static int? GetDefaultPort(string? httpScheme) =>
         httpScheme == "https" ? 443 : httpScheme == "http" ? 80 : null;
 }

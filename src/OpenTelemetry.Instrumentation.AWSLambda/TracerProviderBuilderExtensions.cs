@@ -42,7 +42,7 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddAWSLambdaConfigurations(
         this TracerProviderBuilder builder,
-        Action<AWSLambdaInstrumentationOptions> configure)
+        Action<AWSLambdaInstrumentationOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
 

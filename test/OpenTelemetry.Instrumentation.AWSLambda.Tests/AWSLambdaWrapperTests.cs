@@ -62,7 +62,7 @@ public class AWSLambdaWrapperTests
         {
             var parentContext = setCustomParent ? CreateParentContext() : default;
             var result = AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncInputAndReturn, "TestStream", this.sampleLambdaContext, parentContext);
-            var resource = tracerProvider.GetResource();
+            var resource = tracerProvider?.GetResource();
             this.AssertResourceAttributes(resource);
         }
 
@@ -88,7 +88,7 @@ public class AWSLambdaWrapperTests
         {
             var parentContext = setCustomParent ? CreateParentContext() : default;
             AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncInputAndNoReturn, "TestStream", this.sampleLambdaContext, parentContext);
-            var resource = tracerProvider.GetResource();
+            var resource = tracerProvider?.GetResource();
             this.AssertResourceAttributes(resource);
         }
 
@@ -114,7 +114,7 @@ public class AWSLambdaWrapperTests
         {
             var parentContext = setCustomParent ? CreateParentContext() : default;
             var result = await AWSLambdaWrapper.TraceAsync(tracerProvider, this.sampleHandlers.SampleHandlerAsyncInputAndReturn, "TestStream", this.sampleLambdaContext, parentContext);
-            var resource = tracerProvider.GetResource();
+            var resource = tracerProvider?.GetResource();
             this.AssertResourceAttributes(resource);
         }
 
@@ -140,7 +140,7 @@ public class AWSLambdaWrapperTests
         {
             var parentContext = setCustomParent ? CreateParentContext() : default;
             await AWSLambdaWrapper.TraceAsync(tracerProvider, this.sampleHandlers.SampleHandlerAsyncInputAndNoReturn, "TestStream", this.sampleLambdaContext, parentContext);
-            var resource = tracerProvider.GetResource();
+            var resource = tracerProvider?.GetResource();
             this.AssertResourceAttributes(resource);
         }
 
@@ -171,7 +171,7 @@ public class AWSLambdaWrapperTests
             }
             catch
             {
-                var resource = tracerProvider.GetResource();
+                var resource = tracerProvider?.GetResource();
                 this.AssertResourceAttributes(resource);
             }
         }
@@ -198,7 +198,7 @@ public class AWSLambdaWrapperTests
                    .Build())
         {
             var result = AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncInputAndReturn, "TestStream", this.sampleLambdaContext);
-            var resource = tracerProvider.GetResource();
+            var resource = tracerProvider?.GetResource();
             this.AssertResourceAttributes(resource);
         }
 
@@ -214,7 +214,7 @@ public class AWSLambdaWrapperTests
     {
         Environment.SetEnvironmentVariable("_X_AMZN_TRACE_ID", null);
 
-        Activity activity = null;
+        Activity? activity = null;
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
                    .AddAWSLambdaConfigurations()
                    .Build())
@@ -229,7 +229,7 @@ public class AWSLambdaWrapperTests
     public void OnFunctionStart_NoSampledAndAwsXRayContextExtractionDisabled_ActivityCreated()
     {
         Environment.SetEnvironmentVariable("_X_AMZN_TRACE_ID", $"Root=1-5759e988-bd862e3fe1be46a994272793;Parent={XRayParentId};Sampled=0");
-        Activity activity = null;
+        Activity? activity = null;
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
                    .AddAWSLambdaConfigurations(c => c.DisableAwsXRayContextExtraction = true)
@@ -261,8 +261,13 @@ public class AWSLambdaWrapperTests
         Assert.Matches(@"^\d+(\.\d+){3}$", activity.Source.Version);
     }
 
-    private void AssertResourceAttributes(Resource resource)
+    private void AssertResourceAttributes(Resource? resource)
     {
+        if (resource == null)
+        {
+            return;
+        }
+
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
         Assert.Equal("aws", resourceAttributes[AWSLambdaSemanticConventions.AttributeCloudProvider]);
         Assert.Equal("us-east-1", resourceAttributes[AWSLambdaSemanticConventions.AttributeCloudRegion]);
