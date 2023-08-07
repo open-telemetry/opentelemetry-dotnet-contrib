@@ -3,9 +3,6 @@
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.OneCollector)](https://www.nuget.org/packages/OpenTelemetry.Exporter.OneCollector)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Exporter.OneCollector)](https://www.nuget.org/packages/OpenTelemetry.Exporter.OneCollector)
 
-> **Warning**
-> This is an early preview version breaking changes should be expected.
-
 The OneCollectorExporter is designed for Microsoft products to send data to
 public-facing end-points which route to Microsoft's internal data pipeline. It
 is not meant to be used outside of Microsoft products and is open sourced to
@@ -14,7 +11,7 @@ demonstrate best practices and to be transparent about what is being collected.
 ## Installation
 
 ```shell
-dotnet add package --prerelease OpenTelemetry.Exporter.OneCollector
+dotnet add package OpenTelemetry.Exporter.OneCollector
 ```
 
 ## Basic usage
