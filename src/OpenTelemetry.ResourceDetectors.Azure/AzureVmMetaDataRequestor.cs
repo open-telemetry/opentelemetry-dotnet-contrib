@@ -28,9 +28,6 @@ internal static class AzureVmMetaDataRequestor
 
     public static AzureVmMetadataResponse? GetAzureVmMetaDataResponseDefault()
     {
-        // Prevents the http operations from being instrumented.
-        using var scope = SuppressInstrumentationScope.Begin();
-
         using var httpClient = new HttpClient();
 
         httpClient.DefaultRequestHeaders.Add("Metadata", "True");
