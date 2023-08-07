@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.1.0-beta.1
+
+Released 2023-Aug-08
+
 * BREAKING (renaming): renamed `OpenTelemetry.Contrib.Instrumentation.AWS` to `OpenTelemetry.Instrumentation.AWS`
   ([#1275](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1275))
 * Raised the minimum .NET Framework version to `net462`
