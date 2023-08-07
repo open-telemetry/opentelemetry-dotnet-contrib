@@ -80,6 +80,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{824BD1DE
 		build\OpenTelemetryContrib.test.ruleset = build\OpenTelemetryContrib.test.ruleset
 		build\sanitycheck.py = build\sanitycheck.py
 		build\stylecop.json = build\stylecop.json
+		build\test-aot-compatibility = build\test-aot-compatibility.ps1
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{0112BD4F-B7A6-4E43-AB23-B6E961E27A49}"
