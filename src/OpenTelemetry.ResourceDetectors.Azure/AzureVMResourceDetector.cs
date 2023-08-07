@@ -48,7 +48,7 @@ public sealed class AzureVMResourceDetector : IResourceDetector
         {
             // Prevents the http operations from being instrumented.
             using var scope = SuppressInstrumentationScope.Begin();
-    
+
             var vmMetaDataResponse = AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse();
             if (vmMetaDataResponse == null)
             {
