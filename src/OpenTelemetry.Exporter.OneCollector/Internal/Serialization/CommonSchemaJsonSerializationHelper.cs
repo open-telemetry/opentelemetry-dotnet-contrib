@@ -36,6 +36,8 @@ internal static class CommonSchemaJsonSerializationHelper
     public static readonly JsonEncodedText TimeProperty = JsonEncodedText.Encode("time");
     public static readonly JsonEncodedText IKeyProperty = JsonEncodedText.Encode("iKey");
     public static readonly JsonEncodedText ExtensionsProperty = JsonEncodedText.Encode("ext");
+    public static readonly JsonEncodedText MetadataExtensionProperty = JsonEncodedText.Encode("metadata");
+    public static readonly JsonEncodedText MetadataExtensionFieldListProperty = JsonEncodedText.Encode("f");
     public static readonly JsonEncodedText DataProperty = JsonEncodedText.Encode("data");
 
     public static void SerializeKeyValueToJson(string key, object? value, Utf8JsonWriter writer)
@@ -44,7 +46,7 @@ internal static class CommonSchemaJsonSerializationHelper
         SerializeValueToJson(value, writer);
     }
 
-    public static void SerializeValueToJson(object? value, Utf8JsonWriter writer)
+    internal static void SerializeValueToJson(object? value, Utf8JsonWriter writer)
     {
         if (value is null)
         {

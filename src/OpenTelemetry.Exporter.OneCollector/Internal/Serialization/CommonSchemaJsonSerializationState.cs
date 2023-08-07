@@ -39,6 +39,8 @@ internal sealed class CommonSchemaJsonSerializationState
 
     public Utf8JsonWriter Writer { get; private set; }
 
+    public ICommonSchemaMetadataProvider? MetadataProvider { get; set; }
+
     public int ExtensionPropertyCount => this.nextKeysToAllValuesLookupIndex;
 
     public int ExtensionAttributeCount => this.allValues.Count;
@@ -128,6 +130,23 @@ internal sealed class CommonSchemaJsonSerializationState
             writer.WriteEndObject();
         }
 
+        if (this.MetadataProvider != null)
+        {
+            writer.WriteStartObject(CommonSchemaJsonSerializationHelper.MetadataExtensionProperty);
+            writer.WriteStartObject(CommonSchemaJsonSerializationHelper.MetadataExtensionFieldListProperty);
+
+            var enumerator = this.MetadataProvider.GetCommonSchemaMetadataFieldDefinitionEnumerator();
+            while (enumerator.MoveNext())
+            {
+                ref readonly var fieldDefinition = ref enumerator.Current;
+
+                writer.WriteNumber(fieldDefinition.Name, fieldDefinition.TypeInfo);
+            }
+
+            writer.WriteEndObject();
+            writer.WriteEndObject();
+        }
+
         if (writeExtensionObjectEnvelope)
         {
             writer.WriteEndObject();
@@ -150,6 +169,8 @@ internal sealed class CommonSchemaJsonSerializationState
         this.keys.Clear();
 
         this.allValues.Clear();
+
+        this.MetadataProvider = null;
     }
 
     private void AssignNewExtensionToLookupIndex(ref int lookupIndex)

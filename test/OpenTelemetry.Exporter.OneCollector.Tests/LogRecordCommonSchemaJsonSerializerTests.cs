@@ -119,7 +119,21 @@ public class LogRecordCommonSchemaJsonSerializerTests
         });
 
         Assert.Equal(
-            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1,\"body\":\"hello world\"}}}}\n",
+            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1,\"body\":\"hello world\",\"formattedMessage\":\"goodbye world\"}}}}\n",
+            json);
+    }
+
+    [Fact]
+    public void LogRecordBodyJsonTest()
+    {
+        string json = GetLogRecordJson(1, (index, logRecord) =>
+        {
+            logRecord.Body = "hello world";
+            logRecord.FormattedMessage = "goodbye world";
+        });
+
+        Assert.Equal(
+            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1,\"body\":\"hello world\",\"formattedMessage\":\"goodbye world\"}}}}\n",
             json);
     }
 
@@ -132,7 +146,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
         });
 
         Assert.Equal(
-            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1,\"body\":\"goodbye world\"}}}}\n",
+            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1,\"body\":\"goodbye world\",\"formattedMessage\":\"goodbye world\"}}}}\n",
             json);
     }
 
@@ -248,6 +262,28 @@ public class LogRecordCommonSchemaJsonSerializerTests
             json);
     }
 
+    [Fact]
+    public void LogRecordMetadataJsonTest()
+    {
+        string json = GetLogRecordJson(1, (index, logRecord) =>
+        {
+            logRecord.Attributes = new List<KeyValuePair<string, object?>>
+            {
+                new KeyValuePair<string, object?>("userId", 18),
+                new KeyValuePair<string, object?>(
+                    "metadata",
+                    new CommonSchemaMetadataProvider(new List<CommonSchemaMetadataFieldDefinition>
+                    {
+                        new CommonSchemaMetadataFieldDefinition(CommonSchemaMetadataFieldDataType.Int32, CommonSchemaMetadataFieldPrivacyClassificationType.Identity, "userId"),
+                    })),
+            };
+        });
+
+        Assert.Equal(
+            "{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{\"severityText\":\"Trace\",\"severityNumber\":1,\"userId\":18},\"ext\":{\"metadata\":{\"f\":{\"userId\":322}}}}\n",
+            json);
+    }
+
     private static string GetLogRecordJson(
         int numberOfLogRecords,
         Action<int, LogRecord> writeLogRecordCallback,
@@ -324,6 +360,33 @@ public class LogRecordCommonSchemaJsonSerializerTests
         public IDisposable Push(object state)
         {
             throw new NotImplementedException();
+        }
+    }
+
+    private sealed class CommonSchemaMetadataProvider : ICommonSchemaMetadataProvider, ICommonSchemaMetadataFieldDefinitionEnumerator
+    {
+        private readonly IReadOnlyList<CommonSchemaMetadataFieldDefinition> fieldDefinitions;
+        private int index = -1;
+        private CommonSchemaMetadataFieldDefinition current;
+
+        public CommonSchemaMetadataProvider(IReadOnlyList<CommonSchemaMetadataFieldDefinition> fieldDefinitions)
+        {
+            this.fieldDefinitions = fieldDefinitions;
+        }
+
+        public ref readonly CommonSchemaMetadataFieldDefinition Current => ref this.current;
+
+        public ICommonSchemaMetadataFieldDefinitionEnumerator GetCommonSchemaMetadataFieldDefinitionEnumerator() => this;
+
+        public bool MoveNext()
+        {
+            if (++this.index < this.fieldDefinitions.Count)
+            {
+                this.current = this.fieldDefinitions[this.index];
+                return true;
+            }
+
+            return false;
         }
     }
 }

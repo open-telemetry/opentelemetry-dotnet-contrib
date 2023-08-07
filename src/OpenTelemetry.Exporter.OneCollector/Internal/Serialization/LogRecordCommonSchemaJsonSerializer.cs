@@ -28,6 +28,7 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
     private static readonly JsonEncodedText SeverityTextProperty = JsonEncodedText.Encode("severityText");
     private static readonly JsonEncodedText SeverityNumberProperty = JsonEncodedText.Encode("severityNumber");
     private static readonly JsonEncodedText BodyProperty = JsonEncodedText.Encode("body");
+    private static readonly JsonEncodedText FormattedMessageProperty = JsonEncodedText.Encode("formattedMessage");
     private static readonly JsonEncodedText DistributedTraceExtensionProperty = JsonEncodedText.Encode("dt");
     private static readonly JsonEncodedText DistributedTraceExtensionTraceIdProperty = JsonEncodedText.Encode("traceId");
     private static readonly JsonEncodedText DistributedTraceExtensionSpanIdProperty = JsonEncodedText.Encode("spanId");
@@ -131,7 +132,7 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
         writer.WriteString(SeverityTextProperty, LogLevelToSeverityTextMappings[logLevel]);
         writer.WriteNumber(SeverityNumberProperty, LogLevelToSeverityNumberMappings[logLevel]);
 
-        string? body = null;
+        string? originalFormat = null;
 
         if (item.Attributes != null)
         {
@@ -146,7 +147,13 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
 
                 if (attribute.Key == "{OriginalFormat}")
                 {
-                    body = attribute.Value as string;
+                    originalFormat = attribute.Value as string;
+                    continue;
+                }
+
+                if (attribute.Value is ICommonSchemaMetadataProvider metadataProvider)
+                {
+                    serializationState.MetadataProvider = metadataProvider;
                     continue;
                 }
 
@@ -160,13 +167,29 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
             }
         }
 
-        if (!string.IsNullOrEmpty(body))
+        var hasBody = false;
+
+        if (!string.IsNullOrEmpty(originalFormat))
         {
-            writer.WriteString(BodyProperty, body);
+            writer.WriteString(BodyProperty, originalFormat);
+            hasBody = true;
+        }
+        else if (!string.IsNullOrEmpty(item.Body))
+        {
+            writer.WriteString(BodyProperty, item.Body);
+            hasBody = true;
         }
         else if (!string.IsNullOrEmpty(item.FormattedMessage))
         {
             writer.WriteString(BodyProperty, item.FormattedMessage);
+            writer.WriteString(FormattedMessageProperty, item.FormattedMessage);
+        }
+
+        if (hasBody
+            && !string.IsNullOrEmpty(item.FormattedMessage)
+            && item.Body != item.FormattedMessage)
+        {
+            writer.WriteString(FormattedMessageProperty, item.FormattedMessage);
         }
 
         SerializeResourceToJsonInsideCurrentObject(resource, serializationState);
@@ -184,8 +207,10 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
     {
         var hasTraceContext = item.TraceId != default;
         var hasException = item.Exception != null;
+        var hasExtensions = serializationState.ExtensionAttributeCount > 0
+            || serializationState.MetadataProvider != null;
 
-        if (!hasTraceContext && !hasException && serializationState.ExtensionAttributeCount <= 0)
+        if (!hasTraceContext && !hasException && !hasExtensions)
         {
             return;
         }
@@ -215,7 +240,10 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
             writer.WriteEndObject();
         }
 
-        serializationState.SerializeExtensionPropertiesToJson(writeExtensionObjectEnvelope: false);
+        if (hasExtensions)
+        {
+            serializationState.SerializeExtensionPropertiesToJson(writeExtensionObjectEnvelope: false);
+        }
 
         writer.WriteEndObject();
     }
