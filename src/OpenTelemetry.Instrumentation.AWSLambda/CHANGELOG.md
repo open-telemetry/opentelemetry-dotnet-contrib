@@ -4,7 +4,7 @@
 
 ## 1.2.0-beta.1
 
-Released 2023-Aug-03
+Released 2023-Aug-07
 
 * BREAKING: `AddAWSLambdaConfigurations` no longer removes all existing
   resource attributes
