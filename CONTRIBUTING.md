@@ -254,6 +254,11 @@ the main branch. The workflow file should be named as
   package. Every project's README file needs to have a link to the Nuget
   package. You can use the below snippet for reference:
 
+```md
+[![NuGet version badge](https://img.shields.io/nuget/v/{your_package_name})](https://www.nuget.org/packages/{your_package_name})
+[![NuGet download count badge](https://img.shields.io/nuget/dt/{your_package_name})](https://www.nuget.org/packages/{your_package_name})
+```
+
 ### Guidance for target frameworks
 
 Components shipped from this repo SHOULD comply with the following requirements:
@@ -269,8 +274,3 @@ Components shipped from this repo SHOULD comply with the following requirements:
   for it as well. Note: This change does not require major version bump. For
   reference see
   [this](https://github.com/open-telemetry/opentelemetry-dotnet/pull/3351).
-
-```md
-[![NuGet version badge](https://img.shields.io/nuget/v/{your_package_name})](https://www.nuget.org/packages/{your_package_name})
-[![NuGet download count badge](https://img.shields.io/nuget/dt/{your_package_name})](https://www.nuget.org/packages/{your_package_name})
-```
