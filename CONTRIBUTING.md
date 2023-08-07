@@ -254,6 +254,8 @@ the main branch. The workflow file should be named as
   package. Every project's README file needs to have a link to the Nuget
   package. You can use the below snippet for reference:
 
+### Guidance for target frameworks
+
 Components shipped from this repo SHOULD comply with the following requirements:
 
 * SHOULD support all the officially supported versions of
