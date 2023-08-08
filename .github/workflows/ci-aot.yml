@@ -3,12 +3,12 @@ name: Publish AOTCompatibility testApp
 on:
   push:
     branches: [ 'main*' ]
-    paths-ignore:
-    - '**.md'
+    paths:
+    - 'src/OpenTelemetry.Instrumentation.Runtime/**'
   pull_request:
     branches: [ 'main*' ]
-    paths-ignore:
-    - '**.md'
+    paths:
+    - 'src/OpenTelemetry.Instrumentation.Runtime/**'
 
 jobs:
   aot-test:
@@ -22,7 +22,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: publish AOT testApp, assert static analysis warning count and exit code
+    - name: publish AOT testApp, assert static analysis warning count, and run the app
       shell: pwsh
-      run: .\build\test-aot-compatibility.ps1
+      run: .\build\test-aot-compatibility.ps1 ${{ matrix.version }}
 

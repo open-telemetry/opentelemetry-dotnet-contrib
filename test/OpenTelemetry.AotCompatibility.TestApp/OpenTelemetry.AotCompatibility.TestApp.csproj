@@ -9,9 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <TrimmerRootAssembly Include="OpenTelemetry.Exporter.Geneva" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.Runtime" />
-    <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.Process" />
 
     <TrimmerRootAssembly Update="@(TrimmerRootAssembly)" Path="$(RepoRoot)\src\%(Identity)\%(Identity).csproj" />
     <ProjectReference Include="@(TrimmerRootAssembly->'%(Path)')" />
