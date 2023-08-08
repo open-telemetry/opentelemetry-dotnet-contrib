@@ -110,7 +110,7 @@ public class AWSMessagingUtilsTests : IDisposable
 
         Assert.NotEqual(default, parentContext);
         Assert.Equal(SpanId1, parentContext.ActivityContext.SpanId.ToHexString());
-        Assert.Single(links ?? Array.Empty<ActivityLink>());
+        Assert.Single(links!);
     }
 
     private static SQSEvent CreateSqsEventWithMessages(string[] spans)
