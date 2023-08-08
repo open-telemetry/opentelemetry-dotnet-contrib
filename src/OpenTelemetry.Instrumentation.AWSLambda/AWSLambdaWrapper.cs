@@ -186,12 +186,12 @@ public static class AWSLambdaWrapper
             }
         }
 
-        var functionTags = (IEnumerable<KeyValuePair<string, object?>>)AWSLambdaUtils.GetFunctionTags(input, context);
-        var httpTags = (IEnumerable<KeyValuePair<string, object?>>)AWSLambdaHttpUtils.GetHttpTags(input);
+        var functionTags = AWSLambdaUtils.GetFunctionTags(input, context);
+        var httpTags = AWSLambdaHttpUtils.GetHttpTags(input);
 
         // We assume that functionTags and httpTags have no intersection.
         var activityName = AWSLambdaUtils.GetFunctionName(context) ?? "AWS Lambda Invoke";
-        var activity = AWSLambdaActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext, functionTags.Concat(httpTags), links);
+        var activity = AWSLambdaActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext, functionTags.Concat(httpTags)!, links);
 
         return activity;
     }
