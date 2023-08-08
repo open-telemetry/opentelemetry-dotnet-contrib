@@ -263,10 +263,9 @@ the main branch. The workflow file should be named as
 
 Components shipped from this repo SHOULD comply with the following requirements:
 
-* SHOULD support all the officially supported versions of
-  [.NET](https://dotnet.microsoft.com/download/dotnet) and [.NET
-  Framework](https://dotnet.microsoft.com/download/dotnet-framework) (an older
-  Windows-based .NET implementation), except `.NET Framework 3.5`.
+* SHOULD support the [.NET
+  versions](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main#supported-net-versions)
+  which are supported by the OpenTelemetry main repo packages.
 * SHOULD not support out-of-support .NET runtimes (eg: `.NET 452`, `.NET Core
   2.1` etc). CI checks in this repository will not be run against out of support
   versions.
