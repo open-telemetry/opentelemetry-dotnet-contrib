@@ -56,7 +56,7 @@ public class AWSMessagingUtilsTests : IDisposable
         (PropagationContext parentContext, IEnumerable<ActivityLink>? links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
 
         Assert.Equal(default, parentContext);
-        Assert.Equal(2, links?.Count());
+        Assert.Equal(2, links!.Count());
     }
 
     [Fact]
