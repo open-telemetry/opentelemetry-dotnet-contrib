@@ -65,13 +65,15 @@ public static class AWSLambdaWrapper
     /// </param>
     /// <returns>Instance of output result.</returns>
     public static TResult Trace<TInput, TResult>(
-        TracerProvider? tracerProvider,
-        Func<TInput, ILambdaContext?, TResult> lambdaHandler,
+        TracerProvider tracerProvider,
+        Func<TInput, ILambdaContext, TResult> lambdaHandler,
         TInput input,
-        ILambdaContext? context,
+        ILambdaContext context,
         ActivityContext parentContext = default)
     {
         Guard.ThrowIfNull(lambdaHandler);
+        Guard.ThrowIfNull(context);
+
         return TraceInternal(tracerProvider, lambdaHandler, input, context, parentContext);
     }
 
@@ -90,15 +92,16 @@ public static class AWSLambdaWrapper
     /// unless X-Ray propagation is disabled in the configuration for this wrapper.
     /// </param>
     public static void Trace<TInput>(
-        TracerProvider? tracerProvider,
-        Action<TInput, ILambdaContext?> lambdaHandler,
+        TracerProvider tracerProvider,
+        Action<TInput, ILambdaContext> lambdaHandler,
         TInput input,
-        ILambdaContext? context,
+        ILambdaContext context,
         ActivityContext parentContext = default)
     {
         Guard.ThrowIfNull(lambdaHandler);
+        Guard.ThrowIfNull(context);
 
-        object? Handler(TInput input, ILambdaContext? context)
+        object? Handler(TInput input, ILambdaContext context)
         {
             lambdaHandler(input, context);
             return null;
@@ -124,14 +127,15 @@ public static class AWSLambdaWrapper
     /// <returns>Task.</returns>
     public static Task TraceAsync<TInput>(
         TracerProvider? tracerProvider,
-        Func<TInput, ILambdaContext?, Task> lambdaHandler,
+        Func<TInput, ILambdaContext, Task> lambdaHandler,
         TInput input,
-        ILambdaContext? context,
+        ILambdaContext context,
         ActivityContext parentContext = default)
     {
         Guard.ThrowIfNull(lambdaHandler);
+        Guard.ThrowIfNull(context);
 
-        async Task<object?> Handler(TInput input, ILambdaContext? context)
+        async Task<object?> Handler(TInput input, ILambdaContext context)
         {
             await lambdaHandler(input, context).ConfigureAwait(false);
             return null;
@@ -158,18 +162,19 @@ public static class AWSLambdaWrapper
     /// <returns>Task of result.</returns>
     public static Task<TResult> TraceAsync<TInput, TResult>(
         TracerProvider? tracerProvider,
-        Func<TInput, ILambdaContext?, Task<TResult>> lambdaHandler,
+        Func<TInput, ILambdaContext, Task<TResult>> lambdaHandler,
         TInput input,
-        ILambdaContext? context,
+        ILambdaContext context,
         ActivityContext parentContext = default)
     {
         Guard.ThrowIfNull(lambdaHandler);
+
         return TraceInternalAsync(tracerProvider, lambdaHandler, input, context, parentContext);
     }
 
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
-    internal static Activity? OnFunctionStart<TInput>(TInput input, ILambdaContext? context, ActivityContext parentContext = default)
+    internal static Activity? OnFunctionStart<TInput>(TInput input, ILambdaContext context, ActivityContext parentContext = default)
     {
         IEnumerable<ActivityLink>? links = null;
         if (parentContext == default)
@@ -213,9 +218,9 @@ public static class AWSLambdaWrapper
 
     private static TResult TraceInternal<TInput, TResult>(
         TracerProvider? tracerProvider,
-        Func<TInput, ILambdaContext?, TResult> handler,
+        Func<TInput, ILambdaContext, TResult> handler,
         TInput input,
-        ILambdaContext? context,
+        ILambdaContext context,
         ActivityContext parentContext = default)
     {
         var activity = OnFunctionStart(input, context, parentContext);
@@ -239,9 +244,9 @@ public static class AWSLambdaWrapper
 
     private static async Task<TResult> TraceInternalAsync<TInput, TResult>(
         TracerProvider? tracerProvider,
-        Func<TInput, ILambdaContext?, Task<TResult>> handlerAsync,
+        Func<TInput, ILambdaContext, Task<TResult>> handlerAsync,
         TInput input,
-        ILambdaContext? context,
+        ILambdaContext context,
         ActivityContext parentContext = default)
     {
         var activity = OnFunctionStart(input, context, parentContext);

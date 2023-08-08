@@ -114,7 +114,7 @@ internal static class AWSLambdaUtils
         return Environment.GetEnvironmentVariable(FunctionVersion);
     }
 
-    internal static IEnumerable<KeyValuePair<string, object>> GetFunctionTags<TInput>(TInput input, ILambdaContext? context)
+    internal static IEnumerable<KeyValuePair<string, object>> GetFunctionTags<TInput>(TInput input, ILambdaContext context)
     {
         var tags = new List<KeyValuePair<string, object>>
         {
@@ -125,11 +125,6 @@ internal static class AWSLambdaUtils
         if (functionName != null)
         {
             tags.Add(new(AWSLambdaSemanticConventions.AttributeFaasName, functionName));
-        }
-
-        if (context == null)
-        {
-            return tags;
         }
 
         if (context.AwsRequestId != null)
