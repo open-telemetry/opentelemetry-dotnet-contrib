@@ -17,6 +17,7 @@
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Sampler.AWS;
+
 internal class RateLimitingSampler : Trace.Sampler
 {
     private readonly RateLimiter limiter;

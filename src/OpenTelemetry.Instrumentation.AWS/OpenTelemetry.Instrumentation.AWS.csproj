@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <Description>AWS client instrumentation for OpenTelemetry .NET</Description>
+	  <MinVerTagPrefix>Instrumentation.AWS-</MinVerTagPrefix>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.Core" Version="3.5.1.24" />
+    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.5.0.27" />
+    <PackageReference Include="AWSSDK.SQS" Version="3.5.0.26" />
+    <PackageReference Include="OpenTelemetry.Extensions.AWS" Version="1.3.0-beta.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs"/>
+  </ItemGroup>
+
+</Project>
