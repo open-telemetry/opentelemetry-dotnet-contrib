@@ -58,11 +58,11 @@ public class AWSLambdaWrapperTests
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
                    .AddAWSLambdaConfigurations()
                    .AddProcessor(processor.Object)
-                   .Build())
+                   .Build()!)
         {
             var parentContext = setCustomParent ? CreateParentContext() : default;
             var result = AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncInputAndReturn, "TestStream", this.sampleLambdaContext, parentContext);
-            var resource = tracerProvider?.GetResource();
+            var resource = tracerProvider.GetResource();
             this.AssertResourceAttributes(resource);
         }
 
@@ -84,11 +84,11 @@ public class AWSLambdaWrapperTests
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
                    .AddAWSLambdaConfigurations()
                    .AddProcessor(processor.Object)
-                   .Build())
+                   .Build()!)
         {
             var parentContext = setCustomParent ? CreateParentContext() : default;
             AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncInputAndNoReturn, "TestStream", this.sampleLambdaContext, parentContext);
-            var resource = tracerProvider?.GetResource();
+            var resource = tracerProvider.GetResource();
             this.AssertResourceAttributes(resource);
         }
 
@@ -110,11 +110,11 @@ public class AWSLambdaWrapperTests
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
                    .AddAWSLambdaConfigurations()
                    .AddProcessor(processor.Object)
-                   .Build())
+                   .Build()!)
         {
             var parentContext = setCustomParent ? CreateParentContext() : default;
             var result = await AWSLambdaWrapper.TraceAsync(tracerProvider, this.sampleHandlers.SampleHandlerAsyncInputAndReturn, "TestStream", this.sampleLambdaContext, parentContext);
-            var resource = tracerProvider?.GetResource();
+            var resource = tracerProvider.GetResource();
             this.AssertResourceAttributes(resource);
         }
 
@@ -136,11 +136,11 @@ public class AWSLambdaWrapperTests
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
                    .AddAWSLambdaConfigurations()
                    .AddProcessor(processor.Object)
-                   .Build())
+                   .Build()!)
         {
             var parentContext = setCustomParent ? CreateParentContext() : default;
             await AWSLambdaWrapper.TraceAsync(tracerProvider, this.sampleHandlers.SampleHandlerAsyncInputAndNoReturn, "TestStream", this.sampleLambdaContext, parentContext);
-            var resource = tracerProvider?.GetResource();
+            var resource = tracerProvider.GetResource();
             this.AssertResourceAttributes(resource);
         }
 
@@ -162,7 +162,7 @@ public class AWSLambdaWrapperTests
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
                    .AddAWSLambdaConfigurations()
                    .AddProcessor(processor.Object)
-                   .Build())
+                   .Build()!)
         {
             try
             {
@@ -171,7 +171,7 @@ public class AWSLambdaWrapperTests
             }
             catch
             {
-                var resource = tracerProvider?.GetResource();
+                var resource = tracerProvider.GetResource();
                 this.AssertResourceAttributes(resource);
             }
         }
@@ -195,10 +195,10 @@ public class AWSLambdaWrapperTests
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
                    .AddAWSLambdaConfigurations()
                    .AddProcessor(processor.Object)
-                   .Build())
+                   .Build()!)
         {
             var result = AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncInputAndReturn, "TestStream", this.sampleLambdaContext);
-            var resource = tracerProvider?.GetResource();
+            var resource = tracerProvider.GetResource();
             this.AssertResourceAttributes(resource);
         }
 
