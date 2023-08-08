@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Suppress instrumentation for outgoing http call made to metadata service
+  during `Detect()`.
+  ([#1297](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1297))
+
 ## 1.0.0-beta.2
 
 Released 2023-Jul-26
