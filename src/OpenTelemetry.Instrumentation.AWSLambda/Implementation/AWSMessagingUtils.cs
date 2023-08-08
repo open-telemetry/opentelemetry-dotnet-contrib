@@ -75,10 +75,7 @@ internal class AWSMessagingUtils
             // SQS subscribed to SNS topic with raw delivery disabled case, i.e. SNS record serialized into SQS body.
             // https://docs.aws.amazon.com/sns/latest/dg/sns-large-payload-raw-message-delivery.html
             SNSEvent.SNSMessage? snsMessage = GetSnsMessage(sqsMessage);
-            if (snsMessage != null)
-            {
-                parentContext = ExtractParentContext(snsMessage);
-            }
+            parentContext = ExtractParentContext(snsMessage);
         }
 
         return parentContext;
@@ -99,7 +96,7 @@ internal class AWSMessagingUtils
             default;
     }
 
-    internal static PropagationContext ExtractParentContext(SNSEvent.SNSMessage message)
+    internal static PropagationContext ExtractParentContext(SNSEvent.SNSMessage? message)
     {
         return (message?.MessageAttributes != null) ?
             Propagators.DefaultTextMapPropagator.Extract(default, message.MessageAttributes, SnsMessageAttributeGetter) :
