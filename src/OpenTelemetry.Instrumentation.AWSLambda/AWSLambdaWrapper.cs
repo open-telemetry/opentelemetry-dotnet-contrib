@@ -72,7 +72,6 @@ public static class AWSLambdaWrapper
         ActivityContext parentContext = default)
     {
         Guard.ThrowIfNull(lambdaHandler);
-        Guard.ThrowIfNull(context);
 
         return TraceInternal(tracerProvider, lambdaHandler, input, context, parentContext);
     }
@@ -99,7 +98,6 @@ public static class AWSLambdaWrapper
         ActivityContext parentContext = default)
     {
         Guard.ThrowIfNull(lambdaHandler);
-        Guard.ThrowIfNull(context);
 
         object? Handler(TInput input, ILambdaContext context)
         {
@@ -133,7 +131,6 @@ public static class AWSLambdaWrapper
         ActivityContext parentContext = default)
     {
         Guard.ThrowIfNull(lambdaHandler);
-        Guard.ThrowIfNull(context);
 
         async Task<object?> Handler(TInput input, ILambdaContext context)
         {
@@ -223,6 +220,8 @@ public static class AWSLambdaWrapper
         ILambdaContext context,
         ActivityContext parentContext = default)
     {
+        Guard.ThrowIfNull(context);
+
         var activity = OnFunctionStart(input, context, parentContext);
         try
         {
@@ -249,6 +248,8 @@ public static class AWSLambdaWrapper
         ILambdaContext context,
         ActivityContext parentContext = default)
     {
+        Guard.ThrowIfNull(context);
+
         var activity = OnFunctionStart(input, context, parentContext);
         try
         {
