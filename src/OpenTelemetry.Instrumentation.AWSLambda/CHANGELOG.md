@@ -8,7 +8,7 @@
   `OpenTelemetry.Instrumentation.AWSLambda.Tests`. The interface will now
   contain attributes for null-state static analysis. If null state analysis is
   enabled your depending project, you may encounter new warnings.
-  ([#894](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/894))
+  ([#1295](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1295))
 
 ## 1.2.0-beta.1
 
