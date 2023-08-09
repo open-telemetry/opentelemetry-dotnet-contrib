@@ -6,7 +6,8 @@
   `OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaWrapper` was annotated as non-nullable.
 * Enabled null state analysis for `OpenTelemetry.Instrumentation.AWSLambda`.
   The interface will now contain attributes for null-state static analysis.
-  If null state analysis is enabled your depending project, you may encounter new warnings.
+  If null state analysis is enabled your depending project, you may encounter
+  new warnings.
   ([#1295](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1295))
 
 ## 1.2.0-beta.1
