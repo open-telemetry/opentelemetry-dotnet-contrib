@@ -3,7 +3,7 @@
 ## Unreleased
 
 * BREAKING: `ILambdaContext context` argument of all tracing methods of
-  `OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaWrapper` became nullable.
+  `OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaWrapper` was annotated as non-nullable.
 * Enabled nullable for `OpenTelemetry.Instrumentation.AWSLambda` and `OpenTelemetry.Instrumentation.AWSLambda.Tests`
   ([#894](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/894))
 
