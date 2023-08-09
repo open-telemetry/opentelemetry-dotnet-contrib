@@ -49,7 +49,8 @@ using var openTelemetry = Sdk.CreateTracerProviderBuilder()
 
 ## WCF Client Configuration (.NET Framework)
 
-Configure the `TelemetryEndpointBehaviorExtensionElement` on the clients you want to instrument:
+Configure the `TelemetryEndpointBehaviorExtensionElement` on the clients
+you want to instrument:
 
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
@@ -207,10 +208,6 @@ on the service contracts you want to instrument:
         Task<StatusResponse> PingAsync(StatusRequest request);
     }
 ```
-
-## Known issues
-
-None
 
 ## References
 
