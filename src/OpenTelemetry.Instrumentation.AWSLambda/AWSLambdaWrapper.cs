@@ -65,7 +65,7 @@ public static class AWSLambdaWrapper
     /// </param>
     /// <returns>Instance of output result.</returns>
     public static TResult Trace<TInput, TResult>(
-        TracerProvider tracerProvider,
+        TracerProvider? tracerProvider,
         Func<TInput, ILambdaContext, TResult> lambdaHandler,
         TInput input,
         ILambdaContext context,
@@ -91,7 +91,7 @@ public static class AWSLambdaWrapper
     /// unless X-Ray propagation is disabled in the configuration for this wrapper.
     /// </param>
     public static void Trace<TInput>(
-        TracerProvider tracerProvider,
+        TracerProvider? tracerProvider,
         Action<TInput, ILambdaContext> lambdaHandler,
         TInput input,
         ILambdaContext context,

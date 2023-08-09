@@ -57,6 +57,8 @@ internal class AWSLambdaHttpUtils
                 var hostHeaderV2 = AWSLambdaUtils.GetHeaderValues(requestV2, HeaderHost)?.LastOrDefault();
                 (hostName, hostPort) = GetHostAndPort(httpScheme, hostHeaderV2);
                 break;
+            default:
+                return tags;
         }
 
         tags.AddTagIfNotNull(SemanticConventions.AttributeHttpScheme, httpScheme);

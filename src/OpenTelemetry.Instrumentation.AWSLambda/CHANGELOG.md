@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* BREAKING: `ILambdaContext context` argument of all tracing methods of
+  `OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaWrapper` became nullable.
+* Enabled nullable for `OpenTelemetry.Instrumentation.AWSLambda` and `OpenTelemetry.Instrumentation.AWSLambda.Tests`
+  ([#894](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/894))
+
 ## 1.2.0-beta.1
 
 Released 2023-Aug-07
