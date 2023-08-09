@@ -1,3 +1,4 @@
+#nullable enable
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.AWSLambdaInstrumentationOptions() -> void
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.DisableAwsXRayContextExtraction.get -> bool

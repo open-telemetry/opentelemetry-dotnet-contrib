@@ -263,10 +263,7 @@ public class AWSLambdaWrapperTests
 
     private void AssertResourceAttributes(Resource? resource)
     {
-        if (resource == null)
-        {
-            return;
-        }
+        Assert.NotNull(resource);
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
         Assert.Equal("aws", resourceAttributes[AWSLambdaSemanticConventions.AttributeCloudProvider]);

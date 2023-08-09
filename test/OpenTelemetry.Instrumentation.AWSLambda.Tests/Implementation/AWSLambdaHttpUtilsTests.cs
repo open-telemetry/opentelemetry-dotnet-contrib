@@ -196,9 +196,10 @@ public class AWSLambdaHttpUtilsTests
             { "http.status_code", 200 },
         };
 
-        var actualTags = activity?.TagObjects
-            .Select(kvp => new KeyValuePair<string, object>(kvp.Key, kvp.Value ?? new object()));
+        Assert.NotNull(activity);
 
+        var actualTags = activity.TagObjects
+            .Select(kvp => new KeyValuePair<string, object>(kvp.Key, kvp.Value!));
         AssertTags(expectedTags, actualTags);
     }
 
