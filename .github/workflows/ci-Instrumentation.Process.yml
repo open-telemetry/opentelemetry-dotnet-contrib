@@ -24,7 +24,7 @@ jobs:
     - name: Install .NET 7 SDK
       uses: actions/setup-dotnet@v3.2.0
       with:
-        dotnet-version: '7.0.x'
+        dotnet-version: '7.0.306'
 
     - name: Build
       run: dotnet build --configuration Release test/${{ env.COMPONENT_NAME }}.Tests/${{ env.COMPONENT_NAME }}.Tests.csproj
