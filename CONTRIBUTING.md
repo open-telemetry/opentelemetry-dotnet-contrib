@@ -259,11 +259,9 @@ the main branch. The workflow file should be named as
 [![NuGet download count badge](https://img.shields.io/nuget/dt/{your_package_name})](https://www.nuget.org/packages/{your_package_name})
 ```
 
-### Guidance for target frameworks
+### Guidance for components on supporting target frameworks
 
-Components shipped from this repo SHOULD comply with the following requirements:
-
-* MUST support the [.NET
+* Support the [.NET
   versions](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main#supported-net-versions)
   which are supported by the OpenTelemetry main repo packages.
 * MUST not support out-of-support .NET runtimes (eg: `.NET 452`, `.NET Core
