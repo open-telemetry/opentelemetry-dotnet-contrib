@@ -1,4 +1,4 @@
-Profilername: Pack OpenTelemetry.Instrumentation.StackExchangeRedis
+name: Pack OpenTelemetry.Instrumentation.StackExchangeRedis
 
 on:
   workflow_dispatch:
