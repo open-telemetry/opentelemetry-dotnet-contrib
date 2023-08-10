@@ -264,7 +264,7 @@ the main branch. The workflow file should be named as
 * Support the [.NET
   versions](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main#supported-net-versions)
   which are supported by the OpenTelemetry main repo packages.
-* MUST not support out-of-support .NET runtimes (eg: `.NET 452`, `.NET Core
+* Not support out-of-support .NET runtimes (e.g.: `.NET Framework 4.5.2`, `.NET Core
   2.1` etc). CI checks in this repository will not be run against out of support
   versions.
 * Whenever a .NET version reaches end of support, components MUST drop support
