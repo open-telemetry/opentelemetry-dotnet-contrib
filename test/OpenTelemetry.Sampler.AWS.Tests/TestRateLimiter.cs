@@ -25,7 +25,7 @@ namespace OpenTelemetry.Sampler.AWS.Tests;
 /// <summary>
 /// This class is a .Net port of the original Java implementation.
 /// This class was taken from Jaeger java client.
-/// https://github.com/jaegertracing/jaeger-client-java/blob/master/jaeger-core/src/test/java/io/jaegertracing/internal/utils/RateLimiterTest.java
+/// https://github.com/jaegertracing/jaeger-client-java/blob/master/jaeger-core/src/test/java/io/jaegertracing/internal/utils/RateLimiterTest.java.
 /// </summary>
 public class TestRateLimiter
 {
