@@ -23,7 +23,7 @@ namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 /// <summary>
 /// A <see cref="BindingElement"/> that can be used to instrument WCF clients.
 /// </summary>
-internal class TelemetryBindingElement : BindingElement
+internal sealed class TelemetryBindingElement : BindingElement
 {
     /// <inheritdoc/>
     public override IChannelFactory<TChannel> BuildChannelFactory<TChannel>(BindingContext context)

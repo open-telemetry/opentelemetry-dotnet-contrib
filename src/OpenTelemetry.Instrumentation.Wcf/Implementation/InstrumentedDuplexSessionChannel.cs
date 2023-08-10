@@ -21,7 +21,7 @@ using System.Threading;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
-internal class InstrumentedDuplexSessionChannel : InstrumentedChannel, IDuplexSessionChannel
+internal sealed class InstrumentedDuplexSessionChannel : InstrumentedChannel, IDuplexSessionChannel
 {
     private readonly TimeSpan telemetryTimeout;
 

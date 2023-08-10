@@ -21,7 +21,7 @@ using System.Threading;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
-internal class InstrumentedRequestChannel : InstrumentedChannel, IRequestChannel
+internal sealed class InstrumentedRequestChannel : InstrumentedChannel, IRequestChannel
 {
     public InstrumentedRequestChannel(IRequestChannel inner)
         : base(inner)
