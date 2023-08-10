@@ -34,7 +34,7 @@ public class AWSMessagingUtilsTests : IDisposable
     private const string SpanId1 = "b9c7c989f97918e1";
     private const string SpanId2 = "b9c7c989f97918e2";
 
-    private readonly TracerProvider tracerProvider;
+    private readonly TracerProvider? tracerProvider;
 
     public AWSMessagingUtilsTests()
     {
@@ -44,7 +44,7 @@ public class AWSMessagingUtilsTests : IDisposable
 
     public void Dispose()
     {
-        this.tracerProvider.Dispose();
+        this.tracerProvider?.Dispose();
     }
 
     [Fact]
@@ -53,10 +53,10 @@ public class AWSMessagingUtilsTests : IDisposable
         AWSMessagingUtils.SetParentFromMessageBatch = false;
         var sqsEvent = CreateSqsEventWithMessages(new[] { SpanId1, SpanId2 });
 
-        (PropagationContext parentContext, IEnumerable<ActivityLink> links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
+        (PropagationContext parentContext, IEnumerable<ActivityLink>? links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
 
         Assert.Equal(default, parentContext);
-        Assert.Equal(2, links.Count());
+        Assert.Equal(2, links!.Count());
     }
 
     [Fact]
@@ -65,11 +65,11 @@ public class AWSMessagingUtilsTests : IDisposable
         AWSMessagingUtils.SetParentFromMessageBatch = true;
         var sqsEvent = CreateSqsEventWithMessages(new[] { SpanId1, SpanId2 });
 
-        (PropagationContext parentContext, IEnumerable<ActivityLink> links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
+        (PropagationContext parentContext, IEnumerable<ActivityLink>? links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
 
         Assert.NotEqual(default, parentContext);
         Assert.Equal(SpanId2, parentContext.ActivityContext.SpanId.ToHexString());
-        Assert.Equal(2, links.Count());
+        Assert.Equal(2, links?.Count());
     }
 
     [Fact]
@@ -106,11 +106,11 @@ public class AWSMessagingUtilsTests : IDisposable
             },
         };
 
-        (PropagationContext parentContext, IEnumerable<ActivityLink> links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
+        (PropagationContext parentContext, IEnumerable<ActivityLink>? links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
 
         Assert.NotEqual(default, parentContext);
         Assert.Equal(SpanId1, parentContext.ActivityContext.SpanId.ToHexString());
-        Assert.Single(links);
+        Assert.Single(links!);
     }
 
     private static SQSEvent CreateSqsEventWithMessages(string[] spans)
