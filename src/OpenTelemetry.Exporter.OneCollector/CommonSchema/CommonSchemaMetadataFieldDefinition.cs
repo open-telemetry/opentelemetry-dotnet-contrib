@@ -24,28 +24,6 @@ namespace OpenTelemetry.Exporter.OneCollector;
 public readonly record struct CommonSchemaMetadataFieldDefinition
 {
     /// <summary>
-    /// Gets the field type info.
-    /// </summary>
-    public ulong TypeInfo { get; }
-
-    /// <summary>
-    /// Gets the field name.
-    /// </summary>
-    public string Name { get; }
-
-    /// <summary>
-    /// Gets the <see cref="CommonSchemaMetadataFieldDataType"/> for the field.
-    /// </summary>
-    public CommonSchemaMetadataFieldDataType DataType
-        => (CommonSchemaMetadataFieldDataType)(this.TypeInfo & 0x1F);
-
-    /// <summary>
-    /// Gets the <see cref="CommonSchemaMetadataFieldDataType"/> for the field.
-    /// </summary>
-    public CommonSchemaMetadataFieldDataType ClassificationType
-        => (CommonSchemaMetadataFieldDataType)((this.TypeInfo & 0x1FE0) >> 5);
-
-    /// <summary>
     /// Initializes a new instance of the <see cref="CommonSchemaMetadataFieldDefinition"/> class.
     /// </summary>
     /// <param name="name">Field name.</param>
@@ -85,6 +63,28 @@ public readonly record struct CommonSchemaMetadataFieldDefinition
         this.TypeInfo = typeInfo;
         this.Name = name;
     }
+
+    /// <summary>
+    /// Gets the field type info.
+    /// </summary>
+    public ulong TypeInfo { get; }
+
+    /// <summary>
+    /// Gets the field name.
+    /// </summary>
+    public string Name { get; }
+
+    /// <summary>
+    /// Gets the <see cref="CommonSchemaMetadataFieldDataType"/> for the field.
+    /// </summary>
+    public CommonSchemaMetadataFieldDataType DataType
+        => (CommonSchemaMetadataFieldDataType)(this.TypeInfo & 0x1F);
+
+    /// <summary>
+    /// Gets the <see cref="CommonSchemaMetadataFieldDataType"/> for the field.
+    /// </summary>
+    public CommonSchemaMetadataFieldDataType ClassificationType
+        => (CommonSchemaMetadataFieldDataType)((this.TypeInfo & 0x1FE0) >> 5);
 
     private static ulong BuildTypeInfo(
         CommonSchemaMetadataFieldDataType dataType,
