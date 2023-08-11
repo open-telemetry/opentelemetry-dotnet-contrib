@@ -46,7 +46,7 @@ internal static class CommonSchemaJsonSerializationHelper
         SerializeValueToJson(value, writer);
     }
 
-    internal static void SerializeValueToJson(object? value, Utf8JsonWriter writer)
+    public static void SerializeValueToJson(object? value, Utf8JsonWriter writer)
     {
         if (value is null)
         {
