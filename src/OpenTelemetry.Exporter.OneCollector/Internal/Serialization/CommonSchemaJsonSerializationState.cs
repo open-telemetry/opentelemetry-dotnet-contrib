@@ -135,12 +135,16 @@ internal sealed class CommonSchemaJsonSerializationState
             writer.WriteStartObject(CommonSchemaJsonSerializationHelper.MetadataExtensionProperty);
             writer.WriteStartObject(CommonSchemaJsonSerializationHelper.MetadataExtensionFieldListProperty);
 
-            var enumerator = this.MetadataProvider.GetCommonSchemaMetadataFieldDefinitionEnumerator();
-            while (enumerator.MoveNext())
+            for (int i = 0; i < this.MetadataProvider.CommonSchemaMetadataFieldCount; i++)
             {
-                ref readonly var fieldDefinition = ref enumerator.Current;
+                this.MetadataProvider.GetCommonSchemaMetadataFieldDefinition(i, out var fieldDefinition);
 
                 writer.WriteNumber(fieldDefinition.Name, fieldDefinition.TypeInfo);
+            }
+
+            if (this.MetadataProvider is IDisposable disposable)
+            {
+                disposable.Dispose();
             }
 
             writer.WriteEndObject();

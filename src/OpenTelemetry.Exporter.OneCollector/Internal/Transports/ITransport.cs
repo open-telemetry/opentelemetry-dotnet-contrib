@@ -22,5 +22,5 @@ internal interface ITransport
 
     bool Send(in TransportSendRequest sendRequest);
 
-    IDisposable RegisterPayloadTransmittedCallback(OneCollectorExporterPayloadTransmittedCallbackAction callback);
+    IDisposable RegisterPayloadTransmittedCallback(OneCollectorExporterPayloadTransmittedCallbackAction callback, bool includeFailures);
 }

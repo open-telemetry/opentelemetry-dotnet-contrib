@@ -18,6 +18,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
 using Xunit;
@@ -363,30 +364,24 @@ public class LogRecordCommonSchemaJsonSerializerTests
         }
     }
 
-    private sealed class CommonSchemaMetadataProvider : ICommonSchemaMetadataProvider, ICommonSchemaMetadataFieldDefinitionEnumerator
+    private sealed class CommonSchemaMetadataProvider : ICommonSchemaMetadataProvider
     {
         private readonly IReadOnlyList<CommonSchemaMetadataFieldDefinition> fieldDefinitions;
-        private int index = -1;
-        private CommonSchemaMetadataFieldDefinition current;
 
         public CommonSchemaMetadataProvider(IReadOnlyList<CommonSchemaMetadataFieldDefinition> fieldDefinitions)
         {
             this.fieldDefinitions = fieldDefinitions;
         }
 
-        public ref readonly CommonSchemaMetadataFieldDefinition Current => ref this.current;
+        public int CommonSchemaMetadataFieldCount => this.fieldDefinitions.Count;
 
-        public ICommonSchemaMetadataFieldDefinitionEnumerator GetCommonSchemaMetadataFieldDefinitionEnumerator() => this;
-
-        public bool MoveNext()
+        public void GetCommonSchemaMetadataFieldDefinition(
+            int index,
+            out CommonSchemaMetadataFieldDefinition commonSchemaMetadataFieldDefinition)
         {
-            if (++this.index < this.fieldDefinitions.Count)
-            {
-                this.current = this.fieldDefinitions[this.index];
-                return true;
-            }
+            Guard.ThrowIfOutOfRange(index, min: 0, max: this.CommonSchemaMetadataFieldCount);
 
-            return false;
+            commonSchemaMetadataFieldDefinition = this.fieldDefinitions[index];
         }
     }
 }

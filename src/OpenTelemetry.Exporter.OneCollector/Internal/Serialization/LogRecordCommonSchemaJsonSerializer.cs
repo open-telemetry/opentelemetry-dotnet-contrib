@@ -140,6 +140,13 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
             {
                 var attribute = item.Attributes[i];
 
+                if (attribute.Value is ICommonSchemaMetadataProvider metadataProvider)
+                {
+                    // Note: It is expected that the ICommonSchemaMetadataProvider key will be null so we check for this first.
+                    serializationState.MetadataProvider = metadataProvider;
+                    continue;
+                }
+
                 if (string.IsNullOrEmpty(attribute.Key))
                 {
                     continue;
@@ -148,12 +155,6 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
                 if (attribute.Key == "{OriginalFormat}")
                 {
                     originalFormat = attribute.Value as string;
-                    continue;
-                }
-
-                if (attribute.Value is ICommonSchemaMetadataProvider metadataProvider)
-                {
-                    serializationState.MetadataProvider = metadataProvider;
                     continue;
                 }
 
