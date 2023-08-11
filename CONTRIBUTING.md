@@ -261,7 +261,7 @@ the main branch. The workflow file should be named as
 
 ### Guidance for components on supporting target frameworks
 
-* Support the [.NET
+* SHOULD support the [.NET
   versions](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main#supported-net-versions)
   which are supported by the OpenTelemetry main repo packages.
 * Must not support out-of-support .NET runtimes (e.g.: `.NET Framework 4.5.2`,
