@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+* Added support for receiving tranmission failures via the
+  `RegisterPayloadTransmittedCallback` API.
+  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+
+* Added support for sending Common Schema metadata via the
+  `ICommonSchemaMetadataProvider` API.
+  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+
 ## 1.5.1
 
 Released 2023-Aug-07
