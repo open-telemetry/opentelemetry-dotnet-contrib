@@ -1,4 +1,4 @@
-// <copyright file="TelemetryClientMessageInspectorTests.cs" company="OpenTelemetry Authors">
+// <copyright file="TelemetryBindingElementForHttpTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,19 +24,20 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Threading;
 using System.Threading.Tasks;
+using OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
 using OpenTelemetry.Trace;
 using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 
 [Collection("WCF")]
-public class TelemetryClientMessageInspectorTests : IDisposable
+public class TelemetryBindingElementForHttpTests : IDisposable
 {
     private readonly Uri serviceBaseUri;
     private readonly HttpListener listener;
     private readonly EventWaitHandle initializationHandle;
 
-    public TelemetryClientMessageInspectorTests()
+    public TelemetryBindingElementForHttpTests()
     {
         Random random = new Random();
         var retryCount = 5;
@@ -102,6 +103,10 @@ public class TelemetryClientMessageInspectorTests : IDisposable
                         {
                             writer.Write(@"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Body><ExecuteWithEmptyActionNameResponse xmlns=""http://opentelemetry.io/""><ExecuteResult xmlns:a=""http://schemas.datacontract.org/2004/07/OpenTelemetry.Instrumentation.Wcf.Tests"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><a:Payload>RSP: Hello Open Telemetry!</a:Payload></ExecuteResult></ExecuteWithEmptyActionNameResponse></s:Body></s:Envelope>");
                         }
+                        else if (request.Contains("ExecuteSynchronous"))
+                        {
+                            writer.Write(@"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Body><ExecuteSynchronousResponse xmlns=""http://opentelemetry.io/""><ExecuteResult xmlns:a=""http://schemas.datacontract.org/2004/07/OpenTelemetry.Instrumentation.Wcf.Tests"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><a:Payload>RSP: Hello Open Telemetry!</a:Payload></ExecuteResult></ExecuteSynchronousResponse></s:Body></s:Envelope>");
+                        }
                         else
                         {
                             writer.Write(@"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Body><ExecuteResponse xmlns=""http://opentelemetry.io/""><ExecuteResult xmlns:a=""http://schemas.datacontract.org/2004/07/OpenTelemetry.Instrumentation.Wcf.Tests"" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""><a:Payload>RSP: Hello Open Telemetry!</a:Payload></ExecuteResult></ExecuteResponse></s:Body></s:Envelope>");
@@ -152,11 +157,6 @@ public class TelemetryClientMessageInspectorTests : IDisposable
         bool enrichmentException = false,
         bool emptyOrNullAction = false)
     {
-#if NETFRAMEWORK
-        const string OutgoingHttpOperationName = "OpenTelemetry.Instrumentation.Http.HttpWebRequest.HttpRequestOut";
-#else
-        const string OutgoingHttpOperationName = "System.Net.Http.HttpRequestOut";
-#endif
         List<Activity> stoppedActivities = new List<Activity>();
 
         var builder = Sdk.CreateTracerProviderBuilder()
@@ -194,7 +194,7 @@ public class TelemetryClientMessageInspectorTests : IDisposable
                     options.SuppressDownstreamInstrumentation = suppressDownstreamInstrumentation;
                     options.SetSoapMessageVersion = includeVersion;
                 })
-                .AddHttpClientInstrumentation(); // <- Added to test SuppressDownstreamInstrumentation.
+                .AddDownstreamInstrumentation();
         }
 
         TracerProvider tracerProvider = builder.Build();
@@ -204,6 +204,7 @@ public class TelemetryClientMessageInspectorTests : IDisposable
             new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
         try
         {
+            client.Endpoint.EndpointBehaviors.Add(new DownstreamInstrumentationEndpointBehavior());
             client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
 
             if (emptyOrNullAction)
@@ -248,12 +249,12 @@ public class TelemetryClientMessageInspectorTests : IDisposable
                 if (filter)
                 {
                     Assert.Single(stoppedActivities);
-                    Assert.Equal(OutgoingHttpOperationName, stoppedActivities[0].OperationName);
+                    Assert.Equal("DownstreamInstrumentation", stoppedActivities[0].OperationName);
                 }
                 else
                 {
                     Assert.Equal(2, stoppedActivities.Count);
-                    Assert.Equal(OutgoingHttpOperationName, stoppedActivities[0].OperationName);
+                    Assert.Equal("DownstreamInstrumentation", stoppedActivities[0].OperationName);
                     Assert.Equal(WcfInstrumentationActivitySource.OutgoingRequestActivityName, stoppedActivities[1].OperationName);
                 }
             }
@@ -305,5 +306,122 @@ public class TelemetryClientMessageInspectorTests : IDisposable
         {
             Assert.Empty(stoppedActivities);
         }
+    }
+
+    [Fact]
+    public async void ActivitiesHaveCorrectParentTest()
+    {
+        var testSource = new ActivitySource("TestSource");
+
+        var stoppedActivities = new List<Activity>();
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSource("TestSource")
+            .AddInMemoryExporter(stoppedActivities)
+            .AddWcfInstrumentation()
+            .Build();
+
+        ServiceClient client = new ServiceClient(
+            new BasicHttpBinding(BasicHttpSecurityMode.None),
+            new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
+        try
+        {
+            client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
+
+            using (var parentActivity = testSource.StartActivity("ParentActivity"))
+            {
+                client.ExecuteSynchronous(new ServiceRequest { Payload = "Hello Open Telemetry!" });
+                client.ExecuteSynchronous(new ServiceRequest { Payload = "Hello Open Telemetry!" });
+                var firstAsyncCall = client.ExecuteAsync(new ServiceRequest { Payload = "Hello Open Telemetry!" });
+                await client.ExecuteAsync(new ServiceRequest { Payload = "Hello Open Telemetry!" });
+                await firstAsyncCall;
+            }
+        }
+        finally
+        {
+            if (client.State == CommunicationState.Faulted)
+            {
+                client.Abort();
+            }
+            else
+            {
+                client.Close();
+            }
+
+            tracerProvider.Shutdown();
+            tracerProvider.Dispose();
+            testSource.Dispose();
+            WcfInstrumentationActivitySource.Options = null;
+        }
+
+        Assert.Equal(5, stoppedActivities.Count);
+        Assert.All(stoppedActivities, activity => Assert.Equal(stoppedActivities[0].TraceId, activity.TraceId));
+        var parent = stoppedActivities.Single(activity => activity.Parent == null);
+        Assert.All(
+            stoppedActivities.Where(activity => activity != parent),
+            activity => Assert.Equal(parent.SpanId, activity.ParentSpanId));
+    }
+
+    [Fact]
+    public async void ErrorsAreHandledProperlyTest()
+    {
+        var testSource = new ActivitySource("TestSource");
+
+        var stoppedActivities = new List<Activity>();
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSource("TestSource")
+            .AddInMemoryExporter(stoppedActivities)
+            .AddWcfInstrumentation()
+            .Build();
+
+        ServiceClient client = new ServiceClient(
+            new BasicHttpBinding(BasicHttpSecurityMode.None),
+            new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
+        ServiceClient clientBadUrl = new ServiceClient(
+            new BasicHttpBinding(BasicHttpSecurityMode.None),
+            new EndpointAddress(new Uri("http://localhost:1/Service")));
+        try
+        {
+            client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
+            clientBadUrl.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
+
+            using (var parentActivity = testSource.StartActivity("ParentActivity"))
+            {
+                Assert.ThrowsAny<Exception>(() => client.ErrorSynchronous());
+                await Assert.ThrowsAnyAsync<Exception>(client.ErrorAsync);
+                Assert.ThrowsAny<Exception>(() => clientBadUrl.ExecuteSynchronous(new ServiceRequest { Payload = "Hello Open Telemetry!" }));
+                await Assert.ThrowsAnyAsync<Exception>(() => clientBadUrl.ExecuteAsync(new ServiceRequest { Payload = "Hello Open Telemetry!" }));
+            }
+        }
+        finally
+        {
+            if (client.State == CommunicationState.Faulted)
+            {
+                client.Abort();
+            }
+            else
+            {
+                client.Close();
+            }
+
+            if (clientBadUrl.State == CommunicationState.Faulted)
+            {
+                clientBadUrl.Abort();
+            }
+            else
+            {
+                clientBadUrl.Close();
+            }
+
+            tracerProvider.Shutdown();
+            tracerProvider.Dispose();
+            testSource.Dispose();
+            WcfInstrumentationActivitySource.Options = null;
+        }
+
+        Assert.Equal(5, stoppedActivities.Count);
+        Assert.All(stoppedActivities, activity => Assert.Equal(stoppedActivities[0].TraceId, activity.TraceId));
+        var parent = stoppedActivities.Single(activity => activity.Parent == null);
+        var children = stoppedActivities.Where(activity => activity != parent);
+        Assert.All(children, activity => Assert.Equal(parent.SpanId, activity.ParentSpanId));
     }
 }
