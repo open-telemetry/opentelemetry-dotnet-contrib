@@ -48,14 +48,14 @@ public class TestMatcher
     [Fact]
     public void TestAttributeMatching()
     {
-        var tags = new List<KeyValuePair<string, object>>()
+        var tags = new List<KeyValuePair<string, object?>>
         {
-            new KeyValuePair<string, object>("dog", "bark"),
-            new KeyValuePair<string, object>("cat", "meow"),
-            new KeyValuePair<string, object>("cow", "mooo"),
+            new("dog", "bark"),
+            new("cat", "meow"),
+            new("cow", "mooo"),
         };
 
-        var ruleAttributes = new Dictionary<string, string>()
+        var ruleAttributes = new Dictionary<string, string>
         {
             { "dog", "bar?" },
             { "cow", "mooo" },
@@ -67,11 +67,11 @@ public class TestMatcher
     [Fact]
     public void TestAttributeMatchingWithoutRuleAttributes()
     {
-        var tags = new List<KeyValuePair<string, object>>()
+        var tags = new List<KeyValuePair<string, object?>>
         {
-            new KeyValuePair<string, object>("dog", "bark"),
-            new KeyValuePair<string, object>("cat", "meow"),
-            new KeyValuePair<string, object>("cow", "mooo"),
+            new("dog", "bark"),
+            new("cat", "meow"),
+            new("cow", "mooo"),
         };
 
         var ruleAttributes = new Dictionary<string, string>();
@@ -82,13 +82,13 @@ public class TestMatcher
     [Fact]
     public void TestAttributeMatchingWithoutSpanTags()
     {
-        var ruleAttributes = new Dictionary<string, string>()
+        var ruleAttributes = new Dictionary<string, string>
         {
             { "dog", "bar?" },
             { "cow", "mooo" },
         };
 
-        Assert.False(Matcher.AttributeMatch(new List<KeyValuePair<string, object>>(), ruleAttributes));
+        Assert.False(Matcher.AttributeMatch(new List<KeyValuePair<string, object?>>(), ruleAttributes));
         Assert.False(Matcher.AttributeMatch(null, ruleAttributes));
     }
 }

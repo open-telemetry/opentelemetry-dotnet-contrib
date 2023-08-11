@@ -20,7 +20,7 @@ namespace OpenTelemetry.Sampler.AWS.Tests;
 
 internal class TestClock : Clock
 {
-    private static readonly DateTime EpochStart = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime EpochStart = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
     private DateTime nowTime;
 
     public TestClock()
@@ -55,7 +55,7 @@ internal class TestClock : Clock
         return timestamp;
     }
 
-    // Advnaces the clock by a given time span.
+    // Advances the clock by a given time span.
     public void Advance(TimeSpan time)
     {
         this.nowTime = this.nowTime.Add(time);
