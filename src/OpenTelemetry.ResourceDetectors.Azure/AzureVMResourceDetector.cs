@@ -52,34 +52,32 @@ public sealed class AzureVMResourceDetector : IResourceDetector
             {
                 return vmResource;
             }
-            else
+
+            // Prevents the http operations from being instrumented.
+            using var scope = SuppressInstrumentationScope.Begin();
+
+            var vmMetaDataResponse = AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse();
+            if (vmMetaDataResponse == null)
             {
-                // Prevents the http operations from being instrumented.
-                using var scope = SuppressInstrumentationScope.Begin();
-
-                var vmMetaDataResponse = AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse();
-                if (vmMetaDataResponse == null)
-                {
-                    return Resource.Empty;
-                }
-
-                var attributeList = new List<KeyValuePair<string, object>>(ExpectedAzureAmsFields.Count);
-                foreach (var field in ExpectedAzureAmsFields)
-                {
-                    attributeList.Add(new KeyValuePair<string, object>(field, vmMetaDataResponse.GetValueForField(field)));
-                }
-
-                vmResource = new Resource(attributeList);
+                vmResource = Resource.Empty;
 
                 return vmResource;
             }
+
+            var attributeList = new List<KeyValuePair<string, object>>(ExpectedAzureAmsFields.Count);
+            foreach (var field in ExpectedAzureAmsFields)
+            {
+                attributeList.Add(new KeyValuePair<string, object>(field, vmMetaDataResponse.GetValueForField(field)));
+            }
+
+            vmResource = new Resource(attributeList);
         }
         catch
         {
             // TODO: log exception.
             vmResource = Resource.Empty;
-
-            return vmResource;
         }
+
+        return vmResource;
     }
 }
