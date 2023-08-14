@@ -87,19 +87,12 @@ public class TelemetryPropagationTests : IDisposable
     [InlineData("tcp")]
     [InlineData("http")]
     [InlineData("rest")]
-    [InlineData("http", null, "default", false)]
-    [InlineData("http", "default", null, false)]
-    [InlineData("http", "http", "soap", false)]
-    [InlineData("http", "soap", "soap", true)]
-    [InlineData("http", "http", "http", true)]
-    [InlineData("tcp", "soap", "soap", true)]
-    [InlineData("tcp", "http", "http", false)]
-    [InlineData("rest", "soap", "soap", false)]
-    [InlineData("rest", "http", "http", true)]
+    [InlineData("http", false, true)]
+    [InlineData("tcp", false, true)]
+    [InlineData("rest", false, false)]
     public async Task TelemetryContextPropagatesTest(
         string endpoint,
-        string reader = "default",
-        string writer = "default",
+        bool suppressDownstreamInstrumenation = true,
         bool shouldPropagate = true)
     {
         var stoppedActivities = new List<Activity>();
@@ -111,7 +104,7 @@ public class TelemetryPropagationTests : IDisposable
         ActivitySource.AddActivityListener(activityListener);
 
         var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddWcfInstrumentation(options => SetReaderWriter(options, reader, writer))
+            .AddWcfInstrumentation(options => options.SuppressDownstreamInstrumentation = suppressDownstreamInstrumenation)
             .Build();
 
         var serviceBase = endpoint == "tcp" ? this.serviceBaseUriTcp : this.serviceBaseUriHttp;
@@ -161,31 +154,6 @@ public class TelemetryPropagationTests : IDisposable
         {
             Assert.All(stoppedActivities, activity => Assert.Null(activity.ParentId));
             Assert.NotEqual(stoppedActivities[0].TraceId, stoppedActivities[1].TraceId);
-        }
-    }
-
-    private static void SetReaderWriter(WcfInstrumentationOptions options, string readerName, string writerName)
-    {
-        if (readerName != "default")
-        {
-            options.PropagationReader = readerName switch
-            {
-                null => null,
-                "soap" => TelemetryPropagationReader.SoapMessageHeaders,
-                "http" => TelemetryPropagationReader.HttpRequestHeaders,
-                _ => throw new ArgumentException("Invalid reader name", readerName),
-            };
-        }
-
-        if (writerName != "default")
-        {
-            options.PropagationWriter = writerName switch
-            {
-                null => null,
-                "soap" => TelemetryPropagationWriter.SoapMessageHeaders,
-                "http" => TelemetryPropagationWriter.HttpRequestHeaders,
-                _ => throw new ArgumentException("Invalid writer name", writerName),
-            };
         }
     }
 }

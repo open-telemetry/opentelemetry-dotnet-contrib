@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.ServiceModel.Channels;
+using OpenTelemetry.Instrumentation.Wcf.Implementation;
 
 namespace OpenTelemetry.Instrumentation.Wcf;
 
@@ -40,19 +41,11 @@ internal static class WcfInstrumentationActivitySource
 
     public static IEnumerable<string> MessageHeaderValuesGetter(Message request, string name)
     {
-        if (Options.PropagationReader != null)
-        {
-            return Options.PropagationReader(request, name);
-        }
-
-        return null;
+        return TelemetryPropagationReader.Default(request, name);
     }
 
     public static void MessageHeaderValueSetter(Message request, string name, string value)
     {
-        if (Options.PropagationWriter != null)
-        {
-            Options.PropagationWriter(request, name, value);
-        }
+        TelemetryPropagationWriter.Default(request, name, value);
     }
 }

@@ -17,15 +17,14 @@
 using System;
 using System.Collections.Generic;
 using System.ServiceModel.Channels;
-using OpenTelemetry.Instrumentation.Wcf.Implementation;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Instrumentation.Wcf;
+namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
 /// <summary>
 /// Pre-defined PropagationReader callbacks.
 /// </summary>
-public static class TelemetryPropagationReader
+internal static class TelemetryPropagationReader
 {
     private static readonly Func<Message, string, IEnumerable<string>> DefaultReader = Compose(HttpRequestHeaders, SoapMessageHeaders);
 

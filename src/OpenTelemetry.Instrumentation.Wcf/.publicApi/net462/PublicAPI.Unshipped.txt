@@ -22,8 +22,6 @@ OpenTelemetry.Instrumentation.Wcf.TelemetryEndpointBehavior.TelemetryEndpointBeh
 OpenTelemetry.Instrumentation.Wcf.TelemetryEndpointBehavior.Validate(System.ServiceModel.Description.ServiceEndpoint endpoint) -> void
 OpenTelemetry.Instrumentation.Wcf.TelemetryEndpointBehaviorExtensionElement
 OpenTelemetry.Instrumentation.Wcf.TelemetryEndpointBehaviorExtensionElement.TelemetryEndpointBehaviorExtensionElement() -> void
-OpenTelemetry.Instrumentation.Wcf.TelemetryPropagationReader
-OpenTelemetry.Instrumentation.Wcf.TelemetryPropagationWriter
 OpenTelemetry.Instrumentation.Wcf.TelemetryServiceBehavior
 OpenTelemetry.Instrumentation.Wcf.TelemetryServiceBehavior.AddBindingParameters(System.ServiceModel.Description.ServiceDescription serviceDescription, System.ServiceModel.ServiceHostBase serviceHostBase, System.Collections.ObjectModel.Collection<System.ServiceModel.Description.ServiceEndpoint> endpoints, System.ServiceModel.Channels.BindingParameterCollection bindingParameters) -> void
 OpenTelemetry.Instrumentation.Wcf.TelemetryServiceBehavior.ApplyDispatchBehavior(System.ServiceModel.Description.ServiceDescription serviceDescription, System.ServiceModel.ServiceHostBase serviceHostBase) -> void
@@ -39,10 +37,6 @@ OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.IncomingRequestFilte
 OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.IncomingRequestFilter.set -> void
 OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.OutgoingRequestFilter.get -> System.Func<System.ServiceModel.Channels.Message, bool>
 OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.OutgoingRequestFilter.set -> void
-OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.PropagationReader.get -> System.Func<System.ServiceModel.Channels.Message, string, System.Collections.Generic.IEnumerable<string>>
-OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.PropagationReader.set -> void
-OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.PropagationWriter.get -> System.Action<System.ServiceModel.Channels.Message, string, string>
-OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.PropagationWriter.set -> void
 OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.SetSoapMessageVersion.get -> bool
 OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.SetSoapMessageVersion.set -> void
 OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.SuppressDownstreamInstrumentation.get -> bool
@@ -53,13 +47,5 @@ override OpenTelemetry.Instrumentation.Wcf.TelemetryEndpointBehaviorExtensionEle
 override OpenTelemetry.Instrumentation.Wcf.TelemetryEndpointBehaviorExtensionElement.CreateBehavior() -> object
 override OpenTelemetry.Instrumentation.Wcf.TelemetryServiceBehaviorExtensionElement.BehaviorType.get -> System.Type
 override OpenTelemetry.Instrumentation.Wcf.TelemetryServiceBehaviorExtensionElement.CreateBehavior() -> object
-static OpenTelemetry.Instrumentation.Wcf.TelemetryPropagationReader.Compose(params System.Func<System.ServiceModel.Channels.Message, string, System.Collections.Generic.IEnumerable<string>>[] callbacks) -> System.Func<System.ServiceModel.Channels.Message, string, System.Collections.Generic.IEnumerable<string>>
-static OpenTelemetry.Instrumentation.Wcf.TelemetryPropagationReader.Default(System.ServiceModel.Channels.Message request, string name) -> System.Collections.Generic.IEnumerable<string>
-static OpenTelemetry.Instrumentation.Wcf.TelemetryPropagationReader.HttpRequestHeaders(System.ServiceModel.Channels.Message request, string name) -> System.Collections.Generic.IEnumerable<string>
-static OpenTelemetry.Instrumentation.Wcf.TelemetryPropagationReader.SoapMessageHeaders(System.ServiceModel.Channels.Message request, string name) -> System.Collections.Generic.IEnumerable<string>
-static OpenTelemetry.Instrumentation.Wcf.TelemetryPropagationWriter.Compose(params System.Action<System.ServiceModel.Channels.Message, string, string>[] callbacks) -> System.Action<System.ServiceModel.Channels.Message, string, string>
-static OpenTelemetry.Instrumentation.Wcf.TelemetryPropagationWriter.Default(System.ServiceModel.Channels.Message request, string name, string value) -> void
-static OpenTelemetry.Instrumentation.Wcf.TelemetryPropagationWriter.HttpRequestHeaders(System.ServiceModel.Channels.Message request, string name, string value) -> void
-static OpenTelemetry.Instrumentation.Wcf.TelemetryPropagationWriter.SoapMessageHeaders(System.ServiceModel.Channels.Message request, string name, string value) -> void
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddWcfInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder) -> OpenTelemetry.Trace.TracerProviderBuilder
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddWcfInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder, System.Action<OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions> configure) -> OpenTelemetry.Trace.TracerProviderBuilder
