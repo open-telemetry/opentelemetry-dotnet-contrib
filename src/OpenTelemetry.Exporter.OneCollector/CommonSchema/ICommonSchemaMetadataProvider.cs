@@ -23,16 +23,29 @@ namespace OpenTelemetry.Exporter.OneCollector;
 public interface ICommonSchemaMetadataProvider
 {
     /// <summary>
-    /// Gets the number of Common Schema fields with metadata.
+    /// Defines the callback contract used by <see
+    /// cref="ForEachCommonSchemaMetadataFieldDefinition"/>.
     /// </summary>
-    int CommonSchemaMetadataFieldCount { get; }
+    /// <typeparam name="TState">State type.</typeparam>
+    /// <param name="commonSchemaMetadataFieldDefinition"><see
+    /// cref="CommonSchemaMetadataFieldDefinition"/>.</param>
+    /// <param name="state">State.</param>
+    public delegate void CommonSchemaMetadataFieldDefinitionForEachAction<TState>(
+        in CommonSchemaMetadataFieldDefinition commonSchemaMetadataFieldDefinition,
+        ref TState state);
 
     /// <summary>
-    /// Gets the <see cref="CommonSchemaMetadataFieldDefinition"/> for a given index.
+    /// Executes the supplied callback for each <see
+    /// cref="CommonSchemaMetadataFieldDefinition"/> contained in the provider.
     /// </summary>
-    /// <param name="index">Index being requested.</param>
-    /// <param name="commonSchemaMetadataFieldDefinition"><see cref="CommonSchemaMetadataFieldDefinition"/>.</param>
-    void GetCommonSchemaMetadataFieldDefinition(
-        int index,
-        out CommonSchemaMetadataFieldDefinition commonSchemaMetadataFieldDefinition);
+    /// <remarks>Note to implementors: All callbacks should be called inline
+    /// from this method.</remarks>
+    /// <typeparam name="TState">State type.</typeparam>
+    /// <param name="callback">The callback to be executed for every <see
+    /// cref="CommonSchemaMetadataFieldDefinition"/>.</param>
+    /// <param name="state">The state instance to be passed into the
+    /// callback.</param>
+    void ForEachCommonSchemaMetadataFieldDefinition<TState>(
+        CommonSchemaMetadataFieldDefinitionForEachAction<TState> callback,
+        ref TState state);
 }

@@ -373,15 +373,16 @@ public class LogRecordCommonSchemaJsonSerializerTests
             this.fieldDefinitions = fieldDefinitions;
         }
 
-        public int CommonSchemaMetadataFieldCount => this.fieldDefinitions.Count;
-
-        public void GetCommonSchemaMetadataFieldDefinition(
-            int index,
-            out CommonSchemaMetadataFieldDefinition commonSchemaMetadataFieldDefinition)
+        public void ForEachCommonSchemaMetadataFieldDefinition<TState>(
+            ICommonSchemaMetadataProvider.CommonSchemaMetadataFieldDefinitionForEachAction<TState> callback,
+            ref TState state)
         {
-            Guard.ThrowIfOutOfRange(index, min: 0, max: this.CommonSchemaMetadataFieldCount);
+            Guard.ThrowIfNull(callback);
 
-            commonSchemaMetadataFieldDefinition = this.fieldDefinitions[index];
+            foreach (var fieldDefinition in this.fieldDefinitions)
+            {
+                callback(in fieldDefinition, ref state);
+            }
         }
     }
 }

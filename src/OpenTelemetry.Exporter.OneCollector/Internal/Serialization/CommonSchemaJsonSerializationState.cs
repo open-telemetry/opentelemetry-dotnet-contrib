@@ -132,23 +132,7 @@ internal sealed class CommonSchemaJsonSerializationState
 
         if (this.MetadataProvider != null)
         {
-            writer.WriteStartObject(CommonSchemaJsonSerializationHelper.MetadataExtensionProperty);
-            writer.WriteStartObject(CommonSchemaJsonSerializationHelper.MetadataExtensionFieldListProperty);
-
-            for (int i = 0; i < this.MetadataProvider.CommonSchemaMetadataFieldCount; i++)
-            {
-                this.MetadataProvider.GetCommonSchemaMetadataFieldDefinition(i, out var fieldDefinition);
-
-                writer.WriteNumber(fieldDefinition.Name, fieldDefinition.TypeInfo);
-            }
-
-            if (this.MetadataProvider is IDisposable disposable)
-            {
-                disposable.Dispose();
-            }
-
-            writer.WriteEndObject();
-            writer.WriteEndObject();
+            WriteMetadata(writer, this.MetadataProvider);
         }
 
         if (writeExtensionObjectEnvelope)
@@ -175,6 +159,33 @@ internal sealed class CommonSchemaJsonSerializationState
         this.allValues.Clear();
 
         this.MetadataProvider = null;
+    }
+
+    private static void WriteMetadata(Utf8JsonWriter writer, ICommonSchemaMetadataProvider commonSchemaMetadataProvider)
+    {
+        writer.WriteStartObject(CommonSchemaJsonSerializationHelper.MetadataExtensionProperty);
+        writer.WriteStartObject(CommonSchemaJsonSerializationHelper.MetadataExtensionFieldListProperty);
+
+        commonSchemaMetadataProvider.ForEachCommonSchemaMetadataFieldDefinition(
+            WriteCommonSchemaMetadataFieldDefinitionToWriter,
+            ref writer);
+
+        if (commonSchemaMetadataProvider is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
+
+        writer.WriteEndObject();
+        writer.WriteEndObject();
+
+        static void WriteCommonSchemaMetadataFieldDefinitionToWriter(
+            in CommonSchemaMetadataFieldDefinition commonSchemaMetadataFieldDefinition,
+            ref Utf8JsonWriter writer)
+        {
+            writer.WriteNumber(
+                commonSchemaMetadataFieldDefinition.Name,
+                commonSchemaMetadataFieldDefinition.TypeInfo);
+        }
     }
 
     private void AssignNewExtensionToLookupIndex(ref int lookupIndex)
