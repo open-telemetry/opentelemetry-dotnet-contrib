@@ -275,7 +275,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
                     "metadata",
                     new CommonSchemaMetadataProvider(new List<CommonSchemaMetadataFieldDefinition>
                     {
-                        new CommonSchemaMetadataFieldDefinition(CommonSchemaMetadataFieldDataType.Int32, CommonSchemaMetadataFieldPrivacyClassificationType.Identity, "userId"),
+                        new CommonSchemaMetadataFieldDefinition(322UL, "userId"),
                     })),
             };
         });

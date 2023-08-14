@@ -35,28 +35,9 @@ public readonly record struct CommonSchemaMetadataFieldDefinition
     /// <summary>
     /// Initializes a new instance of the <see cref="CommonSchemaMetadataFieldDefinition"/> class.
     /// </summary>
-    /// <param name="dataType"><see cref="CommonSchemaMetadataFieldDataType"/>.</param>
+    /// <param name="typeInfo">Type info.</param>
     /// <param name="name">Field name.</param>
-    public CommonSchemaMetadataFieldDefinition(CommonSchemaMetadataFieldDataType dataType, string name)
-        : this(BuildTypeInfo(dataType, CommonSchemaMetadataFieldPrivacyClassificationType.NotSet), name)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="CommonSchemaMetadataFieldDefinition"/> class.
-    /// </summary>
-    /// <param name="dataType"><see cref="CommonSchemaMetadataFieldDataType"/>.</param>
-    /// <param name="classificationType"><see cref="CommonSchemaMetadataFieldPrivacyClassificationType"/>.</param>
-    /// <param name="name">Field name.</param>
-    public CommonSchemaMetadataFieldDefinition(
-        CommonSchemaMetadataFieldDataType dataType,
-        CommonSchemaMetadataFieldPrivacyClassificationType classificationType,
-        string name)
-        : this(BuildTypeInfo(dataType, classificationType), name)
-    {
-    }
-
-    private CommonSchemaMetadataFieldDefinition(ulong typeInfo, string name)
+    public CommonSchemaMetadataFieldDefinition(ulong typeInfo, string name)
     {
         Guard.ThrowIfNullOrWhitespace(name);
 
@@ -73,23 +54,4 @@ public readonly record struct CommonSchemaMetadataFieldDefinition
     /// Gets the field name.
     /// </summary>
     public string Name { get; }
-
-    /// <summary>
-    /// Gets the <see cref="CommonSchemaMetadataFieldDataType"/> for the field.
-    /// </summary>
-    public CommonSchemaMetadataFieldDataType DataType
-        => (CommonSchemaMetadataFieldDataType)(this.TypeInfo & 0x1F);
-
-    /// <summary>
-    /// Gets the <see cref="CommonSchemaMetadataFieldDataType"/> for the field.
-    /// </summary>
-    public CommonSchemaMetadataFieldDataType ClassificationType
-        => (CommonSchemaMetadataFieldDataType)((this.TypeInfo & 0x1FE0) >> 5);
-
-    private static ulong BuildTypeInfo(
-        CommonSchemaMetadataFieldDataType dataType,
-        CommonSchemaMetadataFieldPrivacyClassificationType classificationType)
-    {
-        return (ulong)dataType | (ulong)classificationType << 5;
-    }
 }
