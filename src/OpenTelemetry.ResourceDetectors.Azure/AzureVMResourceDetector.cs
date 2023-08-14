@@ -41,32 +41,45 @@ public sealed class AzureVMResourceDetector : IResourceDetector
         ResourceSemanticConventions.AttributeServiceInstance,
     };
 
+    private static Resource? vmResource;
+
     /// <inheritdoc/>
     public Resource Detect()
     {
         try
         {
-            // Prevents the http operations from being instrumented.
-            using var scope = SuppressInstrumentationScope.Begin();
-
-            var vmMetaDataResponse = AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse();
-            if (vmMetaDataResponse == null)
+            if (vmResource != null)
             {
-                return Resource.Empty;
+                return vmResource;
             }
-
-            var attributeList = new List<KeyValuePair<string, object>>(ExpectedAzureAmsFields.Count);
-            foreach (var field in ExpectedAzureAmsFields)
+            else
             {
-                attributeList.Add(new KeyValuePair<string, object>(field, vmMetaDataResponse.GetValueForField(field)));
-            }
+                // Prevents the http operations from being instrumented.
+                using var scope = SuppressInstrumentationScope.Begin();
 
-            return new Resource(attributeList);
+                var vmMetaDataResponse = AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse();
+                if (vmMetaDataResponse == null)
+                {
+                    return Resource.Empty;
+                }
+
+                var attributeList = new List<KeyValuePair<string, object>>(ExpectedAzureAmsFields.Count);
+                foreach (var field in ExpectedAzureAmsFields)
+                {
+                    attributeList.Add(new KeyValuePair<string, object>(field, vmMetaDataResponse.GetValueForField(field)));
+                }
+
+                vmResource = new Resource(attributeList);
+
+                return vmResource;
+            }
         }
         catch
         {
             // TODO: log exception.
-            return Resource.Empty;
+            vmResource = Resource.Empty;
+
+            return vmResource;
         }
     }
 }
