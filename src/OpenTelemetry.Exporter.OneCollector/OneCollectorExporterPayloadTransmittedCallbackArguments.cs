@@ -39,7 +39,8 @@ public readonly ref struct OneCollectorExporterPayloadTransmittedCallbackArgumen
         OneCollectorExporterSerializationFormatType payloadSerializationFormat,
         Stream payloadStream,
         OneCollectorExporterTransportProtocolType transportProtocol,
-        Uri transportEndpoint)
+        Uri transportEndpoint,
+        bool succeeded)
     {
         Debug.Assert(payloadStream != null, "payload stream was null");
         Debug.Assert(payloadStream!.CanSeek, "payload stream was not seekable");
@@ -49,6 +50,7 @@ public readonly ref struct OneCollectorExporterPayloadTransmittedCallbackArgumen
         this.payloadStream = payloadStream;
         this.TransportProtocol = transportProtocol;
         this.TransportEndpoint = transportEndpoint!;
+        this.Succeeded = succeeded;
     }
 
     /// <summary>
@@ -60,6 +62,11 @@ public readonly ref struct OneCollectorExporterPayloadTransmittedCallbackArgumen
     /// Gets the transport endpoint.
     /// </summary>
     public Uri TransportEndpoint { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether or not the payload transmission was successful or not.
+    /// </summary>
+    public bool Succeeded { get; }
 
     /// <summary>
     /// Gets the payload serialization format.
