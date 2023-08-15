@@ -4,7 +4,7 @@
 
 * Added support for receiving tranmission failures via the
   `RegisterPayloadTransmittedCallback` API.
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#1309](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1309))
 
 ## 1.5.1
 
