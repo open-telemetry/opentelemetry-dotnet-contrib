@@ -68,6 +68,7 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
             new LogRecordCommonSchemaJsonSerializer(
                 new EventNameManager(exporterOptions.DefaultEventNamespace, exporterOptions.DefaultEventName),
                 exporterOptions.TenantToken!,
+                exporterOptions.SerializationOptions.JsonOptions.MakeReadOnly(),
                 exporterOptions.SerializationOptions.ExceptionStackTraceHandling,
                 transportOptions.MaxPayloadSizeInBytes == -1 ? int.MaxValue : transportOptions.MaxPayloadSizeInBytes,
                 transportOptions.MaxNumberOfItemsPerPayload == -1 ? int.MaxValue : transportOptions.MaxNumberOfItemsPerPayload),
