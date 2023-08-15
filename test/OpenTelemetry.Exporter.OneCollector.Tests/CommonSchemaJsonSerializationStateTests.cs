@@ -17,6 +17,7 @@
 using System.Text;
 using System.Text.Json;
 using Xunit;
+using static OpenTelemetry.Exporter.OneCollector.Tests.CommonSchemaJsonSerializationHelperTests;
 
 namespace OpenTelemetry.Exporter.OneCollector.Tests;
 
@@ -27,8 +28,9 @@ public class CommonSchemaJsonSerializationStateTests
     {
         using var stream = new MemoryStream();
         using var writer = new Utf8JsonWriter(stream);
+        var options = new OneCollectorExporterJsonSerializationOptions();
 
-        var state = new CommonSchemaJsonSerializationState("Test", writer);
+        var state = new CommonSchemaJsonSerializationState("Test", writer, options);
 
         state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.something.field1", 1));
         state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.something.field2", 2));
@@ -55,7 +57,7 @@ public class CommonSchemaJsonSerializationStateTests
 
         stream.SetLength(0);
         writer.Reset(stream);
-        state.Reset("Test", writer);
+        state.Reset("Test", writer, options);
 
         Assert.Equal(0, state.ExtensionPropertyCount);
         Assert.Equal(0, state.ExtensionAttributeCount);
@@ -79,12 +81,40 @@ public class CommonSchemaJsonSerializationStateTests
     }
 
     [Fact]
+    public void AddExtensionAttributeWithComplexTypeTest()
+    {
+        using var stream = new MemoryStream();
+        using var writer = new Utf8JsonWriter(stream);
+        var options = new OneCollectorExporterJsonSerializationOptions()
+            .RegisterFormatter(TestComplexType.Formatter);
+
+        var state = new CommonSchemaJsonSerializationState("Test", writer, options);
+
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.metadata", new TestComplexType()));
+
+        Assert.Equal(1, state.ExtensionPropertyCount);
+        Assert.Equal(1, state.ExtensionAttributeCount);
+
+        writer.WriteStartObject();
+        state.SerializeExtensionPropertiesToJson(writeExtensionObjectEnvelope: true);
+        writer.WriteEndObject();
+        writer.Flush();
+
+        var json = Encoding.UTF8.GetString(stream.ToArray());
+
+        Assert.Equal(
+            "{\"ext\":{\"metadata\":{\"Id\":1234}}}",
+            json);
+    }
+
+    [Fact]
     public void AddExtensionAttributeDuplicatesTest()
     {
         using var stream = new MemoryStream();
         using var writer = new Utf8JsonWriter(stream);
+        var options = new OneCollectorExporterJsonSerializationOptions();
 
-        var state = new CommonSchemaJsonSerializationState("Test", writer);
+        var state = new CommonSchemaJsonSerializationState("Test", writer, options);
 
         // Note: This test is just to verify de-duping is NOT currently supported.
 
@@ -107,12 +137,49 @@ public class CommonSchemaJsonSerializationStateTests
     }
 
     [Fact]
+    public void AddExtensionAttributeMixedFieldAndPropertyTest()
+    {
+        using var stream = new MemoryStream();
+        using var writer = new Utf8JsonWriter(stream);
+        var options = new OneCollectorExporterJsonSerializationOptions();
+
+        var state = new CommonSchemaJsonSerializationState("Test", writer, options);
+
+        // Note: For this test we expect the second entry to be dropped because
+        // the extension goes into "field tracking" mode
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.foo.field1", 1));
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.foo", "Hello world"));
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.foo.field2", 2));
+
+        // Note: For this test we expect the second and third entry to be
+        // dropped because the extension goes into "object" mode
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.bar", "Hello world"));
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.bar.field1", 1));
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.bar.field2", 2));
+
+        Assert.Equal(2, state.ExtensionPropertyCount);
+        Assert.Equal(3, state.ExtensionAttributeCount);
+
+        writer.WriteStartObject();
+        state.SerializeExtensionPropertiesToJson(writeExtensionObjectEnvelope: true);
+        writer.WriteEndObject();
+        writer.Flush();
+
+        var json = Encoding.UTF8.GetString(stream.ToArray());
+
+        Assert.Equal(
+            "{\"ext\":{\"foo\":{\"field1\":1,\"field2\":2},\"bar\":\"Hello world\"}}",
+            json);
+    }
+
+    [Fact]
     public void AddExtensionAttributeKeyLimitTest()
     {
         using var stream = new MemoryStream();
         using var writer = new Utf8JsonWriter(stream);
+        var options = new OneCollectorExporterJsonSerializationOptions();
 
-        var state = new CommonSchemaJsonSerializationState("Test", writer);
+        var state = new CommonSchemaJsonSerializationState("Test", writer, options);
 
         for (int i = 0; i < CommonSchemaJsonSerializationState.MaxNumberOfExtensionKeys + 10; i++)
         {
@@ -128,8 +195,9 @@ public class CommonSchemaJsonSerializationStateTests
     {
         using var stream = new MemoryStream();
         using var writer = new Utf8JsonWriter(stream);
+        var options = new OneCollectorExporterJsonSerializationOptions();
 
-        var state = new CommonSchemaJsonSerializationState("Test", writer);
+        var state = new CommonSchemaJsonSerializationState("Test", writer, options);
 
         for (int i = 0; i < CommonSchemaJsonSerializationState.MaxNumberOfExtensionValuesPerKey + 10; i++)
         {

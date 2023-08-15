@@ -147,7 +147,7 @@ public class WriteDirectlyToTransportSinkTests
         public TestSerializer(
             int maxPayloadSizeInBytes = int.MaxValue,
             int maxNumberOfItemsPerPayload = int.MaxValue)
-            : base("tenant-token", maxPayloadSizeInBytes, maxNumberOfItemsPerPayload)
+            : base("tenant-token", new(), maxPayloadSizeInBytes, maxNumberOfItemsPerPayload)
         {
         }
 

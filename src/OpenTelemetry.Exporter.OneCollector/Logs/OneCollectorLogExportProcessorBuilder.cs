@@ -235,6 +235,7 @@ public sealed class OneCollectorLogExportProcessorBuilder
             new LogRecordCommonSchemaJsonSerializer(
                 new EventNameManager(this.exporterOptions.DefaultEventNamespace, this.exporterOptions.DefaultEventName),
                 this.exporterOptions.TenantToken!,
+                this.exporterOptions.SerializationOptions.JsonOptions.MakeReadOnly(),
                 this.exporterOptions.SerializationOptions.ExceptionStackTraceHandling,
                 transportOptions.MaxPayloadSizeInBytes == -1 ? int.MaxValue : transportOptions.MaxPayloadSizeInBytes,
                 transportOptions.MaxNumberOfItemsPerPayload == -1 ? int.MaxValue : transportOptions.MaxNumberOfItemsPerPayload),

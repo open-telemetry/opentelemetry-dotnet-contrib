@@ -57,6 +57,7 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
     private static readonly Action<LogRecordScope, CommonSchemaJsonSerializationState> SerializeScopeItemToJson = (scope, serializationState) =>
     {
         var writer = serializationState.Writer;
+        var options = serializationState.Options;
 
         foreach (KeyValuePair<string, object?> scopeAttribute in scope)
         {
@@ -71,7 +72,7 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
                 continue;
             }
 
-            CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(scopeAttribute.Key, scopeAttribute.Value, writer);
+            CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(scopeAttribute.Key, scopeAttribute.Value, writer, options);
         }
     };
 
@@ -81,10 +82,11 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
     public LogRecordCommonSchemaJsonSerializer(
         EventNameManager eventNameManager,
         string tenantToken,
+        OneCollectorExporterJsonSerializationOptions options,
         OneCollectorExporterSerializationExceptionStackTraceHandlingType exceptionStackTraceHandling = OneCollectorExporterSerializationExceptionStackTraceHandlingType.Ignore,
         int maxPayloadSizeInBytes = int.MaxValue,
         int maxNumberOfItemsPerPayload = int.MaxValue)
-        : base(tenantToken, maxPayloadSizeInBytes, maxNumberOfItemsPerPayload)
+        : base(tenantToken, options, maxPayloadSizeInBytes, maxNumberOfItemsPerPayload)
     {
         Debug.Assert(eventNameManager != null, "eventNameManager was null");
 
@@ -99,8 +101,10 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
         Debug.Assert(serializationState != null, "serializationState was null");
 
         var writer = serializationState!.Writer;
+        var options = serializationState.Options;
 
         Debug.Assert(writer != null, "writer was null");
+        Debug.Assert(options != null, "options was null");
 
         var eventName = this.eventNameManager.ResolveEventFullName(
             item.CategoryName,
@@ -140,13 +144,6 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
             {
                 var attribute = item.Attributes[i];
 
-                if (attribute.Value is ICommonSchemaMetadataProvider metadataProvider)
-                {
-                    // Note: It is expected that the ICommonSchemaMetadataProvider key will be null so we check for this first.
-                    serializationState.MetadataProvider = metadataProvider;
-                    continue;
-                }
-
                 if (string.IsNullOrEmpty(attribute.Key))
                 {
                     continue;
@@ -164,7 +161,7 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
                     continue;
                 }
 
-                CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(attribute.Key, attribute.Value, writer);
+                CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(attribute.Key, attribute.Value, writer, options!);
             }
         }
 
@@ -208,8 +205,7 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
     {
         var hasTraceContext = item.TraceId != default;
         var hasException = item.Exception != null;
-        var hasExtensions = serializationState.ExtensionAttributeCount > 0
-            || serializationState.MetadataProvider != null;
+        var hasExtensions = serializationState.ExtensionAttributeCount > 0;
 
         if (!hasTraceContext && !hasException && !hasExtensions)
         {

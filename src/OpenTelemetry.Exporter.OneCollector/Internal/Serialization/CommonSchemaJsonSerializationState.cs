@@ -17,6 +17,7 @@
 #if NET6_0_OR_GREATER
 using System.Runtime.InteropServices;
 #endif
+using System.Diagnostics;
 using System.Text.Json;
 
 namespace OpenTelemetry.Exporter.OneCollector;
@@ -26,20 +27,21 @@ internal sealed class CommonSchemaJsonSerializationState
     public const int MaxNumberOfExtensionKeys = 64;
     public const int MaxNumberOfExtensionValuesPerKey = 16;
     private readonly Dictionary<string, int> keys = new(4, StringComparer.OrdinalIgnoreCase);
-    private readonly List<KeyValuePair<string, object?>> allValues = new(16);
+    private readonly List<KeyValuePair<ExtensionFieldInformation, object?>> allValues = new(16);
     private string itemType;
     private int nextKeysToAllValuesLookupIndex;
     private KeyValueLookup[] keysToAllValuesLookup = new KeyValueLookup[4];
 
-    public CommonSchemaJsonSerializationState(string itemType, Utf8JsonWriter writer)
+    public CommonSchemaJsonSerializationState(string itemType, Utf8JsonWriter writer, OneCollectorExporterJsonSerializationOptions options)
     {
         this.itemType = itemType;
         this.Writer = writer;
+        this.Options = options;
     }
 
     public Utf8JsonWriter Writer { get; private set; }
 
-    public ICommonSchemaMetadataProvider? MetadataProvider { get; set; }
+    public OneCollectorExporterJsonSerializationOptions Options { get; private set; }
 
     public int ExtensionPropertyCount => this.nextKeysToAllValuesLookupIndex;
 
@@ -49,11 +51,13 @@ internal sealed class CommonSchemaJsonSerializationState
     {
         if (!ExtensionFieldInformationManager.SharedCache.TryResolveExtensionFieldInformation(
             attribute.Key,
-            out (string ExtensionName, string FieldName) fieldInformation))
+            out var fieldInformation))
         {
             OneCollectorExporterEventSource.Log.AttributeDropped(this.itemType, attribute.Key, "Invalid extension field name");
             return;
         }
+
+        Debug.Assert(fieldInformation?.ExtensionName != null, "fieldInformation.ExtensionName was null");
 
 #if NET6_0_OR_GREATER
         ref var lookupIndex = ref CollectionsMarshal.GetValueRefOrAddDefault(this.keys, fieldInformation.ExtensionName, out var existed);
@@ -62,10 +66,10 @@ internal sealed class CommonSchemaJsonSerializationState
             this.AssignNewExtensionToLookupIndex(ref lookupIndex);
         }
 #else
-        if (!this.keys.TryGetValue(fieldInformation.ExtensionName, out int lookupIndex))
+        if (!this.keys.TryGetValue(fieldInformation!.ExtensionName!, out int lookupIndex))
         {
             this.AssignNewExtensionToLookupIndex(ref lookupIndex);
-            this.keys[fieldInformation.ExtensionName] = lookupIndex;
+            this.keys[fieldInformation.ExtensionName!] = lookupIndex;
         }
 #endif
 
@@ -77,14 +81,33 @@ internal sealed class CommonSchemaJsonSerializationState
 
         ref KeyValueLookup keyLookup = ref this.keysToAllValuesLookup[lookupIndex];
 
-        if (keyLookup.Count >= MaxNumberOfExtensionValuesPerKey)
+        var keyCount = keyLookup.Count;
+        if (keyCount > 0)
         {
-            OneCollectorExporterEventSource.Log.AttributeDropped(this.itemType, attribute.Key, "Extension value limit reached");
-            return;
+            if (keyCount >= MaxNumberOfExtensionValuesPerKey)
+            {
+                OneCollectorExporterEventSource.Log.AttributeDropped(this.itemType, attribute.Key, "Extension value limit reached");
+                return;
+            }
+
+            unsafe
+            {
+#if NET6_0_OR_GREATER
+                ref var firstDefinition = ref CollectionsMarshal.AsSpan(this.allValues)[keyLookup.ValueIndicies[0]];
+#else
+                var firstDefinition = this.allValues[keyLookup.ValueIndicies[0]];
+#endif
+
+                if (fieldInformation.FieldName == null || firstDefinition.Key.FieldName == null)
+                {
+                    OneCollectorExporterEventSource.Log.AttributeDropped(this.itemType, attribute.Key, "Extension is already defined");
+                    return;
+                }
+            }
         }
 
         int index = this.allValues.Count;
-        this.allValues.Add(new KeyValuePair<string, object?>(fieldInformation.FieldName, attribute.Value));
+        this.allValues.Add(new KeyValuePair<ExtensionFieldInformation, object?>(fieldInformation, attribute.Value));
 
         unsafe
         {
@@ -95,6 +118,7 @@ internal sealed class CommonSchemaJsonSerializationState
     public void SerializeExtensionPropertiesToJson(bool writeExtensionObjectEnvelope)
     {
         var writer = this.Writer;
+        var options = this.Options;
 
         if (writeExtensionObjectEnvelope)
         {
@@ -109,7 +133,8 @@ internal sealed class CommonSchemaJsonSerializationState
 
         foreach (var extensionPropertyKey in this.keys)
         {
-            writer.WriteStartObject(extensionPropertyKey.Key);
+            var wroteStartObject = false;
+            var wroteProperty = false;
 
             ref KeyValueLookup keyLookup = ref this.keysToAllValuesLookup[extensionPropertyKey.Value];
 
@@ -123,16 +148,37 @@ internal sealed class CommonSchemaJsonSerializationState
                     var attribute = allValues[keyLookup.ValueIndicies[i]];
 #endif
 
-                    CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(attribute.Key, attribute.Value, writer);
+                    var fieldInformation = attribute.Key;
+
+                    if (fieldInformation.FieldName == null)
+                    {
+                        Debug.Assert(!wroteProperty, "wroteProperty");
+                        Debug.Assert(!wroteStartObject, "wroteStartObject");
+
+                        writer.WritePropertyName(fieldInformation.EncodedExtensionName);
+                        CommonSchemaJsonSerializationHelper.SerializeValueToJson(attribute.Value, writer, options);
+                        wroteProperty = true;
+                    }
+                    else
+                    {
+                        Debug.Assert(!wroteProperty, "wroteProperty");
+
+                        if (!wroteStartObject)
+                        {
+                            writer.WriteStartObject(fieldInformation.EncodedExtensionName);
+                            wroteStartObject = true;
+                        }
+
+                        writer.WritePropertyName(fieldInformation.EncodedFieldName);
+                        CommonSchemaJsonSerializationHelper.SerializeValueToJson(attribute.Value, writer, options);
+                    }
                 }
             }
 
-            writer.WriteEndObject();
-        }
-
-        if (this.MetadataProvider != null)
-        {
-            WriteMetadata(writer, this.MetadataProvider);
+            if (wroteStartObject)
+            {
+                writer.WriteEndObject();
+            }
         }
 
         if (writeExtensionObjectEnvelope)
@@ -141,10 +187,11 @@ internal sealed class CommonSchemaJsonSerializationState
         }
     }
 
-    public void Reset(string itemType, Utf8JsonWriter writer)
+    public void Reset(string itemType, Utf8JsonWriter writer, OneCollectorExporterJsonSerializationOptions options)
     {
         this.itemType = itemType;
         this.Writer = writer;
+        this.Options = options;
 
         for (int i = 0; i < this.nextKeysToAllValuesLookupIndex; i++)
         {
@@ -157,35 +204,6 @@ internal sealed class CommonSchemaJsonSerializationState
         this.keys.Clear();
 
         this.allValues.Clear();
-
-        this.MetadataProvider = null;
-    }
-
-    private static void WriteMetadata(Utf8JsonWriter writer, ICommonSchemaMetadataProvider commonSchemaMetadataProvider)
-    {
-        writer.WriteStartObject(CommonSchemaJsonSerializationHelper.MetadataExtensionProperty);
-        writer.WriteStartObject(CommonSchemaJsonSerializationHelper.MetadataExtensionFieldListProperty);
-
-        commonSchemaMetadataProvider.ForEachCommonSchemaMetadataFieldDefinition(
-            WriteCommonSchemaMetadataFieldDefinitionToWriter,
-            ref writer);
-
-        if (commonSchemaMetadataProvider is IDisposable disposable)
-        {
-            disposable.Dispose();
-        }
-
-        writer.WriteEndObject();
-        writer.WriteEndObject();
-
-        static void WriteCommonSchemaMetadataFieldDefinitionToWriter(
-            in CommonSchemaMetadataFieldDefinition commonSchemaMetadataFieldDefinition,
-            ref Utf8JsonWriter writer)
-        {
-            writer.WriteNumber(
-                commonSchemaMetadataFieldDefinition.Name,
-                commonSchemaMetadataFieldDefinition.TypeInfo);
-        }
     }
 
     private void AssignNewExtensionToLookupIndex(ref int lookupIndex)

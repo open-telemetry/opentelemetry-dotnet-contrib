@@ -6,8 +6,8 @@
   `RegisterPayloadTransmittedCallback` API.
   ([#1305](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1305))
 
-* Added support for sending Common Schema metadata via the
-  `ICommonSchemaMetadataProvider` API.
+* Added support for custom complex type serialization into JSON via the
+  `OneCollectorExporterJsonSerializationOptions.RegisterFormatter` API.
   ([#1305](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1305))
 
 ## 1.5.1

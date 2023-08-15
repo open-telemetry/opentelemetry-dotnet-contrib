@@ -23,7 +23,7 @@ namespace OpenTelemetry.Exporter.OneCollector;
 /// cref="OneCollectorExporter{T}"/> instance for exporting <see
 /// cref="LogRecord"/> telemetry data.
 /// </summary>
-public sealed class OneCollectorLogExporterSerializationOptions
+public sealed class OneCollectorLogExporterSerializationOptions : OneCollectorExporterSerializationOptions
 {
     /// <summary>
     /// Gets or sets the exception stack trace handling type. Default
@@ -32,16 +32,4 @@ public sealed class OneCollectorLogExporterSerializationOptions
     /// </summary>
     public OneCollectorExporterSerializationExceptionStackTraceHandlingType ExceptionStackTraceHandling { get; set; }
         = OneCollectorExporterSerializationExceptionStackTraceHandlingType.Ignore;
-
-    /// <summary>
-    /// Gets or sets OneCollector serialization format. Default value: <see
-    /// cref="OneCollectorExporterSerializationFormatType.CommonSchemaV4JsonStream"/>.
-    /// </summary>
-    internal OneCollectorExporterSerializationFormatType Format { get; set; } = OneCollectorExporterSerializationFormatType.CommonSchemaV4JsonStream;
-
-#pragma warning disable CA1822 // Mark members as static
-    internal void Validate()
-#pragma warning restore CA1822 // Mark members as static
-    {
-    }
 }

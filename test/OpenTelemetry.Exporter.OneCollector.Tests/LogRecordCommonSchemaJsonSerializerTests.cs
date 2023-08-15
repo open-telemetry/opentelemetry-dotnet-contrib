@@ -18,10 +18,10 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
 using Xunit;
+using static OpenTelemetry.Exporter.OneCollector.Tests.CommonSchemaJsonSerializationHelperTests;
 
 namespace OpenTelemetry.Exporter.OneCollector.Tests;
 
@@ -172,27 +172,42 @@ public class LogRecordCommonSchemaJsonSerializerTests
     [Fact]
     public void LogRecordScopesJsonTest()
     {
+        var options = new OneCollectorExporterJsonSerializationOptions()
+            .RegisterFormatter(TestComplexType.Formatter);
+
         var scopeProvider = new ScopeProvider(
             new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("scope1Key1", "scope1Value1"), new KeyValuePair<string, object?>("scope1Key2", "scope1Value2") },
-            new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("scope2Key1", "scope2Value1") });
+            new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("scope2Key1", "scope2Value1") },
+            new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("scope3Key1", new TestComplexType()) });
 
-        string json = GetLogRecordJson(1, (index, logRecord) => { }, scopeProvider: scopeProvider);
+        string json = GetLogRecordJson(1, (index, logRecord) => { }, scopeProvider: scopeProvider, options: options);
 
         Assert.Equal(
-            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1,\"scope1Key1\":\"scope1Value1\",\"scope1Key2\":\"scope1Value2\",\"scope2Key1\":\"scope2Value1\"}}}}\n",
+            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1,\"scope1Key1\":\"scope1Value1\",\"scope1Key2\":\"scope1Value2\",\"scope2Key1\":\"scope2Value1\",\"scope3Key1\":{{\"Id\":1234}}}}}}\n",
             json);
     }
 
     [Fact]
     public void LogRecordStateValuesJsonTest()
     {
-        string json = GetLogRecordJson(1, (index, logRecord) =>
-        {
-            logRecord.Attributes = new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("stateKey1", "stateValue1"), new KeyValuePair<string, object?>("stateKey2", "stateValue2") };
-        });
+        var options = new OneCollectorExporterJsonSerializationOptions()
+            .RegisterFormatter(TestComplexType.Formatter);
+
+        string json = GetLogRecordJson(
+            1,
+            (index, logRecord) =>
+            {
+                logRecord.Attributes = new List<KeyValuePair<string, object?>>
+                {
+                    new KeyValuePair<string, object?>("stateKey1", "stateValue1"),
+                    new KeyValuePair<string, object?>("stateKey2", "stateValue2"),
+                    new KeyValuePair<string, object?>("stateKey3", new TestComplexType()),
+                };
+            },
+            options: options);
 
         Assert.Equal(
-            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1,\"stateKey1\":\"stateValue1\",\"stateKey2\":\"stateValue2\"}}}}\n",
+            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1,\"stateKey1\":\"stateValue1\",\"stateKey2\":\"stateValue2\",\"stateKey3\":{{\"Id\":1234}}}}}}\n",
             json);
     }
 
@@ -239,8 +254,15 @@ public class LogRecordCommonSchemaJsonSerializerTests
     [Fact]
     public void LogRecordExtensionsJsonTest()
     {
+        var options = new OneCollectorExporterJsonSerializationOptions()
+            .RegisterFormatter(TestComplexType.Formatter);
+
         var scopeProvider = new ScopeProvider(
-            new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("ext.scope.field", "scopeValue1") });
+            new List<KeyValuePair<string, object?>>
+            {
+                new KeyValuePair<string, object?>("ext.scope.field", "scopeValue1"),
+                new KeyValuePair<string, object?>("ext.foo", new TestComplexType()),
+            });
 
         var resource = ResourceBuilder.CreateEmpty()
             .AddAttributes(new Dictionary<string, object>
@@ -253,35 +275,18 @@ public class LogRecordCommonSchemaJsonSerializerTests
             1,
             (index, logRecord) =>
             {
-                logRecord.Attributes = new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("ext.state.field", "stateValue1") };
+                logRecord.Attributes = new List<KeyValuePair<string, object?>>
+                {
+                    new KeyValuePair<string, object?>("ext.state.field", "stateValue1"),
+                    new KeyValuePair<string, object?>("ext.bar", new TestComplexType()),
+                };
             },
             resource,
-            scopeProvider);
+            scopeProvider,
+            options: options);
 
         Assert.Equal(
-            "{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{\"severityText\":\"Trace\",\"severityNumber\":1},\"ext\":{\"state\":{\"field\":\"stateValue1\"},\"resource\":{\"field\":\"resourceValue1\"},\"scope\":{\"field\":\"scopeValue1\"}}}\n",
-            json);
-    }
-
-    [Fact]
-    public void LogRecordMetadataJsonTest()
-    {
-        string json = GetLogRecordJson(1, (index, logRecord) =>
-        {
-            logRecord.Attributes = new List<KeyValuePair<string, object?>>
-            {
-                new KeyValuePair<string, object?>("userId", 18),
-                new KeyValuePair<string, object?>(
-                    "metadata",
-                    new CommonSchemaMetadataProvider(new List<CommonSchemaMetadataFieldDefinition>
-                    {
-                        new CommonSchemaMetadataFieldDefinition(322UL, "userId"),
-                    })),
-            };
-        });
-
-        Assert.Equal(
-            "{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{\"severityText\":\"Trace\",\"severityNumber\":1,\"userId\":18},\"ext\":{\"metadata\":{\"f\":{\"userId\":322}}}}\n",
+            "{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{\"severityText\":\"Trace\",\"severityNumber\":1},\"ext\":{\"state\":{\"field\":\"stateValue1\"},\"bar\":{\"Id\":1234},\"resource\":{\"field\":\"resourceValue1\"},\"scope\":{\"field\":\"scopeValue1\"},\"foo\":{\"Id\":1234}}}\n",
             json);
     }
 
@@ -290,11 +295,13 @@ public class LogRecordCommonSchemaJsonSerializerTests
         Action<int, LogRecord> writeLogRecordCallback,
         Resource? resource = null,
         ScopeProvider? scopeProvider = null,
-        bool includeStackTraceAsString = false)
+        bool includeStackTraceAsString = false,
+        OneCollectorExporterJsonSerializationOptions? options = null)
     {
         var serializer = new LogRecordCommonSchemaJsonSerializer(
             new("Namespace", "Name"),
             "tenant-token",
+            options ?? new(),
             exceptionStackTraceHandling: includeStackTraceAsString ? OneCollectorExporterSerializationExceptionStackTraceHandlingType.IncludeAsString : OneCollectorExporterSerializationExceptionStackTraceHandlingType.Ignore);
 
         using var stream = new MemoryStream();
@@ -361,28 +368,6 @@ public class LogRecordCommonSchemaJsonSerializerTests
         public IDisposable Push(object state)
         {
             throw new NotImplementedException();
-        }
-    }
-
-    private sealed class CommonSchemaMetadataProvider : ICommonSchemaMetadataProvider
-    {
-        private readonly IReadOnlyList<CommonSchemaMetadataFieldDefinition> fieldDefinitions;
-
-        public CommonSchemaMetadataProvider(IReadOnlyList<CommonSchemaMetadataFieldDefinition> fieldDefinitions)
-        {
-            this.fieldDefinitions = fieldDefinitions;
-        }
-
-        public void ForEachCommonSchemaMetadataFieldDefinition<TState>(
-            ICommonSchemaMetadataProvider.CommonSchemaMetadataFieldDefinitionForEachAction<TState> callback,
-            ref TState state)
-        {
-            Guard.ThrowIfNull(callback);
-
-            foreach (var fieldDefinition in this.fieldDefinitions)
-            {
-                callback(in fieldDefinition, ref state);
-            }
         }
     }
 }

@@ -26,7 +26,10 @@ internal static class ThreadStorageHelper
     [ThreadStatic]
     private static CommonSchemaJsonSerializationState? commonSchemaJsonSerializationState;
 
-    public static CommonSchemaJsonSerializationState GetCommonSchemaJsonSerializationState(string itemType, Stream stream)
+    public static CommonSchemaJsonSerializationState GetCommonSchemaJsonSerializationState(
+        string itemType,
+        Stream stream,
+        OneCollectorExporterJsonSerializationOptions options)
     {
         var writer = utf8JsonWriter;
         if (writer == null)
@@ -43,11 +46,11 @@ internal static class ThreadStorageHelper
         var serializationState = commonSchemaJsonSerializationState;
         if (serializationState == null)
         {
-            serializationState = commonSchemaJsonSerializationState ??= new(itemType, writer);
+            serializationState = commonSchemaJsonSerializationState ??= new(itemType, writer, options);
         }
         else
         {
-            serializationState.Reset(itemType, writer);
+            serializationState.Reset(itemType, writer, options);
         }
 
         return serializationState;

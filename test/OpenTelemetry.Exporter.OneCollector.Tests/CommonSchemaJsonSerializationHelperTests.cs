@@ -120,23 +120,60 @@ public class CommonSchemaJsonSerializationHelperTests
 #endif
     }
 
-    private static string GetJson(object? value, string? key = null)
+    [Fact]
+    public void SerializeComplexTypeToJsonTest()
     {
+        var options = new OneCollectorExporterJsonSerializationOptions()
+            .RegisterFormatter(TestComplexType.Formatter);
+
+        string actualJson = GetJson(new TestComplexType(), options: options);
+
+        Assert.Equal("{\"Id\":1234}", actualJson);
+
+        actualJson = GetJson(new[] { new TestComplexType() }, options: options);
+
+        Assert.Equal("[{\"Id\":1234}]", actualJson);
+
+        actualJson = GetJson(new Dictionary<string, object> { ["key"] = new TestComplexType() }, options: options);
+
+        Assert.Equal("{\"key\":{\"Id\":1234}}", actualJson);
+
+        actualJson = GetJson(new TestComplexType());
+
+        Assert.Equal("\"TestComplexType\"", actualJson);
+    }
+
+    private static string GetJson(object? value, string? key = null, OneCollectorExporterJsonSerializationOptions? options = null)
+    {
+        options ??= new();
+
         using var stream = new MemoryStream();
 
         using (var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { SkipValidation = true }))
         {
             if (key is not null)
             {
-                CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(key, value, writer);
+                CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(key, value, writer, options);
             }
             else
             {
-                CommonSchemaJsonSerializationHelper.SerializeValueToJson(value, writer);
+                CommonSchemaJsonSerializationHelper.SerializeValueToJson(value, writer, options);
             }
         }
 
         return Encoding.UTF8.GetString(stream.ToArray());
+    }
+
+    internal sealed class TestComplexType
+    {
+        public static Action<TestComplexType, Utf8JsonWriter> Formatter { get; } = (t, w) =>
+        {
+            w.WriteStartObject();
+            w.WriteNumber("Id", 1234);
+            w.WriteEndObject();
+        };
+
+        public override string ToString() => "TestComplexType";
     }
 
     private sealed class TypeWithToString

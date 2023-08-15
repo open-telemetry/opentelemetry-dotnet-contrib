@@ -40,17 +40,24 @@ internal static class CommonSchemaJsonSerializationHelper
     public static readonly JsonEncodedText MetadataExtensionFieldListProperty = JsonEncodedText.Encode("f");
     public static readonly JsonEncodedText DataProperty = JsonEncodedText.Encode("data");
 
-    public static void SerializeKeyValueToJson(string key, object? value, Utf8JsonWriter writer)
+    public static void SerializeKeyValueToJson(string key, object? value, Utf8JsonWriter writer, OneCollectorExporterJsonSerializationOptions options)
     {
         writer.WritePropertyName(key);
-        SerializeValueToJson(value, writer);
+        SerializeValueToJson(value, writer, options);
     }
 
-    public static void SerializeValueToJson(object? value, Utf8JsonWriter writer)
+    public static void SerializeValueToJson(object? value, Utf8JsonWriter writer, OneCollectorExporterJsonSerializationOptions options)
     {
         if (value is null)
         {
             writer.WriteNullValue();
+            return;
+        }
+
+        var formatters = options.Formatters;
+        if (formatters.Count > 0 && formatters.TryGetValue(value.GetType(), out var formatter))
+        {
+            formatter(value, writer);
             return;
         }
 
@@ -157,11 +164,11 @@ internal static class CommonSchemaJsonSerializationHelper
                 return;
 
             case Array v:
-                SerializeArrayValueToJson(v, writer);
+                SerializeArrayValueToJson(v, writer, options);
                 return;
 
             case IEnumerable<KeyValuePair<string, object?>> v:
-                SerializeMapValueToJson(v, writer);
+                SerializeMapValueToJson(v, writer, options);
                 return;
 
             default:
@@ -170,19 +177,19 @@ internal static class CommonSchemaJsonSerializationHelper
         }
     }
 
-    private static void SerializeArrayValueToJson(Array value, Utf8JsonWriter writer)
+    private static void SerializeArrayValueToJson(Array value, Utf8JsonWriter writer, OneCollectorExporterJsonSerializationOptions options)
     {
         writer.WriteStartArray();
 
         foreach (var element in value)
         {
-            SerializeValueToJson(element, writer);
+            SerializeValueToJson(element, writer, options);
         }
 
         writer.WriteEndArray();
     }
 
-    private static void SerializeMapValueToJson(IEnumerable<KeyValuePair<string, object?>> value, Utf8JsonWriter writer)
+    private static void SerializeMapValueToJson(IEnumerable<KeyValuePair<string, object?>> value, Utf8JsonWriter writer, OneCollectorExporterJsonSerializationOptions options)
     {
         writer.WriteStartObject();
 
@@ -193,7 +200,7 @@ internal static class CommonSchemaJsonSerializationHelper
                 continue;
             }
 
-            SerializeKeyValueToJson(element.Key, element.Value, writer);
+            SerializeKeyValueToJson(element.Key, element.Value, writer, options);
         }
 
         writer.WriteEndObject();

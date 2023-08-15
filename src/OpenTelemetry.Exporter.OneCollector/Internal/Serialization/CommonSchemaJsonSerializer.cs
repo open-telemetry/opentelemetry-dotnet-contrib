@@ -27,14 +27,18 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
     private readonly int maxPayloadSizeInBytes;
     private readonly int maxNumberOfItemsPerPayload;
     private readonly string itemType = typeof(T).Name;
+    private readonly OneCollectorExporterJsonSerializationOptions options;
 
     protected CommonSchemaJsonSerializer(
         string tenantToken,
+        OneCollectorExporterJsonSerializationOptions options,
         int maxPayloadSizeInBytes = int.MaxValue,
         int maxNumberOfItemsPerPayload = int.MaxValue)
     {
         Debug.Assert(!string.IsNullOrEmpty(tenantToken), "tenantToken was null or empty.");
+        Debug.Assert(options != null, "options was null");
 
+        this.options = options!;
         this.maxPayloadSizeInBytes = maxPayloadSizeInBytes;
         this.maxNumberOfItemsPerPayload = maxNumberOfItemsPerPayload;
 
@@ -54,7 +58,7 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
         var numberOfSerializedItems = 0;
         long payloadSizeInBytes = initialSizeOfPayloadInBytes;
 
-        var state = ThreadStorageHelper.GetCommonSchemaJsonSerializationState(this.itemType, stream);
+        var state = ThreadStorageHelper.GetCommonSchemaJsonSerializationState(this.itemType, stream, this.options);
 
         var writer = state.Writer;
 
@@ -106,8 +110,10 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
         Debug.Assert(serializationState != null, "serializationState was null");
 
         var writer = serializationState!.Writer;
+        var options = serializationState.Options;
 
         Debug.Assert(writer != null, "writer was null");
+        Debug.Assert(options != null, "options was null");
 
         if (resource!.Attributes is IReadOnlyList<KeyValuePair<string, object?>> resourceAttributeList)
         {
@@ -121,7 +127,7 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
                     continue;
                 }
 
-                CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(resourceAttribute.Key, resourceAttribute.Value, writer!);
+                CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(resourceAttribute.Key, resourceAttribute.Value, writer!, options!);
             }
         }
         else
@@ -134,7 +140,7 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
                     continue;
                 }
 
-                CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(resourceAttribute.Key, resourceAttribute.Value, writer!);
+                CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(resourceAttribute.Key, resourceAttribute.Value, writer!, options!);
             }
         }
     }

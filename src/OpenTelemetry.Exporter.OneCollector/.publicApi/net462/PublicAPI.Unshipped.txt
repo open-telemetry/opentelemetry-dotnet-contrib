@@ -1,11 +1,7 @@
-OpenTelemetry.Exporter.OneCollector.CommonSchemaMetadataFieldDefinition
-OpenTelemetry.Exporter.OneCollector.CommonSchemaMetadataFieldDefinition.CommonSchemaMetadataFieldDefinition() -> void
-OpenTelemetry.Exporter.OneCollector.CommonSchemaMetadataFieldDefinition.CommonSchemaMetadataFieldDefinition(string! name) -> void
-OpenTelemetry.Exporter.OneCollector.CommonSchemaMetadataFieldDefinition.CommonSchemaMetadataFieldDefinition(ulong typeInfo, string! name) -> void
-OpenTelemetry.Exporter.OneCollector.CommonSchemaMetadataFieldDefinition.Name.get -> string!
-OpenTelemetry.Exporter.OneCollector.CommonSchemaMetadataFieldDefinition.TypeInfo.get -> ulong
-OpenTelemetry.Exporter.OneCollector.ICommonSchemaMetadataProvider
-OpenTelemetry.Exporter.OneCollector.ICommonSchemaMetadataProvider.CommonSchemaMetadataFieldDefinitionForEachAction<TState>
-OpenTelemetry.Exporter.OneCollector.ICommonSchemaMetadataProvider.ForEachCommonSchemaMetadataFieldDefinition<TState>(OpenTelemetry.Exporter.OneCollector.ICommonSchemaMetadataProvider.CommonSchemaMetadataFieldDefinitionForEachAction<TState>! callback, ref TState state) -> void
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporter<T>.RegisterPayloadTransmittedCallback(OpenTelemetry.Exporter.OneCollector.OneCollectorExporterPayloadTransmittedCallbackAction! callback, bool includeFailures) -> System.IDisposable?
+OpenTelemetry.Exporter.OneCollector.OneCollectorExporterJsonSerializationOptions
+OpenTelemetry.Exporter.OneCollector.OneCollectorExporterJsonSerializationOptions.OneCollectorExporterJsonSerializationOptions() -> void
+OpenTelemetry.Exporter.OneCollector.OneCollectorExporterJsonSerializationOptions.RegisterFormatter<T>(System.Action<T, System.Text.Json.Utf8JsonWriter!>! formatter) -> OpenTelemetry.Exporter.OneCollector.OneCollectorExporterJsonSerializationOptions!
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporterPayloadTransmittedCallbackArguments.Succeeded.get -> bool
+OpenTelemetry.Exporter.OneCollector.OneCollectorExporterSerializationOptions
+OpenTelemetry.Exporter.OneCollector.OneCollectorExporterSerializationOptions.JsonOptions.get -> OpenTelemetry.Exporter.OneCollector.OneCollectorExporterJsonSerializationOptions!
