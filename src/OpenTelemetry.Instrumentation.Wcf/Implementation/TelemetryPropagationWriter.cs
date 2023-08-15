@@ -57,13 +57,23 @@ internal static class TelemetryPropagationWriter
         Guard.ThrowIfNull(name);
         Guard.ThrowIfNull(value);
 
-        if (!request.Properties.TryGetValue(HttpRequestMessageProperty.Name, out var prop))
+        if (!HttpRequestMessagePropertyWrapper.IsHttpFunctionalityEnabled)
         {
-            prop = new HttpRequestMessageProperty();
-            request.Properties.Add(HttpRequestMessageProperty.Name, prop);
+            return;
         }
 
-        ((HttpRequestMessageProperty)prop).Headers[name] = value;
+        HttpRequestMessagePropertyWrapper prop;
+        if (request.Properties.TryGetValue(HttpRequestMessagePropertyWrapper.Name, out var existing))
+        {
+            prop = new HttpRequestMessagePropertyWrapper(existing);
+        }
+        else
+        {
+            prop = new HttpRequestMessagePropertyWrapper();
+            request.Properties.Add(HttpRequestMessagePropertyWrapper.Name, prop.InnerObject);
+        }
+
+        prop.Headers[name] = value;
     }
 
     /// <summary>

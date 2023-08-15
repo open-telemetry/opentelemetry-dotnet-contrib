@@ -59,12 +59,12 @@ internal static class TelemetryPropagationReader
         Guard.ThrowIfNull(request);
         Guard.ThrowIfNull(name);
 
-        if (!request.Properties.TryGetValue(HttpRequestMessageProperty.Name, out var prop))
+        if (!HttpRequestMessagePropertyWrapper.IsHttpFunctionalityEnabled || !request.Properties.TryGetValue(HttpRequestMessagePropertyWrapper.Name, out var prop))
         {
             return null;
         }
 
-        var value = ((HttpRequestMessageProperty)prop).Headers[name];
+        var value = new HttpRequestMessagePropertyWrapper(prop).Headers[name];
         return value == null ? null : new[] { value };
     }
 
