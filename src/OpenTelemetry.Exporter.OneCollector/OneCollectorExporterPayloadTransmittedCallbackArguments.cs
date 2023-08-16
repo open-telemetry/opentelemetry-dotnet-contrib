@@ -64,8 +64,16 @@ public readonly ref struct OneCollectorExporterPayloadTransmittedCallbackArgumen
     public Uri TransportEndpoint { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not the payload transmission was successful or not.
+    /// Gets a value indicating whether or not the payload transmission was successful.
     /// </summary>
+    /// <remarks>
+    /// Note: Success or failure of a transmission depends on the transport
+    /// being used. In the case of HTTP transport, failure is driven by the HTTP
+    /// response status code. A callback with <see cref="Succeeded"/> set to
+    /// <see langword="true"/> has been fully transmitted. A <see
+    /// langword="false"/> value indicates a transmission did not complete fully
+    /// (some data may have been transmitted).
+    /// </remarks>
     public bool Succeeded { get; }
 
     /// <summary>
