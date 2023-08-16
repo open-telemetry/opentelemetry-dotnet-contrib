@@ -50,36 +50,45 @@ internal class HttpRequestMessagePropertyWrapper
         get
         {
             EnsureEnabled();
-            return (string)ReflectedValues.NameProperty.GetValue(null);
+            return ReflectedValues.Name;
         }
     }
 
-    public WebHeaderCollection Headers => (WebHeaderCollection)ReflectedValues.HeadersProperty.GetValue(this.innerObject);
+    public WebHeaderCollection Headers => ReflectedValues.HeadersFetcher.Fetch(this.innerObject);
 
     public object InnerObject => this.innerObject;
 
     private static ReflectedInfo Initialize()
     {
+        Type type = null;
         try
         {
-            var type = Type.GetType(
+            type = Type.GetType(
                 "System.ServiceModel.Channels.HttpRequestMessageProperty, System.ServiceModel, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
                 true);
-            var headersProp = type.GetProperty("Headers", BindingFlags.Public | BindingFlags.Instance, null, typeof(WebHeaderCollection), Array.Empty<Type>(), null);
-            var nameProp = type.GetProperty("Name", BindingFlags.Public | BindingFlags.Static, null, typeof(string), Array.Empty<Type>(), null);
 
-            if (type != null && headersProp != null && nameProp != null)
+            var headersProp = type.GetProperty("Headers", BindingFlags.Public | BindingFlags.Instance, null, typeof(WebHeaderCollection), Array.Empty<Type>(), null);
+            if (headersProp == null)
             {
-                return new ReflectedInfo
-                {
-                    Type = type,
-                    HeadersProperty = headersProp,
-                    NameProperty = nameProp,
-                };
+                throw new NotSupportedException("HttpRequestMessageProperty.Headers property not found");
             }
+
+            var nameProp = type.GetProperty("Name", BindingFlags.Public | BindingFlags.Static, null, typeof(string), Array.Empty<Type>(), null);
+            if (nameProp == null)
+            {
+                throw new NotSupportedException("HttpRequestMessageProperty.Name property not found");
+            }
+
+            return new ReflectedInfo
+            {
+                Type = type,
+                Name = (string)nameProp.GetValue(null),
+                HeadersFetcher = new PropertyFetcher<WebHeaderCollection>(nameof(Headers)),
+            };
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            WcfInstrumentationEventSource.Log.HttpServiceModelReflectionFailedToBind(ex, type?.Assembly);
         }
 
         return null;
@@ -93,10 +102,10 @@ internal class HttpRequestMessagePropertyWrapper
         }
     }
 
-    private class ReflectedInfo
+    private sealed class ReflectedInfo
     {
         public Type Type;
-        public PropertyInfo NameProperty;
-        public PropertyInfo HeadersProperty;
+        public string Name;
+        public PropertyFetcher<WebHeaderCollection> HeadersFetcher;
     }
 }
