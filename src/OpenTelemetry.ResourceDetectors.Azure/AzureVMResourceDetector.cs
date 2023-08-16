@@ -41,18 +41,27 @@ public sealed class AzureVMResourceDetector : IResourceDetector
         ResourceSemanticConventions.AttributeServiceInstance,
     };
 
+    private static Resource? vmResource;
+
     /// <inheritdoc/>
     public Resource Detect()
     {
         try
         {
+            if (vmResource != null)
+            {
+                return vmResource;
+            }
+
             // Prevents the http operations from being instrumented.
             using var scope = SuppressInstrumentationScope.Begin();
 
             var vmMetaDataResponse = AzureVmMetaDataRequestor.GetAzureVmMetaDataResponse();
             if (vmMetaDataResponse == null)
             {
-                return Resource.Empty;
+                vmResource = Resource.Empty;
+
+                return vmResource;
             }
 
             var attributeList = new List<KeyValuePair<string, object>>(ExpectedAzureAmsFields.Count);
@@ -61,12 +70,14 @@ public sealed class AzureVMResourceDetector : IResourceDetector
                 attributeList.Add(new KeyValuePair<string, object>(field, vmMetaDataResponse.GetValueForField(field)));
             }
 
-            return new Resource(attributeList);
+            vmResource = new Resource(attributeList);
         }
         catch
         {
             // TODO: log exception.
-            return Resource.Empty;
+            vmResource = Resource.Empty;
         }
+
+        return vmResource;
     }
 }
