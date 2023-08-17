@@ -14,9 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-#if NETFRAMEWORK || NETSTANDARD2_0_OR_GREATER || NET6_0_OR_GREATER
 using Microsoft.Extensions.Options;
-#endif
 
 namespace System;
 
@@ -34,13 +32,9 @@ internal static class ServiceProviderExtensions
     public static T GetOptions<T>(this IServiceProvider serviceProvider)
         where T : class, new()
     {
-#if NETFRAMEWORK || NETSTANDARD2_0_OR_GREATER || NET6_0_OR_GREATER
         IOptions<T> options = (IOptions<T>)serviceProvider.GetService(typeof(IOptions<T>));
 
         // Note: options could be null if user never invoked services.AddOptions().
         return options?.Value ?? new T();
-#else
-        return new T();
-#endif
     }
 }
