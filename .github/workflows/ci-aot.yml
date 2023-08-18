@@ -3,14 +3,12 @@ name: Publish AOTCompatibility testApp
 on:
   push:
     branches: [ 'main*' ]
-    paths:
-    - 'src/OpenTelemetry.Instrumentation.Runtime/**'
-    - '!src/OpenTelemetry.Instrumentation.Runtime/README.md'
+    paths-ignore:
+    - '**.md'
   pull_request:
     branches: [ 'main*' ]
-    paths:
-    - 'src/OpenTelemetry.Instrumentation.Runtime/**'
-    - '!src/OpenTelemetry.Instrumentation.Runtime/README.md'
+    paths-ignore:
+    - '**.md'
 
 jobs:
   aot-test:
