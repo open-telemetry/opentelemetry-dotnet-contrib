@@ -1,4 +1,4 @@
-param([string]$targetNetFramework)
+# param([string]$targetNetFramework)
 
 $rootDirectory = Split-Path $PSScriptRoot -Parent
 $publishOutput = dotnet publish $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/OpenTelemetry.AotCompatibility.TestApp.csproj -nodeReuse:false /p:UseSharedCompilation=false
@@ -17,7 +17,11 @@ foreach ($line in $($publishOutput -split "`r`n"))
 Write-Host "Actual warning count is:", $actualWarningCount
 $expectedWarningCount = 0
 
-pushd $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/bin/Debug/$targetNetFramework/linux-x64
+Write-Host $pwd
+Write-Host "files: "
+Dir -Recurse . | Get-Childitem
+
+# pushd $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/bin/Debug/$targetNetFramework/linux-x64
 
 Write-Host "Executing test App..."
 ./OpenTelemetry.AotCompatibility.TestApp
