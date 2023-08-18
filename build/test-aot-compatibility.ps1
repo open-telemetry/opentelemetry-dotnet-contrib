@@ -1,5 +1,7 @@
 # param([string]$targetNetFramework)
 
+Write-Host "Hello World!" 
+
 $rootDirectory = Split-Path $PSScriptRoot -Parent
 $publishOutput = dotnet publish $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/OpenTelemetry.AotCompatibility.TestApp.csproj -nodeReuse:false /p:UseSharedCompilation=false
 
