@@ -135,7 +135,7 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
         };
     }
 
-    private static string GetTag(IEnumerable<KeyValuePair<string, string>> tags, string tagName)
+    private static string? GetTag(IEnumerable<KeyValuePair<string, string?>> tags, string tagName)
     {
         var tag = tags.SingleOrDefault(kv => kv.Key == tagName);
         return tag.Value;
