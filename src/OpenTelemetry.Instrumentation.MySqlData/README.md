@@ -16,7 +16,9 @@ and collects telemetry about database operations.
 
 To instrument Mysql.Data v8.1.0+ you need to configure the OpenTelemetry SDK
 to listen to the `ActivitySource` used by the library by calling
-`AddSource("connector-net")` on the `TracerProviderBuilder`.
+`AddSource("connector-net")` on the `TracerProviderBuilder`. Alternatively,
+you can add the nuget package [MySQL.Data.OpenTelemetry](https://www.nuget.org/packages/MySql.Data.OpenTelemetry)
+and call extension method `AddConnectorNet()` on the `TracerProviderBuilder`.
 
 ## Steps to enable OpenTelemetry.Instrumentation.MySqlData
 
