@@ -8,6 +8,16 @@ This is an
 which instruments [MySql.Data](https://www.nuget.org/packages/MySql.Data)
 and collects telemetry about database operations.
 
+## Deprecated
+
+> **NOTE that this only works with Mysql.Data v8.0.32 (and earlier, where supported)**.
+> Mysql.Data v8.1.0 and later have built-in direct support for Open Telemetry
+> via `ActivitySource`.
+
+To instrument Mysql.Data v8.1.0+ you need to configure the OpenTelemetry SDK
+to listen to the `ActivitySource` used by the library by calling
+`AddSource("connector-net")` on the `TracerProviderBuilder`.
+
 ## Steps to enable OpenTelemetry.Instrumentation.MySqlData
 
 ### Step 1: Install Package
