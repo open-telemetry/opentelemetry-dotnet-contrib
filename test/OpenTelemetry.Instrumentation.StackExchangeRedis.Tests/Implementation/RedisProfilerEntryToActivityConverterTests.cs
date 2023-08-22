@@ -17,7 +17,9 @@
 using System;
 using System.Diagnostics;
 using System.Net;
+#if !NETFRAMEWORK
 using System.Net.Sockets;
+#endif
 using Moq;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;

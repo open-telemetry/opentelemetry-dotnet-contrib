@@ -2,6 +2,37 @@
 
 ## Unreleased
 
+* BREAKING: `ILambdaContext context` argument of all tracing methods of
+  `OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaWrapper` was annotated as non-nullable.
+* Enabled null state analysis for `OpenTelemetry.Instrumentation.AWSLambda`.
+  The interface will now contain attributes for null-state static analysis.
+  If null state analysis is enabled in your depending project, you may encounter
+  new warnings.
+  ([#1295](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1295))
+
+## 1.2.0-beta.1
+
+Released 2023-Aug-07
+
+* BREAKING: `AddAWSLambdaConfigurations` no longer removes all existing
+  resource attributes
+* BREAKING: Change dependency from `OpenTelemetry.Contrib.Extensions.AWSXRay`
+  to `OpenTelemetry.Extensions.AWS`
+  ([#1289](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1289)).
+  This now requires at least OpenTelemetry 1.5.1.
+* Add explicit dependency on Newtonsoft.Json, upgrading the minimum version.
+
+  This resolves a warning that some dependency analyzers may produce where this
+  package would transitively depend on a vulnerable version of Newtonsoft.Json
+  through [Amazon.Lambda.APIGatewayEvents][].
+
+  This also avoids a potential issue where the instrumentation would try to call
+  a Newtonsoft.Json function when no other package nor the app itself depends on
+  Newtonsoft.Json, since the transitive dependency would be ignored unless using
+  application were compiled against a TargetFramework older than Core 3.1.
+
+[Amazon.Lambda.APIGatewayEvents]: https://www.nuget.org/packages/Amazon.Lambda.APIGatewayEvents/2.4.1#dependencies-body-tab
+
 ## 1.1.0-beta.3
 
 Released 2023-Jun-13

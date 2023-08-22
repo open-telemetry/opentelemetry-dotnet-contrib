@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="$(CoverletCollectorPkgVer)" />
@@ -14,7 +14,7 @@
     </PackageReference>
     <DotNetCliToolReference Include="dotnet-xunit" Version="$(DotNetXUnitCliVer)" />
     <PackageReference Include="Grpc.Tools" Version="1.17.0" />
-    <PackageReference Include="Grpc" Version="[2.32.0,3.0)" />
+    <PackageReference Include="Grpc" Version="[2.46.6,3.0)" />
   </ItemGroup>
   <ItemGroup>
     <Protobuf Include="proto/*.proto" />

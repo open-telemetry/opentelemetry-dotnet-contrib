@@ -38,7 +38,7 @@ internal class AWSMessagingUtils
     /// </summary>
     internal static bool SetParentFromMessageBatch { get; set; }
 
-    internal static (PropagationContext ParentContext, IEnumerable<ActivityLink> Links) ExtractParentContext(SQSEvent sqsEvent)
+    internal static (PropagationContext ParentContext, IEnumerable<ActivityLink>? Links) ExtractParentContext(SQSEvent sqsEvent)
     {
         if (sqsEvent?.Records == null)
         {
@@ -74,11 +74,8 @@ internal class AWSMessagingUtils
         {
             // SQS subscribed to SNS topic with raw delivery disabled case, i.e. SNS record serialized into SQS body.
             // https://docs.aws.amazon.com/sns/latest/dg/sns-large-payload-raw-message-delivery.html
-            SNSEvent.SNSMessage snsMessage = GetSnsMessage(sqsMessage);
-            if (snsMessage != null)
-            {
-                parentContext = ExtractParentContext(snsMessage);
-            }
+            SNSEvent.SNSMessage? snsMessage = GetSnsMessage(sqsMessage);
+            parentContext = ExtractParentContext(snsMessage);
         }
 
         return parentContext;
@@ -92,21 +89,21 @@ internal class AWSMessagingUtils
         return ExtractParentContext(record);
     }
 
-    internal static PropagationContext ExtractParentContext(SNSEvent.SNSRecord record)
+    internal static PropagationContext ExtractParentContext(SNSEvent.SNSRecord? record)
     {
         return (record?.Sns?.MessageAttributes != null) ?
             Propagators.DefaultTextMapPropagator.Extract(default, record.Sns.MessageAttributes, SnsMessageAttributeGetter) :
             default;
     }
 
-    internal static PropagationContext ExtractParentContext(SNSEvent.SNSMessage message)
+    internal static PropagationContext ExtractParentContext(SNSEvent.SNSMessage? message)
     {
         return (message?.MessageAttributes != null) ?
             Propagators.DefaultTextMapPropagator.Extract(default, message.MessageAttributes, SnsMessageAttributeGetter) :
             default;
     }
 
-    private static IEnumerable<string> SqsMessageAttributeGetter(IDictionary<string, SQSEvent.MessageAttribute> attributes, string attributeName)
+    private static IEnumerable<string>? SqsMessageAttributeGetter(IDictionary<string, SQSEvent.MessageAttribute> attributes, string attributeName)
     {
         if (!attributes.TryGetValue(attributeName, out var attribute))
         {
@@ -118,7 +115,7 @@ internal class AWSMessagingUtils
             attribute?.StringListValues;
     }
 
-    private static IEnumerable<string> SnsMessageAttributeGetter(IDictionary<string, SNSEvent.MessageAttribute> attributes, string attributeName)
+    private static IEnumerable<string>? SnsMessageAttributeGetter(IDictionary<string, SNSEvent.MessageAttribute> attributes, string attributeName)
     {
         if (!attributes.TryGetValue(attributeName, out var attribute))
         {
@@ -137,9 +134,9 @@ internal class AWSMessagingUtils
         }
     }
 
-    private static SNSEvent.SNSMessage GetSnsMessage(SQSEvent.SQSMessage sqsMessage)
+    private static SNSEvent.SNSMessage? GetSnsMessage(SQSEvent.SQSMessage sqsMessage)
     {
-        SNSEvent.SNSMessage snsMessage = null;
+        SNSEvent.SNSMessage? snsMessage = null;
 
         var body = sqsMessage.Body;
         if (body != null &&

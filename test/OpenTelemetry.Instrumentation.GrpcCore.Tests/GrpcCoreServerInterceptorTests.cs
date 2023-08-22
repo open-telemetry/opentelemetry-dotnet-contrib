@@ -21,7 +21,7 @@ using Grpc.Core;
 using OpenTelemetry.Context.Propagation;
 using Xunit;
 
-namespace OpenTelemetry.Instrumentation.GrpcCore.Test;
+namespace OpenTelemetry.Instrumentation.GrpcCore.Tests;
 
 /// <summary>
 /// Grpc Core server interceptor tests.

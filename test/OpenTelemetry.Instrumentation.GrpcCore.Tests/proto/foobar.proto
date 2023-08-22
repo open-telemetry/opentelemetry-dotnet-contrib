@@ -1,5 +1,5 @@
-﻿syntax = "proto3";
-package OpenTelemetry.Instrumentation.GrpcCore.Test;
+syntax = "proto3";
+package OpenTelemetry.Instrumentation.GrpcCore.Tests;
 
 service Foobar {
   rpc Unary (FoobarRequest) returns (FoobarResponse) {}

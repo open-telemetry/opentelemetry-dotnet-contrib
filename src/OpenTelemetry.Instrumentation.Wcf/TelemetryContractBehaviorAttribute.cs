@@ -21,18 +21,19 @@ using System.ServiceModel.Dispatcher;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Wcf;
+
 #if NETFRAMEWORK
 /// <summary>
 /// An <see cref="IContractBehavior"/> <see cref="Attribute"/> to add the
-/// <see cref="TelemetryDispatchMessageInspector"/> to service operations
-/// and <see cref="TelemetryClientMessageInspector"/> to client operations
-/// programmatically.
+/// <see cref="TelemetryDispatchMessageInspector"/> to service operations,
+/// and <see cref="TelemetryClientMessageInspector"/> and
+/// TelemetryBindingElement to client operations programmatically.
 /// </summary>
 #else
 /// <summary>
 /// An <see cref="IContractBehavior"/> <see cref="Attribute"/> to add the
-/// <see cref="TelemetryClientMessageInspector"/> to client operations
-/// programmatically.
+/// <see cref="TelemetryClientMessageInspector"/> and
+/// TelemetryBindingElement to client operations programmatically.
 /// </summary>
 #endif
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
@@ -47,7 +48,9 @@ public sealed class TelemetryContractBehaviorAttribute : Attribute, IContractBeh
     public void ApplyClientBehavior(ContractDescription contractDescription, ServiceEndpoint endpoint, ClientRuntime clientRuntime)
     {
         Guard.ThrowIfNull(clientRuntime);
+        Guard.ThrowIfNull(endpoint);
         TelemetryEndpointBehavior.ApplyClientBehaviorToClientRuntime(clientRuntime);
+        TelemetryEndpointBehavior.ApplyBindingElementToServiceEndpoint(endpoint);
     }
 
     /// <inheritdoc />

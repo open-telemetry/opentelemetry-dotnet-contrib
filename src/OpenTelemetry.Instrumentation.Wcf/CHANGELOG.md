@@ -2,8 +2,14 @@
 
 ## Unreleased
 
+## 1.0.0-rc.11
+
+Released 2023-Aug-14
+
 * Update OpenTelemetry SDK version to `1.5.1`.
   ([#1255](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1255))
+* Client instrumentation implementation moved to lower-level `BindingElement`.
+  ([#1247](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1247))
 
 ## 1.0.0-rc.10
 

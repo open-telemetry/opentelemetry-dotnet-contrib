@@ -77,7 +77,7 @@ public class InfluxDBMetricsExporterTests
         var dataPoint = influxServer.ReadPoint();
         Assert.Equal(measurement, dataPoint.Measurement);
 
-        Assert.Equal(1, dataPoint.Fields.Count);
+        Assert.Single(dataPoint.Fields);
         AssertUtils.HasField(valueKey, 42L, dataPoint.Fields);
 
         AssertTags(dataPoint);
@@ -121,7 +121,7 @@ public class InfluxDBMetricsExporterTests
         var dataPoint = influxServer.ReadPoint();
         Assert.Equal(measurement, dataPoint.Measurement);
 
-        Assert.Equal(1, dataPoint.Fields.Count);
+        Assert.Single(dataPoint.Fields);
         AssertUtils.HasField(valueKey, 55.42D, dataPoint.Fields);
 
         AssertTags(dataPoint);
@@ -163,7 +163,7 @@ public class InfluxDBMetricsExporterTests
         var dataPoint = influxServer.ReadPoint();
         Assert.Equal(measurement, dataPoint.Measurement);
 
-        Assert.Equal(1, dataPoint.Fields.Count);
+        Assert.Single(dataPoint.Fields);
         AssertUtils.HasField(valueKey, 100L, dataPoint.Fields);
 
         AssertTags(dataPoint);
@@ -205,7 +205,7 @@ public class InfluxDBMetricsExporterTests
         var dataPoint = influxServer.ReadPoint();
         Assert.Equal(measurement, dataPoint.Measurement);
 
-        Assert.Equal(1, dataPoint.Fields.Count);
+        Assert.Single(dataPoint.Fields);
         AssertUtils.HasField(valueKey, 12.59D, dataPoint.Fields);
 
         AssertTags(dataPoint);
@@ -248,7 +248,7 @@ public class InfluxDBMetricsExporterTests
         var dataPoint = influxServer.ReadPoint();
         Assert.Equal(measurement, dataPoint.Measurement);
 
-        Assert.Equal(1, dataPoint.Fields.Count);
+        Assert.Single(dataPoint.Fields);
         AssertUtils.HasField(valueKey, -50L, dataPoint.Fields);
 
         AssertTags(dataPoint);
@@ -291,7 +291,7 @@ public class InfluxDBMetricsExporterTests
         var dataPoint = influxServer.ReadPoint();
         Assert.Equal(measurement, dataPoint.Measurement);
 
-        Assert.Equal(1, dataPoint.Fields.Count);
+        Assert.Single(dataPoint.Fields);
         AssertUtils.HasField(valueKey, -50.11D, dataPoint.Fields);
 
         AssertTags(dataPoint);

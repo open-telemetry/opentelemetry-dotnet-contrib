@@ -3,12 +3,6 @@
 # Each component identified by its path prefix has a list of users
 # Please add the entries in alphabetically sorted order
 components:
-  src/OpenTelemetry.Contrib.Extensions.AWSXRay/:
-    - srprash
-    - atshaw43
-  src/OpenTelemetry.Contrib.Instrumentation.AWS/:
-    - srprash
-    - atshaw43
   src/OpenTelemetry.Exporter.Geneva/:
     - cijothomas
     - codeblanch
@@ -26,15 +20,14 @@ components:
     - SergeyKanzhelev
   src/OpenTelemetry.Extensions/:
     - codeblanch
-  src/OpenTelemetry.Extensions.AzureMonitor/:
-    - rajkumar-rangaraj
-    - vishweshbankwar
+  src/OpenTelemetry.Extensions.AWS/:
+    - srprash
+    - atshaw43
   src/OpenTelemetry.Extensions.Enrichment/:
     - xakep139
-  src/OpenTelemetry.PersistentStorage.Abstractions/:
-    - vishweshbankwar
-  src/OpenTelemetry.PersistentStorage.FileSystem/:
-    - vishweshbankwar
+  src/OpenTelemetry.Instrumentation.AWS/:
+    - srprash
+    - atshaw43
   src/OpenTelemetry.Instrumentation.AWSLambda/:
     - rypdal
     - Oberon00
@@ -49,8 +42,6 @@ components:
     - pcwiese
   src/OpenTelemetry.Instrumentation.Hangfire/:
     - fred2u
-  src/OpenTelemetry.Instrumentation.MySqlData/:
-    - moonheart
   src/OpenTelemetry.Instrumentation.Owin/:
     - codeblanch
   src/OpenTelemetry.Instrumentation.Process/:
@@ -62,6 +53,10 @@ components:
     - xiang17
   src/OpenTelemetry.Instrumentation.Wcf/:
     - codeblanch
+  src/OpenTelemetry.PersistentStorage.Abstractions/:
+    - vishweshbankwar
+  src/OpenTelemetry.PersistentStorage.FileSystem/:
+    - vishweshbankwar
   src/OpenTelemetry.ResourceDetectors.AWS/:
     - srprash
     - atshaw43
@@ -71,12 +66,6 @@ components:
   src/OpenTelemetry.ResourceDetectors.Container/:
     - iskiselev
   src/OpenTelemetry.Sampler.AWS/:
-    - srprash
-    - atshaw43
-  test/OpenTelemetry.Contrib.Extensions.AWSXRay.Tests/:
-    - srprash
-    - atshaw43
-  test/OpenTelemetry.Contrib.Instrumentation.AWS.Tests/:
     - srprash
     - atshaw43
   test/OpenTelemetry.Exporter.Geneva.Benchmark/:
@@ -111,13 +100,14 @@ components:
     - SergeyKanzhelev
   test/OpenTelemetry.Extensions.Tests/:
     - codeblanch
-  test/OpenTelemetry.Extensions.AzureMonitor.Tests/:
-    - rajkumar-rangaraj
-    - vishweshbankwar
+  test/OpenTelemetry.Extensions.AWS.Tests/:
+    - srprash
+    - atshaw43
   test/OpenTelemetry.Extensions.Enrichment.Tests/:
     - xakep139
-  test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
-    - vishweshbankwar
+  test/OpenTelemetry.Instrumentation.AWS.Tests/:
+    - srprash
+    - atshaw43
   test/OpenTelemetry.Instrumentation.AWSLambda.Tests/:
     - rypdal
     - Oberon00
@@ -132,8 +122,6 @@ components:
     - pcwiese
   test/OpenTelemetry.Instrumentation.Hangfire.Tests/:
     - fred2u
-  test/OpenTelemetry.Instrumentation.MySqlData.Tests/:
-    - moonheart
   test/OpenTelemetry.Instrumentation.Owin.Tests/:
     - codeblanch
   test/OpenTelemetry.Instrumentation.Quartz.Tests/:
@@ -143,6 +131,8 @@ components:
     - xiang17
   test/OpenTelemetry.Instrumentation.Wcf.Tests/:
     - codeblanch
+  test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
+    - vishweshbankwar
   test/OpenTelemetry.ResourceDetectors.AWS.Tests/:
     - srprash
     - atshaw43

@@ -17,7 +17,6 @@
 using System;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda;
@@ -43,7 +42,7 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddAWSLambdaConfigurations(
         this TracerProviderBuilder builder,
-        Action<AWSLambdaInstrumentationOptions> configure)
+        Action<AWSLambdaInstrumentationOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
 
@@ -54,10 +53,7 @@ public static class TracerProviderBuilderExtensions
         AWSMessagingUtils.SetParentFromMessageBatch = options.SetParentFromBatch;
 
         builder.AddSource(AWSLambdaWrapper.ActivitySourceName);
-        builder.SetResourceBuilder(ResourceBuilder
-            .CreateEmpty()
-            .AddTelemetrySdk()
-            .AddAttributes(AWSLambdaResourceDetector.Detect()));
+        builder.ConfigureResource(x => x.AddDetector(new AWSLambdaResourceDetector()));
 
         return builder;
     }

@@ -28,6 +28,16 @@ namespace OpenTelemetry.Instrumentation.Wcf.Tests;
     Name = "Service")]
 public class Service : IServiceContract
 {
+    public Task ErrorAsync()
+    {
+        throw new System.Exception();
+    }
+
+    public void ErrorSynchronous()
+    {
+        throw new System.Exception();
+    }
+
     public Task<ServiceResponse> ExecuteAsync(ServiceRequest request)
     {
         return Task.FromResult(
@@ -35,6 +45,14 @@ public class Service : IServiceContract
             {
                 Payload = $"RSP: {request.Payload}",
             });
+    }
+
+    public ServiceResponse ExecuteSynchronous(ServiceRequest request)
+    {
+        return new ServiceResponse
+            {
+                Payload = $"RSP: {request.Payload}",
+            };
     }
 
     public Task<ServiceResponse> ExecuteWithEmptyActionNameAsync(ServiceRequest request)
