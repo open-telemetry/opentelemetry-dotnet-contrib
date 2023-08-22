@@ -51,7 +51,6 @@ internal sealed class DirectorySizeTracker
     /// </remarks>
     /// <param name="currentSizeInBytes">Size of blob to be written.</param>
     /// <returns>True if space is available else false.</returns>
-    /// <returns>True if space is available else false.</returns>
     public bool IsSpaceAvailable(out long currentSizeInBytes)
     {
         currentSizeInBytes = Interlocked.Read(ref this.directoryCurrentSizeInBytes);
