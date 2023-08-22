@@ -45,10 +45,12 @@ internal sealed class DirectorySizeTracker
     /// </summary>
     /// <remarks>
     /// This method is not thread safe and may give false positives/negatives.
-    /// This is acceptable as the file write can be retried if needed.
+    /// False positive is ok because the file write will eventually fail.
+    /// False negative is ok as the file write can be retried if needed.
     /// This is done in order to avoid acquiring lock while writing/deleting the blobs.
     /// </remarks>
     /// <param name="currentSizeInBytes">Size of blob to be written.</param>
+    /// <returns>True if space is available else false.</returns>
     /// <returns>True if space is available else false.</returns>
     public bool IsSpaceAvailable(out long currentSizeInBytes)
     {
