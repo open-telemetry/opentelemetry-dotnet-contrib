@@ -71,7 +71,9 @@ public sealed class OneCollectorExporter<T> : BaseExporter<T>
     /// <remarks>
     /// Success or failure of a transmission depends on the transport being
     /// used. In the case of HTTP transport, success is driven by the HTTP
-    /// response status code (anything in the 200-range indicates success).
+    /// response status code (anything in the 200-range indicates success) and
+    /// any other result (connection failure, non-200 response code, etc.) is
+    /// considered a failure.
     /// </remarks>
     /// <param name="callback"><see
     /// cref="OneCollectorExporterPayloadTransmittedCallbackAction"/>.</param>
