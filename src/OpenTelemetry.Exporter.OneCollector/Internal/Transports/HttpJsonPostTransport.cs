@@ -164,6 +164,16 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
         {
             OneCollectorExporterEventSource.Log.WriteTransportExceptionThrownEventIfEnabled(this.Description, ex);
 
+            var root = this.payloadTransmittedFailureCallbacks.Root;
+            if (root != null)
+            {
+                this.InvokePayloadTransmittedCallbacks(
+                    root,
+                    streamStartingPosition,
+                    in sendRequest,
+                    succeeded: false);
+            }
+
             return false;
         }
     }

@@ -210,6 +210,40 @@ public class HttpJsonPostTransportTests
         }
     }
 
+    [Fact]
+    public void RegisterPayloadTransmittedCallbackConnectionFailureTest()
+    {
+        using var httpClient = new HttpClient();
+
+        using var transport = new HttpJsonPostTransport(
+            "instrumentation-key",
+            new("http://localhost:0"),
+            OneCollectorExporterHttpTransportCompressionType.Deflate,
+            new HttpClientWrapper(httpClient));
+
+        transport.RegisterPayloadTransmittedCallback(OnPayloadTransmitted, includeFailures: true);
+
+        bool callbackFired = false;
+
+        var result = transport.Send(
+            new TransportSendRequest
+            {
+                ItemStream = new MemoryStream(Encoding.ASCII.GetBytes("{\"key1\":\"value1\"}")),
+                ItemSerializationFormat = OneCollectorExporterSerializationFormatType.CommonSchemaV4JsonStream,
+                ItemType = "TestRequest",
+                NumberOfItems = 1,
+            });
+
+        Assert.False(result);
+
+        Assert.True(callbackFired);
+
+        void OnPayloadTransmitted(in OneCollectorExporterPayloadTransmittedCallbackArguments arguments)
+        {
+            callbackFired = true;
+        }
+    }
+
     private static void AssertStandardHeaders(HttpListenerRequest request)
     {
         Assert.Equal("POST", request.HttpMethod);

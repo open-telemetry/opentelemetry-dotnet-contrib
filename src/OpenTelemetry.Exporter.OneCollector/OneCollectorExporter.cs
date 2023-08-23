@@ -66,8 +66,13 @@ public sealed class OneCollectorExporter<T> : BaseExporter<T>
 
     /// <summary>
     /// Register a callback action that will be triggered any time a payload is
-    /// transmitted by the exporter.
+    /// successfully transmitted by the exporter.
     /// </summary>
+    /// <remarks>
+    /// Success or failure of a transmission depends on the transport being
+    /// used. In the case of HTTP transport, success is driven by the HTTP
+    /// response status code (anything in the 200-range indicates success).
+    /// </remarks>
     /// <param name="callback"><see
     /// cref="OneCollectorExporterPayloadTransmittedCallbackAction"/>.</param>
     /// <returns><see langword="null"/> if no transport is tied to the exporter
@@ -81,6 +86,7 @@ public sealed class OneCollectorExporter<T> : BaseExporter<T>
     /// Register a callback action that will be triggered any time a payload is
     /// transmitted by the exporter.
     /// </summary>
+    /// <remarks><inheritdoc cref="RegisterPayloadTransmittedCallback(OneCollectorExporterPayloadTransmittedCallbackAction)" path="/remarks"/></remarks>
     /// <param name="callback"><see
     /// cref="OneCollectorExporterPayloadTransmittedCallbackAction"/>.</param>
     /// <param name="includeFailures">Specify <see langword="true"/> to receive

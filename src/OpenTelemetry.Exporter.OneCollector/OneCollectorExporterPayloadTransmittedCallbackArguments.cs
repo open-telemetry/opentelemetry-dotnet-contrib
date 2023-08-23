@@ -76,9 +76,7 @@ public readonly ref struct OneCollectorExporterPayloadTransmittedCallbackArgumen
     /// transmit. Some data may have been transmitted in this case.
     /// </item>
     /// <item>
-    /// Success or failure of a transmission depends on the transport being
-    /// used. In the case of HTTP transport, failure is driven by the HTTP
-    /// response status code (anything in the 200-range indicates success).
+    /// <inheritdoc cref="OneCollectorExporter{T}.RegisterPayloadTransmittedCallback(OneCollectorExporterPayloadTransmittedCallbackAction)" path="/remarks"/>
     /// </item>
     /// </list>
     /// </remarks>
