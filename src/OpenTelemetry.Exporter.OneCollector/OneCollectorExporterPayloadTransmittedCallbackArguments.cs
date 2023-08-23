@@ -67,12 +67,20 @@ public readonly ref struct OneCollectorExporterPayloadTransmittedCallbackArgumen
     /// Gets a value indicating whether or not the payload transmission was successful.
     /// </summary>
     /// <remarks>
-    /// Note: Success or failure of a transmission depends on the transport
-    /// being used. In the case of HTTP transport, failure is driven by the HTTP
-    /// response status code. A callback with <see cref="Succeeded"/> set to
-    /// <see langword="true"/> indicates a request has been fully transmitted. A
-    /// <see langword="false"/> value indicates a transmission did not complete
-    /// fully (some data may have been transmitted).
+    /// Notes:
+    /// <list type="bullet">
+    /// <item>A <see langword="true"/> value indicates a request was fully
+    /// transmitted.
+    /// </item>
+    /// <item>A <see langword="false"/> value indicates a request did NOT fully
+    /// transmit. Some data may have been transmitted in this case.
+    /// </item>
+    /// <item>
+    /// Success or failure of a transmission depends on the transport being
+    /// used. In the case of HTTP transport, failure is driven by the HTTP
+    /// response status code (anything in the 200-range indicates success).
+    /// </item>
+    /// </list>
     /// </remarks>
     public bool Succeeded { get; }
 
