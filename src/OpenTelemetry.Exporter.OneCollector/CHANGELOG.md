@@ -8,12 +8,12 @@
 
 * Added support for sending `LogRecord.Body` as common schema `body` if
   `{OriginalFormat}` key is not found.
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#1321](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1321))
 
 * Added support for sending `LogRecord.FormattedMessage` (if set) as common
   schema `formattedMessage` if it differs from the detected template (either
   `{OriginalFormat}` key or `LogRecord.Body`).
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#1321](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1321))
 
 ## 1.5.1
 
