@@ -6,6 +6,15 @@
   `RegisterPayloadTransmittedCallback` API.
   ([#1309](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1309))
 
+* Added support for sending `LogRecord.Body` as common schema `body` if
+  `{OriginalFormat}` key is not found.
+  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+
+* Added support for sending `LogRecord.FormattedMessage` (if set) as common
+  schema `formattedMessage` if it differs from the detected template (either
+  `{OriginalFormat}` key or `LogRecord.Body`).
+  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+
 ## 1.5.1
 
 Released 2023-Aug-07
