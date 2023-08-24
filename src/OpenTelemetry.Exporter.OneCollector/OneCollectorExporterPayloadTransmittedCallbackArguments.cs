@@ -69,11 +69,14 @@ public readonly ref struct OneCollectorExporterPayloadTransmittedCallbackArgumen
     /// <remarks>
     /// Notes:
     /// <list type="bullet">
-    /// <item>A <see langword="true"/> value indicates a request was fully
-    /// transmitted.
+    /// <item>
+    /// A <see langword="true"/> value indicates a request was fully transmitted
+    /// and acknowledged.
     /// </item>
-    /// <item>A <see langword="false"/> value indicates a request did NOT fully
-    /// transmit. Some data may have been transmitted in this case.
+    /// <item>
+    /// A <see langword="false"/> value indicates a request did NOT fully
+    /// transmit or an acknowledgement was NOT received. Data may have been
+    /// partially or fully transmitted in this case.
     /// </item>
     /// <item>
     /// <inheritdoc cref="OneCollectorExporter{T}.RegisterPayloadTransmittedCallback(OneCollectorExporterPayloadTransmittedCallbackAction)" path="/remarks"/>

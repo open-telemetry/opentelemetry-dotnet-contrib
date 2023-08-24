@@ -72,8 +72,8 @@ public sealed class OneCollectorExporter<T> : BaseExporter<T>
     /// Success or failure of a transmission depends on the transport being
     /// used. In the case of HTTP transport, success is driven by the HTTP
     /// response status code (anything in the 200-range indicates success) and
-    /// any other result (connection failure, non-200 response code, etc.) is
-    /// considered a failure.
+    /// any other result (connection failure, timeout, non-200 response code,
+    /// etc.) is considered a failure.
     /// </remarks>
     /// <param name="callback"><see
     /// cref="OneCollectorExporterPayloadTransmittedCallbackAction"/>.</param>
@@ -92,7 +92,9 @@ public sealed class OneCollectorExporter<T> : BaseExporter<T>
     /// <param name="callback"><see
     /// cref="OneCollectorExporterPayloadTransmittedCallbackAction"/>.</param>
     /// <param name="includeFailures">Specify <see langword="true"/> to receive
-    /// callbacks when transmission fails.</param>
+    /// callbacks when transmission fails. See <see
+    /// cref="OneCollectorExporterPayloadTransmittedCallbackArguments.Succeeded"/>
+    /// for details about how a success or failure is determined.</param>
     /// <returns><see langword="null"/> if no transport is tied to the exporter
     /// or an <see cref="IDisposable"/> representing the registered callback.
     /// Call <see cref="IDisposable.Dispose"/> on the returned instance to
