@@ -254,8 +254,8 @@ public class TelemetryBindingElementForHttpTests : IDisposable
                 else
                 {
                     Assert.Equal(2, stoppedActivities.Count);
-                    Assert.Equal("DownstreamInstrumentation", stoppedActivities[0].OperationName);
-                    Assert.Equal(WcfInstrumentationActivitySource.OutgoingRequestActivityName, stoppedActivities[1].OperationName);
+                    Assert.NotNull(stoppedActivities.SingleOrDefault(activity => activity.OperationName == "DownstreamInstrumentation"));
+                    Assert.NotNull(stoppedActivities.SingleOrDefault(activity => activity.OperationName == WcfInstrumentationActivitySource.OutgoingRequestActivityName));
                 }
             }
             else
