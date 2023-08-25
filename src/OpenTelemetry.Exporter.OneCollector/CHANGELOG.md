@@ -18,7 +18,7 @@
 * Expanded the common schema extension feature to allow consumers to control
   entire elements (eg `ext.metadata`) instead of just fields (eg
   `ext.dt.traceId`).
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#1327](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1327))
 
 ## 1.5.1
 
