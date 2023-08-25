@@ -22,5 +22,5 @@ namespace OpenTelemetry.Exporter.InfluxDB;
 
 internal interface IMetricsWriter
 {
-    void Write(Metric metric, Resource resource, WriteApi writeApi);
+    void Write(Metric metric, Resource? resource, WriteApi writeApi);
 }
