@@ -14,6 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+// test trigger workflow
+
 using System.Diagnostics.Tracing;
 
 namespace OpenTelemetry.Instrumentation.EventCounters;
