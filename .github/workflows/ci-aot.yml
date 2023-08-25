@@ -6,6 +6,8 @@ on:
     paths:
     - 'src/OpenTelemetry.Instrumentation.Runtime/**'
     - '!src/OpenTelemetry.Instrumentation.Runtime/README.md'
+    - 'src/OpenTelemetry.Instrumentation.EventCounters/**'
+    - '!src/OpenTelemetry.Instrumentation.EventCounters/README.md'
   pull_request:
     branches: [ 'main*' ]
     paths:
