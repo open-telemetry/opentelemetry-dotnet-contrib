@@ -79,6 +79,39 @@ public class CommonSchemaJsonSerializationStateTests
     }
 
     [Fact]
+    public void AddExtensionAttributeWithComplexTypeTest()
+    {
+        using var stream = new MemoryStream();
+        using var writer = new Utf8JsonWriter(stream);
+
+        var state = new CommonSchemaJsonSerializationState("Test", writer);
+
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>(
+            "ext.metadata",
+            new Dictionary<string, object>
+            {
+                ["f"] = new Dictionary<string, object>
+                {
+                    ["Id"] = 1234,
+                },
+            }));
+
+        Assert.Equal(1, state.ExtensionPropertyCount);
+        Assert.Equal(1, state.ExtensionAttributeCount);
+
+        writer.WriteStartObject();
+        state.SerializeExtensionPropertiesToJson(writeExtensionObjectEnvelope: true);
+        writer.WriteEndObject();
+        writer.Flush();
+
+        var json = Encoding.UTF8.GetString(stream.ToArray());
+
+        Assert.Equal(
+            "{\"ext\":{\"metadata\":{\"f\":{\"Id\":1234}}}}",
+            json);
+    }
+
+    [Fact]
     public void AddExtensionAttributeDuplicatesTest()
     {
         using var stream = new MemoryStream();
@@ -103,6 +136,41 @@ public class CommonSchemaJsonSerializationStateTests
 
         Assert.Equal(
             "{\"ext\":{\"something\":{\"field1\":1,\"field1\":2}}}",
+            json);
+    }
+
+    [Fact]
+    public void AddExtensionAttributeMixedFieldAndPropertyTest()
+    {
+        using var stream = new MemoryStream();
+        using var writer = new Utf8JsonWriter(stream);
+
+        var state = new CommonSchemaJsonSerializationState("Test", writer);
+
+        // Note: For this test we expect the second entry to be dropped because
+        // the extension goes into "field tracking" mode
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.foo.field1", 1));
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.foo", "Hello world"));
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.foo.field2", 2));
+
+        // Note: For this test we expect the second and third entry to be
+        // dropped because the extension goes into "object" mode
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.bar", "Hello world"));
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.bar.field1", 1));
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.bar.field2", 2));
+
+        Assert.Equal(2, state.ExtensionPropertyCount);
+        Assert.Equal(3, state.ExtensionAttributeCount);
+
+        writer.WriteStartObject();
+        state.SerializeExtensionPropertiesToJson(writeExtensionObjectEnvelope: true);
+        writer.WriteEndObject();
+        writer.Flush();
+
+        var json = Encoding.UTF8.GetString(stream.ToArray());
+
+        Assert.Equal(
+            "{\"ext\":{\"foo\":{\"field1\":1,\"field2\":2},\"bar\":\"Hello world\"}}",
             json);
     }
 

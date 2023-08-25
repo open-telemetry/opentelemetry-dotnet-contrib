@@ -15,6 +15,11 @@
   `{OriginalFormat}` key or `LogRecord.Body`).
   ([#1321](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1321))
 
+* Expanded the common schema extension feature to allow consumers to control
+  entire elements (eg `ext.metadata`) instead of just fields (eg
+  `ext.dt.traceId`).
+  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+
 ## 1.5.1
 
 Released 2023-Aug-07
