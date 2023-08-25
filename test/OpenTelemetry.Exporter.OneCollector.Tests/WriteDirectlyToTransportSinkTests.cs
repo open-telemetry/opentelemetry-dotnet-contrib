@@ -165,7 +165,7 @@ public class WriteDirectlyToTransportSinkTests
 
         public List<byte[]> ExportedData { get; } = new();
 
-        public IDisposable RegisterPayloadTransmittedCallback(OneCollectorExporterPayloadTransmittedCallbackAction callback)
+        public IDisposable RegisterPayloadTransmittedCallback(OneCollectorExporterPayloadTransmittedCallbackAction callback, bool includeFailures)
         {
             throw new NotImplementedException();
         }
