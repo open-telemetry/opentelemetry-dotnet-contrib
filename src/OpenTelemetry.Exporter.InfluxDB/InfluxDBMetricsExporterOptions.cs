@@ -26,22 +26,22 @@ public class InfluxDBMetricsExporterOptions
     /// <summary>
     /// Gets or sets HTTP/S destination for line protocol.
     /// </summary>
-    public Uri Endpoint { get; set; }
+    public Uri? Endpoint { get; set; }
 
     /// <summary>
     /// Gets or sets name of InfluxDB organization that owns the destination bucket.
     /// </summary>
-    public string Org { get; set; }
+    public string? Org { get; set; }
 
     /// <summary>
     /// Gets or sets the name of InfluxDB bucket to which signals will be written.
     /// </summary>
-    public string Bucket { get; set; }
+    public string? Bucket { get; set; }
 
     /// <summary>
     /// Gets or sets the authentication token for InfluxDB.
     /// </summary>
-    public string Token { get; set; }
+    public string? Token { get; set; }
 
     /// <summary>
     /// Gets or sets the chosen metrics schema to write.
