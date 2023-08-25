@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="$(RepoRoot)\src\OpenTelemetry.Exporter.Geneva\Common.GenevaExporter.props"/>
-  
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
