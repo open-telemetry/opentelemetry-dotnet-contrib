@@ -119,7 +119,21 @@ public class LogRecordCommonSchemaJsonSerializerTests
         });
 
         Assert.Equal(
-            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1,\"body\":\"hello world\"}}}}\n",
+            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1,\"body\":\"hello world\",\"formattedMessage\":\"goodbye world\"}}}}\n",
+            json);
+    }
+
+    [Fact]
+    public void LogRecordBodyJsonTest()
+    {
+        string json = GetLogRecordJson(1, (index, logRecord) =>
+        {
+            logRecord.Body = "hello world";
+            logRecord.FormattedMessage = "goodbye world";
+        });
+
+        Assert.Equal(
+            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1,\"body\":\"hello world\",\"formattedMessage\":\"goodbye world\"}}}}\n",
             json);
     }
 
@@ -132,7 +146,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
         });
 
         Assert.Equal(
-            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1,\"body\":\"goodbye world\"}}}}\n",
+            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1,\"body\":\"goodbye world\",\"formattedMessage\":\"goodbye world\"}}}}\n",
             json);
     }
 
