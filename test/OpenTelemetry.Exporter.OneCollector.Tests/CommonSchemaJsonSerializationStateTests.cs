@@ -151,7 +151,11 @@ public class CommonSchemaJsonSerializationStateTests
         state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.foo", new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>(" foo.field2 ", 2) }));
         state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.foo .foo_field3 ", 3));
 
-        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext. bar ", new Dictionary<string, object?> { ["bar_field1"] = 1 }));
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext. bar ", new Dictionary<string, object?>
+        {
+            ["   "] = 99, // Note: This will be dropped but the second entry will be added.
+            ["bar_field1"] = 1,
+        }));
         state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext. bar .bar.field2", 2));
         state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.bar.bar_field3", 3));
 

@@ -228,7 +228,9 @@ internal sealed class CommonSchemaJsonSerializationState
             out var fieldInformation))
         {
             OneCollectorExporterEventSource.Log.AttributeDropped(this.itemType, extensionName, "Extension field name was not specified");
-            return false;
+
+            // Note: Return true here to allow other fields to potentially succeed.
+            return true;
         }
 
         return this.AddFieldToLookupForExtension(ref keyLookup, fieldInformation!, fieldValue);
@@ -243,6 +245,8 @@ internal sealed class CommonSchemaJsonSerializationState
         if (keyCount >= MaxNumberOfExtensionValuesPerKey)
         {
             OneCollectorExporterEventSource.Log.AttributeDropped(this.itemType, fieldInformation.ExtensionName!, "Extension field limit reached");
+
+            // Note: Return false here to prevent other fields from being attempted when we know they will also fail.
             return false;
         }
 
