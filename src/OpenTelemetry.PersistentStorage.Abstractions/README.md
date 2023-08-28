@@ -9,5 +9,5 @@ persistent storage.
 ## Installation
 
 ```shell
-dotnet add package --prerelease OpenTelemetry.PersistentStorage.Abstractions
+dotnet add package OpenTelemetry.PersistentStorage.Abstractions
 ```
