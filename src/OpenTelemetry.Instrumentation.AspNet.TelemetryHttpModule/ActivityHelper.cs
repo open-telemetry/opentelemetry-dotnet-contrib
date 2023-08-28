@@ -50,10 +50,8 @@ internal static class ActivityHelper
     /// langword="null"/> if 1) start has not been called or 2) start was
     /// called but sampling decided not to create an instance.</param>
     /// <returns><see langword="true"/> if start has been called.</returns>
-    public static bool HasStarted(HttpContext context, out Activity aspNetActivity)
+    public static bool HasStarted(HttpContext context, out Activity? aspNetActivity)
     {
-        Debug.Assert(context != null, "Context is null.");
-
         object itemValue = context.Items[ContextKey];
         if (itemValue is ContextHolder contextHolder)
         {
@@ -72,13 +70,11 @@ internal static class ActivityHelper
     /// <param name="context"><see cref="HttpContext"/>.</param>
     /// <param name="onRequestStartedCallback">Callback action.</param>
     /// <returns>New root activity.</returns>
-    public static Activity StartAspNetActivity(TextMapPropagator textMapPropagator, HttpContext context, Action<Activity, HttpContext> onRequestStartedCallback)
+    public static Activity? StartAspNetActivity(TextMapPropagator textMapPropagator, HttpContext context, Action<Activity, HttpContext>? onRequestStartedCallback)
     {
-        Debug.Assert(context != null, "Context is null.");
-
         PropagationContext propagationContext = textMapPropagator.Extract(default, context.Request, HttpRequestHeaderValuesGetter);
 
-        Activity activity = AspNetSource.StartActivity(TelemetryHttpModule.AspNetActivityName, ActivityKind.Server, propagationContext.ActivityContext);
+        Activity? activity = AspNetSource.StartActivity(TelemetryHttpModule.AspNetActivityName, ActivityKind.Server, propagationContext.ActivityContext);
 
         if (activity != null)
         {
@@ -86,11 +82,11 @@ internal static class ActivityHelper
             {
                 Baggage.Current = propagationContext.Baggage;
 
-                context.Items[ContextKey] = new ContextHolder { Activity = activity, Baggage = RuntimeContext.GetValue(BaggageSlotName) };
+                context.Items[ContextKey] = new ContextHolder(activity, RuntimeContext.GetValue(BaggageSlotName));
             }
             else
             {
-                context.Items[ContextKey] = new ContextHolder { Activity = activity };
+                context.Items[ContextKey] = new ContextHolder(activity);
             }
 
             try
@@ -120,21 +116,15 @@ internal static class ActivityHelper
     /// <param name="context"><see cref="HttpContext"/>.</param>
     /// <param name="onRequestStoppedCallback">Callback action.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void StopAspNetActivity(TextMapPropagator textMapPropagator, Activity aspNetActivity, HttpContext context, Action<Activity, HttpContext> onRequestStoppedCallback)
+    public static void StopAspNetActivity(TextMapPropagator textMapPropagator, Activity? aspNetActivity, HttpContext context, Action<Activity, HttpContext>? onRequestStoppedCallback)
     {
-        Debug.Assert(context != null, "Context is null.");
-
         if (aspNetActivity == null)
         {
-            Debug.Assert(context.Items[ContextKey] == StartedButNotSampledObj, "Context item is not StartedButNotSampledObj.");
-
             // This is the case where a start was called but no activity was
             // created due to a sampling decision.
             context.Items[ContextKey] = null;
             return;
         }
-
-        Debug.Assert(context.Items[ContextKey] is ContextHolder, "Context item is not an ContextHolder instance.");
 
         var currentActivity = Activity.Current;
 
@@ -171,11 +161,8 @@ internal static class ActivityHelper
     /// <param name="exception"><see cref="Exception"/>.</param>
     /// <param name="onExceptionCallback">Callback action.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteActivityException(Activity aspNetActivity, HttpContext context, Exception exception, Action<Activity, HttpContext, Exception> onExceptionCallback)
+    public static void WriteActivityException(Activity? aspNetActivity, HttpContext context, Exception exception, Action<Activity, HttpContext, Exception>? onExceptionCallback)
     {
-        Debug.Assert(context != null, "Context is null.");
-        Debug.Assert(exception != null, "Exception is null.");
-
         if (aspNetActivity != null)
         {
             try
@@ -201,8 +188,6 @@ internal static class ActivityHelper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void RestoreContextIfNeeded(HttpContext context)
     {
-        Debug.Assert(context != null, "Context is null.");
-
         if (context.Items[ContextKey] is ContextHolder contextHolder && Activity.Current != contextHolder.Activity)
         {
             Activity.Current = contextHolder.Activity;
@@ -218,6 +203,12 @@ internal static class ActivityHelper
     internal sealed class ContextHolder
     {
         public Activity Activity;
-        public object Baggage;
+        public object? Baggage;
+
+        public ContextHolder(Activity activity, object? baggage = null)
+        {
+            this.Activity = activity;
+            this.Baggage = baggage;
+        }
     }
 }
