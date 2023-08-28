@@ -384,7 +384,7 @@ public class WebConfigTransformTest
     private XDocument ApplyTransformation(string originalConfiguration, string transformationResourceName)
     {
         XDocument result;
-        Stream stream = null;
+        Stream? stream = null;
         try
         {
             stream = typeof(WebConfigTransformTest).Assembly.GetManifestResourceStream(transformationResourceName);

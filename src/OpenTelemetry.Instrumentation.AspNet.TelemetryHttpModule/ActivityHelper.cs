@@ -120,11 +120,15 @@ internal static class ActivityHelper
     {
         if (aspNetActivity == null)
         {
+            Debug.Assert(context.Items[ContextKey] == StartedButNotSampledObj, "Context item is not StartedButNotSampledObj.");
+
             // This is the case where a start was called but no activity was
             // created due to a sampling decision.
             context.Items[ContextKey] = null;
             return;
         }
+
+        Debug.Assert(context.Items[ContextKey] is ContextHolder, "Context item is not an ContextHolder instance.");
 
         var currentActivity = Activity.Current;
 
