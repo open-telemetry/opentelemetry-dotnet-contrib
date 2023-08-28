@@ -60,6 +60,22 @@ public class ExtensionFieldInformationManagerTests
         Assert.NotNull(fieldInformation);
         Assert.Equal("extra", fieldInformation.ExtensionName);
         Assert.Null(fieldInformation.FieldName);
+
+        result = extensionFieldInformationManager.TryResolveExtensionFieldInformation("extra", "field_name", out fieldInformation);
+
+        Assert.Equal(4, extensionFieldInformationManager.CountOfCachedExtensionFields);
+
+        Assert.True(result);
+        Assert.NotNull(fieldInformation);
+        Assert.Equal("extra", fieldInformation.ExtensionName);
+        Assert.Equal("field_name", fieldInformation.FieldName);
+
+        result = extensionFieldInformationManager.TryResolveExtensionFieldInformation("extra", "field_name", out fieldInformation);
+
+        Assert.Equal(4, extensionFieldInformationManager.CountOfCachedExtensionFields);
+
+        Assert.True(result);
+        Assert.NotNull(fieldInformation);
     }
 
     [Fact]
@@ -76,11 +92,13 @@ public class ExtensionFieldInformationManagerTests
         Assert.Equal(1, extensionFieldInformationManager.CountOfCachedExtensionFields);
 
         Assert.False(extensionFieldInformationManager.TryResolveExtensionFieldInformation("ext..", out _));
+        Assert.False(extensionFieldInformationManager.TryResolveExtensionFieldInformation("ext. .", out _));
         Assert.False(extensionFieldInformationManager.TryResolveExtensionFieldInformation("ext..field", out _));
         Assert.False(extensionFieldInformationManager.TryResolveExtensionFieldInformation("ext.something.", out _));
         Assert.False(extensionFieldInformationManager.TryResolveExtensionFieldInformation("ext.SOMETHING.", out _));
+        Assert.False(extensionFieldInformationManager.TryResolveExtensionFieldInformation("ext.something. ", out _));
 
-        Assert.Equal(4, extensionFieldInformationManager.CountOfCachedExtensionFields);
+        Assert.Equal(6, extensionFieldInformationManager.CountOfCachedExtensionFields);
     }
 
     [Fact]
@@ -101,5 +119,41 @@ public class ExtensionFieldInformationManagerTests
         }
 
         Assert.Equal(ExtensionFieldInformationManager.MaxNumberOfCachedFieldInformations, extensionFieldInformationManager.CountOfCachedExtensionFields);
+    }
+
+    [Fact]
+    public void ExtensionFieldInformationCacheKeyTests()
+    {
+        var key1 = new ExtensionFieldInformationManager.ExtensionFieldInformationCacheKey()
+        {
+            FullFieldName = "EXT.field",
+            ExtensionName = "EXT",
+            FieldName = "field",
+        };
+
+        var key2 = new ExtensionFieldInformationManager.ExtensionFieldInformationCacheKey()
+        {
+            FullFieldName = "ext.FIELD",
+            ExtensionName = "ext",
+            FieldName = "FIELD",
+        };
+
+        var key3 = new ExtensionFieldInformationManager.ExtensionFieldInformationCacheKey()
+        {
+            FullFieldName = "ext2._",
+            ExtensionName = "ext2",
+            FieldName = "_",
+        };
+
+        Assert.Equal(key1.GetHashCode(), key2.GetHashCode());
+        Assert.NotEqual(key1.GetHashCode(), key3.GetHashCode());
+        Assert.Equal(key1, key2);
+        Assert.NotEqual(key1, key3);
+
+        Assert.True(key1 == key2);
+        Assert.False(key1 != key2);
+
+        Assert.False(key1 == key3);
+        Assert.True(key1 != key3);
     }
 }

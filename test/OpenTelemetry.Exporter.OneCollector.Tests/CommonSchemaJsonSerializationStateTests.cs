@@ -147,20 +147,23 @@ public class CommonSchemaJsonSerializationStateTests
 
         var state = new CommonSchemaJsonSerializationState("Test", writer);
 
-        // Note: For this test we expect the second entry to be dropped because
-        // the extension goes into "field tracking" mode
-        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.foo.field1", 1));
-        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.foo", "Hello world"));
-        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.foo.field2", 2));
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext. foo .foo_field1", 1));
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.foo", new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>(" foo.field2 ", 2) }));
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.foo .foo_field3 ", 3));
 
-        // Note: For this test we expect the second and third entry to be
-        // dropped because the extension goes into "object" mode
-        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.bar", "Hello world"));
-        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.bar.field1", 1));
-        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.bar.field2", 2));
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext. bar ", new Dictionary<string, object?> { ["bar_field1"] = 1 }));
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext. bar .bar.field2", 2));
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.bar.bar_field3", 3));
 
-        Assert.Equal(2, state.ExtensionPropertyCount);
-        Assert.Equal(3, state.ExtensionAttributeCount);
+        // Note: These fields should all be ignored.
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.faz. ", 1));
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.baz", new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>(null!, 1) }));
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.baz", new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>(string.Empty, 2) }));
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.baz", new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("    ", 3) }));
+        state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.jazz", "Only IReadOnlyList and IEnumerable maps are supported"));
+
+        Assert.Equal(4, state.ExtensionPropertyCount);
+        Assert.Equal(6, state.ExtensionAttributeCount);
 
         writer.WriteStartObject();
         state.SerializeExtensionPropertiesToJson(writeExtensionObjectEnvelope: true);
@@ -170,7 +173,7 @@ public class CommonSchemaJsonSerializationStateTests
         var json = Encoding.UTF8.GetString(stream.ToArray());
 
         Assert.Equal(
-            "{\"ext\":{\"foo\":{\"field1\":1,\"field2\":2},\"bar\":\"Hello world\"}}",
+            "{\"ext\":{\"foo\":{\"foo_field1\":1,\"foo.field2\":2,\"foo_field3\":3},\"bar\":{\"bar_field1\":1,\"bar.field2\":2,\"bar_field3\":3}}}",
             json);
     }
 

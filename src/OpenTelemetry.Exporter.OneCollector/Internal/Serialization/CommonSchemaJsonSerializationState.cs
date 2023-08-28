@@ -78,37 +78,42 @@ internal sealed class CommonSchemaJsonSerializationState
 
         ref KeyValueLookup keyLookup = ref this.keysToAllValuesLookup[lookupIndex];
 
-        var keyCount = keyLookup.Count;
-        if (keyCount > 0)
+        if (fieldInformation.FieldName != null)
         {
-            if (keyCount >= MaxNumberOfExtensionValuesPerKey)
-            {
-                OneCollectorExporterEventSource.Log.AttributeDropped(this.itemType, attribute.Key, "Extension value limit reached");
-                return;
-            }
-
-            unsafe
-            {
-#if NET6_0_OR_GREATER
-                ref var firstDefinition = ref CollectionsMarshal.AsSpan(this.allValues)[keyLookup.ValueIndicies[0]];
-#else
-                var firstDefinition = this.allValues[keyLookup.ValueIndicies[0]];
-#endif
-
-                if (fieldInformation.FieldName == null || firstDefinition.Key.FieldName == null)
-                {
-                    OneCollectorExporterEventSource.Log.AttributeDropped(this.itemType, attribute.Key, "Extension is already defined");
-                    return;
-                }
-            }
+            this.AddFieldToLookupForExtension(ref keyLookup, fieldInformation, attribute.Value);
         }
-
-        int index = this.allValues.Count;
-        this.allValues.Add(new KeyValuePair<ExtensionFieldInformation, object?>(fieldInformation, attribute.Value));
-
-        unsafe
+        else
         {
-            keyLookup.ValueIndicies[keyLookup.Count++] = index;
+            switch (attribute.Value)
+            {
+                case IReadOnlyList<KeyValuePair<string, object?>> v:
+                    for (int i = 0; i < v.Count; i++)
+                    {
+                        var field = v[i];
+
+                        if (!this.AddFieldToLookupForExtension(ref keyLookup, fieldInformation.ExtensionName!, field.Key, field.Value))
+                        {
+                            break;
+                        }
+                    }
+
+                    break;
+
+                case IEnumerable<KeyValuePair<string, object?>> v:
+                    foreach (KeyValuePair<string, object?> field in v)
+                    {
+                        if (!this.AddFieldToLookupForExtension(ref keyLookup, fieldInformation.ExtensionName!, field.Key, field.Value))
+                        {
+                            break;
+                        }
+                    }
+
+                    break;
+
+                default:
+                    OneCollectorExporterEventSource.Log.AttributeDropped(this.itemType, attribute.Key, $"Extension attribute value of '{attribute.Value?.GetType()}' type is not supported");
+                    break;
+            }
         }
     }
 
@@ -130,7 +135,6 @@ internal sealed class CommonSchemaJsonSerializationState
         foreach (var extensionPropertyKey in this.keys)
         {
             var wroteStartObject = false;
-            var wroteProperty = false;
 
             ref KeyValueLookup keyLookup = ref this.keysToAllValuesLookup[extensionPropertyKey.Value];
 
@@ -146,28 +150,19 @@ internal sealed class CommonSchemaJsonSerializationState
 
                     var fieldInformation = attribute.Key;
 
-                    if (fieldInformation.FieldName == null)
+                    Debug.Assert(fieldInformation.ExtensionName != null, "fieldInformation.ExtensionName was null");
+                    Debug.Assert(fieldInformation.EncodedExtensionName.EncodedUtf8Bytes.Length > 0, "fieldInformation.EncodedExtensionName was empty");
+                    Debug.Assert(fieldInformation.FieldName != null, "fieldInformation.FieldName was null");
+                    Debug.Assert(fieldInformation.EncodedFieldName.EncodedUtf8Bytes.Length > 0, "fieldInformation.EncodedFieldName was empty");
+
+                    if (!wroteStartObject)
                     {
-                        Debug.Assert(!wroteProperty, "wroteProperty");
-                        Debug.Assert(!wroteStartObject, "wroteStartObject");
-
-                        writer.WritePropertyName(fieldInformation.EncodedExtensionName);
-                        CommonSchemaJsonSerializationHelper.SerializeValueToJson(attribute.Value, writer);
-                        wroteProperty = true;
+                        writer.WriteStartObject(fieldInformation.EncodedExtensionName);
+                        wroteStartObject = true;
                     }
-                    else
-                    {
-                        Debug.Assert(!wroteProperty, "wroteProperty");
 
-                        if (!wroteStartObject)
-                        {
-                            writer.WriteStartObject(fieldInformation.EncodedExtensionName);
-                            wroteStartObject = true;
-                        }
-
-                        writer.WritePropertyName(fieldInformation.EncodedFieldName);
-                        CommonSchemaJsonSerializationHelper.SerializeValueToJson(attribute.Value, writer);
-                    }
+                    writer.WritePropertyName(fieldInformation.EncodedFieldName);
+                    CommonSchemaJsonSerializationHelper.SerializeValueToJson(attribute.Value, writer);
                 }
             }
 
@@ -219,6 +214,48 @@ internal sealed class CommonSchemaJsonSerializationState
         }
 
         this.nextKeysToAllValuesLookupIndex++;
+    }
+
+    private bool AddFieldToLookupForExtension(
+        ref KeyValueLookup keyLookup,
+        string extensionName,
+        string fieldName,
+        object? fieldValue)
+    {
+        if (!ExtensionFieldInformationManager.SharedCache.TryResolveExtensionFieldInformation(
+            extensionName,
+            fieldName ?? string.Empty,
+            out var fieldInformation))
+        {
+            OneCollectorExporterEventSource.Log.AttributeDropped(this.itemType, extensionName, "Extension field name was not specified");
+            return false;
+        }
+
+        return this.AddFieldToLookupForExtension(ref keyLookup, fieldInformation!, fieldValue);
+    }
+
+    private bool AddFieldToLookupForExtension(
+        ref KeyValueLookup keyLookup,
+        ExtensionFieldInformation fieldInformation,
+        object? value)
+    {
+        var keyCount = keyLookup.Count;
+        if (keyCount >= MaxNumberOfExtensionValuesPerKey)
+        {
+            OneCollectorExporterEventSource.Log.AttributeDropped(this.itemType, fieldInformation.ExtensionName!, "Extension field limit reached");
+            return false;
+        }
+
+        int index = this.allValues.Count;
+
+        this.allValues.Add(new KeyValuePair<ExtensionFieldInformation, object?>(fieldInformation, value));
+
+        unsafe
+        {
+            keyLookup.ValueIndicies[keyLookup.Count++] = index;
+        }
+
+        return true;
     }
 
     private unsafe struct KeyValueLookup
