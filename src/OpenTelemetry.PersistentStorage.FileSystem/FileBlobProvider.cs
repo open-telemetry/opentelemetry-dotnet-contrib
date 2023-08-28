@@ -29,7 +29,12 @@ namespace OpenTelemetry.PersistentStorage.FileSystem;
 /// Persistent file storage <see cref="FileBlobProvider"/> allows to save data
 /// as blobs in file storage.
 /// </summary>
+
+#if BUILDING_INTERNAL_PERSISTENT_STORAGE
+internal sealed class FileBlobProvider : PersistentBlobProvider, IDisposable
+#else
 public class FileBlobProvider : PersistentBlobProvider, IDisposable
+#endif
 {
     internal readonly string DirectoryPath;
     private readonly DirectorySizeTracker directorySizeTracker;
@@ -110,7 +115,11 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
         GC.SuppressFinalize(this);
     }
 
+#if BUILDING_INTERNAL_PERSISTENT_STORAGE
+    private void Dispose(bool disposing)
+#else
     protected virtual void Dispose(bool disposing)
+#endif
     {
         if (!this.disposedValue)
         {

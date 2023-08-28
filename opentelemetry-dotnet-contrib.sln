@@ -25,9 +25,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{43CAFE52-F329-4431-87DA-7FEE1454D9A9}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\assign-reviewers.yml = .github\workflows\assign-reviewers.yml
+		.github\workflows\ci-aot.yml = .github\workflows\ci-aot.yml
 		.github\workflows\ci-md.yml = .github\workflows\ci-md.yml
 		.github\workflows\ci.yml = .github\workflows\ci.yml
-		.github\workflows\ci-aot.yml = .github\workflows\ci-aot.yml
 		.github\workflows\codeql-analysis.yml = .github\workflows\codeql-analysis.yml
 		.github\workflows\dotnet-core-cov.yml = .github\workflows\dotnet-core-cov.yml
 		.github\workflows\dotnet-format-md.yml = .github\workflows\dotnet-format-md.yml
@@ -55,7 +55,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\package-Instrumentation.GrpcCore.yml = .github\workflows\package-Instrumentation.GrpcCore.yml
 		.github\workflows\package-Instrumentation.Hangfire.yml = .github\workflows\package-Instrumentation.Hangfire.yml
 		.github\workflows\package-Instrumentation.MassTransit.yml = .github\workflows\package-Instrumentation.MassTransit.yml
-		.github\workflows\package-Instrumentation.MySqlData.yml = .github\workflows\package-Instrumentation.MySqlData.yml
 		.github\workflows\package-Instrumentation.Owin.yml = .github\workflows\package-Instrumentation.Owin.yml
 		.github\workflows\package-Instrumentation.Process.yml = .github\workflows\package-Instrumentation.Process.yml
 		.github\workflows\package-Instrumentation.Quartz.yml = .github\workflows\package-Instrumentation.Quartz.yml
@@ -78,9 +77,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{824BD1DE
 		build\opentelemetry-icon-color.png = build\opentelemetry-icon-color.png
 		build\OpenTelemetryContrib.prod.ruleset = build\OpenTelemetryContrib.prod.ruleset
 		build\OpenTelemetryContrib.test.ruleset = build\OpenTelemetryContrib.test.ruleset
+		build\process-codecoverage.ps1 = build\process-codecoverage.ps1
 		build\sanitycheck.py = build\sanitycheck.py
 		build\stylecop.json = build\stylecop.json
-		build\test-aot-compatibility = build\test-aot-compatibility.ps1
+		build\test-aot-compatibility.ps1 = build\test-aot-compatibility.ps1
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{0112BD4F-B7A6-4E43-AB23-B6E961E27A49}"
@@ -146,10 +146,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.ElasticsearchClient", "src\OpenTelemetry.Instrumentation.ElasticsearchClient\OpenTelemetry.Instrumentation.ElasticsearchClient.csproj", "{96F5B85B-402B-4DFB-AF31-33D5A2EBE35B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.ElasticsearchClient.Tests", "test\OpenTelemetry.Instrumentation.ElasticsearchClient.Tests\OpenTelemetry.Instrumentation.ElasticsearchClient.Tests.csproj", "{970B604C-C57F-4767-A080-67976E69F76E}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.MySqlData", "src\OpenTelemetry.Instrumentation.MySqlData\OpenTelemetry.Instrumentation.MySqlData.csproj", "{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.MySqlData.Tests", "test\OpenTelemetry.Instrumentation.MySqlData.Tests\OpenTelemetry.Instrumentation.MySqlData.Tests.csproj", "{662A00CA-B152-40D4-B9A4-6061490B8B3D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.EntityFrameworkCore", "src\OpenTelemetry.Instrumentation.EntityFrameworkCore\OpenTelemetry.Instrumentation.EntityFrameworkCore.csproj", "{D4468444-69EF-4BF3-B13F-61F4AB728813}"
 EndProject
@@ -293,7 +289,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "InfluxDB", "InfluxDB", "{2D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.InfluxDB", "examples\InfluxDB\Examples.InfluxDB\Examples.InfluxDB.csproj", "{B4951583-D432-4E87-85CF-498FDD6A35E6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.AotCompatibility.TestApp", "test\OpenTelemetry.AotCompatibility.TestApp\OpenTelemetry.AotCompatibility.TestApp.csproj", "{31937862-0C88-41C0-AFD6-F97A7BF803A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.AotCompatibility.TestApp", "test\OpenTelemetry.AotCompatibility.TestApp\OpenTelemetry.AotCompatibility.TestApp.csproj", "{31937862-0C88-41C0-AFD6-F97A7BF803A9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -377,14 +373,6 @@ Global
 		{970B604C-C57F-4767-A080-67976E69F76E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{970B604C-C57F-4767-A080-67976E69F76E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{970B604C-C57F-4767-A080-67976E69F76E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{662A00CA-B152-40D4-B9A4-6061490B8B3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{662A00CA-B152-40D4-B9A4-6061490B8B3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{662A00CA-B152-40D4-B9A4-6061490B8B3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{662A00CA-B152-40D4-B9A4-6061490B8B3D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D4468444-69EF-4BF3-B13F-61F4AB728813}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D4468444-69EF-4BF3-B13F-61F4AB728813}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D4468444-69EF-4BF3-B13F-61F4AB728813}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -647,8 +635,6 @@ Global
 		{8DABC11A-624E-4554-ACA4-D5B80146B9C6} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{96F5B85B-402B-4DFB-AF31-33D5A2EBE35B} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{970B604C-C57F-4767-A080-67976E69F76E} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
-		{A1D82008-81D4-4CC5-AA8E-04357F6AA06C} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
-		{662A00CA-B152-40D4-B9A4-6061490B8B3D} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{D4468444-69EF-4BF3-B13F-61F4AB728813} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{A1F7FA66-C83D-485D-90FE-71C4018971D4} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{D0B694E4-AAE4-492F-ACCB-3D913A874780} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}

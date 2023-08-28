@@ -27,8 +27,6 @@ public class RuntimeInstrumentationOptionsTests
                 Assert.True(options.IsGcEnabled);
     #if NET6_0_OR_GREATER
                 Assert.True(options.IsJitEnabled);
-    #endif
-    #if NETCOREAPP3_1_OR_GREATER
                 Assert.True(options.IsThreadingEnabled);
     #endif
                 Assert.True(options.IsAssembliesEnabled);
@@ -43,8 +41,6 @@ public class RuntimeInstrumentationOptionsTests
                 Assert.True(options.IsGcEnabled);
     #if NET6_0_OR_GREATER
                 Assert.False(options.IsJitEnabled);
-    #endif
-    #if NETCOREAPP3_1_OR_GREATER
                 Assert.False(options.IsThreadingEnabled);
     #endif
                 Assert.False(options.IsAssembliesEnabled);
@@ -65,16 +61,14 @@ public class RuntimeInstrumentationOptionsTests
             }
     #endif
 
-    #if NETCOREAPP3_1_OR_GREATER
+    #if NET6_0_OR_GREATER
             [Fact]
             public void Enable_Threading_Only()
             {
                 var options = new RuntimeInstrumentationOptions { ThreadingEnabled = true };
 
                 Assert.False(options.IsGcEnabled);
-    #if NET6_0_OR_GREATER
                 Assert.False(options.IsJitEnabled);
-    #endif
                 Assert.True(options.IsThreadingEnabled);
                 Assert.False(options.IsAssembliesEnabled);
                 Assert.False(options.IsAllEnabled);
@@ -89,8 +83,6 @@ public class RuntimeInstrumentationOptionsTests
                 Assert.False(options.IsGcEnabled);
     #if NET6_0_OR_GREATER
                 Assert.False(options.IsJitEnabled);
-    #endif
-    #if NETCOREAPP3_1_OR_GREATER
                 Assert.False(options.IsThreadingEnabled);
     #endif
                 Assert.True(options.IsAssembliesEnabled);
@@ -105,8 +97,6 @@ public class RuntimeInstrumentationOptionsTests
                 Assert.True(options.IsGcEnabled);
     #if NET6_0_OR_GREATER
                 Assert.False(options.IsJitEnabled);
-    #endif
-    #if NETCOREAPP3_1_OR_GREATER
                 Assert.False(options.IsThreadingEnabled);
     #endif
                 Assert.True(options.IsAssembliesEnabled);

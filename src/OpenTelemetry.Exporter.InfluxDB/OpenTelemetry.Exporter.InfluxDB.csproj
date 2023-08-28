@@ -9,6 +9,7 @@
     <MinVerTagPrefix>Exporter.InfluxDB-</MinVerTagPrefix>
     <EnableAnalysis>true</EnableAnalysis>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

@@ -34,7 +34,7 @@ public class RuntimeInstrumentationOptions
             public bool? JitEnabled { get; set; }
     #endif
 
-    #if NETCOREAPP3_1_OR_GREATER
+    #if NET6_0_OR_GREATER
             /// <summary>
             /// Gets or sets a value indicating whether threading metrics should be collected.
             /// </summary>
@@ -58,7 +58,7 @@ public class RuntimeInstrumentationOptions
     #if NET6_0_OR_GREATER
             && this.JitEnabled == null
     #endif
-    #if NETCOREAPP3_1_OR_GREATER
+    #if NET6_0_OR_GREATER
             && this.ThreadingEnabled == null
     #endif
             && this.AssembliesEnabled == null
@@ -76,7 +76,7 @@ public class RuntimeInstrumentationOptions
             internal bool IsJitEnabled => this.JitEnabled == true || this.IsAllEnabled;
     #endif
 
-    #if NETCOREAPP3_1_OR_GREATER
+    #if NET6_0_OR_GREATER
             /// <summary>
             /// Gets a value indicating whether threading metrics is enabled.
             /// </summary>
