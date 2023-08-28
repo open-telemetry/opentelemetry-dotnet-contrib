@@ -31,7 +31,7 @@ internal static class PointDataExtensions
         return pointData;
     }
 
-    public static PointData Tags(this PointData pointData, IEnumerable<KeyValuePair<string, object>> tags)
+    public static PointData Tags(this PointData pointData, IEnumerable<KeyValuePair<string, object>>? tags)
     {
         if (tags == null)
         {
