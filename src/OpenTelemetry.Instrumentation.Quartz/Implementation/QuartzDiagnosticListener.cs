@@ -61,7 +61,10 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
             try
             {
                 this.JobDetailsPropertyFetcher.TryFetch(payload, out var jobDetails);
-                this.options.Enrich?.Invoke(activity, "OnStartActivity", jobDetails);
+                if (jobDetails != null)
+                {
+                    this.options.Enrich?.Invoke(activity, "OnStartActivity", jobDetails);
+                }
             }
             catch (Exception ex)
             {
@@ -77,7 +80,10 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
             try
             {
                 this.JobDetailsPropertyFetcher.TryFetch(payload, out var jobDetails);
-                this.options.Enrich?.Invoke(activity, "OnStopActivity", jobDetails);
+                if (jobDetails != null)
+                {
+                    this.options.Enrich?.Invoke(activity, "OnStopActivity", jobDetails);
+                }
             }
             catch (Exception ex)
             {

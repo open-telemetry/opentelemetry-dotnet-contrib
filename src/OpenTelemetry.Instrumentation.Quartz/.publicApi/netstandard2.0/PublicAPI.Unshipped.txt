@@ -3,7 +3,7 @@ const OpenTelemetry.Instrumentation.Quartz.OperationName.Job.Veto = "Quartz.Job.
 OpenTelemetry.Instrumentation.Quartz.OperationName
 OpenTelemetry.Instrumentation.Quartz.OperationName.Job
 OpenTelemetry.Instrumentation.Quartz.QuartzInstrumentationOptions
-OpenTelemetry.Instrumentation.Quartz.QuartzInstrumentationOptions.Enrich.get -> System.Action<System.Diagnostics.Activity!, string!, object?>?
+OpenTelemetry.Instrumentation.Quartz.QuartzInstrumentationOptions.Enrich.get -> System.Action<System.Diagnostics.Activity!, string!, object!>?
 OpenTelemetry.Instrumentation.Quartz.QuartzInstrumentationOptions.Enrich.set -> void
 OpenTelemetry.Instrumentation.Quartz.QuartzInstrumentationOptions.QuartzInstrumentationOptions() -> void
 OpenTelemetry.Instrumentation.Quartz.QuartzInstrumentationOptions.RecordException.get -> bool
