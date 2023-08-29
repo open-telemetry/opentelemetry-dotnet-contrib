@@ -39,7 +39,7 @@ public static class InfluxDBExporterExtensions
             var options = new InfluxDBMetricsExporterOptions();
             configure.Invoke(options);
 
-            var influxDbClientOptions = new InfluxDBClientOptions(options.Endpoint.ToString());
+            var influxDbClientOptions = new InfluxDBClientOptions(options.Endpoint?.ToString());
             if (!string.IsNullOrWhiteSpace(options.Bucket))
             {
                 influxDbClientOptions.Bucket = options.Bucket;

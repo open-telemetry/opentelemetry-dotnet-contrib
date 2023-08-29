@@ -1,9 +1,9 @@
 # Changelog
 
-## Unreleased
+## Deprecated
 
-* Update OTel API version to `1.5.1`.
-  ([#1255](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1255))
+* This package is deprecated. Please check [README.md](README.md#deprecated)
+  for more details.
 
 ## 1.0.0-beta.7
 

@@ -66,8 +66,15 @@ public sealed class OneCollectorExporter<T> : BaseExporter<T>
 
     /// <summary>
     /// Register a callback action that will be triggered any time a payload is
-    /// transmitted by the exporter.
+    /// successfully transmitted by the exporter.
     /// </summary>
+    /// <remarks>
+    /// Success or failure of a transmission depends on the transport being
+    /// used. In the case of HTTP transport, success is driven by the HTTP
+    /// response status code (anything in the 200-range indicates success) and
+    /// any other result (connection failure, timeout, non-200 response code,
+    /// etc.) is considered a failure.
+    /// </remarks>
     /// <param name="callback"><see
     /// cref="OneCollectorExporterPayloadTransmittedCallbackAction"/>.</param>
     /// <returns><see langword="null"/> if no transport is tied to the exporter
@@ -75,7 +82,25 @@ public sealed class OneCollectorExporter<T> : BaseExporter<T>
     /// Call <see cref="IDisposable.Dispose"/> on the returned instance to
     /// cancel the registration.</returns>
     public IDisposable? RegisterPayloadTransmittedCallback(OneCollectorExporterPayloadTransmittedCallbackAction callback)
-        => this.sink.Transport?.RegisterPayloadTransmittedCallback(callback);
+        => this.RegisterPayloadTransmittedCallback(callback, includeFailures: false);
+
+    /// <summary>
+    /// Register a callback action that will be triggered any time a payload is
+    /// transmitted by the exporter.
+    /// </summary>
+    /// <remarks><inheritdoc cref="RegisterPayloadTransmittedCallback(OneCollectorExporterPayloadTransmittedCallbackAction)" path="/remarks"/></remarks>
+    /// <param name="callback"><see
+    /// cref="OneCollectorExporterPayloadTransmittedCallbackAction"/>.</param>
+    /// <param name="includeFailures">Specify <see langword="true"/> to receive
+    /// callbacks when transmission fails. See <see
+    /// cref="OneCollectorExporterPayloadTransmittedCallbackArguments.Succeeded"/>
+    /// for details about how a success or failure is determined.</param>
+    /// <returns><see langword="null"/> if no transport is tied to the exporter
+    /// or an <see cref="IDisposable"/> representing the registered callback.
+    /// Call <see cref="IDisposable.Dispose"/> on the returned instance to
+    /// cancel the registration.</returns>
+    public IDisposable? RegisterPayloadTransmittedCallback(OneCollectorExporterPayloadTransmittedCallbackAction callback, bool includeFailures)
+        => this.sink.Transport?.RegisterPayloadTransmittedCallback(callback, includeFailures);
 
     /// <inheritdoc/>
     protected override void Dispose(bool disposing)

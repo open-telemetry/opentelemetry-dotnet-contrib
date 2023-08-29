@@ -25,7 +25,7 @@ namespace OpenTelemetry.Exporter.InfluxDB;
 
 internal sealed class TelegrafPrometheusWriterV1 : IMetricsWriter
 {
-    public void Write(Metric metric, Resource resource, WriteApi writeApi)
+    public void Write(Metric metric, Resource? resource, WriteApi writeApi)
     {
         var measurement = metric.Name;
 
