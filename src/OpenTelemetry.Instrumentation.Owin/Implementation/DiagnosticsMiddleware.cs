@@ -21,6 +21,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.Owin;
 using OpenTelemetry.Context.Propagation;
+using OpenTelemetry.Instrumentation.Owin.Implementation;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Owin;
@@ -46,15 +47,25 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
     /// <inheritdoc />
     public override async Task Invoke(IOwinContext owinContext)
     {
+        Stopwatch stopwatch = null;
+
         try
         {
             BeginRequest(owinContext);
+
+            if (OwinInstrumentationMetrics.HttpClientDuration.Enabled && !owinContext.Environment.ContainsKey(ContextKey))
+            {
+                stopwatch = Stopwatch.StartNew();
+            }
+
             await this.Next.Invoke(owinContext).ConfigureAwait(false);
-            RequestEnd(owinContext, null);
+            stopwatch?.Stop();
+            RequestEnd(owinContext, null, stopwatch);
         }
         catch (Exception ex)
         {
-            RequestEnd(owinContext, ex);
+            stopwatch?.Stop();
+            RequestEnd(owinContext, ex, stopwatch);
             throw;
         }
     }
@@ -151,7 +162,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void RequestEnd(IOwinContext owinContext, Exception exception)
+    private static void RequestEnd(IOwinContext owinContext, Exception exception, Stopwatch stopwatch)
     {
         if (owinContext.Environment.TryGetValue(ContextKey, out object context)
             && context is Activity activity)
@@ -214,6 +225,20 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
             if (!(Propagators.DefaultTextMapPropagator is TraceContextPropagator))
             {
                 Baggage.Current = default;
+            }
+        }
+        else
+        {
+            if (stopwatch != null && OwinInstrumentationMetrics.HttpClientDuration.Enabled)
+            {
+                var tags = new TagList
+                {
+                    { SemanticConventions.AttributeHttpMethod, owinContext.Request.Method },
+                    { SemanticConventions.AttributeHttpScheme, owinContext.Request.Scheme },
+                    { SemanticConventions.AttributeHttpStatusCode, owinContext.Response.StatusCode },
+                };
+
+                OwinInstrumentationMetrics.HttpClientDuration.Record(stopwatch.ElapsedMilliseconds, tags);
             }
         }
     }
