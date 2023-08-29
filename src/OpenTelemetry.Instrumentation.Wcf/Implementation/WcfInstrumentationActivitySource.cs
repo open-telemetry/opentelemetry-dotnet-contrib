@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.ServiceModel.Channels;
+using OpenTelemetry.Instrumentation.Wcf.Implementation;
 
 namespace OpenTelemetry.Instrumentation.Wcf;
 
@@ -36,17 +37,15 @@ internal static class WcfInstrumentationActivitySource
 
     public static ActivitySource ActivitySource { get; } = new ActivitySource(ActivitySourceName, Version.ToString());
 
-    public static Func<Message, string, IEnumerable<string>> MessageHeaderValuesGetter { get; }
-        = (request, name) =>
-        {
-            var headerIndex = request.Headers.FindHeader(name, "https://www.w3.org/TR/trace-context/");
-            return headerIndex < 0
-                ? null
-                : new[] { request.Headers.GetHeader<string>(headerIndex) };
-        };
-
-    public static Action<Message, string, string> MessageHeaderValueSetter { get; }
-        = (request, name, value) => request.Headers.Add(MessageHeader.CreateHeader(name, "https://www.w3.org/TR/trace-context/", value, false));
-
     public static WcfInstrumentationOptions Options { get; set; }
+
+    public static IEnumerable<string> MessageHeaderValuesGetter(Message request, string name)
+    {
+        return TelemetryPropagationReader.Default(request, name);
+    }
+
+    public static void MessageHeaderValueSetter(Message request, string name, string value)
+    {
+        TelemetryPropagationWriter.Default(request, name, value);
+    }
 }

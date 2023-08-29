@@ -5,6 +5,12 @@
 
 Instruments WCF clients and/or services.
 
+The following configurations are verified to work with this instrumentation.
+Other configurations may work as well but have not been tested.
+
+* SOAP and JSON payloads on HTTP/HTTPS transport
+* SOAP payloads on Net.TCP transport
+
 ## Installation
 
 Add the OpenTelemetry.Instrumentation.Wcf package via NuGet.
