@@ -199,6 +199,18 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
 
             activity.Stop();
 
+            if (OwinInstrumentationMetrics.HttpClientDuration.Enabled)
+            {
+                var tags = new TagList
+                {
+                    { SemanticConventions.AttributeHttpMethod, owinContext.Request.Method },
+                    { SemanticConventions.AttributeHttpScheme, owinContext.Request.Scheme },
+                    { SemanticConventions.AttributeHttpStatusCode, owinContext.Response.StatusCode },
+                };
+
+                OwinInstrumentationMetrics.HttpClientDuration.Record(activity.Duration.TotalMilliseconds, tags);
+            }
+
             if (!(Propagators.DefaultTextMapPropagator is TraceContextPropagator))
             {
                 Baggage.Current = default;
