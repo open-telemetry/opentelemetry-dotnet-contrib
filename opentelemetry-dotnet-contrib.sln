@@ -42,8 +42,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\package-Extensions.AWSXRay.yml = .github\workflows\package-Extensions.AWSXRay.yml
 		.github\workflows\package-Extensions.AzureMonitor.yml = .github\workflows\package-Extensions.AzureMonitor.yml
 		.github\workflows\package-Extensions.Docker.yml = .github\workflows\package-Extensions.Docker.yml
-		.github\workflows\package-Extensions.PersistentStorage.Abstractions.yml = .github\workflows\package-Extensions.PersistentStorage.Abstractions.yml
-		.github\workflows\package-Extensions.PersistentStorage.yml = .github\workflows\package-Extensions.PersistentStorage.yml
 		.github\workflows\package-Extensions.yml = .github\workflows\package-Extensions.yml
 		.github\workflows\package-Instrumentation.AspNet.TelemetryHttpModule.yml = .github\workflows\package-Instrumentation.AspNet.TelemetryHttpModule.yml
 		.github\workflows\package-Instrumentation.AspNet.yml = .github\workflows\package-Instrumentation.AspNet.yml
@@ -61,6 +59,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\package-Instrumentation.Runtime.yml = .github\workflows\package-Instrumentation.Runtime.yml
 		.github\workflows\package-Instrumentation.StackExchangeRedis.yml = .github\workflows\package-Instrumentation.StackExchangeRedis.yml
 		.github\workflows\package-Instrumentation.Wcf.yml = .github\workflows\package-Instrumentation.Wcf.yml
+		.github\workflows\package-PersistentStorage.Abstractions.yml = .github\workflows\package-PersistentStorage.Abstractions.yml
+		.github\workflows\package-PersistentStorage.FileSystem.yml = .github\workflows\package-PersistentStorage.FileSystem.yml
 		.github\workflows\sanitycheck.yml = .github\workflows\sanitycheck.yml
 		.github\workflows\stale.yml = .github\workflows\stale.yml
 	EndProjectSection
