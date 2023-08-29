@@ -15,6 +15,7 @@
 // </copyright>
 
 using System;
+using System.Diagnostics;
 using System.Net;
 using System.Reflection;
 
@@ -27,21 +28,9 @@ namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 /// If the consuming application does not have a reference to System.ServiceModel.Http.dll then all http-related functionality
 /// will be disabled (IsHttpFunctionalityEnabled == false).
 /// </summary>
-internal class HttpRequestMessagePropertyWrapper
+internal static class HttpRequestMessagePropertyWrapper
 {
     private static readonly ReflectedInfo ReflectedValues = Initialize();
-    private readonly object innerObject;
-
-    public HttpRequestMessagePropertyWrapper(object existingHttpRequestMessageProperty = null)
-    {
-        EnsureEnabled();
-        if (existingHttpRequestMessageProperty != null && !existingHttpRequestMessageProperty.GetType().Equals(ReflectedValues.Type))
-        {
-            throw new ArgumentException("Existing object must be of type HttpRequestMessageProperty", nameof(existingHttpRequestMessageProperty));
-        }
-
-        this.innerObject = existingHttpRequestMessageProperty != null ? existingHttpRequestMessageProperty : Activator.CreateInstance(ReflectedValues.Type);
-    }
 
     public static bool IsHttpFunctionalityEnabled => ReflectedValues != null;
 
@@ -49,14 +38,23 @@ internal class HttpRequestMessagePropertyWrapper
     {
         get
         {
-            EnsureEnabled();
+            AssertHttpEnabled();
             return ReflectedValues.Name;
         }
     }
 
-    public WebHeaderCollection Headers => ReflectedValues.HeadersFetcher.Fetch(this.innerObject);
+    public static object CreateNew()
+    {
+        AssertHttpEnabled();
+        return Activator.CreateInstance(ReflectedValues.Type);
+    }
 
-    public object InnerObject => this.innerObject;
+    public static WebHeaderCollection GetHeaders(object httpRequestMessageProperty)
+    {
+        AssertHttpEnabled();
+        AssertIsFrameworkMessageProperty(httpRequestMessageProperty);
+        return ReflectedValues.HeadersFetcher.Fetch(httpRequestMessageProperty);
+    }
 
     private static ReflectedInfo Initialize()
     {
@@ -83,7 +81,7 @@ internal class HttpRequestMessagePropertyWrapper
             {
                 Type = type,
                 Name = (string)nameProp.GetValue(null),
-                HeadersFetcher = new PropertyFetcher<WebHeaderCollection>(nameof(Headers)),
+                HeadersFetcher = new PropertyFetcher<WebHeaderCollection>("Headers"),
             };
         }
         catch (Exception ex)
@@ -94,11 +92,22 @@ internal class HttpRequestMessagePropertyWrapper
         return null;
     }
 
-    private static void EnsureEnabled()
+    [Conditional("DEBUG")]
+    private static void AssertHttpEnabled()
     {
         if (!IsHttpFunctionalityEnabled)
         {
             throw new InvalidOperationException("Http functionality is not enabled, check IsHttpFunctionalityEnabled before calling this method");
+        }
+    }
+
+    [Conditional("DEBUG")]
+    private static void AssertIsFrameworkMessageProperty(object httpRequestMessageProperty)
+    {
+        AssertHttpEnabled();
+        if (httpRequestMessageProperty == null || !httpRequestMessageProperty.GetType().Equals(ReflectedValues.Type))
+        {
+            throw new ArgumentException("Object must be of type HttpRequestMessageProperty");
         }
     }
 

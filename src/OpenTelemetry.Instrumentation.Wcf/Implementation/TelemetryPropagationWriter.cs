@@ -62,18 +62,14 @@ internal static class TelemetryPropagationWriter
             return;
         }
 
-        HttpRequestMessagePropertyWrapper prop;
-        if (request.Properties.TryGetValue(HttpRequestMessagePropertyWrapper.Name, out var existing))
+        object prop;
+        if (!request.Properties.TryGetValue(HttpRequestMessagePropertyWrapper.Name, out prop))
         {
-            prop = new HttpRequestMessagePropertyWrapper(existing);
-        }
-        else
-        {
-            prop = new HttpRequestMessagePropertyWrapper();
-            request.Properties.Add(HttpRequestMessagePropertyWrapper.Name, prop.InnerObject);
+            prop = HttpRequestMessagePropertyWrapper.CreateNew();
+            request.Properties.Add(HttpRequestMessagePropertyWrapper.Name, prop);
         }
 
-        prop.Headers[name] = value;
+        HttpRequestMessagePropertyWrapper.GetHeaders(prop)[name] = value;
     }
 
     /// <summary>

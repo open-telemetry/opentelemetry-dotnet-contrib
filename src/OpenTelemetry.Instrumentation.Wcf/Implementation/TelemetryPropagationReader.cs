@@ -64,7 +64,7 @@ internal static class TelemetryPropagationReader
             return null;
         }
 
-        var value = new HttpRequestMessagePropertyWrapper(prop).Headers[name];
+        var value = HttpRequestMessagePropertyWrapper.GetHeaders(prop)[name];
         return value == null ? null : new[] { value };
     }
 
