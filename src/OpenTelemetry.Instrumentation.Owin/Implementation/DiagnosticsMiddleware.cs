@@ -231,14 +231,11 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
         {
             if (stopwatch != null && OwinInstrumentationMetrics.HttpClientDuration.Enabled)
             {
-                var tags = new TagList
-                {
-                    { SemanticConventions.AttributeHttpMethod, owinContext.Request.Method },
-                    { SemanticConventions.AttributeHttpScheme, owinContext.Request.Scheme },
-                    { SemanticConventions.AttributeHttpStatusCode, owinContext.Response.StatusCode },
-                };
-
-                OwinInstrumentationMetrics.HttpClientDuration.Record(stopwatch.ElapsedMilliseconds, tags);
+                OwinInstrumentationMetrics.HttpClientDuration.Record(
+                    stopwatch.ElapsedMilliseconds,
+                    new(SemanticConventions.AttributeHttpMethod, owinContext.Request.Method),
+                    new(SemanticConventions.AttributeHttpScheme, owinContext.Request.Scheme),
+                    new(SemanticConventions.AttributeHttpStatusCode, owinContext.Response.StatusCode));
             }
         }
     }
