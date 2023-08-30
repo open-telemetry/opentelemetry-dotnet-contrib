@@ -32,7 +32,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
         string json = GetLogRecordJson(1, (index, logRecord) => { });
 
         Assert.Equal(
-            "{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{\"severityText\":\"Trace\",\"severityNumber\":1}}\n",
+            """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1}}""" + "\n",
             json);
     }
 
@@ -42,8 +42,8 @@ public class LogRecordCommonSchemaJsonSerializerTests
         string json = GetLogRecordJson(2, (index, logRecord) => { });
 
         Assert.Equal(
-            "{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{\"severityText\":\"Trace\",\"severityNumber\":1}}\n"
-            + "{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{\"severityText\":\"Trace\",\"severityNumber\":1}}\n",
+            """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1}}""" + "\n"
+            + """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1}}""" + "\n",
             json);
     }
 
@@ -63,7 +63,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
         });
 
         Assert.Equal(
-            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"{severityText}\",\"severityNumber\":{severityNumber}}}}}\n",
+            $$$"""{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"{{{severityText}}}","severityNumber":{{{severityNumber}}}}}""" + "\n",
             json);
     }
 
@@ -79,7 +79,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
         });
 
         Assert.Equal(
-            $"{{\"ver\":\"4.0\",\"name\":\"{categoryName}.{eventName ?? "Name"}\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1}}}}\n",
+            $$$"""{"ver":"4.0","name":"{{{categoryName}}}.{{{eventName ?? "Name"}}}","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1}}""" + "\n",
             json);
     }
 
@@ -92,7 +92,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
         });
 
         Assert.Equal(
-            "{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{\"eventId\":18,\"severityText\":\"Trace\",\"severityNumber\":1}}\n",
+            """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"eventId":18,"severityText":"Trace","severityNumber":1}}""" + "\n",
             json);
     }
 
@@ -105,7 +105,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
         });
 
         Assert.Equal(
-            "{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2023-01-18T10:18:00Z\",\"iKey\":\"o:tenant-token\",\"data\":{\"severityText\":\"Trace\",\"severityNumber\":1}}\n",
+            """{"ver":"4.0","name":"Namespace.Name","time":"2023-01-18T10:18:00Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1}}""" + "\n",
             json);
     }
 
@@ -119,7 +119,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
         });
 
         Assert.Equal(
-            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1,\"body\":\"hello world\",\"formattedMessage\":\"goodbye world\"}}}}\n",
+            """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1,"body":"hello world","formattedMessage":"goodbye world"}}""" + "\n",
             json);
     }
 
@@ -133,7 +133,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
         });
 
         Assert.Equal(
-            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1,\"body\":\"hello world\",\"formattedMessage\":\"goodbye world\"}}}}\n",
+            """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1,"body":"hello world","formattedMessage":"goodbye world"}}""" + "\n",
             json);
     }
 
@@ -146,7 +146,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
         });
 
         Assert.Equal(
-            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1,\"body\":\"goodbye world\",\"formattedMessage\":\"goodbye world\"}}}}\n",
+            """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1,"body":"goodbye world","formattedMessage":"goodbye world"}}""" + "\n",
             json);
     }
 
@@ -164,7 +164,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
         string json = GetLogRecordJson(1, (index, logRecord) => { }, resource);
 
         Assert.Equal(
-            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1,\"resourceKey1\":\"resourceValue1\",\"resourceKey2\":\"resourceValue2\"}}}}\n",
+            """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1,"resourceKey1":"resourceValue1","resourceKey2":"resourceValue2"}}""" + "\n",
             json);
     }
 
@@ -178,7 +178,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
         string json = GetLogRecordJson(1, (index, logRecord) => { }, scopeProvider: scopeProvider);
 
         Assert.Equal(
-            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1,\"scope1Key1\":\"scope1Value1\",\"scope1Key2\":\"scope1Value2\",\"scope2Key1\":\"scope2Value1\"}}}}\n",
+            """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1,"scope1Key1":"scope1Value1","scope1Key2":"scope1Value2","scope2Key1":"scope2Value1"}}""" + "\n",
             json);
     }
 
@@ -191,7 +191,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
         });
 
         Assert.Equal(
-            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1,\"stateKey1\":\"stateValue1\",\"stateKey2\":\"stateValue2\"}}}}\n",
+            """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1,"stateKey1":"stateValue1","stateKey2":"stateValue2"}}""" + "\n",
             json);
     }
 
@@ -209,7 +209,9 @@ public class LogRecordCommonSchemaJsonSerializerTests
         });
 
         Assert.Equal(
-            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1}},\"ext\":{{\"dt\":{{\"traceId\":\"{traceId}\",\"spanId\":\"{spanId}\",\"traceFlags\":1}}}}}}\n",
+            $$$$"""
+            {"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1},"ext":{"dt":{"traceId":"{{{{traceId}}}}","spanId":"{{{{spanId}}}}","traceFlags":1}}}
+            """ + "\n",
             json);
     }
 
@@ -227,11 +229,13 @@ public class LogRecordCommonSchemaJsonSerializerTests
             includeStackTraceAsString: includeStackTraceAsString);
 
         var stackJson = includeStackTraceAsString
-            ? $",\"stack\":\"System.InvalidOperationException: Operation is not valid due to the current state of the object.\""
+            ? ",\"stack\":\"System.InvalidOperationException: Operation is not valid due to the current state of the object.\""
             : string.Empty;
 
         Assert.Equal(
-            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1}},\"ext\":{{\"ex\":{{\"type\":\"System.InvalidOperationException\",\"msg\":\"Operation is not valid due to the current state of the object.\"{stackJson}}}}}}}\n",
+            $$$$"""
+            {"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1},"ext":{"ex":{"type":"System.InvalidOperationException","msg":"Operation is not valid due to the current state of the object."{{{{stackJson}}}}}}}
+            """ + "\n",
             json);
     }
 
@@ -258,7 +262,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
             scopeProvider);
 
         Assert.Equal(
-            "{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{\"severityText\":\"Trace\",\"severityNumber\":1},\"ext\":{\"state\":{\"field\":\"stateValue1\"},\"resource\":{\"field\":\"resourceValue1\"},\"scope\":{\"field\":\"scopeValue1\"}}}\n",
+            """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1},"ext":{"state":{"field":"stateValue1"},"resource":{"field":"resourceValue1"},"scope":{"field":"scopeValue1"}}}""" + "\n",
             json);
     }
 
