@@ -47,7 +47,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
     /// <inheritdoc />
     public override async Task Invoke(IOwinContext owinContext)
     {
-        Stopwatch stopwatch = null;
+        long startTimestamp = -1;
 
         try
         {
@@ -55,17 +55,15 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
 
             if (OwinInstrumentationMetrics.HttpClientDuration.Enabled && !owinContext.Environment.ContainsKey(ContextKey))
             {
-                stopwatch = Stopwatch.StartNew();
+                startTimestamp = Stopwatch.GetTimestamp();
             }
 
             await this.Next.Invoke(owinContext).ConfigureAwait(false);
-            stopwatch?.Stop();
-            RequestEnd(owinContext, null, stopwatch);
+            RequestEnd(owinContext, null, startTimestamp);
         }
         catch (Exception ex)
         {
-            stopwatch?.Stop();
-            RequestEnd(owinContext, ex, stopwatch);
+            RequestEnd(owinContext, ex, startTimestamp);
             throw;
         }
     }
@@ -162,7 +160,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void RequestEnd(IOwinContext owinContext, Exception exception, Stopwatch stopwatch)
+    private static void RequestEnd(IOwinContext owinContext, Exception exception, long startTimestamp)
     {
         if (owinContext.Environment.TryGetValue(ContextKey, out object context)
             && context is Activity activity)
@@ -229,10 +227,13 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
         }
         else
         {
-            if (stopwatch != null && OwinInstrumentationMetrics.HttpClientDuration.Enabled)
+            if (OwinInstrumentationMetrics.HttpClientDuration.Enabled)
             {
+                var endTimestamp = Stopwatch.GetTimestamp();
+                var duration = endTimestamp - startTimestamp;
+
                 OwinInstrumentationMetrics.HttpClientDuration.Record(
-                    stopwatch.ElapsedMilliseconds,
+                    duration,
                     new(SemanticConventions.AttributeHttpMethod, owinContext.Request.Method),
                     new(SemanticConventions.AttributeHttpScheme, owinContext.Request.Scheme),
                     new(SemanticConventions.AttributeHttpStatusCode, owinContext.Response.StatusCode));
