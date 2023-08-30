@@ -25,7 +25,7 @@ public class BasicTests
     [Fact]
     public void AddAspNetInstrumentation_BadArgs()
     {
-        TracerProviderBuilder builder = null;
-        Assert.Throws<ArgumentNullException>(() => builder.AddAspNetInstrumentation());
+        TracerProviderBuilder? builder = null;
+        Assert.Throws<ArgumentNullException>(() => builder!.AddAspNetInstrumentation());
     }
 }
