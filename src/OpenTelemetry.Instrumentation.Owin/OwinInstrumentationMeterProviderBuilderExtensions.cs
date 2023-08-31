@@ -22,7 +22,7 @@ namespace OpenTelemetry.Metrics;
 /// <summary>
 /// Extension methods to simplify registering of OWIN request instrumentation.
 /// </summary>
-public static class MetricProviderBuilderExtensions
+public static class OwinInstrumentationMeterProviderBuilderExtensions
 {
     /// <summary>
     /// Enables the incoming requests automatic data collection for OWIN.
