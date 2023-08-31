@@ -231,9 +231,10 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
             {
                 var endTimestamp = Stopwatch.GetTimestamp();
                 var duration = endTimestamp - startTimestamp;
+                var durationMs = (duration / Stopwatch.Frequency) * 1000;
 
                 OwinInstrumentationMetrics.HttpClientDuration.Record(
-                    duration,
+                    durationMs,
                     new(SemanticConventions.AttributeHttpMethod, owinContext.Request.Method),
                     new(SemanticConventions.AttributeHttpScheme, owinContext.Request.Scheme),
                     new(SemanticConventions.AttributeHttpStatusCode, owinContext.Response.StatusCode));
