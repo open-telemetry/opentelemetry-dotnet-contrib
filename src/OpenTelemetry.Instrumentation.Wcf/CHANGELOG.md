@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.0.0-rc.12
+
+Released 2023-Aug-30
+
+* Added support for non-SOAP requests.
+  ([#1251](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1251))
+
 ## 1.0.0-rc.11
 
 Released 2023-Aug-14
