@@ -10,7 +10,6 @@
     <MinVerTagPrefix>PersistentStorage.Abstractions-</MinVerTagPrefix>
     <NoWarn>$(NoWarn),1591</NoWarn>
     <Nullable>enable</Nullable>
-    <EnableAnalysis>true</EnableAnalysis>
   </PropertyGroup>
 
   <ItemGroup>

@@ -57,7 +57,7 @@ public class WeatherForecastController : ApiController
     {
         if (customerId < 0)
         {
-            throw new ArgumentException();
+            throw new ArgumentOutOfRangeException(nameof(customerId));
         }
 
         // Making http calls here to serve as an example of
@@ -141,7 +141,7 @@ public class WeatherForecastController : ApiController
     {
         using var request = new HttpClient();
 
-        using var response = await request.GetAsync("http://www.google.com").ConfigureAwait(false);
+        using var response = await request.GetAsync(new Uri("http://www.google.com")).ConfigureAwait(false);
 
         response.EnsureSuccessStatusCode();
     }
@@ -149,7 +149,7 @@ public class WeatherForecastController : ApiController
     // Test dependency collection via legacy HttpWebRequest sync.
     private static void RequestGoogleHomPageViaHttpWebRequestLegacySync()
     {
-        var request = WebRequest.Create("http://www.google.com/?sync");
+        var request = WebRequest.Create(new Uri("http://www.google.com/?sync"));
 
         using var response = request.GetResponse();
     }
@@ -157,7 +157,7 @@ public class WeatherForecastController : ApiController
     // Test dependency collection via legacy HttpWebRequest async.
     private static async Task RequestGoogleHomPageViaHttpWebRequestLegacyAsync()
     {
-        var request = (HttpWebRequest)WebRequest.Create($"http://www.google.com/?async");
+        var request = (HttpWebRequest)WebRequest.Create(new Uri("http://www.google.com/?async"));
 
         using var response = await request.GetResponseAsync().ConfigureAwait(false);
     }
@@ -165,7 +165,7 @@ public class WeatherForecastController : ApiController
     // Test dependency collection via legacy HttpWebRequest IAsyncResult.
     private static void RequestGoogleHomPageViaHttpWebRequestLegacyAsyncResult()
     {
-        var request = (HttpWebRequest)WebRequest.Create($"http://www.google.com/?async");
+        var request = (HttpWebRequest)WebRequest.Create(new Uri("http://www.google.com/?async"));
 
         var asyncResult = request.BeginGetResponse(null, null);
 
@@ -181,7 +181,8 @@ public class WeatherForecastController : ApiController
 
             // This request is not available over SSL and will throw a handshake exception.
 
-            using var response = await request.GetAsync(this.Url.Content("~/subroute/10").Replace("http", "https")).ConfigureAwait(false);
+            using var response = await request.GetAsync(
+                new Uri(this.Url.Content("~/subroute/10").Replace("http", "https"))).ConfigureAwait(false);
 
             Debug.Fail("Unreachable");
         }
@@ -197,7 +198,8 @@ public class WeatherForecastController : ApiController
 
         // This request will return a 500 error because customerId should be >= 0;
 
-        using var response = await request.GetAsync(this.Url.Content("~/subroute/-1")).ConfigureAwait(false);
+        using var response = await request.GetAsync(
+            new Uri(this.Url.Content("~/subroute/-1"))).ConfigureAwait(false);
 
         Debug.Assert(response.StatusCode == HttpStatusCode.InternalServerError, "response.StatusCode is InternalServerError");
     }
@@ -209,7 +211,8 @@ public class WeatherForecastController : ApiController
 
         // This request will return successfully and cause a bunch of sub-spans;
 
-        using var response = await request.GetAsync(this.Url.Content("~/subroute/10")).ConfigureAwait(false);
+        using var response = await request.GetAsync(
+            new Uri(this.Url.Content("~/subroute/10"))).ConfigureAwait(false);
 
         response.EnsureSuccessStatusCode();
     }

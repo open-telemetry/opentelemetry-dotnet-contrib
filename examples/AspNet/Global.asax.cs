@@ -40,15 +40,15 @@ public class WebApiApplication : HttpApplication
              .AddAspNetInstrumentation()
              .AddHttpClientInstrumentation();
 
-        switch (ConfigurationManager.AppSettings["UseExporter"].ToLowerInvariant())
+        switch (ConfigurationManager.AppSettings["UseExporter"].ToUpperInvariant())
         {
-            case "zipkin":
+            case "ZIPKIN":
                 builder.AddZipkinExporter(zipkinOptions =>
                 {
                     zipkinOptions.Endpoint = new Uri(ConfigurationManager.AppSettings["ZipkinEndpoint"]);
                 });
                 break;
-            case "otlp":
+            case "OTLP":
                 builder.AddOtlpExporter(otlpOptions =>
                     {
                         otlpOptions.Endpoint = new Uri(ConfigurationManager.AppSettings["OtlpEndpoint"]);
@@ -68,15 +68,15 @@ public class WebApiApplication : HttpApplication
         var meterBuilder = Sdk.CreateMeterProviderBuilder()
              .AddAspNetInstrumentation();
 
-        switch (ConfigurationManager.AppSettings["UseMetricsExporter"].ToLowerInvariant())
+        switch (ConfigurationManager.AppSettings["UseMetricsExporter"].ToUpperInvariant())
         {
-            case "otlp":
+            case "OTLP":
                 meterBuilder.AddOtlpExporter(otlpOptions =>
                 {
                     otlpOptions.Endpoint = new Uri(ConfigurationManager.AppSettings["OtlpEndpoint"]);
                 });
                 break;
-            case "prometheus":
+            case "PROMETHEUS":
                 meterBuilder.AddPrometheusHttpListener();
                 break;
             default:
