@@ -23,5 +23,12 @@ jobs:
     - name: Setup dotnet
       uses: actions/setup-dotnet@v3
 
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Protobuf compile
+      run: dotnet build -t:Protobuf_Compile
+      continue-on-error: true
+
     - name: dotnet format
-      run: dotnet format opentelemetry-dotnet-contrib.sln --verify-no-changes --verbosity diagnostic
+      run: dotnet format opentelemetry-dotnet-contrib.sln --no-restore --verify-no-changes
