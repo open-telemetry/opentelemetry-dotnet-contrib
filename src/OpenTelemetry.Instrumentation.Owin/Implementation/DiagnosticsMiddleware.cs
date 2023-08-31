@@ -225,20 +225,17 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
                 Baggage.Current = default;
             }
         }
-        else
+        else if (OwinInstrumentationMetrics.HttpClientDuration.Enabled)
         {
-            if (OwinInstrumentationMetrics.HttpClientDuration.Enabled)
-            {
-                var endTimestamp = Stopwatch.GetTimestamp();
-                var duration = endTimestamp - startTimestamp;
-                var durationMs = (duration / Stopwatch.Frequency) * 1000;
+            var endTimestamp = Stopwatch.GetTimestamp();
+            var duration = endTimestamp - startTimestamp;
+            var durationMs = (duration / Stopwatch.Frequency) * 1000;
 
-                OwinInstrumentationMetrics.HttpClientDuration.Record(
-                    durationMs,
-                    new(SemanticConventions.AttributeHttpMethod, owinContext.Request.Method),
-                    new(SemanticConventions.AttributeHttpScheme, owinContext.Request.Scheme),
-                    new(SemanticConventions.AttributeHttpStatusCode, owinContext.Response.StatusCode));
-            }
+            OwinInstrumentationMetrics.HttpClientDuration.Record(
+                durationMs,
+                new(SemanticConventions.AttributeHttpMethod, owinContext.Request.Method),
+                new(SemanticConventions.AttributeHttpScheme, owinContext.Request.Scheme),
+                new(SemanticConventions.AttributeHttpStatusCode, owinContext.Response.StatusCode));
         }
     }
 
