@@ -27,8 +27,8 @@ jobs:
       run: dotnet restore
 
     - name: Protobuf compile
-      run: dotnet build -t:Protobuf_Compile
-      continue-on-error: true
+      run: dotnet build -t:Protobuf_Compile --no-restore
+      continue-on-error: true # Note: Projects without Grpc.Tools won't have the Protobuf_Compile target which generates an error
 
     - name: dotnet format
       run: dotnet format opentelemetry-dotnet-contrib.sln --no-restore --verify-no-changes
