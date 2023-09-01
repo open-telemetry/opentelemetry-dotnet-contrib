@@ -9,10 +9,10 @@ OpenTelemetry.Instrumentation.Owin.OwinInstrumentationOptions.Filter.set -> void
 OpenTelemetry.Instrumentation.Owin.OwinInstrumentationOptions.OwinInstrumentationOptions() -> void
 OpenTelemetry.Instrumentation.Owin.OwinInstrumentationOptions.RecordException.get -> bool
 OpenTelemetry.Instrumentation.Owin.OwinInstrumentationOptions.RecordException.set -> void
-OpenTelemetry.Metrics.MetricProviderBuilderExtensions
+OpenTelemetry.Metrics.OwinInstrumentationMeterProviderBuilderExtensions
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
 Owin.AppBuilderExtensions
-static OpenTelemetry.Metrics.MetricProviderBuilderExtensions.AddOwinInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder builder) -> OpenTelemetry.Metrics.MeterProviderBuilder
+static OpenTelemetry.Metrics.OwinInstrumentationMeterProviderBuilderExtensions.AddOwinInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder builder) -> OpenTelemetry.Metrics.MeterProviderBuilder
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddOwinInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder) -> OpenTelemetry.Trace.TracerProviderBuilder
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddOwinInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder, System.Action<OpenTelemetry.Instrumentation.Owin.OwinInstrumentationOptions> configure) -> OpenTelemetry.Trace.TracerProviderBuilder
 static Owin.AppBuilderExtensions.UseOpenTelemetry(this Owin.IAppBuilder appBuilder) -> Owin.IAppBuilder
