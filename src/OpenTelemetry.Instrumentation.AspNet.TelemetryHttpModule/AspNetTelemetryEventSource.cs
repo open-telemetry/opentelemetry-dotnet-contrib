@@ -33,47 +33,47 @@ internal sealed class AspNetTelemetryEventSource : EventSource
     public static readonly AspNetTelemetryEventSource Log = new();
 
     [NonEvent]
-    public void ActivityStarted(Activity? activity)
+    public void ActivityStarted(Activity activity)
     {
         if (this.IsEnabled(EventLevel.Verbose, EventKeywords.All))
         {
-            this.ActivityStarted(activity?.Id);
+            this.ActivityStarted(activity.Id);
         }
     }
 
     [NonEvent]
-    public void ActivityStopped(Activity? activity)
+    public void ActivityStopped(Activity activity)
     {
         if (this.IsEnabled(EventLevel.Verbose, EventKeywords.All))
         {
-            this.ActivityStopped(activity?.Id);
+            this.ActivityStopped(activity.Id);
         }
     }
 
     [NonEvent]
-    public void ActivityRestored(Activity? activity)
+    public void ActivityRestored(Activity activity)
     {
         if (this.IsEnabled(EventLevel.Informational, EventKeywords.All))
         {
-            this.ActivityRestored(activity?.Id);
+            this.ActivityRestored(activity.Id);
         }
     }
 
     [NonEvent]
-    public void ActivityException(Activity? activity, Exception ex)
+    public void ActivityException(Activity activity, Exception ex)
     {
         if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
-            this.ActivityException(activity?.Id, ex.ToInvariantString());
+            this.ActivityException(activity.Id, ex.ToInvariantString());
         }
     }
 
     [NonEvent]
-    public void CallbackException(Activity? activity, string eventName, Exception ex)
+    public void CallbackException(Activity activity, string eventName, Exception ex)
     {
         if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
-            this.CallbackException(activity?.Id, eventName, ex.ToInvariantString());
+            this.CallbackException(activity.Id, eventName, ex.ToInvariantString());
         }
     }
 

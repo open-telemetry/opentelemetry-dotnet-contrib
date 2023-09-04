@@ -144,7 +144,7 @@ internal static class ActivityHelper
             AspNetTelemetryEventSource.Log.CallbackException(aspNetActivity, "OnStopped", callbackEx);
         }
 
-        AspNetTelemetryEventSource.Log.ActivityStopped(currentActivity);
+        AspNetTelemetryEventSource.Log.ActivityStopped(aspNetActivity);
 
         if (textMapPropagator is not TraceContextPropagator)
         {
