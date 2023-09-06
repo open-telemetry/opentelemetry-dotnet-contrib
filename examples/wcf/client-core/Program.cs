@@ -42,12 +42,22 @@ internal static class Program
             .AddZipkinExporter()
             .Build();
 
-        await CallService(
-            new BasicHttpBinding(BasicHttpSecurityMode.None),
-            new EndpointAddress(config.GetSection("Service").GetValue<string>("HttpAddress"))).ConfigureAwait(false);
-        await CallService(
-            new NetTcpBinding(SecurityMode.None),
-            new EndpointAddress(config.GetSection("Service").GetValue<string>("TcpAddress"))).ConfigureAwait(false);
+        switch (config.GetValue<string>("Server").ToUpperInvariant())
+        {
+            case "ASPNET":
+                await CallService(
+                    new BasicHttpBinding(BasicHttpSecurityMode.None),
+                    new EndpointAddress(config.GetSection("Service").GetValue<string>("AspNetAddress"))).ConfigureAwait(false);
+                break;
+            default:
+                await CallService(
+                    new BasicHttpBinding(BasicHttpSecurityMode.None),
+                    new EndpointAddress(config.GetSection("Service").GetValue<string>("HttpAddress"))).ConfigureAwait(false);
+                await CallService(
+                    new NetTcpBinding(SecurityMode.None),
+                    new EndpointAddress(config.GetSection("Service").GetValue<string>("TcpAddress"))).ConfigureAwait(false);
+                break;
+        }
 
         Console.WriteLine("Press enter to exit.");
         Console.ReadLine();
