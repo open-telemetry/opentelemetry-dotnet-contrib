@@ -62,7 +62,7 @@ public class AWSXRayRemoteSamplerBuilder
 
     /// <summary>
     /// Sets the endpoint for the TCP proxy to connect to. This is the address to the port on the
-    /// OpenTelemetry Collector configured for proxying X-Ray sampling requests.If unset, defaults to
+    /// OpenTelemetry Collector configured for proxying X-Ray sampling requests. If unset, defaults to
     /// <see cref="DefaultEndpoint"/>.
     /// </summary>
     /// <param name="endpoint">the endpoint for the TCP proxy.</param>
@@ -90,12 +90,7 @@ public class AWSXRayRemoteSamplerBuilder
     // Should not be exposed to public.
     internal AWSXRayRemoteSamplerBuilder SetClock(Clock clock)
     {
-        if (clock == null)
-        {
-            throw new ArgumentNullException(nameof(clock));
-        }
-
-        this.clock = clock;
+        this.clock = clock ?? throw new ArgumentNullException(nameof(clock));
 
         return this;
     }
