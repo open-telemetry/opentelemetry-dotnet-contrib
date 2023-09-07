@@ -209,7 +209,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
         });
 
         Assert.Equal(
-            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1}},\"ext\":{{\"dt\":{{\"traceId\":\"{traceId}\",\"spanId\":\"{spanId}\",\"traceFlags\":1}}}}}}\n",
+            $"{{\"ver\":\"4.0\",\"name\":\"Namespace.Name\",\"time\":\"2032-01-18T10:11:12Z\",\"iKey\":\"o:tenant-token\",\"data\":{{\"severityText\":\"Trace\",\"severityNumber\":1}},\"ext\":{{\"dt\":{{\"traceId\":\"{traceId}\",\"spanId\":\"{spanId}\"}}}}}}\n",
             json);
     }
 
