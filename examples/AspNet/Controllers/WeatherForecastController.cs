@@ -57,7 +57,7 @@ public class WeatherForecastController : ApiController
     {
         if (customerId < 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(customerId));
+            throw new ArgumentOutOfRangeException(nameof(customerId), "CustomerId should be 0 or greater.");
         }
 
         // Making http calls here to serve as an example of
@@ -181,8 +181,9 @@ public class WeatherForecastController : ApiController
 
             // This request is not available over SSL and will throw a handshake exception.
 
-            using var response = await request.GetAsync(
-                new Uri(this.Url.Content("~/subroute/10").Replace("http", "https"))).ConfigureAwait(false);
+            var requestUri = this.GenerateContentRequestUri("~/subroute/10", uri => uri.Replace("http", "https"));
+
+            using var response = await request.GetAsync(requestUri).ConfigureAwait(false);
 
             Debug.Fail("Unreachable");
         }
@@ -199,7 +200,7 @@ public class WeatherForecastController : ApiController
         // This request will return a 500 error because customerId should be >= 0;
 
         using var response = await request.GetAsync(
-            new Uri(this.Url.Content("~/subroute/-1"))).ConfigureAwait(false);
+            this.GenerateContentRequestUri("~/subroute/-1")).ConfigureAwait(false);
 
         Debug.Assert(response.StatusCode == HttpStatusCode.InternalServerError, "response.StatusCode is InternalServerError");
     }
@@ -212,8 +213,20 @@ public class WeatherForecastController : ApiController
         // This request will return successfully and cause a bunch of sub-spans;
 
         using var response = await request.GetAsync(
-            new Uri(this.Url.Content("~/subroute/10"))).ConfigureAwait(false);
+            this.GenerateContentRequestUri("~/subroute/10")).ConfigureAwait(false);
 
         response.EnsureSuccessStatusCode();
+    }
+
+    private Uri GenerateContentRequestUri(string path, Func<string, string> transform = null)
+    {
+        var rawUri = this.Url.Content(path);
+
+        if (transform != null)
+        {
+            rawUri = transform(rawUri);
+        }
+
+        return new(rawUri);
     }
 }
