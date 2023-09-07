@@ -210,14 +210,11 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
 
             if (OwinInstrumentationMetrics.HttpClientDuration.Enabled)
             {
-                var tags = new TagList
-                {
-                    { SemanticConventions.AttributeHttpMethod, owinContext.Request.Method },
-                    { SemanticConventions.AttributeHttpScheme, owinContext.Request.Scheme },
-                    { SemanticConventions.AttributeHttpStatusCode, owinContext.Response.StatusCode },
-                };
-
-                OwinInstrumentationMetrics.HttpClientDuration.Record(activity.Duration.TotalMilliseconds, tags);
+                OwinInstrumentationMetrics.HttpClientDuration.Record(
+                    activity.Duration.TotalMilliseconds,
+                    new(SemanticConventions.AttributeHttpMethod, owinContext.Request.Method),
+                    new(SemanticConventions.AttributeHttpScheme, owinContext.Request.Scheme),
+                    new(SemanticConventions.AttributeHttpStatusCode, owinContext.Response.StatusCode));
             }
 
             if (!(Propagators.DefaultTextMapPropagator is TraceContextPropagator))
