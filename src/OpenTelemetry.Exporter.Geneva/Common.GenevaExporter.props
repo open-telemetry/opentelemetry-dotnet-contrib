@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <OTelSdkVersion>$(OpenTelemetryCoreLatestPrereleaseVersion)</OTelSdkVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(OTelSdkVersion.Contains('alpha')) OR $(OTelSdkVersion.Contains('beta')) OR $(OTelSdkVersion.Contains('rc'))">
+    <DefineConstants>$(DefineConstants);EXPOSE_EXPERIMENTAL_FEATURES</DefineConstants>
+  </PropertyGroup>
+</Project>

@@ -26,14 +26,14 @@ namespace OpenTelemetry.Sampler.AWS.Tests;
 
 public class TestAWSXRaySamplerClient : IDisposable
 {
-    private WireMockServer mockServer;
+    private readonly WireMockServer mockServer;
 
-    private AWSXRaySamplerClient client;
+    private readonly AWSXRaySamplerClient client;
 
     public TestAWSXRaySamplerClient()
     {
         this.mockServer = WireMockServer.Start();
-        this.client = new AWSXRaySamplerClient(this.mockServer.Url);
+        this.client = new AWSXRaySamplerClient(this.mockServer.Url!);
     }
 
     public void Dispose()
@@ -116,23 +116,23 @@ public class TestAWSXRaySamplerClient : IDisposable
 
         this.CreateResponse("/SamplingTargets", "Data/GetSamplingTargetsResponse.json");
 
-        var request = new GetSamplingTargetsRequest(new List<SamplingStatisticsDocument>()
+        var request = new GetSamplingTargetsRequest(new List<SamplingStatisticsDocument>
         {
-            new SamplingStatisticsDocument(
+            new(
                 "clientId",
                 "rule1",
                 100,
                 50,
                 10,
                 clock.ToDouble(clock.Now())),
-            new SamplingStatisticsDocument(
+            new(
                 "clientId",
                 "rule2",
                 200,
                 100,
                 20,
                 clock.ToDouble(clock.Now())),
-            new SamplingStatisticsDocument(
+            new(
                 "clientId",
                 "rule3",
                 20,
@@ -144,7 +144,7 @@ public class TestAWSXRaySamplerClient : IDisposable
         var responseTask = this.client.GetSamplingTargets(request);
         responseTask.Wait();
 
-        GetSamplingTargetsResponse targetsResponse = responseTask.Result;
+        GetSamplingTargetsResponse targetsResponse = responseTask.Result!;
 
         Assert.Equal(2, targetsResponse.SamplingTargetDocuments.Count);
         Assert.Single(targetsResponse.UnprocessedStatistics);
@@ -175,9 +175,9 @@ public class TestAWSXRaySamplerClient : IDisposable
             .RespondWith(
                 Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json").WithBody("notJson"));
 
-        var request = new GetSamplingTargetsRequest(new List<SamplingStatisticsDocument>()
+        var request = new GetSamplingTargetsRequest(new List<SamplingStatisticsDocument>
         {
-            new SamplingStatisticsDocument(
+            new(
                 "clientId",
                 "rule1",
                 100,
@@ -189,7 +189,7 @@ public class TestAWSXRaySamplerClient : IDisposable
         var responseTask = this.client.GetSamplingTargets(request);
         responseTask.Wait();
 
-        GetSamplingTargetsResponse targetsResponse = responseTask.Result;
+        GetSamplingTargetsResponse? targetsResponse = responseTask.Result;
 
         Assert.Null(targetsResponse);
     }

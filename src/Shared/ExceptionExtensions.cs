@@ -16,7 +16,11 @@
 
 #nullable enable
 
+#pragma warning disable IDE0005 // Using directive is unnecessary. <- Projects with ImplicitUsings enabled don't need System or System.Threading
+using System;
 using System.Globalization;
+using System.Threading;
+#pragma warning restore IDE0005 // Using directive is unnecessary.
 
 namespace OpenTelemetry.Internal;
 
@@ -28,18 +32,18 @@ internal static class ExceptionExtensions
     /// </summary>
     /// <param name="exception">Exception to convert to string.</param>
     /// <returns>Exception as string with no culture.</returns>
-    public static string ToInvariantString(this System.Exception exception)
+    public static string ToInvariantString(this Exception exception)
     {
-        var originalUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+        var originalUICulture = Thread.CurrentThread.CurrentUICulture;
 
         try
         {
-            System.Threading.Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
+            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
             return exception.ToString();
         }
         finally
         {
-            System.Threading.Thread.CurrentThread.CurrentUICulture = originalUICulture;
+            Thread.CurrentThread.CurrentUICulture = originalUICulture;
         }
     }
 }

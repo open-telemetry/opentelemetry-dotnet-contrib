@@ -196,14 +196,18 @@ public class GenevaMetricExporterTests
                 var metricDataValue = Convert.ToUInt64(metricPoint.GetSumLong());
                 var metricData = new MetricData { UInt64Value = metricDataValue };
 
+#if EXPOSE_EXPERIMENTAL_FEATURES
                 var exemplars = metricPoint.GetExemplars();
+#endif
                 var bodyLength = exporter.SerializeMetricWithTLV(
                     MetricEventType.ULongMetric,
                     metric.Name,
                     metricPoint.EndTime.ToFileTime(),
                     metricPoint.Tags,
                     metricData,
+#if EXPOSE_EXPERIMENTAL_FEATURES
                     exemplars,
+#endif
                     out _,
                     out _);
 
@@ -950,7 +954,9 @@ public class GenevaMetricExporterTests
         metricPointsEnumerator.MoveNext();
         var metricPoint = metricPointsEnumerator.Current;
 
+#if EXPOSE_EXPERIMENTAL_FEATURES
         var exemplars = metricPoint.GetExemplars();
+#endif
 
         List<TlvField> fields = null;
 
@@ -965,7 +971,9 @@ public class GenevaMetricExporterTests
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
                 metricData,
+#if EXPOSE_EXPERIMENTAL_FEATURES
                 exemplars,
+#endif
                 out _,
                 out _);
 
@@ -991,7 +999,9 @@ public class GenevaMetricExporterTests
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
                 metricData,
+#if EXPOSE_EXPERIMENTAL_FEATURES
                 exemplars,
+#endif
                 out _,
                 out _);
 
@@ -1019,7 +1029,9 @@ public class GenevaMetricExporterTests
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
                 metricData,
+#if EXPOSE_EXPERIMENTAL_FEATURES
                 exemplars,
+#endif
                 out _,
                 out _);
 
@@ -1047,7 +1059,9 @@ public class GenevaMetricExporterTests
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
                 metricData,
+#if EXPOSE_EXPERIMENTAL_FEATURES
                 exemplars,
+#endif
                 out _,
                 out _);
 
@@ -1082,7 +1096,9 @@ public class GenevaMetricExporterTests
                 count,
                 min,
                 max,
+#if EXPOSE_EXPERIMENTAL_FEATURES
                 exemplars,
+#endif
                 out _,
                 out _);
 
@@ -1121,6 +1137,7 @@ public class GenevaMetricExporterTests
             Assert.Equal(bodyLength, data.LenBody);
         }
 
+#if EXPOSE_EXPERIMENTAL_FEATURES
         if (exemplars.Length > 0)
         {
             var validExemplars = exemplars.Where(exemplar => exemplar.Timestamp != default).ToList();
@@ -1142,6 +1159,7 @@ public class GenevaMetricExporterTests
                 AssertExemplarFilteredTagSerialization(expectedExemplar, serializedExemplar);
             }
         }
+#endif
 
         // Check metric name, account, and namespace
         var connectionStringBuilder = new ConnectionStringBuilder(exporterOptions.ConnectionString);
@@ -1214,6 +1232,7 @@ public class GenevaMetricExporterTests
         Assert.Equal(dimensionsCount, dimensions.NumDimensions);
     }
 
+#if EXPOSE_EXPERIMENTAL_FEATURES
     private static void AssertExemplarFilteredTagSerialization(Exemplar expectedExemplar, SingleExemplar serializedExemplar)
     {
         var serializedExemplarBody = serializedExemplar.Body;
@@ -1263,6 +1282,7 @@ public class GenevaMetricExporterTests
             }
         }
     }
+#endif
 
     private static UserdataV2 GetSerializedData(Metric metric, GenevaMetricExporter exporter)
     {
@@ -1284,7 +1304,9 @@ public class GenevaMetricExporterTests
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
                 metricData,
+#if EXPOSE_EXPERIMENTAL_FEATURES
                 exemplars,
+#endif
                 out _,
                 out _);
 
@@ -1303,7 +1325,9 @@ public class GenevaMetricExporterTests
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
                 metricData,
+#if EXPOSE_EXPERIMENTAL_FEATURES
                 exemplars,
+#endif
                 out _,
                 out _);
 
@@ -1324,7 +1348,9 @@ public class GenevaMetricExporterTests
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
                 metricData,
+#if EXPOSE_EXPERIMENTAL_FEATURES
                 exemplars,
+#endif
                 out _,
                 out _);
 
@@ -1345,7 +1371,9 @@ public class GenevaMetricExporterTests
                 metricPoint.EndTime.ToFileTime(),
                 metricPoint.Tags,
                 metricData,
+#if EXPOSE_EXPERIMENTAL_FEATURES
                 exemplars,
+#endif
                 out _,
                 out _);
 
@@ -1373,7 +1401,9 @@ public class GenevaMetricExporterTests
                 count,
                 min,
                 max,
+#if EXPOSE_EXPERIMENTAL_FEATURES
                 exemplars,
+#endif
                 out _,
                 out _);
 

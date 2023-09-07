@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project=".\Common.GenevaExporter.props"/>
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -9,12 +10,11 @@
     <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
     <MinVerTagPrefix>Exporter.Geneva-</MinVerTagPrefix>
-    <EnableAnalysis>true</EnableAnalysis>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestPrereleaseVersion)" />
+    <PackageReference Include="OpenTelemetry" Version="$(OTelSdkVersion)" />
   </ItemGroup>
 
   <ItemGroup>

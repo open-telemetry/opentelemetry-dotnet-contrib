@@ -35,6 +35,7 @@ internal static class Program
 
         await CallService("StatusService_Http").ConfigureAwait(false);
         await CallService("StatusService_Tcp").ConfigureAwait(false);
+        await CallService("StatusService_Rest").ConfigureAwait(false);
 
         Console.WriteLine("Press enter to exit.");
         Console.ReadLine();

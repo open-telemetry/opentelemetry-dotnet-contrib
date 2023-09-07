@@ -20,6 +20,7 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
     <Reference Include="System.ServiceModel" />
+    <Reference Include="System.ServiceModel.Web" />
     <PackageReference Include="System.Reflection.DispatchProxy" Version="4.7.1" />
   </ItemGroup>
 

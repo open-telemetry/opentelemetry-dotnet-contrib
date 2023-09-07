@@ -28,17 +28,6 @@ internal static class Utils
         return CreateSamplingParametersWithTags(new Dictionary<string, string>());
     }
 
-    internal static SamplingParameters CreateSamplingParametersWithRootContext()
-    {
-        return new SamplingParameters(
-            default,
-            ActivityTraceId.CreateRandom(),
-            "myActivityName",
-            ActivityKind.Server,
-            null,
-            null);
-    }
-
     internal static SamplingParameters CreateSamplingParametersWithTags(Dictionary<string, string> tags)
     {
         ActivityTraceId traceId = ActivityTraceId.CreateRandom();
@@ -47,11 +36,11 @@ internal static class Utils
 
         var parentContext = new ActivityContext(traceId, parentSpanId, traceFlags);
 
-        var tagList = new List<KeyValuePair<string, object>>();
+        var tagList = new List<KeyValuePair<string, object?>>();
 
         foreach (var tag in tags)
         {
-            tagList.Add(new KeyValuePair<string, object>(tag.Key, tag.Value));
+            tagList.Add(new KeyValuePair<string, object?>(tag.Key, tag.Value));
         }
 
         return new SamplingParameters(
@@ -65,10 +54,10 @@ internal static class Utils
 
     internal static Resource CreateResource(string serviceName, string cloudPlatform)
     {
-        var resourceAttributes = new List<KeyValuePair<string, object>>()
+        var resourceAttributes = new List<KeyValuePair<string, object>>
         {
-            new KeyValuePair<string, object>("service.name", serviceName),
-            new KeyValuePair<string, object>("cloud.platform", cloudPlatform),
+            new("service.name", serviceName),
+            new("cloud.platform", cloudPlatform),
         };
 
         return ResourceBuilder.CreateEmpty().AddAttributes(resourceAttributes).Build();

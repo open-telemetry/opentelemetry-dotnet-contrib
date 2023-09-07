@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Update OpenTelemetry to 1.6.0
+  ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
+
 * Added support for receiving tranmission failures via the
   `RegisterPayloadTransmittedCallback` API.
   ([#1309](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1309))

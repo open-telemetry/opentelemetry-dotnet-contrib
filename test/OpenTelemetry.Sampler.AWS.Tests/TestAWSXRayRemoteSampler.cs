@@ -68,7 +68,7 @@ public class TestAWSXRayRemoteSampler
         // create sampler
         AWSXRayRemoteSampler sampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build())
             .SetPollingInterval(TimeSpan.FromMilliseconds(10))
-            .SetEndpoint(mockServer.Url)
+            .SetEndpoint(mockServer.Url!)
             .SetClock(clock)
             .Build();
 
@@ -117,9 +117,9 @@ public class TestAWSXRayRemoteSampler
             ActivityTraceId.CreateRandom(),
             "myActivityName",
             ActivityKind.Server,
-            new List<KeyValuePair<string, object>>()
+            new List<KeyValuePair<string, object?>>
             {
-                new KeyValuePair<string, object>("test", serviceName),
+                new("test", serviceName),
             },
             null);
 

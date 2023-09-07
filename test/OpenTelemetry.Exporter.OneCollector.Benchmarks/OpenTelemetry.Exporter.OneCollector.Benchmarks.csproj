@@ -7,7 +7,6 @@
     <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net48;net472;net471;net47;net462</TargetFrameworks>
     <Nullable>enable</Nullable>
-    <EnableAnalysis>true</EnableAnalysis>
     <ImplicitUsings>true</ImplicitUsings>
   </PropertyGroup>
 

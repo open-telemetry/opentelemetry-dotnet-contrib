@@ -24,7 +24,7 @@ namespace OpenTelemetry.Sampler.AWS;
 
 internal class SamplingRuleApplier
 {
-    public SamplingRuleApplier(string clientId, Clock clock, SamplingRule rule, Statistics statistics)
+    public SamplingRuleApplier(string clientId, Clock clock, SamplingRule rule, Statistics? statistics)
     {
         this.ClientId = clientId;
         this.Clock = clock;
