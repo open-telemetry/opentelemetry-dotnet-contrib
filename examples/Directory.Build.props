@@ -1,3 +1,4 @@
 <Project>
+  <Import Project="..\Directory.Build.props" Condition="Exists('..\Directory.Build.props')" />
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'opentelemetry-dotnet-contrib.sln'))\build\Common.nonprod.props" />
 </Project>

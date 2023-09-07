@@ -8,7 +8,6 @@
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
     <MinVerTagPrefix>Exporter.OneCollector-</MinVerTagPrefix>
     <Nullable>enable</Nullable>
-    <EnableAnalysis>true</EnableAnalysis>
     <ImplicitUsings>true</ImplicitUsings>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
   </PropertyGroup>
