@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+#pragma warning disable IDE0005 // Using directive is unnecessary.
 using System;
 using System.Configuration;
 using System.Web;
@@ -22,6 +23,7 @@ using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+#pragma warning restore IDE0005 // Using directive is unnecessary.
 
 namespace Examples.Wcf.Server.AspNetFramework;
 
