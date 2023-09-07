@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Updates to 1.6.0 of OpenTelemetry SDK.
+  ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
 * Suppress instrumentation for outgoing http call made to metadata service
   during `Detect()`.
   ([#1297](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1297))
