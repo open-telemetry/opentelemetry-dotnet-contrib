@@ -17,7 +17,7 @@
 
 * Removed `traceFlags` from the common schema `dt` (Distributed Tracing)
   extension because it is not currently supported by the OneCollector service.
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#1345](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1345))
 
 ## 1.5.1
 
