@@ -40,7 +40,7 @@ public class TestSamplingRuleApplier
             version: 1,
             attributes: new Dictionary<string, string>());
 
-        var activityTags = new Dictionary<string, string>()
+        var activityTags = new Dictionary<string, string>
         {
             { "http.host", "localhost" },
             { "http.method", "GET" },
@@ -69,7 +69,7 @@ public class TestSamplingRuleApplier
             version: 1,
             attributes: new Dictionary<string, string>());
 
-        var activityTags = new Dictionary<string, string>()
+        var activityTags = new Dictionary<string, string>
         {
             { "http.host", "localhost" },
             { "http.method", "GET" },
@@ -143,7 +143,7 @@ public class TestSamplingRuleApplier
             version: 1,
             attributes: new Dictionary<string, string>());
 
-        var activityTags = new Dictionary<string, string>()
+        var activityTags = new Dictionary<string, string>
         {
             { "http.target", "/helloworld" },
         };
@@ -155,7 +155,7 @@ public class TestSamplingRuleApplier
     [Fact]
     public void TestAttributeMatching()
     {
-        var ruleAttributes = new Dictionary<string, string>()
+        var ruleAttributes = new Dictionary<string, string>
         {
             { "dog", "bark" },
             { "cat", "meow" },
@@ -175,7 +175,7 @@ public class TestSamplingRuleApplier
             version: 1,
             attributes: ruleAttributes);
 
-        var activityTags = new Dictionary<string, string>()
+        var activityTags = new Dictionary<string, string>
         {
             { "http.target", "/helloworld" },
             { "dog", "bark" },
@@ -189,7 +189,7 @@ public class TestSamplingRuleApplier
     [Fact]
     public void TestAttributeMatchingWithLessActivityTags()
     {
-        var ruleAttributes = new Dictionary<string, string>()
+        var ruleAttributes = new Dictionary<string, string>
         {
             { "dog", "bark" },
             { "cat", "meow" },
@@ -209,7 +209,7 @@ public class TestSamplingRuleApplier
             version: 1,
             attributes: ruleAttributes);
 
-        var activityTags = new Dictionary<string, string>()
+        var activityTags = new Dictionary<string, string>
         {
             { "http.target", "/helloworld" },
             { "dog", "bark" },
@@ -347,7 +347,7 @@ public class TestSamplingRuleApplier
 
         var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
 
-        // no target assigned yet. so borrow 1 from reseroir every second
+        // no target assigned yet. so borrow 1 from reservoir every second
         Assert.Equal(SamplingDecision.RecordAndSample, applier.ShouldSample(default).Decision);
         Assert.Equal(SamplingDecision.Drop, applier.ShouldSample(default).Decision);
         clock.Advance(TimeSpan.FromSeconds(1));
@@ -355,7 +355,7 @@ public class TestSamplingRuleApplier
         Assert.Equal(SamplingDecision.Drop, applier.ShouldSample(default).Decision);
 
         // get the target
-        SamplingTargetDocument target = new SamplingTargetDocument()
+        SamplingTargetDocument target = new SamplingTargetDocument
         {
             FixedRate = 0.0,
             Interval = 10,
@@ -392,7 +392,7 @@ public class TestSamplingRuleApplier
 
         var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
 
-        // no target assigned yet. so borrow 1 from reseroir every second
+        // no target assigned yet. so borrow 1 from reservoir every second
         Assert.Equal(SamplingDecision.RecordAndSample, applier.ShouldSample(default).Decision);
         Assert.Equal(SamplingDecision.Drop, applier.ShouldSample(default).Decision);
         clock.Advance(TimeSpan.FromSeconds(1));
@@ -405,7 +405,7 @@ public class TestSamplingRuleApplier
         Assert.Equal(2, statistics.BorrowCount);
 
         // get the target
-        SamplingTargetDocument target = new SamplingTargetDocument()
+        SamplingTargetDocument target = new SamplingTargetDocument
         {
             FixedRate = 1.0,
             Interval = 10,

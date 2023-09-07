@@ -42,7 +42,7 @@ public class TestRulesCache
 
         // set up rules cache with a default rule
         var defaultRule = this.CreateDefaultRule(1, 0.05);
-        var stats = new Statistics()
+        var stats = new Statistics
         {
             RequestCount = 10,
             SampleCount = 5,
@@ -51,9 +51,9 @@ public class TestRulesCache
 
         var cache = new RulesCache(clock, "test", ResourceBuilder.CreateEmpty().Build(), new AlwaysOffSampler())
         {
-            RuleAppliers = new List<SamplingRuleApplier>()
+            RuleAppliers = new List<SamplingRuleApplier>
             {
-                { new SamplingRuleApplier("testId", clock, defaultRule, stats) },
+                { new("testId", clock, defaultRule, stats) },
             },
         };
 
@@ -80,10 +80,10 @@ public class TestRulesCache
         // set up rule cache with 2 rules
         var rulesCache = new RulesCache(clock, "test", ResourceBuilder.CreateEmpty().Build(), new AlwaysOffSampler())
         {
-            RuleAppliers = new List<SamplingRuleApplier>()
+            RuleAppliers = new List<SamplingRuleApplier>
             {
-                { new SamplingRuleApplier("testId", clock, this.CreateDefaultRule(1, 0.05), null) },
-                { new SamplingRuleApplier("testId", clock, this.CreateRule("Rule1", 5, 0.20, 1), null) },
+                { new("testId", clock, this.CreateDefaultRule(1, 0.05), null) },
+                { new("testId", clock, this.CreateRule("Rule1", 5, 0.20, 1), null) },
             },
         };
 
@@ -103,10 +103,10 @@ public class TestRulesCache
         var clock = new TestClock();
         var rulesCache = new RulesCache(clock, "clientId", ResourceBuilder.CreateEmpty().Build(), new AlwaysOffSampler())
         {
-            RuleAppliers = new List<SamplingRuleApplier>()
+            RuleAppliers = new List<SamplingRuleApplier>
             {
-                { new SamplingRuleApplier("clientId", clock, this.CreateRule("ruleWillMatch", 1, 0.0, 1), new Statistics()) }, // higher priority rule will sample
-                { new SamplingRuleApplier("clientId", clock, this.CreateRule("ruleWillNotMatch", 0, 0.0, 2), new Statistics()) }, // this rule will not sample
+                { new("clientId", clock, this.CreateRule("ruleWillMatch", 1, 0.0, 1), new Statistics()) }, // higher priority rule will sample
+                { new("clientId", clock, this.CreateRule("ruleWillNotMatch", 0, 0.0, 2), new Statistics()) }, // this rule will not sample
             },
         };
 
@@ -144,10 +144,10 @@ public class TestRulesCache
         var clock = new TestClock();
         var rulesCache = new RulesCache(clock, "clientId", ResourceBuilder.CreateEmpty().Build(), new AlwaysOffSampler())
         {
-            RuleAppliers = new List<SamplingRuleApplier>()
+            RuleAppliers = new List<SamplingRuleApplier>
             {
-                { new SamplingRuleApplier("clientId", clock, this.CreateRule("rule1", 1, 0.0, 1), new Statistics()) }, // this rule will sample 1 req/sec
-                { new SamplingRuleApplier("clientId", clock, this.CreateRule("rule2", 0, 0.0, 2), new Statistics()) },
+                { new("clientId", clock, this.CreateRule("rule1", 1, 0.0, 1), new Statistics()) }, // this rule will sample 1 req/sec
+                { new("clientId", clock, this.CreateRule("rule2", 0, 0.0, 2), new Statistics()) },
             },
         };
 
@@ -155,7 +155,7 @@ public class TestRulesCache
         Assert.Equal(SamplingDecision.Drop, rulesCache.ShouldSample(default).Decision);
 
         // update targets
-        var targetForRule1 = new SamplingTargetDocument()
+        var targetForRule1 = new SamplingTargetDocument
         {
             FixedRate = 0.0,
             Interval = 0,
@@ -163,7 +163,7 @@ public class TestRulesCache
             ReservoirQuotaTTL = clock.ToDouble(clock.Now().AddMinutes(5)),
             RuleName = "rule1",
         };
-        var targetForRule2 = new SamplingTargetDocument()
+        var targetForRule2 = new SamplingTargetDocument
         {
             FixedRate = 0.0,
             Interval = 0,
@@ -172,7 +172,7 @@ public class TestRulesCache
             RuleName = "rule2",
         };
 
-        var targets = new Dictionary<string, SamplingTargetDocument>()
+        var targets = new Dictionary<string, SamplingTargetDocument>
         {
             { "rule1", targetForRule1 },
             { "rule2", targetForRule2 },
@@ -192,15 +192,15 @@ public class TestRulesCache
         var clock = new TestClock();
         var rulesCache = new RulesCache(clock, "clientId", ResourceBuilder.CreateEmpty().Build(), new AlwaysOffSampler())
         {
-            RuleAppliers = new List<SamplingRuleApplier>()
+            RuleAppliers = new List<SamplingRuleApplier>
             {
-                { new SamplingRuleApplier("clientId", clock, this.CreateRule("rule1", 1, 0.0, 1), new Statistics()) },
-                { new SamplingRuleApplier("clientId", clock, this.CreateRule("rule2", 0, 0.0, 2), new Statistics()) },
+                { new("clientId", clock, this.CreateRule("rule1", 1, 0.0, 1), new Statistics()) },
+                { new("clientId", clock, this.CreateRule("rule2", 0, 0.0, 2), new Statistics()) },
             },
         };
 
         // update targets
-        var targetForRule1 = new SamplingTargetDocument()
+        var targetForRule1 = new SamplingTargetDocument
         {
             FixedRate = 0.0,
             Interval = 10, // next target poll after 10s
@@ -208,7 +208,7 @@ public class TestRulesCache
             ReservoirQuotaTTL = clock.ToDouble(clock.Now().Add(TimeSpan.FromMinutes(5))),
             RuleName = "rule1",
         };
-        var targetForRule2 = new SamplingTargetDocument()
+        var targetForRule2 = new SamplingTargetDocument
         {
             FixedRate = 0.0,
             Interval = 5, // next target poll after 5s
@@ -217,7 +217,7 @@ public class TestRulesCache
             RuleName = "rule2",
         };
 
-        var targets = new Dictionary<string, SamplingTargetDocument>()
+        var targets = new Dictionary<string, SamplingTargetDocument>
         {
             { "rule1", targetForRule1 },
             { "rule2", targetForRule2 },
