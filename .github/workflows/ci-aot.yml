@@ -26,7 +26,7 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: publish AOT testApp, assert static analysis warning count, and run the app
       shell: pwsh
