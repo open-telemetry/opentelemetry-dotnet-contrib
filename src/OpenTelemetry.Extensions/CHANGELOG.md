@@ -5,8 +5,8 @@
 * Add LogToActivityEventConversionOptions.Filter callback
   ([#1059](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1059))
 
-* Update OpenTelemetry SDK version to `1.5.1`.
-  ([#1255](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1255))
+* Update OpenTelemetry SDK version to `1.6.0`.
+  ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
 
 ## 1.0.0-beta.4
 

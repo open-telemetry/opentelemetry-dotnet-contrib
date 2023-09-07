@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-* Update OpenTelemetry API to 1.5.1
-  ([#1255](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1255))
+* Update OpenTelemetry API to 1.6.0
+  ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
 
 ## 0.5.0-beta.3
 
