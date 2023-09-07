@@ -137,7 +137,7 @@ public class TestRateLimiter
         TestClock clock = new TestClock();
         RateLimiter limiter = new RateLimiter(1, numWorkers * creditsPerWorker, clock);
         int count = 0;
-        List<Task> tasks = new List<Task>(numWorkers);
+        List<Task> tasks = new(numWorkers);
 
         for (int w = 0; w < numWorkers; ++w)
         {
