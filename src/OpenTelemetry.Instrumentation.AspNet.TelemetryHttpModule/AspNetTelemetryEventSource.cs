@@ -37,7 +37,7 @@ internal sealed class AspNetTelemetryEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Verbose, EventKeywords.All))
         {
-            this.ActivityStarted(activity?.Id);
+            this.ActivityStarted(activity.Id);
         }
     }
 
@@ -46,7 +46,7 @@ internal sealed class AspNetTelemetryEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Verbose, EventKeywords.All))
         {
-            this.ActivityStopped(activity?.Id);
+            this.ActivityStopped(activity.Id);
         }
     }
 
@@ -55,7 +55,7 @@ internal sealed class AspNetTelemetryEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Informational, EventKeywords.All))
         {
-            this.ActivityRestored(activity?.Id);
+            this.ActivityRestored(activity.Id);
         }
     }
 
@@ -64,7 +64,7 @@ internal sealed class AspNetTelemetryEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
-            this.ActivityException(activity?.Id, ex.ToInvariantString());
+            this.ActivityException(activity.Id, ex.ToInvariantString());
         }
     }
 
@@ -73,7 +73,7 @@ internal sealed class AspNetTelemetryEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
-            this.CallbackException(activity?.Id, eventName, ex.ToInvariantString());
+            this.CallbackException(activity.Id, eventName, ex.ToInvariantString());
         }
     }
 
@@ -84,19 +84,19 @@ internal sealed class AspNetTelemetryEventSource : EventSource
     }
 
     [Event(2, Message = "Activity started, Id='{0}'", Level = EventLevel.Verbose)]
-    public void ActivityStarted(string id)
+    public void ActivityStarted(string? id)
     {
         this.WriteEvent(2, id);
     }
 
     [Event(3, Message = "Activity stopped, Id='{0}'", Level = EventLevel.Verbose)]
-    public void ActivityStopped(string id)
+    public void ActivityStopped(string? id)
     {
         this.WriteEvent(3, id);
     }
 
     [Event(4, Message = "Activity restored, Id='{0}'", Level = EventLevel.Informational)]
-    public void ActivityRestored(string id)
+    public void ActivityRestored(string? id)
     {
         this.WriteEvent(4, id);
     }
@@ -108,13 +108,13 @@ internal sealed class AspNetTelemetryEventSource : EventSource
     }
 
     [Event(6, Message = "Activity exception, Id='{0}': {1}", Level = EventLevel.Error)]
-    public void ActivityException(string id, string ex)
+    public void ActivityException(string? id, string ex)
     {
         this.WriteEvent(6, id, ex);
     }
 
     [Event(7, Message = "Callback exception, Id='{0}', Name='{1}': {2}", Level = EventLevel.Error)]
-    public void CallbackException(string id, string eventName, string ex)
+    public void CallbackException(string? id, string eventName, string ex)
     {
         this.WriteEvent(7, id, eventName, ex);
     }

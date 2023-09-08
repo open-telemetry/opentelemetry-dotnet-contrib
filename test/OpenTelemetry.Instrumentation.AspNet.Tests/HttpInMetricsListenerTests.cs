@@ -79,9 +79,9 @@ public class HttpInMetricsListenerTests
         Assert.Equal(duration, sum);
 
         Assert.Equal(3, metricPoints[0].Tags.Count);
-        string httpMethod = null;
+        string? httpMethod = null;
         int httpStatusCode = 0;
-        string httpScheme = null;
+        string? httpScheme = null;
 
         foreach (var tag in metricPoints[0].Tags)
         {

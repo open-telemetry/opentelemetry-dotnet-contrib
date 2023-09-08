@@ -14,6 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
@@ -49,7 +51,7 @@ internal class TestEventListener : EventListener
     }
 
     /// <summary>Gets or sets the handler for event source creation.</summary>
-    public Action<EventSource> OnOnEventSourceCreated { get; set; }
+    public Action<EventSource>? OnOnEventSourceCreated { get; set; }
 
     /// <summary>Gets or sets the handler for event source writes.</summary>
     public Action<EventWrittenEventArgs> OnOnEventWritten { get; set; }
@@ -90,8 +92,8 @@ internal class TestEventListener : EventListener
     /// <param name="eventSource">The event source that was created.</param>
     protected override void OnEventSourceCreated(EventSource eventSource)
     {
-        // Check for null because this method is called by the base class constror before we can initialize it
-        Action<EventSource> callback = this.OnOnEventSourceCreated;
+        // Check for null because this method is called by the base class constructor before we can initialize it
+        Action<EventSource>? callback = this.OnOnEventSourceCreated;
         callback?.Invoke(eventSource);
     }
 }
