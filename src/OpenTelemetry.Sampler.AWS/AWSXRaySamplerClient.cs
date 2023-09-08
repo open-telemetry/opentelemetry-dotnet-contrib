@@ -69,7 +69,7 @@ internal class AWSXRaySamplerClient : IDisposable
             catch (Exception ex)
             {
                 AWSSamplerEventSource.Log.FailedToDeserializeResponse(
-                    nameof(AWSXRaySamplerClient.GetSamplingRules),
+                    nameof(this.GetSamplingRules),
                     ex.Message);
             }
         }
@@ -98,7 +98,7 @@ internal class AWSXRaySamplerClient : IDisposable
         catch (Exception ex)
         {
             AWSSamplerEventSource.Log.FailedToDeserializeResponse(
-                    nameof(AWSXRaySamplerClient.GetSamplingTargets),
+                    nameof(this.GetSamplingTargets),
                     ex.Message);
         }
 

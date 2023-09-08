@@ -8,7 +8,6 @@
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
     <MinVerTagPrefix>Instrumentation.StackExchangeRedis-</MinVerTagPrefix>
     <Nullable>enable</Nullable>
-    <EnableAnalysis>true</EnableAnalysis>
     <ImplicitUsings>true</ImplicitUsings>
   </PropertyGroup>
 

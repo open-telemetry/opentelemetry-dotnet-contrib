@@ -23,8 +23,12 @@ jobs:
     - name: Setup dotnet
       uses: actions/setup-dotnet@v3
 
-    - name: Install format tool
-      run: dotnet tool install -g dotnet-format
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Protobuf compile
+      run: dotnet build -t:Protobuf_Compile --no-restore
+      continue-on-error: true # Note: Projects without Grpc.Tools won't have the Protobuf_Compile target which generates an error
 
     - name: dotnet format
-      run: dotnet-format --folder --check
+      run: dotnet format opentelemetry-dotnet-contrib.sln --no-restore --verify-no-changes
