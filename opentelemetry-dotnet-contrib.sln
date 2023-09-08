@@ -291,6 +291,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.InfluxDB", "exampl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.AotCompatibility.TestApp", "test\OpenTelemetry.AotCompatibility.TestApp\OpenTelemetry.AotCompatibility.TestApp.csproj", "{31937862-0C88-41C0-AFD6-F97A7BF803A9}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{9B30F5FD-3309-49CB-9CAD-D3372FAFD796}"
+	ProjectSection(SolutionItems) = preProject
+		examples\Directory.Build.props = examples\Directory.Build.props
+		examples\Directory.Build.targets = examples\Directory.Build.targets
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -698,6 +704,7 @@ Global
 		{2D354354-BAFB-490B-A26F-6A16A52A1A45} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
 		{B4951583-D432-4E87-85CF-498FDD6A35E6} = {2D354354-BAFB-490B-A26F-6A16A52A1A45}
 		{31937862-0C88-41C0-AFD6-F97A7BF803A9} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{9B30F5FD-3309-49CB-9CAD-D3372FAFD796} = {824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}

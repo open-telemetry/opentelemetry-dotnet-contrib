@@ -6,6 +6,7 @@
     <Description>A module that instruments incoming request with System.Diagnostics.Activity and notifies listeners with DiagnosticsSource.</Description>
     <PackageTags>$(PackageTags);distributed-tracing;AspNet;MVC;WebAPI</PackageTags>
     <MinVerTagPrefix>Instrumentation.AspNet.TelemetryHttpModule-</MinVerTagPrefix>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

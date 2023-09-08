@@ -6,8 +6,8 @@
   enable filtering of instrumentation.
   ([#1203](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1203))
 
-* Updated OpenTelemetry SDK package version to 1.5.1
-  ([#1255](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1255))
+* Updated OpenTelemetry SDK package version to 1.6.0
+  ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
 
 ## 1.0.0-beta.7
 

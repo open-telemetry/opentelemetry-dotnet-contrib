@@ -358,7 +358,9 @@ public class GenevaMetricExporterTests
 
         if (hasExemplars)
         {
+#if EXPOSE_EXPERIMENTAL_FEATURES
             meterProviderBuilder.SetExemplarFilter(new AlwaysOnExemplarFilter());
+#endif
         }
 
         if (hasFilteredTagsForExemplars)
@@ -1291,7 +1293,10 @@ public class GenevaMetricExporterTests
         metricPointsEnumerator.MoveNext();
         var metricPoint = metricPointsEnumerator.Current;
 
+#if EXPOSE_EXPERIMENTAL_FEATURES
         var exemplars = metricPoint.GetExemplars();
+#endif
+
         UserdataV2 result = null;
 
         if (metricType == MetricType.LongSum)
