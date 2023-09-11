@@ -18,6 +18,10 @@
   `{OriginalFormat}` key or `LogRecord.Body`).
   ([#1321](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1321))
 
+* Removed `traceFlags` from the common schema `dt` (Distributed Tracing)
+  extension because it is not currently supported by the OneCollector service.
+  ([#1345](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1345))
+
 ## 1.5.1
 
 Released 2023-Aug-07

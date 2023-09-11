@@ -32,7 +32,6 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
     private static readonly JsonEncodedText DistributedTraceExtensionProperty = JsonEncodedText.Encode("dt");
     private static readonly JsonEncodedText DistributedTraceExtensionTraceIdProperty = JsonEncodedText.Encode("traceId");
     private static readonly JsonEncodedText DistributedTraceExtensionSpanIdProperty = JsonEncodedText.Encode("spanId");
-    private static readonly JsonEncodedText DistributedTraceExtensionTraceFlagsProperty = JsonEncodedText.Encode("traceFlags");
     private static readonly JsonEncodedText ExceptionExtensionProperty = JsonEncodedText.Encode("ex");
     private static readonly JsonEncodedText ExceptionExtensionTypeProperty = JsonEncodedText.Encode("type");
     private static readonly JsonEncodedText ExceptionExtensionMessageProperty = JsonEncodedText.Encode("msg");
@@ -215,7 +214,12 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
             writer.WriteStartObject(DistributedTraceExtensionProperty);
             writer.WriteString(DistributedTraceExtensionTraceIdProperty, item.TraceId.ToHexString());
             writer.WriteString(DistributedTraceExtensionSpanIdProperty, item.SpanId.ToHexString());
-            writer.WriteNumber(DistributedTraceExtensionTraceFlagsProperty, (int)item.TraceFlags);
+            /*
+             * Note: OneCollector does not currently support traceFlags. See:
+             * https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1313
+             *
+             * writer.WriteNumber(DistributedTraceExtensionTraceFlagsProperty, (int)item.TraceFlags);
+             */
             writer.WriteEndObject();
         }
 
