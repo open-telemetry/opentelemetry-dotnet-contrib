@@ -12,12 +12,12 @@
     <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.Exporter.OneCollector\OpenTelemetry.Exporter.OneCollector.csproj" />
   </ItemGroup>
 
-  <Target Name="Restore">
-    <MSBuild Projects="@(SolutionProjects)" Targets="Restore" ContinueOnError="ErrorAndStop" />
-  </Target>
-
   <Target Name="Build">
     <MSBuild Projects="@(SolutionProjects)" Targets="Build" ContinueOnError="ErrorAndStop" />
+  </Target>
+
+  <Target Name="Restore">
+    <MSBuild Projects="@(SolutionProjects)" Targets="Restore" ContinueOnError="ErrorAndStop" />
   </Target>
 
   <Target Name="Pack">
