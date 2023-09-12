@@ -55,10 +55,9 @@ public class HttpInListenerTests
         int routeType,
         string routeTemplate,
         bool setStatusToErrorInEnrich = false,
-        string filter = null,
+        string? filter = null,
         bool recordException = false)
     {
-        IDisposable tracerProvider = null;
         RouteData routeData;
         switch (routeType)
         {
@@ -93,16 +92,6 @@ public class HttpInListenerTests
                 throw new NotSupportedException();
         }
 
-        var workerRequest = new Mock<HttpWorkerRequest>();
-        workerRequest.Setup(wr => wr.GetKnownRequestHeader(It.IsAny<int>())).Returns<int>(i =>
-        {
-            return i switch
-            {
-                39 => "Test", // User-Agent
-                _ => null,
-            };
-        });
-
         HttpContext.Current = new HttpContext(
             new HttpRequest(string.Empty, url, string.Empty)
             {
@@ -113,17 +102,17 @@ public class HttpInListenerTests
             },
             new HttpResponse(new StringWriter()));
 
-        typeof(HttpRequest).GetField("_wr", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(HttpContext.Current.Request, workerRequest.Object);
+        typeof(HttpRequest).GetField("_wr", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(HttpContext.Current.Request, Mock.Of<HttpWorkerRequest>());
 
         List<Activity> exportedItems = new List<Activity>(16);
 
         Sdk.SetDefaultTextMapPropagator(new TraceContextPropagator());
-        using (tracerProvider = Sdk.CreateTracerProviderBuilder()
+        using (Sdk.CreateTracerProviderBuilder()
                    .AddAspNetInstrumentation((options) =>
                    {
                        options.Filter = httpContext =>
                        {
-                           Assert.True(Activity.Current.IsAllDataRequested);
+                           Assert.True(Activity.Current!.IsAllDataRequested);
                            if (string.IsNullOrEmpty(filter))
                            {
                                return true;
@@ -153,7 +142,7 @@ public class HttpInListenerTests
                 Assert.Single(inMemoryEventListener.Events.Where((e) => e.EventId == 2));
             }
 
-            Assert.Equal(TelemetryHttpModule.AspNetActivityName, Activity.Current.OperationName);
+            Assert.Equal(TelemetryHttpModule.AspNetActivityName, Activity.Current!.OperationName);
 
             if (recordException)
             {

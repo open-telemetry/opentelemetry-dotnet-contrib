@@ -14,6 +14,8 @@
 // limitations under the License.
 // </copyright>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
@@ -42,9 +44,7 @@ internal static class EventSourceTestHelper
             object[] eventArguments = GenerateEventArguments(eventMethod);
             eventMethod.Invoke(eventSource, eventArguments);
 
-            EventWrittenEventArgs actualEvent = null;
-
-            actualEvent = listener.Messages.First(q => q.EventName == eventMethod.Name);
+            var actualEvent = listener.Messages.First(q => q.EventName == eventMethod.Name);
 
             VerifyEventId(eventMethod, actualEvent);
             VerifyEventLevel(eventMethod, actualEvent);
@@ -115,6 +115,7 @@ internal static class EventSourceTestHelper
     }
 
     private static void AssertEqual<T>(string methodName, T expected, T actual)
+        where T : notnull
     {
         if (!expected.Equals(actual))
         {
