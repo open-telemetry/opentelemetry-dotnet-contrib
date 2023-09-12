@@ -1,11 +1,11 @@
 <Project>
 
   <ItemGroup>
-    <SolutionProjects Include="src\OpenTelemetry.Exporter.OneCollector\OpenTelemetry.Exporter.OneCollector.csproj" />
-    <SolutionProjects Include="test\OpenTelemetry.Exporter.OneCollector.Tests\OpenTelemetry.Exporter.OneCollector.Tests.csproj" />
-    <SolutionProjects Include="test\OpenTelemetry.Exporter.OneCollector.Benchmarks\OpenTelemetry.Exporter.OneCollector.Benchmarks.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\src\OpenTelemetry.Exporter.OneCollector\OpenTelemetry.Exporter.OneCollector.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Exporter.OneCollector.Tests\OpenTelemetry.Exporter.OneCollector.Tests.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Exporter.OneCollector.Benchmarks\OpenTelemetry.Exporter.OneCollector.Benchmarks.csproj" />
 
-    <PackProjects Include="src\OpenTelemetry.Exporter.OneCollector\OpenTelemetry.Exporter.OneCollector.csproj" />
+    <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.Exporter.OneCollector\OpenTelemetry.Exporter.OneCollector.csproj" />
   </ItemGroup>
 
   <Target Name="Build">
