@@ -36,8 +36,11 @@ jobs:
     - name: Setup dotnet
       uses: actions/setup-dotnet@v3
 
+    - name: dotnet restore test/${{ env.PROJECT }}.Tests
+      run: dotnet restore test/${{ env.PROJECT }}.Tests
+
     - name: dotnet build test/${{ env.PROJECT }}.Tests
-      run: dotnet build --configuration Release test/${{ env.PROJECT }}.Tests/${{ env.PROJECT }}.Tests.csproj
+      run: dotnet build test/${{ env.PROJECT }}.Tests --configuration Release --no-restore
 
     - name: dotnet test test/${{ env.PROJECT }}.Tests
-      run: dotnet test test/${{ env.PROJECT }}.Tests/bin/Release/**/${{ env.PROJECT }}.Tests.dll --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed"
+      run: dotnet test test/${{ env.PROJECT }}.Tests --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed"
