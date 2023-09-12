@@ -18,7 +18,17 @@ env:
   PROJECT: OpenTelemetry.Exporter.OneCollector
 
 jobs:
+  authorize:
+    environment: # Run external PRs from forks on the ExternalOneCollector environment which requires approval
+      ${{ github.event_name == 'pull_request_target' &&
+      github.event.pull_request.head.repo.full_name != github.repository &&
+      'ExternalOneCollector' || 'internal' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo ✓
+
   build-test:
+    needs: authorize
 
     strategy:
       fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
@@ -32,6 +42,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha || github.ref }} # Run on the fork branch once approved
 
     - name: Setup dotnet
       uses: actions/setup-dotnet@v3
