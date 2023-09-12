@@ -33,7 +33,7 @@ jobs:
     - name: Setup dotnet
       uses: actions/setup-dotnet@v3
 
-    - name: Install dependencies
+    - name: Restore
       run: dotnet restore
 
     - name: Build
