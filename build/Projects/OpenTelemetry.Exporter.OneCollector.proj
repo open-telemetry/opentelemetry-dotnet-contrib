@@ -1,5 +1,9 @@
 <Project>
 
+  <PropertyGroup>
+    <RepoRoot>$([System.IO.Directory]::GetParent($(MSBuildThisFileDirectory)).Parent.Parent.FullName)</RepoRoot>
+  </PropertyGroup>
+
   <ItemGroup>
     <SolutionProjects Include="$(RepoRoot)\src\OpenTelemetry.Exporter.OneCollector\OpenTelemetry.Exporter.OneCollector.csproj" />
     <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Exporter.OneCollector.Tests\OpenTelemetry.Exporter.OneCollector.Tests.csproj" />
