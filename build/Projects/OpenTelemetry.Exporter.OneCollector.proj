@@ -1,0 +1,19 @@
+<Project>
+
+  <ItemGroup>
+    <SolutionProjects Include="src\OpenTelemetry.Exporter.OneCollector\OpenTelemetry.Exporter.OneCollector.csproj" />
+    <SolutionProjects Include="test\OpenTelemetry.Exporter.OneCollector.Tests\OpenTelemetry.Exporter.OneCollector.Tests.csproj" />
+    <SolutionProjects Include="test\OpenTelemetry.Exporter.OneCollector.Benchmarks\OpenTelemetry.Exporter.OneCollector.Benchmarks.csproj" />
+
+    <PackProjects Include="src\OpenTelemetry.Exporter.OneCollector\OpenTelemetry.Exporter.OneCollector.csproj" />
+  </ItemGroup>
+
+  <Target Name="Build">
+    <MSBuild Projects="@(SolutionProjects)" Targets="Restore;Build" ContinueOnError="ErrorAndStop" />
+  </Target>
+
+  <Target Name="Pack">
+    <MSBuild Projects="@(PackProjects)" Targets="Pack" ContinueOnError="ErrorAndStop" />
+  </Target>
+
+</Project>

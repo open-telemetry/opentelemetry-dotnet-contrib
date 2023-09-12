@@ -14,26 +14,34 @@
 // limitations under the License.
 // </copyright>
 
+#pragma warning disable IDE0005 // Using directive is unnecessary. <- Projects with ImplicitUsings enabled will see warnings on using System
+
+#nullable enable
+
 using System;
 using Xunit;
 
 namespace OpenTelemetry.Tests;
-#nullable enable
 
-internal class SkipUnlessEnvVarFoundFactAttribute : FactAttribute
+internal sealed class SkipUnlessEnvVarFoundFactAttribute : FactAttribute
 {
     public SkipUnlessEnvVarFoundFactAttribute(string environmentVariable)
     {
-        var environmentVariableValue = Environment.GetEnvironmentVariable(environmentVariable, EnvironmentVariableTarget.Process)!;
-
-        if (string.IsNullOrEmpty(environmentVariableValue))
-        {
-            environmentVariableValue = Environment.GetEnvironmentVariable(environmentVariable, EnvironmentVariableTarget.Machine);
-        }
-
-        if (string.IsNullOrEmpty(environmentVariableValue))
+        if (string.IsNullOrEmpty(GetEnvironmentVariable(environmentVariable)))
         {
             this.Skip = $"Skipped because {environmentVariable} environment variable was not configured.";
         }
+    }
+
+    public static string? GetEnvironmentVariable(string environmentVariableName)
+    {
+        var environmentVariableValue = Environment.GetEnvironmentVariable(environmentVariableName, EnvironmentVariableTarget.Process);
+
+        if (string.IsNullOrEmpty(environmentVariableValue))
+        {
+            environmentVariableValue = Environment.GetEnvironmentVariable(environmentVariableName, EnvironmentVariableTarget.Machine);
+        }
+
+        return environmentVariableValue;
     }
 }

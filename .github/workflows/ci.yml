@@ -5,10 +5,14 @@ on:
     branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths-ignore:
     - '**.md'
+    - '*/OpenTelemetry.Instrumentation.Process*/**'
+    - '*/OpenTelemetry.Exporter.OneCollector*/**'
   pull_request:
     branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths-ignore:
     - '**.md'
+    - '*/OpenTelemetry.Instrumentation.Process*/**'
+    - '*/OpenTelemetry.Exporter.OneCollector*/**'
 
 jobs:
   build-test:
@@ -36,4 +40,4 @@ jobs:
       run: dotnet build --configuration Release --no-restore
 
     - name: Test ${{ matrix.version }}
-      run: dotnet test **/bin/**/${{ matrix.version }}/*.Tests.dll --logger:"console;verbosity=detailed"
+      run: dotnet test **/bin/**/${{ matrix.version }}/*.Tests.dll --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed"
