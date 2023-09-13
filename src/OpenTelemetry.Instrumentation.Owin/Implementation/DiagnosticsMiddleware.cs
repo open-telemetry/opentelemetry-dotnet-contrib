@@ -211,10 +211,10 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
             if (OwinInstrumentationMetrics.HttpClientDuration.Enabled)
             {
                 OwinInstrumentationMetrics.HttpClientDuration.Record(
-                    new(SemanticConventions.AttributeHttpMethod, owinContext.Request.Method),
-                    new(SemanticConventions.AttributeHttpScheme, owinContext.Request.Scheme),
-                    new(SemanticConventions.AttributeHttpStatusCode, owinContext.Response.StatusCode));
                     activity.Duration.TotalSeconds,
+                    new(SemanticConventions.AttributeHttpRequestMethod, owinContext.Request.Method),
+                    new(SemanticConventions.AttributeUrlScheme, owinContext.Request.Scheme),
+                    new(SemanticConventions.AttributeHttpResponseStatusCode, owinContext.Response.StatusCode));
             }
 
             if (!(Propagators.DefaultTextMapPropagator is TraceContextPropagator))
@@ -229,10 +229,10 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
             var durationS = duration / Stopwatch.Frequency;
 
             OwinInstrumentationMetrics.HttpClientDuration.Record(
-                new(SemanticConventions.AttributeHttpMethod, owinContext.Request.Method),
-                new(SemanticConventions.AttributeHttpScheme, owinContext.Request.Scheme),
-                new(SemanticConventions.AttributeHttpStatusCode, owinContext.Response.StatusCode));
                 durationS,
+                new(SemanticConventions.AttributeHttpRequestMethod, owinContext.Request.Method),
+                new(SemanticConventions.AttributeUrlScheme, owinContext.Request.Scheme),
+                new(SemanticConventions.AttributeHttpResponseStatusCode, owinContext.Response.StatusCode));
         }
     }
 
