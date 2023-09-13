@@ -1,12 +1,6 @@
 name: Build OpenTelemetry.Instrumentation.Process
 
 on:
-  push:
-    branches: [ 'main*', 'instrumentation*' ]
-    paths:
-    - '*/OpenTelemetry.Instrumentation.Process*/**'
-    - 'build/**'
-    - '!**.md'
   pull_request:
     branches: [ 'main*', 'instrumentation*' ]
     paths:

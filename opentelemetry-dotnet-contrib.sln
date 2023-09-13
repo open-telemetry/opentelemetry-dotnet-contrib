@@ -26,6 +26,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\assign-reviewers.yml = .github\workflows\assign-reviewers.yml
 		.github\workflows\ci-aot.yml = .github\workflows\ci-aot.yml
+		.github\workflows\ci-Exporter.OneCollector-Integration.yml = .github\workflows\ci-Exporter.OneCollector-Integration.yml
 		.github\workflows\ci-Exporter.OneCollector.yml = .github\workflows\ci-Exporter.OneCollector.yml
 		.github\workflows\ci-Instrumentation.Process.yml = .github\workflows\ci-Instrumentation.Process.yml
 		.github\workflows\ci-md.yml = .github\workflows\ci-md.yml

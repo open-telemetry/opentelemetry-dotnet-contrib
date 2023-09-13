@@ -1,16 +1,7 @@
 name: Build OpenTelemetry.Exporter.OneCollector
 
-permissions:
-  contents: read
-
 on:
-  push:
-    branches: [ 'main*', 'exporter*' ]
-    paths:
-    - '*/OpenTelemetry.Exporter.OneCollector*/**'
-    - 'build/**'
-    - '!**.md'
-  pull_request_target: # Allows secret access from forks see: https://github.blog/2020-08-03-github-actions-improvements-for-fork-and-pull-request-workflows/#improvements-for-public-repository-forks
+  pull_request:
     branches: [ 'main*', 'exporter*' ]
     paths:
     - '*/OpenTelemetry.Exporter.OneCollector*/**'
@@ -21,17 +12,7 @@ env:
   PROJECT: OpenTelemetry.Exporter.OneCollector
 
 jobs:
-  authorize:
-    environment: # Run external PRs from forks on the ExternalOneCollector environment which requires approval
-      ${{ github.event_name == 'pull_request_target' &&
-      github.event.pull_request.head.repo.full_name != github.repository &&
-      'ExternalOneCollector' || 'internal' }}
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo ✓
-
   build-test:
-    needs: authorize
 
     strategy:
       fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
@@ -45,8 +26,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
-      with:
-        ref: ${{ github.event.pull_request.head.sha || github.ref }} # Run on the fork branch once approved
 
     - name: Setup dotnet
       uses: actions/setup-dotnet@v3
@@ -59,5 +38,3 @@ jobs:
 
     - name: dotnet test test/${{env.PROJECT}}.Tests
       run: dotnet test test/${{env.PROJECT}}.Tests --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed"
-      env:
-        OTEL_ONECOLLECTOR_INSTRUMENTATION_KEY: ${{ secrets.OTEL_ONECOLLECTOR_INSTRUMENTATION_KEY }}
