@@ -26,6 +26,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\assign-reviewers.yml = .github\workflows\assign-reviewers.yml
 		.github\workflows\ci-aot.yml = .github\workflows\ci-aot.yml
+		.github\workflows\ci-Exporter.OneCollector-Integration.yml = .github\workflows\ci-Exporter.OneCollector-Integration.yml
+		.github\workflows\ci-Instrumentation.Process.yml = .github\workflows\ci-Instrumentation.Process.yml
 		.github\workflows\ci-md.yml = .github\workflows\ci-md.yml
 		.github\workflows\ci.yml = .github\workflows\ci.yml
 		.github\workflows\codeql-analysis.yml = .github\workflows\codeql-analysis.yml
@@ -205,7 +207,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentati
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AspNet", "AspNet", "{2B6D0764-5E66-423A-9943-B3A72FF181EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples.AspNet", "examples\AspNet\Examples.AspNet.csproj", "{9A4E3A68-904B-4835-A3C8-F664B73098DB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.AspNet", "examples\AspNet\Examples.AspNet.csproj", "{9A4E3A68-904B-4835-A3C8-F664B73098DB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "runtime-instrumentation", "examples\runtime-instrumentation\runtime-instrumentation.csproj", "{9FF9B46A-AD93-4B3F-92DA-6FDCC98FEA91}"
 EndProject
