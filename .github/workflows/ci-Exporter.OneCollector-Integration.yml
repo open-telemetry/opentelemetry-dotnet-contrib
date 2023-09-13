@@ -16,10 +16,10 @@ env:
 
 jobs:
   authorize:
-    environment: # Run external PRs from forks on the ExternalOneCollector environment which requires approval
+    environment: # Run external PRs from forks on the "external"" environment which requires approval
       ${{ github.event_name == 'pull_request_target' &&
       github.event.pull_request.head.repo.full_name != github.repository &&
-      'ExternalOneCollector' || 'internal' }}
+      'external' || 'internal' }}
     runs-on: ubuntu-latest
     steps:
       - run: echo ✓
