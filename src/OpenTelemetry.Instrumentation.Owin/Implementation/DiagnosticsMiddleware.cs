@@ -211,10 +211,10 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
             if (OwinInstrumentationMetrics.HttpClientDuration.Enabled)
             {
                 OwinInstrumentationMetrics.HttpClientDuration.Record(
-                    activity.Duration.TotalMilliseconds,
                     new(SemanticConventions.AttributeHttpMethod, owinContext.Request.Method),
                     new(SemanticConventions.AttributeHttpScheme, owinContext.Request.Scheme),
                     new(SemanticConventions.AttributeHttpStatusCode, owinContext.Response.StatusCode));
+                    activity.Duration.TotalSeconds,
             }
 
             if (!(Propagators.DefaultTextMapPropagator is TraceContextPropagator))
@@ -226,13 +226,13 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
         {
             var endTimestamp = Stopwatch.GetTimestamp();
             var duration = endTimestamp - startTimestamp;
-            var durationMs = (duration / Stopwatch.Frequency) * 1000;
+            var durationS = duration / Stopwatch.Frequency;
 
             OwinInstrumentationMetrics.HttpClientDuration.Record(
-                durationMs,
                 new(SemanticConventions.AttributeHttpMethod, owinContext.Request.Method),
                 new(SemanticConventions.AttributeHttpScheme, owinContext.Request.Scheme),
                 new(SemanticConventions.AttributeHttpStatusCode, owinContext.Response.StatusCode));
+                durationS,
         }
     }
 
