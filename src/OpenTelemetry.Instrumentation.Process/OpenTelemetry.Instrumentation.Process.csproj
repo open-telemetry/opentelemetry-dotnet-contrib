@@ -4,7 +4,6 @@
     <Description>dotnet process instrumentation for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);process</PackageTags>
     <MinVerTagPrefix>Instrumentation.Process-</MinVerTagPrefix>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

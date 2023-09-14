@@ -5,7 +5,6 @@
     <Description>OpenTelemetry Cassandra Instrumentation</Description>
     <PackageTags>$(PackageTags);Cassandra;CassandraCSharpDriver</PackageTags>
     <MinVerTagPrefix>Instrumentation.Cassandra-</MinVerTagPrefix>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
