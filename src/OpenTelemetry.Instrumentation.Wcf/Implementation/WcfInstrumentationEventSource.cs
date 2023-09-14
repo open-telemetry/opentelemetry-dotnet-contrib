@@ -85,7 +85,7 @@ internal sealed class WcfInstrumentationEventSource : EventSource
         }
     }
 
-    [Event(EventIds.AspNetReflectionFailedToBind, Message = "Failed to bind to asp.net instrumentation. Exception {0}.", Level = EventLevel.Verbose)]
+    [Event(EventIds.AspNetReflectionFailedToBind, Message = "Failed to bind to ASP.NET instrumentation. Exception {0}.", Level = EventLevel.Verbose)]
     public void AspNetReflectionFailedToBind(string exception)
     {
         this.WriteEvent(EventIds.AspNetReflectionFailedToBind, exception);

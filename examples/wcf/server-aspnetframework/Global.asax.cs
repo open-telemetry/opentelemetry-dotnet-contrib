@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-#pragma warning disable IDE0005 // Using directive is unnecessary.
 using System;
 using System.Configuration;
 using System.Web;
@@ -23,7 +22,6 @@ using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-#pragma warning restore IDE0005 // Using directive is unnecessary.
 
 namespace Examples.Wcf.Server.AspNetFramework;
 
@@ -36,19 +34,19 @@ public class WebApiApplication : HttpApplication
     protected void Application_Start()
     {
         var builder = Sdk.CreateTracerProviderBuilder()
-            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Wcf-AspNetServer"))
+            .ConfigureResource(resource => resource.AddService("Wcf-AspNetServer"))
             .AddAspNetInstrumentation()
             .AddWcfInstrumentation();
 
-        switch (ConfigurationManager.AppSettings["UseExporter"].ToLowerInvariant())
+        switch (ConfigurationManager.AppSettings["UseExporter"].ToUpperInvariant())
         {
-            case "zipkin":
+            case "ZIPKIN":
                 builder.AddZipkinExporter(zipkinOptions =>
                 {
                     zipkinOptions.Endpoint = new Uri(ConfigurationManager.AppSettings["ZipkinEndpoint"]);
                 });
                 break;
-            case "otlp":
+            case "OTLP":
                 builder.AddOtlpExporter(otlpOptions =>
                 {
                     otlpOptions.Endpoint = new Uri(ConfigurationManager.AppSettings["OtlpEndpoint"]);

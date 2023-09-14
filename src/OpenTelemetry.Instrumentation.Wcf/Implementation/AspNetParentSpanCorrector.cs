@@ -37,8 +37,8 @@ namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 /// </summary>
 internal static class AspNetParentSpanCorrector
 {
-    private const string TelemetryHttpModuleTypeName = "OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule, OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule, PublicKeyToken=7bd6737fe5b67e3c";
-    private const string TelemetryHttpModuleOptionsTypeName = "OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModuleOptions, OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule, PublicKeyToken=7bd6737fe5b67e3c";
+    private const string TelemetryHttpModuleTypeName = "OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule, OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule";
+    private const string TelemetryHttpModuleOptionsTypeName = "OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModuleOptions, OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule";
 
     private static readonly ReflectedInfo ReflectedValues = Initialize();
     private static readonly PropertyFetcher<object> RequestFetcher = new PropertyFetcher<object>("Request");
