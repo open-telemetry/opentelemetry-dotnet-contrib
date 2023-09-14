@@ -80,7 +80,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{824BD1DE
 		build\opentelemetry-icon-color.png = build\opentelemetry-icon-color.png
 		build\OpenTelemetryContrib.prod.ruleset = build\OpenTelemetryContrib.prod.ruleset
 		build\OpenTelemetryContrib.test.ruleset = build\OpenTelemetryContrib.test.ruleset
-		build\process-codecoverage.ps1 = build\process-codecoverage.ps1
 		build\sanitycheck.py = build\sanitycheck.py
 		build\stylecop.json = build\stylecop.json
 		build\test-aot-compatibility.ps1 = build\test-aot-compatibility.ps1

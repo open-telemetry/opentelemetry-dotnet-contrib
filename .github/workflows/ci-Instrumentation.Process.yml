@@ -23,6 +23,10 @@ jobs:
         - os: ubuntu-latest
           version: net462
 
+    env:
+      OS: ${{ matrix.os }}
+      TARGET_FRAMEWORK: ${{ matrix.version }}
+
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
@@ -37,4 +41,18 @@ jobs:
       run: dotnet build test/${{ env.PROJECT }}.Tests --configuration Release --no-restore
 
     - name: dotnet test test/${{ env.PROJECT }}.Tests
-      run: dotnet test test/${{ env.PROJECT }}.Tests --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed"
+      run: dotnet test test/${{ env.PROJECT }}.Tests --collect:"Code Coverage" --results-directory:"TestResults" --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed" -- RunConfiguration.DisableAppDomain=true
+
+    - name: Install coverage tool
+      run: dotnet tool install -g dotnet-coverage
+
+    - name: Merging test results
+      run: dotnet-coverage merge -r -f cobertura -o ./TestResults/Cobertura.xml ./TestResults/*
+
+    - uses: codecov/codecov-action@v3.1.4
+      continue-on-error: true # Note: Don't fail for upload failures
+      with:
+        file: TestResults/Cobertura.xml
+        env_vars: OS,TARGET_FRAMEWORK
+        flags: Instrumentation.Process.unittests
+        name: Code Coverage for Instrumentation.Process on [${{ matrix.os }}.${{ matrix.version }}]

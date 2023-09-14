@@ -5,20 +5,27 @@ on:
     branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths-ignore:
     - '**.md'
+    - '*/OpenTelemetry.Instrumentation.Process*/**'
+    - '*/OpenTelemetry.Exporter.OneCollector*/**'
   pull_request:
     branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths-ignore:
     - '**.md'
+    - '*/OpenTelemetry.Instrumentation.Process*/**'
+    - '*/OpenTelemetry.Exporter.OneCollector*/**'
 
 jobs:
   build-test-report:
-    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
         os: [windows-latest]
 
+    env:
+      OS: ${{ matrix.os }}
+
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -34,20 +41,17 @@ jobs:
       run: dotnet build --configuration Release --no-restore
 
     - name: dotnet test
-      run: dotnet test --collect:"Code Coverage" --results-directory:"TestResults" --configuration Release --no-build -- RunConfiguration.DisableAppDomain=true
+      run: dotnet test --collect:"Code Coverage" --results-directory:"TestResults" --configuration Release --no-restore --no-build -- RunConfiguration.DisableAppDomain=true
 
-    - name: Process code coverage
-      run: .\build\process-codecoverage.ps1
-      shell: powershell
-
-    - name: Install report tool
-      run: dotnet tool install -g dotnet-reportgenerator-globaltool
+    - name: Install coverage tool
+      run: dotnet tool install -g dotnet-coverage
 
     - name: Merging test results
-      run: reportgenerator -reports:TestResults/**/*.xml -targetdir:TestResults -reporttypes:Cobertura
+      run: dotnet-coverage merge -r -f cobertura -o ./TestResults/Cobertura.xml ./TestResults/*
 
     - uses: codecov/codecov-action@v3.1.4
       with:
         file: TestResults/Cobertura.xml
         env_vars: OS
+        flags: unittests
         name: Code Coverage for ${{ matrix.os }}

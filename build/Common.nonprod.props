@@ -24,13 +24,20 @@
     <CoverletCollectorPkgVer>[6.0.0,7.0.0)</CoverletCollectorPkgVer>
     <DotNetXUnitCliVer>[2.3.1,3.0)</DotNetXUnitCliVer>
     <MicrosoftExtensionsLoggingPkgVer>[5.0.0,7.0)</MicrosoftExtensionsLoggingPkgVer>
-    <MicrosoftNETTestSdkPkgVer>[17.6.3,18.0)</MicrosoftNETTestSdkPkgVer>
+    <MicrosoftNETTestSdkPkgVer>[17.7.2,18.0)</MicrosoftNETTestSdkPkgVer>
     <MoqPkgVer>[4.18.4,5.0)</MoqPkgVer>
     <OpenTelemetryExporterInMemoryPkgVer>$(OpenTelemetryCoreLatestVersion)</OpenTelemetryExporterInMemoryPkgVer>
     <OpenTelemetryExporterInMemoryLatestPreReleasePkgVer>$(OpenTelemetryCoreLatestPrereleaseVersion)</OpenTelemetryExporterInMemoryLatestPreReleasePkgVer>
     <XUnitRunnerVisualStudioPkgVer>[2.5.0,3.0)</XUnitRunnerVisualStudioPkgVer>
     <XUnitPkgVer>[2.5.0,3.0)</XUnitPkgVer>
     <WiremockNetPkgVer>[1.5.32,2.0)</WiremockNetPkgVer>
-</PropertyGroup>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+    TODO: Currently every test project specifies this reference. We should switch to this global style.
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkPkgVer)" Condition="'$(IsTestProject)' == 'true'" />
+    -->
+  </ItemGroup>
 
 </Project>
