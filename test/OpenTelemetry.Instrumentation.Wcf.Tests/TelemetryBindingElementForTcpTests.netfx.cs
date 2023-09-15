@@ -42,40 +42,43 @@ public class TelemetryBindingElementForTcpTests : IDisposable
 
         Random random = new Random();
         var retryCount = 5;
+        ServiceHost? createdHost = null;
         while (retryCount > 0)
         {
             try
             {
                 this.serviceBaseUri = new Uri($"net.tcp://localhost:{random.Next(2000, 5000)}/");
-                this.serviceHost = new ServiceHost(new Service(), this.serviceBaseUri);
-                var endpoint = this.serviceHost.AddServiceEndpoint(
+                createdHost = new ServiceHost(new Service(), this.serviceBaseUri);
+                var endpoint = createdHost.AddServiceEndpoint(
                     typeof(IServiceContract),
                     new NetTcpBinding(SecurityMode.None),
                     "/Service");
-                this.serviceHost.Open();
+                createdHost.Open();
                 break;
             }
             catch (Exception ex)
             {
                 this.output.WriteLine(ex.ToString());
-                if (this.serviceHost.State == CommunicationState.Faulted)
+                if (createdHost?.State == CommunicationState.Faulted)
                 {
-                    this.serviceHost.Abort();
+                    createdHost.Abort();
                 }
                 else
                 {
-                    this.serviceHost.Close();
+                    createdHost?.Close();
                 }
 
-                this.serviceHost = null;
+                createdHost = null;
                 retryCount--;
             }
         }
 
-        if (this.serviceHost == null)
+        if (createdHost == null || this.serviceBaseUri == null)
         {
             throw new InvalidOperationException("ServiceHost could not be started.");
         }
+
+        this.serviceHost = createdHost;
     }
 
     public void Dispose()
@@ -141,7 +144,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
                 .AddDownstreamInstrumentation();
         }
 
-        TracerProvider tracerProvider = builder.Build();
+        TracerProvider? tracerProvider = builder.Build();
 
         var client = new ServiceClient(
             new NetTcpBinding(SecurityMode.None),
@@ -154,18 +157,16 @@ public class TelemetryBindingElementForTcpTests : IDisposable
             if (emptyOrNullAction)
             {
                 await client.ExecuteWithEmptyActionNameAsync(
-                    new ServiceRequest
-                    {
-                        Payload = "Hello Open Telemetry!",
-                    }).ConfigureAwait(false);
+                    new ServiceRequest(
+                        payload: "Hello Open Telemetry!"))
+                    .ConfigureAwait(false);
             }
             else
             {
                 await client.ExecuteAsync(
-                    new ServiceRequest
-                    {
-                        Payload = "Hello Open Telemetry!",
-                    }).ConfigureAwait(false);
+                    new ServiceRequest(
+                        payload: "Hello Open Telemetry!"))
+                    .ConfigureAwait(false);
             }
         }
         finally
@@ -179,8 +180,8 @@ public class TelemetryBindingElementForTcpTests : IDisposable
                 client.Close();
             }
 
-            tracerProvider.Shutdown();
-            tracerProvider.Dispose();
+            tracerProvider?.Shutdown();
+            tracerProvider?.Dispose();
 
             WcfInstrumentationActivitySource.Options = null;
         }
@@ -231,7 +232,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
                     Assert.Equal("/Service", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.WcfChannelPathTag).Value);
                     if (includeVersion)
                     {
-                        var value = activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapMessageVersionTag).Value.ToString();
+                        var value = activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapMessageVersionTag).Value!.ToString();
                         Assert.Matches("""Soap.* \(http.*\) Addressing.* \(http.*\)""", value);
                     }
 
@@ -274,10 +275,10 @@ public class TelemetryBindingElementForTcpTests : IDisposable
 
             using (var parentActivity = testSource.StartActivity("ParentActivity"))
             {
-                client.ExecuteSynchronous(new ServiceRequest { Payload = "Hello Open Telemetry!" });
-                client.ExecuteSynchronous(new ServiceRequest { Payload = "Hello Open Telemetry!" });
-                var firstAsyncCall = client.ExecuteAsync(new ServiceRequest { Payload = "Hello Open Telemetry!" });
-                await client.ExecuteAsync(new ServiceRequest { Payload = "Hello Open Telemetry!" });
+                client.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!"));
+                client.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!"));
+                var firstAsyncCall = client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
+                await client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
                 await firstAsyncCall;
             }
         }
@@ -292,8 +293,8 @@ public class TelemetryBindingElementForTcpTests : IDisposable
                 client.Close();
             }
 
-            tracerProvider.Shutdown();
-            tracerProvider.Dispose();
+            tracerProvider?.Shutdown();
+            tracerProvider?.Dispose();
             testSource.Dispose();
             WcfInstrumentationActivitySource.Options = null;
         }
@@ -337,8 +338,8 @@ public class TelemetryBindingElementForTcpTests : IDisposable
                 // async execution context gets lost somewhere in WCF internals, so we'll explicitly open it first
                 client2.Open();
                 await Assert.ThrowsAnyAsync<Exception>(client2.ErrorAsync);
-                Assert.ThrowsAny<Exception>(() => clientBadUrl.ExecuteSynchronous(new ServiceRequest { Payload = "Hello Open Telemetry!" }));
-                await Assert.ThrowsAnyAsync<Exception>(() => clientBadUrl2.ExecuteAsync(new ServiceRequest { Payload = "Hello Open Telemetry!" }));
+                Assert.ThrowsAny<Exception>(() => clientBadUrl.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!")));
+                await Assert.ThrowsAnyAsync<Exception>(() => clientBadUrl2.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!")));
             }
         }
         finally
@@ -359,8 +360,8 @@ public class TelemetryBindingElementForTcpTests : IDisposable
             closeClient(clientBadUrl);
             closeClient(clientBadUrl2);
 
-            tracerProvider.Shutdown();
-            tracerProvider.Dispose();
+            tracerProvider?.Shutdown();
+            tracerProvider?.Dispose();
             testSource.Dispose();
             WcfInstrumentationActivitySource.Options = null;
         }
@@ -390,7 +391,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
             client.Endpoint.EndpointBehaviors.Add(new DownstreamInstrumentationEndpointBehavior());
             client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
             DownstreamInstrumentationChannel.FailNextReceive();
-            await Assert.ThrowsAnyAsync<Exception>(() => client.ExecuteAsync(new ServiceRequest { Payload = "Hello Open Telemetry!" }));
+            await Assert.ThrowsAnyAsync<Exception>(() => client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!")));
 
             for (var i = 0; i < 50; i++)
             {
@@ -415,8 +416,8 @@ public class TelemetryBindingElementForTcpTests : IDisposable
                 client.Close();
             }
 
-            tracerProvider.Shutdown();
-            tracerProvider.Dispose();
+            tracerProvider?.Shutdown();
+            tracerProvider?.Dispose();
             WcfInstrumentationActivitySource.Options = null;
         }
     }
@@ -439,7 +440,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
             client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
             client.InnerChannel.OperationTimeout = TimeSpan.FromMilliseconds(1000);
             DownstreamInstrumentationChannel.FailNextReceive();
-            await Assert.ThrowsAnyAsync<Exception>(() => client.ExecuteAsync(new ServiceRequest { Payload = "Hello Open Telemetry!" }));
+            await Assert.ThrowsAnyAsync<Exception>(() => client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!")));
 
             var startedWaiting = DateTime.UtcNow;
             for (var i = 0; i < 200; i++)
@@ -466,8 +467,8 @@ public class TelemetryBindingElementForTcpTests : IDisposable
                 client.Close();
             }
 
-            tracerProvider.Shutdown();
-            tracerProvider.Dispose();
+            tracerProvider?.Shutdown();
+            tracerProvider?.Dispose();
             WcfInstrumentationActivitySource.Options = null;
         }
     }

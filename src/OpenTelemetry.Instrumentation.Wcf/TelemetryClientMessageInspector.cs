@@ -38,19 +38,17 @@ public class TelemetryClientMessageInspector : IClientMessageInspector
     }
 
     /// <inheritdoc/>
-    public object BeforeSendRequest(ref Message request, IClientChannel channel)
+    public object? BeforeSendRequest(ref Message request, IClientChannel channel)
     {
         Guard.ThrowIfNull(request);
 
-        request.Properties.Add(TelemetryContextMessageProperty.Name, new TelemetryContextMessageProperty()
-        {
-            ActionMappings = this.actionMappings,
-        });
+        request.Properties.Add(TelemetryContextMessageProperty.Name, new TelemetryContextMessageProperty(
+            actionMappings: this.actionMappings));
         return null;
     }
 
     /// <inheritdoc/>
-    public void AfterReceiveReply(ref Message reply, object correlationState)
+    public void AfterReceiveReply(ref Message reply, object? correlationState)
     {
     }
 }

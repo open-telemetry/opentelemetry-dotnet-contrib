@@ -100,7 +100,7 @@ internal sealed class InstrumentedRequestChannel : InstrumentedChannel, IRequest
 
     private IAsyncResult InternalBeginRequest(Message message, Func<AsyncCallback, object, IAsyncResult> beginRequestDelegate, AsyncCallback callback, object state)
     {
-        IAsyncResult result = null;
+        IAsyncResult? result = null;
         ContextCallback executeInChildContext = _ =>
         {
             var telemetryState = ClientChannelInstrumentation.BeforeSendRequest(message, ((IRequestChannel)this).RemoteAddress?.Uri);
@@ -109,6 +109,6 @@ internal sealed class InstrumentedRequestChannel : InstrumentedChannel, IRequest
         };
 
         ExecutionContext.Run(ExecutionContext.Capture(), executeInChildContext, null);
-        return result;
+        return result!;
     }
 }

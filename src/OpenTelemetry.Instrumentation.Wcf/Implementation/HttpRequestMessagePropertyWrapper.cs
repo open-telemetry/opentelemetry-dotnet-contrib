@@ -30,7 +30,7 @@ namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 /// </summary>
 internal static class HttpRequestMessagePropertyWrapper
 {
-    private static readonly ReflectedInfo ReflectedValues = Initialize();
+    private static readonly ReflectedInfo? ReflectedValues = Initialize();
 
     public static bool IsHttpFunctionalityEnabled => ReflectedValues != null;
 
@@ -39,26 +39,26 @@ internal static class HttpRequestMessagePropertyWrapper
         get
         {
             AssertHttpEnabled();
-            return ReflectedValues.Name;
+            return ReflectedValues!.Name;
         }
     }
 
     public static object CreateNew()
     {
         AssertHttpEnabled();
-        return Activator.CreateInstance(ReflectedValues.Type);
+        return Activator.CreateInstance(ReflectedValues!.Type);
     }
 
     public static WebHeaderCollection GetHeaders(object httpRequestMessageProperty)
     {
         AssertHttpEnabled();
         AssertIsFrameworkMessageProperty(httpRequestMessageProperty);
-        return ReflectedValues.HeadersFetcher.Fetch(httpRequestMessageProperty);
+        return ReflectedValues!.HeadersFetcher.Fetch(httpRequestMessageProperty);
     }
 
-    private static ReflectedInfo Initialize()
+    private static ReflectedInfo? Initialize()
     {
-        Type type = null;
+        Type? type = null;
         try
         {
             type = Type.GetType(
@@ -77,12 +77,10 @@ internal static class HttpRequestMessagePropertyWrapper
                 throw new NotSupportedException("HttpRequestMessageProperty.Name property not found");
             }
 
-            return new ReflectedInfo
-            {
-                Type = type,
-                Name = (string)nameProp.GetValue(null),
-                HeadersFetcher = new PropertyFetcher<WebHeaderCollection>("Headers"),
-            };
+            return new ReflectedInfo(
+                type: type,
+                name: (string)nameProp.GetValue(null),
+                headersFetcher: new PropertyFetcher<WebHeaderCollection>("Headers"));
         }
         catch (Exception ex)
         {
@@ -105,7 +103,7 @@ internal static class HttpRequestMessagePropertyWrapper
     private static void AssertIsFrameworkMessageProperty(object httpRequestMessageProperty)
     {
         AssertHttpEnabled();
-        if (httpRequestMessageProperty == null || !httpRequestMessageProperty.GetType().Equals(ReflectedValues.Type))
+        if (httpRequestMessageProperty == null || !httpRequestMessageProperty.GetType().Equals(ReflectedValues!.Type))
         {
             throw new ArgumentException("Object must be of type HttpRequestMessageProperty");
         }
@@ -116,5 +114,12 @@ internal static class HttpRequestMessagePropertyWrapper
         public Type Type;
         public string Name;
         public PropertyFetcher<WebHeaderCollection> HeadersFetcher;
+
+        public ReflectedInfo(Type type, string name, PropertyFetcher<WebHeaderCollection> headersFetcher)
+        {
+            this.Type = type;
+            this.Name = name;
+            this.HeadersFetcher = headersFetcher;
+        }
     }
 }

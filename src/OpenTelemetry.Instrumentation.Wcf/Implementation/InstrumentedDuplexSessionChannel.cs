@@ -156,18 +156,18 @@ internal sealed class InstrumentedDuplexSessionChannel : InstrumentedChannel, ID
 
     private IAsyncResult SendInternal(Message message, TimeSpan timeout, Func<AsyncCallback, object, IAsyncResult> executeSend, AsyncCallback callback, object state)
     {
-        IAsyncResult result = null;
+        IAsyncResult? result = null;
         this.SendInternal(message, timeout, telemetryState =>
         {
             var asyncCallback = AsyncResultWithTelemetryState.GetAsyncCallback(callback, telemetryState);
             result = new AsyncResultWithTelemetryState(executeSend(asyncCallback, state), telemetryState);
         });
-        return result;
+        return result!;
     }
 
     private void SendInternal(Message message, TimeSpan timeout, Action<RequestTelemetryState> executeSend)
     {
-        RequestTelemetryState telemetryState = null;
+        RequestTelemetryState? telemetryState = null;
         ContextCallback executeInChildContext = _ =>
         {
             telemetryState = ClientChannelInstrumentation.BeforeSendRequest(message, this.RemoteAddress?.Uri);
@@ -181,7 +181,7 @@ internal sealed class InstrumentedDuplexSessionChannel : InstrumentedChannel, ID
         }
         catch (Exception)
         {
-            ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState);
+            ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState!);
             throw;
         }
     }

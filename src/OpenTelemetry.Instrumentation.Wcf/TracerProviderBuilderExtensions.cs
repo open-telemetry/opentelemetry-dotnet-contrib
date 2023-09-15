@@ -39,7 +39,7 @@ public static class TracerProviderBuilderExtensions
     /// <param name="builder"><see cref="TracerProviderBuilderExtensions"/> being configured.</param>
     /// <param name="configure">Wcf configuration options.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilderExtensions"/> to chain the calls.</returns>
-    public static TracerProviderBuilder AddWcfInstrumentation(this TracerProviderBuilder builder, Action<WcfInstrumentationOptions> configure)
+    public static TracerProviderBuilder AddWcfInstrumentation(this TracerProviderBuilder builder, Action<WcfInstrumentationOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
 
