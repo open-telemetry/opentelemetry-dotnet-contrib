@@ -7,7 +7,6 @@
     <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
     <MinVerTagPrefix>Instrumentation.StackExchangeRedis-</MinVerTagPrefix>
-    <Nullable>enable</Nullable>
     <ImplicitUsings>true</ImplicitUsings>
   </PropertyGroup>
 

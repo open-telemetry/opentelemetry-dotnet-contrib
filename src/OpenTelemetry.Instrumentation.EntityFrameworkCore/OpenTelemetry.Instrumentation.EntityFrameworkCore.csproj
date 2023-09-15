@@ -6,6 +6,7 @@
     <MinVerTagPrefix>Instrumentation.EntityFrameworkCore-</MinVerTagPrefix>
     <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

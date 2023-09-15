@@ -26,6 +26,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\assign-reviewers.yml = .github\workflows\assign-reviewers.yml
 		.github\workflows\ci-aot.yml = .github\workflows\ci-aot.yml
+		.github\workflows\ci-Exporter.OneCollector-Integration.yml = .github\workflows\ci-Exporter.OneCollector-Integration.yml
+		.github\workflows\ci-Instrumentation.Process.yml = .github\workflows\ci-Instrumentation.Process.yml
 		.github\workflows\ci-md.yml = .github\workflows\ci-md.yml
 		.github\workflows\ci.yml = .github\workflows\ci.yml
 		.github\workflows\codeql-analysis.yml = .github\workflows\codeql-analysis.yml
@@ -205,7 +207,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentati
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AspNet", "AspNet", "{2B6D0764-5E66-423A-9943-B3A72FF181EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples.AspNet", "examples\AspNet\Examples.AspNet.csproj", "{9A4E3A68-904B-4835-A3C8-F664B73098DB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.AspNet", "examples\AspNet\Examples.AspNet.csproj", "{9A4E3A68-904B-4835-A3C8-F664B73098DB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "runtime-instrumentation", "examples\runtime-instrumentation\runtime-instrumentation.csproj", "{9FF9B46A-AD93-4B3F-92DA-6FDCC98FEA91}"
 EndProject
@@ -297,6 +299,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{9B
 	ProjectSection(SolutionItems) = preProject
 		examples\Directory.Build.props = examples\Directory.Build.props
 		examples\Directory.Build.targets = examples\Directory.Build.targets
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projects", "Projects", "{D1D1B96A-77E5-443E-8B5C-93D6CE5F5337}"
+	ProjectSection(SolutionItems) = preProject
+		build\Projects\OpenTelemetry.Exporter.OneCollector.proj = build\Projects\OpenTelemetry.Exporter.OneCollector.proj
 	EndProjectSection
 EndProject
 Global
@@ -712,6 +719,7 @@ Global
 		{31937862-0C88-41C0-AFD6-F97A7BF803A9} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{9B30F5FD-3309-49CB-9CAD-D3372FAFD796} = {824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}
 		{23AA75F6-403F-4867-BF0E-BAF0A44F9A7A} = {73474960-8F91-4EE5-8E3E-F7E7ADA99238}
+		{D1D1B96A-77E5-443E-8B5C-93D6CE5F5337} = {824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}

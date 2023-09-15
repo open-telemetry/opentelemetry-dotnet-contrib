@@ -7,6 +7,7 @@
     <Description>Instana .NET Exporter for OpenTelemetry</Description>
     <MinVerTagPrefix>Exporter.Instana-</MinVerTagPrefix>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

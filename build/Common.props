@@ -11,6 +11,7 @@
     <NetStandardMinimumSupportedVersion>netstandard2.0</NetStandardMinimumSupportedVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AnalysisLevel>latest-all</AnalysisLevel>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">

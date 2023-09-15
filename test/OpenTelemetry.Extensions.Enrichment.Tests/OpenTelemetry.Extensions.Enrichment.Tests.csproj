@@ -4,6 +4,7 @@
     <Description>Unit test project for OpenTelemetry .NET SDK telemetry enrichment.</Description>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

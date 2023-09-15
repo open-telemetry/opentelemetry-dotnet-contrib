@@ -4,7 +4,6 @@
         <Description>OpenTelemetry Resource Detectors for Azure cloud environments</Description>
         <PackageTags>$(PackageTags);ResourceDetector</PackageTags>
         <MinVerTagPrefix>ResourceDetectors.Azure-</MinVerTagPrefix>
-        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>

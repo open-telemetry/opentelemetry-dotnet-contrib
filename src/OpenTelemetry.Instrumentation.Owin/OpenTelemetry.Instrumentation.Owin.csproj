@@ -5,6 +5,7 @@
     <Description>OpenTelemetry instrumentation for OWIN</Description>
     <PackageTags>$(PackageTags);distributed-tracing;OWIN</PackageTags>
     <MinVerTagPrefix>Instrumentation.Owin-</MinVerTagPrefix>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
