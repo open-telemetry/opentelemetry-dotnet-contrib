@@ -40,4 +40,4 @@ jobs:
       run: dotnet build --configuration Release --no-restore
 
     - name: Test ${{ matrix.version }}
-      run: dotnet test **/bin/**/${{ matrix.version }}/*.Tests.dll --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed"
+      run: dotnet test **/bin/Release/${{ matrix.version }}/*.Tests.dll --framework ${{ matrix.version }} --logger:"console;verbosity=detailed"
