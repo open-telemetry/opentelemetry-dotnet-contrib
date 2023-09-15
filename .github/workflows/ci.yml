@@ -41,4 +41,4 @@ jobs:
 
     - name: Test ${{ matrix.version }}
       shell: pwsh
-      run: ForEach ($project in (Get-ChildItem -Path test/*.Tests/*.csproj -File)) { dotnet test $project.FullName --framework ${{ matrix.version }} --no-restore --no-build --logger:"console;verbosity=detailed" }
+      run: ForEach ($project in (Get-ChildItem -Path test/*.Tests/*.csproj -File)) { dotnet test $project.FullName --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed" }
