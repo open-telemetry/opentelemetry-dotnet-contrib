@@ -53,5 +53,5 @@ jobs:
       with:
         file: TestResults/Cobertura.xml
         env_vars: OS,TFM
-        flags: Instrumentation.Process.unittests
+        flags: unittests-Instrumentation.Process
         name: Code Coverage for Instrumentation.Process on [${{ matrix.os }}.${{ matrix.version }}]
