@@ -53,7 +53,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
         {
             BeginRequest(owinContext);
 
-            if (OwinInstrumentationMetrics.HttpClientDuration.Enabled && !owinContext.Environment.ContainsKey(ContextKey))
+            if (OwinInstrumentationMetrics.HttpServerDuration.Enabled && !owinContext.Environment.ContainsKey(ContextKey))
             {
                 startTimestamp = Stopwatch.GetTimestamp();
             }
@@ -208,9 +208,9 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
 
             activity.Stop();
 
-            if (OwinInstrumentationMetrics.HttpClientDuration.Enabled)
+            if (OwinInstrumentationMetrics.HttpServerDuration.Enabled)
             {
-                OwinInstrumentationMetrics.HttpClientDuration.Record(
+                OwinInstrumentationMetrics.HttpServerDuration.Record(
                     activity.Duration.TotalSeconds,
                     new(SemanticConventions.AttributeHttpRequestMethod, owinContext.Request.Method),
                     new(SemanticConventions.AttributeUrlScheme, owinContext.Request.Scheme),
@@ -222,13 +222,13 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
                 Baggage.Current = default;
             }
         }
-        else if (OwinInstrumentationMetrics.HttpClientDuration.Enabled)
+        else if (OwinInstrumentationMetrics.HttpServerDuration.Enabled)
         {
             var endTimestamp = Stopwatch.GetTimestamp();
             var duration = endTimestamp - startTimestamp;
             var durationS = duration / Stopwatch.Frequency;
 
-            OwinInstrumentationMetrics.HttpClientDuration.Record(
+            OwinInstrumentationMetrics.HttpServerDuration.Record(
                 durationS,
                 new(SemanticConventions.AttributeHttpRequestMethod, owinContext.Request.Method),
                 new(SemanticConventions.AttributeUrlScheme, owinContext.Request.Scheme),
