@@ -29,7 +29,7 @@ namespace Examples.Wcf.Server.AspNetFramework;
 public class WebApiApplication : HttpApplication
 #pragma warning restore SA1649 // File name should match first type name
 {
-    private IDisposable tracerProvider;
+    private IDisposable? tracerProvider;
 
     protected void Application_Start()
     {
