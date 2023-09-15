@@ -22,9 +22,6 @@ jobs:
       matrix:
         os: [windows-latest]
 
-    env:
-      OS: ${{ matrix.os }}
-
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
@@ -47,9 +44,11 @@ jobs:
       run: dotnet tool install -g dotnet-coverage
 
     - name: Merging test results
-      run: dotnet-coverage merge -r -f cobertura -o ./TestResults/Cobertura.xml ./TestResults/*
+      run: dotnet-coverage merge -r -f cobertura -o ./TestResults/Cobertura.xml ./TestResults/*.coverage
 
     - uses: codecov/codecov-action@v3.1.4
+      env:
+        OS: ${{ matrix.os }}
       with:
         file: TestResults/Cobertura.xml
         env_vars: OS

@@ -23,10 +23,6 @@ jobs:
         - os: ubuntu-latest
           version: net462
 
-    env:
-      OS: ${{ matrix.os }}
-      TARGET_FRAMEWORK: ${{ matrix.version }}
-
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
@@ -47,12 +43,15 @@ jobs:
       run: dotnet tool install -g dotnet-coverage
 
     - name: Merging test results
-      run: dotnet-coverage merge -r -f cobertura -o ./TestResults/Cobertura.xml ./TestResults/*
+      run: dotnet-coverage merge -r -f cobertura -o ./TestResults/Cobertura.xml ./TestResults/*.coverage
 
     - uses: codecov/codecov-action@v3.1.4
       continue-on-error: true # Note: Don't fail for upload failures
+      env:
+        OS: ${{ matrix.os }}
+        TFM: ${{ matrix.version }}
       with:
         file: TestResults/Cobertura.xml
-        env_vars: OS,TARGET_FRAMEWORK
+        env_vars: OS,TFM
         flags: Instrumentation.Process.unittests
         name: Code Coverage for Instrumentation.Process on [${{ matrix.os }}.${{ matrix.version }}]
