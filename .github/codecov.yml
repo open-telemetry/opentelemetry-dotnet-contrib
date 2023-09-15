@@ -24,7 +24,7 @@ comment:
 
 ignore:
   - "**/*.md"
-  - "src/OpenTelemetry.Contrib.Shared"  # copied from main OTel project and has code coverage there
+  - "src/Shared"  # copied from main OTel project and has code coverage there
   - "test"
   - "examples"
   - "build"
@@ -33,7 +33,7 @@ flags:
   unittests:
     carryforward: true
     paths:
-      - "src"
+      - src
 
   unittests-Exporter.OneCollector:
     carryforward: true

@@ -18,9 +18,13 @@ jobs:
   build-test-report:
 
     strategy:
-      fail-fast: false
+      fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
       matrix:
-        os: [windows-latest]
+        os: [ windows-latest, ubuntu-latest ]
+        version: [ net462, net6.0, net7.0 ]
+        exclude:
+        - os: ubuntu-latest
+          version: net462
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -31,14 +35,14 @@ jobs:
     - name: Setup dotnet
       uses: actions/setup-dotnet@v3
 
-    - name: Install dependencies
+    - name: Restore
       run: dotnet restore
 
-    - name: dotnet build
+    - name: Build
       run: dotnet build --configuration Release --no-restore
 
-    - name: dotnet test
-      run: dotnet test --collect:"Code Coverage" --results-directory:"TestResults" --configuration Release --no-restore --no-build -- RunConfiguration.DisableAppDomain=true
+    - name: Test ${{ matrix.version }}
+      run: dotnet test --collect:"Code Coverage" --results-directory:"TestResults" --framework ${{ matrix.version }} --configuration Release --no-restore --no-build -- RunConfiguration.DisableAppDomain=true
 
     - name: Install coverage tool
       run: dotnet tool install -g dotnet-coverage
@@ -49,8 +53,9 @@ jobs:
     - uses: codecov/codecov-action@v3.1.4
       env:
         OS: ${{ matrix.os }}
+        TFM: ${{ matrix.version }}
       with:
         file: TestResults/Cobertura.xml
-        env_vars: OS
+        env_vars: OS,TFM
         flags: unittests
-        name: Code Coverage for ${{ matrix.os }}
+        name: Code Coverage for solution on [${{ matrix.os }}.${{ matrix.version }}]
