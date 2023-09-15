@@ -28,7 +28,7 @@ namespace Examples.AspNet;
 /// </summary>
 public class SuppressInstrumentationHttpModule : IHttpModule
 {
-    private IDisposable suppressionScope;
+    private IDisposable? suppressionScope;
 
     public void Init(HttpApplication context)
     {
