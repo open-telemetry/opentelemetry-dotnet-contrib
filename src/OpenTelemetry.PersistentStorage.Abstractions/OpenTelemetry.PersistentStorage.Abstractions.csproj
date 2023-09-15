@@ -9,7 +9,6 @@
     <Description>OpenTelemetry Persistent Storage Abstractions</Description>
     <MinVerTagPrefix>PersistentStorage.Abstractions-</MinVerTagPrefix>
     <NoWarn>$(NoWarn),1591</NoWarn>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

@@ -4,6 +4,7 @@
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
     <IncludeSharedTestSource>true</IncludeSharedTestSource>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

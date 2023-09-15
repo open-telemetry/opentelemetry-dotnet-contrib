@@ -7,7 +7,6 @@
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
     <Description>OpenTelemetry .NET SDK preview features and extensions</Description>
     <MinVerTagPrefix>Extensions-</MinVerTagPrefix>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

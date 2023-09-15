@@ -8,7 +8,6 @@
     <TargetFrameworks>$(NetMinimumSupportedVersion);$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
     <MinVerTagPrefix>Exporter.InfluxDB-</MinVerTagPrefix>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
