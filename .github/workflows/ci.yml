@@ -5,10 +5,14 @@ on:
     branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths-ignore:
     - '**.md'
+    - '*/OpenTelemetry.Instrumentation.Process*/**'
+    - '*/OpenTelemetry.Exporter.OneCollector*/**'
   pull_request:
     branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths-ignore:
     - '**.md'
+    - '*/OpenTelemetry.Instrumentation.Process*/**'
+    - '*/OpenTelemetry.Exporter.OneCollector*/**'
 
 jobs:
   build-test:
@@ -29,11 +33,12 @@ jobs:
     - name: Setup dotnet
       uses: actions/setup-dotnet@v3
 
-    - name: Install dependencies
+    - name: Restore
       run: dotnet restore
 
     - name: Build
       run: dotnet build --configuration Release --no-restore
 
     - name: Test ${{ matrix.version }}
-      run: dotnet test **/bin/**/${{ matrix.version }}/*.Tests.dll --logger:"console;verbosity=detailed"
+      shell: pwsh
+      run: ForEach ($project in (Get-ChildItem -Path test/*.Tests/*.csproj -File)) { dotnet test $project.FullName --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed" }

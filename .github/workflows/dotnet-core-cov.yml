@@ -5,20 +5,28 @@ on:
     branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths-ignore:
     - '**.md'
+    - '*/OpenTelemetry.Instrumentation.Process*/**'
+    - '*/OpenTelemetry.Exporter.OneCollector*/**'
   pull_request:
     branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths-ignore:
     - '**.md'
+    - '*/OpenTelemetry.Instrumentation.Process*/**'
+    - '*/OpenTelemetry.Exporter.OneCollector*/**'
 
 jobs:
   build-test-report:
-    runs-on: ${{ matrix.os }}
 
     strategy:
-      fail-fast: false
+      fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
       matrix:
-        os: [windows-latest]
+        os: [ windows-latest, ubuntu-latest ]
+        version: [ net462, net6.0, net7.0 ]
+        exclude:
+        - os: ubuntu-latest
+          version: net462
 
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -27,27 +35,28 @@ jobs:
     - name: Setup dotnet
       uses: actions/setup-dotnet@v3
 
-    - name: Install dependencies
+    - name: Restore
       run: dotnet restore
 
-    - name: dotnet build
+    - name: Build
       run: dotnet build --configuration Release --no-restore
 
-    - name: dotnet test
-      run: dotnet test --collect:"Code Coverage" --results-directory:"TestResults" --configuration Release --no-build -- RunConfiguration.DisableAppDomain=true
+    - name: Test ${{ matrix.version }}
+      shell: pwsh
+      run: ForEach ($project in (Get-ChildItem -Path test/*.Tests/*.csproj -File)) { dotnet test $project.FullName --collect:"Code Coverage" --results-directory:"TestResults" --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed" -- RunConfiguration.DisableAppDomain=true }
 
-    - name: Process code coverage
-      run: .\build\process-codecoverage.ps1
-      shell: powershell
-
-    - name: Install report tool
-      run: dotnet tool install -g dotnet-reportgenerator-globaltool
+    - name: Install coverage tool
+      run: dotnet tool install -g dotnet-coverage
 
     - name: Merging test results
-      run: reportgenerator -reports:TestResults/**/*.xml -targetdir:TestResults -reporttypes:Cobertura
+      run: dotnet-coverage merge -r -f cobertura -o ./TestResults/Cobertura.xml ./TestResults/*.coverage
 
     - uses: codecov/codecov-action@v3.1.4
+      env:
+        OS: ${{ matrix.os }}
+        TFM: ${{ matrix.version }}
       with:
         file: TestResults/Cobertura.xml
-        env_vars: OS
-        name: Code Coverage for ${{ matrix.os }}
+        env_vars: OS,TFM
+        flags: unittests
+        name: Code Coverage for solution on [${{ matrix.os }}.${{ matrix.version }}]
