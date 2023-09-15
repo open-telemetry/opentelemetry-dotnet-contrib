@@ -42,7 +42,7 @@ internal static class Program
             .AddZipkinExporter()
             .Build();
 
-        switch (config.GetValue<string>("Server").ToUpperInvariant())
+        switch (config.GetValue<string>("Server")!.ToUpperInvariant())
         {
             case "ASPNET":
                 await CallService(
