@@ -22,7 +22,6 @@ public class TestJob
 {
     public void Execute()
     {
-        return;
     }
 
     public void ThrowException()

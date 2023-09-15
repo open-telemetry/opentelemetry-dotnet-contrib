@@ -32,12 +32,12 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
 {
     private readonly HangfireInstrumentationOptions options;
 
+#pragma warning disable CA1019 // Define accessors for attribute arguments
     public HangfireInstrumentationJobFilterAttribute(HangfireInstrumentationOptions options)
+#pragma warning restore CA1019 // Define accessors for attribute arguments
     {
         this.options = options;
     }
-
-    public HangfireInstrumentationOptions Options { get; }
 
     public void OnPerforming(PerformingContext performingContext)
     {
