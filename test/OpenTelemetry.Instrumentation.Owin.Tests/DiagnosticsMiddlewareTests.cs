@@ -255,7 +255,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
             var metricPoint = Assert.Single(metricPoints);
 
             Assert.Equal(OwinInstrumentationMetrics.MeterName, metric.MeterName);
-            Assert.Equal("http.server.duration", metric.Name);
+            Assert.Equal("http.server.request.duration", metric.Name);
             Assert.Equal(MetricType.Histogram, metric.MetricType);
             Assert.Equal(1, metricPoint.GetHistogramCount());
             Assert.Equal(3, metricPoint.Tags.Count);
