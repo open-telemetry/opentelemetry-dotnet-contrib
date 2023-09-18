@@ -5,7 +5,7 @@
 Released 2023-Sep-19
 
 * Added a timeout for `HttpClient` for outgoing call made to metadata service to
-  improve start up time of application.
+  improve start up time of applications running not running on Azure VMs.
   ([#1358](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1358))
 * Updates to 1.6.0 of OpenTelemetry SDK.
   ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
