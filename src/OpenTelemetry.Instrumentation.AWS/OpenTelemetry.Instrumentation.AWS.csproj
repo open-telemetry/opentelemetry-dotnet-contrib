@@ -6,7 +6,6 @@
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>AWS client instrumentation for OpenTelemetry .NET</Description>
 	  <MinVerTagPrefix>Instrumentation.AWS-</MinVerTagPrefix>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

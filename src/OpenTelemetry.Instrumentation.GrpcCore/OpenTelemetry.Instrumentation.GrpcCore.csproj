@@ -1,9 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <Description>.NET gRPC Core based client and server interceptors for OpenTelemetry.</Description>
     <PackageTags>$(PackageTags);gRPC Core;interceptors</PackageTags>
     <MinVerTagPrefix>Instrumentation.GrpcCore-</MinVerTagPrefix>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="[3.6.1,4.0)" />

@@ -4,7 +4,6 @@
     <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
     <Description>OpenTelemetry Extensions - Container Resource Detector from Container environment.</Description>
     <MinVerTagPrefix>ResourceDetectors.Container-</MinVerTagPrefix>
-    <Nullable>enable</Nullable>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
   </PropertyGroup>
   <ItemGroup>

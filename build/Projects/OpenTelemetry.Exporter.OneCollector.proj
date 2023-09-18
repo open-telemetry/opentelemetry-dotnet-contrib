@@ -1,0 +1,27 @@
+<Project>
+
+  <PropertyGroup>
+    <RepoRoot>$([System.IO.Directory]::GetParent($(MSBuildThisFileDirectory)).Parent.Parent.FullName)</RepoRoot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SolutionProjects Include="$(RepoRoot)\src\OpenTelemetry.Exporter.OneCollector\OpenTelemetry.Exporter.OneCollector.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Exporter.OneCollector.Tests\OpenTelemetry.Exporter.OneCollector.Tests.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Exporter.OneCollector.Benchmarks\OpenTelemetry.Exporter.OneCollector.Benchmarks.csproj" />
+
+    <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.Exporter.OneCollector\OpenTelemetry.Exporter.OneCollector.csproj" />
+  </ItemGroup>
+
+  <Target Name="Build">
+    <MSBuild Projects="@(SolutionProjects)" Targets="Build" ContinueOnError="ErrorAndStop" />
+  </Target>
+
+  <Target Name="Restore">
+    <MSBuild Projects="@(SolutionProjects)" Targets="Restore" ContinueOnError="ErrorAndStop" />
+  </Target>
+
+  <Target Name="Pack">
+    <MSBuild Projects="@(PackProjects)" Targets="Pack" ContinueOnError="ErrorAndStop" />
+  </Target>
+
+</Project>
