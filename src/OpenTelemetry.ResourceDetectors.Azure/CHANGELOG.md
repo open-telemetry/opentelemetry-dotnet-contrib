@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.0.0-beta.3
+
+Released 2023-Sep-19
 
 * Updates to 1.6.0 of OpenTelemetry SDK.
   ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
