@@ -21,7 +21,7 @@ using OpenTelemetry.Instrumentation.Hangfire.Implementation;
 namespace OpenTelemetry.Trace;
 
 /// <summary>
-/// Options for hangfire jobs instrumentation.
+/// Options for Hangfire jobs instrumentation.
 /// </summary>
 public class HangfireInstrumentationOptions
 {
