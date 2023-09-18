@@ -21,7 +21,7 @@ namespace Examples.Owin.Controllers;
 public class TestController : ApiController
 {
     // GET api/test/{id}
-    public string Get(string id = null)
+    public string Get(string? id = null)
     {
         return $"id:{id}";
     }
