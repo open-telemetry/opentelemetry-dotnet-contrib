@@ -15,18 +15,16 @@
 // </copyright>
 
 using System;
-using Hangfire;
-
-namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
-
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using global::Hangfire.Client;
-using global::Hangfire.Common;
-using global::Hangfire.Server;
+using Hangfire.Client;
+using Hangfire.Common;
+using Hangfire.Server;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Trace;
+
+namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 
 internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, IServerFilter, IClientFilter
 {
@@ -61,8 +59,7 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
 
         if (activity != null)
         {
-            Func<BackgroundJob, string> displayNameFunc =
-                this.options.DisplayNameFunc ?? HangfireInstrumentation.DefaultDisplayNameFunc;
+            var displayNameFunc = this.options.DisplayNameFunc;
 
             activity.DisplayName = displayNameFunc(performingContext.BackgroundJob);
 
