@@ -42,7 +42,7 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddHangfireInstrumentation(
         this TracerProviderBuilder builder,
-        Action<HangfireInstrumentationOptions> configure)
+        Action<HangfireInstrumentationOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
 
