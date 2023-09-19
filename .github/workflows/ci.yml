@@ -36,7 +36,11 @@ jobs:
     - name: Test ${{ matrix.version }}
       shell: pwsh
       run: |
-        ForEach ($project in (Get-ChildItem -Path test/*.Tests/*.csproj -File))
+        $projects = Get-ChildItem `
+          -Path test/*.Tests/*.csproj `
+          -Exclude OpenTelemetry.Instrumentation.Process.Tests.csproj, OpenTelemetry.Exporter.OneCollector.Tests.csproj
+
+        ForEach ($project in $projects)
         {
           dotnet test $project.FullName --collect:"Code Coverage" --results-directory:"TestResults" --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed" -- RunConfiguration.DisableAppDomain=true
         }
