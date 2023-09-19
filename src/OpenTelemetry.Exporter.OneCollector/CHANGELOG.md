@@ -24,10 +24,10 @@
 
 * Added dedicated handling for `IReadOnlyList<KeyValuePair<string, object>>`
   types during serialization to improve performance.
-  ([#XXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXX))
+  ([#1361](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1361))
 
 * Added caching of extension property UTF8 JSON strings to improve performance.
-  ([#XXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXX))
+  ([#1361](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1361))
 
 ## 1.5.1
 
