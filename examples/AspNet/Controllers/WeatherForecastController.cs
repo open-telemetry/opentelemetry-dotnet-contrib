@@ -127,12 +127,10 @@ public class WeatherForecastController : ApiController
     private static IEnumerable<WeatherForecast> GetWeatherForecast()
     {
         var rng = new Random();
-        return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-        {
-            Date = DateTime.Now.AddDays(index),
-            TemperatureC = rng.Next(-20, 55),
-            Summary = Summaries[rng.Next(Summaries.Length)],
-        })
+        return Enumerable.Range(1, 5).Select(index => new WeatherForecast(
+            date: DateTime.Now.AddDays(index),
+            temperatureC: rng.Next(-20, 55),
+            summary: Summaries[rng.Next(Summaries.Length)]))
         .ToArray();
     }
 
@@ -218,7 +216,7 @@ public class WeatherForecastController : ApiController
         response.EnsureSuccessStatusCode();
     }
 
-    private Uri GenerateContentRequestUri(string path, Func<string, string> transform = null)
+    private Uri GenerateContentRequestUri(string path, Func<string, string>? transform = null)
     {
         var rawUri = this.Url.Content(path);
 
