@@ -22,6 +22,13 @@
   extension because it is not currently supported by the OneCollector service.
   ([#1345](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1345))
 
+* Added dedicated handling for `IReadOnlyList<KeyValuePair<string, object>>`
+  types during serialization to improve performance.
+  ([#XXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXX))
+
+* Added caching of extension property UTF8 JSON strings to improve performance.
+  ([#XXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXX))
+
 ## 1.5.1
 
 Released 2023-Aug-07
