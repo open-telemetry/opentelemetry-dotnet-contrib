@@ -64,10 +64,7 @@ internal static class Program
         {
             await client.OpenAsync().ConfigureAwait(false);
 
-            var response = await client.PingAsync(
-                new StatusRequest(
-                    status: Guid.NewGuid().ToString("N")))
-                .ConfigureAwait(false);
+            var response = await client.PingAsync(new StatusRequest(Guid.NewGuid().ToString("N"))).ConfigureAwait(false);
 
             Console.WriteLine($"Server returned: {response?.ServerTime}");
         }
