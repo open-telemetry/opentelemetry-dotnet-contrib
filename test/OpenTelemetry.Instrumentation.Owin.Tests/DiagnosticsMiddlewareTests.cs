@@ -290,7 +290,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
 
             // metric value and span duration should match
             // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/http/http-metrics.md#metric-httpserverrequestduration
-            Assert.Equal(activity.Duration.TotalMilliseconds, metricPoint.GetHistogramSum());
+            Assert.Equal(activity.Duration.TotalSeconds, metricPoint.GetHistogramSum());
         }
     }
 
