@@ -1,11 +1,6 @@
 name: dotnet format
 
 on:
-  push:
-    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
-    paths:
-    - '**.cs'
-    - '.editorconfig'
   pull_request:
     branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths:
