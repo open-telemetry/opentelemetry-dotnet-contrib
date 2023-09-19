@@ -59,20 +59,20 @@ internal sealed class ExtensionFieldInformationManager
         Debug.Assert(fullFieldName.Length >= 4, "fullFieldName length was invalid");
         Debug.Assert(fullFieldName.StartsWith("ext.", StringComparison.OrdinalIgnoreCase), "fullFieldName did not start with 'ext.'");
 
-        var extensionName = fullFieldName.AsSpan().Slice(4).Trim();
+        var extensionName = fullFieldName.AsSpan().Slice(4).TrimEnd();
         var locationOfDot = extensionName.IndexOf('.');
         if (locationOfDot <= 0)
         {
             return new();
         }
 
-        var fieldName = extensionName.Slice(locationOfDot + 1).Trim();
+        var fieldName = extensionName.Slice(locationOfDot + 1).TrimStart();
         if (fieldName.Length <= 0)
         {
             return new();
         }
 
-        extensionName = extensionName.Slice(0, locationOfDot).Trim();
+        extensionName = extensionName.Slice(0, locationOfDot).TrimEnd();
         if (extensionName.Length <= 0)
         {
             return new();
