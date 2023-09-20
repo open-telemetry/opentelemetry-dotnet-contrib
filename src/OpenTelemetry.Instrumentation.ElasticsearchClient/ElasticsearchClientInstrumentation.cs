@@ -31,7 +31,7 @@ internal class ElasticsearchClientInstrumentation : IDisposable
     /// <param name="options">Configuration options for Elasticsearch client instrumentation.</param>
     public ElasticsearchClientInstrumentation(ElasticsearchClientInstrumentationOptions options)
     {
-        this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(new ElasticsearchRequestPipelineDiagnosticListener(options), null);
+        this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(new ElasticsearchRequestPipelineDiagnosticListener(options), null, ElasticsearchInstrumentationEventSource.Log.UnknownErrorProcessingEvent);
         this.diagnosticSourceSubscriber.Subscribe();
     }
 
