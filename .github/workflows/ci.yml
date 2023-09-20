@@ -1,12 +1,6 @@
 name: Build
 
 on:
-  push:
-    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
-    paths-ignore:
-    - '**.md'
-    - '*/OpenTelemetry.Instrumentation.Process*/**'
-    - '*/OpenTelemetry.Exporter.OneCollector*/**'
   pull_request:
     branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths-ignore:
@@ -41,4 +35,29 @@ jobs:
 
     - name: Test ${{ matrix.version }}
       shell: pwsh
-      run: ForEach ($project in (Get-ChildItem -Path test/*.Tests/*.csproj -File)) { dotnet test $project.FullName --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed" }
+      run: |
+        $projects = Get-ChildItem `
+          -Path test/*.Tests/*.csproj `
+          -Exclude OpenTelemetry.Instrumentation.Process.Tests.csproj, OpenTelemetry.Exporter.OneCollector.Tests.csproj
+
+        ForEach ($project in $projects)
+        {
+          dotnet test $project.FullName --collect:"Code Coverage" --results-directory:"TestResults" --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed" -- RunConfiguration.DisableAppDomain=true
+        }
+
+    - name: Install coverage tool
+      run: dotnet tool install -g dotnet-coverage
+
+    - name: Merging test results
+      run: dotnet-coverage merge -r -f cobertura -o ./TestResults/Cobertura.xml ./TestResults/*.coverage
+
+    - uses: codecov/codecov-action@v3.1.4
+      continue-on-error: true # Note: Don't fail for upload failures
+      env:
+        OS: ${{ matrix.os }}
+        TFM: ${{ matrix.version }}
+      with:
+        file: TestResults/Cobertura.xml
+        env_vars: OS,TFM
+        flags: unittests
+        name: Code Coverage for solution on [${{ matrix.os }}.${{ matrix.version }}]

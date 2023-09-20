@@ -12,7 +12,6 @@
 
   <PropertyGroup>
     <NoWarn>$(NoWarn),1591</NoWarn>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

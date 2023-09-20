@@ -167,7 +167,7 @@ public class AWSECSResourceDetectorTests : IDisposable
             }).Build();
             this.server.Start();
 
-            this.Address = new Uri(this.server.ServerFeatures.Get<IServerAddressesFeature>().Addresses.First());
+            this.Address = new Uri(this.server.ServerFeatures.Get<IServerAddressesFeature>()!.Addresses.First());
         }
 
         public async ValueTask DisposeAsync()

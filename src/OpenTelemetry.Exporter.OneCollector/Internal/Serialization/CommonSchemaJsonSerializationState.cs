@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System.Diagnostics;
 #if NET6_0_OR_GREATER
 using System.Runtime.InteropServices;
 #endif
@@ -26,7 +27,7 @@ internal sealed class CommonSchemaJsonSerializationState
     public const int MaxNumberOfExtensionKeys = 64;
     public const int MaxNumberOfExtensionValuesPerKey = 16;
     private readonly Dictionary<string, int> keys = new(4, StringComparer.OrdinalIgnoreCase);
-    private readonly List<KeyValuePair<string, object?>> allValues = new(16);
+    private readonly List<KeyValuePair<ExtensionFieldInformation, object?>> allValues = new(16);
     private string itemType;
     private int nextKeysToAllValuesLookupIndex;
     private KeyValueLookup[] keysToAllValuesLookup = new KeyValueLookup[4];
@@ -47,11 +48,16 @@ internal sealed class CommonSchemaJsonSerializationState
     {
         if (!ExtensionFieldInformationManager.SharedCache.TryResolveExtensionFieldInformation(
             attribute.Key,
-            out (string ExtensionName, string FieldName) fieldInformation))
+            out var fieldInformation))
         {
             OneCollectorExporterEventSource.Log.AttributeDropped(this.itemType, attribute.Key, "Invalid extension field name");
             return;
         }
+
+        Debug.Assert(fieldInformation?.ExtensionName != null, "fieldInformation.ExtensionName was null");
+        Debug.Assert(fieldInformation?.EncodedExtensionName.EncodedUtf8Bytes.Length > 0, "fieldInformation.EncodedExtensionName was empty");
+        Debug.Assert(fieldInformation?.FieldName != null, "fieldInformation.FieldName was null");
+        Debug.Assert(fieldInformation?.EncodedFieldName.EncodedUtf8Bytes.Length > 0, "fieldInformation.EncodedFieldName was empty");
 
 #if NET6_0_OR_GREATER
         ref var lookupIndex = ref CollectionsMarshal.GetValueRefOrAddDefault(this.keys, fieldInformation.ExtensionName, out var existed);
@@ -60,10 +66,10 @@ internal sealed class CommonSchemaJsonSerializationState
             this.AssignNewExtensionToLookupIndex(ref lookupIndex);
         }
 #else
-        if (!this.keys.TryGetValue(fieldInformation.ExtensionName, out int lookupIndex))
+        if (!this.keys.TryGetValue(fieldInformation!.ExtensionName!, out int lookupIndex))
         {
             this.AssignNewExtensionToLookupIndex(ref lookupIndex);
-            this.keys[fieldInformation.ExtensionName] = lookupIndex;
+            this.keys[fieldInformation.ExtensionName!] = lookupIndex;
         }
 #endif
 
@@ -82,7 +88,7 @@ internal sealed class CommonSchemaJsonSerializationState
         }
 
         int index = this.allValues.Count;
-        this.allValues.Add(new KeyValuePair<string, object?>(fieldInformation.FieldName, attribute.Value));
+        this.allValues.Add(new KeyValuePair<ExtensionFieldInformation, object?>(fieldInformation, attribute.Value));
 
         unsafe
         {
@@ -107,7 +113,7 @@ internal sealed class CommonSchemaJsonSerializationState
 
         foreach (var extensionPropertyKey in this.keys)
         {
-            writer.WriteStartObject(extensionPropertyKey.Key);
+            var wroteStartObject = false;
 
             ref KeyValueLookup keyLookup = ref this.keysToAllValuesLookup[extensionPropertyKey.Value];
 
@@ -120,12 +126,23 @@ internal sealed class CommonSchemaJsonSerializationState
 #else
                     var attribute = allValues[keyLookup.ValueIndicies[i]];
 #endif
+                    var fieldInformation = attribute.Key;
 
-                    CommonSchemaJsonSerializationHelper.SerializeKeyValueToJson(attribute.Key, attribute.Value, writer);
+                    if (!wroteStartObject)
+                    {
+                        writer.WriteStartObject(fieldInformation.EncodedExtensionName);
+                        wroteStartObject = true;
+                    }
+
+                    writer.WritePropertyName(fieldInformation.EncodedFieldName);
+                    CommonSchemaJsonSerializationHelper.SerializeValueToJson(attribute.Value, writer);
                 }
             }
 
-            writer.WriteEndObject();
+            if (wroteStartObject)
+            {
+                writer.WriteEndObject();
+            }
         }
 
         if (writeExtensionObjectEnvelope)

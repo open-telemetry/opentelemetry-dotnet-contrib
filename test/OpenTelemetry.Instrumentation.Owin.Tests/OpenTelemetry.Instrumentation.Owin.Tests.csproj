@@ -3,15 +3,12 @@
   <PropertyGroup>
     <Description>Unit test project for OpenTelemetry OWIN instrumentation</Description>
     <TargetFrameworks>$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkPkgVer)" />
     <PackageReference Include="xunit" Version="$(XUnitPkgVer)" />
-    <PackageReference Condition="$([MSBuild]::IsOsPlatform('Windows'))" Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)" PrivateAssets="All" />
     <DotNetCliToolReference Include="dotnet-xunit" Version="$(DotNetXUnitCliVer)" />
   </ItemGroup>
 

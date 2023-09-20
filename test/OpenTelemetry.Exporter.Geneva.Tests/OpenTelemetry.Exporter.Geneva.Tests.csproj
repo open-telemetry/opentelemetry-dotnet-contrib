@@ -7,28 +7,21 @@
     <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net48;net472;net471;net47;net462</TargetFrameworks>
     <NoWarn>$(NoWarn),SA1311,SA1312,SA1313,SA1123,SA1202</NoWarn>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="coverlet.collector" Version="$(CoverletCollectorPkgVer)">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="KaitaiStruct.Runtime.CSharp" Version="0.10.0" />
     <PackageReference Include="MessagePack" Version="1.9.11" />
     <!--KaitaiStruct.Runtime.CSharp which is used to deserialize metrics data is not a strong-named assembly.
     StrongNamer signs any unsigned assemblies present in the project dependencies -->
     <PackageReference Include="StrongNamer" Version="0.2.5" />
-    <DotNetCliToolReference Include="dotnet-xunit" Version="$(DotNetXUnitCliVer)" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkPkgVer)" />
     <PackageReference Include="xunit" Version="$(XUnitPkgVer)" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)" PrivateAssets="All" />
+    <DotNetCliToolReference Include="dotnet-xunit" Version="$(DotNetXUnitCliVer)" />
   </ItemGroup>
 
   <ItemGroup>

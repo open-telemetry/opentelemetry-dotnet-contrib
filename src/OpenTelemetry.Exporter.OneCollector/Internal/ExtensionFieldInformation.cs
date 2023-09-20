@@ -1,4 +1,4 @@
-// <copyright file="TestJob.cs" company="OpenTelemetry Authors">
+// <copyright file="ExtensionFieldInformation.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,18 +14,16 @@
 // limitations under the License.
 // </copyright>
 
-using System;
+using System.Text.Json;
 
-namespace OpenTelemetry.Instrumentation.Hangfire.Tests;
+namespace OpenTelemetry.Exporter.OneCollector;
 
-public class TestJob
+internal sealed class ExtensionFieldInformation
 {
-    public void Execute()
-    {
-    }
+    public string? ExtensionName;
+    public JsonEncodedText EncodedExtensionName;
+    public string? FieldName;
+    public JsonEncodedText EncodedFieldName;
 
-    public void ThrowException()
-    {
-        throw new Exception();
-    }
+    public bool IsValid => this.ExtensionName != null;
 }

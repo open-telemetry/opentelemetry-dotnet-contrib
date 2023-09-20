@@ -33,7 +33,7 @@ public class ServerCertificateValidationProviderTests
         using CertificateUploader certificateUploader = new CertificateUploader();
         certificateUploader.Create();
 
-        ServerCertificateValidationProvider serverCertificateValidationProvider =
+        var serverCertificateValidationProvider =
             ServerCertificateValidationProvider.FromCertificateFile(certificateUploader.FilePath);
 
         Assert.NotNull(serverCertificateValidationProvider);
@@ -51,7 +51,7 @@ public class ServerCertificateValidationProviderTests
     [Fact]
     public void TestInValidCertificate()
     {
-        ServerCertificateValidationProvider serverCertificateValidationProvider =
+        var serverCertificateValidationProvider =
             ServerCertificateValidationProvider.FromCertificateFile(InvalidCertificateName);
 
         Assert.Null(serverCertificateValidationProvider);
@@ -63,7 +63,7 @@ public class ServerCertificateValidationProviderTests
         using var certificateUploader = new CertificateUploader();
         certificateUploader.Create();
 
-        ServerCertificateValidationProvider serverCertificateValidationProvider =
+        var serverCertificateValidationProvider =
             ServerCertificateValidationProvider.FromCertificateFile(certificateUploader.FilePath);
 
         Assert.NotNull(serverCertificateValidationProvider);
@@ -76,7 +76,7 @@ public class ServerCertificateValidationProviderTests
         using var certificateUploader = new CertificateUploader();
         certificateUploader.Create();
 
-        ServerCertificateValidationProvider serverCertificateValidationProvider =
+        var serverCertificateValidationProvider =
             ServerCertificateValidationProvider.FromCertificateFile(certificateUploader.FilePath);
 
         Assert.NotNull(serverCertificateValidationProvider);
