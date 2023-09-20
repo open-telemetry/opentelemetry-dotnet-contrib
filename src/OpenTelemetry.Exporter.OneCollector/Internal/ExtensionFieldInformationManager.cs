@@ -16,6 +16,10 @@
 
 using System.Collections;
 using System.Diagnostics;
+#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
+using System.Text.Json;
 
 namespace OpenTelemetry.Exporter.OneCollector;
 
@@ -28,9 +32,14 @@ internal sealed class ExtensionFieldInformationManager
 
     public int CountOfCachedExtensionFields => this.fieldInformationCache.Count;
 
-    public bool TryResolveExtensionFieldInformation(string fullFieldName, out (string ExtensionName, string FieldName) resolvedFieldInformation)
+    public bool TryResolveExtensionFieldInformation(
+        string fullFieldName,
+#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
+        [NotNullWhen(true)]
+#endif
+        out ExtensionFieldInformation? resolvedFieldInformation)
     {
-        if (this.fieldInformationCache[fullFieldName] is not FieldInformation fieldInformation)
+        if (this.fieldInformationCache[fullFieldName] is not ExtensionFieldInformation fieldInformation)
         {
             fieldInformation = this.ResolveExtensionFieldInformationRare(fullFieldName);
         }
@@ -41,39 +50,44 @@ internal sealed class ExtensionFieldInformationManager
             return false;
         }
 
-        resolvedFieldInformation = new(fieldInformation.ExtensionName!, fieldInformation.FieldName!);
+        resolvedFieldInformation = fieldInformation;
         return true;
     }
 
-    private static FieldInformation BuildFieldInformation(string fullFieldName)
+    private static ExtensionFieldInformation BuildFieldInformation(string fullFieldName)
     {
         Debug.Assert(fullFieldName.Length >= 4, "fullFieldName length was invalid");
         Debug.Assert(fullFieldName.StartsWith("ext.", StringComparison.OrdinalIgnoreCase), "fullFieldName did not start with 'ext.'");
 
-        var extensionName = fullFieldName.AsSpan().Slice(4);
+        var extensionName = fullFieldName.AsSpan().Slice(4).TrimEnd();
         var locationOfDot = extensionName.IndexOf('.');
         if (locationOfDot <= 0)
         {
             return new();
         }
 
-        var fieldName = extensionName.Slice(locationOfDot + 1);
+        var fieldName = extensionName.Slice(locationOfDot + 1).TrimStart();
         if (fieldName.Length <= 0)
         {
             return new();
         }
 
-        extensionName = extensionName.Slice(0, locationOfDot);
+        extensionName = extensionName.Slice(0, locationOfDot).TrimEnd();
+        if (extensionName.Length <= 0)
+        {
+            return new();
+        }
 
-        return new FieldInformation
+        return new ExtensionFieldInformation
         {
             ExtensionName = extensionName.ToString(),
+            EncodedExtensionName = JsonEncodedText.Encode(extensionName),
             FieldName = fieldName.ToString(),
-            IsValid = true,
+            EncodedFieldName = JsonEncodedText.Encode(fieldName),
         };
     }
 
-    private FieldInformation ResolveExtensionFieldInformationRare(string fullFieldName)
+    private ExtensionFieldInformation ResolveExtensionFieldInformationRare(string fullFieldName)
     {
         if (this.fieldInformationCache.Count >= MaxNumberOfCachedFieldInformations)
         {
@@ -82,7 +96,7 @@ internal sealed class ExtensionFieldInformationManager
 
         lock (this.fieldInformationCache)
         {
-            if (this.fieldInformationCache[fullFieldName] is not FieldInformation fieldInformation)
+            if (this.fieldInformationCache[fullFieldName] is not ExtensionFieldInformation fieldInformation)
             {
                 fieldInformation = BuildFieldInformation(fullFieldName);
                 if (this.fieldInformationCache.Count < MaxNumberOfCachedFieldInformations)
@@ -93,12 +107,5 @@ internal sealed class ExtensionFieldInformationManager
 
             return fieldInformation;
         }
-    }
-
-    private sealed class FieldInformation
-    {
-        public string? ExtensionName;
-        public string? FieldName;
-        public bool IsValid;
     }
 }

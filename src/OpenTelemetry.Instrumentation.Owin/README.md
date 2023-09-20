@@ -38,7 +38,9 @@ done before any other middleware registrations.
         });
 ```
 
-### Step 3: Configure OpenTelemetry TracerProvider
+### Step 3: Enable OWIN Instrumentation at application startup
+
+#### Configure OpenTelemetry TracerProvider
 
 Call the `AddOwinInstrumentation` `TracerProviderBuilder` extension to register
 OpenTelemetry instrumentation which listens to the OWIN diagnostic events.
@@ -50,6 +52,30 @@ OpenTelemetry instrumentation which listens to the OWIN diagnostic events.
         .AddConsoleExporter()
         .Build();
 ```
+
+#### Configure OpenTelemetry MeterProvider
+
+Call the `AddOwinInstrumentation` `MeterProviderBuilder` extension to register
+OpenTelemetry instrumentation which generates request duration metrics for OWIN requests.
+
+The metric implemention does not rely on tracing, and will generate metrics
+even if tracing is disabled.
+
+```csharp
+    using var openTelemetry = Sdk.CreateMeterProviderBuilder()
+        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Owin-Example"))
+        .AddOwinInstrumentation()
+        .AddConsoleExporter()
+        .Build();
+```
+
+The instrumentation is implemented based on [metrics semantic
+conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/http-metrics.md#metric-httpserverduration).
+Currently, the instrumentation supports the following metric.
+
+| Name  | Instrument Type | Unit | Description |
+|-------|-----------------|------|-------------|
+| `http.server.request.duration` | Histogram | `s` | Measures the duration of inbound HTTP requests. |
 
 ## Customize OWIN span names
 
