@@ -7,7 +7,7 @@
   <ItemGroup>
     <SolutionProjects Include="$(RepoRoot)\src\OpenTelemetry.Exporter.Geneva\OpenTelemetry.Exporter.Geneva.csproj" />
     <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Exporter.Geneva.Tests\OpenTelemetry.Exporter.Geneva.Tests.csproj" />
-    <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Exporter.Geneva.Benchmarks\OpenTelemetry.Exporter.Geneva.Benchmarks.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Exporter.Geneva.Benchmark\OpenTelemetry.Exporter.Geneva.Benchmark.csproj" />
     <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Exporter.Geneva.Stress\OpenTelemetry.Exporter.Geneva.Stress.csproj" />
 
     <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.Exporter.Geneva\OpenTelemetry.Exporter.Geneva.csproj" />
