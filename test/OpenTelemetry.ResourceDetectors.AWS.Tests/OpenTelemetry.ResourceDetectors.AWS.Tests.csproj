@@ -10,9 +10,6 @@
 
   <ItemGroup>
     <PackageReference Include="Moq" Version="$(MoqPkgVer)" />
-    <PackageReference Include="xunit" Version="$(XUnitPkgVer)" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)" PrivateAssets="All" />
-    <DotNetCliToolReference Include="dotnet-xunit" Version="$(DotNetXUnitCliVer)" />
   </ItemGroup>
 
   <ItemGroup>
@@ -35,6 +32,7 @@
     </None>
 
   </ItemGroup>
+
   <ItemGroup>
     <None Update="SampleMetadataFiles\environment.conf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -46,4 +44,5 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
 </Project>
