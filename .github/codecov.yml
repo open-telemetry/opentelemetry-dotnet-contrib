@@ -35,6 +35,11 @@ flags:
     paths:
       - src
 
+  unittests-Exporter.Geneva:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Exporter.Geneva
+
   unittests-Exporter.OneCollector:
     carryforward: true
     paths:

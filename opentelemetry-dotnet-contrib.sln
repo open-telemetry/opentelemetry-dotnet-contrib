@@ -29,6 +29,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\assign-reviewers.yml = .github\workflows\assign-reviewers.yml
 		.github\workflows\ci-aot.yml = .github\workflows\ci-aot.yml
+		.github\workflows\ci-Exporter.Geneva.yml = .github\workflows\ci-Exporter.Geneva.yml
 		.github\workflows\ci-Exporter.OneCollector-Integration.yml = .github\workflows\ci-Exporter.OneCollector-Integration.yml
 		.github\workflows\ci-Exporter.OneCollector.yml = .github\workflows\ci-Exporter.OneCollector.yml
 		.github\workflows\ci-Instrumentation.Process.yml = .github\workflows\ci-Instrumentation.Process.yml
@@ -304,6 +305,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{9B
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projects", "Projects", "{048509D6-FB49-4B84-832A-90E55520B97B}"
 	ProjectSection(SolutionItems) = preProject
+		build\Projects\OpenTelemetry.Exporter.Geneva.proj = build\Projects\OpenTelemetry.Exporter.Geneva.proj
 		build\Projects\OpenTelemetry.Exporter.OneCollector.proj = build\Projects\OpenTelemetry.Exporter.OneCollector.proj
 	EndProjectSection
 EndProject

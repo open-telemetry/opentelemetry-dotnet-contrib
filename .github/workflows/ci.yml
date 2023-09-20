@@ -6,6 +6,7 @@ on:
     paths-ignore:
     - '**.md'
     - '*/OpenTelemetry.Instrumentation.Process*/**'
+    - '*/OpenTelemetry.Exporter.Geneva*/**'
     - '*/OpenTelemetry.Exporter.OneCollector*/**'
 
 jobs:
@@ -38,7 +39,7 @@ jobs:
       run: |
         $projects = Get-ChildItem `
           -Path test/*.Tests/*.csproj `
-          -Exclude OpenTelemetry.Instrumentation.Process.Tests.csproj, OpenTelemetry.Exporter.OneCollector.Tests.csproj
+          -Exclude OpenTelemetry.Instrumentation.Process.Tests.csproj, OpenTelemetry.Exporter.Geneva.Tests.csproj, OpenTelemetry.Exporter.OneCollector.Tests.csproj
 
         ForEach ($project in $projects)
         {
