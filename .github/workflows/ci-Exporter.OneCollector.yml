@@ -1,12 +1,15 @@
-name: Build
+name: Build OpenTelemetry.Exporter.OneCollector
 
 on:
   pull_request:
-    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
-    paths-ignore:
-    - '**.md'
-    - '*/OpenTelemetry.Instrumentation.Process*/**'
+    branches: [ 'main*', 'exporter*' ]
+    paths:
     - '*/OpenTelemetry.Exporter.OneCollector*/**'
+    - 'build/**'
+    - '!**.md'
+
+env:
+  PROJECT: OpenTelemetry.Exporter.OneCollector
 
 jobs:
   build-test:
@@ -27,23 +30,14 @@ jobs:
     - name: Setup dotnet
       uses: actions/setup-dotnet@v3
 
-    - name: Restore
-      run: dotnet restore
+    - name: dotnet restore build/Projects/${{env.PROJECT}}.proj
+      run: dotnet restore build/Projects/${{env.PROJECT}}.proj
 
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
+    - name: dotnet build build/Projects/${{env.PROJECT}}.proj
+      run: dotnet build build/Projects/${{env.PROJECT}}.proj --configuration Release --no-restore
 
-    - name: Test ${{ matrix.version }}
-      shell: pwsh
-      run: |
-        $projects = Get-ChildItem `
-          -Path test/*.Tests/*.csproj `
-          -Exclude OpenTelemetry.Instrumentation.Process.Tests.csproj, OpenTelemetry.Exporter.OneCollector.Tests.csproj
-
-        ForEach ($project in $projects)
-        {
-          dotnet test $project.FullName --collect:"Code Coverage" --results-directory:"TestResults" --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed" -- RunConfiguration.DisableAppDomain=true
-        }
+    - name: dotnet test test/${{env.PROJECT}}.Tests
+      run: dotnet test test/${{env.PROJECT}}.Tests --collect:"Code Coverage" --results-directory:TestResults --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed" -- RunConfiguration.DisableAppDomain=true
 
     - name: Install coverage tool
       run: dotnet tool install -g dotnet-coverage
@@ -59,5 +53,5 @@ jobs:
       with:
         file: TestResults/Cobertura.xml
         env_vars: OS,TFM
-        flags: unittests
-        name: Code Coverage for solution on [${{ matrix.os }}.${{ matrix.version }}]
+        flags: unittests-Exporter.OneCollector
+        name: Code Coverage for Exporter.OneCollector on [${{ matrix.os }}.${{ matrix.version }}]

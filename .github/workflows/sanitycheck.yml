@@ -1,8 +1,6 @@
 name: sanitycheck
 
 on:
-  push:
-    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
   pull_request:
     branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
 
