@@ -21,6 +21,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.Owin;
 using OpenTelemetry.Context.Propagation;
+using OpenTelemetry.Instrumentation.Owin.Implementation;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Owin;
@@ -46,15 +47,23 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
     /// <inheritdoc />
     public override async Task Invoke(IOwinContext owinContext)
     {
+        long startTimestamp = -1;
+
         try
         {
             BeginRequest(owinContext);
+
+            if (OwinInstrumentationMetrics.HttpServerDuration.Enabled && !owinContext.Environment.ContainsKey(ContextKey))
+            {
+                startTimestamp = Stopwatch.GetTimestamp();
+            }
+
             await this.Next.Invoke(owinContext).ConfigureAwait(false);
-            RequestEnd(owinContext, null);
+            RequestEnd(owinContext, null, startTimestamp);
         }
         catch (Exception ex)
         {
-            RequestEnd(owinContext, ex);
+            RequestEnd(owinContext, ex, startTimestamp);
             throw;
         }
     }
@@ -151,7 +160,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void RequestEnd(IOwinContext owinContext, Exception exception)
+    private static void RequestEnd(IOwinContext owinContext, Exception exception, long startTimestamp)
     {
         if (owinContext.Environment.TryGetValue(ContextKey, out object context)
             && context is Activity activity)
@@ -199,10 +208,31 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
 
             activity.Stop();
 
+            if (OwinInstrumentationMetrics.HttpServerDuration.Enabled)
+            {
+                OwinInstrumentationMetrics.HttpServerDuration.Record(
+                    activity.Duration.TotalSeconds,
+                    new(SemanticConventions.AttributeHttpRequestMethod, owinContext.Request.Method),
+                    new(SemanticConventions.AttributeUrlScheme, owinContext.Request.Scheme),
+                    new(SemanticConventions.AttributeHttpResponseStatusCode, owinContext.Response.StatusCode));
+            }
+
             if (!(Propagators.DefaultTextMapPropagator is TraceContextPropagator))
             {
                 Baggage.Current = default;
             }
+        }
+        else if (OwinInstrumentationMetrics.HttpServerDuration.Enabled)
+        {
+            var endTimestamp = Stopwatch.GetTimestamp();
+            var duration = endTimestamp - startTimestamp;
+            var durationS = duration / Stopwatch.Frequency;
+
+            OwinInstrumentationMetrics.HttpServerDuration.Record(
+                durationS,
+                new(SemanticConventions.AttributeHttpRequestMethod, owinContext.Request.Method),
+                new(SemanticConventions.AttributeUrlScheme, owinContext.Request.Scheme),
+                new(SemanticConventions.AttributeHttpResponseStatusCode, owinContext.Response.StatusCode));
         }
     }
 
