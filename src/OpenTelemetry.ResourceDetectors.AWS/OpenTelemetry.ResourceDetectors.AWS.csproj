@@ -6,7 +6,6 @@
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry Extensions - AWS Resource Detectors for ElasticBeanstalk, EC2, ECS, EKS.</Description>
     <MinVerTagPrefix>ResourceDetectors.AWS-</MinVerTagPrefix>
-    <Nullable>enable</Nullable>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
   </PropertyGroup>
 

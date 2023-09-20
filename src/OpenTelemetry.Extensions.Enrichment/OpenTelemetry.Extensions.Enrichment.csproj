@@ -5,7 +5,6 @@
     <Description>OpenTelemetry .NET SDK telemetry enrichment.</Description>
     <NoWarn>$(NoWarn),CS1591</NoWarn>
     <MinVerTagPrefix>Extensions.Enrichment-</MinVerTagPrefix>
-    <Nullable>enable</Nullable>
     <AnalysisLevel>latest-all</AnalysisLevel>
   </PropertyGroup>
 

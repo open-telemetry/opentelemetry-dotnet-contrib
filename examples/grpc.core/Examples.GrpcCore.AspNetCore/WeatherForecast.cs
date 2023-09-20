@@ -20,11 +20,16 @@ namespace Examples.GrpcCore.AspNetCore;
 
 public class WeatherForecast
 {
-    public DateTime Date { get; set; }
+    public WeatherForecast(DateTime date, int temperatureC, string summary)
+    {
+        this.Date = date;
+        this.TemperatureC = temperatureC;
+        this.Summary = summary;
+    }
 
-    public int TemperatureC { get; set; }
+    public DateTime Date { get; }
 
-    public int TemperatureF => 32 + (int)(this.TemperatureC / 0.5556);
+    public int TemperatureC { get; }
 
-    public string Summary { get; set; }
+    public string Summary { get; }
 }

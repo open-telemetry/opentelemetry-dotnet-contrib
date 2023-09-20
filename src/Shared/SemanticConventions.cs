@@ -108,5 +108,11 @@ internal static class SemanticConventions
     public const string AttributeExceptionType = "exception.type";
     public const string AttributeExceptionMessage = "exception.message";
     public const string AttributeExceptionStacktrace = "exception.stacktrace";
+
+    // v1.21.0
+    // https://github.com/open-telemetry/semantic-conventions/blob/v1.21.0/docs/http/http-metrics.md#http-server
+    public const string AttributeHttpRequestMethod = "http.request.method"; // replaces: "http.method" (AttributeHttpMethod)
+    public const string AttributeHttpResponseStatusCode = "http.response.status_code"; // replaces: "http.status_code" (AttributeHttpStatusCode)
+    public const string AttributeUrlScheme = "url.scheme"; // replaces: "http.scheme" (AttributeHttpScheme)
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }

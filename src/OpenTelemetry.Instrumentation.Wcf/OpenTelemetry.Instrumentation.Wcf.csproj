@@ -7,6 +7,7 @@
     <Description>OpenTelemetry instrumentation for WCF</Description>
     <PackageTags>$(PackageTags);distributed-tracing;WCF</PackageTags>
     <MinVerTagPrefix>Instrumentation.Wcf-</MinVerTagPrefix>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

@@ -82,8 +82,11 @@ public class CommonSchemaJsonSerializationHelperTests
         var array = new[] { 0, 1, 18 };
         this.SerializeValueToJsonTest(array, "[0,1,18]");
 
-        var map = new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("key1", "value1") };
-        this.SerializeValueToJsonTest(map, "{\"key1\":\"value1\"}");
+        var listMap = new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("key1", "value1") };
+        this.SerializeValueToJsonTest(listMap, "{\"key1\":\"value1\"}");
+
+        var dictMap = new Dictionary<string, object?> { ["key1"] = "value1" };
+        this.SerializeValueToJsonTest(dictMap, "{\"key1\":\"value1\"}");
 
         var typeWithToString = new TypeWithToString();
         this.SerializeValueToJsonTest(typeWithToString, "\"Hello world\"");

@@ -5,7 +5,6 @@
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry extensions for AWS.</Description>
     <MinVerTagPrefix>Extensions.AWS-</MinVerTagPrefix>
-    <Nullable>enable</Nullable>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
   </PropertyGroup>
 

@@ -5,7 +5,6 @@
     <Description>AWS Lambda tracing wrapper for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);AWS Lambda</PackageTags>
     <MinVerTagPrefix>Instrumentation.AWSLambda-</MinVerTagPrefix>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

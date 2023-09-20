@@ -158,6 +158,10 @@ internal static class CommonSchemaJsonSerializationHelper
                 SerializeArrayValueToJson(v, writer);
                 return;
 
+            case IReadOnlyList<KeyValuePair<string, object?>> v:
+                SerializeMapValueToJson(v, writer);
+                return;
+
             case IEnumerable<KeyValuePair<string, object?>> v:
                 SerializeMapValueToJson(v, writer);
                 return;
@@ -178,6 +182,25 @@ internal static class CommonSchemaJsonSerializationHelper
         }
 
         writer.WriteEndArray();
+    }
+
+    private static void SerializeMapValueToJson(IReadOnlyList<KeyValuePair<string, object?>> value, Utf8JsonWriter writer)
+    {
+        writer.WriteStartObject();
+
+        for (int i = 0; i < value.Count; i++)
+        {
+            var element = value[i];
+
+            if (string.IsNullOrEmpty(element.Key))
+            {
+                continue;
+            }
+
+            SerializeKeyValueToJson(element.Key, element.Value, writer);
+        }
+
+        writer.WriteEndObject();
     }
 
     private static void SerializeMapValueToJson(IEnumerable<KeyValuePair<string, object?>> value, Utf8JsonWriter writer)
