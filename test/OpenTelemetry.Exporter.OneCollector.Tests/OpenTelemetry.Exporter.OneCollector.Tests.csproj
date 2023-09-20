@@ -9,12 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkPkgVer)" />
     <PackageReference Include="xunit" Version="$(XUnitPkgVer)" />
-    <PackageReference Condition="$([MSBuild]::IsOsPlatform('Windows'))" Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)" PrivateAssets="All" />
     <PackageReference Include="System.Net.Http" Version="$(SystemNetHttp)" Condition="'$(TargetFramework)' != 'net6.0' AND '$(TargetFramework)' != 'net7.0'" />
     <DotNetCliToolReference Include="dotnet-xunit" Version="$(DotNetXUnitCliVer)" />
   </ItemGroup>
@@ -24,6 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\SkipUnlessEnvVarFoundFactAttribute.cs" Link="Includes\SkipUnlessEnvVarFoundFactAttribute.cs" />
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\SkipUnlessEnvVarFoundTheoryAttribute.cs" Link="Includes\SkipUnlessEnvVarFoundTheoryAttribute.cs" />
     <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestHttpServer.cs" Link="Includes\TestHttpServer.cs" />
   </ItemGroup>
 

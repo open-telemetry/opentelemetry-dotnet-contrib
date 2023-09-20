@@ -31,17 +31,19 @@ jobs:
     - name: Setup dotnet
       uses: actions/setup-dotnet@v3
 
-    - name: Install dependencies
-      run: dotnet restore src/${{env.PROJECT}}
+    - name: dotnet restore build/Projects/${{env.PROJECT}}.proj
+      run: dotnet restore build/Projects/${{env.PROJECT}}.proj
 
-    - name: dotnet build ${{env.PROJECT}}
-      run: dotnet build src/${{env.PROJECT}} --configuration Release --no-restore -p:Deterministic=true
+    - name: dotnet build build/Projects/${{env.PROJECT}}.proj
+      run: dotnet build build/Projects/${{env.PROJECT}}.proj --configuration Release --no-restore -p:Deterministic=true
 
-    - name: dotnet test ${{env.PROJECT}}
-      run: dotnet test test/${{env.PROJECT}}.Tests
+    - name: dotnet test test/${{env.PROJECT}}.Tests
+      run: dotnet test test/${{env.PROJECT}}.Tests --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed"
+      env:
+        OTEL_ONECOLLECTOR_INSTRUMENTATION_KEY: ${{ secrets.OTEL_ONECOLLECTOR_INSTRUMENTATION_KEY }}
 
-    - name: dotnet pack ${{env.PROJECT}}
-      run: dotnet pack src/${{env.PROJECT}} --configuration Release --no-build
+    - name: dotnet pack build/Projects/${{env.PROJECT}}.proj
+      run: dotnet pack build/Projects/${{env.PROJECT}}.proj --configuration Release --no-build --no-restore
 
     - name: Publish Artifacts
       uses: actions/upload-artifact@v3

@@ -23,6 +23,25 @@ comment:
   require_changes: no
 
 ignore:
-  - "**.md"
-  - "src/OpenTelemetry.Contrib.Shared"  # copied from main OTel project and has code coverage there
-  - "test/**/*"
+  - "**/*.md"
+  - "src/Shared"  # copied from main OTel project and has code coverage there
+  - "test"
+  - "examples"
+  - "build"
+
+flags:
+  unittests:
+    carryforward: true
+    paths:
+      - src
+
+  unittests-Exporter.OneCollector:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Exporter.OneCollector
+
+  unittests-Instrumentation.Process:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.Process
+

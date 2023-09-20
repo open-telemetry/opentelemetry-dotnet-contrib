@@ -1,33 +1,57 @@
-name: Instrumentation.Process
+name: Build OpenTelemetry.Instrumentation.Process
 
 on:
   pull_request:
-    branches: [ 'main*' ]
+    branches: [ 'main*', 'instrumentation*' ]
     paths:
-    - 'src/OpenTelemetry.Instrumentation.Process/**'
-    - 'test/OpenTelemetry.Instrumentation.Process.Tests/**'
+    - '*/OpenTelemetry.Instrumentation.Process*/**'
+    - 'build/**'
+    - '!**.md'
 
 env:
-  COMPONENT_NAME: OpenTelemetry.Instrumentation.Process
+  PROJECT: OpenTelemetry.Instrumentation.Process
 
 jobs:
-  unit-test:
+  build-test:
+
     strategy:
       fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
       matrix:
-        os: [ ubuntu-latest, windows-latest ]
+        os: [ windows-latest, ubuntu-latest ]
+        version: [ net462, net6.0, net7.0 ]
+        exclude:
+        - os: ubuntu-latest
+          version: net462
 
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install .NET 7 SDK
-      uses: actions/setup-dotnet@v3.2.0
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v3
+
+    - name: dotnet restore test/${{ env.PROJECT }}.Tests
+      run: dotnet restore test/${{ env.PROJECT }}.Tests
+
+    - name: dotnet build test/${{ env.PROJECT }}.Tests
+      run: dotnet build test/${{ env.PROJECT }}.Tests --configuration Release --no-restore
+
+    - name: dotnet test test/${{ env.PROJECT }}.Tests
+      run: dotnet test test/${{ env.PROJECT }}.Tests --collect:"Code Coverage" --results-directory:"TestResults" --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed" -- RunConfiguration.DisableAppDomain=true
+
+    - name: Install coverage tool
+      run: dotnet tool install -g dotnet-coverage
+
+    - name: Merging test results
+      run: dotnet-coverage merge -r -f cobertura -o ./TestResults/Cobertura.xml ./TestResults/*.coverage
+
+    - uses: codecov/codecov-action@v3.1.4
+      continue-on-error: true # Note: Don't fail for upload failures
+      env:
+        OS: ${{ matrix.os }}
+        TFM: ${{ matrix.version }}
       with:
-        dotnet-version: '7.0.x'
-
-    - name: Build
-      run: dotnet build --configuration Release test/${{ env.COMPONENT_NAME }}.Tests/${{ env.COMPONENT_NAME }}.Tests.csproj
-
-    - name: Test
-      run: dotnet test test/${{ env.COMPONENT_NAME }}.Tests/bin/Release/**/${{ env.COMPONENT_NAME }}.Tests.dll --logger:"console;verbosity=detailed"
+        file: TestResults/Cobertura.xml
+        env_vars: OS,TFM
+        flags: unittests-Instrumentation.Process
+        name: Code Coverage for Instrumentation.Process on [${{ matrix.os }}.${{ matrix.version }}]
