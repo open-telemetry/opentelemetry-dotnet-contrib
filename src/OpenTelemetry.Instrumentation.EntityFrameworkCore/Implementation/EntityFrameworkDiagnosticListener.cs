@@ -40,31 +40,29 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
     private static readonly Version Version = typeof(EntityFrameworkDiagnosticListener).Assembly.GetName().Version;
 #pragma warning disable SA1202 // Elements should be ordered by access <- In this case, Version MUST come before SqlClientActivitySource otherwise null ref exception is thrown.
-    internal static readonly ActivitySource SqlClientActivitySource = new ActivitySource(ActivitySourceName, Version.ToString());
+    internal static readonly ActivitySource SqlClientActivitySource = new(ActivitySourceName, Version.ToString());
 #pragma warning restore SA1202 // Elements should be ordered by access
 
-    private readonly PropertyFetcher<object> commandFetcher = new PropertyFetcher<object>("Command");
-    private readonly PropertyFetcher<object> connectionFetcher = new PropertyFetcher<object>("Connection");
-    private readonly PropertyFetcher<object> dbContextFetcher = new PropertyFetcher<object>("Context");
-    private readonly PropertyFetcher<object> dbContextDatabaseFetcher = new PropertyFetcher<object>("Database");
-    private readonly PropertyFetcher<string> providerNameFetcher = new PropertyFetcher<string>("ProviderName");
-    private readonly PropertyFetcher<object> dataSourceFetcher = new PropertyFetcher<object>("DataSource");
-    private readonly PropertyFetcher<object> databaseFetcher = new PropertyFetcher<object>("Database");
-    private readonly PropertyFetcher<CommandType> commandTypeFetcher = new PropertyFetcher<CommandType>("CommandType");
-    private readonly PropertyFetcher<string> commandTextFetcher = new PropertyFetcher<string>("CommandText");
-    private readonly PropertyFetcher<Exception> exceptionFetcher = new PropertyFetcher<Exception>("Exception");
+    private readonly PropertyFetcher<object> commandFetcher = new("Command");
+    private readonly PropertyFetcher<object> connectionFetcher = new("Connection");
+    private readonly PropertyFetcher<object> dbContextFetcher = new("Context");
+    private readonly PropertyFetcher<object> dbContextDatabaseFetcher = new("Database");
+    private readonly PropertyFetcher<string> providerNameFetcher = new("ProviderName");
+    private readonly PropertyFetcher<object> dataSourceFetcher = new("DataSource");
+    private readonly PropertyFetcher<object> databaseFetcher = new("Database");
+    private readonly PropertyFetcher<CommandType> commandTypeFetcher = new("CommandType");
+    private readonly PropertyFetcher<string> commandTextFetcher = new("CommandText");
+    private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
 
     private readonly EntityFrameworkInstrumentationOptions options;
 
-    public EntityFrameworkDiagnosticListener(string sourceName, EntityFrameworkInstrumentationOptions options)
-        : base(sourceName)
+    public EntityFrameworkDiagnosticListener(string sourceName, EntityFrameworkInstrumentationOptions? options)
+        : base(sourceName, true)
     {
         this.options = options ?? new EntityFrameworkInstrumentationOptions();
     }
 
-    public override bool SupportsNullActivity => true;
-
-    public override void OnCustom(string name, Activity activity, object payload)
+    public override void OnCustom(string name, Activity? activity, object? payload)
     {
         switch (name)
         {

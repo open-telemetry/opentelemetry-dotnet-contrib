@@ -24,6 +24,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Implementation;
@@ -52,7 +53,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
     private readonly MultiTypePropertyFetcher<byte[]> responseBodyFetcher = new MultiTypePropertyFetcher<byte[]>("ResponseBodyInBytes");
 
     public ElasticsearchRequestPipelineDiagnosticListener(ElasticsearchClientInstrumentationOptions options)
-        : base("Elasticsearch.Net.RequestPipeline")
+        : base("Elasticsearch.Net.RequestPipeline", false)
     {
         this.options = options;
     }
@@ -67,6 +68,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
             return;
         }
 
+        Guard.ThrowIfNull(activity);
         if (activity.IsAllDataRequested)
         {
             var uri = this.uriFetcher.Fetch(payload);

@@ -13,6 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
+
+#nullable enable
+
 using System.Diagnostics;
 
 namespace OpenTelemetry.Instrumentation;
@@ -26,9 +29,11 @@ internal abstract class ListenerHandler
     /// Initializes a new instance of the <see cref="ListenerHandler"/> class.
     /// </summary>
     /// <param name="sourceName">The name of the <see cref="ListenerHandler"/>.</param>
-    public ListenerHandler(string sourceName)
+    /// <param name="supportsNullActivity">Indicates whether the  <see cref="ListenerHandler"/> supports NULL <see cref="Activity"/>.</param>
+    protected ListenerHandler(string sourceName, bool supportsNullActivity)
     {
         this.SourceName = sourceName;
+        this.SupportsNullActivity = supportsNullActivity;
     }
 
     /// <summary>
@@ -39,14 +44,14 @@ internal abstract class ListenerHandler
     /// <summary>
     /// Gets a value indicating whether the <see cref="ListenerHandler"/> supports NULL <see cref="Activity"/>.
     /// </summary>
-    public virtual bool SupportsNullActivity { get; }
+    public bool SupportsNullActivity { get; }
 
     /// <summary>
     /// Method called for an event with the suffix 'Start'.
     /// </summary>
     /// <param name="activity">The <see cref="Activity"/> to be started.</param>
     /// <param name="payload">An object that represent the value being passed as a payload for the event.</param>
-    public virtual void OnStartActivity(Activity activity, object payload)
+    public virtual void OnStartActivity(Activity? activity, object? payload)
     {
     }
 
@@ -55,7 +60,7 @@ internal abstract class ListenerHandler
     /// </summary>
     /// <param name="activity">The <see cref="Activity"/> to be stopped.</param>
     /// <param name="payload">An object that represent the value being passed as a payload for the event.</param>
-    public virtual void OnStopActivity(Activity activity, object payload)
+    public virtual void OnStopActivity(Activity? activity, object? payload)
     {
     }
 
@@ -64,7 +69,7 @@ internal abstract class ListenerHandler
     /// </summary>
     /// <param name="activity">The <see cref="Activity"/>.</param>
     /// <param name="payload">An object that represent the value being passed as a payload for the event.</param>
-    public virtual void OnException(Activity activity, object payload)
+    public virtual void OnException(Activity? activity, object? payload)
     {
     }
 
@@ -74,7 +79,7 @@ internal abstract class ListenerHandler
     /// <param name="name">Custom name.</param>
     /// <param name="activity">The <see cref="Activity"/> to be processed.</param>
     /// <param name="payload">An object that represent the value being passed as a payload for the event.</param>
-    public virtual void OnCustom(string name, Activity activity, object payload)
+    public virtual void OnCustom(string name, Activity? activity, object? payload)
     {
     }
 }

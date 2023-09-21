@@ -35,15 +35,16 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
     private readonly QuartzInstrumentationOptions options;
 
     public QuartzDiagnosticListener(string sourceName, QuartzInstrumentationOptions options)
-        : base(sourceName)
+        : base(sourceName, false)
     {
         Guard.ThrowIfNull(options);
 
         this.options = options;
     }
 
-    public override void OnStartActivity(Activity activity, object payload)
+    public override void OnStartActivity(Activity? activity, object? payload)
     {
+        Guard.ThrowIfNull(activity);
         if (activity.IsAllDataRequested)
         {
             if (!this.options.TracedOperations.Contains(activity.OperationName))
@@ -73,8 +74,9 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
         }
     }
 
-    public override void OnStopActivity(Activity activity, object payload)
+    public override void OnStopActivity(Activity? activity, object? payload)
     {
+        Guard.ThrowIfNull(activity);
         if (activity.IsAllDataRequested)
         {
             try
@@ -92,8 +94,9 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
         }
     }
 
-    public override void OnException(Activity activity, object payload)
+    public override void OnException(Activity? activity, object? payload)
     {
+        Guard.ThrowIfNull(activity);
         if (activity.IsAllDataRequested)
         {
             var exc = payload as Exception;
