@@ -259,12 +259,9 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         cursor = MessagePackSerializer.SerializeUInt8(buffer, cursor, GetSeverityNumber(logLevel));
         cntFields += 1;
 
-        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "name");
-        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, categoryName);
-        cntFields += 1;
-
         bool hasEnvProperties = false;
         bool bodyPopulated = false;
+        bool namePopulated = false;
         for (int i = 0; i < listKvp?.Count; i++)
         {
             var entry = listKvp[i];
@@ -279,7 +276,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 bodyPopulated = true;
                 continue;
             }
-            else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
+            else if (this.m_customFields == null || entry.Key == "name" || this.m_customFields.ContainsKey(entry.Key))
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
                 if (entry.Value != null)
@@ -288,6 +285,11 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                     cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
                     cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
                     cntFields += 1;
+
+                    if (entry.Key == "name")
+                    {
+                        namePopulated = true;
+                    }
                 }
             }
             else
@@ -295,6 +297,13 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 hasEnvProperties = true;
                 continue;
             }
+        }
+
+        if (!namePopulated)
+        {
+            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "name");
+            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, categoryName);
+            cntFields += 1;
         }
 
         if (!bodyPopulated && logRecord.FormattedMessage != null)

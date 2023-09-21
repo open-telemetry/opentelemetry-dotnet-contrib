@@ -301,7 +301,6 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
 
         eb.AddCountedString("severityText", logLevels[(int)logLevel]);
         eb.AddUInt8("severityNumber", GetSeverityNumber(logLevel));
-        eb.AddCountedAnsiString("name", categoryName, Encoding.UTF8);
 
         var eventId = logRecord.EventId;
         if (eventId != default)
@@ -312,6 +311,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
 
         byte hasEnvProperties = 0;
         bool bodyPopulated = false;
+        bool namePopulated = false;
 
         byte partCFieldsCountFromState = 0;
         var kvpArrayForPartCFields = partCFields.Value;
@@ -336,14 +336,22 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 bodyPopulated = true;
                 continue;
             }
-            else if (this.customFields == null || this.customFields.ContainsKey(entry.Key))
+            else if (this.customFields == null || entry.Key == "name" || this.customFields.ContainsKey(entry.Key))
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
                 if (entry.Value != null)
                 {
                     // null is not supported.
-                    kvpArrayForPartCFields[partCFieldsCountFromState] = new(entry.Key, entry.Value);
-                    partCFieldsCountFromState++;
+                    if (entry.Key == "name" && entry.Value is string nameValue)
+                    {
+                        eb.AddCountedAnsiString("name", nameValue, Encoding.UTF8);
+                        namePopulated = true;
+                    }
+                    else
+                    {
+                        kvpArrayForPartCFields[partCFieldsCountFromState] = new(entry.Key, entry.Value);
+                        partCFieldsCountFromState++;
+                    }
                 }
             }
             else
@@ -364,6 +372,11 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 // TODO: This could lead to unbounded memory usage.
                 envPropertiesList.Add(new(entry.Key, entry.Value));
             }
+        }
+
+        if (!namePopulated)
+        {
+            eb.AddCountedAnsiString("name", categoryName, Encoding.UTF8);
         }
 
         if (!bodyPopulated && logRecord.FormattedMessage != null)
