@@ -276,20 +276,26 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 bodyPopulated = true;
                 continue;
             }
-            else if (this.m_customFields == null || entry.Key == "name" || this.m_customFields.ContainsKey(entry.Key))
+            else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
                 if (entry.Value != null)
                 {
                     // null is not supported.
+                    if (string.Equals(entry.Key, "name", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (!(entry.Value is string))
+                        {
+                            // name must be string according to Part B in Common Schema. Skip serializing this field otherwise
+                            continue;
+                        }
+
+                        namePopulated = true;
+                    }
+
                     cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
                     cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
                     cntFields += 1;
-
-                    if (entry.Key == "name")
-                    {
-                        namePopulated = true;
-                    }
                 }
             }
             else

@@ -336,16 +336,20 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 bodyPopulated = true;
                 continue;
             }
-            else if (this.customFields == null || entry.Key == "name" || this.customFields.ContainsKey(entry.Key))
+            else if (this.customFields == null || this.customFields.ContainsKey(entry.Key))
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
                 if (entry.Value != null)
                 {
                     // null is not supported.
-                    if (entry.Key == "name" && entry.Value is string nameValue)
+                    if (string.Equals(entry.Key, "name", StringComparison.OrdinalIgnoreCase))
                     {
-                        eb.AddCountedAnsiString("name", nameValue, Encoding.UTF8);
-                        namePopulated = true;
+                        if (entry.Value is string nameValue)
+                        {
+                            // name must be string according to Part B in Common Schema. Skip serializing this field otherwise
+                            eb.AddCountedAnsiString("name", nameValue, Encoding.UTF8);
+                            namePopulated = true;
+                        }
                     }
                     else
                     {

@@ -1132,6 +1132,133 @@ public class GenevaLogExporterTests
         }
     }
 
+    [Theory]
+    [InlineData(false, false, "Custom name")]
+    [InlineData(false, false, "")]
+    [InlineData(false, false, null)]
+    [InlineData(false, false, 5)]
+    [InlineData(true, false, "Custom name")]
+    [InlineData(true, true, "Custom name")]
+    public void SerializationTestForPartBName(bool hasCustomFields, bool hasNameInCustomFields, object customNameValue)
+    {
+        // ARRANGE
+        string path = string.Empty;
+        Socket server = null;
+        var logRecordList = new List<LogRecord>();
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions();
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            if (hasCustomFields)
+            {
+                if (hasNameInCustomFields)
+                {
+                    exporterOptions.CustomFields = new string[] { "name", "Key1" };
+                }
+                else
+                {
+                    exporterOptions.CustomFields = new string[] { "Key1" };
+                }
+            }
+
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(options =>
+                {
+                    options.AddGenevaLogExporter(options =>
+                    {
+                        options.ConnectionString = exporterOptions.ConnectionString;
+                        options.CustomFields = exporterOptions.CustomFields;
+                    });
+                    options.AddInMemoryExporter(logRecordList);
+                }));
+
+            // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
+            using var exporter = new MsgPackLogExporter(exporterOptions);
+
+            // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
+            var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
+
+            // ACT
+            // This is treated as structured logging as the state can be converted to IReadOnlyList<KeyValuePair<string, object>>
+
+            var state = new List<KeyValuePair<string, object>>()
+            {
+                new KeyValuePair<string, object>("Key1", "Value1"),
+                new KeyValuePair<string, object>("Key2", "Value2"),
+            };
+
+            if (customNameValue != null)
+            {
+                state.Add(new KeyValuePair<string, object>("name", customNameValue));
+            }
+
+            logger.Log(
+                LogLevel.Information,
+                default,
+                state,
+                null,
+                null);
+
+            // VALIDATE
+            Assert.Single(logRecordList);
+            var m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+            _ = exporter.SerializeLogRecord(logRecordList[0]);
+            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            var signal = (fluentdData as object[])[0] as string;
+            var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
+            var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
+            var actualNameValue = mapping["name"];
+
+            if (!hasCustomFields || hasNameInCustomFields)
+            {
+                if (customNameValue is string stringNameValue)
+                {
+                    Assert.Equal(stringNameValue, actualNameValue);
+                }
+                else
+                {
+                    Assert.Equal(typeof(GenevaLogExporterTests).FullName, actualNameValue);
+                }
+            }
+            else
+            {
+                Assert.Equal(typeof(GenevaLogExporterTests).FullName, actualNameValue);
+                if (customNameValue != null)
+                {
+                    var envProperties = mapping["env_properties"] as Dictionary<object, object>;
+                    Assert.True(Equals(envProperties["name"], customNameValue));
+                }
+            }
+
+            logRecordList.Clear();
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
     [Fact]
     public void SerializationTestForEventId()
     {
