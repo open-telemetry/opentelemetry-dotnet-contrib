@@ -282,7 +282,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 if (entry.Value != null)
                 {
                     // null is not supported.
-                    if (string.Equals(entry.Key, "name", StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(entry.Key, "name", StringComparison.Ordinal))
                     {
                         if (!(entry.Value is string))
                         {
