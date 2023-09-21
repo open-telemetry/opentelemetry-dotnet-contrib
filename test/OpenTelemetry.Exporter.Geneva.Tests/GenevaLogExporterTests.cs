@@ -1136,9 +1136,11 @@ public class GenevaLogExporterTests
     [InlineData(false, false, "Custom name")]
     [InlineData(false, false, "")]
     [InlineData(false, false, null)]
-    [InlineData(false, false, 5)]
+    [InlineData(false, false, 12345)]
     [InlineData(true, false, "Custom name")]
     [InlineData(true, true, "Custom name")]
+    [InlineData(true, true, 12345)]
+    [InlineData(true, false, 12345)]
     public void SerializationTestForPartBName(bool hasCustomFields, bool hasNameInCustomFields, object customNameValue)
     {
         // ARRANGE
@@ -1240,7 +1242,14 @@ public class GenevaLogExporterTests
                 if (customNameValue != null)
                 {
                     var envProperties = mapping["env_properties"] as Dictionary<object, object>;
-                    Assert.True(Equals(envProperties["name"], customNameValue));
+                    if (customNameValue is int customNameNumber)
+                    {
+                        Assert.Equal(Convert.ToInt32(envProperties["name"]), customNameNumber);
+                    }
+                    else
+                    {
+                        Assert.Equal((string)envProperties["name"], (string)customNameValue);
+                    }
                 }
             }
 
