@@ -259,12 +259,9 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         cursor = MessagePackSerializer.SerializeUInt8(buffer, cursor, GetSeverityNumber(logLevel));
         cntFields += 1;
 
-        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "name");
-        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, categoryName);
-        cntFields += 1;
-
         bool hasEnvProperties = false;
         bool bodyPopulated = false;
+        bool namePopulated = false;
         for (int i = 0; i < listKvp?.Count; i++)
         {
             var entry = listKvp[i];
@@ -285,6 +282,17 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 if (entry.Value != null)
                 {
                     // null is not supported.
+                    if (string.Equals(entry.Key, "name", StringComparison.Ordinal))
+                    {
+                        if (!(entry.Value is string))
+                        {
+                            // name must be string according to Part B in Common Schema. Skip serializing this field otherwise
+                            continue;
+                        }
+
+                        namePopulated = true;
+                    }
+
                     cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
                     cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
                     cntFields += 1;
@@ -295,6 +303,13 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 hasEnvProperties = true;
                 continue;
             }
+        }
+
+        if (!namePopulated)
+        {
+            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "name");
+            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, categoryName);
+            cntFields += 1;
         }
 
         if (!bodyPopulated && logRecord.FormattedMessage != null)
