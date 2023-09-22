@@ -54,10 +54,15 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
         using var source = new ActivitySource(SourceName);
         using (var activity = source.StartActivity(SourceName))
         {
+            Assert.NotNull(activity);
             activity.Stop();
 
-            Assert.Equal(1, (enrichers[0] as MyTraceEnricher).TimesCalled);
-            Assert.Equal(1, (enrichers[1] as MyTraceEnricher2).TimesCalled);
+            var myTraceEnricher = enrichers[0] as MyTraceEnricher;
+            var myTraceEnricher2 = enrichers[1] as MyTraceEnricher2;
+            Assert.NotNull(myTraceEnricher);
+            Assert.NotNull(myTraceEnricher2);
+            Assert.Equal(1, myTraceEnricher.TimesCalled);
+            Assert.Equal(1, myTraceEnricher2.TimesCalled);
 
             Assert.Single(exportedItems);
 
@@ -97,6 +102,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
         using var source = new ActivitySource(SourceName);
         using (var activity = source.StartActivity(SourceName))
         {
+            Assert.NotNull(activity);
             activity.Stop();
 
             Assert.Single(exportedItems);
@@ -139,6 +145,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
 
         using (var activity = source1.StartActivity(SourceName))
         {
+            Assert.NotNull(activity);
             activity.Stop();
 
             Assert.Single(exportedItems);
@@ -177,6 +184,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
         using var source = new ActivitySource(SourceName);
         using (var activity = source.StartActivity(SourceName))
         {
+            Assert.NotNull(activity);
             activity.Stop();
 
             Assert.Single(exportedItems);
