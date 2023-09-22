@@ -9,6 +9,10 @@
 * Updated OpenTelemetry SDK package version to 1.6.0
   ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
 
+* Fix issue of multiple instances of OpenTelemetry-Instrumentation EventSource
+  being created
+  ([#1362](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1362))
+
 ## 1.0.0-beta.7
 
 Released 2023-Jun-09
