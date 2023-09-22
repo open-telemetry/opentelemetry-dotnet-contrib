@@ -21,6 +21,11 @@ namespace Examples.Wcf;
 [DataContract]
 public class StatusRequest
 {
+    public StatusRequest(string status)
+    {
+        this.Status = status;
+    }
+
     [DataMember]
     public string Status { get; set; }
 }

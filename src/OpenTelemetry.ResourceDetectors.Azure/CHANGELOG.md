@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 1.0.0-beta.3
+
+Released 2023-Sep-19
+
+* Configured the `HttpClient` used for making the call to metadata service to
+  use a `Timeout` to `2` seconds. This is to improve the start-up time of
+  applications not running on Azure VMs.
+  ([#1358](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1358))
 * Updates to 1.6.0 of OpenTelemetry SDK.
   ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
 * Suppress instrumentation for outgoing http call made to metadata service

@@ -1,15 +1,15 @@
-name: Build OpenTelemetry.Instrumentation.Process
+name: Build OpenTelemetry.Exporter.OneCollector
 
 on:
   pull_request:
-    branches: [ 'main*', 'instrumentation*' ]
+    branches: [ 'main*', 'exporter*' ]
     paths:
-    - '*/OpenTelemetry.Instrumentation.Process*/**'
+    - '*/OpenTelemetry.Exporter.OneCollector*/**'
     - 'build/**'
     - '!**.md'
 
 env:
-  PROJECT: OpenTelemetry.Instrumentation.Process
+  PROJECT: OpenTelemetry.Exporter.OneCollector
 
 jobs:
   build-test:
@@ -30,14 +30,14 @@ jobs:
     - name: Setup dotnet
       uses: actions/setup-dotnet@v3
 
-    - name: dotnet restore test/${{ env.PROJECT }}.Tests
-      run: dotnet restore test/${{ env.PROJECT }}.Tests
+    - name: dotnet restore build/Projects/${{env.PROJECT}}.proj
+      run: dotnet restore build/Projects/${{env.PROJECT}}.proj
 
-    - name: dotnet build test/${{ env.PROJECT }}.Tests
-      run: dotnet build test/${{ env.PROJECT }}.Tests --configuration Release --no-restore
+    - name: dotnet build build/Projects/${{env.PROJECT}}.proj
+      run: dotnet build build/Projects/${{env.PROJECT}}.proj --configuration Release --no-restore
 
-    - name: dotnet test test/${{ env.PROJECT }}.Tests
-      run: dotnet test test/${{ env.PROJECT }}.Tests --collect:"Code Coverage" --results-directory:"TestResults" --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed" -- RunConfiguration.DisableAppDomain=true
+    - name: dotnet test test/${{env.PROJECT}}.Tests
+      run: dotnet test test/${{env.PROJECT}}.Tests --collect:"Code Coverage" --results-directory:TestResults --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed" -- RunConfiguration.DisableAppDomain=true
 
     - name: Install coverage tool
       run: dotnet tool install -g dotnet-coverage
@@ -53,5 +53,5 @@ jobs:
       with:
         file: TestResults/Cobertura.xml
         env_vars: OS,TFM
-        flags: unittests-Instrumentation.Process
-        name: Code Coverage for Instrumentation.Process on [${{ matrix.os }}.${{ matrix.version }}]
+        flags: unittests-Exporter.OneCollector
+        name: Code Coverage for Exporter.OneCollector on [${{ matrix.os }}.${{ matrix.version }}]

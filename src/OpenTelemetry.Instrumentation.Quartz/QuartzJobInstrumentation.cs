@@ -34,7 +34,8 @@ internal class QuartzJobInstrumentation : IDisposable
         this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(
             name => new QuartzDiagnosticListener(name, options),
             listener => listener.Name == QuartzDiagnosticListenerName,
-            null);
+            null,
+            QuartzInstrumentationEventSource.Log.UnknownErrorProcessingEvent);
         this.diagnosticSourceSubscriber.Subscribe();
     }
 

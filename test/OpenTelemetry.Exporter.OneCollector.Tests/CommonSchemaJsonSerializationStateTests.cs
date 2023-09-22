@@ -50,7 +50,7 @@ public class CommonSchemaJsonSerializationStateTests
         var json = Encoding.UTF8.GetString(stream.ToArray());
 
         Assert.Equal(
-            "{\"ext\":{\"something\":{\"field1\":1,\"field2\":2,\"field3\":3,\"field4\":6},\"food\":{\"field1\":4,\"field2\":5}}}",
+            """{"ext":{"something":{"field1":1,"field2":2,"field3":3,"field4":6},"food":{"field1":4,"field2":5}}}""",
             json);
 
         stream.SetLength(0);
@@ -74,7 +74,7 @@ public class CommonSchemaJsonSerializationStateTests
         json = Encoding.UTF8.GetString(stream.ToArray());
 
         Assert.Equal(
-            "{\"ext\":{\"something\":{\"field1\":1},\"food\":{\"field1\":1}}}",
+            """{"ext":{"something":{"field1":1},"food":{"field1":1}}}""",
             json);
     }
 
@@ -102,7 +102,7 @@ public class CommonSchemaJsonSerializationStateTests
         var json = Encoding.UTF8.GetString(stream.ToArray());
 
         Assert.Equal(
-            "{\"ext\":{\"something\":{\"field1\":1,\"field1\":2}}}",
+            """{"ext":{"something":{"field1":1,"field1":2}}}""",
             json);
     }
 

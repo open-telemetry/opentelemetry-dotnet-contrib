@@ -5,7 +5,6 @@
     <PackageTags>$(PackageTags);Hangfire</PackageTags>
     <MinVerTagPrefix>Instrumentation.Hangfire-</MinVerTagPrefix>
     <SignAssembly>false</SignAssembly>
-    <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Hangfire.Core" Version="[1.7.0,1.9.0)" />
