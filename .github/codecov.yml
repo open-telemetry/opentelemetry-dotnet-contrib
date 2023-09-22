@@ -50,3 +50,8 @@ flags:
     paths:
       - src/OpenTelemetry.Instrumentation.Process
 
+  unittests-Instrumentation.Wcf:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.Wcf
+
