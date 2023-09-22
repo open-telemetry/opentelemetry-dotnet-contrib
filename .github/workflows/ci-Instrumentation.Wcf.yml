@@ -1,0 +1,17 @@
+name: Build OpenTelemetry.Instrumentation.Wcf
+
+on:
+  pull_request:
+    branches: [ 'main*', 'instrumentation*' ]
+    paths:
+    - '*/OpenTelemetry.Instrumentation.Wcf*/**'
+    - 'build/**'
+    - '!**.md'
+
+jobs:
+  call-build-test:
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.Wcf
+      code-cov-name: Instrumentation.Wcf
+
