@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.7.0-alpha.1
+
+Released 2023-Sep-22
+
 * Allow overriding the Part B "name" field value in GenevaLogExporter.
   ([#1367](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1367))
 
