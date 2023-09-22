@@ -29,7 +29,7 @@ jobs:
       run: dotnet restore build/Projects/${{ inputs.project-name }}.proj
 
     - name: dotnet build build/Projects/${{ inputs.project-name }}.proj
-      run: dotnet build build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-restore
+      run: dotnet build build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-restore -p:Deterministic=true
 
     - name: dotnet test test/${{ inputs.project-name }}.Tests
       run: dotnet test test/${{ inputs.project-name }}.Tests --configuration Release --no-restore --no-build
