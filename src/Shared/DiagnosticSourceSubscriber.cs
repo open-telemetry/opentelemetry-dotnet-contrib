@@ -26,28 +26,29 @@ using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation;
 
-#pragma warning disable CA1812
 internal sealed class DiagnosticSourceSubscriber : IDisposable, IObserver<DiagnosticListener>
-#pragma warning restore CA1812
 {
+    private readonly List<IDisposable> listenerSubscriptions;
     private readonly Func<string, ListenerHandler> handlerFactory;
     private readonly Func<DiagnosticListener, bool> diagnosticSourceFilter;
     private readonly Func<string, object, object, bool> isEnabledFilter;
+    private readonly Action<string, string, Exception> logUnknownException;
     private long disposed;
     private IDisposable allSourcesSubscription;
-    private List<IDisposable> listenerSubscriptions;
 
     public DiagnosticSourceSubscriber(
         ListenerHandler handler,
-        Func<string, object, object, bool> isEnabledFilter)
-        : this(_ => handler, value => handler.SourceName == value.Name, isEnabledFilter)
+        Func<string, object, object, bool> isEnabledFilter,
+        Action<string, string, Exception> logUnknownException)
+        : this(_ => handler, value => handler.SourceName == value.Name, isEnabledFilter, logUnknownException)
     {
     }
 
     public DiagnosticSourceSubscriber(
         Func<string, ListenerHandler> handlerFactory,
         Func<DiagnosticListener, bool> diagnosticSourceFilter,
-        Func<string, object, object, bool> isEnabledFilter)
+        Func<string, object, object, bool> isEnabledFilter,
+        Action<string, string, Exception> logUnknownException)
     {
         Guard.ThrowIfNull(handlerFactory);
 
@@ -55,6 +56,7 @@ internal sealed class DiagnosticSourceSubscriber : IDisposable, IObserver<Diagno
         this.handlerFactory = handlerFactory;
         this.diagnosticSourceFilter = diagnosticSourceFilter;
         this.isEnabledFilter = isEnabledFilter;
+        this.logUnknownException = logUnknownException;
     }
 
     public void Subscribe()
@@ -71,7 +73,7 @@ internal sealed class DiagnosticSourceSubscriber : IDisposable, IObserver<Diagno
             this.diagnosticSourceFilter(value))
         {
             var handler = this.handlerFactory(value.Name);
-            var listener = new DiagnosticSourceListener(handler);
+            var listener = new DiagnosticSourceListener(handler, this.logUnknownException);
             var subscription = this.isEnabledFilter == null ?
                 value.Subscribe(listener) :
                 value.Subscribe(listener, this.isEnabledFilter);

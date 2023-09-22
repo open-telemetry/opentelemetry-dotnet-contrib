@@ -8,6 +8,7 @@
     <MinVerTagPrefix>Instrumentation.ElasticsearchClient-</MinVerTagPrefix>
     <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
+    <IncludeSharedDiagnosticSourceSubscriber>true</IncludeSharedDiagnosticSourceSubscriber>
     <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>

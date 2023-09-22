@@ -6,6 +6,7 @@
     <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
+    <IncludeSharedDiagnosticSourceSubscriber>true</IncludeSharedDiagnosticSourceSubscriber>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryCoreLatestVersion)" />
