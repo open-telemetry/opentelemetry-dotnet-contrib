@@ -8,50 +8,9 @@ on:
     - 'build/**'
     - '!**.md'
 
-env:
-  PROJECT: OpenTelemetry.Exporter.Geneva
-
 jobs:
-  build-test:
-
-    strategy:
-      fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
-      matrix:
-        os: [ windows-latest, ubuntu-latest ]
-        version: [ net462, net6.0, net7.0 ]
-        exclude:
-        - os: ubuntu-latest
-          version: net462
-
-    runs-on: ${{ matrix.os }}
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Setup dotnet
-      uses: actions/setup-dotnet@v3
-
-    - name: dotnet restore build/Projects/${{env.PROJECT}}.proj
-      run: dotnet restore build/Projects/${{env.PROJECT}}.proj
-
-    - name: dotnet build build/Projects/${{env.PROJECT}}.proj
-      run: dotnet build build/Projects/${{env.PROJECT}}.proj --configuration Release --no-restore
-
-    - name: dotnet test test/${{env.PROJECT}}.Tests
-      run: dotnet test test/${{env.PROJECT}}.Tests --collect:"Code Coverage" --results-directory:TestResults --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed" -- RunConfiguration.DisableAppDomain=true
-
-    - name: Install coverage tool
-      run: dotnet tool install -g dotnet-coverage
-
-    - name: Merging test results
-      run: dotnet-coverage merge -r -f cobertura -o ./TestResults/Cobertura.xml ./TestResults/*.coverage
-
-    - uses: codecov/codecov-action@v3.1.4
-      continue-on-error: true # Note: Don't fail for upload failures
-      env:
-        OS: ${{ matrix.os }}
-        TFM: ${{ matrix.version }}
-      with:
-        file: TestResults/Cobertura.xml
-        env_vars: OS,TFM
-        flags: unittests-Exporter.Geneva
-        name: Code Coverage for Exporter.Geneva on [${{ matrix.os }}.${{ matrix.version }}]
+  call-build-test:
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Exporter.Geneva
+      code-cov-name: Exporter.Geneva
