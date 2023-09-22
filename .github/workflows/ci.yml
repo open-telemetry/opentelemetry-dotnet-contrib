@@ -7,6 +7,7 @@ on:
     - '**.md'
     - '*/OpenTelemetry.Exporter.Geneva*/**'
     - '*/OpenTelemetry.Exporter.OneCollector*/**'
+    - '*/OpenTelemetry.Instrumentation.Owin*/**'
     - '*/OpenTelemetry.Instrumentation.Process*/**'
     - '*/OpenTelemetry.Instrumentation.Wcf*/**'
 
@@ -43,6 +44,7 @@ jobs:
           -Exclude `
             OpenTelemetry.Exporter.Geneva.Tests.csproj,
             OpenTelemetry.Exporter.OneCollector.Tests.csproj,
+            OpenTelemetry.Instrumentation.Owin.Tests.csproj,
             OpenTelemetry.Instrumentation.Process.Tests.csproj,
             OpenTelemetry.Instrumentation.Wcf.Tests.csproj
 

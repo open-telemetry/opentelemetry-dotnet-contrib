@@ -1,0 +1,17 @@
+name: Build OpenTelemetry.Instrumentation.Owin
+
+on:
+  pull_request:
+    branches: [ 'main*', 'instrumentation*' ]
+    paths:
+    - '*/OpenTelemetry.Instrumentation.Owin*/**'
+    - 'build/**'
+    - '!**.md'
+
+jobs:
+  call-build-test:
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.Owin
+      code-cov-name: Instrumentation.Owin
+
