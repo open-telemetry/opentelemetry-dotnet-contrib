@@ -5,6 +5,7 @@ on:
     branches: [ 'main*', 'instrumentation*' ]
     paths:
     - '*/OpenTelemetry.Instrumentation.Owin*/**'
+    - 'src/Shared/**'
     - 'build/**'
     - '!**.md'
 
