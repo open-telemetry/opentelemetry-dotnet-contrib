@@ -13,6 +13,14 @@ on:
         default: 'unittests'
         required: false
         type: string
+      os-list:
+        default: '[ "windows-latest", "ubuntu-latest" ]'
+        required: false
+        type: string
+      tfm-list:
+        default: '[ "net462", "net6.0", "net7.0" ]'
+        required: false
+        type: string
 
 jobs:
   build-test:
@@ -20,8 +28,8 @@ jobs:
     strategy:
       fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
       matrix:
-        os: [ windows-latest, ubuntu-latest ]
-        version: [ net462, net6.0, net7.0 ]
+        os: ${{ fromJSON(inputs.os-list) }}
+        version: ${{ fromJSON(inputs.tfm-list) }}
         exclude:
         - os: ubuntu-latest
           version: net462
