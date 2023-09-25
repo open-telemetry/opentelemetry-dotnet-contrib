@@ -32,6 +32,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\ci-Exporter.Geneva.yml = .github\workflows\ci-Exporter.Geneva.yml
 		.github\workflows\ci-Exporter.OneCollector-Integration.yml = .github\workflows\ci-Exporter.OneCollector-Integration.yml
 		.github\workflows\ci-Exporter.OneCollector.yml = .github\workflows\ci-Exporter.OneCollector.yml
+		.github\workflows\ci-Instrumentation.Owin.yml = .github\workflows\ci-Instrumentation.Owin.yml
 		.github\workflows\ci-Instrumentation.Process.yml = .github\workflows\ci-Instrumentation.Process.yml
 		.github\workflows\ci-Instrumentation.Wcf.yml = .github\workflows\ci-Instrumentation.Wcf.yml
 		.github\workflows\ci-md.yml = .github\workflows\ci-md.yml
@@ -310,6 +311,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projects", "Projects", "{04
 	ProjectSection(SolutionItems) = preProject
 		build\Projects\OpenTelemetry.Exporter.Geneva.proj = build\Projects\OpenTelemetry.Exporter.Geneva.proj
 		build\Projects\OpenTelemetry.Exporter.OneCollector.proj = build\Projects\OpenTelemetry.Exporter.OneCollector.proj
+		build\Projects\OpenTelemetry.Instrumentation.Owin.proj = build\Projects\OpenTelemetry.Instrumentation.Owin.proj
 		build\Projects\OpenTelemetry.Instrumentation.Process.proj = build\Projects\OpenTelemetry.Instrumentation.Process.proj
 		build\Projects\OpenTelemetry.Instrumentation.Wcf.proj = build\Projects\OpenTelemetry.Instrumentation.Wcf.proj
 	EndProjectSection
