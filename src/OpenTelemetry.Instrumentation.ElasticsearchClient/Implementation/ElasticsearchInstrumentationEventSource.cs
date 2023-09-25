@@ -26,7 +26,7 @@ namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Implementation;
 [EventSource(Name = "OpenTelemetry-Instrumentation-Elasticsearch")]
 internal class ElasticsearchInstrumentationEventSource : EventSource
 {
-    public static ElasticsearchInstrumentationEventSource Log = new ElasticsearchInstrumentationEventSource();
+    public static ElasticsearchInstrumentationEventSource Log = new();
 
     [Event(1, Message = "Payload is NULL in event '{1}' from handler '{0}', span will not be recorded.", Level = EventLevel.Warning)]
     public void NullPayload(string handlerName, string eventName)
@@ -47,5 +47,20 @@ internal class ElasticsearchInstrumentationEventSource : EventSource
     public void EnrichmentException(string exception)
     {
         this.WriteEvent(2, exception);
+    }
+
+    [NonEvent]
+    public void UnknownErrorProcessingEvent(string handlerName, string eventName, Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
+        {
+            this.UnknownErrorProcessingEvent(handlerName, eventName, ex.ToInvariantString());
+        }
+    }
+
+    [Event(3, Message = "Unknown error processing event '{1}' from handler '{0}', Exception: {2}", Level = EventLevel.Error)]
+    public void UnknownErrorProcessingEvent(string handlerName, string eventName, string ex)
+    {
+        this.WriteEvent(3, handlerName, eventName, ex);
     }
 }

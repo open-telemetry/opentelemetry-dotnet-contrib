@@ -1,0 +1,16 @@
+name: Build OpenTelemetry.Exporter.OneCollector
+
+on:
+  pull_request:
+    branches: [ 'main*', 'exporter*' ]
+    paths:
+    - '*/OpenTelemetry.Exporter.OneCollector*/**'
+    - 'build/**'
+    - '!**.md'
+
+jobs:
+  call-build-test:
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Exporter.OneCollector
+      code-cov-name: Exporter.OneCollector

@@ -56,7 +56,9 @@ internal static class EventSourceTestHelper
         }
         catch (Exception e)
         {
-            var name = eventMethod.DeclaringType.Name + "." + eventMethod.Name;
+            var name = eventMethod.DeclaringType == null
+                ? eventMethod.Name
+                : eventMethod.DeclaringType.Name + "." + eventMethod.Name;
 
             throw new Exception("Method '" + name + "' is implemented incorrectly.", e);
         }
@@ -87,7 +89,8 @@ internal static class EventSourceTestHelper
 
         if (parameter.ParameterType.IsValueType)
         {
-            return Activator.CreateInstance(parameter.ParameterType);
+            return Activator.CreateInstance(parameter.ParameterType)
+                ?? throw new NotSupportedException($"Could not create an instance of the '{parameter.ParameterType}' type.");
         }
 
         throw new NotSupportedException("Complex types are not supported");
@@ -108,9 +111,14 @@ internal static class EventSourceTestHelper
     private static void VerifyEventMessage(MethodInfo eventMethod, EventWrittenEventArgs actualEvent, object[] eventArguments)
     {
         string expectedMessage = eventArguments.Length == 0
-            ? GetEventAttribute(eventMethod).Message
-            : string.Format(CultureInfo.InvariantCulture, GetEventAttribute(eventMethod).Message, eventArguments);
-        string actualMessage = string.Format(CultureInfo.InvariantCulture, actualEvent.Message, actualEvent.Payload.ToArray());
+            ? GetEventAttribute(eventMethod).Message!
+            : string.Format(CultureInfo.InvariantCulture, GetEventAttribute(eventMethod).Message!, eventArguments);
+
+        string actualMessage = string.Format(
+            CultureInfo.InvariantCulture,
+            actualEvent.Message!,
+            actualEvent.Payload?.ToArray() ?? Array.Empty<object>());
+
         AssertEqual(nameof(VerifyEventMessage), expectedMessage, actualMessage);
     }
 

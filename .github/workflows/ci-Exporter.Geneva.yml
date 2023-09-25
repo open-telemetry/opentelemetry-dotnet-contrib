@@ -1,0 +1,16 @@
+name: Build OpenTelemetry.Exporter.Geneva
+
+on:
+  pull_request:
+    branches: [ 'main*', 'exporter*' ]
+    paths:
+    - '*/OpenTelemetry.Exporter.Geneva*/**'
+    - 'build/**'
+    - '!**.md'
+
+jobs:
+  call-build-test:
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Exporter.Geneva
+      code-cov-name: Exporter.Geneva

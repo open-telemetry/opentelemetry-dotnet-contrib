@@ -54,4 +54,19 @@ internal class QuartzInstrumentationEventSource : EventSource
     {
         this.WriteEvent(3, exception);
     }
+
+    [NonEvent]
+    public void UnknownErrorProcessingEvent(string handlerName, string eventName, Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
+        {
+            this.UnknownErrorProcessingEvent(handlerName, eventName, ex.ToInvariantString());
+        }
+    }
+
+    [Event(4, Message = "Unknown error processing event '{1}' from handler '{0}', Exception: {2}", Level = EventLevel.Error)]
+    public void UnknownErrorProcessingEvent(string handlerName, string eventName, string ex)
+    {
+        this.WriteEvent(4, handlerName, eventName, ex);
+    }
 }
