@@ -18,6 +18,7 @@ using System;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Threading;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
@@ -36,6 +37,8 @@ internal sealed class InstrumentedRequestChannel : InstrumentedChannel, IRequest
 
     Message IRequestChannel.Request(Message message)
     {
+        Guard.ThrowIfNull(message);
+
         var telemetryState = ClientChannelInstrumentation.BeforeSendRequest(message, ((IRequestChannel)this).RemoteAddress?.Uri);
         Message reply;
         try
@@ -54,6 +57,8 @@ internal sealed class InstrumentedRequestChannel : InstrumentedChannel, IRequest
 
     Message IRequestChannel.Request(Message message, TimeSpan timeout)
     {
+        Guard.ThrowIfNull(message);
+
         var telemetryState = ClientChannelInstrumentation.BeforeSendRequest(message, ((IRequestChannel)this).RemoteAddress?.Uri);
         Message reply;
         try
@@ -70,18 +75,26 @@ internal sealed class InstrumentedRequestChannel : InstrumentedChannel, IRequest
         return reply;
     }
 
-    IAsyncResult IRequestChannel.BeginRequest(Message message, TimeSpan timeout, AsyncCallback callback, object state)
+    IAsyncResult IRequestChannel.BeginRequest(Message message, TimeSpan timeout, AsyncCallback callback, object? state)
     {
+        Guard.ThrowIfNull(message);
+        Guard.ThrowIfNull(callback);
+
         return this.InternalBeginRequest(message, (cb, s) => this.Inner.BeginRequest(message, timeout, cb, s), callback, state);
     }
 
-    IAsyncResult IRequestChannel.BeginRequest(Message message, AsyncCallback callback, object state)
+    IAsyncResult IRequestChannel.BeginRequest(Message message, AsyncCallback callback, object? state)
     {
+        Guard.ThrowIfNull(message);
+        Guard.ThrowIfNull(callback);
+
         return this.InternalBeginRequest(message, (cb, s) => this.Inner.BeginRequest(message, cb, s), callback, state);
     }
 
     Message IRequestChannel.EndRequest(IAsyncResult result)
     {
+        Guard.ThrowIfNull(result);
+
         var asyncResult = (AsyncResultWithTelemetryState)result;
         Message reply;
         try
@@ -98,7 +111,7 @@ internal sealed class InstrumentedRequestChannel : InstrumentedChannel, IRequest
         return reply;
     }
 
-    private IAsyncResult InternalBeginRequest(Message message, Func<AsyncCallback, object, IAsyncResult> beginRequestDelegate, AsyncCallback callback, object state)
+    private IAsyncResult InternalBeginRequest(Message message, Func<AsyncCallback, object?, IAsyncResult> beginRequestDelegate, AsyncCallback callback, object? state)
     {
         IAsyncResult? result = null;
         ContextCallback executeInChildContext = _ =>

@@ -17,6 +17,7 @@
 using System;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
@@ -31,11 +32,16 @@ internal class InstrumentedRequestChannelFactory : InstrumentedChannelFactory, I
 
     IRequestChannel IChannelFactory<IRequestChannel>.CreateChannel(EndpointAddress to, Uri via)
     {
+        Guard.ThrowIfNull(to);
+        Guard.ThrowIfNull(via);
+
         return new InstrumentedRequestChannel(this.Inner.CreateChannel(to, via));
     }
 
     IRequestChannel IChannelFactory<IRequestChannel>.CreateChannel(EndpointAddress to)
     {
+        Guard.ThrowIfNull(to);
+
         return new InstrumentedRequestChannel(this.Inner.CreateChannel(to));
     }
 }

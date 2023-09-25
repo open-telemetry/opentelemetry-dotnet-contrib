@@ -17,6 +17,7 @@
 using System;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
@@ -34,11 +35,16 @@ internal class InstrumentedDuplexSessionChannelFactory : InstrumentedChannelFact
 
     IDuplexSessionChannel IChannelFactory<IDuplexSessionChannel>.CreateChannel(EndpointAddress to)
     {
+        Guard.ThrowIfNull(to);
+
         return new InstrumentedDuplexSessionChannel(this.Inner.CreateChannel(to), this.telemetryTimeOut);
     }
 
     IDuplexSessionChannel IChannelFactory<IDuplexSessionChannel>.CreateChannel(EndpointAddress to, Uri via)
     {
+        Guard.ThrowIfNull(to);
+        Guard.ThrowIfNull(via);
+
         return new InstrumentedDuplexSessionChannel(this.Inner.CreateChannel(to, via), this.telemetryTimeOut);
     }
 }
