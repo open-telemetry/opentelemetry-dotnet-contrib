@@ -21,7 +21,7 @@ using System.Threading;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
-internal sealed class InstrumentedRequestChannel : InstrumentedChannel, IRequestChannel
+internal sealed class InstrumentedRequestChannel : InstrumentedChannel, IRequestSessionChannel
 {
     public InstrumentedRequestChannel(IRequestChannel inner)
         : base(inner)
@@ -32,7 +32,9 @@ internal sealed class InstrumentedRequestChannel : InstrumentedChannel, IRequest
 
     Uri IRequestChannel.Via => this.Inner.Via;
 
-    private new IRequestChannel Inner { get => (IRequestChannel)base.Inner; }
+    IOutputSession ISessionChannel<IOutputSession>.Session => ((ISessionChannel<IOutputSession>)this.Inner).Session;
+
+    private new IRequestChannel Inner => (IRequestChannel)base.Inner;
 
     Message IRequestChannel.Request(Message message)
     {
