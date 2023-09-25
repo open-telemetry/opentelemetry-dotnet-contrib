@@ -40,10 +40,9 @@ internal class InstrumentedDuplexSessionChannelFactory : InstrumentedChannelFact
         return new InstrumentedDuplexSessionChannel(this.Inner.CreateChannel(to), this.telemetryTimeOut);
     }
 
-    IDuplexSessionChannel IChannelFactory<IDuplexSessionChannel>.CreateChannel(EndpointAddress to, Uri via)
+    IDuplexSessionChannel IChannelFactory<IDuplexSessionChannel>.CreateChannel(EndpointAddress to, Uri? via)
     {
         Guard.ThrowIfNull(to);
-        Guard.ThrowIfNull(via);
 
         return new InstrumentedDuplexSessionChannel(this.Inner.CreateChannel(to, via), this.telemetryTimeOut);
     }

@@ -30,10 +30,9 @@ internal class InstrumentedRequestChannelFactory : InstrumentedChannelFactory, I
 
     private new IChannelFactory<IRequestChannel> Inner { get => (IChannelFactory<IRequestChannel>)base.Inner; }
 
-    IRequestChannel IChannelFactory<IRequestChannel>.CreateChannel(EndpointAddress to, Uri via)
+    IRequestChannel IChannelFactory<IRequestChannel>.CreateChannel(EndpointAddress to, Uri? via)
     {
         Guard.ThrowIfNull(to);
-        Guard.ThrowIfNull(via);
 
         return new InstrumentedRequestChannel(this.Inner.CreateChannel(to, via));
     }
