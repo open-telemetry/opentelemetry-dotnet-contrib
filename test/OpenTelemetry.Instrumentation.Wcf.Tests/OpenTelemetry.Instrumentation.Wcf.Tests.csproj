@@ -7,7 +7,7 @@
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
     <Nullable>disable</Nullable>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <EmbeddedResource Include="certificate.pfx" />
   </ItemGroup>
