@@ -45,8 +45,18 @@ flags:
     paths:
       - src/OpenTelemetry.Exporter.OneCollector
 
+  unittests-Instrumentation.Owin:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.Owin
+
   unittests-Instrumentation.Process:
     carryforward: true
     paths:
       - src/OpenTelemetry.Instrumentation.Process
+
+  unittests-Instrumentation.Wcf:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.Wcf
 

@@ -5,9 +5,11 @@ on:
     branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths-ignore:
     - '**.md'
-    - '*/OpenTelemetry.Instrumentation.Process*/**'
     - '*/OpenTelemetry.Exporter.Geneva*/**'
     - '*/OpenTelemetry.Exporter.OneCollector*/**'
+    - '*/OpenTelemetry.Instrumentation.Owin*/**'
+    - '*/OpenTelemetry.Instrumentation.Process*/**'
+    - '*/OpenTelemetry.Instrumentation.Wcf*/**'
 
 jobs:
   build-test:
@@ -39,7 +41,12 @@ jobs:
       run: |
         $projects = Get-ChildItem `
           -Path test/*.Tests/*.csproj `
-          -Exclude OpenTelemetry.Instrumentation.Process.Tests.csproj, OpenTelemetry.Exporter.Geneva.Tests.csproj, OpenTelemetry.Exporter.OneCollector.Tests.csproj
+          -Exclude `
+            OpenTelemetry.Exporter.Geneva.Tests.csproj,
+            OpenTelemetry.Exporter.OneCollector.Tests.csproj,
+            OpenTelemetry.Instrumentation.Owin.Tests.csproj,
+            OpenTelemetry.Instrumentation.Process.Tests.csproj,
+            OpenTelemetry.Instrumentation.Wcf.Tests.csproj
 
         ForEach ($project in $projects)
         {

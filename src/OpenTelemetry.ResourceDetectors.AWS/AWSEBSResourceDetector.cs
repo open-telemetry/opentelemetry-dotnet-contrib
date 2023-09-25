@@ -16,7 +16,7 @@
 
 using System;
 using System.Collections.Generic;
-#if NETSTANDARD
+#if NET6_0_OR_GREATER
 using System.Runtime.InteropServices;
 #endif
 using OpenTelemetry.ResourceDetectors.AWS.Models;
@@ -30,7 +30,7 @@ namespace OpenTelemetry.ResourceDetectors.AWS;
 public class AWSEBSResourceDetector : IResourceDetector
 {
     private const string AWSEBSMetadataWindowsFilePath = "C:\\Program Files\\Amazon\\XRay\\environment.conf";
-#if NETSTANDARD
+#if NET6_0_OR_GREATER
     private const string AWSEBSMetadataLinuxFilePath = "/var/elasticbeanstalk/xray/environment.conf";
 #endif
 
@@ -43,7 +43,7 @@ public class AWSEBSResourceDetector : IResourceDetector
         try
         {
             string? filePath;
-#if NETSTANDARD
+#if NET6_0_OR_GREATER
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 filePath = AWSEBSMetadataWindowsFilePath;
