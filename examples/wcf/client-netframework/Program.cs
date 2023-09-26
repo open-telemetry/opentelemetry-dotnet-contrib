@@ -15,6 +15,7 @@
 // </copyright>
 
 using System;
+using System.Configuration;
 using System.ServiceModel;
 using System.Threading.Tasks;
 using OpenTelemetry;
@@ -33,9 +34,17 @@ internal static class Program
             .AddZipkinExporter()
             .Build();
 
-        await CallService("StatusService_Http").ConfigureAwait(false);
-        await CallService("StatusService_Tcp").ConfigureAwait(false);
-        await CallService("StatusService_Rest").ConfigureAwait(false);
+        switch (ConfigurationManager.AppSettings["Server"].ToUpperInvariant())
+        {
+            case "ASPNET":
+                await CallService("StatusService_AspNet").ConfigureAwait(false);
+                break;
+            default:
+                await CallService("StatusService_Http").ConfigureAwait(false);
+                await CallService("StatusService_Tcp").ConfigureAwait(false);
+                await CallService("StatusService_Rest").ConfigureAwait(false);
+                break;
+        }
 
         Console.WriteLine("Press enter to exit.");
         Console.ReadLine();
