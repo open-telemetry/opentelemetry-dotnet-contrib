@@ -24,6 +24,8 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.Owin;
 using Microsoft.Owin.Hosting;
+using OpenTelemetry.Instrumentation.Owin.Implementation;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Owin;
 using Xunit;
@@ -106,15 +108,28 @@ public class DiagnosticsMiddlewareTests : IDisposable
     }
 
     [Theory]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
-    [InlineData(false)]
+    [InlineData(true, false, false)]
     [InlineData(true, false, true)]
-    [InlineData(true, false, true, true)]
-    [InlineData(true, false, false, false, true)]
-    [InlineData(true, false, false, false, true, true)]
+    [InlineData(true, false, false, true)]
+    [InlineData(true, false, false, true, true)]
+    [InlineData(true, false, false, false, false, true)]
+    [InlineData(true, false, false, false, false, true, true)]
+    [InlineData(true, true, false)]
+    [InlineData(true, true, true)]
+    [InlineData(true, true, false, true)]
+    [InlineData(true, true, false, true, true)]
+    [InlineData(true, true, false, false, false, true)]
+    [InlineData(true, true, false, false, false, true, true)]
+    [InlineData(false, true, false)]
+    [InlineData(false, true, true)]
+    [InlineData(false, true, false, true)]
+    [InlineData(false, true, false, true, true)]
+    [InlineData(false, true, false, false, false, true)]
+    [InlineData(false, true, false, false, false, true, true)]
+    [InlineData(false, false)]
     public async Task OutgoingRequestInstrumentationTest(
-        bool instrument,
+        bool instrumentTraces,
+        bool instrumentMetrics,
         bool filter = false,
         bool enrich = false,
         bool enrichmentException = false,
@@ -122,11 +137,14 @@ public class DiagnosticsMiddlewareTests : IDisposable
         bool recordException = false)
     {
         List<Activity> stoppedActivities = new List<Activity>();
+        List<Metric> exportedMetrics = new List<Metric>();
 
         var builder = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(stoppedActivities);
+        var meterBuilder = Sdk.CreateMeterProviderBuilder()
+            .AddInMemoryExporter(exportedMetrics);
 
-        if (instrument)
+        if (instrumentTraces)
         {
             builder
                 .AddOwinInstrumentation(options =>
@@ -159,7 +177,13 @@ public class DiagnosticsMiddlewareTests : IDisposable
                 });
         }
 
+        if (instrumentMetrics)
+        {
+            meterBuilder.AddOwinInstrumentation();
+        }
+
         using TracerProvider tracerProvider = builder.Build();
+        using MeterProvider meterProvider = meterBuilder.Build();
 
         using HttpClient client = new HttpClient();
 
@@ -177,7 +201,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
 
         Assert.True(this.requestCompleteHandle.WaitOne(3000));
 
-        if (instrument)
+        if (instrumentTraces)
         {
             if (!filter)
             {
@@ -222,5 +246,63 @@ public class DiagnosticsMiddlewareTests : IDisposable
         {
             Assert.Empty(stoppedActivities);
         }
+
+        if (instrumentMetrics)
+        {
+            meterProvider.Dispose();
+            var metric = exportedMetrics[0];
+            var metricPoints = this.GetMetricPoints(metric);
+            var metricPoint = Assert.Single(metricPoints);
+
+            Assert.Equal(OwinInstrumentationMetrics.MeterName, metric.MeterName);
+            Assert.Equal("http.server.request.duration", metric.Name);
+            Assert.Equal(MetricType.Histogram, metric.MetricType);
+            Assert.Equal(1, metricPoint.GetHistogramCount());
+            Assert.Equal(3, metricPoint.Tags.Count);
+
+            foreach (var tag in metricPoint.Tags)
+            {
+                switch (tag.Key)
+                {
+                    case SemanticConventions.AttributeHttpMethod:
+                        Assert.Equal("GET", tag.Value);
+                        break;
+                    case SemanticConventions.AttributeHttpScheme:
+                        Assert.Equal(requestUri.Scheme, tag.Value);
+                        break;
+                    case SemanticConventions.AttributeHttpStatusCode:
+                        Assert.Equal(generateRemoteException ? 500 : 200, tag.Value);
+                        break;
+                }
+            }
+        }
+        else
+        {
+            Assert.Empty(exportedMetrics);
+        }
+
+        if (instrumentMetrics && instrumentTraces && !filter)
+        {
+            var metric = Assert.Single(exportedMetrics);
+            var activity = Assert.Single(stoppedActivities);
+            var metricPoints = this.GetMetricPoints(metric);
+            var metricPoint = Assert.Single(metricPoints);
+
+            // metric value and span duration should match
+            // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/http/http-metrics.md#metric-httpserverrequestduration
+            Assert.Equal(activity.Duration.TotalSeconds, metricPoint.GetHistogramSum());
+        }
+    }
+
+    private List<MetricPoint> GetMetricPoints(Metric metric)
+    {
+        List<MetricPoint> metricPoints = new();
+
+        foreach (var metricPoint in metric.GetMetricPoints())
+        {
+            metricPoints.Add(metricPoint);
+        }
+
+        return metricPoints;
     }
 }

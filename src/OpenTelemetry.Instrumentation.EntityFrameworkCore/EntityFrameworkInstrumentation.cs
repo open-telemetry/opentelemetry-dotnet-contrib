@@ -28,7 +28,8 @@ internal class EntityFrameworkInstrumentation : IDisposable
         this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(
             name => new EntityFrameworkDiagnosticListener(name, options),
             listener => listener.Name == EntityFrameworkDiagnosticListener.DiagnosticSourceName,
-            null);
+            null,
+            EntityFrameworkInstrumentationEventSource.Log.UnknownErrorProcessingEvent);
         this.diagnosticSourceSubscriber.Subscribe();
     }
 

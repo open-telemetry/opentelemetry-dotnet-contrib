@@ -1,0 +1,60 @@
+name: Pack Component
+
+on:
+  workflow_call:
+    inputs:
+      project-name:
+        required: true
+        type: string
+
+jobs:
+  build-test-pack:
+    permissions:
+      contents: write
+
+    strategy:
+      matrix:
+        os: [windows-latest]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # fetching all
+
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v3
+
+    - name: dotnet restore build/Projects/${{ inputs.project-name }}.proj
+      run: dotnet restore build/Projects/${{ inputs.project-name }}.proj
+
+    - name: dotnet build build/Projects/${{ inputs.project-name }}.proj
+      run: dotnet build build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-restore -p:Deterministic=true
+
+    - name: dotnet test test/${{ inputs.project-name }}.Tests
+      run: dotnet test test/${{ inputs.project-name }}.Tests --configuration Release --no-restore --no-build
+
+    - name: dotnet pack build/Projects/${{ inputs.project-name }}.proj
+      run: dotnet pack build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-build --no-restore
+
+    - name: Publish Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.project-name }}-packages
+        path: '**/${{ inputs.project-name }}/bin/**/*.*nupkg'
+
+    - name: Publish Nuget
+      run: |
+        nuget push **/${{ inputs.project-name }}/bin/**/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_TOKEN }} -SymbolApiKey ${{ secrets.NUGET_TOKEN }}
+
+    - name: Create GitHub Prerelease
+      if: ${{ (contains(github.ref_name, '-alpha') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc')) }}
+      run: gh release create ${{ github.ref_name }} --title ${{ github.ref_name }} --verify-tag --notes "See [CHANGELOG](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/${{ github.ref_name }}/src/${{ inputs.project-name }}/CHANGELOG.md) for details." --prerelease
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create GitHub Release
+      if: ${{ !(contains(github.ref_name, '-alpha') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc')) }}
+      run: gh release create ${{ github.ref_name }} --title ${{ github.ref_name }} --verify-tag --notes "See [CHANGELOG](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/${{ github.ref_name }}/src/${{ inputs.project-name }}/CHANGELOG.md) for details." --latest
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

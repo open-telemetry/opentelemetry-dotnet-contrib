@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.6.0-beta.1
+
+Released 2023-Sep-20
+
 * Update OpenTelemetry to 1.6.0
   ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
 
@@ -21,6 +25,13 @@
 * Removed `traceFlags` from the common schema `dt` (Distributed Tracing)
   extension because it is not currently supported by the OneCollector service.
   ([#1345](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1345))
+
+* Added dedicated handling for `IReadOnlyList<KeyValuePair<string, object>>`
+  types during serialization to improve performance.
+  ([#1361](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1361))
+
+* Added caching of extension property UTF8 JSON strings to improve performance.
+  ([#1361](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1361))
 
 ## 1.5.1
 

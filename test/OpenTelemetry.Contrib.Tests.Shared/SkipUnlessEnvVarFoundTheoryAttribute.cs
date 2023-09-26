@@ -13,12 +13,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
+
+#pragma warning disable IDE0005 // Using directive is unnecessary. <- Projects with ImplicitUsings enabled will see warnings on using System
+
+#nullable enable
+
 using System;
 using Xunit;
 
 namespace OpenTelemetry.Tests;
 
-internal class SkipUnlessEnvVarFoundTheoryAttribute : TheoryAttribute
+internal sealed class SkipUnlessEnvVarFoundTheoryAttribute : TheoryAttribute
 {
     public SkipUnlessEnvVarFoundTheoryAttribute(string environmentVariable)
     {
@@ -28,9 +33,9 @@ internal class SkipUnlessEnvVarFoundTheoryAttribute : TheoryAttribute
         }
     }
 
-    public static string GetEnvironmentVariable(string environmentVariableName)
+    public static string? GetEnvironmentVariable(string environmentVariableName)
     {
-        string environmentVariableValue = Environment.GetEnvironmentVariable(environmentVariableName, EnvironmentVariableTarget.Process);
+        var environmentVariableValue = Environment.GetEnvironmentVariable(environmentVariableName, EnvironmentVariableTarget.Process);
 
         if (string.IsNullOrEmpty(environmentVariableValue))
         {
