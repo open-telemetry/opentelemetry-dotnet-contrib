@@ -76,11 +76,27 @@ internal sealed class WcfInstrumentationEventSource : EventSource
         this.WriteEvent(EventIds.HttpServiceModelReflectionFailedToBind, exception, assembly);
     }
 
+    [NonEvent]
+    public void AspNetReflectionFailedToBind(Exception exception)
+    {
+        if (this.IsEnabled(EventLevel.Verbose, (EventKeywords)(-1)))
+        {
+            this.AspNetReflectionFailedToBind(exception.ToInvariantString());
+        }
+    }
+
+    [Event(EventIds.AspNetReflectionFailedToBind, Message = "Failed to bind to ASP.NET instrumentation. Exception {0}.", Level = EventLevel.Verbose)]
+    public void AspNetReflectionFailedToBind(string exception)
+    {
+        this.WriteEvent(EventIds.AspNetReflectionFailedToBind, exception);
+    }
+
     private class EventIds
     {
         public const int RequestIsFilteredOut = 1;
         public const int RequestFilterException = 2;
         public const int EnrichmentException = 3;
         public const int HttpServiceModelReflectionFailedToBind = 4;
+        public const int AspNetReflectionFailedToBind = 5;
     }
 }
