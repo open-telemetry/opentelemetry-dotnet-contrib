@@ -31,7 +31,7 @@ namespace OpenTelemetry.Instrumentation.Wcf;
 /// <summary>
 /// An <see cref="IDispatchMessageInspector"/> implementation which adds telemetry to incoming requests.
 /// </summary>
-public class TelemetryDispatchMessageInspector : IDispatchMessageInspector
+internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
 {
     private readonly IDictionary<string, ActionMetadata> actionMappings;
 

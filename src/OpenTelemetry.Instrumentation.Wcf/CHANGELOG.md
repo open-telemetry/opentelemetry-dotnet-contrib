@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* BREAKING: `TelemetryClientMessageInspector` and `TelemetryDispatchMessageInspector` changed from public to internal
+  ([#1376](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1376))
 * Update OpenTelemetry SDK version to `1.6.0`.
   ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
 * Fixed span hierarchy when hosted in ASP.NET
