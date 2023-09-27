@@ -18,6 +18,9 @@ jobs:
       code-cov-name: Instrumentation.Wcf
 
   push-check:
+    needs: call-build-test
+    permissions:
+      checks: write
     runs-on: ubuntu-latest
     steps:
       - name: "Push check"
