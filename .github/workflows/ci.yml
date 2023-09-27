@@ -10,6 +10,7 @@ on:
     - '*/OpenTelemetry.Instrumentation.Owin*/**'
     - '*/OpenTelemetry.Instrumentation.Process*/**'
     - '*/OpenTelemetry.Instrumentation.Wcf*/**'
+    - 'examples/wcf/**'
 
 jobs:
   build-test:

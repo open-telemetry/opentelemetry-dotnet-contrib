@@ -31,6 +31,8 @@ internal static class Program
 {
     public static async Task Main()
     {
+        Console.Write("Hello world");
+
         IConfigurationRoot config = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json")
