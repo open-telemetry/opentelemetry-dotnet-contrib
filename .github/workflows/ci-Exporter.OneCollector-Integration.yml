@@ -8,6 +8,7 @@ on:
     branches: [ 'main*', 'exporter*' ]
     paths:
     - '*/OpenTelemetry.Exporter.OneCollector*/**'
+    - 'src/Shared/**'
     - 'build/**'
     - '!**.md'
 
