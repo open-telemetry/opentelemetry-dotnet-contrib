@@ -21,7 +21,7 @@ jobs:
           build: ['build/**']
           shared: ['src/Shared/**']
           code: ['**.cs', '.editorconfig']
-          redis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**.md'],
+          redis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**.md']
           wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**.md']
           solution: [
             'src/**',
