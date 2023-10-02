@@ -8,7 +8,7 @@ jobs:
   detect-changes:
     runs-on: windows-latest
     outputs:
-      changes: ${{ steps.changes.outputs }}
+      changes: ${{ steps.changes.outputs.changes }}
     steps:
     - uses: dorny/paths-filter@v2
       id: changes
