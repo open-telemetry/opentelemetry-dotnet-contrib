@@ -33,9 +33,9 @@ jobs:
             'examples/**',
             '!*/OpenTelemetry.Exporter.Geneva*/**',
             '!*/OpenTelemetry.Exporter.OneCollector*/**',
-            '!*/OpenTelemetry.Instrumentation.Owin*/**'
+            '!*/OpenTelemetry.Instrumentation.Owin*/**',
             '!examples/owin/**',
-            '!*/OpenTelemetry.Instrumentation.Process*/**'
+            '!*/OpenTelemetry.Instrumentation.Process*/**',
             '!examples/process-instrumentation/**',
             '!*/OpenTelemetry.Instrumentation.Wcf*/**',
             '!examples/wcf/**',
@@ -109,6 +109,25 @@ jobs:
       project-name: OpenTelemetry.Instrumentation.Process
       code-cov-name: Instrumentation.Process
 
+  build-test-redis:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'redis')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/integration.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.StackExchangeRedis
+      code-cov-name: Instrumentation.StackExchangeRedis
+
+  build-test-redis-integration:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'redis')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/integration.yml
+
   build-test-wcf:
     needs: detect-changes
     if: |
@@ -119,14 +138,6 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.Wcf
       code-cov-name: Instrumentation.Wcf
-
-  integration-test-redis:
-    needs: detect-changes
-    if: |
-      contains(needs.detect-changes.outputs.changes, 'redis')
-      || contains(needs.detect-changes.outputs.changes, 'build')
-      || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/integration.yml
 
   build-test:
     needs: [
@@ -139,8 +150,9 @@ jobs:
       build-test-onecollector,
       build-test-owin,
       build-test-process,
-      build-test-wcf,
-      integration-test-redis
+      build-test-redis,
+      build-test-redis-integration,
+      build-test-wcf
       ]
     if: always() && !cancelled() && !contains(needs.*.result, 'failure')
     runs-on: windows-latest

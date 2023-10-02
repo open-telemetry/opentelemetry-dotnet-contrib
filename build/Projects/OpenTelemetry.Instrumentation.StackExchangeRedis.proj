@@ -5,11 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <SolutionProjects Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Process\OpenTelemetry.Instrumentation.Process.csproj" />
-    <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.Process.Tests\OpenTelemetry.Instrumentation.Process.Tests.csproj" />
-    <SolutionProjects Include="$(RepoRoot)\examples\process-instrumentation\**\*.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Process\OpenTelemetry.Instrumentation.StackExchangeRedis.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.Process.Tests\OpenTelemetry.Instrumentation.StackExchangeRedis.Tests.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\examples\redis\**\*.csproj" />
 
-    <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Process\OpenTelemetry.Instrumentation.Process.csproj" />
+    <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Process\OpenTelemetry.Instrumentation.StackExchangeRedis.csproj" />
   </ItemGroup>
 
   <Target Name="Build">
