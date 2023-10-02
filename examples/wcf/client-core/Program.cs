@@ -31,7 +31,7 @@ internal static class Program
 {
     public static async Task Main()
     {
-        Console.Write("Hello world");
+        Console.Write(build_break);
 
         IConfigurationRoot config = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())

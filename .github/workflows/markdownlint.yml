@@ -1,10 +1,10 @@
-name: markdownlint
+name: Lint Markdown
 
 on:
   workflow_call:
 
 jobs:
-  build:
+  run-markdownlint:
     runs-on: ubuntu-latest
 
     steps:
