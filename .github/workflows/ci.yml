@@ -5,6 +5,9 @@ on:
     branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
 
 jobs:
+  lint-mispell-sanitycheck:
+    uses: ./.github/workflows/sanitycheck.yml
+
   detect-changes:
     runs-on: windows-latest
     outputs:
@@ -17,6 +20,8 @@ jobs:
           md: [ '**.md' ]
           build: ['build/**']
           shared: ['src/Shared/**']
+          code: ['**.cs', '.editorconfig']
+          redis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**.md'],
           wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**.md']
           solution: [
             'src/**',
@@ -31,6 +36,11 @@ jobs:
     needs: detect-changes
     if: contains(needs.detect-changes.outputs.changes, 'md')
     uses: ./.github/workflows/markdownlint.yml
+
+  lint-dotnet-format:
+    needs: detect-changes
+    if: contains(needs.detect-changes.outputs.changes, 'code')
+    uses: ./.github/workflows/dotnet-format.yml
 
   build-test-solution:
     needs: detect-changes
@@ -54,12 +64,23 @@ jobs:
       project-name: OpenTelemetry.Instrumentation.Wcf
       code-cov-name: Instrumentation.Wcf
 
+  integration-test-redis:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'redis')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/integration.yml
+
   build-test:
     needs: [
+      lint-mispell-sanitycheck,
       detect-changes,
       lint-md,
+      lint-dotnet-format,
       build-test-solution,
-      build-test-wcf
+      build-test-wcf,
+      integration-test-redis
       ]
     if: always() && !cancelled() && !contains(needs.*.result, 'failure')
     runs-on: windows-latest
