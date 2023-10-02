@@ -19,7 +19,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{1A06E14B-DD2F-4536-9D2E-F708C0C43555}"
 	ProjectSection(SolutionItems) = preProject
-		.github\ci-filters.yml = .github\ci-filters.yml
 		.github\codecov.yml = .github\codecov.yml
 		.github\component_owners.yml = .github\component_owners.yml
 		.github\dependabot.yml = .github\dependabot.yml
@@ -36,7 +35,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\ci-Instrumentation.Owin.yml = .github\workflows\ci-Instrumentation.Owin.yml
 		.github\workflows\ci-Instrumentation.Process.yml = .github\workflows\ci-Instrumentation.Process.yml
 		.github\workflows\ci-Instrumentation.Wcf.yml = .github\workflows\ci-Instrumentation.Wcf.yml
-		.github\workflows\ci-md.yml = .github\workflows\ci-md.yml
 		.github\workflows\ci.yml = .github\workflows\ci.yml
 		.github\workflows\codeql-analysis.yml = .github\workflows\codeql-analysis.yml
 		.github\workflows\Component.BuildTest.yml = .github\workflows\Component.BuildTest.yml

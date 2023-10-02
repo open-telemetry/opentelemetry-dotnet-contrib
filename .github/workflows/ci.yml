@@ -30,17 +30,7 @@ jobs:
   lint-md:
     needs: detect-changes
     if: contains(needs.detect-changes.outputs.changes, 'md')
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: check out code
-      uses: actions/checkout@v4
-
-    - name: install markdownlint-cli
-      run: sudo npm install -g markdownlint-cli
-
-    - name: run markdownlint
-      run: markdownlint .
+    uses: ./.github/workflows/markdownlint.yml
 
   build-test-solution:
     needs: detect-changes
@@ -49,16 +39,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
 
-    strategy:
-      fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
-      matrix:
-        os: [ windows-latest, ubuntu-latest ]
-        version: [ net462, net6.0, net7.0 ]
-        exclude:
-        - os: ubuntu-latest
-          version: net462
-
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
     steps:
     - run: echo testing
 
@@ -75,6 +56,7 @@ jobs:
 
   build-test:
     needs: [detect-changes, lint-md, build-test-solution, build-test-wcf]
+    if: always()
     runs-on: windows-latest
     steps:
     - run: echo build complete ✓
