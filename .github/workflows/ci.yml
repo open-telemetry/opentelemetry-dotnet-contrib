@@ -13,7 +13,19 @@ jobs:
     - uses: dorny/paths-filter@v2
       id: changes
       with:
-        filters: '.github/ci-filters.yml'
+        filters: |
+          md: [ '**.md' ]
+          build: ['build/**']
+          shared: ['src/Shared/**']
+          wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**.md']
+          solution: [
+            'src/**',
+            'test/**',
+            'examples/**',
+            '!*/OpenTelemetry.Instrumentation.Wcf*/**',
+            '!examples/wcf/**',
+            '!**.md'
+            ]
 
   lint-md:
     needs: detect-changes
