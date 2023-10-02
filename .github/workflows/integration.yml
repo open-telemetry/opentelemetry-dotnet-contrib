@@ -1,10 +1,10 @@
-name: Integration Test - Redis
+name: Integration Build OpenTelemetry.Instrumentation.StackExchangeRedis
 
 on:
   workflow_call:
 
 jobs:
-  redis-test:
+  redis-integration-test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
