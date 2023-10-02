@@ -1,0 +1,12 @@
+md: [ '**.md' ]
+build: ['build/**']
+shared: ['src/Shared/**']
+wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**.md']
+solution: [
+  'src/**',
+  'test/**',
+  'examples/**',
+  '!*/OpenTelemetry.Instrumentation.Wcf*/**',
+  '!examples/wcf/**',
+  '!**.md'
+  ]
