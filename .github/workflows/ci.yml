@@ -17,7 +17,7 @@ jobs:
 
   lint-md:
     needs: detect-changes
-    if: job.detect-changes.step1.changes.md == true
+    if: needs.detect-changes.outputs.changes.md == true
     runs-on: ubuntu-latest
 
     steps:
@@ -33,9 +33,9 @@ jobs:
   build-test-solution:
     needs: detect-changes
     if: |
-      job.detect-changes.step1.changes.solution == true
-      || job.detect-changes.step1.changes.build == true
-      || job.detect-changes.step1.changes.shared == true
+      needs.detect-changes.outputs.changes.solution == true
+      || needs.detect-changes.outputs.changes.build == true
+      || needs.detect-changes.outputs.changes.shared == true
 
     strategy:
       fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
@@ -53,9 +53,9 @@ jobs:
   build-test-wcf:
     needs: detect-changes
     if: |
-      job.detect-changes.step1.changes.wcf == true
-      || job.detect-changes.step1.changes.build == true
-      || job.detect-changes.step1.changes.shared == true
+      needs.detect-changes.outputs.changes.wcf == true
+      || needs.detect-changes.outputs.changes.build == true
+      || needs.detect-changes.outputs.changes.shared == true
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
       project-name: OpenTelemetry.Instrumentation.Wcf
