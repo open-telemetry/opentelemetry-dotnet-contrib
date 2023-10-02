@@ -5,7 +5,7 @@ on:
     branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
 
 jobs:
-  lint-mispell-sanitycheck:
+  lint-misspell-sanitycheck:
     uses: ./.github/workflows/sanitycheck.yml
 
   detect-changes:
@@ -21,12 +21,22 @@ jobs:
           build: ['build/**']
           shared: ['src/Shared/**']
           code: ['**.cs', '.editorconfig']
+          geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**.md']
+          onecollector: ['*/OpenTelemetry.Instrumentation.OneCollector*/**', '!**.md']
+          owin: ['*/OpenTelemetry.Instrumentation.Owin*/**', 'examples/owin/**', '!**.md']
+          process: ['*/OpenTelemetry.Instrumentation.Process*/**', 'examples/process-instrumentation/**', '!**.md']
           redis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**.md']
           wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**.md']
           solution: [
             'src/**',
             'test/**',
             'examples/**',
+            '!*/OpenTelemetry.Exporter.Geneva*/**',
+            '!*/OpenTelemetry.Exporter.OneCollector*/**',
+            '!*/OpenTelemetry.Instrumentation.Owin*/**'
+            '!examples/owin/**',
+            '!*/OpenTelemetry.Instrumentation.Process*/**'
+            '!examples/process-instrumentation/**',
             '!*/OpenTelemetry.Instrumentation.Wcf*/**',
             '!examples/wcf/**',
             '!**.md'
@@ -53,6 +63,52 @@ jobs:
     steps:
     - run: echo testing
 
+  build-test-geneva:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'geneva')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Exporter.Geneva
+      code-cov-name: Exporter.Geneva
+
+  build-test-onecollector:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'onecollector')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Exporter.OneCollector
+      code-cov-name: Exporter.OneCollector
+
+  build-test-owin:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'owin')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.Owin
+      code-cov-name: Instrumentation.Owin
+      os-list: '[ "windows-latest" ]'
+      tfm-list: '[ "net462" ]'
+
+  build-test-process:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'process')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.Process
+      code-cov-name: Instrumentation.Process
+
   build-test-wcf:
     needs: detect-changes
     if: |
@@ -74,11 +130,15 @@ jobs:
 
   build-test:
     needs: [
-      lint-mispell-sanitycheck,
+      lint-misspell-sanitycheck,
       detect-changes,
       lint-md,
       lint-dotnet-format,
       build-test-solution,
+      build-test-geneva,
+      build-test-onecollector,
+      build-test-owin,
+      build-test-process,
       build-test-wcf,
       integration-test-redis
       ]
