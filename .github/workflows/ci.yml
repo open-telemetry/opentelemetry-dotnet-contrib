@@ -62,5 +62,7 @@ jobs:
       code-cov-name: Instrumentation.Wcf
 
   build-test:
-    needs: [lint-md, build-test-solution, build-test-wcf]
+    needs: [detect-changes, lint-md, build-test-solution, build-test-wcf]
     runs-on: windows-latest
+    steps:
+    - run: 'echo "build complete"'
