@@ -36,8 +36,8 @@ jobs:
     needs: detect-changes
     if: |
       contains(needs.detect-changes.outputs.changes, 'solution')
-      # || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
+    # || contains(needs.detect-changes.outputs.changes, 'build')
 
     runs-on: windows-latest
     steps:
