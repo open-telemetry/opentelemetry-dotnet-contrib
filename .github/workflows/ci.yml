@@ -115,7 +115,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'redis')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/integration.yml
+    uses: ./.github/workflows/Component.BuildTest.yml
     with:
       project-name: OpenTelemetry.Instrumentation.StackExchangeRedis
       code-cov-name: Instrumentation.StackExchangeRedis
