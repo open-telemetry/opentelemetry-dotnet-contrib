@@ -2,18 +2,12 @@ const OpenTelemetry.Instrumentation.Wcf.WcfEnrichEventNames.AfterReceiveReply = 
 const OpenTelemetry.Instrumentation.Wcf.WcfEnrichEventNames.AfterReceiveRequest = "AfterReceiveRequest" -> string
 const OpenTelemetry.Instrumentation.Wcf.WcfEnrichEventNames.BeforeSendReply = "BeforeSendReply" -> string
 const OpenTelemetry.Instrumentation.Wcf.WcfEnrichEventNames.BeforeSendRequest = "BeforeSendRequest" -> string
-OpenTelemetry.Instrumentation.Wcf.TelemetryClientMessageInspector
-OpenTelemetry.Instrumentation.Wcf.TelemetryClientMessageInspector.AfterReceiveReply(ref System.ServiceModel.Channels.Message reply, object correlationState) -> void
-OpenTelemetry.Instrumentation.Wcf.TelemetryClientMessageInspector.BeforeSendRequest(ref System.ServiceModel.Channels.Message request, System.ServiceModel.IClientChannel channel) -> object
 OpenTelemetry.Instrumentation.Wcf.TelemetryContractBehaviorAttribute
 OpenTelemetry.Instrumentation.Wcf.TelemetryContractBehaviorAttribute.AddBindingParameters(System.ServiceModel.Description.ContractDescription contractDescription, System.ServiceModel.Description.ServiceEndpoint endpoint, System.ServiceModel.Channels.BindingParameterCollection bindingParameters) -> void
 OpenTelemetry.Instrumentation.Wcf.TelemetryContractBehaviorAttribute.ApplyClientBehavior(System.ServiceModel.Description.ContractDescription contractDescription, System.ServiceModel.Description.ServiceEndpoint endpoint, System.ServiceModel.Dispatcher.ClientRuntime clientRuntime) -> void
 OpenTelemetry.Instrumentation.Wcf.TelemetryContractBehaviorAttribute.ApplyDispatchBehavior(System.ServiceModel.Description.ContractDescription contractDescription, System.ServiceModel.Description.ServiceEndpoint endpoint, System.ServiceModel.Dispatcher.DispatchRuntime dispatchRuntime) -> void
 OpenTelemetry.Instrumentation.Wcf.TelemetryContractBehaviorAttribute.TelemetryContractBehaviorAttribute() -> void
 OpenTelemetry.Instrumentation.Wcf.TelemetryContractBehaviorAttribute.Validate(System.ServiceModel.Description.ContractDescription contractDescription, System.ServiceModel.Description.ServiceEndpoint endpoint) -> void
-OpenTelemetry.Instrumentation.Wcf.TelemetryDispatchMessageInspector
-OpenTelemetry.Instrumentation.Wcf.TelemetryDispatchMessageInspector.AfterReceiveRequest(ref System.ServiceModel.Channels.Message request, System.ServiceModel.IClientChannel channel, System.ServiceModel.InstanceContext instanceContext) -> object
-OpenTelemetry.Instrumentation.Wcf.TelemetryDispatchMessageInspector.BeforeSendReply(ref System.ServiceModel.Channels.Message reply, object correlationState) -> void
 OpenTelemetry.Instrumentation.Wcf.TelemetryEndpointBehavior
 OpenTelemetry.Instrumentation.Wcf.TelemetryEndpointBehavior.AddBindingParameters(System.ServiceModel.Description.ServiceEndpoint endpoint, System.ServiceModel.Channels.BindingParameterCollection bindingParameters) -> void
 OpenTelemetry.Instrumentation.Wcf.TelemetryEndpointBehavior.ApplyClientBehavior(System.ServiceModel.Description.ServiceEndpoint endpoint, System.ServiceModel.Dispatcher.ClientRuntime clientRuntime) -> void
