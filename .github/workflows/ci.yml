@@ -18,7 +18,7 @@ jobs:
       with:
         filters: |
           md: [ '**.md' ]
-          build: ['build/**', '.github/**.yml', '!.github/workflows/package-*']
+          build: ['build/**', '.github/**.yml']
           shared: ['src/Shared/**']
           code: ['**.cs', '.editorconfig']
           geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**.md']
