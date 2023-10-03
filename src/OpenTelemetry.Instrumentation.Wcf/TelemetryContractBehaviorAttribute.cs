@@ -18,6 +18,7 @@ using System;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
+using OpenTelemetry.Instrumentation.Wcf.Implementation;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Wcf;

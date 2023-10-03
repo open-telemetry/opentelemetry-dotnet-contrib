@@ -1,8 +1,5 @@
 const OpenTelemetry.Instrumentation.Wcf.WcfEnrichEventNames.AfterReceiveReply = "AfterReceiveReply" -> string!
 const OpenTelemetry.Instrumentation.Wcf.WcfEnrichEventNames.BeforeSendRequest = "BeforeSendRequest" -> string!
-OpenTelemetry.Instrumentation.Wcf.TelemetryClientMessageInspector
-OpenTelemetry.Instrumentation.Wcf.TelemetryClientMessageInspector.AfterReceiveReply(ref System.ServiceModel.Channels.Message! reply, object? correlationState) -> void
-OpenTelemetry.Instrumentation.Wcf.TelemetryClientMessageInspector.BeforeSendRequest(ref System.ServiceModel.Channels.Message! request, System.ServiceModel.IClientChannel! channel) -> object?
 OpenTelemetry.Instrumentation.Wcf.TelemetryContractBehaviorAttribute
 OpenTelemetry.Instrumentation.Wcf.TelemetryContractBehaviorAttribute.AddBindingParameters(System.ServiceModel.Description.ContractDescription! contractDescription, System.ServiceModel.Description.ServiceEndpoint! endpoint, System.ServiceModel.Channels.BindingParameterCollection! bindingParameters) -> void
 OpenTelemetry.Instrumentation.Wcf.TelemetryContractBehaviorAttribute.ApplyClientBehavior(System.ServiceModel.Description.ContractDescription! contractDescription, System.ServiceModel.Description.ServiceEndpoint! endpoint, System.ServiceModel.Dispatcher.ClientRuntime! clientRuntime) -> void
