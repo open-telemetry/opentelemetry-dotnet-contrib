@@ -21,12 +21,12 @@ jobs:
           build: ['build/**', '.github/**/*.yml', '!.github/workflows/package-*']
           shared: ['src/Shared/**']
           code: ['**.cs', '.editorconfig']
-          geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**.md']
-          onecollector: ['*/OpenTelemetry.Instrumentation.OneCollector*/**', '!**.md']
-          owin: ['*/OpenTelemetry.Instrumentation.Owin*/**', 'examples/owin/**', '!**.md']
-          process: ['*/OpenTelemetry.Instrumentation.Process*/**', 'examples/process-instrumentation/**', '!**.md']
-          redis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**.md']
-          wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**.md']
+          geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
+          onecollector: ['*/OpenTelemetry.Instrumentation.OneCollector*/**', '!**/*.md']
+          owin: ['*/OpenTelemetry.Instrumentation.Owin*/**', 'examples/owin/**', '!**/*.md']
+          process: ['*/OpenTelemetry.Instrumentation.Process*/**', 'examples/process-instrumentation/**', '!**/*.md']
+          redis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**/*.md']
+          wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**/*.md']
           solution: [
             'src/**',
             'test/**',
