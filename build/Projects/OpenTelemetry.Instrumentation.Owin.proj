@@ -7,6 +7,7 @@
   <ItemGroup>
     <SolutionProjects Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Owin\OpenTelemetry.Instrumentation.Owin.csproj" />
     <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.Owin.Tests\OpenTelemetry.Instrumentation.Owin.Tests.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\examples\owin\**\*.csproj" />
 
     <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Owin\OpenTelemetry.Instrumentation.Owin.csproj" />
   </ItemGroup>

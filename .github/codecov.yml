@@ -23,14 +23,16 @@ comment:
   require_changes: no
 
 ignore:
-  - "**/*.md"
-  - "src/Shared"  # copied from main OTel project and has code coverage there
+  - "**.md"
+  - "src/Shared" # copied from main OTel project and has code coverage there
   - "test"
   - "examples"
   - "build"
+  - ".github"
+  - ".vscode"
 
 flags:
-  unittests:
+  unittests-Solution:
     carryforward: true
     paths:
       - src
@@ -54,6 +56,11 @@ flags:
     carryforward: true
     paths:
       - src/OpenTelemetry.Instrumentation.Process
+
+  unittests-Instrumentation.StackExchangeRedis:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.StackExchangeRedis
 
   unittests-Instrumentation.Wcf:
     carryforward: true
