@@ -18,15 +18,14 @@ using System.Collections.Generic;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Dispatcher;
-using OpenTelemetry.Instrumentation.Wcf.Implementation;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Instrumentation.Wcf;
+namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
 /// <summary>
 /// An <see cref="IClientMessageInspector"/> implementation which adds telemetry to outgoing requests.
 /// </summary>
-public class TelemetryClientMessageInspector : IClientMessageInspector
+internal class TelemetryClientMessageInspector : IClientMessageInspector
 {
     private readonly IDictionary<string, ActionMetadata> actionMappings;
 
