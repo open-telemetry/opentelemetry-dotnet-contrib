@@ -1,4 +1,3 @@
-#test
 # WCF Instrumentation for OpenTelemetry .NET
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Wcf)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Wcf/)
