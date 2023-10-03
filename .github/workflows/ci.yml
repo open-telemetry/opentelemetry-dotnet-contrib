@@ -13,7 +13,7 @@ jobs:
     outputs:
       changes: ${{ steps.changes.outputs.changes }}
     steps:
-    - uses: dorny/paths-filter@v2
+    - uses: AurorNZ/paths-filter@v3
       id: changes
       with:
         filters: |
