@@ -41,7 +41,7 @@ jobs:
             '!examples/redis/**',
             '!*/OpenTelemetry.Instrumentation.Wcf*/**',
             '!examples/wcf/**',
-            '!**.md'
+            '!**/*.md'
             ]
 
   lint-md:
