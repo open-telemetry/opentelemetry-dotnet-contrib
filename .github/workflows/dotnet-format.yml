@@ -1,14 +1,10 @@
-name: dotnet format
+name: Lint - dotnet format
 
 on:
-  pull_request:
-    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
-    paths:
-    - '**.cs'
-    - '.editorconfig'
+  workflow_call:
 
 jobs:
-  check-format:
+  run-dotnet-format:
     runs-on: windows-latest
 
     steps:
@@ -18,7 +14,7 @@ jobs:
     - name: Setup dotnet
       uses: actions/setup-dotnet@v3
 
-    - name: Install dependencies
+    - name: dotnet restore
       run: dotnet restore
 
     - name: Protobuf compile

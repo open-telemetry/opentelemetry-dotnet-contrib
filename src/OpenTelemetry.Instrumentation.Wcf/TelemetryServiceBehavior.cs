@@ -23,8 +23,7 @@ using OpenTelemetry.Internal;
 namespace OpenTelemetry.Instrumentation.Wcf;
 
 /// <summary>
-/// An <see cref="IServiceBehavior"/> implementation to add the
-/// <see cref="TelemetryDispatchMessageInspector"/> to service operations.
+/// An <see cref="IServiceBehavior"/> implementation to add the telemetry to service operations.
 /// </summary>
 public class TelemetryServiceBehavior : IServiceBehavior
 {
