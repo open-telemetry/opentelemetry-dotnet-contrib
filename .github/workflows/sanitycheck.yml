@@ -1,11 +1,10 @@
-name: sanitycheck
+name: Lint - Spelling & Encoding
 
 on:
-  pull_request:
-    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
+  workflow_call:
 
 jobs:
-  misspell:
+  run-misspell:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,7 +19,7 @@ jobs:
     - name: run misspell
       run: ./bin/misspell -error .
 
-  encoding:
+  run-sanitycheck:
     runs-on: ubuntu-latest
 
     steps:
