@@ -65,6 +65,8 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.AspNet
       code-cov-name: Instrumentation.AspNet
+      os-list: '[ "windows-latest" ]'
+      tfm-list: '[ "net462" ]'
 
   build-test-geneva:
     needs: detect-changes
