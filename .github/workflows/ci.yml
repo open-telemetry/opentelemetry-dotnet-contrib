@@ -3,16 +3,139 @@ name: Build
 on:
   pull_request:
     branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
-    paths-ignore:
-    - '**.md'
-    - '*/OpenTelemetry.Exporter.Geneva*/**'
-    - '*/OpenTelemetry.Exporter.OneCollector*/**'
-    - '*/OpenTelemetry.Instrumentation.Owin*/**'
-    - '*/OpenTelemetry.Instrumentation.Process*/**'
-    - '*/OpenTelemetry.Instrumentation.Wcf*/**'
 
 jobs:
-  build-test:
+  lint-misspell-sanitycheck:
+    uses: ./.github/workflows/sanitycheck.yml
+
+  detect-changes:
+    runs-on: windows-latest
+    outputs:
+      changes: ${{ steps.changes.outputs.changes }}
+    steps:
+    - uses: AurorNZ/paths-filter@v3
+      id: changes
+      with:
+        filters: |
+          md: [ '**.md' ]
+          build: ['build/**', '.github/**/*.yml', '!.github/workflows/package-*']
+          shared: ['src/Shared/**']
+          code: ['**.cs', '.editorconfig']
+          geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
+          onecollector: ['*/OpenTelemetry.Instrumentation.OneCollector*/**', '!**/*.md']
+          owin: ['*/OpenTelemetry.Instrumentation.Owin*/**', 'examples/owin/**', '!**/*.md']
+          process: ['*/OpenTelemetry.Instrumentation.Process*/**', 'examples/process-instrumentation/**', '!**/*.md']
+          redis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**/*.md']
+          wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**/*.md']
+          solution: [
+            'src/**',
+            'test/**',
+            'examples/**',
+            '!*/OpenTelemetry.Exporter.Geneva*/**',
+            '!*/OpenTelemetry.Exporter.OneCollector*/**',
+            '!*/OpenTelemetry.Instrumentation.Owin*/**',
+            '!examples/owin/**',
+            '!*/OpenTelemetry.Instrumentation.Process*/**',
+            '!examples/process-instrumentation/**',
+            '!*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**',
+            '!examples/redis/**',
+            '!*/OpenTelemetry.Instrumentation.Wcf*/**',
+            '!examples/wcf/**',
+            '!**/*.md'
+            ]
+
+  lint-md:
+    needs: detect-changes
+    if: contains(needs.detect-changes.outputs.changes, 'md')
+    uses: ./.github/workflows/markdownlint.yml
+
+  lint-dotnet-format:
+    needs: detect-changes
+    if: contains(needs.detect-changes.outputs.changes, 'code')
+    uses: ./.github/workflows/dotnet-format.yml
+
+  build-test-geneva:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'geneva')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Exporter.Geneva
+      code-cov-name: Exporter.Geneva
+
+  build-test-onecollector:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'onecollector')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Exporter.OneCollector
+      code-cov-name: Exporter.OneCollector
+
+  build-test-owin:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'owin')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.Owin
+      code-cov-name: Instrumentation.Owin
+      os-list: '[ "windows-latest" ]'
+      tfm-list: '[ "net462" ]'
+
+  build-test-process:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'process')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.Process
+      code-cov-name: Instrumentation.Process
+
+  build-test-redis:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'redis')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.StackExchangeRedis
+      code-cov-name: Instrumentation.StackExchangeRedis
+
+  build-test-redis-integration:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'redis')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/integration.yml
+
+  build-test-wcf:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'wcf')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.Wcf
+      code-cov-name: Instrumentation.Wcf
+
+  build-test-solution:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'solution')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
 
     strategy:
       fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
@@ -46,6 +169,7 @@ jobs:
             OpenTelemetry.Exporter.OneCollector.Tests.csproj,
             OpenTelemetry.Instrumentation.Owin.Tests.csproj,
             OpenTelemetry.Instrumentation.Process.Tests.csproj,
+            OpenTelemetry.Instrumentation.StackExchangeRedis.Tests.csproj,
             OpenTelemetry.Instrumentation.Wcf.Tests.csproj
 
         ForEach ($project in $projects)
@@ -67,5 +191,25 @@ jobs:
       with:
         file: TestResults/Cobertura.xml
         env_vars: OS,TFM
-        flags: unittests
+        flags: unittests-Solution
         name: Code Coverage for solution on [${{ matrix.os }}.${{ matrix.version }}]
+
+  build-test:
+    needs: [
+      lint-misspell-sanitycheck,
+      detect-changes,
+      lint-md,
+      lint-dotnet-format,
+      build-test-geneva,
+      build-test-onecollector,
+      build-test-owin,
+      build-test-process,
+      build-test-redis,
+      build-test-redis-integration,
+      build-test-wcf,
+      build-test-solution
+      ]
+    if: always() && !cancelled() && !contains(needs.*.result, 'failure')
+    runs-on: windows-latest
+    steps:
+    - run: echo 'build complete ✓'

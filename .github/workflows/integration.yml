@@ -1,13 +1,10 @@
-name: Integration Tests
+name: Integration Build OpenTelemetry.Instrumentation.StackExchangeRedis
 
 on:
-  pull_request:
-    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
-    paths-ignore:
-    - '**.md'
+  workflow_call:
 
 jobs:
-  redis-test:
+  redis-integration-test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
