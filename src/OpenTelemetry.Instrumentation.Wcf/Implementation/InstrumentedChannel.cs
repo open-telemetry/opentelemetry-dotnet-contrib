@@ -18,18 +18,17 @@ using System.ServiceModel.Channels;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
-internal class InstrumentedChannel : InstrumentedCommunicationObject, IChannel
+internal class InstrumentedChannel<T> : InstrumentedCommunicationObject<T>, IChannel
+    where T : IChannel
 {
-    public InstrumentedChannel(IChannel inner)
+    public InstrumentedChannel(T inner)
         : base(inner)
     {
     }
 
-    protected new IChannel Inner { get => (IChannel)base.Inner; }
-
-    T IChannel.GetProperty<T>()
-        where T : class
+    TProperty IChannel.GetProperty<TProperty>()
+        where TProperty : class
     {
-        return this.Inner.GetProperty<T>();
+        return this.Inner.GetProperty<TProperty>();
     }
 }

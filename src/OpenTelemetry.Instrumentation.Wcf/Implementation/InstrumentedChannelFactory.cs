@@ -20,17 +20,15 @@ using System.ServiceModel.Channels;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
-internal class InstrumentedChannelFactory<TChannel> : InstrumentedChannelFactoryBase, IChannelFactory<TChannel>
+internal sealed class InstrumentedChannelFactory<TChannel> : InstrumentedChannelFactoryBase<IChannelFactory<TChannel>>, IChannelFactory<TChannel>
 {
-    private CustomBinding binding;
+    private readonly CustomBinding binding;
 
     public InstrumentedChannelFactory(IChannelFactory<TChannel> inner, CustomBinding binding)
         : base(inner)
     {
         this.binding = binding;
     }
-
-    private new IChannelFactory<TChannel> Inner => (IChannelFactory<TChannel>)base.Inner;
 
     TChannel IChannelFactory<TChannel>.CreateChannel(EndpointAddress to, Uri via)
     {
