@@ -1,4 +1,4 @@
-// <copyright file="InstrumentedChannel.cs" company="OpenTelemetry Authors">
+// <copyright file="InstrumentedChannelFactoryBase.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,15 +18,15 @@ using System.ServiceModel.Channels;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
-internal class InstrumentedChannel<T> : InstrumentedCommunicationObject<T>, IChannel
-    where T : IChannel
+internal class InstrumentedChannelFactoryBase<T> : InstrumentedCommunicationObject<T>, IChannelFactory
+    where T : IChannelFactory
 {
-    public InstrumentedChannel(T inner)
+    public InstrumentedChannelFactoryBase(T inner)
         : base(inner)
     {
     }
 
-    TProperty IChannel.GetProperty<TProperty>()
+    TProperty IChannelFactory.GetProperty<TProperty>()
         where TProperty : class
     {
         return this.Inner.GetProperty<TProperty>();

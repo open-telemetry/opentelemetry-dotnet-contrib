@@ -10,6 +10,9 @@ Other configurations may work as well but have not been tested.
 
 * SOAP and JSON payloads on HTTP/HTTPS transport
 * SOAP payloads on Net.TCP transport
+  * Encrypted and unencrypted transports
+  * Streamed and buffered transfer modes
+  * Signed and unsigned messages
 
 ## Installation
 
