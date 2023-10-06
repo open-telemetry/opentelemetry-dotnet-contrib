@@ -14,22 +14,47 @@
 // limitations under the License.
 // </copyright>
 
+using System;
+using System.ServiceModel;
 using System.ServiceModel.Channels;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
-internal class InstrumentedChannelFactory : InstrumentedCommunicationObject, IChannelFactory
+internal sealed class InstrumentedChannelFactory<TChannel> : InstrumentedChannelFactoryBase<IChannelFactory<TChannel>>, IChannelFactory<TChannel>
 {
-    public InstrumentedChannelFactory(IChannelFactory inner)
+    private readonly CustomBinding binding;
+
+    public InstrumentedChannelFactory(IChannelFactory<TChannel> inner, CustomBinding binding)
         : base(inner)
     {
+        this.binding = binding;
     }
 
-    protected new IChannelFactory Inner { get => (IChannelFactory)base.Inner; }
-
-    T IChannelFactory.GetProperty<T>()
-        where T : class
+    TChannel IChannelFactory<TChannel>.CreateChannel(EndpointAddress to, Uri via)
     {
-        return this.Inner.GetProperty<T>();
+        return this.WrapChannel(this.Inner.CreateChannel(to, via));
+    }
+
+    TChannel IChannelFactory<TChannel>.CreateChannel(EndpointAddress to)
+    {
+        return this.WrapChannel(this.Inner.CreateChannel(to));
+    }
+
+    private TChannel WrapChannel(TChannel innerChannel)
+    {
+        Guard.ThrowIfNull(innerChannel);
+
+        if (typeof(TChannel) == typeof(IRequestChannel) || typeof(TChannel) == typeof(IRequestSessionChannel))
+        {
+            return (TChannel)(IRequestChannel)new InstrumentedRequestChannel((IRequestChannel)innerChannel!);
+        }
+
+        if (typeof(TChannel) == typeof(IDuplexChannel) || typeof(TChannel) == typeof(IDuplexSessionChannel))
+        {
+            return (TChannel)(IDuplexChannel)new InstrumentedDuplexChannel((IDuplexChannel)innerChannel!, this.binding.SendTimeout);
+        }
+
+        throw new NotImplementedException();
     }
 }

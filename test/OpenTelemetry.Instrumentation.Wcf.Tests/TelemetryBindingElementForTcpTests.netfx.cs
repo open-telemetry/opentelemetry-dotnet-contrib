@@ -18,9 +18,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net.Security;
+using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using System.ServiceModel.Security;
 using System.Threading.Tasks;
 using OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
 using OpenTelemetry.Trace;
@@ -39,46 +44,8 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     public TelemetryBindingElementForTcpTests(ITestOutputHelper outputHelper)
     {
         this.output = outputHelper;
-
-        Random random = new Random();
-        var retryCount = 5;
-        ServiceHost? createdHost = null;
-        while (retryCount > 0)
-        {
-            try
-            {
-                this.serviceBaseUri = new Uri($"net.tcp://localhost:{random.Next(2000, 5000)}/");
-                createdHost = new ServiceHost(new Service(), this.serviceBaseUri);
-                var endpoint = createdHost.AddServiceEndpoint(
-                    typeof(IServiceContract),
-                    new NetTcpBinding(SecurityMode.None),
-                    "/Service");
-                createdHost.Open();
-                break;
-            }
-            catch (Exception ex)
-            {
-                this.output.WriteLine(ex.ToString());
-                if (createdHost?.State == CommunicationState.Faulted)
-                {
-                    createdHost.Abort();
-                }
-                else
-                {
-                    createdHost?.Close();
-                }
-
-                createdHost = null;
-                retryCount--;
-            }
-        }
-
-        if (createdHost == null || this.serviceBaseUri == null)
-        {
-            throw new InvalidOperationException("ServiceHost could not be started.");
-        }
-
-        this.serviceHost = createdHost;
+        this.serviceHost = this.CreateServiceHost(new NetTcpBinding(SecurityMode.None), null);
+        this.serviceBaseUri = this.serviceHost.BaseAddresses[0];
     }
 
     public void Dispose()
@@ -199,8 +166,8 @@ public class TelemetryBindingElementForTcpTests : IDisposable
                 else
                 {
                     Assert.Equal(2, stoppedActivities.Count);
-                    Assert.Equal("DownstreamInstrumentation", stoppedActivities[0].OperationName);
-                    Assert.Equal(WcfInstrumentationActivitySource.OutgoingRequestActivityName, stoppedActivities[1].OperationName);
+                    Assert.NotNull(stoppedActivities.SingleOrDefault(activity => activity.OperationName == "DownstreamInstrumentation"));
+                    Assert.NotNull(stoppedActivities.SingleOrDefault(activity => activity.OperationName == WcfInstrumentationActivitySource.OutgoingRequestActivityName));
                 }
             }
             else
@@ -471,6 +438,121 @@ public class TelemetryBindingElementForTcpTests : IDisposable
             tracerProvider?.Dispose();
             WcfInstrumentationActivitySource.Options = null;
         }
+    }
+
+    [Fact]
+    public void StreamedTransferWithTransportSecurityWithMessageCredentialWorks()
+    {
+        // this config combination is unique because it uses an IRequestSessionChannel,
+        // where other NetTcp configs use IDuplexChannel
+
+        List<Activity> stoppedActivities = new List<Activity>();
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(stoppedActivities)
+            .AddWcfInstrumentation()
+            .Build();
+
+        var binding = new NetTcpBinding(SecurityMode.TransportWithMessageCredential);
+        binding.TransferMode = TransferMode.Streamed;
+        binding.Security.Transport.ProtectionLevel = ProtectionLevel.EncryptAndSign;
+        binding.Security.Message.ClientCredentialType = MessageCredentialType.Windows;
+        var host = this.CreateServiceHost(binding, LoadCertificate());
+        ServiceClient client = new ServiceClient(binding, new EndpointAddress(new Uri(host.BaseAddresses[0], "/Service")));
+        try
+        {
+            client.ClientCredentials.ClientCertificate.Certificate = LoadCertificate();
+
+            // never do this in production code, this insecure and for testing only
+            client.ClientCredentials.ServiceCertificate.Authentication.CertificateValidationMode = X509CertificateValidationMode.None;
+            client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
+            client.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!"));
+        }
+        finally
+        {
+            if (client.State == CommunicationState.Faulted)
+            {
+                client.Abort();
+            }
+            else
+            {
+                client.Close();
+            }
+
+            host.Close();
+
+            tracerProvider?.Shutdown();
+            tracerProvider?.Dispose();
+
+            WcfInstrumentationActivitySource.Options = null;
+        }
+
+        Assert.NotEmpty(stoppedActivities);
+        Assert.Equal(WcfInstrumentationActivitySource.OutgoingRequestActivityName, stoppedActivities[0].OperationName);
+        Assert.Equal("http://opentelemetry.io/Service/ExecuteSynchronous", stoppedActivities[0].DisplayName);
+    }
+
+    private static X509Certificate2 LoadCertificate()
+    {
+        // The certificate shouldn't ever need to be regenerated, but if it does
+        // for some reason these are the commands used to generate it:
+        //   openssl genrsa -out otel.key 2048
+        //   openssl req -x509 -sha256 -key otel.key -out otel.pem -days 1 -subj "/C=CA/ST=ST/O=OpenTelemetry/CN=localhost"
+        //   openssl pkcs12 -export -inkey otel.key -in otel.pem -out certificate.pfx -password pass:
+
+        var resourceName = "OpenTelemetry.Instrumentation.Wcf.Tests.certificate.pfx";
+        using var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
+        using var memoryStream = new MemoryStream();
+        resourceStream.CopyTo(memoryStream);
+        return new X509Certificate2(memoryStream.ToArray());
+    }
+
+    private ServiceHost CreateServiceHost(NetTcpBinding binding, X509Certificate2? cert)
+    {
+        ServiceHost? serviceHost = null;
+        Random random = new Random();
+        var retryCount = 5;
+        while (retryCount > 0)
+        {
+            try
+            {
+                var baseUri = new Uri($"net.tcp://localhost:{random.Next(2000, 5000)}/");
+                serviceHost = new ServiceHost(new Service(), baseUri);
+                if (cert != null)
+                {
+                    serviceHost.Credentials.ServiceCertificate.Certificate = cert;
+                }
+
+                var endpoint = serviceHost.AddServiceEndpoint(
+                    typeof(IServiceContract),
+                    binding,
+                    "/Service");
+
+                serviceHost.Open();
+                break;
+            }
+            catch (Exception ex)
+            {
+                this.output.WriteLine(ex.ToString());
+                if (serviceHost?.State == CommunicationState.Faulted)
+                {
+                    serviceHost.Abort();
+                }
+                else
+                {
+                    serviceHost?.Close();
+                }
+
+                serviceHost = null;
+                retryCount--;
+            }
+        }
+
+        if (serviceHost == null)
+        {
+            throw new InvalidOperationException("ServiceHost could not be started.");
+        }
+
+        return serviceHost;
     }
 }
 #endif

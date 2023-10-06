@@ -14,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using System.ServiceModel.Channels;
 using OpenTelemetry.Internal;
 
@@ -30,17 +29,7 @@ internal sealed class TelemetryBindingElement : BindingElement
     {
         Guard.ThrowIfNull(context);
 
-        if (typeof(TChannel) == typeof(IRequestChannel))
-        {
-            return (IChannelFactory<TChannel>)new InstrumentedRequestChannelFactory(context.BuildInnerChannelFactory<IRequestChannel>());
-        }
-
-        if (typeof(TChannel) == typeof(IDuplexSessionChannel))
-        {
-            return (IChannelFactory<TChannel>)new InstrumentedDuplexSessionChannelFactory(context.BuildInnerChannelFactory<IDuplexSessionChannel>(), context.Binding.SendTimeout);
-        }
-
-        throw new NotSupportedException();
+        return new InstrumentedChannelFactory<TChannel>(context.BuildInnerChannelFactory<TChannel>(), context.Binding);
     }
 
     /// <inheritdoc/>
@@ -50,6 +39,8 @@ internal sealed class TelemetryBindingElement : BindingElement
 
         var supportedByInstrumentation =
             typeof(TChannel) == typeof(IRequestChannel) ||
+            typeof(TChannel) == typeof(IRequestSessionChannel) ||
+            typeof(TChannel) == typeof(IDuplexChannel) ||
             typeof(TChannel) == typeof(IDuplexSessionChannel);
 
         return supportedByInstrumentation && base.CanBuildChannelFactory<TChannel>(context);

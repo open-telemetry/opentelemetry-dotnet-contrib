@@ -19,9 +19,10 @@ using System.ServiceModel;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
-internal class InstrumentedCommunicationObject : ICommunicationObject
+internal class InstrumentedCommunicationObject<T> : ICommunicationObject
+    where T : ICommunicationObject
 {
-    public InstrumentedCommunicationObject(ICommunicationObject inner)
+    public InstrumentedCommunicationObject(T inner)
     {
         this.Inner = inner;
     }
@@ -41,7 +42,7 @@ internal class InstrumentedCommunicationObject : ICommunicationObject
         get { return this.Inner.State; }
     }
 
-    protected ICommunicationObject Inner { get; }
+    protected T Inner { get; }
 
     void ICommunicationObject.Abort()
     {
