@@ -6,17 +6,18 @@ on:
       project-name:
         required: true
         type: string
+      release-name:
+        required: false
+        type: string
+        default: ''
 
 jobs:
   build-test-pack:
     permissions:
       contents: write
 
-    strategy:
-      matrix:
-        os: [windows-latest]
+    runs-on: windows-latest
 
-    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -40,21 +41,58 @@ jobs:
     - name: Publish Artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ inputs.project-name }}-packages
-        path: '**/${{ inputs.project-name }}/bin/**/*.*nupkg'
+        name: ${{ inputs.project-name }}.proj-packages
+        path: 'src/*/bin/Release/*.*nupkg'
 
-    - name: Publish Nuget
+    - name: Publish NuGets
       run: |
-        nuget push **/${{ inputs.project-name }}/bin/**/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_TOKEN }} -SymbolApiKey ${{ secrets.NUGET_TOKEN }}
-
-    - name: Create GitHub Prerelease
-      if: ${{ (contains(github.ref_name, '-alpha') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc')) }}
-      run: gh release create ${{ github.ref_name }} --title ${{ github.ref_name }} --verify-tag --notes "See [CHANGELOG](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/${{ github.ref_name }}/src/${{ inputs.project-name }}/CHANGELOG.md) for details." --prerelease
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        nuget push src/*/bin/Release/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_TOKEN }} -SymbolApiKey ${{ secrets.NUGET_TOKEN }}
 
     - name: Create GitHub Release
-      if: ${{ !(contains(github.ref_name, '-alpha') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc')) }}
-      run: gh release create ${{ github.ref_name }} --title ${{ github.ref_name }} --verify-tag --notes "See [CHANGELOG](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/${{ github.ref_name }}/src/${{ inputs.project-name }}/CHANGELOG.md) for details." --latest
+      shell: pwsh
+      run: |
+        $packages = (Get-ChildItem -Path src/*/bin/Release/*.nupkg).Name
+
+        $notes = ''
+        $firstPackageVersion = ''
+
+        foreach ($package in $packages)
+        {
+            $match = [regex]::Match($package, '(.*)\.(\d+\.\d+\.\d+.*?)\.nupkg')
+            $packageName = $match.Groups[1].Value
+            $packageVersion = $match.Groups[2].Value
+
+            if ($firstPackageVersion -eq '')
+            {
+              $firstPackageVersion = $packageVersion
+            }
+
+            $notes +=
+        @"
+        * NuGet: [$packageName v$packageVersion](https://www.nuget.org/packages/$packageName/$packageVersion)
+
+          See [CHANGELOG](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/src/$packageName/CHANGELOG.md) for details.
+
+        "@
+        }
+
+        $releaseName = '${{ inputs.release-name || inputs.project-name }}'
+
+        if ($firstPackageVersion -contains '-alpha' -or $firstPackageVersion -contains '-beta' -or $firstPackageVersion -contains '-rc')
+        {
+          gh release create ${{ github.ref_name }} `
+            --title "$releaseName v$firstPackageVersion" `
+            --verify-tag `
+            --notes "$notes" `
+            --prerelease
+        }
+        else
+        {
+          gh release create ${{ github.ref_name }} `
+            --title "$releaseName v$firstPackageVersion" `
+            --verify-tag `
+            --notes "$notes" `
+            --latest
+        }
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,5 +1,7 @@
 name: Pack OpenTelemetry.Instrumentation.AspNet
 
+# Note: This releases OpenTelemetry.Instrumentation.AspNet & OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule
+
 on:
   workflow_dispatch:
     inputs:
@@ -18,4 +20,5 @@ jobs:
     uses: ./.github/workflows/Component.Package.yml
     with:
       project-name: OpenTelemetry.Instrumentation.AspNet
+      release-name: 'OpenTelemetry Asp.Net Instrumentation Packages'
     secrets: inherit
