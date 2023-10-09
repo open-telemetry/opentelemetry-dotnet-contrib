@@ -18,7 +18,6 @@ using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry;
 using OpenTelemetry.Extensions.Enrichment;
-using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 namespace Examples.Enrichment;
