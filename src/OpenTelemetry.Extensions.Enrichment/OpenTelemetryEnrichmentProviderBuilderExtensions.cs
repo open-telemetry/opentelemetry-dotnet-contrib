@@ -15,6 +15,7 @@
 // </copyright>
 
 using System;
+using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
@@ -37,7 +38,7 @@ public static class OpenTelemetryEnrichmentProviderBuilderExtensions
     /// Add this enricher *before* exporter related Activity processors.
     /// </remarks>
     public static TracerProviderBuilder AddTraceEnricher<T>(this TracerProviderBuilder builder)
-        where T : TraceEnricher
+        where T : class, ITraceEnricher
     {
         Guard.ThrowIfNull(builder);
 
@@ -49,13 +50,13 @@ public static class OpenTelemetryEnrichmentProviderBuilderExtensions
     /// Adds trace enricher.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-    /// <param name="enricher">The <see cref="TraceEnricher"/> object being added.</param>
+    /// <param name="enricher">The <see cref="ITraceEnricher"/> object being added.</param>
     /// <exception cref="ArgumentNullException">Thrown when the <paramref name="builder"/> or <paramref name="enricher"/> is <see langword="null" />.</exception>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     /// <remarks>
     /// Add this enricher *before* exporter related Activity processors.
     /// </remarks>
-    public static TracerProviderBuilder AddTraceEnricher(this TracerProviderBuilder builder, TraceEnricher enricher)
+    public static TracerProviderBuilder AddTraceEnricher(this TracerProviderBuilder builder, ITraceEnricher enricher)
     {
         Guard.ThrowIfNull(builder);
         Guard.ThrowIfNull(enricher);
@@ -74,7 +75,7 @@ public static class OpenTelemetryEnrichmentProviderBuilderExtensions
     /// <remarks>
     /// Add this enricher *before* exporter related Activity processors.
     /// </remarks>
-    public static TracerProviderBuilder AddTraceEnricher(this TracerProviderBuilder builder, Action<TraceEnrichmentBag> enrichmentAction)
+    public static TracerProviderBuilder AddTraceEnricher(this TracerProviderBuilder builder, Action<Activity> enrichmentAction)
     {
         Guard.ThrowIfNull(builder);
         Guard.ThrowIfNull(enrichmentAction);
@@ -87,13 +88,13 @@ public static class OpenTelemetryEnrichmentProviderBuilderExtensions
     /// Adds trace enricher.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-    /// <param name="enricherImplementationFactory">The <see cref="TraceEnricher"/> object being added using implementation factory.</param>
+    /// <param name="enricherImplementationFactory">The <see cref="ITraceEnricher"/> object being added using implementation factory.</param>
     /// <exception cref="ArgumentNullException">Thrown when the <paramref name="builder"/> or <paramref name="enricherImplementationFactory"/> is <see langword="null" />.</exception>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     /// <remarks>
     /// Add this enricher *before* exporter related Activity processors.
     /// </remarks>
-    public static TracerProviderBuilder AddTraceEnricher(this TracerProviderBuilder builder, Func<IServiceProvider, TraceEnricher> enricherImplementationFactory)
+    public static TracerProviderBuilder AddTraceEnricher(this TracerProviderBuilder builder, Func<IServiceProvider, ITraceEnricher> enricherImplementationFactory)
     {
         Guard.ThrowIfNull(builder);
         Guard.ThrowIfNull(enricherImplementationFactory);

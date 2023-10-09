@@ -16,26 +16,27 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace OpenTelemetry.Extensions.Enrichment;
 
 #pragma warning disable CA1812 // Class is instantiated through dependency injection
-internal sealed class EnrichmentActions : TraceEnricher
+internal sealed class EnrichmentActions : ITraceEnricher
 #pragma warning restore CA1812 // Class is instantiated through dependency injection
 {
-    private readonly Action<TraceEnrichmentBag>[] actions;
+    private readonly Action<Activity>[] actions;
 
-    public EnrichmentActions(IEnumerable<Action<TraceEnrichmentBag>> actions)
+    public EnrichmentActions(IEnumerable<Action<Activity>> actions)
     {
         this.actions = actions.ToArray();
     }
 
-    public override void Enrich(in TraceEnrichmentBag enrichmentBag)
+    public void Enrich(in Activity activity)
     {
         for (int i = 0; i < this.actions.Length; i++)
         {
-            this.actions[i].Invoke(enrichmentBag);
+            this.actions[i].Invoke(activity);
         }
     }
 }

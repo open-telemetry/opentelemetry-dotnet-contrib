@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(NetFrameworkMinimumSupportedVersion);$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks>$(NetFrameworkMinimumSupportedVersion);$(NetStandardMinimumSupportedVersion);$(NetMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry .NET SDK telemetry enrichment.</Description>
     <NoWarn>$(NoWarn),CS1591</NoWarn>
     <MinVerTagPrefix>Extensions.Enrichment-</MinVerTagPrefix>

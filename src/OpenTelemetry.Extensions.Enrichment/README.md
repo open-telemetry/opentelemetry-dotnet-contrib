@@ -38,12 +38,12 @@ dotnet add package OpenTelemetry.Extensions.Enrichment --prerelease
 
 ### Step 2: Create enricher class
 
-Create your custom enricher class that inherits from the `TraceEnricher` class
-and override the `public abstract void Enrich(in TraceEnrichmentBag bag)` method.
-Optionally, inject other services you enricher class depends on:
+Create your custom enricher class that inherits from the `ITraceEnricher` interface
+and implement the `public void Enrich(in Activity activity)` method.
+Optionally, inject other services your enricher class depends on:
 
 ```csharp
-internal sealed class MyTraceEnricher : TraceEnricher
+internal sealed class MyTraceEnricher : ITraceEnricher
 {
     private readonly IMyService myService;
 
@@ -52,11 +52,11 @@ internal sealed class MyTraceEnricher : TraceEnricher
         this.myService = myService;
     }
 
-    public override void Enrich(in TraceEnrichmentBag bag)
+    public void Enrich(in Actvity activity)
     {
         var (service, status) = this.myService.MyDailyStatus();
 
-        bag.Add(service, status);
+        activity.AddTag(service, status);
     }
 }
 ```
@@ -66,7 +66,7 @@ An example of IMyService implementation is available
 
 For every `Activity`, the `Enrich()`
 method is guaranteed to be called exactly once. Semantically,
-for the example above it means that a new [tag object](https://learn.microsoft.com/dotnet/api/system.diagnostics.activity.tagobjects?view=net-7.0)
+for the example above it means that a new [tag object](https://learn.microsoft.com/dotnet/api/system.diagnostics.activity.tagobjects?view=net-6.0)
 with the service key and the status  value will be added to every `Activity`
 in your application.
 
@@ -157,17 +157,17 @@ If you prefer to instantiate your enricher class on your own, you may use one of
 these methods which allow for the usage of pre-existing enricher objects:
 
 ```csharp
-public static AddTraceEnricher(this IServiceCollection services, TraceEnricher enricher)
-public static AddTraceEnricher(this TracerProviderBuilder builder, TraceEnricher enricher)
+public static AddTraceEnricher(this IServiceCollection services, ITraceEnricher enricher)
+public static AddTraceEnricher(this TracerProviderBuilder builder, ITraceEnricher enricher)
 ```
 
 If you only need to enrich a small amount of data, it may not be necessary to create
 an enricher class. Instead, you can make use of the following methods which accept
-an `Action<TraceEnrichmentBag>` delegate:
+an `Action<Activity>` delegate:
 
 ```csharp
-public static AddTraceEnricher(this IServiceCollection services, Action<TraceEnrichmentBag> enrichmentAction)
-public static AddTraceEnricher(this TracerProviderBuilder builder, Action<TraceEnrichmentBag> enrichmentAction)
+public static AddTraceEnricher(this IServiceCollection services, Action<Activity> enrichmentAction)
+public static AddTraceEnricher(this TracerProviderBuilder builder, Action<Activity> enrichmentAction)
 ```
 
 If you would rather use a factory method to instantiate your enricher class,
@@ -175,8 +175,8 @@ with the possibility of interacting with `IServiceProvider,` you can utilize one
 of these two methods:
 
 ```csharp
-public static AddTraceEnricher(this IServiceCollection services, Func<IServiceProvider, TraceEnricher> enricherImplementationFactory)
-public static AddTraceEnricher(this TracerProviderBuilder builder, Func<IServiceProvider, TraceEnricher> enricherImplementationFactory)
+public static AddTraceEnricher(this IServiceCollection services, Func<IServiceProvider, ITraceEnricher> enricherImplementationFactory)
+public static AddTraceEnricher(this TracerProviderBuilder builder, Func<IServiceProvider, ITraceEnricher> enricherImplementationFactory)
 ```
 
 ## Recommendations and best practices

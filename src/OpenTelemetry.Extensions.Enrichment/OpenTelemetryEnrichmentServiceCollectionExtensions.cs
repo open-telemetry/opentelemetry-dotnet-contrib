@@ -15,6 +15,7 @@
 // </copyright>
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using OpenTelemetry.Extensions.Enrichment;
@@ -39,26 +40,26 @@ public static class OpenTelemetryEnrichmentServiceCollectionExtensions
     /// Add this enricher *before* exporter related Activity processors.
     /// </remarks>
     public static IServiceCollection AddTraceEnricher<T>(this IServiceCollection services)
-        where T : TraceEnricher
+        where T : class, ITraceEnricher
     {
         Guard.ThrowIfNull(services);
 
         return services
             .TryAddEnrichment()
-            .AddSingleton<TraceEnricher, T>();
+            .AddSingleton<ITraceEnricher, T>();
     }
 
     /// <summary>
     /// Adds trace enricher.
     /// </summary>
     /// <param name="services"><see cref="IServiceCollection"/> being configured.</param>
-    /// <param name="enricher">The <see cref="TraceEnricher"/> object being added.</param>
+    /// <param name="enricher">The <see cref="ITraceEnricher"/> object being added.</param>
     /// <exception cref="ArgumentNullException">Thrown when the <paramref name="services"/> or <paramref name="enricher"/> is <see langword="null" />.</exception>
     /// <returns>The instance of <see cref="IServiceCollection"/> to chain the calls.</returns>
     /// <remarks>
     /// Add this enricher *before* exporter related Activity processors.
     /// </remarks>
-    public static IServiceCollection AddTraceEnricher(this IServiceCollection services, TraceEnricher enricher)
+    public static IServiceCollection AddTraceEnricher(this IServiceCollection services, ITraceEnricher enricher)
     {
         Guard.ThrowIfNull(services);
         Guard.ThrowIfNull(enricher);
@@ -78,12 +79,12 @@ public static class OpenTelemetryEnrichmentServiceCollectionExtensions
     /// <remarks>
     /// Add this enricher *before* exporter related Activity processors.
     /// </remarks>
-    public static IServiceCollection AddTraceEnricher(this IServiceCollection services, Action<TraceEnrichmentBag> enrichmentAction)
+    public static IServiceCollection AddTraceEnricher(this IServiceCollection services, Action<Activity> enrichmentAction)
     {
         Guard.ThrowIfNull(services);
         Guard.ThrowIfNull(enrichmentAction);
 
-        services.TryAddSingleton<TraceEnricher, EnrichmentActions>();
+        services.TryAddSingleton<ITraceEnricher, EnrichmentActions>();
 
         return services
             .TryAddEnrichment()
@@ -94,13 +95,13 @@ public static class OpenTelemetryEnrichmentServiceCollectionExtensions
     /// Adds trace enricher.
     /// </summary>
     /// <param name="services"><see cref="IServiceCollection"/> being configured.</param>
-    /// <param name="enricherImplementationFactory">The <see cref="TraceEnricher"/> object being added using implementation factory.</param>
+    /// <param name="enricherImplementationFactory">The <see cref="ITraceEnricher"/> object being added using implementation factory.</param>
     /// <exception cref="ArgumentNullException">Thrown when the <paramref name="services"/> or <paramref name="enricherImplementationFactory"/> is <see langword="null" />.</exception>
     /// <returns>The instance of <see cref="IServiceCollection"/> to chain the calls.</returns>
     /// <remarks>
     /// Add this enricher *before* exporter related Activity processors.
     /// </remarks>
-    public static IServiceCollection AddTraceEnricher(this IServiceCollection services, Func<IServiceProvider, TraceEnricher> enricherImplementationFactory)
+    public static IServiceCollection AddTraceEnricher(this IServiceCollection services, Func<IServiceProvider, ITraceEnricher> enricherImplementationFactory)
     {
         Guard.ThrowIfNull(services);
         Guard.ThrowIfNull(enricherImplementationFactory);

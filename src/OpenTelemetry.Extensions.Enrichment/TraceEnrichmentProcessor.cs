@@ -24,20 +24,28 @@ namespace OpenTelemetry.Extensions.Enrichment;
 internal sealed class TraceEnrichmentProcessor : BaseProcessor<Activity>
 #pragma warning restore CA1812 // Class is instantiated through dependency injection
 {
-    private readonly TraceEnricher[] traceEnrichers;
+    private readonly ITraceEnricher[] traceEnrichers;
 
-    public TraceEnrichmentProcessor(IEnumerable<TraceEnricher> traceEnrichers)
+    public TraceEnrichmentProcessor(IEnumerable<ITraceEnricher> traceEnrichers)
     {
         this.traceEnrichers = traceEnrichers.ToArray();
     }
 
-    public override void OnEnd(Activity activity)
+#if NET6_0_OR_GREATER
+    public override void OnStart(Activity activity)
     {
-        var propertyBag = new TraceEnrichmentBag(activity);
-
         foreach (var enricher in this.traceEnrichers)
         {
-            enricher.Enrich(propertyBag);
+            enricher.EnrichOnActivityStart(activity);
+        }
+    }
+#endif
+
+    public override void OnEnd(Activity activity)
+    {
+        foreach (var enricher in this.traceEnrichers)
+        {
+            enricher.Enrich(activity);
         }
     }
 }
