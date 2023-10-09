@@ -9,6 +9,8 @@
 * **Breaking Change** `TelemetryClientMessageInspector` and `TelemetryDispatchMessageInspector`
   changed from public to internal
   ([#1376](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1376))
+* Added support for `IRequestSessionChannel` and `IDuplexChannel` channel shapes
+  ([#1374](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1374))
 
 ## 1.0.0-rc.12
 

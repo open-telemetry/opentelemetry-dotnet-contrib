@@ -1,4 +1,4 @@
-// <copyright file="InstrumentedDuplexSessionChannel.cs" company="OpenTelemetry Authors">
+// <copyright file="InstrumentedDuplexChannel.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,11 +21,11 @@ using System.Threading;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
-internal sealed class InstrumentedDuplexSessionChannel : InstrumentedChannel, IDuplexSessionChannel
+internal sealed class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexChannel>, IDuplexSessionChannel
 {
     private readonly TimeSpan telemetryTimeout;
 
-    public InstrumentedDuplexSessionChannel(IDuplexSessionChannel inner, TimeSpan telemetryTimeout)
+    public InstrumentedDuplexChannel(IDuplexChannel inner, TimeSpan telemetryTimeout)
         : base(inner)
     {
         this.telemetryTimeout = telemetryTimeout;
@@ -37,9 +37,7 @@ internal sealed class InstrumentedDuplexSessionChannel : InstrumentedChannel, ID
 
     public Uri Via => this.Inner.Via;
 
-    public IDuplexSession Session => this.Inner.Session;
-
-    private new IDuplexSessionChannel Inner { get => (IDuplexSessionChannel)base.Inner; }
+    public IDuplexSession Session => ((IDuplexSessionChannel)this.Inner).Session;
 
     public void Send(Message message)
     {
