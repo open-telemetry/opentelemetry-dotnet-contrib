@@ -47,6 +47,12 @@ flags:
     paths:
       - src/OpenTelemetry.Exporter.OneCollector
 
+  unittests-Instrumentation.AspNet:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.AspNet
+      - src/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule
+
   unittests-Instrumentation.Owin:
     carryforward: true
     paths:

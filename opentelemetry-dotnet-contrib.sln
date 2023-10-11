@@ -45,7 +45,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\package-Extensions.AzureMonitor.yml = .github\workflows\package-Extensions.AzureMonitor.yml
 		.github\workflows\package-Extensions.Docker.yml = .github\workflows\package-Extensions.Docker.yml
 		.github\workflows\package-Extensions.yml = .github\workflows\package-Extensions.yml
-		.github\workflows\package-Instrumentation.AspNet.TelemetryHttpModule.yml = .github\workflows\package-Instrumentation.AspNet.TelemetryHttpModule.yml
 		.github\workflows\package-Instrumentation.AspNet.yml = .github\workflows\package-Instrumentation.AspNet.yml
 		.github\workflows\package-Instrumentation.AWS.yml = .github\workflows\package-Instrumentation.AWS.yml
 		.github\workflows\package-Instrumentation.AWSLambda.yml = .github\workflows\package-Instrumentation.AWSLambda.yml
