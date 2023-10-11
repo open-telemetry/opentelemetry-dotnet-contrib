@@ -3,7 +3,7 @@
 ## Unreleased
 
 * Release together with `OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule`.
-  Fixed an issue where activities were closed incorrectly before processing completed.
+  Fixed an issue where activities were stopped incorrectly before processing completed.
   Activity processor's `OnEnd` will now happen after `AspNetInstrumentationOptions.Enrich`.
   ([#1388](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1388))
 
