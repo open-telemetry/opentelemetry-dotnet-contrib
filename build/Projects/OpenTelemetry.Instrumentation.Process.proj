@@ -10,6 +10,8 @@
     <SolutionProjects Include="$(RepoRoot)\examples\process-instrumentation\**\*.csproj" />
 
     <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Process\OpenTelemetry.Instrumentation.Process.csproj" />
+
+    <TestProjects Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.Process.Tests\OpenTelemetry.Instrumentation.Process.Tests.csproj" />
   </ItemGroup>
 
   <Target Name="Build">
@@ -22,6 +24,10 @@
 
   <Target Name="Pack">
     <MSBuild Projects="@(PackProjects)" Targets="Pack" ContinueOnError="ErrorAndStop" />
+  </Target>
+
+  <Target Name="VSTest">
+    <MSBuild Projects="@(TestProjects)" Targets="VSTest" ContinueOnError="ErrorAndStop" />
   </Target>
 
 </Project>
