@@ -11,6 +11,8 @@
     <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Exporter.Geneva.Stress\OpenTelemetry.Exporter.Geneva.Stress.csproj" />
 
     <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.Exporter.Geneva\OpenTelemetry.Exporter.Geneva.csproj" />
+
+    <TestProjects Include="$(RepoRoot)\test\OpenTelemetry.Exporter.Geneva.Tests\OpenTelemetry.Exporter.Geneva.Tests.csproj" />
   </ItemGroup>
 
   <Target Name="Build">
@@ -23,6 +25,10 @@
 
   <Target Name="Pack">
     <MSBuild Projects="@(PackProjects)" Targets="Pack" ContinueOnError="ErrorAndStop" />
+  </Target>
+
+  <Target Name="VSTest">
+    <MSBuild Projects="@(TestProjects)" Targets="VSTest" ContinueOnError="ErrorAndStop" />
   </Target>
 
 </Project>

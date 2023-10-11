@@ -32,11 +32,11 @@ jobs:
     - name: dotnet build build/Projects/${{ inputs.project-name }}.proj
       run: dotnet build build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-restore -p:Deterministic=true
 
-    - name: dotnet test test/${{ inputs.project-name }}.Tests
-      run: dotnet test test/${{ inputs.project-name }}.Tests --configuration Release --no-restore --no-build
+    - name: dotnet test build/Projects/${{ inputs.project-name }}.proj
+      run: dotnet test build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-restore --no-build
 
     - name: dotnet pack build/Projects/${{ inputs.project-name }}.proj
-      run: dotnet pack build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-build --no-restore
+      run: dotnet pack build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-restore --no-build
 
     - name: Publish Artifacts
       uses: actions/upload-artifact@v3
