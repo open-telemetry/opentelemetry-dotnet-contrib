@@ -13,6 +13,8 @@
 
     <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule\OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.csproj" />
     <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.AspNet\OpenTelemetry.Instrumentation.AspNet.csproj" />
+
+    <TestProjects Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.AspNet*.Tests\*.Tests.csproj" />
   </ItemGroup>
 
   <Target Name="Build">
@@ -25,6 +27,10 @@
 
   <Target Name="Pack">
     <MSBuild Projects="@(PackProjects)" Targets="Pack" ContinueOnError="ErrorAndStop" />
+  </Target>
+
+  <Target Name="VSTest">
+    <MSBuild Projects="@(TestProjects)" Targets="VSTest" ContinueOnError="ErrorAndStop" />
   </Target>
 
 </Project>
