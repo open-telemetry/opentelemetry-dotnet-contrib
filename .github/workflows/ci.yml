@@ -21,6 +21,7 @@ jobs:
           build: ['build/**', '.github/**/*.yml', '!.github/workflows/package-*']
           shared: ['src/Shared/**']
           code: ['**.cs', '.editorconfig']
+          aspnet: ['*/OpenTelemetry.Instrumentation.AspNet*/**', 'examples/AspNet/**', '!**/*.md']
           geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
           onecollector: ['*/OpenTelemetry.Instrumentation.OneCollector*/**', '!**/*.md']
           owin: ['*/OpenTelemetry.Instrumentation.Owin*/**', 'examples/owin/**', '!**/*.md']
@@ -53,6 +54,19 @@ jobs:
     needs: detect-changes
     if: contains(needs.detect-changes.outputs.changes, 'code')
     uses: ./.github/workflows/dotnet-format.yml
+
+  build-test-aspnet:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'aspnet')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.AspNet
+      code-cov-name: Instrumentation.AspNet
+      os-list: '[ "windows-latest" ]'
+      tfm-list: '[ "net462" ]'
 
   build-test-geneva:
     needs: detect-changes
@@ -167,6 +181,8 @@ jobs:
           -Exclude `
             OpenTelemetry.Exporter.Geneva.Tests.csproj,
             OpenTelemetry.Exporter.OneCollector.Tests.csproj,
+            OpenTelemetry.Instrumentation.AspNet.Tests.csproj,
+            OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests.csproj,
             OpenTelemetry.Instrumentation.Owin.Tests.csproj,
             OpenTelemetry.Instrumentation.Process.Tests.csproj,
             OpenTelemetry.Instrumentation.StackExchangeRedis.Tests.csproj,
@@ -200,6 +216,7 @@ jobs:
       detect-changes,
       lint-md,
       lint-dotnet-format,
+      build-test-aspnet,
       build-test-geneva,
       build-test-onecollector,
       build-test-owin,

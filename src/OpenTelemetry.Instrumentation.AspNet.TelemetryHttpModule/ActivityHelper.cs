@@ -131,8 +131,6 @@ internal static class ActivityHelper
         Debug.Assert(context.Items[ContextKey] is ContextHolder, "Context item is not an ContextHolder instance.");
 
         var currentActivity = Activity.Current;
-
-        aspNetActivity.Stop();
         context.Items[ContextKey] = null;
 
         try
@@ -144,6 +142,7 @@ internal static class ActivityHelper
             AspNetTelemetryEventSource.Log.CallbackException(aspNetActivity, "OnStopped", callbackEx);
         }
 
+        aspNetActivity.Stop();
         AspNetTelemetryEventSource.Log.ActivityStopped(aspNetActivity);
 
         if (textMapPropagator is not TraceContextPropagator)

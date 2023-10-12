@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed an issue where activities were stopped incorrectly before processing completed.
+  Activity processor's `OnEnd` will now happen after `AspNetInstrumentationOptions.Enrich`.
+  ([#1388](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1388))
+
 * Update `OpenTelemetry.Api` to `1.6.0`.
   ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
 
