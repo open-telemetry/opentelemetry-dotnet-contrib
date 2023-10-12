@@ -447,6 +447,45 @@ public class ActivityHelperTest : IDisposable
         Assert.Equal(1, callbacksFired);
     }
 
+    [Fact]
+    public void Should_Handle_Activity_Events_In_Correct_Order()
+    {
+        var eventOrder = new List<string>();
+        const string ActivityOnStarted = "ActivityOnStarted";
+        const string ActivityOnStopped = "ActivityOnStarted";
+        const string OnStartCallback = "OnStartCallback";
+        const string OnStopCallback = "OnStopCallback";
+
+        this.EnableListener(_ => eventOrder.Add(ActivityOnStarted), _ => eventOrder.Add(ActivityOnStopped));
+
+        var context = HttpContextHelper.GetFakeHttpContext();
+        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, (_, _) => eventOrder.Add(OnStartCallback));
+        ActivityHelper.StopAspNetActivity(this.noopTextMapPropagator, rootActivity, context, (_, _) => eventOrder.Add(OnStopCallback));
+
+        var expectedOrder = new List<string>()
+        {
+            ActivityOnStarted,
+            OnStartCallback,
+            OnStopCallback,
+            ActivityOnStopped,
+        };
+
+        Assert.Equal(expectedOrder, eventOrder);
+    }
+
+    [Fact]
+    public void Should_Not_Pass_Stopped_Activity_To_Callbacks()
+    {
+        this.EnableListener();
+
+        var wasStopped = false;
+        var context = HttpContextHelper.GetFakeHttpContext();
+        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, (activity, _) => wasStopped = activity.IsStopped || wasStopped);
+        ActivityHelper.StopAspNetActivity(this.noopTextMapPropagator, rootActivity, context, (activity, _) => wasStopped = activity.IsStopped || wasStopped);
+
+        Assert.False(wasStopped);
+    }
+
     private void EnableListener(Action<Activity>? onStarted = null, Action<Activity>? onStopped = null, Func<ActivityContext, ActivitySamplingResult>? onSample = null)
     {
         Debug.Assert(this.activitySourceListener == null, "Cannot attach multiple listeners in tests.");
