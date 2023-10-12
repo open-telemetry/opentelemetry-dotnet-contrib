@@ -47,8 +47,8 @@ jobs:
     - name: dotnet build build/Projects/${{ inputs.project-name }}.proj
       run: dotnet build build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-restore
 
-    - name: dotnet test test/${{ inputs.project-name }}.Tests
-      run: dotnet test test/${{ inputs.project-name }}.Tests --collect:"Code Coverage" --results-directory:TestResults --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed" -- RunConfiguration.DisableAppDomain=true
+    - name: dotnet test build/Projects/${{ inputs.project-name }}.proj
+      run: dotnet test build/Projects/${{ inputs.project-name }}.proj --collect:"Code Coverage" --results-directory:TestResults --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed" -- RunConfiguration.DisableAppDomain=true
 
     - name: Install coverage tool
       run: dotnet tool install -g dotnet-coverage

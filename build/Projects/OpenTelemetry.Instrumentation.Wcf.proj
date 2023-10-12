@@ -10,6 +10,8 @@
     <SolutionProjects Include="$(RepoRoot)\examples\wcf\**\*.csproj" />
 
     <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Wcf\OpenTelemetry.Instrumentation.Wcf.csproj" />
+
+    <TestProjects Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.Wcf.Tests\OpenTelemetry.Instrumentation.Wcf.Tests.csproj" />
   </ItemGroup>
 
   <Target Name="Build">
@@ -22,6 +24,10 @@
 
   <Target Name="Pack">
     <MSBuild Projects="@(PackProjects)" Targets="Pack" ContinueOnError="ErrorAndStop" />
+  </Target>
+
+  <Target Name="VSTest">
+    <MSBuild Projects="@(TestProjects)" Targets="VSTest" ContinueOnError="ErrorAndStop" />
   </Target>
 
 </Project>

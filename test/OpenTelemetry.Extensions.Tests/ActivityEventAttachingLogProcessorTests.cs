@@ -89,16 +89,18 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
             });
 
         ILogger logger = loggerFactory.CreateLogger<ActivityEventAttachingLogProcessorTests>();
-        Activity activity = this.activitySource.StartActivity("Test");
+        Activity? activity = this.activitySource.StartActivity("Test");
+        Assert.NotNull(activity);
 
         using IDisposable scope = logger.BeginScope("{NodeId}", 99);
 
         logger.LogInformation(eventId, "Hello OpenTelemetry {UserId}!", 8);
 
-        Activity innerActivity = null;
+        Activity? innerActivity = null;
         if (recordException)
         {
             innerActivity = this.activitySource.StartActivity("InnerTest");
+            Assert.NotNull(innerActivity);
 
             using IDisposable innerScope = logger.BeginScope("{RequestId}", "1234");
 
@@ -116,7 +118,7 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
             Assert.NotNull(logEvent);
             Assert.Equal("log", logEvent.Value.Name);
 
-            Dictionary<string, object> tags = logEvent.Value.Tags?.ToDictionary(i => i.Key, i => i.Value);
+            Dictionary<string, object?>? tags = logEvent.Value.Tags?.ToDictionary(i => i.Key, i => i.Value);
             Assert.NotNull(tags);
 
             Assert.Equal("OpenTelemetry.Extensions.Tests.ActivityEventAttachingLogProcessorTests", tags[nameof(LogRecord.CategoryName)]);
@@ -153,12 +155,13 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
 
             if (recordException)
             {
+                Assert.NotNull(innerActivity);
                 ActivityEvent? exLogEvent = innerActivity.Events.FirstOrDefault();
 
                 Assert.NotNull(exLogEvent);
                 Assert.Equal("log", exLogEvent.Value.Name);
 
-                Dictionary<string, object> exLogTags = exLogEvent.Value.Tags?.ToDictionary(i => i.Key, i => i.Value);
+                Dictionary<string, object?>? exLogTags = exLogEvent.Value.Tags?.ToDictionary(i => i.Key, i => i.Value);
                 Assert.NotNull(exLogTags);
 
                 Assert.Equal(99, exLogTags["scope[0].NodeId"]);
@@ -169,7 +172,7 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
                 Assert.NotNull(exEvent);
                 Assert.Equal("exception", exEvent.Value.Name);
 
-                Dictionary<string, object> exTags = exEvent.Value.Tags?.ToDictionary(i => i.Key, i => i.Value);
+                Dictionary<string, object?>? exTags = exEvent.Value.Tags?.ToDictionary(i => i.Key, i => i.Value);
                 Assert.NotNull(exTags);
 
                 Assert.Equal("System.InvalidOperationException", exTags["exception.type"]);
@@ -218,7 +221,8 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
             });
 
         ILogger logger = loggerFactory.CreateLogger<ActivityEventAttachingLogProcessorTests>();
-        Activity activity = this.activitySource.StartActivity("Test");
+        Activity? activity = this.activitySource.StartActivity("Test");
+        Assert.NotNull(activity);
 
         using IDisposable scope = logger.BeginScope("{NodeId}", 99);
 
@@ -227,6 +231,7 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
         if (recordException)
         {
             var innerActivity = this.activitySource.StartActivity("InnerTest");
+            Assert.NotNull(innerActivity);
 
             using IDisposable innerScope = logger.BeginScope("{RequestId}", "1234");
 

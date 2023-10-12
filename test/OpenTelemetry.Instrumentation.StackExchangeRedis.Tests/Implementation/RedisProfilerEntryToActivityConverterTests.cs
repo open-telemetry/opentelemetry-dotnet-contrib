@@ -47,7 +47,7 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
 
         this.tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddRedisInstrumentation(this.connection)
-            .Build();
+            .Build()!;
     }
 
     public void Dispose()
@@ -67,6 +67,7 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
 
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisInstrumentationOptions());
 
+        Assert.NotNull(result);
         Assert.Equal("SET", result.DisplayName);
     }
 
@@ -80,6 +81,7 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
 
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisInstrumentationOptions());
 
+        Assert.NotNull(result);
         Assert.Equal(now, result.StartTimeUtc);
     }
 
@@ -92,6 +94,7 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
 
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisInstrumentationOptions());
 
+        Assert.NotNull(result);
         Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeDbSystem));
         Assert.Equal("redis", result.GetTagValue(SemanticConventions.AttributeDbSystem));
     }
@@ -106,6 +109,7 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
 
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisInstrumentationOptions());
 
+        Assert.NotNull(result);
         Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeDbStatement));
         Assert.Equal("SET", result.GetTagValue(SemanticConventions.AttributeDbStatement));
     }
@@ -122,6 +126,7 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
 
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisInstrumentationOptions());
 
+        Assert.NotNull(result);
         Assert.NotNull(result.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName));
         Assert.Equal("PreferMaster, FireAndForget, NoRedirect", result.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName));
     }
@@ -140,6 +145,7 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
 
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisInstrumentationOptions());
 
+        Assert.NotNull(result);
         Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetPeerIp));
         Assert.Equal($"{address}.0.0.0", result.GetTagValue(SemanticConventions.AttributeNetPeerIp));
         Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetPeerPort));
@@ -158,6 +164,7 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
 
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisInstrumentationOptions());
 
+        Assert.NotNull(result);
         Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetPeerName));
         Assert.Equal(dnsEndPoint.Host, result.GetTagValue(SemanticConventions.AttributeNetPeerName));
         Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetPeerPort));
@@ -176,6 +183,7 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
 
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisInstrumentationOptions());
 
+        Assert.NotNull(result);
         Assert.NotNull(result.GetTagValue(SemanticConventions.AttributePeerService));
         Assert.Equal(unixEndPoint.ToString(), result.GetTagValue(SemanticConventions.AttributePeerService));
     }

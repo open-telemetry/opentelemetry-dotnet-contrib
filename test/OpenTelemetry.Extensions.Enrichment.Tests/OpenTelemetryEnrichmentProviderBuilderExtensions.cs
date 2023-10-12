@@ -41,6 +41,7 @@ public sealed class OpenTelemetryEnrichmentProviderBuilderExtensions
         using var source = new ActivitySource(SourceName);
         using (var activity = source.StartActivity(SourceName))
         {
+            Assert.NotNull(activity);
             activity.Stop();
 
             Assert.Single(exportedItems);
@@ -70,6 +71,7 @@ public sealed class OpenTelemetryEnrichmentProviderBuilderExtensions
 
         using (var activity = source1.StartActivity(SourceName))
         {
+            Assert.NotNull(activity);
             activity.Stop();
 
             Assert.Single(exportedItems);
@@ -104,6 +106,7 @@ public sealed class OpenTelemetryEnrichmentProviderBuilderExtensions
 
         using (var activity = source1.StartActivity(SourceName))
         {
+            Assert.NotNull(activity);
             activity.Stop();
 
             Assert.Single(exportedItems);
@@ -133,6 +136,7 @@ public sealed class OpenTelemetryEnrichmentProviderBuilderExtensions
 
         using (var activity = source1.StartActivity(SourceName))
         {
+            Assert.NotNull(activity);
             activity.Stop();
 
             Assert.Single(exportedItems);
