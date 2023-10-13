@@ -25,6 +25,7 @@ jobs:
           geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
           onecollector: ['*/OpenTelemetry.Instrumentation.OneCollector*/**', '!**/*.md']
           owin: ['*/OpenTelemetry.Instrumentation.Owin*/**', 'examples/owin/**', '!**/*.md']
+          persistentstorage: ['*/OpenTelemetry.PersistentStorage*/**', '!**/*.md']
           process: ['*/OpenTelemetry.Instrumentation.Process*/**', 'examples/process-instrumentation/**', '!**/*.md']
           redis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**/*.md']
           wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**/*.md']
@@ -32,10 +33,13 @@ jobs:
             'src/**',
             'test/**',
             'examples/**',
+            '!*/OpenTelemetry.Instrumentation.AspNet*/**',
+            '!examples/AspNet/**',
             '!*/OpenTelemetry.Exporter.Geneva*/**',
             '!*/OpenTelemetry.Exporter.OneCollector*/**',
             '!*/OpenTelemetry.Instrumentation.Owin*/**',
             '!examples/owin/**',
+            '!*/OpenTelemetry.PersistentStorage*/**',
             '!*/OpenTelemetry.Instrumentation.Process*/**',
             '!examples/process-instrumentation/**',
             '!*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**',
@@ -102,6 +106,17 @@ jobs:
       code-cov-name: Instrumentation.Owin
       os-list: '[ "windows-latest" ]'
       tfm-list: '[ "net462" ]'
+
+  build-test-persistentstorage:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'persistentstorage')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.PersistentStorage
+      code-cov-name: PersistentStorage
 
   build-test-process:
     needs: detect-changes
@@ -186,7 +201,9 @@ jobs:
             OpenTelemetry.Instrumentation.Owin.Tests.csproj,
             OpenTelemetry.Instrumentation.Process.Tests.csproj,
             OpenTelemetry.Instrumentation.StackExchangeRedis.Tests.csproj,
-            OpenTelemetry.Instrumentation.Wcf.Tests.csproj
+            OpenTelemetry.Instrumentation.Wcf.Tests.csproj,
+            OpenTelemetry.PersistentStorage.Abstractions.csproj,
+            OpenTelemetry.PersistentStorage.FileSystem.csproj
 
         ForEach ($project in $projects)
         {
@@ -220,6 +237,7 @@ jobs:
       build-test-geneva,
       build-test-onecollector,
       build-test-owin,
+      build-test-persistentstorage,
       build-test-process,
       build-test-redis,
       build-test-redis-integration,

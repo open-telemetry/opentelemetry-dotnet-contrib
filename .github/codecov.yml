@@ -73,3 +73,8 @@ flags:
     paths:
       - src/OpenTelemetry.Instrumentation.Wcf
 
+  unittests-PersistentStorage:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.PersistentStorage.Abstractions
+      - src/OpenTelemetry.PersistentStorage.FileSystem

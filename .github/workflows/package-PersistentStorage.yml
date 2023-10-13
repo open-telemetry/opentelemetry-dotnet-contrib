@@ -1,0 +1,24 @@
+name: Pack OpenTelemetry.PersistentStorage
+
+# Note: This releases OpenTelemetry.PersistentStorage.Abstractions & OpenTelemetry.PersistentStorage.FileSystem
+
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+  push:
+    tags:
+      - 'PersistentStorage-*' # trigger when we create a tag with prefix "PersistentStorage-"
+
+jobs:
+  call-build-test-pack:
+    permissions:
+      contents: write
+    uses: ./.github/workflows/Component.Package.yml
+    with:
+      project-name: OpenTelemetry.PersistentStorage
+      release-name: 'OpenTelemetry Persistent Storage Packages'
+    secrets: inherit
