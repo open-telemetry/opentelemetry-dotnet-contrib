@@ -62,7 +62,7 @@ public static class InfluxDBExporterExtensions
             });
             var metricsWriter = CreateMetricsWriter(options.MetricsSchema);
             var exporter = new InfluxDBMetricsExporter(metricsWriter, influxDbClient, writeApi);
-            return new PeriodicExportingMetricReader(exporter)
+            return new PeriodicExportingMetricReader(exporter, options.MetricExportIntervalMilliseconds)
             {
                 TemporalityPreference = MetricReaderTemporalityPreference.Cumulative,
             };
