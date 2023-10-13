@@ -411,22 +411,26 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         partCFieldsCountFromState = dataForScopes.PartCFieldsCountFromState;
 
         int partCFieldsCount = partCFieldsCountFromState + hasEnvProperties; // We at least have these many fields in Part C
-        var partCFieldsCountPatch = eb.AddStruct("PartC", (byte)partCFieldsCount);
 
-        for (int i = 0; i < partCFieldsCountFromState; i++)
+        if (partCFieldsCount > 0)
         {
-            Serialize(eb, kvpArrayForPartCFields[i].Key, kvpArrayForPartCFields[i].Value);
-        }
+            var partCFieldsCountPatch = eb.AddStruct("PartC", (byte)partCFieldsCount);
 
-        if (hasEnvProperties == 1)
-        {
-            // Get all "other" fields and collapse them into single field
-            // named "env_properties".
-            var serializedEnvPropertiesStringAsBytes = JsonSerializer.SerializeKeyValuePairsListAsBytes(envPropertiesList, out var count);
-            eb.AddCountedAnsiString("env_properties", serializedEnvPropertiesStringAsBytes, 0, count);
-        }
+            for (int i = 0; i < partCFieldsCountFromState; i++)
+            {
+                Serialize(eb, kvpArrayForPartCFields[i].Key, kvpArrayForPartCFields[i].Value);
+            }
 
-        eb.SetStructFieldCount(partCFieldsCountPatch, (byte)partCFieldsCount);
+            if (hasEnvProperties == 1)
+            {
+                // Get all "other" fields and collapse them into single field
+                // named "env_properties".
+                var serializedEnvPropertiesStringAsBytes = JsonSerializer.SerializeKeyValuePairsListAsBytes(envPropertiesList, out var count);
+                eb.AddCountedAnsiString("env_properties", serializedEnvPropertiesStringAsBytes, 0, count);
+            }
+
+            eb.SetStructFieldCount(partCFieldsCountPatch, (byte)partCFieldsCount);
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

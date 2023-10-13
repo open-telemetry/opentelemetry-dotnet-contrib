@@ -332,20 +332,24 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
         eb.SetStructFieldCount(partBFieldsCountPatch, partBFieldsCount);
 
         var partCFieldsCount = partCFieldsCountFromTags + hasEnvProperties;
-        eb.AddStruct("PartC", (byte)partCFieldsCount);
 
-        for (int i = 0; i < partCFieldsCountFromTags; i++)
+        if (partCFieldsCount > 0)
         {
-            Serialize(eb, kvpArrayForPartCFields[i].Key, kvpArrayForPartCFields[i].Value);
-        }
+            eb.AddStruct("PartC", (byte)partCFieldsCount);
 
-        if (hasEnvProperties == 1)
-        {
-            // Get all "other" fields and collapse them into single field
-            // named "env_properties".
+            for (int i = 0; i < partCFieldsCountFromTags; i++)
+            {
+                Serialize(eb, kvpArrayForPartCFields[i].Key, kvpArrayForPartCFields[i].Value);
+            }
 
-            var serializedEnvPropertiesStringAsBytes = JsonSerializer.SerializeKeyValuePairsListAsBytes(envPropertiesList, out var count);
-            eb.AddCountedAnsiString("env_properties", serializedEnvPropertiesStringAsBytes, 0, count);
+            if (hasEnvProperties == 1)
+            {
+                // Get all "other" fields and collapse them into single field
+                // named "env_properties".
+
+                var serializedEnvPropertiesStringAsBytes = JsonSerializer.SerializeKeyValuePairsListAsBytes(envPropertiesList, out var count);
+                eb.AddCountedAnsiString("env_properties", serializedEnvPropertiesStringAsBytes, 0, count);
+            }
         }
     }
 }

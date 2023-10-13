@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fix serialization bug in `TldTraceExporter` and `TldLogExporter` when there
+  are no Part C fields.
+  ([#1396](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1396))
+
 ## 1.7.0-alpha.1
 
 Released 2023-Sep-22
