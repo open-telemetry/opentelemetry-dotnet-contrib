@@ -78,7 +78,7 @@ jobs:
 
         $releaseName = '${{ inputs.release-name || inputs.project-name }}'
 
-        if ($firstPackageVersion -contains '-alpha' -or $firstPackageVersion -contains '-beta' -or $firstPackageVersion -contains '-rc')
+        if ($firstPackageVersion -match '-alpha' -or $firstPackageVersion -match '-beta' -or $firstPackageVersion -match '-rc')
         {
           gh release create ${{ github.ref_name }} `
             --title "$releaseName v$firstPackageVersion" `
