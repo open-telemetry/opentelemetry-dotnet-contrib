@@ -1,4 +1,4 @@
-// <copyright file="ITraceEnricher.cs" company="OpenTelemetry Authors">
+// <copyright file="TraceEnricher.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,22 +21,24 @@ namespace OpenTelemetry.Extensions.Enrichment;
 /// <summary>
 /// Interface for implementing enrichers for traces.
 /// </summary>
-public interface ITraceEnricher
+public abstract class TraceEnricher
 {
+    protected TraceEnricher()
+    {
+    }
+
     /// <summary>
     /// Enrich trace with desired tags.
     /// </summary>
-    /// <param name="activity"><see cref="Activity"/> object to be used to add the required tags to enrich the traces.</param>
-    void Enrich(in Activity activity);
+    /// <param name="enrichmentBag"><see cref="TraceEnrichmentBag"/> object to be used to add the required tags to enrich the traces.</param>
+    public abstract void Enrich(in TraceEnrichmentBag enrichmentBag);
 
-#if NET6_0_OR_GREATER
     /// <summary>
-    /// Enrich trace with desired tags at the Start event of the <paramref name="activity"/>.
+    /// Enrich trace with desired tags at the Start event of the <see cref="Activity"/>.
     /// </summary>
-    /// <param name="activity"><see cref="Activity"/> object to be used to add the required tags to enrich the traces.</param>
-    void EnrichOnActivityStart(in Activity activity)
+    /// <param name="enrichmentBag"><see cref="TraceEnrichmentBag"/> object to be used to add the required tags to enrich the traces.</param>
+    public virtual void EnrichOnActivityStart(in TraceEnrichmentBag enrichmentBag)
     {
         // default implementation: noop
     }
-#endif
 }

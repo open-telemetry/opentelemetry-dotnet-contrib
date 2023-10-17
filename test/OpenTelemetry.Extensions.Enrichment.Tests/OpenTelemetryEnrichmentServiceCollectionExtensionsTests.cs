@@ -47,7 +47,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
 
         await host.StartAsync().ConfigureAwait(false);
 
-        var enrichers = host.Services.GetServices<ITraceEnricher>().ToArray();
+        var enrichers = host.Services.GetServices<TraceEnricher>().ToArray();
         Assert.NotNull(enrichers);
         Assert.Equal(2, enrichers.Length);
 
@@ -95,7 +95,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
 
         await host.StartAsync().ConfigureAwait(false);
 
-        var enrichers = host.Services.GetServices<ITraceEnricher>().ToArray();
+        var enrichers = host.Services.GetServices<TraceEnricher>().ToArray();
         Assert.NotNull(enrichers);
         Assert.Equal(2, enrichers.Length);
 
@@ -135,8 +135,8 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
                     .AddSource(SourceName)
                     .AddInMemoryExporter(exportedItems))
                 .Services
-                .AddTraceEnricher(activity => activity.AddTag(testKey1, testValue1))
-                .AddTraceEnricher(activity => activity.AddTag(testKey2, testValue2)))
+                .AddTraceEnricher(enrichmentBag => enrichmentBag.Add(testKey1, testValue1))
+                .AddTraceEnricher(enrichmentBag => enrichmentBag.Add(testKey2, testValue2)))
             .Build();
 
         await host.StartAsync().ConfigureAwait(false);
@@ -177,7 +177,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
 
         await host.StartAsync().ConfigureAwait(false);
 
-        var enrichers = host.Services.GetServices<ITraceEnricher>().ToArray();
+        var enrichers = host.Services.GetServices<TraceEnricher>().ToArray();
         Assert.NotNull(enrichers);
         Assert.Equal(2, enrichers.Length);
 

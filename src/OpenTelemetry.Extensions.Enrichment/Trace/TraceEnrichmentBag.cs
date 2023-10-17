@@ -1,4 +1,4 @@
-// <copyright file="EnrichmentActions.cs" company="OpenTelemetry Authors">
+// <copyright file="TraceEnrichmentBag.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,29 +14,23 @@
 // limitations under the License.
 // </copyright>
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 
 namespace OpenTelemetry.Extensions.Enrichment;
 
-#pragma warning disable CA1812 // Class is instantiated through dependency injection
-internal sealed class EnrichmentActions : ITraceEnricher
-#pragma warning restore CA1812 // Class is instantiated through dependency injection
+#pragma warning disable CA1815 // Override equals and operator equals on value types
+public readonly struct TraceEnrichmentBag
+#pragma warning restore CA1815 // Override equals and operator equals on value types
 {
-    private readonly Action<Activity>[] actions;
+    private readonly Activity activity;
 
-    public EnrichmentActions(IEnumerable<Action<Activity>> actions)
+    public TraceEnrichmentBag(Activity activity)
     {
-        this.actions = actions.ToArray();
+        this.activity = activity;
     }
 
-    public void Enrich(in Activity activity)
+    public void Add(string key, object? value)
     {
-        for (int i = 0; i < this.actions.Length; i++)
-        {
-            this.actions[i].Invoke(activity);
-        }
+        this.activity.AddTag(key, value);
     }
 }

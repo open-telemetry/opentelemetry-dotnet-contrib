@@ -97,8 +97,8 @@ public sealed class OpenTelemetryEnrichmentProviderBuilderExtensions
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddSource(SourceName)
-            .AddTraceEnricher(activity => activity.AddTag(testKey1, testValue1))
-            .AddTraceEnricher(activity => activity.AddTag(testKey2, testValue2))
+            .AddTraceEnricher(enrichmentBag => enrichmentBag.Add(testKey1, testValue1))
+            .AddTraceEnricher(enrichmentBag => enrichmentBag.Add(testKey2, testValue2))
             .AddInMemoryExporter(exportedItems)
             .Build();
 

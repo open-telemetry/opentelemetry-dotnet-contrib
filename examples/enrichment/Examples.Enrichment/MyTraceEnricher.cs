@@ -14,12 +14,11 @@
 // limitations under the License.
 // </copyright>
 
-using System.Diagnostics;
 using OpenTelemetry.Extensions.Enrichment;
 
 namespace Examples.Enrichment;
 
-internal sealed class MyTraceEnricher : ITraceEnricher
+internal sealed class MyTraceEnricher : TraceEnricher
 {
     private readonly IMyService myService;
 
@@ -28,10 +27,10 @@ internal sealed class MyTraceEnricher : ITraceEnricher
         this.myService = myService;
     }
 
-    public void Enrich(in Activity actvity)
+    public override void Enrich(in TraceEnrichmentBag enrichmentBag)
     {
         var (service, status) = this.myService.MyDailyStatus();
 
-        actvity.AddTag(service, status);
+        enrichmentBag.Add(service, status);
     }
 }

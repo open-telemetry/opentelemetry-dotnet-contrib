@@ -14,18 +14,16 @@
 // limitations under the License.
 // </copyright>
 
-using System.Diagnostics;
-
 namespace OpenTelemetry.Extensions.Enrichment.Tests;
 
-internal class MyTraceEnricher2 : ITraceEnricher
+internal class MyTraceEnricher2 : TraceEnricher
 {
     public const string Key = nameof(MyTraceEnricher2);
 
     public int TimesCalled { get; private set; }
 
-    public void Enrich(in Activity activity)
+    public override void Enrich(in TraceEnrichmentBag enrichmentBag)
     {
-        activity.AddTag(Key, ++this.TimesCalled);
+        enrichmentBag.Add(Key, ++this.TimesCalled);
     }
 }
