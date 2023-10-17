@@ -38,8 +38,8 @@ dotnet add package OpenTelemetry.Extensions.Enrichment --prerelease
 
 ### Step 2: Create enricher class
 
-Create your custom enricher class that inherits from the `TraceEnricher` interface
-and implement the `public void Enrich(in TraceEnrichmentBag bag)` method.
+Create your custom enricher class that inherits from the `TraceEnricher` class
+and override the `public abstract void Enrich(in TraceEnrichmentBag bag)` method.
 Optionally, inject other services your enricher class depends on:
 
 ```csharp
@@ -66,7 +66,7 @@ An example of IMyService implementation is available
 
 For every `Activity`, the `Enrich()`
 method is guaranteed to be called exactly once. Semantically,
-for the example above it means that a new [tag object](https://learn.microsoft.com/dotnet/api/system.diagnostics.activity.tagobjects?view=net-6.0)
+for the example above it means that a new [tag object](https://learn.microsoft.com/dotnet/api/system.diagnostics.activity.tagobjects?view=net-7.0)
 with the service key and the status  value will be added to every `Activity`
 in your application.
 
