@@ -83,7 +83,7 @@ jobs:
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
       project-name: OpenTelemetry.Extensions
-      code-cov-name: Exporter.Extensions
+      code-cov-name: Extensions
 
   build-test-geneva:
     needs: detect-changes
