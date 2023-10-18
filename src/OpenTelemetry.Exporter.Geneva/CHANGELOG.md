@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Update Part B mapping to add Http related tags based on the new Semantic
+  Conventions.
+  ([#1402](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1402))
+
 * Fix serialization bug in `TldTraceExporter` and `TldLogExporter` when there
   are no Part C fields.
   ([#1396](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1396))
