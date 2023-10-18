@@ -22,6 +22,7 @@ jobs:
           shared: ['src/Shared/**']
           code: ['**.cs', '.editorconfig']
           aspnet: ['*/OpenTelemetry.Instrumentation.AspNet*/**', 'examples/AspNet/**', '!**/*.md']
+          extensions: ['*/OpenTelemetry.Extensions*/**', '!**/*.md']
           geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
           onecollector: ['*/OpenTelemetry.Instrumentation.OneCollector*/**', '!**/*.md']
           owin: ['*/OpenTelemetry.Instrumentation.Owin*/**', 'examples/owin/**', '!**/*.md']
@@ -35,6 +36,7 @@ jobs:
             'examples/**',
             '!*/OpenTelemetry.Instrumentation.AspNet*/**',
             '!examples/AspNet/**',
+            '!*/OpenTelemetry.Extensions*/**',
             '!*/OpenTelemetry.Exporter.Geneva*/**',
             '!*/OpenTelemetry.Exporter.OneCollector*/**',
             '!*/OpenTelemetry.Instrumentation.Owin*/**',
@@ -71,6 +73,17 @@ jobs:
       code-cov-name: Instrumentation.AspNet
       os-list: '[ "windows-latest" ]'
       tfm-list: '[ "net462" ]'
+
+  build-test-extensions:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'extensions')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Extensions
+      code-cov-name: Exporter.Extensions
 
   build-test-geneva:
     needs: detect-changes
@@ -196,6 +209,7 @@ jobs:
           -Exclude `
             OpenTelemetry.Exporter.Geneva.Tests.csproj,
             OpenTelemetry.Exporter.OneCollector.Tests.csproj,
+            OpenTelemetry.Extensions.Tests.csproj,
             OpenTelemetry.Instrumentation.AspNet.Tests.csproj,
             OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests.csproj,
             OpenTelemetry.Instrumentation.Owin.Tests.csproj,
@@ -234,6 +248,7 @@ jobs:
       lint-md,
       lint-dotnet-format,
       build-test-aspnet,
+      build-test-extensions,
       build-test-geneva,
       build-test-onecollector,
       build-test-owin,

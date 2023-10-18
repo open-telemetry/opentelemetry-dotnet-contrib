@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
-    <TargetFrameworks Condition="'$(Configuration)' == 'Debug'">net6.0;$(TargetFrameworks)</TargetFrameworks> <!-- Added just to get proper nullable analysis in IDE -->
+    <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
     <Description>OpenTelemetry .NET SDK preview features and extensions</Description>
     <MinVerTagPrefix>Extensions-</MinVerTagPrefix>

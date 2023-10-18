@@ -4,6 +4,7 @@
     <Description>Unit test project for OpenTelemetry .NET SDK preview features and extensions</Description>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net48;net472;net471;net47;net462</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
