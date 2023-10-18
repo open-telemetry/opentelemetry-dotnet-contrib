@@ -30,14 +30,14 @@ public abstract class TraceEnricher
     /// <summary>
     /// Enrich trace with desired tags.
     /// </summary>
-    /// <param name="enrichmentBag"><see cref="TraceEnrichmentBag"/> object to be used to add the required tags to enrich the traces.</param>
-    public abstract void Enrich(in TraceEnrichmentBag enrichmentBag);
+    /// <param name="bag"><see cref="TraceEnrichmentBag"/> object to be used to add the required tags to enrich the traces.</param>
+    public abstract void Enrich(in TraceEnrichmentBag bag);
 
     /// <summary>
     /// Enrich trace with desired tags at the Start event of the <see cref="Activity"/>.
     /// </summary>
-    /// <param name="enrichmentBag"><see cref="TraceEnrichmentBag"/> object to be used to add the required tags to enrich the traces.</param>
-    public virtual void EnrichOnActivityStart(in TraceEnrichmentBag enrichmentBag)
+    /// <param name="bag"><see cref="TraceEnrichmentBag"/> object to be used to add the required tags to enrich the traces.</param>
+    public virtual void EnrichOnActivityStart(in TraceEnrichmentBag bag)
     {
         // default implementation: noop
     }

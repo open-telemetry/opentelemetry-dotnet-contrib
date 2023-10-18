@@ -27,10 +27,10 @@ internal sealed class MyTraceEnricher : TraceEnricher
         this.myService = myService;
     }
 
-    public override void Enrich(in TraceEnrichmentBag enrichmentBag)
+    public override void Enrich(in TraceEnrichmentBag bag)
     {
         var (service, status) = this.myService.MyDailyStatus();
 
-        enrichmentBag.Add(service, status);
+        bag.Add(service, status);
     }
 }

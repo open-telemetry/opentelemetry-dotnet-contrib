@@ -135,8 +135,8 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
                     .AddSource(SourceName)
                     .AddInMemoryExporter(exportedItems))
                 .Services
-                .AddTraceEnricher(enrichmentBag => enrichmentBag.Add(testKey1, testValue1))
-                .AddTraceEnricher(enrichmentBag => enrichmentBag.Add(testKey2, testValue2)))
+                .AddTraceEnricher(bag => bag.Add(testKey1, testValue1))
+                .AddTraceEnricher(bag => bag.Add(testKey2, testValue2)))
             .Build();
 
         await host.StartAsync().ConfigureAwait(false);
