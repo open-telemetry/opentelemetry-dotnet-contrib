@@ -28,13 +28,13 @@ public abstract class TraceEnricher
     }
 
     /// <summary>
-    /// Enrich trace with desired tags.
+    /// Enrich trace with additional tags when an <see cref="Activity"/> is stopped.
     /// </summary>
     /// <param name="bag"><see cref="TraceEnrichmentBag"/> object to be used to add the required tags to enrich the traces.</param>
     public abstract void Enrich(in TraceEnrichmentBag bag);
 
     /// <summary>
-    /// Enrich trace with desired tags at the Start event of the <see cref="Activity"/>.
+    /// Enrich trace with additional tags when an <see cref="Activity"/> is started.
     /// </summary>
     /// <param name="bag"><see cref="TraceEnrichmentBag"/> object to be used to add the required tags to enrich the traces.</param>
     public virtual void EnrichOnActivityStart(in TraceEnrichmentBag bag)
