@@ -410,8 +410,11 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         ["db.statement"] = "dbStatement",
 
         ["http.method"] = "httpMethod",
+        ["http.request.method"] = "httpMethod",
         ["http.url"] = "httpUrl",
+        ["url.full"] = "httpUrl",
         ["http.status_code"] = "httpStatusCode",
+        ["http.response.status_code"] = "httpStatusCode",
 
         ["messaging.system"] = "messagingSystem",
         ["messaging.destination"] = "messagingDestination",
