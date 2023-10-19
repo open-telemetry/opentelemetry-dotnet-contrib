@@ -24,7 +24,7 @@ using OpenTelemetry.Trace;
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
-/// Extension methods to register telemery enrichers.
+/// Extension methods to register telemetry enrichers.
 /// </summary>
 public static class TraceEnrichmentServiceCollectionExtensions
 {
