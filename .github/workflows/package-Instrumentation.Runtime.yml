@@ -1,4 +1,3 @@
-
 name: Pack OpenTelemetry.Instrumentation.Runtime
 
 on:
