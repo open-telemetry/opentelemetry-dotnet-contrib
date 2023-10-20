@@ -4,7 +4,7 @@ on:
   workflow_call:
 
 jobs:
-  aot-test:
+  run-verify-aot-compat:
 
     strategy:
       fail-fast: false # ensures the entire test matrix is run, even if one permutation fails

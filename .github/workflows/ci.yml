@@ -268,7 +268,7 @@ jobs:
         flags: unittests-Solution
         name: Code Coverage for solution on [${{ matrix.os }}.${{ matrix.version }}]
 
-  verify-aotcompat:
+  verify-aot-compat:
     needs: detect-changes
     if: |
       contains(needs.detect-changes.outputs.changes, 'eventcounters')
@@ -297,7 +297,7 @@ jobs:
       build-test-runtime,
       build-test-wcf,
       build-test-solution,
-      verify-aotcompat
+      verify-aot-compat
       ]
     if: always() && !cancelled() && !contains(needs.*.result, 'failure')
     runs-on: windows-latest
