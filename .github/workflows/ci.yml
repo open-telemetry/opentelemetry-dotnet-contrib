@@ -92,6 +92,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.EventCounters
       code-cov-name: Instrumentation.EventCounters
+      tfm-list: '[ "net6.0", "net7.0" ]'
 
   build-test-extensions:
     needs: detect-changes
@@ -225,13 +226,7 @@ jobs:
     - name: Setup dotnet
       uses: actions/setup-dotnet@v3
 
-    - name: Restore
-      run: dotnet restore
-
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
-
-    - name: Test ${{ matrix.version }}
+    - name: Restore, Build, & Test ${{ matrix.version }}
       shell: pwsh
       run: |
         $projects = Get-ChildItem `
@@ -253,7 +248,7 @@ jobs:
 
         ForEach ($project in $projects)
         {
-          dotnet test $project.FullName --collect:"Code Coverage" --results-directory:"TestResults" --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed" -- RunConfiguration.DisableAppDomain=true
+          dotnet test $project.FullName --collect:"Code Coverage" --results-directory:"TestResults" --framework ${{ matrix.version }} --configuration Release --logger:"console;verbosity=detailed" -- RunConfiguration.DisableAppDomain=true
         }
 
     - name: Install coverage tool
