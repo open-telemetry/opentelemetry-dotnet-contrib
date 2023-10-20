@@ -47,6 +47,11 @@ flags:
     paths:
       - src/OpenTelemetry.Exporter.OneCollector
 
+  unittests-Extensions:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Extensions
+
   unittests-Instrumentation.AspNet:
     carryforward: true
     paths:
@@ -73,3 +78,8 @@ flags:
     paths:
       - src/OpenTelemetry.Instrumentation.Wcf
 
+  unittests-PersistentStorage:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.PersistentStorage.Abstractions
+      - src/OpenTelemetry.PersistentStorage.FileSystem

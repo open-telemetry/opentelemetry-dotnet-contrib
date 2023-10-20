@@ -2,8 +2,14 @@
 
 ## Unreleased
 
+## 1.0.0-alpha.3
+
+Released 2023-Oct-13
+
 * Updates to 1.6.0 of OpenTelemetry SDK.
   ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
+* Support for a configurable export interval in OpenTelemetry.Exporter.InfluxDB.
+  ([#1394](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1394))
 
 ## 1.0.0-alpha.2
 

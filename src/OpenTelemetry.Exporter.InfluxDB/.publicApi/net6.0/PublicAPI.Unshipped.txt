@@ -7,6 +7,8 @@ OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.Endpoint.set -> v
 OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.FlushInterval.get -> int
 OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.FlushInterval.set -> void
 OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.InfluxDBMetricsExporterOptions() -> void
+OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.MetricExportIntervalMilliseconds.get -> int
+OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.MetricExportIntervalMilliseconds.set -> void
 OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.MetricsSchema.get -> OpenTelemetry.Exporter.InfluxDB.MetricsSchema
 OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.MetricsSchema.set -> void
 OpenTelemetry.Exporter.InfluxDB.InfluxDBMetricsExporterOptions.Org.get -> string?
