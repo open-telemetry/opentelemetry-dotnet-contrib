@@ -58,6 +58,11 @@ flags:
       - src/OpenTelemetry.Instrumentation.AspNet
       - src/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule
 
+  unittests-Instrumentation.EventCounters:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.EventCounters
+
   unittests-Instrumentation.Owin:
     carryforward: true
     paths:
@@ -67,6 +72,11 @@ flags:
     carryforward: true
     paths:
       - src/OpenTelemetry.Instrumentation.Process
+
+  unittests-Instrumentation.Runtime:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.Runtime
 
   unittests-Instrumentation.StackExchangeRedis:
     carryforward: true
