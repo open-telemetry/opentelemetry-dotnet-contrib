@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Added NET6 target framework to support Trimming.
+  ([#1405](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1405))
+
 ## 1.0.0-beta.3
 
 Released 2023-Sep-19

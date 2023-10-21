@@ -28,7 +28,7 @@ namespace OpenTelemetry.ResourceDetectors.Azure;
 /// <see href="https://devblogs.microsoft.com/dotnet/try-the-new-system-text-json-source-generator/" />.
 /// </summary>
 [JsonSerializable(typeof(AzureVmMetadataResponse))]
-internal partial class SourceGenerationContext : JsonSerializerContext
+internal sealed partial class SourceGenerationContext : JsonSerializerContext
 {
 }
 #endif
