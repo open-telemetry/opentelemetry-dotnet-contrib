@@ -37,10 +37,11 @@ internal sealed class AspNetMetrics : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="AspNetMetrics"/> class.
     /// </summary>
-    public AspNetMetrics()
+    /// <param name="options">The metrics configuration options.</param>
+    public AspNetMetrics(AspNetMetricsInstrumentationOptions options)
     {
         this.meter = new Meter(InstrumentationName, InstrumentationVersion);
-        this.httpInMetricsListener = new HttpInMetricsListener(this.meter);
+        this.httpInMetricsListener = new HttpInMetricsListener(this.meter, options);
     }
 
     /// <inheritdoc/>

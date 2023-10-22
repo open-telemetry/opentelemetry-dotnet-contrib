@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+* Added enrich and filter functionality to metric instrumentation [#TODO].
+
+  * New overload of `AddAspnetInstrumentation` now accepts a configuration delegate.
+  * The `Filter` delegate is used to decide if a metric should be collected.
+  * The `Enrich` can be used to add additional metric tags.
+
+* Additional metric tags will now be emitted [#TODO].
+
 ## 1.6.0-beta.1
 
 Released 2023-Oct-11

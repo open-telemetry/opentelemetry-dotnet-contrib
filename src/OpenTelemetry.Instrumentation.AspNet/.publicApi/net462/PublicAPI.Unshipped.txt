@@ -6,8 +6,17 @@ OpenTelemetry.Instrumentation.AspNet.AspNetInstrumentationOptions.Filter.get -> 
 OpenTelemetry.Instrumentation.AspNet.AspNetInstrumentationOptions.Filter.set -> void
 OpenTelemetry.Instrumentation.AspNet.AspNetInstrumentationOptions.RecordException.get -> bool
 OpenTelemetry.Instrumentation.AspNet.AspNetInstrumentationOptions.RecordException.set -> void
+OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions
+OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.AspNetMetricsInstrumentationOptions() -> void
+OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.Enrich.get -> OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.EnrichFunc?
+OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.Enrich.set -> void
+OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.EnrichFunc
+OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.Filter.get -> OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.FilterFunc?
+OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.Filter.set -> void
+OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.FilterFunc
 OpenTelemetry.Metrics.MeterProviderBuilderExtensions
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
 static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddAspNetInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder! builder) -> OpenTelemetry.Metrics.MeterProviderBuilder!
+static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddAspNetInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder! builder, System.Action<OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions!>? configure) -> OpenTelemetry.Metrics.MeterProviderBuilder!
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddAspNetInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder!
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddAspNetInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder, System.Action<OpenTelemetry.Instrumentation.AspNet.AspNetInstrumentationOptions!>? configure) -> OpenTelemetry.Trace.TracerProviderBuilder!
