@@ -93,3 +93,8 @@ flags:
     paths:
       - src/OpenTelemetry.PersistentStorage.Abstractions
       - src/OpenTelemetry.PersistentStorage.FileSystem
+
+  unittests-ResourceDetectors.Azure:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.ResourceDetectors.Azure
