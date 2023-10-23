@@ -1,16 +1,11 @@
-name: Publish AOTCompatibility testApp
+name: Publish & Verify AOT Compatibility
 
 on:
-  pull_request:
-    branches: [ 'main*' ]
-    paths:
-    - 'src/OpenTelemetry.Instrumentation.Runtime/**'
-    - '!src/OpenTelemetry.Instrumentation.Runtime/README.md'
-    - 'src/OpenTelemetry.Instrumentation.EventCounters/**'
-    - '!src/OpenTelemetry.Instrumentation.EventCounters/README.md'
+  workflow_call:
 
 jobs:
-  aot-test:
+  run-verify-aot-compat:
+
     strategy:
       fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
       matrix:
