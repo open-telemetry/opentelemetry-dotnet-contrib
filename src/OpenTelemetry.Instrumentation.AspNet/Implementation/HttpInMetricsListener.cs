@@ -44,7 +44,7 @@ internal sealed class HttpInMetricsListener : IDisposable
 
     private static string GetHttpProtocolVersion(HttpRequest request)
     {
-        var protocol = request.ServerVariables["SERVER_PROTOCOL_POTAT"];
+        var protocol = request.ServerVariables["SERVER_PROTOCOL"];
         return protocol switch
         {
             "HTTP/1.1" => "1.1",
