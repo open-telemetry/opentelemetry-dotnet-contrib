@@ -4,7 +4,7 @@
 
 ## 1.0.0-beta.8
 
-Released 2023-Oct-23
+Released 2023-Oct-24
 
 * Added `Filter` public API on `EntityFrameworkInstrumentationOptions` to
   enable filtering of instrumentation.
