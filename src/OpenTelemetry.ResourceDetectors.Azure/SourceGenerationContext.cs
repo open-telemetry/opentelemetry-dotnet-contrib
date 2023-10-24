@@ -14,11 +14,11 @@
 // limitations under the License.
 // </copyright>
 
+#if NET6_0_OR_GREATER
 using System.Text.Json.Serialization;
 
 namespace OpenTelemetry.ResourceDetectors.Azure;
 
-#if NET6_0_OR_GREATER
 /// <summary>
 /// "Source Generation" is feature added to System.Text.Json in .NET 6.0.
 /// This is a performance optimization that avoids runtime reflection when performing serialization.

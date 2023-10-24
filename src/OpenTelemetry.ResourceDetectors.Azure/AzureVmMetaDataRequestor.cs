@@ -36,7 +36,7 @@ internal static class AzureVmMetaDataRequestor
         if (res != null)
         {
 #if NET6_0_OR_GREATER
-            return JsonSerializer.Deserialize<AzureVmMetadataResponse>(res, SourceGenerationContext.Default.AzureVmMetadataResponse);
+            return JsonSerializer.Deserialize(res, SourceGenerationContext.Default.AzureVmMetadataResponse);
 #else
             return JsonSerializer.Deserialize<AzureVmMetadataResponse>(res);
 #endif
