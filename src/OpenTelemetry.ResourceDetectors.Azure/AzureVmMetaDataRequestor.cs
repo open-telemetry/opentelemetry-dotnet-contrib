@@ -31,7 +31,7 @@ internal static class AzureVmMetaDataRequestor
         using var httpClient = new HttpClient() { Timeout = TimeSpan.FromSeconds(2) };
 
         httpClient.DefaultRequestHeaders.Add("Metadata", "True");
-        var res = httpClient.GetStringAsync(AzureVmMetadataEndpointURL).ConfigureAwait(false).GetAwaiter().GetResult();
+        var res = httpClient.GetStringAsync(new Uri(AzureVmMetadataEndpointURL)).ConfigureAwait(false).GetAwaiter().GetResult();
 
         if (res != null)
         {
