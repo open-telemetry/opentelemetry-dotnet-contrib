@@ -4,7 +4,7 @@
 
 ## 1.0.0-beta.5
 
-Released 2023-Oct-23
+Released 2023-Oct-24
 
 * Fix issue of multiple instances of OpenTelemetry-Instrumentation EventSource
   being created
