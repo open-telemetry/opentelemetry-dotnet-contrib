@@ -77,10 +77,10 @@ public sealed class AppServiceResourceDetector : IResourceDetector
 
     private static string? GetAzureResourceURI(string websiteSiteName)
     {
-        string websiteResourceGroup = Environment.GetEnvironmentVariable(ResourceAttributeConstants.AppServiceResourceGroupEnvVar);
+        string? websiteResourceGroup = Environment.GetEnvironmentVariable(ResourceAttributeConstants.AppServiceResourceGroupEnvVar);
         string websiteOwnerName = Environment.GetEnvironmentVariable(ResourceAttributeConstants.AppServiceOwnerNameEnvVar) ?? string.Empty;
 
-        int idx = websiteOwnerName.IndexOf('+');
+        int idx = websiteOwnerName.IndexOf("+", StringComparison.Ordinal);
         string subscriptionId = idx > 0 ? websiteOwnerName.Substring(0, idx) : websiteOwnerName;
 
         if (string.IsNullOrEmpty(websiteResourceGroup) || string.IsNullOrEmpty(subscriptionId))
