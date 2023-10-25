@@ -112,7 +112,7 @@ services.AddOpenTelemetry()
 that deprecates `NEST/Elasticsearch.Net`,
 brings native support for OpenTelemetry. To instrument it you need
 to configure the OpenTelemetry SDK to listen to the `ActivitySource`
-used by the library by calling `AddSource("Elastic.Clients.Elasticsearch.ElasticsearchClient")`
+used by the library by calling `AddSource(Elastic.Transport.Diagnostics.OpenTelemetry.ElasticTransportActivitySourceName)` or `AddSource("Elastic.Transport")`
 on the `TracerProviderBuilder`.
 
 ## References
