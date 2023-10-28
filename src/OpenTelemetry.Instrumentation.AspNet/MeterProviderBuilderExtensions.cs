@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using OpenTelemetry.Instrumentation.AspNet;
 using OpenTelemetry.Internal;
 
@@ -24,17 +25,30 @@ namespace OpenTelemetry.Metrics;
 /// </summary>
 public static class MeterProviderBuilderExtensions
 {
+
     /// <summary>
     /// Enables the incoming requests automatic data collection for ASP.NET.
     /// </summary>
     /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
+    public static MeterProviderBuilder AddAspNetInstrumentation(this MeterProviderBuilder builder) =>
+    AddAspNetInstrumentation(builder, configure: null);
+
+    /// <summary>
+    /// Enables the incoming requests automatic data collection for ASP.NET.
+    /// </summary>
+    /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
+    /// <param name="configure">ASP.NET Request configuration options.</param>
+    /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
     public static MeterProviderBuilder AddAspNetInstrumentation(
-        this MeterProviderBuilder builder)
+        this MeterProviderBuilder builder, Action<AspNetMetricsInstrumentationOptions> configure)
     {
         Guard.ThrowIfNull(builder);
 
+        var aspnetMetricsOptions = new AspNetMetricsInstrumentationOptions();
+        configure?.Invoke(aspnetMetricsOptions);
+
         builder.AddMeter(AspNetMetrics.InstrumentationName);
-        return builder.AddInstrumentation(() => new AspNetMetrics());
+        return builder.AddInstrumentation(() => new AspNetMetrics(aspnetMetricsOptions));
     }
 }

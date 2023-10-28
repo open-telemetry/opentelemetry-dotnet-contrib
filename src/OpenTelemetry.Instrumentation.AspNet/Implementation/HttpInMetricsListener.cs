@@ -25,9 +25,12 @@ namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 internal sealed class HttpInMetricsListener : IDisposable
 {
     private readonly Histogram<double> httpServerDuration;
+    private readonly AspNetMetricsInstrumentationOptions options;
+    private readonly string onStopActivityEventName = "OnStopActivity";
 
-    public HttpInMetricsListener(Meter meter)
+    public HttpInMetricsListener(Meter meter, AspNetMetricsInstrumentationOptions options)
     {
+        this.options = options;
         this.httpServerDuration = meter.CreateHistogram<double>("http.server.duration", "ms", "Measures the duration of inbound HTTP requests.");
         TelemetryHttpModule.Options.OnRequestStoppedCallback += this.OnStopActivity;
     }
@@ -39,6 +42,20 @@ internal sealed class HttpInMetricsListener : IDisposable
 
     private void OnStopActivity(Activity activity, HttpContext context)
     {
+        try
+        {
+            if (this.options.Filter?.Invoke(context) == false && Activity.Current != null)
+            {
+                AspNetInstrumentationEventSource.Log.RequestIsFilteredOut(Activity.Current.OperationName);
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            AspNetInstrumentationEventSource.Log.RequestFilterException(this.onStopActivityEventName, ex);
+            return;
+        }
+
         // TODO: This is just a minimal set of attributes. See the spec for additional attributes:
         // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/http-metrics.md#http-server
         var tags = new TagList
@@ -47,6 +64,18 @@ internal sealed class HttpInMetricsListener : IDisposable
             { SemanticConventions.AttributeHttpScheme, context.Request.Url.Scheme },
             { SemanticConventions.AttributeHttpStatusCode, context.Response.StatusCode },
         };
+
+        if (this.options.Enrich != null)
+        {
+            try
+            {
+                this.options.Enrich(this.onStopActivityEventName, context, ref tags);
+            }
+            catch (Exception ex)
+            {
+                AspNetInstrumentationEventSource.Log.EnrichmentException(this.onStopActivityEventName, ex);
+            }
+        }
 
         this.httpServerDuration.Record(activity.Duration.TotalMilliseconds, tags);
     }

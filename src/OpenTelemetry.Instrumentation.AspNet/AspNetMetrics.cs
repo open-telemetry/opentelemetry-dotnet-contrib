@@ -18,6 +18,7 @@ using System;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using OpenTelemetry.Instrumentation.AspNet.Implementation;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.AspNet;
 
@@ -37,10 +38,11 @@ internal sealed class AspNetMetrics : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="AspNetMetrics"/> class.
     /// </summary>
-    public AspNetMetrics()
+    public AspNetMetrics(AspNetMetricsInstrumentationOptions options)
     {
+        Guard.ThrowIfNull(options);
         this.meter = new Meter(InstrumentationName, InstrumentationVersion);
-        this.httpInMetricsListener = new HttpInMetricsListener(this.meter);
+        this.httpInMetricsListener = new HttpInMetricsListener(this.meter, options);
     }
 
     /// <inheritdoc/>
