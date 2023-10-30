@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-beta.8
+
+Released 2023-Oct-24
+
 * Added `Filter` public API on `EntityFrameworkInstrumentationOptions` to
   enable filtering of instrumentation.
   ([#1203](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1203))
