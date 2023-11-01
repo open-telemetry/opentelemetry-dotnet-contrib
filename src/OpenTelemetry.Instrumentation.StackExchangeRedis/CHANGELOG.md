@@ -4,7 +4,7 @@
 
 ## 1.0.0-rc9.12
 
-Released 2023-Oct-31
+Released 2023-Nov-01
 
 * Fix an issue in the trimming annotations to refer to the correct Type
   ([#1420](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1420))
