@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!--
+      When adding projects here please also update the verify-aot-compat job in
+      .github\workflows\ci.yml so that it runs for the project being added.
+    -->
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.Runtime" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.EventCounters" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.StackExchangeRedis" />
