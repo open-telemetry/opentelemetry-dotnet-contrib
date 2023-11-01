@@ -29,12 +29,10 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation;
 
 internal static class RedisProfilerEntryToActivityConverter
 {
-    private const string ScriptEvalMessageTypeName = "StackExchange.Redis.RedisDatabase+ScriptEvalMessage";
-
     private static readonly Lazy<Func<object, (string?, string?)>> MessageDataGetter = new(() =>
     {
         Type profiledCommandType = Type.GetType("StackExchange.Redis.Profiling.ProfiledCommand, StackExchange.Redis", throwOnError: true)!;
-        Type scriptMessageType = Type.GetType(ScriptEvalMessageTypeName + ", StackExchange.Redis", throwOnError: true)!;
+        Type scriptMessageType = Type.GetType("StackExchange.Redis.RedisDatabase+ScriptEvalMessage, StackExchange.Redis", throwOnError: true)!;
 
         var messageDelegate = CreateFieldGetter<object>(profiledCommandType, "Message", BindingFlags.NonPublic | BindingFlags.Instance);
         var scriptDelegate = CreateFieldGetter<string>(scriptMessageType, "script", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -72,7 +70,7 @@ internal static class RedisProfilerEntryToActivityConverter
             return (null, script);
 
 #if NET6_0_OR_GREATER
-            [DynamicDependency("CommandAndKey", ScriptEvalMessageTypeName, "StackExchange.Redis")]
+            [DynamicDependency("CommandAndKey", "StackExchange.Redis.Message", "StackExchange.Redis")]
             [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The CommandAndKey property is preserved by the above DynamicDependency")]
 #endif
             static bool GetCommandAndKey(
