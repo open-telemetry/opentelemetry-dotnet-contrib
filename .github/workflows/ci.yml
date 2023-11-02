@@ -23,6 +23,7 @@ jobs:
           code: ['**.cs', '.editorconfig']
           aottestapp: ['test/OpenTelemetry.AotCompatibility.TestApp/**']
           aspnet: ['*/OpenTelemetry.Instrumentation.AspNet*/**', 'examples/AspNet/**', '!**/*.md']
+          azure: ['*/OpenTelemetry.ResourceDetectors.Azure*/**', '!**/*.md']
           eventcounters: ['*/OpenTelemetry.Instrumentation.EventCounters*/**', 'examples/event-counters/**', '!**/*.md']
           extensions: ['*/OpenTelemetry.Extensions*/**', '!**/*.md']
           geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
@@ -40,6 +41,7 @@ jobs:
             '!test/OpenTelemetry.AotCompatibility.TestApp/**',
             '!*/OpenTelemetry.Instrumentation.AspNet*/**',
             '!examples/AspNet/**',
+            '!*/OpenTelemetry.ResourceDetectors.Azure*/**',
             '!*/OpenTelemetry.Instrumentation.EventCounters*/**',
             '!examples/event-counters/**',
             '!*/OpenTelemetry.Extensions*/**',
@@ -81,6 +83,17 @@ jobs:
       code-cov-name: Instrumentation.AspNet
       os-list: '[ "windows-latest" ]'
       tfm-list: '[ "net462" ]'
+
+  build-test-azure:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'azure')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.ResourceDetectors.Azure
+      code-cov-name: ResourceDetectors.Azure
 
   build-test-eventcounters:
     needs: detect-changes
@@ -243,8 +256,8 @@ jobs:
             OpenTelemetry.Instrumentation.Runtime.Tests.csproj,
             OpenTelemetry.Instrumentation.StackExchangeRedis.Tests.csproj,
             OpenTelemetry.Instrumentation.Wcf.Tests.csproj,
-            OpenTelemetry.PersistentStorage.Abstractions.csproj,
-            OpenTelemetry.PersistentStorage.FileSystem.csproj
+            OpenTelemetry.PersistentStorage.FileSystem.Tests.csproj,
+            OpenTelemetry.ResourceDetectors.Azure.Tests.csproj
 
         ForEach ($project in $projects)
         {
@@ -273,8 +286,10 @@ jobs:
     if: |
       contains(needs.detect-changes.outputs.changes, 'eventcounters')
       || contains(needs.detect-changes.outputs.changes, 'runtime')
+      || contains(needs.detect-changes.outputs.changes, 'azure')
       || contains(needs.detect-changes.outputs.changes, 'aottestapp')
       || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'redis')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/verifyaotcompat.yml
 
@@ -285,6 +300,7 @@ jobs:
       lint-md,
       lint-dotnet-format,
       build-test-aspnet,
+      build-test-azure,
       build-test-eventcounters,
       build-test-extensions,
       build-test-geneva,

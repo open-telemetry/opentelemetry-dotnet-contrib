@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-beta.5
+
+Released 2023-Oct-24
+
 * Fix issue of multiple instances of OpenTelemetry-Instrumentation EventSource
   being created
   ([#1362](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1362))

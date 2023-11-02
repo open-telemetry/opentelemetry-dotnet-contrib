@@ -31,11 +31,15 @@ internal static class AzureVmMetaDataRequestor
         using var httpClient = new HttpClient() { Timeout = TimeSpan.FromSeconds(2) };
 
         httpClient.DefaultRequestHeaders.Add("Metadata", "True");
-        var res = httpClient.GetStringAsync(AzureVmMetadataEndpointURL).ConfigureAwait(false).GetAwaiter().GetResult();
+        var res = httpClient.GetStringAsync(new Uri(AzureVmMetadataEndpointURL)).ConfigureAwait(false).GetAwaiter().GetResult();
 
         if (res != null)
         {
+#if NET6_0_OR_GREATER
+            return JsonSerializer.Deserialize(res, SourceGenerationContext.Default.AzureVmMetadataResponse);
+#else
             return JsonSerializer.Deserialize<AzureVmMetadataResponse>(res);
+#endif
         }
 
         return null;
