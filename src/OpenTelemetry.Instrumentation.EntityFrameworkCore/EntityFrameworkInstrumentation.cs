@@ -23,7 +23,7 @@ internal class EntityFrameworkInstrumentation : IDisposable
 {
     private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
 
-    public EntityFrameworkInstrumentation(EntityFrameworkInstrumentationOptions options)
+    public EntityFrameworkInstrumentation(EntityFrameworkInstrumentationOptions? options)
     {
         this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(
             name => new EntityFrameworkDiagnosticListener(name, options),

@@ -9,6 +9,8 @@
     <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
     <IncludeSharedDiagnosticSourceSubscriber>true</IncludeSharedDiagnosticSourceSubscriber>
+    <IncludeSharedActivityInstrumentationHelper>true</IncludeSharedActivityInstrumentationHelper>
+    <IncludeSharedSpanHelper>true</IncludeSharedSpanHelper>
     <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>
