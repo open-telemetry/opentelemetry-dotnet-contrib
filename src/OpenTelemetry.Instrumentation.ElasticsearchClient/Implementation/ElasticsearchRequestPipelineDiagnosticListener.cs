@@ -53,7 +53,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
     private readonly MultiTypePropertyFetcher<byte[]> responseBodyFetcher = new MultiTypePropertyFetcher<byte[]>("ResponseBodyInBytes");
 
     public ElasticsearchRequestPipelineDiagnosticListener(ElasticsearchClientInstrumentationOptions options)
-        : base("Elasticsearch.Net.RequestPipeline", false)
+        : base("Elasticsearch.Net.RequestPipeline")
     {
         this.options = options;
     }

@@ -35,7 +35,7 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
     private readonly QuartzInstrumentationOptions options;
 
     public QuartzDiagnosticListener(string sourceName, QuartzInstrumentationOptions options)
-        : base(sourceName, false)
+        : base(sourceName)
     {
         Guard.ThrowIfNull(options);
 

@@ -57,10 +57,12 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     private readonly EntityFrameworkInstrumentationOptions options;
 
     public EntityFrameworkDiagnosticListener(string sourceName, EntityFrameworkInstrumentationOptions? options)
-        : base(sourceName, true)
+        : base(sourceName)
     {
         this.options = options ?? new EntityFrameworkInstrumentationOptions();
     }
+
+    public override bool SupportsNullActivity => true;
 
     public override void OnCustom(string name, Activity? activity, object? payload)
     {

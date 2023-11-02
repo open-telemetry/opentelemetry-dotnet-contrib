@@ -29,11 +29,9 @@ internal abstract class ListenerHandler
     /// Initializes a new instance of the <see cref="ListenerHandler"/> class.
     /// </summary>
     /// <param name="sourceName">The name of the <see cref="ListenerHandler"/>.</param>
-    /// <param name="supportsNullActivity">Indicates whether the  <see cref="ListenerHandler"/> supports NULL <see cref="Activity"/>.</param>
-    protected ListenerHandler(string sourceName, bool supportsNullActivity)
+    protected ListenerHandler(string sourceName)
     {
         this.SourceName = sourceName;
-        this.SupportsNullActivity = supportsNullActivity;
     }
 
     /// <summary>
@@ -44,7 +42,7 @@ internal abstract class ListenerHandler
     /// <summary>
     /// Gets a value indicating whether the <see cref="ListenerHandler"/> supports NULL <see cref="Activity"/>.
     /// </summary>
-    public bool SupportsNullActivity { get; }
+    public virtual bool SupportsNullActivity { get; }
 
     /// <summary>
     /// Method called for an event with the suffix 'Start'.
