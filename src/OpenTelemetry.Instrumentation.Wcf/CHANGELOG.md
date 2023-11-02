@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-rc.13
+
+Released 2023-Oct-30
+
 * Update OpenTelemetry SDK version to `1.6.0`.
   ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
 * Fixed span hierarchy when hosted in ASP.NET

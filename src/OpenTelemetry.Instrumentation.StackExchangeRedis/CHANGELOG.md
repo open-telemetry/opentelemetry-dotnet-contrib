@@ -2,14 +2,28 @@
 
 ## Unreleased
 
-* Update OTel API version to `1.6.0`.
+## 1.0.0-rc9.12
+
+Released 2023-Nov-01
+
+* Fix an issue in the trimming annotations to refer to the correct Type
+  ([#1420](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1420))
+
+## 1.0.0-rc9.11
+
+Released 2023-Oct-31
+
+* Update `OpenTelemetry.Api.ProviderBuilderExtensions` version to `1.6.0`.
   ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
+
+* Add `net6.0` target framework and make library AOT and trimming compatible
+  ([#1415](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1415))
 
 ## 1.0.0-rc9.10
 
 Released 2023-Jun-09
 
-* Update OTel API version to `1.5.0`.
+* Update `OpenTelemetry.Api.ProviderBuilderExtensions` version to `1.5.0`.
   ([#1220](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1220))
 
 ## 1.0.0-rc9.9
