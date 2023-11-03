@@ -61,7 +61,7 @@ public class HttpInMetricsListenerTests
         Thread.Sleep(1); // Make sure duration is always greater than 0 to avoid flakiness.
         ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStoppedCallback);
 
-        Assert.True(duration > 0, "Metruc duration should be set.");
+        Assert.True(duration > 0, "Metric duration should be set.");
 
         meterProvider.ForceFlush();
 
@@ -69,7 +69,7 @@ public class HttpInMetricsListenerTests
         foreach (var p in exportedItems[0].GetMetricPoints())
         {
             metricPoints.Add(p);
-        } 
+        }
 
         Assert.Single(metricPoints);
 
