@@ -16,7 +16,6 @@
 
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Threading;
 using System.Web;
 using OpenTelemetry.Context.Propagation;
