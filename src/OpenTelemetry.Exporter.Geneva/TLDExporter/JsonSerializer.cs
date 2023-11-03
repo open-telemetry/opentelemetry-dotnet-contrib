@@ -104,6 +104,22 @@ internal static class JsonSerializer
         return cursor;
     }
 
+#if NET6_0_OR_GREATER
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int SerializeString(byte[] buffer, int cursor, ReadOnlySpan<char> value)
+    {
+        if (value == null)
+        {
+            return SerializeNull(buffer, cursor);
+        }
+
+        buffer[cursor++] = ASCII_QUOTATION_MARK;
+        cursor = WriteString(buffer, cursor, value);
+        buffer[cursor++] = ASCII_QUOTATION_MARK;
+        return cursor;
+    }
+#endif
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string SerializeArray<T>(T[] array)
     {
@@ -316,18 +332,30 @@ internal static class JsonSerializer
                 return SerializeMap(buffer, cursor, v);
             case object[] v:
                 return SerializeArray(buffer, cursor, v);
+
 #if NET6_0_OR_GREATER
             case ISpanFormattable v:
                 tmp = stackalloc char[MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)];
-                if (v.TryFormat(tmp, out charsWritten, default, CultureInfo.InvariantCulture))
+                if (v.TryFormat(tmp, out charsWritten, default, CultureInfo.InvariantCulture) && charsWritten > 0)
                 {
-                    return WriteString(buffer, cursor, tmp.Slice(0, charsWritten));
+                    return SerializeString(buffer, cursor, tmp.Slice(0, charsWritten));
                 }
 
                 goto default;
 #endif
+
             default:
-                return SerializeString(buffer, cursor, $"ERROR: type {obj.GetType().FullName} is not supported");
+                string repr;
+                try
+                {
+                    repr = Convert.ToString(obj, CultureInfo.InvariantCulture);
+                }
+                catch
+                {
+                    repr = $"ERROR: type {obj.GetType().FullName} is not supported";
+                }
+
+                return SerializeString(buffer, cursor, repr);
         }
     }
 
@@ -400,7 +428,7 @@ internal static class JsonSerializer
 
 #if NET6_0_OR_GREATER
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int WriteString(byte[] buffer, int cursor, Span<char> value)
+    private static int WriteString(byte[] buffer, int cursor, ReadOnlySpan<char> value)
     {
         for (int i = 0; i < value.Length; i++)
         {
