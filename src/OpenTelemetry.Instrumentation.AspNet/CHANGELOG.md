@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-* Fix for `http.server.duration` being time always being zero since
-  ([#1388](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1388)).
+* Fix for `http.server.duration` being time always being zero since `1.6.0-beta.1`.
+  ([#1425](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1425))
 
 ## 1.6.0-beta.1
 
