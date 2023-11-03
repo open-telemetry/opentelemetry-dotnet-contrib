@@ -59,12 +59,18 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(IncludeSharedInstrumentationSource)'=='true'">
-    <Compile Include="$(RepoRoot)\src\Shared\ActivityInstrumentationHelper.cs" Link="Includes\ActivityInstrumentationHelper.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\MultiTypePropertyFetcher.cs" Link="Includes\MultiTypePropertyFetcher.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\PropertyFetcher.cs" Link="Includes\PropertyFetcher.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SpanAttributeConstants.cs" Link="Includes\SpanAttributeConstants.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(IncludeSharedSpanHelper)'=='true'">
     <Compile Include="$(RepoRoot)\src\Shared\SpanHelper.cs" Link="Includes\SpanHelper.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(IncludeSharedActivityInstrumentationHelper)'=='true'">
+    <Compile Include="$(RepoRoot)\src\Shared\ActivityInstrumentationHelper.cs" Link="Includes\ActivityInstrumentationHelper.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(IncludeSharedDiagnosticSourceSubscriber)'=='true'">

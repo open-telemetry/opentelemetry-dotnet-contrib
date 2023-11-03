@@ -40,7 +40,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             .UseSqlite(CreateInMemoryDatabase())
             .Options;
 
-        this.connection = RelationalOptionsExtension.Extract(this.contextOptions).Connection;
+        this.connection = RelationalOptionsExtension.Extract(this.contextOptions).Connection!;
 
         this.Seed();
     }
@@ -121,6 +121,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             }
             catch
             {
+                // intentional empty catch
             }
         }
 
@@ -139,10 +140,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             .AddProcessor(activityProcessor.Object)
             .AddEntityFrameworkCoreInstrumentation(options =>
             {
-                options.Filter = (providerName, command) =>
-                {
-                    return !command.CommandText.Contains("Item", StringComparison.OrdinalIgnoreCase);
-                };
+                options.Filter = (_, command) => !command.CommandText.Contains("Item", StringComparison.OrdinalIgnoreCase);
             }).Build();
 
         using (var context = new ItemsContext(this.contextOptions))
@@ -166,10 +164,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             .AddProcessor(activityProcessor.Object)
             .AddEntityFrameworkCoreInstrumentation(options =>
             {
-                options.Filter = (providerName, command) =>
-                {
-                    return command.CommandText.Contains("Item", StringComparison.OrdinalIgnoreCase);
-                };
+                options.Filter = (_, command) => command.CommandText.Contains("Item", StringComparison.OrdinalIgnoreCase);
             }).Build();
 
         using (var context = new ItemsContext(this.contextOptions))
@@ -212,10 +207,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             .AddProcessor(activityProcessor.Object)
             .AddEntityFrameworkCoreInstrumentation(options =>
             {
-                options.Filter = (providerName, command) =>
-                {
-                    return providerName.Equals(provider, StringComparison.OrdinalIgnoreCase);
-                };
+                options.Filter = (providerName, _) => providerName != null && providerName.Equals(provider, StringComparison.OrdinalIgnoreCase);
             }).Build();
 
         using (var context = new ItemsContext(this.contextOptions))
@@ -239,10 +231,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             .AddProcessor(activityProcessor.Object)
             .AddEntityFrameworkCoreInstrumentation(options =>
             {
-                options.Filter = (providerName, command) =>
-                {
-                    return providerName.Equals("Microsoft.EntityFrameworkCore.Sqlite", StringComparison.OrdinalIgnoreCase);
-                };
+                options.Filter = (providerName, _) => providerName != null && providerName.Equals("Microsoft.EntityFrameworkCore.Sqlite", StringComparison.OrdinalIgnoreCase);
             }).Build();
 
         using (var context = new ItemsContext(this.contextOptions))
@@ -268,7 +257,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         return connection;
     }
 
-    private static void VerifyActivityData(Activity activity, bool isError = false, string altDisplayName = null)
+    private static void VerifyActivityData(Activity activity, bool isError = false, string? altDisplayName = null)
     {
         Assert.Equal(altDisplayName ?? "main", activity.DisplayName);
 
@@ -301,11 +290,11 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         context.Database.EnsureDeleted();
         context.Database.EnsureCreated();
 
-        var one = new Item { Name = "ItemOne" };
+        var one = new Item("ItemOne");
 
-        var two = new Item { Name = "ItemTwo" };
+        var two = new Item("ItemTwo");
 
-        var three = new Item { Name = "ItemThree" };
+        var three = new Item("ItemThree");
 
         context.AddRange(one, two, three);
 
@@ -314,9 +303,12 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
     private class Item
     {
-        public int Id { get; set; }
+        public Item(string name)
+        {
+            this.Name = name;
+        }
 
-        public string Name { get; set; }
+        public string Name { get; }
     }
 
     private class ItemsContext : DbContext

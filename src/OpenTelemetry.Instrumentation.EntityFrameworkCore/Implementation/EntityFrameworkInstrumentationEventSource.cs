@@ -70,12 +70,6 @@ internal class EntityFrameworkInstrumentationEventSource : EventSource
         this.WriteEvent(3, handlerName, eventName);
     }
 
-    [Event(4, Message = "Payload is invalid in event '{1}' from handler '{0}', span will not be recorded.", Level = EventLevel.Warning)]
-    public void InvalidPayload(string handlerName, string eventName)
-    {
-        this.WriteEvent(4, handlerName, eventName);
-    }
-
     [Event(5, Message = "Enrichment threw exception. Exception {0}.", Level = EventLevel.Error)]
     public void EnrichmentException(string eventName, string exception)
     {
