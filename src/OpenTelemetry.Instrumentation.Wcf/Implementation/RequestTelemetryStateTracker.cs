@@ -47,13 +47,13 @@ internal static class RequestTelemetryStateTracker
         }
     }
 
-    public static RequestTelemetryState PopTelemetryState(Message reply)
+    public static RequestTelemetryState? PopTelemetryState(Message reply)
     {
         var relatesTo = reply?.Headers.RelatesTo?.ToString();
         return relatesTo == null ? null : PopTelemetryState(relatesTo);
     }
 
-    private static RequestTelemetryState PopTelemetryState(string messageId)
+    private static RequestTelemetryState? PopTelemetryState(string messageId)
     {
         lock (Sync)
         {
@@ -69,11 +69,11 @@ internal static class RequestTelemetryStateTracker
 
     private static void OnTimer(object state)
     {
-        List<Tuple<EntryTimeoutProperties, Entry>> timedOutEntries = null;
+        List<Tuple<EntryTimeoutProperties, Entry>>? timedOutEntries = null;
         lock (Sync)
         {
             var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            EntryTimeoutProperties nextToExpire = null;
+            EntryTimeoutProperties? nextToExpire = null;
             foreach (var entryTimeoutProps in TimeoutQueue)
             {
                 if (entryTimeoutProps.ExpiresAt <= now)

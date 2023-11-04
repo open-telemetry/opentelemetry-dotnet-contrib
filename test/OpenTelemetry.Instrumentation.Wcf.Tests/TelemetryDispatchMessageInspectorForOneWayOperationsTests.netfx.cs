@@ -44,47 +44,50 @@ public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDispos
 
         Random random = new Random();
         var retryCount = 5;
+        ServiceHost? createdHost = null;
         while (retryCount > 0)
         {
             try
             {
                 this.serviceBaseUri = new Uri($"net.tcp://localhost:{random.Next(2000, 5000)}/");
-                this.serviceHost = new ServiceHost(new Service(), this.serviceBaseUri);
+                createdHost = new ServiceHost(new Service(), this.serviceBaseUri);
 
-                var endpoint = this.serviceHost.AddServiceEndpoint(
+                var endpoint = createdHost.AddServiceEndpoint(
                     typeof(IServiceContract),
                     new NetTcpBinding(),
                     "/Service");
                 endpoint.Behaviors.Add(new TelemetryEndpointBehavior());
 
-                this.serviceHost.Description.Behaviors.Add(
+                createdHost.Description.Behaviors.Add(
                     new ErrorHandlerServiceBehavior(this.thrownExceptionsHandle, ex => this.thrownExceptions.Add(ex)));
 
-                this.serviceHost.Open();
+                createdHost.Open();
 
                 break;
             }
             catch (Exception ex)
             {
                 this.output.WriteLine(ex.ToString());
-                if (this.serviceHost.State == CommunicationState.Faulted)
+                if (createdHost?.State == CommunicationState.Faulted)
                 {
-                    this.serviceHost.Abort();
+                    createdHost.Abort();
                 }
                 else
                 {
-                    this.serviceHost.Close();
+                    createdHost?.Close();
                 }
 
-                this.serviceHost = null;
+                createdHost = null;
                 retryCount--;
             }
         }
 
-        if (this.serviceHost == null)
+        if (createdHost == null || this.serviceBaseUri == null)
         {
             throw new InvalidOperationException("ServiceHost could not be started.");
         }
+
+        this.serviceHost = createdHost;
     }
 
     public void Dispose()
@@ -105,7 +108,7 @@ public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDispos
         };
 
         ActivitySource.AddActivityListener(activityListener);
-        TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
+        TracerProvider? tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddWcfInstrumentation()
             .Build();
 
@@ -115,7 +118,7 @@ public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDispos
 
         try
         {
-            client.ExecuteWithOneWay(new ServiceRequest());
+            client.ExecuteWithOneWay(new ServiceRequest(payload: "Hello Open Telemetry!"));
             this.thrownExceptionsHandle.WaitOne(3000);
         }
         finally

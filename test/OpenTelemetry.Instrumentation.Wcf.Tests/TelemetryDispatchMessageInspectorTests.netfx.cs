@@ -41,41 +41,44 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
 
         Random random = new Random();
         var retryCount = 5;
+        ServiceHost? createdHost = null;
         while (retryCount > 0)
         {
             try
             {
                 this.serviceBaseUri = new Uri($"net.tcp://localhost:{random.Next(2000, 5000)}/");
-                this.serviceHost = new ServiceHost(new Service(), this.serviceBaseUri);
-                var endpoint = this.serviceHost.AddServiceEndpoint(
+                createdHost = new ServiceHost(new Service(), this.serviceBaseUri);
+                var endpoint = createdHost.AddServiceEndpoint(
                     typeof(IServiceContract),
                     new NetTcpBinding(),
                     "/Service");
                 endpoint.Behaviors.Add(new TelemetryEndpointBehavior());
-                this.serviceHost.Open();
+                createdHost.Open();
                 break;
             }
             catch (Exception ex)
             {
                 this.output.WriteLine(ex.ToString());
-                if (this.serviceHost.State == CommunicationState.Faulted)
+                if (createdHost?.State == CommunicationState.Faulted)
                 {
-                    this.serviceHost.Abort();
+                    createdHost.Abort();
                 }
                 else
                 {
-                    this.serviceHost.Close();
+                    createdHost?.Close();
                 }
 
-                this.serviceHost = null;
+                createdHost = null;
                 retryCount--;
             }
         }
 
-        if (this.serviceHost == null)
+        if (createdHost == null || this.serviceBaseUri == null)
         {
             throw new InvalidOperationException("ServiceHost could not be started.");
         }
+
+        this.serviceHost = createdHost;
     }
 
     public void Dispose()
@@ -109,7 +112,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
 
         ActivitySource.AddActivityListener(activityListener);
 
-        TracerProvider tracerProvider = null;
+        TracerProvider? tracerProvider = null;
         if (instrument)
         {
             tracerProvider = Sdk.CreateTracerProviderBuilder()
@@ -162,18 +165,16 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
             if (emptyOrNullAction)
             {
                 await client.ExecuteWithEmptyActionNameAsync(
-                    new ServiceRequest
-                    {
-                        Payload = "Hello Open Telemetry!",
-                    }).ConfigureAwait(false);
+                    new ServiceRequest(
+                        payload: "Hello Open Telemetry!"))
+                    .ConfigureAwait(false);
             }
             else
             {
                 await client.ExecuteAsync(
-                    new ServiceRequest
-                    {
-                        Payload = "Hello Open Telemetry!",
-                    }).ConfigureAwait(false);
+                    new ServiceRequest(
+                        payload: "Hello Open Telemetry!"))
+                    .ConfigureAwait(false);
             }
         }
         finally

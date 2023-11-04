@@ -40,7 +40,7 @@ internal static class AspNetParentSpanCorrector
     private const string TelemetryHttpModuleTypeName = "OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule, OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule";
     private const string TelemetryHttpModuleOptionsTypeName = "OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModuleOptions, OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule";
 
-    private static readonly ReflectedInfo ReflectedValues = Initialize();
+    private static readonly ReflectedInfo? ReflectedValues = Initialize();
     private static readonly PropertyFetcher<object> RequestFetcher = new PropertyFetcher<object>("Request");
     private static readonly PropertyFetcher<NameValueCollection> HeadersFetcher = new PropertyFetcher<NameValueCollection>("Headers");
     private static bool isRegistered;
@@ -59,7 +59,7 @@ internal static class AspNetParentSpanCorrector
         var request = RequestFetcher.Fetch(context);
         var headers = HeadersFetcher.Fetch(request);
 
-        ReflectedValues.SetHeadersReadOnly(headers, false);
+        ReflectedValues!.SetHeadersReadOnly(headers, false);
         try
         {
             ReflectedValues.GetTelemetryHttpModulePropagator().Inject(
@@ -73,7 +73,7 @@ internal static class AspNetParentSpanCorrector
         }
     }
 
-    private static ReflectedInfo Initialize()
+    private static ReflectedInfo? Initialize()
     {
         try
         {
@@ -85,12 +85,7 @@ internal static class AspNetParentSpanCorrector
 
             var setHeadersReadOnly = (Action<NameValueCollection, bool>)isReadOnlyProp.SetMethod.CreateDelegate(typeof(Action<NameValueCollection, bool>));
 
-            return new ReflectedInfo
-            {
-                SetHeadersReadOnly = setHeadersReadOnly,
-                GetTelemetryHttpModulePropagator = GenerateGetPropagatorLambda(),
-                SubscribeToOnRequestStartedCallback = GenerateSubscribeLambda(),
-            };
+            return new ReflectedInfo(setHeadersReadOnly, GenerateGetPropagatorLambda(), GenerateSubscribeLambda());
         }
         catch (Exception ex)
         {
@@ -146,6 +141,16 @@ internal static class AspNetParentSpanCorrector
         public Action<NameValueCollection, bool> SetHeadersReadOnly;
         public Func<TextMapPropagator> GetTelemetryHttpModulePropagator;
         public Func<object> SubscribeToOnRequestStartedCallback;
+
+        public ReflectedInfo(
+            Action<NameValueCollection, bool> setHeadersReadOnly,
+            Func<TextMapPropagator> getTelemetryHttpModulePropagator,
+            Func<object> subscribeToOnRequestStartedCallback)
+        {
+            this.SetHeadersReadOnly = setHeadersReadOnly;
+            this.GetTelemetryHttpModulePropagator = getTelemetryHttpModulePropagator;
+            this.SubscribeToOnRequestStartedCallback = subscribeToOnRequestStartedCallback;
+        }
     }
 }
 #endif

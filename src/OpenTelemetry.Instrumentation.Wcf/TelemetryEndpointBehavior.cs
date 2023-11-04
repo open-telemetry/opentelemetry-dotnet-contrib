@@ -96,11 +96,9 @@ public class TelemetryEndpointBehavior : IEndpointBehavior
 
         foreach (var clientOperation in clientRuntime.ClientOperations)
         {
-            actionMappings[clientOperation.Action] = new ActionMetadata
-            {
-                ContractName = $"{clientRuntime.ContractNamespace}{clientRuntime.ContractName}",
-                OperationName = clientOperation.Name,
-            };
+            actionMappings[clientOperation.Action] = new ActionMetadata(
+                contractName: $"{clientRuntime.ContractNamespace}{clientRuntime.ContractName}",
+                operationName: clientOperation.Name);
         }
 
         clientRuntime.ClientMessageInspectors.Add(new TelemetryClientMessageInspector(actionMappings));
@@ -113,11 +111,9 @@ public class TelemetryEndpointBehavior : IEndpointBehavior
 
         foreach (var dispatchOperation in endpointDispatcher.DispatchRuntime.Operations)
         {
-            actionMappings[dispatchOperation.Action] = new ActionMetadata
-            {
-                ContractName = $"{endpointDispatcher.ContractNamespace}{endpointDispatcher.ContractName}",
-                OperationName = dispatchOperation.Name,
-            };
+            actionMappings[dispatchOperation.Action] = new ActionMetadata(
+                contractName: $"{endpointDispatcher.ContractNamespace}{endpointDispatcher.ContractName}",
+                operationName: dispatchOperation.Name);
         }
 
         endpointDispatcher.DispatchRuntime.MessageInspectors.Add(new TelemetryDispatchMessageInspector(actionMappings));

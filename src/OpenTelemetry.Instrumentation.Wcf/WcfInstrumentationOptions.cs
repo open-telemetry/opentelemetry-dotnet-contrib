@@ -35,7 +35,7 @@ public class WcfInstrumentationOptions
     /// <para>object: the raw <see cref="Message"/> from which additional information can be extracted to enrich the activity.
     /// </para>
     /// </remarks>
-    public Action<Activity, string, object> Enrich { get; set; }
+    public Action<Activity, string, object>? Enrich { get; set; }
 
     /// <summary>
     /// Gets or sets a Filter function to filter instrumentation for requests on a per request basis.
@@ -43,7 +43,7 @@ public class WcfInstrumentationOptions
     /// If Filter returns true, the request is collected.
     /// If Filter returns false or throw exception, the request is filtered out.
     /// </summary>
-    public Func<Message, bool> IncomingRequestFilter { get; set; }
+    public Func<Message, bool>? IncomingRequestFilter { get; set; }
 
     /// <summary>
     /// Gets or sets a Filter function to filter instrumentation for requests on a per request basis.
@@ -51,7 +51,7 @@ public class WcfInstrumentationOptions
     /// If Filter returns true, the request is collected.
     /// If Filter returns false or throw exception, the request is filtered out.
     /// </summary>
-    public Func<Message, bool> OutgoingRequestFilter { get; set; }
+    public Func<Message, bool>? OutgoingRequestFilter { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether down stream instrumentation (HttpClient) is suppressed (disabled). Default value: True.

@@ -18,7 +18,13 @@ namespace OpenTelemetry.Instrumentation.Wcf;
 
 internal sealed class ActionMetadata
 {
-    public string ContractName { get; set; }
+    public ActionMetadata(string? contractName, string operationName)
+    {
+        this.ContractName = contractName;
+        this.OperationName = operationName;
+    }
+
+    public string? ContractName { get; set; }
 
     public string OperationName { get; set; }
 }

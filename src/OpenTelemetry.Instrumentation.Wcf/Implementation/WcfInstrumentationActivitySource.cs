@@ -37,9 +37,9 @@ internal static class WcfInstrumentationActivitySource
 
     public static ActivitySource ActivitySource { get; } = new ActivitySource(ActivitySourceName, Version.ToString());
 
-    public static WcfInstrumentationOptions Options { get; set; }
+    public static WcfInstrumentationOptions? Options { get; set; }
 
-    public static IEnumerable<string> MessageHeaderValuesGetter(Message request, string name)
+    public static IEnumerable<string>? MessageHeaderValuesGetter(Message request, string name)
     {
         return TelemetryPropagationReader.Default(request, name);
     }

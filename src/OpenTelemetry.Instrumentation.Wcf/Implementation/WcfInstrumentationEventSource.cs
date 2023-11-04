@@ -62,7 +62,7 @@ internal sealed class WcfInstrumentationEventSource : EventSource
     }
 
     [NonEvent]
-    public void HttpServiceModelReflectionFailedToBind(Exception exception, System.Reflection.Assembly assembly)
+    public void HttpServiceModelReflectionFailedToBind(Exception exception, System.Reflection.Assembly? assembly)
     {
         if (this.IsEnabled(EventLevel.Verbose, (EventKeywords)(-1)))
         {
@@ -71,7 +71,7 @@ internal sealed class WcfInstrumentationEventSource : EventSource
     }
 
     [Event(EventIds.HttpServiceModelReflectionFailedToBind, Message = "Failed to bind to System.ServiceModel.Http. Exception {0}. Assembly {1}.", Level = EventLevel.Verbose)]
-    public void HttpServiceModelReflectionFailedToBind(string exception, string assembly)
+    public void HttpServiceModelReflectionFailedToBind(string exception, string? assembly)
     {
         this.WriteEvent(EventIds.HttpServiceModelReflectionFailedToBind, exception, assembly);
     }
