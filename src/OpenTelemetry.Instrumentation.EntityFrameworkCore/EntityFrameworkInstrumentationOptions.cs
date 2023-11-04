@@ -43,7 +43,7 @@ public class EntityFrameworkInstrumentationOptions
     /// <para><see cref="Activity"/>: the activity being enriched.</para>
     /// <para><see cref="IDbCommand"/>: db command to allow access to command.</para>
     /// </remarks>
-    public Action<Activity, IDbCommand> EnrichWithIDbCommand { get; set; }
+    public Action<Activity, IDbCommand>? EnrichWithIDbCommand { get; set; }
 
     /// <summary>
     /// Gets or sets a filter function that determines whether or not to
@@ -64,5 +64,5 @@ public class EntityFrameworkInstrumentationOptions
     /// </list></item>
     /// </list>
     /// </remarks>
-    public Func<string, IDbCommand, bool> Filter { get; set; }
+    public Func<string?, IDbCommand, bool>? Filter { get; set; }
 }

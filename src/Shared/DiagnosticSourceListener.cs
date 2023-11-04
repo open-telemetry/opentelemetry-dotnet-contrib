@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-#nullable disable
+#nullable enable
 
 #pragma warning disable IDE0005 // Using directive is unnecessary.
 using System;
@@ -25,7 +25,7 @@ using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation;
 
-internal sealed class DiagnosticSourceListener : IObserver<KeyValuePair<string, object>>
+internal sealed class DiagnosticSourceListener : IObserver<KeyValuePair<string, object?>>
 {
     private readonly ListenerHandler handler;
 
@@ -47,7 +47,7 @@ internal sealed class DiagnosticSourceListener : IObserver<KeyValuePair<string, 
     {
     }
 
-    public void OnNext(KeyValuePair<string, object> value)
+    public void OnNext(KeyValuePair<string, object?> value)
     {
         if (!this.handler.SupportsNullActivity && Activity.Current == null)
         {
@@ -75,7 +75,7 @@ internal sealed class DiagnosticSourceListener : IObserver<KeyValuePair<string, 
         }
         catch (Exception ex)
         {
-            this.logUnknownException?.Invoke(this.handler?.SourceName, value.Key, ex);
+            this.logUnknownException?.Invoke(this.handler.SourceName, value.Key, ex);
         }
     }
 }
