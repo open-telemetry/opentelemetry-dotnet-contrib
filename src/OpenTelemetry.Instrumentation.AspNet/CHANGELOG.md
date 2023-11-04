@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* Fix for `http.server.duration` always being zero since `1.6.0-beta.1`.
+* Fixed an issue that caused `http.server.duration` metric value to always be set to `0`. The issue exists in `1.6.0-beta.1` version.
   ([#1425](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1425))
 
 ## 1.6.0-beta.1
