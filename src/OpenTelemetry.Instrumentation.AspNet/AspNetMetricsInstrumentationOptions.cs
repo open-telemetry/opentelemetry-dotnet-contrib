@@ -20,20 +20,10 @@ using System.Web;
 namespace OpenTelemetry.Instrumentation.AspNet;
 
 /// <summary>
-/// Options for metrics requests instrumentation.
+/// Options for metric instrumentation.
 /// </summary>
 public sealed class AspNetMetricsInstrumentationOptions
 {
-    /// <summary>
-    /// Delegate used to determine of the metric should be recorded.
-    /// </summary>
-    /// <param name="context">The http context of the current request.</param>
-    /// <returns>
-    /// Return <see langword="true" /> if the metric should be recorded.
-    /// Return <see langword="false" /> if the metric should NOT be recorded.
-    /// </returns>
-    public delegate bool FilterFunc(HttpContext context);
-
     /// <summary>
     /// Delegate for enrichment of recorded metric with additional tags.
     /// </summary>
@@ -45,9 +35,4 @@ public sealed class AspNetMetricsInstrumentationOptions
     /// Gets or sets an function to enrich a recorded metric with additional custom tags.
     /// </summary>
     public EnrichFunc? Enrich { get; set; }
-
-    /// <summary>
-    /// Gets or sets a filter function that determines whether or not to collect telemetry on a per request basis.
-    /// </summary>
-    public FilterFunc? Filter { get; set; }
 }

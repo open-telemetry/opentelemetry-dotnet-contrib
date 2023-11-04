@@ -211,26 +211,7 @@ to store the exception to the Activity itself as ActivityEvent.
 ## Advanced metric configuration
 
 This instrumentation can be configured to change the default behavior by using
-`AspNetMetricsInstrumentationOptions`, which allows configuring `Filter` and `Enrich`
-as explained below.
-
-### Metric Filter
-
-This instrumentation by default collects all the incoming http requests. It
-allows filtering of requests by using the `Filter` function in
-`AspNetMetricsInstrumentationOptions`. The Filter receives the `HttpContext`
-of the incoming request, and does not collect telemetry about the request if
-the Filter returns false or throws an exception.
-
-```csharp
-this.meterProvider = Sdk.CreateMeterProviderBuilder()
-    .AddAspNetInstrumentation(options => options.Filter = (httpContext) =>
-    {
-        // Only collect telemetry about HTTP GET requests.
-        return httpContext.Request.HttpMethod.Equals("GET");
-    })
-    .Build();
-```
+`AspNetMetricsInstrumentationOptions` as explained below.
 
 ### Metric Enrich
 

@@ -56,20 +56,6 @@ internal sealed class HttpInMetricsListener : IDisposable
 
     private void OnStopActivity(Activity activity, HttpContext context)
     {
-        try
-        {
-            if (this.options.Filter?.Invoke(context) == false)
-            {
-                AspNetInstrumentationEventSource.Log.RequestIsFilteredOut(nameof(HttpInMetricsListener));
-                return;
-            }
-        }
-        catch (Exception ex)
-        {
-            AspNetInstrumentationEventSource.Log.RequestFilterException(nameof(HttpInMetricsListener), ex);
-            return;
-        }
-
         var request = context.Request;
         var url = request.Url;
         var tags = new TagList

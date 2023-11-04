@@ -2,11 +2,10 @@
 
 ## Unreleased
 
-* Added enrich and filter functionality to metric instrumentation
+* Added enrich functionality to metric instrumentation
   ([#1407](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1407)).
 
   * New overload of `AddAspnetInstrumentation` now accepts a configuration delegate.
-  * The `Filter` delegate is used to decide if a metric should be collected.
   * The `Enrich` can be used to add additional metric tags.
 
 * Additional metric tags will now be emitted

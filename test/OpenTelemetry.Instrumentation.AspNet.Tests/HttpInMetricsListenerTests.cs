@@ -28,25 +28,23 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 public class HttpInMetricsListenerTests
 {
     [Theory]
-    [InlineData("http://localhost/", 0, null, null, null, "http", "localhost", null, 80)]
-    [InlineData("https://localhost/", 0, null, null, null, "https", "localhost", null, 443)]
-    [InlineData("http://localhost/api/value", 0, null, null, null, "http", "localhost", null, 80)]
-    [InlineData("http://localhost/api/value", 1, "{controller}/{action}", null, null, "http", "localhost", "{controller}/{action}", 80)]
-    [InlineData("http://localhost/api/value", 2, "{controller}/{action}", null, null, "http", "localhost", "{controller}/{action}", 80)]
-    [InlineData("http://localhost/api/value", 3, "{controller}/{action}", null, null, "http", "localhost", "{controller}/{action}", 80)]
-    [InlineData("http://localhost/api/value", 4, "{controller}/{action}", null, null, "http", "localhost", "{controller}/{action}", 80)]
-    [InlineData("http://localhost:8080/api/value", 0, null, null, null, "http", "localhost", null, 8080)]
-    [InlineData("http://localhost:8080/api/value", 1, "{controller}/{action}", null, null, "http", "localhost", "{controller}/{action}", 8080)]
-    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", "enrich", null, "http", "localhost", "{controller}/{action}", 8080)]
-    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", "throw", null, "http", "localhost", "{controller}/{action}", 8080)]
-    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", null, "filter", "http", "localhost", "{controller}/{action}", 8080)]
-    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", null, "throw", "http", "localhost", "{controller}/{action}", 8080)]
+    [InlineData("http://localhost/", 0, null, null, "http", "localhost", null, 80)]
+    [InlineData("https://localhost/", 0, null, null, "https", "localhost", null, 443)]
+    [InlineData("http://localhost/api/value", 0, null, null, "http", "localhost", null, 80)]
+    [InlineData("http://localhost/api/value", 1, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 80)]
+    [InlineData("http://localhost/api/value", 2, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 80)]
+    [InlineData("http://localhost/api/value", 3, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 80)]
+    [InlineData("http://localhost/api/value", 4, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 80)]
+    [InlineData("http://localhost:8080/api/value", 0, null, null, "http", "localhost", null, 8080)]
+    [InlineData("http://localhost:8080/api/value", 1, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 8080)]
+    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", "enrich", "http", "localhost", "{controller}/{action}", 8080)]
+    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", "throw", "http", "localhost", "{controller}/{action}", 8080)]
+    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 8080)]
     public void AspNetMetricTagsAreCollectedSuccessfully(
         string url,
         int routeType,
         string routeTemplate,
         string enrichMode,
-        string filterMode,
         string expectedScheme,
         string expectedHost,
         string expectedRoute,
@@ -73,16 +71,6 @@ public class HttpInMetricsListenerTests
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddAspNetInstrumentation(options =>
             {
-                options.Filter += (HttpContext context) =>
-                {
-                    if (filterMode == "throw")
-                    {
-                        throw new Exception("Filter exception");
-                    }
-
-                    return filterMode == "filter" ? false : true;
-                };
-
                 options.Enrich += (HttpContext context, ref TagList tags) =>
                 {
                     if (enrichMode == "throw")
@@ -103,12 +91,6 @@ public class HttpInMetricsListenerTests
         ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStoppedCallback);
 
         meterProvider.ForceFlush();
-
-        if (filterMode == "filter" || filterMode == "throw")
-        {
-            Assert.Empty(exportedItems);
-            return;
-        }
 
         Assert.Single(exportedItems);
 
