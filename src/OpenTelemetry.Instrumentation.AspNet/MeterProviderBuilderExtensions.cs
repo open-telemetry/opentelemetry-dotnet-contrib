@@ -25,7 +25,6 @@ namespace OpenTelemetry.Metrics;
 /// </summary>
 public static class MeterProviderBuilderExtensions
 {
-
     /// <summary>
     /// Enables the incoming requests automatic data collection for ASP.NET.
     /// </summary>
@@ -41,7 +40,7 @@ public static class MeterProviderBuilderExtensions
     /// <param name="configure">ASP.NET Request configuration options.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
     public static MeterProviderBuilder AddAspNetInstrumentation(
-        this MeterProviderBuilder builder, Action<AspNetMetricsInstrumentationOptions> configure)
+        this MeterProviderBuilder builder, Action<AspNetMetricsInstrumentationOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
 
