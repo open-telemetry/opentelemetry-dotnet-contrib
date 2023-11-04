@@ -28,11 +28,12 @@ public class DownstreamInstrumentationChannel : DispatchProxy
     private static readonly ActivitySource DownstreamInstrumentationSource = new ActivitySource(DownstreamInstrumentationSourceName);
     private static bool failNextReceive;
 
-    private object Target { get; set; }
+    private object? Target { get; set; }
 
     public static TChannel Create<TChannel>(TChannel target)
+        where TChannel : notnull
     {
-        var proxy = Create<TChannel, DownstreamInstrumentationChannel>() as DownstreamInstrumentationChannel;
+        var proxy = (DownstreamInstrumentationChannel)(object)Create<TChannel, DownstreamInstrumentationChannel>();
         proxy.Target = target;
         return (TChannel)(object)proxy;
     }
@@ -42,7 +43,7 @@ public class DownstreamInstrumentationChannel : DispatchProxy
         failNextReceive = shouldFail;
     }
 
-    protected override object Invoke(MethodInfo targetMethod, object[] args)
+    protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
     {
         var toInstrument = new[]
         {
@@ -52,7 +53,7 @@ public class DownstreamInstrumentationChannel : DispatchProxy
             nameof(IOutputChannel.BeginSend),
         };
 
-        using var activity = toInstrument.Contains(targetMethod.Name) ? DownstreamInstrumentationSource.StartActivity("DownstreamInstrumentation") : null;
+        using var activity = toInstrument.Contains(targetMethod!.Name) ? DownstreamInstrumentationSource.StartActivity("DownstreamInstrumentation") : null;
 
         var receiveMethods = new[]
         {
@@ -62,7 +63,7 @@ public class DownstreamInstrumentationChannel : DispatchProxy
             nameof(IInputChannel.BeginTryReceive),
         };
 
-        if (failNextReceive && receiveMethods.Contains(targetMethod.Name))
+        if (failNextReceive && receiveMethods.Contains(targetMethod!.Name))
         {
             failNextReceive = false;
             throw new Exception();

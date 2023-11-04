@@ -39,7 +39,7 @@ public class AspNetParentSpanCorrectorTests
         var reflectedValues = typeof(AspNetParentSpanCorrector).GetField("ReflectedValues", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
         Assert.False(reflectedValues == null, "The reflection-based bind to OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule failed. The AspNet telemetry has likely changed, and this assembly needs to be updated to match");
 
-        using (var aspNetActivity = testSource.StartActivity("AspNetActivity"))
+        using (var aspNetActivity = testSource.StartActivity("AspNetActivity")!)
         {
             var context = new FakeHttpContext();
 

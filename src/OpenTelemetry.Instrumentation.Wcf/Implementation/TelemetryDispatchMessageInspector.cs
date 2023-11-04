@@ -42,7 +42,7 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
     }
 
     /// <inheritdoc/>
-    public object AfterReceiveRequest(ref Message request, IClientChannel channel, InstanceContext instanceContext)
+    public object? AfterReceiveRequest(ref Message request, IClientChannel channel, InstanceContext instanceContext)
     {
         Guard.ThrowIfNull(request);
         Guard.ThrowIfNull(channel);
@@ -64,7 +64,7 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
         var textMapPropagator = Propagators.DefaultTextMapPropagator;
         var ctx = textMapPropagator.Extract(default, request, WcfInstrumentationActivitySource.MessageHeaderValuesGetter);
 
-        Activity activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
+        Activity? activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
             WcfInstrumentationActivitySource.IncomingRequestActivityName,
             ActivityKind.Server,
             ctx.ActivityContext);
@@ -88,11 +88,9 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
 
                 if (!this.actionMappings.TryGetValue(action, out ActionMetadata actionMetadata))
                 {
-                    actionMetadata = new ActionMetadata
-                    {
-                        ContractName = null,
-                        OperationName = action,
-                    };
+                    actionMetadata = new ActionMetadata(
+                        contractName: null,
+                        operationName: action);
                 }
 
                 activity.SetTag(WcfInstrumentationConstants.RpcServiceTag, actionMetadata.ContractName);
@@ -132,7 +130,7 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
     }
 
     /// <inheritdoc/>
-    public void BeforeSendReply(ref Message reply, object correlationState)
+    public void BeforeSendReply(ref Message reply, object? correlationState)
     {
         if (correlationState is Activity activity)
         {
@@ -146,7 +144,7 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
                 activity.SetTag(WcfInstrumentationConstants.SoapReplyActionTag, reply.Headers.Action);
                 try
                 {
-                    WcfInstrumentationActivitySource.Options.Enrich?.Invoke(activity, WcfEnrichEventNames.BeforeSendReply, reply);
+                    WcfInstrumentationActivitySource.Options!.Enrich?.Invoke(activity, WcfEnrichEventNames.BeforeSendReply, reply);
                 }
                 catch (Exception ex)
                 {

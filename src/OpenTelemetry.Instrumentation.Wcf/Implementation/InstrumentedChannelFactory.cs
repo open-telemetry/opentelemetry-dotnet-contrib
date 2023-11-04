@@ -17,6 +17,7 @@
 using System;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
@@ -42,14 +43,16 @@ internal sealed class InstrumentedChannelFactory<TChannel> : InstrumentedChannel
 
     private TChannel WrapChannel(TChannel innerChannel)
     {
+        Guard.ThrowIfNull(innerChannel);
+
         if (typeof(TChannel) == typeof(IRequestChannel) || typeof(TChannel) == typeof(IRequestSessionChannel))
         {
-            return (TChannel)(IRequestChannel)new InstrumentedRequestChannel((IRequestChannel)innerChannel);
+            return (TChannel)(IRequestChannel)new InstrumentedRequestChannel((IRequestChannel)innerChannel!);
         }
 
         if (typeof(TChannel) == typeof(IDuplexChannel) || typeof(TChannel) == typeof(IDuplexSessionChannel))
         {
-            return (TChannel)(IDuplexChannel)new InstrumentedDuplexChannel((IDuplexChannel)innerChannel, this.binding.SendTimeout);
+            return (TChannel)(IDuplexChannel)new InstrumentedDuplexChannel((IDuplexChannel)innerChannel!, this.binding.SendTimeout);
         }
 
         throw new NotImplementedException();

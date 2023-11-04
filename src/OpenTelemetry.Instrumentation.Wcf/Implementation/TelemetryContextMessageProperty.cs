@@ -22,5 +22,10 @@ internal sealed class TelemetryContextMessageProperty
 {
     public const string Name = "OpenTelemetry.Instrumentation.Wcf.Implementation.TelemetryContextMessageProperty";
 
+    public TelemetryContextMessageProperty(IDictionary<string, ActionMetadata> actionMappings)
+    {
+        this.ActionMappings = actionMappings;
+    }
+
     public IDictionary<string, ActionMetadata> ActionMappings { get; set; }
 }

@@ -26,7 +26,7 @@ namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 /// </summary>
 internal static class TelemetryPropagationReader
 {
-    private static readonly Func<Message, string, IEnumerable<string>> DefaultReader = Compose(HttpRequestHeaders, SoapMessageHeaders);
+    private static readonly Func<Message, string, IEnumerable<string>?> DefaultReader = Compose(HttpRequestHeaders, SoapMessageHeaders);
 
     /// <summary>
     /// Reads the values from the SOAP message headers. If the message is not a SOAP message it returns null.
@@ -34,7 +34,7 @@ internal static class TelemetryPropagationReader
     /// <param name="request">The incoming <see cref="Message"/> to read trace context from.</param>
     /// <param name="name">The header name being requested.</param>
     /// <returns>An enumerable of all the values for the requested header, or null if the requested header was not present on the request.</returns>
-    public static IEnumerable<string> SoapMessageHeaders(Message request, string name)
+    public static IEnumerable<string>? SoapMessageHeaders(Message request, string name)
     {
         Guard.ThrowIfNull(request);
         Guard.ThrowIfNull(name);
@@ -54,7 +54,7 @@ internal static class TelemetryPropagationReader
     /// <param name="request">The incoming <see cref="Message"/> to read trace context from.</param>
     /// <param name="name">The header name being requested.</param>
     /// <returns>An enumerable of all the values for the requested header, or null if the requested header was not present on the request.</returns>
-    public static IEnumerable<string> HttpRequestHeaders(Message request, string name)
+    public static IEnumerable<string>? HttpRequestHeaders(Message request, string name)
     {
         Guard.ThrowIfNull(request);
         Guard.ThrowIfNull(name);
@@ -74,7 +74,7 @@ internal static class TelemetryPropagationReader
     /// <param name="request">The incoming <see cref="Message"/> to read trace context from.</param>
     /// <param name="name">The header name being requested.</param>
     /// <returns>An enumerable of all the values for the requested header, or null if the requested header was not present on the request.</returns>
-    public static IEnumerable<string> Default(Message request, string name)
+    public static IEnumerable<string>? Default(Message request, string name)
     {
         return DefaultReader(request, name);
     }
@@ -85,7 +85,7 @@ internal static class TelemetryPropagationReader
     /// </summary>
     /// <param name="callbacks">The callbacks to compose into a single callback.</param>
     /// <returns>The composed callback.</returns>
-    public static Func<Message, string, IEnumerable<string>> Compose(params Func<Message, string, IEnumerable<string>>[] callbacks)
+    public static Func<Message, string, IEnumerable<string>?> Compose(params Func<Message, string, IEnumerable<string>?>[] callbacks)
     {
         Guard.ThrowIfNull(callbacks);
         Array.ForEach(callbacks, cb => Guard.ThrowIfNull(cb));

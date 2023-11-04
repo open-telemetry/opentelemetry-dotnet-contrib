@@ -33,8 +33,7 @@ public class DownstreamInstrumentationBindingElement : BindingElement
 
     public override IChannelFactory<TChannel> BuildChannelFactory<TChannel>(BindingContext context)
     {
-        var proxy = DispatchProxy.Create<IChannelFactory<TChannel>, DownstreamInstrumentationChannelFactory<TChannel>>()
-            as DownstreamInstrumentationChannelFactory<TChannel>;
+        var proxy = (DownstreamInstrumentationChannelFactory<TChannel>)DispatchProxy.Create<IChannelFactory<TChannel>, DownstreamInstrumentationChannelFactory<TChannel>>();
         proxy.Target = base.BuildChannelFactory<TChannel>(context);
         return (IChannelFactory<TChannel>)proxy;
     }
