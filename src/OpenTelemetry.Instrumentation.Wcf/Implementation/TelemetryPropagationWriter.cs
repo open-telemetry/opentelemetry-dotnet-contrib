@@ -83,7 +83,7 @@ internal static class TelemetryPropagationWriter
     public static void Default(Message request, string name, string value)
     {
         SoapMessageHeaders(request, name, value);
-        if (WcfInstrumentationActivitySource.Options.SuppressDownstreamInstrumentation)
+        if (WcfInstrumentationActivitySource.Options?.SuppressDownstreamInstrumentation ?? false)
         {
             HttpRequestHeaders(request, name, value);
         }

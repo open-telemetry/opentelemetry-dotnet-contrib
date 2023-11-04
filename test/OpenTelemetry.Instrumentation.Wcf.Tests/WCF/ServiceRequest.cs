@@ -21,6 +21,11 @@ namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 [DataContract]
 public class ServiceRequest
 {
+    public ServiceRequest(string payload)
+    {
+        this.Payload = payload;
+    }
+
     [DataMember]
     public string Payload { get; set; }
 }

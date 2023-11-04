@@ -21,7 +21,7 @@ namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
 internal sealed class RequestTelemetryState
 {
-    public IDisposable SuppressionScope { get; set; }
+    public IDisposable? SuppressionScope { get; set; }
 
-    public Activity Activity { get; set; }
+    public Activity? Activity { get; set; }
 }
