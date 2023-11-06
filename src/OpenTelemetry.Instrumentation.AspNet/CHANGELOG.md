@@ -4,7 +4,7 @@
 
 ## 1.6.0-beta.2
 
-Released 2023-Nov-6
+Released 2023-Nov-06
 
 * Fixed an issue that caused `http.server.duration` metric value to always be set
   to `0`. The issue exists in `1.6.0-beta.1` version.

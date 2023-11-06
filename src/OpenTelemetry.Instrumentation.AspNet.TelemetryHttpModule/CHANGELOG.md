@@ -4,7 +4,7 @@
 
 ## 1.6.0-beta.2
 
-Released 2023-Nov-6
+Released 2023-Nov-06
 
 ## 1.6.0-beta.1
 
