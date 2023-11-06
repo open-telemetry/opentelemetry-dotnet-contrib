@@ -108,7 +108,7 @@ internal static class JsonSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeString(byte[] buffer, int cursor, ReadOnlySpan<char> value)
     {
-        if (value == null)
+        if (value.IsEmpty)
         {
             return SerializeNull(buffer, cursor);
         }
