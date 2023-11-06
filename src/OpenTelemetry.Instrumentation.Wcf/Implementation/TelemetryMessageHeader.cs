@@ -42,7 +42,7 @@ internal class TelemetryMessageHeader : MessageHeader
         return new TelemetryMessageHeader(name, value);
     }
 
-    public static TelemetryMessageHeader FindHeader(string name, MessageHeaders allHeaders)
+    public static TelemetryMessageHeader? FindHeader(string name, MessageHeaders allHeaders)
     {
         try
         {

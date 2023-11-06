@@ -39,43 +39,46 @@ public class TelemetryPropagationTests : IDisposable
     {
         Random random = new Random();
         var retryCount = 5;
+        ServiceHost? createdHost = null;
         while (retryCount > 0)
         {
             try
             {
                 this.serviceBaseUriTcp = new Uri($"net.tcp://localhost:{random.Next(2000, 5000)}/");
                 this.serviceBaseUriHttp = new Uri($"http://localhost:{random.Next(2000, 5000)}/");
-                this.serviceHost = new ServiceHost(new Service(), this.serviceBaseUriTcp, this.serviceBaseUriHttp);
-                var tcpEndpoint = this.serviceHost.AddServiceEndpoint(typeof(IServiceContract), new NetTcpBinding(), "/tcp");
+                createdHost = new ServiceHost(new Service(), this.serviceBaseUriTcp, this.serviceBaseUriHttp);
+                var tcpEndpoint = createdHost.AddServiceEndpoint(typeof(IServiceContract), new NetTcpBinding(), "/tcp");
                 tcpEndpoint.Behaviors.Add(new TelemetryEndpointBehavior());
-                var httpEndpoint = this.serviceHost.AddServiceEndpoint(typeof(IServiceContract), new BasicHttpBinding(), "/http");
+                var httpEndpoint = createdHost.AddServiceEndpoint(typeof(IServiceContract), new BasicHttpBinding(), "/http");
                 httpEndpoint.Behaviors.Add(new TelemetryEndpointBehavior());
-                var restEndpoint = this.serviceHost.AddServiceEndpoint(typeof(IServiceContract), new WebHttpBinding(), "/rest");
+                var restEndpoint = createdHost.AddServiceEndpoint(typeof(IServiceContract), new WebHttpBinding(), "/rest");
                 restEndpoint.Behaviors.Add(new TelemetryEndpointBehavior());
                 restEndpoint.Behaviors.Add(new WebHttpBehavior());
-                this.serviceHost.Open();
+                createdHost.Open();
                 break;
             }
             catch (Exception)
             {
-                if (this.serviceHost.State == CommunicationState.Faulted)
+                if (createdHost?.State == CommunicationState.Faulted)
                 {
-                    this.serviceHost.Abort();
+                    createdHost.Abort();
                 }
                 else
                 {
-                    this.serviceHost.Close();
+                    createdHost?.Close();
                 }
 
-                this.serviceHost = null;
+                createdHost = null;
                 retryCount--;
             }
         }
 
-        if (this.serviceHost == null)
+        if (createdHost == null || this.serviceBaseUriTcp == null || this.serviceBaseUriHttp == null)
         {
             throw new InvalidOperationException("ServiceHost could not be started.");
         }
+
+        this.serviceHost = createdHost;
     }
 
     public void Dispose()
@@ -124,7 +127,7 @@ public class TelemetryPropagationTests : IDisposable
                 client.Endpoint.EndpointBehaviors.Add(new WebHttpBehavior());
             }
 
-            await client.ExecuteAsync(new ServiceRequest { Payload = "Hello Open Telemetry!" });
+            await client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
         }
         finally
         {
@@ -137,8 +140,8 @@ public class TelemetryPropagationTests : IDisposable
                 client.Close();
             }
 
-            tracerProvider.Shutdown();
-            tracerProvider.Dispose();
+            tracerProvider?.Shutdown();
+            tracerProvider?.Dispose();
 
             WcfInstrumentationActivitySource.Options = null;
         }
