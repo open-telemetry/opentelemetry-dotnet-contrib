@@ -133,6 +133,13 @@ internal static class ActivityHelper
         var currentActivity = Activity.Current;
         context.Items[ContextKey] = null;
 
+        // Make sure that the activity has a proper end time before onRequestStoppedCallback is called.
+        // Note that the activity must not be stopped before the callback is called.
+        if (aspNetActivity.Duration == TimeSpan.Zero)
+        {
+            aspNetActivity.SetEndTime(DateTime.UtcNow);
+        }
+
         try
         {
             onRequestStoppedCallback?.Invoke(aspNetActivity, context);

@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Web;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Metrics;
@@ -88,6 +89,7 @@ public class HttpInMetricsListenerTests
             .Build();
 
         var activity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStartedCallback);
+        Thread.Sleep(1); // Make sure duration is always greater than 0 to avoid flakiness.
         ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStoppedCallback);
 
         meterProvider.ForceFlush();
@@ -111,6 +113,7 @@ public class HttpInMetricsListenerTests
         Assert.Equal("http.server.duration", exportedItems[0].Name);
         Assert.Equal(1L, count);
         Assert.Equal(duration, sum);
+        Assert.True(duration > 0, "Metric duration should be set.");
 
         var expectedTagCount = string.IsNullOrEmpty(expectedRoute) ? 6 : 7;
         if (enrichMode == "enrich")
