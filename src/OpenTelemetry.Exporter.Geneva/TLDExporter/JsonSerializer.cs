@@ -336,7 +336,7 @@ internal static class JsonSerializer
 #if NET6_0_OR_GREATER
             case ISpanFormattable v:
                 tmp = stackalloc char[MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)];
-                if (v.TryFormat(tmp, out charsWritten, default, CultureInfo.InvariantCulture) && charsWritten > 0)
+                if (v.TryFormat(tmp, out charsWritten, default, CultureInfo.InvariantCulture))
                 {
                     return SerializeString(buffer, cursor, tmp.Slice(0, charsWritten));
                 }
