@@ -40,7 +40,7 @@ public class HttpInMetricsListenerTests
     [InlineData("http://localhost:8080/api/value", 1, "{controller}/{action}", null, "http")]
     [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", "enrich", "http")]
     [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", "throw", "http")]
-    [InlineData ("http://localhost:8080/api/value", 3, "{controller}/{action}", null, "http")]
+    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", null, "http")]
     public void AspNetMetricTagsAreCollectedSuccessfully(
         string url,
         int routeType,
