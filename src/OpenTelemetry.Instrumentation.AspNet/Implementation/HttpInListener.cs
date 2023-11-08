@@ -17,6 +17,7 @@
 using System;
 using System.Diagnostics;
 using System.Web;
+using System.Web.Routing;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
@@ -25,7 +26,8 @@ namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 
 internal sealed class HttpInListener : IDisposable
 {
-    private readonly HttpRequestRouteHelper routeHelper = new();
+    private readonly PropertyFetcher<object> routeFetcher = new("Route");
+    private readonly PropertyFetcher<string> routeTemplateFetcher = new("RouteTemplate");
     private readonly AspNetInstrumentationOptions options;
 
     public HttpInListener(AspNetInstrumentationOptions options)
@@ -131,7 +133,27 @@ internal sealed class HttpInListener : IDisposable
                 activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, response.StatusCode));
             }
 
-            var template = this.routeHelper.GetRouteTemplate(context.Request);
+            var routeData = context.Request.RequestContext.RouteData;
+
+            string? template = null;
+            if (routeData.Values.TryGetValue("MS_SubRoutes", out object msSubRoutes))
+            {
+                // WebAPI attribute routing flows here. Use reflection to not take a dependency on microsoft.aspnet.webapi.core\[version]\lib\[framework]\System.Web.Http.
+
+                if (msSubRoutes is Array attributeRouting && attributeRouting.Length == 1)
+                {
+                    var subRouteData = attributeRouting.GetValue(0);
+
+                    _ = this.routeFetcher.TryFetch(subRouteData, out var route);
+                    _ = this.routeTemplateFetcher.TryFetch(route, out template);
+                }
+            }
+            else if (routeData.Route is Route route)
+            {
+                // MVC + WebAPI traditional routing & MVC attribute routing flow here.
+                template = route.Url;
+            }
+
             if (!string.IsNullOrEmpty(template))
             {
                 // Override the name that was previously set to the path part of URL.

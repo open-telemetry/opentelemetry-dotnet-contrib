@@ -115,7 +115,7 @@ public class HttpInMetricsListenerTests
         Assert.Equal(duration, sum);
         Assert.True(duration > 0, "Metric duration should be set.");
 
-        var expectedTagCount = string.IsNullOrEmpty(expectedRoute) ? 6 : 7;
+        var expectedTagCount = 3;
         if (enrichMode == "enrich")
         {
             expectedTagCount++;
@@ -134,11 +134,8 @@ public class HttpInMetricsListenerTests
         }
 
         ExpectTag("GET", SemanticConventions.AttributeHttpMethod);
-        ExpectTag(200, SemanticConventions.AttributeHttpStatusCode); // TODO: Correct?
+        ExpectTag(200, SemanticConventions.AttributeHttpStatusCode);
         ExpectTag(expectedScheme, SemanticConventions.AttributeHttpScheme);
-        ExpectTag(expectedRoute, SemanticConventions.AttributeHttpRoute);
-        ExpectTag(expectedHost, SemanticConventions.AttributeNetHostName);
-        ExpectTag(expectedPort, SemanticConventions.AttributeNetHostPort);
 
         void ExpectTag<T>(T? expected, string tagName)
         {
