@@ -8,6 +8,25 @@
   * New overload of `AddAspNetInstrumentation` now accepts a configuration delegate.
   * The `Enrich` can be used to add additional metric attributes.
 
+* HTTP server metrics now follow stable
+  [semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-metrics.md#http-server).
+
+  The `http.request.duration` metric is replaced with `http.server.request.duration`.
+  Note that the unit changes from milliseconds to seconds.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO)):
+
+  The following metric attributes has been added:
+
+  * `http.request.method` (previously `http.method`)
+  * `http.response.status_code` (previously `http.status_code`)
+  * `url.scheme` (previously `http.scheme`)
+  * `server.address`
+  * `server.port`
+  * `network.protocol.name` (http)
+  * `network.protocol.version` (`1.1`, `2`, `3`)
+  * `http.route`
+  * `error.type`
+
 ## 1.6.0-beta.2
 
 Released 2023-Nov-06

@@ -24,31 +24,71 @@ namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 
 internal sealed class HttpInMetricsListener : IDisposable
 {
+    private const string HttpContextItemKey = "__AspnetInstrumentationMetrics__";
+    private const string NetworkProtocolName = "http";
+    private readonly HttpRequestRouteHelper routeHelper = new();
     private readonly Histogram<double> httpServerDuration;
     private readonly AspNetMetricsInstrumentationOptions options;
 
     public HttpInMetricsListener(Meter meter, AspNetMetricsInstrumentationOptions options)
     {
-        this.httpServerDuration = meter.CreateHistogram<double>("http.server.duration", "ms", "Measures the duration of inbound HTTP requests.");
+        this.httpServerDuration = meter.CreateHistogram<double>(
+            "http.server.request.duration",
+            unit: "s",
+            description: "Measures the duration of inbound HTTP requests.");
+        TelemetryHttpModule.Options.OnExceptionCallback += this.OnException;
         TelemetryHttpModule.Options.OnRequestStoppedCallback += this.OnStopActivity;
         this.options = options;
     }
 
     public void Dispose()
     {
+        TelemetryHttpModule.Options.OnExceptionCallback -= this.OnException;
         TelemetryHttpModule.Options.OnRequestStoppedCallback -= this.OnStopActivity;
+    }
+
+    private static string GetHttpProtocolVersion(HttpRequest request)
+    {
+        var protocol = request.ServerVariables["SERVER_PROTOCOL"];
+        return protocol switch
+        {
+            "HTTP/1.1" => "1.1",
+            "HTTP/2" => "2",
+            "HTTP/3" => "3",
+            _ => protocol,
+        };
     }
 
     private void OnStopActivity(Activity activity, HttpContext context)
     {
-        // TODO: This is just a minimal set of attributes. See the spec for additional attributes:
-        // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/http-metrics.md#http-server
+        var request = context.Request;
+        var url = request.Url;
         var tags = new TagList
         {
-            { SemanticConventions.AttributeHttpMethod, context.Request.HttpMethod },
-            { SemanticConventions.AttributeHttpScheme, context.Request.Url.Scheme },
-            { SemanticConventions.AttributeHttpStatusCode, context.Response.StatusCode },
+            { SemanticConventions.AttributeServerAddress, url.Host },
+            { SemanticConventions.AttributeServerPort, url.Port },
+            { SemanticConventions.AttributeNetworkProtocolName, NetworkProtocolName },
+            { SemanticConventions.AttributeNetworkProtocolVersion, GetHttpProtocolVersion(request) },
+            { SemanticConventions.AttributeHttpRequestMethod, request.HttpMethod },
+            { SemanticConventions.AttributeUrlScheme, url.Scheme },
+            { SemanticConventions.AttributeHttpResponseStatusCode, context.Response.StatusCode },
         };
+
+        var template = this.routeHelper.GetRouteTemplate(request);
+        if (!string.IsNullOrEmpty(template))
+        {
+            tags.Add(SemanticConventions.AttributeHttpRoute, template);
+        }
+
+        var exceptionType = context.Items[HttpContextItemKey] as string;
+        if (!string.IsNullOrEmpty(exceptionType))
+        {
+            tags.Add("error.type", exceptionType);
+        }
+        else if (context.Response.StatusCode >= 500)
+        {
+            tags.Add("error.type", $"{context.Response.StatusCode}");
+        }
 
         if (this.options.Enrich is not null)
         {
@@ -62,6 +102,12 @@ internal sealed class HttpInMetricsListener : IDisposable
             }
         }
 
-        this.httpServerDuration.Record(activity.Duration.TotalMilliseconds, tags);
+        this.httpServerDuration.Record(activity.Duration.TotalSeconds, tags);
+    }
+
+    private void OnException(Activity activity, HttpContext context, Exception exception)
+    {
+        // Record exception type in order to populate it in OnStopActivity.
+        context.Items[HttpContextItemKey] = exception.GetType().FullName;
     }
 }
