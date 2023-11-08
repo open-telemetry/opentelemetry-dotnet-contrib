@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* Added enrich functionality to metric instrumentation
+  ([#1407](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1407)).
+
+  * New overload of `AddAspNetInstrumentation` now accepts a configuration delegate.
+  * The `Enrich` can be used to add additional metric attributes.
+
 ## 1.6.0-beta.2
 
 Released 2023-Nov-06

@@ -128,13 +128,13 @@ Currently, the instrumentation supports the following metric.
 |-------|-----------------|------|-------------|
 | `http.server.duration` | Histogram | `ms` | Measures the duration of inbound HTTP requests. |
 
-## Advanced configuration
+## Advanced trace configuration
 
 This instrumentation can be configured to change the default behavior by using
 `AspNetInstrumentationOptions`, which allows configuring `Filter` as explained
 below.
 
-### Filter
+### Trace Filter
 
 This instrumentation by default collects all the incoming http requests. It
 allows filtering of requests by using the `Filter` function in
@@ -162,7 +162,7 @@ instrumentation. OpenTelemetry has a concept of a
 [Sampler](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#sampling),
 and the `Filter` option does the filtering *before* the Sampler is invoked.
 
-### Enrich
+### Trace Enrich
 
 This option allows one to enrich the activity with additional information from
 the raw `HttpRequest`, `HttpResponse` objects. The `Enrich` action is called
@@ -207,6 +207,32 @@ access to `HttpRequest` and `HttpResponse`.
 This instrumentation automatically sets Activity Status to Error if an unhandled
 exception is thrown. Additionally, `RecordException` feature may be turned on,
 to store the exception to the Activity itself as ActivityEvent.
+
+## Advanced metric configuration
+
+This instrumentation can be configured to change the default behavior by using
+`AspNetMetricsInstrumentationOptions` as explained below.
+
+### Metric Enrich
+
+This option allows one to enrich the metric with additional information from
+the `HttpContext`. The `Enrich` action is always called unless the metric was
+filtered. The callback allows for modifying the tag list. If the callback
+throws an exception the metric will still be recorded.
+
+```csharp
+this.meterProvider = Sdk.CreateMeterProviderBuilder()
+    .AddAspNetInstrumentation(options => options.Enrich =
+        (HttpContext context, ref TagList tags) =>
+    {
+        // Add request content type to the metric tags.
+        if (!string.IsNullOrEmpty(context.Request.ContentType))
+        {
+            tags.Add("custom.content.type", context.Request.ContentType);
+        }
+    })
+    .Build();
+```
 
 ## References
 
