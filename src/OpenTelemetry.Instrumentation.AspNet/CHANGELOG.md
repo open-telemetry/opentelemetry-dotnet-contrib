@@ -13,7 +13,7 @@
 
   The `http.request.duration` metric is replaced with `http.server.request.duration`.
   Note that the unit changes from milliseconds to seconds.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO)):
+  ([#1429](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1429)):
 
   The following metric attributes has been added:
 
