@@ -5,14 +5,11 @@
     <PackageTags>$(PackageTags);gRPC Core;interceptors</PackageTags>
     <MinVerTagPrefix>Instrumentation.GrpcCore-</MinVerTagPrefix>
     <Nullable>disable</Nullable>
+    <IncludeSharedGuardSource>true</IncludeSharedGuardSource>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="[3.6.1,4.0)" />
     <PackageReference Include="Grpc.Core.Api" Version="[2.23.0,3.0)" />
     <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryCoreLatestVersion)" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
   </ItemGroup>
 </Project>

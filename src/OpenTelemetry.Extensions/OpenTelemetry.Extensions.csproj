@@ -7,11 +7,8 @@
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
     <Description>OpenTelemetry .NET SDK preview features and extensions</Description>
     <MinVerTagPrefix>Extensions-</MinVerTagPrefix>
+    <IncludeSharedGuardSource>true</IncludeSharedGuardSource>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />

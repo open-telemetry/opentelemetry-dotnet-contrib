@@ -5,13 +5,10 @@
     <Description>dotnet runtime instrumentation for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);runtime</PackageTags>
     <MinVerTagPrefix>Instrumentation.Runtime-</MinVerTagPrefix>
+    <IncludeSharedGuardSource>true</IncludeSharedGuardSource>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryCoreLatestVersion)" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
   </ItemGroup>
 </Project>

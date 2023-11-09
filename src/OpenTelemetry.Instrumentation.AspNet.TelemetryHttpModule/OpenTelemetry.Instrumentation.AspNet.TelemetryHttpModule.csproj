@@ -3,14 +3,11 @@
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
+    <IncludeSharedGuardSource>true</IncludeSharedGuardSource>
     <Description>A module that instruments incoming request with System.Diagnostics.Activity and notifies listeners with DiagnosticsSource.</Description>
     <PackageTags>$(PackageTags);distributed-tracing;AspNet;MVC;WebAPI</PackageTags>
     <MinVerTagPrefix>Instrumentation.AspNet-</MinVerTagPrefix>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
-  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="System.Web" />

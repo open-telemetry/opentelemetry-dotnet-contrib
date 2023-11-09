@@ -17,8 +17,4 @@
     <PackageReference Include="System.Text.Json" Version="6.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
-  </ItemGroup>
-
 </Project>

@@ -6,6 +6,7 @@
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
     <TargetFrameworks Condition="'$(Configuration)' == 'Debug'">net6.0;$(TargetFrameworks)</TargetFrameworks> <!-- Added just to get proper nullable analysis in IDE -->
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
+    <IncludeSharedGuardSource>true</IncludeSharedGuardSource>
     <Description>OpenTelemetry Persistent Storage</Description>
     <MinVerTagPrefix>PersistentStorage-</MinVerTagPrefix>
   </PropertyGroup>
@@ -19,7 +20,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\NullableAttributes.cs" Link="Includes\NullableAttributes.cs" />
   </ItemGroup>
 

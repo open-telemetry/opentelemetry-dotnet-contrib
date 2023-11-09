@@ -6,6 +6,7 @@
     <Description>OpenTelemetry extensions for AWS.</Description>
     <MinVerTagPrefix>Extensions.AWS-</MinVerTagPrefix>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
+    <IncludeSharedGuardSource>true</IncludeSharedGuardSource>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,9 +17,4 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'">
     <PackageReference Include="System.Text.Json" Version="6.0.0" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
-  </ItemGroup>
-
 </Project>

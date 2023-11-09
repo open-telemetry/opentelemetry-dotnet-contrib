@@ -5,15 +5,12 @@
     <Description>OpenTelemetry Cassandra Instrumentation</Description>
     <PackageTags>$(PackageTags);Cassandra;CassandraCSharpDriver</PackageTags>
     <MinVerTagPrefix>Instrumentation.Cassandra-</MinVerTagPrefix>
+    <IncludeSharedGuardSource>true</IncludeSharedGuardSource>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CassandraCSharpDriver" Version="$(CassandraCSharpDriverPkgVer)" />
     <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryCoreLatestVersion)" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
   </ItemGroup>
 
 </Project>

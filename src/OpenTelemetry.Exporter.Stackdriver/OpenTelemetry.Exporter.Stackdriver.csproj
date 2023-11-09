@@ -6,14 +6,11 @@
     <PackageTags>$(PackageTags);Stackdriver;Google;GCP;distributed-tracing</PackageTags>
     <MinVerTagPrefix>Exporter.Stackdriver-</MinVerTagPrefix>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
+    <IncludeSharedGuardSource>true</IncludeSharedGuardSource>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Google.Cloud.Monitoring.V3" Version="[2.6.0,4.0)" />
     <PackageReference Include="Google.Cloud.Trace.V2" Version="[2.3.0,4.0)" />
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
   </ItemGroup>
 </Project>

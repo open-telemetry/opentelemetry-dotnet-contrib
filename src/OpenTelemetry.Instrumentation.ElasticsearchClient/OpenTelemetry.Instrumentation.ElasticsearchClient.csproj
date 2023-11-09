@@ -11,14 +11,11 @@
     <IncludeSharedDiagnosticSourceSubscriber>true</IncludeSharedDiagnosticSourceSubscriber>
     <IncludeSharedActivityInstrumentationHelper>true</IncludeSharedActivityInstrumentationHelper>
     <IncludeSharedSpanHelper>true</IncludeSharedSpanHelper>
+    <IncludeSharedGuardSource>true</IncludeSharedGuardSource>
     <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
     <PackageReference Include="System.Text.Json" Version="6.0.4" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
   </ItemGroup>
 </Project>

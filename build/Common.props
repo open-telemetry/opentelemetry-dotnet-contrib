@@ -54,6 +54,10 @@
     <PackageReference Include="StyleCop.Analyzers" Version="$(StyleCopAnalyzersPkgVer)" Condition="'$(SkipAnalysis)'!='true'" PrivateAssets="All" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(IncludeSharedGuardSource)'=='true'">
+    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(IncludeSharedExceptionExtensionsSource)'=='true'">
     <Compile Include="$(RepoRoot)\src\Shared\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
   </ItemGroup>

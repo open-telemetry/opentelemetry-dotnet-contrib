@@ -4,6 +4,7 @@
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
+    <IncludeSharedGuardSource>true</IncludeSharedGuardSource>
     <Description>OpenTelemetry instrumentation for WCF</Description>
     <PackageTags>$(PackageTags);distributed-tracing;WCF</PackageTags>
     <MinVerTagPrefix>Instrumentation.Wcf-</MinVerTagPrefix>
@@ -23,7 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\PropertyFetcher.cs" Link="Includes\PropertyFetcher.cs" />
   </ItemGroup>
 

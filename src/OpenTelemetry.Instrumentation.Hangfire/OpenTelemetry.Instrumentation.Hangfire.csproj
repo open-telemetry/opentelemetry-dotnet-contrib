@@ -5,12 +5,10 @@
     <PackageTags>$(PackageTags);Hangfire</PackageTags>
     <MinVerTagPrefix>Instrumentation.Hangfire-</MinVerTagPrefix>
     <SignAssembly>false</SignAssembly>
+    <IncludeSharedGuardSource>true</IncludeSharedGuardSource>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Hangfire.Core" Version="[1.7.0,1.9.0)" />
     <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryCoreLatestVersion)" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
   </ItemGroup>
 </Project>
