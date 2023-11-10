@@ -11,6 +11,8 @@ OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.AspNetM
 OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.Enrich.get -> OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.EnrichFunc?
 OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.Enrich.set -> void
 OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.EnrichFunc
+OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.Filter.get -> System.Func<System.Web.HttpContext!, bool>?
+OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.Filter.set -> void
 OpenTelemetry.Metrics.MeterProviderBuilderExtensions
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
 static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddAspNetInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder! builder) -> OpenTelemetry.Metrics.MeterProviderBuilder!

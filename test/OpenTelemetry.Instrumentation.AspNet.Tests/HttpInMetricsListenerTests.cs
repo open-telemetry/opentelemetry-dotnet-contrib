@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Security.Policy;
 using System.Threading;
 using System.Web;
 using OpenTelemetry.Context.Propagation;
@@ -29,23 +30,25 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 public class HttpInMetricsListenerTests
 {
     [Theory]
-    [InlineData("http://localhost/", 0, null, null, "http")]
-    [InlineData("https://localhost/", 0, null, null, "https")]
-    [InlineData("http://localhost/api/value", 0, null, null, "http")]
-    [InlineData("http://localhost/api/value", 1, "{controller}/{action}", null, "http")]
-    [InlineData("http://localhost/api/value", 2, "{controller}/{action}", null, "http")]
-    [InlineData("http://localhost/api/value", 3, "{controller}/{action}", null, "http")]
-    [InlineData("http://localhost/api/value", 4, "{controller}/{action}", null, "http")]
-    [InlineData("http://localhost:8080/api/value", 0, null, null, "http")]
-    [InlineData("http://localhost:8080/api/value", 1, "{controller}/{action}", null, "http")]
-    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", "enrich", "http")]
-    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", "throw", "http")]
-    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", null, "http")]
+    [InlineData("http://localhost/", 0, null, null, null, "http")]
+    [InlineData("https://localhost/", 0, null, null, null, "https")]
+    [InlineData("http://localhost/api/value", 0, null, null, null, "http")]
+    [InlineData("http://localhost/api/value", 1, "{controller}/{action}", null, null, "http")]
+    [InlineData("http://localhost/api/value", 2, "{controller}/{action}", null, null, "http")]
+    [InlineData("http://localhost/api/value", 3, "{controller}/{action}", null, null, "http")]
+    [InlineData("http://localhost/api/value", 4, "{controller}/{action}", null, null, "http")]
+    [InlineData("http://localhost:8080/api/value", 0, null, null, null, "http")]
+    [InlineData("http://localhost:8080/api/value", 1, "{controller}/{action}", null, null, "http")]
+    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", "enrich", null, "http")]
+    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", "throw", null, "http")]
+    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", null, "on", "http")]
+    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", null, null, "http")]
     public void AspNetMetricTagsAreCollectedSuccessfully(
         string url,
         int routeType,
         string routeTemplate,
         string enrichMode,
+        string filterMode,
         string expectedScheme)
     {
         double duration = 0;
@@ -81,6 +84,17 @@ public class HttpInMetricsListenerTests
                         tags.Add("enriched", "true");
                     }
                 };
+
+                options.Filter += (HttpContext httpContext) =>
+                {
+                    // If filterMode is on, filter out the current metric
+                    if (filterMode == "on")
+                    {
+                        return false;
+                    }
+
+                    return true;
+                };
             })
             .AddInMemoryExporter(exportedItems)
             .Build();
@@ -90,6 +104,13 @@ public class HttpInMetricsListenerTests
         ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStoppedCallback);
 
         meterProvider.ForceFlush();
+
+        // If filtering is enabled, we should have collected no data. 
+        if (filterMode == "on")
+        {
+            Assert.Empty(exportedItems);
+            return;
+        }
 
         Assert.Single(exportedItems);
 
@@ -116,6 +137,12 @@ public class HttpInMetricsListenerTests
         if (enrichMode == "enrich")
         {
             expectedTagCount++;
+        }
+
+        var expectedMetricPoints = 1;
+        if (filterMode == "on")
+        {
+            expectedMetricPoints++;
         }
 
         Assert.Equal(expectedTagCount, metricPoints[0].Tags.Count);

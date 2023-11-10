@@ -18,7 +18,6 @@ using System;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using OpenTelemetry.Instrumentation.AspNet.Implementation;
-using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.AspNet;
 
@@ -41,7 +40,6 @@ internal sealed class AspNetMetrics : IDisposable
     /// <param name="options">The metrics configuration options.</param>
     public AspNetMetrics(AspNetMetricsInstrumentationOptions options)
     {
-        Guard.ThrowIfNull(options);
         this.meter = new Meter(InstrumentationName, InstrumentationVersion);
         this.httpInMetricsListener = new HttpInMetricsListener(this.meter, options);
     }

@@ -43,7 +43,7 @@ internal sealed class HttpInMetricsListener : IDisposable
     {
         try
         {
-            if (this.options.Filter?.Invoke(this.httpServerDurationMetricName, context) == false && Activity.Current != null)
+            if (this.options.Filter?.Invoke(context) == false && Activity.Current != null)
             {
                 AspNetInstrumentationEventSource.Log.RequestIsFilteredOut(Activity.Current.OperationName);
                 return;
@@ -51,7 +51,7 @@ internal sealed class HttpInMetricsListener : IDisposable
         }
         catch (Exception ex)
         {
-            AspNetInstrumentationEventSource.Log.RequestFilterException(this.onStopActivityEventName, ex);
+            AspNetInstrumentationEventSource.Log.RequestFilterException(nameof(HttpInMetricsListener), ex);
             return;
         }
 
