@@ -10,6 +10,10 @@
   are no Part C fields.
   ([#1396](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1396))
 
+* Fix a serialization issue for `TldTraceExporter` and `TldLogExporter` when any
+  non-primitive types have to be serialized for `env_properties`.
+  ([#1424](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1424))
+
 ## 1.7.0-alpha.1
 
 Released 2023-Sep-22

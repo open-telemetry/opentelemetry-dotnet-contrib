@@ -25,17 +25,17 @@ namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
 internal static class ClientChannelInstrumentation
 {
-    public static RequestTelemetryState BeforeSendRequest(Message request, Uri remoteChannelAddress)
+    public static RequestTelemetryState BeforeSendRequest(Message request, Uri? remoteChannelAddress)
     {
         if (!ShouldInstrumentRequest(request))
         {
             return new RequestTelemetryState { SuppressionScope = SuppressDownstreamInstrumentation() };
         }
 
-        Activity activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
+        Activity? activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
             WcfInstrumentationActivitySource.OutgoingRequestActivityName,
             ActivityKind.Client);
-        IDisposable suppressionScope = SuppressDownstreamInstrumentation();
+        IDisposable? suppressionScope = SuppressDownstreamInstrumentation();
 
         if (activity != null)
         {
@@ -59,7 +59,7 @@ internal static class ClientChannelInstrumentation
                 activity.SetTag(WcfInstrumentationConstants.RpcServiceTag, actionMetadata.ContractName);
                 activity.SetTag(WcfInstrumentationConstants.RpcMethodTag, actionMetadata.OperationName);
 
-                if (WcfInstrumentationActivitySource.Options.SetSoapMessageVersion)
+                if (WcfInstrumentationActivitySource.Options!.SetSoapMessageVersion)
                 {
                     activity.SetTag(WcfInstrumentationConstants.SoapMessageVersionTag, request.Version.ToString());
                 }
@@ -96,7 +96,7 @@ internal static class ClientChannelInstrumentation
         };
     }
 
-    public static void AfterRequestCompleted(Message reply, RequestTelemetryState state)
+    public static void AfterRequestCompleted(Message? reply, RequestTelemetryState state)
     {
         Guard.ThrowIfNull(state);
 
@@ -116,7 +116,7 @@ internal static class ClientChannelInstrumentation
                     activity.SetTag(WcfInstrumentationConstants.SoapReplyActionTag, reply.Headers.Action);
                     try
                     {
-                        WcfInstrumentationActivitySource.Options.Enrich?.Invoke(activity, WcfEnrichEventNames.AfterReceiveReply, reply);
+                        WcfInstrumentationActivitySource.Options!.Enrich?.Invoke(activity, WcfEnrichEventNames.AfterReceiveReply, reply);
                     }
                     catch (Exception ex)
                     {
@@ -129,7 +129,7 @@ internal static class ClientChannelInstrumentation
         }
     }
 
-    private static IDisposable SuppressDownstreamInstrumentation()
+    private static IDisposable? SuppressDownstreamInstrumentation()
     {
         return WcfInstrumentationActivitySource.Options?.SuppressDownstreamInstrumentation ?? false
             ? SuppressInstrumentationScope.Begin()
@@ -138,7 +138,7 @@ internal static class ClientChannelInstrumentation
 
     private static ActionMetadata GetActionMetadata(Message request, string action)
     {
-        ActionMetadata actionMetadata = null;
+        ActionMetadata? actionMetadata = null;
         if (request.Properties.TryGetValue(TelemetryContextMessageProperty.Name, out object telemetryContextProperty))
         {
             var actionMappings = (telemetryContextProperty as TelemetryContextMessageProperty)?.ActionMappings;
@@ -148,11 +148,9 @@ internal static class ClientChannelInstrumentation
             }
         }
 
-        return actionMetadata != null ? actionMetadata : new ActionMetadata
-        {
-            ContractName = null,
-            OperationName = action,
-        };
+        return actionMetadata != null ? actionMetadata : new ActionMetadata(
+            contractName: null,
+            operationName: action);
     }
 
     private static bool ShouldInstrumentRequest(Message request)

@@ -41,27 +41,21 @@ public class Service : IServiceContract
     public Task<ServiceResponse> ExecuteAsync(ServiceRequest request)
     {
         return Task.FromResult(
-            new ServiceResponse
-            {
-                Payload = $"RSP: {request.Payload}",
-            });
+            new ServiceResponse(
+                payload: $"RSP: {request.Payload}"));
     }
 
     public ServiceResponse ExecuteSynchronous(ServiceRequest request)
     {
-        return new ServiceResponse
-            {
-                Payload = $"RSP: {request.Payload}",
-            };
+        return new ServiceResponse(
+                payload: $"RSP: {request.Payload}");
     }
 
     public Task<ServiceResponse> ExecuteWithEmptyActionNameAsync(ServiceRequest request)
     {
         return Task.FromResult(
-            new ServiceResponse
-            {
-                Payload = $"RSP: {request.Payload}",
-            });
+            new ServiceResponse(
+                payload: $"RSP: {request.Payload}"));
     }
 
     public void ExecuteWithOneWay(ServiceRequest request)

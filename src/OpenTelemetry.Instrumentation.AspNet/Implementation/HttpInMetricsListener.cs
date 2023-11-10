@@ -26,14 +26,12 @@ internal sealed class HttpInMetricsListener : IDisposable
 {
     private readonly Histogram<double> httpServerDuration;
     private readonly AspNetMetricsInstrumentationOptions options;
-    private readonly string httpServerDurationMetricName = "http.server.duration";
-    private readonly string onStopActivityEventName = "OnStopActivity";
 
     public HttpInMetricsListener(Meter meter, AspNetMetricsInstrumentationOptions options)
     {
-        this.options = options;
-        this.httpServerDuration = meter.CreateHistogram<double>(this.httpServerDurationMetricName, "ms", "Measures the duration of inbound HTTP requests.");
+        this.httpServerDuration = meter.CreateHistogram<double>("http.server.duration", "ms", "Measures the duration of inbound HTTP requests.");
         TelemetryHttpModule.Options.OnRequestStoppedCallback += this.OnStopActivity;
+        this.options = options;
     }
 
     public void Dispose()
@@ -66,15 +64,15 @@ internal sealed class HttpInMetricsListener : IDisposable
             { SemanticConventions.AttributeHttpStatusCode, context.Response.StatusCode },
         };
 
-        if (this.options.Enrich != null)
+        if (this.options.Enrich is not null)
         {
             try
             {
-                this.options.Enrich(this.httpServerDurationMetricName, context, ref tags);
+                this.options.Enrich(context, ref tags);
             }
             catch (Exception ex)
             {
-                AspNetInstrumentationEventSource.Log.EnrichmentException(this.onStopActivityEventName, ex);
+                AspNetInstrumentationEventSource.Log.EnrichmentException(nameof(HttpInMetricsListener), ex);
             }
         }
 

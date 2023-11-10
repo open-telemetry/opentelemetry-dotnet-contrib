@@ -38,7 +38,7 @@ internal sealed class AspNetMetrics : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="AspNetMetrics"/> class.
     /// </summary>
-    /// <param name="options">Allows users to define any filtering or enrichment functionality.</param>
+    /// <param name="options">The metrics configuration options.</param>
     public AspNetMetrics(AspNetMetricsInstrumentationOptions options)
     {
         Guard.ThrowIfNull(options);

@@ -20,6 +20,10 @@ using System.Reflection;
 using System.Reflection.Emit;
 using OpenTelemetry.Trace;
 using StackExchange.Redis.Profiling;
+#if NET6_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+#endif
 
 namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation;
 
@@ -27,9 +31,8 @@ internal static class RedisProfilerEntryToActivityConverter
 {
     private static readonly Lazy<Func<object, (string?, string?)>> MessageDataGetter = new(() =>
     {
-        var redisAssembly = typeof(IProfiledCommand).Assembly;
-        Type profiledCommandType = redisAssembly.GetType("StackExchange.Redis.Profiling.ProfiledCommand");
-        Type scriptMessageType = redisAssembly.GetType("StackExchange.Redis.RedisDatabase+ScriptEvalMessage");
+        Type profiledCommandType = Type.GetType("StackExchange.Redis.Profiling.ProfiledCommand, StackExchange.Redis", throwOnError: true)!;
+        Type scriptMessageType = Type.GetType("StackExchange.Redis.RedisDatabase+ScriptEvalMessage, StackExchange.Redis", throwOnError: true)!;
 
         var messageDelegate = CreateFieldGetter<object>(profiledCommandType, "Message", BindingFlags.NonPublic | BindingFlags.Instance);
         var scriptDelegate = CreateFieldGetter<string>(scriptMessageType, "script", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -59,12 +62,27 @@ internal static class RedisProfilerEntryToActivityConverter
                 script = scriptDelegate?.Invoke(message);
             }
 
-            if (commandAndKeyFetcher.TryFetch(message, out var value))
+            if (GetCommandAndKey(commandAndKeyFetcher, message, out var value))
             {
                 return (value, script);
             }
 
             return (null, script);
+
+#if NET6_0_OR_GREATER
+            [DynamicDependency("CommandAndKey", "StackExchange.Redis.Message", "StackExchange.Redis")]
+            [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The CommandAndKey property is preserved by the above DynamicDependency")]
+#endif
+            static bool GetCommandAndKey(
+                PropertyFetcher<string> commandAndKeyFetcher,
+                object message,
+#if NET6_0_OR_GREATER
+                [NotNullWhen(true)]
+#endif
+                out string? value)
+            {
+                return commandAndKeyFetcher.TryFetch(message, out value);
+            }
         });
     });
 
@@ -186,20 +204,37 @@ internal static class RedisProfilerEntryToActivityConverter
     /// Creates getter for a field defined in private or internal type
     /// represented with classType variable.
     /// </summary>
-    private static Func<object, TField>? CreateFieldGetter<TField>(Type classType, string fieldName, BindingFlags flags)
+    private static Func<object, TField?>? CreateFieldGetter<TField>(
+#if NET6_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)]
+#endif
+        Type classType,
+        string fieldName,
+        BindingFlags flags)
     {
-        FieldInfo field = classType.GetField(fieldName, flags);
+        FieldInfo? field = classType.GetField(fieldName, flags);
         if (field != null)
         {
-            string methodName = classType.FullName + ".get_" + field.Name;
-            DynamicMethod getterMethod = new DynamicMethod(methodName, typeof(TField), new[] { typeof(object) }, true);
-            ILGenerator generator = getterMethod.GetILGenerator();
-            generator.Emit(OpCodes.Ldarg_0);
-            generator.Emit(OpCodes.Castclass, classType);
-            generator.Emit(OpCodes.Ldfld, field);
-            generator.Emit(OpCodes.Ret);
+#if NET6_0_OR_GREATER
+            if (RuntimeFeature.IsDynamicCodeSupported)
+#endif
+            {
+                string methodName = classType.FullName + ".get_" + field.Name;
+                DynamicMethod getterMethod = new DynamicMethod(methodName, typeof(TField), new[] { typeof(object) }, true);
+                ILGenerator generator = getterMethod.GetILGenerator();
+                generator.Emit(OpCodes.Ldarg_0);
+                generator.Emit(OpCodes.Castclass, classType);
+                generator.Emit(OpCodes.Ldfld, field);
+                generator.Emit(OpCodes.Ret);
 
-            return (Func<object, TField>)getterMethod.CreateDelegate(typeof(Func<object, TField>));
+                return (Func<object, TField>)getterMethod.CreateDelegate(typeof(Func<object, TField>));
+            }
+#if NET6_0_OR_GREATER
+            else
+            {
+                return obj => (TField?)field.GetValue(obj);
+            }
+#endif
         }
 
         return null;

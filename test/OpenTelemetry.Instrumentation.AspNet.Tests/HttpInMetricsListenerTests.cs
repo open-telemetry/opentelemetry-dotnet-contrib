@@ -14,9 +14,10 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
+using System.Threading;
 using System.Web;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Metrics;
@@ -27,100 +28,28 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 
 public class HttpInMetricsListenerTests
 {
-    [Fact]
-    public void HttpDurationMetricIsEmitted()
+    [Theory]
+    [InlineData("http://localhost/", 0, null, null, "http")]
+    [InlineData("https://localhost/", 0, null, null, "https")]
+    [InlineData("http://localhost/api/value", 0, null, null, "http")]
+    [InlineData("http://localhost/api/value", 1, "{controller}/{action}", null, "http")]
+    [InlineData("http://localhost/api/value", 2, "{controller}/{action}", null, "http")]
+    [InlineData("http://localhost/api/value", 3, "{controller}/{action}", null, "http")]
+    [InlineData("http://localhost/api/value", 4, "{controller}/{action}", null, "http")]
+    [InlineData("http://localhost:8080/api/value", 0, null, null, "http")]
+    [InlineData("http://localhost:8080/api/value", 1, "{controller}/{action}", null, "http")]
+    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", "enrich", "http")]
+    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", "throw", "http")]
+    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", null, "http")]
+    public void AspNetMetricTagsAreCollectedSuccessfully(
+        string url,
+        int routeType,
+        string routeTemplate,
+        string enrichMode,
+        string expectedScheme)
     {
-        string url = "http://localhost/api/value";
         double duration = 0;
-        HttpContext.Current = new HttpContext(
-            new HttpRequest(string.Empty, url, string.Empty),
-            new HttpResponse(new StringWriter()));
-
-        // This is to enable activity creation
-        // as it is created using ActivitySource inside TelemetryHttpModule
-        // TODO: This should not be needed once the dependency on activity is removed from metrics
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddAspNetInstrumentation(opts => opts.Enrich
-                = (activity, eventName, rawObject) =>
-                {
-                    if (eventName.Equals("OnStopActivity"))
-                    {
-                        duration = activity.Duration.TotalMilliseconds;
-                    }
-                })
-            .Build();
-
-        var exportedItems = new List<Metric>();
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddAspNetInstrumentation()
-            .AddInMemoryExporter(exportedItems)
-            .Build();
-
-        var activity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStartedCallback);
-        ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStoppedCallback);
-
-        meterProvider.ForceFlush();
-
-        var metricPoints = new List<MetricPoint>();
-        foreach (var p in exportedItems[0].GetMetricPoints())
-        {
-            metricPoints.Add(p);
-        }
-
-        Assert.Single(metricPoints);
-
-        var metricPoint = metricPoints[0];
-
-        var count = metricPoint.GetHistogramCount();
-        var sum = metricPoint.GetHistogramSum();
-
-        Assert.Equal(MetricType.Histogram, exportedItems[0].MetricType);
-        Assert.Equal("http.server.duration", exportedItems[0].Name);
-        Assert.Equal(1L, count);
-        Assert.Equal(duration, sum);
-
-        Assert.Equal(3, metricPoints[0].Tags.Count);
-        string? httpMethod = null;
-        int httpStatusCode = 0;
-        string? httpScheme = null;
-
-        foreach (var tag in metricPoints[0].Tags)
-        {
-            if (tag.Key == SemanticConventions.AttributeHttpMethod)
-            {
-                httpMethod = (string)tag.Value;
-                continue;
-            }
-
-            if (tag.Key == SemanticConventions.AttributeHttpStatusCode)
-            {
-                httpStatusCode = (int)tag.Value;
-                continue;
-            }
-
-            if (tag.Key == SemanticConventions.AttributeHttpScheme)
-            {
-                httpScheme = (string)tag.Value;
-                continue;
-            }
-        }
-
-        Assert.Equal("GET", httpMethod);
-        Assert.Equal(200, httpStatusCode);
-        Assert.Equal("http", httpScheme);
-    }
-
-    [Fact]
-    public void HttpDurationMetricIsEmittedWithEnrichments()
-    {
-        // Custom tag that will be added to the http.server.duration metric's TagList
-        KeyValuePair<string, object?> testTag = new("testTagKey", "testTagValue");
-
-        string url = "http://localhost/api/value";
-        double duration = 0;
-        HttpContext.Current = new HttpContext(
-            new HttpRequest(string.Empty, url, string.Empty),
-            new HttpResponse(new StringWriter()));
+        HttpContext.Current = RouteTestHelper.BuildHttpContext(url, routeType, routeTemplate);
 
         // This is to enable activity creation
         // as it is created using ActivitySource inside TelemetryHttpModule
@@ -140,13 +69,16 @@ public class HttpInMetricsListenerTests
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddAspNetInstrumentation(options =>
             {
-                options.Enrich = (string metricName, HttpContext httpContext, ref TagList tags) =>
+                options.Enrich += (HttpContext context, ref TagList tags) =>
                 {
-                    // If we're emitting an http.server.duration metric...
-                    if (metricName == "http.server.duration")
+                    if (enrichMode == "throw")
                     {
-                        // Enrich it with the given custom tag.
-                        tags.Add(testTag);
+                        throw new Exception("Enrich exception");
+                    }
+
+                    if (enrichMode == "enrich")
+                    {
+                        tags.Add("enriched", "true");
                     }
                 };
             })
@@ -154,186 +86,11 @@ public class HttpInMetricsListenerTests
             .Build();
 
         var activity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStartedCallback);
+        Thread.Sleep(1); // Make sure duration is always greater than 0 to avoid flakiness.
         ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStoppedCallback);
 
         meterProvider.ForceFlush();
 
-        var metricPoints = new List<MetricPoint>();
-        foreach (var p in exportedItems[0].GetMetricPoints())
-        {
-            metricPoints.Add(p);
-        }
-
-        Assert.Single(metricPoints);
-
-        var metricPoint = metricPoints[0];
-
-        var count = metricPoint.GetHistogramCount();
-        var sum = metricPoint.GetHistogramSum();
-
-        Assert.Equal(MetricType.Histogram, exportedItems[0].MetricType);
-        Assert.Equal("http.server.duration", exportedItems[0].Name);
-        Assert.Equal(1L, count);
-        Assert.Equal(duration, sum);
-
-        Assert.Equal(4, metricPoints[0].Tags.Count);
-        string? httpMethod = null;
-        int httpStatusCode = 0;
-        string? httpScheme = null;
-        string? testTagVal = null;
-
-        foreach (var tag in metricPoints[0].Tags)
-        {
-            if (tag.Key == SemanticConventions.AttributeHttpMethod)
-            {
-                httpMethod = (string)tag.Value;
-                continue;
-            }
-
-            if (tag.Key == SemanticConventions.AttributeHttpStatusCode)
-            {
-                httpStatusCode = (int)tag.Value;
-                continue;
-            }
-
-            if (tag.Key == SemanticConventions.AttributeHttpScheme)
-            {
-                httpScheme = (string)tag.Value;
-                continue;
-            }
-
-            if (tag.Key == testTag.Key)
-            {
-                testTagVal = (string)tag.Value;
-                continue;
-            }
-        }
-
-        Assert.Equal("GET", httpMethod);
-        Assert.Equal(200, httpStatusCode);
-        Assert.Equal("http", httpScheme);
-        Assert.Equal(testTag.Value, testTagVal);
-    }
-
-    [Fact]
-    public void HttpDurationMetricIsFiltered()
-    {
-        // Make two "requests" and filter the http.server.duration to only collect
-        // metrics for one of the given URLs.
-        string url1 = "http://localhost/api/filterout";
-        string url2 = "http://localhost/api/collect";
-        double duration = 0;
-        HttpContext.Current = new HttpContext(
-            new HttpRequest(string.Empty, url1, string.Empty),
-            new HttpResponse(new StringWriter()));
-
-        // This is to enable activity creation
-        // as it is created using ActivitySource inside TelemetryHttpModule
-        // TODO: This should not be needed once the dependency on activity is removed from metrics
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddAspNetInstrumentation(opts => opts.Enrich
-                = (activity, eventName, rawObject) =>
-                {
-                    if (eventName.Equals("OnStopActivity"))
-                    {
-                        duration = activity.Duration.TotalMilliseconds;
-                    }
-                })
-            .Build();
-
-        var exportedItems = new List<Metric>();
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddAspNetInstrumentation(options =>
-            {
-                options.Filter = (string metricName, HttpContext httpContext) =>
-                {
-                    // If the request hits a given URL, we shouldn't emit a metric.
-                    return httpContext.Request.Url.AbsoluteUri != url1;
-                };
-            })
-            .AddInMemoryExporter(exportedItems)
-            .Build();
-
-        var activity1 = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStartedCallback);
-        ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity1, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStoppedCallback);
-
-        HttpContext.Current = new HttpContext(
-            new HttpRequest(string.Empty, url2, string.Empty),
-            new HttpResponse(new StringWriter()));
-
-        var activity2 = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStartedCallback);
-        ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity2, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStoppedCallback);
-
-        meterProvider.ForceFlush();
-
-        // We should've only collected one metric
-        Assert.Single(exportedItems);
-    }
-
-    [Fact]
-    public void HttpDurationMetricIsEmittedWithEnrichmentsAndFiltered()
-    {
-        // Custom tag that will be added to the http.server.duration metric's TagList
-        KeyValuePair<string, object?> testTag = new("testTagKey", "testTagValue");
-
-        // Make two "requests" and filter the http.server.duration to only collect
-        // metrics for one of the given URLs.
-        string url1 = "http://localhost/api/filterout";
-        string url2 = "http://localhost/api/collect";
-        double duration = 0;
-        HttpContext.Current = new HttpContext(
-            new HttpRequest(string.Empty, url1, string.Empty),
-            new HttpResponse(new StringWriter()));
-
-        // This is to enable activity creation
-        // as it is created using ActivitySource inside TelemetryHttpModule
-        // TODO: This should not be needed once the dependency on activity is removed from metrics
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddAspNetInstrumentation(opts => opts.Enrich
-                = (activity, eventName, rawObject) =>
-                {
-                    if (eventName.Equals("OnStopActivity"))
-                    {
-                        duration = activity.Duration.TotalMilliseconds;
-                    }
-                })
-            .Build();
-
-        var exportedItems = new List<Metric>();
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddAspNetInstrumentation(options =>
-            {
-                options.Enrich = (string metricName, HttpContext httpContext, ref TagList tags) =>
-                {
-                    // If we're emitting an http.server.duration metric...
-                    if (metricName == "http.server.duration")
-                    {
-                        // Enrich it with the given custom tag.
-                        tags.Add(testTag);
-                    }
-                };
-                options.Filter = (string metricName, HttpContext httpContext) =>
-                {
-                    // If the request hits a given URL, we shouldn't emit a metric.
-                    return httpContext.Request.Url.AbsoluteUri != url1;
-                };
-            })
-            .AddInMemoryExporter(exportedItems)
-            .Build();
-
-        var activity1 = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStartedCallback);
-        ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity1, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStoppedCallback);
-
-        HttpContext.Current = new HttpContext(
-            new HttpRequest(string.Empty, url2, string.Empty),
-            new HttpResponse(new StringWriter()));
-
-        var activity2 = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStartedCallback);
-        ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity2, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStoppedCallback);
-
-        meterProvider.ForceFlush();
-
-        // We should've only collected one metric
         Assert.Single(exportedItems);
 
         var metricPoints = new List<MetricPoint>();
@@ -353,43 +110,45 @@ public class HttpInMetricsListenerTests
         Assert.Equal("http.server.duration", exportedItems[0].Name);
         Assert.Equal(1L, count);
         Assert.Equal(duration, sum);
+        Assert.True(duration > 0, "Metric duration should be set.");
 
-        Assert.Equal(4, metricPoints[0].Tags.Count);
-        string? httpMethod = null;
-        int httpStatusCode = 0;
-        string? httpScheme = null;
-        string? testTagVal = null;
-
-        foreach (var tag in metricPoints[0].Tags)
+        var expectedTagCount = 3;
+        if (enrichMode == "enrich")
         {
-            if (tag.Key == SemanticConventions.AttributeHttpMethod)
-            {
-                httpMethod = (string)tag.Value;
-                continue;
-            }
-
-            if (tag.Key == SemanticConventions.AttributeHttpStatusCode)
-            {
-                httpStatusCode = (int)tag.Value;
-                continue;
-            }
-
-            if (tag.Key == SemanticConventions.AttributeHttpScheme)
-            {
-                httpScheme = (string)tag.Value;
-                continue;
-            }
-
-            if (tag.Key == testTag.Key)
-            {
-                testTagVal = (string)tag.Value;
-                continue;
-            }
+            expectedTagCount++;
         }
 
-        Assert.Equal("GET", httpMethod);
-        Assert.Equal(200, httpStatusCode);
-        Assert.Equal("http", httpScheme);
-        Assert.Equal(testTag.Value, testTagVal);
+        Assert.Equal(expectedTagCount, metricPoints[0].Tags.Count);
+        Dictionary<string, object?> tags = new(metricPoint.Tags.Count);
+        foreach (var tag in metricPoint.Tags)
+        {
+            tags.Add(tag.Key, tag.Value);
+        }
+
+        if (enrichMode == "enrich")
+        {
+            ExpectTag("true", "enriched");
+        }
+
+        ExpectTag("GET", SemanticConventions.AttributeHttpMethod);
+        ExpectTag(200, SemanticConventions.AttributeHttpStatusCode);
+        ExpectTag(expectedScheme, SemanticConventions.AttributeHttpScheme);
+
+        void ExpectTag<T>(T? expected, string tagName)
+        {
+            if (expected is null)
+            {
+                Assert.DoesNotContain(tagName, tags.Keys);
+                return;
+            }
+
+            if (tags.TryGetValue(tagName, out var value))
+            {
+                Assert.Equal(expected, (T?)value);
+                return;
+            }
+
+            Assert.Fail($"Expected tag with key {tagName} not found.");
+        }
     }
 }

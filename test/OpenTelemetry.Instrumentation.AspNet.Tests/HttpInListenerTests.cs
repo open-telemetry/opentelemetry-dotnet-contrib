@@ -58,49 +58,7 @@ public class HttpInListenerTests
         string? filter = null,
         bool recordException = false)
     {
-        RouteData routeData;
-        switch (routeType)
-        {
-            case 0: // WebForm, no route data.
-                routeData = new RouteData();
-                break;
-            case 1: // Traditional MVC.
-            case 2: // Attribute routing MVC.
-            case 3: // Traditional WebAPI.
-                routeData = new RouteData()
-                {
-                    Route = new Route(routeTemplate, null),
-                };
-                break;
-            case 4: // Attribute routing WebAPI.
-                routeData = new RouteData();
-                var value = new[]
-                {
-                    new
-                    {
-                        Route = new
-                        {
-                            RouteTemplate = routeTemplate,
-                        },
-                    },
-                };
-                routeData.Values.Add(
-                    "MS_SubRoutes",
-                    value);
-                break;
-            default:
-                throw new NotSupportedException();
-        }
-
-        HttpContext.Current = new HttpContext(
-            new HttpRequest(string.Empty, url, string.Empty)
-            {
-                RequestContext = new RequestContext()
-                {
-                    RouteData = routeData,
-                },
-            },
-            new HttpResponse(new StringWriter()));
+        HttpContext.Current = RouteTestHelper.BuildHttpContext(url, routeType, routeTemplate);
 
         typeof(HttpRequest).GetField("_wr", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(HttpContext.Current.Request, Mock.Of<HttpWorkerRequest>());
 

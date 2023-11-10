@@ -35,47 +35,48 @@ public class TelemetryBindingElementForHttpTests : IDisposable
 {
     private readonly Uri serviceBaseUri;
     private readonly HttpListener listener;
-    private readonly EventWaitHandle initializationHandle;
 
     public TelemetryBindingElementForHttpTests()
     {
         Random random = new Random();
         var retryCount = 5;
+        HttpListener? createdListener = null;
         while (retryCount > 0)
         {
             try
             {
                 this.serviceBaseUri = new Uri($"http://localhost:{random.Next(2000, 5000)}/");
 
-                this.listener = new HttpListener();
-                this.listener.Prefixes.Add(this.serviceBaseUri.OriginalString);
-                this.listener.Start();
+                createdListener = new HttpListener();
+                createdListener.Prefixes.Add(this.serviceBaseUri.OriginalString);
+                createdListener.Start();
                 break;
             }
             catch
             {
-                this.listener.Close();
-                this.listener = null;
+                createdListener?.Close();
+                createdListener = null;
                 retryCount--;
             }
         }
 
-        if (this.listener == null)
+        if (createdListener == null || this.serviceBaseUri == null)
         {
             throw new InvalidOperationException("HttpListener could not be started.");
         }
 
-        this.initializationHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
+        this.listener = createdListener;
+        var initializationHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
         try
         {
             Listener();
 
-            this.initializationHandle.WaitOne();
+            initializationHandle.WaitOne();
         }
         finally
         {
-            this.initializationHandle.Dispose();
-            this.initializationHandle = null;
+            initializationHandle.Dispose();
+            initializationHandle = null;
         }
 
         async void Listener()
@@ -86,7 +87,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
                 {
                     var ctxTask = this.listener.GetContextAsync();
 
-                    this.initializationHandle?.Set();
+                    initializationHandle?.Set();
 
                     var ctx = await ctxTask.ConfigureAwait(false);
 
@@ -197,7 +198,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
                 .AddDownstreamInstrumentation();
         }
 
-        TracerProvider tracerProvider = builder.Build();
+        TracerProvider? tracerProvider = builder.Build();
 
         ServiceClient client = new ServiceClient(
             new BasicHttpBinding(BasicHttpSecurityMode.None),
@@ -210,18 +211,16 @@ public class TelemetryBindingElementForHttpTests : IDisposable
             if (emptyOrNullAction)
             {
                 await client.ExecuteWithEmptyActionNameAsync(
-                    new ServiceRequest
-                    {
-                        Payload = "Hello Open Telemetry!",
-                    }).ConfigureAwait(false);
+                    new ServiceRequest(
+                       payload: "Hello Open Telemetry!"))
+                    .ConfigureAwait(false);
             }
             else
             {
                 await client.ExecuteAsync(
-                    new ServiceRequest
-                    {
-                        Payload = "Hello Open Telemetry!",
-                    }).ConfigureAwait(false);
+                    new ServiceRequest(
+                        payload: "Hello Open Telemetry!"))
+                    .ConfigureAwait(false);
             }
         }
         finally
@@ -235,8 +234,8 @@ public class TelemetryBindingElementForHttpTests : IDisposable
                 client.Close();
             }
 
-            tracerProvider.Shutdown();
-            tracerProvider.Dispose();
+            tracerProvider?.Shutdown();
+            tracerProvider?.Dispose();
 
             WcfInstrumentationActivitySource.Options = null;
         }
@@ -329,10 +328,10 @@ public class TelemetryBindingElementForHttpTests : IDisposable
 
             using (var parentActivity = testSource.StartActivity("ParentActivity"))
             {
-                client.ExecuteSynchronous(new ServiceRequest { Payload = "Hello Open Telemetry!" });
-                client.ExecuteSynchronous(new ServiceRequest { Payload = "Hello Open Telemetry!" });
-                var firstAsyncCall = client.ExecuteAsync(new ServiceRequest { Payload = "Hello Open Telemetry!" });
-                await client.ExecuteAsync(new ServiceRequest { Payload = "Hello Open Telemetry!" });
+                client.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!"));
+                client.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!"));
+                var firstAsyncCall = client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
+                await client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
                 await firstAsyncCall;
             }
         }
@@ -347,8 +346,8 @@ public class TelemetryBindingElementForHttpTests : IDisposable
                 client.Close();
             }
 
-            tracerProvider.Shutdown();
-            tracerProvider.Dispose();
+            tracerProvider?.Shutdown();
+            tracerProvider?.Dispose();
             testSource.Dispose();
             WcfInstrumentationActivitySource.Options = null;
         }
@@ -388,8 +387,8 @@ public class TelemetryBindingElementForHttpTests : IDisposable
             {
                 Assert.ThrowsAny<Exception>(() => client.ErrorSynchronous());
                 await Assert.ThrowsAnyAsync<Exception>(client.ErrorAsync);
-                Assert.ThrowsAny<Exception>(() => clientBadUrl.ExecuteSynchronous(new ServiceRequest { Payload = "Hello Open Telemetry!" }));
-                await Assert.ThrowsAnyAsync<Exception>(() => clientBadUrl.ExecuteAsync(new ServiceRequest { Payload = "Hello Open Telemetry!" }));
+                Assert.ThrowsAny<Exception>(() => clientBadUrl.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!")));
+                await Assert.ThrowsAnyAsync<Exception>(() => clientBadUrl.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!")));
             }
         }
         finally
@@ -412,8 +411,8 @@ public class TelemetryBindingElementForHttpTests : IDisposable
                 clientBadUrl.Close();
             }
 
-            tracerProvider.Shutdown();
-            tracerProvider.Dispose();
+            tracerProvider?.Shutdown();
+            tracerProvider?.Dispose();
             testSource.Dispose();
             WcfInstrumentationActivitySource.Options = null;
         }
