@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Security.Policy;
 using System.Threading;
 using System.Web;
 using OpenTelemetry.Context.Propagation;
@@ -105,7 +104,7 @@ public class HttpInMetricsListenerTests
 
         meterProvider.ForceFlush();
 
-        // If filtering is enabled, we should have collected no data. 
+        // If filtering is enabled, we should have collected no data.
         if (filterMode == "on")
         {
             Assert.Empty(exportedItems);

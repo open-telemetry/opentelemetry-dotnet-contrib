@@ -42,7 +42,6 @@ public sealed class AspNetMetricsInstrumentationOptions
     /// collect telemetry on a per request basis.
     /// </summary>
     /// <remarks>
-    /// Notes:
     /// <item>The return value for the filter function is interpreted as:
     /// <list type="bullet">
     /// <item>If filter returns <see langword="true" />, the request is
