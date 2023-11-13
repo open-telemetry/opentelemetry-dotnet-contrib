@@ -24,7 +24,6 @@ namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 
 internal sealed class HttpInMetricsListener : IDisposable
 {
-    private const string NetworkProtocolName = "http";
     private readonly HttpRequestRouteHelper routeHelper = new();
     private readonly Histogram<double> httpServerDuration;
     private readonly AspNetMetricsInstrumentationOptions options;
@@ -64,7 +63,6 @@ internal sealed class HttpInMetricsListener : IDisposable
         {
             { SemanticConventions.AttributeServerAddress, url.Host },
             { SemanticConventions.AttributeServerPort, url.Port },
-            { SemanticConventions.AttributeNetworkProtocolName, NetworkProtocolName },
             { SemanticConventions.AttributeHttpRequestMethod, request.HttpMethod },
             { SemanticConventions.AttributeUrlScheme, url.Scheme },
             { SemanticConventions.AttributeHttpResponseStatusCode, context.Response.StatusCode },

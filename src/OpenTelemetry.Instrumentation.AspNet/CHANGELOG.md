@@ -22,7 +22,6 @@
   * `url.scheme` (previously `http.scheme`)
   * `server.address`
   * `server.port`
-  * `network.protocol.name` (http)
   * `network.protocol.version` (`1.1`, `2`, `3`)
   * `http.route`
 

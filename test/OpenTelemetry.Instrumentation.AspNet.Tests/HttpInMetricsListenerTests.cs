@@ -119,7 +119,7 @@ public class HttpInMetricsListenerTests
         Assert.Equal(duration, sum);
         Assert.True(duration > 0, "Metric duration should be set.");
 
-        var expectedTagCount = 6;
+        var expectedTagCount = 5;
 
         if (!string.IsNullOrEmpty(expectedRoute))
         {
@@ -150,7 +150,6 @@ public class HttpInMetricsListenerTests
         ExpectTag("GET", "http.request.method");
         ExpectTag(expectedStatus, "http.response.status_code");
         ExpectTag(expectedRoute, "http.route");
-        ExpectTag("http", "network.protocol.name");
         ExpectTag(expectedHost, "server.address");
         ExpectTag(expectedPort, "server.port");
         ExpectTag(expectedScheme, "url.scheme");
