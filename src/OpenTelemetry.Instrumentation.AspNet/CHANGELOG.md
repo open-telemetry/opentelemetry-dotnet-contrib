@@ -25,7 +25,6 @@
   * `network.protocol.name` (http)
   * `network.protocol.version` (`1.1`, `2`, `3`)
   * `http.route`
-  * `error.type`
 
 ## 1.6.0-beta.2
 

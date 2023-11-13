@@ -24,7 +24,6 @@ namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 
 internal sealed class HttpInMetricsListener : IDisposable
 {
-    private const string HttpContextItemKey = "__AspnetInstrumentationMetrics__";
     private const string NetworkProtocolName = "http";
     private readonly HttpRequestRouteHelper routeHelper = new();
     private readonly Histogram<double> httpServerDuration;
@@ -36,14 +35,12 @@ internal sealed class HttpInMetricsListener : IDisposable
             "http.server.request.duration",
             unit: "s",
             description: "Measures the duration of inbound HTTP requests.");
-        TelemetryHttpModule.Options.OnExceptionCallback += this.OnException;
         TelemetryHttpModule.Options.OnRequestStoppedCallback += this.OnStopActivity;
         this.options = options;
     }
 
     public void Dispose()
     {
-        TelemetryHttpModule.Options.OnExceptionCallback -= this.OnException;
         TelemetryHttpModule.Options.OnRequestStoppedCallback -= this.OnStopActivity;
     }
 
@@ -68,26 +65,21 @@ internal sealed class HttpInMetricsListener : IDisposable
             { SemanticConventions.AttributeServerAddress, url.Host },
             { SemanticConventions.AttributeServerPort, url.Port },
             { SemanticConventions.AttributeNetworkProtocolName, NetworkProtocolName },
-            { SemanticConventions.AttributeNetworkProtocolVersion, GetHttpProtocolVersion(request) },
             { SemanticConventions.AttributeHttpRequestMethod, request.HttpMethod },
             { SemanticConventions.AttributeUrlScheme, url.Scheme },
             { SemanticConventions.AttributeHttpResponseStatusCode, context.Response.StatusCode },
         };
 
+        var protocolVersion = GetHttpProtocolVersion(request);
+        if (!string.IsNullOrEmpty(protocolVersion))
+        {
+            tags.Add(SemanticConventions.AttributeNetworkProtocolVersion, protocolVersion);
+        }
+
         var template = this.routeHelper.GetRouteTemplate(request);
         if (!string.IsNullOrEmpty(template))
         {
             tags.Add(SemanticConventions.AttributeHttpRoute, template);
-        }
-
-        var exceptionType = context.Items[HttpContextItemKey] as string;
-        if (!string.IsNullOrEmpty(exceptionType))
-        {
-            tags.Add("error.type", exceptionType);
-        }
-        else if (context.Response.StatusCode >= 500)
-        {
-            tags.Add("error.type", $"{context.Response.StatusCode}");
         }
 
         if (this.options.Enrich is not null)
@@ -103,11 +95,5 @@ internal sealed class HttpInMetricsListener : IDisposable
         }
 
         this.httpServerDuration.Record(activity.Duration.TotalSeconds, tags);
-    }
-
-    private void OnException(Activity activity, HttpContext context, Exception exception)
-    {
-        // Record exception type in order to populate it in OnStopActivity.
-        context.Items[HttpContextItemKey] = exception.GetType().FullName;
     }
 }

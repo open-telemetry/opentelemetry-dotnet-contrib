@@ -119,14 +119,9 @@ public class HttpInMetricsListenerTests
         Assert.Equal(duration, sum);
         Assert.True(duration > 0, "Metric duration should be set.");
 
-        var expectedTagCount = 7;
+        var expectedTagCount = 6;
 
         if (!string.IsNullOrEmpty(expectedRoute))
-        {
-            expectedTagCount++;
-        }
-
-        if (expectedStatus >= 500)
         {
             expectedTagCount++;
         }
@@ -146,11 +141,6 @@ public class HttpInMetricsListenerTests
         if (enrichMode == "enrich")
         {
             ExpectTag("true", "enriched");
-        }
-
-        if (expectedStatus >= 500)
-        {
-            ExpectTag($"{expectedStatus}", "error.type");
         }
 
         // Do not use constants from SemanticConventions here in order to detect mistakes.
