@@ -133,12 +133,7 @@ internal static class ActivityHelper
         var currentActivity = Activity.Current;
         context.Items[ContextKey] = null;
 
-        // Make sure that the activity has a proper end time before onRequestStoppedCallback is called.
-        // Note that the activity must not be stopped before the callback is called.
-        if (aspNetActivity.Duration == TimeSpan.Zero)
-        {
-            aspNetActivity.SetEndTime(DateTime.UtcNow);
-        }
+        aspNetActivity.Stop();
 
         try
         {
@@ -149,7 +144,6 @@ internal static class ActivityHelper
             AspNetTelemetryEventSource.Log.CallbackException(aspNetActivity, "OnStopped", callbackEx);
         }
 
-        aspNetActivity.Stop();
         AspNetTelemetryEventSource.Log.ActivityStopped(aspNetActivity);
 
         if (textMapPropagator is not TraceContextPropagator)

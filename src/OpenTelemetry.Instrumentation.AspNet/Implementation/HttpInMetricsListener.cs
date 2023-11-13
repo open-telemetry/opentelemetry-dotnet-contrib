@@ -24,19 +24,33 @@ namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 
 internal sealed class HttpInMetricsListener : IDisposable
 {
+    private static long syncStopwatchTicks;
     private readonly Histogram<double> httpServerDuration;
     private readonly AspNetMetricsInstrumentationOptions options;
 
     public HttpInMetricsListener(Meter meter, AspNetMetricsInstrumentationOptions options)
     {
         this.httpServerDuration = meter.CreateHistogram<double>("http.server.duration", "ms", "Measures the duration of inbound HTTP requests.");
+        TelemetryHttpModule.Options.OnRequestStartedCallback += this.OnStartActivity;
         TelemetryHttpModule.Options.OnRequestStoppedCallback += this.OnStopActivity;
         this.options = options;
     }
 
     public void Dispose()
     {
+        TelemetryHttpModule.Options.OnRequestStartedCallback -= this.OnStartActivity;
         TelemetryHttpModule.Options.OnRequestStoppedCallback -= this.OnStopActivity;
+    }
+
+    private static long TimestampDifference()
+    {
+        return (long)((Stopwatch.GetTimestamp() - syncStopwatchTicks) * 10000000L /
+                                            (double)Stopwatch.Frequency);
+    }
+
+    private void OnStartActivity(Activity activity, HttpContext context)
+    {
+        syncStopwatchTicks = Stopwatch.GetTimestamp();
     }
 
     private void OnStopActivity(Activity activity, HttpContext context)
@@ -62,6 +76,16 @@ internal sealed class HttpInMetricsListener : IDisposable
             }
         }
 
-        this.httpServerDuration.Record(activity.Duration.TotalMilliseconds, tags);
+        TimeSpan duration = activity.Duration;
+        if (duration == TimeSpan.Zero)
+        {
+            duration = activity.StartTimeUtc.AddTicks(TimestampDifference()) - activity.StartTimeUtc;
+            if (duration.Ticks <= 0)
+            {
+                duration = new TimeSpan(1);
+            }
+        }
+
+        this.httpServerDuration.Record(duration.TotalMilliseconds, tags);
     }
 }
