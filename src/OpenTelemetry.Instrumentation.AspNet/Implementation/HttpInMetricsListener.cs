@@ -15,6 +15,7 @@
 // </copyright>
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Web;
@@ -25,6 +26,7 @@ namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 internal sealed class HttpInMetricsListener : IDisposable
 {
     private readonly HttpRequestRouteHelper routeHelper = new();
+    private readonly RequestMethodHelper requestMethodHelper = new();
     private readonly Histogram<double> httpServerDuration;
     private readonly AspNetMetricsInstrumentationOptions options;
 
@@ -63,10 +65,18 @@ internal sealed class HttpInMetricsListener : IDisposable
         {
             { SemanticConventions.AttributeServerAddress, url.Host },
             { SemanticConventions.AttributeServerPort, url.Port },
-            { SemanticConventions.AttributeHttpRequestMethod, request.HttpMethod },
             { SemanticConventions.AttributeUrlScheme, url.Scheme },
             { SemanticConventions.AttributeHttpResponseStatusCode, context.Response.StatusCode },
         };
+
+        if (this.requestMethodHelper.TryGetMethod(request.HttpMethod, out var method))
+        {
+            tags.Add(SemanticConventions.AttributeHttpRequestMethod, method);
+        }
+        else
+        {
+            tags.Add(SemanticConventions.AttributeHttpRequestMethod, "_OTHER");
+        }
 
         var protocolVersion = GetHttpProtocolVersion(request);
         if (!string.IsNullOrEmpty(protocolVersion))
