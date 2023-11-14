@@ -40,7 +40,7 @@ dotnet add package OpenTelemetry.Extensions.Enrichment --prerelease
 
 Create your custom enricher class that inherits from the `TraceEnricher` class
 and override the `public abstract void Enrich(in TraceEnrichmentBag bag)` method.
-Optionally, inject other services you enricher class depends on:
+Optionally, inject other services your enricher class depends on:
 
 ```csharp
 internal sealed class MyTraceEnricher : TraceEnricher

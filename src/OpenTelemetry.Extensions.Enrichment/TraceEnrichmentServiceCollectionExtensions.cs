@@ -1,4 +1,4 @@
-// <copyright file="OpenTelemetryEnrichmentServiceCollectionExtensions.cs" company="OpenTelemetry Authors">
+// <copyright file="TraceEnrichmentServiceCollectionExtensions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,9 +24,9 @@ using OpenTelemetry.Trace;
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
-/// Extension methods to register telemery enrichers.
+/// Extension methods to register telemetry enrichers.
 /// </summary>
-public static class OpenTelemetryEnrichmentServiceCollectionExtensions
+public static class TraceEnrichmentServiceCollectionExtensions
 {
     /// <summary>
     /// Adds trace enricher.
@@ -72,7 +72,7 @@ public static class OpenTelemetryEnrichmentServiceCollectionExtensions
     /// Adds trace enricher.
     /// </summary>
     /// <param name="services"><see cref="IServiceCollection"/> being configured.</param>
-    /// <param name="enrichmentAction">The <see cref="Action"/> delegate to enrich traces.</param>
+    /// <param name="enrichmentAction">The <see cref="TraceEnrichmentBag"/> delegate to enrich traces.</param>
     /// <exception cref="ArgumentNullException">Thrown when the <paramref name="services"/> or <paramref name="enrichmentAction"/> is <see langword="null" />.</exception>
     /// <returns>The instance of <see cref="IServiceCollection"/> to chain the calls.</returns>
     /// <remarks>
@@ -83,7 +83,7 @@ public static class OpenTelemetryEnrichmentServiceCollectionExtensions
         Guard.ThrowIfNull(services);
         Guard.ThrowIfNull(enrichmentAction);
 
-        services.TryAddSingleton<TraceEnricher, EnrichmentActions>();
+        services.TryAddSingleton<TraceEnricher, TraceEnrichmentActions>();
 
         return services
             .TryAddEnrichment()

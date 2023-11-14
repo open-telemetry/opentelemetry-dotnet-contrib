@@ -1,4 +1,4 @@
-// <copyright file="OpenTelemetryEnrichmentProviderBuilderExtensions.cs" company="OpenTelemetry Authors">
+// <copyright file="TraceEnrichmentProviderBuilderExtensions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,9 @@ using OpenTelemetry.Trace;
 namespace OpenTelemetry.Extensions.Enrichment;
 
 /// <summary>
-/// Extension methods to register telemery enrichers.
+/// Extension methods to register telemetry enrichers.
 /// </summary>
-public static class OpenTelemetryEnrichmentProviderBuilderExtensions
+public static class TraceEnrichmentProviderBuilderExtensions
 {
     /// <summary>
     /// Adds trace enricher.
@@ -68,7 +68,7 @@ public static class OpenTelemetryEnrichmentProviderBuilderExtensions
     /// Adds trace enricher.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-    /// <param name="enrichmentAction">The <see cref="Action"/> delegate to enrich traces.</param>
+    /// <param name="enrichmentAction">The <see cref="TraceEnrichmentBag"/> delegate to enrich traces.</param>
     /// <exception cref="ArgumentNullException">Thrown when the <paramref name="builder"/> or <paramref name="enrichmentAction"/> is <see langword="null" />.</exception>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     /// <remarks>

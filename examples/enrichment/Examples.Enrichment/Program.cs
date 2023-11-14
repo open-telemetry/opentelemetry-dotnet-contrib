@@ -38,11 +38,12 @@ public static class Program
             .AddSource("MyCompany.MyProduct.MyLibrary")
 
             // Register an enricher class.
-            // Important: AddTraceEnricher() must be called before any exporeters.
+            // Important: AddTraceEnricher() must be called before any exporters.
             .AddTraceEnricher<MyTraceEnricher>()
 
             // Add Console exporter to see the output of this example.
             .AddConsoleExporter()
+
             .Build();
 
         // Create an Activity and add some tags to it.

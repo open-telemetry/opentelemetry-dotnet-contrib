@@ -31,6 +31,6 @@ public readonly struct TraceEnrichmentBag
 
     public void Add(string key, object? value)
     {
-        this.activity.SetTag(key, value);
+        this.activity.AddTag(key, value);
     }
 }
