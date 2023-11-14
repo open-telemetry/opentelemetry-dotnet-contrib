@@ -117,7 +117,6 @@ internal static class SemanticConventions
 
     // v1.23.0
     // https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-metrics.md#http-server
-    public const string AttributeNetworkProtocolName = "network.protocol.name"; // replaces: "net.transport" (AttributeNetTransport)
     public const string AttributeNetworkProtocolVersion = "network.protocol.version"; // replaces: "http.flavor" (AttributeHttpFlavor)
     public const string AttributeServerAddress = "server.address"; // replaces: "net.host.name" (AttributeNetHostName)
     public const string AttributeServerPort = "server.port"; // replaces: "net.host.port" (AttributeNetHostPort)

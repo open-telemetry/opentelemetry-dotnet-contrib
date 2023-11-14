@@ -23,7 +23,7 @@ namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 /// <summary>
 /// Helper class for processing http requests.
 /// </summary>
-internal class HttpRequestRouteHelper
+internal sealed class HttpRequestRouteHelper
 {
     private readonly PropertyFetcher<object> routeFetcher = new("Route");
     private readonly PropertyFetcher<string> routeTemplateFetcher = new("RouteTemplate");

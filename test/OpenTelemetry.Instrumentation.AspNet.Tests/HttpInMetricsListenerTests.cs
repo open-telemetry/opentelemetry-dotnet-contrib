@@ -145,7 +145,7 @@ public class HttpInMetricsListenerTests
 
         // Do not use constants from SemanticConventions here in order to detect mistakes.
         // https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-metrics.md#http-server
-        // Unable to check for "network.protocol.version" because we can't set server variables due to the accessability
+        // Unable to check for "network.protocol.version" because we can't set server variables due to the accessibility
         // of the ServerVariables property.
         ExpectTag("GET", "http.request.method");
         ExpectTag(expectedStatus, "http.response.status_code");

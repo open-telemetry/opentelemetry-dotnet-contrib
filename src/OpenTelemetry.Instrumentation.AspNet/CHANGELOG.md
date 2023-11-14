@@ -8,7 +8,7 @@
   * New overload of `AddAspNetInstrumentation` now accepts a configuration delegate.
   * The `Enrich` can be used to add additional metric attributes.
 
-* HTTP server metrics now follow stable
+* BREAKING: HTTP server metrics now follow stable
   [semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-metrics.md#http-server).
 
   The `http.request.duration` metric is replaced with `http.server.request.duration`.
