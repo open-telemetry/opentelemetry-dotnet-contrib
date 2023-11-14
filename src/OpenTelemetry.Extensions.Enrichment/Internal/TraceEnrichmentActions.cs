@@ -1,4 +1,4 @@
-// <copyright file="EnrichmentActions.cs" company="OpenTelemetry Authors">
+// <copyright file="TraceEnrichmentActions.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,21 +21,21 @@ using System.Linq;
 namespace OpenTelemetry.Extensions.Enrichment;
 
 #pragma warning disable CA1812 // Class is instantiated through dependency injection
-internal sealed class EnrichmentActions : TraceEnricher
+internal sealed class TraceEnrichmentActions : TraceEnricher
 #pragma warning restore CA1812 // Class is instantiated through dependency injection
 {
     private readonly Action<TraceEnrichmentBag>[] actions;
 
-    public EnrichmentActions(IEnumerable<Action<TraceEnrichmentBag>> actions)
+    public TraceEnrichmentActions(IEnumerable<Action<TraceEnrichmentBag>> actions)
     {
         this.actions = actions.ToArray();
     }
 
-    public override void Enrich(in TraceEnrichmentBag enrichmentBag)
+    public override void Enrich(in TraceEnrichmentBag bag)
     {
         for (int i = 0; i < this.actions.Length; i++)
         {
-            this.actions[i].Invoke(enrichmentBag);
+            this.actions[i].Invoke(bag);
         }
     }
 }

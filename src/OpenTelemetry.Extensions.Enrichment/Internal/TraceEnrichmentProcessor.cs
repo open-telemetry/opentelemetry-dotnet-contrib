@@ -31,13 +31,23 @@ internal sealed class TraceEnrichmentProcessor : BaseProcessor<Activity>
         this.traceEnrichers = traceEnrichers.ToArray();
     }
 
-    public override void OnEnd(Activity activity)
+    public override void OnStart(Activity activity)
     {
-        var propertyBag = new TraceEnrichmentBag(activity);
+        var bag = new TraceEnrichmentBag(activity);
 
         foreach (var enricher in this.traceEnrichers)
         {
-            enricher.Enrich(propertyBag);
+            enricher.EnrichOnActivityStart(bag);
+        }
+    }
+
+    public override void OnEnd(Activity activity)
+    {
+        var bag = new TraceEnrichmentBag(activity);
+
+        foreach (var enricher in this.traceEnrichers)
+        {
+            enricher.Enrich(bag);
         }
     }
 }

@@ -22,8 +22,8 @@ internal class MyTraceEnricher : TraceEnricher
 
     public int TimesCalled { get; private set; }
 
-    public override void Enrich(in TraceEnrichmentBag enrichmentBag)
+    public override void Enrich(in TraceEnrichmentBag bag)
     {
-        enrichmentBag.Add(Key, ++this.TimesCalled);
+        bag.Add(Key, ++this.TimesCalled);
     }
 }
