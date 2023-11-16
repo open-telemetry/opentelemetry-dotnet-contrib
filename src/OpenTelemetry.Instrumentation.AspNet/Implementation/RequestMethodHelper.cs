@@ -15,6 +15,8 @@
 // </copyright>
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 
@@ -22,18 +24,22 @@ internal sealed class RequestMethodHelper
 {
     private const string KnownHttpMethodsEnvironmentVariable = "OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS";
 
+    // The value "_OTHER" is used for non-standard HTTP methods.
+    // https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-spans.md#common-attributes
+    private const string OtherHttpMethod = "_OTHER";
+
     // List of known HTTP methods in order of expected frequency.
-    private readonly string[] knownHttpMethods = new[]
+    private readonly Dictionary<string, string> knownHttpMethods = new(StringComparer.OrdinalIgnoreCase)
     {
-        "GET",
-        "POST",
-        "PUT",
-        "DELETE",
-        "HEAD",
-        "OPTIONS",
-        "TRACE",
-        "PATCH",
-        "CONNECT",
+        ["GET"] = "GET",
+        ["POST"] = "POST",
+        ["PUT"] = "PUT",
+        ["DELETE"] = "DELETE",
+        ["HEAD"] = "HEAD",
+        ["OPTIONS"] = "OPTIONS",
+        ["TRACE"] = "TRACE",
+        ["PATCH"] = "PATCH",
+        ["CONNECT"] = "CONNECT",
     };
 
     public RequestMethodHelper()
@@ -42,28 +48,14 @@ internal sealed class RequestMethodHelper
             ?.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
         if (suppliedKnownMethods?.Length > 0)
         {
-            this.knownHttpMethods = suppliedKnownMethods;
+            this.knownHttpMethods = suppliedKnownMethods.ToDictionary(x => x, x => x, StringComparer.OrdinalIgnoreCase);
         }
     }
 
-    /// <summary>
-    /// Returns whether the method is a known HTTP method.
-    /// </summary>
-    /// <param name="method">The method to check.</param>
-    /// <param name="outMethod">The canonical method or null.</param>
-    /// <returns>Returns true if the method is known, else false.</returns>
-    public bool TryGetMethod(string method, out string? outMethod)
+    public string GetNormalizedHttpMethod(string method)
     {
-        foreach (var knownMethod in this.knownHttpMethods)
-        {
-            if (knownMethod.Equals(method, StringComparison.OrdinalIgnoreCase))
-            {
-                outMethod = knownMethod;
-                return true;
-            }
-        }
-
-        outMethod = null;
-        return false;
+        return this.knownHttpMethods.TryGetValue(method, out var normalizedMethod)
+            ? normalizedMethod
+            : OtherHttpMethod;
     }
 }

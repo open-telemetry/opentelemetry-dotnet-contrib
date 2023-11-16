@@ -15,7 +15,6 @@
 // </copyright>
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Web;
@@ -69,14 +68,8 @@ internal sealed class HttpInMetricsListener : IDisposable
             { SemanticConventions.AttributeHttpResponseStatusCode, context.Response.StatusCode },
         };
 
-        if (this.requestMethodHelper.TryGetMethod(request.HttpMethod, out var method))
-        {
-            tags.Add(SemanticConventions.AttributeHttpRequestMethod, method);
-        }
-        else
-        {
-            tags.Add(SemanticConventions.AttributeHttpRequestMethod, "_OTHER");
-        }
+        var normalizedMethod = this.requestMethodHelper.GetNormalizedHttpMethod(request.HttpMethod);
+        tags.Add(SemanticConventions.AttributeHttpRequestMethod, normalizedMethod);
 
         var protocolVersion = GetHttpProtocolVersion(request);
         if (!string.IsNullOrEmpty(protocolVersion))

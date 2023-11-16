@@ -37,7 +37,7 @@ public class RequestMethodHelperTests : IDisposable
     public void MethodMappingWorksForKnownMethods(string method, string expected)
     {
         var requestHelper = new RequestMethodHelper();
-        var actual = requestHelper.TryGetMethod(method, out var outMethod) ? outMethod : "_OTHER";
+        var actual = requestHelper.GetNormalizedHttpMethod(method);
         Assert.Equal(expected, actual);
     }
 
@@ -58,7 +58,7 @@ public class RequestMethodHelperTests : IDisposable
     {
         Environment.SetEnvironmentVariable("OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS", "GET,POST");
         var requestHelper = new RequestMethodHelper();
-        var actual = requestHelper.TryGetMethod(method, out var outMethod) ? outMethod : "_OTHER";
+        var actual = requestHelper.GetNormalizedHttpMethod(method);
         Assert.Equal(expected, actual);
     }
 
