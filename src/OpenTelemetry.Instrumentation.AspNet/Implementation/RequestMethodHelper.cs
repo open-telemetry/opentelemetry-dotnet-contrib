@@ -28,7 +28,7 @@ internal sealed class RequestMethodHelper
     // https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-spans.md#common-attributes
     private const string OtherHttpMethod = "_OTHER";
 
-    // List of known HTTP methods in order of expected frequency.
+    // List of known HTTP methods as per spec.
     private readonly Dictionary<string, string> knownHttpMethods = new(StringComparer.OrdinalIgnoreCase)
     {
         ["GET"] = "GET",
