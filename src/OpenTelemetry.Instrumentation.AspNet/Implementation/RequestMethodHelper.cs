@@ -29,27 +29,26 @@ internal sealed class RequestMethodHelper
     private const string OtherHttpMethod = "_OTHER";
 
     // List of known HTTP methods as per spec.
-    private readonly Dictionary<string, string> knownHttpMethods = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["GET"] = "GET",
-        ["POST"] = "POST",
-        ["PUT"] = "PUT",
-        ["DELETE"] = "DELETE",
-        ["HEAD"] = "HEAD",
-        ["OPTIONS"] = "OPTIONS",
-        ["TRACE"] = "TRACE",
-        ["PATCH"] = "PATCH",
-        ["CONNECT"] = "CONNECT",
-    };
+    private readonly Dictionary<string, string> knownHttpMethods;
 
     public RequestMethodHelper()
     {
         var suppliedKnownMethods = Environment.GetEnvironmentVariable(KnownHttpMethodsEnvironmentVariable)
             ?.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-        if (suppliedKnownMethods?.Length > 0)
-        {
-            this.knownHttpMethods = suppliedKnownMethods.ToDictionary(x => x, x => x, StringComparer.OrdinalIgnoreCase);
-        }
+        this.knownHttpMethods = suppliedKnownMethods?.Length > 0
+            ? suppliedKnownMethods.ToDictionary(x => x, x => x, StringComparer.OrdinalIgnoreCase)
+            : new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["GET"] = "GET",
+                ["POST"] = "POST",
+                ["PUT"] = "PUT",
+                ["DELETE"] = "DELETE",
+                ["HEAD"] = "HEAD",
+                ["OPTIONS"] = "OPTIONS",
+                ["TRACE"] = "TRACE",
+                ["PATCH"] = "PATCH",
+                ["CONNECT"] = "CONNECT",
+            };
     }
 
     public string GetNormalizedHttpMethod(string method)
