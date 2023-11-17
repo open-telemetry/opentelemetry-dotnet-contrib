@@ -9,11 +9,17 @@
   * The `Enrich` can be used to add additional metric attributes.
 
 * BREAKING: HTTP server metrics now follow stable
-  [semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-metrics.md#http-server).
+  [semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-metrics.md#http-server)
+  ([#1429](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1429)).
 
-  The `http.request.duration` metric is replaced with `http.server.request.duration`.
-  Note that the unit changes from milliseconds to seconds.
-  ([#1429](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1429)):
+  * New metric: `http.server.request.duration`
+    * Unit: `s` (seconds)
+    * Histogram Buckets: `0, 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5,
+    0.75, 1,  2.5, 5, 7.5, 10`
+  * Old metric: `http.server.duration`
+    * Unit: `ms` (milliseconds)
+    * Histogram Buckets: `0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500,
+    5000, 7500, 10000`
 
   The following metric attributes has been added:
 
