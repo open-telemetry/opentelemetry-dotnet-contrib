@@ -14,7 +14,7 @@
 
   * New metric: `http.server.request.duration`
     * Unit: `s` (seconds)
-    * Histogram Buckets: `0, 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5,
+    * Histogram Buckets: `0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5,
     0.75, 1,  2.5, 5, 7.5, 10`
   * Old metric: `http.server.duration`
     * Unit: `ms` (milliseconds)
