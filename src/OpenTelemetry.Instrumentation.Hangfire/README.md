@@ -61,7 +61,7 @@ For an ASP.NET application, adding instrumentation is typically done in the
 When used with
 [`OpenTelemetry.Extensions.Hosting`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Extensions.Hosting/README.md),
 all configurations to `HangfireInstrumentationOptions`
-can be done in the `ConfigureServices` method of you applications `Startup`
+can be done in the `ConfigureServices` method of your applications `Startup`
 class as shown below.
 
 ```csharp
