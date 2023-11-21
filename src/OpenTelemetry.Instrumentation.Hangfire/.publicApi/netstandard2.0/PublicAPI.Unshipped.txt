@@ -1,6 +1,8 @@
 OpenTelemetry.Trace.HangfireInstrumentationOptions
 OpenTelemetry.Trace.HangfireInstrumentationOptions.DisplayNameFunc.get -> System.Func<Hangfire.BackgroundJob!, string!>!
 OpenTelemetry.Trace.HangfireInstrumentationOptions.DisplayNameFunc.set -> void
+OpenTelemetry.Trace.HangfireInstrumentationOptions.Filter.get -> System.Func<Hangfire.BackgroundJob!, bool>?
+OpenTelemetry.Trace.HangfireInstrumentationOptions.Filter.set -> void
 OpenTelemetry.Trace.HangfireInstrumentationOptions.HangfireInstrumentationOptions() -> void
 OpenTelemetry.Trace.HangfireInstrumentationOptions.RecordException.get -> bool
 OpenTelemetry.Trace.HangfireInstrumentationOptions.RecordException.set -> void
