@@ -22,7 +22,7 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 
-internal class HangfireInstrumentation
+internal sealed class HangfireInstrumentation
 {
     /// <summary>
     /// The assembly name.
