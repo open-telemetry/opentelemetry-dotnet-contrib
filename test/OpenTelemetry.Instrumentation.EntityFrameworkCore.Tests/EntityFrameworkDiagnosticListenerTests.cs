@@ -153,7 +153,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
 
         Assert.False(activity.IsAllDataRequested);
-        Assert.True(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.None));
+        Assert.False(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
     }
 
     [Fact]
@@ -220,7 +220,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
 
         Assert.False(activity.IsAllDataRequested);
-        Assert.True(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.None));
+        Assert.False(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
     }
 
     [Fact]
@@ -323,9 +323,8 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             modelBuilder.Entity<Item>(
                 b =>
                 {
-                    b.Property("Id");
-                    b.HasKey("Id");
                     b.Property(e => e.Name);
+                    b.HasKey("Name");
                 });
         }
     }
