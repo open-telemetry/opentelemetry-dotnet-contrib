@@ -15,5 +15,4 @@
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Hangfire\OpenTelemetry.Instrumentation.Hangfire.csproj" />
   </ItemGroup>
-
 </Project>
