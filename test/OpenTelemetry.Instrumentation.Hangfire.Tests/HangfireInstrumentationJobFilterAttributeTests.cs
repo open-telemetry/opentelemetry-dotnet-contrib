@@ -21,6 +21,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Hangfire;
 using Hangfire.Storage.Monitoring;
+using Moq;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -154,7 +155,7 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
     [InlineData("true", true)]
     [InlineData("false", false)]
     [InlineData("throw", false)]
-    public async Task Should_Respect_Filter_Option(string filter, bool shouldExport)
+    public async Task Should_Respect_Filter_Option(string filter, bool shouldRecord)
     {
         // Arrange
         Action<HangfireInstrumentationOptions> configure = filter switch
@@ -166,10 +167,15 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
             _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, "Unexpected value"),
         };
 
-        var exportedItems = new List<Activity>();
+        var processedItems = new List<Activity>();
+        var activityProcessor = new Mock<BaseProcessor<Activity>>();
+        activityProcessor
+            .Setup(p => p.OnStart(It.IsAny<Activity>()))
+            .Callback<Activity>(processedItems.Add);
+
         using var tel = Sdk.CreateTracerProviderBuilder()
             .AddHangfireInstrumentation(configure)
-            .AddInMemoryExporter(exportedItems)
+            .AddProcessor(activityProcessor.Object)
             .Build();
 
         // Act
@@ -177,14 +183,11 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         await this.WaitJobProcessedAsync(jobId, 5);
 
         // Assert
-        if (shouldExport)
-        {
-            Assert.Single(exportedItems);
-        }
-        else
-        {
-            Assert.Empty(exportedItems);
-        }
+        Assert.Single(processedItems);
+        var activity = processedItems.First();
+
+        Assert.Equal(shouldRecord, activity.IsAllDataRequested);
+        Assert.Equal(shouldRecord, activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
     }
 
     private async Task WaitJobProcessedAsync(string jobId, int timeToWaitInSeconds)
