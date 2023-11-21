@@ -323,9 +323,8 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             modelBuilder.Entity<Item>(
                 b =>
                 {
-                    b.Property("Id");
-                    b.HasKey("Id");
                     b.Property(e => e.Name);
+                    b.HasKey("Name");
                 });
         }
     }
