@@ -65,6 +65,22 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
 
             if (activity.IsAllDataRequested)
             {
+                try
+                {
+                    if (this.options.Filter?.Invoke(performingContext.BackgroundJob) == false)
+                    {
+                        activity.IsAllDataRequested = false;
+                        activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+                        return;
+                    }
+                }
+                catch (Exception)
+                {
+                    activity.IsAllDataRequested = false;
+                    activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+                    return;
+                }
+
                 activity.SetTag(HangfireInstrumentationConstants.JobIdTag, performingContext.BackgroundJob.Id);
                 activity.SetTag(HangfireInstrumentationConstants.JobCreatedAtTag, performingContext.BackgroundJob.CreatedAt.ToString("O"));
             }

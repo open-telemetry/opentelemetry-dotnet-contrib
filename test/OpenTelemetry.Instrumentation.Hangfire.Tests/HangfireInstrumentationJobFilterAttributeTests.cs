@@ -149,6 +149,44 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         Assert.Equal(ActivityKind.Internal, activity.Kind);
     }
 
+    [Theory]
+    [InlineData("null", true)]
+    [InlineData("true", true)]
+    [InlineData("false", false)]
+    [InlineData("throw", false)]
+    public async Task Should_Respect_Filter_Option(string filter, bool shouldExport)
+    {
+        // Arrange
+        Action<HangfireInstrumentationOptions> configure = filter switch
+        {
+            "null" => options => options.Filter = null,
+            "true" => options => options.Filter = _ => true,
+            "false" => options => options.Filter = _ => false,
+            "throw" => options => options.Filter = _ => throw new Exception("Filter throws exception"),
+            _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, "Unexpected value"),
+        };
+
+        var exportedItems = new List<Activity>();
+        using var tel = Sdk.CreateTracerProviderBuilder()
+            .AddHangfireInstrumentation(configure)
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        // Act
+        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
+        await this.WaitJobProcessedAsync(jobId, 5);
+
+        // Assert
+        if (shouldExport)
+        {
+            Assert.Single(exportedItems);
+        }
+        else
+        {
+            Assert.Empty(exportedItems);
+        }
+    }
+
     private async Task WaitJobProcessedAsync(string jobId, int timeToWaitInSeconds)
     {
         var timeout = DateTime.Now.AddSeconds(timeToWaitInSeconds);
