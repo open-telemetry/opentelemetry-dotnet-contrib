@@ -5,6 +5,9 @@
 * Update OTel API version to `1.6.0`.
   ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
 
+* Add Filter to HangfireInstrumentationOptions.
+  ([#1440](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1440))
+
 ## 1.5.0-beta.1
 
 Released 2023-Jun-23
