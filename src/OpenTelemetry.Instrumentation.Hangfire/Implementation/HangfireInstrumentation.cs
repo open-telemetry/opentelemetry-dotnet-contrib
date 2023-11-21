@@ -14,15 +14,15 @@
 // limitations under the License.
 // </copyright>
 
-using Hangfire;
-
-namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
-
 using System;
 using System.Diagnostics;
 using System.Reflection;
+using Hangfire;
+using OpenTelemetry.Trace;
 
-internal static class HangfireInstrumentation
+namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
+
+internal class HangfireInstrumentation
 {
     /// <summary>
     /// The assembly name.
@@ -49,4 +49,9 @@ internal static class HangfireInstrumentation
     /// </summary>
     internal static readonly Func<BackgroundJob, string> DefaultDisplayNameFunc =
         backgroundJob => $"JOB {backgroundJob.Job.Type.Name}.{backgroundJob.Job.Method.Name}";
+
+    public HangfireInstrumentation(HangfireInstrumentationOptions options)
+    {
+        GlobalJobFilters.Filters.Add(new HangfireInstrumentationJobFilterAttribute(options));
+    }
 }
