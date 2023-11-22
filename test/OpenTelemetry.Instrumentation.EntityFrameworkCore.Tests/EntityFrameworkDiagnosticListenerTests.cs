@@ -248,7 +248,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
     public void Dispose() => this.connection.Dispose();
 
-    private static DbConnection CreateInMemoryDatabase()
+    private static SqliteConnection CreateInMemoryDatabase()
     {
         var connection = new SqliteConnection("Filename=:memory:");
 
