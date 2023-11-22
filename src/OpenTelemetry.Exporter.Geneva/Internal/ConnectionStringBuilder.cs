@@ -104,7 +104,7 @@ internal sealed class ConnectionStringBuilder
                 if (this._parts.ContainsKey(nameof(this.EtwSession)))
                 {
                     _ = this._parts.TryGetValue(nameof(this.PrivatePreviewEnableTraceLoggingDynamic), out var privatePreviewEnableTraceLoggingDynamic);
-                    if (privatePreviewEnableTraceLoggingDynamic != null && privatePreviewEnableTraceLoggingDynamic.ToUpperInvariant() == bool.TrueString.ToUpperInvariant())
+                    if (privatePreviewEnableTraceLoggingDynamic != null && privatePreviewEnableTraceLoggingDynamic.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase))
                     {
                         return TransportProtocol.EtwTld;
                     }

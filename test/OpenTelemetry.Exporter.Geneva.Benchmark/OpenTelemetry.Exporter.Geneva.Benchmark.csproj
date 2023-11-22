@@ -13,7 +13,6 @@
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="$(BenchmarkDotNetPkgVer)" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryLatestPreReleasePkgVer)" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="[6.0.0,)" />
   </ItemGroup>
 
   <ItemGroup>
