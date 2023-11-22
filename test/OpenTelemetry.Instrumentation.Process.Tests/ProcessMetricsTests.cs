@@ -94,7 +94,7 @@ public class ProcessMetricsTests
         {
             foreach (var tag in points.Current.Tags)
             {
-                Assert.Null(tag.Value);
+                Assert.NotNull(tag.Value);
 
                 if (tag.Key == "state" && tag.Value!.ToString() == "user")
                 {

@@ -16,9 +16,6 @@
 
 using System.Diagnostics;
 using System.Net;
-#if NETFRAMEWORK
-using System.Net.Http;
-#endif
 using System.Reflection;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.Logging;
