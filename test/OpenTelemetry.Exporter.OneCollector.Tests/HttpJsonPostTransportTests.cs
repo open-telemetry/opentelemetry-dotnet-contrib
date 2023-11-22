@@ -16,9 +16,6 @@
 
 using System.IO.Compression;
 using System.Net;
-#if NETFRAMEWORK
-using System.Net.Http;
-#endif
 using System.Text;
 using OpenTelemetry.Tests;
 using Xunit;

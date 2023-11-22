@@ -17,9 +17,6 @@
 using Microsoft.Extensions.Configuration;
 using OpenTelemetry.Exporter.OneCollector;
 using OpenTelemetry.Internal;
-#if NETFRAMEWORK
-using System.Net.Http;
-#endif
 
 namespace OpenTelemetry.Logs;
 

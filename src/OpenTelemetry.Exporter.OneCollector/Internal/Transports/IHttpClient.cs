@@ -14,10 +14,6 @@
 // limitations under the License.
 // </copyright>
 
-#if NETFRAMEWORK
-using System.Net.Http;
-#endif
-
 namespace OpenTelemetry.Exporter.OneCollector;
 
 internal interface IHttpClient
