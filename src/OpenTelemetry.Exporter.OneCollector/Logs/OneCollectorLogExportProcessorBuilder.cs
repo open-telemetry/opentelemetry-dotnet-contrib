@@ -202,7 +202,9 @@ public sealed class OneCollectorLogExportProcessorBuilder
 
     private OneCollectorExporter<LogRecord> BuildExporter()
     {
+#pragma warning disable CA2000 // Dispose objects before losing scope
         var exporter = new OneCollectorExporter<LogRecord>(this.CreateSink());
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
         try
         {
@@ -222,7 +224,7 @@ public sealed class OneCollectorLogExportProcessorBuilder
         return exporter;
     }
 
-    private ISink<LogRecord> CreateSink()
+    private WriteDirectlyToTransportSink<LogRecord> CreateSink()
     {
         this.exporterOptions.Validate();
 

@@ -403,7 +403,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
 
-    private static readonly IReadOnlyDictionary<string, string> CS40_PART_B_MAPPING = new Dictionary<string, string>
+    private static readonly Dictionary<string, string> CS40_PART_B_MAPPING = new Dictionary<string, string>
     {
         ["db.system"] = "dbSystem",
         ["db.name"] = "dbName",
@@ -435,9 +435,9 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     private readonly IDataTransport m_dataTransport;
 
-    private readonly IReadOnlyDictionary<string, object> m_customFields;
+    private readonly Dictionary<string, object> m_customFields;
 
-    private readonly IReadOnlyDictionary<string, object> m_dedicatedFields;
+    private readonly Dictionary<string, object> m_dedicatedFields;
 
     private bool isDisposed;
 }

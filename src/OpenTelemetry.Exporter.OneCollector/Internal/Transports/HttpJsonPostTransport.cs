@@ -178,7 +178,7 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
         }
     }
 
-    private HttpContent BuildRequestContent(Stream stream)
+    private NonDisposingStreamContent BuildRequestContent(Stream stream)
     {
         switch (this.compressionType)
         {
