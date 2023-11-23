@@ -19,7 +19,6 @@ using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
