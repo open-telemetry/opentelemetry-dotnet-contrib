@@ -14,6 +14,9 @@
 // limitations under the License.
 // </copyright>
 
+#if NETFRAMEWORK
+using System.Net.Http;
+#endif
 using Microsoft.Extensions.Configuration;
 using OpenTelemetry.Exporter.OneCollector;
 using OpenTelemetry.Internal;
