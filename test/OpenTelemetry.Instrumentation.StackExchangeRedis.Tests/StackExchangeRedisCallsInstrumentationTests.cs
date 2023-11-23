@@ -108,17 +108,10 @@ public class StackExchangeRedisCallsInstrumentationTests
         };
         connectionOptions.EndPoints.Add(RedisEndPoint);
 
-        ConnectionMultiplexer? connection = null;
+        using var connection = ConnectionMultiplexer.Connect(connectionOptions);
         var activityProcessor = new Mock<BaseProcessor<Activity>>();
         var sampler = new TestSampler();
         using (Sdk.CreateTracerProviderBuilder()
-            .ConfigureServices(services =>
-            {
-                services.TryAddSingleton(sp =>
-                {
-                    return connection = ConnectionMultiplexer.Connect(connectionOptions);
-                });
-            })
             .AddProcessor(activityProcessor.Object)
             .SetSampler(sampler)
             .AddRedisInstrumentation(c => c.SetVerboseDatabaseStatements = false)
