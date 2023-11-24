@@ -17,11 +17,11 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using OpenTelemetry.Instrumentation.ServiceConnect;
 using OpenTelemetry.Instrumentation.ServiceConnect.Implementation;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Instrumentation.ServiceConnect;
+namespace OpenTelemetry.Trace;
 
 /// <summary>
 /// Extension methods to simplify registering of dependency instrumentation.
