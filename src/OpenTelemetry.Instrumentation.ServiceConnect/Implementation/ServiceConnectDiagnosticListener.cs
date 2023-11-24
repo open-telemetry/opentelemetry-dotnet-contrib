@@ -34,9 +34,12 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<IDictionary<string, object>> consumeHeadersFetcher = new("Headers");
     private readonly PropertyFetcher<string> endPointFetcher = new("EndPoint");
 
-    public ServiceConnectDiagnosticListener(string sourceName)
+    private readonly ServiceConnectInstrumentationOptions options;
+
+    public ServiceConnectDiagnosticListener(string sourceName, ServiceConnectInstrumentationOptions? options)
         : base(sourceName)
     {
+        this.options = options ?? new ServiceConnectInstrumentationOptions();
     }
 
     public override bool SupportsNullActivity => true;
@@ -71,6 +74,14 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
                 if (publishMessage is not null)
                 {
                     _ = activity.SetTag(SemanticConventions.AttributeMessagingConversationId, publishMessage.CorrelationId.ToString());
+                    try
+                    {
+                        this.options.EnrichWithMessage?.Invoke(activity, publishMessage);
+                    }
+                    catch (Exception ex)
+                    {
+                        // TODO: log
+                    }
                 }
 
                 if (!string.IsNullOrEmpty(publishRoutingKey))
@@ -139,6 +150,14 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
 
                 byte[] consumeMessage = this.messageFetcher.Fetch(payload);
                 _ = activity.SetTag(SemanticConventions.AttributeMessagingPayloadSize, consumeMessage.Length);
+                try
+                {
+                    this.options.EnrichWithMessageBytes?.Invoke(activity, consumeMessage);
+                }
+                catch (Exception ex)
+                {
+                    // TODO: log
+                }
 
                 break;
 
@@ -173,6 +192,14 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
                 if (sendMessage is not null)
                 {
                     _ = activity.SetTag(SemanticConventions.AttributeMessagingConversationId, sendMessage.CorrelationId.ToString());
+                    try
+                    {
+                        this.options.EnrichWithMessage?.Invoke(activity, sendMessage);
+                    }
+                    catch (Exception ex)
+                    {
+                        // TODO: log
+                    }
                 }
 
                 break;

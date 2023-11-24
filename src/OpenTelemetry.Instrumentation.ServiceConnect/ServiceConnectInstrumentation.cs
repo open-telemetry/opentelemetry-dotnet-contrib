@@ -10,7 +10,7 @@ internal class ServiceConnectInstrumentation : IDisposable
     public ServiceConnectInstrumentation(ServiceConnectInstrumentationOptions? options)
     {
         this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(
-            name => new ServiceConnectDiagnosticListener(name),
+            name => new ServiceConnectDiagnosticListener(name, options),
             listener => listener.Name == ServiceConnectDiagnosticListener.DiagnosticSourceName,
             null,
            null);
