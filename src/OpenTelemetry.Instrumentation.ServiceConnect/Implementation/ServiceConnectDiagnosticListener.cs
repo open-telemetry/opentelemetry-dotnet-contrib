@@ -16,6 +16,8 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
     public const string ServiceConnectStopPublishCommand = "ServiceConnect.Bus.StopPublish";
     public const string ServiceConnectStartConsumeCommand = "ServiceConnect.Bus.StartConsume";
     public const string ServiceConnectStopConsumeCommand = "ServiceConnect.Bus.StopConsume";
+    public const string ServiceConnectStartSendCommand = "ServiceConnect.Bus.StartSend";
+    public const string ServiceConnectStopSendCommand = "ServiceConnect.Bus.StopSend";
 
     internal static readonly string ActivitySourceName = typeof(ServiceConnectDiagnosticListener).Assembly.GetName().Name ?? "ServiceConnect";
     internal static readonly string ActivityName = ActivitySourceName + ".Bus";
@@ -28,6 +30,7 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<byte[]> messageFetcher = new("Message");
     private readonly PropertyFetcher<Message> genericMessageFetcher = new("Message");
     private readonly PropertyFetcher<IDictionary<string, object>> consumeHeadersFetcher = new("Headers");
+    private readonly PropertyFetcher<string> endPointFetcher = new("EndPoint");
 
     public ServiceConnectDiagnosticListener(string sourceName)
         : base(sourceName)
@@ -130,8 +133,42 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
 
                 break;
 
+            case ServiceConnectStartSendCommand:
+                activity = ServiceConnectSource.StartActivity(
+                    ActivityName + ".Send",
+                    ActivityKind.Producer,
+                    default(ActivityContext));
+
+                if (activity is null)
+                {
+                    return;
+                }
+
+                _ = this.endPointFetcher.TryFetch(payload, out var endPoint);
+                operation = "publish";
+                activity.DisplayName = (endPoint ?? "anonymous") + " " + operation;
+
+                _ = activity.SetTag(SemanticConventions.AttributeMessagingSystem, "rabbitmq");
+                _ = activity.SetTag(SemanticConventions.AttributeMessagingProtocol, "amqp");
+                _ = activity.SetTag(SemanticConventions.AttributeMessagingOperation, operation);
+                _ = activity.SetTag(SemanticConventions.AttributeMessagingDestination, endPoint);
+
+                _ = this.genericMessageFetcher.TryFetch(payload, out Message? sendMessage);
+                if (sendMessage is not null)
+                {
+                    _ = activity.SetTag(SemanticConventions.AttributeMessagingConversationId, sendMessage.CorrelationId.ToString());
+                }
+
+                if (activity.IsAllDataRequested)
+                {
+                    _ = this.stringHeadersFetcher.TryFetch(payload, out var sendHeaders);
+                }
+
+                break;
+
             case ServiceConnectStopPublishCommand:
             case ServiceConnectStopConsumeCommand:
+            case ServiceConnectStopSendCommand:
                 if (activity is null)
                 {
                     return;
