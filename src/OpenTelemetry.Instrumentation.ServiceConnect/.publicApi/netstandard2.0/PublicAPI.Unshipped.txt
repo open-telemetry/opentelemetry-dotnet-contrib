@@ -1,0 +1,10 @@
+OpenTelemetry.Instrumentation.ServiceConnect.ServiceConnectInstrumentationOptions
+OpenTelemetry.Instrumentation.ServiceConnect.ServiceConnectInstrumentationOptions.ServiceConnectInstrumentationOptions() -> void
+OpenTelemetry.Instrumentation.ServiceConnect.ServiceConnectInstrumentationOptions.EnrichWithMessage.get -> System.Action<System.Diagnostics.Activity!, ServiceConnect.Interfaces.Message!>?
+OpenTelemetry.Instrumentation.ServiceConnect.ServiceConnectInstrumentationOptions.EnrichWithMessage.set -> void
+OpenTelemetry.Instrumentation.ServiceConnect.ServiceConnectInstrumentationOptions.EnrichWithMessageBytes.get -> System.Action<System.Diagnostics.Activity!, byte[]!>?
+OpenTelemetry.Instrumentation.ServiceConnect.ServiceConnectInstrumentationOptions.EnrichWithMessageBytes.set -> void
+OpenTelemetry.Trace.TracerProviderBuilderExtensions
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddServiceConnectInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder!
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddServiceConnectInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder, string? name, System.Action<OpenTelemetry.Instrumentation.ServiceConnect.ServiceConnectInstrumentationOptions!>? configure) -> OpenTelemetry.Trace.TracerProviderBuilder!
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddServiceConnectInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder, System.Action<OpenTelemetry.Instrumentation.ServiceConnect.ServiceConnectInstrumentationOptions!>? configure) -> OpenTelemetry.Trace.TracerProviderBuilder!
