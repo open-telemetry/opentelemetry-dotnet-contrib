@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <!--<TargetFrameworks>net6.0;netstandard2.0;net462</TargetFrameworks>-->
-    <TargetFrameworks>net6.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;netstandard2.0;net462</TargetFrameworks>
     <Description>ServiceConnect instrumentation for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);ServiceConnect</PackageTags>
     <MinVerTagPrefix>Instrumentation.ServiceConnect-</MinVerTagPrefix>
