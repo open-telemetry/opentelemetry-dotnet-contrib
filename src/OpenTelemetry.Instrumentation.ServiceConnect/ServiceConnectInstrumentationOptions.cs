@@ -20,6 +20,9 @@ using ServiceConnect.Interfaces;
 
 namespace OpenTelemetry.Instrumentation.ServiceConnect;
 
+/// <summary>
+/// Options for <see cref="ServiceConnectInstrumentation"/>.
+/// </summary>
 public class ServiceConnectInstrumentationOptions
 {
     /// <summary>

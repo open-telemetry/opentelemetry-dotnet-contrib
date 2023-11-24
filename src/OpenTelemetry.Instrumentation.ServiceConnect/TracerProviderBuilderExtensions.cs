@@ -23,13 +23,39 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.ServiceConnect;
 
+/// <summary>
+/// Extension methods to simplify registering of dependency instrumentation.
+/// </summary>
 public static class TracerProviderBuilderExtensions
 {
+    /// <summary>
+    /// Enables ServiceConnect instrumentation.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddServiceConnectInstrumentation(this TracerProviderBuilder builder)
     {
         return AddServiceConnectInstrumentation(builder, null, null);
     }
 
+    /// <summary>
+    /// Enables ServiceConnect instrumentation.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="configure">ServiceConnect configuration options.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddServiceConnectInstrumentation(this TracerProviderBuilder builder, Action<ServiceConnectInstrumentationOptions>? configure)
+    {
+        return AddServiceConnectInstrumentation(builder, null, configure);
+    }
+
+    /// <summary>
+    /// Enables ServiceConnect instrumentation.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="name">Name which is used when retrieving options.</param>
+    /// <param name="configure">ServiceConnect configuration options.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddServiceConnectInstrumentation(this TracerProviderBuilder builder, string? name, Action<ServiceConnectInstrumentationOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
