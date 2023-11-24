@@ -25,6 +25,8 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
     internal static readonly Version? Version = typeof(ServiceConnectDiagnosticListener).Assembly.GetName().Version;
     internal static readonly ActivitySource ServiceConnectSource = new(ActivitySourceName, Version?.ToString() ?? "0.0.0");
 
+    private const string AttributeDestinationAnonymous = "messaging.destination.anonymous";
+
     private readonly PropertyFetcher<string> routingKeyFetcher = new("RoutingKey");
     private readonly PropertyFetcher<Dictionary<string, string>?> stringHeadersFetcher = new("Headers");
     private readonly PropertyFetcher<byte[]> messageFetcher = new("Message");
@@ -77,7 +79,7 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
                 }
                 else
                 {
-                    _ = activity.SetTag("messaging.destination.anonymous", true);
+                    _ = activity.SetTag(AttributeDestinationAnonymous, true);
                 }
 
                 _ = this.stringHeadersFetcher.TryFetch(payload, out Dictionary<string, string>? publishHeaders);
@@ -126,7 +128,14 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
                 _ = activity.SetTag(SemanticConventions.AttributeMessagingProtocol, "amqp");
                 _ = activity.SetTag(SemanticConventions.AttributeMessagingOperation, operation);
                 _ = activity.SetTag(SemanticConventions.AttributeMessagingMessageId, readableHeaders["MessageId"]);
-                _ = activity.SetTag(SemanticConventions.AttributeMessagingDestination, readableHeaders["DestinationAddress"]);
+                if (!string.IsNullOrEmpty(destinationAddress))
+                {
+                    _ = activity.SetTag(SemanticConventions.AttributeMessagingDestination, destinationAddress);
+                }
+                else
+                {
+                    _ = activity.SetTag(AttributeDestinationAnonymous, true);
+                }
 
                 byte[] consumeMessage = this.messageFetcher.Fetch(payload);
                 _ = activity.SetTag(SemanticConventions.AttributeMessagingPayloadSize, consumeMessage.Length);
@@ -151,17 +160,19 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
                 _ = activity.SetTag(SemanticConventions.AttributeMessagingSystem, "rabbitmq");
                 _ = activity.SetTag(SemanticConventions.AttributeMessagingProtocol, "amqp");
                 _ = activity.SetTag(SemanticConventions.AttributeMessagingOperation, operation);
-                _ = activity.SetTag(SemanticConventions.AttributeMessagingDestination, endPoint);
+                if (!string.IsNullOrEmpty(endPoint))
+                {
+                    _ = activity.SetTag(SemanticConventions.AttributeMessagingDestination, endPoint);
+                }
+                else
+                {
+                    _ = activity.SetTag(AttributeDestinationAnonymous, true);
+                }
 
                 _ = this.genericMessageFetcher.TryFetch(payload, out Message? sendMessage);
                 if (sendMessage is not null)
                 {
                     _ = activity.SetTag(SemanticConventions.AttributeMessagingConversationId, sendMessage.CorrelationId.ToString());
-                }
-
-                if (activity.IsAllDataRequested)
-                {
-                    _ = this.stringHeadersFetcher.TryFetch(payload, out var sendHeaders);
                 }
 
                 break;
