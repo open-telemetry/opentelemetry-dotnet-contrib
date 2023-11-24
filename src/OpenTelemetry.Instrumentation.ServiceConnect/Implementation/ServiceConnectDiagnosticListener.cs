@@ -74,6 +74,7 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
 
                 if (activity is null)
                 {
+                    ServiceConnectInstrumentationEventSource.Log.NullActivity(name);
                     return;
                 }
 
@@ -96,7 +97,7 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
                     }
                     catch (Exception ex)
                     {
-                        // TODO: log
+                        ServiceConnectInstrumentationEventSource.Log.EnrichmentException(name, ex);
                     }
                 }
 
@@ -130,6 +131,7 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
 
                 if (activity is null)
                 {
+                    ServiceConnectInstrumentationEventSource.Log.NullActivity(name);
                     return;
                 }
 
@@ -172,7 +174,7 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
                 }
                 catch (Exception ex)
                 {
-                    // TODO: log
+                    ServiceConnectInstrumentationEventSource.Log.EnrichmentException(name, ex);
                 }
 
                 break;
@@ -185,6 +187,7 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
 
                 if (activity is null)
                 {
+                    ServiceConnectInstrumentationEventSource.Log.NullActivity(name);
                     return;
                 }
 
@@ -214,7 +217,7 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
                     }
                     catch (Exception ex)
                     {
-                        // TODO: log
+                        ServiceConnectInstrumentationEventSource.Log.EnrichmentException(name, ex);
                     }
                 }
 
@@ -225,6 +228,7 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
             case ServiceConnectStopSendCommand:
                 if (activity is null)
                 {
+                    ServiceConnectInstrumentationEventSource.Log.NullActivity(name);
                     return;
                 }
 
