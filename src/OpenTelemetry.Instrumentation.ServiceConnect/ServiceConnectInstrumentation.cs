@@ -29,7 +29,7 @@ internal class ServiceConnectInstrumentation : IDisposable
             name => new ServiceConnectDiagnosticListener(name, options),
             listener => listener.Name == ServiceConnectDiagnosticListener.DiagnosticSourceName,
             null,
-           null);
+            ServiceConnectInstrumentationEventSource.Log.UnknownErrorProcessingEvent);
         this.diagnosticSourceSubscriber.Subscribe();
     }
 
