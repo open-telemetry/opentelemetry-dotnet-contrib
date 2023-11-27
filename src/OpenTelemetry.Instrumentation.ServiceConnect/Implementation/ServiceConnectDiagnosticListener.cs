@@ -151,7 +151,7 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
 
                 operation = "receive";
                 _ = readableHeaders.TryGetValue("DestinationAddress", out string? destinationAddress);
-                activity.DisplayName = (destinationAddress ?? "aynonymous") + " " + operation;
+                activity.DisplayName = (destinationAddress ?? "anonymous") + " " + operation;
 
                 _ = activity.SetTag(SemanticConventions.AttributeMessagingSystem, "rabbitmq");
                 _ = activity.SetTag(SemanticConventions.AttributeMessagingProtocol, "amqp");
