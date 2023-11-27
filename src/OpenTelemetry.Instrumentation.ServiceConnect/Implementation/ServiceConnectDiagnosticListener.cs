@@ -107,7 +107,7 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
                 }
                 else
                 {
-                    _ = activity.SetTag(AttributeDestinationAnonymous, true);
+                    _ = activity.SetTag(AttributeDestinationAnonymous, "true");
                 }
 
                 _ = this.stringHeadersFetcher.TryFetch(payload, out Dictionary<string, string>? publishHeaders);
@@ -163,7 +163,7 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
                 }
                 else
                 {
-                    _ = activity.SetTag(AttributeDestinationAnonymous, true);
+                    _ = activity.SetTag(AttributeDestinationAnonymous, "true");
                 }
 
                 byte[] consumeMessage = this.messageFetcher.Fetch(payload);
@@ -204,7 +204,7 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
                 }
                 else
                 {
-                    _ = activity.SetTag(AttributeDestinationAnonymous, true);
+                    _ = activity.SetTag(AttributeDestinationAnonymous, "true");
                 }
 
                 _ = this.genericMessageFetcher.TryFetch(payload, out Message? sendMessage);
