@@ -157,7 +157,11 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
                 _ = activity.SetTag(SemanticConventions.AttributeMessagingSystem, "rabbitmq");
                 _ = activity.SetTag(SemanticConventions.AttributeMessagingProtocol, "amqp");
                 _ = activity.SetTag(SemanticConventions.AttributeMessagingOperation, operation);
-                _ = activity.SetTag(SemanticConventions.AttributeMessagingMessageId, readableHeaders["MessageId"]);
+                if (readableHeaders.TryGetValue("MessageId", out string? consumeMessageId))
+                {
+                    _ = activity.SetTag(SemanticConventions.AttributeMessagingMessageId, consumeMessageId);
+                }
+
                 if (!string.IsNullOrEmpty(destinationAddress))
                 {
                     _ = activity.SetTag(SemanticConventions.AttributeMessagingDestination, destinationAddress);
