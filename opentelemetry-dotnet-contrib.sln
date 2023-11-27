@@ -317,7 +317,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projects", "Projects", "{04
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.ServiceConnect", "src\OpenTelemetry.Instrumentation.ServiceConnect\OpenTelemetry.Instrumentation.ServiceConnect.csproj", "{AF2EC4C5-B276-4708-9847-4AD50F470F4F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Instrumentation.ServiceConnect.Tests", "test\OpenTelemetry.Instrumentation.ServiceConnect.Tests\OpenTelemetry.Instrumentation.ServiceConnect.Tests.csproj", "{F0A8FD2E-81D7-4118-A2D2-65FE3E00FE51}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.ServiceConnect.Tests", "test\OpenTelemetry.Instrumentation.ServiceConnect.Tests\OpenTelemetry.Instrumentation.ServiceConnect.Tests.csproj", "{F0A8FD2E-81D7-4118-A2D2-65FE3E00FE51}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

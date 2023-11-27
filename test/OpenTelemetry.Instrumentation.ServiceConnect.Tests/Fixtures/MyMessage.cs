@@ -1,4 +1,4 @@
-// <copyright file="Usings.cs" company="OpenTelemetry Authors">
+// <copyright file="MyMessage.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,16 @@
 // limitations under the License.
 // </copyright>
 
-global using Moq;
-global using OpenTelemetry.Trace;
-global using ServiceConnect;
-global using Xunit;
+using ServiceConnect.Interfaces;
+
+namespace OpenTelemetry.Instrumentation.ServiceConnect.Tests.Fixtures;
+
+internal class MyMessage : Message
+{
+    public MyMessage(Guid correlationId)
+        : base(correlationId)
+    {
+    }
+
+    public int Version { get; } = 1;
+}
