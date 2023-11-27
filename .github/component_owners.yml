@@ -65,9 +65,6 @@ components:
     - vishweshbankwar
   src/OpenTelemetry.ResourceDetectors.Container/:
     - iskiselev
-  src/OpenTelemetry.ResourceDetectors.ProcessRuntime/:
-    - Kielek
-    - lachmatt
   src/OpenTelemetry.Sampler.AWS/:
     - srprash
     - atshaw43
@@ -144,9 +141,6 @@ components:
     - vishweshbankwar
   test/OpenTelemetry.ResourceDetectors.Container.Tests/:
     - iskiselev
-  test/OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests/:
-    - Kielek
-    - lachmatt
   test/OpenTelemetry.Sampler.AWS.Tests/:
     - srprash
     - atshaw43
