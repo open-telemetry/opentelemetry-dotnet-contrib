@@ -1,0 +1,22 @@
+name: Pack OpenTelemetry.Instrumentation.ServiceConnect
+
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+  push:
+    tags:
+      - 'Instrumentation.ServiceConnect-*' # trigger when we create a tag with prefix "Instrumentation.ServiceConnect-"
+
+jobs:
+  call-build-test-pack:
+    permissions:
+      contents: write
+    uses: ./.github/workflows/Component.Package.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.ServiceConnect
+      release-name: 'OpenTelemetry ServiceConnect Instrumentation Package'
+    secrets: inherit
