@@ -270,7 +270,7 @@ jobs:
             OpenTelemetry.Instrumentation.StackExchangeRedis.Tests.csproj,
             OpenTelemetry.Instrumentation.Wcf.Tests.csproj,
             OpenTelemetry.PersistentStorage.FileSystem.Tests.csproj,
-            OpenTelemetry.ResourceDetectors.Azure.Tests.csproj
+            OpenTelemetry.ResourceDetectors.Azure.Tests.csproj,
             OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests.csproj
 
         ForEach ($project in $projects)
