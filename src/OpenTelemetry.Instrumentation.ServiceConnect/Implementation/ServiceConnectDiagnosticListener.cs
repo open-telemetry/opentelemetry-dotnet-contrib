@@ -49,6 +49,7 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<Message> genericMessageFetcher = new("Message");
     private readonly PropertyFetcher<IDictionary<string, object>> consumeHeadersFetcher = new("Headers");
     private readonly PropertyFetcher<string> endPointFetcher = new("EndPoint");
+    private readonly PropertyFetcher<IList<string>> endpointsFetcher = new("EndPoints");
 
     private readonly ServiceConnectInstrumentationOptions options;
 
@@ -191,16 +192,27 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
                     return;
                 }
 
-                _ = this.endPointFetcher.TryFetch(payload, out var endPoint);
+                _ = this.endPointFetcher.TryFetch(payload, out string? endPoint);
+                _ = this.endpointsFetcher.TryFetch(payload, out IList<string>? endPoints);
                 operation = "publish";
-                activity.DisplayName = (endPoint ?? "anonymous") + " " + operation;
+                string? formattedEndpoint = null;
+                if (endPoint is not null)
+                {
+                    formattedEndpoint = endPoint;
+                }
+                else if (endPoints is not null)
+                {
+                    formattedEndpoint = "[" + string.Join(",", endPoints) + "]";
+                }
+
+                activity.DisplayName = (formattedEndpoint ?? "anonymous") + " " + operation;
 
                 _ = activity.SetTag(SemanticConventions.AttributeMessagingSystem, "rabbitmq");
                 _ = activity.SetTag(SemanticConventions.AttributeMessagingProtocol, "amqp");
                 _ = activity.SetTag(SemanticConventions.AttributeMessagingOperation, operation);
-                if (!string.IsNullOrEmpty(endPoint))
+                if (!string.IsNullOrEmpty(formattedEndpoint))
                 {
-                    _ = activity.SetTag(SemanticConventions.AttributeMessagingDestination, endPoint);
+                    _ = activity.SetTag(SemanticConventions.AttributeMessagingDestination, formattedEndpoint);
                 }
                 else
                 {
