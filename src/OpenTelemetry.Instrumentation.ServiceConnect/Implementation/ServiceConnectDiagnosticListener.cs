@@ -81,7 +81,7 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
                 operation = "publish";
                 _ = this.routingKeyFetcher.TryFetch(payload, out string publishRoutingKey);
 
-                activity.DisplayName = (publishRoutingKey ?? "anyonymous") + " " + operation;
+                activity.DisplayName = (publishRoutingKey ?? "anonymous") + " " + operation;
 
                 _ = activity.SetTag(SemanticConventions.AttributeMessagingSystem, "rabbitmq");
                 _ = activity.SetTag(SemanticConventions.AttributeMessagingProtocol, "amqp");
