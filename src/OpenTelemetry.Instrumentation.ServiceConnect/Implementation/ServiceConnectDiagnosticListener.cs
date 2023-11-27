@@ -208,17 +208,19 @@ internal sealed class ServiceConnectDiagnosticListener : ListenerHandler
                 }
 
                 _ = this.genericMessageFetcher.TryFetch(payload, out Message? sendMessage);
-                if (sendMessage is not null)
+                if (sendMessage is null)
                 {
-                    _ = activity.SetTag(SemanticConventions.AttributeMessagingConversationId, sendMessage.CorrelationId.ToString());
-                    try
-                    {
-                        this.options.EnrichWithMessage?.Invoke(activity, sendMessage);
-                    }
-                    catch (Exception ex)
-                    {
-                        ServiceConnectInstrumentationEventSource.Log.EnrichmentException(name, ex);
-                    }
+                    break;
+                }
+
+                _ = activity.SetTag(SemanticConventions.AttributeMessagingConversationId, sendMessage.CorrelationId.ToString());
+                try
+                {
+                    this.options.EnrichWithMessage?.Invoke(activity, sendMessage);
+                }
+                catch (Exception ex)
+                {
+                    ServiceConnectInstrumentationEventSource.Log.EnrichmentException(name, ex);
                 }
 
                 break;
