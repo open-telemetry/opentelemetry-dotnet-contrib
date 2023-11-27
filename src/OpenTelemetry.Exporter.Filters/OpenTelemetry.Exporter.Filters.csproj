@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<Description>OpenTelemetry based .NET Processors with Filter for Exporters</Description>
+    <Authors>OpenTelemetry Authors</Authors>
+    <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net472</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+		<NoWarn>$(NoWarn),CA2000,SA1201,CA1810</NoWarn>
+    <MinVerTagPrefix>Exporter.Filters-</MinVerTagPrefix>
+    <EnableAnalysis>true</EnableAnalysis>
+		<Nullable>disable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <None Remove=".publicApi\net6.0\PublicAPI.Shipped.txt" />
+	  <None Remove=".publicApi\net6.0\PublicAPI.Unshipped.txt" />
+	</ItemGroup>
+
+	<ItemGroup>
+    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
+    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="$(OpenTelemetryCoreLatestVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Exporter.Geneva\OpenTelemetry.Exporter.Geneva.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Exporter.Geneva\Internal\ReentrantActivityExportProcessor.cs" Link="Includes\ReentrantActivityExportProcessor.cs" />
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.Exporter.Geneva\Internal\ReentrantExportProcessor.cs" Link="Includes\ReentrantExportProcessor.cs" />
+  </ItemGroup>
+  
+</Project>

@@ -315,6 +315,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projects", "Projects", "{04
 		build\Projects\OpenTelemetry.ResourceDetectors.Azure.proj = build\Projects\OpenTelemetry.ResourceDetectors.Azure.proj
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.Filters", "src\OpenTelemetry.Exporter.Filters\OpenTelemetry.Exporter.Filters.csproj", "{B1B8761F-EC39-4679-9224-8DCA2612B3F3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -633,6 +635,10 @@ Global
 		{23AA75F6-403F-4867-BF0E-BAF0A44F9A7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23AA75F6-403F-4867-BF0E-BAF0A44F9A7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23AA75F6-403F-4867-BF0E-BAF0A44F9A7A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1B8761F-EC39-4679-9224-8DCA2612B3F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1B8761F-EC39-4679-9224-8DCA2612B3F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1B8761F-EC39-4679-9224-8DCA2612B3F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1B8761F-EC39-4679-9224-8DCA2612B3F3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -729,6 +735,7 @@ Global
 		{23AA75F6-403F-4867-BF0E-BAF0A44F9A7A} = {73474960-8F91-4EE5-8E3E-F7E7ADA99238}
 		{9B30F5FD-3309-49CB-9CAD-D3372FAFD796} = {824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}
 		{048509D6-FB49-4B84-832A-90E55520B97B} = {824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}
+		{B1B8761F-EC39-4679-9224-8DCA2612B3F3} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}

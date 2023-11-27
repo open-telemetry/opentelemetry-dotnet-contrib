@@ -1,0 +1,25 @@
+abstract OpenTelemetry.Exporter.Filters.BaseFilter<T>.GetDescription() -> string
+abstract OpenTelemetry.Exporter.Filters.BaseFilter<T>.ShouldFilter(T t) -> bool
+OpenTelemetry.Exporter.Filters.BaseFilter<T>
+OpenTelemetry.Exporter.Filters.BaseFilter<T>.BaseFilter() -> void
+OpenTelemetry.Exporter.Filters.BaseFilter<T>.Dispose() -> void
+OpenTelemetry.Exporter.Filters.ConsoleExporterWithFilterTraceExtension
+OpenTelemetry.Exporter.Filters.GenevaExporterWithFilterTraceExtension
+OpenTelemetry.Exporter.Filters.SamplerFilter
+OpenTelemetry.Exporter.Filters.SamplerFilter.SamplerFilter(OpenTelemetry.Trace.Sampler sampler) -> void
+OpenTelemetry.Exporter.Filters.SpecificTagFilter
+OpenTelemetry.Exporter.Filters.SpecificTagFilter.SpecificTagFilter(System.Collections.Generic.Dictionary<string, string> filterMappings) -> void
+override OpenTelemetry.Exporter.Filters.SamplerFilter.GetDescription() -> string
+override OpenTelemetry.Exporter.Filters.SamplerFilter.ShouldFilter(System.Diagnostics.Activity t) -> bool
+override OpenTelemetry.Exporter.Filters.SpecificTagFilter.GetDescription() -> string
+override OpenTelemetry.Exporter.Filters.SpecificTagFilter.ShouldFilter(System.Diagnostics.Activity t) -> bool
+static OpenTelemetry.Exporter.Filters.ConsoleExporterWithFilterTraceExtension.AddConsoleExporter(this OpenTelemetry.Trace.TracerProviderBuilder builder, OpenTelemetry.Exporter.Filters.BaseFilter<System.Diagnostics.Activity> filter) -> OpenTelemetry.Trace.TracerProviderBuilder
+static OpenTelemetry.Exporter.Filters.ConsoleExporterWithFilterTraceExtension.AddConsoleExporter(this OpenTelemetry.Trace.TracerProviderBuilder builder, OpenTelemetry.Trace.Sampler sampler) -> OpenTelemetry.Trace.TracerProviderBuilder
+static OpenTelemetry.Exporter.Filters.ConsoleExporterWithFilterTraceExtension.AddConsoleExporter(this OpenTelemetry.Trace.TracerProviderBuilder builder, string name, System.Action<OpenTelemetry.Exporter.ConsoleExporterOptions> configure, OpenTelemetry.Exporter.Filters.BaseFilter<System.Diagnostics.Activity> filter) -> OpenTelemetry.Trace.TracerProviderBuilder
+static OpenTelemetry.Exporter.Filters.ConsoleExporterWithFilterTraceExtension.AddConsoleExporter(this OpenTelemetry.Trace.TracerProviderBuilder builder, string name, System.Action<OpenTelemetry.Exporter.ConsoleExporterOptions> configure, OpenTelemetry.Trace.Sampler sampler) -> OpenTelemetry.Trace.TracerProviderBuilder
+static OpenTelemetry.Exporter.Filters.ConsoleExporterWithFilterTraceExtension.AddConsoleExporter(this OpenTelemetry.Trace.TracerProviderBuilder builder, System.Action<OpenTelemetry.Exporter.ConsoleExporterOptions> configure, OpenTelemetry.Exporter.Filters.BaseFilter<System.Diagnostics.Activity> filter) -> OpenTelemetry.Trace.TracerProviderBuilder
+static OpenTelemetry.Exporter.Filters.ConsoleExporterWithFilterTraceExtension.AddConsoleExporter(this OpenTelemetry.Trace.TracerProviderBuilder builder, System.Action<OpenTelemetry.Exporter.ConsoleExporterOptions> configure, OpenTelemetry.Trace.Sampler sampler) -> OpenTelemetry.Trace.TracerProviderBuilder
+static OpenTelemetry.Exporter.Filters.GenevaExporterWithFilterTraceExtension.AddGenevaTraceExporter(this OpenTelemetry.Trace.TracerProviderBuilder builder, System.Action<OpenTelemetry.Exporter.Geneva.GenevaExporterOptions> configure, OpenTelemetry.Exporter.Filters.BaseFilter<System.Diagnostics.Activity> filter) -> OpenTelemetry.Trace.TracerProviderBuilder
+static OpenTelemetry.Exporter.Filters.GenevaExporterWithFilterTraceExtension.AddGenevaTraceExporter(this OpenTelemetry.Trace.TracerProviderBuilder builder, System.Action<OpenTelemetry.Exporter.Geneva.GenevaExporterOptions> configure, OpenTelemetry.Trace.Sampler sampler) -> OpenTelemetry.Trace.TracerProviderBuilder
+virtual OpenTelemetry.Exporter.Filters.BaseFilter<T>.Dispose(bool disposing) -> void
+virtual OpenTelemetry.Exporter.Filters.BaseFilter<T>.GetName() -> string
