@@ -46,8 +46,8 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
     private readonly byte partAFieldsCount = 1; // At least one field: time
     private readonly bool shouldPassThruTableMappings;
     private readonly string defaultEventName = "Log";
-    private readonly IReadOnlyDictionary<string, object> customFields;
-    private readonly IReadOnlyDictionary<string, string> tableMappings;
+    private readonly Dictionary<string, object> customFields;
+    private readonly Dictionary<string, string> tableMappings;
     private readonly Tuple<byte[], byte[]> repeatedPartAFields;
     private readonly ExceptionStackExportMode exceptionStackExportMode;
 
