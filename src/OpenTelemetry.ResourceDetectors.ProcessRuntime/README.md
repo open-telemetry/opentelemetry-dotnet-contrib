@@ -7,8 +7,8 @@
 
 You need to install the
 `OpenTelemetry.ResourceDetectors.ProcessRuntime` to be able to use the
-Process Runtime Resource Detectors. It `process.runtime.description`, `process.runtime.name`,
-and `process.runtime.version` from .NET runtime.
+Process Runtime Resource Detectors. It detects `process.runtime.description`,
+`process.runtime.name`, and `process.runtime.version` from .NET runtime.
 
 ```shell
 dotnet add package OpenTelemetry.ResourceDetectors.ProcessRuntime --prerelease
