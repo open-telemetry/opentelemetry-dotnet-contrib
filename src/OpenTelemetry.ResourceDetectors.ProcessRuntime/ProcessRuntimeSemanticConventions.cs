@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-namespace OpenTelemetry.ResourceDetectors.Container;
+namespace OpenTelemetry.ResourceDetectors.ProcessRuntime;
 
 internal static class ProcessRuntimeSemanticConventions
 {

@@ -1,4 +1,4 @@
-# Container Resource Detectors
+# Process Runtime Resource Detectors
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.ResourceDetectors.ProcessRuntime)](https://www.nuget.org/packages/OpenTelemetry.ResourceDetectors.ProcessRuntime)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.OpenTelemetry.ResourceDetectors.ProcessRuntime)](https://www.nuget.org/packages/OpenTelemetry.ResourceDetectors.ProcessRuntime)
@@ -16,12 +16,12 @@ dotnet add package OpenTelemetry.ResourceDetectors.ProcessRuntime --prerelease
 
 ## Usage
 
-You can configure Container resource detector to
+You can configure Process Runtime resource detector to
 the `TracerProvider` with the following example below.
 
 ```csharp
 using OpenTelemetry;
-using OpenTelemetry.ResourceDetectors.Container;
+using OpenTelemetry.ResourceDetectors.ProcessRuntime;
 
 var tracerProvider = Sdk.CreateTracerProviderBuilder()
                         // other configurations

@@ -15,7 +15,6 @@
 // </copyright>
 
 using System.Linq;
-using OpenTelemetry.ResourceDetectors.Container;
 using OpenTelemetry.Resources;
 using Xunit;
 
