@@ -14,7 +14,9 @@
 // limitations under the License.
 // </copyright>
 
+#if !NETFRAMEWORK
 using System;
+#endif
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using OpenTelemetry.Resources;
