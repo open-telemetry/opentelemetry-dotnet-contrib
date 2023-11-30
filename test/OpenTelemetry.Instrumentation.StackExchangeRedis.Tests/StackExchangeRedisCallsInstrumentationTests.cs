@@ -19,6 +19,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
@@ -107,10 +108,17 @@ public class StackExchangeRedisCallsInstrumentationTests
         };
         connectionOptions.EndPoints.Add(RedisEndPoint);
 
-        using var connection = ConnectionMultiplexer.Connect(connectionOptions);
+        ConnectionMultiplexer? connection = null;
         var activityProcessor = new Mock<BaseProcessor<Activity>>();
         var sampler = new TestSampler();
         using (Sdk.CreateTracerProviderBuilder()
+            .ConfigureServices(services =>
+            {
+                services.TryAddSingleton<IConnectionMultiplexer>(sp =>
+                {
+                    return connection = ConnectionMultiplexer.Connect(connectionOptions);
+                });
+            })
             .AddProcessor(activityProcessor.Object)
             .SetSampler(sampler)
             .AddRedisInstrumentation(c => c.SetVerboseDatabaseStatements = false)
