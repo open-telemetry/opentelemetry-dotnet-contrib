@@ -32,15 +32,21 @@ public class ProcessRuntimeDetector : IResourceDetector
     /// <returns>Resource with key-value pairs of resource attributes.</returns>
     public Resource Detect()
     {
+#if NETFRAMEWORK
+        var frameworkDescriptionParts = RuntimeInformation.FrameworkDescription.Split(' ');
+        var netFrameworkVersion = frameworkDescriptionParts.Length > 1 ? frameworkDescriptionParts[frameworkDescriptionParts.Length - 1] : "unknown";
+#endif
+
         return new Resource(new List<KeyValuePair<string, object>>(3)
         {
             new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeDescription, RuntimeInformation.FrameworkDescription),
 #if NETFRAMEWORK
             new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeName, ".NET Framework"),
+            new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeVersion, netFrameworkVersion),
 #else
             new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeName, ".NET"),
-#endif
             new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeVersion, Environment.Version.ToString()),
+#endif
         });
     }
 }
