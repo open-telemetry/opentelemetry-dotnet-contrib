@@ -33,7 +33,7 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation;
 public class RedisProfilerEntryToActivityConverterTests : IDisposable
 {
     private readonly ConnectionMultiplexer connection;
-    private readonly IDisposable tracerProvider;
+    private readonly TracerProvider tracerProvider;
 
     public RedisProfilerEntryToActivityConverterTests()
     {

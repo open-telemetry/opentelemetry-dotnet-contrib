@@ -91,10 +91,12 @@ public class AWSECSResourceDetectorTests : IDisposable
             Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeEcsTaskArn], "arn:aws:ecs:us-west-2:111122223333:task/default/158d1c8083dd49d6b527399fd6414f5c");
             Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeEcsTaskFamily], "curltest");
             Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeEcsTaskRevision], "26");
+#pragma warning disable CA1861 // Avoid constant arrays as arguments
             Assert.NotStrictEqual(resourceAttributes[AWSSemanticConventions.AttributeLogGroupNames], new string[] { "/ecs/metadata" });
             Assert.NotStrictEqual(resourceAttributes[AWSSemanticConventions.AttributeLogGroupArns], new string[] { "arn:aws:logs:us-west-2:111122223333:log-group:/ecs/metadata" });
             Assert.NotStrictEqual(resourceAttributes[AWSSemanticConventions.AttributeLogStreamNames], new string[] { "ecs/curl/8f03e41243824aea923aca126495f665" });
             Assert.NotStrictEqual(resourceAttributes[AWSSemanticConventions.AttributeLogStreamArns], new string[] { "arn:aws:logs:us-west-2:111122223333:log-group:/ecs/metadata:log-stream:ecs/curl/8f03e41243824aea923aca126495f665" });
+#pragma warning restore CA1861 // Avoid constant arrays as arguments
         }
     }
 
@@ -117,10 +119,12 @@ public class AWSECSResourceDetectorTests : IDisposable
             Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeEcsTaskArn], "arn:aws:ecs:us-west-2:111122223333:task/default/e9028f8d5d8e4f258373e7b93ce9a3c3");
             Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeEcsTaskFamily], "curltest");
             Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeEcsTaskRevision], "3");
+#pragma warning disable CA1861 // Avoid constant arrays as arguments
             Assert.NotStrictEqual(resourceAttributes[AWSSemanticConventions.AttributeLogGroupNames], new string[] { "/ecs/containerlogs" });
             Assert.NotStrictEqual(resourceAttributes[AWSSemanticConventions.AttributeLogGroupArns], new string[] { "arn:aws:logs:us-west-2:111122223333:log-group:/ecs/containerlogs" });
             Assert.NotStrictEqual(resourceAttributes[AWSSemanticConventions.AttributeLogStreamNames], new string[] { "ecs/curl/cd189a933e5849daa93386466019ab50" });
             Assert.NotStrictEqual(resourceAttributes[AWSSemanticConventions.AttributeLogStreamArns], new string[] { "arn:aws:logs:us-west-2:111122223333:log-group:/ecs/containerlogs:log-stream:ecs/curl/cd189a933e5849daa93386466019ab50" });
+#pragma warning restore CA1861 // Avoid constant arrays as arguments
         }
     }
 

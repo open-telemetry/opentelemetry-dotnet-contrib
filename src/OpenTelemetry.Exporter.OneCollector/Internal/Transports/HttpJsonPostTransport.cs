@@ -17,6 +17,9 @@
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Net;
+#if NETFRAMEWORK
+using System.Net.Http;
+#endif
 using System.Net.Http.Headers;
 using OpenTelemetry.Internal;
 
