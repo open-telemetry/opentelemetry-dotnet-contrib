@@ -300,7 +300,7 @@ public class GenevaMetricExporterTests
                 .AddInMemoryExporter(exportedMetrics)
                 .Build())
             {
-                var counter = meter.CreateCounter<int>("count/invalid");
+                var counter = meter.CreateCounter<int>("count+invalid");
                 counter.Add(1);
             }
 
