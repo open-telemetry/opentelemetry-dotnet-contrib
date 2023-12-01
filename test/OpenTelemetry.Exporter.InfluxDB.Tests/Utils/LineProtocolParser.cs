@@ -75,11 +75,13 @@ public class LineProtocolParser
             return boolValue;
         }
 
+#pragma warning disable CA1865 // Use char overload
         if (fieldValue.EndsWith("i", StringComparison.Ordinal)
             && long.TryParse(fieldValue.AsSpan(0, fieldValue.Length - 1).ToString(), out long intValue))
         {
             return intValue;
         }
+#pragma warning restore CA1865 // Use char overload
 
         if (double.TryParse(fieldValue, NumberStyles.Float, CultureInfo.InvariantCulture, out double doubleValue))
         {

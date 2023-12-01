@@ -47,10 +47,14 @@ public static class TracerProviderBuilderExtensions
         Func<Activity, bool> predicate,
         int timeoutMilliseconds = 10000)
     {
+#if NET6_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(builder);
+#else
         if (builder == null)
         {
             throw new ArgumentNullException(nameof(builder));
         }
+#endif
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
         return builder.AddProcessor(new AutoFlushActivityProcessor(predicate, timeoutMilliseconds));

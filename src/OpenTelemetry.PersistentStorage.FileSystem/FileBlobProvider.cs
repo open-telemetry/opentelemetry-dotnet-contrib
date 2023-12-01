@@ -202,7 +202,7 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
         return true;
     }
 
-    private PersistentBlob? CreateFileBlob(byte[] buffer, int leasePeriodMilliseconds = 0)
+    private FileBlob? CreateFileBlob(byte[] buffer, int leasePeriodMilliseconds = 0)
     {
         if (!this.CheckStorageSize())
         {

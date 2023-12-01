@@ -33,10 +33,14 @@ internal sealed class CallbackManager<T> : IDisposable
 
         lock (this.lockObject)
         {
+#if NET7_0_OR_GREATER
+            ObjectDisposedException.ThrowIf(this.disposed, nameof(CallbackManager<T>));
+#else
             if (this.disposed)
             {
                 throw new ObjectDisposedException(nameof(CallbackManager<T>));
             }
+#endif
 
             this.root = (T)Delegate.Combine(this.root, callback);
         }

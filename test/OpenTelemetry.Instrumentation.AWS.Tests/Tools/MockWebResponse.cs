@@ -115,7 +115,7 @@ internal class MockWebResponse
             }
         }
 
-        httpResponseMessage.StatusCode = statusCode;
+        httpResponseMessage!.StatusCode = statusCode;
         string dummyJson = "{\"key1\":\"value1\"}";
         httpResponseMessage.Content = new StringContent(body ?? dummyJson); // Content should be in Json format else we get exception from downstream unmarshalling
         return httpResponseMessage;
@@ -152,7 +152,9 @@ internal class MockWebResponse
                     break;
                 }
 
+#pragma warning disable CA1865 // Use char overload
                 var index = currentLine.IndexOf(":", StringComparison.Ordinal);
+#pragma warning restore CA1865 // Use char overload
                 if (index != -1)
                 {
                     var headerKey = currentLine.Substring(0, index);
