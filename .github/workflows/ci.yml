@@ -31,6 +31,7 @@ jobs:
           owin: ['*/OpenTelemetry.Instrumentation.Owin*/**', 'examples/owin/**', '!**/*.md']
           persistentstorage: ['*/OpenTelemetry.PersistentStorage*/**', '!**/*.md']
           process: ['*/OpenTelemetry.Instrumentation.Process*/**', 'examples/process-instrumentation/**', '!**/*.md']
+          processruntime: ['*/OpenTelemetry.ResourceDetectors.ProcessRuntime*/**', '!**/*.md']
           redis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**/*.md']
           runtime: ['*/OpenTelemetry.Instrumentation.Runtime*/**', 'examples/runtime-instrumentation/**', '!**/*.md']
           wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**/*.md']
@@ -42,6 +43,7 @@ jobs:
             '!*/OpenTelemetry.Instrumentation.AspNet*/**',
             '!examples/AspNet/**',
             '!*/OpenTelemetry.ResourceDetectors.Azure*/**',
+            '!*/OpenTelemetry.ResourceDetectors.ProcessRuntime*/**',
             '!*/OpenTelemetry.Instrumentation.EventCounters*/**',
             '!examples/event-counters/**',
             '!*/OpenTelemetry.Extensions*/**',
@@ -175,6 +177,17 @@ jobs:
       project-name: OpenTelemetry.Instrumentation.Process
       code-cov-name: Instrumentation.Process
 
+  build-test-processruntime:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'processruntime')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.ResourceDetectors.ProcessRuntime
+      code-cov-name: ResourceDetectors.ProcessRuntime
+
   build-test-redis:
     needs: detect-changes
     if: |
@@ -257,7 +270,8 @@ jobs:
             OpenTelemetry.Instrumentation.StackExchangeRedis.Tests.csproj,
             OpenTelemetry.Instrumentation.Wcf.Tests.csproj,
             OpenTelemetry.PersistentStorage.FileSystem.Tests.csproj,
-            OpenTelemetry.ResourceDetectors.Azure.Tests.csproj
+            OpenTelemetry.ResourceDetectors.Azure.Tests.csproj,
+            OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests.csproj
 
         ForEach ($project in $projects)
         {
@@ -287,6 +301,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'eventcounters')
       || contains(needs.detect-changes.outputs.changes, 'runtime')
       || contains(needs.detect-changes.outputs.changes, 'azure')
+      || contains(needs.detect-changes.outputs.changes, 'processruntime')
       || contains(needs.detect-changes.outputs.changes, 'aottestapp')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'redis')
@@ -308,6 +323,7 @@ jobs:
       build-test-owin,
       build-test-persistentstorage,
       build-test-process,
+      build-test-processruntime,
       build-test-redis,
       build-test-redis-integration,
       build-test-runtime,
