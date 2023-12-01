@@ -6,9 +6,8 @@
 ## Getting Started
 
 You need to install the
-`OpenTelemetry.ResourceDetectors.Container` to be able to use the
-Container Resource Detectors. It detects container.id from
-Container environment.
+`OpenTelemetry.ResourceDetectors.Container` package to be able to use the
+Container Resource Detectors.
 
 ```shell
 dotnet add package OpenTelemetry.ResourceDetectors.Container --prerelease
@@ -25,8 +24,7 @@ using OpenTelemetry.ResourceDetectors.Container;
 
 var tracerProvider = Sdk.CreateTracerProviderBuilder()
                         // other configurations
-                        .SetResourceBuilder(ResourceBuilder
-                            .CreateEmpty()
+                        .ConfigureResource(resource => resource
                             .AddDetector(new ContainerResourceDetector()))
                         .Build();
 ```
