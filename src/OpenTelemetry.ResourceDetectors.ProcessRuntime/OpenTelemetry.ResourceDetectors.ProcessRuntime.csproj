@@ -3,7 +3,7 @@
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>net6.0</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
-    <Description>OpenTelemetry Extensions - Process Runtime Resource Detector from .NET runtime.</Description>
+    <Description>OpenTelemetry Extensions - Process Runtime Resource Detector for .NET runtime.</Description>
     <MinVerTagPrefix>ResourceDetectors.ProcessRuntime-</MinVerTagPrefix>
   </PropertyGroup>
   <ItemGroup>
