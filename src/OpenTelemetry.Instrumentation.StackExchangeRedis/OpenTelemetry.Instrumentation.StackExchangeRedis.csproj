@@ -19,7 +19,11 @@
     <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" Version="$(OpenTelemetryCoreLatestVersion)" />
     <PackageReference Include="StackExchange.Redis" Version="$(StackExchangeRedisPkgVer)" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsOptionsPkgVer)" />
-    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="$(SystemReflectionEmitLightweightPkgVer)" />
+    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="$(SystemReflectionEmitLightweightPkgVer)" />    
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
   </ItemGroup>
 
 </Project>
