@@ -34,7 +34,7 @@ public class ProcessRuntimeDetectorTests
 #if NETFRAMEWORK
         Assert.Matches(@"^\.NET Framework \d+\.\d+\.\d+\.\d+$", resourceAttributes[ProcessRuntimeSemanticConventions.AttributeProcessRuntimeDescription]);
         Assert.Equal(".NET Framework", resourceAttributes[ProcessRuntimeSemanticConventions.AttributeProcessRuntimeName]);
-        Assert.Matches(@"^4.[1-9]\d*\.\d+\.\d+$", resourceAttributes[ProcessRuntimeSemanticConventions.AttributeProcessRuntimeVersion]);
+        Assert.Matches(@"^4.[1-9](.[1-2])?$", resourceAttributes[ProcessRuntimeSemanticConventions.AttributeProcessRuntimeVersion]);
 #else
         Assert.Matches(@"^\.NET \d+\.\d+\.\d+$", resourceAttributes[ProcessRuntimeSemanticConventions.AttributeProcessRuntimeDescription]);
         Assert.Equal(".NET", resourceAttributes[ProcessRuntimeSemanticConventions.AttributeProcessRuntimeName]);
