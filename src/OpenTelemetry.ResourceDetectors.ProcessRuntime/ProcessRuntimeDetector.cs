@@ -34,19 +34,37 @@ public class ProcessRuntimeDetector : IResourceDetector
     /// <returns>Resource with key-value pairs of resource attributes.</returns>
     public Resource Detect()
     {
+        var frameworkDescription = RuntimeInformation.FrameworkDescription;
+        string netRuntimeName;
 #if NETFRAMEWORK
-        var frameworkDescriptionParts = RuntimeInformation.FrameworkDescription.Split(' ');
-        var netFrameworkVersion = frameworkDescriptionParts.Length > 1 ? frameworkDescriptionParts[frameworkDescriptionParts.Length - 1] : "unknown";
+        string netFrameworkVersion;
 #endif
+
+        var lastSpace = frameworkDescription.LastIndexOf(' ');
+        if (lastSpace != -1)
+        {
+            // sample result '.NET Framework 4.8.9195.0'
+            netRuntimeName = frameworkDescription.Substring(0, lastSpace);
+#if NETFRAMEWORK
+            netFrameworkVersion = frameworkDescription.Substring(lastSpace + 1);
+#endif
+        }
+        else
+        {
+            // do not expect to be here, all checked implementation has common FrameworkDescription format - '{Name With Optional Spaces} {Version}'
+            netRuntimeName = "unknown";
+#if NETFRAMEWORK
+            netFrameworkVersion = "unknown";
+#endif
+        }
 
         return new Resource(new List<KeyValuePair<string, object>>(3)
         {
-            new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeDescription, RuntimeInformation.FrameworkDescription),
+            new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeDescription, frameworkDescription),
+            new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeName, netRuntimeName),
 #if NETFRAMEWORK
-            new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeName, ".NET Framework"),
             new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeVersion, netFrameworkVersion),
 #else
-            new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeName, ".NET"),
             new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeVersion, Environment.Version.ToString()),
 #endif
         });
