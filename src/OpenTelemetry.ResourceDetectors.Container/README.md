@@ -25,8 +25,7 @@ using OpenTelemetry.ResourceDetectors.Container;
 
 var tracerProvider = Sdk.CreateTracerProviderBuilder()
                         // other configurations
-                        .SetResourceBuilder(ResourceBuilder
-                            .CreateEmpty()
+                        .ConfigureResource(resource => resource
                             .AddDetector(new ContainerResourceDetector()))
                         .Build();
 ```
