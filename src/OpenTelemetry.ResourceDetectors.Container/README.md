@@ -6,7 +6,7 @@
 ## Getting Started
 
 You need to install the
-`OpenTelemetry.ResourceDetectors.Container` to be able to use the
+`OpenTelemetry.ResourceDetectors.Container` package to be able to use the
 Container Resource Detectors.
 
 ```shell

@@ -6,7 +6,7 @@
 ## Getting Started
 
 You need to install the
-`OpenTelemetry.ResourceDetectors.ProcessRuntime` to be able to use the
+`OpenTelemetry.ResourceDetectors.ProcessRuntime` package to be able to use the
 Process Runtime Resource Detectors.
 
 ```shell
