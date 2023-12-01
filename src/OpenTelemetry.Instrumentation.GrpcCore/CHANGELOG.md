@@ -6,7 +6,7 @@
   ([#483](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/483))
 * Update OpenTelemetry.Api to 1.6.0.
   ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
-* **Breaking Change** Drop Support to `Google.Protobuf` older than `3.15.0`.
+*  Update minimal supported  version of `Google.Protobuf` to `3.15.0`.
   ([#1456](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1456))
 
 ## 1.0.0-beta.5
