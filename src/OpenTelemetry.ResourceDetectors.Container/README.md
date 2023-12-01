@@ -7,8 +7,7 @@
 
 You need to install the
 `OpenTelemetry.ResourceDetectors.Container` to be able to use the
-Container Resource Detectors. It detects container.id from
-Container environment.
+Container Resource Detectors.
 
 ```shell
 dotnet add package OpenTelemetry.ResourceDetectors.Container --prerelease
