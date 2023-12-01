@@ -76,12 +76,12 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
     public void OnPerformed(PerformedContext performedContext)
     {
         // Short-circuit if nobody is listening
-        if (!HangfireInstrumentation.ActivitySource.HasListeners() || !performedContext.Items.ContainsKey(HangfireInstrumentationConstants.ActivityKey))
+        if (!HangfireInstrumentation.ActivitySource.HasListeners() || !performedContext.Items.TryGetValue(HangfireInstrumentationConstants.ActivityKey, out var value))
         {
             return;
         }
 
-        if (performedContext.Items[HangfireInstrumentationConstants.ActivityKey] is Activity activity)
+        if (value is Activity activity)
         {
             if (performedContext.Exception != null)
             {

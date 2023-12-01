@@ -25,6 +25,7 @@ namespace OpenTelemetry.Exporter.InfluxDB.Tests;
 public class InfluxDBMetricsExporterTests
 {
     private static readonly string OpenTelemetrySdkVersion;
+    private static readonly double[] TestBoundaries = new[] { 10D, 20D, 100D, 200D };
 
 #pragma warning disable CA1810 // Initialize reference type static fields inline
     static InfluxDBMetricsExporterTests()
@@ -312,7 +313,7 @@ public class InfluxDBMetricsExporterTests
             .AddMeter(meter.Name)
             .AddView("histogram_metric", new ExplicitBucketHistogramConfiguration
             {
-                Boundaries = new[] { 10D, 20D, 100D, 200D },
+                Boundaries = TestBoundaries,
                 RecordMinMax = true,
             })
             .ConfigureDefaultTestResource()
@@ -403,7 +404,7 @@ public class InfluxDBMetricsExporterTests
             .AddMeter(meter.Name)
             .AddView("histogram_metric", new ExplicitBucketHistogramConfiguration
             {
-                Boundaries = new[] { 10D, 20D, 100D, 200D },
+                Boundaries = TestBoundaries,
                 RecordMinMax = true,
             })
             .ConfigureDefaultTestResource()

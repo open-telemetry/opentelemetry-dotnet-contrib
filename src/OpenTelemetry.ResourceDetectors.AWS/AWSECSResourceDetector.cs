@@ -106,7 +106,9 @@ public class AWSECSResourceDetector : IResourceDetector
 
         if (!clusterArn.StartsWith("arn:", StringComparison.Ordinal))
         {
+#pragma warning disable CA1865 // Use string.LastIndexOf(char) instead of string.LastIndexOf(string) when you have string with a single char
             var baseArn = containerArn.Substring(containerArn.LastIndexOf(":", StringComparison.Ordinal));
+#pragma warning restore CA1865 // Use string.LastIndexOf(char) instead of string.LastIndexOf(string) when you have string with a single char
             clusterArn = $"{baseArn}:cluster/{clusterArn}";
         }
 
