@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>Unit test project for OpenTelemetry Quartz.NET instrumentation</Description>
-    <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net7.0;net6.0</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net472</TargetFrameworks>
     <IncludeSharedTestSource>true</IncludeSharedTestSource>
   </PropertyGroup>

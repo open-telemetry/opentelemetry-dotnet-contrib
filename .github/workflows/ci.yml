@@ -107,7 +107,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.EventCounters
       code-cov-name: Instrumentation.EventCounters
-      tfm-list: '[ "net6.0", "net7.0" ]'
+      tfm-list: '[ "net6.0", "net7.0", "net8.0" ]'
 
   build-test-extensions:
     needs: detect-changes
