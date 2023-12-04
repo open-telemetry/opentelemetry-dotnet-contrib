@@ -40,7 +40,9 @@ public class AWSLambdaHttpUtilsTests
             },
             MultiValueQueryStringParameters = new Dictionary<string, IList<string>>
             {
+#pragma warning disable CA1861 // Avoid constant arrays as arguments
                 { "q1", new[] { "value1" } },
+#pragma warning restore CA1861 // Avoid constant arrays as arguments
             },
             RequestContext = new APIGatewayProxyRequest.ProxyRequestContext
             {
@@ -70,7 +72,9 @@ public class AWSLambdaHttpUtilsTests
         {
             MultiValueQueryStringParameters = new Dictionary<string, IList<string>>
             {
+#pragma warning disable CA1861 // Avoid constant arrays as arguments
                 { "q1", new[] { "value1" } },
+#pragma warning restore CA1861 // Avoid constant arrays as arguments
             },
             HttpMethod = "POST",
             Path = "/path/test",
@@ -251,11 +255,13 @@ public class AWSLambdaHttpUtilsTests
 
     [Theory]
     [InlineData(null, "")]
+#pragma warning disable CA1861 // Avoid constant arrays as arguments
     [InlineData(new string[] { }, "")]
     [InlineData(new[] { "value1" }, "?name=value1")]
     [InlineData(new[] { "value$a" }, "?name=value%24a")]
     [InlineData(new[] { "value 1" }, "?name=value+1")]
     [InlineData(new[] { "value1", "value2" }, "?name=value1&name=value2")]
+#pragma warning restore CA1861 // Avoid constant arrays as arguments
     public void GetQueryString_APIGatewayProxyRequest_CorrectQueryString(IList<string> values, string expectedQueryString)
     {
         var request = new APIGatewayProxyRequest();

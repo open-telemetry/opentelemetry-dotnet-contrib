@@ -31,8 +31,8 @@ namespace Examples.AspNet;
 public class WebApiApplication : HttpApplication
 #pragma warning restore SA1649 // File name should match first type name
 {
-    private IDisposable? tracerProvider;
-    private IDisposable? meterProvider;
+    private TracerProvider? tracerProvider;
+    private MeterProvider? meterProvider;
 
     protected void Application_Start()
     {

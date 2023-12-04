@@ -94,11 +94,13 @@ public class ProcessMetricsTests
         {
             foreach (var tag in points.Current.Tags)
             {
-                if (tag.Key == "state" && tag.Value.ToString() == "user")
+                Assert.NotNull(tag.Value);
+
+                if (tag.Key == "state" && tag.Value!.ToString() == "user")
                 {
                     userTimeCaptured = true;
                 }
-                else if (tag.Key == "state" && tag.Value.ToString() == "system")
+                else if (tag.Key == "state" && tag.Value!.ToString() == "system")
                 {
                     systemTimeCaptured = true;
                 }
