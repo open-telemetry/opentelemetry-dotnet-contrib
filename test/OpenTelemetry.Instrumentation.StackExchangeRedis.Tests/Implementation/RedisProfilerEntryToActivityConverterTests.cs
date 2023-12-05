@@ -128,7 +128,12 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
 
         Assert.NotNull(result);
         Assert.NotNull(result.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName));
+
+#if NET8_0
+        Assert.Equal("FireAndForget, NoRedirect", result.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName));
+#else
         Assert.Equal("PreferMaster, FireAndForget, NoRedirect", result.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName));
+#endif
     }
 
     [Fact]
