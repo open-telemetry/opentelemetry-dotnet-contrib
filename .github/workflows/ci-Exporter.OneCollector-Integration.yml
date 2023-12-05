@@ -44,7 +44,7 @@ jobs:
         ref: ${{ github.event.pull_request.head.sha || github.ref }} # Run on the fork branch once approved
 
     - name: Setup dotnet
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
 
     - name: dotnet restore build/Projects/${{env.PROJECT}}.proj
       run: dotnet restore build/Projects/${{env.PROJECT}}.proj
