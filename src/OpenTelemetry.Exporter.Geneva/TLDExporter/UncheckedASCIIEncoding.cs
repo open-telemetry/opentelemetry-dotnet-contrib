@@ -89,10 +89,14 @@ internal sealed class UncheckedASCIIEncoding : Encoding
 
     public override unsafe int GetBytes(char* charPtr, int charCount, byte* bytePtr, int byteCount)
     {
+#if NET8_0_OR_GREATER
+        ArgumentOutOfRangeException.ThrowIfLessThan(byteCount, charCount);
+#else
         if (byteCount < charCount)
         {
             throw new ArgumentOutOfRangeException(nameof(byteCount));
         }
+#endif
 
         for (int i = 0; i < charCount; i += 1)
         {
@@ -104,10 +108,14 @@ internal sealed class UncheckedASCIIEncoding : Encoding
 
     public override unsafe int GetChars(byte* bytePtr, int byteCount, char* charPtr, int charCount)
     {
+#if NET8_0_OR_GREATER
+        ArgumentOutOfRangeException.ThrowIfLessThan(charCount, byteCount);
+#else
         if (charCount < byteCount)
         {
             throw new ArgumentOutOfRangeException(nameof(charCount));
         }
+#endif
 
         for (int i = 0; i < byteCount; i += 1)
         {
@@ -117,7 +125,7 @@ internal sealed class UncheckedASCIIEncoding : Encoding
         return byteCount;
     }
 
-    #endregion
+#endregion
 
     #region Optional overrides (performance/functionality improvement)
 
