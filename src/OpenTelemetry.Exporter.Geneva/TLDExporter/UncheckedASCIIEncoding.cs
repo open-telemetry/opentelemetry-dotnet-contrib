@@ -125,7 +125,7 @@ internal sealed class UncheckedASCIIEncoding : Encoding
         return byteCount;
     }
 
-#endregion
+    #endregion
 
     #region Optional overrides (performance/functionality improvement)
 
