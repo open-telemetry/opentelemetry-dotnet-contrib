@@ -34,7 +34,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
 
     private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
 
-    private static readonly IReadOnlyDictionary<string, string> CS40_PART_B_MAPPING = new Dictionary<string, string>
+    private static readonly Dictionary<string, string> CS40_PART_B_MAPPING = new Dictionary<string, string>
     {
         ["db.system"] = "dbSystem",
         ["db.name"] = "dbName",
@@ -54,7 +54,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
 
     private readonly string partAName = "Span";
     private readonly byte partAFieldsCount = 3; // At least three fields: time, ext_dt_traceId, ext_dt_spanId
-    private readonly IReadOnlyDictionary<string, object> m_customFields;
+    private readonly Dictionary<string, object> m_customFields;
     private readonly Tuple<byte[], byte[]> repeatedPartAFields;
 
     private readonly EventProvider eventProvider;

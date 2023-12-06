@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Unit test project for OpenTelemetry .NET OneCollectorExporter.</Description>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net48;net472;net471;net47;net462</TargetFrameworks>
     <ImplicitUsings>true</ImplicitUsings>
   </PropertyGroup>
@@ -14,6 +14,10 @@
 
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Exporter.OneCollector\OpenTelemetry.Exporter.OneCollector.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Net.Http" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
 
   <ItemGroup>

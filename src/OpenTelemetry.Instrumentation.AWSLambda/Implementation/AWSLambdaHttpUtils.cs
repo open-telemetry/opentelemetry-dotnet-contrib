@@ -124,7 +124,9 @@ internal class AWSLambdaHttpUtils
             return (null, null);
         }
 
+#pragma warning disable CA1861 // Prefer 'static readonly' fields over constant array arguments if the called method is called repeatedly and is not mutating the passed array
         var hostAndPort = hostHeader.Split(new char[] { ':' }, 2);
+#pragma warning restore CA1861 // Prefer 'static readonly' fields over constant array arguments if the called method is called repeatedly and is not mutating the passed array
         if (hostAndPort.Length > 1)
         {
             var host = hostAndPort[0];
