@@ -16,7 +16,7 @@
 
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("OpenTelemetry.Instrumentation.GrpcCore.Tests" + AssemblyInfo.PublicKey)
+[assembly: InternalsVisibleTo("OpenTelemetry.Instrumentation.GrpcCore.Tests" + AssemblyInfo.PublicKey)]
 
 #if SIGNED
 internal static class AssemblyInfo
