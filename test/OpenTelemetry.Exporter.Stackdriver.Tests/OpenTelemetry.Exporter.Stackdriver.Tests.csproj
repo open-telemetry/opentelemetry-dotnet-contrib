@@ -11,7 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Moq" Version="$(MoqPkgVer)" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryCoreLatestVersion)" />
   </ItemGroup>
 </Project>
