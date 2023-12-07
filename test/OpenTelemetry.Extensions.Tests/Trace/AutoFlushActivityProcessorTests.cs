@@ -17,8 +17,6 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using Moq;
-using Moq.Protected;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -26,14 +24,19 @@ namespace OpenTelemetry.Extensions.Tests.Trace;
 
 public class AutoFlushActivityProcessorTests
 {
-    [Fact(Skip = "Unstable")]
+    // [Fact(Skip = "Unstable")]
+    [Fact]
     public void AutoFlushActivityProcessor_FlushAfterLocalServerSideRootSpans_EndMatchingSpan_Flush()
     {
-        var mockExporting = new Mock<BaseProcessor<Activity>>();
+        int invocations = 0;
+        var activityProcessor = new TestActivityProcessor
+        {
+            ForceFlushed = () => invocations++,
+        };
         var sourceName = GetTestMethodName();
 
         using var provider = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(mockExporting.Object)
+            .AddProcessor(activityProcessor)
             .AddAutoFlushActivityProcessor(a => a.Parent == null && (a.Kind == ActivityKind.Server || a.Kind == ActivityKind.Consumer), 5000)
             .AddSource(sourceName)
             .Build();
@@ -43,17 +46,21 @@ public class AutoFlushActivityProcessorTests
         Assert.NotNull(activity);
         activity.Stop();
 
-        mockExporting.Protected().Verify("OnForceFlush", Times.Once(), 5_000);
+        Assert.Equal(1, invocations);
     }
 
     [Fact]
     public void AutoFlushActivityProcessor_FlushAfterLocalServerSideRootSpans_EndNonMatchingSpan_DoesNothing()
     {
-        var mockExporting = new Mock<BaseProcessor<Activity>>();
+        int invocations = 0;
+        var activityProcessor = new TestActivityProcessor
+        {
+            ForceFlushed = () => invocations++,
+        };
         var sourceName = GetTestMethodName();
 
         using var provider = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(mockExporting.Object)
+            .AddProcessor(activityProcessor)
             .AddAutoFlushActivityProcessor(a => a.Parent == null && (a.Kind == ActivityKind.Server || a.Kind == ActivityKind.Consumer))
             .AddSource(sourceName)
             .Build();
@@ -63,17 +70,21 @@ public class AutoFlushActivityProcessorTests
         Assert.NotNull(activity);
         activity.Stop();
 
-        mockExporting.Protected().Verify("OnForceFlush", Times.Never(), It.IsAny<int>());
+        Assert.Equal(0, invocations);
     }
 
     [Fact]
     public void AutoFlushActivityProcessor_PredicateThrows_DoesNothing()
     {
-        var mockExporting = new Mock<BaseProcessor<Activity>>();
+        int invocations = 0;
+        var activityProcessor = new TestActivityProcessor
+        {
+            ForceFlushed = () => invocations++,
+        };
         var sourceName = GetTestMethodName();
 
         using var provider = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(mockExporting.Object)
+            .AddProcessor(activityProcessor)
             .AddAutoFlushActivityProcessor(_ => throw new Exception("Predicate throws an exception."))
             .AddSource(sourceName)
             .Build();
@@ -83,7 +94,7 @@ public class AutoFlushActivityProcessorTests
         Assert.NotNull(activity);
         activity.Stop();
 
-        mockExporting.Protected().Verify("OnForceFlush", Times.Never(), 5_000);
+        Assert.Equal(0, invocations);
     }
 
     private static string GetTestMethodName([CallerMemberName] string callingMethodName = "")
