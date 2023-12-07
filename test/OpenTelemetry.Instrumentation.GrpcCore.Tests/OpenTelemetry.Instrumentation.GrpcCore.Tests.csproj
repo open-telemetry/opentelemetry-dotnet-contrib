@@ -6,7 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Moq" Version="$(MoqPkgVer)" />
     <PackageReference Include="Grpc.Tools" Version="1.17.0" />
     <PackageReference Include="Grpc" Version="[2.46.6,3.0)" />
   </ItemGroup>
