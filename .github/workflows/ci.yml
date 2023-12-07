@@ -25,7 +25,7 @@ jobs:
           aspnet: ['*/OpenTelemetry.Instrumentation.AspNet*/**', 'examples/AspNet/**', '!**/*.md']
           azure: ['*/OpenTelemetry.ResourceDetectors.Azure*/**', '!**/*.md']
           eventcounters: ['*/OpenTelemetry.Instrumentation.EventCounters*/**', 'examples/event-counters/**', '!**/*.md']
-          extensions: ['*/OpenTelemetry.Extensions*/**', '!**/*.md']
+          extensions: ['*/OpenTelemetry.Extensions/**', '*/OpenTelemetry.Extensions.Tests/**', '!**/*.md']
           geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
           onecollector: ['*/OpenTelemetry.Instrumentation.OneCollector*/**', '!**/*.md']
           owin: ['*/OpenTelemetry.Instrumentation.Owin*/**', 'examples/owin/**', '!**/*.md']
@@ -46,7 +46,8 @@ jobs:
             '!*/OpenTelemetry.ResourceDetectors.ProcessRuntime*/**',
             '!*/OpenTelemetry.Instrumentation.EventCounters*/**',
             '!examples/event-counters/**',
-            '!*/OpenTelemetry.Extensions*/**',
+            '!*/OpenTelemetry.Extensions/**',
+            '!*/OpenTelemetry.Extensions.Tests/**',
             '!*/OpenTelemetry.Exporter.Geneva*/**',
             '!*/OpenTelemetry.Exporter.OneCollector*/**',
             '!*/OpenTelemetry.Instrumentation.Owin*/**',
