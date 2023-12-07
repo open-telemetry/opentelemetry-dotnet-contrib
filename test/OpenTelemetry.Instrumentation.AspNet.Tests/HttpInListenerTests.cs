@@ -22,7 +22,6 @@ using System.Linq;
 using System.Reflection;
 using System.Web;
 using System.Web.Routing;
-using Moq;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Instrumentation.AspNet.Implementation;
 using OpenTelemetry.Tests;
@@ -60,7 +59,7 @@ public class HttpInListenerTests
     {
         HttpContext.Current = RouteTestHelper.BuildHttpContext(url, routeType, routeTemplate);
 
-        typeof(HttpRequest).GetField("_wr", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(HttpContext.Current.Request, Mock.Of<HttpWorkerRequest>());
+        typeof(HttpRequest).GetField("_wr", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(HttpContext.Current.Request, new TestHttpWorkerRequest());
 
         List<Activity> exportedItems = new List<Activity>(16);
 
@@ -205,20 +204,17 @@ public class HttpInListenerTests
             new HttpResponse(new StringWriter()));
 
         bool isPropagatorCalled = false;
-        var propagator = new Mock<TextMapPropagator>();
-        propagator.Setup(m => m.Extract(It.IsAny<PropagationContext>(), It.IsAny<HttpRequest>(), It.IsAny<Func<HttpRequest, string, IEnumerable<string>>>()))
-            .Returns(() =>
-            {
-                isPropagatorCalled = true;
-                return default;
-            });
+        var propagator = new TestTextMapPropagator
+        {
+            Extracted = () => isPropagatorCalled = true,
+        };
 
-        var activityProcessor = new Mock<BaseProcessor<Activity>>();
-        Sdk.SetDefaultTextMapPropagator(propagator.Object);
+        var activityProcessor = new TestActivityProcessor();
+        Sdk.SetDefaultTextMapPropagator(propagator);
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new TestSampler(samplingDecision))
                    .AddAspNetInstrumentation()
-                   .AddProcessor(activityProcessor.Object).Build())
+                   .AddProcessor(activityProcessor).Build())
         {
             var activity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStartedCallback);
             ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStoppedCallback);
@@ -241,17 +237,14 @@ public class HttpInListenerTests
             new HttpResponse(new StringWriter()));
 
         bool isPropagatorCalled = false;
-        var propagator = new Mock<TextMapPropagator>();
-        propagator.Setup(m => m.Extract(It.IsAny<PropagationContext>(), It.IsAny<HttpRequest>(), It.IsAny<Func<HttpRequest, string, IEnumerable<string>>>()))
-            .Returns(() =>
-            {
-                isPropagatorCalled = true;
-                return default;
-            });
+        var propagator = new TestTextMapPropagator
+        {
+            Extracted = () => isPropagatorCalled = true,
+        };
 
         bool isFilterCalled = false;
-        var activityProcessor = new Mock<BaseProcessor<Activity>>();
-        Sdk.SetDefaultTextMapPropagator(propagator.Object);
+        var activityProcessor = new TestActivityProcessor();
+        Sdk.SetDefaultTextMapPropagator(propagator);
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
                    .AddAspNetInstrumentation(options =>
                    {
@@ -261,7 +254,7 @@ public class HttpInListenerTests
                            return false;
                        };
                    })
-                   .AddProcessor(activityProcessor.Object).Build())
+                   .AddProcessor(activityProcessor).Build())
         {
             var activity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStartedCallback);
             ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStoppedCallback);
@@ -299,14 +292,9 @@ public class HttpInListenerTests
         return EnrichAction;
     }
 
-    private class TestSampler : Sampler
+    private class TestSampler(SamplingDecision samplingDecision) : Sampler
     {
-        private readonly SamplingDecision samplingDecision;
-
-        public TestSampler(SamplingDecision samplingDecision)
-        {
-            this.samplingDecision = samplingDecision;
-        }
+        private readonly SamplingDecision samplingDecision = samplingDecision;
 
         public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
         {
