@@ -72,14 +72,14 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         // Disposing SDK should flush the Redis profiling session immediately.
 
-        Assert.Single(exportedItems);
+        Assert.Equal(4, exportedItems.Count);
 
         Assert.Equal("EVAL", exportedItems[0].DisplayName);
         Assert.Equal("EVAL redis.call('set', ARGV[1], ARGV[2])", exportedItems[0].GetTagValue(SemanticConventions.AttributeDbStatement));
 
-        VerifyActivityData(exportedItems[0], false, connection.GetEndPoints()[0], true);
-        VerifyActivityData(exportedItems[0], true, connection.GetEndPoints()[0], true);
-        VerifyActivityData(exportedItems[0], false, connection.GetEndPoints()[0], true);
+        VerifyActivityData(exportedItems[1], false, connection.GetEndPoints()[0], true);
+        VerifyActivityData(exportedItems[2], true, connection.GetEndPoints()[0], true);
+        VerifyActivityData(exportedItems[3], false, connection.GetEndPoints()[0], true);
         VerifySamplingParameters(sampler.LatestSamplingParameters);
     }
 
@@ -126,7 +126,7 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         // Disposing SDK should flush the Redis profiling session immediately.
 
-        Assert.Equal(4, exportedItems.Count);
+        Assert.Equal(2, exportedItems.Count);
 
         VerifyActivityData(exportedItems[0], true, connection.GetEndPoints()[0], false);
         VerifyActivityData(exportedItems[1], false, connection.GetEndPoints()[0], false);
@@ -203,12 +203,10 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         // Disposing SDK should flush the Redis profiling session immediately.
 
-        Assert.Single(exportedItems);
+        Assert.Equal(2, exportedItems.Count);
 
-        var setActivity = exportedItems[0];
-        Assert.Equal(true, setActivity.GetTagValue("is_fast"));
-        var getActivity = exportedItems[1];
-        Assert.Equal(true, getActivity.GetTagValue("is_fast"));
+        Assert.Equal(true, exportedItems[0].GetTagValue("is_fast"));
+        Assert.Equal(true, exportedItems[1].GetTagValue("is_fast"));
     }
 
     [Fact]
