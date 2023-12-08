@@ -8,12 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Moq" Version="$(MoqPkgVer)" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsLoggingPkgVer)" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Extensions\OpenTelemetry.Extensions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestActivityProcessor.cs" Link="Includes\TestActivityProcessor.cs" />
   </ItemGroup>
 
 </Project>
