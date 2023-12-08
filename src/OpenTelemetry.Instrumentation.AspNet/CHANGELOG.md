@@ -21,6 +21,8 @@
     * Histogram Buckets: `0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500,
     5000, 7500, 10000`
 
+  Note that the bucket changes are part of the 1.7.0-rc.1 release of the `OpenTelemetry` SDK.
+
   The following metric attributes has been added:
 
   * `http.request.method` (previously `http.method`)
