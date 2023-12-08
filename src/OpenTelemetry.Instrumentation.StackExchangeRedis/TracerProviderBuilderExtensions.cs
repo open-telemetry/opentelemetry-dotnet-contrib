@@ -46,6 +46,39 @@ public static class TracerProviderBuilderExtensions
     /// <summary>
     /// Enables automatic data collection of outgoing requests to Redis.
     /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="serviceKey">Optional service key used to retrieve the <see cref="IConnectionMultiplexer"/> to instrument from the <see cref="IServiceProvider" />.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddRedisInstrumentation(
+        this TracerProviderBuilder builder,
+        object serviceKey)
+    {
+        Guard.ThrowIfNull(serviceKey);
+
+        return AddRedisInstrumentation(builder, name: null, connection: null, configure: null, serviceKey);
+    }
+
+    /// <summary>
+    /// Enables automatic data collection of outgoing requests to Redis.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="serviceKey">Optional service key used to retrieve the <see cref="IConnectionMultiplexer"/> to instrument from the <see cref="IServiceProvider" />.</param>
+    /// <param name="configure">Callback to configure options.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddRedisInstrumentation(
+        this TracerProviderBuilder builder,
+        object serviceKey,
+        Action<StackExchangeRedisInstrumentationOptions> configure)
+    {
+        Guard.ThrowIfNull(serviceKey);
+        Guard.ThrowIfNull(configure);
+
+        return AddRedisInstrumentation(builder, name: null, connection: null, configure, serviceKey);
+    }
+
+    /// <summary>
+    /// Enables automatic data collection of outgoing requests to Redis.
+    /// </summary>
     /// <remarks>
     /// Note: A <see cref="IConnectionMultiplexer"/> will be resolved using the
     /// application <see cref="IServiceProvider"/>.
@@ -54,8 +87,8 @@ public static class TracerProviderBuilderExtensions
     /// <param name="configure">Callback to configure options.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddRedisInstrumentation(
-        this TracerProviderBuilder builder,
-        Action<StackExchangeRedisInstrumentationOptions> configure)
+                this TracerProviderBuilder builder,
+                Action<StackExchangeRedisInstrumentationOptions> configure)
     {
         Guard.ThrowIfNull(configure);
 
@@ -77,7 +110,7 @@ public static class TracerProviderBuilderExtensions
         Guard.ThrowIfNull(connection);
         Guard.ThrowIfNull(configure);
 
-        return AddRedisInstrumentation(builder, name: null, connection, configure, null);
+        return AddRedisInstrumentation(builder, name: null, connection, configure, serviceKey: null);
     }
 
     /// <summary>
@@ -92,29 +125,7 @@ public static class TracerProviderBuilderExtensions
     /// <param name="name">Optional name which is used when retrieving options.</param>
     /// <param name="connection">Optional <see cref="IConnectionMultiplexer"/> to instrument.</param>
     /// <param name="configure">Optional callback to configure options.</param>
-    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-    public static TracerProviderBuilder AddRedisInstrumentation(
-        this TracerProviderBuilder builder,
-        string? name,
-        IConnectionMultiplexer? connection,
-        Action<StackExchangeRedisInstrumentationOptions>? configure)
-    {
-        return builder.AddRedisInstrumentation(name, connection, configure, null);
-    }
-
-    /// <summary>
-    /// Enables automatic data collection of outgoing requests to Redis.
-    /// </summary>
-    /// <remarks>
-    /// Note: If an <see cref="IConnectionMultiplexer"/> is not supplied
-    /// using the <paramref name="connection"/> parameter it will be
-    /// resolved using the application <see cref="IServiceProvider"/>.
-    /// </remarks>
-    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-    /// <param name="name">Optional name which is used when retrieving options.</param>
-    /// <param name="connection">Optional <see cref="IConnectionMultiplexer"/> to instrument.</param>
-    /// <param name="configure">Optional callback to configure options.</param>
-    /// <param name="serviceKey">The service key to get <see cref="IConnectionMultiplexer"/>.</param>
+    /// <param name="serviceKey">Optional service key used to retrieve the <see cref="IConnectionMultiplexer"/> to instrument from the <see cref="IServiceProvider" />.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddRedisInstrumentation(
         this TracerProviderBuilder builder,
@@ -143,19 +154,15 @@ public static class TracerProviderBuilderExtensions
             {
                 var instrumentation = sp.GetRequiredService<StackExchangeRedisInstrumentation>();
 
-                if (connection is not null)
-                {
-                    if (serviceKey is null)
-                    {
-                        connection = sp.GetService<IConnectionMultiplexer>();
-                    }
-                    else
-                    {
-                        connection = sp.GetKeyedService<IConnectionMultiplexer>(serviceKey);
-                    }
-                }
-
-
+#if NET8_0_OR_GREATER
+                connection ??= serviceKey == null
+                    ? sp.GetService<IConnectionMultiplexer>()
+                    : sp.GetKeyedService<IConnectionMultiplexer>(serviceKey);
+#else
+                connection ??= serviceKey == null
+                    ? sp.GetService<IConnectionMultiplexer>()
+                    : throw new InvalidOperationException();
+#endif
                 if (connection != null)
                 {
                     instrumentation.AddConnection(name, connection);
