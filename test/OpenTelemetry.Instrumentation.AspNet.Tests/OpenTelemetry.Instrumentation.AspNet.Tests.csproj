@@ -23,6 +23,7 @@
     <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\EventSourceTestHelper.cs" Link="Includes\EventSourceTestHelper.cs" />
     <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestActivityProcessor.cs" Link="Includes\TestActivityProcessor.cs" />
     <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestEventListener.cs" Link="Includes\TestEventListener.cs" />
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestTextMapPropagator.cs" Link="Includes\TestTextMapPropagator.cs" />
     <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\InMemoryEventListener.cs" Link="Includes\InMemoryEventListener.cs" />
   </ItemGroup>
 
