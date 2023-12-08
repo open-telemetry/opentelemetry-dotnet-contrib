@@ -126,10 +126,10 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         // Disposing SDK should flush the Redis profiling session immediately.
 
-        Assert.Single(exportedItems);
+        Assert.Equal(4, exportedItems.Count);
 
         VerifyActivityData(exportedItems[0], true, connection.GetEndPoints()[0], false);
-        VerifyActivityData(exportedItems[0], false, connection.GetEndPoints()[0], false);
+        VerifyActivityData(exportedItems[1], false, connection.GetEndPoints()[0], false);
         VerifySamplingParameters(sampler.LatestSamplingParameters);
     }
 
