@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Amazon.Lambda.APIGatewayEvents;
-using Moq;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -170,10 +169,8 @@ public class AWSLambdaHttpUtilsTests
         {
             StatusCode = 200,
         };
-        var activityProcessor = new Mock<BaseProcessor<Activity>>();
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(activityProcessor.Object)
             .AddSource("TestActivitySource")
             .Build();
 
@@ -201,10 +198,8 @@ public class AWSLambdaHttpUtilsTests
         {
             StatusCode = 200,
         };
-        var activityProcessor = new Mock<BaseProcessor<Activity>>();
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(activityProcessor.Object)
             .AddSource("TestActivitySource")
             .Build();
 
