@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Moq;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using StackExchange.Redis;
@@ -45,10 +45,10 @@ public class StackExchangeRedisCallsInstrumentationTests
         var db = connection.GetDatabase();
         db.KeyDelete("key1");
 
-        var activityProcessor = new Mock<BaseProcessor<Activity>>();
+        var exportedItems = new List<Activity>();
         var sampler = new TestSampler();
         using (Sdk.CreateTracerProviderBuilder()
-                   .AddProcessor(activityProcessor.Object)
+                   .AddInMemoryExporter(exportedItems)
                    .SetSampler(sampler)
                    .AddRedisInstrumentation(connection, c => c.SetVerboseDatabaseStatements = true)
                    .Build())
@@ -72,15 +72,14 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         // Disposing SDK should flush the Redis profiling session immediately.
 
-        Assert.Equal(11, activityProcessor.Invocations.Count);
+        Assert.Single(exportedItems);
 
-        var scriptActivity = (Activity)activityProcessor.Invocations[1].Arguments[0];
-        Assert.Equal("EVAL", scriptActivity.DisplayName);
-        Assert.Equal("EVAL redis.call('set', ARGV[1], ARGV[2])", scriptActivity.GetTagValue(SemanticConventions.AttributeDbStatement));
+        Assert.Equal("EVAL", exportedItems[0].DisplayName);
+        Assert.Equal("EVAL redis.call('set', ARGV[1], ARGV[2])", exportedItems[0].GetTagValue(SemanticConventions.AttributeDbStatement));
 
-        VerifyActivityData((Activity)activityProcessor.Invocations[3].Arguments[0], false, connection.GetEndPoints()[0], true);
-        VerifyActivityData((Activity)activityProcessor.Invocations[5].Arguments[0], true, connection.GetEndPoints()[0], true);
-        VerifyActivityData((Activity)activityProcessor.Invocations[7].Arguments[0], false, connection.GetEndPoints()[0], true);
+        VerifyActivityData(exportedItems[0], false, connection.GetEndPoints()[0], true);
+        VerifyActivityData(exportedItems[0], true, connection.GetEndPoints()[0], true);
+        VerifyActivityData(exportedItems[0], false, connection.GetEndPoints()[0], true);
         VerifySamplingParameters(sampler.LatestSamplingParameters);
     }
 
@@ -96,7 +95,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         connectionOptions.EndPoints.Add(RedisEndPoint);
 
         ConnectionMultiplexer? connection = null;
-        var activityProcessor = new Mock<BaseProcessor<Activity>>();
+        var exportedItems = new List<Activity>();
         var sampler = new TestSampler();
         using (Sdk.CreateTracerProviderBuilder()
             .ConfigureServices(services =>
@@ -106,7 +105,7 @@ public class StackExchangeRedisCallsInstrumentationTests
                     return connection = ConnectionMultiplexer.Connect(connectionOptions);
                 });
             })
-            .AddProcessor(activityProcessor.Object)
+            .AddInMemoryExporter(exportedItems)
             .SetSampler(sampler)
             .AddRedisInstrumentation(c => c.SetVerboseDatabaseStatements = false)
             .Build())
@@ -127,10 +126,10 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         // Disposing SDK should flush the Redis profiling session immediately.
 
-        Assert.Equal(7, activityProcessor.Invocations.Count);
+        Assert.Single(exportedItems);
 
-        VerifyActivityData((Activity)activityProcessor.Invocations[1].Arguments[0], true, connection.GetEndPoints()[0], false);
-        VerifyActivityData((Activity)activityProcessor.Invocations[3].Arguments[0], false, connection.GetEndPoints()[0], false);
+        VerifyActivityData(exportedItems[0], true, connection.GetEndPoints()[0], false);
+        VerifyActivityData(exportedItems[0], false, connection.GetEndPoints()[0], false);
         VerifySamplingParameters(sampler.LatestSamplingParameters);
     }
 
@@ -169,11 +168,11 @@ public class StackExchangeRedisCallsInstrumentationTests
         connectionOptions.EndPoints.Add(RedisEndPoint);
         using var connection = ConnectionMultiplexer.Connect(connectionOptions);
 
-        var activityProcessor = new Mock<BaseProcessor<Activity>>();
+        var exportedItems = new List<Activity>();
         var sampler = new TestSampler();
 
         var builder = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(activityProcessor.Object)
+            .AddInMemoryExporter(exportedItems)
             .SetSampler(sampler)
             .AddRedisInstrumentation(c => c.Enrich = (activity, command) =>
             {
@@ -204,11 +203,11 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         // Disposing SDK should flush the Redis profiling session immediately.
 
-        Assert.Equal(7, activityProcessor.Invocations.Count);
+        Assert.Single(exportedItems);
 
-        var setActivity = (Activity)activityProcessor.Invocations[1].Arguments[0];
+        var setActivity = exportedItems[0];
         Assert.Equal(true, setActivity.GetTagValue("is_fast"));
-        var getActivity = (Activity)activityProcessor.Invocations[3].Arguments[0];
+        var getActivity = exportedItems[1];
         Assert.Equal(true, getActivity.GetTagValue("is_fast"));
     }
 
@@ -348,12 +347,9 @@ public class StackExchangeRedisCallsInstrumentationTests
         connectionOptions.EndPoints.Add("localhost");
 
         using var connection = ConnectionMultiplexer.Connect(connectionOptions);
-
-        var activityProcessor = new Mock<BaseProcessor<Activity>>();
         var sampler = new TestSampler();
 
         var builder = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(activityProcessor.Object)
             .SetSampler(sampler)
             .AddRedisInstrumentation(c => c.Enrich = (activity, command) =>
             {
