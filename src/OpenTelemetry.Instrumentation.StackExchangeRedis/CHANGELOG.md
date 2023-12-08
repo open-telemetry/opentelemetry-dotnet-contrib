@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Add support for instrumenting `IConnectionMultiplexer` which is added with service key.
+
 ## 1.0.0-rc9.12
 
 Released 2023-Nov-01
