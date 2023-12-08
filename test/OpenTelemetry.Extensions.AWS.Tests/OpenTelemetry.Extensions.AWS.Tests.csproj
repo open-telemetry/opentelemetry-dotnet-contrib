@@ -6,10 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Moq" Version="$(MoqPkgVer)" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Extensions.AWS\OpenTelemetry.Extensions.AWS.csproj" />
   </ItemGroup>
 
