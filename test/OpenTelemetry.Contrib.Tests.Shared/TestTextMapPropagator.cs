@@ -10,12 +10,14 @@ namespace OpenTelemetry.Tests;
 internal class TestTextMapPropagator : TextMapPropagator
 {
     public Action<PropagationContext, object, Action<object, string, string>>? OnInject { get; set; }
+    public Action? Extracted { get; set; }
 
     public override ISet<string> Fields => throw new NotImplementedException();
 
     public override PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>> getter)
     {
-        throw new NotImplementedException();
+        this.Extracted?.Invoke();
+        return context;
     }
 
     public override void Inject<T>(PropagationContext context, T carrier, Action<T, string, string> setter)
