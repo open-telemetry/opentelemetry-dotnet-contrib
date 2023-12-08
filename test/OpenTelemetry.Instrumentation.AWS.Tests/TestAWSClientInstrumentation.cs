@@ -54,7 +54,7 @@ public class TestAWSClientInstrumentation
             var scan_request = new ScanRequest
             {
                 TableName = "SampleProduct",
-                AttributesToGet = ["Id", "Name"],
+                AttributesToGet = new List<string> { "Id", "Name" },
             };
 #if NETFRAMEWORK
             ddb.Scan(scan_request);
