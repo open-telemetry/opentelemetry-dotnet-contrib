@@ -15,4 +15,8 @@
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Extensions\OpenTelemetry.Extensions.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestActivityProcessor.cs" Link="Includes\TestActivityProcessor.cs" />
+  </ItemGroup>
+
 </Project>

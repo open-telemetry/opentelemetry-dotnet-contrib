@@ -17,6 +17,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -24,15 +25,10 @@ namespace OpenTelemetry.Extensions.Tests.Trace;
 
 public class AutoFlushActivityProcessorTests
 {
-    // [Fact(Skip = "Unstable")]
     [Fact]
     public void AutoFlushActivityProcessor_FlushAfterLocalServerSideRootSpans_EndMatchingSpan_Flush()
     {
-        int invocations = 0;
-        var activityProcessor = new TestActivityProcessor
-        {
-            ForceFlushed = () => invocations++,
-        };
+        var activityProcessor = new TestActivityProcessor();
         var sourceName = GetTestMethodName();
 
         using var provider = Sdk.CreateTracerProviderBuilder()
@@ -46,17 +42,13 @@ public class AutoFlushActivityProcessorTests
         Assert.NotNull(activity);
         activity.Stop();
 
-        Assert.Equal(1, invocations);
+        Assert.True(activityProcessor.ForceFlushCalled);
     }
 
     [Fact]
     public void AutoFlushActivityProcessor_FlushAfterLocalServerSideRootSpans_EndNonMatchingSpan_DoesNothing()
     {
-        int invocations = 0;
-        var activityProcessor = new TestActivityProcessor
-        {
-            ForceFlushed = () => invocations++,
-        };
+        var activityProcessor = new TestActivityProcessor();
         var sourceName = GetTestMethodName();
 
         using var provider = Sdk.CreateTracerProviderBuilder()
@@ -70,17 +62,13 @@ public class AutoFlushActivityProcessorTests
         Assert.NotNull(activity);
         activity.Stop();
 
-        Assert.Equal(0, invocations);
+        Assert.False(activityProcessor.ForceFlushCalled);
     }
 
     [Fact]
     public void AutoFlushActivityProcessor_PredicateThrows_DoesNothing()
     {
-        int invocations = 0;
-        var activityProcessor = new TestActivityProcessor
-        {
-            ForceFlushed = () => invocations++,
-        };
+        var activityProcessor = new TestActivityProcessor();
         var sourceName = GetTestMethodName();
 
         using var provider = Sdk.CreateTracerProviderBuilder()
@@ -94,7 +82,7 @@ public class AutoFlushActivityProcessorTests
         Assert.NotNull(activity);
         activity.Stop();
 
-        Assert.Equal(0, invocations);
+        Assert.False(activityProcessor.ForceFlushCalled);
     }
 
     private static string GetTestMethodName([CallerMemberName] string callingMethodName = "")
