@@ -22,6 +22,7 @@ using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using OpenTelemetry.Context.Propagation;
+using OpenTelemetry.Tests;
 using Xunit;
 
 namespace OpenTelemetry.Instrumentation.GrpcCore.Tests;

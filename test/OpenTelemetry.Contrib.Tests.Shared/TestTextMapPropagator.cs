@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using OpenTelemetry.Context.Propagation;
 
-namespace OpenTelemetry.Instrumentation.GrpcCore.Tests;
+namespace OpenTelemetry.Tests;
 
 internal class TestTextMapPropagator : TextMapPropagator
 {

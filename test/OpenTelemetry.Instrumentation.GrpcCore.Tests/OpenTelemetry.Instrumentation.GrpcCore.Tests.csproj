@@ -18,4 +18,8 @@
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.GrpcCore\OpenTelemetry.Instrumentation.GrpcCore.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestTextMapPropagator.cs" Link="Includes\TestTextMapPropagator.cs" />
+  </ItemGroup>
+
 </Project>
