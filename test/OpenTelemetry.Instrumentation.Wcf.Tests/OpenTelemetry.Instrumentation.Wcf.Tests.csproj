@@ -11,10 +11,6 @@
     <EmbeddedResource Include="certificate.pfx" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Moq" Version="$(MoqPkgVer)" />
-  </ItemGroup>
-
   <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
     <Reference Include="System.IdentityModel" />
     <Reference Include="System.ServiceModel" />
