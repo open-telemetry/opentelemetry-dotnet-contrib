@@ -36,15 +36,15 @@ internal class TestProfiledCommand(DateTime commandCreated) : IProfiledCommand
 
     public DateTime CommandCreated => this.commandCreated;
 
-    public TimeSpan CreationToEnqueued => new(0, 0, 1);
+    public TimeSpan CreationToEnqueued => default;
 
-    public TimeSpan EnqueuedToSending => new(0, 0, 1);
+    public TimeSpan EnqueuedToSending => default;
 
-    public TimeSpan SentToResponse => new(0, 0, 1);
+    public TimeSpan SentToResponse => default;
 
-    public TimeSpan ResponseToCompletion => new(0, 0, 1);
+    public TimeSpan ResponseToCompletion => default;
 
-    public TimeSpan ElapsedTime => new(0, 0, 1);
+    public TimeSpan ElapsedTime => default;
 
     public IProfiledCommand RetransmissionOf => throw new NotImplementedException();
 
