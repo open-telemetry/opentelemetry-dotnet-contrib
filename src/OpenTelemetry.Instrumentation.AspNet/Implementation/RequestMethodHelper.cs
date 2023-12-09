@@ -10,6 +10,7 @@ namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 internal sealed class RequestMethodHelper
 {
     private const string KnownHttpMethodsEnvironmentVariable = "OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS";
+    private static readonly char[] SplitChars = new[] { ',' };
 
     // The value "_OTHER" is used for non-standard HTTP methods.
     // https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-spans.md#common-attributes
@@ -21,7 +22,7 @@ internal sealed class RequestMethodHelper
     public RequestMethodHelper()
     {
         var suppliedKnownMethods = Environment.GetEnvironmentVariable(KnownHttpMethodsEnvironmentVariable)
-            ?.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            ?.Split(SplitChars, StringSplitOptions.RemoveEmptyEntries);
         this.knownHttpMethods = suppliedKnownMethods?.Length > 0
             ? suppliedKnownMethods.ToDictionary(x => x, x => x, StringComparer.OrdinalIgnoreCase)
             : new(StringComparer.OrdinalIgnoreCase)
