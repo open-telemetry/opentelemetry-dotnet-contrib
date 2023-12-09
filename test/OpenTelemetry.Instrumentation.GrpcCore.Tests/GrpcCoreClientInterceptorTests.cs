@@ -8,8 +8,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
-using Moq;
 using OpenTelemetry.Context.Propagation;
+using OpenTelemetry.Tests;
 using Xunit;
 
 namespace OpenTelemetry.Instrumentation.GrpcCore.Tests;
@@ -365,40 +365,33 @@ public class GrpcCoreClientInterceptorTests
     /// <returns>A Task.</returns>
     private static async Task TestHandlerSuccess(Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc, Metadata additionalMetadata)
     {
-        var mockPropagator = new Mock<TextMapPropagator>();
+        var propagator = new TestTextMapPropagator();
         PropagationContext capturedPropagationContext = default;
         Metadata capturedCarrier = null;
         var propagatorCalled = 0;
         var originalMetadataCount = additionalMetadata.Count;
 
-        mockPropagator
-            .Setup(
-                x => x.Inject(
-                    It.IsAny<PropagationContext>(),
-                    It.IsAny<Metadata>(),
-                    It.IsAny<Action<Metadata, string, string>>()))
-            .Callback<PropagationContext, Metadata, Action<Metadata, string, string>>(
-                (propagation, carrier, setter) =>
-                {
-                    propagatorCalled++;
-                    capturedPropagationContext = propagation;
-                    capturedCarrier = carrier;
+        propagator.OnInject = (propagation, carrier, setter) =>
+        {
+            propagatorCalled++;
+            capturedPropagationContext = propagation;
+            capturedCarrier = (Metadata)carrier;
 
-                    // Make sure the original metadata make it through
-                    if (additionalMetadata != null)
-                    {
-                        Assert.Equal(capturedCarrier, additionalMetadata);
-                    }
+            // Make sure the original metadata make it through
+            if (additionalMetadata != null)
+            {
+                Assert.Equal(capturedCarrier, additionalMetadata);
+            }
 
-                    // Call the actual setter to ensure it updates the carrier.
-                    // It doesn't matter what we put in
-                    setter(capturedCarrier, "bar", "baz");
-                });
+            // Call the actual setter to ensure it updates the carrier.
+            // It doesn't matter what we put in
+            setter(capturedCarrier, "bar", "baz");
+        };
 
         using var server = FoobarService.Start();
         var interceptorOptions = new ClientTracingInterceptorOptions
         {
-            Propagator = mockPropagator.Object,
+            Propagator = propagator,
             RecordMessageEvents = true,
             ActivityIdentifierValue = Guid.NewGuid(),
         };
@@ -485,8 +478,8 @@ public class GrpcCoreClientInterceptorTests
             new ClientTracingInterceptor(clientInterceptorOptions),
             new List<Metadata.Entry>
             {
-                new Metadata.Entry(FoobarService.RequestHeaderFailWithStatusCode, statusCode.ToString()),
-                new Metadata.Entry(FoobarService.RequestHeaderErrorDescription, "fubar"),
+                new(FoobarService.RequestHeaderFailWithStatusCode, statusCode.ToString()),
+                new(FoobarService.RequestHeaderErrorDescription, "fubar"),
             });
 
         using var activityListener = new InterceptorActivityListener(clientInterceptorOptions.ActivityIdentifierValue);
