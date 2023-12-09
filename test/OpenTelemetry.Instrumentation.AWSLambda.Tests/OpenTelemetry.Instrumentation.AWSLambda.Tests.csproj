@@ -8,11 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Moq" Version="$(MoqPkgVer)" />
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.AWSLambda\OpenTelemetry.Instrumentation.AWSLambda.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.AWSLambda\OpenTelemetry.Instrumentation.AWSLambda.csproj" />
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
   </ItemGroup>
 
   <ItemGroup>
