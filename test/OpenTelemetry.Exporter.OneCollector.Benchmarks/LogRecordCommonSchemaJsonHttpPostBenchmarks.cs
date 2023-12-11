@@ -176,7 +176,7 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
             }
         }
 
-        public IDisposable Push(object state)
+        public IDisposable Push(object? state)
         {
             throw new NotImplementedException();
         }

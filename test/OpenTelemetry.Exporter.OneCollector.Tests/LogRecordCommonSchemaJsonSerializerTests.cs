@@ -326,7 +326,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
             }
         }
 
-        public IDisposable Push(object state)
+        public IDisposable Push(object? state)
         {
             throw new NotImplementedException();
         }
