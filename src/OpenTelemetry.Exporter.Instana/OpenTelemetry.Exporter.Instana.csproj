@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
-    
+
     <!--We need the package reference to `System.Net.Http` to use `HttpClientHandler.ServerCertificateCustomValidationCallback` property
     on net462 target. Starting net471, we could just add an assembly `Reference` instead of `PackageReference`.
 
