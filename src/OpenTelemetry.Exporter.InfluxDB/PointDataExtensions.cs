@@ -12,7 +12,7 @@ internal static class PointDataExtensions
     {
         foreach (var tag in tags)
         {
-            pointData = pointData.Tag(tag.Key, tag.Value.ToString());
+            pointData = pointData.Tag(tag.Key, tag.Value?.ToString());
         }
 
         return pointData;
