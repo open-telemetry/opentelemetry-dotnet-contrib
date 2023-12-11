@@ -111,7 +111,7 @@ public class WeatherForecastController : ApiController
         return result;
     }
 
-    private static IEnumerable<WeatherForecast> GetWeatherForecast()
+    private static WeatherForecast[] GetWeatherForecast()
     {
         var rng = new Random();
         return Enumerable.Range(1, 5).Select(index => new WeatherForecast(
