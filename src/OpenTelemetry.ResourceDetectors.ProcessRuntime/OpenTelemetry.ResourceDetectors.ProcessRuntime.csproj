@@ -8,5 +8,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
+    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.0.0" Condition="'$(TargetFramework)' == 'net462'" />
   </ItemGroup>
 </Project>
