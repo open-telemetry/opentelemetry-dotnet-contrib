@@ -2,11 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Amazon.Lambda.Core;
-using Moq;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Tests;
@@ -40,11 +39,11 @@ public class AWSLambdaWrapperTests
     [InlineData(true)]
     public void TraceSyncWithInputAndReturn(bool setCustomParent)
     {
-        var processor = new Mock<BaseProcessor<Activity>>();
+        var exportedItems = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
                    .AddAWSLambdaConfigurations()
-                   .AddProcessor(processor.Object)
+                   .AddInMemoryExporter(exportedItems)
                    .Build()!)
         {
             var parentContext = setCustomParent ? CreateParentContext() : default;
@@ -53,10 +52,9 @@ public class AWSLambdaWrapperTests
             this.AssertResourceAttributes(resource);
         }
 
-        // SetParentProvider -> OnStart -> OnEnd -> OnForceFlush -> OnShutdown -> Dispose
-        Assert.Equal(6, processor.Invocations.Count);
+        Assert.Single(exportedItems);
 
-        var activity = (Activity)processor.Invocations[1].Arguments[0];
+        var activity = exportedItems[0];
         this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         this.AssertSpanAttributes(activity);
     }
@@ -66,11 +64,11 @@ public class AWSLambdaWrapperTests
     [InlineData(true)]
     public void TraceSyncWithInputAndNoReturn(bool setCustomParent)
     {
-        var processor = new Mock<BaseProcessor<Activity>>();
+        var exportedItems = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
                    .AddAWSLambdaConfigurations()
-                   .AddProcessor(processor.Object)
+                   .AddInMemoryExporter(exportedItems)
                    .Build()!)
         {
             var parentContext = setCustomParent ? CreateParentContext() : default;
@@ -79,10 +77,9 @@ public class AWSLambdaWrapperTests
             this.AssertResourceAttributes(resource);
         }
 
-        // SetParentProvider -> OnStart -> OnEnd -> OnForceFlush -> OnShutdown -> Dispose
-        Assert.Equal(6, processor.Invocations.Count);
+        Assert.Single(exportedItems);
 
-        var activity = (Activity)processor.Invocations[1].Arguments[0];
+        var activity = exportedItems[0];
         this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         this.AssertSpanAttributes(activity);
     }
@@ -92,11 +89,11 @@ public class AWSLambdaWrapperTests
     [InlineData(true)]
     public async Task TraceAsyncWithInputAndReturn(bool setCustomParent)
     {
-        var processor = new Mock<BaseProcessor<Activity>>();
+        var exportedItems = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
                    .AddAWSLambdaConfigurations()
-                   .AddProcessor(processor.Object)
+                   .AddInMemoryExporter(exportedItems)
                    .Build()!)
         {
             var parentContext = setCustomParent ? CreateParentContext() : default;
@@ -105,10 +102,9 @@ public class AWSLambdaWrapperTests
             this.AssertResourceAttributes(resource);
         }
 
-        // SetParentProvider -> OnStart -> OnEnd -> OnForceFlush -> OnShutdown -> Dispose
-        Assert.Equal(6, processor.Invocations.Count);
+        Assert.Single(exportedItems);
 
-        var activity = (Activity)processor.Invocations[1].Arguments[0];
+        var activity = exportedItems[0];
         this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         this.AssertSpanAttributes(activity);
     }
@@ -118,11 +114,11 @@ public class AWSLambdaWrapperTests
     [InlineData(true)]
     public async Task TraceAsyncWithInputAndNoReturn(bool setCustomParent)
     {
-        var processor = new Mock<BaseProcessor<Activity>>();
+        var exportedItems = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
                    .AddAWSLambdaConfigurations()
-                   .AddProcessor(processor.Object)
+                   .AddInMemoryExporter(exportedItems)
                    .Build()!)
         {
             var parentContext = setCustomParent ? CreateParentContext() : default;
@@ -131,10 +127,9 @@ public class AWSLambdaWrapperTests
             this.AssertResourceAttributes(resource);
         }
 
-        // SetParentProvider -> OnStart -> OnEnd -> OnForceFlush -> OnShutdown -> Dispose
-        Assert.Equal(6, processor.Invocations.Count);
+        Assert.Single(exportedItems);
 
-        var activity = (Activity)processor.Invocations[1].Arguments[0];
+        var activity = exportedItems[0];
         this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         this.AssertSpanAttributes(activity);
     }
@@ -144,11 +139,11 @@ public class AWSLambdaWrapperTests
     [InlineData(true)]
     public void TestLambdaHandlerException(bool setCustomParent)
     {
-        var processor = new Mock<BaseProcessor<Activity>>();
+        var exportedItems = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
                    .AddAWSLambdaConfigurations()
-                   .AddProcessor(processor.Object)
+                   .AddInMemoryExporter(exportedItems)
                    .Build()!)
         {
             try
@@ -163,10 +158,9 @@ public class AWSLambdaWrapperTests
             }
         }
 
-        // SetParentProvider -> OnStart -> OnEnd -> OnForceFlush -> OnShutdown -> Dispose
-        Assert.Equal(6, processor.Invocations.Count);
+        Assert.Single(exportedItems);
 
-        var activity = (Activity)processor.Invocations[1].Arguments[0];
+        var activity = exportedItems[0];
         this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         this.AssertSpanAttributes(activity);
         this.AssertSpanException(activity);
@@ -177,11 +171,11 @@ public class AWSLambdaWrapperTests
     {
         Environment.SetEnvironmentVariable("_X_AMZN_TRACE_ID", "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=0");
 
-        var processor = new Mock<BaseProcessor<Activity>>();
+        var exportedItems = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
                    .AddAWSLambdaConfigurations()
-                   .AddProcessor(processor.Object)
+                   .AddInMemoryExporter(exportedItems)
                    .Build()!)
         {
             var result = AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncInputAndReturn, "TestStream", this.sampleLambdaContext);
@@ -189,11 +183,7 @@ public class AWSLambdaWrapperTests
             this.AssertResourceAttributes(resource);
         }
 
-        // SetParentProvider -> OnForceFlush -> OnShutdown -> Dispose
-        Assert.Equal(4, processor.Invocations.Count);
-
-        var activities = processor.Invocations.Where(i => i.Method.Name == "OnEnd").Select(i => i.Arguments[0]).Cast<Activity>().ToArray();
-        Assert.True(activities.Length == 0);
+        Assert.Empty(exportedItems);
     }
 
     [Fact]
@@ -206,7 +196,7 @@ public class AWSLambdaWrapperTests
                    .AddAWSLambdaConfigurations()
                    .Build())
         {
-            activity = AWSLambdaWrapper.OnFunctionStart("test-input", new Mock<ILambdaContext>().Object);
+            activity = AWSLambdaWrapper.OnFunctionStart("test-input", new SampleLambdaContext());
         }
 
         Assert.NotNull(activity);
@@ -222,7 +212,7 @@ public class AWSLambdaWrapperTests
                    .AddAWSLambdaConfigurations(c => c.DisableAwsXRayContextExtraction = true)
                    .Build())
         {
-            activity = AWSLambdaWrapper.OnFunctionStart("test-input", new Mock<ILambdaContext>().Object);
+            activity = AWSLambdaWrapper.OnFunctionStart("test-input", new SampleLambdaContext());
         }
 
         Assert.NotNull(activity);
