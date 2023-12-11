@@ -1,5 +1,7 @@
 # Changelog
 
+* Update OpenTelemetry SDK version to `1.7.0`.
+
 ## Unreleased
 
 * Updated OpenTelemetry SDK to 1.6.0

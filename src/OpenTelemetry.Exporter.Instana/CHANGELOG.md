@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* Update OpenTelemetry SDK version to `1.6.0`.
+* Update OpenTelemetry SDK version to `1.7.0`.
   ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
 * Drop support for .NET Framework 4.6.1.
   The lowest supported version is .NET Framework 4.6.2.

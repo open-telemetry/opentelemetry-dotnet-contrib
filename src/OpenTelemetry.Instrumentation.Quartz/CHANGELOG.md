@@ -5,7 +5,7 @@
 * Fix issue of multiple instances of OpenTelemetry-Instrumentation EventSource
   being created
   ([#1362](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1362))
-* Update OpenTelemetry.Api to 1.6.0.
+* Update `OpenTelemetry.Api` to `1.7.0`.
   ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
 
 ## 1.0.0-alpha.3

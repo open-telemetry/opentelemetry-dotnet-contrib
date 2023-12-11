@@ -1,5 +1,7 @@
 # Changelog
 
+* Update `OpenTelemetry.Api.ProviderBuilderExtensions` to `1.7.0`.
+
 ## Unreleased
 
 * Update OTel API version to `1.6.0`.

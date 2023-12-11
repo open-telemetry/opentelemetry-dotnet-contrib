@@ -1,5 +1,7 @@
 # Changelog
 
+* Update `OpenTelemetry.Api` to `1.7.0`.
+
 ## Unreleased
 
 * Make the context propagation extraction case insensitive.

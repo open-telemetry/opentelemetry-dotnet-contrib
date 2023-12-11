@@ -1,5 +1,7 @@
 # Changelog
 
+* Update `OpenTelemetry.Api` to `1.7.0`.
+
 ## Unreleased
 
 * Update OpenTelemetry API to 1.6.0

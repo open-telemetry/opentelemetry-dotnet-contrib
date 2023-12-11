@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Update `OpenTelemetry.Api` to `1.7.0`.
+
 ## 1.6.0-beta.2
 
 Released 2023-Nov-06

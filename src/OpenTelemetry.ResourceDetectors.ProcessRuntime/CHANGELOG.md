@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Update OpenTelemetry SDK version to `1.7.0`.
+
 ## 0.1.0-alpha.1
 
 Released 2023-Dec-04
