@@ -274,9 +274,21 @@ jobs:
             OpenTelemetry.ResourceDetectors.Azure.Tests.csproj,
             OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests.csproj
 
+        $failedProjects = @()
+
         ForEach ($project in $projects)
         {
           dotnet test $project.FullName --collect:"Code Coverage" --results-directory:"TestResults" --framework ${{ matrix.version }} --configuration Release --logger:"console;verbosity=detailed" -- RunConfiguration.DisableAppDomain=true
+
+          if ($LASTEXITCODE -ne 0)
+          {
+              $failedProjects = $failedProjects + $project
+          }
+        }
+
+        if ($failedProjects.Count -gt 0)
+        {
+            throw "dotnet test failed on '$failedProjects' project(s)"
         }
 
     - name: Install coverage tool
