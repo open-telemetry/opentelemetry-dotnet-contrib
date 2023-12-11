@@ -4,7 +4,6 @@
 #if !NETFRAMEWORK
 
 using System.Security.Cryptography.X509Certificates;
-using Moq;
 using OpenTelemetry.ResourceDetectors.AWS.Http;
 using Xunit;
 
@@ -12,7 +11,7 @@ namespace OpenTelemetry.ResourceDetectors.AWS.Tests.Http;
 
 public class ServerCertificateValidationProviderTests
 {
-    private const string InvalidCertificateName = "invalidcert";
+    private const string InvalidCertificateName = "invalidCert";
 
     [Fact]
     public void TestValidCertificate()
@@ -54,7 +53,7 @@ public class ServerCertificateValidationProviderTests
             ServerCertificateValidationProvider.FromCertificateFile(certificateUploader.FilePath);
 
         Assert.NotNull(serverCertificateValidationProvider);
-        Assert.False(serverCertificateValidationProvider.ValidationCallback(this, null, Mock.Of<X509Chain>(), default));
+        Assert.False(serverCertificateValidationProvider.ValidationCallback(this, null, new X509Chain(), default));
     }
 
     [Fact]
@@ -67,7 +66,7 @@ public class ServerCertificateValidationProviderTests
             ServerCertificateValidationProvider.FromCertificateFile(certificateUploader.FilePath);
 
         Assert.NotNull(serverCertificateValidationProvider);
-        Assert.False(serverCertificateValidationProvider.ValidationCallback(this, Mock.Of<X509Certificate2>(), null, default));
+        Assert.False(serverCertificateValidationProvider.ValidationCallback(this, new X509Certificate2(certificateUploader.FilePath), null, default));
     }
 }
 
