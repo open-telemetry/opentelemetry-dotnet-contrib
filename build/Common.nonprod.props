@@ -40,4 +40,19 @@
     <DotNetCliToolReference Include="dotnet-xunit" Version="$(DotNetXUnitCliVer)" />
   </ItemGroup>
 
+  <Target Name="SkipVSTestForInvalidTargetFramework" BeforeTargets="VSTest" Condition="'$(IsTestProject)' == 'true'">
+    <!-- Note: When running dotnet test from CLI with the framework parameter
+    errors will be generated for projects which do not implement the requested
+    target. In order to enable running tests for a given framework across a
+    solution/project with mixed targets (eg: dotnet test
+    opentelemetry-dotnet-contrib.sln -f net462) we convert this into a skip
+    message only. -->
+    <PropertyGroup Condition="$(TargetFrameworks.Contains($(TargetFramework))) != 'true'">
+      <_SkipTests>true</_SkipTests>
+      <IsTestProject>false</IsTestProject>
+    </PropertyGroup>
+
+    <Message Importance="high" Text="Skipping test execution for '$(TargetPath)' because it does not contain the '$(TargetFramework)' target." Condition="'$(_SkipTests)' == 'true'" />
+  </Target>
+
 </Project>
