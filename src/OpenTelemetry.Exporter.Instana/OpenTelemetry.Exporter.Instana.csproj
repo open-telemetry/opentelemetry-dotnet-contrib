@@ -12,10 +12,16 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
-  </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="System.Net.Http" Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'" />
+    <!--We need the package reference to `System.Net.Http` to use `HttpClientHandler.ServerCertificateCustomValidationCallback` property
+    on net462 target. Starting net471, we could just add an assembly `Reference` instead of `PackageReference`.
+
+    For example:
+    <ItemGroup>
+      <Reference Include="System.Net.Http" Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'" />
+    </ItemGroup>
+    -->
+    <PackageReference Include="System.Net.Http" Version="4.3.4" Condition="'$(TargetFramework)' == 'net462'" />
   </ItemGroup>
 
 </Project>
