@@ -79,7 +79,7 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
         Activity? activity = this.activitySource.StartActivity("Test");
         Assert.NotNull(activity);
 
-        using IDisposable scope = logger.BeginScope("{NodeId}", 99);
+        using IDisposable? scope = logger.BeginScope("{NodeId}", 99);
 
         logger.LogInformation(eventId, "Hello OpenTelemetry {UserId}!", 8);
 
@@ -89,7 +89,7 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
             innerActivity = this.activitySource.StartActivity("InnerTest");
             Assert.NotNull(innerActivity);
 
-            using IDisposable innerScope = logger.BeginScope("{RequestId}", "1234");
+            using IDisposable? innerScope = logger.BeginScope("{RequestId}", "1234");
 
             logger.LogError(new InvalidOperationException("Goodbye OpenTelemetry."), "Exception event.");
 
@@ -211,7 +211,7 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
         Activity? activity = this.activitySource.StartActivity("Test");
         Assert.NotNull(activity);
 
-        using IDisposable scope = logger.BeginScope("{NodeId}", 99);
+        using IDisposable? scope = logger.BeginScope("{NodeId}", 99);
 
         logger.LogInformation(eventId, "Hello OpenTelemetry {UserId}!", 8);
 
@@ -220,7 +220,7 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
             var innerActivity = this.activitySource.StartActivity("InnerTest");
             Assert.NotNull(innerActivity);
 
-            using IDisposable innerScope = logger.BeginScope("{RequestId}", "1234");
+            using IDisposable? innerScope = logger.BeginScope("{RequestId}", "1234");
 
             logger.LogError(new InvalidOperationException("Goodbye OpenTelemetry."), "Exception event.");
 
