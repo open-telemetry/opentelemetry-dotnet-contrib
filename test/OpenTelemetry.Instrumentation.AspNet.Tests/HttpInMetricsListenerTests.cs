@@ -16,27 +16,33 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 public class HttpInMetricsListenerTests
 {
     [Theory]
-    [InlineData("http://localhost/", 0, null, null, "http")]
-    [InlineData("https://localhost/", 0, null, null, "https")]
-    [InlineData("http://localhost/api/value", 0, null, null, "http")]
-    [InlineData("http://localhost/api/value", 1, "{controller}/{action}", null, "http")]
-    [InlineData("http://localhost/api/value", 2, "{controller}/{action}", null, "http")]
-    [InlineData("http://localhost/api/value", 3, "{controller}/{action}", null, "http")]
-    [InlineData("http://localhost/api/value", 4, "{controller}/{action}", null, "http")]
-    [InlineData("http://localhost:8080/api/value", 0, null, null, "http")]
-    [InlineData("http://localhost:8080/api/value", 1, "{controller}/{action}", null, "http")]
-    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", "enrich", "http")]
-    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", "throw", "http")]
-    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", null, "http")]
+    [InlineData("http://localhost/", 0, null, null, "http", "localhost", null, 80, 200)]
+    [InlineData("https://localhost/", 0, null, null, "https", "localhost", null, 443, 200)]
+    [InlineData("http://localhost/api/value", 0, null, null, "http", "localhost", null, 80, 200)]
+    [InlineData("http://localhost/api/value", 1, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 80, 200)]
+    [InlineData("http://localhost/api/value", 2, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 80, 201)]
+    [InlineData("http://localhost/api/value", 3, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 80, 200)]
+    [InlineData("http://localhost/api/value", 4, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 80, 200)]
+    [InlineData("http://localhost/api/value", 1, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 80, 500)]
+    [InlineData("http://localhost:8080/api/value", 0, null, null, "http", "localhost", null, 8080, 200)]
+    [InlineData("http://localhost:8080/api/value", 1, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 8080, 200)]
+    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", "enrich", "http", "localhost", "{controller}/{action}", 8080, 200)]
+    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", "throw", "http", "localhost", "{controller}/{action}", 8080, 200)]
+    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 8080, 200)]
     public void AspNetMetricTagsAreCollectedSuccessfully(
         string url,
         int routeType,
         string routeTemplate,
         string enrichMode,
-        string expectedScheme)
+        string expectedScheme,
+        string expectedHost,
+        string expectedRoute,
+        int? expectedPort,
+        int expectedStatus)
     {
         double duration = 0;
         HttpContext.Current = RouteTestHelper.BuildHttpContext(url, routeType, routeTemplate);
+        HttpContext.Current.Response.StatusCode = expectedStatus;
 
         // This is to enable activity creation
         // as it is created using ActivitySource inside TelemetryHttpModule
@@ -47,7 +53,7 @@ public class HttpInMetricsListenerTests
                 {
                     if (eventName.Equals("OnStopActivity"))
                     {
-                        duration = activity.Duration.TotalMilliseconds;
+                        duration = activity.Duration.TotalSeconds;
                     }
                 })
             .Build();
@@ -94,12 +100,19 @@ public class HttpInMetricsListenerTests
         var sum = metricPoint.GetHistogramSum();
 
         Assert.Equal(MetricType.Histogram, exportedItems[0].MetricType);
-        Assert.Equal("http.server.duration", exportedItems[0].Name);
+        Assert.Equal("http.server.request.duration", exportedItems[0].Name);
+        Assert.Equal("s", exportedItems[0].Unit);
         Assert.Equal(1L, count);
         Assert.Equal(duration, sum);
         Assert.True(duration > 0, "Metric duration should be set.");
 
-        var expectedTagCount = 3;
+        var expectedTagCount = 5;
+
+        if (!string.IsNullOrEmpty(expectedRoute))
+        {
+            expectedTagCount++;
+        }
+
         if (enrichMode == "enrich")
         {
             expectedTagCount++;
@@ -117,9 +130,28 @@ public class HttpInMetricsListenerTests
             ExpectTag("true", "enriched");
         }
 
-        ExpectTag("GET", SemanticConventions.AttributeHttpMethod);
-        ExpectTag(200, SemanticConventions.AttributeHttpStatusCode);
-        ExpectTag(expectedScheme, SemanticConventions.AttributeHttpScheme);
+        // Do not use constants from SemanticConventions here in order to detect mistakes.
+        // https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-metrics.md#http-server
+        // Unable to check for "network.protocol.version" because we can't set server variables due to the accessibility
+        // of the ServerVariables property.
+        ExpectTag("GET", "http.request.method");
+        ExpectTag(expectedStatus, "http.response.status_code");
+        ExpectTag(expectedRoute, "http.route");
+        ExpectTag(expectedHost, "server.address");
+        ExpectTag(expectedPort, "server.port");
+        ExpectTag(expectedScheme, "url.scheme");
+
+        // Inspect histogram bucket boundaries.
+        var histogramBuckets = metricPoint.GetHistogramBuckets();
+        var histogramBounds = new List<double>();
+        foreach (var t in histogramBuckets)
+        {
+            histogramBounds.Add(t.ExplicitBound);
+        }
+
+        Assert.Equal(
+            expected: new List<double> { 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10, double.PositiveInfinity },
+            actual: histogramBounds);
 
         void ExpectTag<T>(T? expected, string tagName)
         {
