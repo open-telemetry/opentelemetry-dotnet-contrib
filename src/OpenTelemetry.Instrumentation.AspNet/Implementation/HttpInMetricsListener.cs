@@ -11,12 +11,17 @@ namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 
 internal sealed class HttpInMetricsListener : IDisposable
 {
+    private readonly HttpRequestRouteHelper routeHelper = new();
+    private readonly RequestMethodHelper requestMethodHelper = new();
     private readonly Histogram<double> httpServerDuration;
     private readonly AspNetMetricsInstrumentationOptions options;
 
     public HttpInMetricsListener(Meter meter, AspNetMetricsInstrumentationOptions options)
     {
-        this.httpServerDuration = meter.CreateHistogram<double>("http.server.duration", "ms", "Measures the duration of inbound HTTP requests.");
+        this.httpServerDuration = meter.CreateHistogram<double>(
+            "http.server.request.duration",
+            unit: "s",
+            description: "Measures the duration of inbound HTTP requests.");
         TelemetryHttpModule.Options.OnRequestStoppedCallback += this.OnStopActivity;
         this.options = options;
     }
@@ -26,16 +31,44 @@ internal sealed class HttpInMetricsListener : IDisposable
         TelemetryHttpModule.Options.OnRequestStoppedCallback -= this.OnStopActivity;
     }
 
+    private static string GetHttpProtocolVersion(HttpRequest request)
+    {
+        var protocol = request.ServerVariables["SERVER_PROTOCOL"];
+        return protocol switch
+        {
+            "HTTP/1.1" => "1.1",
+            "HTTP/2" => "2",
+            "HTTP/3" => "3",
+            _ => protocol,
+        };
+    }
+
     private void OnStopActivity(Activity activity, HttpContext context)
     {
-        // TODO: This is just a minimal set of attributes. See the spec for additional attributes:
-        // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/http-metrics.md#http-server
+        var request = context.Request;
+        var url = request.Url;
         var tags = new TagList
         {
-            { SemanticConventions.AttributeHttpMethod, context.Request.HttpMethod },
-            { SemanticConventions.AttributeHttpScheme, context.Request.Url.Scheme },
-            { SemanticConventions.AttributeHttpStatusCode, context.Response.StatusCode },
+            { SemanticConventions.AttributeServerAddress, url.Host },
+            { SemanticConventions.AttributeServerPort, url.Port },
+            { SemanticConventions.AttributeUrlScheme, url.Scheme },
+            { SemanticConventions.AttributeHttpResponseStatusCode, context.Response.StatusCode },
         };
+
+        var normalizedMethod = this.requestMethodHelper.GetNormalizedHttpMethod(request.HttpMethod);
+        tags.Add(SemanticConventions.AttributeHttpRequestMethod, normalizedMethod);
+
+        var protocolVersion = GetHttpProtocolVersion(request);
+        if (!string.IsNullOrEmpty(protocolVersion))
+        {
+            tags.Add(SemanticConventions.AttributeNetworkProtocolVersion, protocolVersion);
+        }
+
+        var template = this.routeHelper.GetRouteTemplate(request);
+        if (!string.IsNullOrEmpty(template))
+        {
+            tags.Add(SemanticConventions.AttributeHttpRoute, template);
+        }
 
         if (this.options.Enrich is not null)
         {
@@ -49,6 +82,6 @@ internal sealed class HttpInMetricsListener : IDisposable
             }
         }
 
-        this.httpServerDuration.Record(activity.Duration.TotalMilliseconds, tags);
+        this.httpServerDuration.Record(activity.Duration.TotalSeconds, tags);
     }
 }
