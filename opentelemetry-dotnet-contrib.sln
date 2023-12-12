@@ -341,6 +341,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetec
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.Host.Tests", "test\OpenTelemetry.ResourceDetectors.Host.Tests\OpenTelemetry.ResourceDetectors.Host.Tests.csproj", "{36271347-2055-438E-9659-B71542A17A73}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Instrumentation.ConfluentKafka", "src\OpenTelemetry.Instrumentation.ConfluentKafka\OpenTelemetry.Instrumentation.ConfluentKafka.csproj", "{96341E23-990E-4144-A7E3-9EF0DAFF3232}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Instrumentation.ConfluentKafka.Tests", "test\OpenTelemetry.Instrumentation.ConfluentKafka.Tests\OpenTelemetry.Instrumentation.ConfluentKafka.Tests.csproj", "{BE40900A-2859-471D-8802-21DFD73DDAA7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "kafka", "kafka", "{3A464E7A-42F3-44B0-B8D7-80521A7704A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples.ConfluentKafka", "examples\Examples.ConfluentKafka\Examples.ConfluentKafka.csproj", "{DBED388F-567D-4BDA-BFA6-CE0BCF146609}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -683,6 +691,18 @@ Global
 		{36271347-2055-438E-9659-B71542A17A73}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{36271347-2055-438E-9659-B71542A17A73}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{36271347-2055-438E-9659-B71542A17A73}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96341E23-990E-4144-A7E3-9EF0DAFF3232}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96341E23-990E-4144-A7E3-9EF0DAFF3232}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96341E23-990E-4144-A7E3-9EF0DAFF3232}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96341E23-990E-4144-A7E3-9EF0DAFF3232}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE40900A-2859-471D-8802-21DFD73DDAA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE40900A-2859-471D-8802-21DFD73DDAA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE40900A-2859-471D-8802-21DFD73DDAA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE40900A-2859-471D-8802-21DFD73DDAA7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBED388F-567D-4BDA-BFA6-CE0BCF146609}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBED388F-567D-4BDA-BFA6-CE0BCF146609}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBED388F-567D-4BDA-BFA6-CE0BCF146609}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBED388F-567D-4BDA-BFA6-CE0BCF146609}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -785,6 +805,10 @@ Global
 		{A5EF701C-439E-407F-8BB4-394166000C6D} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{033CA8D4-1529-413A-B244-07958D5F9A48} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{36271347-2055-438E-9659-B71542A17A73} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{96341E23-990E-4144-A7E3-9EF0DAFF3232} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{BE40900A-2859-471D-8802-21DFD73DDAA7} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{3A464E7A-42F3-44B0-B8D7-80521A7704A6} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
+		{DBED388F-567D-4BDA-BFA6-CE0BCF146609} = {3A464E7A-42F3-44B0-B8D7-80521A7704A6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
