@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Update `OpenTelemetry.Api.ProviderBuilderExtensions` version to `1.7.0`.
+  ([#1486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1486))
+
 ## 1.0.0-rc9.12
 
 Released 2023-Nov-01

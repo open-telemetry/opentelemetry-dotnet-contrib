@@ -1,25 +1,11 @@
-// <copyright file="RequestContextHelperTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
+// SPDX-License-Identifier: Apache-2.0
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
-using Moq;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Instrumentation.AWS.Implementation;
 using OpenTelemetry.Trace;
@@ -48,18 +34,12 @@ public class RequestContextHelperTests
         var parameters = new ParameterCollection();
         parameters.AddStringParameters(serviceType, originalRequest);
 
-        var request = new Mock<IRequest>();
-        request.Setup(x => x.ParameterCollection)
-            .Returns(parameters);
+        var request = new TestRequest(parameters);
 
-        var context = new Mock<IRequestContext>();
-        context.Setup(x => x.OriginalRequest)
-            .Returns(originalRequest);
-        context.Setup(x => x.Request)
-            .Returns(request.Object);
+        var context = new TestRequestContext(originalRequest, request);
 
-        var addAttributes = TestsHelper.CreateAddAttributesAction(serviceType, context.Object);
-        addAttributes?.Invoke(context.Object, AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
+        var addAttributes = TestsHelper.CreateAddAttributesAction(serviceType, context);
+        addAttributes?.Invoke(context, AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
 
         Assert.Equal(30, parameters.Count);
     }
@@ -71,25 +51,18 @@ public class RequestContextHelperTests
     {
         var expectedParameters = new List<KeyValuePair<string, string>>()
         {
-            new KeyValuePair<string, string>("traceparent", $"00-{TraceId}-{ParentId}-00"),
-            new KeyValuePair<string, string>("tracestate", "trace-state"),
+            new("traceparent", $"00-{TraceId}-{ParentId}-00"),
+            new("tracestate", "trace-state"),
         };
 
         AmazonWebServiceRequest originalRequest = TestsHelper.CreateOriginalRequest(serviceType, 0);
         var parameters = new ParameterCollection();
 
-        var request = new Mock<IRequest>();
-        request.Setup(x => x.ParameterCollection)
-            .Returns(parameters);
+        var request = new TestRequest(parameters);
+        var context = new TestRequestContext(originalRequest, request);
 
-        var context = new Mock<IRequestContext>();
-        context.Setup(x => x.OriginalRequest)
-            .Returns(originalRequest);
-        context.Setup(x => x.Request)
-            .Returns(request.Object);
-
-        var addAttributes = TestsHelper.CreateAddAttributesAction(serviceType, context.Object);
-        addAttributes?.Invoke(context.Object, AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
+        var addAttributes = TestsHelper.CreateAddAttributesAction(serviceType, context);
+        addAttributes?.Invoke(context, AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
 
         TestsHelper.AssertStringParameters(serviceType, expectedParameters, parameters);
     }
@@ -101,27 +74,21 @@ public class RequestContextHelperTests
     {
         var expectedParameters = new List<KeyValuePair<string, string>>()
         {
-            new KeyValuePair<string, string>("name1", "value1"),
-            new KeyValuePair<string, string>("traceparent", $"00-{TraceId}-{ParentId}-00"),
-            new KeyValuePair<string, string>("tracestate", "trace-state"),
+            new("name1", "value1"),
+            new("traceparent", $"00-{TraceId}-{ParentId}-00"),
+            new("tracestate", "trace-state"),
         };
 
         AmazonWebServiceRequest originalRequest = TestsHelper.CreateOriginalRequest(serviceType, 1);
         var parameters = new ParameterCollection();
         parameters.AddStringParameters(serviceType, originalRequest);
 
-        var request = new Mock<IRequest>();
-        request.Setup(x => x.ParameterCollection)
-            .Returns(parameters);
+        var request = new TestRequest(parameters);
 
-        var context = new Mock<IRequestContext>();
-        context.Setup(x => x.OriginalRequest)
-            .Returns(originalRequest);
-        context.Setup(x => x.Request)
-            .Returns(request.Object);
+        var context = new TestRequestContext(originalRequest, request);
 
-        var addAttributes = TestsHelper.CreateAddAttributesAction(serviceType, context.Object);
-        addAttributes?.Invoke(context.Object, AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
+        var addAttributes = TestsHelper.CreateAddAttributesAction(serviceType, context);
+        addAttributes?.Invoke(context, AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
 
         TestsHelper.AssertStringParameters(serviceType, expectedParameters, parameters);
     }
@@ -137,7 +104,7 @@ public class RequestContextHelperTests
 
         var expectedParameters = new List<KeyValuePair<string, string>>()
         {
-            new KeyValuePair<string, string>("traceparent", $"00-{TraceId}-{ParentId}-00"),
+            new("traceparent", $"00-{TraceId}-{ParentId}-00"),
         };
 
         AmazonWebServiceRequest originalRequest = TestsHelper.CreateOriginalRequest(serviceType, 0);
@@ -146,18 +113,11 @@ public class RequestContextHelperTests
         var parameters = new ParameterCollection();
         parameters.AddStringParameters(serviceType, originalRequest);
 
-        var request = new Mock<IRequest>();
-        request.Setup(x => x.ParameterCollection)
-            .Returns(parameters);
+        var request = new TestRequest(parameters);
+        var context = new TestRequestContext(originalRequest, request);
 
-        var context = new Mock<IRequestContext>();
-        context.Setup(x => x.OriginalRequest)
-            .Returns(originalRequest);
-        context.Setup(x => x.Request)
-            .Returns(request.Object);
-
-        var addAttributes = TestsHelper.CreateAddAttributesAction(serviceType, context.Object);
-        addAttributes?.Invoke(context.Object, AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
+        var addAttributes = TestsHelper.CreateAddAttributesAction(serviceType, context);
+        addAttributes?.Invoke(context, AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
 
         TestsHelper.AssertStringParameters(serviceType, expectedParameters, parameters);
     }

@@ -37,16 +37,20 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\integration.yml = .github\workflows\integration.yml
 		.github\workflows\markdownlint.yml = .github\workflows\markdownlint.yml
 		.github\workflows\package-Exporter.Geneva.yml = .github\workflows\package-Exporter.Geneva.yml
+		.github\workflows\package-Exporter.InfluxDB.yml = .github\workflows\package-Exporter.InfluxDB.yml
 		.github\workflows\package-Exporter.Instana.yml = .github\workflows\package-Exporter.Instana.yml
 		.github\workflows\package-Exporter.OneCollector.yml = .github\workflows\package-Exporter.OneCollector.yml
 		.github\workflows\package-Exporter.Stackdriver.yml = .github\workflows\package-Exporter.Stackdriver.yml
+		.github\workflows\package-Extensions.AWS.yml = .github\workflows\package-Extensions.AWS.yml
 		.github\workflows\package-Extensions.AWSXRay.yml = .github\workflows\package-Extensions.AWSXRay.yml
 		.github\workflows\package-Extensions.AzureMonitor.yml = .github\workflows\package-Extensions.AzureMonitor.yml
 		.github\workflows\package-Extensions.Docker.yml = .github\workflows\package-Extensions.Docker.yml
+		.github\workflows\package-Extensions.Enrichment.yml = .github\workflows\package-Extensions.Enrichment.yml
 		.github\workflows\package-Extensions.yml = .github\workflows\package-Extensions.yml
 		.github\workflows\package-Instrumentation.AspNet.yml = .github\workflows\package-Instrumentation.AspNet.yml
 		.github\workflows\package-Instrumentation.AWS.yml = .github\workflows\package-Instrumentation.AWS.yml
 		.github\workflows\package-Instrumentation.AWSLambda.yml = .github\workflows\package-Instrumentation.AWSLambda.yml
+		.github\workflows\package-Instrumentation.Cassandra.yml = .github\workflows\package-Instrumentation.Cassandra.yml
 		.github\workflows\package-Instrumentation.Elasticsearch.yml = .github\workflows\package-Instrumentation.Elasticsearch.yml
 		.github\workflows\package-Instrumentation.EntityFrameworkCore.yml = .github\workflows\package-Instrumentation.EntityFrameworkCore.yml
 		.github\workflows\package-Instrumentation.EventCounters.yml = .github\workflows\package-Instrumentation.EventCounters.yml
@@ -60,7 +64,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\package-Instrumentation.StackExchangeRedis.yml = .github\workflows\package-Instrumentation.StackExchangeRedis.yml
 		.github\workflows\package-Instrumentation.Wcf.yml = .github\workflows\package-Instrumentation.Wcf.yml
 		.github\workflows\package-PersistentStorage.yml = .github\workflows\package-PersistentStorage.yml
+		.github\workflows\package-ResourceDetectors.AWS.yml = .github\workflows\package-ResourceDetectors.AWS.yml
 		.github\workflows\package-ResourceDetectors.Azure.yml = .github\workflows\package-ResourceDetectors.Azure.yml
+		.github\workflows\package-ResourceDetectors.Container.yml = .github\workflows\package-ResourceDetectors.Container.yml
+		.github\workflows\package-ResourceDetectors.ProcessRuntime.yml = .github\workflows\package-ResourceDetectors.ProcessRuntime.yml
+		.github\workflows\package-Sampler.AWS.yml = .github\workflows\package-Sampler.AWS.yml
 		.github\workflows\sanitycheck.yml = .github\workflows\sanitycheck.yml
 		.github\workflows\stale.yml = .github\workflows\stale.yml
 		.github\workflows\verifyaotcompat.yml = .github\workflows\verifyaotcompat.yml
@@ -75,6 +83,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{824BD1DE
 		build\debug.snk = build\debug.snk
 		build\docker-compose.net6.0.yml = build\docker-compose.net6.0.yml
 		build\docker-compose.net7.0.yml = build\docker-compose.net7.0.yml
+		build\docker-compose.net8.0.yml = build\docker-compose.net8.0.yml
 		build\opentelemetry-icon-color.png = build\opentelemetry-icon-color.png
 		build\OpenTelemetryContrib.prod.ruleset = build\OpenTelemetryContrib.prod.ruleset
 		build\OpenTelemetryContrib.test.ruleset = build\OpenTelemetryContrib.test.ruleset
@@ -313,7 +322,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projects", "Projects", "{04
 		build\Projects\OpenTelemetry.Instrumentation.Wcf.proj = build\Projects\OpenTelemetry.Instrumentation.Wcf.proj
 		build\Projects\OpenTelemetry.PersistentStorage.proj = build\Projects\OpenTelemetry.PersistentStorage.proj
 		build\Projects\OpenTelemetry.ResourceDetectors.Azure.proj = build\Projects\OpenTelemetry.ResourceDetectors.Azure.proj
+		build\Projects\OpenTelemetry.ResourceDetectors.ProcessRuntime.proj = build\Projects\OpenTelemetry.ResourceDetectors.ProcessRuntime.proj
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.ProcessRuntime", "src\OpenTelemetry.ResourceDetectors.ProcessRuntime\OpenTelemetry.ResourceDetectors.ProcessRuntime.csproj", "{95372E82-CA5B-4C61-BD6C-74E6AB1970D4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests", "test\OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests\OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests.csproj", "{B6157646-8EBA-464C-99B9-C386D474CB12}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -633,6 +647,14 @@ Global
 		{23AA75F6-403F-4867-BF0E-BAF0A44F9A7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23AA75F6-403F-4867-BF0E-BAF0A44F9A7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23AA75F6-403F-4867-BF0E-BAF0A44F9A7A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95372E82-CA5B-4C61-BD6C-74E6AB1970D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95372E82-CA5B-4C61-BD6C-74E6AB1970D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95372E82-CA5B-4C61-BD6C-74E6AB1970D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95372E82-CA5B-4C61-BD6C-74E6AB1970D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6157646-8EBA-464C-99B9-C386D474CB12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6157646-8EBA-464C-99B9-C386D474CB12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6157646-8EBA-464C-99B9-C386D474CB12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6157646-8EBA-464C-99B9-C386D474CB12}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -729,6 +751,8 @@ Global
 		{23AA75F6-403F-4867-BF0E-BAF0A44F9A7A} = {73474960-8F91-4EE5-8E3E-F7E7ADA99238}
 		{9B30F5FD-3309-49CB-9CAD-D3372FAFD796} = {824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}
 		{048509D6-FB49-4B84-832A-90E55520B97B} = {824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}
+		{95372E82-CA5B-4C61-BD6C-74E6AB1970D4} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{B6157646-8EBA-464C-99B9-C386D474CB12} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}

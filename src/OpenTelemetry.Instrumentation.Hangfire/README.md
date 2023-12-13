@@ -75,6 +75,44 @@ using var tracerProvider = Sdk
     .Build();
 ```
 
+When used with
+[`OpenTelemetry.Extensions.Hosting`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Extensions.Hosting/README.md),
+all configurations to `HangfireInstrumentationOptions`
+can be done in the `ConfigureServices` method of your applications `Startup`
+class as shown below.
+
+```csharp
+// Configure
+services.Configure<HangfireInstrumentationOptions>(options =>
+{
+    options.DisplayNameFunc = job => $"JOB {job.Id}";
+    options.Filter = job => job.Id == "Filter this job";
+    options.RecordException = true;
+});
+
+services.AddOpenTelemetry()
+    .WithTracing(builder => builder
+        .AddHangfireInstrumentation()
+        .AddConsoleExporter());
+```
+
+### RecordException
+
+Configures a value indicating whether the exception will be recorded as
+ActivityEvent or not. See
+[Semantic Conventions for Exceptions on Spans](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/exceptions/exceptions-spans.md)
+
+```csharp
+using var tracerProvider = Sdk
+    .CreateTracerProviderBuilder()
+    .AddHangfireInstrumentation(options =>
+    {
+        options.RecordException = true;
+    })
+    .AddConsoleExporter()
+    .Build();
+```
+
 ### DisplayNameFunc
 
 This option allows changing activity display name.
@@ -111,23 +149,6 @@ using var tracerProvider = Sdk
     .AddHangfireInstrumentation(options =>
     {
         options.Filter = job => job.Id == "Filter this job";
-    })
-    .AddConsoleExporter()
-    .Build();
-```
-
-### RecordException
-
-Configures a value indicating whether the exception will be recorded as
-ActivityEvent or not. See
-[Semantic Conventions for Exceptions on Spans](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/exceptions/exceptions-spans.md)
-
-```csharp
-using var tracerProvider = Sdk
-    .CreateTracerProviderBuilder()
-    .AddHangfireInstrumentation(options =>
-    {
-        options.RecordException = true;
     })
     .AddConsoleExporter()
     .Build();

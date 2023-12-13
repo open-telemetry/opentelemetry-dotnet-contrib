@@ -1,18 +1,5 @@
-// <copyright file="TestAWSClientInstrumentation.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
+// SPDX-License-Identifier: Apache-2.0
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,7 +13,6 @@ using Amazon.DynamoDBv2.Model;
 using Amazon.Runtime;
 using Amazon.SQS;
 using Amazon.SQS.Model;
-using Moq;
 using OpenTelemetry.Instrumentation.AWS.Tests.Tools;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -38,7 +24,7 @@ public class TestAWSClientInstrumentation
     [Fact]
     public void TestDDBScanSuccessful()
     {
-        var processor = new Mock<BaseProcessor<Activity>>();
+        var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
 
@@ -46,26 +32,25 @@ public class TestAWSClientInstrumentation
                    .SetSampler(new AlwaysOnSampler())
                    .AddXRayTraceId()
                    .AddAWSInstrumentation()
-                   .AddProcessor(processor.Object)
+                   .AddInMemoryExporter(exportedItems)
                    .Build())
         {
             var ddb = new AmazonDynamoDBClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
             CustomResponses.SetResponse(ddb, null, requestId, true);
-            var scan_request = new ScanRequest();
-
-            scan_request.TableName = "SampleProduct";
-            scan_request.AttributesToGet = new List<string>() { "Id", "Name" };
+            var scan_request = new ScanRequest
+            {
+                TableName = "SampleProduct",
+                AttributesToGet = new List<string> { "Id", "Name" },
+            };
 #if NETFRAMEWORK
             ddb.Scan(scan_request);
 #else
             ddb.ScanAsync(scan_request).Wait();
 #endif
-            var count = processor.Invocations.Count;
+            Assert.Single(exportedItems);
 
-            Assert.Equal(3, count);
-
-            Activity awssdk_activity = (Activity)processor.Invocations[2].Arguments[0];
+            Activity awssdk_activity = exportedItems[0];
 
             this.ValidateAWSActivity(awssdk_activity, parent);
             this.ValidateDynamoActivityTags(awssdk_activity);
@@ -78,7 +63,7 @@ public class TestAWSClientInstrumentation
     [Fact]
     public void TestDDBSubtypeScanSuccessful()
     {
-        var processor = new Mock<BaseProcessor<Activity>>();
+        var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
 
@@ -86,26 +71,25 @@ public class TestAWSClientInstrumentation
                    .SetSampler(new AlwaysOnSampler())
                    .AddXRayTraceId()
                    .AddAWSInstrumentation()
-                   .AddProcessor(processor.Object)
+                   .AddInMemoryExporter(exportedItems)
                    .Build())
         {
             var ddb = new TestAmazonDynamoDBClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
             CustomResponses.SetResponse(ddb, null, requestId, true);
-            var scan_request = new ScanRequest();
-
-            scan_request.TableName = "SampleProduct";
-            scan_request.AttributesToGet = new List<string>() { "Id", "Name" };
+            var scan_request = new ScanRequest
+            {
+                TableName = "SampleProduct",
+                AttributesToGet = new List<string>() { "Id", "Name" },
+            };
 #if NETFRAMEWORK
             ddb.Scan(scan_request);
 #else
             ddb.ScanAsync(scan_request).Wait();
 #endif
-            var count = processor.Invocations.Count;
+            Assert.Single(exportedItems);
 
-            Assert.Equal(3, count);
-
-            Activity awssdk_activity = (Activity)processor.Invocations[2].Arguments[0];
+            Activity awssdk_activity = exportedItems[0];
 
             this.ValidateAWSActivity(awssdk_activity, parent);
             this.ValidateDynamoActivityTags(awssdk_activity);
@@ -122,7 +106,7 @@ public class TestAWSClientInstrumentation
     public async Task TestDDBScanUnsuccessful()
 #endif
     {
-        var processor = new Mock<BaseProcessor<Activity>>();
+        var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
 
@@ -130,7 +114,7 @@ public class TestAWSClientInstrumentation
                    .SetSampler(new AlwaysOnSampler())
                    .AddXRayTraceId()
                    .AddAWSInstrumentation()
-                   .AddProcessor(processor.Object)
+                   .AddInMemoryExporter(exportedItems)
                    .Build())
         {
             var ddb = new AmazonDynamoDBClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
@@ -139,10 +123,11 @@ public class TestAWSClientInstrumentation
             amazonServiceException.StatusCode = System.Net.HttpStatusCode.NotFound;
             amazonServiceException.RequestId = requestId;
             CustomResponses.SetResponse(ddb, (request) => { throw amazonServiceException; });
-            var scan_request = new ScanRequest();
-
-            scan_request.TableName = "SampleProduct";
-            scan_request.AttributesToGet = new List<string>() { "Id", "Name" };
+            var scan_request = new ScanRequest
+            {
+                TableName = "SampleProduct",
+                AttributesToGet = new List<string>() { "Id", "Name" },
+            };
 
             try
             {
@@ -154,10 +139,9 @@ public class TestAWSClientInstrumentation
             }
             catch (AmazonServiceException)
             {
-                var count = processor.Invocations.Count;
-                Assert.Equal(3, count);
+                Assert.Single(exportedItems);
 
-                Activity awssdk_activity = (Activity)processor.Invocations[2].Arguments[0];
+                Activity awssdk_activity = exportedItems[0];
 
                 this.ValidateAWSActivity(awssdk_activity, parent);
                 this.ValidateDynamoActivityTags(awssdk_activity);
@@ -172,7 +156,7 @@ public class TestAWSClientInstrumentation
     [Fact]
     public void TestSQSSendMessageSuccessful()
     {
-        var processor = new Mock<BaseProcessor<Activity>>();
+        var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
 
@@ -180,7 +164,7 @@ public class TestAWSClientInstrumentation
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
                    .AddAWSInstrumentation()
-                   .AddProcessor(processor.Object)
+                   .AddInMemoryExporter(exportedItems)
                    .Build())
         {
             var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
@@ -196,10 +180,8 @@ public class TestAWSClientInstrumentation
 #else
             sqs.SendMessageAsync(send_msg_req).Wait();
 #endif
-
-            var count = processor.Invocations.Count;
-            Assert.Equal(3, count);
-            Activity awssdk_activity = (Activity)processor.Invocations[2].Arguments[0];
+            Assert.Single(exportedItems);
+            Activity awssdk_activity = exportedItems[0];
 
             this.ValidateAWSActivity(awssdk_activity, parent);
             this.ValidateSqsActivityTags(awssdk_activity);

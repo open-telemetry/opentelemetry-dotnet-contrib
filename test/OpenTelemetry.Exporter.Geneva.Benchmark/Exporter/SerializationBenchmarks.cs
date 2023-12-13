@@ -1,18 +1,5 @@
-// <copyright file="SerializationBenchmarks.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
+// SPDX-License-Identifier: Apache-2.0
 
 using System;
 using System.Text;
@@ -21,25 +8,25 @@ using OpenTelemetry.Exporter.Geneva.External;
 using OpenTelemetry.Exporter.Geneva.TldExporter;
 
 /*
-BenchmarkDotNet=v0.13.3, OS=Windows 11 (10.0.22621.963)
+BenchmarkDotNet v0.13.10, Windows 11 (10.0.23424.1000)
 Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
-.NET SDK=7.0.101
-  [Host]     : .NET 7.0.1 (7.0.122.56804), X64 RyuJIT AVX2
-  DefaultJob : .NET 7.0.1 (7.0.122.56804), X64 RyuJIT AVX2
+.NET SDK 8.0.100
+  [Host]     : .NET 8.0.0 (8.0.23.53103), X64 RyuJIT AVX2
+  DefaultJob : .NET 8.0.0 (8.0.23.53103), X64 RyuJIT AVX2
 
 
-|                         Method |      Mean |     Error |    StdDev | Allocated |
+| Method                         | Mean      | Error     | StdDev    | Allocated |
 |------------------------------- |----------:|----------:|----------:|----------:|
-|             TLD_SerializeUInt8 | 22.483 ns | 0.0216 ns | 0.0202 ns |         - |
-|         MsgPack_SerializeUInt8 |  7.360 ns | 0.0135 ns | 0.0127 ns |         - |
-|       TLD_SerializeAsciiString | 31.141 ns | 0.0210 ns | 0.0176 ns |         - |
-|   MsgPack_SerializeAsciiString | 19.580 ns | 0.0412 ns | 0.0385 ns |         - |
-|  TLD_SerializeUnicodeSubString | 41.064 ns | 0.0708 ns | 0.0662 ns |         - |
-|     TLD_SerializeUnicodeString | 41.889 ns | 0.0927 ns | 0.0868 ns |         - |
-| MsgPack_SerializeUnicodeString | 21.806 ns | 0.0281 ns | 0.0249 ns |         - |
-|          TLD_SerializeDateTime | 45.321 ns | 0.1321 ns | 0.1235 ns |         - |
-|      MsgPack_SerializeDateTime | 30.667 ns | 0.0401 ns | 0.0356 ns |         - |
-|                      TLD_Reset | 12.739 ns | 0.0351 ns | 0.0328 ns |         - |
+| TLD_SerializeUInt8             | 16.721 ns | 0.1541 ns | 0.1441 ns |         - |
+| MsgPack_SerializeUInt8         |  7.470 ns | 0.0854 ns | 0.0799 ns |         - |
+| TLD_SerializeAsciiString       | 25.828 ns | 0.3779 ns | 0.3535 ns |         - |
+| MsgPack_SerializeAsciiString   | 16.779 ns | 0.0421 ns | 0.0328 ns |         - |
+| TLD_SerializeUnicodeSubString  | 35.224 ns | 0.2928 ns | 0.2596 ns |         - |
+| TLD_SerializeUnicodeString     | 33.503 ns | 0.3786 ns | 0.3541 ns |         - |
+| MsgPack_SerializeUnicodeString | 19.173 ns | 0.1042 ns | 0.0924 ns |         - |
+| TLD_SerializeDateTime          | 36.896 ns | 0.2391 ns | 0.2119 ns |         - |
+| MsgPack_SerializeDateTime      | 30.335 ns | 0.1765 ns | 0.1651 ns |         - |
+| TLD_Reset                      |  7.856 ns | 0.0453 ns | 0.0379 ns |         - |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark;
