@@ -9,7 +9,6 @@
   <ItemGroup>
     <PackageReference Include="Hangfire.Core" Version="1.8.1" />
     <PackageReference Include="Hangfire.MemoryStorage" Version="1.7.0" />
-    <PackageReference Include="Moq" Version="$(MoqPkgVer)" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryCoreLatestVersion)" />
   </ItemGroup>

@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Hangfire;
 using Hangfire.Storage.Monitoring;
-using Moq;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -155,14 +154,11 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         };
 
         var processedItems = new List<Activity>();
-        var activityProcessor = new Mock<BaseProcessor<Activity>>();
-        activityProcessor
-            .Setup(p => p.OnStart(It.IsAny<Activity>()))
-            .Callback<Activity>(processedItems.Add);
+        var activityProcessor = new ProcessorMock<Activity>(onStart: processedItems.Add);
 
         using var tel = Sdk.CreateTracerProviderBuilder()
             .AddHangfireInstrumentation(configure)
-            .AddProcessor(activityProcessor.Object)
+            .AddProcessor(activityProcessor)
             .Build();
 
         // Act
