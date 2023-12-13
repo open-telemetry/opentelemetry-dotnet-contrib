@@ -7,6 +7,7 @@
     <MinVerTagPrefix>Exporter.Stackdriver-</MinVerTagPrefix>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Google.Cloud.Monitoring.V3" Version="[2.6.0,4.0)" />
     <PackageReference Include="Google.Cloud.Trace.V2" Version="[2.3.0,4.0)" />

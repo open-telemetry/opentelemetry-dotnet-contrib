@@ -23,12 +23,7 @@ public class AWSXRayIdGeneratorTests
             activity.Start();
 
             Assert.NotEqual(originalTraceId, activity.TraceId);
-#if NET6_0_OR_GREATER
-            // the net6.0 version of AWSXRayIdGenerator uses Activity.TraceIdGenerator, which does not change the parent ID
             Assert.Equal(originalParentSpanId, activity.ParentSpanId);
-#else
-            Assert.NotEqual(originalParentSpanId, activity.ParentSpanId);
-#endif
             Assert.Equal("0000000000000000", activity.ParentSpanId.ToHexString());
             Assert.Equal(originalTraceFlag, activity.ActivityTraceFlags);
         }

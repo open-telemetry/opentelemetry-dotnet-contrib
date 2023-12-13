@@ -21,7 +21,7 @@
       <Reference Include="System.Net.Http" Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'" />
     </ItemGroup>
     -->
-    <PackageReference Include="System.Net.Http" Version="4.3.4" Condition="'$(TargetFramework)' == 'net462'" />
+    <PackageReference Include="System.Net.Http" Version="$(SystemNetHttp)" Condition="'$(TargetFramework)' == 'net462'" />
   </ItemGroup>
 
 </Project>

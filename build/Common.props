@@ -21,6 +21,7 @@
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <MSBuildTreatWarningsAsErrors>true</MSBuildTreatWarningsAsErrors>
   </PropertyGroup>
 
   <PropertyGroup Label="Package versions used in this repository">
