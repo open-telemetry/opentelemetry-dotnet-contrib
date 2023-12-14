@@ -39,7 +39,7 @@ jobs:
       run: dotnet pack build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-restore --no-build
 
     - name: Publish Artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.project-name }}.proj-packages
         path: 'src/*/bin/Release/*.*nupkg'
