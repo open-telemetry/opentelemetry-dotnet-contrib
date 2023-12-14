@@ -42,7 +42,8 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+        using var tracerProvider = Sdk
+            .CreateTracerProviderBuilder()
             .AddHangfireInstrumentation()
             .AddConsoleExporter()
             .Build();
@@ -57,6 +58,22 @@ For an ASP.NET application, adding instrumentation is typically done in the
 `Global.asax.cs`. Refer to [example](../../examples/AspNet/Global.asax.cs).
 
 ## Advanced configuration
+
+This instrumentation can be configured to change the default behavior by using
+`HangfireInstrumentationOptions`.
+
+```csharp
+using var tracerProvider = Sdk
+    .CreateTracerProviderBuilder()
+    .AddHangfireInstrumentation(options =>
+    {
+        options.DisplayNameFunc = job => $"JOB {job.Id}";
+        options.Filter = job => job.Id == "Filter this job";
+        options.RecordException = true;
+    })
+    .AddConsoleExporter()
+    .Build();
+```
 
 When used with
 [`OpenTelemetry.Extensions.Hosting`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Extensions.Hosting/README.md),
@@ -77,6 +94,64 @@ services.AddOpenTelemetry()
     .WithTracing(builder => builder
         .AddHangfireInstrumentation()
         .AddConsoleExporter());
+```
+
+### RecordException
+
+Configures a value indicating whether the exception will be recorded as
+ActivityEvent or not. See
+[Semantic Conventions for Exceptions on Spans](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/exceptions/exceptions-spans.md)
+
+```csharp
+using var tracerProvider = Sdk
+    .CreateTracerProviderBuilder()
+    .AddHangfireInstrumentation(options =>
+    {
+        options.RecordException = true;
+    })
+    .AddConsoleExporter()
+    .Build();
+```
+
+### DisplayNameFunc
+
+This option allows changing activity display name.
+
+```C#
+using var tracerProvider = Sdk
+    .CreateTracerProviderBuilder()
+    .AddHangfireInstrumentation(options =>
+    {
+        options.DisplayNameFunc = job => $"JOB {job.Id}";
+    })
+    .AddConsoleExporter()
+    .Build();
+```
+
+If not configured the default is
+
+```C#
+$"JOB {BackgroundJob.Job.Type.Name}.{BackgroundJob.Job.Method.Name}"
+```
+
+### Filter
+
+This option can be used to filter out activities based on the `BackgroundJob`
+being executed. The `Filter` function should return `true` if the telemetry is
+to be collected, and `false` if it should not.
+
+The following code snippet shows how to use `Filter` to filter out traces for
+job with a specified job id.
+
+```csharp
+using var tracerProvider = Sdk
+    .CreateTracerProviderBuilder()
+    .AddHangfireInstrumentation(options =>
+    {
+        options.Filter = job => job.Id == "Filter this job";
+    })
+    .AddConsoleExporter()
+    .Build();
 ```
 
 ## References

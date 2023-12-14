@@ -11,6 +11,9 @@
   options management
   ([#1442](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1442))
 
+* Add Filter to HangfireInstrumentationOptions.
+  ([#1440](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1440))
+
 ## 1.5.0-beta.1
 
 Released 2023-Jun-23

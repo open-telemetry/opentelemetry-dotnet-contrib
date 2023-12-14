@@ -136,6 +136,43 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         Assert.Equal(ActivityKind.Internal, activity.Kind);
     }
 
+    [Theory]
+    [InlineData("null", true)]
+    [InlineData("true", true)]
+    [InlineData("false", false)]
+    [InlineData("throw", false)]
+    public async Task Should_Respect_Filter_Option(string filter, bool shouldRecord)
+    {
+        // Arrange
+        Action<HangfireInstrumentationOptions> configure = filter switch
+        {
+            "null" => options => options.Filter = null,
+            "true" => options => options.Filter = _ => true,
+            "false" => options => options.Filter = _ => false,
+            "throw" => options => options.Filter = _ => throw new Exception("Filter throws exception"),
+            _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, "Unexpected value"),
+        };
+
+        var processedItems = new List<Activity>();
+        var activityProcessor = new ProcessorMock<Activity>(onStart: processedItems.Add);
+
+        using var tel = Sdk.CreateTracerProviderBuilder()
+            .AddHangfireInstrumentation(configure)
+            .AddProcessor(activityProcessor)
+            .Build();
+
+        // Act
+        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
+        await this.WaitJobProcessedAsync(jobId, 5);
+
+        // Assert
+        Assert.Single(processedItems);
+        var activity = processedItems.First();
+
+        Assert.Equal(shouldRecord, activity.IsAllDataRequested);
+        Assert.Equal(shouldRecord, activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
+    }
+
     private async Task WaitJobProcessedAsync(string jobId, int timeToWaitInSeconds)
     {
         var timeout = DateTime.Now.AddSeconds(timeToWaitInSeconds);
