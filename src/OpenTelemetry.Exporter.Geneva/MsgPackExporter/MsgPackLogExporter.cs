@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
+using System.Xml.Linq;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
@@ -26,7 +28,9 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     private readonly bool m_shouldExportEventName;
     private readonly TableNameSerializer m_tableNameSerializer;
     private readonly Dictionary<string, object> m_customFields;
+    private readonly string m_defaultEventName = "Log";
     private readonly Dictionary<string, object> m_prepopulatedFields;
+    private readonly Dictionary<string, string> m_tableMappings;
     private readonly ExceptionStackExportMode m_exportExceptionStack;
     private readonly List<string> m_prepopulatedFieldKeys;
     private readonly byte[] m_bufferEpilogue;
@@ -42,6 +46,30 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         this.m_exportExceptionStack = options.ExceptionStackExportMode;
 
         this.m_shouldExportEventName = (options.EventNameExportMode & EventNameExportMode.ExportAsPartAName) != 0;
+
+        // TODO: Validate mappings for reserved tablenames etc.
+        if (options.TableNameMappings != null)
+        {
+            var tempTableMappings = new Dictionary<string, string>(options.TableNameMappings.Count, StringComparer.Ordinal);
+            foreach (var kv in options.TableNameMappings)
+            {
+                if (Encoding.UTF8.GetByteCount(kv.Value) != kv.Value.Length)
+                {
+                    throw new ArgumentException("The value: \"{tableName}\" provided for TableNameMappings option contains non-ASCII characters", kv.Value);
+                }
+
+                if (kv.Key == "*")
+                {
+                    this.m_defaultEventName = kv.Value;
+                }
+                else
+                {
+                    tempTableMappings[kv.Key] = kv.Value;
+                }
+            }
+
+            this.m_tableMappings = tempTableMappings;
+        }
 
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
         switch (connectionStringBuilder.Protocol)
@@ -144,6 +172,14 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             listKvp = logRecord.State as IReadOnlyList<KeyValuePair<string, object>>;
         }
 #pragma warning restore 0618
+
+        var name = logRecord.CategoryName;
+
+        // If user configured explicit TableName, use it.
+        if (this.m_tableMappings == null || !this.m_tableMappings.TryGetValue(name, out var eventName))
+        {
+            eventName = this.m_defaultEventName;
+        }
 
         var buffer = m_buffer.Value;
         if (buffer == null)
