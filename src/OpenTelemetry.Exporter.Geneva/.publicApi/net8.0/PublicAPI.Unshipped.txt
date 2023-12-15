@@ -2,3 +2,7 @@ OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.OnTcpConnectionFailure.get -
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.OnTcpConnectionFailure.set -> void
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.OnTcpConnectionSuccess.get -> System.Action
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.OnTcpConnectionSuccess.set -> void
+OpenTelemetry.Exporter.Geneva.GenevaMetricExporterOptions.OnTcpConnectionFailure.get -> System.Action<System.Exception>
+OpenTelemetry.Exporter.Geneva.GenevaMetricExporterOptions.OnTcpConnectionFailure.set -> void
+OpenTelemetry.Exporter.Geneva.GenevaMetricExporterOptions.OnTcpConnectionSuccess.get -> System.Action
+OpenTelemetry.Exporter.Geneva.GenevaMetricExporterOptions.OnTcpConnectionSuccess.set -> void

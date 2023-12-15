@@ -82,6 +82,13 @@ public class GenevaMetricExporter : BaseExporter<Metric>
                     throw new ArgumentException("Endpoint not specified");
                 }
 
+            case TransportProtocol.Tcp:
+                string host;
+                int port;
+                connectionStringBuilder.ParseTcpSocketPath(out host, out port);
+                this.metricDataTransport = new MetricTcpDataTransport(host, port, options.OnTcpConnectionSuccess, options.OnTcpConnectionFailure);
+                break;
+
             default:
                 throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
         }

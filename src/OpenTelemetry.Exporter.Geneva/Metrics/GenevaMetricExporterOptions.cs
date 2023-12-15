@@ -20,6 +20,17 @@ public class GenevaMetricExporterOptions
     public string ConnectionString { get; set; }
 
     /// <summary>
+    ///     Gets or sets when using the TCP protocol, this callback will be triggered whenever the tcp connection successfully connects
+    /// </summary>
+    public Action OnTcpConnectionSuccess { get; set; }
+
+    /// <summary>
+    ///     Gets or sets when using the TCP protocol, this callback will be triggered whenever the tcp connection fails to connect.
+    /// </summary>
+    public Action<Exception> OnTcpConnectionFailure { get; set; }
+
+
+    /// <summary>
     /// Gets or sets the metric export interval in milliseconds. The default value is 60000.
     /// </summary>
     public int MetricExportIntervalMilliseconds

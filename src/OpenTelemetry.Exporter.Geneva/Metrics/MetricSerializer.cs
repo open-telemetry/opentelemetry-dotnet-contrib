@@ -373,6 +373,25 @@ internal enum MetricEventType
     TLV = 70,
 }
 
+/// <summary>
+/// Represents the binary header for non-ETW transmitted metrics.
+/// </summary>
+[StructLayout(LayoutKind.Explicit)]
+internal struct IfxBinaryHeader
+{
+    /// <summary>
+    /// The event ID that represents how it will be processed.
+    /// </summary>
+    [FieldOffset(0)]
+    public ushort EventId;
+
+    /// <summary>
+    /// The length of the body following the header.
+    /// </summary>
+    [FieldOffset(2)]
+    public ushort BodyLength;
+}
+
 internal enum PayloadType
 {
     AccountName = 1,
