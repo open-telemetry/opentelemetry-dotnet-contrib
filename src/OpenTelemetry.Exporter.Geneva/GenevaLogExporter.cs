@@ -57,6 +57,10 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
                 useMsgPackExporter = false;
                 break;
 
+            case TransportProtocol.Tcp:
+                useMsgPackExporter = true;
+                break;
+
             default:
                 throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
         }

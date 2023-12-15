@@ -19,6 +19,16 @@ public class GenevaExporterOptions
 
     public string ConnectionString { get; set; }
 
+    /// <summary>
+    ///     Gets or sets when using the TCP protocol, this callback will be triggered whenever the tcp connection successfully connects
+    /// </summary>
+    public Action OnTcpConnectionSuccess { get; set; }
+
+    /// <summary>
+    ///     Gets or sets when using the TCP protocol, this callback will be triggered whenever the tcp connection fails to connect.
+    /// </summary>
+    public Action<Exception> OnTcpConnectionFailure { get; set; }
+
     public IEnumerable<string> CustomFields { get; set; }
 
     public ExceptionStackExportMode ExceptionStackExportMode { get; set; }

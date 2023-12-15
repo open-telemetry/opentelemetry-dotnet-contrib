@@ -185,6 +185,20 @@ internal sealed class ConnectionStringBuilder
         set => this._parts[nameof(this.TimeoutMilliseconds)] = value.ToString(CultureInfo.InvariantCulture);
     }
 
+    public void ParseTcpSocketPath(out string host, out int port)
+    {
+        try
+        {
+            var endpoint = new Uri(Endpoint);
+            host = endpoint.Host;
+            port = endpoint.Port;
+        }
+        catch (UriFormatException ex)
+        {
+            throw new ArgumentException($"{nameof(Endpoint)} value is malformed.", ex);
+        }
+    }
+
     public string Host
     {
         get
