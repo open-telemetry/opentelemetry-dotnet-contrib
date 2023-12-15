@@ -4,6 +4,8 @@
 
 * Update OpenTelemetry SDK version to `1.7.0`.
   ([#1486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1486))
+* Add netstandard2.1 support and update Google Cloud libraries.
+  ([#1414](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1414))
 
 ## 1.0.0-beta.4
 
