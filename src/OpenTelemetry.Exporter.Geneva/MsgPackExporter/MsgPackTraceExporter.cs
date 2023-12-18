@@ -48,33 +48,35 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         // TODO: Validate custom fields (reserved name? etc).
         if (options.CustomFields != null)
         {
-            var customFields = new Dictionary<string, object>(StringComparer.Ordinal);
-            var dedicatedFields = new Dictionary<string, object>(StringComparer.Ordinal);
+            var customFields = new HashSet<string>(StringComparer.Ordinal);
+            var dedicatedFields = new HashSet<string>(StringComparer.Ordinal);
 
             // Seed customFields with Span PartB
-            customFields["azureResourceProvider"] = true;
-            dedicatedFields["azureResourceProvider"] = true;
+            customFields.Add("azureResourceProvider");
+            dedicatedFields.Add("azureResourceProvider");
+
             foreach (var name in CS40_PART_B_MAPPING.Values)
             {
-                customFields[name] = true;
-                dedicatedFields[name] = true;
+                customFields.Add(name);
+                dedicatedFields.Add(name);
             }
 
             foreach (var name in options.CustomFields)
             {
-                customFields[name] = true;
-                dedicatedFields[name] = true;
+                customFields.Add(name);
+                dedicatedFields.Add(name);
             }
 
             this.m_customFields = customFields;
 
             foreach (var name in CS40_PART_B_MAPPING.Keys)
             {
-                dedicatedFields[name] = true;
+                dedicatedFields.Add(name);
             }
 
-            dedicatedFields["otel.status_code"] = true;
-            dedicatedFields["otel.status_description"] = true;
+            dedicatedFields.Add("otel.status_code");
+            dedicatedFields.Add("otel.status_description");
+
             this.m_dedicatedFields = dedicatedFields;
         }
 
@@ -286,7 +288,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                 statusDescription = Convert.ToString(entry.Value, CultureInfo.InvariantCulture);
                 continue;
             }
-            else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
+            else if (this.m_customFields == null || this.m_customFields.Contains(entry.Key))
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
                 cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
@@ -313,7 +315,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             foreach (ref readonly var entry in activity.EnumerateTagObjects())
             {
                 // TODO: check name collision
-                if (this.m_dedicatedFields.ContainsKey(entry.Key))
+                if (this.m_dedicatedFields.Contains(entry.Key))
                 {
                     continue;
                 }
@@ -422,9 +424,9 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     private readonly IDataTransport m_dataTransport;
 
-    private readonly Dictionary<string, object> m_customFields;
+    private readonly HashSet<string> m_customFields;
 
-    private readonly Dictionary<string, object> m_dedicatedFields;
+    private readonly HashSet<string> m_dedicatedFields;
 
     private bool isDisposed;
 }

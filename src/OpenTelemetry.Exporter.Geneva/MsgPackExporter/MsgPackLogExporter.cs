@@ -25,7 +25,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
     private readonly bool m_shouldExportEventName;
     private readonly TableNameSerializer m_tableNameSerializer;
-    private readonly Dictionary<string, object> m_customFields;
+    private readonly HashSet<string> m_customFields;
     private readonly Dictionary<string, object> m_prepopulatedFields;
     private readonly ExceptionStackExportMode m_exportExceptionStack;
     private readonly List<string> m_prepopulatedFieldKeys;
@@ -83,10 +83,10 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         // TODO: Validate custom fields (reserved name? etc).
         if (options.CustomFields != null)
         {
-            var customFields = new Dictionary<string, object>(StringComparer.Ordinal);
+            var customFields = new HashSet<string>(StringComparer.Ordinal);
             foreach (var name in options.CustomFields)
             {
-                customFields[name] = true;
+                customFields.Add(name);
             }
 
             this.m_customFields = customFields;
@@ -263,7 +263,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 bodyPopulated = true;
                 continue;
             }
-            else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
+            else if (this.m_customFields == null || this.m_customFields.Contains(entry.Key))
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
                 if (entry.Value != null)
@@ -340,7 +340,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             for (int i = 0; i < listKvp.Count; i++)
             {
                 var entry = listKvp[i];
-                if (entry.Key == "{OriginalFormat}" || this.m_customFields.ContainsKey(entry.Key))
+                if (entry.Key == "{OriginalFormat}" || this.m_customFields.Contains(entry.Key))
                 {
                     continue;
                 }
@@ -470,7 +470,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 continue;
             }
 
-            if (customFields == null || customFields.ContainsKey(scopeItem.Key))
+            if (customFields == null || customFields.Contains(scopeItem.Key))
             {
                 if (scopeItem.Value != null)
                 {
@@ -499,7 +499,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 continue;
             }
 
-            if (!customFields.ContainsKey(scopeItem.Key))
+            if (!customFields.Contains(scopeItem.Key))
             {
                 stateData.Cursor = MessagePackSerializer.SerializeUnicodeString(stateData.Buffer, stateData.Cursor, scopeItem.Key);
                 stateData.Cursor = MessagePackSerializer.Serialize(stateData.Buffer, stateData.Cursor, scopeItem.Value);
