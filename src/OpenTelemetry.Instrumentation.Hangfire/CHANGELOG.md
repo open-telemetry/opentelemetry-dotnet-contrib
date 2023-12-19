@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.5.0-beta.2
+
+Released 2023-Dec-20
+
 * Update `OpenTelemetry.Api.ProviderBuilderExtensions` to `1.6.0`.
   * Update `OpenTelemetry.Api` to `1.6.0`.
   ([#1502](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1502))
