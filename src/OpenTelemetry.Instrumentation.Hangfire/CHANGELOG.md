@@ -4,7 +4,7 @@
 
 * Update `OpenTelemetry.Api.ProviderBuilderExtensions` to `1.6.0`.
   * Update `OpenTelemetry.Api` to `1.6.0`.
-  ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
+  ([#1502](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1502))
 
 * Added overloads which accept a name to the `TracerProviderBuilder`
   `HangfireInstrumentationOptions` extension to allow for more fine-grained
