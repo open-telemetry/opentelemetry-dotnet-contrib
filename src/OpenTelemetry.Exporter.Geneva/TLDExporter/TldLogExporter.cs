@@ -33,7 +33,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
     private readonly byte partAFieldsCount = 1; // At least one field: time
     private readonly bool shouldPassThruTableMappings;
     private readonly string defaultEventName = "Log";
-    private readonly Dictionary<string, object> customFields;
+    private readonly HashSet<string> customFields;
     private readonly Dictionary<string, string> tableMappings;
     private readonly Tuple<byte[], byte[]> repeatedPartAFields;
     private readonly ExceptionStackExportMode exceptionStackExportMode;
@@ -81,10 +81,10 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         // TODO: Validate custom fields (reserved name? etc).
         if (options.CustomFields != null)
         {
-            var customFields = new Dictionary<string, object>(StringComparer.Ordinal);
+            var customFields = new HashSet<string>(StringComparer.Ordinal);
             foreach (var name in options.CustomFields)
             {
-                customFields[name] = true;
+                customFields.Add(name);
             }
 
             this.customFields = customFields;
@@ -323,7 +323,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 bodyPopulated = true;
                 continue;
             }
-            else if (this.customFields == null || this.customFields.ContainsKey(entry.Key))
+            else if (this.customFields == null || this.customFields.Contains(entry.Key))
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
                 if (entry.Value != null)
@@ -513,7 +513,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 continue;
             }
 
-            if (customFields == null || customFields.ContainsKey(scopeItem.Key))
+            if (customFields == null || customFields.Contains(scopeItem.Key))
             {
                 if (scopeItem.Value != null)
                 {

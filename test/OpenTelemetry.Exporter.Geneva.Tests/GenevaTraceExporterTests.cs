@@ -239,7 +239,7 @@ public class GenevaTraceExporterTests
             }
 
             using var exporter = new MsgPackTraceExporter(exporterOptions);
-            var dedicatedFields = typeof(MsgPackTraceExporter).GetField("m_dedicatedFields", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as IReadOnlyDictionary<string, object>;
+            var dedicatedFields = typeof(MsgPackTraceExporter).GetField("m_dedicatedFields", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as HashSet<string>;
             var CS40_PART_B_MAPPING = typeof(MsgPackTraceExporter).GetField("CS40_PART_B_MAPPING", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as IReadOnlyDictionary<string, string>;
             var m_buffer = typeof(MsgPackTraceExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as ThreadLocal<byte[]>;
 
@@ -563,7 +563,7 @@ public class GenevaTraceExporterTests
         return callingMethodName;
     }
 
-    private void AssertFluentdForwardModeForActivity(GenevaExporterOptions exporterOptions, object fluentdData, Activity activity, IReadOnlyDictionary<string, string> CS40_PART_B_MAPPING, IReadOnlyDictionary<string, object> dedicatedFields, Action<Dictionary<object, object>> customChecksForActivity)
+    private void AssertFluentdForwardModeForActivity(GenevaExporterOptions exporterOptions, object fluentdData, Activity activity, IReadOnlyDictionary<string, string> CS40_PART_B_MAPPING, HashSet<string> dedicatedFields, Action<Dictionary<object, object>> customChecksForActivity)
     {
         /* Fluentd Forward Mode:
         [
@@ -697,8 +697,8 @@ public class GenevaTraceExporterTests
             }
             else
             {
-                // If CustomFields are proivded, dedicatedFields will be populated
-                if (exporterOptions.CustomFields == null || dedicatedFields.TryGetValue(tag.Key, out _))
+                // If CustomFields are provided, dedicatedFields will be populated
+                if (exporterOptions.CustomFields == null || dedicatedFields.Contains(tag.Key))
                 {
                     Assert.Equal(tag.Value.ToString(), mapping[tag.Key].ToString());
                 }
