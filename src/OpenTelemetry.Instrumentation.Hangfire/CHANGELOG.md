@@ -2,10 +2,6 @@
 
 ## Unreleased
 
-* Downgrade `OpenTelemetry.Api.ProviderBuilderExtensions` to `1.6.0` to avoid
-  `Microsoft.Extensions.*` v8 dependencies.
-  ([#1502](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1502))
-
 * Update `OpenTelemetry.Api.ProviderBuilderExtensions` to `1.7.0`.
   * Update `OpenTelemetry.Api` to `1.7.0`.
   ([#1486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1486))
@@ -17,6 +13,10 @@
 
 * Add Filter to HangfireInstrumentationOptions.
   ([#1440](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1440))
+
+* Downgrade `OpenTelemetry.Api.ProviderBuilderExtensions` to `1.6.0`.
+  * Downgrade `OpenTelemetry.Api` to `1.6.0`.
+  ([#1486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1502))
 
 ## 1.5.0-beta.1
 
