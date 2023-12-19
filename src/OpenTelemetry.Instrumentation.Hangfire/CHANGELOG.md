@@ -2,9 +2,9 @@
 
 ## Unreleased
 
-* Update `OpenTelemetry.Api.ProviderBuilderExtensions` to `1.7.0`.
-  * Update `OpenTelemetry.Api` to `1.7.0`.
-  ([#1486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1486))
+* Update `OpenTelemetry.Api.ProviderBuilderExtensions` to `1.6.0`.
+  * Update `OpenTelemetry.Api` to `1.6.0`.
+  ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
 
 * Added overloads which accept a name to the `TracerProviderBuilder`
   `HangfireInstrumentationOptions` extension to allow for more fine-grained
@@ -13,10 +13,6 @@
 
 * Add Filter to HangfireInstrumentationOptions.
   ([#1440](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1440))
-
-* Downgrade `OpenTelemetry.Api.ProviderBuilderExtensions` to `1.6.0`.
-  * Downgrade `OpenTelemetry.Api` to `1.6.0`.
-  ([#1486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1502))
 
 ## 1.5.0-beta.1
 
