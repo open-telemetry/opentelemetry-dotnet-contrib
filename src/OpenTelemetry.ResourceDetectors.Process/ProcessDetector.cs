@@ -12,7 +12,7 @@ namespace OpenTelemetry.ResourceDetectors.Process;
 /// <summary>
 ///     Process detector.
 /// </summary>
-public class ProcessDetector : IResourceDetector
+public sealed class ProcessDetector : IResourceDetector
 {
     /// <summary>
     ///     Detects the resource attributes for process.

@@ -16,7 +16,7 @@ namespace OpenTelemetry.ResourceDetectors.ProcessRuntime;
 /// <summary>
 /// Process runtime detector.
 /// </summary>
-public class ProcessRuntimeDetector : IResourceDetector
+public sealed class ProcessRuntimeDetector : IResourceDetector
 {
     /// <summary>
     /// Detects the resource attributes from .NET runtime.
