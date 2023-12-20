@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System;
+#if NET8_0_OR_GREATER
+using System.Collections.Frozen;
+#endif
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -25,8 +28,15 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
     private readonly bool m_shouldExportEventName;
     private readonly TableNameSerializer m_tableNameSerializer;
+
+#if NET8_0_OR_GREATER
+    private readonly FrozenSet<string> m_customFields;
+    private readonly FrozenDictionary<string, object> m_prepopulatedFields;
+#else
     private readonly HashSet<string> m_customFields;
     private readonly Dictionary<string, object> m_prepopulatedFields;
+#endif
+
     private readonly ExceptionStackExportMode m_exportExceptionStack;
     private readonly List<string> m_prepopulatedFieldKeys;
     private readonly byte[] m_bufferEpilogue;
@@ -77,7 +87,11 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 this.m_prepopulatedFieldKeys.Add(kv.Key);
             }
 
+#if NET8_0_OR_GREATER
+            this.m_prepopulatedFields = tempPrepopulatedFields.ToFrozenDictionary(StringComparer.Ordinal);
+#else
             this.m_prepopulatedFields = tempPrepopulatedFields;
+#endif
         }
 
         // TODO: Validate custom fields (reserved name? etc).
@@ -89,7 +103,11 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 customFields.Add(name);
             }
 
+#if NET8_0_OR_GREATER
+            this.m_customFields = customFields.ToFrozenSet(StringComparer.Ordinal);
+#else
             this.m_customFields = customFields;
+#endif
         }
 
         var buffer = new byte[BUFFER_SIZE];

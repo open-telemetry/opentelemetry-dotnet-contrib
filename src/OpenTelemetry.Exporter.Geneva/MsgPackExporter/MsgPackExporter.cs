@@ -2,13 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System;
+#if NET8_0_OR_GREATER
+using System.Collections.Frozen;
+#endif
 using System.Collections.Generic;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
 internal abstract class MsgPackExporter
 {
-    internal static readonly IReadOnlyDictionary<string, string> V40_PART_A_MAPPING = new Dictionary<string, string>
+    internal static readonly IReadOnlyDictionary<string, string> PART_A_MAPPING_DICTIONARY = new Dictionary<string, string>
     {
         // Part A
         [Schema.V40.PartA.IKey] = "env_iKey",
@@ -29,6 +32,12 @@ internal abstract class MsgPackExporter
         [Schema.V40.PartA.Extensions.Os.Name] = "env_os_name",
         [Schema.V40.PartA.Extensions.Os.Ver] = "env_os_ver",
     };
+
+#if NET8_0_OR_GREATER
+    internal static readonly IReadOnlyDictionary<string, string> V40_PART_A_MAPPING = PART_A_MAPPING_DICTIONARY.ToFrozenDictionary();
+#else
+    internal static readonly IReadOnlyDictionary<string, string> V40_PART_A_MAPPING = PART_A_MAPPING_DICTIONARY;
+#endif
 
     protected static int AddPartAField(byte[] buffer, int cursor, string name, object value)
     {
