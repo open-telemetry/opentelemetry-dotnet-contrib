@@ -1,4 +1,4 @@
-# Process Runtime Resource Detectors
+# Process Resource Detectors
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.ResourceDetectors.Process)](https://www.nuget.org/packages/OpenTelemetry.ResourceDetectors.Process)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.ResourceDetectors.Process)](https://www.nuget.org/packages/OpenTelemetry.ResourceDetectors.Process)
