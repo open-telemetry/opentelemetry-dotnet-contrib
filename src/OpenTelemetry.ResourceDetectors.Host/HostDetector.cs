@@ -10,7 +10,7 @@ namespace OpenTelemetry.ResourceDetectors.Host;
 /// <summary>
 /// Host detector.
 /// </summary>
-public class HostDetector : IResourceDetector
+public sealed class HostDetector : IResourceDetector
 {
     /// <summary>
     /// Detects the resource attributes from host.
