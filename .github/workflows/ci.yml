@@ -27,6 +27,7 @@ jobs:
           eventcounters: ['*/OpenTelemetry.Instrumentation.EventCounters*/**', 'examples/event-counters/**', '!**/*.md']
           extensions: ['*/OpenTelemetry.Extensions/**', '*/OpenTelemetry.Extensions.Tests/**', '!**/*.md']
           geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
+          host: ['*/OpenTelemetry.ResourceDetectors.Host*/**', '!**/*.md']
           onecollector: ['*/OpenTelemetry.Instrumentation.OneCollector*/**', '!**/*.md']
           owin: ['*/OpenTelemetry.Instrumentation.Owin*/**', 'examples/owin/**', '!**/*.md']
           persistentstorage: ['*/OpenTelemetry.PersistentStorage*/**', '!**/*.md']
@@ -43,6 +44,7 @@ jobs:
             '!*/OpenTelemetry.Instrumentation.AspNet*/**',
             '!examples/AspNet/**',
             '!*/OpenTelemetry.ResourceDetectors.Azure*/**',
+            '!*/OpenTelemetry.ResourceDetectors.Host*/**',
             '!*/OpenTelemetry.ResourceDetectors.ProcessRuntime*/**',
             '!*/OpenTelemetry.Instrumentation.EventCounters*/**',
             '!examples/event-counters/**',
@@ -131,6 +133,17 @@ jobs:
     with:
       project-name: OpenTelemetry.Exporter.Geneva
       code-cov-name: Exporter.Geneva
+
+  build-test-host:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'host')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.ResourceDetectors.Host
+      code-cov-name: ResourceDetectors.Host
 
   build-test-onecollector:
     needs: detect-changes
@@ -272,6 +285,7 @@ jobs:
             OpenTelemetry.Instrumentation.Wcf.Tests.csproj,
             OpenTelemetry.PersistentStorage.FileSystem.Tests.csproj,
             OpenTelemetry.ResourceDetectors.Azure.Tests.csproj,
+            OpenTelemetry.ResourceDetectors.Host.Tests.csproj,
             OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests.csproj
 
         $failedProjects = @()
@@ -314,6 +328,7 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'eventcounters')
       || contains(needs.detect-changes.outputs.changes, 'runtime')
       || contains(needs.detect-changes.outputs.changes, 'azure')
+      || contains(needs.detect-changes.outputs.changes, 'host')
       || contains(needs.detect-changes.outputs.changes, 'processruntime')
       || contains(needs.detect-changes.outputs.changes, 'aottestapp')
       || contains(needs.detect-changes.outputs.changes, 'build')
@@ -332,6 +347,7 @@ jobs:
       build-test-eventcounters,
       build-test-extensions,
       build-test-geneva,
+      build-test-host,
       build-test-onecollector,
       build-test-owin,
       build-test-persistentstorage,

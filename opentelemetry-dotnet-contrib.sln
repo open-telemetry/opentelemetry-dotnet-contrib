@@ -67,6 +67,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\package-ResourceDetectors.AWS.yml = .github\workflows\package-ResourceDetectors.AWS.yml
 		.github\workflows\package-ResourceDetectors.Azure.yml = .github\workflows\package-ResourceDetectors.Azure.yml
 		.github\workflows\package-ResourceDetectors.Container.yml = .github\workflows\package-ResourceDetectors.Container.yml
+		.github\workflows\package-ResourceDetectors.Host.yml = .github\workflows\package-ResourceDetectors.Host.yml
 		.github\workflows\package-ResourceDetectors.ProcessRuntime.yml = .github\workflows\package-ResourceDetectors.ProcessRuntime.yml
 		.github\workflows\package-Sampler.AWS.yml = .github\workflows\package-Sampler.AWS.yml
 		.github\workflows\sanitycheck.yml = .github\workflows\sanitycheck.yml
@@ -322,12 +323,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projects", "Projects", "{04
 		build\Projects\OpenTelemetry.Instrumentation.Wcf.proj = build\Projects\OpenTelemetry.Instrumentation.Wcf.proj
 		build\Projects\OpenTelemetry.PersistentStorage.proj = build\Projects\OpenTelemetry.PersistentStorage.proj
 		build\Projects\OpenTelemetry.ResourceDetectors.Azure.proj = build\Projects\OpenTelemetry.ResourceDetectors.Azure.proj
+		build\Projects\OpenTelemetry.ResourceDetectors.Host.proj = build\Projects\OpenTelemetry.ResourceDetectors.Host.proj
 		build\Projects\OpenTelemetry.ResourceDetectors.ProcessRuntime.proj = build\Projects\OpenTelemetry.ResourceDetectors.ProcessRuntime.proj
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.ProcessRuntime", "src\OpenTelemetry.ResourceDetectors.ProcessRuntime\OpenTelemetry.ResourceDetectors.ProcessRuntime.csproj", "{95372E82-CA5B-4C61-BD6C-74E6AB1970D4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests", "test\OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests\OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests.csproj", "{B6157646-8EBA-464C-99B9-C386D474CB12}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.Host", "src\OpenTelemetry.ResourceDetectors.Host\OpenTelemetry.ResourceDetectors.Host.csproj", "{65F36848-F657-42FA-88A9-75EF2B994D3B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.Host.Tests", "test\OpenTelemetry.ResourceDetectors.Host.Tests\OpenTelemetry.ResourceDetectors.Host.Tests.csproj", "{0FE604BE-0B30-4642-B773-AB0353450AD5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -655,6 +661,14 @@ Global
 		{B6157646-8EBA-464C-99B9-C386D474CB12}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B6157646-8EBA-464C-99B9-C386D474CB12}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B6157646-8EBA-464C-99B9-C386D474CB12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65F36848-F657-42FA-88A9-75EF2B994D3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65F36848-F657-42FA-88A9-75EF2B994D3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65F36848-F657-42FA-88A9-75EF2B994D3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65F36848-F657-42FA-88A9-75EF2B994D3B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FE604BE-0B30-4642-B773-AB0353450AD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FE604BE-0B30-4642-B773-AB0353450AD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FE604BE-0B30-4642-B773-AB0353450AD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FE604BE-0B30-4642-B773-AB0353450AD5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -753,6 +767,8 @@ Global
 		{048509D6-FB49-4B84-832A-90E55520B97B} = {824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}
 		{95372E82-CA5B-4C61-BD6C-74E6AB1970D4} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{B6157646-8EBA-464C-99B9-C386D474CB12} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{65F36848-F657-42FA-88A9-75EF2B994D3B} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{0FE604BE-0B30-4642-B773-AB0353450AD5} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
