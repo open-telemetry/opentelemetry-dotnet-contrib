@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System;
+#if NET8_0_OR_GREATER
+using System.Collections.Frozen;
+#endif
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -67,7 +70,11 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                 dedicatedFields.Add(name);
             }
 
+#if NET8_0_OR_GREATER
+            this.m_customFields = customFields.ToFrozenSet(StringComparer.Ordinal);
+#else
             this.m_customFields = customFields;
+#endif
 
             foreach (var name in CS40_PART_B_MAPPING.Keys)
             {
@@ -77,7 +84,11 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             dedicatedFields.Add("otel.status_code");
             dedicatedFields.Add("otel.status_description");
 
+#if NET8_0_OR_GREATER
+            this.m_dedicatedFields = dedicatedFields.ToFrozenSet(StringComparer.Ordinal);
+#else
             this.m_dedicatedFields = dedicatedFields;
+#endif
         }
 
         var buffer = new byte[BUFFER_SIZE];
@@ -392,7 +403,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
 
-    private static readonly Dictionary<string, string> CS40_PART_B_MAPPING = new Dictionary<string, string>
+    private static readonly Dictionary<string, string> CS40_PART_B_MAPPING_DICTIONARY = new()
     {
         ["db.system"] = "dbSystem",
         ["db.name"] = "dbName",
@@ -410,6 +421,12 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         ["messaging.url"] = "messagingUrl",
     };
 
+#if NET8_0_OR_GREATER
+    private static readonly FrozenDictionary<string, string> CS40_PART_B_MAPPING = CS40_PART_B_MAPPING_DICTIONARY.ToFrozenDictionary();
+#else
+    private static readonly Dictionary<string, string> CS40_PART_B_MAPPING = CS40_PART_B_MAPPING_DICTIONARY;
+#endif
+
     private readonly ThreadLocal<byte[]> m_buffer = new(() => null);
 
     private readonly byte[] m_bufferPrologue;
@@ -424,9 +441,15 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     private readonly IDataTransport m_dataTransport;
 
+#if NET8_0_OR_GREATER
+    private readonly FrozenSet<string> m_customFields;
+
+    private readonly FrozenSet<string> m_dedicatedFields;
+#else
     private readonly HashSet<string> m_customFields;
 
     private readonly HashSet<string> m_dedicatedFields;
+#endif
 
     private bool isDisposed;
 }
