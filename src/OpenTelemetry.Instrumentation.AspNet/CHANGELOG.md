@@ -4,7 +4,7 @@
 
 ## 1.7.0-beta.1
 
-Released 2023-Dec-19
+Released 2023-Dec-20
 
 * Added enrich functionality to metric instrumentation
   ([#1407](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1407)).
