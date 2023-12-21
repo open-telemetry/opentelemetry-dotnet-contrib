@@ -18,6 +18,7 @@
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.StackExchangeRedis" />
     <TrimmerRootAssembly Include="OpenTelemetry.ResourceDetectors.Azure" />
     <TrimmerRootAssembly Include="OpenTelemetry.ResourceDetectors.Host" />
+    <TrimmerRootAssembly Include="OpenTelemetry.ResourceDetectors.Process" />
     <TrimmerRootAssembly Include="OpenTelemetry.ResourceDetectors.ProcessRuntime" />
 
     <TrimmerRootAssembly Update="@(TrimmerRootAssembly)" Path="$(RepoRoot)\src\%(Identity)\%(Identity).csproj" />

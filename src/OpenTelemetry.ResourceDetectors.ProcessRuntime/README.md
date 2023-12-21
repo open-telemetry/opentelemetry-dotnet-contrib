@@ -3,6 +3,10 @@
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.ResourceDetectors.ProcessRuntime)](https://www.nuget.org/packages/OpenTelemetry.ResourceDetectors.ProcessRuntime)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.ResourceDetectors.ProcessRuntime)](https://www.nuget.org/packages/OpenTelemetry.ResourceDetectors.ProcessRuntime)
 
+> [!IMPORTANT]
+> Resources detected by this packages are defined by [experimental semantic convention](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/resource/process.md#process-runtimes).
+> These resources can be changed without prior notification.
+
 ## Getting Started
 
 You need to install the

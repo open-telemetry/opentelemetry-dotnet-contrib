@@ -104,6 +104,11 @@ flags:
     paths:
       - src/OpenTelemetry.ResourceDetectors.Host
 
+  unittests-ResourceDetectors.Process:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.ResourceDetectors.Process
+
   unittests-ResourceDetectors.ProcessRuntime:
     carryforward: true
     paths:
