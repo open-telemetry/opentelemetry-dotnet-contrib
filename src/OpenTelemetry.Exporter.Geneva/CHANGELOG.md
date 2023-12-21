@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 1.7.0
+
+Released 2023-Dec-11
+
+* Update OpenTelemetry SDK version to `1.7.0`.
+  ([#1486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1486))
+
+## 1.7.0-rc.1
+
+Released 2023-Dec-05
+
 * Update Part B mapping to add Http related tags based on the new Semantic
   Conventions.
   ([#1402](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1402))
@@ -13,6 +24,12 @@
 * Fix a serialization issue for `TldTraceExporter` and `TldLogExporter` when any
   non-primitive types have to be serialized for `env_properties`.
   ([#1424](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1424))
+
+* Add `net8.0` target.
+  ([#1329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1329))
+
+* Update OpenTelemetry SDK version to `1.7.0-rc.1`.
+  ([#1329](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1329))
 
 ## 1.7.0-alpha.1
 

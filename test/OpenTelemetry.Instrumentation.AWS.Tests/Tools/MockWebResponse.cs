@@ -1,18 +1,5 @@
-// <copyright file="MockWebResponse.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
+// SPDX-License-Identifier: Apache-2.0
 
 using System;
 using System.Collections.Generic;
@@ -115,7 +102,7 @@ internal class MockWebResponse
             }
         }
 
-        httpResponseMessage.StatusCode = statusCode;
+        httpResponseMessage!.StatusCode = statusCode;
         string dummyJson = "{\"key1\":\"value1\"}";
         httpResponseMessage.Content = new StringContent(body ?? dummyJson); // Content should be in Json format else we get exception from downstream unmarshalling
         return httpResponseMessage;
@@ -152,7 +139,9 @@ internal class MockWebResponse
                     break;
                 }
 
+#pragma warning disable CA1865 // Use char overload
                 var index = currentLine.IndexOf(":", StringComparison.Ordinal);
+#pragma warning restore CA1865 // Use char overload
                 if (index != -1)
                 {
                     var headerKey = currentLine.Substring(0, index);

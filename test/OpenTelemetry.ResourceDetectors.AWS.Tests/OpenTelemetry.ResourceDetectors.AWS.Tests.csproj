@@ -3,14 +3,10 @@
   <PropertyGroup>
     <Description>Unit test project for AWS Detector for OpenTelemetry</Description>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Nullabe>enable</Nullabe>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Moq" Version="$(MoqPkgVer)" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.ResourceDetectors.AWS\OpenTelemetry.ResourceDetectors.AWS.csproj" />

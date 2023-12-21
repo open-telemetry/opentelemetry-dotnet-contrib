@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <PublishAot Condition="!$([MSBuild]::IsOSPlatform('OSX'))">true</PublishAot>
     <TrimmerSingleWarn>false</TrimmerSingleWarn>
     <SelfContained>true</SelfContained>
@@ -17,6 +17,7 @@
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.EventCounters" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.StackExchangeRedis" />
     <TrimmerRootAssembly Include="OpenTelemetry.ResourceDetectors.Azure" />
+    <TrimmerRootAssembly Include="OpenTelemetry.ResourceDetectors.ProcessRuntime" />
 
     <TrimmerRootAssembly Update="@(TrimmerRootAssembly)" Path="$(RepoRoot)\src\%(Identity)\%(Identity).csproj" />
     <ProjectReference Include="@(TrimmerRootAssembly->'%(Path)')" />

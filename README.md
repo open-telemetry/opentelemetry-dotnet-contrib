@@ -25,6 +25,14 @@ who can help with reviews and code approval. However, as individual components
 are developed by numerous contributors, approvers and maintainers are not
 expected to directly contribute to every component.
 
+Triagers
+([@open-telemetry/dotnet-contrib-triagers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-triagers)):
+
+* [Martin Thwaites](https://github.com/martinjt), Honeycomb
+
+*Find more about the triager role in [community
+repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#triager).*
+
 Approvers
 ([@open-telemetry/dotnet-contrib-approvers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-approvers)):
 
@@ -39,6 +47,7 @@ Maintainers
 * [Mikel Blanchard](https://github.com/CodeBlanch), Microsoft
 * [Piotr Kie&#x142;kowicz](https://github.com/Kielek), Splunk
 * [Utkarsh Umesan Pillai](https://github.com/utpilla), Microsoft
+* [Vishwesh Bankwar](https://github.com/vishweshbankwar), Microsoft
 
 *Find more about the maintainer role in [community
 repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#maintainer).*

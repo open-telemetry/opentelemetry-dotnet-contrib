@@ -1,32 +1,13 @@
-// <copyright file="StackdriverExporterTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
+// SPDX-License-Identifier: Apache-2.0
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Google.Api.Gax.Grpc;
-using Google.Cloud.Trace.V2;
-using Grpc.Core;
-using Moq;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-
 using Xunit;
-using Status = Grpc.Core.Status;
 
 namespace OpenTelemetry.Exporter.Stackdriver.Tests;
 
@@ -89,12 +70,8 @@ public class StackdriverExporterTests
         var exportedItems = new List<Activity>();
         const string ActivitySourceName = "stackdriver.test";
         var source = new ActivitySource(ActivitySourceName);
-        var traceClientMock = new Mock<TraceServiceClient>(MockBehavior.Strict);
-        traceClientMock.Setup(x =>
-                x.BatchWriteSpans(It.IsAny<BatchWriteSpansRequest>(), It.IsAny<CallSettings>()))
-            .Throws(new RpcException(Status.DefaultCancelled))
-            .Verifiable($"{nameof(TraceServiceClient.BatchWriteSpans)} was never called");
-        var activityExporter = new StackdriverTraceExporter("test", traceClientMock.Object);
+        var traceClient = new TestTraceServiceClient(throwException: true);
+        var activityExporter = new StackdriverTraceExporter("test", traceClient);
 
         var processor = new BatchActivityExportProcessor(new InMemoryExporter<Activity>(exportedItems));
 
@@ -106,7 +83,7 @@ public class StackdriverExporterTests
 
         processor.Shutdown();
 
-        var batch = new Batch<Activity>(exportedItems.ToArray(), exportedItems.Count);
+        var batch = new Batch<Activity>([.. exportedItems], exportedItems.Count);
         RunTest(batch);
 
         void RunTest(Batch<Activity> batch)
@@ -119,7 +96,6 @@ public class StackdriverExporterTests
 
         Assert.Null(exception);
         Assert.StrictEqual(ExportResult.Failure, result);
-        traceClientMock.VerifyAll();
     }
 
     [Fact]
@@ -130,11 +106,8 @@ public class StackdriverExporterTests
         var exportedItems = new List<Activity>();
         const string ActivitySourceName = "stackdriver.test";
         var source = new ActivitySource(ActivitySourceName);
-        var traceClientMock = new Mock<TraceServiceClient>(MockBehavior.Strict);
-        traceClientMock.Setup(x =>
-                x.BatchWriteSpans(It.IsAny<BatchWriteSpansRequest>(), It.IsAny<CallSettings>()))
-            .Verifiable($"{nameof(TraceServiceClient.BatchWriteSpans)} was never called");
-        var activityExporter = new StackdriverTraceExporter("test", traceClientMock.Object);
+        var traceClient = new TestTraceServiceClient(throwException: false);
+        var activityExporter = new StackdriverTraceExporter("test", traceClient);
 
         var processor = new BatchActivityExportProcessor(new InMemoryExporter<Activity>(exportedItems));
 
@@ -146,7 +119,7 @@ public class StackdriverExporterTests
 
         processor.Shutdown();
 
-        var batch = new Batch<Activity>(exportedItems.ToArray(), exportedItems.Count);
+        var batch = new Batch<Activity>([.. exportedItems], exportedItems.Count);
         RunTest(batch);
 
         void RunTest(Batch<Activity> batch)
@@ -159,7 +132,6 @@ public class StackdriverExporterTests
 
         Assert.Null(exception);
         Assert.StrictEqual(ExportResult.Success, result);
-        traceClientMock.VerifyAll();
     }
 
     internal static Activity CreateTestActivity(

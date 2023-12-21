@@ -1,20 +1,10 @@
-// <copyright file="GenevaTraceExporterTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
+// SPDX-License-Identifier: Apache-2.0
 
 using System;
+#if NET8_0_OR_GREATER
+using System.Collections.Frozen;
+#endif
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -252,7 +242,11 @@ public class GenevaTraceExporterTests
             }
 
             using var exporter = new MsgPackTraceExporter(exporterOptions);
-            var dedicatedFields = typeof(MsgPackTraceExporter).GetField("m_dedicatedFields", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as IReadOnlyDictionary<string, object>;
+#if NET8_0_OR_GREATER
+            var dedicatedFields = typeof(MsgPackTraceExporter).GetField("m_dedicatedFields", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as FrozenSet<string>;
+#else
+            var dedicatedFields = typeof(MsgPackTraceExporter).GetField("m_dedicatedFields", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as HashSet<string>;
+#endif
             var CS40_PART_B_MAPPING = typeof(MsgPackTraceExporter).GetField("CS40_PART_B_MAPPING", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as IReadOnlyDictionary<string, string>;
             var m_buffer = typeof(MsgPackTraceExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as ThreadLocal<byte[]>;
 
@@ -576,7 +570,9 @@ public class GenevaTraceExporterTests
         return callingMethodName;
     }
 
-    private void AssertFluentdForwardModeForActivity(GenevaExporterOptions exporterOptions, object fluentdData, Activity activity, IReadOnlyDictionary<string, string> CS40_PART_B_MAPPING, IReadOnlyDictionary<string, object> dedicatedFields, Action<Dictionary<object, object>> customChecksForActivity)
+#pragma warning disable CA1859 // Use concrete types when possible for improved performance
+    private void AssertFluentdForwardModeForActivity(GenevaExporterOptions exporterOptions, object fluentdData, Activity activity, IReadOnlyDictionary<string, string> CS40_PART_B_MAPPING, ISet<string> dedicatedFields, Action<Dictionary<object, object>> customChecksForActivity)
+#pragma warning restore CA1859 // Use concrete types when possible for improved performance
     {
         /* Fluentd Forward Mode:
         [
@@ -710,8 +706,8 @@ public class GenevaTraceExporterTests
             }
             else
             {
-                // If CustomFields are proivded, dedicatedFields will be populated
-                if (exporterOptions.CustomFields == null || dedicatedFields.TryGetValue(tag.Key, out _))
+                // If CustomFields are provided, dedicatedFields will be populated
+                if (exporterOptions.CustomFields == null || dedicatedFields.Contains(tag.Key))
                 {
                     Assert.Equal(tag.Value.ToString(), mapping[tag.Key].ToString());
                 }

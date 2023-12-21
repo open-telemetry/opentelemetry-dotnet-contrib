@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-* Update OpenTelemetry SDK version to `1.6.0`.
-  ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
+* Update OpenTelemetry SDK version to `1.7.0`.
+  ([#1486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1486))
 * Fix AWS EBS Resource Detector working on linux.
   ([#1350](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1350))
 

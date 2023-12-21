@@ -1,18 +1,5 @@
-// <copyright file="TLDLogExporterBenchmarks.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
+// SPDX-License-Identifier: Apache-2.0
 
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
@@ -22,19 +9,19 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Trace;
 
 /*
-BenchmarkDotNet=v0.13.3, OS=Windows 11 (10.0.22621.963)
+BenchmarkDotNet v0.13.10, Windows 11 (10.0.23424.1000)
 Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
-.NET SDK=7.0.101
-  [Host]     : .NET 7.0.1 (7.0.122.56804), X64 RyuJIT AVX2
-  DefaultJob : .NET 7.0.1 (7.0.122.56804), X64 RyuJIT AVX2
+.NET SDK 8.0.100
+  [Host]     : .NET 8.0.0 (8.0.23.53103), X64 RyuJIT AVX2
+  DefaultJob : .NET 8.0.0 (8.0.23.53103), X64 RyuJIT AVX2
 
 
-|                     Method |     Mean |   Error |  StdDev | Allocated |
-|--------------------------- |---------:|--------:|--------:|----------:|
-| MsgPack_SerializeLogRecord | 560.9 ns | 2.92 ns | 2.44 ns |         - |
-|     TLD_SerializeLogRecord | 357.5 ns | 1.01 ns | 0.89 ns |         - |
-|    MsgPack_ExportLogRecord | 957.2 ns | 3.47 ns | 3.25 ns |         - |
-|        TLD_ExportLogRecord | 732.0 ns | 2.04 ns | 1.71 ns |         - |
+| Method                     | Mean       | Error    | StdDev   | Allocated |
+|--------------------------- |-----------:|---------:|---------:|----------:|
+| MsgPack_SerializeLogRecord |   441.4 ns |  3.19 ns |  2.99 ns |         - |
+| TLD_SerializeLogRecord     |   263.5 ns |  2.93 ns |  2.75 ns |         - |
+| MsgPack_ExportLogRecord    | 1,039.3 ns | 20.55 ns | 46.81 ns |         - |
+| TLD_ExportLogRecord        |   890.5 ns | 17.48 ns | 25.07 ns |         - |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark;

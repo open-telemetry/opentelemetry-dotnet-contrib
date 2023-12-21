@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Description>Unit test project for Stackdriver Exporter for OpenTelemetry</Description>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
   </PropertyGroup>
 
@@ -11,7 +11,24 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Moq" Version="$(MoqPkgVer)" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryCoreLatestVersion)" />
+
+    <!-- See note below for details. -->
+    <PackageReference Include="System.Net.Http"
+                      Version="$(SystemNetHttp)"
+                      IncludeAssets="none"
+                      GeneratePathProperty="true" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
+    <!-- Note: There is an issue with the System.Net.Http reference in
+    OpenTelemetry.Exporter.Stackdriver graph. Google.Api.Gax (and friends)
+    require System.Net.Http v4.2.0.0. .NET Framework 4.6.2 ships v4.0.0.0. To
+    workaround this issue we directly reference the NuGet (which is v4.1.1.3)
+    with SpecificVersion=true. -->
+    <Reference Include="System.Net.Http">
+      <HintPath>$(PkgSystem_Net_Http)\lib\net46\System.Net.Http.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
+    </Reference>
   </ItemGroup>
 </Project>
