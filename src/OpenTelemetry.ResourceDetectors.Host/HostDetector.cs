@@ -27,7 +27,7 @@ public sealed class HostDetector : IResourceDetector
         }
         catch (InvalidOperationException)
         {
-            // do nothing if there is not possibility to fetch host name
+            // TODO replace comment by logging mechanism. Tracked under https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1514
         }
 
         return Resource.Empty;
