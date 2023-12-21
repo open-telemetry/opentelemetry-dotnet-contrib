@@ -42,9 +42,7 @@ input parameter or uses AWS X-Ray headers if AWS X-Ray context extraction is
 enabled (see configuration property `DisableAwsXRayContextExtraction`).
 
 > **Note**
-> Even when AWS X-Ray is disabled, an X-Ray trace header is generated and sent to the AWS Lambda. However, the trace flag is set as "not sampled" (00) in this case.
-> This "not sampled" trace header will prevent the AWS Lambda execution from being traced.
-> If tracing is required without using AWS X-Ray, the `DisableAwsXRayContextExtraction` property can be set to `true`. This will instruct the instrumentation to ignore the "not sampled" trace header automatically sent by AWS X-Ray.
+> If tracing is required when AWS X-Ray is disabled, the `DisableAwsXRayContextExtraction` property can be set to `true`. This will instruct the instrumentation to ignore the "not sampled" trace header automatically sent when AWS X-Ray is disabled.
 
 The sequence of the parent extraction:
 `explicit parent` -> `parent from input parameter` -> `AWS X-Ray headers` -> `default`
