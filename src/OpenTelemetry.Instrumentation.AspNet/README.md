@@ -8,7 +8,7 @@ Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main
 which instruments [ASP.NET](https://docs.microsoft.com/aspnet/overview) and
 collect metrics and traces about incoming web requests.
 
-> **Note**
+> [!NOTE]
 > This component is based on the OpenTelemetry semantic conventions for
 [metrics](https://github.com/open-telemetry/opentelemetry-specification/tree/main/specification/metrics/semantic_conventions)
 and

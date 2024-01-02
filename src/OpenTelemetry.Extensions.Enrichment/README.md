@@ -102,7 +102,7 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-> **Note**
+> [!NOTE]
 > The `AddTraceEnricher()` method call should be done *before* registering exporter
 related Activity processors.
 

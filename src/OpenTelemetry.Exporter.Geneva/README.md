@@ -113,7 +113,7 @@ The default table name used for Traces is `Span`. To change the table name for
 Traces add an entry with the key `Span` and set the value to the desired custom
 table name.
 
-> **Note**
+> [!NOTE]
 > Only a single table name is supported for Traces.
 
 ##### Log table name mappings
