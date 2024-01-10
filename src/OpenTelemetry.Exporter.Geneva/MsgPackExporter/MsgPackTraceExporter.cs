@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System;
+#if NET8_0_OR_GREATER
+using System.Collections.Frozen;
+#endif
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -48,34 +51,44 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         // TODO: Validate custom fields (reserved name? etc).
         if (options.CustomFields != null)
         {
-            var customFields = new Dictionary<string, object>(StringComparer.Ordinal);
-            var dedicatedFields = new Dictionary<string, object>(StringComparer.Ordinal);
+            var customFields = new HashSet<string>(StringComparer.Ordinal);
+            var dedicatedFields = new HashSet<string>(StringComparer.Ordinal);
 
             // Seed customFields with Span PartB
-            customFields["azureResourceProvider"] = true;
-            dedicatedFields["azureResourceProvider"] = true;
+            customFields.Add("azureResourceProvider");
+            dedicatedFields.Add("azureResourceProvider");
+
             foreach (var name in CS40_PART_B_MAPPING.Values)
             {
-                customFields[name] = true;
-                dedicatedFields[name] = true;
+                customFields.Add(name);
+                dedicatedFields.Add(name);
             }
 
             foreach (var name in options.CustomFields)
             {
-                customFields[name] = true;
-                dedicatedFields[name] = true;
+                customFields.Add(name);
+                dedicatedFields.Add(name);
             }
 
+#if NET8_0_OR_GREATER
+            this.m_customFields = customFields.ToFrozenSet(StringComparer.Ordinal);
+#else
             this.m_customFields = customFields;
+#endif
 
             foreach (var name in CS40_PART_B_MAPPING.Keys)
             {
-                dedicatedFields[name] = true;
+                dedicatedFields.Add(name);
             }
 
-            dedicatedFields["otel.status_code"] = true;
-            dedicatedFields["otel.status_description"] = true;
+            dedicatedFields.Add("otel.status_code");
+            dedicatedFields.Add("otel.status_description");
+
+#if NET8_0_OR_GREATER
+            this.m_dedicatedFields = dedicatedFields.ToFrozenSet(StringComparer.Ordinal);
+#else
             this.m_dedicatedFields = dedicatedFields;
+#endif
         }
 
         var buffer = new byte[BUFFER_SIZE];
@@ -286,7 +299,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                 statusDescription = Convert.ToString(entry.Value, CultureInfo.InvariantCulture);
                 continue;
             }
-            else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
+            else if (this.m_customFields == null || this.m_customFields.Contains(entry.Key))
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
                 cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
@@ -313,7 +326,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             foreach (ref readonly var entry in activity.EnumerateTagObjects())
             {
                 // TODO: check name collision
-                if (this.m_dedicatedFields.ContainsKey(entry.Key))
+                if (this.m_dedicatedFields.Contains(entry.Key))
                 {
                     continue;
                 }
@@ -390,7 +403,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
 
-    private static readonly Dictionary<string, string> CS40_PART_B_MAPPING = new Dictionary<string, string>
+    private static readonly Dictionary<string, string> CS40_PART_B_MAPPING_DICTIONARY = new()
     {
         ["db.system"] = "dbSystem",
         ["db.name"] = "dbName",
@@ -408,6 +421,12 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         ["messaging.url"] = "messagingUrl",
     };
 
+#if NET8_0_OR_GREATER
+    private static readonly FrozenDictionary<string, string> CS40_PART_B_MAPPING = CS40_PART_B_MAPPING_DICTIONARY.ToFrozenDictionary();
+#else
+    private static readonly Dictionary<string, string> CS40_PART_B_MAPPING = CS40_PART_B_MAPPING_DICTIONARY;
+#endif
+
     private readonly ThreadLocal<byte[]> m_buffer = new(() => null);
 
     private readonly byte[] m_bufferPrologue;
@@ -422,9 +441,15 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     private readonly IDataTransport m_dataTransport;
 
-    private readonly Dictionary<string, object> m_customFields;
+#if NET8_0_OR_GREATER
+    private readonly FrozenSet<string> m_customFields;
 
-    private readonly Dictionary<string, object> m_dedicatedFields;
+    private readonly FrozenSet<string> m_dedicatedFields;
+#else
+    private readonly HashSet<string> m_customFields;
+
+    private readonly HashSet<string> m_dedicatedFields;
+#endif
 
     private bool isDisposed;
 }
