@@ -68,17 +68,18 @@ internal class KubernetesContainerInfoFetcher : ContainerInfoFetcher
         try
         {
             Properties p = new();
+            // TODO: Remove this
+            p.ContainerName = "test1";
 
             bool requirementsPresent =
                 // First check for kube-api-host, kube-api-port, hostname, container-name
                 CheckAndInitProp(KubernetesProperties.KUBERNETES_SERVICE_HOST_ENV_VAR, null, out p.KubernetesHost)
                 && CheckAndInitProp(KubernetesProperties.KUBERNETES_SERVICE_PORT_ENV_VAR, null, out p.KubernetesPort)
                 && CheckAndInitProp(KubernetesProperties.HOSTNAME_ENV_VAR, null, out p.HostName)
-                && CheckAndInitProp(
-                    KubernetesProperties.APPDYNAMICS_CONTAINER_NAME_ENV_VAR,
-                    KubernetesProperties.APPDYNAMICS_CONTAINER_NAME_SYS_PROP,
-                    out p.ContainerName)
-
+                //&& CheckAndInitProp(
+                //    KubernetesProperties.APPDYNAMICS_CONTAINER_NAME_ENV_VAR,
+                //    KubernetesProperties.APPDYNAMICS_CONTAINER_NAME_SYS_PROP,
+                //    out p.ContainerName)
                 // namespace can be extracted as env or from k8 secret file. More preference to env var. (need to change?)
                 // check for namespace (env var or file), token file, ca.crt file
                 && (CheckAndInitProp(KubernetesProperties.POD_NAMESPACE_ENV_VAR, null, out p.Namespace, true) ||
@@ -103,6 +104,7 @@ internal class KubernetesContainerInfoFetcher : ContainerInfoFetcher
                 apiConnector = new KubeApiConnector(p.KubernetesHost, p.KubernetesPort, p.CertificatePath, p.Token,
                     p.Namespace, p.HostName);
                 containerName = p.ContainerName;
+                Console.WriteLine(p);
                 return true;
             }
         }

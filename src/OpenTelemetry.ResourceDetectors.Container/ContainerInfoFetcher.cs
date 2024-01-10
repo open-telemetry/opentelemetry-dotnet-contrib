@@ -20,10 +20,9 @@ internal abstract class ContainerInfoFetcher
 
     public string ExtractContainerId()
     {
-        DateTime startTime = DateTime.UtcNow;
-
         // executing request only once. Do we need to retry again if data not available?
         string response = this.ExecuteApiRequest();
+        Console.WriteLine(response);
         if (response == null)
         {
             return string.Empty;

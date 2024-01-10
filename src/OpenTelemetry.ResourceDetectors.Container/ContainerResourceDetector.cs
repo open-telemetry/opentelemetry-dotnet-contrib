@@ -46,10 +46,11 @@ public class ContainerResourceDetector : IResourceDetector
     /// <returns>Resource with key-value pairs of resource attributes.</returns>
     public Resource Detect()
     {
+        Console.WriteLine("Starting Process");
         var cGroupBuild = this.BuildResource(Filepath, ParseMode.K8);
         if (cGroupBuild == Resource.Empty)
         {
-            cGroupBuild = this.BuildResource(FilepathV2, ParseMode.V1);
+            cGroupBuild = this.BuildResource(Filepath, ParseMode.V1);
         }
         if (cGroupBuild == Resource.Empty)
         {
@@ -134,12 +135,14 @@ public class ContainerResourceDetector : IResourceDetector
         ContainerInfoFetcher? containerInfoFetcher = KubernetesContainerInfoFetcher.getInstance();
         if (containerInfoFetcher != null)
         {
+            Console.WriteLine($"ContainerInfoFetcher is not null");
             string kubeContainerId = containerInfoFetcher.ExtractContainerId();
             if (!string.IsNullOrEmpty(kubeContainerId))
             {
                 return kubeContainerId;
             }
         }
+        Console.WriteLine($"ContainerInfoFetcher is null");
 
         return null;
     }
@@ -168,11 +171,7 @@ public class ContainerResourceDetector : IResourceDetector
         {
             if (parseType == ParseMode.K8)
             {
-                string? containerId = ExtractContainerIdK8();
-                if (!string.IsNullOrEmpty(containerId))
-                {
-                    return containerId;
-                }
+                return ExtractContainerIdK8();
             }
             else
             {

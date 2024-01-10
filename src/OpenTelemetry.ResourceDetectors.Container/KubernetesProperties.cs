@@ -23,12 +23,6 @@ internal static class KubernetesProperties
     public const string Kube_Api_Token_File = "token";
     public const string Kube_Api_Namespace_File = "namespace";
 
-    public const string APPDYNAMICS_CONTAINERINFO_FETCH_SERVICE_ENV_VAR = "APPDYNAMICS_CONTAINERINFO_FETCH_SERVICE";
-    public const string APPDYNAMICS_CONTAINERINFO_FETCH_SERVICE_SYS_PROP = "appdynamics.containerinfo.fetch.service";
-
-    public const string DISABLE_KUBERNETES_RESOLVER_SYSTEM_PROPERTY = "disable.kubernetes.host.resolver";
-    public const string APPD_KUBERNETES_ENV_VAR = "APPDYNAMICS_AGENT_KUBERNETES";
-
     // Classes exist for Newtonsoft Deserializing
     public class Pod
     {
