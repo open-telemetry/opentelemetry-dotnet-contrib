@@ -13,26 +13,23 @@ internal abstract class ContainerInfoFetcher
 
     private readonly ApiConnector _apiConnector;
 
+    protected ContainerInfoFetcher(ApiConnector apiConnector)
+    {
+        this._apiConnector = apiConnector;
+    }
+
     public string ExtractContainerId()
     {
         DateTime startTime = DateTime.UtcNow;
 
         // executing request only once. Do we need to retry again if data not available?
         string response = this.ExecuteApiRequest();
-        // Log.Debug($"Response from api: {response}");
-        // Log.Info($"Time taken in executing request = {(DateTime.UtcNow - startTime).TotalMilliseconds} ms");
         if (response == null)
         {
-            // Log.Warn("No response body to parse for 'containerID' or 'containerStatuses'");
-            return null;
+            return string.Empty;
         }
 
         return this.ParseResponse(response);
-    }
-
-    protected ContainerInfoFetcher(ApiConnector apiConnector)
-    {
-        this._apiConnector = apiConnector;
     }
 
     protected static bool CheckAndInitProp(string envPropName, string? sysPropName, out string? result, bool canContinue = false)
@@ -52,14 +49,6 @@ internal abstract class ContainerInfoFetcher
 
         if (value == null || string.IsNullOrEmpty(value))
         {
-            string message = $"{propName} not found or empty";
-            if (!canContinue)
-            {
-                message += ", disabling K8 container id fetch";
-            }
-
-            // Log.Log(LogLevel.Info, message);
-
             result = null;
 
             return false;
@@ -80,7 +69,6 @@ internal abstract class ContainerInfoFetcher
 
             if (!IsFilePresent(fileInfo))
             {
-                // Log.Warn(Path.GetFullPath(filePath) + " not present or readable or empty, disabling K8 api fetch");
                 return false;
             }
 
@@ -97,7 +85,6 @@ internal abstract class ContainerInfoFetcher
                 // file only has whitespaces
                 if (string.IsNullOrEmpty(data))
                 {
-                    // Log.Warn(Path.GetFullPath(filePath) + " is empty");
                     return false;
                 }
 
@@ -120,14 +107,9 @@ internal abstract class ContainerInfoFetcher
         string formattedId = unFormattedId.Substring(unFormattedId.LastIndexOf("/", StringComparison.InvariantCulture) + 1);
 
         // should be valid hex string
-        if (HexStringRegex.Match(formattedId).Success)
+        if (!HexStringRegex.Match(formattedId).Success)
         {
-            // Log.Info("Detected appropriate hex string container ID: " + formattedId);
-        }
-        else
-        {
-            // Log.Warn("Container ID is not a valid hex string: " + formattedId);
-            return null;
+            return string.Empty;
         }
 
         return formattedId;

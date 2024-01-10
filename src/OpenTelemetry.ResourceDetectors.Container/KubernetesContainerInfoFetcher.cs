@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System;
+using Newtonsoft.Json;
 
 namespace OpenTelemetry.ResourceDetectors.Container;
 
@@ -15,7 +16,28 @@ internal class KubernetesContainerInfoFetcher : ContainerInfoFetcher
         _containerName = containerName;
     }
 
-    internal static KubernetesContainerInfoFetcher getInstance()
+    // sample response from kube api given BELOW, which needs to be parsed (ignore whitespace in below sample as real data will not have whitespaces)
+    protected override string ParseResponse(string response)
+    {
+        // Following https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#PodStatus
+        KubernetesProperties.Pod? obj = JsonConvert.DeserializeObject<KubernetesProperties.Pod>(response);
+        if (obj == null)
+        {
+            return string.Empty;
+        }
+
+        foreach (KubernetesProperties.ContainerStatus containerStatus in obj.status.containerStatuses)
+        {
+            if (containerStatus.name == this._containerName)
+            {
+                return this.FormatContainerId(containerStatus.containerID);
+            }
+        }
+
+        return string.Empty;
+    }
+
+    internal static KubernetesContainerInfoFetcher? getInstance()
     {
         bool isRequirementsPresent = CheckAndInitRequirements(out var apiConnector, out var containerName);
 
@@ -86,17 +108,8 @@ internal class KubernetesContainerInfoFetcher : ContainerInfoFetcher
         }
         catch (Exception)
         {
-            // ContainerExtensionsEventSource.Log.Warn(e, $"Failed to init {nameof(KubernetesContainerInfoFetcher)}");
         }
 
         return false;
-    }
-
-
-    // sample response from kube api given BELOW, which needs to be parsed (ignore whitespace in below sample as real data will not have whitespaces)
-    protected override string ParseResponse(string response)
-    {
-        // TODO: Fix implementaiton
-        return "";
     }
 }

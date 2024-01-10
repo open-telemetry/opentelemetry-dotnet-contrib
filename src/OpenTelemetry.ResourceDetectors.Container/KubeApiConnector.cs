@@ -1,8 +1,11 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
-
 using System;
 using System.Net.Http;
+using System.Net.Http.Headers;
+#if !NETFRAMEWORK
+using OpenTelemetry.ResourceDetectors.Container.Http;
+#endif
 
 namespace OpenTelemetry.ResourceDetectors.Container;
 
@@ -13,21 +16,17 @@ internal class KubeApiConnector : ApiConnector
     // Wrapper (from controller api) doesn't provide a way to create custom SSLContext.
     public KubeApiConnector(string kubeHost, string kubePort, string certFile, string token, string nameSpace, string kubeHostName)
     {
-        // WebRequest request = WebRequest.Create("www.contoso.com");
+#if !NETFRAMEWORK
+        httpClientHandler = Handler.Create(certFile);
+#else
+        // httpclienthandler does not have a way to apply the certificate in .net framework 4.6.2
+        httpClientHandler.ClientCertificateOptions = ClientCertificateOption.Automatic;
+#endif
+        httpClient = new HttpClient(httpClientHandler);
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-
-        //Communicator = HttpCommunicator.Create(new HttpCommunicatorSettings(
-        //    new Uri($"https://{kubeHost}:{kubePort}"),
-        //    null,
-        //    false,
-        //    new CustomSslCertificateCheckSettings(certFile, null),
-        //    false,
-        //    false,
-        //    new AuthenticationSettings(null, token, AuthenticationSettings.AuthenticationType.ForceBearer),
-        //    null));
-
-        // TARGET_FORMAT = https://"$KUBERNETES_SERVICE_HOST":"$KUBERNETES_SERVICE_PORT"/api/v1/namespaces/javaspace/pods/app-deployment-547d9ffffc-97xrd
-        Target = new Uri($"api/v1/namespaces/{nameSpace}/pods/{kubeHostName}", UriKind.Relative);
+        this.Target = new Uri($"https://{kubeHost}:{kubePort}/api/v1/namespaces/{nameSpace}/pods/{kubeHostName}", UriKind.Absolute);
     }
 
     public override Uri Target { get; }

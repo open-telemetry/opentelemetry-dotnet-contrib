@@ -1,13 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace OpenTelemetry.ResourceDetectors.Container;
 
 internal abstract class ApiConnector
 {
-    protected int ConnectionTimeout = 5000;
+    protected int connectionTimeout = 5000;
 
     protected static readonly int MAX_ATTEMPTS = 3;
     protected static readonly TimeSpan FIVE_SECONDS = TimeSpan.FromSeconds(5);
@@ -17,8 +19,8 @@ internal abstract class ApiConnector
     protected static readonly HashSet<HttpStatusCode> ACCEPTABLE_RESPONSE_CODES =
         new() { HttpStatusCode.OK, HttpStatusCode.Unauthorized, HttpStatusCode.Forbidden };
 
-    // Create custom Apache Http Client. Just like we are doing in MTAgent
-    // SimpleHttpClientWrapper (from controller api) doesn't provide a way to create custom SSLContext.
+    protected static HttpClientHandler httpClientHandler = new();
+    protected static HttpClient httpClient = new();
 
     public abstract Uri Target { get; }
 
@@ -30,7 +32,7 @@ internal abstract class ApiConnector
         // TODO will this interfere with app agent startup timeout?
         for (int currentAttempt = 1; currentAttempt <= MAX_ATTEMPTS; currentAttempt++)
         {
-            responseString = this.ExecuteHttpRequest(currentAttempt);
+            responseString = this.ExecuteHttpRequest().Result;
 
             // responseString = null, would mean a. didn't get 200 Success, OR b. couldn't establish connection
             if (!string.IsNullOrEmpty(responseString))
@@ -49,40 +51,23 @@ internal abstract class ApiConnector
         return responseString;
     }
 
-    public string ExecuteHttpRequest(int currentAttempt)
+    public async Task<string> ExecuteHttpRequest()
     {
-        string responseString = string.Empty;
         Uri uri = this.Target;
-        // Log.Info($"Executing request (attempt: {currentAttempt}) {uri}");
 
         try
         {
-            //Communicator.Send(
-            //    new byte[0],
-            //    uri,
-            //    "GET",
-            //    "application/json",
-            //    new Dictionary<string, string> { { "Accept", "application/json" } },
-            //    null,
-            //    null, (statusCode, stream) =>
-            //    {
-            //        if (ACCEPTABLE_RESPONSE_CODES.Contains(statusCode))
-            //        {
-            //            var readStream = new StreamReader(stream, Encoding.UTF8);
-            //            responseString = readStream.ReadToEnd();
-            //            return true;
-            //        }
+            httpClient.Timeout = TimeSpan.FromSeconds(this.connectionTimeout);
+            using HttpResponseMessage response = await httpClient.GetAsync(uri).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-            //        return true;
-            //    }, ConnectionTimeout);
-
-            return responseString;
+            return responseBody;
 
         }
-        catch (WebException e)
+        catch (HttpRequestException)
         {
-            // Log.Warn(e, "Container ID API request failed");
-            return null;
+            return string.Empty;
         }
     }
 }

@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Collections.Generic;
+
 namespace OpenTelemetry.ResourceDetectors.Container;
 
 internal static class KubernetesProperties
@@ -26,4 +28,21 @@ internal static class KubernetesProperties
 
     public const string DISABLE_KUBERNETES_RESOLVER_SYSTEM_PROPERTY = "disable.kubernetes.host.resolver";
     public const string APPD_KUBERNETES_ENV_VAR = "APPDYNAMICS_AGENT_KUBERNETES";
+
+    // Classes exist for Newtonsoft Deserializing
+    public class Pod
+    {
+        public PodStatus status;
+    }
+
+    public class PodStatus
+    {
+        public List<ContainerStatus> containerStatuses;
+    }
+
+    public class ContainerStatus
+    {
+        public string name;
+        public string containerID;
+    }
 }

@@ -33,6 +33,11 @@ public class ContainerResourceDetector : IResourceDetector
         /// Represents CGroupV2.
         /// </summary>
         V2,
+
+        /// <summary>
+        /// Represents Kubernetes.
+        /// </summary>
+        K8,
     }
 
     /// <summary>
@@ -41,7 +46,11 @@ public class ContainerResourceDetector : IResourceDetector
     /// <returns>Resource with key-value pairs of resource attributes.</returns>
     public Resource Detect()
     {
-        var cGroupBuild = this.BuildResource(Filepath, ParseMode.V1);
+        var cGroupBuild = this.BuildResource(Filepath, ParseMode.K8);
+        if (cGroupBuild == Resource.Empty)
+        {
+            cGroupBuild = this.BuildResource(FilepathV2, ParseMode.V1);
+        }
         if (cGroupBuild == Resource.Empty)
         {
             cGroupBuild = this.BuildResource(FilepathV2, ParseMode.V2);
@@ -54,11 +63,11 @@ public class ContainerResourceDetector : IResourceDetector
     /// Builds the resource attributes from Container Id in file path.
     /// </summary>
     /// <param name="path">File path where container id exists.</param>
-    /// <param name="cgroupVersion">CGroup Version of file to parse from.</param>
+    /// <param name="parseType">CGroup Version of file to parse from or Kubernetes version.</param>
     /// <returns>Returns Resource with list of key-value pairs of container resource attributes if container id exists else empty resource.</returns>
-    internal Resource BuildResource(string path, ParseMode cgroupVersion)
+    internal Resource BuildResource(string path, ParseMode parseType)
     {
-        var containerId = this.ExtractContainerId(path, cgroupVersion);
+        var containerId = this.ExtractContainerId(path, parseType);
 
         if (string.IsNullOrEmpty(containerId))
         {
@@ -120,6 +129,21 @@ public class ContainerResourceDetector : IResourceDetector
         return containerId;
     }
 
+    private static string? ExtractContainerIdK8()
+    {
+        ContainerInfoFetcher? containerInfoFetcher = KubernetesContainerInfoFetcher.getInstance();
+        if (containerInfoFetcher != null)
+        {
+            string kubeContainerId = containerInfoFetcher.ExtractContainerId();
+            if (!string.IsNullOrEmpty(kubeContainerId))
+            {
+                return kubeContainerId;
+            }
+        }
+
+        return null;
+    }
+
     private static string RemovePrefixAndSuffixIfNeeded(string input, int startIndex, int endIndex)
     {
         startIndex = (startIndex == -1) ? 0 : startIndex + 1;
@@ -136,35 +160,46 @@ public class ContainerResourceDetector : IResourceDetector
     /// Extracts Container Id from path using the cgroupv1 format.
     /// </summary>
     /// <param name="path">cgroup path.</param>
-    /// <param name="cgroupVersion">CGroup Version of file to parse from.</param>
+    /// <param name="parseType">CGroup Version of file to parse from or Kubernetes version.</param>
     /// <returns>Container Id, Null if not found or exception being thrown.</returns>
-    private string? ExtractContainerId(string path, ParseMode cgroupVersion)
+    private string? ExtractContainerId(string path, ParseMode parseType)
     {
         try
         {
-            if (!File.Exists(path))
+            if (parseType == ParseMode.K8)
             {
-                return null;
-            }
-
-            foreach (string line in File.ReadLines(path))
-            {
-                string? containerId = null;
-                if (!string.IsNullOrEmpty(line))
-                {
-                    if (cgroupVersion == ParseMode.V1)
-                    {
-                        containerId = GetIdFromLineV1(line);
-                    }
-                    else if (cgroupVersion == ParseMode.V2 && line.Contains(Hostname))
-                    {
-                        containerId = GetIdFromLineV2(line);
-                    }
-                }
-
+                string? containerId = ExtractContainerIdK8();
                 if (!string.IsNullOrEmpty(containerId))
                 {
                     return containerId;
+                }
+            }
+            else
+            {
+                if (!File.Exists(path))
+                {
+                    return null;
+                }
+
+                foreach (string line in File.ReadLines(path))
+                {
+                    string? containerId = null;
+                    if (!string.IsNullOrEmpty(line))
+                    {
+                        if (parseType == ParseMode.V1)
+                        {
+                            containerId = GetIdFromLineV1(line);
+                        }
+                        else if (parseType == ParseMode.V2 && line.Contains(Hostname))
+                        {
+                            containerId = GetIdFromLineV2(line);
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(containerId))
+                    {
+                        return containerId;
+                    }
                 }
             }
         }
