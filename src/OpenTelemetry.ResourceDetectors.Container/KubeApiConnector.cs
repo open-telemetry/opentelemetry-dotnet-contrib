@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 #if !NETFRAMEWORK
@@ -23,10 +24,13 @@ internal class KubeApiConnector : ApiConnector
         }
 
         this.ClientHandler ??= new()
-            {
-                ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; },
-            };
+        {
+            ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; },
+        };
+
+        this.ClientHandler.CheckCertificateRevocationList = true;
 #else
+        ServicePointManager.CheckCertificateRevocationList = true;
         this.ClientHandler = new HttpClientHandler();
 #endif
 
