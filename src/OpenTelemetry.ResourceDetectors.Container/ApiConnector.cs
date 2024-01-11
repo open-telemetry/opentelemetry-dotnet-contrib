@@ -1,3 +1,6 @@
+// Copyright The OpenTelemetry Authors
+// SPDX-License-Identifier: Apache-2.0
+
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -9,17 +12,18 @@ namespace OpenTelemetry.ResourceDetectors.Container;
 
 internal abstract class ApiConnector : IDisposable
 {
-    protected int connectionTimeout = 5;
+    protected const int MaxAttempts = 3;
 
-    protected static readonly int MAX_ATTEMPTS = 3;
-    protected static readonly TimeSpan FIVE_SECONDS = TimeSpan.FromSeconds(5);
+    protected static readonly TimeSpan FiveSeconds = TimeSpan.FromSeconds(5);
 
     // TODO add more acceptable response codes?
-    // Response code not in this set will cause retries upto MAX_ATTEMPTS
-    protected static readonly HashSet<HttpStatusCode> ACCEPTABLE_RESPONSE_CODES =
+    // Response code not in this set will cause retries up to MAX_ATTEMPTS
+    protected static readonly HashSet<HttpStatusCode> AcceptableResponseCodes =
         [HttpStatusCode.OK, HttpStatusCode.Unauthorized, HttpStatusCode.Forbidden];
 
     protected static HttpClient httpClient = new();
+
+    protected int connectionTimeout = 5;
 
     public abstract HttpClientHandler? ClientHandler { get; }
 
@@ -30,13 +34,13 @@ internal abstract class ApiConnector : IDisposable
         string responseString = string.Empty;
 
         // total of 3 Attempts, max 15s. After 1st attempt wait 5s; After 2nd wait additional 10s
-        for (int currentAttempt = 1; currentAttempt <= MAX_ATTEMPTS; currentAttempt++)
+        for (int currentAttempt = 1; currentAttempt <= MaxAttempts; currentAttempt++)
         {
             // no need to wait if last attempt failed
-            if (currentAttempt != MAX_ATTEMPTS)
+            if (currentAttempt != MaxAttempts)
             {
                 // waitTime = lastAttempt(i) * 5s
-                Thread.Sleep(TimeSpan.FromSeconds(FIVE_SECONDS.TotalSeconds * currentAttempt));
+                Thread.Sleep(TimeSpan.FromSeconds(FiveSeconds.TotalSeconds * currentAttempt));
             }
 
             responseString = this.ExecuteHttpRequest().Result;

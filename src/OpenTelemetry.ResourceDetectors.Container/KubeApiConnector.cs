@@ -14,17 +14,18 @@ internal class KubeApiConnector : ApiConnector
     // Create custom Apache Http Client. Just like we are doing in MTAgent
     // Simple
     // Wrapper (from controller api) doesn't provide a way to create custom SSLContext.
-    public KubeApiConnector(string kubeHost, string kubePort, string certFile, string token, string nameSpace, string kubeHostName)
+    public KubeApiConnector(string? kubeHost, string? kubePort, string? certFile, string? token, string? nameSpace, string? kubeHostName)
     {
 #if !NETFRAMEWORK
-        this.ClientHandler = Handler.Create(certFile);
-        if (this.ClientHandler == null)
+        if (certFile != null)
         {
-            this.ClientHandler = new()
+            this.ClientHandler = Handler.Create(certFile);
+        }
+
+        this.ClientHandler ??= new()
             {
                 ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; },
             };
-        }
 #else
         this.ClientHandler = new HttpClientHandler();
 #endif

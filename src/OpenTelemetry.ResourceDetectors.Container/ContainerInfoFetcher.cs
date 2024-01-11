@@ -13,7 +13,7 @@ internal abstract class ContainerInfoFetcher
 
     private readonly ApiConnector? apiConnector;
 
-    protected ContainerInfoFetcher(ApiConnector apiConnector)
+    protected ContainerInfoFetcher(ApiConnector? apiConnector)
     {
         this.apiConnector = apiConnector;
     }
@@ -100,7 +100,7 @@ internal abstract class ContainerInfoFetcher
         // "containerID"="docker://18e1f4b72f6861b5e591e11ea6db0640377de6ed5dc9bffbae4d9ab284d53044"
         // Assuming kube api return container id always in this format prefixed with 'docker://'. (Big assumption?)
         string formattedId = unFormattedId.Substring(unFormattedId.LastIndexOf("/", StringComparison.InvariantCulture) + 1);
-        Console.WriteLine($"{formattedId}");
+
         // should be valid hex string
         if (!HexStringRegex.Match(formattedId).Success)
         {

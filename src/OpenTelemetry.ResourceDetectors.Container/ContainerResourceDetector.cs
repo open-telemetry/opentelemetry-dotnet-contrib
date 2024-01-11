@@ -51,6 +51,7 @@ public class ContainerResourceDetector : IResourceDetector
         {
             cGroupBuild = this.BuildResource(Filepath, ParseMode.V1);
         }
+
         if (cGroupBuild == Resource.Empty)
         {
             cGroupBuild = this.BuildResource(FilepathV2, ParseMode.V2);
@@ -131,7 +132,7 @@ public class ContainerResourceDetector : IResourceDetector
 
     private static string? ExtractContainerIdK8()
     {
-        ContainerInfoFetcher? containerInfoFetcher = KubernetesContainerInfoFetcher.getInstance();
+        ContainerInfoFetcher? containerInfoFetcher = KubernetesContainerInfoFetcher.GetInstance();
         if (containerInfoFetcher != null)
         {
             string kubeContainerId = containerInfoFetcher.ExtractContainerId();
