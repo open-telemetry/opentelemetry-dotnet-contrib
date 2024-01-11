@@ -13,8 +13,8 @@ internal static class KubernetesProperties
 
     public const string HOSTNAME_ENV_VAR = "HOSTNAME";
 
-    public const string APPDYNAMICS_CONTAINER_NAME_ENV_VAR = "APPDYNAMICS_CONTAINER_NAME";
-    public const string APPDYNAMICS_CONTAINER_NAME_SYS_PROP = "appdynamics.container.name";
+    public const string CONTAINER_NAME_ENV_VAR = "CONTAINER_NAME";
+    public const string CONTAINER_NAME_SYS_PROP = "container.name";
 
     public const string POD_NAMESPACE_ENV_VAR = "NAMESPACE";
 
@@ -26,17 +26,20 @@ internal static class KubernetesProperties
     // Classes exist for Newtonsoft Deserializing
     public class Pod
     {
-        public PodStatus status;
+        public PodStatus status { get; set; }
     }
 
     public class PodStatus
     {
-        public List<ContainerStatus> containerStatuses;
+        public List<ContainerStatus> containerStatuses { get; set; }
     }
 
     public class ContainerStatus
     {
-        public string name;
-        public string containerID;
+        public string name { get; set; }
+
+        public string containerID { get; set; }
+
+        public bool started { get; set; }
     }
 }

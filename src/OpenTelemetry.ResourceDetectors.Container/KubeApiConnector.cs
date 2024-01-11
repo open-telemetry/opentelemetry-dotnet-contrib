@@ -17,17 +17,26 @@ internal class KubeApiConnector : ApiConnector
     public KubeApiConnector(string kubeHost, string kubePort, string certFile, string token, string nameSpace, string kubeHostName)
     {
 #if !NETFRAMEWORK
-        httpClientHandler = Handler.Create(certFile);
+        this.ClientHandler = Handler.Create(certFile);
+        if (this.ClientHandler == null)
+        {
+            this.ClientHandler = new()
+            {
+                ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; },
+            };
+        }
 #else
-        // httpclienthandler does not have a way to apply the certificate in .net framework 4.6.2
-        httpClientHandler.ClientCertificateOptions = ClientCertificateOption.Automatic;
+        this.ClientHandler = new HttpClientHandler();
 #endif
-        httpClient = new HttpClient(httpClientHandler);
+
+        httpClient = new HttpClient(this.ClientHandler);
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-        this.Target = new Uri($"https://{kubeHost}:{kubePort}/api/v1/namespaces/{nameSpace}/pods/{kubeHostName}", UriKind.Absolute);
+        this.Target = new Uri($"https://{kubeHost}:{kubePort}/api/v1/namespaces/{nameSpace}/pods/{kubeHostName}");
     }
+
+    public override HttpClientHandler? ClientHandler { get; }
 
     public override Uri Target { get; }
 }

@@ -11,18 +11,17 @@ internal abstract class ContainerInfoFetcher
 {
     private static readonly Regex HexStringRegex = new("(^[a-fA-F0-9]+$)", RegexOptions.Compiled);
 
-    private readonly ApiConnector _apiConnector;
+    private readonly ApiConnector? apiConnector;
 
     protected ContainerInfoFetcher(ApiConnector apiConnector)
     {
-        this._apiConnector = apiConnector;
+        this.apiConnector = apiConnector;
     }
 
     public string ExtractContainerId()
     {
         // executing request only once. Do we need to retry again if data not available?
         string response = this.ExecuteApiRequest();
-        Console.WriteLine(response);
         if (response == null)
         {
             return string.Empty;
@@ -35,14 +34,11 @@ internal abstract class ContainerInfoFetcher
     {
         // preference to Env Var and then Sys Prop
         // propName will be either Env Var or Sys Prop key, whichever is found
-        string propName = envPropName;
-
-        string value = Environment.GetEnvironmentVariable(envPropName);
+        string? value = Environment.GetEnvironmentVariable(envPropName);
 
         if (value == null && sysPropName != null)
         {
             // if Env Var not found, then check for Sys Prop
-            propName = sysPropName;
             value = Environment.GetEnvironmentVariable(sysPropName);
         }
 
@@ -99,12 +95,12 @@ internal abstract class ContainerInfoFetcher
         return true;
     }
 
-    protected string FormatContainerId(string unFormattedId)
+    protected static string FormatContainerId(string unFormattedId)
     {
         // "containerID"="docker://18e1f4b72f6861b5e591e11ea6db0640377de6ed5dc9bffbae4d9ab284d53044"
         // Assuming kube api return container id always in this format prefixed with 'docker://'. (Big assumption?)
         string formattedId = unFormattedId.Substring(unFormattedId.LastIndexOf("/", StringComparison.InvariantCulture) + 1);
-
+        Console.WriteLine($"{formattedId}");
         // should be valid hex string
         if (!HexStringRegex.Match(formattedId).Success)
         {
@@ -116,7 +112,6 @@ internal abstract class ContainerInfoFetcher
 
     protected abstract string ParseResponse(string response);
 
-
     private static bool IsFilePresent(FileInfo fileInfo)
     {
         return fileInfo.Exists && (fileInfo.Length != 0);
@@ -124,6 +119,6 @@ internal abstract class ContainerInfoFetcher
 
     private string ExecuteApiRequest()
     {
-        return this._apiConnector.ExecuteRequest();
+        return this.apiConnector!.ExecuteRequest();
     }
 }

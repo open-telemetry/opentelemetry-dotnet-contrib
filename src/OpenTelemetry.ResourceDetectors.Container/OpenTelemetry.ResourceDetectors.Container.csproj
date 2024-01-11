@@ -9,6 +9,6 @@
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
     <Reference Include="System.Net.Http" Condition="'$(TargetFramework)' == 'net462'" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Text.Json" Version="4.7.2" />
   </ItemGroup>
 </Project>
