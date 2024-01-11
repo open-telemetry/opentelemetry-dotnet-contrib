@@ -1,11 +1,12 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 using System;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 #if !NETFRAMEWORK
 using OpenTelemetry.ResourceDetectors.Container.Http;
+#else
+using System.Net;
 #endif
 
 namespace OpenTelemetry.ResourceDetectors.Container;
