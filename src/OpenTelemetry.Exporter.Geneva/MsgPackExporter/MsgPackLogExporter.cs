@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System;
+#if NET8_0_OR_GREATER
+using System.Collections.Frozen;
+#endif
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -25,8 +28,15 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
     private readonly bool m_shouldExportEventName;
     private readonly TableNameSerializer m_tableNameSerializer;
-    private readonly Dictionary<string, object> m_customFields;
+
+#if NET8_0_OR_GREATER
+    private readonly FrozenSet<string> m_customFields;
+    private readonly FrozenDictionary<string, object> m_prepopulatedFields;
+#else
+    private readonly HashSet<string> m_customFields;
     private readonly Dictionary<string, object> m_prepopulatedFields;
+#endif
+
     private readonly ExceptionStackExportMode m_exportExceptionStack;
     private readonly List<string> m_prepopulatedFieldKeys;
     private readonly byte[] m_bufferEpilogue;
@@ -77,19 +87,27 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 this.m_prepopulatedFieldKeys.Add(kv.Key);
             }
 
+#if NET8_0_OR_GREATER
+            this.m_prepopulatedFields = tempPrepopulatedFields.ToFrozenDictionary(StringComparer.Ordinal);
+#else
             this.m_prepopulatedFields = tempPrepopulatedFields;
+#endif
         }
 
         // TODO: Validate custom fields (reserved name? etc).
         if (options.CustomFields != null)
         {
-            var customFields = new Dictionary<string, object>(StringComparer.Ordinal);
+            var customFields = new HashSet<string>(StringComparer.Ordinal);
             foreach (var name in options.CustomFields)
             {
-                customFields[name] = true;
+                customFields.Add(name);
             }
 
+#if NET8_0_OR_GREATER
+            this.m_customFields = customFields.ToFrozenSet(StringComparer.Ordinal);
+#else
             this.m_customFields = customFields;
+#endif
         }
 
         var buffer = new byte[BUFFER_SIZE];
@@ -263,7 +281,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 bodyPopulated = true;
                 continue;
             }
-            else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
+            else if (this.m_customFields == null || this.m_customFields.Contains(entry.Key))
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
                 if (entry.Value != null)
@@ -340,7 +358,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             for (int i = 0; i < listKvp.Count; i++)
             {
                 var entry = listKvp[i];
-                if (entry.Key == "{OriginalFormat}" || this.m_customFields.ContainsKey(entry.Key))
+                if (entry.Key == "{OriginalFormat}" || this.m_customFields.Contains(entry.Key))
                 {
                     continue;
                 }
@@ -470,7 +488,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 continue;
             }
 
-            if (customFields == null || customFields.ContainsKey(scopeItem.Key))
+            if (customFields == null || customFields.Contains(scopeItem.Key))
             {
                 if (scopeItem.Value != null)
                 {
@@ -499,7 +517,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 continue;
             }
 
-            if (!customFields.ContainsKey(scopeItem.Key))
+            if (!customFields.Contains(scopeItem.Key))
             {
                 stateData.Cursor = MessagePackSerializer.SerializeUnicodeString(stateData.Buffer, stateData.Cursor, scopeItem.Key);
                 stateData.Cursor = MessagePackSerializer.Serialize(stateData.Buffer, stateData.Cursor, scopeItem.Value);
