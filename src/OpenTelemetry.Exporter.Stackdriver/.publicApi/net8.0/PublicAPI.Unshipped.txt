@@ -1,0 +1,23 @@
+OpenTelemetry.Exporter.Stackdriver.Implementation.GoogleCloudResourceUtils
+OpenTelemetry.Exporter.Stackdriver.Implementation.StackdriverStatsConfiguration
+OpenTelemetry.Exporter.Stackdriver.Implementation.StackdriverStatsConfiguration.ExportInterval.get -> System.TimeSpan
+OpenTelemetry.Exporter.Stackdriver.Implementation.StackdriverStatsConfiguration.ExportInterval.set -> void
+OpenTelemetry.Exporter.Stackdriver.Implementation.StackdriverStatsConfiguration.GoogleCredential.get -> Google.Apis.Auth.OAuth2.GoogleCredential?
+OpenTelemetry.Exporter.Stackdriver.Implementation.StackdriverStatsConfiguration.GoogleCredential.set -> void
+OpenTelemetry.Exporter.Stackdriver.Implementation.StackdriverStatsConfiguration.MetricNamePrefix.get -> string?
+OpenTelemetry.Exporter.Stackdriver.Implementation.StackdriverStatsConfiguration.MetricNamePrefix.set -> void
+OpenTelemetry.Exporter.Stackdriver.Implementation.StackdriverStatsConfiguration.MonitoredResource.get -> Google.Api.MonitoredResource?
+OpenTelemetry.Exporter.Stackdriver.Implementation.StackdriverStatsConfiguration.MonitoredResource.set -> void
+OpenTelemetry.Exporter.Stackdriver.Implementation.StackdriverStatsConfiguration.ProjectId.get -> string?
+OpenTelemetry.Exporter.Stackdriver.Implementation.StackdriverStatsConfiguration.ProjectId.set -> void
+OpenTelemetry.Exporter.Stackdriver.Implementation.StackdriverStatsConfiguration.StackdriverStatsConfiguration() -> void
+OpenTelemetry.Exporter.Stackdriver.StackdriverTraceExporter
+OpenTelemetry.Exporter.Stackdriver.StackdriverTraceExporter.StackdriverTraceExporter(string! projectId) -> void
+OpenTelemetry.Exporter.Stackdriver.Utils.CommonUtils
+OpenTelemetry.Trace.TracerProviderBuilderExtensions
+override OpenTelemetry.Exporter.Stackdriver.StackdriverTraceExporter.Export(in OpenTelemetry.Batch<System.Diagnostics.Activity!> batch) -> OpenTelemetry.ExportResult
+static OpenTelemetry.Exporter.Stackdriver.Implementation.GoogleCloudResourceUtils.GetDefaultResource(string? projectId) -> Google.Api.MonitoredResource!
+static OpenTelemetry.Exporter.Stackdriver.Implementation.GoogleCloudResourceUtils.GetProjectId() -> string?
+static OpenTelemetry.Exporter.Stackdriver.Implementation.StackdriverStatsConfiguration.Default.get -> OpenTelemetry.Exporter.Stackdriver.Implementation.StackdriverStatsConfiguration!
+static OpenTelemetry.Exporter.Stackdriver.Utils.CommonUtils.Partition<T>(this System.Collections.Generic.IEnumerable<T>! source, int size) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<T>!>!
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.UseStackdriverExporter(this OpenTelemetry.Trace.TracerProviderBuilder! builder, string! projectId) -> OpenTelemetry.Trace.TracerProviderBuilder!
