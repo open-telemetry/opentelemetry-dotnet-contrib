@@ -120,7 +120,7 @@ TelemetryHttpModuleOptions.TextMapPropagator = new CompositeTextMapPropagator(
     });
 ```
 
-> **Note**
+> [!NOTE]
 > When using the `OpenTelemetry.Instrumentation.AspNet`
 `TelemetryHttpModuleOptions.TextMapPropagator` is automatically initialized to
 the SDK default propagator (`Propagators.DefaultTextMapPropagator`) which by

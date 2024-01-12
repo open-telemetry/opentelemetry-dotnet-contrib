@@ -48,7 +48,7 @@ to the application.
 
 Number of garbage collections that have occurred since process start.
 
-> **Note**
+> [!NOTE]
 > .NET uses a [generational GC](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/fundamentals#generations)
 which divides the heap into different generations numbered 0, 1, and 2. In each
 collection the GC decides which generation to search for reclaimable memory,
@@ -102,7 +102,7 @@ Count of bytes allocated on the managed GC heap since the process start.
 .NET objects are allocated from this heap. Object allocations from unmanaged languages
 such as C/C++ do not use this heap.
 
-> **Note**
+> [!NOTE]
 > This metric is only available when targeting .NET 6 or later.
 
 | Units   | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
@@ -124,7 +124,7 @@ objects (the heap size) and some extra memory that is ready to handle newly
 allocated objects in the future. The value will be unavailable until at least one
 garbage collection has occurred.
 
-> **Note**
+> [!NOTE]
 > This metric is only available when targeting .NET 6 or later.
 
 | Units   | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
@@ -142,7 +142,7 @@ The heap size (including fragmentation), as observed during the
 latest garbage collection. The value will be unavailable until at least one
 garbage collection has occurred.
 
-> **Note**
+> [!NOTE]
 > This metric is only available when targeting .NET 6 or later.
 
 | Units   | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values           |
@@ -164,7 +164,7 @@ The API used to retrieve the value is:
 The heap fragmentation, as observed during the latest garbage collection.
 The value will be unavailable until at least one garbage collection has occurred.
 
-> **Note**
+> [!NOTE]
 > This metric is only available when targeting .NET 7 or later.
 
 | Units   | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values           |
@@ -180,7 +180,7 @@ The API used to retrieve the value is:
 
 The total amount of time paused in GC since the process start.
 
-> **Note**
+> [!NOTE]
 > This metric is only available when targeting .NET 7 or later.
 
 | Units | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
@@ -327,7 +327,7 @@ Count of exceptions that have been thrown in managed code, since the
 observation started. The value will be unavailable until an exception has been
 thrown after OpenTelemetry.Instrumentation.Runtime initialization.
 
-> **Note**
+> [!NOTE]
 > The value is tracked by incrementing a counter whenever an AppDomain.FirstChanceException
 event occurs. The observation starts when the Runtime instrumentation library is
 initialized, so the value will be unavailable until an exception has been
