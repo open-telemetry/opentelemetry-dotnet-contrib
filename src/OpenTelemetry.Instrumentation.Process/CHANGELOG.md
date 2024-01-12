@@ -27,7 +27,7 @@ Released 2023-Feb-27
 
 Released 2023-Feb-17
 
-> **Note**
+> [!NOTE]
 > The version number was lowered from 1.0.0 to 0.5.0 to better reflect the
 experimental state of Opentelemetry process metrics specification status.
 Packages that were older than this release will be delisted to avoid confusion.
