@@ -56,7 +56,8 @@ provider, including the OpenTelemetry provider. `OpenTelemetry` is the
 for `OpenTelemetryLoggerProvider`, that may be used when configuring filtering
 rules.
 
-**NOTE:** _Some application types (e.g. [ASP.NET
+> [!NOTE]
+> Some application types (e.g. [ASP.NET
 Core](https://docs.microsoft.com/aspnet/core/fundamentals/logging/#configure-logging-1))
 have default logging settings. Please review them to make sure
 `OpenTelemetryLoggingProvider` is configured to receive Logs of appropriate
