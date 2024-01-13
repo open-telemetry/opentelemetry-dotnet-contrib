@@ -22,13 +22,6 @@ Therefore, each type of telemetry **must be** enabled separately.
 
 ### Enable Logs
 
-Install the latest stable version of
-[`Microsoft.Extensions.Logging`](https://www.nuget.org/packages/Microsoft.Extensions.Logging/)
-
-```shell
-dotnet add package Microsoft.Extensions.Logging
-```
-
 This snippet shows how to configure the Geneva Exporter for Logs
 
 ```csharp
