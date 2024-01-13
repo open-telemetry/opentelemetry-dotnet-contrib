@@ -132,7 +132,8 @@ public class ContainerResourceDetector : IResourceDetector
 
     private static string? ExtractContainerIdK8()
     {
-        ContainerInfoFetcher? containerInfoFetcher = KubernetesContainerInfoFetcher.GetInstance();
+#if !NETFRAMEWORK
+        KubernetesContainerInfoFetcher? containerInfoFetcher = KubernetesContainerInfoFetcher.GetInstance();
         if (containerInfoFetcher != null)
         {
             string kubeContainerId = containerInfoFetcher.ExtractContainerId();
@@ -141,6 +142,7 @@ public class ContainerResourceDetector : IResourceDetector
                 return kubeContainerId;
             }
         }
+#endif
 
         return null;
     }

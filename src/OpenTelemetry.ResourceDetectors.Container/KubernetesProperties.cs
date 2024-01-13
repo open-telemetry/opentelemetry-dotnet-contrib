@@ -15,7 +15,7 @@ internal static class KubernetesProperties
     public const string HostnameEnvVar = "HOSTNAME";
 
     public const string ContainerNameEnvVar = "CONTAINER_NAME";
-    public const string ContainerNameSysProp = "container.name";
+    public const string ContainerNameEnvVar2 = "container.name";
 
     public const string PodNamespaceEnvVar = "NAMESPACE";
 

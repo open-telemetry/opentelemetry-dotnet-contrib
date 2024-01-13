@@ -1,48 +1,78 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
+#if !NETFRAMEWORK
 using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-#if !NETFRAMEWORK
+using System.Threading;
+using System.Threading.Tasks;
 using OpenTelemetry.ResourceDetectors.Container.Http;
-#else
-using System.Net;
-#endif
 
 namespace OpenTelemetry.ResourceDetectors.Container;
 
-internal class KubeApiConnector : ApiConnector
+internal class KubeApiConnector
 {
-    // Create custom Apache Http Client. Just like we are doing in MTAgent
-    // Simple
-    // Wrapper (from controller api) doesn't provide a way to create custom SSLContext.
+    protected const int MaxAttempts = 3;
+
+    protected static readonly TimeSpan FiveSeconds = TimeSpan.FromSeconds(5);
+
+    protected static readonly HashSet<HttpStatusCode> AcceptableResponseCodes =
+        [HttpStatusCode.OK, HttpStatusCode.Unauthorized, HttpStatusCode.Forbidden];
+
+    protected static HttpClient httpClient = new();
+
+    protected int connectionTimeout = 5;
+
     public KubeApiConnector(string? kubeHost, string? kubePort, string? certFile, string? token, string? nameSpace, string? kubeHostName)
     {
-#if !NETFRAMEWORK
-        if (certFile != null)
+        this.Target = new Uri($"https://{kubeHost}:{kubePort}/api/v1/namespaces/{nameSpace}/pods/{kubeHostName}");
+
+        if (certFile == null)
         {
-            this.ClientHandler = Handler.Create(certFile);
+            return;
         }
 
-        this.ClientHandler ??= new()
+        using HttpClientHandler? clientHandler = Handler.Create(certFile);
+        if (clientHandler == null)
         {
-            ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; },
-        };
+            return;
+        }
 
-        this.ClientHandler.CheckCertificateRevocationList = true;
-#else
-        ServicePointManager.CheckCertificateRevocationList = true;
-        this.ClientHandler = new HttpClientHandler();
-#endif
+        clientHandler.CheckCertificateRevocationList = true;
 
-        httpClient = new HttpClient(this.ClientHandler);
+        httpClient = new HttpClient(clientHandler);
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-        this.Target = new Uri($"https://{kubeHost}:{kubePort}/api/v1/namespaces/{nameSpace}/pods/{kubeHostName}");
     }
 
-    public override HttpClientHandler? ClientHandler { get; }
+    public Uri Target { get; }
 
-    public override Uri Target { get; }
+    public string ExecuteRequest()
+    {
+        // Give arbitrary amount of time for the kube api to update container status
+        Thread.Sleep(TimeSpan.FromSeconds(FiveSeconds.TotalSeconds));
+        return this.ExecuteHttpRequest().Result;
+    }
+
+    public async Task<string> ExecuteHttpRequest()
+    {
+        Uri uri = this.Target;
+
+        try
+        {
+            httpClient.Timeout = TimeSpan.FromSeconds(this.connectionTimeout);
+            using HttpResponseMessage response = await httpClient.GetAsync(uri).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            return responseBody;
+        }
+        catch (HttpRequestException)
+        {
+            return string.Empty;
+        }
+    }
 }
+#endif
