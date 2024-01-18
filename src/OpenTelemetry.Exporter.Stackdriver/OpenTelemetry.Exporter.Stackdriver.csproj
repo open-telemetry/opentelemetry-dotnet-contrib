@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
+    <TargetFrameworks>net8.0;net6.0;net462</TargetFrameworks>
     <Description>Stackdriver .NET Exporter for OpenTelemetry.</Description>
     <PackageTags>$(PackageTags);Stackdriver;Google;GCP;distributed-tracing</PackageTags>
     <MinVerTagPrefix>Exporter.Stackdriver-</MinVerTagPrefix>
@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Cloud.Monitoring.V3" Version="[2.6.0,4.0)" />
-    <PackageReference Include="Google.Cloud.Trace.V2" Version="[2.3.0,4.0)" />
+    <PackageReference Include="Google.Cloud.Monitoring.V3" Version="[3.4.0,4.0)" />
+    <PackageReference Include="Google.Cloud.Trace.V2" Version="[3.3.0,4.0)" />
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
   </ItemGroup>
 

@@ -123,7 +123,8 @@ The number of processors (CPU cores) available to the current process.
 The API used to retrieve the value is
 [System.Environment.ProcessorCount](https://learn.microsoft.com/dotnet/api/system.environment.processorcount).
 
-> **Note** This metric is under
+> [!NOTE]
+> This metric is under
 > [discussion](https://github.com/open-telemetry/opentelemetry-specification/issues/3200)
 and not part of the [Process Metrics
 Spec](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md)
