@@ -126,7 +126,7 @@ Currently, the instrumentation supports the following metric.
 
 | Name  | Instrument Type | Unit | Description |
 |-------|-----------------|------|-------------|
-| `http.server.duration` | Histogram | `ms` | Measures the duration of inbound HTTP requests. |
+| `http.server.request.duration` | Histogram | `ms` | Measures the duration of inbound HTTP requests. |
 
 ## Advanced trace configuration
 
