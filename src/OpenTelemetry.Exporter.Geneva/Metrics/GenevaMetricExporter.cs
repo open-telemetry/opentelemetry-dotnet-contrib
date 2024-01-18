@@ -268,7 +268,10 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         {
             try
             {
-                this.metricDataTransport?.Dispose();
+                if (this.metricDataTransport is not MetricEtwDataTransport) // MetricEtwDataTransport is a singleton and should not be disposed
+                {
+                    this.metricDataTransport?.Dispose();
+                }
             }
             catch (Exception ex)
             {
