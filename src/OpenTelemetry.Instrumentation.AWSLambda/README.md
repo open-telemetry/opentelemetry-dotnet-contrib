@@ -41,7 +41,7 @@ is not passed explicitly then it's either extracted from the
 input parameter or uses AWS X-Ray headers if AWS X-Ray context extraction is
 enabled (see configuration property `DisableAwsXRayContextExtraction`).
 
-> **Note**
+> [!NOTE]
 > If tracing is required when AWS X-Ray is disabled,
 > the `DisableAwsXRayContextExtraction` property needs to be set to `true`.
 > This will instruct the instrumentation to ignore the "not sampled"

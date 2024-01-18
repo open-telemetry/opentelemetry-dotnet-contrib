@@ -41,7 +41,7 @@ public class StackdriverTraceExporter : BaseExporter<Activity>
 
         try
         {
-            OpenTelemetryExporterVersion = Assembly.GetCallingAssembly().GetName().Version.ToString();
+            OpenTelemetryExporterVersion = Assembly.GetCallingAssembly().GetName().Version!.ToString();
         }
         catch (Exception)
         {

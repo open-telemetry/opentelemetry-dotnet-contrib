@@ -10,7 +10,8 @@ and collects telemetry about database operations.
 
 ## Deprecated
 
-> **NOTE that this only works with Mysql.Data v8.0.32 (and earlier, where supported)**.
+> [!IMPORTANT]
+> **This only works with Mysql.Data v8.0.32 (and earlier, where supported)**.
 > Mysql.Data v8.1.0 and later have built-in direct support for Open Telemetry
 > via `ActivitySource`.
 
@@ -64,7 +65,7 @@ the `ConfigureServices` of your `Startup` class. Refer to documentation for
 For an ASP.NET application, adding instrumentation is typically done in the
 `Global.asax.cs`. Refer to documentation for [OpenTelemetry.Instrumentation.AspNet](../OpenTelemetry.Instrumentation.AspNet/README.md).
 
-> **Note**
+> [!NOTE]
 > If you are using `Mysql.Data` 8.0.31 or later, please add
 option `Logging=true` in your connection string to enable tracing.
 See issue #691 for details.

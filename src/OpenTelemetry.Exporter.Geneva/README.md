@@ -22,13 +22,6 @@ Therefore, each type of telemetry **must be** enabled separately.
 
 ### Enable Logs
 
-Install the latest stable version of
-[`Microsoft.Extensions.Logging`](https://www.nuget.org/packages/Microsoft.Extensions.Logging/)
-
-```shell
-dotnet add package Microsoft.Extensions.Logging
-```
-
 This snippet shows how to configure the Geneva Exporter for Logs
 
 ```csharp
@@ -56,7 +49,8 @@ provider, including the OpenTelemetry provider. `OpenTelemetry` is the
 for `OpenTelemetryLoggerProvider`, that may be used when configuring filtering
 rules.
 
-**NOTE:** _Some application types (e.g. [ASP.NET
+> [!NOTE]
+> Some application types (e.g. [ASP.NET
 Core](https://docs.microsoft.com/aspnet/core/fundamentals/logging/#configure-logging-1))
 have default logging settings. Please review them to make sure
 `OpenTelemetryLoggingProvider` is configured to receive Logs of appropriate
@@ -113,7 +107,7 @@ The default table name used for Traces is `Span`. To change the table name for
 Traces add an entry with the key `Span` and set the value to the desired custom
 table name.
 
-> **Note**
+> [!NOTE]
 > Only a single table name is supported for Traces.
 
 ##### Log table name mappings
