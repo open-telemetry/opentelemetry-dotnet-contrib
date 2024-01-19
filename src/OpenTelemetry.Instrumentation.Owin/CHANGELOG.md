@@ -8,6 +8,8 @@
   ([#929](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/929))
 * Adds HTTP server metrics via `AddOwinInstrumentation` extension method on `MeterProviderBuilder`
   ([#1335](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1335))
+* Fix description for `http.server.request.duration` metric.
+  ([#1538](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1538))
 
 ## 1.0.0-rc.3
 

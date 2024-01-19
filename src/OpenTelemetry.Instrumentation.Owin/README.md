@@ -75,7 +75,7 @@ Currently, the instrumentation supports the following metric.
 
 | Name  | Instrument Type | Unit | Description |
 |-------|-----------------|------|-------------|
-| `http.server.request.duration` | Histogram | `s` | Measures the duration of inbound HTTP requests. |
+| `http.server.request.duration` | Histogram | `s` | Duration of HTTP server requests. |
 
 ## Customize OWIN span names
 
