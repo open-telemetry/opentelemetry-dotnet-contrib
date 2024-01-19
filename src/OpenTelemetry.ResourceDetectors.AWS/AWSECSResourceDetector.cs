@@ -14,7 +14,7 @@ namespace OpenTelemetry.ResourceDetectors.AWS;
 /// <summary>
 /// Resource detector for application running in AWS ECS.
 /// </summary>
-public class AWSECSResourceDetector : IResourceDetector
+public sealed class AWSECSResourceDetector : IResourceDetector
 {
     private const string AWSECSMetadataPath = "/proc/self/cgroup";
     private const string AWSECSMetadataURLKey = "ECS_CONTAINER_METADATA_URI";

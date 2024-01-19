@@ -14,9 +14,7 @@ namespace OpenTelemetry.ResourceDetectors.AWS;
 /// <summary>
 /// Class for resource detector utils.
 /// </summary>
-#pragma warning disable CA1052
-internal class ResourceDetectorUtils
-#pragma warning restore CA1052
+internal static class ResourceDetectorUtils
 {
     private static readonly JsonSerializerOptions JsonSerializerOptions = new(JsonSerializerDefaults.Web);
 
