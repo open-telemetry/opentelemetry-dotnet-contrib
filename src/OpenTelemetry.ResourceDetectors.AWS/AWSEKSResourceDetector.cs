@@ -16,7 +16,7 @@ namespace OpenTelemetry.ResourceDetectors.AWS;
 /// <summary>
 /// Resource detector for application running in AWS EKS.
 /// </summary>
-public class AWSEKSResourceDetector : IResourceDetector
+public sealed class AWSEKSResourceDetector : IResourceDetector
 {
     private const string AWSEKSCertificatePath = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt";
     private const string AWSEKSCredentialPath = "/var/run/secrets/kubernetes.io/serviceaccount/token";

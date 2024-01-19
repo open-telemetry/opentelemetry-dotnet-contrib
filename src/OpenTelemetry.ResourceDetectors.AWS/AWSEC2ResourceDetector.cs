@@ -11,7 +11,7 @@ namespace OpenTelemetry.ResourceDetectors.AWS;
 /// <summary>
 /// Resource detector for application running on AWS EC2 instance.
 /// </summary>
-public class AWSEC2ResourceDetector : IResourceDetector
+public sealed class AWSEC2ResourceDetector : IResourceDetector
 {
     private const string AWSEC2MetadataTokenTTLHeader = "X-aws-ec2-metadata-token-ttl-seconds";
     private const string AWSEC2MetadataTokenHeader = "X-aws-ec2-metadata-token";
