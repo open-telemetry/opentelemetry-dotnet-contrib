@@ -14,7 +14,7 @@ namespace OpenTelemetry.ResourceDetectors.AWS;
 /// <summary>
 /// Resource detector for application running in AWS ElasticBeanstalk environment.
 /// </summary>
-public sealed partial class AWSEBSResourceDetector : IResourceDetector
+public sealed class AWSEBSResourceDetector : IResourceDetector
 {
     private const string AWSEBSMetadataWindowsFilePath = "C:\\Program Files\\Amazon\\XRay\\environment.conf";
 #if NET6_0_OR_GREATER
