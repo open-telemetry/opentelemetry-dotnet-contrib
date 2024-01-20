@@ -7,6 +7,7 @@ using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
 
 namespace OpenTelemetry.ResourceDetectors.AWS;
@@ -16,7 +17,9 @@ namespace OpenTelemetry.ResourceDetectors.AWS;
 /// </summary>
 internal static class ResourceDetectorUtils
 {
+#if !NET6_0_OR_GREATER
     private static readonly JsonSerializerOptions JsonSerializerOptions = new(JsonSerializerDefaults.Web);
+#endif
 
     internal static async Task<string> SendOutRequest(string url, string method, KeyValuePair<string, string>? header, HttpClientHandler? handler = null)
     {
@@ -40,6 +43,20 @@ internal static class ResourceDetectorUtils
         }
     }
 
+#if NET6_0_OR_GREATER
+    internal static T? DeserializeFromFile<T>(string filePath, JsonTypeInfo<T> jsonTypeInfo)
+    {
+        using (var stream = GetStream(filePath))
+        {
+            return JsonSerializer.Deserialize(stream, jsonTypeInfo);
+        }
+    }
+
+    internal static T? DeserializeFromString<T>(string json, JsonTypeInfo<T> jsonTypeInfo)
+    {
+        return JsonSerializer.Deserialize(json, jsonTypeInfo);
+    }
+#else
     internal static T? DeserializeFromFile<T>(string filePath)
     {
         using (var stream = GetStream(filePath))
@@ -52,6 +69,7 @@ internal static class ResourceDetectorUtils
     {
         return JsonSerializer.Deserialize<T>(json, JsonSerializerOptions);
     }
+#endif
 
     internal static Stream GetStream(string filePath)
     {

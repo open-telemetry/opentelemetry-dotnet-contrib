@@ -343,7 +343,9 @@ jobs:
     if: |
       contains(needs.detect-changes.outputs.changes, 'eventcounters')
       || contains(needs.detect-changes.outputs.changes, 'runtime')
+      || contains(needs.detect-changes.outputs.changes, 'aws')
       || contains(needs.detect-changes.outputs.changes, 'azure')
+      || contains(needs.detect-changes.outputs.changes, 'container')
       || contains(needs.detect-changes.outputs.changes, 'host')
       || contains(needs.detect-changes.outputs.changes, 'processdetector')
       || contains(needs.detect-changes.outputs.changes, 'processruntime')
