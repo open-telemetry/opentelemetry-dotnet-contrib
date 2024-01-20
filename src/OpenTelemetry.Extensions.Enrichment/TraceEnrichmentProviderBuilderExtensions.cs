@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
@@ -23,7 +24,11 @@ public static class TraceEnrichmentProviderBuilderExtensions
     /// <remarks>
     /// Add this enricher *before* exporter related Activity processors.
     /// </remarks>
+#if NET6_0_OR_GREATER
+    public static TracerProviderBuilder AddTraceEnricher<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this TracerProviderBuilder builder)
+#else
     public static TracerProviderBuilder AddTraceEnricher<T>(this TracerProviderBuilder builder)
+#endif
         where T : TraceEnricher
     {
         Guard.ThrowIfNull(builder);
