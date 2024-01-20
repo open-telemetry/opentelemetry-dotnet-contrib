@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System;
+#if NET6_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
+#endif
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using OpenTelemetry.Extensions.Enrichment;
