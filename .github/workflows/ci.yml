@@ -349,6 +349,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'host')
       || contains(needs.detect-changes.outputs.changes, 'processdetector')
       || contains(needs.detect-changes.outputs.changes, 'processruntime')
+      || contains(needs.detect-changes.outputs.changes, 'resourcedetectors')
       || contains(needs.detect-changes.outputs.changes, 'aottestapp')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'redis')
