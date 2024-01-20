@@ -10,7 +10,7 @@ $actualWarningCount = 0
 
 foreach ($line in $($publishOutput -split "`r`n"))
 {
-    if ($line -like "*analysis warning IL*") 
+    if (($line -like "*analysis warning IL*") -or ($line -like "*analysis error IL*"))
     {
         Write-Host $line
         $actualWarningCount += 1
@@ -19,6 +19,11 @@ foreach ($line in $($publishOutput -split "`r`n"))
 
 Write-Host "Actual warning count is:", $actualWarningCount
 $expectedWarningCount = 0
+
+if ($LastExitCode -ne 0)
+{
+    Write-Host "There was an error while publishing AotCompatibility Test App. LastExitCode is:", $LastExitCode
+}
 
 pushd $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/bin/Release/$targetNetFramework/$runtime
 
