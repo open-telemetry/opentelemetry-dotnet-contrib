@@ -1,7 +1,10 @@
 param([string]$targetNetFramework)
 
+$runtime = $IsWindows ? "win-x64" : "linux-x64"
+$app = $IsWindows ? "./OpenTelemetry.AotCompatibility.TestApp.exe" : "./OpenTelemetry.AotCompatibility.TestApp"
+
 $rootDirectory = Split-Path $PSScriptRoot -Parent
-$publishOutput = dotnet publish $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/OpenTelemetry.AotCompatibility.TestApp.csproj -nodeReuse:false /p:UseSharedCompilation=false
+$publishOutput = dotnet publish $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/OpenTelemetry.AotCompatibility.TestApp.csproj --runtime $runtime -nodeReuse:false /p:UseSharedCompilation=false
 
 $actualWarningCount = 0
 
@@ -17,10 +20,10 @@ foreach ($line in $($publishOutput -split "`r`n"))
 Write-Host "Actual warning count is:", $actualWarningCount
 $expectedWarningCount = 0
 
-pushd $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/bin/Release/$targetNetFramework/linux-x64
+pushd $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/bin/Release/$targetNetFramework/$runtime
 
 Write-Host "Executing test App..."
-./OpenTelemetry.AotCompatibility.TestApp
+$app
 Write-Host "Finished executing test App"
 
 if ($LastExitCode -ne 0)
