@@ -7,7 +7,9 @@ using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+#if !NETFRAMEWORK
 using System.Text.Json.Serialization.Metadata;
+#endif
 using System.Threading.Tasks;
 
 namespace OpenTelemetry.ResourceDetectors.AWS;
