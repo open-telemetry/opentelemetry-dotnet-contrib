@@ -312,37 +312,37 @@ public class StackExchangeRedisCallsInstrumentationTests
         Assert.Same(profiler0, profiles3);
     }
 
-    //[Fact]
-    //public void StackExchangeRedis_DependencyInjection_Success()
-    //{
-    //    bool connectionMultiplexerPickedFromDI = false;
-    //    bool optionsPickedFromDI = false;
+    [Fact]
+    public void StackExchangeRedis_DependencyInjection_Success()
+    {
+        bool connectionMultiplexerPickedFromDI = false;
+        bool optionsPickedFromDI = false;
 
-    //    var connectionOptions = new ConfigurationOptions
-    //    {
-    //        AbortOnConnectFail = false,
-    //    };
-    //    connectionOptions.EndPoints.Add("localhost");
+        var connectionOptions = new ConfigurationOptions
+        {
+            AbortOnConnectFail = false,
+        };
+        connectionOptions.EndPoints.Add("localhost");
 
-    //    var services = new ServiceCollection();
-    //    services.AddSingleton<IConnectionMultiplexer>((sp) =>
-    //    {
-    //        connectionMultiplexerPickedFromDI = true;
-    //        return ConnectionMultiplexer.Connect(connectionOptions);
-    //    });
-    //    services.Configure<StackExchangeRedisInstrumentationOptions>(options =>
-    //    {
-    //        optionsPickedFromDI = true;
-    //    });
-    //    services.AddOpenTelemetry().WithTracing(builder => builder.AddRedisInstrumentation());
+        var services = new ServiceCollection();
+        services.AddSingleton<IConnectionMultiplexer>((sp) =>
+        {
+            connectionMultiplexerPickedFromDI = true;
+            return ConnectionMultiplexer.Connect(connectionOptions);
+        });
+        services.Configure<StackExchangeRedisInstrumentationOptions>(options =>
+        {
+            optionsPickedFromDI = true;
+        });
+        services.AddOpenTelemetry().WithTracing(builder => builder.AddRedisInstrumentation());
 
-    //    using var serviceProvider = services.BuildServiceProvider();
+        using var serviceProvider = services.BuildServiceProvider();
 
-    //    var tracerProvider = serviceProvider.GetRequiredService<TracerProvider>();
+        var tracerProvider = serviceProvider.GetRequiredService<TracerProvider>();
 
-    //    Assert.True(connectionMultiplexerPickedFromDI);
-    //    Assert.True(optionsPickedFromDI);
-    //}
+        Assert.True(connectionMultiplexerPickedFromDI);
+        Assert.True(optionsPickedFromDI);
+    }
 
     [Fact]
     public void StackExchangeRedis_StackExchangeRedisInstrumentation_Test()

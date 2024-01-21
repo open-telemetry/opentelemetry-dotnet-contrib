@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" Version="1.7.0" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryCoreLatestVersion)" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="$(MicrosoftExtensionsHostingPkgVer)" />

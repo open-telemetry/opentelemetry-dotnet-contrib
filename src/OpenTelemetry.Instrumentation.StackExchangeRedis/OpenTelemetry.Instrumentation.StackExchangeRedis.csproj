@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" Version="$(OpenTelemetryCoreLatestPrereleaseVersion)" />
+    <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" Version="$(OpenTelemetryCoreLatestVersion)" />
     <PackageReference Include="StackExchange.Redis" Version="$(StackExchangeRedisPkgVer)" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsOptionsPkgVer)" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="$(SystemReflectionEmitLightweightPkgVer)" />    
