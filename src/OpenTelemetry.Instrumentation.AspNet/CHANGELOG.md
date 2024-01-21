@@ -2,11 +2,44 @@
 
 ## Unreleased
 
+* Fix description for `http.server.request.duration` metric.
+  ([#1538](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1538))
+
+## 1.7.0-beta.1
+
+Released 2023-Dec-20
+
 * Added enrich functionality to metric instrumentation
   ([#1407](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1407)).
 
   * New overload of `AddAspNetInstrumentation` now accepts a configuration delegate.
   * The `Enrich` can be used to add additional metric attributes.
+
+* BREAKING: HTTP server metrics now follow stable
+  [semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-metrics.md#http-server)
+  ([#1429](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1429)).
+
+  * New metric: `http.server.request.duration`
+    * Unit: `s` (seconds)
+    * Histogram Buckets: `0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5,
+    0.75, 1,  2.5, 5, 7.5, 10`
+  * Old metric: `http.server.duration`
+    * Unit: `ms` (milliseconds)
+    * Histogram Buckets: `0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500,
+    5000, 7500, 10000`
+
+  Note that the bucket changes are part of the 1.7.0-rc.1 release of the
+  `OpenTelemetry` SDK.
+
+  The following metric attributes has been added:
+
+  * `http.request.method` (previously `http.method`)
+  * `http.response.status_code` (previously `http.status_code`)
+  * `url.scheme` (previously `http.scheme`)
+  * `server.address`
+  * `server.port`
+  * `network.protocol.version` (`1.1`, `2`, `3`)
+  * `http.route`
 
 ## 1.6.0-beta.2
 

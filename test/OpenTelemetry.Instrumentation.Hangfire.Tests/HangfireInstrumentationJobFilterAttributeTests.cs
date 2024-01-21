@@ -1,18 +1,5 @@
-// <copyright file="HangfireInstrumentationJobFilterAttributeTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
+// SPDX-License-Identifier: Apache-2.0
 
 using System;
 using System.Collections.Generic;
@@ -147,6 +134,43 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         var activity = exportedItems.Single(i => i.GetTagItem("job.id") as string == jobId);
         Assert.Contains($"JOB {jobId}", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
+    }
+
+    [Theory]
+    [InlineData("null", true)]
+    [InlineData("true", true)]
+    [InlineData("false", false)]
+    [InlineData("throw", false)]
+    public async Task Should_Respect_Filter_Option(string filter, bool shouldRecord)
+    {
+        // Arrange
+        Action<HangfireInstrumentationOptions> configure = filter switch
+        {
+            "null" => options => options.Filter = null,
+            "true" => options => options.Filter = _ => true,
+            "false" => options => options.Filter = _ => false,
+            "throw" => options => options.Filter = _ => throw new Exception("Filter throws exception"),
+            _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, "Unexpected value"),
+        };
+
+        var processedItems = new List<Activity>();
+        var activityProcessor = new ProcessorMock<Activity>(onStart: processedItems.Add);
+
+        using var tel = Sdk.CreateTracerProviderBuilder()
+            .AddHangfireInstrumentation(configure)
+            .AddProcessor(activityProcessor)
+            .Build();
+
+        // Act
+        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
+        await this.WaitJobProcessedAsync(jobId, 5);
+
+        // Assert
+        Assert.Single(processedItems);
+        var activity = processedItems.First();
+
+        Assert.Equal(shouldRecord, activity.IsAllDataRequested);
+        Assert.Equal(shouldRecord, activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
     }
 
     private async Task WaitJobProcessedAsync(string jobId, int timeToWaitInSeconds)

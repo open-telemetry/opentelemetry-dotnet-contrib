@@ -40,6 +40,13 @@ parameter is optional and used to pass a custom parent context. If the parent
 is not passed explicitly then it's either extracted from the
 input parameter or uses AWS X-Ray headers if AWS X-Ray context extraction is
 enabled (see configuration property `DisableAwsXRayContextExtraction`).
+
+> [!NOTE]
+> If tracing is required when AWS X-Ray is disabled,
+> the `DisableAwsXRayContextExtraction` property needs to be set to `true`.
+> This will instruct the instrumentation to ignore the "not sampled"
+> trace header automatically sent when AWS X-Ray is disabled.
+
 The sequence of the parent extraction:
 `explicit parent` -> `parent from input parameter` -> `AWS X-Ray headers` -> `default`
 The parent extraction is supported for the input types listed in the table below:

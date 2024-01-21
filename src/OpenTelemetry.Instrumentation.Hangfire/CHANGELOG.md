@@ -2,8 +2,25 @@
 
 ## Unreleased
 
-* Update OTel API version to `1.6.0`.
-  ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
+* Update `OpenTelemetry.Api.ProviderBuilderExtensions` to `1.7.0`.
+  * Update `OpenTelemetry.Api` to `1.7.0`.
+  ([#1508](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1508))
+
+## 1.6.0-beta.1
+
+Released 2023-Dec-20
+
+* Update `OpenTelemetry.Api.ProviderBuilderExtensions` to `1.6.0`.
+  * Update `OpenTelemetry.Api` to `1.6.0`.
+  ([#1502](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1502))
+
+* Added overloads which accept a name to the `TracerProviderBuilder`
+  `HangfireInstrumentationOptions` extension to allow for more fine-grained
+  options management
+  ([#1442](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1442))
+
+* Add Filter to HangfireInstrumentationOptions.
+  ([#1440](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1440))
 
 ## 1.5.0-beta.1
 

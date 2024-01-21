@@ -17,7 +17,7 @@ foreach ($line in $($publishOutput -split "`r`n"))
 Write-Host "Actual warning count is:", $actualWarningCount
 $expectedWarningCount = 0
 
-pushd $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/bin/Debug/$targetNetFramework/linux-x64
+pushd $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/bin/Release/$targetNetFramework/linux-x64
 
 Write-Host "Executing test App..."
 ./OpenTelemetry.AotCompatibility.TestApp

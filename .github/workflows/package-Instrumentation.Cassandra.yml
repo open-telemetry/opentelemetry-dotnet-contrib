@@ -27,7 +27,7 @@ jobs:
         fetch-depth: 0 # fetching all
 
     - name: Setup dotnet
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
 
     - name: Install dependencies
       run: dotnet restore src/${{env.PROJECT}}
@@ -42,7 +42,7 @@ jobs:
       run: dotnet pack src/${{env.PROJECT}} --configuration Release --no-build
 
     - name: Publish Artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{env.PROJECT}}-packages
         path: '**/${{env.PROJECT}}/bin/**/*.*nupkg'

@@ -1,24 +1,10 @@
-// <copyright file="AWSLambdaHttpUtilsTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
+// SPDX-License-Identifier: Apache-2.0
 
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Amazon.Lambda.APIGatewayEvents;
-using Moq;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -183,10 +169,8 @@ public class AWSLambdaHttpUtilsTests
         {
             StatusCode = 200,
         };
-        var activityProcessor = new Mock<BaseProcessor<Activity>>();
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(activityProcessor.Object)
             .AddSource("TestActivitySource")
             .Build();
 
@@ -214,10 +198,8 @@ public class AWSLambdaHttpUtilsTests
         {
             StatusCode = 200,
         };
-        var activityProcessor = new Mock<BaseProcessor<Activity>>();
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(activityProcessor.Object)
             .AddSource("TestActivitySource")
             .Build();
 

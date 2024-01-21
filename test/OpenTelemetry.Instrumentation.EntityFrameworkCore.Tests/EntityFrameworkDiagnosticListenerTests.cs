@@ -1,20 +1,8 @@
-// <copyright file="EntityFrameworkDiagnosticListenerTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
+// SPDX-License-Identifier: Apache-2.0
 
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
@@ -22,7 +10,6 @@ using System.Linq;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Moq;
 using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -48,9 +35,9 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     [Fact]
     public void EntityFrameworkContextEventsInstrumentedTest()
     {
-        var activityProcessor = new Mock<BaseProcessor<Activity>>();
+        var exportedItems = new List<Activity>();
         using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(activityProcessor.Object)
+            .AddInMemoryExporter(exportedItems)
             .AddEntityFrameworkCoreInstrumentation().Build();
 
         using (var context = new ItemsContext(this.contextOptions))
@@ -63,9 +50,8 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             Assert.Equal("ItemTwo", items[2].Name);
         }
 
-        Assert.Equal(3, activityProcessor.Invocations.Count);
-
-        var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
+        Assert.Single(exportedItems);
+        var activity = exportedItems[0];
 
         VerifyActivityData(activity);
     }
@@ -73,10 +59,10 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     [Fact]
     public void EntityFrameworkEnrichDisplayNameWithEnrichWithIDbCommand()
     {
-        var activityProcessor = new Mock<BaseProcessor<Activity>>();
+        var exportedItems = new List<Activity>();
         var expectedDisplayName = "Text main";
         using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(activityProcessor.Object)
+            .AddInMemoryExporter(exportedItems)
             .AddEntityFrameworkCoreInstrumentation(options =>
             {
                 options.EnrichWithIDbCommand = (activity1, command) =>
@@ -97,9 +83,8 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             Assert.Equal("ItemTwo", items[2].Name);
         }
 
-        Assert.Equal(3, activityProcessor.Invocations.Count);
-
-        var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
+        Assert.Single(exportedItems);
+        var activity = exportedItems[0];
 
         VerifyActivityData(activity, altDisplayName: $"{expectedDisplayName}");
     }
@@ -107,9 +92,9 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     [Fact]
     public void EntityFrameworkContextExceptionEventsInstrumentedTest()
     {
-        var activityProcessor = new Mock<BaseProcessor<Activity>>();
+        var exportedItems = new List<Activity>();
         using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(activityProcessor.Object)
+            .AddInMemoryExporter(exportedItems)
             .AddEntityFrameworkCoreInstrumentation()
             .Build();
 
@@ -125,9 +110,8 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             }
         }
 
-        Assert.Equal(3, activityProcessor.Invocations.Count);
-
-        var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
+        Assert.Single(exportedItems);
+        var activity = exportedItems[0];
 
         VerifyActivityData(activity, isError: true);
     }
@@ -135,9 +119,9 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     [Fact]
     public void ShouldNotCollectTelemetryWhenFilterEvaluatesToFalseByDbCommand()
     {
-        var activityProcessor = new Mock<BaseProcessor<Activity>>();
+        var exportedItems = new List<Activity>();
         using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(activityProcessor.Object)
+            .AddInMemoryExporter(exportedItems)
             .AddEntityFrameworkCoreInstrumentation(options =>
             {
                 options.Filter = (_, command) => !command.CommandText.Contains("Item", StringComparison.OrdinalIgnoreCase);
@@ -148,20 +132,15 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             _ = context.Set<Item>().OrderBy(e => e.Name).ToList();
         }
 
-        Assert.Equal(2, activityProcessor.Invocations.Count);
-
-        var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
-
-        Assert.False(activity.IsAllDataRequested);
-        Assert.False(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
+        Assert.Empty(exportedItems);
     }
 
     [Fact]
     public void ShouldCollectTelemetryWhenFilterEvaluatesToTrueByDbCommand()
     {
-        var activityProcessor = new Mock<BaseProcessor<Activity>>();
+        var exportedItems = new List<Activity>();
         using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(activityProcessor.Object)
+            .AddInMemoryExporter(exportedItems)
             .AddEntityFrameworkCoreInstrumentation(options =>
             {
                 options.Filter = (_, command) => command.CommandText.Contains("Item", StringComparison.OrdinalIgnoreCase);
@@ -172,9 +151,8 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             _ = context.Set<Item>().OrderBy(e => e.Name).ToList();
         }
 
-        Assert.Equal(3, activityProcessor.Invocations.Count);
-
-        var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
+        Assert.Single(exportedItems);
+        var activity = exportedItems[0];
 
         Assert.True(activity.IsAllDataRequested);
         Assert.True(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
@@ -202,9 +180,9 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     [InlineData("Teradata.EntityFrameworkCore")]
     public void ShouldNotCollectTelemetryWhenFilterEvaluatesToFalseByProviderName(string provider)
     {
-        var activityProcessor = new Mock<BaseProcessor<Activity>>();
+        var exportedItems = new List<Activity>();
         using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(activityProcessor.Object)
+            .AddInMemoryExporter(exportedItems)
             .AddEntityFrameworkCoreInstrumentation(options =>
             {
                 options.Filter = (providerName, _) => providerName != null && providerName.Equals(provider, StringComparison.OrdinalIgnoreCase);
@@ -215,20 +193,15 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             _ = context.Set<Item>().OrderBy(e => e.Name).ToList();
         }
 
-        Assert.Equal(2, activityProcessor.Invocations.Count);
-
-        var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
-
-        Assert.False(activity.IsAllDataRequested);
-        Assert.False(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
+        Assert.Empty(exportedItems);
     }
 
     [Fact]
     public void ShouldCollectTelemetryWhenFilterEvaluatesToTrueByProviderName()
     {
-        var activityProcessor = new Mock<BaseProcessor<Activity>>();
+        var exportedItems = new List<Activity>();
         using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(activityProcessor.Object)
+            .AddInMemoryExporter(exportedItems)
             .AddEntityFrameworkCoreInstrumentation(options =>
             {
                 options.Filter = (providerName, _) => providerName != null && providerName.Equals("Microsoft.EntityFrameworkCore.Sqlite", StringComparison.OrdinalIgnoreCase);
@@ -239,9 +212,9 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             _ = context.Set<Item>().OrderBy(e => e.Name).ToList();
         }
 
-        Assert.Equal(3, activityProcessor.Invocations.Count);
+        Assert.Single(exportedItems);
+        var activity = exportedItems[0];
 
-        var activity = (Activity)activityProcessor.Invocations[1].Arguments[0];
         Assert.True(activity.IsAllDataRequested);
         Assert.True(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
     }

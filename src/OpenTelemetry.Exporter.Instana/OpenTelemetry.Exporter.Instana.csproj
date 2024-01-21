@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <PackageTags>Instana Tracing APM</PackageTags>
     <Description>Instana .NET Exporter for OpenTelemetry</Description>
     <MinVerTagPrefix>Exporter.Instana-</MinVerTagPrefix>
@@ -12,6 +12,16 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
+
+    <!--We need the package reference to `System.Net.Http` to use `HttpClientHandler.ServerCertificateCustomValidationCallback` property
+    on net462 target. Starting net471, we could just add an assembly `Reference` instead of `PackageReference`.
+
+    For example:
+    <ItemGroup>
+      <Reference Include="System.Net.Http" Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'" />
+    </ItemGroup>
+    -->
+    <PackageReference Include="System.Net.Http" Version="$(SystemNetHttp)" Condition="'$(TargetFramework)' == 'net462'" />
   </ItemGroup>
 
 </Project>

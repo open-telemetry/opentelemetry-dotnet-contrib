@@ -1,18 +1,5 @@
-// <copyright file="AWSECSResourceDetector.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
+// SPDX-License-Identifier: Apache-2.0
 
 #if !NETFRAMEWORK
 using System;
@@ -27,7 +14,7 @@ namespace OpenTelemetry.ResourceDetectors.AWS;
 /// <summary>
 /// Resource detector for application running in AWS ECS.
 /// </summary>
-public class AWSECSResourceDetector : IResourceDetector
+public sealed class AWSECSResourceDetector : IResourceDetector
 {
     private const string AWSECSMetadataPath = "/proc/self/cgroup";
     private const string AWSECSMetadataURLKey = "ECS_CONTAINER_METADATA_URI";

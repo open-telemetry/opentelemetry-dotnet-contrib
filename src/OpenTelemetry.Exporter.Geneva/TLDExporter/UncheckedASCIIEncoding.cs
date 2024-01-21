@@ -1,18 +1,5 @@
-// <copyright file="UncheckedASCIIEncoding.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
+// SPDX-License-Identifier: Apache-2.0
 
 using System;
 using System.Text;
@@ -89,10 +76,14 @@ internal sealed class UncheckedASCIIEncoding : Encoding
 
     public override unsafe int GetBytes(char* charPtr, int charCount, byte* bytePtr, int byteCount)
     {
+#if NET8_0_OR_GREATER
+        ArgumentOutOfRangeException.ThrowIfLessThan(byteCount, charCount);
+#else
         if (byteCount < charCount)
         {
             throw new ArgumentOutOfRangeException(nameof(byteCount));
         }
+#endif
 
         for (int i = 0; i < charCount; i += 1)
         {
@@ -104,10 +95,14 @@ internal sealed class UncheckedASCIIEncoding : Encoding
 
     public override unsafe int GetChars(byte* bytePtr, int byteCount, char* charPtr, int charCount)
     {
+#if NET8_0_OR_GREATER
+        ArgumentOutOfRangeException.ThrowIfLessThan(charCount, byteCount);
+#else
         if (charCount < byteCount)
         {
             throw new ArgumentOutOfRangeException(nameof(charCount));
         }
+#endif
 
         for (int i = 0; i < byteCount; i += 1)
         {

@@ -18,7 +18,7 @@ on:
         required: false
         type: string
       tfm-list:
-        default: '[ "net462", "net6.0", "net7.0" ]'
+        default: '[ "net462", "net6.0", "net7.0", "net8.0" ]'
         required: false
         type: string
 
@@ -39,7 +39,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Setup dotnet
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
 
     - name: dotnet restore build/Projects/${{ inputs.project-name }}.proj
       run: dotnet restore build/Projects/${{ inputs.project-name }}.proj

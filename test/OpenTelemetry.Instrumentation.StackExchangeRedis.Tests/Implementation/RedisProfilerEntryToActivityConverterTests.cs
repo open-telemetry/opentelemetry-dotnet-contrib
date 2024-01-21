@@ -1,30 +1,17 @@
-// <copyright file="RedisProfilerEntryToActivityConverterTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
+// SPDX-License-Identifier: Apache-2.0
 
 using System;
 using System.Diagnostics;
 using System.Net;
+using OpenTelemetry.Instrumentation.StackExchangeRedis.Tests;
+
 #if !NETFRAMEWORK
 using System.Net.Sockets;
 #endif
-using Moq;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using StackExchange.Redis;
-using StackExchange.Redis.Profiling;
 using Xunit;
 
 namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation;
@@ -61,11 +48,9 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
     public void ProfilerCommandToActivity_UsesCommandAsName()
     {
         var activity = new Activity("redis-profiler");
-        var profiledCommand = new Mock<IProfiledCommand>();
-        profiledCommand.Setup(m => m.CommandCreated).Returns(DateTime.UtcNow);
-        profiledCommand.Setup(m => m.Command).Returns("SET");
+        var profiledCommand = new TestProfiledCommand(DateTime.UtcNow);
 
-        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisInstrumentationOptions());
+        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
 
         Assert.NotNull(result);
         Assert.Equal("SET", result.DisplayName);
@@ -76,10 +61,9 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
     {
         var now = DateTimeOffset.Now;
         var activity = new Activity("redis-profiler");
-        var profiledCommand = new Mock<IProfiledCommand>();
-        profiledCommand.Setup(m => m.CommandCreated).Returns(now.DateTime);
+        var profiledCommand = new TestProfiledCommand(now.DateTime);
 
-        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisInstrumentationOptions());
+        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
 
         Assert.NotNull(result);
         Assert.Equal(now, result.StartTimeUtc);
@@ -89,10 +73,9 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
     public void ProfilerCommandToActivity_SetsDbTypeAttributeAsRedis()
     {
         var activity = new Activity("redis-profiler");
-        var profiledCommand = new Mock<IProfiledCommand>();
-        profiledCommand.Setup(m => m.CommandCreated).Returns(DateTime.UtcNow);
+        var profiledCommand = new TestProfiledCommand(DateTime.UtcNow);
 
-        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisInstrumentationOptions());
+        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
 
         Assert.NotNull(result);
         Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeDbSystem));
@@ -103,11 +86,9 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
     public void ProfilerCommandToActivity_UsesCommandAsDbStatementAttribute()
     {
         var activity = new Activity("redis-profiler");
-        var profiledCommand = new Mock<IProfiledCommand>();
-        profiledCommand.Setup(m => m.CommandCreated).Returns(DateTime.UtcNow);
-        profiledCommand.Setup(m => m.Command).Returns("SET");
+        var profiledCommand = new TestProfiledCommand(DateTime.UtcNow);
 
-        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisInstrumentationOptions());
+        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
 
         Assert.NotNull(result);
         Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeDbStatement));
@@ -118,17 +99,18 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
     public void ProfilerCommandToActivity_UsesFlagsForFlagsAttribute()
     {
         var activity = new Activity("redis-profiler");
-        var profiledCommand = new Mock<IProfiledCommand>();
-        profiledCommand.Setup(m => m.CommandCreated).Returns(DateTime.UtcNow);
-        var expectedFlags = CommandFlags.FireAndForget |
-                            CommandFlags.NoRedirect;
-        profiledCommand.Setup(m => m.Flags).Returns(expectedFlags);
+        var profiledCommand = new TestProfiledCommand(DateTime.UtcNow, CommandFlags.FireAndForget | CommandFlags.NoRedirect);
 
-        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisInstrumentationOptions());
+        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
 
         Assert.NotNull(result);
         Assert.NotNull(result.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName));
+
+#if NET8_0
+        Assert.Equal("FireAndForget, NoRedirect", result.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName));
+#else
         Assert.Equal("PreferMaster, FireAndForget, NoRedirect", result.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName));
+#endif
     }
 
     [Fact]
@@ -139,11 +121,9 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
 
         var activity = new Activity("redis-profiler");
         IPEndPoint ipLocalEndPoint = new IPEndPoint(address, port);
-        var profiledCommand = new Mock<IProfiledCommand>();
-        profiledCommand.Setup(m => m.CommandCreated).Returns(DateTime.UtcNow);
-        profiledCommand.Setup(m => m.EndPoint).Returns(ipLocalEndPoint);
+        var profiledCommand = new TestProfiledCommand(DateTime.UtcNow, ipLocalEndPoint);
 
-        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisInstrumentationOptions());
+        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
 
         Assert.NotNull(result);
         Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetPeerIp));
@@ -158,11 +138,9 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
         var dnsEndPoint = new DnsEndPoint("https://opentelemetry.io/", 443);
 
         var activity = new Activity("redis-profiler");
-        var profiledCommand = new Mock<IProfiledCommand>();
-        profiledCommand.Setup(m => m.CommandCreated).Returns(DateTime.UtcNow);
-        profiledCommand.Setup(m => m.EndPoint).Returns(dnsEndPoint);
+        var profiledCommand = new TestProfiledCommand(DateTime.UtcNow, dnsEndPoint);
 
-        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisInstrumentationOptions());
+        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
 
         Assert.NotNull(result);
         Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetPeerName));
@@ -177,11 +155,9 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
     {
         var unixEndPoint = new UnixDomainSocketEndPoint("https://opentelemetry.io/");
         var activity = new Activity("redis-profiler");
-        var profiledCommand = new Mock<IProfiledCommand>();
-        profiledCommand.Setup(m => m.CommandCreated).Returns(DateTime.UtcNow);
-        profiledCommand.Setup(m => m.EndPoint).Returns(unixEndPoint);
+        var profiledCommand = new TestProfiledCommand(DateTime.UtcNow, unixEndPoint);
 
-        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand.Object, new StackExchangeRedisInstrumentationOptions());
+        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
 
         Assert.NotNull(result);
         Assert.NotNull(result.GetTagValue(SemanticConventions.AttributePeerService));

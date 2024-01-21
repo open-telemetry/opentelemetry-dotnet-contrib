@@ -1,18 +1,5 @@
-// <copyright file="TraceExporterBenchmarks.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
+// SPDX-License-Identifier: Apache-2.0
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,18 +7,18 @@ using BenchmarkDotNet.Attributes;
 using OpenTelemetry.Trace;
 
 /*
-BenchmarkDotNet=v0.13.2, OS=Windows 11 (10.0.22621.963)
+BenchmarkDotNet v0.13.10, Windows 11 (10.0.23424.1000)
 Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
-.NET SDK=7.0.101
-  [Host]     : .NET 7.0.1 (7.0.122.56804), X64 RyuJIT AVX2
-  DefaultJob : .NET 7.0.1 (7.0.122.56804), X64 RyuJIT AVX2
+.NET SDK 8.0.100
+  [Host]     : .NET 8.0.0 (8.0.23.53103), X64 RyuJIT AVX2
+  DefaultJob : .NET 8.0.0 (8.0.23.53103), X64 RyuJIT AVX2
 
 
-|                           Method |     Mean |    Error |   StdDev |   Median |   Gen0 | Allocated |
-|--------------------------------- |---------:|---------:|---------:|---------:|-------:|----------:|
-|                   ExportActivity | 566.3 ns |  3.13 ns |  2.44 ns | 565.9 ns |      - |         - |
-|                SerializeActivity | 313.3 ns |  1.71 ns |  1.60 ns | 313.0 ns |      - |         - |
-| CreateActivityWithGenevaExporter | 940.5 ns | 18.77 ns | 54.14 ns | 911.4 ns | 0.0648 |     416 B |
+| Method                           | Mean       | Error    | StdDev   | Gen0   | Allocated |
+|--------------------------------- |-----------:|---------:|---------:|-------:|----------:|
+| ExportActivity                   |   847.1 ns | 16.34 ns | 22.36 ns |      - |         - |
+| SerializeActivity                |   261.5 ns |  2.91 ns |  2.58 ns |      - |         - |
+| CreateActivityWithGenevaExporter | 1,066.0 ns | 20.98 ns | 56.35 ns | 0.0648 |     416 B |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark;

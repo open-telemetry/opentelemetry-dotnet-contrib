@@ -14,6 +14,12 @@ trim_trailing_whitespace = true
 indent_size = 4
 
 ###############################
+# Copyright header            #
+###############################
+[*.cs]
+file_header_template = Copyright The OpenTelemetry Authors\nSPDX-License-Identifier: Apache-2.0
+
+###############################
 # .NET Coding Conventions     #
 ###############################
 # Directive order based on dotnet/runtime settings
@@ -34,7 +40,7 @@ csharp_indent_switch_labels = true
 csharp_indent_labels = flush_left
 
 # Modifier preferences
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
+csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async:suggestion
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:silent
 
 # this. preferences
@@ -106,6 +112,7 @@ csharp_style_prefer_index_operator = false:none
 csharp_style_prefer_range_operator = false:none
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
 csharp_style_deconstructed_variable_declaration = true:suggestion
+csharp_style_namespace_declarations = file_scoped:warning
 
 # Space preferences
 csharp_space_after_cast = false
@@ -141,7 +148,9 @@ dotnet_diagnostic.IDE0002.severity = warning
 
 # IDE0005: Remove unnecessary import
 dotnet_diagnostic.IDE0005.severity = warning
-csharp_style_namespace_declarations = file_scoped:warning
+
+# RS0041: Public members should not use oblivious types
+dotnet_diagnostic.RS0041.severity = suggestion
 
 [obj/**.cs]
 [**/External/**.cs]
@@ -149,3 +158,6 @@ generated_code = true
 
 [*.csproj]
 indent_size = 2
+
+[*.cshtml.cs]
+dotnet_diagnostic.SA1649.severity = none

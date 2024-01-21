@@ -47,6 +47,7 @@ Maintainers
 * [Mikel Blanchard](https://github.com/CodeBlanch), Microsoft
 * [Piotr Kie&#x142;kowicz](https://github.com/Kielek), Splunk
 * [Utkarsh Umesan Pillai](https://github.com/utpilla), Microsoft
+* [Vishwesh Bankwar](https://github.com/vishweshbankwar), Microsoft
 
 *Find more about the maintainer role in [community
 repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#maintainer).*

@@ -25,12 +25,15 @@ jobs:
           aspnet: ['*/OpenTelemetry.Instrumentation.AspNet*/**', 'examples/AspNet/**', '!**/*.md']
           azure: ['*/OpenTelemetry.ResourceDetectors.Azure*/**', '!**/*.md']
           eventcounters: ['*/OpenTelemetry.Instrumentation.EventCounters*/**', 'examples/event-counters/**', '!**/*.md']
-          extensions: ['*/OpenTelemetry.Extensions*/**', '!**/*.md']
+          extensions: ['*/OpenTelemetry.Extensions/**', '*/OpenTelemetry.Extensions.Tests/**', '!**/*.md']
           geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
+          host: ['*/OpenTelemetry.ResourceDetectors.Host*/**', '!**/*.md']
           onecollector: ['*/OpenTelemetry.Instrumentation.OneCollector*/**', '!**/*.md']
           owin: ['*/OpenTelemetry.Instrumentation.Owin*/**', 'examples/owin/**', '!**/*.md']
           persistentstorage: ['*/OpenTelemetry.PersistentStorage*/**', '!**/*.md']
           process: ['*/OpenTelemetry.Instrumentation.Process*/**', 'examples/process-instrumentation/**', '!**/*.md']
+          processdetector: ['*/OpenTelemetry.ResourceDetectors.Process/**', '*/OpenTelemetry.ResourceDetectors.Process.Tests/**', '!**/*.md']
+          processruntime: ['*/OpenTelemetry.ResourceDetectors.ProcessRuntime/**', '*/OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests/**', '!**/*.md']
           redis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**/*.md']
           runtime: ['*/OpenTelemetry.Instrumentation.Runtime*/**', 'examples/runtime-instrumentation/**', '!**/*.md']
           wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**/*.md']
@@ -42,9 +45,15 @@ jobs:
             '!*/OpenTelemetry.Instrumentation.AspNet*/**',
             '!examples/AspNet/**',
             '!*/OpenTelemetry.ResourceDetectors.Azure*/**',
+            '!*/OpenTelemetry.ResourceDetectors.Host*/**',
+            '!*/OpenTelemetry.ResourceDetectors.Process/**',
+            '!*/OpenTelemetry.ResourceDetectors.Process.Tests/**',
+            '!*/OpenTelemetry.ResourceDetectors.ProcessRuntime/**',
+            '!*/OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests/**',
             '!*/OpenTelemetry.Instrumentation.EventCounters*/**',
             '!examples/event-counters/**',
-            '!*/OpenTelemetry.Extensions*/**',
+            '!*/OpenTelemetry.Extensions/**',
+            '!*/OpenTelemetry.Extensions.Tests/**',
             '!*/OpenTelemetry.Exporter.Geneva*/**',
             '!*/OpenTelemetry.Exporter.OneCollector*/**',
             '!*/OpenTelemetry.Instrumentation.Owin*/**',
@@ -105,7 +114,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.EventCounters
       code-cov-name: Instrumentation.EventCounters
-      tfm-list: '[ "net6.0", "net7.0" ]'
+      tfm-list: '[ "net6.0", "net7.0", "net8.0" ]'
 
   build-test-extensions:
     needs: detect-changes
@@ -128,6 +137,17 @@ jobs:
     with:
       project-name: OpenTelemetry.Exporter.Geneva
       code-cov-name: Exporter.Geneva
+
+  build-test-host:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'host')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.ResourceDetectors.Host
+      code-cov-name: ResourceDetectors.Host
 
   build-test-onecollector:
     needs: detect-changes
@@ -174,6 +194,28 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.Process
       code-cov-name: Instrumentation.Process
+
+  build-test-processdetector:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'processdetector')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.ResourceDetectors.Process
+      code-cov-name: ResourceDetectors.Process
+
+  build-test-processruntime:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'processruntime')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.ResourceDetectors.ProcessRuntime
+      code-cov-name: ResourceDetectors.ProcessRuntime
 
   build-test-redis:
     needs: detect-changes
@@ -227,7 +269,7 @@ jobs:
       fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
       matrix:
         os: [ windows-latest, ubuntu-latest ]
-        version: [ net462, net6.0, net7.0 ]
+        version: [ net462, net6.0, net7.0, net8.0 ]
         exclude:
         - os: ubuntu-latest
           version: net462
@@ -237,7 +279,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Setup dotnet
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
 
     - name: Restore, Build, & Test ${{ matrix.version }}
       shell: pwsh
@@ -257,11 +299,26 @@ jobs:
             OpenTelemetry.Instrumentation.StackExchangeRedis.Tests.csproj,
             OpenTelemetry.Instrumentation.Wcf.Tests.csproj,
             OpenTelemetry.PersistentStorage.FileSystem.Tests.csproj,
-            OpenTelemetry.ResourceDetectors.Azure.Tests.csproj
+            OpenTelemetry.ResourceDetectors.Azure.Tests.csproj,
+            OpenTelemetry.ResourceDetectors.Host.Tests.csproj,
+            OpenTelemetry.ResourceDetectors.Process.Tests.csproj,
+            OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests.csproj
+
+        $failedProjects = @()
 
         ForEach ($project in $projects)
         {
           dotnet test $project.FullName --collect:"Code Coverage" --results-directory:"TestResults" --framework ${{ matrix.version }} --configuration Release --logger:"console;verbosity=detailed" -- RunConfiguration.DisableAppDomain=true
+
+          if ($LASTEXITCODE -ne 0)
+          {
+              $failedProjects = $failedProjects + $project
+          }
+        }
+
+        if ($failedProjects.Count -gt 0)
+        {
+            throw "dotnet test failed on '$failedProjects' project(s)"
         }
 
     - name: Install coverage tool
@@ -287,6 +344,9 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'eventcounters')
       || contains(needs.detect-changes.outputs.changes, 'runtime')
       || contains(needs.detect-changes.outputs.changes, 'azure')
+      || contains(needs.detect-changes.outputs.changes, 'host')
+      || contains(needs.detect-changes.outputs.changes, 'processdetector')
+      || contains(needs.detect-changes.outputs.changes, 'processruntime')
       || contains(needs.detect-changes.outputs.changes, 'aottestapp')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'redis')
@@ -304,10 +364,13 @@ jobs:
       build-test-eventcounters,
       build-test-extensions,
       build-test-geneva,
+      build-test-host,
       build-test-onecollector,
       build-test-owin,
       build-test-persistentstorage,
       build-test-process,
+      build-test-processdetector,
+      build-test-processruntime,
       build-test-redis,
       build-test-redis-integration,
       build-test-runtime,

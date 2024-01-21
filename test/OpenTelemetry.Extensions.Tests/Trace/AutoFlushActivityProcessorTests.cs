@@ -1,24 +1,10 @@
-// <copyright file="AutoFlushActivityProcessorTests.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
+// SPDX-License-Identifier: Apache-2.0
 
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using Moq;
-using Moq.Protected;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -26,14 +12,14 @@ namespace OpenTelemetry.Extensions.Tests.Trace;
 
 public class AutoFlushActivityProcessorTests
 {
-    [Fact(Skip = "Unstable")]
+    [Fact]
     public void AutoFlushActivityProcessor_FlushAfterLocalServerSideRootSpans_EndMatchingSpan_Flush()
     {
-        var mockExporting = new Mock<BaseProcessor<Activity>>();
+        var activityProcessor = new TestActivityProcessor();
         var sourceName = GetTestMethodName();
 
         using var provider = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(mockExporting.Object)
+            .AddProcessor(activityProcessor)
             .AddAutoFlushActivityProcessor(a => a.Parent == null && (a.Kind == ActivityKind.Server || a.Kind == ActivityKind.Consumer), 5000)
             .AddSource(sourceName)
             .Build();
@@ -43,17 +29,17 @@ public class AutoFlushActivityProcessorTests
         Assert.NotNull(activity);
         activity.Stop();
 
-        mockExporting.Protected().Verify("OnForceFlush", Times.Once(), 5_000);
+        Assert.True(activityProcessor.ForceFlushCalled);
     }
 
     [Fact]
     public void AutoFlushActivityProcessor_FlushAfterLocalServerSideRootSpans_EndNonMatchingSpan_DoesNothing()
     {
-        var mockExporting = new Mock<BaseProcessor<Activity>>();
+        var activityProcessor = new TestActivityProcessor();
         var sourceName = GetTestMethodName();
 
         using var provider = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(mockExporting.Object)
+            .AddProcessor(activityProcessor)
             .AddAutoFlushActivityProcessor(a => a.Parent == null && (a.Kind == ActivityKind.Server || a.Kind == ActivityKind.Consumer))
             .AddSource(sourceName)
             .Build();
@@ -63,17 +49,17 @@ public class AutoFlushActivityProcessorTests
         Assert.NotNull(activity);
         activity.Stop();
 
-        mockExporting.Protected().Verify("OnForceFlush", Times.Never(), It.IsAny<int>());
+        Assert.False(activityProcessor.ForceFlushCalled);
     }
 
     [Fact]
     public void AutoFlushActivityProcessor_PredicateThrows_DoesNothing()
     {
-        var mockExporting = new Mock<BaseProcessor<Activity>>();
+        var activityProcessor = new TestActivityProcessor();
         var sourceName = GetTestMethodName();
 
         using var provider = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(mockExporting.Object)
+            .AddProcessor(activityProcessor)
             .AddAutoFlushActivityProcessor(_ => throw new Exception("Predicate throws an exception."))
             .AddSource(sourceName)
             .Build();
@@ -83,7 +69,7 @@ public class AutoFlushActivityProcessorTests
         Assert.NotNull(activity);
         activity.Stop();
 
-        mockExporting.Protected().Verify("OnForceFlush", Times.Never(), 5_000);
+        Assert.False(activityProcessor.ForceFlushCalled);
     }
 
     private static string GetTestMethodName([CallerMemberName] string callingMethodName = "")

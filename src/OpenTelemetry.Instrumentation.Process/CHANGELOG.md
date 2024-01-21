@@ -2,8 +2,12 @@
 
 ## Unreleased
 
-* Update OpenTelemetry API to 1.6.0
-  ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
+## 0.5.0-beta.4
+
+Released 2024-Jan-03
+
+* Update `OpenTelemetry.Api` to `1.7.0`.
+  ([#1486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1486))
 
 ## 0.5.0-beta.3
 
@@ -23,7 +27,7 @@ Released 2023-Feb-27
 
 Released 2023-Feb-17
 
-> **Note**
+> [!NOTE]
 > The version number was lowered from 1.0.0 to 0.5.0 to better reflect the
 experimental state of Opentelemetry process metrics specification status.
 Packages that were older than this release will be delisted to avoid confusion.

@@ -1,18 +1,5 @@
-// <copyright file="TldTraceExporter.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
+// SPDX-License-Identifier: Apache-2.0
 
 using System;
 using System.Collections.Generic;
@@ -54,7 +41,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
 
     private readonly string partAName = "Span";
     private readonly byte partAFieldsCount = 3; // At least three fields: time, ext_dt_traceId, ext_dt_spanId
-    private readonly Dictionary<string, object> m_customFields;
+    private readonly HashSet<string> m_customFields;
     private readonly Tuple<byte[], byte[]> repeatedPartAFields;
 
     private readonly EventProvider eventProvider;
@@ -78,18 +65,19 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
         // TODO: Validate custom fields (reserved name? etc).
         if (options.CustomFields != null)
         {
-            var customFields = new Dictionary<string, object>(StringComparer.Ordinal);
+            var customFields = new HashSet<string>(StringComparer.Ordinal);
 
             // Seed customFields with Span PartB
-            customFields["azureResourceProvider"] = true;
+            customFields.Add("azureResourceProvider");
+
             foreach (var name in CS40_PART_B_MAPPING.Values)
             {
-                customFields[name] = true;
+                customFields.Add(name);
             }
 
             foreach (var name in options.CustomFields)
             {
-                customFields[name] = true;
+                customFields.Add(name);
             }
 
             this.m_customFields = customFields;
@@ -281,7 +269,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
                 statusDescription = Convert.ToString(entry.Value, CultureInfo.InvariantCulture);
                 continue;
             }
-            else if (this.m_customFields == null || this.m_customFields.ContainsKey(entry.Key))
+            else if (this.m_customFields == null || this.m_customFields.Contains(entry.Key))
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
                 kvpArrayForPartCFields[partCFieldsCountFromTags] = new(entry.Key, entry.Value);
