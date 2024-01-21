@@ -62,18 +62,20 @@ public static class TracerProviderBuilderExtensions
     /// Enables automatic data collection of outgoing requests to Redis.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="name">Optional name which is used when retrieving options.</param>
     /// <param name="serviceKey">Optional service key used to retrieve the <see cref="IConnectionMultiplexer"/> to instrument from the <see cref="IServiceProvider" />.</param>
     /// <param name="configure">Callback to configure options.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddRedisInstrumentation(
         this TracerProviderBuilder builder,
+        string? name,
         object serviceKey,
         Action<StackExchangeRedisInstrumentationOptions> configure)
     {
         Guard.ThrowIfNull(serviceKey);
         Guard.ThrowIfNull(configure);
 
-        return AddRedisInstrumentation(builder, name: null, connection: null, configure, serviceKey);
+        return AddRedisInstrumentation(builder, name: name, connection: null, configure, serviceKey);
     }
 
     /// <summary>
@@ -161,7 +163,7 @@ public static class TracerProviderBuilderExtensions
 #else
                 connection ??= serviceKey == null
                     ? sp.GetService<IConnectionMultiplexer>()
-                    : throw new InvalidOperationException();
+                    : throw new InvalidOperationException("Redis instrumentation with service key is supported in .NET 8.0 and above.");
 #endif
                 if (connection != null)
                 {
