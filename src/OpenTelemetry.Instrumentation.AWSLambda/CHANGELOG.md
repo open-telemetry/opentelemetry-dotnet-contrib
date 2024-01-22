@@ -10,7 +10,7 @@
   new warnings.
   ([#1295](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1295))
 * BREAKING: Target `net6.0` instead of `netstandard2.0`
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#1545](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1545))
 
 ## 1.2.0-beta.1
 
