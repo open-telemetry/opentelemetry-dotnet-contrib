@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Updated dependency on AWS .NET SDK to version 3.7.300.
+  ([#1542](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1542))
+
 ## 1.1.0-beta.2
 
 Released 2023-Dec-01
