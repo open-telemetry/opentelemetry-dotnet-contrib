@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 1.0.0-beta.5
+## 1.0.0-beta.6
 
 Released 2024-Jan-22
 
