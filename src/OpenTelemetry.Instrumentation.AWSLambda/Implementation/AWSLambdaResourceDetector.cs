@@ -19,17 +19,17 @@ internal sealed class AWSLambdaResourceDetector : IResourceDetector
             new(AWSLambdaSemanticConventions.AttributeCloudProvider, AWSLambdaUtils.GetCloudProvider()),
         };
 
-        if (AWSLambdaUtils.GetAWSRegion() is { Length: > 0 } region)
+        if (AWSLambdaUtils.GetAWSRegion() is { } region)
         {
             resourceAttributes.Add(new(AWSLambdaSemanticConventions.AttributeCloudRegion, region));
         }
 
-        if (AWSLambdaUtils.GetFunctionName() is { Length: > 0 } functionName)
+        if (AWSLambdaUtils.GetFunctionName() is { } functionName)
         {
             resourceAttributes.Add(new(AWSLambdaSemanticConventions.AttributeFaasName, functionName));
         }
 
-        if (AWSLambdaUtils.GetFunctionVersion() is { Length: > 0 } functionVersion)
+        if (AWSLambdaUtils.GetFunctionVersion() is { } functionVersion)
         {
             resourceAttributes.Add(new(AWSLambdaSemanticConventions.AttributeFaasVersion, functionVersion));
         }
