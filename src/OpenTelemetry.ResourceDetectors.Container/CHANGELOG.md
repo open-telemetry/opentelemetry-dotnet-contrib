@@ -2,9 +2,8 @@
 
 ## Unreleased
 
-* Changed .NET Targeted Frameworks to .Net's Minimum Supported Version.
+* Changed .NET Targeted Frameworks to .Net's Minimum Supported Version. Instead of .Net Framework 4.6.2 and .Net Standard 2.0 targeted assemblies, only .Net 6.0 targeted assembly will be provided.
   ([#1536](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1536))
-
 
 ## 1.0.0-beta.5
 

@@ -156,7 +156,7 @@ public class ContainerResourceDetector : IResourceDetector
                     {
                         containerId = GetIdFromLineV1(line);
                     }
-                    else if (cgroupVersion == ParseMode.V2 && line.Contains(Hostname))
+                    else if (cgroupVersion == ParseMode.V2 && line.Contains(Hostname, StringComparison.Ordinal))
                     {
                         containerId = GetIdFromLineV2(line);
                     }
