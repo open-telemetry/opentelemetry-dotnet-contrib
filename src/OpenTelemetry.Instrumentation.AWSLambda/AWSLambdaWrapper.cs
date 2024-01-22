@@ -21,7 +21,7 @@ public static class AWSLambdaWrapper
 {
     internal const string ActivitySourceName = "OpenTelemetry.Instrumentation.AWSLambda";
 
-    private static readonly string Version = typeof(AWSLambdaWrapper).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()!.Version;
+    private static readonly string Version = typeof(AWSLambdaWrapper).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion.Split('+')[0];
     private static readonly ActivitySource AWSLambdaActivitySource = new(ActivitySourceName, Version);
 
     /// <summary>
