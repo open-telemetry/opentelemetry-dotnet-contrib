@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -20,13 +19,10 @@ namespace OpenTelemetry.Instrumentation.AWSLambda;
 /// </summary>
 public static class AWSLambdaWrapper
 {
-    private static readonly AssemblyName AssemblyName = typeof(AWSLambdaWrapper).Assembly.GetName();
+    internal const string ActivitySourceName = "OpenTelemetry.Instrumentation.AWSLambda";
 
-    [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1202:ElementsMustBeOrderedByAccess", Justification = "Initialization order.")]
-    internal static readonly string? ActivitySourceName = AssemblyName.Name;
-
-    private static readonly Version? Version = AssemblyName.Version;
-    private static readonly ActivitySource AWSLambdaActivitySource = new(ActivitySourceName ?? "OpenTelemetry.Instrumentation.AWSLambda", Version?.ToString());
+    private static readonly string Version = typeof(AWSLambdaWrapper).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()!.Version;
+    private static readonly ActivitySource AWSLambdaActivitySource = new(ActivitySourceName, Version);
 
     /// <summary>
     /// Gets or sets a value indicating whether AWS X-Ray propagation should be ignored. Default value is false.
