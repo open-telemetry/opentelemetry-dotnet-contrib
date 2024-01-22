@@ -8,7 +8,7 @@ Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main
 which instruments [ASP.NET](https://docs.microsoft.com/aspnet/overview) and
 collect metrics and traces about incoming web requests.
 
-> **Note**
+> [!NOTE]
 > This component is based on the OpenTelemetry semantic conventions for
 [metrics](https://github.com/open-telemetry/opentelemetry-specification/tree/main/specification/metrics/semantic_conventions)
 and
@@ -126,7 +126,7 @@ Currently, the instrumentation supports the following metric.
 
 | Name  | Instrument Type | Unit | Description |
 |-------|-----------------|------|-------------|
-| `http.server.duration` | Histogram | `ms` | Measures the duration of inbound HTTP requests. |
+| `http.server.request.duration` | Histogram | `s` | Duration of HTTP server requests. |
 
 ## Advanced trace configuration
 

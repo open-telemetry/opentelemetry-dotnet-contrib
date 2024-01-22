@@ -4,6 +4,13 @@
 
 * Update OpenTelemetry SDK version to `1.7.0`.
   ([#1486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1486))
+* Add support of a native "gRPC for .NET" for apps targeting .NET 6.0 or later.
+  ([#1414](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1414))
+  1. Add support net8.0, net6.0 as target frameworks.
+  2. Remove support of netstandard2.0.
+  3. Update Google Cloud libraries:
+     1. Google.Cloud.Monitoring.V3 2.6.0 -> 3.4.0
+     2. Google.Cloud.Trace.V2 2.3.0 -> 3.3.0
 
 ## 1.0.0-beta.4
 

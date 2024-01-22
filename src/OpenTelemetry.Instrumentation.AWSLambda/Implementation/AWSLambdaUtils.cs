@@ -86,17 +86,17 @@ internal static class AWSLambdaUtils
         return CloudProvider;
     }
 
-    internal static string GetAWSRegion()
+    internal static string? GetAWSRegion()
     {
         return Environment.GetEnvironmentVariable(AWSRegion);
     }
 
-    internal static string GetFunctionName(ILambdaContext? context = null)
+    internal static string? GetFunctionName(ILambdaContext? context = null)
     {
         return context?.FunctionName ?? Environment.GetEnvironmentVariable(FunctionName);
     }
 
-    internal static string GetFunctionVersion()
+    internal static string? GetFunctionVersion()
     {
         return Environment.GetEnvironmentVariable(FunctionVersion);
     }
