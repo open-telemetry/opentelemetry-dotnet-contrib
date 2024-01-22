@@ -14,5 +14,5 @@ internal static class OwinInstrumentationMetrics
 
     public static Meter Instance => new Meter(MeterName, AssemblyName.Version.ToString());
 
-    public static Histogram<double> HttpServerDuration => Instance.CreateHistogram<double>("http.server.request.duration", "s", "Measures the duration of inbound HTTP requests.");
+    public static Histogram<double> HttpServerDuration => Instance.CreateHistogram<double>("http.server.request.duration", "s", "Duration of HTTP server requests.");
 }

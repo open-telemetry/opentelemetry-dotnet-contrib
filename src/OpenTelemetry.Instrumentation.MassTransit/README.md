@@ -9,7 +9,8 @@ events emitted by [MassTransit](https://masstransit-project.com/) library.
 
 ## Deprecated
 
-> **NOTE that this only works with MassTransit v7 (and earlier, where supported)**.
+> [!IMPORTANT]
+> **This only works with MassTransit v7 (and earlier, where supported)**.
 > MassTransit v8.0.0 and later have built-in direct support for Open Telemetry
 > via `ActivitySource`.
 

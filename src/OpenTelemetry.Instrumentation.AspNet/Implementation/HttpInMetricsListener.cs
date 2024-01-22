@@ -21,7 +21,7 @@ internal sealed class HttpInMetricsListener : IDisposable
         this.httpServerDuration = meter.CreateHistogram<double>(
             "http.server.request.duration",
             unit: "s",
-            description: "Measures the duration of inbound HTTP requests.");
+            description: "Duration of HTTP server requests.");
         TelemetryHttpModule.Options.OnRequestStoppedCallback += this.OnStopActivity;
         this.options = options;
     }

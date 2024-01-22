@@ -46,7 +46,7 @@ internal static class ActivityExtensions
             EndTime = activity.StartTimeUtc.Add(activity.Duration).ToTimestamp(),
             ChildSpanCount = null,
         };
-        if (activity.ParentSpanId != null)
+        if (activity.ParentSpanId != default)
         {
             var parentSpanId = activity.ParentSpanId.ToHexString();
             if (!string.IsNullOrEmpty(parentSpanId))

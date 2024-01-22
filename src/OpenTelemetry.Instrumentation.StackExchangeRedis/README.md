@@ -9,7 +9,7 @@ which instruments
 [StackExchange.Redis](https://www.nuget.org/packages/StackExchange.Redis/)
 and collects traces about outgoing calls to Redis.
 
-> **Note**
+> [!NOTE]
 > This component is based on the OpenTelemetry semantic conventions for
 [traces](https://github.com/open-telemetry/opentelemetry-specification/tree/main/specification/trace/semantic_conventions).
 These conventions are
