@@ -9,6 +9,8 @@
   If null state analysis is enabled in your depending project, you may encounter
   new warnings.
   ([#1295](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1295))
+* BREAKING: Target `net6.0` instead of `netstandard2.0`
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
 
 ## 1.2.0-beta.1
 
