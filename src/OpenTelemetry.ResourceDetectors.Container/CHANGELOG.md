@@ -4,6 +4,13 @@
 
 ## 1.0.0-beta.5
 
+Released 2024-Jan-22
+
+* Changed .NET Targeted Frameworks to .Net's Minimum Supported Version.
+  ([#1536](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1536))
+
+## 1.0.0-beta.5
+
 Released 2024-Jan-03
 
 * Update OpenTelemetry SDK version to `1.7.0`.
