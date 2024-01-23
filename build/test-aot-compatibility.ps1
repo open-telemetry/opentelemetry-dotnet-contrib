@@ -23,6 +23,7 @@ $expectedWarningCount = 0
 if ($LastExitCode -ne 0)
 {
     Write-Host "There was an error while publishing AotCompatibility Test App. LastExitCode is:", $LastExitCode
+    Write-Host $publishOutput
 }
 
 pushd $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/bin/Release/$targetNetFramework/$runtime
