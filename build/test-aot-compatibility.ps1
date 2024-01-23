@@ -26,7 +26,7 @@ if ($LastExitCode -ne 0)
     Write-Host $publishOutput
 }
 
-pushd $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/bin/Release/$targetNetFramework/$runtime
+Push-Location $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/bin/Release/$targetNetFramework/$runtime
 
 Write-Host "Executing test App..."
 $app
@@ -37,7 +37,7 @@ if ($LastExitCode -ne 0)
   Write-Host "There was an error while executing AotCompatibility Test App. LastExitCode is:", $LastExitCode
 }
 
-popd
+Pop-Location
 
 $testPassed = 0
 if ($actualWarningCount -ne $expectedWarningCount)
