@@ -130,14 +130,14 @@ internal class AWSTracingPipelineHandler : PipelineHandler
 
     private static void AddRequestSpecificInformation(Activity activity, IRequestContext requestContext, string service)
     {
-        if (AWSServiceHelper.ServiceParameterMap.TryGetValue(service, out string parameter))
+        if (AWSServiceHelper.ServiceParameterMap.TryGetValue(service, out var parameter))
         {
             AmazonWebServiceRequest request = requestContext.OriginalRequest;
 
             var property = request.GetType().GetProperty(parameter);
             if (property != null)
             {
-                if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out string attribute))
+                if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
                 {
                     activity.SetTag(attribute, property.GetValue(request));
                 }
@@ -176,7 +176,7 @@ internal class AWSTracingPipelineHandler : PipelineHandler
         else
         {
             var request_headers = requestContext.Request.Headers;
-            if (string.IsNullOrEmpty(request_id) && request_headers.TryGetValue("x-amzn-RequestId", out string req_id))
+            if (string.IsNullOrEmpty(request_id) && request_headers.TryGetValue("x-amzn-RequestId", out var req_id))
             {
                 request_id = req_id;
             }
