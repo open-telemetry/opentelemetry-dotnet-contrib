@@ -8,7 +8,7 @@ using OpenTelemetry.Internal;
 namespace OpenTelemetry.ResourceDetectors.AWS;
 
 [EventSource(Name = "OpenTelemetry-ResourceDetectors-AWS")]
-internal class AWSResourcesEventSource : EventSource
+internal sealed class AWSResourcesEventSource : EventSource
 {
     public static AWSResourcesEventSource Log = new();
 

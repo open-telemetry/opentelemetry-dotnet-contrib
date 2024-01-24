@@ -16,7 +16,7 @@ namespace OpenTelemetry.ResourceDetectors.AWS;
 /// <summary>
 /// Resource detector for application running in AWS EKS.
 /// </summary>
-public class AWSEKSResourceDetector : IResourceDetector
+public sealed class AWSEKSResourceDetector : IResourceDetector
 {
     private const string AWSEKSCertificatePath = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt";
     private const string AWSEKSCredentialPath = "/var/run/secrets/kubernetes.io/serviceaccount/token";
@@ -116,7 +116,11 @@ public class AWSEKSResourceDetector : IResourceDetector
 
     internal static AWSEKSClusterInformationModel? DeserializeResponse(string response)
     {
+#if NET6_0_OR_GREATER
+        return ResourceDetectorUtils.DeserializeFromString(response, SourceGenerationContext.Default.AWSEKSClusterInformationModel);
+#else
         return ResourceDetectorUtils.DeserializeFromString<AWSEKSClusterInformationModel>(response);
+#endif
     }
 
     private static string? GetEKSClusterName(string credentials, HttpClientHandler? httpClientHandler)

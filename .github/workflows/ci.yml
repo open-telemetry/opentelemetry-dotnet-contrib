@@ -21,8 +21,10 @@ jobs:
           build: ['build/**', '.github/**/*.yml', '!.github/workflows/package-*']
           shared: ['src/Shared/**']
           code: ['**.cs', '.editorconfig']
+          aot: ['src/OpenTelemetry.Extensions.Enrichment/**']
           aottestapp: ['test/OpenTelemetry.AotCompatibility.TestApp/**']
           aspnet: ['*/OpenTelemetry.Instrumentation.AspNet*/**', 'examples/AspNet/**', '!**/*.md']
+          aws: ['*/OpenTelemetry.*.AWS*/**', '!**/*.md']
           azure: ['*/OpenTelemetry.ResourceDetectors.Azure*/**', '!**/*.md']
           eventcounters: ['*/OpenTelemetry.Instrumentation.EventCounters*/**', 'examples/event-counters/**', '!**/*.md']
           extensions: ['*/OpenTelemetry.Extensions/**', '*/OpenTelemetry.Extensions.Tests/**', '!**/*.md']
@@ -35,6 +37,7 @@ jobs:
           processdetector: ['*/OpenTelemetry.ResourceDetectors.Process/**', '*/OpenTelemetry.ResourceDetectors.Process.Tests/**', '!**/*.md']
           processruntime: ['*/OpenTelemetry.ResourceDetectors.ProcessRuntime/**', '*/OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests/**', '!**/*.md']
           redis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**/*.md']
+          resourcedetectors: ['*/OpenTelemetry.ResourceDetectors.*/**', '!**/*.md']
           runtime: ['*/OpenTelemetry.Instrumentation.Runtime*/**', 'examples/runtime-instrumentation/**', '!**/*.md']
           wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**/*.md']
           solution: [
@@ -343,10 +346,14 @@ jobs:
     if: |
       contains(needs.detect-changes.outputs.changes, 'eventcounters')
       || contains(needs.detect-changes.outputs.changes, 'runtime')
+      || contains(needs.detect-changes.outputs.changes, 'aws')
       || contains(needs.detect-changes.outputs.changes, 'azure')
+      || contains(needs.detect-changes.outputs.changes, 'extensions')
       || contains(needs.detect-changes.outputs.changes, 'host')
       || contains(needs.detect-changes.outputs.changes, 'processdetector')
       || contains(needs.detect-changes.outputs.changes, 'processruntime')
+      || contains(needs.detect-changes.outputs.changes, 'resourcedetectors')
+      || contains(needs.detect-changes.outputs.changes, 'aot')
       || contains(needs.detect-changes.outputs.changes, 'aottestapp')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'redis')

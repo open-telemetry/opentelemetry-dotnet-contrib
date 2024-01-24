@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
@@ -13,10 +14,9 @@ namespace OpenTelemetry.Instrumentation.AWS.Tests;
 
 internal class TestRequestContext(AmazonWebServiceRequest originalRequest, IRequest request) : IRequestContext
 {
-    private readonly AmazonWebServiceRequest originalRequest = originalRequest;
     private IRequest request = request;
 
-    public AmazonWebServiceRequest OriginalRequest => this.originalRequest;
+    public AmazonWebServiceRequest OriginalRequest { get; set; } = originalRequest;
 
     public string RequestName => throw new NotImplementedException();
 
@@ -59,4 +59,6 @@ internal class TestRequestContext(AmazonWebServiceRequest originalRequest, IRequ
     public bool IsLastExceptionRetryable { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
     public Guid InvocationId => throw new NotImplementedException();
+
+    public IDictionary<string, object> ContextAttributes { get; } = new Dictionary<string, object>();
 }

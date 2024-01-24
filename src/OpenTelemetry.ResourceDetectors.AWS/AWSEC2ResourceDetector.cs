@@ -11,7 +11,7 @@ namespace OpenTelemetry.ResourceDetectors.AWS;
 /// <summary>
 /// Resource detector for application running on AWS EC2 instance.
 /// </summary>
-public class AWSEC2ResourceDetector : IResourceDetector
+public sealed class AWSEC2ResourceDetector : IResourceDetector
 {
     private const string AWSEC2MetadataTokenTTLHeader = "X-aws-ec2-metadata-token-ttl-seconds";
     private const string AWSEC2MetadataTokenHeader = "X-aws-ec2-metadata-token";
@@ -83,7 +83,11 @@ public class AWSEC2ResourceDetector : IResourceDetector
 
     internal static AWSEC2IdentityDocumentModel? DeserializeResponse(string response)
     {
+#if NET6_0_OR_GREATER
+        return ResourceDetectorUtils.DeserializeFromString(response, SourceGenerationContext.Default.AWSEC2IdentityDocumentModel);
+#else
         return ResourceDetectorUtils.DeserializeFromString<AWSEC2IdentityDocumentModel>(response);
+#endif
     }
 
     private static string GetAWSEC2Token()

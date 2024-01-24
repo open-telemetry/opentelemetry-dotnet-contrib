@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace OpenTelemetry.ResourceDetectors.AWS.Models;
 
-internal class AWSEKSClusterDataModel
+internal sealed class AWSEKSClusterDataModel
 {
     [JsonPropertyName("cluster.name")]
     public string? ClusterName { get; set; }
