@@ -7,9 +7,9 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 
 internal class AWSServiceType
 {
-    internal const string DynamoDbService = "DynamoDBv2";
+    internal const string DynamoDbService = "DynamoDB";
     internal const string SQSService = "SQS";
-    internal const string SNSService = "SimpleNotificationService"; // SNS
+    internal const string SNSService = "SNS";
 
     internal static bool IsDynamoDbService(string service)
         => DynamoDbService.Equals(service, StringComparison.OrdinalIgnoreCase);

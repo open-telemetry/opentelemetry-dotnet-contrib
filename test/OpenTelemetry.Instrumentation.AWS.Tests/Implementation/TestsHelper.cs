@@ -14,6 +14,12 @@ namespace OpenTelemetry.Instrumentation.AWS.Tests.Implementation;
 
 internal static class TestsHelper
 {
+    /// <summary>
+    /// Returns either <see cref="SqsRequestContextHelper.AddAttributes"/> or <see cref="SnsRequestContextHelper.AddAttributes"/>
+    /// depending on <paramref name="serviceType"/>.
+    /// <para />
+    /// This is meant to mimic thee logic in <see cref="AWSTracingPipelineHandler.AddRequestSpecificInformation"/>.
+    /// </summary>
     internal static Action<IRequestContext, IReadOnlyDictionary<string, string>>? CreateAddAttributesAction(string serviceType, IRequestContext context)
     {
         return serviceType switch
@@ -96,23 +102,23 @@ internal static class TestsHelper
         }
     }
 
-    internal static void AssertStringParameters(string serviceType, List<KeyValuePair<string, string>> expectedParameters, ParameterCollection parameters)
+    internal static void AssertMessageParameters(List<KeyValuePair<string, string>> expectedParameters, SQS.SendMessageRequest request)
     {
-        Assert.Equal(expectedParameters.Count * 3, parameters.Count);
-
-        for (int i = 0; i < expectedParameters.Count; i++)
+        foreach (var kvp in expectedParameters)
         {
-            var prefix = $"{GetNamePrefix(serviceType)}.{i + 1}";
-            static string? Value(ParameterValue p) => (p as StringParameterValue)?.Value;
+            Assert.True(request.MessageAttributes.ContainsKey(kvp.Key));
 
-            Assert.True(parameters.ContainsKey($"{prefix}.Name"));
-            Assert.Equal(expectedParameters[i].Key, Value(parameters[$"{prefix}.Name"]));
+            Assert.Equal(kvp.Value, request.MessageAttributes[kvp.Key].StringValue);
+        }
+    }
 
-            Assert.True(parameters.ContainsKey($"{prefix}.Value.DataType"));
-            Assert.Equal("String", Value(parameters[$"{prefix}.Value.DataType"]));
+    internal static void AssertMessageParameters(List<KeyValuePair<string, string>> expectedParameters, SNS.PublishRequest request)
+    {
+        foreach (var kvp in expectedParameters)
+        {
+            Assert.True(request.MessageAttributes.ContainsKey(kvp.Key));
 
-            Assert.True(parameters.ContainsKey($"{prefix}.Value.StringValue"));
-            Assert.Equal(expectedParameters[i].Value, Value(parameters[$"{prefix}.Value.StringValue"]));
+            Assert.Equal(kvp.Value, request.MessageAttributes[kvp.Key].StringValue);
         }
     }
 
