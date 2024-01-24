@@ -18,13 +18,13 @@ internal class AWSTracingPipelineHandler : PipelineHandler
 {
     internal const string ActivitySourceName = "Amazon.AWS.AWSClientInstrumentation";
 
-    private static readonly AWSXRayPropagator AwsPropagator = new AWSXRayPropagator();
+    private static readonly AWSXRayPropagator AwsPropagator = new();
     private static readonly Action<IDictionary<string, string>, string, string> Setter = (carrier, name, value) =>
     {
         carrier[name] = value;
     };
 
-    private static readonly ActivitySource AWSSDKActivitySource = new ActivitySource(ActivitySourceName);
+    private static readonly ActivitySource AWSSDKActivitySource = new(ActivitySourceName);
 
     private readonly AWSClientInstrumentationOptions options;
 
