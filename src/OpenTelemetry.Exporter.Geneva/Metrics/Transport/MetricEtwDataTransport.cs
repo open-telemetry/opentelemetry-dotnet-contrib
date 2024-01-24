@@ -66,7 +66,7 @@ internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
     /// Unit tests will check the value of IsDisposed to verify it's not called
     /// by mistake.
     /// </summary>
-    public void Dispose()
+    public new void Dispose()
     {
         if (this.IsDisposed)
         {
