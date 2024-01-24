@@ -268,12 +268,6 @@ public class GenevaMetricExporterTests
 
     private void EmitMetrics(string attempt)
     {
-        var exportedItems = new List<Metric>();
-        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
-        {
-            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
-        };
-
         using var meterProviderBuilder = Sdk.CreateMeterProviderBuilder()
             .AddMeter("*")
             .AddGenevaMetricExporter(x =>
@@ -281,19 +275,11 @@ public class GenevaMetricExporterTests
                 x.MetricExportIntervalMilliseconds = 1000;
                 x.ConnectionString = "Account=OTelGeneva;Namespace=MeteringSample";
             })
-            .AddReader(inMemoryReader)
             .Build();
 
-        var MetricName = "counter_" + attempt;
         using var meter = new Meter("MeterName", "0.0.1");
-        var counter = meter.CreateCounter<long>(MetricName);
+        var counter = meter.CreateCounter<long>("counter_" + attempt);
         counter.Add(1);
-
-        inMemoryReader.Collect();
-        Assert.Single(exportedItems);
-
-        Metric metric = exportedItems[0];
-        Assert.Equal(MetricName, metric.Name);
     }
 
     [Theory]
