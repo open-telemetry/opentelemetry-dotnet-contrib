@@ -128,19 +128,33 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         }
     }
 
+#if NET6_0_OR_GREATER
+    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2075",
+        Justification = "The reflected properties were already used by the AWS SDK's marshallers so the properties could not have been trimmed.")]
+#endif
     private static void AddRequestSpecificInformation(Activity activity, IRequestContext requestContext, string service)
     {
         if (AWSServiceHelper.ServiceParameterMap.TryGetValue(service, out var parameter))
         {
             AmazonWebServiceRequest request = requestContext.OriginalRequest;
 
-            var property = request.GetType().GetProperty(parameter);
-            if (property != null)
+            try
             {
-                if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
+                var property = request.GetType().GetProperty(parameter);
+                if (property != null)
                 {
-                    activity.SetTag(attribute, property.GetValue(request));
+                    if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
+                    {
+                        activity.SetTag(attribute, property.GetValue(request));
+                    }
                 }
+            }
+            catch (Exception)
+            {
+                // Guard against any reflection-related exceptions when running in AoT.
+                // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1543#issuecomment-1907667722.
             }
         }
 
