@@ -14,7 +14,7 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 
-internal class AWSTracingPipelineHandler : PipelineHandler
+internal sealed class AWSTracingPipelineHandler : PipelineHandler
 {
     internal const string ActivitySourceName = "Amazon.AWS.AWSClientInstrumentation";
 
