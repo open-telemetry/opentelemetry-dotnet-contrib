@@ -251,6 +251,51 @@ public class GenevaMetricExporterTests
         }
     }
 
+    [Fact]
+    public void MultipleCallsOnWindowsReusesSingletonEtwDataTransport()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            var singleton = MetricEtwDataTransport.Shared;
+            this.EmitMetrics("one");
+            Assert.Equal(singleton, MetricEtwDataTransport.Shared);
+            Assert.False(MetricEtwDataTransport.Shared.IsDisposed);
+            this.EmitMetrics("two");
+            Assert.Equal(singleton, MetricEtwDataTransport.Shared);
+            Assert.False(MetricEtwDataTransport.Shared.IsDisposed);
+        }
+    }
+
+    private void EmitMetrics(string attempt)
+    {
+        var exportedItems = new List<Metric>();
+        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+        {
+            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+        };
+
+        using var meterProviderBuilder = Sdk.CreateMeterProviderBuilder()
+            .AddMeter("*")
+            .AddGenevaMetricExporter(x =>
+            {
+                x.MetricExportIntervalMilliseconds = 1000;
+                x.ConnectionString = "Account=OTelGeneva;Namespace=MeteringSample";
+            })
+            .AddReader(inMemoryReader)
+            .Build();
+
+        var MetricName = "counter_" + attempt;
+        using var meter = new Meter("MeterName", "0.0.1");
+        var counter = meter.CreateCounter<long>(MetricName);
+        counter.Add(1);
+
+        inMemoryReader.Collect();
+        Assert.Single(exportedItems);
+
+        Metric metric = exportedItems[0];
+        Assert.Equal(MetricName, metric.Name);
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]

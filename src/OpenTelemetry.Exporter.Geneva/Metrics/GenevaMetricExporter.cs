@@ -268,6 +268,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         {
             try
             {
+                // Skip disposing the singleton ETW transport on Windows.
+                // On Unix, Unix Domain Socket is used and should be disposed.
                 if (this.metricDataTransport != MetricEtwDataTransport.Shared)
                 {
                     this.metricDataTransport.Dispose();

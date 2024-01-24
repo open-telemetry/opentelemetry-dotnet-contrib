@@ -10,6 +10,7 @@ namespace OpenTelemetry.Exporter.Geneva;
 internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
 {
     private readonly int fixedPayloadEndIndex;
+    internal bool IsDisposed;  // This is only for Test purposes.
 
     static MetricEtwDataTransport()
     {
@@ -56,5 +57,23 @@ internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
     [Event((int)MetricEventType.TLV)]
     private void TLVMetricEvent()
     {
+    }
+
+    /// <summary>
+    /// Disposes the object. This is only for Test purposes.
+    /// This should NOT be called during the lifetime of the thread because it
+    /// is a singleton instance.
+    /// Unit tests will check the value of IsDisposed to verify it's not called
+    /// by mistake.
+    /// </summary>
+    public void Dispose()
+    {
+        if (this.IsDisposed)
+        {
+            return;
+        }
+
+        base.Dispose();
+        this.IsDisposed = true;
     }
 }
