@@ -14,10 +14,10 @@
       .github\workflows\ci.yml so that it runs for the project being added.
     -->
     <TrimmerRootAssembly Include="OpenTelemetry.Extensions" />
-    <TrimmerRootAssembly Include="OpenTelemetry.Extensions.AWS" />
     <TrimmerRootAssembly Include="OpenTelemetry.Extensions.Enrichment" />
-    <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.Runtime" />
+    <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.AWSLambda" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.EventCounters" />
+    <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.Runtime" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.StackExchangeRedis" />
     <TrimmerRootAssembly Include="OpenTelemetry.ResourceDetectors.AWS" />
     <TrimmerRootAssembly Include="OpenTelemetry.ResourceDetectors.Azure" />

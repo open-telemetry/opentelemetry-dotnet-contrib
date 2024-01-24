@@ -5,9 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.Json;
 using Amazon.Lambda.SNSEvents;
 using Amazon.Lambda.SQSEvents;
-using Newtonsoft.Json;
 using OpenTelemetry.Context.Propagation;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation;
@@ -132,7 +132,7 @@ internal class AWSMessagingUtils
         {
             try
             {
-                snsMessage = JsonConvert.DeserializeObject<SNSEvent.SNSMessage>(body);
+                snsMessage = JsonSerializer.Deserialize(body, SourceGenerationContext.Default.SNSMessage);
             }
             catch (Exception)
             {

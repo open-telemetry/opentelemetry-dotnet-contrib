@@ -11,6 +11,10 @@
   ([#1295](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1295))
 * BREAKING: Target `net6.0` instead of `netstandard2.0`
   ([#1545](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1545))
+* Add support for native AoT.
+  `Amazon.Lambda.*` NuGet package dependencies have been upgraded, see package
+  dependencies for details.
+  ([#1544](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1544))
 
 ## 1.2.0-beta.1
 
