@@ -61,8 +61,8 @@ internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
 
     /// <summary>
     /// Disposes the object. This is only for Test purposes.
-    /// This method should NOT be called as there should only be one instance of this class throughout the application's lifecycle.
-    /// is a singleton instance.
+    /// This method should NOT be called as there should only be one instance of
+    /// this class throughout the application's lifecycle.
     /// Unit tests will check the value of IsDisposed to verify it's not called
     /// by mistake.
     /// </summary>
