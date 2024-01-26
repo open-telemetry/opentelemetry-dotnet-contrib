@@ -38,7 +38,13 @@ internal class AWSXRaySamplerClient : IDisposable
 
             try
             {
-                GetSamplingRulesResponse? getSamplingRulesResponse = JsonSerializer.Deserialize<GetSamplingRulesResponse>(responseJson);
+                GetSamplingRulesResponse? getSamplingRulesResponse = JsonSerializer
+#if NET6_0_OR_GREATER
+                    .Deserialize(responseJson, SourceGenerationContext.Default.GetSamplingRulesResponse);
+#else
+                    .Deserialize<GetSamplingRulesResponse>(responseJson);
+#endif
+
                 if (getSamplingRulesResponse is not null)
                 {
                     if (getSamplingRulesResponse.SamplingRuleRecords is not null)
@@ -66,7 +72,14 @@ internal class AWSXRaySamplerClient : IDisposable
 
     public async Task<GetSamplingTargetsResponse?> GetSamplingTargets(GetSamplingTargetsRequest getSamplingTargetsRequest)
     {
-        var content = new StringContent(JsonSerializer.Serialize(getSamplingTargetsRequest), Encoding.UTF8, this.jsonContentType);
+        var json = JsonSerializer
+#if NET6_0_OR_GREATER
+            .Serialize(getSamplingTargetsRequest, SourceGenerationContext.Default.GetSamplingTargetsRequest);
+#else
+            .Serialize(getSamplingTargetsRequest);
+#endif
+
+        var content = new StringContent(json, Encoding.UTF8, this.jsonContentType);
 
         using var request = new HttpRequestMessage(HttpMethod.Post, this.getSamplingTargetsEndpoint)
         {
@@ -78,7 +91,11 @@ internal class AWSXRaySamplerClient : IDisposable
         try
         {
             GetSamplingTargetsResponse? getSamplingTargetsResponse = JsonSerializer
+#if NET6_0_OR_GREATER
+                .Deserialize(responseJson, SourceGenerationContext.Default.GetSamplingTargetsResponse);
+#else
                 .Deserialize<GetSamplingTargetsResponse>(responseJson);
+#endif
 
             return getSamplingTargetsResponse;
         }

@@ -116,7 +116,11 @@ public sealed class AWSEKSResourceDetector : IResourceDetector
 
     internal static AWSEKSClusterInformationModel? DeserializeResponse(string response)
     {
+#if NET6_0_OR_GREATER
+        return ResourceDetectorUtils.DeserializeFromString(response, SourceGenerationContext.Default.AWSEKSClusterInformationModel);
+#else
         return ResourceDetectorUtils.DeserializeFromString<AWSEKSClusterInformationModel>(response);
+#endif
     }
 
     private static string? GetEKSClusterName(string credentials, HttpClientHandler? httpClientHandler)

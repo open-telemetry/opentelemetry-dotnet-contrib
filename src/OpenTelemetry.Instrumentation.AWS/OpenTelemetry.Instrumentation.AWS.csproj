@@ -2,16 +2,16 @@
 
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>AWS client instrumentation for OpenTelemetry .NET</Description>
 	  <MinVerTagPrefix>Instrumentation.AWS-</MinVerTagPrefix>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.Core" Version="3.7.100" />
-    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.7.100" />
-    <PackageReference Include="AWSSDK.SQS" Version="3.7.100" />
+    <PackageReference Include="AWSSDK.Core" Version="3.7.300" />
+    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.7.300" />
+    <PackageReference Include="AWSSDK.SQS" Version="3.7.300" />
     <PackageReference Include="OpenTelemetry.Extensions.AWS" Version="1.3.0-beta.1" />
   </ItemGroup>
 

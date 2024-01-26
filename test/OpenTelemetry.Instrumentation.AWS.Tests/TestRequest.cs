@@ -6,8 +6,10 @@ using System.Collections.Generic;
 using System.IO;
 using Amazon;
 using Amazon.Runtime;
+using Amazon.Runtime.Endpoints;
 using Amazon.Runtime.Internal;
 using Amazon.Runtime.Internal.Auth;
+using Amazon.Runtime.Internal.Util;
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests;
 
@@ -80,6 +82,12 @@ internal class TestRequest(ParameterCollection parameters) : IRequest
     public IDictionary<string, string> TrailingHeaders => throw new NotImplementedException();
 
     public bool UseDoubleEncoding { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    public IPropertyBag EndpointAttributes { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    public CompressionEncodingAlgorithm CompressionAlgorithm { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    public ChecksumData ChecksumData { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
     public void AddPathResource(string key, string value)
     {

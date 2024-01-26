@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace OpenTelemetry.Sampler.AWS;
 
-internal class GetSamplingRulesResponse
+internal sealed class GetSamplingRulesResponse
 {
     [JsonPropertyName("NextToken")]
     public string? NextToken { get; set; }
