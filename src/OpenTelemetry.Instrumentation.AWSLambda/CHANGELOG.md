@@ -1,5 +1,7 @@
 # Changelog - OpenTelemetry.Instrumentation.AWSLambda
 
+## Unreleased
+
 ## 1.3.0-beta.1
 
 Released 2024-Jan-26

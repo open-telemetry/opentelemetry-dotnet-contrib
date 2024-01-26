@@ -1,5 +1,7 @@
 # Changelog
 
+## Unreleased
+
 ## 1.4.0-beta.1
 
 Released 2024-Jan-26
