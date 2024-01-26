@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
-using OpenTelemetry.ResourceDetectors.AWS.Http;
 using OpenTelemetry.ResourceDetectors.AWS.Models;
 using OpenTelemetry.Resources;
 
@@ -31,7 +30,7 @@ public sealed class AWSEKSResourceDetector : IResourceDetector
     public Resource Detect()
     {
         var credentials = GetEKSCredentials(AWSEKSCredentialPath);
-        using var httpClientHandler = Handler.Create(AWSEKSCertificatePath);
+        using var httpClientHandler = ServerCertificateValidationHandler.Create(AWSEKSCertificatePath);
 
         if (credentials == null || !IsEKSProcess(credentials, httpClientHandler))
         {
