@@ -1,6 +1,8 @@
 # Changelog - OpenTelemetry.Instrumentation.AWS
 
-## Unreleased
+## 1.1.0-beta.3
+
+Released 2024-Jan-26
 
 * Updated dependency on AWS .NET SDK to version 3.7.300.
   ([#1542](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1542))
