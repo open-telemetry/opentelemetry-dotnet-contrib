@@ -6,7 +6,7 @@ namespace OpenTelemetry.ResourceDetectors.AWS;
 internal static class AWSSemanticConventions
 {
     public const string AttributeCloudAccountID = "cloud.account.id";
-    public const string AttributeCloudAvailableZone = "cloud.availability_zone";
+    public const string AttributeCloudAvailabilityZone = "cloud.availability_zone";
     public const string AttributeCloudPlatform = "cloud.platform";
     public const string AttributeCloudProvider = "cloud.provider";
     public const string AttributeCloudRegion = "cloud.region";
