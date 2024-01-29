@@ -30,7 +30,8 @@ public sealed class AWSEKSResourceDetector : IResourceDetector
     public Resource Detect()
     {
         var credentials = GetEKSCredentials(AWSEKSCredentialPath);
-        using var httpClientHandler = ServerCertificateValidationHandler.Create(AWSEKSCertificatePath);
+        using var httpClientHandler = ServerCertificateValidationHandler.Create(
+            AWSEKSCertificatePath, AWSResourcesEventSource.Log.FailedToValidateCertificate, AWSResourcesEventSource.Log.FailedToExtractResourceAttributes);
 
         if (credentials == null || !IsEKSProcess(credentials, httpClientHandler))
         {

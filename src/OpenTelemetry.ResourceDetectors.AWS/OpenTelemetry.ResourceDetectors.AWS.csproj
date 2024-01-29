@@ -25,7 +25,6 @@
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\ServerCertificateValidationHandler.cs" Link="Includes\ServerCertificateValidationHandler.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\ServerCertificateValidationProvider.cs" Link="Includes\ServerCertificateValidationProvider.cs" />
-    <Compile Include="$(RepoRoot)\src\Shared\ServerCertificateValidationEventSource.cs" Link="Includes\ServerCertificateValidationEventSource.cs" />
   </ItemGroup>
 
 </Project>

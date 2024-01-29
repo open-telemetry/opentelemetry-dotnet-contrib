@@ -283,7 +283,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{1FCC8E
 		src\Shared\PropertyFetcher.cs = src\Shared\PropertyFetcher.cs
 		src\Shared\ResourceSemanticConventions.cs = src\Shared\ResourceSemanticConventions.cs
 		src\Shared\SemanticConventions.cs = src\Shared\SemanticConventions.cs
-		src\Shared\ServerCertificateValidationEventSource.cs = src\Shared\ServerCertificateValidationEventSource.cs
 		src\Shared\ServerCertificateValidationHandler.cs = src\Shared\ServerCertificateValidationHandler.cs
 		src\Shared\ServerCertificateValidationProvider.cs = src\Shared\ServerCertificateValidationProvider.cs
 		src\Shared\ServiceProviderExtensions.cs = src\Shared\ServiceProviderExtensions.cs

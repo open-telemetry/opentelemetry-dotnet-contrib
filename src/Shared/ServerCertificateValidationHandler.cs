@@ -11,15 +11,15 @@ namespace OpenTelemetry.ResourceDetectors;
 
 internal class ServerCertificateValidationHandler
 {
-    public static HttpClientHandler? Create(string certificateFile)
+    public static HttpClientHandler? Create(string certificateFile, Action<string, string>? logFailedToValidateCertificate = null, Action<string, string>? logFailedToExtractResourceAttributes = null)
     {
         try
         {
-            ServerCertificateValidationProvider? serverCertificateValidationProvider = ServerCertificateValidationProvider.FromCertificateFile(certificateFile);
+            ServerCertificateValidationProvider? serverCertificateValidationProvider = ServerCertificateValidationProvider.FromCertificateFile(certificateFile, logFailedToValidateCertificate);
 
             if (serverCertificateValidationProvider == null)
             {
-                ServerCertificateValidationEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationHandler), "Failed to Load the certificate file into trusted collection");
+                logFailedToValidateCertificate?.Invoke(nameof(ServerCertificateValidationHandler), "Failed to Load the certificate file into trusted collection");
                 return null;
             }
 
@@ -33,7 +33,7 @@ internal class ServerCertificateValidationHandler
         }
         catch (Exception ex)
         {
-            ServerCertificateValidationEventSource.Log.FailedToExtractResourceAttributes($"{nameof(ServerCertificateValidationHandler)} : Failed to create HttpClientHandler", ex.ToInvariantString());
+            logFailedToExtractResourceAttributes?.Invoke($"{nameof(ServerCertificateValidationHandler)} : Failed to create HttpClientHandler", ex.ToInvariantString());
         }
 
         return null;
