@@ -83,7 +83,11 @@ public sealed class AWSEC2ResourceDetector : IResourceDetector
 
     internal static AWSEC2IdentityDocumentModel? DeserializeResponse(string response)
     {
+#if NET6_0_OR_GREATER
+        return ResourceDetectorUtils.DeserializeFromString(response, SourceGenerationContext.Default.AWSEC2IdentityDocumentModel);
+#else
         return ResourceDetectorUtils.DeserializeFromString<AWSEC2IdentityDocumentModel>(response);
+#endif
     }
 
     private static string GetAWSEC2Token()

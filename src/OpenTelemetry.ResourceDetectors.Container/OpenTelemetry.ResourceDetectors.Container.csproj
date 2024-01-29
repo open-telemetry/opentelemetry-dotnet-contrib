@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
+    <TargetFrameworks>$(NetMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry Extensions - Container Resource Detector from Container environment.</Description>
     <MinVerTagPrefix>ResourceDetectors.Container-</MinVerTagPrefix>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>

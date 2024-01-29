@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace OpenTelemetry.Sampler.AWS;
 
-internal class GetSamplingTargetsResponse
+internal sealed class GetSamplingTargetsResponse
 {
     public GetSamplingTargetsResponse(
         double lastRuleModification,
