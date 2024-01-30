@@ -15,6 +15,7 @@
     -->
     <TrimmerRootAssembly Include="OpenTelemetry.Extensions" />
     <TrimmerRootAssembly Include="OpenTelemetry.Extensions.Enrichment" />
+    <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.AWS" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.AWSLambda" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.EventCounters" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.Runtime" />

@@ -14,17 +14,17 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 
-internal class AWSTracingPipelineHandler : PipelineHandler
+internal sealed class AWSTracingPipelineHandler : PipelineHandler
 {
     internal const string ActivitySourceName = "Amazon.AWS.AWSClientInstrumentation";
 
-    private static readonly AWSXRayPropagator AwsPropagator = new AWSXRayPropagator();
+    private static readonly AWSXRayPropagator AwsPropagator = new();
     private static readonly Action<IDictionary<string, string>, string, string> Setter = (carrier, name, value) =>
     {
         carrier[name] = value;
     };
 
-    private static readonly ActivitySource AWSSDKActivitySource = new ActivitySource(ActivitySourceName);
+    private static readonly ActivitySource AWSSDKActivitySource = new(ActivitySourceName);
 
     private readonly AWSClientInstrumentationOptions options;
 
@@ -128,19 +128,33 @@ internal class AWSTracingPipelineHandler : PipelineHandler
         }
     }
 
+#if NET6_0_OR_GREATER
+    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2075",
+        Justification = "The reflected properties were already used by the AWS SDK's marshallers so the properties could not have been trimmed.")]
+#endif
     private static void AddRequestSpecificInformation(Activity activity, IRequestContext requestContext, string service)
     {
-        if (AWSServiceHelper.ServiceParameterMap.TryGetValue(service, out string parameter))
+        if (AWSServiceHelper.ServiceParameterMap.TryGetValue(service, out var parameter))
         {
             AmazonWebServiceRequest request = requestContext.OriginalRequest;
 
-            var property = request.GetType().GetProperty(parameter);
-            if (property != null)
+            try
             {
-                if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out string attribute))
+                var property = request.GetType().GetProperty(parameter);
+                if (property != null)
                 {
-                    activity.SetTag(attribute, property.GetValue(request));
+                    if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
+                    {
+                        activity.SetTag(attribute, property.GetValue(request));
+                    }
                 }
+            }
+            catch (Exception)
+            {
+                // Guard against any reflection-related exceptions when running in AoT.
+                // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1543#issuecomment-1907667722.
             }
         }
 
@@ -176,7 +190,7 @@ internal class AWSTracingPipelineHandler : PipelineHandler
         else
         {
             var request_headers = requestContext.Request.Headers;
-            if (string.IsNullOrEmpty(request_id) && request_headers.TryGetValue("x-amzn-RequestId", out string req_id))
+            if (string.IsNullOrEmpty(request_id) && request_headers.TryGetValue("x-amzn-RequestId", out var req_id))
             {
                 request_id = req_id;
             }
