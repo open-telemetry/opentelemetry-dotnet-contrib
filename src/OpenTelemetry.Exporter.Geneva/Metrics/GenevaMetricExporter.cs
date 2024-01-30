@@ -74,7 +74,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
             case TransportProtocol.Unspecified:
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    this.metricDataTransport = MetricEtwDataTransport.Shared;
+                    this.metricDataTransport = MetricEtwDataTransport.Instance;
                     break;
                 }
                 else
@@ -270,7 +270,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
             {
                 // The ETW data transport singleton on Windows should NOT be disposed.
                 // On Linux, Unix Domain Socket is used and should be disposed.
-                if (this.metricDataTransport != MetricEtwDataTransport.Shared)
+                if (this.metricDataTransport != MetricEtwDataTransport.Instance)
                 {
                     this.metricDataTransport.Dispose();
                 }

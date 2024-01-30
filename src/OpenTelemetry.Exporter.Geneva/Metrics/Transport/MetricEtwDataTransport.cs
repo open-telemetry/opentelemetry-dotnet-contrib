@@ -9,17 +9,17 @@ namespace OpenTelemetry.Exporter.Geneva;
 [EventSource(Name = "OpenTelemetryGenevaMetricExporter", Guid = "{edc24920-e004-40f6-a8e1-0e6e48f39d84}")]
 internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
 {
-    private static MetricEtwDataTransport singleton;
+    private static MetricEtwDataTransport instance;
 
     private readonly int fixedPayloadEndIndex;
     private bool isDisposed;
 
     static MetricEtwDataTransport()
     {
-        singleton = new();
+        instance = new();
     }
 
-    public static MetricEtwDataTransport Shared { get => singleton; }
+    public static MetricEtwDataTransport Instance { get => instance; }
 
     private MetricEtwDataTransport()
     {
@@ -73,7 +73,7 @@ internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
             // No managed resources to release.
             // The singleton instance is kept alive for the lifetime of the application.
             // Set the static variable to null so that future calls to the singleton property can fail explicitly.
-            singleton = null;
+            instance = null;
         }
 
         this.isDisposed = true;

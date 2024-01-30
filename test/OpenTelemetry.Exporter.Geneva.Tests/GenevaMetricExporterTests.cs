@@ -256,11 +256,11 @@ public class GenevaMetricExporterTests
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            var singleton = MetricEtwDataTransport.Shared;
+            var singleton = MetricEtwDataTransport.Instance;
             this.EmitMetrics("one");
-            Assert.Equal(singleton, MetricEtwDataTransport.Shared);
+            Assert.Equal(singleton, MetricEtwDataTransport.Instance);
             this.EmitMetrics("two");
-            Assert.Equal(singleton, MetricEtwDataTransport.Shared);
+            Assert.Equal(singleton, MetricEtwDataTransport.Instance);
         }
     }
 
