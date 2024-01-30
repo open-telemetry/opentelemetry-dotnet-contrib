@@ -259,10 +259,8 @@ public class GenevaMetricExporterTests
             var singleton = MetricEtwDataTransport.Shared;
             this.EmitMetrics("one");
             Assert.Equal(singleton, MetricEtwDataTransport.Shared);
-            Assert.False(MetricEtwDataTransport.Shared.IsDisposed);
             this.EmitMetrics("two");
             Assert.Equal(singleton, MetricEtwDataTransport.Shared);
-            Assert.False(MetricEtwDataTransport.Shared.IsDisposed);
         }
     }
 

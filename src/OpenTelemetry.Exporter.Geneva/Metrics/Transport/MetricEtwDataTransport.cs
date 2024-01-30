@@ -9,15 +9,28 @@ namespace OpenTelemetry.Exporter.Geneva;
 [EventSource(Name = "OpenTelemetryGenevaMetricExporter", Guid = "{edc24920-e004-40f6-a8e1-0e6e48f39d84}")]
 internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
 {
+    private static MetricEtwDataTransport singleton;
+
     private readonly int fixedPayloadEndIndex;
-    internal bool IsDisposed;  // This is only for Test purposes.
+    private bool isDisposed;
 
     static MetricEtwDataTransport()
     {
-        Shared = new();
+        singleton = new();
     }
 
-    public static readonly MetricEtwDataTransport Shared;
+    public static MetricEtwDataTransport Shared
+    {
+        get
+        {
+            if (singleton == null)
+            {
+                throw new InvalidOperationException("Internal error: The singleton instance was disposed by mistake.");
+            }
+
+            return singleton;
+        }
+    }
 
     private MetricEtwDataTransport()
     {
@@ -59,21 +72,22 @@ internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
     {
     }
 
-    /// <summary>
-    /// Disposes the object. This is only for Test purposes.
-    /// This method should NOT be called as there should only be one instance of
-    /// this class throughout the application's lifecycle.
-    /// Unit tests will check the value of IsDisposed to verify it's not called
-    /// by mistake.
-    /// </summary>
-    public new void Dispose()
+    protected override void Dispose(bool disposing)
     {
-        if (this.IsDisposed)
+        if (this.isDisposed)
         {
             return;
         }
 
-        base.Dispose();
-        this.IsDisposed = true;
+        if (disposing)
+        {
+            // No managed resources to release.
+            // The singleton instance is kept alive for the lifetime of the application.
+            // Set the static variable to null so that future calls to the singleton property can fail explicitly.
+            singleton = null;
+        }
+
+        this.isDisposed = true;
+        base.Dispose(disposing);
     }
 }
