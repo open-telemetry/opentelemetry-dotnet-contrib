@@ -19,18 +19,7 @@ internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
         singleton = new();
     }
 
-    public static MetricEtwDataTransport Shared
-    {
-        get
-        {
-            if (singleton == null)
-            {
-                throw new InvalidOperationException("Internal error: The singleton instance was disposed by mistake.");
-            }
-
-            return singleton;
-        }
-    }
+    public static MetricEtwDataTransport Shared { get => singleton; }
 
     private MetricEtwDataTransport()
     {
