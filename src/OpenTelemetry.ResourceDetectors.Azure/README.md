@@ -41,7 +41,7 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 | deployment.environment  | The deployment slot where the Azure App Service is running, such as "staging", "production", etc.                                                                                                         |
 | host.id                 | The primary hostname for the app, excluding any custom hostnames.                                                                                                                                         |
 | service.instance.id     | The specific instance of the Azure App Service, useful in a scaled-out configuration.                                                                                                                     |
-| service.name            | The name of the Azure App Service.                                                                                                                                                                        |                                                                                                                                   |
+| service.name            | The name of the Azure App Service.                                                                                                                                                                        |
 
 ## VM Resource Detector
 
