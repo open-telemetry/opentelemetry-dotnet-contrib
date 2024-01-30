@@ -25,9 +25,9 @@ public sealed class HostDetector : IResourceDetector
                 new(HostSemanticConventions.AttributeHostName, Environment.MachineName),
             });
         }
-        catch (InvalidOperationException)
+        catch (InvalidOperationException ex)
         {
-            // TODO replace comment by logging mechanism. Tracked under https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1514
+            HostResourceEventSource.Log.ResourceAttributesExtractException(nameof(HostDetector), ex);
         }
 
         return Resource.Empty;
