@@ -27,6 +27,7 @@ public sealed class HostDetector : IResourceDetector
         }
         catch (InvalidOperationException ex)
         {
+            // Handling InvalidOperationException due to https://learn.microsoft.com/en-us/dotnet/api/system.environment.machinename#exceptions
             HostResourceEventSource.Log.ResourceAttributesExtractException(nameof(HostDetector), ex);
         }
 
