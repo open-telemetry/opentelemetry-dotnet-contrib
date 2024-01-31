@@ -1,10 +1,7 @@
 param([string]$targetNetFramework)
 
-$runtime = $IsWindows ? "win-x64" : "linux-x64"
-$app = $IsWindows ? "./OpenTelemetry.AotCompatibility.TestApp.exe" : "./OpenTelemetry.AotCompatibility.TestApp"
-
 $rootDirectory = Split-Path $PSScriptRoot -Parent
-$publishOutput = dotnet publish $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/OpenTelemetry.AotCompatibility.TestApp.csproj --runtime $runtime -nodeReuse:false /p:UseSharedCompilation=false
+$publishOutput = dotnet publish $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/OpenTelemetry.AotCompatibility.TestApp.csproj -nodeReuse:false /p:UseSharedCompilation=false
 
 $actualWarningCount = 0
 
@@ -25,6 +22,9 @@ if ($LastExitCode -ne 0)
     Write-Host "There was an error while publishing AotCompatibility Test App. LastExitCode is:", $LastExitCode
     Write-Host $publishOutput
 }
+
+$runtime = $IsWindows ? "win-x64" : ($IsMacOS ? "macos-x64" : "linux-x64")
+$app = $IsWindows ? "./OpenTelemetry.AotCompatibility.TestApp.exe" : "./OpenTelemetry.AotCompatibility.TestApp"
 
 Push-Location $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/bin/Release/$targetNetFramework/$runtime
 
