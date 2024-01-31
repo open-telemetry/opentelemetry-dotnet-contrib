@@ -13,14 +13,14 @@ jobs:
     outputs:
       changes: ${{ steps.changes.outputs.changes }}
     steps:
-    - uses: AurorNZ/paths-filter@v3
+    - uses: AurorNZ/paths-filter@v4
       id: changes
       with:
         filters: |
           md: [ '**.md' ]
-          build: ['build/**', '.github/**/*.yml', '!.github/workflows/package-*']
+          build: ['build/**', '.github/**/*.yml', '!.github/workflows/package-*', '**/*.targets', '**/*.props']
           shared: ['src/Shared/**']
-          code: ['**.cs', '.editorconfig']
+          code: ['**.cs', '**.csproj', '.editorconfig']
           aot: ['src/OpenTelemetry.Extensions.Enrichment/**']
           aottestapp: ['test/OpenTelemetry.AotCompatibility.TestApp/**']
           aspnet: ['*/OpenTelemetry.Instrumentation.AspNet*/**', 'examples/AspNet/**', '!**/*.md']
@@ -75,12 +75,16 @@ jobs:
 
   lint-md:
     needs: detect-changes
-    if: contains(needs.detect-changes.outputs.changes, 'md')
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'md')
+      || contains(needs.detect-changes.outputs.changes, 'build')
     uses: ./.github/workflows/markdownlint.yml
 
   lint-dotnet-format:
     needs: detect-changes
-    if: contains(needs.detect-changes.outputs.changes, 'code')
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'code')
+      || contains(needs.detect-changes.outputs.changes, 'build')
     uses: ./.github/workflows/dotnet-format.yml
 
   build-test-aspnet:
@@ -330,7 +334,7 @@ jobs:
     - name: Merging test results
       run: dotnet-coverage merge -r -f cobertura -o ./TestResults/Cobertura.xml ./TestResults/*.coverage
 
-    - uses: codecov/codecov-action@v3.1.5
+    - uses: codecov/codecov-action@v3.1.6
       continue-on-error: true # Note: Don't fail for upload failures
       env:
         OS: ${{ matrix.os }}
