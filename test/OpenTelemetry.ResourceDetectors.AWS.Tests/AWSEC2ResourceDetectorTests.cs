@@ -24,7 +24,7 @@ public class AWSEC2ResourceDetectorTests
         Assert.Equal("aws", resourceAttributes[AWSSemanticConventions.AttributeCloudProvider]);
         Assert.Equal("aws_ec2", resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform]);
         Assert.Equal("Test account id", resourceAttributes[AWSSemanticConventions.AttributeCloudAccountID]);
-        Assert.Equal("Test availability zone", resourceAttributes[AWSSemanticConventions.AttributeCloudAvailableZone]);
+        Assert.Equal("Test availability zone", resourceAttributes[AWSSemanticConventions.AttributeCloudAvailabilityZone]);
         Assert.Equal("Test instance id", resourceAttributes[AWSSemanticConventions.AttributeHostID]);
         Assert.Equal("Test instance type", resourceAttributes[AWSSemanticConventions.AttributeHostType]);
         Assert.Equal("Test aws region", resourceAttributes[AWSSemanticConventions.AttributeCloudRegion]);
