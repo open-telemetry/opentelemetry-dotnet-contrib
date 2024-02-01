@@ -59,7 +59,7 @@ public sealed class AWSEC2ResourceDetector : IResourceDetector
 
             if (identity.AvailabilityZone != null)
             {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudAvailableZone, identity.AvailabilityZone));
+                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudAvailabilityZone, identity.AvailabilityZone));
             }
 
             if (identity.InstanceId != null)

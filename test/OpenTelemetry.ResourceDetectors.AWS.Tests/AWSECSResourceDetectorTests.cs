@@ -73,6 +73,9 @@ public class AWSECSResourceDetectorTests : IDisposable
 
             Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudProvider], "aws");
             Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform], "aws_ecs");
+            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudAccountID], "111122223333");
+            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudAvailabilityZone], "us-west-2d");
+            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudRegion], "us-west-2");
             Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeEcsContainerArn], "arn:aws:ecs:us-west-2:111122223333:container/0206b271-b33f-47ab-86c6-a0ba208a70a9");
             Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeEcsLaunchtype], "ec2");
             Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeEcsTaskArn], "arn:aws:ecs:us-west-2:111122223333:task/default/158d1c8083dd49d6b527399fd6414f5c");
@@ -101,6 +104,9 @@ public class AWSECSResourceDetectorTests : IDisposable
 
             Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudProvider], "aws");
             Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform], "aws_ecs");
+            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudAccountID], "111122223333");
+            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudAvailabilityZone], "us-west-2a");
+            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudRegion], "us-west-2");
             Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeEcsContainerArn], "arn:aws:ecs:us-west-2:111122223333:container/05966557-f16c-49cb-9352-24b3a0dcd0e1");
             Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeEcsLaunchtype], "fargate");
             Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeEcsTaskArn], "arn:aws:ecs:us-west-2:111122223333:task/default/e9028f8d5d8e4f258373e7b93ce9a3c3");
