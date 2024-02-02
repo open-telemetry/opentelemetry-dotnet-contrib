@@ -163,10 +163,9 @@ values.
 
    > [!NOTE]
    > In this example named options ('GenevaTracing') are used. This is because
-   > `GenevaExporterOptions` is shared by both logging & tracing. In a future
-   > version named options will also be supported in logging so it is
-   > recommended to use named options now for tracing in order to future-proof
-   > this code.
+   `GenevaExporterOptions` is shared by both logging & tracing. In a future
+   version named options will also be supported in logging so it is recommended
+   to use named options now for tracing in order to future-proof this code.
 
    ```csharp
    // Step 1: Turn on tracing and register GenevaTraceExporter.
