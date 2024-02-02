@@ -157,6 +157,51 @@ values.
   * `ILogger<MyPartner.Product.Thing>`: This is marked as pass-through ("*") so
     it will be sanitized as "MyPartnerProductThing" table name
 
+#### How to configure GenevaExporterOptions using dependency injection
+
+* Tracing:
+
+   ```csharp
+   // Step 1: Turn on tracing and register GenevaTraceExporter.
+   services.AddOpenTelemetry()
+       .WithTracing(builder => builder
+           .AddGenevaTraceExporter(
+               "GenevaTracing", // Tell GenevaTraceExporter to retrieve options using the 'GenevaTracing' name
+               _ => { }));
+   
+   // Step 2: Use Options API to configure GenevaExporterOptions using services
+   // retrieved from the dependency injection container
+   services
+       .AddOptions<GenevaExporterOptions>("GenevaTracing") // Register options with the 'GenevaTracing' name
+       .Configure<IConfiguration>((exporterOptions, configuration) =>
+       {
+           exporterOptions.ConnectionString = configuration.GetValue<string>("OpenTelemetry:Tracing:GenevaConnectionString")
+               ?? throw new InvalidOperationException("GenevaConnectionString was not found in application configuration");
+       });
+   ```
+
+* Logging:
+
+   ```csharp
+   // Step 1: Turn on logging.
+   builder.Logging.AddOpenTelemetry();
+   
+   // Step 2: Use Options API to configure OpenTelemetryLoggerOptions using
+   // services retrieved from the dependency injection container
+   services
+       .AddOptions<OpenTelemetryLoggerOptions>()
+       .Configure<IConfiguration>((loggingOptions, configuration) =>
+       {
+           // Add GenevaLogExporter and configure GenevaExporterOptions using
+           // services retrieved from the dependency injection container
+           loggingOptions.AddGenevaLogExporter(exporterOptions =>
+           {
+               exporterOptions.ConnectionString = configuration.GetValue<string>("OpenTelemetry:Logging:GenevaConnectionString")
+                   ?? throw new InvalidOperationException("GenevaConnectionString was not found in application configuration");
+           });
+       });
+   ```
+
 ##### Pass-through table name mapping rules
 
 When "pass-through" mapping is enabled for a given log message the runtime
@@ -213,6 +258,24 @@ is 20000 milliseconds.
 
 This is a collection of the dimensions that will be applied to _every_ metric
 exported by the exporter.
+
+#### How to configure GenevaMetricExporterOptions using dependency injection
+
+```csharp
+// Step 1: Turn on metrics and register GenevaMetricExporter.
+services.AddOpenTelemetry()
+    .WithMetrics(builder => builder.AddGenevaMetricExporter());
+
+// Step 2: Use Options API to configure GenevaMetricExporterOptions using
+// services retrieved from the dependency injection container
+services
+    .AddOptions<GenevaMetricExporterOptions>()
+    .Configure<IConfiguration>((exporterOptions, configuration) =>
+    {
+        exporterOptions.ConnectionString = configuration.GetValue<string>("OpenTelemetry:Metrics:GenevaConnectionString")
+            ?? throw new InvalidOperationException("GenevaConnectionString was not found in application configuration");
+    });
+```
 
 ## Troubleshooting
 
