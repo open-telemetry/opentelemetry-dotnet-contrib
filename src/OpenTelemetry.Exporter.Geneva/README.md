@@ -157,6 +157,20 @@ values.
   * `ILogger<MyPartner.Product.Thing>`: This is marked as pass-through ("*") so
     it will be sanitized as "MyPartnerProductThing" table name
 
+###### Pass-through table name mapping rules
+
+When "pass-through" mapping is enabled for a given log message the runtime
+[category](https://docs.microsoft.com/dotnet/core/extensions/logging#log-category)
+value will be converted into a valid table name.
+
+* The first character MUST be an ASCII letter. If it is lower-case, it will be
+  converted into an upper-case letter. If the first character is invalid all log
+  messages for the "category" will be dropped.
+
+* Any non-ASCII letter or number will be removed.
+
+* Only the first 50 valid characters will be used.
+
 #### How to configure GenevaExporterOptions using dependency injection
 
 ##### Tracing
@@ -207,20 +221,6 @@ services
         });
     });
 ```
-
-##### Pass-through table name mapping rules
-
-When "pass-through" mapping is enabled for a given log message the runtime
-[category](https://docs.microsoft.com/dotnet/core/extensions/logging#log-category)
-value will be converted into a valid table name.
-
-* The first character MUST be an ASCII letter. If it is lower-case, it will be
-  converted into an upper-case letter. If the first character is invalid all log
-  messages for the "category" will be dropped.
-
-* Any non-ASCII letter or number will be removed.
-
-* Only the first 50 valid characters will be used.
 
 ### Enable Metrics
 
