@@ -210,11 +210,11 @@ builder.Logging.AddOpenTelemetry();
 // services retrieved from the dependency injection container
 services
     .AddOptions<OpenTelemetryLoggerOptions>()
-    .Configure<IConfiguration>((loggingOptions, configuration) =>
+    .Configure<IConfiguration>((loggerOptions, configuration) =>
     {
         // Add GenevaLogExporter and configure GenevaExporterOptions using
         // services retrieved from the dependency injection container
-        loggingOptions.AddGenevaLogExporter(exporterOptions =>
+        loggerOptions.AddGenevaLogExporter(exporterOptions =>
         {
             exporterOptions.ConnectionString = configuration.GetValue<string>("OpenTelemetry:Logging:GenevaConnectionString")
                 ?? throw new InvalidOperationException("GenevaConnectionString was not found in application configuration");
