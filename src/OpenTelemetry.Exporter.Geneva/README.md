@@ -183,7 +183,7 @@ value will be converted into a valid table name.
 
 ```csharp
 // Step 1: Turn on tracing and register GenevaTraceExporter.
-services.AddOpenTelemetry()
+builder.Services.AddOpenTelemetry()
     .WithTracing(builder => builder
         .AddGenevaTraceExporter(
             "GenevaTracing", // Tell GenevaTraceExporter to retrieve options using the 'GenevaTracing' name
@@ -191,7 +191,7 @@ services.AddOpenTelemetry()
 
 // Step 2: Use Options API to configure GenevaExporterOptions using services
 // retrieved from the dependency injection container
-services
+builder.Services
     .AddOptions<GenevaExporterOptions>("GenevaTracing") // Register options with the 'GenevaTracing' name
     .Configure<IConfiguration>((exporterOptions, configuration) =>
     {
@@ -208,7 +208,7 @@ builder.Logging.AddOpenTelemetry();
 
 // Step 2: Use Options API to configure OpenTelemetryLoggerOptions using
 // services retrieved from the dependency injection container
-services
+builder.Services
     .AddOptions<OpenTelemetryLoggerOptions>()
     .Configure<IConfiguration>((loggerOptions, configuration) =>
     {
@@ -269,12 +269,12 @@ exported by the exporter.
 
 ```csharp
 // Step 1: Turn on metrics and register GenevaMetricExporter.
-services.AddOpenTelemetry()
+builder.Services.AddOpenTelemetry()
     .WithMetrics(builder => builder.AddGenevaMetricExporter());
 
 // Step 2: Use Options API to configure GenevaMetricExporterOptions using
 // services retrieved from the dependency injection container
-services
+builder.Services
     .AddOptions<GenevaMetricExporterOptions>()
     .Configure<IConfiguration>((exporterOptions, configuration) =>
     {
