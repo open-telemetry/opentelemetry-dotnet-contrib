@@ -175,7 +175,7 @@ values.
            .AddGenevaTraceExporter(
                "GenevaTracing", // Tell GenevaTraceExporter to retrieve options using the 'GenevaTracing' name
                _ => { }));
-   
+
    // Step 2: Use Options API to configure GenevaExporterOptions using services
    // retrieved from the dependency injection container
    services
@@ -192,7 +192,7 @@ values.
    ```csharp
    // Step 1: Turn on logging.
    builder.Logging.AddOpenTelemetry();
-   
+
    // Step 2: Use Options API to configure OpenTelemetryLoggerOptions using
    // services retrieved from the dependency injection container
    services
