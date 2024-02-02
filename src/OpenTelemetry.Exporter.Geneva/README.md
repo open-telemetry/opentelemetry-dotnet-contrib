@@ -159,55 +159,54 @@ values.
 
 #### How to configure GenevaExporterOptions using dependency injection
 
-* Tracing:
+##### Tracing
 
-   > [!NOTE]
-   > In this example named options ('GenevaTracing') are used. This is because
-     `GenevaExporterOptions` is shared by both logging & tracing. In a future
-     version named options will also be supported in logging so it is
-     recommended to use named options now for tracing in order to future-proof
-     this code.
+> [!NOTE]
+> In this example named options ('GenevaTracing') are used. This is because
+> `GenevaExporterOptions` is shared by both logging & tracing. In a future
+> version named options will also be supported in logging so it is recommended
+> to use named options now for tracing in order to future-proof this code.
 
-   ```csharp
-   // Step 1: Turn on tracing and register GenevaTraceExporter.
-   services.AddOpenTelemetry()
-       .WithTracing(builder => builder
-           .AddGenevaTraceExporter(
-               "GenevaTracing", // Tell GenevaTraceExporter to retrieve options using the 'GenevaTracing' name
-               _ => { }));
+```csharp
+// Step 1: Turn on tracing and register GenevaTraceExporter.
+services.AddOpenTelemetry()
+    .WithTracing(builder => builder
+        .AddGenevaTraceExporter(
+            "GenevaTracing", // Tell GenevaTraceExporter to retrieve options using the 'GenevaTracing' name
+            _ => { }));
 
-   // Step 2: Use Options API to configure GenevaExporterOptions using services
-   // retrieved from the dependency injection container
-   services
-       .AddOptions<GenevaExporterOptions>("GenevaTracing") // Register options with the 'GenevaTracing' name
-       .Configure<IConfiguration>((exporterOptions, configuration) =>
-       {
-           exporterOptions.ConnectionString = configuration.GetValue<string>("OpenTelemetry:Tracing:GenevaConnectionString")
-               ?? throw new InvalidOperationException("GenevaConnectionString was not found in application configuration");
-       });
-   ```
+// Step 2: Use Options API to configure GenevaExporterOptions using services
+// retrieved from the dependency injection container
+services
+    .AddOptions<GenevaExporterOptions>("GenevaTracing") // Register options with the 'GenevaTracing' name
+    .Configure<IConfiguration>((exporterOptions, configuration) =>
+    {
+        exporterOptions.ConnectionString = configuration.GetValue<string>("OpenTelemetry:Tracing:GenevaConnectionString")
+            ?? throw new InvalidOperationException("GenevaConnectionString was not found in application configuration");
+    });
+```
 
-* Logging:
+##### Logging
 
-   ```csharp
-   // Step 1: Turn on logging.
-   builder.Logging.AddOpenTelemetry();
+```csharp
+// Step 1: Turn on logging.
+builder.Logging.AddOpenTelemetry();
 
-   // Step 2: Use Options API to configure OpenTelemetryLoggerOptions using
-   // services retrieved from the dependency injection container
-   services
-       .AddOptions<OpenTelemetryLoggerOptions>()
-       .Configure<IConfiguration>((loggingOptions, configuration) =>
-       {
-           // Add GenevaLogExporter and configure GenevaExporterOptions using
-           // services retrieved from the dependency injection container
-           loggingOptions.AddGenevaLogExporter(exporterOptions =>
-           {
-               exporterOptions.ConnectionString = configuration.GetValue<string>("OpenTelemetry:Logging:GenevaConnectionString")
-                   ?? throw new InvalidOperationException("GenevaConnectionString was not found in application configuration");
-           });
-       });
-   ```
+// Step 2: Use Options API to configure OpenTelemetryLoggerOptions using
+// services retrieved from the dependency injection container
+services
+    .AddOptions<OpenTelemetryLoggerOptions>()
+    .Configure<IConfiguration>((loggingOptions, configuration) =>
+    {
+        // Add GenevaLogExporter and configure GenevaExporterOptions using
+        // services retrieved from the dependency injection container
+        loggingOptions.AddGenevaLogExporter(exporterOptions =>
+        {
+            exporterOptions.ConnectionString = configuration.GetValue<string>("OpenTelemetry:Logging:GenevaConnectionString")
+                ?? throw new InvalidOperationException("GenevaConnectionString was not found in application configuration");
+        });
+    });
+```
 
 ##### Pass-through table name mapping rules
 
