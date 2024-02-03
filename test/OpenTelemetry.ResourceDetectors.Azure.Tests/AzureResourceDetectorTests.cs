@@ -105,7 +105,6 @@ public class AzureResourceDetectorTests : IDisposable
                 Environment.SetEnvironmentVariable(kvp.Value, kvp.Key);
             }
 
-            // Special case for service.name and resource uri attribute
             Environment.SetEnvironmentVariable(ResourceAttributeConstants.AzureContainerAppsNameEnvVar, "containerAppName");
         }
         catch
