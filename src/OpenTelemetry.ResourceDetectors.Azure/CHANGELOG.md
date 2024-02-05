@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-beta.5
+
+Released 2024-Feb-05
+
 * Added Azure Container Apps Resource Detector to generate attributes:
   `service.name`, `service.version`, `service.instance.id`, `cloud.provider` and
   `cloud.platform`.
