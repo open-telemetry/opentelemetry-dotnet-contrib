@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Added Azure Container Apps Resource Detector to generate attributes:
+  `service.name`, `service.version`, `service.instance.id`, `cloud.provider` and
+  `cloud.platform`.
+  ([#1565](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1565))
+
 ## 1.0.0-beta.4
 
 Released 2024-Jan-03

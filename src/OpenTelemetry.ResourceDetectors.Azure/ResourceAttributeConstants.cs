@@ -22,8 +22,14 @@ internal sealed class ResourceAttributeConstants
     internal const string AppServiceSlotNameEnvVar = "WEBSITE_SLOT_NAME";
     internal const string AppServiceStampNameEnvVar = "WEBSITE_HOME_STAMPNAME";
 
+    // Azure Container Apps environment variables
+    internal const string AzureContainerAppsNameEnvVar = "CONTAINER_APP_NAME";
+    internal const string AzureContainerAppsReplicaNameEnvVar = "CONTAINER_APP_REPLICA_NAME";
+    internal const string AzureContainerAppsRevisionEnvVar = "CONTAINER_APP_REVISION";
+
     // Azure resource attributes constant values
     internal const string AzureAppServicePlatformValue = "azure_app_service";
     internal const string AzureCloudProviderValue = "azure";
     internal const string AzureVmCloudPlatformValue = "azure_vm";
+    internal const string AzureContainerAppsPlatformValue = "azure_container_apps";
 }

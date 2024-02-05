@@ -95,9 +95,41 @@ public class AzureResourceDetectorTests : IDisposable
         }
     }
 
+    [Fact]
+    public void AzureContainerAppsResourceDetectorReturnsResourceWithAttributes()
+    {
+        try
+        {
+            foreach (var kvp in AzureContainerAppsResourceDetector.AzureContainerResourceAttributes)
+            {
+                Environment.SetEnvironmentVariable(kvp.Value, kvp.Key);
+            }
+
+            Environment.SetEnvironmentVariable(ResourceAttributeConstants.AzureContainerAppsNameEnvVar, "containerAppName");
+        }
+        catch
+        {
+        }
+
+        var resource = ResourceBuilder.CreateEmpty().AddDetector(new AzureContainerAppsResourceDetector()).Build();
+        Assert.NotNull(resource);
+
+        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "containerAppName"), resource.Attributes);
+
+        foreach (var kvp in AzureContainerAppsResourceDetector.AzureContainerResourceAttributes)
+        {
+            Assert.Contains(new KeyValuePair<string, object>(kvp.Key, kvp.Key), resource.Attributes);
+        }
+    }
+
     public void Dispose()
     {
         foreach (var kvp in AppServiceResourceDetector.AppServiceResourceAttributes)
+        {
+            Environment.SetEnvironmentVariable(kvp.Value, null);
+        }
+
+        foreach (var kvp in AzureContainerAppsResourceDetector.AzureContainerResourceAttributes)
         {
             Environment.SetEnvironmentVariable(kvp.Value, null);
         }
