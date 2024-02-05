@@ -75,3 +75,29 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 | os.type                  | The type of operating system running on the VM, such as "Linux" or "Windows".                                                                                                                                                       |
 | os.version               | The version of the operating system running on the VM.                                                                                                                                                                              |
 | service.instance.id      | An identifier for a specific instance of the service running on the Azure VM, for example, "02aab8a4-74ef-476e-8182-f6d2ba4166a6".                                                                                                  |
+
+## Azure Container Apps Resource Detector
+
+Adds resource attributes for the applications running in Azure Container Apps.
+The following example shows how to add `AzureContainerAppsResourceDetector` to
+`TracerProvider` configuration, but this can be added to logs and metrics as
+well.
+
+```csharp
+using OpenTelemetry;
+using OpenTelemetry.ResourceDetectors.Azure;
+using OpenTelemetry.Resources;
+
+var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                        // other configurations
+                        .ConfigureResource(resource => resource.AddDetector(new AzureContainerAppsResourceDetector()))
+                        .Build();
+```
+
+| Attribute               | Description                                                                                                                                                                                               |
+|-------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| cloud.platform          | The cloud platform. Here, it's always "azure_container_apps".                                                                                                                                             |
+| cloud.provider          | The cloud service provider. In this context, it's always "azure".                                                                                                                                         |
+| service.instance.id     | Represents the specific instance ID of Azure Container Apps, useful in scaled-out configurations.                                                                                                         |
+| service.name            | The name of the Azure Container Apps.                                                                                                                                                                     |
+| service.version         | The current revision or version of Azure Container Apps.                                                                                                                                                  |
