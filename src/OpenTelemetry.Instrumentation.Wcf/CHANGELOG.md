@@ -5,7 +5,9 @@
 * Fixed [GHSA-vh55-786g-wjwj](https://github.com/advisories/GHSA-vh55-786g-wjwj)
   by bumping the
   [System.Security.Cryptography.Xml](https://www.nuget.org/packages/System.Security.Cryptography.Xml)
-  package version to `4.7.1`.
+  package version to `4.7.1` (dependency chain:
+  `OpenTelemetry.Instrumentation.Wcf` -> `System.ServiceModel.Primitives` ->
+  `System.Private.ServiceModel` -> `System.Security.Cryptography.Xml`).
   ([#1566](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1566))
 
 ## 1.0.0-rc.14
