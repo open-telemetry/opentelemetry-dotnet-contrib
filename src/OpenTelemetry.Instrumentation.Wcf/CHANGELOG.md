@@ -6,6 +6,7 @@
   by bumping the
   [System.Security.Cryptography.Xml](https://www.nuget.org/packages/System.Security.Cryptography.Xml)
   package version to `4.7.1`.
+  ([#1566](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1566))
 
 ## 1.0.0-rc.14
 
