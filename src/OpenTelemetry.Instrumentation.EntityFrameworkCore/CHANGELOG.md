@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* Stop emitting `db.statement_type` attribute.
+* **Breaking Change**: Stop emitting `db.statement_type` attribute.
   ([#1559](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1559))
 
 ## 1.0.0-beta.9
