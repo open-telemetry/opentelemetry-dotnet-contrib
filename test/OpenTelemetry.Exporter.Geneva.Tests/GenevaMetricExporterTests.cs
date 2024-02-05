@@ -251,6 +251,35 @@ public class GenevaMetricExporterTests
         }
     }
 
+    [Fact]
+    public void MultipleCallsOnWindowsReusesSingletonEtwDataTransport()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            var singleton = MetricEtwDataTransport.Instance;
+            this.EmitMetrics("one");
+            Assert.Equal(singleton, MetricEtwDataTransport.Instance);
+            this.EmitMetrics("two");
+            Assert.Equal(singleton, MetricEtwDataTransport.Instance);
+        }
+    }
+
+    private void EmitMetrics(string attempt)
+    {
+        using var meterProviderBuilder = Sdk.CreateMeterProviderBuilder()
+            .AddMeter("*")
+            .AddGenevaMetricExporter(x =>
+            {
+                x.MetricExportIntervalMilliseconds = 1000;
+                x.ConnectionString = "Account=OTelGeneva;Namespace=MeteringSample";
+            })
+            .Build();
+
+        using var meter = new Meter("MeterName", "0.0.1");
+        var counter = meter.CreateCounter<long>("counter_" + attempt);
+        counter.Add(1);
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]

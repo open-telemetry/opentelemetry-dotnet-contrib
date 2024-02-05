@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fix a bug in `GenevaMetricExporter` where the `MetricEtwDataTransport` singleton
+  is disposed.
+  ([#1537](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1537))
+
 ## 1.7.0
 
 Released 2023-Dec-11
