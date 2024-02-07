@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-rc.15
+
+Released 2024-Feb-07
+
 * Fixed [GHSA-vh55-786g-wjwj](https://github.com/advisories/GHSA-vh55-786g-wjwj)
   by bumping the
   [System.Security.Cryptography.Xml](https://www.nuget.org/packages/System.Security.Cryptography.Xml)
