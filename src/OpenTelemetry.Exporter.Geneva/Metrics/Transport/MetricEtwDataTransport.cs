@@ -10,13 +10,9 @@ namespace OpenTelemetry.Exporter.Geneva;
 internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
 {
     private readonly int fixedPayloadEndIndex;
+    private bool isDisposed;
 
-    static MetricEtwDataTransport()
-    {
-        Shared = new();
-    }
-
-    public static readonly MetricEtwDataTransport Shared;
+    public static MetricEtwDataTransport Instance { get; private set; } = new();
 
     private MetricEtwDataTransport()
     {
@@ -56,5 +52,24 @@ internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
     [Event((int)MetricEventType.TLV)]
     private void TLVMetricEvent()
     {
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (this.isDisposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            // No managed resources to release.
+            // The singleton instance is kept alive for the lifetime of the application.
+            // Set the instance to null so that future calls to the singleton property can fail explicitly.
+            Instance = null;
+        }
+
+        this.isDisposed = true;
+        base.Dispose(disposing);
     }
 }

@@ -87,24 +87,24 @@ internal class ServerCertificateValidationProvider
         {
             if ((errors | SslPolicyErrors.RemoteCertificateNotAvailable) == errors)
             {
-                LogFailedToValidateCertificate?.Invoke(nameof(ServerCertificateValidationProvider), "Failed to validate certificate due to RemoteCertificateNotAvailable");
+                LogFailedToValidateCertificate?.Invoke(nameof(ServerCertificateValidationProvider), "SslPolicyError RemoteCertificateNotAvailable occurred");
             }
 
             if ((errors | SslPolicyErrors.RemoteCertificateNameMismatch) == errors)
             {
-                LogFailedToValidateCertificate?.Invoke(nameof(ServerCertificateValidationProvider), "Failed to validate certificate due to RemoteCertificateNameMismatch");
+                LogFailedToValidateCertificate?.Invoke(nameof(ServerCertificateValidationProvider), "SslPolicyError RemoteCertificateNameMismatch occurred");
             }
         }
 
         if (chain == null)
         {
-            LogFailedToValidateCertificate?.Invoke(nameof(ServerCertificateValidationProvider), "Failed to validate certificate. Certificate chain is null.");
+            LogFailedToValidateCertificate?.Invoke(nameof(ServerCertificateValidationProvider), "Certificate chain is null.");
             return false;
         }
 
         if (cert == null)
         {
-            LogFailedToValidateCertificate?.Invoke(nameof(ServerCertificateValidationProvider), "Failed to validate certificate. Certificate is null.");
+            LogFailedToValidateCertificate?.Invoke(nameof(ServerCertificateValidationProvider), "Certificate is null.");
             return false;
         }
 
@@ -126,7 +126,7 @@ internal class ServerCertificateValidationProvider
                 }
             }
 
-            LogFailedToValidateCertificate?.Invoke(nameof(ServerCertificateValidationProvider), $"Failed to validate certificate due to {chainErrors}");
+            LogFailedToValidateCertificate?.Invoke(nameof(ServerCertificateValidationProvider), chainErrors);
         }
 
         // check if at least one certificate in the chain is in our trust list

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.7.0-beta.2
+
+Released 2024-Feb-07
+
 * Fix description for `http.server.request.duration` metric.
   ([#1538](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1538))
 
