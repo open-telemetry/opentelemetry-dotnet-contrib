@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* Add support for instrumenting `IConnectionMultiplexer` which is added with service key.
+* Support instrumenting `IConnectionMultiplexer` which is added with service key.
 
 ## 1.0.0-rc9.13
 

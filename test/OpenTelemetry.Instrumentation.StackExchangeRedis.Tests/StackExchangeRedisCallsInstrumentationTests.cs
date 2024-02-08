@@ -118,7 +118,7 @@ public class StackExchangeRedisCallsInstrumentationTests
             })
             .AddInMemoryExporter(exportedItems)
             .SetSampler(sampler)
-            .AddRedisInstrumentation(null, null, c => c.SetVerboseDatabaseStatements = false, serviceKey)
+            .AddRedisInstrumentation(null, null, serviceKey, c => c.SetVerboseDatabaseStatements = false)
             .Build())
         {
             Assert.NotNull(connection);
