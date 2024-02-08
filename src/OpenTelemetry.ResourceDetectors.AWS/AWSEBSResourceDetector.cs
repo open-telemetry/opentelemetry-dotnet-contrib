@@ -87,6 +87,10 @@ public sealed class AWSEBSResourceDetector : IResourceDetector
 
     internal static AWSEBSMetadataModel? GetEBSMetadata(string filePath)
     {
+#if NET6_0_OR_GREATER
+        return ResourceDetectorUtils.DeserializeFromFile(filePath, SourceGenerationContext.Default.AWSEBSMetadataModel);
+#else
         return ResourceDetectorUtils.DeserializeFromFile<AWSEBSMetadataModel>(filePath);
+#endif
     }
 }

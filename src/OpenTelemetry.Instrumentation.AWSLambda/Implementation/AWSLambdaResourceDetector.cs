@@ -14,13 +14,25 @@ internal sealed class AWSLambdaResourceDetector : IResourceDetector
     /// <returns>Detected resource.</returns>
     public Resource Detect()
     {
-        var resourceAttributes = new List<KeyValuePair<string, object>>
+        var resourceAttributes = new List<KeyValuePair<string, object>>(4)
         {
             new(AWSLambdaSemanticConventions.AttributeCloudProvider, AWSLambdaUtils.GetCloudProvider()),
-            new(AWSLambdaSemanticConventions.AttributeCloudRegion, AWSLambdaUtils.GetAWSRegion()),
-            new(AWSLambdaSemanticConventions.AttributeFaasName, AWSLambdaUtils.GetFunctionName()),
-            new(AWSLambdaSemanticConventions.AttributeFaasVersion, AWSLambdaUtils.GetFunctionVersion()),
         };
+
+        if (AWSLambdaUtils.GetAWSRegion() is { } region)
+        {
+            resourceAttributes.Add(new(AWSLambdaSemanticConventions.AttributeCloudRegion, region));
+        }
+
+        if (AWSLambdaUtils.GetFunctionName() is { } functionName)
+        {
+            resourceAttributes.Add(new(AWSLambdaSemanticConventions.AttributeFaasName, functionName));
+        }
+
+        if (AWSLambdaUtils.GetFunctionVersion() is { } functionVersion)
+        {
+            resourceAttributes.Add(new(AWSLambdaSemanticConventions.AttributeFaasVersion, functionVersion));
+        }
 
         return new Resource(resourceAttributes);
     }

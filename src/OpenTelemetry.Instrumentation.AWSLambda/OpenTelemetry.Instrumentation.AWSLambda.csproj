@@ -1,19 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Description>AWS Lambda tracing wrapper for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);AWS Lambda</PackageTags>
     <MinVerTagPrefix>Instrumentation.AWSLambda-</MinVerTagPrefix>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="2.4.1" />
-    <PackageReference Include="Amazon.Lambda.Core" Version="1.2.0" />
-    <PackageReference Include="Amazon.Lambda.SNSEvents" Version="2.0.0" />
-    <PackageReference Include="Amazon.Lambda.SQSEvents" Version="2.1.0" />
+    <PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="2.7.0" />
+    <PackageReference Include="Amazon.Lambda.Core" Version="2.2.0" />
+    <PackageReference Include="Amazon.Lambda.SNSEvents" Version="2.1.0" />
+    <PackageReference Include="Amazon.Lambda.SQSEvents" Version="2.2.0" />
     <PackageReference Include="OpenTelemetry.Extensions.AWS" Version="1.3.0-beta.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>

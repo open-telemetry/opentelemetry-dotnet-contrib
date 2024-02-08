@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace OpenTelemetry.Sampler.AWS;
 
-internal class GetSamplingTargetsRequest
+internal sealed class GetSamplingTargetsRequest
 {
     public GetSamplingTargetsRequest(List<SamplingStatisticsDocument> documents)
     {

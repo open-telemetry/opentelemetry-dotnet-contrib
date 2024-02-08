@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* **Breaking** Changed target framework from .NET Standard 2.0
+  to .NET 6.0. It drops support for .NET Framework.
+  ([#1536](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1536))
+
 ## 1.0.0-beta.5
 
 Released 2024-Jan-03
