@@ -101,6 +101,7 @@ public sealed class AWSECSResourceDetector : IResourceDetector
 
         var resourceAttributes = new List<KeyValuePair<string, object>>()
         {
+            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudResourceId, containerArn),
             new KeyValuePair<string, object>(AWSSemanticConventions.AttributeEcsContainerArn, containerArn),
             new KeyValuePair<string, object>(AWSSemanticConventions.AttributeEcsClusterArn, clusterArn),
         };

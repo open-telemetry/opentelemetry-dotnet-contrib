@@ -5,6 +5,8 @@
 * Implement support for cloud.{account.id,availability_zone,region} attributes in
   AWS ECS detector.
   ([#1552](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1552))
+* Implement support for cloud.resource_id attribute in AWS ECS detector.
+  ([#???](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/???))
 
 ## 1.4.0-beta.1
 
