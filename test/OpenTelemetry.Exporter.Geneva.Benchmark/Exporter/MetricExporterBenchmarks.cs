@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Threading;
 using BenchmarkDotNet.Attributes;
+using OpenTelemetry.Exporter.Geneva.Metrics;
 using OpenTelemetry.Metrics;
 
 /*
@@ -79,7 +80,7 @@ public class MetricExporterBenchmarks
     private MeterProvider meterProviderForCounterBatchWith4Dimensions;
     private MeterProvider meterProviderForHistogramBatchWith3Dimensions;
     private MeterProvider meterProviderForHistogramBatchWith4Dimensions;
-    private GenevaMetricExporter exporter;
+    private IfxMetricsExporter exporter;
     private ThreadLocal<Random> random = new ThreadLocal<Random>(() => new Random());
 
     private static readonly Random randomForHistogram = new Random(); // Use the same seed for all the benchmarks to have the same data exported
@@ -94,7 +95,7 @@ public class MetricExporterBenchmarks
         this.counterWithGenevaMetricExporter = this.meterWithGenevaMetricExporter.CreateCounter<long>("counter");
 
         var exporterOptions = new GenevaMetricExporterOptions() { ConnectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace" };
-        this.exporter = new GenevaMetricExporter(exporterOptions);
+        this.exporter = new IfxMetricsExporter(exporterOptions);
 
         this.counterMetricPointWith3Dimensions = this.GenerateCounterMetricItemWith3Dimensions(out this.counterMetricDataWith3Dimensions);
         this.counterMetricPointWith4Dimensions = this.GenerateCounterMetricItemWith4Dimensions(out this.counterMetricDataWith4Dimensions);
