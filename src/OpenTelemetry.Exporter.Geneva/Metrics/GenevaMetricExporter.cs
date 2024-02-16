@@ -33,6 +33,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
         var ifxMetricsExporter = new IfxMetricsExporter(options);
+
         this.exportMetrics = ifxMetricsExporter.Export;
 
         this.exporter = ifxMetricsExporter;
