@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System;
+using System.Reflection;
+using System.Text.RegularExpressions;
 using OpenTelemetry.Exporter.Geneva.Metrics;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Metrics;
@@ -19,11 +22,11 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
     internal const string DimensionKeyForCustomMetricsNamespace = "_microsoft_metrics_namespace";
 
+    internal readonly IfxMetricsExporter Exporter;
+
     private delegate ExportResult ExportMetricsFunc(in Batch<Metric> batch);
 
     private readonly ExportMetricsFunc exportMetrics;
-
-    private readonly IfxMetricsExporter exporter;
 
     private bool isDisposed;
 
@@ -36,12 +39,28 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
         this.exportMetrics = ifxMetricsExporter.Export;
 
-        this.exporter = ifxMetricsExporter;
+        this.Exporter = ifxMetricsExporter;
     }
 
     public override ExportResult Export(in Batch<Metric> batch)
     {
         return this.exportMetrics(batch);
+    }
+
+    internal static PropertyInfo GetOpenTelemetryInstrumentNameRegexProperty()
+    {
+        var meterProviderBuilderSdkType = typeof(Sdk).Assembly.GetType("OpenTelemetry.Metrics.MeterProviderBuilderSdk", throwOnError: false)
+            ?? throw new InvalidOperationException("OpenTelemetry.Metrics.MeterProviderBuilderSdk type could not be found reflectively.");
+
+        var instrumentNameRegexProperty = meterProviderBuilderSdkType.GetProperty("InstrumentNameRegex", BindingFlags.Public | BindingFlags.Static)
+            ?? throw new InvalidOperationException("OpenTelemetry.Metrics.MeterProviderBuilderSdk.InstrumentNameRegex property could not be found reflectively.");
+
+        return instrumentNameRegexProperty;
+    }
+
+    internal static void DisableOpenTelemetrySdkMetricNameValidation()
+    {
+        GetOpenTelemetryInstrumentNameRegexProperty().SetValue(null, new Regex(".*", RegexOptions.Compiled));
     }
 
     protected override void Dispose(bool disposing)
@@ -53,7 +72,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
         if (disposing)
         {
-            this.exporter.Dispose();
+            this.Exporter.Dispose();
         }
 
         this.isDisposed = true;
