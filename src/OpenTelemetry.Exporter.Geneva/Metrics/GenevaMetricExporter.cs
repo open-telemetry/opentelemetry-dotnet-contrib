@@ -22,7 +22,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
     internal const string DimensionKeyForCustomMetricsNamespace = "_microsoft_metrics_namespace";
 
-    internal readonly IfxMetricsExporter Exporter;
+    internal readonly TlvMetricExporter Exporter;
 
     private delegate ExportResult ExportMetricsFunc(in Batch<Metric> batch);
 
@@ -37,7 +37,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
         // TODO: parse connection string to check if otlp format is enabled.
         // and then enable IfxMetrics exporter or otlp.
-        var ifxMetricsExporter = new IfxMetricsExporter(options);
+        var ifxMetricsExporter = new TlvMetricExporter(options);
 
         this.exportMetrics = ifxMetricsExporter.Export;
 

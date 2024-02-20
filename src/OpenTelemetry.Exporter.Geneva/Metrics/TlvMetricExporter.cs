@@ -11,7 +11,7 @@ using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Exporter.Geneva.Metrics;
 
-internal class IfxMetricsExporter : IDisposable
+internal class TlvMetricExporter : IDisposable
 {
     private readonly ushort prepopulatedDimensionsCount;
 
@@ -31,7 +31,7 @@ internal class IfxMetricsExporter : IDisposable
 
     private bool isDisposed;
 
-    internal IfxMetricsExporter(GenevaMetricExporterOptions options)
+    internal TlvMetricExporter(GenevaMetricExporterOptions options)
     {
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
         this.defaultMonitoringAccount = connectionStringBuilder.Account;
