@@ -11,7 +11,7 @@ using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Exporter.Geneva.Metrics;
 
-internal class TlvMetricExporter : IDisposable
+internal sealed class TlvMetricExporter : IDisposable
 {
     private readonly ushort prepopulatedDimensionsCount;
 
