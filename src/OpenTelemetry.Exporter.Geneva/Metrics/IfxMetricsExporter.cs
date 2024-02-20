@@ -29,6 +29,8 @@ internal class IfxMetricsExporter : IDisposable
 
     private readonly string defaultMetricNamespace;
 
+    private bool isDisposed;
+
     internal IfxMetricsExporter(GenevaMetricExporterOptions options)
     {
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
@@ -241,6 +243,11 @@ internal class IfxMetricsExporter : IDisposable
 
     public void Dispose()
     {
+        if (this.isDisposed)
+        {
+            return;
+        }
+
         try
         {
             // The ETW data transport singleton on Windows should NOT be disposed.
@@ -249,6 +256,8 @@ internal class IfxMetricsExporter : IDisposable
             {
                 this.metricDataTransport.Dispose();
             }
+
+            this.isDisposed = true;
         }
         catch (Exception ex)
         {
