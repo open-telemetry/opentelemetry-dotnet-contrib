@@ -261,7 +261,7 @@ internal sealed class TlvMetricExporter : IDisposable
         }
         catch (Exception ex)
         {
-            ExporterEventSource.Log.ExporterException("GenevaMetricExporter Dispose failed.", ex);
+            ExporterEventSource.Log.ExporterException("TlvMetricExporter Dispose failed.", ex);
         }
     }
 

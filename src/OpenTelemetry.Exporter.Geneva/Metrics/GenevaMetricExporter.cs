@@ -35,13 +35,13 @@ public class GenevaMetricExporter : BaseExporter<Metric>
         Guard.ThrowIfNull(options);
         Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
-        // TODO: parse connection string to check if otlp format is enabled.
-        // and then enable IfxMetrics exporter or otlp.
-        var ifxMetricsExporter = new TlvMetricExporter(options);
+        // TODO: parse connection string to check if otlp protobuf format is enabled.
+        // and then enable either TLV Exporter or Protobuf based exporter.
+        var tlvMetricsExporter = new TlvMetricExporter(options);
 
-        this.exportMetrics = ifxMetricsExporter.Export;
+        this.exportMetrics = tlvMetricsExporter.Export;
 
-        this.Exporter = ifxMetricsExporter;
+        this.Exporter = tlvMetricsExporter;
     }
 
     public override ExportResult Export(in Batch<Metric> batch)

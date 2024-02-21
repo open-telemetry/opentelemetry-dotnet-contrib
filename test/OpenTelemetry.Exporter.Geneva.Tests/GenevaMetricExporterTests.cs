@@ -41,7 +41,7 @@ public class GenevaMetricExporterTests
         var exporterOptions = new GenevaMetricExporterOptions() { ConnectionString = connectionString };
         var exception = Assert.Throws<ArgumentException>(() =>
         {
-            using var exporter = new TlvMetricExporter(exporterOptions);
+            using var exporter = new GenevaMetricExporter(exporterOptions);
         });
     }
 
@@ -900,7 +900,7 @@ public class GenevaMetricExporterTests
     }
 
     [Fact]
-    public void AddIfxMetricsExporterNamedOptionsSupport()
+    public void AddTlvMetricsExporterNamedOptionsSupport()
     {
         string connectionString;
         string connectionStringForNamedOptions;
