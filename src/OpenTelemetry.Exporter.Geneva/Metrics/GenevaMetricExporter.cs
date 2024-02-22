@@ -22,7 +22,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
     internal const string DimensionKeyForCustomMetricsNamespace = "_microsoft_metrics_namespace";
 
-    internal readonly TlvMetricExporter Exporter;
+    private readonly TlvMetricExporter exporter;
 
     private delegate ExportResult ExportMetricsFunc(in Batch<Metric> batch);
 
@@ -41,7 +41,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
         this.exportMetrics = tlvMetricsExporter.Export;
 
-        this.Exporter = tlvMetricsExporter;
+        this.exporter = tlvMetricsExporter;
     }
 
     public override ExportResult Export(in Batch<Metric> batch)
@@ -58,7 +58,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
         if (disposing)
         {
-            this.Exporter.Dispose();
+            this.exporter.Dispose();
         }
 
         this.isDisposed = true;

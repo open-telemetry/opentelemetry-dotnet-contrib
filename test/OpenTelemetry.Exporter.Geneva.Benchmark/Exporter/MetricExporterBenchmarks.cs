@@ -95,7 +95,7 @@ public class MetricExporterBenchmarks
         this.counterWithGenevaMetricExporter = this.meterWithGenevaMetricExporter.CreateCounter<long>("counter");
 
         var exporterOptions = new GenevaMetricExporterOptions() { ConnectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace" };
-        this.tlvMetricsExporter = new GenevaMetricExporter(exporterOptions).Exporter;
+        this.tlvMetricsExporter = new TlvMetricExporter(exporterOptions);
 
         this.counterMetricPointWith3Dimensions = this.GenerateCounterMetricItemWith3Dimensions(out this.counterMetricDataWith3Dimensions);
         this.counterMetricPointWith4Dimensions = this.GenerateCounterMetricItemWith4Dimensions(out this.counterMetricDataWith4Dimensions);
