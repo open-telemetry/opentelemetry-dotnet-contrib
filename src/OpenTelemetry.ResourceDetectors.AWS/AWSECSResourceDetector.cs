@@ -105,6 +105,11 @@ public sealed class AWSECSResourceDetector : IResourceDetector
             new KeyValuePair<string, object>(AWSSemanticConventions.AttributeEcsClusterArn, clusterArn),
         };
 
+        if (taskResponse.RootElement.TryGetProperty("AvailabilityZone", out var availabilityZoneElement) && availabilityZoneElement.ValueKind == JsonValueKind.String)
+        {
+            resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudAvailabilityZone, availabilityZoneElement.GetString()!));
+        }
+
         if (!taskResponse.RootElement.TryGetProperty("LaunchType", out var launchTypeElement))
         {
             launchTypeElement = default;
@@ -128,7 +133,15 @@ public sealed class AWSECSResourceDetector : IResourceDetector
 
         if (taskResponse.RootElement.TryGetProperty("TaskARN", out var taskArnElement) && taskArnElement.ValueKind == JsonValueKind.String)
         {
-            resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeEcsTaskArn, taskArnElement.GetString()!));
+            var taskArn = taskArnElement.GetString()!;
+            resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeEcsTaskArn, taskArn));
+
+            var arnParts = taskArn.Split(':');
+            if (arnParts.Length > 5)
+            {
+                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudAccountID, arnParts[4]));
+                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudRegion, arnParts[3]));
+            }
         }
 
         if (taskResponse.RootElement.TryGetProperty("Family", out var familyElement) && familyElement.ValueKind == JsonValueKind.String)

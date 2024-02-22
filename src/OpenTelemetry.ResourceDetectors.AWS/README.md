@@ -37,10 +37,13 @@ The resource detectors will record the following metadata based on where
 your application is running:
 
 - **AWSEC2ResourceDetector**: cloud provider, cloud platform, account id,
-cloud available zone, host id, host type, aws region, host name.
+cloud availability zone, host id, host type, aws region, host name.
 - **AWSEBSResourceDetector**: cloud provider, cloud platform, service name,
 service namespace, instance id, service version.
-- **AWSECSResourceDetector**: cloud provider, cloud platform, container id.
+- **AWSECSResourceDetector**: cloud provider, cloud platform, account id,
+cloud availability zone, cloud region, container id, cluster arn, task arn,
+task family, task revision, launch type, container arn, log group names,
+log group ids, log stream names, log stream ids.
 - **AWSEKSResourceDetector**: cloud provider, cloud platform, cluster name,
 container id.
 

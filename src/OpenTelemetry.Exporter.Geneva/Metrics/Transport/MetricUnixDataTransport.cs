@@ -33,7 +33,7 @@ internal sealed class MetricUnixDataTransport : IMetricDataTransport
             return;
         }
 
-        this.udsDataTransport?.Dispose();
+        this.udsDataTransport.Dispose();
         this.isDisposed = true;
     }
 }

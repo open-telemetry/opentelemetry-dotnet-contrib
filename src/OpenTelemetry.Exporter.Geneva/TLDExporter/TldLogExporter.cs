@@ -160,7 +160,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         try
         {
             // DO NOT Dispose eventBuilder, keyValuePairs, and partCFields as they are static
-            this.eventProvider?.Dispose();
+            this.eventProvider.Dispose();
             this.serializationData?.Dispose();
         }
         catch (Exception ex)

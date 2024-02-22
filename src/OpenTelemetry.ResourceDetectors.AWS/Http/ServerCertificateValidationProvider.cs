@@ -84,24 +84,24 @@ internal class ServerCertificateValidationProvider
         {
             if ((errors | SslPolicyErrors.RemoteCertificateNotAvailable) == errors)
             {
-                AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "Failed to validate certificate due to RemoteCertificateNotAvailable");
+                AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "SslPolicyError RemoteCertificateNotAvailable occurred");
             }
 
             if ((errors | SslPolicyErrors.RemoteCertificateNameMismatch) == errors)
             {
-                AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "Failed to validate certificate due to RemoteCertificateNameMismatch");
+                AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "SslPolicyError RemoteCertificateNameMismatch occurred");
             }
         }
 
         if (chain == null)
         {
-            AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "Failed to validate certificate. Certificate chain is null.");
+            AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "Certificate chain is null.");
             return false;
         }
 
         if (cert == null)
         {
-            AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "Failed to validate certificate. Certificate is null.");
+            AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "Certificate is null.");
             return false;
         }
 
@@ -123,7 +123,7 @@ internal class ServerCertificateValidationProvider
                 }
             }
 
-            AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), $"Failed to validate certificate due to {chainErrors}");
+            AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), chainErrors);
         }
 
         // check if at least one certificate in the chain is in our trust list

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.3.0-beta.1
+
+Released 2024-Jan-26
+
 * BREAKING: `ILambdaContext context` argument of all tracing methods of
   `OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaWrapper` was annotated as non-nullable.
 * Enabled null state analysis for `OpenTelemetry.Instrumentation.AWSLambda`.

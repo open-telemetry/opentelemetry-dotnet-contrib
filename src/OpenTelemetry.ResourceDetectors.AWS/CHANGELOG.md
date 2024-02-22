@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+* Implement support for cloud.{account.id,availability_zone,region} attributes in
+  AWS ECS detector.
+  ([#1552](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1552))
+
+## 1.4.0-beta.1
+
+Released 2024-Jan-26
+
 * Update OpenTelemetry SDK version to `1.7.0`.
   ([#1486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1486))
 * Fix AWS EBS Resource Detector working on linux.

@@ -194,7 +194,6 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             switch (commandType)
                             {
                                 case CommandType.StoredProcedure:
-                                    activity.AddTag(SpanAttributeConstants.DatabaseStatementTypeKey, nameof(CommandType.StoredProcedure));
                                     if (this.options.SetDbStatementForStoredProcedure)
                                     {
                                         activity.AddTag(AttributeDbStatement, commandText);
@@ -203,7 +202,6 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                     break;
 
                                 case CommandType.Text:
-                                    activity.AddTag(SpanAttributeConstants.DatabaseStatementTypeKey, nameof(CommandType.Text));
                                     if (this.options.SetDbStatementForText)
                                     {
                                         activity.AddTag(AttributeDbStatement, commandText);
@@ -212,7 +210,6 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                     break;
 
                                 case CommandType.TableDirect:
-                                    activity.AddTag(SpanAttributeConstants.DatabaseStatementTypeKey, nameof(CommandType.TableDirect));
                                     break;
                             }
                         }
