@@ -174,6 +174,7 @@ public class TestAWSClientInstrumentation
             var send_msg_req = new SendMessageRequest();
             send_msg_req.QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue";
             send_msg_req.MessageBody = "Hello from OT";
+            send_msg_req.MessageAttributes.Add("Custom", new MessageAttributeValue { StringValue = "Value", DataType = "String" });
 #if NETFRAMEWORK
             sqs.SendMessage(send_msg_req);
 #else
@@ -198,8 +199,8 @@ public class TestAWSClientInstrumentation
 
     private void ValidateDynamoActivityTags(Activity ddb_activity)
     {
-        Assert.Equal("DynamoDBv2.Scan", ddb_activity.DisplayName);
-        Assert.Equal("DynamoDBv2", Utils.GetTagValue(ddb_activity, "aws.service"));
+        Assert.Equal("DynamoDB.Scan", ddb_activity.DisplayName);
+        Assert.Equal("DynamoDB", Utils.GetTagValue(ddb_activity, "aws.service"));
         Assert.Equal("Scan", Utils.GetTagValue(ddb_activity, "aws.operation"));
         Assert.Equal("us-east-1", Utils.GetTagValue(ddb_activity, "aws.region"));
         Assert.Equal("SampleProduct", Utils.GetTagValue(ddb_activity, "aws.table_name"));
