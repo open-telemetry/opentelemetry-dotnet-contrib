@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Kaitai;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry.Exporter.Geneva.Metrics;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -66,9 +67,9 @@ public class GenevaMetricExporterTests
                 server.Listen(1);
             }
 
-            using var exporter = new GenevaMetricExporter(exporterOptions);
-            var monitoringAccount = typeof(GenevaMetricExporter).GetField("defaultMonitoringAccount", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as string;
-            var metricNamespace = typeof(GenevaMetricExporter).GetField("defaultMetricNamespace", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as string;
+            using var exporter = new TlvMetricExporter(exporterOptions);
+            var monitoringAccount = typeof(TlvMetricExporter).GetField("defaultMonitoringAccount", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as string;
+            var metricNamespace = typeof(TlvMetricExporter).GetField("defaultMetricNamespace", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as string;
             Assert.Equal("OTelMonitoringAccount", monitoringAccount);
             Assert.Equal("OTelMetricNamespace", metricNamespace);
         }
@@ -159,7 +160,7 @@ public class GenevaMetricExporterTests
 
                 // Create a test exporter to get byte data for validation of the data received via Socket.
                 var exporterOptions = new GenevaMetricExporterOptions() { ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace" };
-                using var exporter = new GenevaMetricExporter(exporterOptions);
+                using var exporter = new TlvMetricExporter(exporterOptions);
 
                 // Emit a metric and grab a copy of internal buffer for validation.
                 counter.Add(
@@ -206,7 +207,7 @@ public class GenevaMetricExporterTests
                 var receivedData = new byte[1024];
                 int receivedDataSize = serverSocket.Receive(receivedData);
 
-                var fixedPayloadLength = (int)typeof(GenevaMetricExporter).GetField("fixedPayloadStartIndex", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter);
+                var fixedPayloadLength = (int)typeof(TlvMetricExporter).GetField("fixedPayloadStartIndex", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter);
 
                 // The whole payload is sent to the Unix Domain Socket
                 // BinaryHeader (fixed payload) + variable payload which starts with MetricPayload
@@ -518,7 +519,7 @@ public class GenevaMetricExporterTests
                 ["cloud.roleVer"] = "9.0.15289.2",
             };
 
-            using var exporter = new GenevaMetricExporter(exporterOptions);
+            using var exporter = new TlvMetricExporter(exporterOptions);
 
             inMemoryReader.Collect();
 
@@ -740,7 +741,7 @@ public class GenevaMetricExporterTests
                 ["cloud.roleVer"] = "9.0.15289.2",
             };
 
-            using var exporter = new GenevaMetricExporter(exporterOptions);
+            using var exporter = new TlvMetricExporter(exporterOptions);
 
             inMemoryReader.Collect();
 
@@ -858,7 +859,7 @@ public class GenevaMetricExporterTests
                 ["cloud.roleVer"] = "9.0.15289.2",
             };
 
-            using var exporter = new GenevaMetricExporter(exporterOptions);
+            using var exporter = new TlvMetricExporter(exporterOptions);
 
             inMemoryReader.Collect();
 
@@ -899,7 +900,7 @@ public class GenevaMetricExporterTests
     }
 
     [Fact]
-    public void AddGenevaMetricExporterNamedOptionsSupport()
+    public void AddTlvMetricsExporterNamedOptionsSupport()
     {
         string connectionString;
         string connectionStringForNamedOptions;
@@ -966,7 +967,7 @@ public class GenevaMetricExporterTests
         Assert.Equal(bucket.BucketCount, valueCountPairs.Columns[listIterator].Count);
     }
 
-    private static void CheckSerializationWithTLVForSingleMetricPoint(Metric metric, GenevaMetricExporter exporter, GenevaMetricExporterOptions exporterOptions)
+    private static void CheckSerializationWithTLVForSingleMetricPoint(Metric metric, TlvMetricExporter exporter, GenevaMetricExporterOptions exporterOptions)
     {
         var metricType = metric.MetricType;
         var metricPointsEnumerator = metric.GetMetricPoints().GetEnumerator();
@@ -996,7 +997,7 @@ public class GenevaMetricExporterTests
                 out _,
                 out _);
 
-            var buffer = typeof(GenevaMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
+            var buffer = typeof(TlvMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
             var data = new MetricsContract(stream);
             var userData = data.Body as UserdataV2;
@@ -1024,7 +1025,7 @@ public class GenevaMetricExporterTests
                 out _,
                 out _);
 
-            var buffer = typeof(GenevaMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
+            var buffer = typeof(TlvMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
             var data = new MetricsContract(stream);
             var userData = data.Body as UserdataV2;
@@ -1054,7 +1055,7 @@ public class GenevaMetricExporterTests
                 out _,
                 out _);
 
-            var buffer = typeof(GenevaMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
+            var buffer = typeof(TlvMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
             var data = new MetricsContract(stream);
             var userData = data.Body as UserdataV2;
@@ -1084,7 +1085,7 @@ public class GenevaMetricExporterTests
                 out _,
                 out _);
 
-            var buffer = typeof(GenevaMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
+            var buffer = typeof(TlvMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
             var data = new MetricsContract(stream);
             var userData = data.Body as UserdataV2;
@@ -1121,7 +1122,7 @@ public class GenevaMetricExporterTests
                 out _,
                 out _);
 
-            var buffer = typeof(GenevaMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
+            var buffer = typeof(TlvMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
             var data = new MetricsContract(stream);
             var userData = data.Body as UserdataV2;
@@ -1303,7 +1304,7 @@ public class GenevaMetricExporterTests
     }
 #endif
 
-    private static UserdataV2 GetSerializedData(Metric metric, GenevaMetricExporter exporter)
+    private static UserdataV2 GetSerializedData(Metric metric, TlvMetricExporter exporter)
     {
         var metricType = metric.MetricType;
         var metricPointsEnumerator = metric.GetMetricPoints().GetEnumerator();
@@ -1332,7 +1333,7 @@ public class GenevaMetricExporterTests
                 out _,
                 out _);
 
-            var buffer = typeof(GenevaMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
+            var buffer = typeof(TlvMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
             var data = new MetricsContract(stream);
             result = data.Body as UserdataV2;
@@ -1353,7 +1354,7 @@ public class GenevaMetricExporterTests
                 out _,
                 out _);
 
-            var buffer = typeof(GenevaMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
+            var buffer = typeof(TlvMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
             var data = new MetricsContract(stream);
             result = data.Body as UserdataV2;
@@ -1376,7 +1377,7 @@ public class GenevaMetricExporterTests
                 out _,
                 out _);
 
-            var buffer = typeof(GenevaMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
+            var buffer = typeof(TlvMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
             var data = new MetricsContract(stream);
             result = data.Body as UserdataV2;
@@ -1399,7 +1400,7 @@ public class GenevaMetricExporterTests
                 out _,
                 out _);
 
-            var buffer = typeof(GenevaMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
+            var buffer = typeof(TlvMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
             var data = new MetricsContract(stream);
             result = data.Body as UserdataV2;
@@ -1429,7 +1430,7 @@ public class GenevaMetricExporterTests
                 out _,
                 out _);
 
-            var buffer = typeof(GenevaMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
+            var buffer = typeof(TlvMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
             var data = new MetricsContract(stream);
             result = data.Body as UserdataV2;
