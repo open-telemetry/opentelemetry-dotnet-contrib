@@ -59,6 +59,7 @@ repository](https://github.com/open-telemetry/community/blob/main/community-memb
 ### Emeritus
 
 [Emeritus Maintainer/Approver/Triager](https://github.com/open-telemetry/community/blob/main/community-membership.md#emeritus-maintainerapprovertriager):
+
 * [Prashant Srivastava](https://github.com/srprash)
 * [Sergey Kanzhelev](https://github.com/SergeyKanzhelev)
 
