@@ -17,30 +17,34 @@ guidelines](./CONTRIBUTING.md).
 
 ## Support
 
-This repository is maintained by [.NET Contrib
-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers)
-team and [.NET Contrib
-approvers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-approvers)
-who can help with reviews and code approval. However, as individual components
-are developed by numerous contributors, approvers and maintainers are not
-expected to directly contribute to every component.
+This repository is maintained by [.NET Contrib maintainers](#maintainers) team
+and [.NET Contrib approvers](#approvers) who can help with reviews and code
+approval. However, as individual components are developed by numerous
+contributors, approvers and maintainers are not expected to directly contribute
+to every component. The list of owners for each component can be found
+[here](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/component_owners.yml).
 
-Triagers
-([@open-telemetry/dotnet-contrib-triagers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-triagers)):
+### Triagers
+
+[@open-telemetry/dotnet-contrib-triagers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-triagers):
 
 * [Martin Thwaites](https://github.com/martinjt), Honeycomb
 
 *Find more about the triager role in [community
 repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#triager).*
 
-Approvers
-([@open-telemetry/dotnet-contrib-approvers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-approvers)):
+### Approvers
+
+[@open-telemetry/dotnet-contrib-approvers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-approvers):
+
+The are no approvers today.
 
 *Find more about the approver role in [community
 repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#approver).*
 
-Maintainers
-([@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers)):
+### Maintainers
+
+[@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers):
 
 * [Alan West](https://github.com/alanwest), New Relic
 * [Cijo Thomas](https://github.com/cijothomas), Microsoft
@@ -52,9 +56,9 @@ Maintainers
 *Find more about the maintainer role in [community
 repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#maintainer).*
 
-[Emeritus
-Maintainer/Approver/Triager](https://github.com/open-telemetry/community/blob/main/community-membership.md#emeritus-maintainerapprovertriager):
+### Emeritus
 
+[Emeritus Maintainer/Approver/Triager](https://github.com/open-telemetry/community/blob/main/community-membership.md#emeritus-maintainerapprovertriager):
 * [Prashant Srivastava](https://github.com/srprash)
 * [Sergey Kanzhelev](https://github.com/SergeyKanzhelev)
 
