@@ -122,7 +122,7 @@ internal class OtlpProtobufSerializer
                     OtlpProtobufSerializerHelper.WriteBoolWithTag(buffer, ref currentPosition, FieldNumberConstants.Sum_is_monotonic, metric.MetricType == MetricType.LongSum);
 
                     // Write aggregationTemporality tag
-                    OtlpProtobufSerializerHelper.WriteEnumWithTag(buffer, ref currentPosition, FieldNumberConstants.Sum_aggregation_temporality, FieldNumberConstants.GetAggregationTemporality(metric.Temporality));
+                    OtlpProtobufSerializerHelper.WriteEnumWithTag(buffer, ref currentPosition, FieldNumberConstants.Sum_aggregation_temporality, metric.Temporality == AggregationTemporality.Cumulative ? 2 : 1);
 
                     foreach (var metricPoint in metric.GetMetricPoints())
                     {

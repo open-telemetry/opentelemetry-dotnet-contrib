@@ -126,16 +126,4 @@ internal class FieldNumberConstants
 
         return 0;
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static int GetAggregationTemporality(AggregationTemporality aggregationTemporality)
-    {
-        switch (aggregationTemporality)
-        {
-            case AggregationTemporality.Delta: return 1;
-            case AggregationTemporality.Cumulative: return 2;
-        }
-
-        return 0;
-    }
 }
