@@ -207,10 +207,24 @@ internal class OtlpProtobufSerializer
         // Write name
         OtlpProtobufSerializerHelper.WriteStringTag(buffer, ref currentPosition, name, 1);
 
-        // TODO: Write metric.MeterTags
+        SerializeTags(buffer, ref currentPosition, meterTags, FieldNumberConstants.InstrumentationScope_attributes);
 
         // Write instrumentation Scope Tag
         OtlpProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref currentPosition, previousPosition - currentPosition, FieldNumberConstants.ScopeMetrics_scope, WireFormat.WireType.LengthDelimited);
+    }
+
+    private static void SerializeTags(byte[] buffer, ref int currentPosition, IEnumerable<KeyValuePair<string, object>> attributes, int fieldNumber)
+    {
+        if (attributes != null)
+        {
+            foreach (var tag in attributes)
+            {
+                if (tag.Value != null)
+                {
+                    SerializeTag(buffer, ref currentPosition, tag.Key, tag.Value, fieldNumber);
+                }
+            }
+        }
     }
 
     private static void SerializeResource(byte[] buffer, ref int currentPosition, Resource resource, string metricAccount, string metricNamespace)
@@ -220,46 +234,57 @@ internal class OtlpProtobufSerializer
 
     internal static void SerializeTags(byte[] buffer, ref int currentPosition, ReadOnlyTagCollection tags, int fieldNumber)
     {
-        int previousPosition = currentPosition;
-
         foreach (var tag in tags)
         {
             if (tag.Value != null)
             {
-                switch (tag.Value)
-                {
-                    case char:
-                    case string:
-                        OtlpProtobufSerializerHelper.WriteStringTag(buffer, ref currentPosition, Convert.ToString(tag.Value, CultureInfo.InvariantCulture), FieldNumberConstants.AnyValue_string_value);
-                        break;
-                    case bool b:
-                        OtlpProtobufSerializerHelper.WriteBoolWithTag(buffer, ref currentPosition, FieldNumberConstants.AnyValue_bool_value, (bool)tag.Value);
-                        break;
-                    case byte:
-                    case sbyte:
-                    case short:
-                    case ushort:
-                    case int:
-                    case uint:
-                    case long:
-                        OtlpProtobufSerializerHelper.WriteInt64WithTag(buffer, ref currentPosition, FieldNumberConstants.AnyValue_int_value, Convert.ToUInt64(tag.Value, CultureInfo.InvariantCulture));
-                        break;
-                    case float:
-                    case double:
-                        OtlpProtobufSerializerHelper.WriteDoubleWithTag(buffer, ref currentPosition, FieldNumberConstants.AnyValue_double_value, Convert.ToDouble(tag.Value, CultureInfo.InvariantCulture));
-                        break;
-                    default:
-                        OtlpProtobufSerializerHelper.WriteStringTag(buffer, ref currentPosition, Convert.ToString(tag.Value, CultureInfo.InvariantCulture), FieldNumberConstants.AnyValue_string_value);
-                        break;
+                SerializeTag(buffer, ref currentPosition, tag.Key, tag.Value, fieldNumber);
+            }
+        }
+    }
+
+    internal static void SerializeTag(byte[] buffer, ref int currentPosition, string key, object value, int fieldNumber)
+    {
+        int previousPosition = currentPosition;
+        try
+        {
+            switch (value)
+            {
+                case char:
+                case string:
+                    OtlpProtobufSerializerHelper.WriteStringTag(buffer, ref currentPosition, Convert.ToString(value, CultureInfo.InvariantCulture), FieldNumberConstants.AnyValue_string_value);
+                    break;
+                case bool b:
+                    OtlpProtobufSerializerHelper.WriteBoolWithTag(buffer, ref currentPosition, FieldNumberConstants.AnyValue_bool_value, (bool)value);
+                    break;
+                case byte:
+                case sbyte:
+                case short:
+                case ushort:
+                case int:
+                case uint:
+                case long:
+                    OtlpProtobufSerializerHelper.WriteInt64WithTag(buffer, ref currentPosition, FieldNumberConstants.AnyValue_int_value, Convert.ToUInt64(value, CultureInfo.InvariantCulture));
+                    break;
+                case float:
+                case double:
+                    OtlpProtobufSerializerHelper.WriteDoubleWithTag(buffer, ref currentPosition, FieldNumberConstants.AnyValue_double_value, Convert.ToDouble(value, CultureInfo.InvariantCulture));
+                    break;
+                default:
+                    OtlpProtobufSerializerHelper.WriteStringTag(buffer, ref currentPosition, Convert.ToString(value, CultureInfo.InvariantCulture), FieldNumberConstants.AnyValue_string_value);
+                    break;
 
                     // TODO: Handle array type.
-                }
-
-                OtlpProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref currentPosition, previousPosition - currentPosition, FieldNumberConstants.KeyValue_value, WireFormat.WireType.LengthDelimited);
-                OtlpProtobufSerializerHelper.WriteStringTag(buffer, ref currentPosition, tag.Key, FieldNumberConstants.KeyValue_key);
-                OtlpProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref currentPosition, previousPosition - currentPosition, fieldNumber, WireFormat.WireType.LengthDelimited);
-                previousPosition = currentPosition;
             }
+
+            OtlpProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref currentPosition, previousPosition - currentPosition, FieldNumberConstants.KeyValue_value, WireFormat.WireType.LengthDelimited);
+            OtlpProtobufSerializerHelper.WriteStringTag(buffer, ref currentPosition, key, FieldNumberConstants.KeyValue_key);
+            OtlpProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref currentPosition, previousPosition - currentPosition, fieldNumber, WireFormat.WireType.LengthDelimited);
+            previousPosition = currentPosition;
+        }
+        catch
+        {
+            // TODO: log exception.
         }
     }
 }
