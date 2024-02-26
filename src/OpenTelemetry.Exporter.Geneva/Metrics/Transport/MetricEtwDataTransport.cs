@@ -9,6 +9,7 @@ namespace OpenTelemetry.Exporter.Geneva;
 [EventSource(Name = "OpenTelemetryGenevaMetricExporter", Guid = "{edc24920-e004-40f6-a8e1-0e6e48f39d84}")]
 internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
 {
+    private const int OtlpProtobufMetricEventId = 81;
     private readonly int fixedPayloadEndIndex;
     private bool isDisposed;
 
@@ -32,6 +33,30 @@ internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
             eventDataPtr[0].Size = size;
             this.WriteEventCore((int)eventType, 1, eventDataPtr);
         }
+    }
+
+    [NonEvent]
+    internal unsafe void SendOtlpProtobufEvent(byte[] data, int offset)
+    {
+        if (this.IsEnabled())
+        {
+            EventData* descr = stackalloc EventData[1];
+            if (data != null && data.Length != 0)
+            {
+                int blobSize = data.Length;
+                fixed (byte* blob = &data[offset])
+                {
+                    descr[0].DataPointer = (IntPtr)blob;
+                    descr[0].Size = blobSize - offset;
+                    this.WriteEventCore(OtlpProtobufMetricEventId, 1, descr);
+                }
+            }
+        }
+    }
+
+    [Event(OtlpProtobufMetricEventId)]
+    private void OtlpProtobufEvent()
+    {
     }
 
     [Event((int)MetricEventType.ULongMetric)]
