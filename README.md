@@ -68,7 +68,8 @@ community. See to the [community membership
 document](https://github.com/open-telemetry/community/blob/master/community-membership.md)
 on how to become a
 [**Member**](https://github.com/open-telemetry/community/blob/master/community-membership.md#member),
-[**Approver**](https://github.com/open-telemetry/community/blob/master/community-membership.md#approver)
+[**Triager**](https://github.com/open-telemetry/community/blob/main/community-membership.md#triager),
+[**Approver**](https://github.com/open-telemetry/community/blob/master/community-membership.md#approver),
 and
 [**Maintainer**](https://github.com/open-telemetry/community/blob/master/community-membership.md#maintainer).
 
