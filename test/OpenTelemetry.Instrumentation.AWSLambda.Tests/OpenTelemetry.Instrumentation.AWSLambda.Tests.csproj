@@ -3,7 +3,6 @@
   <PropertyGroup>
     <Description>Unit test project of OpenTelemetry instrumentation for AWS Lambda</Description>
     <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
-    <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,8 +15,7 @@
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\SpanAttributeConstants.cs" Link="Includes\SpanAttributeConstants.cs" />
   </ItemGroup>
-
-
 
 </Project>
