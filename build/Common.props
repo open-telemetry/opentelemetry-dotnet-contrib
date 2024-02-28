@@ -66,10 +66,6 @@
     <Compile Include="$(RepoRoot)\src\Shared\SpanHelper.cs" Link="Includes\SpanHelper.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(IncludeSharedActivityInstrumentationHelper)'=='true'">
-    <Compile Include="$(RepoRoot)\src\Shared\ActivityInstrumentationHelper.cs" Link="Includes\ActivityInstrumentationHelper.cs" />
-  </ItemGroup>
-
   <ItemGroup Condition="'$(IncludeSharedDiagnosticSourceSubscriber)'=='true'">
     <Compile Include="$(RepoRoot)\src\Shared\DiagnosticSourceListener.cs" Link="Includes\DiagnosticSourceListener.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\DiagnosticSourceSubscriber.cs" Link="Includes\DiagnosticSourceSubscriber.cs" />
