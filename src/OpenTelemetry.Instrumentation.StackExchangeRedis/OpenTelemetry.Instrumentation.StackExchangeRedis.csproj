@@ -4,7 +4,6 @@
     <TargetFrameworks>net6.0;netstandard2.0;net462</TargetFrameworks>
     <Description>StackExchange.Redis instrumentation for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);distributed-tracing;Redis;StackExchange.Redis</PackageTags>
-    <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
     <MinVerTagPrefix>Instrumentation.StackExchangeRedis-</MinVerTagPrefix>
     <ImplicitUsings>true</ImplicitUsings>
   </PropertyGroup>
