@@ -65,11 +65,4 @@
   <ItemGroup Condition="'$(IncludeSharedSpanHelper)'=='true'">
     <Compile Include="$(RepoRoot)\src\Shared\SpanHelper.cs" Link="Includes\SpanHelper.cs" />
   </ItemGroup>
-
-  <ItemGroup Condition="'$(IncludeSharedTestSource)'=='true'">
-    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestSampler.cs" Link="Includes\TestSampler.cs" />
-    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestActivityExportProcessor.cs" Link="Includes\TestActivityExportProcessor.cs" />
-    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestActivityProcessor.cs" Link="Includes\TestActivityProcessor.cs" />
-  </ItemGroup>
-
 </Project>
