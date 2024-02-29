@@ -4,7 +4,6 @@
     <Description>OpenTelemetry instrumentation for OWIN</Description>
     <PackageTags>$(PackageTags);distributed-tracing;OWIN</PackageTags>
     <MinVerTagPrefix>Instrumentation.Owin-</MinVerTagPrefix>
-    <IncludeSharedSpanHelper>true</IncludeSharedSpanHelper>
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
@@ -12,6 +11,7 @@
     <Compile Include="$(RepoRoot)\src\Shared\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs"/>
+    <Compile Include="$(RepoRoot)\src\Shared\SpanHelper.cs" Link="Includes\SpanHelper.cs" />
   </ItemGroup>
 
   <ItemGroup>
