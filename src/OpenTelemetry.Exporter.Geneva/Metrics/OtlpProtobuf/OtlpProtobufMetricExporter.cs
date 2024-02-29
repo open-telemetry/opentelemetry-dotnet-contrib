@@ -3,11 +3,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-
-#if NET6_0_OR_GREATER
-using System.Net.Http;
-using System.Net.Http.Headers;
-#endif
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 
@@ -59,44 +54,8 @@ internal class OtlpProtobufMetricExporter : IDisposable
             ExporterEventSource.Log.ExporterException("metric batch failed", ex);
         }
 
-#if NET6_0_OR_GREATER
-        byte[] arr = new byte[currentPosition];
-
-        Buffer.BlockCopy(this.buffer, 0, arr, 0, arr.Length);
-
-        SendRequest(arr);
-#endif
-
         return result;
     }
-
-#if NET6_0_OR_GREATER
-    private static void SendRequest(byte[] buffer)
-    {
-        HttpClient httpClient = new HttpClient();
-
-        // Create a new HttpRequestMessage
-        var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost:4318/v1/metrics");
-
-        // Set the Content to a ByteArrayContent containing the serialized data
-        request.Content = new ByteArrayContent(buffer);
-        request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-protobuf");
-
-        // Version on message is needed
-        // Without it HttpClient will not identify this as Http/2 request.
-        // request.Version = new Version(2, 0);
-        request.VersionPolicy = HttpVersionPolicy.RequestVersionExact;
-
-        // Send the request
-        var response = httpClient.SendAsync(request).Result;
-
-        // Ensure the request was successful
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new InvalidOperationException($"Request failed with status code {response.StatusCode}");
-        }
-    }
-#endif
 
     public void Dispose()
     {
