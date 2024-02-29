@@ -23,14 +23,17 @@ components:
   src/OpenTelemetry.Extensions.AWS/:
     - srprash
     - atshaw43
+    - ppittle
   src/OpenTelemetry.Extensions.Enrichment/:
     - xakep139
   src/OpenTelemetry.Instrumentation.AWS/:
     - srprash
     - atshaw43
+    - ppittle
   src/OpenTelemetry.Instrumentation.AWSLambda/:
     - rypdal
     - Oberon00
+    - ppittle
   src/OpenTelemetry.Instrumentation.Cassandra/:
     - xsoheilalizadeh
   src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
@@ -60,6 +63,7 @@ components:
   src/OpenTelemetry.ResourceDetectors.AWS/:
     - srprash
     - atshaw43
+    - ppittle
   src/OpenTelemetry.ResourceDetectors.Azure/:
     - rajkumar-rangaraj
     - vishweshbankwar
@@ -77,6 +81,7 @@ components:
   src/OpenTelemetry.Sampler.AWS/:
     - srprash
     - atshaw43
+    - ppittle
   test/OpenTelemetry.Exporter.Geneva.Benchmark/:
     - cijothomas
     - codeblanch
@@ -112,6 +117,7 @@ components:
   test/OpenTelemetry.Extensions.AWS.Tests/:
     - srprash
     - atshaw43
+    - ppittle
   test/OpenTelemetry.Extensions.Enrichment.Tests/:
     - xakep139
   test/OpenTelemetry.Instrumentation.AWS.Tests/:
@@ -120,6 +126,7 @@ components:
   test/OpenTelemetry.Instrumentation.AWSLambda.Tests/:
     - rypdal
     - Oberon00
+    - ppittle
   test/OpenTelemetry.Instrumentation.Cassandra.Tests/:
     - xsoheilalizadeh
   test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/:
@@ -145,6 +152,7 @@ components:
   test/OpenTelemetry.ResourceDetectors.AWS.Tests/:
     - srprash
     - atshaw43
+    - ppittle
   test/OpenTelemetry.ResourceDetectors.Azure.Tests/:
     - rajkumar-rangaraj
     - vishweshbankwar
@@ -162,3 +170,4 @@ components:
   test/OpenTelemetry.Sampler.AWS.Tests/:
     - srprash
     - atshaw43
+    - ppittle
