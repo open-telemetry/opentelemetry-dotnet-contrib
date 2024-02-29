@@ -16,19 +16,19 @@ internal static class SpanHelper
     /// </summary>
     /// <param name="httpStatusCode">Http status code.</param>
     /// <returns>Resolved span <see cref="Status"/> for the Http status code.</returns>
-    public static Status ResolveSpanStatusForHttpStatusCode(int httpStatusCode)
+    public static ActivityStatusCode ResolveSpanStatusForHttpStatusCode(int httpStatusCode)
     {
         if (httpStatusCode >= 100 && httpStatusCode <= 399)
         {
-            return Status.Unset;
+            return ActivityStatusCode.Unset;
         }
 
         if (httpStatusCode == 404)
         {
-            return Status.Unset;
+            return ActivityStatusCode.Unset;
         }
 
-        return Status.Error;
+        return ActivityStatusCode.Error;
     }
 
     /// <summary>
