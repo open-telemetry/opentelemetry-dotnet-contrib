@@ -124,7 +124,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         if (activity.IsAllDataRequested)
         {
             var statusCode = this.httpStatusFetcher.Fetch(payload);
-            activity.SetStatus(SpanHelper.ResolveSpanStatusForHttpStatusCode(statusCode.GetValueOrDefault()));
+            activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, statusCode.GetValueOrDefault()));
 
             if (statusCode.HasValue)
             {

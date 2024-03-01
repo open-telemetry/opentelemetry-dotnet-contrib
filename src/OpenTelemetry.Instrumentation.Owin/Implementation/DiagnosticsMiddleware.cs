@@ -172,7 +172,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
                 }
                 else if (activity.GetStatus().StatusCode == StatusCode.Unset)
                 {
-                    activity.SetStatus(SpanHelper.ResolveSpanStatusForHttpStatusCode(response.StatusCode));
+                    activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, response.StatusCode));
                 }
 
                 activity.SetTag(SemanticConventions.AttributeHttpStatusCode, response.StatusCode);
