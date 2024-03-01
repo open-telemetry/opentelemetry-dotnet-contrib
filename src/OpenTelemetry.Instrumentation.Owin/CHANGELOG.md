@@ -10,6 +10,8 @@
   ([#1335](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1335))
 * Fix description for `http.server.request.duration` metric.
   ([#1538](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1538))
+* Span status is calucated based on [semantic convention for server spans](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/http/http-spans.md#status).
+  ([#1538](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1538))
 
 ## 1.0.0-rc.3
 
