@@ -3,7 +3,6 @@
   <PropertyGroup>
     <Description>Unit test project for OpenTelemetry OWIN instrumentation</Description>
     <TargetFrameworks>$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
-    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
