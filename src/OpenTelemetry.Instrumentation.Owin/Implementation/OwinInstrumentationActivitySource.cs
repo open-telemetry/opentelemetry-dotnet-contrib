@@ -15,7 +15,7 @@ internal static class OwinInstrumentationActivitySource
 
     private static readonly Version Version = AssemblyName.Version;
 
-    public static ActivitySource ActivitySource { get; } = new ActivitySource(ActivitySourceName, Version.ToString());
+    public static ActivitySource ActivitySource { get; } = new(ActivitySourceName, Version.ToString());
 
-    public static OwinInstrumentationOptions Options { get; set; }
+    public static OwinInstrumentationOptions? Options { get; set; }
 }
