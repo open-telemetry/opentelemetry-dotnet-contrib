@@ -11,42 +11,21 @@ namespace OpenTelemetry.Trace;
 internal static class SpanHelper
 {
     /// <summary>
-    /// Helper method that populates span properties from http status code according
-    /// to https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md#status.
-    /// </summary>
-    /// <param name="httpStatusCode">Http status code.</param>
-    /// <returns>Resolved span <see cref="Status"/> for the Http status code.</returns>
-    public static Status ResolveSpanStatusForHttpStatusCode(int httpStatusCode)
-    {
-        if (httpStatusCode >= 100 && httpStatusCode <= 399)
-        {
-            return Status.Unset;
-        }
-
-        if (httpStatusCode == 404)
-        {
-            return Status.Unset;
-        }
-
-        return Status.Error;
-    }
-
-    /// <summary>
-    /// Helper method that populates span properties from http status code according
-    /// to https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md#status.
+    /// Helper method that populates Activity Status from http status code according
+    /// to https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/http/http-spans.md#status.
     /// </summary>
     /// <param name="kind">The span kind.</param>
     /// <param name="httpStatusCode">Http status code.</param>
-    /// <returns>Resolved span <see cref="Status"/> for the Http status code.</returns>
-    public static Status ResolveSpanStatusForHttpStatusCode(ActivityKind kind, int httpStatusCode)
+    /// <returns>Resolved span <see cref="ActivityStatusCode"/> for the Http status code.</returns>
+    public static ActivityStatusCode ResolveActivityStatusForHttpStatusCode(ActivityKind kind, int httpStatusCode)
     {
         var lowerBound = kind == ActivityKind.Client ? 400 : 500;
         var upperBound = 599;
         if (httpStatusCode >= lowerBound && httpStatusCode <= upperBound)
         {
-            return Status.Error;
+            return ActivityStatusCode.Error;
         }
 
-        return Status.Unset;
+        return ActivityStatusCode.Unset;
     }
 }

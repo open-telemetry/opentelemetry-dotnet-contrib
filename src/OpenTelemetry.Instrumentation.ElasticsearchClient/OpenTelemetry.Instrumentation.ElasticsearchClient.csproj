@@ -6,7 +6,6 @@
     <Description>Elasticsearch instrumentation for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);distributed-tracing</PackageTags>
     <MinVerTagPrefix>Instrumentation.ElasticsearchClient-</MinVerTagPrefix>
-    <IncludeSharedSpanHelper>true</IncludeSharedSpanHelper>
     <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>
@@ -27,5 +26,6 @@
     <Compile Include="$(RepoRoot)\src\Shared\ListenerHandler.cs" Link="Includes\ListenerHandler.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\MultiTypePropertyFetcher.cs" Link="Includes\MultiTypePropertyFetcher.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\SpanHelper.cs" Link="Includes\SpanHelper.cs" />
   </ItemGroup>
 </Project>

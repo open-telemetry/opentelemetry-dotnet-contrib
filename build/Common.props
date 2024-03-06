@@ -54,8 +54,4 @@
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="$(MicrosoftNETFrameworkReferenceAssembliesPkgVer)" PrivateAssets="All" />
     <PackageReference Include="StyleCop.Analyzers" Version="$(StyleCopAnalyzersPkgVer)" Condition="'$(SkipAnalysis)'!='true'" PrivateAssets="All" />
   </ItemGroup>
-
-  <ItemGroup Condition="'$(IncludeSharedSpanHelper)'=='true'">
-    <Compile Include="$(RepoRoot)\src\Shared\SpanHelper.cs" Link="Includes\SpanHelper.cs" />
-  </ItemGroup>
 </Project>
