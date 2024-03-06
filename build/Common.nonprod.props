@@ -22,7 +22,7 @@
     -->
     <BenchmarkDotNetPkgVer>[0.13.12,0.14)</BenchmarkDotNetPkgVer>
     <DotNetXUnitCliVer>[2.3.1,3.0)</DotNetXUnitCliVer>
-    <MicrosoftNETTestSdkPkgVer>[17.7.2,18.0)</MicrosoftNETTestSdkPkgVer>
+    <MicrosoftNETTestSdkPkgVer>[17.9.0,18.0)</MicrosoftNETTestSdkPkgVer>
     <OpenTelemetryExporterInMemoryPkgVer>$(OpenTelemetryCoreLatestVersion)</OpenTelemetryExporterInMemoryPkgVer>
     <OpenTelemetryExporterInMemoryLatestPreReleasePkgVer>$(OpenTelemetryCoreLatestPrereleaseVersion)</OpenTelemetryExporterInMemoryLatestPreReleasePkgVer>
     <SupportedNetTargets>net8.0;net7.0;net6.0</SupportedNetTargets>
