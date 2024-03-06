@@ -42,15 +42,17 @@ public class OtlpProtobufMetricExporterTests
 
         var otlpProtobufSerializer = new OtlpProtobufSerializer();
 
-        otlpProtobufSerializer.SerializeMetrics(buffer, ref currentPosition, null, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        // overwrite transport
+        var testTransport = new TestTransport();
+        otlpProtobufSerializer.MetricDataTransport = testTransport;
 
-        byte[] arr = new byte[currentPosition];
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, ref currentPosition, null, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
-        Buffer.BlockCopy(buffer, 0, arr, 0, arr.Length);
+        Assert.Single(testTransport.ExportedItems);
 
         var request = new OtlpCollector.ExportMetricsServiceRequest();
 
-        request.MergeFrom(arr);
+        request.MergeFrom(testTransport.ExportedItems[0]);
 
         Assert.Single(request.ResourceMetrics);
 
@@ -121,6 +123,27 @@ public class OtlpProtobufMetricExporterTests
             default:
                 Assert.Equal(expected.ToString(), actual.StringValue);
                 break;
+        }
+    }
+
+    private class TestTransport : IMetricDataTransport
+    {
+        public List<byte[]> ExportedItems = new();
+
+        public void SendOtlpProtobufEvent(byte[] body, int size)
+        {
+            var arr = new byte[size];
+            Buffer.BlockCopy(body, 0, arr, 0, arr.Length);
+            this.ExportedItems.Add(arr);
+        }
+
+        public void Send(MetricEventType eventType, byte[] body, int size)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

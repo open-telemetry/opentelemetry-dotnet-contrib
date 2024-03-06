@@ -34,7 +34,7 @@ internal static class OtlpProtobufSerializerHelper
         WriteTag(buffer, ref currentPosition, fieldNumber, WireFormat.WireType.Varint);
 
         // Assuming 1 byte which matches the intended use.
-        // Otherwise, need to first calculte the bytes needed.
+        // Otherwise, need to first calculate the bytes needed.
         WriteRawByte(buffer, ref currentPosition, (byte)value);
     }
 
@@ -67,9 +67,15 @@ internal static class OtlpProtobufSerializerHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void WriteLength(byte[] buffer, ref int currentPosition, int length)
+    internal static void WriteLengthCustom(byte[] buffer, ref int currentPosition, int length)
     {
         WriteRawVarintCustom(buffer, ref currentPosition, (uint)length);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static void WriteLength(byte[] buffer, ref int currentPosition, int length)
+    {
+        WriteRawVarint32(buffer, ref currentPosition, (uint)length);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -171,7 +177,7 @@ internal static class OtlpProtobufSerializerHelper
 
         // Write byte individually
         // We dont refresh the buffer but this could be used when the buffer is refreshed.
-        // Right now, it would simply fail.
+        // Right now it would simply fail.
         while (value > 127)
         {
             WriteRawByte(buffer, ref currentPosition, (byte)((value & 0x7F) | 0x80));
@@ -187,7 +193,6 @@ internal static class OtlpProtobufSerializerHelper
         if (currentPosition < 0)
         {
             // TODO: handle insufficient space.
-            // Refresh buffer?
         }
 
         buffer[currentPosition++] = value;
@@ -205,7 +210,7 @@ internal static class OtlpProtobufSerializerHelper
     internal static void WriteTagAndLengthPrefix(byte[] buffer, ref int currentPosition, int contentLength, int fieldNumber, WireFormat.WireType type)
     {
         WriteTag(buffer, ref currentPosition, fieldNumber, type);
-        WriteLength(buffer, ref currentPosition, contentLength);
+        WriteLengthCustom(buffer, ref currentPosition, contentLength);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

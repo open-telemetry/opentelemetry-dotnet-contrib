@@ -17,4 +17,13 @@ internal interface IMetricDataTransport : IDisposable
         MetricEventType eventType,
         byte[] body,
         int size);
+
+    /// <summary>
+    /// Writes a standard metric event containing only a single value.
+    /// </summary>
+    /// <param name="body">The byte array containing the serialized data.</param>
+    /// <param name="size">Length of the payload (fixed + variable).</param>
+    void SendOtlpProtobufEvent(
+        byte[] body,
+        int size);
 }

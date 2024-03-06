@@ -36,7 +36,7 @@ internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
     }
 
     [NonEvent]
-    internal unsafe void SendOtlpProtobufEvent(byte[] data, int size)
+    public unsafe void SendOtlpProtobufEvent(byte[] data, int size)
     {
         if (this.IsEnabled())
         {

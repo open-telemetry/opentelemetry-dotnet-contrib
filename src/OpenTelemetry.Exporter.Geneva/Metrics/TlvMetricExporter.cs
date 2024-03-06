@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Geneva.Metrics;
 
@@ -31,17 +32,16 @@ internal sealed class TlvMetricExporter : IDisposable
 
     private bool isDisposed;
 
-    internal TlvMetricExporter(GenevaMetricExporterOptions options)
+    internal TlvMetricExporter(ConnectionStringBuilder connectionStringBuilder, IReadOnlyDictionary<string, object> prepopulatedMetricDimensions)
     {
-        var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
         this.defaultMonitoringAccount = connectionStringBuilder.Account;
         this.defaultMetricNamespace = connectionStringBuilder.Namespace;
 
-        if (options.PrepopulatedMetricDimensions != null)
+        if (prepopulatedMetricDimensions != null)
         {
-            this.prepopulatedDimensionsCount = (ushort)options.PrepopulatedMetricDimensions.Count;
-            this.serializedPrepopulatedDimensionsKeys = this.SerializePrepopulatedDimensionsKeys(options.PrepopulatedMetricDimensions.Keys);
-            this.serializedPrepopulatedDimensionsValues = this.SerializePrepopulatedDimensionsValues(options.PrepopulatedMetricDimensions.Values);
+            this.prepopulatedDimensionsCount = (ushort)prepopulatedMetricDimensions.Count;
+            this.serializedPrepopulatedDimensionsKeys = this.SerializePrepopulatedDimensionsKeys(prepopulatedMetricDimensions.Keys);
+            this.serializedPrepopulatedDimensionsValues = this.SerializePrepopulatedDimensionsValues(prepopulatedMetricDimensions.Values);
         }
 
         switch (connectionStringBuilder.Protocol)
@@ -81,7 +81,7 @@ internal sealed class TlvMetricExporter : IDisposable
         }
     }
 
-    internal ExportResult Export(in Batch<Metric> batch)
+    internal ExportResult Export(in Batch<Metric> batch, Resource resource = null)
     {
         string monitoringAccount = this.defaultMonitoringAccount;
         string metricNamespace = this.defaultMetricNamespace;

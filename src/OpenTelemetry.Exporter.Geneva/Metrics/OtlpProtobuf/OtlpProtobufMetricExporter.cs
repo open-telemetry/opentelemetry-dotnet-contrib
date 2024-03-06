@@ -16,27 +16,18 @@ internal class OtlpProtobufMetricExporter : IDisposable
 
     private readonly OtlpProtobufSerializer otlpProtobufSerializer;
 
-    private Resource resource;
-
-    internal Resource MetricResource => this.resource ??= this.genevaMetricExporter.ParentProvider.GetResource();
-
-    private GenevaMetricExporter genevaMetricExporter;
-
-    public OtlpProtobufMetricExporter(GenevaMetricExporter genevaMetricExporter)
+    public OtlpProtobufMetricExporter()
     {
-        // TODO
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             // Temporary until we add support for user_events.
             throw new NotSupportedException("Unix domain socket should not be used on Windows.");
         }
 
-        this.genevaMetricExporter = genevaMetricExporter;
-
         this.otlpProtobufSerializer = new OtlpProtobufSerializer();
     }
 
-    public ExportResult Export(in Batch<Metric> batch)
+    public ExportResult Export(in Batch<Metric> batch, Resource resource = null)
     {
         var result = ExportResult.Success;
 
@@ -44,14 +35,11 @@ internal class OtlpProtobufMetricExporter : IDisposable
 
         try
         {
-            this.otlpProtobufSerializer.SerializeMetrics(this.buffer, ref currentPosition, this.MetricResource, batch);
-
-            // Send request.
-            MetricEtwDataTransport.Instance.SendOtlpProtobufEvent(this.buffer, currentPosition);
+            this.otlpProtobufSerializer.SerializeAndSendMetrics(this.buffer, ref currentPosition, resource, batch);
         }
         catch (Exception ex)
         {
-            ExporterEventSource.Log.ExporterException("metric batch failed", ex);
+            ExporterEventSource.Log.ExporterException("Failed to export metrics batch", ex);
         }
 
         return result;
