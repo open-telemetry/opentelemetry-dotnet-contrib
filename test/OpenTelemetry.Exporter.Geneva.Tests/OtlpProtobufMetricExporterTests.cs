@@ -41,11 +41,8 @@ public class OtlpProtobufMetricExporterTests
 
         int currentPosition = 0;
 
-        var otlpProtobufSerializer = new OtlpProtobufSerializer();
-
-        // overwrite transport
         var testTransport = new TestTransport();
-        otlpProtobufSerializer.MetricDataTransport = testTransport;
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, ref currentPosition, null, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -124,11 +121,8 @@ public class OtlpProtobufMetricExporterTests
 
         int currentPosition = 0;
 
-        var otlpProtobufSerializer = new OtlpProtobufSerializer();
-
-        // overwrite transport
         var testTransport = new TestTransport();
-        otlpProtobufSerializer.MetricDataTransport = testTransport;
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, ref currentPosition, null, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 

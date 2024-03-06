@@ -30,9 +30,9 @@ internal class OtlpProtobufSerializer
 
     internal IMetricDataTransport MetricDataTransport;
 
-    public OtlpProtobufSerializer()
+    public OtlpProtobufSerializer(IMetricDataTransport metricDataTransport)
     {
-        this.MetricDataTransport = MetricEtwDataTransport.Instance;
+        this.MetricDataTransport = metricDataTransport;
     }
 
     internal void SerializeAndSendMetrics(byte[] buffer, ref int currentPosition, Resource resource, in Batch<Metric> metricBatch)

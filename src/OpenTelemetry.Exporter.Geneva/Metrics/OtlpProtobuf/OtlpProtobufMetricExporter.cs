@@ -24,7 +24,7 @@ internal class OtlpProtobufMetricExporter : IDisposable
             throw new NotSupportedException("Unix domain socket should not be used on Windows.");
         }
 
-        this.otlpProtobufSerializer = new OtlpProtobufSerializer();
+        this.otlpProtobufSerializer = new OtlpProtobufSerializer(MetricEtwDataTransport.Instance);
     }
 
     public ExportResult Export(in Batch<Metric> batch, Resource resource = null)
