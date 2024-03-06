@@ -67,7 +67,7 @@ public class GenevaMetricExporterTests
                 server.Listen(1);
             }
 
-            using var exporter = new TlvMetricExporter(new ConnectionStringBuilder(exporterOptions.ConnectionString),  exporterOptions.PrepopulatedMetricDimensions);
+            using var exporter = new TlvMetricExporter(new ConnectionStringBuilder(exporterOptions.ConnectionString), exporterOptions.PrepopulatedMetricDimensions);
             var monitoringAccount = typeof(TlvMetricExporter).GetField("defaultMonitoringAccount", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as string;
             var metricNamespace = typeof(TlvMetricExporter).GetField("defaultMetricNamespace", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as string;
             Assert.Equal("OTelMonitoringAccount", monitoringAccount);
@@ -160,7 +160,7 @@ public class GenevaMetricExporterTests
 
                 // Create a test exporter to get byte data for validation of the data received via Socket.
                 var exporterOptions = new GenevaMetricExporterOptions() { ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace" };
-                using var exporter = new TlvMetricExporter(new ConnectionStringBuilder(exporterOptions.ConnectionString),  exporterOptions.PrepopulatedMetricDimensions);
+                using var exporter = new TlvMetricExporter(new ConnectionStringBuilder(exporterOptions.ConnectionString), exporterOptions.PrepopulatedMetricDimensions);
 
                 // Emit a metric and grab a copy of internal buffer for validation.
                 counter.Add(
@@ -519,7 +519,7 @@ public class GenevaMetricExporterTests
                 ["cloud.roleVer"] = "9.0.15289.2",
             };
 
-            using var exporter = new TlvMetricExporter(new ConnectionStringBuilder(exporterOptions.ConnectionString),  exporterOptions.PrepopulatedMetricDimensions);
+            using var exporter = new TlvMetricExporter(new ConnectionStringBuilder(exporterOptions.ConnectionString), exporterOptions.PrepopulatedMetricDimensions);
 
             inMemoryReader.Collect();
 
@@ -741,7 +741,7 @@ public class GenevaMetricExporterTests
                 ["cloud.roleVer"] = "9.0.15289.2",
             };
 
-            using var exporter = new TlvMetricExporter(new ConnectionStringBuilder(exporterOptions.ConnectionString),  exporterOptions.PrepopulatedMetricDimensions);
+            using var exporter = new TlvMetricExporter(new ConnectionStringBuilder(exporterOptions.ConnectionString), exporterOptions.PrepopulatedMetricDimensions);
 
             inMemoryReader.Collect();
 
@@ -859,7 +859,7 @@ public class GenevaMetricExporterTests
                 ["cloud.roleVer"] = "9.0.15289.2",
             };
 
-            using var exporter = new TlvMetricExporter(new ConnectionStringBuilder(exporterOptions.ConnectionString),  exporterOptions.PrepopulatedMetricDimensions);
+            using var exporter = new TlvMetricExporter(new ConnectionStringBuilder(exporterOptions.ConnectionString), exporterOptions.PrepopulatedMetricDimensions);
 
             inMemoryReader.Collect();
 
