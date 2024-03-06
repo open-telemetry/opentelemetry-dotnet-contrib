@@ -34,7 +34,7 @@
     <MicrosoftExtensionsOptionsPkgVer>[3.1.0,)</MicrosoftExtensionsOptionsPkgVer>
     <MicrosoftNETFrameworkReferenceAssembliesPkgVer>[1.0.3,2.0)</MicrosoftNETFrameworkReferenceAssembliesPkgVer>
     <MicrosoftOwinPkgVer>[4.2.2,5.0)</MicrosoftOwinPkgVer>
-    <MicrosoftPublicApiAnalyzersPkgVer>[3.3.3]</MicrosoftPublicApiAnalyzersPkgVer>
+    <MicrosoftPublicApiAnalyzersPkgVer>[3.3.4]</MicrosoftPublicApiAnalyzersPkgVer>
     <MicrosoftSourceLinkGitHubPkgVer>[1.1.1,2.0)</MicrosoftSourceLinkGitHubPkgVer>
     <OpenTelemetryCoreLatestVersion>[1.7.0,2.0)</OpenTelemetryCoreLatestVersion>
     <OpenTelemetryCoreLatestPrereleaseVersion>[1.7.0-rc.1]</OpenTelemetryCoreLatestPrereleaseVersion>
