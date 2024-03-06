@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Linq;
 using Google.Protobuf;
@@ -17,9 +18,9 @@ namespace OpenTelemetry.Exporter.Geneva.Tests;
 public class OtlpProtobufMetricExporterTests
 {
     [Fact]
-    public void LongCounterSerialization()
+    public void LongCounterSerializationSingleMetricPoint()
     {
-        using var meter = new Meter("LongCounterSerializationOtlpProtobuf", "0.0.1");
+        using var meter = new Meter(nameof(this.LongCounterSerializationSingleMetricPoint), "0.0.1");
         var longCounter = meter.CreateCounter<long>("longCounter");
         var exportedItems = new List<Metric>();
         using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
@@ -28,7 +29,7 @@ public class OtlpProtobufMetricExporterTests
         };
 
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddMeter("LongCounterSerializationOtlpProtobuf")
+            .AddMeter(nameof(this.LongCounterSerializationSingleMetricPoint))
             .AddReader(inMemoryReader)
             .Build();
 
@@ -77,6 +78,94 @@ public class OtlpProtobufMetricExporterTests
         Assert.Equal(123, dataPoint.AsInt);
 
         AssertOtlpAttributes([new("tag1", "value1"), new("tag2", "value2")], dataPoint.Attributes);
+    }
+
+    [Fact]
+    public void LongCounterSerializationMultipleMetricPoints()
+    {
+        using var meter = new Meter(nameof(this.LongCounterSerializationMultipleMetricPoints), "0.0.1");
+        var longCounter = meter.CreateCounter<long>("longCounter");
+        var exportedItems = new List<Metric>();
+        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+        {
+            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+        };
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(nameof(this.LongCounterSerializationMultipleMetricPoints))
+            .AddReader(inMemoryReader)
+            .Build();
+
+        TagList[] tags = new TagList[3];
+
+        tags[0].Add(new("tag1", "value1"));
+        tags[0].Add(new("tag2", "value2"));
+
+        tags[1].Add(new("tag1", "value1"));
+        tags[1].Add(new("tag2", "value2"));
+        tags[1].Add(new("tag3", "value3"));
+
+        tags[2].Add(new("tag1", "value1"));
+        tags[2].Add(new("tag2", "value2"));
+        tags[2].Add(new("tag3", "value3"));
+        tags[2].Add(new("tag4", "value4"));
+
+        longCounter.Add(62, tags[0]);
+
+        longCounter.Add(62, tags[0]);
+
+        longCounter.Add(124, tags[1]);
+
+        longCounter.Add(124, tags[2]);
+
+        meterProvider.ForceFlush();
+
+        var buffer = new byte[65360];
+
+        int currentPosition = 0;
+
+        var otlpProtobufSerializer = new OtlpProtobufSerializer();
+
+        // overwrite transport
+        var testTransport = new TestTransport();
+        otlpProtobufSerializer.MetricDataTransport = testTransport;
+
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, ref currentPosition, null, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+
+        // 3 unique measurements.
+        var exportedItemsCount = testTransport.ExportedItems.Count;
+        Assert.Equal(3, exportedItemsCount);
+
+        for (int i = 0; i < exportedItemsCount; i++)
+        {
+            var request = new OtlpCollector.ExportMetricsServiceRequest();
+
+            request.MergeFrom(testTransport.ExportedItems[i]);
+
+            Assert.Single(request.ResourceMetrics);
+
+            Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
+
+            var scope = request.ResourceMetrics[0].ScopeMetrics[0];
+
+            Assert.Equal(meter.Name, scope.Scope.Name);
+
+            Assert.Single(request.ResourceMetrics[0].ScopeMetrics[0].Metrics);
+
+            var metric = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0];
+
+            Assert.Equal(longCounter.Name, metric.Name);
+
+            Assert.NotNull(metric.Sum);
+
+            Assert.Single(metric.Sum.DataPoints);
+
+            var dataPoint = metric.Sum.DataPoints[0];
+
+            Assert.Equal(124, dataPoint.AsInt);
+
+            AssertOtlpAttributes(tags[i], dataPoint.Attributes);
+        }
     }
 
     internal static void AssertOtlpAttributes(

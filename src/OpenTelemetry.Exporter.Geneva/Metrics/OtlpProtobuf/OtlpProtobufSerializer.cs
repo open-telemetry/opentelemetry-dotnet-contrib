@@ -83,6 +83,7 @@ internal class OtlpProtobufSerializer
         currentPosition += LengthAndTagSize;
 
         // Serialize Resource
+        // TODO: Avoid serializing it multiple times.
         SerializeResource(buffer, ref currentPosition, resource);
 
         // TODO: Serialize schema_url field
