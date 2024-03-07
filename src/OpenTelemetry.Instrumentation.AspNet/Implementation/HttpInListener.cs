@@ -76,7 +76,7 @@ internal sealed class HttpInListener : IDisposable
             var request = context.Request;
             var requestValues = request.Unvalidated;
 
-            // see the spec https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md
+            // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/http/http-spans.md
             var path = requestValues.Path;
             activity.DisplayName = path;
 
