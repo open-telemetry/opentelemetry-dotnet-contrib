@@ -28,11 +28,11 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddAspNetInstrumentation(
         this TracerProviderBuilder builder,
-        Action<AspNetInstrumentationOptions>? configure)
+        Action<AspNetTraceInstrumentationOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
 
-        var aspnetOptions = new AspNetInstrumentationOptions();
+        var aspnetOptions = new AspNetTraceInstrumentationOptions();
         configure?.Invoke(aspnetOptions);
 
         builder.AddInstrumentation(() => new AspNetInstrumentation(aspnetOptions));
