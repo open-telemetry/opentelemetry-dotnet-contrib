@@ -80,14 +80,9 @@ internal sealed class HttpInListener : IDisposable
             var path = requestValues.Path;
             activity.DisplayName = path;
 
-            if (request.Url.Port == 80 || request.Url.Port == 443)
-            {
-                activity.SetTag(SemanticConventions.AttributeHttpHost, request.Url.Host);
-            }
-            else
-            {
-                activity.SetTag(SemanticConventions.AttributeHttpHost, request.Url.Host + ":" + request.Url.Port);
-            }
+            var url = request.Url;
+            activity.SetTag(SemanticConventions.AttributeServerAddress, url.Host);
+            activity.SetTag(SemanticConventions.AttributeServerPort, url.Port);
 
             activity.SetTag(SemanticConventions.AttributeHttpMethod, request.HttpMethod);
             activity.SetTag(SemanticConventions.AttributeHttpTarget, path);

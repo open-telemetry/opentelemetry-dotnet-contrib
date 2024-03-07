@@ -20,24 +20,26 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 public class HttpInListenerTests
 {
     [Theory]
-    [InlineData("http://localhost/", "http://localhost/", 0, null)]
-    [InlineData("http://localhost/", "http://localhost/", 0, null, true)]
-    [InlineData("https://localhost/", "https://localhost/", 0, null)]
-    [InlineData("https://localhost/", "https://user:pass@localhost/", 0, null)] // Test URL sanitization
-    [InlineData("http://localhost:443/", "http://localhost:443/", 0, null)] // Test http over 443
-    [InlineData("https://localhost:80/", "https://localhost:80/", 0, null)] // Test https over 80
-    [InlineData("https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", 0, null)] // Test complex URL
-    [InlineData("https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https://user:password@localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", 0, null)] // Test complex URL sanitization
-    [InlineData("http://localhost:80/Index", "http://localhost:80/Index", 1, "{controller}/{action}/{id}")]
-    [InlineData("https://localhost:443/about_attr_route/10", "https://localhost:443/about_attr_route/10", 2, "about_attr_route/{customerId}")]
-    [InlineData("http://localhost:1880/api/weatherforecast", "http://localhost:1880/api/weatherforecast", 3, "api/{controller}/{id}")]
-    [InlineData("https://localhost:1843/subroute/10", "https://localhost:1843/subroute/10", 4, "subroute/{customerId}")]
-    [InlineData("http://localhost/api/value", "http://localhost/api/value", 0, null, false, "/api/value")] // Request will be filtered
-    [InlineData("http://localhost/api/value", "http://localhost/api/value", 0, null, false, "{ThrowException}")] // Filter user code will throw an exception
-    [InlineData("http://localhost/", "http://localhost/", 0, null, false, null, true)] // Test RecordException option
+    [InlineData("http://localhost/", "http://localhost/", "localhost", 80, 0, null)]
+    [InlineData("http://localhost/", "http://localhost/", "localhost", 80, 0, null, true)]
+    [InlineData("https://localhost/", "https://localhost/", "localhost", 443, 0, null)]
+    [InlineData("https://localhost/", "https://user:pass@localhost/", "localhost", 443, 0, null)] // Test URL sanitization
+    [InlineData("http://localhost:443/", "http://localhost:443/", "localhost", 443, 0, null)] // Test http over 443
+    [InlineData("https://localhost:80/", "https://localhost:80/", "localhost", 80, 0, null)] // Test https over 80
+    [InlineData("https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "localhost", 80, 0, null)] // Test complex URL
+    [InlineData("https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https://user:password@localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "localhost", 80, 0, null)] // Test complex URL sanitization
+    [InlineData("http://localhost:80/Index", "http://localhost:80/Index", "localhost", 80, 1, "{controller}/{action}/{id}")]
+    [InlineData("https://localhost:443/about_attr_route/10", "https://localhost:443/about_attr_route/10", "localhost", 443, 2, "about_attr_route/{customerId}")]
+    [InlineData("http://localhost:1880/api/weatherforecast", "http://localhost:1880/api/weatherforecast", "localhost", 1880, 3, "api/{controller}/{id}")]
+    [InlineData("https://localhost:1843/subroute/10", "https://localhost:1843/subroute/10", "localhost", 1843, 4, "subroute/{customerId}")]
+    [InlineData("http://localhost/api/value", "http://localhost/api/value", "localhost", 80, 0, null, false, "/api/value")] // Request will be filtered
+    [InlineData("http://localhost/api/value", "http://localhost/api/value", "localhost", 80, 0, null, false, "{ThrowException}")] // Filter user code will throw an exception
+    [InlineData("http://localhost/", "http://localhost/", "localhost", 80, 0, null, false, null, true)] // Test RecordException option
     public void AspNetRequestsAreCollectedSuccessfully(
         string expectedUrl,
         string url,
+        string expectedHost,
+        int expectedPort,
         int routeType,
         string routeTemplate,
         bool setStatusToErrorInEnrich = false,
@@ -130,19 +132,8 @@ public class HttpInListenerTests
             Assert.Contains($":{expectedUri.Port}", actualUrl as string);
         }
 
-        // Host includes port if it isn't 80 or 443.
-        if (expectedUri.Port is 80 or 443)
-        {
-            Assert.Equal(
-                expectedUri.Host,
-                span.GetTagValue(SemanticConventions.AttributeHttpHost) as string);
-        }
-        else
-        {
-            Assert.Equal(
-                $"{expectedUri.Host}:{expectedUri.Port}",
-                span.GetTagValue(SemanticConventions.AttributeHttpHost) as string);
-        }
+        Assert.Equal(expectedHost, span.GetTagValue("server.address"));
+        Assert.Equal(expectedPort, span.GetTagValue("server.port"));
 
         Assert.Equal(HttpContext.Current.Request.HttpMethod, span.GetTagValue(SemanticConventions.AttributeHttpMethod) as string);
         Assert.Equal(HttpContext.Current.Request.Path, span.GetTagValue(SemanticConventions.AttributeHttpTarget) as string);
