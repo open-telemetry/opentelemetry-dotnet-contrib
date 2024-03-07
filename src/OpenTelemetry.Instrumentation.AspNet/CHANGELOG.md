@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* **Breaking Change**: Renamed `AspNetInstrumentationOptions` to
+  `AspNetTraceInstrumentationOptions`.
+  ([#1604](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1604))
 * **Breaking Change**: `server.address` and `server.port` attributes are now
   by default disabled for `http.server.request.duration` metric.
   Attributes can be enabled by `EnableServerAttributesForRequestDuration`

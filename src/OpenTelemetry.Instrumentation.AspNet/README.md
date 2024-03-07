@@ -131,14 +131,14 @@ Currently, the instrumentation supports the following metric.
 ## Advanced trace configuration
 
 This instrumentation can be configured to change the default behavior by using
-`AspNetInstrumentationOptions`, which allows configuring `Filter` as explained
+`AspNetTraceInstrumentationOptions`, which allows configuring `Filter` as explained
 below.
 
 ### Trace Filter
 
 This instrumentation by default collects all the incoming http requests. It
 allows filtering of requests by using the `Filter` function in
-`AspNetInstrumentationOptions`. This defines the condition for allowable
+`AspNetTraceInstrumentationOptions`. This defines the condition for allowable
 requests. The Filter receives the `HttpContext` of the incoming request, and
 does not collect telemetry about the request if the Filter returns false or
 throws exception.
