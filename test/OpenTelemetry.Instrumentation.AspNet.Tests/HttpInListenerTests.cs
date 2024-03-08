@@ -118,7 +118,7 @@ public class HttpInListenerTests
         Assert.Equal(ActivityKind.Server, span.Kind);
         Assert.True(span.Duration != TimeSpan.Zero);
 
-        Assert.Equal(200, span.GetTagValue(SemanticConventions.AttributeHttpStatusCode));
+        Assert.Equal(200, span.GetTagValue("http.response.status_code"));
 
         var expectedUri = new Uri(expectedUrl);
         var actualUrl = span.GetTagValue(SemanticConventions.AttributeHttpUrl);

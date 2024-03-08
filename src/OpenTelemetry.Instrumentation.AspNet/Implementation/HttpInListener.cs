@@ -115,7 +115,7 @@ internal sealed class HttpInListener : IDisposable
         {
             var response = context.Response;
 
-            activity.SetTag(SemanticConventions.AttributeHttpStatusCode, response.StatusCode);
+            activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, response.StatusCode);
 
             if (activity.Status == ActivityStatusCode.Unset)
             {
