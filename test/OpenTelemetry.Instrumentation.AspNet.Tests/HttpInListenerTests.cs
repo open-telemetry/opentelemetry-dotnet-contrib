@@ -142,7 +142,7 @@ public class HttpInListenerTests
         Assert.Equal(expectedOriginalRequestMethod, span.GetTagValue("http.request.method_original"));
 
         Assert.Equal(HttpContext.Current.Request.Path, span.GetTagValue(SemanticConventions.AttributeHttpTarget) as string);
-        Assert.Equal(HttpContext.Current.Request.UserAgent, span.GetTagValue(SemanticConventions.AttributeHttpUserAgent) as string);
+        Assert.Equal("Custom User Agent v1.2.3", span.GetTagValue("user_agent.original"));
 
         if (recordException)
         {

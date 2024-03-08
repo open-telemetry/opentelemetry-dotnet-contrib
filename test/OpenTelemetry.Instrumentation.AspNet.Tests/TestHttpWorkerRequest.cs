@@ -8,6 +8,16 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 
 internal class TestHttpWorkerRequest : HttpWorkerRequest
 {
+    public override string GetKnownRequestHeader(int index)
+    {
+        if (index == 39)
+        {
+            return "Custom User Agent v1.2.3";
+        }
+
+        return base.GetKnownRequestHeader(index);
+    }
+
     public override void EndOfRequest()
     {
         throw new NotImplementedException();

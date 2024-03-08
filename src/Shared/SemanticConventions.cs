@@ -108,5 +108,6 @@ internal static class SemanticConventions
     public const string AttributeNetworkProtocolVersion = "network.protocol.version"; // replaces: "http.flavor" (AttributeHttpFlavor)
     public const string AttributeServerAddress = "server.address"; // replaces: "net.host.name" (AttributeNetHostName)
     public const string AttributeServerPort = "server.port"; // replaces: "net.host.port" (AttributeNetHostPort)
+    public const string AttributeUserAgentOriginal = "user_agent.original"; // replaces: http.user_agent (AttributeHttpUserAgent)
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }

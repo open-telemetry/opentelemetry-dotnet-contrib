@@ -95,7 +95,7 @@ internal sealed class HttpInListener : IDisposable
             }
 
             activity.SetTag(SemanticConventions.AttributeHttpTarget, path);
-            activity.SetTag(SemanticConventions.AttributeHttpUserAgent, request.UserAgent);
+            activity.SetTag(SemanticConventions.AttributeUserAgentOriginal, request.UserAgent);
             activity.SetTag(SemanticConventions.AttributeHttpUrl, GetUriTagValueFromRequestUri(request.Url));
 
             try
