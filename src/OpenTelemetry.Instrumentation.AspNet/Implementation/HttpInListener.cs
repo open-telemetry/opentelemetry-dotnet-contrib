@@ -84,6 +84,7 @@ internal sealed class HttpInListener : IDisposable
             var url = request.Url;
             activity.SetTag(SemanticConventions.AttributeServerAddress, url.Host);
             activity.SetTag(SemanticConventions.AttributeServerPort, url.Port);
+            activity.SetTag(SemanticConventions.AttributeUrlScheme, url.Scheme);
 
             var originalHttpMethod = request.HttpMethod;
             var normalizedHttpMethod = this.requestMethodHelper.GetNormalizedHttpMethod(originalHttpMethod);
