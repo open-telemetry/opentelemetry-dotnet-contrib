@@ -10,7 +10,7 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 
 internal static class RouteTestHelper
 {
-    public static HttpContext BuildHttpContext(string url, int routeType, string routeTemplate)
+    public static HttpContext BuildHttpContext(string url, int routeType, string routeTemplate, string requestMethod)
     {
         RouteData routeData;
         switch (routeType)
@@ -48,11 +48,13 @@ internal static class RouteTestHelper
 
         var request = new HttpRequest(string.Empty, url, string.Empty)
         {
-            RequestContext = new RequestContext()
+            RequestContext = new RequestContext
             {
                 RouteData = routeData,
             },
         };
+
+        typeof(HttpRequest).GetField("_httpMethod", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).SetValue(request, requestMethod);
 
         return new HttpContext(request, new HttpResponse(new StringWriter()));
     }
