@@ -10,6 +10,7 @@ internal static class AWSSemanticConventions
     public const string AttributeCloudPlatform = "cloud.platform";
     public const string AttributeCloudProvider = "cloud.provider";
     public const string AttributeCloudRegion = "cloud.region";
+    public const string AttributeCloudResourceId = "cloud.resource_id";
 
     public const string AttributeContainerID = "container.id";
 
