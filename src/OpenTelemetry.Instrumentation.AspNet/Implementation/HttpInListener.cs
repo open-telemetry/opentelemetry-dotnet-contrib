@@ -36,16 +36,6 @@ internal sealed class HttpInListener : IDisposable
         TelemetryHttpModule.Options.OnExceptionCallback -= this.OnException;
     }
 
-    /// <summary>
-    /// Gets the OpenTelemetry standard uri tag value for a span based on its request <see cref="Uri"/>.
-    /// </summary>
-    /// <param name="uri"><see cref="Uri"/>.</param>
-    /// <returns>Span uri value.</returns>
-    private static string GetUriTagValueFromRequestUri(Uri uri)
-    {
-        return string.IsNullOrEmpty(uri.UserInfo) ? uri.ToString() : string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority, uri.PathAndQuery, uri.Fragment);
-    }
-
     private void OnStartActivity(Activity activity, HttpContext context)
     {
         if (activity.IsAllDataRequested)
@@ -102,6 +92,20 @@ internal sealed class HttpInListener : IDisposable
             }
 
             activity.SetTag(SemanticConventions.AttributeUrlPath, path);
+
+            var query = url.Query;
+            if (!string.IsNullOrEmpty(query))
+            {
+                if (query.StartsWith("?", StringComparison.InvariantCulture))
+                {
+                    activity.SetTag(SemanticConventions.AttributeUrlQuery, query.Substring(1));
+                }
+                else
+                {
+                    activity.SetTag(SemanticConventions.AttributeUrlQuery, query);
+                }
+            }
+
             activity.SetTag(SemanticConventions.AttributeUserAgentOriginal, request.UserAgent);
 
             try
