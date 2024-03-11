@@ -21,15 +21,15 @@ public class HttpInListenerTests
 {
     [Theory]
     [InlineData("http://localhost/", "http", "/", null, "localhost", 80, "GET", "GET", null, 0, null)]
-    [InlineData("http://localhost/?foo=bar&baz=test", "http", "/",  "foo=bar&baz=test", "localhost", 80, "POST", "POST", null, 0, null, true)]
-    [InlineData("https://localhost/", "https", "/",  null, "localhost", 443, "NonStandard", "_OTHER", "NonStandard", 0, null)]
-    [InlineData("https://user:pass@localhost/", "https", "/", null,  "localhost", 443, "GET", "GET", null, 0, null)] // Test URL sanitization
+    [InlineData("http://localhost/?foo=bar&baz=test", "http", "/", "foo=bar&baz=test", "localhost", 80, "POST", "POST", null, 0, null, true)]
+    [InlineData("https://localhost/", "https", "/", null, "localhost", 443, "NonStandard", "_OTHER", "NonStandard", 0, null)]
+    [InlineData("https://user:pass@localhost/", "https", "/", null, "localhost", 443, "GET", "GET", null, 0, null)] // Test URL sanitization
     [InlineData("http://localhost:443/", "http", "/", null, "localhost", 443, "GET", "GET", null, 0, null)] // Test http over 443
     [InlineData("https://localhost:80/", "https", "/", null, "localhost", 80, "GET", "GET", null, 0, null)] // Test https over 80
     [InlineData("https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=v1&q2=v2", "localhost", 80, "GET", "GET", null, 0, null)] // Test complex URL
-    [InlineData("https://user:password@localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=v1&q2=v2",  "localhost", 80, "GET", "GET", null, 0, null)] // Test complex URL sanitization
+    [InlineData("https://user:password@localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=v1&q2=v2", "localhost", 80, "GET", "GET", null, 0, null)] // Test complex URL sanitization
     [InlineData("http://localhost:80/Index", "http", "/Index", null, "localhost", 80, "GET", "GET", null, 1, "{controller}/{action}/{id}")]
-    [InlineData("https://localhost:443/about_attr_route/10", "https", "/about_attr_route/10", null,  "localhost", 443, "GET", "GET", null, 2, "about_attr_route/{customerId}")]
+    [InlineData("https://localhost:443/about_attr_route/10", "https", "/about_attr_route/10", null, "localhost", 443, "GET", "GET", null, 2, "about_attr_route/{customerId}")]
     [InlineData("http://localhost:1880/api/weatherforecast", "http", "/api/weatherforecast", null, "localhost", 1880, "GET", "GET", null, 3, "api/{controller}/{id}")]
     [InlineData("https://localhost:1843/subroute/10", "https", "/subroute/10", null, "localhost", 1843, "GET", "GET", null, 4, "subroute/{customerId}")]
     [InlineData("http://localhost/api/value", "http", "/api/value", null, "localhost", 80, "GET", "GET", null, 0, null, false, "/api/value")] // Request will be filtered
