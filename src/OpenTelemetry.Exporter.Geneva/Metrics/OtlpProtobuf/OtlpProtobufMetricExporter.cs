@@ -21,7 +21,7 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             // Temporary until we add support for user_events.
-            throw new NotSupportedException("Unix domain socket should not be used on Windows.");
+            throw new NotSupportedException("Exporting data in protobuf format is not supported on Linux.");
         }
 
         this.protobufSerializer = new ProtobufSerializer(MetricEtwDataTransport.Instance);
