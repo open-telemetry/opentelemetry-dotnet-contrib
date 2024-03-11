@@ -34,7 +34,7 @@ public class HttpInListenerTests
     [InlineData("https://localhost:1843/subroute/10", "https", "/subroute/10", null, "localhost", 1843, "GET", "GET", null, 4, "subroute/{customerId}")]
     [InlineData("http://localhost/api/value", "http", "/api/value", null, "localhost", 80, "GET", "GET", null, 0, null, false, "/api/value")] // Request will be filtered
     [InlineData("http://localhost/api/value", "http", "/api/value", null, "localhost", 80, "GET", "GET", null, 0, null, false, "{ThrowException}")] // Filter user code will throw an exception
-    [InlineData("http://localhost/", "http", "/", null, "localhost", 80, "GET", "GET", null, 0, null, false, null, true)] // Test RecordException option
+    [InlineData("http://localhost/", "http", "/", null, "localhost", 80, "GET", "GET", null, 0, null, false, null, true, "System.InvalidOperationException")] // Test RecordException option
     public void AspNetRequestsAreCollectedSuccessfully(
         string url,
         string expectedUrlScheme,
@@ -49,7 +49,8 @@ public class HttpInListenerTests
         string routeTemplate,
         bool setStatusToErrorInEnrich = false,
         string? filter = null,
-        bool recordException = false)
+        bool recordException = false,
+        string? expectedErrorType = null)
     {
         HttpContext.Current = RouteTestHelper.BuildHttpContext(url, routeType, routeTemplate, requestMethod);
 
@@ -133,6 +134,7 @@ public class HttpInListenerTests
         Assert.Equal(expectedUrlQuery, span.GetTagValue("url.query"));
         Assert.Equal(expectedUrlScheme, span.GetTagValue("url.scheme"));
         Assert.Equal("Custom User Agent v1.2.3", span.GetTagValue("user_agent.original"));
+        Assert.Equal(expectedErrorType, span.GetTagValue("error.type"));
 
         if (recordException)
         {
@@ -257,7 +259,8 @@ public class HttpInListenerTests
 
                     break;
 
-                default:
+                case "OnException":
+                    Assert.True(obj is Exception);
                     break;
             }
         }

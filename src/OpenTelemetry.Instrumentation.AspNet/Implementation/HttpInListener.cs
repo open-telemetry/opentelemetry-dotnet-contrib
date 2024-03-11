@@ -162,6 +162,7 @@ internal sealed class HttpInListener : IDisposable
             }
 
             activity.SetStatus(ActivityStatusCode.Error, exception.Message);
+            activity.SetTag(SemanticConventions.AttributeErrorType, exception.GetType().FullName);
 
             try
             {
