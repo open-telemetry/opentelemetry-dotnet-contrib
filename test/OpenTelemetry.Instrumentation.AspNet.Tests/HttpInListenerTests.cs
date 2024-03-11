@@ -20,23 +20,22 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 public class HttpInListenerTests
 {
     [Theory]
-    [InlineData("http://localhost/", "http://localhost/", "http", "/", "localhost", 80, "GET", "GET", null, 0, null)]
-    [InlineData("http://localhost/", "http://localhost/", "http", "/", "localhost", 80, "POST", "POST", null, 0, null, true)]
-    [InlineData("https://localhost/", "https://localhost/", "https", "/", "localhost", 443, "NonStandard", "_OTHER", "NonStandard", 0, null)]
-    [InlineData("https://localhost/", "https://user:pass@localhost/", "https", "/", "localhost", 443, "GET", "GET", null, 0, null)] // Test URL sanitization
-    [InlineData("http://localhost:443/", "http://localhost:443/", "http", "/", "localhost", 443, "GET", "GET", null, 0, null)] // Test http over 443
-    [InlineData("https://localhost:80/", "https://localhost:80/", "https", "/", "localhost", 80, "GET", "GET", null, 0, null)] // Test https over 80
-    [InlineData("https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName",  "https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "localhost", 80, "GET", "GET", null, 0, null)] // Test complex URL
-    [InlineData("https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName",  "https://user:password@localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm",  "localhost", 80, "GET", "GET", null, 0, null)] // Test complex URL sanitization
-    [InlineData("http://localhost:80/Index", "http://localhost:80/Index", "http", "/Index", "localhost", 80, "GET", "GET", null, 1, "{controller}/{action}/{id}")]
-    [InlineData("https://localhost:443/about_attr_route/10", "https://localhost:443/about_attr_route/10", "https", "/about_attr_route/10",  "localhost", 443, "GET", "GET", null, 2, "about_attr_route/{customerId}")]
-    [InlineData("http://localhost:1880/api/weatherforecast", "http://localhost:1880/api/weatherforecast", "http", "/api/weatherforecast", "localhost", 1880, "GET", "GET", null, 3, "api/{controller}/{id}")]
-    [InlineData("https://localhost:1843/subroute/10", "https://localhost:1843/subroute/10", "https", "/subroute/10", "localhost", 1843, "GET", "GET", null, 4, "subroute/{customerId}")]
-    [InlineData("http://localhost/api/value", "http://localhost/api/value", "http", "/api/value", "localhost", 80, "GET", "GET", null, 0, null, false, "/api/value")] // Request will be filtered
-    [InlineData("http://localhost/api/value", "http://localhost/api/value", "http", "/api/value", "localhost", 80, "GET", "GET", null, 0, null, false, "{ThrowException}")] // Filter user code will throw an exception
-    [InlineData("http://localhost/", "http://localhost/", "http", "/", "localhost", 80, "GET", "GET", null, 0, null, false, null, true)] // Test RecordException option
+    [InlineData("http://localhost/", "http", "/", "localhost", 80, "GET", "GET", null, 0, null)]
+    [InlineData("http://localhost/", "http", "/", "localhost", 80, "POST", "POST", null, 0, null, true)]
+    [InlineData("https://localhost/", "https", "/", "localhost", 443, "NonStandard", "_OTHER", "NonStandard", 0, null)]
+    [InlineData("https://user:pass@localhost/", "https", "/", "localhost", 443, "GET", "GET", null, 0, null)] // Test URL sanitization
+    [InlineData("http://localhost:443/", "http", "/", "localhost", 443, "GET", "GET", null, 0, null)] // Test http over 443
+    [InlineData("https://localhost:80/", "https", "/", "localhost", 80, "GET", "GET", null, 0, null)] // Test https over 80
+    [InlineData("https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "localhost", 80, "GET", "GET", null, 0, null)] // Test complex URL
+    [InlineData("https://user:password@localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm",  "localhost", 80, "GET", "GET", null, 0, null)] // Test complex URL sanitization
+    [InlineData("http://localhost:80/Index", "http", "/Index", "localhost", 80, "GET", "GET", null, 1, "{controller}/{action}/{id}")]
+    [InlineData("https://localhost:443/about_attr_route/10", "https", "/about_attr_route/10",  "localhost", 443, "GET", "GET", null, 2, "about_attr_route/{customerId}")]
+    [InlineData("http://localhost:1880/api/weatherforecast", "http", "/api/weatherforecast", "localhost", 1880, "GET", "GET", null, 3, "api/{controller}/{id}")]
+    [InlineData("https://localhost:1843/subroute/10", "https", "/subroute/10", "localhost", 1843, "GET", "GET", null, 4, "subroute/{customerId}")]
+    [InlineData("http://localhost/api/value", "http", "/api/value", "localhost", 80, "GET", "GET", null, 0, null, false, "/api/value")] // Request will be filtered
+    [InlineData("http://localhost/api/value", "http", "/api/value", "localhost", 80, "GET", "GET", null, 0, null, false, "{ThrowException}")] // Filter user code will throw an exception
+    [InlineData("http://localhost/", "http", "/", "localhost", 80, "GET", "GET", null, 0, null, false, null, true)] // Test RecordException option
     public void AspNetRequestsAreCollectedSuccessfully(
-        string expectedUrl,
         string url,
         string expectedUrlScheme,
         string expectedUrlPath,
@@ -121,21 +120,6 @@ public class HttpInListenerTests
         Assert.True(span.Duration != TimeSpan.Zero);
 
         Assert.Equal(200, span.GetTagValue("http.response.status_code"));
-
-        var expectedUri = new Uri(expectedUrl);
-        var actualUrl = span.GetTagValue(SemanticConventions.AttributeHttpUrl);
-
-        Assert.Equal(expectedUri.ToString(), actualUrl);
-
-        // Url strips 80 or 443 if the scheme matches.
-        if ((expectedUri.Port == 80 && expectedUri.Scheme == "http") || (expectedUri.Port == 443 && expectedUri.Scheme == "https"))
-        {
-            Assert.DoesNotContain($":{expectedUri.Port}", actualUrl as string);
-        }
-        else
-        {
-            Assert.Contains($":{expectedUri.Port}", actualUrl as string);
-        }
 
         Assert.Equal(expectedHost, span.GetTagValue("server.address"));
         Assert.Equal(expectedPort, span.GetTagValue("server.port"));

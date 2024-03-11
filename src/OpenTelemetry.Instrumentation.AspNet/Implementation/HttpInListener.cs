@@ -103,7 +103,6 @@ internal sealed class HttpInListener : IDisposable
 
             activity.SetTag(SemanticConventions.AttributeUrlPath, path);
             activity.SetTag(SemanticConventions.AttributeUserAgentOriginal, request.UserAgent);
-            activity.SetTag(SemanticConventions.AttributeHttpUrl, GetUriTagValueFromRequestUri(request.Url));
 
             try
             {
