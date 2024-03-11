@@ -5,6 +5,8 @@
 * **Breaking Change**: Renamed `AspNetInstrumentationOptions` to
   `AspNetTraceInstrumentationOptions`.
   ([#1604](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1604))
+* **Breaking change** Spans attributes based on [HTTP semantic convention v1.24.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/http/http-spans.md).
+  ([#1607](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1607))
 
 ## 1.7.0-beta.2
 
