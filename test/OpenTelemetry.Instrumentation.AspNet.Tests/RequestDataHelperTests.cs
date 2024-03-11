@@ -7,7 +7,7 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 
-public class RequestMethodHelperTests : IDisposable
+public class RequestDataHelperTests : IDisposable
 {
     [Theory]
     [InlineData("GET", "GET")]
@@ -23,7 +23,7 @@ public class RequestMethodHelperTests : IDisposable
     [InlineData("invalid", "_OTHER")]
     public void MethodMappingWorksForKnownMethods(string method, string expected)
     {
-        var requestHelper = new RequestMethodHelper();
+        var requestHelper = new RequestDataHelper();
         var actual = requestHelper.GetNormalizedHttpMethod(method);
         Assert.Equal(expected, actual);
     }
@@ -41,11 +41,22 @@ public class RequestMethodHelperTests : IDisposable
     [InlineData("get", "GET")]
     [InlineData("post", "POST")]
     [InlineData("invalid", "_OTHER")]
-    public void MethodMappingWorksForEnvironmentVariables(string method, string expected)
+    public void MethodMappingWorksForEnvironmentVariables(string protocolVersion, string expected)
     {
         Environment.SetEnvironmentVariable("OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS", "GET,POST");
-        var requestHelper = new RequestMethodHelper();
-        var actual = requestHelper.GetNormalizedHttpMethod(method);
+        var requestHelper = new RequestDataHelper();
+        var actual = requestHelper.GetNormalizedHttpMethod(protocolVersion);
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData("HTTP/1.1", "1.1")]
+    [InlineData("HTTP/2", "2")]
+    [InlineData("HTTP/3", "3")]
+    [InlineData("Unknown", "Unknown")]
+    public void MappingProtocolToVersion(string protocolVersion, string expected)
+    {
+        var actual = RequestDataHelper.GetHttpProtocolVersion(protocolVersion);
         Assert.Equal(expected, actual);
     }
 

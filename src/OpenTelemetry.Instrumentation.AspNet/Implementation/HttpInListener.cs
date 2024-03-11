@@ -14,7 +14,7 @@ internal sealed class HttpInListener : IDisposable
 {
     private readonly HttpRequestRouteHelper routeHelper = new();
     private readonly AspNetTraceInstrumentationOptions options;
-    private readonly RequestMethodHelper requestMethodHelper = new();
+    private readonly RequestDataHelper requestDataHelper = new();
 
     public HttpInListener(AspNetTraceInstrumentationOptions options)
     {
@@ -87,12 +87,18 @@ internal sealed class HttpInListener : IDisposable
             activity.SetTag(SemanticConventions.AttributeUrlScheme, url.Scheme);
 
             var originalHttpMethod = request.HttpMethod;
-            var normalizedHttpMethod = this.requestMethodHelper.GetNormalizedHttpMethod(originalHttpMethod);
+            var normalizedHttpMethod = this.requestDataHelper.GetNormalizedHttpMethod(originalHttpMethod);
             activity.SetTag(SemanticConventions.AttributeHttpRequestMethod, normalizedHttpMethod);
 
             if (originalHttpMethod != normalizedHttpMethod)
             {
                 activity.SetTag(SemanticConventions.AttributeHttpRequestMethodOriginal, originalHttpMethod);
+            }
+
+            var protocolVersion = RequestDataHelper.GetHttpProtocolVersion(request);
+            if (!string.IsNullOrEmpty(protocolVersion))
+            {
+                activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, protocolVersion);
             }
 
             activity.SetTag(SemanticConventions.AttributeUrlPath, path);

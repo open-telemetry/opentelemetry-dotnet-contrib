@@ -35,17 +35,17 @@ internal class TestHttpWorkerRequest : HttpWorkerRequest
 
     public override string GetHttpVersion()
     {
-        throw new NotImplementedException();
+        return "FakeHTTP/123";
     }
 
     public override string GetLocalAddress()
     {
-        throw new NotImplementedException();
+        return "fake-local-address"; // avoid throwing exception
     }
 
     public override int GetLocalPort()
     {
-        throw new NotImplementedException();
+        return 1234; // avoid throwing exception
     }
 
     public override string GetQueryString()
@@ -60,7 +60,7 @@ internal class TestHttpWorkerRequest : HttpWorkerRequest
 
     public override string GetRemoteAddress()
     {
-        throw new NotImplementedException();
+        return "fake-remote-address"; // avoid throwing exception
     }
 
     public override int GetRemotePort()

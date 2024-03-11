@@ -142,6 +142,7 @@ public class HttpInListenerTests
 
         Assert.Equal(expectedRequestMethod, span.GetTagValue("http.request.method"));
         Assert.Equal(expectedOriginalRequestMethod, span.GetTagValue("http.request.method_original"));
+        Assert.Equal("FakeHTTP/123", span.GetTagValue("network.protocol.version"));
 
         Assert.Equal(expectedUrlPath, span.GetTagValue("url.path"));
         Assert.Equal(expectedUrlScheme, span.GetTagValue("url.scheme"));
