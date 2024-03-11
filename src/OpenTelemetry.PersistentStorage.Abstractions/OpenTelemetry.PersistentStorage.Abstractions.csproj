@@ -5,13 +5,13 @@
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
     <TargetFrameworks Condition="'$(Configuration)' == 'Debug'">net6.0;$(TargetFrameworks)</TargetFrameworks> <!-- Added just to get proper nullable analysis in IDE -->
-    <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
     <Description>OpenTelemetry Persistent Storage Abstractions</Description>
     <MinVerTagPrefix>PersistentStorage-</MinVerTagPrefix>
     <NoWarn>$(NoWarn),1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Shared\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\NullableAttributes.cs" Link="Includes\NullableAttributes.cs" />
   </ItemGroup>
 

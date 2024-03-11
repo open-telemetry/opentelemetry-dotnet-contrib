@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Amazon.Runtime;
-using Amazon.Runtime.Internal;
 using Amazon.SimpleNotificationService.Model;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation;
@@ -18,9 +17,8 @@ internal class SnsRequestContextHelper
 
     internal static void AddAttributes(IRequestContext context, IReadOnlyDictionary<string, string> attributes)
     {
-        var parameters = context.Request?.ParameterCollection;
         var originalRequest = context.OriginalRequest as PublishRequest;
-        if (originalRequest?.MessageAttributes == null || parameters == null)
+        if (originalRequest?.MessageAttributes == null)
         {
             return;
         }
@@ -38,23 +36,9 @@ internal class SnsRequestContextHelper
             return;
         }
 
-        int nextAttributeIndex = attributesCount + 1;
         foreach (var param in attributes)
         {
-            AddAttribute(parameters, originalRequest, param.Key, param.Value, nextAttributeIndex);
-            nextAttributeIndex++;
+            originalRequest.MessageAttributes[param.Key] = new MessageAttributeValue { DataType = "String", StringValue = param.Value };
         }
-    }
-
-    private static void AddAttribute(ParameterCollection parameters, PublishRequest originalRequest, string name, string value, int attributeIndex)
-    {
-        var prefix = "MessageAttributes.entry." + attributeIndex;
-        parameters.Add(prefix + ".Name", name);
-        parameters.Add(prefix + ".Value.DataType", "String");
-        parameters.Add(prefix + ".Value.StringValue", value);
-
-        // Add injected attributes to the original request as well.
-        // This dictionary must be in sync with parameters collection to pass through the MD5 hash matching check.
-        originalRequest.MessageAttributes.Add(name, new MessageAttributeValue { DataType = "String", StringValue = value });
     }
 }

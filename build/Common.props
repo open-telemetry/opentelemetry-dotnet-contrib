@@ -34,8 +34,8 @@
     <MicrosoftExtensionsOptionsPkgVer>[3.1.0,)</MicrosoftExtensionsOptionsPkgVer>
     <MicrosoftNETFrameworkReferenceAssembliesPkgVer>[1.0.3,2.0)</MicrosoftNETFrameworkReferenceAssembliesPkgVer>
     <MicrosoftOwinPkgVer>[4.2.2,5.0)</MicrosoftOwinPkgVer>
-    <MicrosoftPublicApiAnalyzersPkgVer>[3.3.3]</MicrosoftPublicApiAnalyzersPkgVer>
-    <MicrosoftSourceLinkGitHubPkgVer>[1.1.1,2.0)</MicrosoftSourceLinkGitHubPkgVer>
+    <MicrosoftPublicApiAnalyzersPkgVer>[3.3.4]</MicrosoftPublicApiAnalyzersPkgVer>
+    <MicrosoftSourceLinkGitHubPkgVer>[8.0.0,9.0)</MicrosoftSourceLinkGitHubPkgVer>
     <OpenTelemetryCoreLatestVersion>[1.7.0,2.0)</OpenTelemetryCoreLatestVersion>
     <OpenTelemetryCoreLatestPrereleaseVersion>[1.7.0-rc.1]</OpenTelemetryCoreLatestPrereleaseVersion>
     <StackExchangeRedisPkgVer>[2.1.58,3.0)</StackExchangeRedisPkgVer>
@@ -54,36 +54,4 @@
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="$(MicrosoftNETFrameworkReferenceAssembliesPkgVer)" PrivateAssets="All" />
     <PackageReference Include="StyleCop.Analyzers" Version="$(StyleCopAnalyzersPkgVer)" Condition="'$(SkipAnalysis)'!='true'" PrivateAssets="All" />
   </ItemGroup>
-
-  <ItemGroup Condition="'$(IncludeSharedExceptionExtensionsSource)'=='true'">
-    <Compile Include="$(RepoRoot)\src\Shared\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(IncludeSharedInstrumentationSource)'=='true'">
-    <Compile Include="$(RepoRoot)\src\Shared\MultiTypePropertyFetcher.cs" Link="Includes\MultiTypePropertyFetcher.cs" />
-    <Compile Include="$(RepoRoot)\src\Shared\PropertyFetcher.cs" Link="Includes\PropertyFetcher.cs" />
-    <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
-    <Compile Include="$(RepoRoot)\src\Shared\SpanAttributeConstants.cs" Link="Includes\SpanAttributeConstants.cs" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(IncludeSharedSpanHelper)'=='true'">
-    <Compile Include="$(RepoRoot)\src\Shared\SpanHelper.cs" Link="Includes\SpanHelper.cs" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(IncludeSharedActivityInstrumentationHelper)'=='true'">
-    <Compile Include="$(RepoRoot)\src\Shared\ActivityInstrumentationHelper.cs" Link="Includes\ActivityInstrumentationHelper.cs" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(IncludeSharedDiagnosticSourceSubscriber)'=='true'">
-    <Compile Include="$(RepoRoot)\src\Shared\DiagnosticSourceListener.cs" Link="Includes\DiagnosticSourceListener.cs" />
-    <Compile Include="$(RepoRoot)\src\Shared\DiagnosticSourceSubscriber.cs" Link="Includes\DiagnosticSourceSubscriber.cs" />
-    <Compile Include="$(RepoRoot)\src\Shared\ListenerHandler.cs" Link="Includes\ListenerHandler.cs" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(IncludeSharedTestSource)'=='true'">
-    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestSampler.cs" Link="Includes\TestSampler.cs" />
-    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestActivityExportProcessor.cs" Link="Includes\TestActivityExportProcessor.cs" />
-    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestActivityProcessor.cs" Link="Includes\TestActivityProcessor.cs" />
-  </ItemGroup>
-
 </Project>
