@@ -6,6 +6,7 @@ namespace OpenTelemetry.Exporter.Geneva;
 /// <summary>
 /// This class contains constants and helper functions useful for dealing with
 /// the Protocol Buffer wire format.
+///  https://protobuf.dev/programming-guides/encoding/#structure.
 /// </summary>
 internal static class WireFormat
 {

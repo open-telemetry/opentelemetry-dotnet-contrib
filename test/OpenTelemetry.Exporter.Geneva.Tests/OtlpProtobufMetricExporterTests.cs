@@ -42,7 +42,7 @@ public class OtlpProtobufMetricExporterTests
         int currentPosition = 0;
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
+        var otlpProtobufSerializer = new ProtobufSerializer(testTransport);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, ref currentPosition, null, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -122,7 +122,7 @@ public class OtlpProtobufMetricExporterTests
         int currentPosition = 0;
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
+        var otlpProtobufSerializer = new ProtobufSerializer(testTransport);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, ref currentPosition, null, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 

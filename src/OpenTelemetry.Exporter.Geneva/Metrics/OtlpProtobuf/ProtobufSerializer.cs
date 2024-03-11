@@ -10,7 +10,7 @@ using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
-internal class OtlpProtobufSerializer
+internal class ProtobufSerializer
 {
     private const int LengthAndTagSize = 4;
 
@@ -30,7 +30,7 @@ internal class OtlpProtobufSerializer
 
     internal IMetricDataTransport MetricDataTransport;
 
-    public OtlpProtobufSerializer(IMetricDataTransport metricDataTransport)
+    public ProtobufSerializer(IMetricDataTransport metricDataTransport)
     {
         this.MetricDataTransport = metricDataTransport;
     }

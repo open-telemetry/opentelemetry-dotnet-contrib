@@ -8,13 +8,13 @@ using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
-internal class OtlpProtobufMetricExporter : IDisposable
+internal sealed class OtlpProtobufMetricExporter : IDisposable
 {
     private const int BufferSize = 65360; // the maximum ETW payload (inclusive)
 
     private readonly byte[] buffer = new byte[BufferSize];
 
-    private readonly OtlpProtobufSerializer otlpProtobufSerializer;
+    private readonly ProtobufSerializer protobufSerializer;
 
     public OtlpProtobufMetricExporter()
     {
@@ -24,7 +24,7 @@ internal class OtlpProtobufMetricExporter : IDisposable
             throw new NotSupportedException("Unix domain socket should not be used on Windows.");
         }
 
-        this.otlpProtobufSerializer = new OtlpProtobufSerializer(MetricEtwDataTransport.Instance);
+        this.protobufSerializer = new ProtobufSerializer(MetricEtwDataTransport.Instance);
     }
 
     public ExportResult Export(in Batch<Metric> batch, Resource resource = null)
@@ -35,11 +35,12 @@ internal class OtlpProtobufMetricExporter : IDisposable
 
         try
         {
-            this.otlpProtobufSerializer.SerializeAndSendMetrics(this.buffer, ref currentPosition, resource, batch);
+            this.protobufSerializer.SerializeAndSendMetrics(this.buffer, ref currentPosition, resource, batch);
         }
         catch (Exception ex)
         {
             ExporterEventSource.Log.ExporterException("Failed to export metrics batch", ex);
+            result = ExportResult.Failure;
         }
 
         return result;

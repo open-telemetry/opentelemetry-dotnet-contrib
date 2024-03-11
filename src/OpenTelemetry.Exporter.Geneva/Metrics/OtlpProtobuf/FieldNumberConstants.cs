@@ -6,7 +6,11 @@ using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
-internal class FieldNumberConstants
+/// <summary>
+/// Defines field number constants for fields defined in
+/// https://github.com/open-telemetry/opentelemetry-proto/blob/v1.1.0/opentelemetry/proto/metrics/v1/metrics.proto.
+/// </summary>
+internal static class FieldNumberConstants
 {
     // MetricsData
     internal const int MetricsData_resource_metrics = 1;
