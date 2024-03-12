@@ -165,7 +165,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
                 {
                     activity.SetStatus(Status.Error);
 
-                    if (OwinInstrumentationActivitySource.Options!.RecordException)
+                    if (OwinInstrumentationActivitySource.Options != null && OwinInstrumentationActivitySource.Options.RecordException)
                     {
                         activity.RecordException(exception);
                     }
@@ -179,7 +179,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
 
                 try
                 {
-                    OwinInstrumentationActivitySource.Options!.Enrich?.Invoke(
+                    OwinInstrumentationActivitySource.Options?.Enrich?.Invoke(
                         activity,
                         OwinEnrichEventType.EndRequest,
                         owinContext,
