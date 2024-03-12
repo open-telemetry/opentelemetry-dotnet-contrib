@@ -5,5 +5,6 @@ namespace OpenTelemetry.ResourceDetectors.Process;
 
 internal static class ProcessSemanticConventions
 {
+    public const string AttributeProcessOwner = "process.owner";
     public const string AttributeProcessPid = "process.pid";
 }
