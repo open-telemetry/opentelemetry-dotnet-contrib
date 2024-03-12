@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* Add `process.owner` attribute to `ProcessDetector`.
+* Add `process.owner` attribute.
   ([#1608](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1608))
 
 ## 0.1.0-alpha.2
