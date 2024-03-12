@@ -215,7 +215,7 @@ This instrumentation can be configured to change the default behavior by using
 
 ### EnableServerAttributesForRequestDuration
 
-This options allows to enable `server.address` and `server.port` attributes for
+This option allows to enable `server.address` and `server.port` attributes for
 `http.server.request.duration` metric.
 
 ### Metric Enrich
