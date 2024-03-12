@@ -1,9 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET6_0_OR_GREATER
 using System;
-#endif
 using System.Collections.Generic;
 using OpenTelemetry.Resources;
 
@@ -20,8 +18,9 @@ public sealed class ProcessDetector : IResourceDetector
     /// <returns>Resource with key-value pairs of resource attributes.</returns>
     public Resource Detect()
     {
-        return new Resource(new List<KeyValuePair<string, object>>(1)
+        return new Resource(new List<KeyValuePair<string, object>>(2)
         {
+            new(ProcessSemanticConventions.AttributeProcessOwner, Environment.UserName),
 #if NET6_0_OR_GREATER
             new(ProcessSemanticConventions.AttributeProcessPid, Environment.ProcessId),
 #else
