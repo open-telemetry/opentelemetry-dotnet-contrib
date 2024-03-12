@@ -36,7 +36,7 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 The resource detectors will record the following metadata based on where
 your application is running:
 
-- **ProcessDetector**: `process.pid`.
+- **ProcessDetector**: `process.owner`, `process.pid`.
 
 ## References
 
