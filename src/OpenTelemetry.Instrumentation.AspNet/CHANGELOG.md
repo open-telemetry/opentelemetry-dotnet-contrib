@@ -7,7 +7,7 @@
   ([#1604](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1604))
 * **Breaking Change**: `server.address` and `server.port` attributes are now
   by default disabled for `http.server.request.duration` metric.
-  Attributes can be enabled by `EnableServerAttributesForRequestDuration`
+  Attributes can be enabled by setting `EnableServerAttributesForRequestDuration`
   property on `AspNetMetricsInstrumentationOptions` class.
   ([#1606](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1606))
 
