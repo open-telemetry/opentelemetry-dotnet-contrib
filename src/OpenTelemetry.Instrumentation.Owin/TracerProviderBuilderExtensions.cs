@@ -28,7 +28,7 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddOwinInstrumentation(
         this TracerProviderBuilder builder,
-        Action<OwinInstrumentationOptions> configure)
+        Action<OwinInstrumentationOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
 
