@@ -213,11 +213,6 @@ to store the exception to the Activity itself as ActivityEvent.
 This instrumentation can be configured to change the default behavior by using
 `AspNetMetricsInstrumentationOptions` as explained below.
 
-### EnableServerAttributesForRequestDuration
-
-This option allows to enable `server.address` and `server.port` attributes for
-`http.server.request.duration` metric.
-
 ### Metric Enrich
 
 This option allows one to enrich the metric with additional information from

@@ -1,7 +1,5 @@
 OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions
 OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.AspNetMetricsInstrumentationOptions() -> void
-OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.EnableServerAttributesForRequestDuration.get -> bool
-OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.EnableServerAttributesForRequestDuration.set -> void
 OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.Enrich.get -> OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.EnrichFunc?
 OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.Enrich.set -> void
 OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.EnrichFunc

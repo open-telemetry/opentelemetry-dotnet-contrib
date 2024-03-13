@@ -26,5 +26,5 @@ public sealed class AspNetMetricsInstrumentationOptions
     /// <summary>
     /// Gets or sets a value indicating whether emit server.address and server.port attributes.
     /// </summary>
-    public bool EnableServerAttributesForRequestDuration { get; set; }
+    internal bool EnableServerAttributesForRequestDuration { get; set; }
 }
