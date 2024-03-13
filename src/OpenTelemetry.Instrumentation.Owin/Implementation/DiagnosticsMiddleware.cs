@@ -123,7 +123,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
 
                 try
                 {
-                    OwinInstrumentationActivitySource.Options.Enrich?.Invoke(
+                    OwinInstrumentationActivitySource.Options?.Enrich?.Invoke(
                         activity,
                         OwinEnrichEventType.BeginRequest,
                         owinContext,
