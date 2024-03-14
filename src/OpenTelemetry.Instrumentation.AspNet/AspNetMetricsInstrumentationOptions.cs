@@ -22,4 +22,9 @@ public sealed class AspNetMetricsInstrumentationOptions
     /// Gets or sets an function to enrich a recorded metric with additional custom tags.
     /// </summary>
     public EnrichFunc? Enrich { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether emit server.address and server.port attributes.
+    /// </summary>
+    internal bool EnableServerAttributesForRequestDuration { get; set; }
 }

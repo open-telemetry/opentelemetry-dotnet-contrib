@@ -17,7 +17,9 @@ public class HttpInMetricsListenerTests
 {
     [Theory]
     [InlineData("http://localhost/", 0, null, null, "http", "localhost", null, 80, 200)]
+    [InlineData("http://localhost/", 0, null, null, "http", null, null, null, 200, false)]
     [InlineData("https://localhost/", 0, null, null, "https", "localhost", null, 443, 200)]
+    [InlineData("https://localhost/", 0, null, null, "https", null, null, null, 200, false)]
     [InlineData("http://localhost/api/value", 0, null, null, "http", "localhost", null, 80, 200)]
     [InlineData("http://localhost/api/value", 1, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 80, 200)]
     [InlineData("http://localhost/api/value", 2, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 80, 201)]
@@ -35,10 +37,11 @@ public class HttpInMetricsListenerTests
         string routeTemplate,
         string enrichMode,
         string expectedScheme,
-        string expectedHost,
+        string? expectedHost,
         string expectedRoute,
         int? expectedPort,
-        int expectedStatus)
+        int expectedStatus,
+        bool enableServerAttributesForRequestDuration = true)
     {
         double duration = 0;
         HttpContext.Current = RouteTestHelper.BuildHttpContext(url, routeType, routeTemplate);
@@ -62,6 +65,8 @@ public class HttpInMetricsListenerTests
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddAspNetInstrumentation(options =>
             {
+                options.EnableServerAttributesForRequestDuration = enableServerAttributesForRequestDuration;
+
                 options.Enrich += (HttpContext context, ref TagList tags) =>
                 {
                     if (enrichMode == "throw")
@@ -106,7 +111,12 @@ public class HttpInMetricsListenerTests
         Assert.Equal(duration, sum);
         Assert.True(duration > 0, "Metric duration should be set.");
 
-        var expectedTagCount = 5;
+        var expectedTagCount = 3;
+
+        if (enableServerAttributesForRequestDuration)
+        {
+            expectedTagCount += 2;
+        }
 
         if (!string.IsNullOrEmpty(expectedRoute))
         {
