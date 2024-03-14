@@ -56,6 +56,6 @@ internal static class WireFormat
     /// <returns>Tag value.</returns>
     internal static uint MakeTag(int fieldNumber, WireType wireType)
     {
-        return (uint)(fieldNumber << TagTypeBits) | (uint)wireType;
+        return ((uint)(fieldNumber << TagTypeBits)) | (uint)wireType;
     }
 }
