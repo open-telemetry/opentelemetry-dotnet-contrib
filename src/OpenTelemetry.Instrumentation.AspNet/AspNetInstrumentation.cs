@@ -17,7 +17,7 @@ internal sealed class AspNetInstrumentation : IDisposable
     /// Initializes a new instance of the <see cref="AspNetInstrumentation"/> class.
     /// </summary>
     /// <param name="options">Configuration options for ASP.NET instrumentation.</param>
-    public AspNetInstrumentation(AspNetInstrumentationOptions options)
+    public AspNetInstrumentation(AspNetTraceInstrumentationOptions options)
     {
         this.httpInListener = new HttpInListener(options);
     }
