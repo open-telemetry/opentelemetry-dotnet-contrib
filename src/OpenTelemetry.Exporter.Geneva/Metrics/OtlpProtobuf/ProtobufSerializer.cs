@@ -179,7 +179,10 @@ internal class ProtobufSerializer
                         this.WriteIndividualMessageTagsAndLength(buffer, ref currentPosition, metric.MetricType);
 
                         // Send metricPoint
-                        this.SendMetricPointAndResetCurrentBufferPosition(buffer, ref currentPosition);
+                        this.SendMetricPoint(buffer, ref currentPosition);
+
+                        // reset currentPosition to write next metricPoint
+                        currentPosition = this.previousMetricPointStartIndex;
                     }
 
                     break;
@@ -241,12 +244,10 @@ internal class ProtobufSerializer
         OtlpProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref resourceMetricIndex, currentPosition - resourceMetricIndex - LengthAndTagSize, FieldNumberConstants.ResourceMetrics_resource, WireFormat.WireType.LengthDelimited);
     }
 
-    private void SendMetricPointAndResetCurrentBufferPosition(byte[] buffer, ref int currentPosition)
+    private void SendMetricPoint(byte[] buffer, ref int currentPosition)
     {
         // TODO: Extend this for user_events.
         this.MetricDataTransport.SendOtlpProtobufEvent(buffer, currentPosition);
-
-        currentPosition = this.previousMetricPointStartIndex;
     }
 
     internal static void WriteInstrumentDetails(byte[] buffer, ref int currentPosition, Metric metric)
