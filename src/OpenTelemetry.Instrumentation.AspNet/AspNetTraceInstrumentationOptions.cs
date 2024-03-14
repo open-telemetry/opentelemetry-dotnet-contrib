@@ -10,7 +10,7 @@ namespace OpenTelemetry.Instrumentation.AspNet;
 /// <summary>
 /// Options for ASP.NET instrumentation.
 /// </summary>
-public class AspNetInstrumentationOptions
+public class AspNetTraceInstrumentationOptions
 {
     /// <summary>
     /// Gets or sets a filter callback function that determines on a per
