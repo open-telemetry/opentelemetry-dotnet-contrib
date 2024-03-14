@@ -8,7 +8,7 @@ using System.Text;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
-internal static class OtlpProtobufSerializerHelper
+internal static class ProtobufSerializerHelper
 {
     private const int Fixed64Size = 8;
 
