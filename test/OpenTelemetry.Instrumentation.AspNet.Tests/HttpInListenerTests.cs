@@ -23,7 +23,7 @@ public class HttpInListenerTests
     [InlineData("http://localhost/", "http", "/", null, "localhost", 80, "GET", "GET", null, 0, null)]
     [InlineData("http://localhost/?foo=bar&baz=test", "http", "/", "foo=bar&baz=test", "localhost", 80, "POST", "POST", null, 0, null, true)]
     [InlineData("https://localhost/", "https", "/", null, "localhost", 443, "NonStandard", "_OTHER", "NonStandard", 0, null)]
-    [InlineData("https://user:pass@localhost/", "https", "/", null, "localhost", 443, "GET", "GET", null, 0, null)] // Test URL sanitization
+    [InlineData("https://user:pass@localhost/", "https", "/", null, "localhost", 443, "GeT", "GET", "GeT", 0, null)] // Test URL sanitization
     [InlineData("http://localhost:443/", "http", "/", null, "localhost", 443, "GET", "GET", null, 0, null)] // Test http over 443
     [InlineData("https://localhost:80/", "https", "/", null, "localhost", 80, "GET", "GET", null, 0, null)] // Test https over 80
     [InlineData("https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=v1&q2=v2", "localhost", 80, "GET", "GET", null, 0, null)] // Test complex URL
