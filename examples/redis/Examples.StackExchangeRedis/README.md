@@ -7,14 +7,14 @@ this application (please look at the prerequisite for running the application in
 [Program.cs](./Program.cs):
 
 ```text
-Activity.TraceId:          f1a47baec558ebb97e57a6fb7d029a29
-Activity.SpanId:           d0abf2503ad3d1b6
-Activity.TraceFlags:           Recorded
+Activity.TraceId:            ebf13ff051d73072f87d07ebf08d5f26
+Activity.SpanId:             326c619dbda12231
+Activity.TraceFlags:         Recorded
 Activity.ActivitySourceName: OpenTelemetry.Instrumentation.StackExchangeRedis
-Activity.DisplayName: SET
-Activity.Kind:        Client
-Activity.StartTime:   2022-06-06T22:17:40.8927802Z
-Activity.Duration:    00:00:00.0237767
+Activity.DisplayName:        SET
+Activity.Kind:               Client
+Activity.StartTime:          2024-03-14T09:35:28.1473251Z
+Activity.Duration:           00:00:00.0050600
 Activity.Tags:
     db.system: redis
     db.redis.flags: DemandMaster
@@ -22,22 +22,24 @@ Activity.Tags:
     net.peer.name: localhost
     net.peer.port: 6379
     db.redis.database_index: 0
-   StatusCode : UNSET
 Activity.Events:
-    Enqueued [6/6/2022 10:17:40 PM +00:00]
-    Sent [6/6/2022 10:17:40 PM +00:00]
-    ResponseReceived [6/6/2022 10:17:40 PM +00:00]
+    Enqueued [3/14/2024 9:35:28 AM +00:00]
+    Sent [3/14/2024 9:35:28 AM +00:00]
+    ResponseReceived [3/14/2024 9:35:28 AM +00:00]
 Resource associated with Activity:
+    telemetry.sdk.name: opentelemetry
+    telemetry.sdk.language: dotnet
+    telemetry.sdk.version: 1.7.0
     service.name: unknown_service:Examples.StackExchangeRedis
 
-Activity.TraceId:          0db37d796826693e23b17e3b082356a4
-Activity.SpanId:           cd01d518b8b5cfa2
-Activity.TraceFlags:           Recorded
+Activity.TraceId:            1824275fc972c4f0f3180a175ba38acc
+Activity.SpanId:             734196993db5b8dd
+Activity.TraceFlags:         Recorded
 Activity.ActivitySourceName: OpenTelemetry.Instrumentation.StackExchangeRedis
-Activity.DisplayName: GET
-Activity.Kind:        Client
-Activity.StartTime:   2022-06-06T22:17:41.9223474Z
-Activity.Duration:    00:00:00.0067062
+Activity.DisplayName:        GET
+Activity.Kind:               Client
+Activity.StartTime:          2024-03-14T09:35:29.1575041Z
+Activity.Duration:           00:00:00.0031683
 Activity.Tags:
     db.system: redis
     db.redis.flags: None
@@ -45,11 +47,13 @@ Activity.Tags:
     net.peer.name: localhost
     net.peer.port: 6379
     db.redis.database_index: 0
-   StatusCode : UNSET
 Activity.Events:
-    Enqueued [6/6/2022 10:17:41 PM +00:00]
-    Sent [6/6/2022 10:17:41 PM +00:00]
-    ResponseReceived [6/6/2022 10:17:41 PM +00:00]
+    Enqueued [3/14/2024 9:35:29 AM +00:00]
+    Sent [3/14/2024 9:35:29 AM +00:00]
+    ResponseReceived [3/14/2024 9:35:29 AM +00:00]
 Resource associated with Activity:
+    telemetry.sdk.name: opentelemetry
+    telemetry.sdk.language: dotnet
+    telemetry.sdk.version: 1.7.0
     service.name: unknown_service:Examples.StackExchangeRedis
 ```
