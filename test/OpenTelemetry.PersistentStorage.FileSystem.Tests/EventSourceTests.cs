@@ -8,7 +8,6 @@ namespace OpenTelemetry.PersistentStorage.FileSystem.Tests;
 
 public class EventSourceTests
 {
-
     [Fact]
     public void EventSourceTest_PersistentStorageEventSource()
     {
