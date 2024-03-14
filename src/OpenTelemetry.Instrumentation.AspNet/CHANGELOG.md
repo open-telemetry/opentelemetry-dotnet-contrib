@@ -5,6 +5,9 @@
 * **Breaking Change**: Renamed `AspNetInstrumentationOptions` to
   `AspNetTraceInstrumentationOptions`.
   ([#1604](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1604))
+* **Breaking Change**: `server.address` and `server.port` no longer added
+  for `http.server.request.duration` metric.
+  ([#1606](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1606))
 * **Breaking change** Spans attributes based on [HTTP semantic convention v1.24.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/http/http-spans.md).
   ([#1607](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1607))
 

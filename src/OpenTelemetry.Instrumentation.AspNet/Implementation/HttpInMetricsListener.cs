@@ -37,11 +37,15 @@ internal sealed class HttpInMetricsListener : IDisposable
         var url = request.Url;
         var tags = new TagList
         {
-            { SemanticConventions.AttributeServerAddress, url.Host },
-            { SemanticConventions.AttributeServerPort, url.Port },
             { SemanticConventions.AttributeUrlScheme, url.Scheme },
             { SemanticConventions.AttributeHttpResponseStatusCode, context.Response.StatusCode },
         };
+
+        if (this.options.EnableServerAttributesForRequestDuration)
+        {
+            tags.Add(SemanticConventions.AttributeServerAddress, url.Host);
+            tags.Add(SemanticConventions.AttributeServerPort, url.Port);
+        }
 
         var normalizedMethod = this.requestDataHelper.GetNormalizedHttpMethod(request.HttpMethod);
         tags.Add(SemanticConventions.AttributeHttpRequestMethod, normalizedMethod);

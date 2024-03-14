@@ -22,19 +22,18 @@ namespace OpenTelemetry.Instrumentation.Owin.Tests;
 public class DiagnosticsMiddlewareTests : IDisposable
 {
     private readonly Uri serviceBaseUri;
-    private readonly IDisposable listener;
+    private readonly IDisposable? listener;
     private readonly EventWaitHandle requestCompleteHandle = new(false, EventResetMode.AutoReset);
 
     public DiagnosticsMiddlewareTests()
     {
         Random random = new Random();
         var retryCount = 5;
-        while (retryCount > 0)
+        do
         {
+            this.serviceBaseUri = new Uri($"http://localhost:{random.Next(2000, 5000)}/");
             try
             {
-                this.serviceBaseUri = new Uri($"http://localhost:{random.Next(2000, 5000)}/");
-
                 this.listener = WebApp.Start(
                     this.serviceBaseUri.ToString(),
                     appBuilder =>
@@ -81,6 +80,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
                 retryCount--;
             }
         }
+        while (retryCount > 0);
 
         if (this.listener == null)
         {
