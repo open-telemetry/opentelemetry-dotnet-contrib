@@ -77,13 +77,7 @@ internal sealed class HttpInListener : IDisposable
             activity.SetTag(SemanticConventions.AttributeUrlScheme, url.Scheme);
 
             var originalHttpMethod = request.HttpMethod;
-            var normalizedHttpMethod = this.requestDataHelper.GetNormalizedHttpMethod(originalHttpMethod);
-            activity.SetTag(SemanticConventions.AttributeHttpRequestMethod, normalizedHttpMethod);
-
-            if (originalHttpMethod != normalizedHttpMethod)
-            {
-                activity.SetTag(SemanticConventions.AttributeHttpRequestMethodOriginal, originalHttpMethod);
-            }
+            this.requestDataHelper.SetHttpMethodTag(activity, originalHttpMethod);
 
             var protocolVersion = RequestDataHelper.GetHttpProtocolVersion(request);
             if (!string.IsNullOrEmpty(protocolVersion))

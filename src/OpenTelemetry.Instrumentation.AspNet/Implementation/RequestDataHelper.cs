@@ -3,8 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Web;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 
@@ -44,6 +46,17 @@ internal sealed class RequestDataHelper
     public static string GetHttpProtocolVersion(HttpRequest request)
     {
         return GetHttpProtocolVersion(request.ServerVariables["SERVER_PROTOCOL"]);
+    }
+
+    public void SetHttpMethodTag(Activity activity, string originalHttpMethod)
+    {
+        var normalizedHttpMethod = this.GetNormalizedHttpMethod(originalHttpMethod);
+        activity.SetTag(SemanticConventions.AttributeHttpRequestMethod, normalizedHttpMethod);
+
+        if (originalHttpMethod != normalizedHttpMethod)
+        {
+            activity.SetTag(SemanticConventions.AttributeHttpRequestMethodOriginal, originalHttpMethod);
+        }
     }
 
     public string GetNormalizedHttpMethod(string method)
