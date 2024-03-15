@@ -41,11 +41,11 @@ public class RequestDataHelperTests : IDisposable
     [InlineData("get", "GET")]
     [InlineData("post", "POST")]
     [InlineData("invalid", "_OTHER")]
-    public void MethodMappingWorksForEnvironmentVariables(string protocolVersion, string expected)
+    public void MethodMappingWorksForEnvironmentVariables(string method, string expected)
     {
         Environment.SetEnvironmentVariable("OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS", "GET,POST");
         var requestHelper = new RequestDataHelper();
-        var actual = requestHelper.GetNormalizedHttpMethod(protocolVersion);
+        var actual = requestHelper.GetNormalizedHttpMethod(method);
         Assert.Equal(expected, actual);
     }
 
