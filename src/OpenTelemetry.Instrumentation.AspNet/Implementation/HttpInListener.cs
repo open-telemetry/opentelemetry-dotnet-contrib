@@ -68,15 +68,15 @@ internal sealed class HttpInListener : IDisposable
             var requestValues = request.Unvalidated;
 
             // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/http/http-spans.md
-            var path = requestValues.Path;
-            activity.DisplayName = path;
+            var originalHttpMethod = request.HttpMethod;
+            var normalizedHttpMethod = this.requestDataHelper.GetNormalizedHttpMethod(originalHttpMethod);
+            activity.DisplayName = normalizedHttpMethod == "_OTHER" ? "HTTP" : normalizedHttpMethod;
 
             var url = request.Url;
             activity.SetTag(SemanticConventions.AttributeServerAddress, url.Host);
             activity.SetTag(SemanticConventions.AttributeServerPort, url.Port);
             activity.SetTag(SemanticConventions.AttributeUrlScheme, url.Scheme);
 
-            var originalHttpMethod = request.HttpMethod;
             this.requestDataHelper.SetHttpMethodTag(activity, originalHttpMethod);
 
             var protocolVersion = RequestDataHelper.GetHttpProtocolVersion(request);
@@ -85,7 +85,7 @@ internal sealed class HttpInListener : IDisposable
                 activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, protocolVersion);
             }
 
-            activity.SetTag(SemanticConventions.AttributeUrlPath, path);
+            activity.SetTag(SemanticConventions.AttributeUrlPath, requestValues.Path);
 
             // TODO url.query should be sanitized
             var query = url.Query;
@@ -131,8 +131,8 @@ internal sealed class HttpInListener : IDisposable
 
             if (!string.IsNullOrEmpty(template))
             {
-                // Override the name that was previously set to the path part of URL.
-                activity.DisplayName = template!;
+                // Override the name that was previously set to the normalized HTTP method/HTTP
+                activity.DisplayName = $"{activity.DisplayName} {template!}";
                 activity.SetTag(SemanticConventions.AttributeHttpRoute, template);
             }
 
