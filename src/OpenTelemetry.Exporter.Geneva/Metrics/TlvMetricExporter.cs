@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Geneva.Metrics;
 
@@ -81,7 +80,7 @@ internal sealed class TlvMetricExporter : IDisposable
         }
     }
 
-    internal ExportResult Export(in Batch<Metric> batch, Resource resource = null)
+    internal ExportResult Export(in Batch<Metric> batch)
     {
         string monitoringAccount = this.defaultMonitoringAccount;
         string metricNamespace = this.defaultMetricNamespace;

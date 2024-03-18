@@ -16,7 +16,9 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
 
     private readonly OtlpProtobufSerializer otlpProtobufSerializer;
 
-    public OtlpProtobufMetricExporter()
+    private readonly Func<Resource> getResource;
+
+    public OtlpProtobufMetricExporter(Func<Resource> getResource)
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
@@ -24,10 +26,11 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
             throw new NotSupportedException("Exporting data in protobuf format is not supported on Linux.");
         }
 
+        this.getResource = getResource;
         this.otlpProtobufSerializer = new OtlpProtobufSerializer(MetricEtwDataTransport.Instance);
     }
 
-    public ExportResult Export(in Batch<Metric> batch, Resource resource = null)
+    public ExportResult Export(in Batch<Metric> batch)
     {
         var result = ExportResult.Success;
 
@@ -35,7 +38,7 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
 
         try
         {
-            this.otlpProtobufSerializer.SerializeAndSendMetrics(this.buffer, ref currentPosition, resource, batch);
+            this.otlpProtobufSerializer.SerializeAndSendMetrics(this.buffer, ref currentPosition, this.getResource(), batch);
         }
         catch (Exception ex)
         {

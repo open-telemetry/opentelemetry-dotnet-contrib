@@ -25,7 +25,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
     private readonly IDisposable exporter;
 
-    private delegate ExportResult ExportMetricsFunc(in Batch<Metric> batch, Resource resource);
+    private delegate ExportResult ExportMetricsFunc(in Batch<Metric> batch);
 
     private readonly ExportMetricsFunc exportMetrics;
 
@@ -44,7 +44,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
         if (connectionStringBuilder.PrivatePreviewOtlpProtobufMetricExporter != null && connectionStringBuilder.PrivatePreviewOtlpProtobufMetricExporter.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase))
         {
-            var otlpProtobufExporter = new OtlpProtobufMetricExporter();
+            var otlpProtobufExporter = new OtlpProtobufMetricExporter(() => { return this.Resource; });
 
             this.exporter = otlpProtobufExporter;
 
@@ -62,7 +62,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
     public override ExportResult Export(in Batch<Metric> batch)
     {
-        return this.exportMetrics(batch, this.Resource);
+        return this.exportMetrics(batch);
     }
 
     protected override void Dispose(bool disposing)
