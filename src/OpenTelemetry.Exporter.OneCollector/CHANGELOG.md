@@ -7,7 +7,7 @@
 
 * Exposed `OneCollectorLogExportProcessorBuilder.SetHttpClientFactory` so users
   can configure the `HttpClient` used to send telemetry over HTTP transports.
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#1619](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1619))
 
 ## 1.6.0
 
