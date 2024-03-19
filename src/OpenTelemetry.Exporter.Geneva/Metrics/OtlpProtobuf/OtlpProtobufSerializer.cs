@@ -17,13 +17,13 @@ internal class OtlpProtobufSerializer
 
     private int resourceMetricStartIndex;
 
-    private int previousScopeMetricsStartIndex;
+    private int scopeMetricsStartIndex;
 
-    private int previousMetricStartIndex;
+    private int metricStartIndex;
 
-    private int previousIntrumentStartIndex;
+    private int intrumentStartIndex;
 
-    private int previousMetricPointStartIndex;
+    private int metricPointStartIndex;
 
     internal IMetricDataTransport MetricDataTransport;
 
@@ -77,19 +77,17 @@ internal class OtlpProtobufSerializer
         // TODO: Serialize schema_url field
 
         // Serialize ScopeMetrics field
+        this.scopeMetricsStartIndex = currentPosition;
         foreach (KeyValuePair<string, List<Metric>> metric in this.scopeMetrics)
         {
             if (metric.Value.Count > 0)
             {
-                this.previousScopeMetricsStartIndex = currentPosition;
+                currentPosition = this.scopeMetricsStartIndex;
 
                 currentPosition += LengthAndTagSize;
 
                 // Serialize this meter/scope
                 this.SerializeScopeMetrics(buffer, ref currentPosition, metric.Key, metric.Value);
-
-                // Reset the current position to start writing again from where we started the last scope.
-                currentPosition = this.previousScopeMetricsStartIndex;
             }
         }
     }
@@ -100,17 +98,15 @@ internal class OtlpProtobufSerializer
         // TODO: Avoid serializing for each export.
         SerializeInstrumentationScope(buffer, ref currentPosition, scopeName, metrics[0].MeterTags);
 
+        this.metricStartIndex = currentPosition;
         foreach (Metric metric in metrics)
         {
-            this.previousMetricStartIndex = currentPosition;
+            currentPosition = this.metricStartIndex;
 
             currentPosition += LengthAndTagSize;
 
             // Serialize metrics for the meter/scope
             this.SerializeMetric(buffer, ref currentPosition, metric);
-
-            // Reset the current position to start writing again from where we started the last metric.
-            currentPosition = this.previousMetricStartIndex;
         }
 
         // TODO: Serialize schema_url field.
@@ -120,12 +116,13 @@ internal class OtlpProtobufSerializer
     {
         WriteInstrumentDetails(buffer, ref currentPosition, metric);
 
+        this.intrumentStartIndex = currentPosition;
         switch (metric.MetricType)
         {
             case MetricType.LongSum:
             case MetricType.LongSumNonMonotonic:
                 {
-                    this.previousIntrumentStartIndex = currentPosition;
+                    currentPosition = this.intrumentStartIndex;
 
                     currentPosition += LengthAndTagSize;
 
@@ -135,9 +132,10 @@ internal class OtlpProtobufSerializer
                     // Write aggregationTemporality tag
                     ProtobufSerializerHelper.WriteEnumWithTag(buffer, ref currentPosition, FieldNumberConstants.Sum_aggregation_temporality, metric.Temporality == AggregationTemporality.Cumulative ? 2 : 1);
 
+                    this.metricPointStartIndex = currentPosition;
                     foreach (var metricPoint in metric.GetMetricPoints())
                     {
-                        this.previousMetricPointStartIndex = currentPosition;
+                        currentPosition = this.metricPointStartIndex;
 
                         currentPosition += LengthAndTagSize;
 
@@ -155,19 +153,16 @@ internal class OtlpProtobufSerializer
 
                         // TODO: exemplars.
 
-                        var previousMetricPointPosition = this.previousMetricPointStartIndex;
+                        var metricPointStartPosition = this.metricPointStartIndex;
 
                         // Write numberdatapoint {Repeated field}
-                        ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref previousMetricPointPosition, currentPosition - previousMetricPointPosition - LengthAndTagSize, FieldNumberConstants.Sum_data_points, WireFormat.WireType.LengthDelimited);
+                        ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref metricPointStartPosition, currentPosition - metricPointStartPosition - LengthAndTagSize, FieldNumberConstants.Sum_data_points, WireFormat.WireType.LengthDelimited);
 
                         // Finish writing current batch
                         this.WriteIndividualMessageTagsAndLength(buffer, ref currentPosition, metric.MetricType);
 
                         // Send metricPoint
                         this.SendMetricPoint(buffer, ref currentPosition);
-
-                        // reset currentPosition to write next metricPoint
-                        currentPosition = this.previousMetricPointStartIndex;
                     }
 
                     break;
@@ -208,11 +203,11 @@ internal class OtlpProtobufSerializer
 
     private void WriteIndividualMessageTagsAndLength(byte[] buffer, ref int currentPosition, MetricType metricType)
     {
-        var instrumentIndex = this.previousIntrumentStartIndex;
+        var instrumentIndex = this.intrumentStartIndex;
 
-        var metricIndex = this.previousMetricStartIndex;
+        var metricIndex = this.metricStartIndex;
 
-        var scopeMetricsIndex = this.previousScopeMetricsStartIndex;
+        var scopeMetricsIndex = this.scopeMetricsStartIndex;
 
         var resourceMetricIndex = this.resourceMetricStartIndex;
 
