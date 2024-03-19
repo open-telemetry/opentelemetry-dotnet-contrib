@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using OpenTelemetry.Metrics;
@@ -13,8 +12,6 @@ namespace OpenTelemetry.Exporter.Geneva;
 internal class OtlpProtobufSerializer
 {
     private const int LengthAndTagSize = 4;
-
-    private static readonly ConcurrentBag<List<Metric>> MetricListPool = new();
 
     private readonly Dictionary<string, List<Metric>> scopeMetrics = new();
 
@@ -45,35 +42,24 @@ internal class OtlpProtobufSerializer
             }
             else
             {
-                if (MetricListPool.TryTake(out var newList))
-                {
-                    newList.Add(metric);
-                    this.scopeMetrics[metric.MeterName] = newList;
-                }
-                else
-                {
-                    newList = new List<Metric>();
-                    newList.Add(metric);
-                    this.scopeMetrics[metric.MeterName] = newList;
-                }
+                var newList = new List<Metric>();
+                newList.Add(metric);
+                this.scopeMetrics[metric.MeterName] = newList;
             }
         }
 
         // Serialize
         this.SerializeResourceMetrics(buffer, resource);
 
-        this.ReturnScopeMetrics();
+        this.ClearScopeMetrics();
     }
 
-    internal void ReturnScopeMetrics()
+    internal void ClearScopeMetrics()
     {
         foreach (var list in this.scopeMetrics)
         {
             list.Value.Clear();
-            MetricListPool.Add(list.Value);
         }
-
-        this.scopeMetrics.Clear();
     }
 
     internal void SerializeResourceMetrics(byte[] buffer, Resource resource)
@@ -93,15 +79,18 @@ internal class OtlpProtobufSerializer
         // Serialize ScopeMetrics field
         foreach (KeyValuePair<string, List<Metric>> metric in this.scopeMetrics)
         {
-            this.previousScopeMetricsStartIndex = currentPosition;
+            if (metric.Value.Count > 0)
+            {
+                this.previousScopeMetricsStartIndex = currentPosition;
 
-            currentPosition += LengthAndTagSize;
+                currentPosition += LengthAndTagSize;
 
-            // Serialize this meter/scope
-            this.SerializeScopeMetrics(buffer, ref currentPosition, metric.Key, metric.Value);
+                // Serialize this meter/scope
+                this.SerializeScopeMetrics(buffer, ref currentPosition, metric.Key, metric.Value);
 
-            // Reset the current position to start writing again from where we started the last scope.
-            currentPosition = this.previousScopeMetricsStartIndex;
+                // Reset the current position to start writing again from where we started the last scope.
+                currentPosition = this.previousScopeMetricsStartIndex;
+            }
         }
     }
 
