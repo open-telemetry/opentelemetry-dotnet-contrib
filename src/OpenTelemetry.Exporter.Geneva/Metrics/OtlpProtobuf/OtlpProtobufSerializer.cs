@@ -35,7 +35,7 @@ internal class OtlpProtobufSerializer
         this.MetricDataTransport = metricDataTransport;
     }
 
-    internal void SerializeAndSendMetrics(byte[] buffer, ref int currentPosition, Resource resource, in Batch<Metric> metricBatch)
+    internal void SerializeAndSendMetrics(byte[] buffer, Resource resource, in Batch<Metric> metricBatch)
     {
         foreach (var metric in metricBatch)
         {
@@ -60,7 +60,7 @@ internal class OtlpProtobufSerializer
         }
 
         // Serialize
-        this.SerializeResourceMetrics(buffer, ref currentPosition, resource);
+        this.SerializeResourceMetrics(buffer, resource);
 
         this.ReturnScopeMetrics();
     }
@@ -76,8 +76,10 @@ internal class OtlpProtobufSerializer
         this.scopeMetrics.Clear();
     }
 
-    internal void SerializeResourceMetrics(byte[] buffer, ref int currentPosition, Resource resource)
+    internal void SerializeResourceMetrics(byte[] buffer, Resource resource)
     {
+        int currentPosition = 0;
+
         this.resourceMetricStartIndex = currentPosition;
 
         currentPosition += LengthAndTagSize;
@@ -105,18 +107,12 @@ internal class OtlpProtobufSerializer
 
     internal void SerializeScopeMetrics(byte[] buffer, ref int currentPosition, string scopeName, List<Metric> metrics)
     {
-        bool scopeInformationIncluded = false;
+        // Serialize scope information
+        // TODO: Avoid serializing for each export.
+        SerializeInstrumentationScope(buffer, ref currentPosition, scopeName, metrics[0].MeterTags);
 
         foreach (Metric metric in metrics)
         {
-            if (!scopeInformationIncluded)
-            {
-                // Serialize scope information
-                SerializeInstrumentationScope(buffer, ref currentPosition, scopeName, metric.MeterTags);
-
-                scopeInformationIncluded = true;
-            }
-
             this.previousMetricStartIndex = currentPosition;
 
             currentPosition += LengthAndTagSize;
@@ -299,7 +295,7 @@ internal class OtlpProtobufSerializer
 
     private static void SerializeResource(byte[] buffer, ref int currentPosition, Resource resource)
     {
-        if (resource != null && resource.Attributes != null)
+        if (resource != null && resource != Resource.Empty)
         {
             var previousPosition = currentPosition;
             currentPosition += LengthAndTagSize;

@@ -39,12 +39,10 @@ public class OtlpProtobufMetricExporterTests
 
         var buffer = new byte[65360];
 
-        int currentPosition = 0;
-
         var testTransport = new TestTransport();
         var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
 
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, ref currentPosition, null, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, null, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
         Assert.Single(testTransport.ExportedItems);
 
@@ -67,6 +65,10 @@ public class OtlpProtobufMetricExporterTests
         Assert.Equal(longCounter.Name, metric.Name);
 
         Assert.NotNull(metric.Sum);
+
+        Assert.Equal(1, (int)metric.Sum.AggregationTemporality);
+
+        Assert.True(metric.Sum.IsMonotonic);
 
         Assert.Single(metric.Sum.DataPoints);
 
@@ -119,12 +121,10 @@ public class OtlpProtobufMetricExporterTests
 
         var buffer = new byte[65360];
 
-        int currentPosition = 0;
-
         var testTransport = new TestTransport();
         var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
 
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, ref currentPosition, null, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, null, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
         // 3 unique measurements.
         var exportedItemsCount = testTransport.ExportedItems.Count;
@@ -151,6 +151,10 @@ public class OtlpProtobufMetricExporterTests
             Assert.Equal(longCounter.Name, metric.Name);
 
             Assert.NotNull(metric.Sum);
+
+            Assert.Equal(1, (int)metric.Sum.AggregationTemporality);
+
+            Assert.True(metric.Sum.IsMonotonic);
 
             Assert.Single(metric.Sum.DataPoints);
 

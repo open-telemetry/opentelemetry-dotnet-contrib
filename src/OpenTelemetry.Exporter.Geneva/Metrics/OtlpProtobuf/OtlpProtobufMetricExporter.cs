@@ -34,11 +34,9 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
     {
         var result = ExportResult.Success;
 
-        int currentPosition = 0;
-
         try
         {
-            this.otlpProtobufSerializer.SerializeAndSendMetrics(this.buffer, ref currentPosition, this.getResource(), batch);
+            this.otlpProtobufSerializer.SerializeAndSendMetrics(this.buffer, this.getResource(), batch);
         }
         catch (Exception ex)
         {
