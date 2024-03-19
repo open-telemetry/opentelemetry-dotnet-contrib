@@ -1,6 +1,7 @@
 #nullable enable
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporter<T>
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporter<T>.RegisterPayloadTransmittedCallback(OpenTelemetry.Exporter.OneCollector.OneCollectorExporterPayloadTransmittedCallbackAction! callback) -> System.IDisposable?
+OpenTelemetry.Exporter.OneCollector.OneCollectorExporter<T>.RegisterPayloadTransmittedCallback(OpenTelemetry.Exporter.OneCollector.OneCollectorExporterPayloadTransmittedCallbackAction! callback, bool includeFailures) -> System.IDisposable?
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporterOptions
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporterOptions.ConnectionString.get -> string?
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporterOptions.ConnectionString.set -> void
@@ -10,6 +11,7 @@ OpenTelemetry.Exporter.OneCollector.OneCollectorExporterPayloadTransmittedCallba
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporterPayloadTransmittedCallbackArguments.CopyPayloadToStream(System.IO.Stream! destination) -> void
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporterPayloadTransmittedCallbackArguments.OneCollectorExporterPayloadTransmittedCallbackArguments() -> void
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporterPayloadTransmittedCallbackArguments.PayloadSizeInBytes.get -> long
+OpenTelemetry.Exporter.OneCollector.OneCollectorExporterPayloadTransmittedCallbackArguments.Succeeded.get -> bool
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporterPayloadTransmittedCallbackArguments.TransportEndpoint.get -> System.Uri!
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporterSerializationExceptionStackTraceHandlingType
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporterSerializationExceptionStackTraceHandlingType.Ignore = 0 -> OpenTelemetry.Exporter.OneCollector.OneCollectorExporterSerializationExceptionStackTraceHandlingType

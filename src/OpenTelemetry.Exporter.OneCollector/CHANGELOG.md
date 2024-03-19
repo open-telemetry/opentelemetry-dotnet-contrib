@@ -5,6 +5,10 @@
 * Update OpenTelemetry SDK version to `1.7.0`.
   ([#1486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1486))
 
+* Exposed `OneCollectorLogExportProcessorBuilder.SetHttpClientFactory` so users
+  can configure the `HttpClient` used to send telemetry over HTTP transports.
+  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+
 ## 1.6.0
 
 Released 2023-Oct-25

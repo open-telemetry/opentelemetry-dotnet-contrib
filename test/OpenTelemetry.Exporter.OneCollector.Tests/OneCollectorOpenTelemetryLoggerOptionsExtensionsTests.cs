@@ -79,4 +79,38 @@ public class OneCollectorOpenTelemetryLoggerOptionsExtensionsTests
                 }));
         });
     }
+
+    [Fact]
+    public void SetHttpClientFactoryTest()
+    {
+        var testExecuted = false;
+
+        using var loggerFactory1 = LoggerFactory.Create(builder => builder
+            .AddOpenTelemetry(builder =>
+            {
+                builder.AddOneCollectorExporter(
+                    "InstrumentationKey=token-extrainformation",
+                    configure => configure.SetHttpClientFactory(() =>
+                    {
+                        testExecuted = true;
+                        return new();
+                    }));
+            }));
+
+        Assert.True(testExecuted);
+
+        Assert.Throws<NotSupportedException>(() =>
+        {
+            using var loggerFactory2 = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(builder =>
+                {
+                    builder.AddOneCollectorExporter(
+                        "InstrumentationKey=token-extrainformation",
+                        configure => configure.SetHttpClientFactory(() =>
+                        {
+                            return null!;
+                        }));
+                }));
+        });
+    }
 }
