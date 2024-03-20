@@ -9,10 +9,14 @@
 
 #nullable enable
 
+#pragma warning disable IDE0005 // Using directive is unnecessary.
 #if NETSTANDARD2_1_0_OR_GREATER || NET6_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
+using System;
+using System.Linq;
 using System.Reflection;
+#pragma warning restore IDE0005 // Using directive is unnecessary.
 
 namespace OpenTelemetry.Instrumentation;
 

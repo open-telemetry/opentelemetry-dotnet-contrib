@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* **Breaking Change**: Renamed `AspNetInstrumentationOptions` to
+  `AspNetTraceInstrumentationOptions`.
+  ([#1604](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1604))
+* **Breaking Change**: `server.address` and `server.port` no longer added
+  for `http.server.request.duration` metric.
+  ([#1606](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1606))
+
 ## 1.7.0-beta.2
 
 Released 2024-Feb-07

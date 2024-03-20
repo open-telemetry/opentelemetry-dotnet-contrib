@@ -6,7 +6,6 @@
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry Extensions - AWS Resource Detectors for ElasticBeanstalk, EC2, ECS, EKS.</Description>
     <MinVerTagPrefix>ResourceDetectors.AWS-</MinVerTagPrefix>
-    <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Shared\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\IServerCertificateValidationEventSource.cs" Link="Includes\IServerCertificateValidationEventSource.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\ServerCertificateValidationHandler.cs" Link="Includes\ServerCertificateValidationHandler.cs" />

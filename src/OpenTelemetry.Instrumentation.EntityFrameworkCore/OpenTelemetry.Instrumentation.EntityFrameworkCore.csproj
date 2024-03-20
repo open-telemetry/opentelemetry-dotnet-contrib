@@ -4,9 +4,6 @@
     <Description>Microsoft.EntityFrameworkCore instrumentation for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);distributed-tracing</PackageTags>
     <MinVerTagPrefix>Instrumentation.EntityFrameworkCore-</MinVerTagPrefix>
-    <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
-    <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
-    <IncludeSharedDiagnosticSourceSubscriber>true</IncludeSharedDiagnosticSourceSubscriber>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,7 +12,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Shared\DiagnosticSourceListener.cs" Link="Includes\DiagnosticSourceListener.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\DiagnosticSourceSubscriber.cs" Link="Includes\DiagnosticSourceSubscriber.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\ListenerHandler.cs" Link="Includes\ListenerHandler.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\PropertyFetcher.cs" Link="Includes\PropertyFetcher.cs" />
   </ItemGroup>
 
 </Project>

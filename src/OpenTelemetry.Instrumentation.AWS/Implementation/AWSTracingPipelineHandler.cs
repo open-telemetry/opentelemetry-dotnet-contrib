@@ -2,27 +2,26 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 using Amazon.Util;
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Extensions.AWS.Trace;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 
+/// <summary>
+/// Wraps the outgoing AWS SDK Request in a Span and adds additional AWS specific Tags.
+/// Depending on the target AWS Service, additional request specific information may be injected as well.
+/// <para />
+/// This <see cref="PipelineHandler"/> must execute early in the AWS SDK pipeline
+/// in order to manipulate outgoing requests objects before they are marshalled (ie serialized).
+/// </summary>
 internal sealed class AWSTracingPipelineHandler : PipelineHandler
 {
     internal const string ActivitySourceName = "Amazon.AWS.AWSClientInstrumentation";
-
-    private static readonly AWSXRayPropagator AwsPropagator = new();
-    private static readonly Action<IDictionary<string, string>, string, string> Setter = (carrier, name, value) =>
-    {
-        carrier[name] = value;
-    };
 
     private static readonly ActivitySource AWSSDKActivitySource = new(ActivitySourceName);
 
@@ -33,27 +32,29 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         this.options = options;
     }
 
+    public Activity? Activity { get; private set; }
+
     public override void InvokeSync(IExecutionContext executionContext)
     {
-        var activity = this.ProcessBeginRequest(executionContext);
+        this.Activity = this.ProcessBeginRequest(executionContext);
         try
         {
             base.InvokeSync(executionContext);
         }
         catch (Exception ex)
         {
-            if (activity != null)
+            if (this.Activity != null)
             {
-                ProcessException(activity, ex);
+                ProcessException(this.Activity, ex);
             }
 
             throw;
         }
         finally
         {
-            if (activity != null)
+            if (this.Activity != null)
             {
-                ProcessEndRequest(executionContext, activity);
+                ProcessEndRequest(executionContext, this.Activity);
             }
         }
     }
@@ -62,25 +63,25 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
     {
         T? ret = null;
 
-        var activity = this.ProcessBeginRequest(executionContext);
+        this.Activity = this.ProcessBeginRequest(executionContext);
         try
         {
             ret = await base.InvokeAsync<T>(executionContext).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            if (activity != null)
+            if (this.Activity != null)
             {
-                ProcessException(activity, ex);
+                ProcessException(this.Activity, ex);
             }
 
             throw;
         }
         finally
         {
-            if (activity != null)
+            if (this.Activity != null)
             {
-                ProcessEndRequest(executionContext, activity);
+                ProcessEndRequest(executionContext, this.Activity);
             }
         }
 
@@ -240,8 +241,6 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 
             AddRequestSpecificInformation(activity, requestContext, service);
         }
-
-        AwsPropagator.Inject(new PropagationContext(activity.Context, Baggage.Current), requestContext.Request.Headers, Setter);
 
         return activity;
     }

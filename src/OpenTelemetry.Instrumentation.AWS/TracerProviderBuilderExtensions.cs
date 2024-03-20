@@ -37,7 +37,7 @@ public static class TracerProviderBuilderExtensions
         configure?.Invoke(awsClientOptions);
 
         _ = new AWSClientsInstrumentation(awsClientOptions);
-        builder.AddSource("Amazon.AWS.AWSClientInstrumentation");
+        builder.AddSource(AWSTracingPipelineHandler.ActivitySourceName);
         return builder;
     }
 }

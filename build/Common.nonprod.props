@@ -20,15 +20,15 @@
       Please sort alphabetically.
       Refer to https://docs.microsoft.com/en-us/nuget/concepts/package-versioning for semver syntax.
     -->
-    <BenchmarkDotNetPkgVer>[0.13.10,0.14)</BenchmarkDotNetPkgVer>
+    <BenchmarkDotNetPkgVer>[0.13.12,0.14)</BenchmarkDotNetPkgVer>
     <DotNetXUnitCliVer>[2.3.1,3.0)</DotNetXUnitCliVer>
-    <MicrosoftNETTestSdkPkgVer>[17.7.2,18.0)</MicrosoftNETTestSdkPkgVer>
+    <MicrosoftNETTestSdkPkgVer>[17.9.0,18.0)</MicrosoftNETTestSdkPkgVer>
     <OpenTelemetryExporterInMemoryPkgVer>$(OpenTelemetryCoreLatestVersion)</OpenTelemetryExporterInMemoryPkgVer>
     <OpenTelemetryExporterInMemoryLatestPreReleasePkgVer>$(OpenTelemetryCoreLatestPrereleaseVersion)</OpenTelemetryExporterInMemoryLatestPreReleasePkgVer>
     <SupportedNetTargets>net8.0;net7.0;net6.0</SupportedNetTargets>
     <XUnitRunnerVisualStudioPkgVer>[2.5.0,3.0)</XUnitRunnerVisualStudioPkgVer>
     <XUnitPkgVer>[2.5.0,3.0)</XUnitPkgVer>
-    <WiremockNetPkgVer>[1.5.32,2.0)</WiremockNetPkgVer>
+    <WiremockNetPkgVer>[1.5.48,2.0)</WiremockNetPkgVer>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(IsTestProject)' == 'true'">

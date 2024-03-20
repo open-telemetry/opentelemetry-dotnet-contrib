@@ -29,4 +29,7 @@
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryCoreLatestVersion)" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Shared\SpanAttributeConstants.cs" Link="Includes\SpanAttributeConstants.cs" />
+  </ItemGroup>
 </Project>

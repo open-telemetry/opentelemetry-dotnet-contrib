@@ -21,7 +21,7 @@ internal class AWSServiceHelper
     };
 
     internal static string GetAWSServiceName(IRequestContext requestContext)
-        => Utils.RemoveAmazonPrefixFromServiceName(requestContext.Request.ServiceName);
+        => Utils.RemoveAmazonPrefixFromServiceName(requestContext.ServiceMetaData.ServiceId);
 
     internal static string GetAWSOperationName(IRequestContext requestContext)
     {

@@ -13,9 +13,9 @@ namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 internal sealed class HttpInListener : IDisposable
 {
     private readonly HttpRequestRouteHelper routeHelper = new();
-    private readonly AspNetInstrumentationOptions options;
+    private readonly AspNetTraceInstrumentationOptions options;
 
-    public HttpInListener(AspNetInstrumentationOptions options)
+    public HttpInListener(AspNetTraceInstrumentationOptions options)
     {
         Guard.ThrowIfNull(options);
 

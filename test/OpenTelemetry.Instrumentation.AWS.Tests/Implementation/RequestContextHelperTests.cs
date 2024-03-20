@@ -4,12 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Instrumentation.AWS.Implementation;
 using OpenTelemetry.Trace;
 using Xunit;
+using SNS = Amazon.SimpleNotificationService.Model;
+using SQS = Amazon.SQS.Model;
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests.Implementation;
 
@@ -30,7 +31,7 @@ public class RequestContextHelperTests
     [InlineData(AWSServiceType.SNSService)]
     public void AddAttributes_ParametersCollectionSizeReachesLimit_TraceDataNotInjected(string serviceType)
     {
-        AmazonWebServiceRequest originalRequest = TestsHelper.CreateOriginalRequest(serviceType, 10);
+        var originalRequest = TestsHelper.CreateOriginalRequest(serviceType, 10);
         var parameters = new ParameterCollection();
         parameters.AddStringParameters(serviceType, originalRequest);
 
@@ -44,82 +45,82 @@ public class RequestContextHelperTests
         Assert.Equal(30, parameters.Count);
     }
 
-    [Theory]
-    [InlineData(AWSServiceType.SQSService)]
-    [InlineData(AWSServiceType.SNSService)]
-    public void AddAttributes_ParametersCollection_TraceDataInjected(string serviceType)
+    [Fact]
+    public void SQS_AddAttributes_MessageAttributes_TraceDataInjected()
     {
-        var expectedParameters = new List<KeyValuePair<string, string>>()
+        var expectedParameters = new List<KeyValuePair<string, string>>
         {
             new("traceparent", $"00-{TraceId}-{ParentId}-00"),
             new("tracestate", "trace-state"),
         };
 
-        AmazonWebServiceRequest originalRequest = TestsHelper.CreateOriginalRequest(serviceType, 0);
-        var parameters = new ParameterCollection();
+        var originalRequest = new SQS.SendMessageRequest();
 
-        var request = new TestRequest(parameters);
-        var context = new TestRequestContext(originalRequest, request);
+        var context = new TestRequestContext(originalRequest, new TestRequest());
 
-        var addAttributes = TestsHelper.CreateAddAttributesAction(serviceType, context);
-        addAttributes?.Invoke(context, AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
+        SqsRequestContextHelper.AddAttributes(context, AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
 
-        TestsHelper.AssertStringParameters(serviceType, expectedParameters, parameters);
+        TestsHelper.AssertMessageParameters(expectedParameters, originalRequest);
     }
 
-    [Theory]
-    [InlineData(AWSServiceType.SQSService)]
-    [InlineData(AWSServiceType.SNSService)]
-    public void AddAttributes_ParametersCollectionWithCustomParameter_TraceDataInjected(string serviceType)
+    [Fact]
+    public void SNS_AddAttributes_MessageAttributes_TraceDataInjected()
     {
-        var expectedParameters = new List<KeyValuePair<string, string>>()
+        var expectedParameters = new List<KeyValuePair<string, string>>
         {
-            new("name1", "value1"),
             new("traceparent", $"00-{TraceId}-{ParentId}-00"),
             new("tracestate", "trace-state"),
         };
 
-        AmazonWebServiceRequest originalRequest = TestsHelper.CreateOriginalRequest(serviceType, 1);
-        var parameters = new ParameterCollection();
-        parameters.AddStringParameters(serviceType, originalRequest);
+        var originalRequest = new SNS.PublishRequest();
 
-        var request = new TestRequest(parameters);
+        var context = new TestRequestContext(originalRequest, new TestRequest());
 
-        var context = new TestRequestContext(originalRequest, request);
+        SnsRequestContextHelper.AddAttributes(context, AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
 
-        var addAttributes = TestsHelper.CreateAddAttributesAction(serviceType, context);
-        addAttributes?.Invoke(context, AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
-
-        TestsHelper.AssertStringParameters(serviceType, expectedParameters, parameters);
+        TestsHelper.AssertMessageParameters(expectedParameters, originalRequest);
     }
 
-    [Theory]
-    [InlineData(AWSServiceType.SQSService)]
-    [InlineData(AWSServiceType.SNSService)]
-    public void AddAttributes_ParametersCollectionWithTraceParent_TraceStateNotInjected(string serviceType)
+    [Fact]
+    public void SQS_AddAttributes_MessageAttributesWithTraceParent_TraceStateNotInjected()
     {
         // This test just checks the common implementation logic:
         // if at least one attribute is already present the whole injection is skipped.
         // We just use default trace propagator as an example which injects only traceparent and tracestate.
 
-        var expectedParameters = new List<KeyValuePair<string, string>>()
+        var expectedParameters = new List<KeyValuePair<string, string>>
         {
             new("traceparent", $"00-{TraceId}-{ParentId}-00"),
         };
 
-        AmazonWebServiceRequest originalRequest = TestsHelper.CreateOriginalRequest(serviceType, 0);
-        originalRequest.AddAttribute("traceparent", $"00-{TraceId}-{ParentId}-00");
+        var originalRequest = new SQS.SendMessageRequest();
 
-        var parameters = new ParameterCollection();
-        parameters.AddStringParameters(serviceType, originalRequest);
+        var context = new TestRequestContext(originalRequest, new TestRequest());
 
-        var request = new TestRequest(parameters);
-        var context = new TestRequestContext(originalRequest, request);
+        SqsRequestContextHelper.AddAttributes(context, AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
 
-        var addAttributes = TestsHelper.CreateAddAttributesAction(serviceType, context);
-        addAttributes?.Invoke(context, AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
+        TestsHelper.AssertMessageParameters(expectedParameters, originalRequest);
+    }
 
-        TestsHelper.AssertStringParameters(serviceType, expectedParameters, parameters);
+    [Fact]
+    public void SNS_AddAttributes_MessageAttributesWithTraceParent_TraceStateNotInjected()
+    {
+        // This test just checks the common implementation logic:
+        // if at least one attribute is already present the whole injection is skipped.
+        // We just use default trace propagator as an example which injects only traceparent and tracestate.
+
+        var expectedParameters = new List<KeyValuePair<string, string>>
+        {
+            new("traceparent", $"00-{TraceId}-{ParentId}-00"),
+        };
+
+        var originalRequest = new SNS.PublishRequest();
+
+        var context = new TestRequestContext(originalRequest, new TestRequest());
+
+        SnsRequestContextHelper.AddAttributes(context, AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
+
+        TestsHelper.AssertMessageParameters(expectedParameters, originalRequest);
     }
 
     private static PropagationContext CreatePropagationContext()

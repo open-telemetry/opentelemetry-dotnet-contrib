@@ -3,17 +3,19 @@
     <Description>OpenTelemetry Quartz.NET Instrumentation</Description>
     <PackageTags>$(PackageTags);distributed-tracing</PackageTags>
     <MinVerTagPrefix>Instrumentation.Quartz-</MinVerTagPrefix>
-    <IncludeSharedInstrumentationSource>true</IncludeSharedInstrumentationSource>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
-    <IncludeSharedDiagnosticSourceSubscriber>true</IncludeSharedDiagnosticSourceSubscriber>
-    <IncludeSharedActivityInstrumentationHelper>true</IncludeSharedActivityInstrumentationHelper>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryCoreLatestVersion)" />
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Shared\ActivityInstrumentationHelper.cs" Link="Includes\ActivityInstrumentationHelper.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\DiagnosticSourceListener.cs" Link="Includes\DiagnosticSourceListener.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\DiagnosticSourceSubscriber.cs" Link="Includes\DiagnosticSourceSubscriber.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\ListenerHandler.cs" Link="Includes\ListenerHandler.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\PropertyFetcher.AOT.cs" Link="Includes\PropertyFetcher.AOT.cs" />
   </ItemGroup>
 </Project>

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Threading;
 using BenchmarkDotNet.Attributes;
+using OpenTelemetry.Exporter.Geneva.Metrics;
 using OpenTelemetry.Metrics;
 
 /*
@@ -79,7 +80,7 @@ public class MetricExporterBenchmarks
     private MeterProvider meterProviderForCounterBatchWith4Dimensions;
     private MeterProvider meterProviderForHistogramBatchWith3Dimensions;
     private MeterProvider meterProviderForHistogramBatchWith4Dimensions;
-    private GenevaMetricExporter exporter;
+    private TlvMetricExporter tlvMetricsExporter;
     private ThreadLocal<Random> random = new ThreadLocal<Random>(() => new Random());
 
     private static readonly Random randomForHistogram = new Random(); // Use the same seed for all the benchmarks to have the same data exported
@@ -94,7 +95,7 @@ public class MetricExporterBenchmarks
         this.counterWithGenevaMetricExporter = this.meterWithGenevaMetricExporter.CreateCounter<long>("counter");
 
         var exporterOptions = new GenevaMetricExporterOptions() { ConnectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace" };
-        this.exporter = new GenevaMetricExporter(exporterOptions);
+        this.tlvMetricsExporter = new TlvMetricExporter(exporterOptions);
 
         this.counterMetricPointWith3Dimensions = this.GenerateCounterMetricItemWith3Dimensions(out this.counterMetricDataWith3Dimensions);
         this.counterMetricPointWith4Dimensions = this.GenerateCounterMetricItemWith4Dimensions(out this.counterMetricDataWith4Dimensions);
@@ -445,7 +446,7 @@ public class MetricExporterBenchmarks
         this.meterProviderForCounterBatchWith4Dimensions?.Dispose();
         this.meterProviderForHistogramBatchWith3Dimensions?.Dispose();
         this.meterProviderForHistogramBatchWith4Dimensions?.Dispose();
-        this.exporter?.Dispose();
+        this.tlvMetricsExporter?.Dispose();
     }
 
     [Benchmark]
@@ -547,7 +548,7 @@ public class MetricExporterBenchmarks
     [Benchmark]
     public void SerializeCounterMetricItemWith3Dimensions()
     {
-        this.exporter.SerializeMetricWithTLV(
+        this.tlvMetricsExporter.SerializeMetricWithTLV(
             MetricEventType.ULongMetric,
             this.counterMetricWith3Dimensions.Name,
             this.counterMetricPointWith3Dimensions.EndTime.ToFileTime(),
@@ -563,7 +564,7 @@ public class MetricExporterBenchmarks
     [Benchmark]
     public void SerializeCounterMetricItemWith4Dimensions()
     {
-        this.exporter.SerializeMetricWithTLV(
+        this.tlvMetricsExporter.SerializeMetricWithTLV(
             MetricEventType.ULongMetric,
             this.counterMetricWith4Dimensions.Name,
             this.counterMetricPointWith4Dimensions.EndTime.ToFileTime(),
@@ -579,19 +580,19 @@ public class MetricExporterBenchmarks
     [Benchmark]
     public void ExportCounterMetricItemWith3Dimensions()
     {
-        this.exporter.Export(this.counterMetricBatchWith3Dimensions);
+        this.tlvMetricsExporter.Export(this.counterMetricBatchWith3Dimensions);
     }
 
     [Benchmark]
     public void ExportCounterMetricItemWith4Dimensions()
     {
-        this.exporter.Export(this.counterMetricBatchWith4Dimensions);
+        this.tlvMetricsExporter.Export(this.counterMetricBatchWith4Dimensions);
     }
 
     [Benchmark]
     public void SerializeHistogramMetricItemWith3Dimensions()
     {
-        this.exporter.SerializeHistogramMetricWithTLV(
+        this.tlvMetricsExporter.SerializeHistogramMetricWithTLV(
             this.histogramMetricWith3Dimensions.Name,
             this.histogramMetricPointWith3Dimensions.EndTime.ToFileTime(),
             this.histogramMetricPointWith3Dimensions.Tags,
@@ -610,7 +611,7 @@ public class MetricExporterBenchmarks
     [Benchmark]
     public void SerializeHistogramMetricItemWith4Dimensions()
     {
-        this.exporter.SerializeHistogramMetricWithTLV(
+        this.tlvMetricsExporter.SerializeHistogramMetricWithTLV(
             this.histogramMetricWith4Dimensions.Name,
             this.histogramMetricPointWith4Dimensions.EndTime.ToFileTime(),
             this.histogramMetricPointWith4Dimensions.Tags,
@@ -629,13 +630,13 @@ public class MetricExporterBenchmarks
     [Benchmark]
     public void ExportHistogramMetricItemWith3Dimensions()
     {
-        this.exporter.Export(this.histogramMetricBatchWith3Dimensions);
+        this.tlvMetricsExporter.Export(this.histogramMetricBatchWith3Dimensions);
     }
 
     [Benchmark]
     public void ExportHistogramMetricItemWith4Dimensions()
     {
-        this.exporter.Export(this.histogramMetricBatchWith4Dimensions);
+        this.tlvMetricsExporter.Export(this.histogramMetricBatchWith4Dimensions);
     }
 
     private class DummyReader : BaseExportingMetricReader

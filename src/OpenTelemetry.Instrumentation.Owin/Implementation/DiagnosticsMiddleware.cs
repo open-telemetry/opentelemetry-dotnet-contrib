@@ -77,7 +77,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
         var textMapPropagator = Propagators.DefaultTextMapPropagator;
         var ctx = textMapPropagator.Extract(default, owinContext.Request, OwinRequestHeaderValuesGetter);
 
-        Activity activity = OwinInstrumentationActivitySource.ActivitySource.StartActivity(
+        Activity? activity = OwinInstrumentationActivitySource.ActivitySource.StartActivity(
             OwinInstrumentationActivitySource.IncomingRequestActivityName,
             ActivityKind.Server,
             ctx.ActivityContext);
@@ -123,7 +123,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
 
                 try
                 {
-                    OwinInstrumentationActivitySource.Options.Enrich?.Invoke(
+                    OwinInstrumentationActivitySource.Options?.Enrich?.Invoke(
                         activity,
                         OwinEnrichEventType.BeginRequest,
                         owinContext,
@@ -147,7 +147,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void RequestEnd(IOwinContext owinContext, Exception exception, long startTimestamp)
+    private static void RequestEnd(IOwinContext owinContext, Exception? exception, long startTimestamp)
     {
         if (owinContext.Environment.TryGetValue(ContextKey, out object context)
             && context is Activity activity)
@@ -165,21 +165,21 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
                 {
                     activity.SetStatus(Status.Error);
 
-                    if (OwinInstrumentationActivitySource.Options.RecordException)
+                    if (OwinInstrumentationActivitySource.Options != null && OwinInstrumentationActivitySource.Options.RecordException)
                     {
                         activity.RecordException(exception);
                     }
                 }
                 else if (activity.GetStatus().StatusCode == StatusCode.Unset)
                 {
-                    activity.SetStatus(SpanHelper.ResolveSpanStatusForHttpStatusCode(response.StatusCode));
+                    activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, response.StatusCode));
                 }
 
                 activity.SetTag(SemanticConventions.AttributeHttpStatusCode, response.StatusCode);
 
                 try
                 {
-                    OwinInstrumentationActivitySource.Options.Enrich?.Invoke(
+                    OwinInstrumentationActivitySource.Options?.Enrich?.Invoke(
                         activity,
                         OwinEnrichEventType.EndRequest,
                         owinContext,
