@@ -4,7 +4,6 @@
 #if !NETFRAMEWORK
 
 using System.Security.Cryptography.X509Certificates;
-using OpenTelemetry.ResourceDetectors.AWS.Http;
 using Xunit;
 
 namespace OpenTelemetry.ResourceDetectors.AWS.Tests.Http;
