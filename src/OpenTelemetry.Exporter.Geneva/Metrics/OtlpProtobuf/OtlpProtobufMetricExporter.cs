@@ -10,9 +10,7 @@ namespace OpenTelemetry.Exporter.Geneva;
 
 internal sealed class OtlpProtobufMetricExporter : IDisposable
 {
-    private const int BufferSize = 65360; // the maximum ETW payload (inclusive)
-
-    private readonly byte[] buffer = new byte[BufferSize];
+    private readonly byte[] buffer = new byte[GenevaMetricExporter.BufferSize];
 
     private readonly OtlpProtobufSerializer otlpProtobufSerializer;
 

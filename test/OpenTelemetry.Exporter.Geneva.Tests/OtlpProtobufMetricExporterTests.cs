@@ -9,6 +9,7 @@ using System.Linq;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using Xunit;
 using OtlpCollector = OpenTelemetry.Proto.Collector.Metrics.V1;
 using OtlpCommon = OpenTelemetry.Proto.Common.V1;
@@ -42,7 +43,7 @@ public class OtlpProtobufMetricExporterTests
         var testTransport = new TestTransport();
         var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
 
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, null, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
         Assert.Single(testTransport.ExportedItems);
 
@@ -124,7 +125,7 @@ public class OtlpProtobufMetricExporterTests
         var testTransport = new TestTransport();
         var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
 
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, null, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
         // 3 unique measurements.
         var exportedItemsCount = testTransport.ExportedItems.Count;

@@ -190,7 +190,7 @@ internal static class ProtobufSerializerHelper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteRawByte(byte[] buffer, ref int cursor, byte value)
     {
-        if (cursor < 0)
+        if (cursor == GenevaMetricExporter.BufferSize)
         {
             // TODO: handle insufficient space.
         }
