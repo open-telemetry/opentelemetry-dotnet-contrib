@@ -101,7 +101,11 @@ internal sealed class HttpInListener : IDisposable
                 }
             }
 
-            activity.SetTag(SemanticConventions.AttributeUserAgentOriginal, request.UserAgent);
+            var userAgent = request.UserAgent;
+            if (!string.IsNullOrEmpty(userAgent))
+            {
+                activity.SetTag(SemanticConventions.AttributeUserAgentOriginal, userAgent);
+            }
 
             try
             {
