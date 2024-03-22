@@ -97,8 +97,16 @@ internal sealed class OtlpProtobufSerializer
                 // Reset cursor to write new scopeMetric
                 cursor = this.scopeMetricsValueIndex;
 
-                // Serialize this meter/scope
-                this.SerializeScopeMetrics(buffer, ref cursor, entry.Key, entry.Value);
+                try
+                {
+                    // Serialize this meter/scope
+                    this.SerializeScopeMetrics(buffer, ref cursor, entry.Key, entry.Value);
+
+                }
+                catch
+                {
+                    // TODO: log exception.
+                }
             }
         }
     }
@@ -117,7 +125,14 @@ internal sealed class OtlpProtobufSerializer
             cursor = this.metricValueIndex;
 
             // Serialize metrics for the meter/scope
-            this.SerializeMetric(buffer, ref cursor, metric);
+            try
+            {
+                this.SerializeMetric(buffer, ref cursor, metric);
+            }
+            catch
+            {
+                // TODO: log exception.
+            }
         }
 
         // TODO: Serialize schema_url field.
@@ -146,33 +161,40 @@ internal sealed class OtlpProtobufSerializer
                     this.metricPointValueIndex = cursor + TagAndLengthSize;
                     foreach (var metricPoint in metric.GetMetricPoints())
                     {
-                        // Reset cursor to write new metricPoint
-                        cursor = this.metricPointValueIndex;
+                        try
+                        {
+                            // Reset cursor to write new metricPoint
+                            cursor = this.metricPointValueIndex;
 
-                        var sum = (ulong)metricPoint.GetSumLong();
+                            var sum = (ulong)metricPoint.GetSumLong();
 
-                        ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.NumberDataPoint_as_int, sum);
+                            ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.NumberDataPoint_as_int, sum);
 
-                        var startTime = (ulong)metricPoint.StartTime.ToUnixTimeNanoseconds();
-                        ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.NumberDataPoint_start_time_unix_nano, startTime);
+                            var startTime = (ulong)metricPoint.StartTime.ToUnixTimeNanoseconds();
+                            ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.NumberDataPoint_start_time_unix_nano, startTime);
 
-                        var endTime = (ulong)metricPoint.EndTime.ToUnixTimeNanoseconds();
-                        ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.NumberDataPoint_time_unix_nano, endTime);
+                            var endTime = (ulong)metricPoint.EndTime.ToUnixTimeNanoseconds();
+                            ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.NumberDataPoint_time_unix_nano, endTime);
 
-                        SerializeTags(buffer, ref cursor, metricPoint.Tags, FieldNumberConstants.NumberDataPoint_attributes);
+                            SerializeTags(buffer, ref cursor, metricPoint.Tags, FieldNumberConstants.NumberDataPoint_attributes);
 
-                        // TODO: exemplars.
+                            // TODO: exemplars.
 
-                        var metricPointStartPosition = this.metricPointTagAndLengthIndex;
+                            var metricPointStartPosition = this.metricPointTagAndLengthIndex;
 
-                        // Write numberdatapoint {Repeated field}
-                        ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref metricPointStartPosition, cursor - this.metricPointValueIndex, FieldNumberConstants.Sum_data_points, WireFormat.WireType.LengthDelimited);
+                            // Write numberdatapoint {Repeated field}
+                            ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref metricPointStartPosition, cursor - this.metricPointValueIndex, FieldNumberConstants.Sum_data_points, WireFormat.WireType.LengthDelimited);
 
-                        // Finish writing current batch
-                        this.WriteIndividualMessageTagsAndLength(buffer, ref cursor, metric.MetricType);
+                            // Finish writing current batch
+                            this.WriteIndividualMessageTagsAndLength(buffer, ref cursor, metric.MetricType);
 
-                        // Send metricPoint
-                        this.SendMetricPoint(buffer, ref cursor);
+                            // Send metricPoint
+                            this.SendMetricPoint(buffer, ref cursor);
+                        }
+                        catch
+                        {
+                            // TODO: log exception.
+                        }
                     }
 
                     break;
