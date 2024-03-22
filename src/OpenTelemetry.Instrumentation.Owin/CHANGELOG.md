@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-rc.4
+
+Released 2024-Mar-20
+
 * Updated OpenTelemetry SDK to 1.7.0.
   ([#1486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1486))
 * Removes `AddOwinInstrumentation` method with default configure parameter.
