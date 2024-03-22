@@ -101,7 +101,6 @@ internal sealed class OtlpProtobufSerializer
                 {
                     // Serialize this meter/scope
                     this.SerializeScopeMetrics(buffer, ref cursor, entry.Key, entry.Value);
-
                 }
                 catch
                 {
