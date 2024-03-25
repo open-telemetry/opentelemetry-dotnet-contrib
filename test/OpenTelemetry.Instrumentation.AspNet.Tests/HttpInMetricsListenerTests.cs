@@ -44,7 +44,7 @@ public class HttpInMetricsListenerTests
         bool enableServerAttributesForRequestDuration = true)
     {
         double duration = 0;
-        HttpContext.Current = RouteTestHelper.BuildHttpContext(url, routeType, routeTemplate);
+        HttpContext.Current = RouteTestHelper.BuildHttpContext(url, routeType, routeTemplate, "GET");
         HttpContext.Current.Response.StatusCode = expectedStatus;
 
         // This is to enable activity creation

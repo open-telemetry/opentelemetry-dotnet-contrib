@@ -3,11 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Web;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 
-internal sealed class RequestMethodHelper
+internal sealed class RequestDataHelper
 {
     private const string KnownHttpMethodsEnvironmentVariable = "OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS";
 
@@ -20,7 +23,7 @@ internal sealed class RequestMethodHelper
     // List of known HTTP methods as per spec.
     private readonly Dictionary<string, string> knownHttpMethods;
 
-    public RequestMethodHelper()
+    public RequestDataHelper()
     {
         var suppliedKnownMethods = Environment.GetEnvironmentVariable(KnownHttpMethodsEnvironmentVariable)
             ?.Split(SplitChars, StringSplitOptions.RemoveEmptyEntries);
@@ -40,10 +43,37 @@ internal sealed class RequestMethodHelper
             };
     }
 
+    public static string GetHttpProtocolVersion(HttpRequest request)
+    {
+        return GetHttpProtocolVersion(request.ServerVariables["SERVER_PROTOCOL"]);
+    }
+
+    public void SetHttpMethodTag(Activity activity, string originalHttpMethod)
+    {
+        var normalizedHttpMethod = this.GetNormalizedHttpMethod(originalHttpMethod);
+        activity.SetTag(SemanticConventions.AttributeHttpRequestMethod, normalizedHttpMethod);
+
+        if (originalHttpMethod != normalizedHttpMethod)
+        {
+            activity.SetTag(SemanticConventions.AttributeHttpRequestMethodOriginal, originalHttpMethod);
+        }
+    }
+
     public string GetNormalizedHttpMethod(string method)
     {
         return this.knownHttpMethods.TryGetValue(method, out var normalizedMethod)
             ? normalizedMethod
             : OtherHttpMethod;
+    }
+
+    internal static string GetHttpProtocolVersion(string protocol)
+    {
+        return protocol switch
+        {
+            "HTTP/1.1" => "1.1",
+            "HTTP/2" => "2",
+            "HTTP/3" => "3",
+            _ => protocol,
+        };
     }
 }
