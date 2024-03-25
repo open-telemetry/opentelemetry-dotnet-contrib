@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -20,9 +19,7 @@ internal static class WcfInstrumentationActivitySource
     internal static readonly string IncomingRequestActivityName = ActivitySourceName + ".IncomingRequest";
     internal static readonly string OutgoingRequestActivityName = ActivitySourceName + ".OutgoingRequest";
 
-    private static readonly Version Version = AssemblyName.Version;
-
-    public static ActivitySource ActivitySource { get; } = new ActivitySource(ActivitySourceName, Version.ToString());
+    public static ActivitySource ActivitySource { get; } = new(ActivitySourceName, ActivitySourceVersionHelper.GetVersion<WcfInstrumentationOptions>());
 
     public static WcfInstrumentationOptions? Options { get; set; }
 

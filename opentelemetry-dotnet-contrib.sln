@@ -271,6 +271,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{1FCC8EEC-9E75-4FEA-AFCF-363DD33FF0B9}"
 	ProjectSection(SolutionItems) = preProject
 		src\Shared\ActivityInstrumentationHelper.cs = src\Shared\ActivityInstrumentationHelper.cs
+		src\Shared\ActivitySourceVersionHelper.cs = src\Shared\ActivitySourceVersionHelper.cs
 		src\Shared\DiagnosticSourceListener.cs = src\Shared\DiagnosticSourceListener.cs
 		src\Shared\DiagnosticSourceSubscriber.cs = src\Shared\DiagnosticSourceSubscriber.cs
 		src\Shared\ExceptionExtensions.cs = src\Shared\ExceptionExtensions.cs
