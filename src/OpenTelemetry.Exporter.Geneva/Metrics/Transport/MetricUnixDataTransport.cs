@@ -36,4 +36,9 @@ internal sealed class MetricUnixDataTransport : IMetricDataTransport
         this.udsDataTransport.Dispose();
         this.isDisposed = true;
     }
+
+    public void SendOtlpProtobufEvent(byte[] body, int size)
+    {
+        throw new System.NotImplementedException();
+    }
 }
