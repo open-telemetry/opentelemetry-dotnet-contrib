@@ -9,7 +9,19 @@
   for `http.server.request.duration` metric.
   ([#1606](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1606))
 * **Breaking change** Spans names and attributes
-  based on [HTTP semantic convention v1.24.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/http/http-spans.md).
+  based on [HTTP semantic convention v1.24.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/http/http-spans.md):
+  * span names follows: `{HTTP method} [route name if available]` pattern
+  * `error.type` added when exception occurred while processing request,
+  * `http.request.method` replaces `http.method`,
+  * `http.request.method_original` added when `http.request.method` is not in
+    canonical form,
+  * `http.response.status_code` replaces `http.status_code`,
+  * `network.protocol.version` added with HTTP version value,
+  * `server.address` and `server.port` replace `http.host`,
+  * `url.path` replaces `http.target`,
+  * `url.query` added when query url part is not empty,
+  * `url.scheme` added with `http` or `https` value,
+  * `user_agent.original` replaces `http.user_agent`.
   ([#1607](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1607))
 
 ## 1.7.0-beta.2
@@ -99,7 +111,7 @@ Released 2022-Nov-28
 
 Released 2022-Sep-28
 
-* Migrate to native Activity `Status` and `StatusDesciption`.
+* Migrate to native Activity `Status` and `StatusDescription`.
   ([#651](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/651))
 
 ## 1.0.0-rc9.5 (source code moved to contrib repo)
