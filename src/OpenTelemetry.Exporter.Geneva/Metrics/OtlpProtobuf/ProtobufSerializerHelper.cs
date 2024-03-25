@@ -14,6 +14,10 @@ internal static class ProtobufSerializerHelper
 
     internal static Encoding Utf8Encoding => Encoding.UTF8;
 
+    private const ulong Ulong128 = 128;
+
+    private const uint Uint128 = 128;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteStringTag(byte[] buffer, ref int cursor, int fieldNumber, string value)
     {
@@ -115,8 +119,7 @@ internal static class ProtobufSerializerHelper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteVarint32(byte[] buffer, ref int cursor, uint value)
     {
-        var uint128 = (uint)(1 << 7);
-        while (value >= uint128)
+        while (value >= Uint128)
         {
             buffer[cursor++] = (byte)(0x80 | (value & 0x7F));
             value >>= 7;
@@ -128,8 +131,7 @@ internal static class ProtobufSerializerHelper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteVarint64(byte[] buffer, ref int cursor, ulong value)
     {
-        var ulong128 = (ulong)(1 << 7);
-        while (value >= ulong128)
+        while (value >= Ulong128)
         {
             buffer[cursor++] = (byte)(0x80 | (value & 0x7F));
             value >>= 7;
