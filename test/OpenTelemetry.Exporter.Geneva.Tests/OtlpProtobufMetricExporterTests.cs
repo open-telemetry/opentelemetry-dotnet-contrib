@@ -86,6 +86,15 @@ public class OtlpProtobufMetricExporterTests
 
         Assert.Equal(value, dataPoint.AsInt);
 
+        // Asert time
+        var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
+        metricPointsEnumerator.MoveNext();
+        var metricPoint = metricPointsEnumerator.Current;
+
+        Assert.Equal((ulong)TimestampHelpers.ToUnixTimeNanoseconds(metricPoint.StartTime), dataPoint.StartTimeUnixNano);
+
+        Assert.Equal((ulong)TimestampHelpers.ToUnixTimeNanoseconds(metricPoint.EndTime), dataPoint.TimeUnixNano);
+
         AssertOtlpAttributes([new("tag1", "value1"), new("tag2", "value2")], dataPoint.Attributes);
     }
 
