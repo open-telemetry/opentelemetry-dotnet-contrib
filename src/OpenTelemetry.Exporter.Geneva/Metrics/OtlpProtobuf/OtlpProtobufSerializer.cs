@@ -165,6 +165,8 @@ internal sealed class OtlpProtobufSerializer
                             // Reset cursor to write new metricPoint
                             cursor = this.metricPointValueIndex;
 
+                            // Casting to ulong is ok here as the bit representation for long versus ulong will be the same
+                            // The difference would in the way the bit representation is interprested on decoding side (signed versus unsigned)
                             var sum = (ulong)metricPoint.GetSumLong();
 
                             ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.NumberDataPoint_as_int, sum);
@@ -364,6 +366,7 @@ internal sealed class OtlpProtobufSerializer
                 case int:
                 case uint:
                 case long:
+                case ulong:
                     ProtobufSerializerHelper.WriteInt64WithTag(buffer, ref cursor, FieldNumberConstants.AnyValue_int_value, (ulong)Convert.ToInt64(value, CultureInfo.InvariantCulture));
                     break;
                 case float:
