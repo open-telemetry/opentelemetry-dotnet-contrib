@@ -14,6 +14,7 @@ internal sealed class HttpInListener : IDisposable
 {
     private readonly HttpRequestRouteHelper routeHelper = new();
     private readonly AspNetTraceInstrumentationOptions options;
+    private readonly RequestDataHelper requestDataHelper = new();
 
     public HttpInListener(AspNetTraceInstrumentationOptions options)
     {
@@ -33,16 +34,6 @@ internal sealed class HttpInListener : IDisposable
         TelemetryHttpModule.Options.OnRequestStartedCallback -= this.OnStartActivity;
         TelemetryHttpModule.Options.OnRequestStoppedCallback -= this.OnStopActivity;
         TelemetryHttpModule.Options.OnExceptionCallback -= this.OnException;
-    }
-
-    /// <summary>
-    /// Gets the OpenTelemetry standard uri tag value for a span based on its request <see cref="Uri"/>.
-    /// </summary>
-    /// <param name="uri"><see cref="Uri"/>.</param>
-    /// <returns>Span uri value.</returns>
-    private static string GetUriTagValueFromRequestUri(Uri uri)
-    {
-        return string.IsNullOrEmpty(uri.UserInfo) ? uri.ToString() : string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority, uri.PathAndQuery, uri.Fragment);
     }
 
     private void OnStartActivity(Activity activity, HttpContext context)
@@ -76,23 +67,45 @@ internal sealed class HttpInListener : IDisposable
             var request = context.Request;
             var requestValues = request.Unvalidated;
 
-            // see the spec https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md
-            var path = requestValues.Path;
-            activity.DisplayName = path;
+            // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/http/http-spans.md
+            var originalHttpMethod = request.HttpMethod;
+            var normalizedHttpMethod = this.requestDataHelper.GetNormalizedHttpMethod(originalHttpMethod);
+            activity.DisplayName = normalizedHttpMethod == "_OTHER" ? "HTTP" : normalizedHttpMethod;
 
-            if (request.Url.Port == 80 || request.Url.Port == 443)
+            var url = request.Url;
+            activity.SetTag(SemanticConventions.AttributeServerAddress, url.Host);
+            activity.SetTag(SemanticConventions.AttributeServerPort, url.Port);
+            activity.SetTag(SemanticConventions.AttributeUrlScheme, url.Scheme);
+
+            this.requestDataHelper.SetHttpMethodTag(activity, originalHttpMethod);
+
+            var protocolVersion = RequestDataHelper.GetHttpProtocolVersion(request);
+            if (!string.IsNullOrEmpty(protocolVersion))
             {
-                activity.SetTag(SemanticConventions.AttributeHttpHost, request.Url.Host);
-            }
-            else
-            {
-                activity.SetTag(SemanticConventions.AttributeHttpHost, request.Url.Host + ":" + request.Url.Port);
+                activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, protocolVersion);
             }
 
-            activity.SetTag(SemanticConventions.AttributeHttpMethod, request.HttpMethod);
-            activity.SetTag(SemanticConventions.AttributeHttpTarget, path);
-            activity.SetTag(SemanticConventions.AttributeHttpUserAgent, request.UserAgent);
-            activity.SetTag(SemanticConventions.AttributeHttpUrl, GetUriTagValueFromRequestUri(request.Url));
+            activity.SetTag(SemanticConventions.AttributeUrlPath, requestValues.Path);
+
+            // TODO url.query should be sanitized
+            var query = url.Query;
+            if (!string.IsNullOrEmpty(query))
+            {
+                if (query.StartsWith("?", StringComparison.InvariantCulture))
+                {
+                    activity.SetTag(SemanticConventions.AttributeUrlQuery, query.Substring(1));
+                }
+                else
+                {
+                    activity.SetTag(SemanticConventions.AttributeUrlQuery, query);
+                }
+            }
+
+            var userAgent = request.UserAgent;
+            if (!string.IsNullOrEmpty(userAgent))
+            {
+                activity.SetTag(SemanticConventions.AttributeUserAgentOriginal, userAgent);
+            }
 
             try
             {
@@ -111,7 +124,7 @@ internal sealed class HttpInListener : IDisposable
         {
             var response = context.Response;
 
-            activity.SetTag(SemanticConventions.AttributeHttpStatusCode, response.StatusCode);
+            activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, response.StatusCode);
 
             if (activity.Status == ActivityStatusCode.Unset)
             {
@@ -122,8 +135,8 @@ internal sealed class HttpInListener : IDisposable
 
             if (!string.IsNullOrEmpty(template))
             {
-                // Override the name that was previously set to the path part of URL.
-                activity.DisplayName = template!;
+                // Override the name that was previously set to the normalized HTTP method/HTTP
+                activity.DisplayName = $"{activity.DisplayName} {template!}";
                 activity.SetTag(SemanticConventions.AttributeHttpRoute, template);
             }
 
@@ -148,6 +161,7 @@ internal sealed class HttpInListener : IDisposable
             }
 
             activity.SetStatus(ActivityStatusCode.Error, exception.Message);
+            activity.SetTag(SemanticConventions.AttributeErrorType, exception.GetType().FullName);
 
             try
             {
