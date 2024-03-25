@@ -166,7 +166,7 @@ internal sealed class OtlpProtobufSerializer
                             cursor = this.metricPointValueIndex;
 
                             // Casting to ulong is ok here as the bit representation for long versus ulong will be the same
-                            // The difference would in the way the bit representation is interprested on decoding side (signed versus unsigned)
+                            // The difference would in the way the bit representation is interpreted on decoding side (signed versus unsigned)
                             var sum = (ulong)metricPoint.GetSumLong();
 
                             ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.NumberDataPoint_as_int, sum);
