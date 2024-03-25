@@ -182,7 +182,7 @@ internal sealed class OtlpProtobufSerializer
                             var metricPointStartPosition = this.metricPointTagAndLengthIndex;
 
                             // Write numberdatapoint {Repeated field}
-                            ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref metricPointStartPosition, cursor - this.metricPointValueIndex, FieldNumberConstants.Sum_data_points, WireFormat.WireType.LengthDelimited);
+                            ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref metricPointStartPosition, cursor - this.metricPointValueIndex, FieldNumberConstants.Sum_data_points, WireType.LEN);
 
                             // Finish writing current batch
                             this.WriteIndividualMessageTagsAndLength(buffer, ref cursor, metric.MetricType);
@@ -243,16 +243,16 @@ internal sealed class OtlpProtobufSerializer
         var resourceMetricIndex = this.resourceMetricTagAndLengthIndex;
 
         // Write instrument tag and length
-        ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref instrumentIndex, cursor - this.instrumentValueIndex, FieldNumberConstants.GetMetricTypeFieldNumber(metricType), WireFormat.WireType.LengthDelimited);
+        ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref instrumentIndex, cursor - this.instrumentValueIndex, FieldNumberConstants.GetMetricTypeFieldNumber(metricType), WireType.LEN);
 
         // Write metric tag and length
-        ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref metricIndex, cursor - this.metricValueIndex, FieldNumberConstants.ScopeMetrics_metrics, WireFormat.WireType.LengthDelimited);
+        ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref metricIndex, cursor - this.metricValueIndex, FieldNumberConstants.ScopeMetrics_metrics, WireType.LEN);
 
         // Write scope tag and length
-        ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref scopeMetricsIndex, cursor - this.scopeMetricsValueIndex, FieldNumberConstants.ResourceMetrics_scope_metrics, WireFormat.WireType.LengthDelimited);
+        ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref scopeMetricsIndex, cursor - this.scopeMetricsValueIndex, FieldNumberConstants.ResourceMetrics_scope_metrics, WireType.LEN);
 
         // Write resource metric tag and length
-        ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref resourceMetricIndex, cursor - this.resourceMetricValueIndex, FieldNumberConstants.ResourceMetrics_resource, WireFormat.WireType.LengthDelimited);
+        ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref resourceMetricIndex, cursor - this.resourceMetricValueIndex, FieldNumberConstants.ResourceMetrics_resource, WireType.LEN);
     }
 
     private void SendMetricPoint(byte[] buffer, ref int cursor)
@@ -291,7 +291,7 @@ internal sealed class OtlpProtobufSerializer
         SerializeTags(buffer, ref cursor, meterTags, FieldNumberConstants.InstrumentationScope_attributes);
 
         // Write instrumentation Scope Tag
-        ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref tagAndLengthIndex, cursor - valueIndex, FieldNumberConstants.ScopeMetrics_scope, WireFormat.WireType.LengthDelimited);
+        ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref tagAndLengthIndex, cursor - valueIndex, FieldNumberConstants.ScopeMetrics_scope, WireType.LEN);
     }
 
     private static void SerializeTags(byte[] buffer, ref int cursor, IEnumerable<KeyValuePair<string, object>> attributes, int fieldNumber)
@@ -317,7 +317,7 @@ internal sealed class OtlpProtobufSerializer
             int valueIndex = cursor;
 
             SerializeTags(buffer, ref cursor, resource.Attributes, FieldNumberConstants.Resource_attributes);
-            ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref tagAndLengthIndex, cursor - valueIndex, FieldNumberConstants.ResourceMetrics_resource, WireFormat.WireType.LengthDelimited);
+            ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref tagAndLengthIndex, cursor - valueIndex, FieldNumberConstants.ResourceMetrics_resource, WireType.LEN);
         }
     }
 
@@ -377,8 +377,8 @@ internal sealed class OtlpProtobufSerializer
                     // TODO: Handle array type.
             }
 
-            ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref anyValueTagAndLengthIndex, cursor - anyValueIndex, FieldNumberConstants.KeyValue_value, WireFormat.WireType.LengthDelimited);
-            ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref keyValueTagAndLengthIndex, cursor - keyValueIndex, fieldNumber, WireFormat.WireType.LengthDelimited);
+            ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref anyValueTagAndLengthIndex, cursor - anyValueIndex, FieldNumberConstants.KeyValue_value, WireType.LEN);
+            ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref keyValueTagAndLengthIndex, cursor - keyValueIndex, fieldNumber, WireType.LEN);
         }
         catch
         {

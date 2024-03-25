@@ -19,7 +19,7 @@ internal static class ProtobufSerializerHelper
     {
         int stringSize = Utf8Encoding.GetByteCount(value);
 
-        WriteTag(buffer, ref cursor, fieldNumber, WireFormat.WireType.LengthDelimited);
+        WriteTag(buffer, ref cursor, fieldNumber, WireType.LEN);
 
         WriteLength(buffer, ref cursor, stringSize);
 
@@ -31,55 +31,54 @@ internal static class ProtobufSerializerHelper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteEnumWithTag(byte[] buffer, ref int cursor, int fieldNumber, int value)
     {
-        WriteTag(buffer, ref cursor, fieldNumber, WireFormat.WireType.Varint);
+        WriteTag(buffer, ref cursor, fieldNumber, WireType.VARINT);
 
         // Assuming 1 byte which matches the intended use.
-        // Otherwise, need to first calculate the bytes needed.
-        WriteRawByte(buffer, ref cursor, (byte)value);
+        buffer[cursor++] = (byte)value;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteBoolWithTag(byte[] buffer, ref int cursor, int fieldNumber, bool value)
     {
-        WriteTag(buffer, ref cursor, fieldNumber, WireFormat.WireType.Varint);
-        WriteRawByte(buffer, ref cursor, value ? (byte)1 : (byte)0);
+        WriteTag(buffer, ref cursor, fieldNumber, WireType.VARINT);
+        buffer[cursor++] = value ? (byte)1 : (byte)0;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteFixed64WithTag(byte[] buffer, ref int cursor, int fieldNumber, ulong value)
     {
-        WriteTag(buffer, ref cursor, fieldNumber, WireFormat.WireType.Fixed64);
-        WriteRawLittleEndian64(buffer, ref cursor, value);
+        WriteTag(buffer, ref cursor, fieldNumber, WireType.I64);
+        WriteFixed64LittleEndianFormat(buffer, ref cursor, value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteInt64WithTag(byte[] buffer, ref int cursor, int fieldNumber, ulong value)
     {
-        WriteTag(buffer, ref cursor, fieldNumber, WireFormat.WireType.Varint);
-        WriteRawVarint64(buffer, ref cursor, value);
+        WriteTag(buffer, ref cursor, fieldNumber, WireType.VARINT);
+        WriteVarint64(buffer, ref cursor, value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteDoubleWithTag(byte[] buffer, ref int cursor, int fieldNumber, double value)
     {
-        WriteTag(buffer, ref cursor, fieldNumber, WireFormat.WireType.Fixed64);
-        WriteRawLittleEndian64(buffer, ref cursor, (ulong)BitConverter.DoubleToInt64Bits(value));
+        WriteTag(buffer, ref cursor, fieldNumber, WireType.I64);
+        WriteFixed64LittleEndianFormat(buffer, ref cursor, (ulong)BitConverter.DoubleToInt64Bits(value));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteLengthCustom(byte[] buffer, ref int cursor, int length)
     {
-        WriteRawVarintCustom(buffer, ref cursor, (uint)length);
+        WriteVarintCustom(buffer, ref cursor, (uint)length);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteLength(byte[] buffer, ref int cursor, int length)
     {
-        WriteRawVarint32(buffer, ref cursor, (uint)length);
+        WriteVarint32(buffer, ref cursor, (uint)length);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void WriteRawVarintCustom(byte[] buffer, ref int cursor, uint value)
+    internal static void WriteVarintCustom(byte[] buffer, ref int cursor, uint value)
     {
         int index = 0;
 
@@ -114,107 +113,46 @@ internal static class ProtobufSerializerHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void WriteRawVarint32(byte[] buffer, ref int cursor, uint value)
+    internal static void WriteVarint32(byte[] buffer, ref int cursor, uint value)
     {
-        // Optimize for the common case of a single byte value
-        if (value < 128 && cursor < buffer.Length)
+        var uint128 = (uint)(1 << 7);
+        while (value >= uint128)
         {
-            buffer[cursor++] = (byte)value;
-            return;
-        }
-
-        // Fast path when capacity is available
-        while (cursor < buffer.Length)
-        {
-            if (value > 127)
-            {
-                buffer[cursor++] = (byte)((value & 0x7F) | 0x80);
-                value >>= 7;
-            }
-            else
-            {
-                buffer[cursor++] = (byte)value;
-                return;
-            }
-        }
-
-        // Write byte individually
-        // We dont refresh the buffer but this could be used when the buffer is refreshed.
-        // Right now, it would simply fail.
-        while (value > 127)
-        {
-            WriteRawByte(buffer, ref cursor, (byte)((value & 0x7F) | 0x80));
+            buffer[cursor++] = (byte)(0x80 | (value & 0x7F));
             value >>= 7;
         }
 
-        WriteRawByte(buffer, ref cursor, (byte)value);
+        buffer[cursor++] = (byte)value;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void WriteRawVarint64(byte[] buffer, ref int cursor, ulong value)
+    internal static void WriteVarint64(byte[] buffer, ref int cursor, ulong value)
     {
-        // Optimize for the common case of a single byte value
-        if (value < 128 && cursor < buffer.Length)
+        var ulong128 = (ulong)(1 << 7);
+        while (value >= ulong128)
         {
-            buffer[cursor++] = (byte)value;
-            return;
-        }
-
-        // Fast path when capacity is available
-        while (cursor < buffer.Length)
-        {
-            if (value > 127)
-            {
-                buffer[cursor++] = (byte)((value & 0x7F) | 0x80);
-                value >>= 7;
-            }
-            else
-            {
-                buffer[cursor++] = (byte)value;
-                return;
-            }
-        }
-
-        // Write byte individually
-        // We dont refresh the buffer but this could be used when the buffer is refreshed.
-        // Right now it would simply fail.
-        while (value > 127)
-        {
-            WriteRawByte(buffer, ref cursor, (byte)((value & 0x7F) | 0x80));
+            buffer[cursor++] = (byte)(0x80 | (value & 0x7F));
             value >>= 7;
         }
 
-        WriteRawByte(buffer, ref cursor, (byte)value);
+        buffer[cursor++] = (byte)value;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void WriteRawByte(byte[] buffer, ref int cursor, byte value)
+    internal static void WriteTag(byte[] buffer, ref int cursor, int fieldNumber, WireType type)
     {
-        if (cursor == GenevaMetricExporter.BufferSize)
-        {
-            // TODO: handle insufficient space.
-        }
-
-        buffer[cursor++] = value;
+        WriteVarint32(buffer, ref cursor, GetTagValue(fieldNumber, type));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void WriteTag(byte[] buffer, ref int cursor, int fieldNumber, WireFormat.WireType type)
-    {
-        // Assuming 1 length here for our use case.
-        // Otherwise, first need to calculate the size of the tag.
-        WriteRawVarint32(buffer, ref cursor, WireFormat.MakeTag(fieldNumber, type));
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void WriteTagAndLengthPrefix(byte[] buffer, ref int cursor, int contentLength, int fieldNumber, WireFormat.WireType type)
+    internal static void WriteTagAndLengthPrefix(byte[] buffer, ref int cursor, int contentLength, int fieldNumber, WireType type)
     {
         WriteTag(buffer, ref cursor, fieldNumber, type);
         WriteLengthCustom(buffer, ref cursor, contentLength);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void WriteRawLittleEndian64(byte[] buffer, ref int cursor, ulong value)
+    internal static void WriteFixed64LittleEndianFormat(byte[] buffer, ref int cursor, ulong value)
     {
         if (cursor < buffer.Length)
         {
@@ -227,7 +165,11 @@ internal static class ProtobufSerializerHelper
         else
         {
             // TODO: handle insufficient space.
-            // Write manually byte by byte.
         }
+    }
+
+    internal static uint GetTagValue(int fieldNumber, WireType wireType)
+    {
+        return ((uint)(fieldNumber << 3)) | (uint)wireType;
     }
 }
