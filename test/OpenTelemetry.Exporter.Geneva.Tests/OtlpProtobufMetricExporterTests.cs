@@ -18,8 +18,10 @@ namespace OpenTelemetry.Exporter.Geneva.Tests;
 
 public class OtlpProtobufMetricExporterTests
 {
-    [Fact]
-    public void LongCounterSerializationSingleMetricPoint()
+    [Theory]
+    [InlineData(123)]
+    [InlineData(-123)]
+    public void LongCounterSerializationSingleMetricPoint(long value)
     {
         using var meter = new Meter(nameof(this.LongCounterSerializationSingleMetricPoint), "0.0.1");
         var longCounter = meter.CreateCounter<long>("longCounter");
@@ -29,12 +31,15 @@ public class OtlpProtobufMetricExporterTests
             TemporalityPreference = MetricReaderTemporalityPreference.Delta,
         };
 
+        var resourceBuilder = ResourceBuilder.CreateDefault().Clear()
+            .AddAttributes(new[] { new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue") });
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .SetResourceBuilder(resourceBuilder)
             .AddMeter(nameof(this.LongCounterSerializationSingleMetricPoint))
             .AddReader(inMemoryReader)
             .Build();
 
-        longCounter.Add(123, new("tag1", "value1"), new("tag2", "value2"));
+        longCounter.Add(value, new("tag1", "value1"), new("tag2", "value2"));
 
         meterProvider.ForceFlush();
 
@@ -43,7 +48,7 @@ public class OtlpProtobufMetricExporterTests
         var testTransport = new TestTransport();
         var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
 
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
         Assert.Single(testTransport.ExportedItems);
 
@@ -52,6 +57,10 @@ public class OtlpProtobufMetricExporterTests
         request.MergeFrom(testTransport.ExportedItems[0]);
 
         Assert.Single(request.ResourceMetrics);
+
+        Assert.NotNull(request.ResourceMetrics[0].Resource);
+
+        AssertOtlpAttributes([new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue")], request.ResourceMetrics[0].Resource.Attributes);
 
         Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
 
@@ -75,7 +84,7 @@ public class OtlpProtobufMetricExporterTests
 
         var dataPoint = metric.Sum.DataPoints[0];
 
-        Assert.Equal(123, dataPoint.AsInt);
+        Assert.Equal(value, dataPoint.AsInt);
 
         AssertOtlpAttributes([new("tag1", "value1"), new("tag2", "value2")], dataPoint.Attributes);
     }
