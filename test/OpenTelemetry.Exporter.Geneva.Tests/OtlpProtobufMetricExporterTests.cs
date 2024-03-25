@@ -195,6 +195,183 @@ public class OtlpProtobufMetricExporterTests
         }
     }
 
+    [Theory]
+    [InlineData(123.123)]
+    [InlineData(-123.123)]
+    public void DoubleCounterSerializationSingleMetricPoint(double value)
+    {
+        using var meter = new Meter(nameof(this.DoubleCounterSerializationSingleMetricPoint), "0.0.1");
+        var doubleCounter = meter.CreateCounter<double>("doubleCounter");
+        var exportedItems = new List<Metric>();
+        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+        {
+            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+        };
+
+        var resourceBuilder = ResourceBuilder.CreateDefault().Clear()
+            .AddAttributes(new[] { new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue") });
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .SetResourceBuilder(resourceBuilder)
+            .AddMeter(nameof(this.DoubleCounterSerializationSingleMetricPoint))
+            .AddReader(inMemoryReader)
+            .Build();
+
+        doubleCounter.Add(value, new("tag1", "value1"), new("tag2", "value2"));
+
+        meterProvider.ForceFlush();
+
+        var buffer = new byte[65360];
+
+        var testTransport = new TestTransport();
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
+
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+
+        Assert.Single(testTransport.ExportedItems);
+
+        var request = new OtlpCollector.ExportMetricsServiceRequest();
+
+        request.MergeFrom(testTransport.ExportedItems[0]);
+
+        Assert.Single(request.ResourceMetrics);
+
+        Assert.NotNull(request.ResourceMetrics[0].Resource);
+
+        AssertOtlpAttributes([new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue")], request.ResourceMetrics[0].Resource.Attributes);
+
+        Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
+
+        var scope = request.ResourceMetrics[0].ScopeMetrics[0];
+
+        Assert.Equal(meter.Name, scope.Scope.Name);
+
+        Assert.Single(request.ResourceMetrics[0].ScopeMetrics[0].Metrics);
+
+        var metric = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0];
+
+        Assert.Equal(doubleCounter.Name, metric.Name);
+
+        Assert.NotNull(metric.Sum);
+
+        Assert.Equal(1, (int)metric.Sum.AggregationTemporality);
+
+        Assert.True(metric.Sum.IsMonotonic);
+
+        Assert.Single(metric.Sum.DataPoints);
+
+        var dataPoint = metric.Sum.DataPoints[0];
+
+        Assert.Equal(value, dataPoint.AsDouble);
+
+        // Assert time
+        var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
+        metricPointsEnumerator.MoveNext();
+        var metricPoint = metricPointsEnumerator.Current;
+
+        Assert.Equal((ulong)TimestampHelpers.ToUnixTimeNanoseconds(metricPoint.StartTime), dataPoint.StartTimeUnixNano);
+
+        Assert.Equal((ulong)TimestampHelpers.ToUnixTimeNanoseconds(metricPoint.EndTime), dataPoint.TimeUnixNano);
+
+        AssertOtlpAttributes([new("tag1", "value1"), new("tag2", "value2")], dataPoint.Attributes);
+    }
+
+    [Fact]
+    public void DoubleCounterSerializationMultipleMetricPoints()
+    {
+        using var meter = new Meter(nameof(this.DoubleCounterSerializationMultipleMetricPoints), "0.0.1");
+        var doubleCounter = meter.CreateCounter<double>("doubleCounter");
+        var exportedItems = new List<Metric>();
+        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+        {
+            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+        };
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(nameof(this.DoubleCounterSerializationMultipleMetricPoints))
+            .AddReader(inMemoryReader)
+            .Build();
+
+        TagList[] tags = new TagList[3];
+
+        tags[0].Add(new("tag1", "value1"));
+        tags[0].Add(new("tag2", "value2"));
+
+        tags[1].Add(new("tag1", "value1"));
+        tags[1].Add(new("tag2", "value2"));
+        tags[1].Add(new("tag3", "value3"));
+
+        tags[2].Add(new("tag1", "value1"));
+        tags[2].Add(new("tag2", "value2"));
+        tags[2].Add(new("tag3", "value3"));
+        tags[2].Add(new("tag4", "value4"));
+
+        doubleCounter.Add(62.1, tags[0]);
+
+        doubleCounter.Add(62.1, tags[0]);
+
+        doubleCounter.Add(124.2, tags[1]);
+
+        doubleCounter.Add(124.2, tags[2]);
+
+        meterProvider.ForceFlush();
+
+        var buffer = new byte[65360];
+
+        var testTransport = new TestTransport();
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
+
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+
+        // 3 unique measurements.
+        var exportedItemsCount = testTransport.ExportedItems.Count;
+        Assert.Equal(3, exportedItemsCount);
+
+        // For asserting time
+        var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
+
+        for (int i = 0; i < exportedItemsCount; i++)
+        {
+            var request = new OtlpCollector.ExportMetricsServiceRequest();
+
+            request.MergeFrom(testTransport.ExportedItems[i]);
+
+            Assert.Single(request.ResourceMetrics);
+
+            Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
+
+            var scope = request.ResourceMetrics[0].ScopeMetrics[0];
+
+            Assert.Equal(meter.Name, scope.Scope.Name);
+
+            Assert.Single(request.ResourceMetrics[0].ScopeMetrics[0].Metrics);
+
+            var metric = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0];
+
+            Assert.Equal(doubleCounter.Name, metric.Name);
+
+            Assert.NotNull(metric.Sum);
+
+            Assert.Equal(1, (int)metric.Sum.AggregationTemporality);
+
+            Assert.True(metric.Sum.IsMonotonic);
+
+            Assert.Single(metric.Sum.DataPoints);
+
+            var dataPoint = metric.Sum.DataPoints[0];
+
+            Assert.Equal(124.2, dataPoint.AsDouble);
+
+            metricPointsEnumerator.MoveNext();
+            var metricPoint = metricPointsEnumerator.Current;
+
+            Assert.Equal((ulong)TimestampHelpers.ToUnixTimeNanoseconds(metricPoint.StartTime), dataPoint.StartTimeUnixNano);
+
+            Assert.Equal((ulong)TimestampHelpers.ToUnixTimeNanoseconds(metricPoint.EndTime), dataPoint.TimeUnixNano);
+
+            AssertOtlpAttributes(tags[i], dataPoint.Attributes);
+        }
+    }
+
     internal static void AssertOtlpAttributes(
         IEnumerable<KeyValuePair<string, object>> expected,
         RepeatedField<OtlpCommon.KeyValue> actual)
