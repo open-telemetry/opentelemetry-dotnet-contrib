@@ -86,7 +86,7 @@ public class OtlpProtobufMetricExporterTests
 
         Assert.Equal(value, dataPoint.AsInt);
 
-        // Asert time
+        // Assert time
         var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
         metricPointsEnumerator.MoveNext();
         var metricPoint = metricPointsEnumerator.Current;
@@ -149,6 +149,9 @@ public class OtlpProtobufMetricExporterTests
         var exportedItemsCount = testTransport.ExportedItems.Count;
         Assert.Equal(3, exportedItemsCount);
 
+        // For asserting time
+        var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
+
         for (int i = 0; i < exportedItemsCount; i++)
         {
             var request = new OtlpCollector.ExportMetricsServiceRequest();
@@ -180,6 +183,13 @@ public class OtlpProtobufMetricExporterTests
             var dataPoint = metric.Sum.DataPoints[0];
 
             Assert.Equal(124, dataPoint.AsInt);
+
+            metricPointsEnumerator.MoveNext();
+            var metricPoint = metricPointsEnumerator.Current;
+
+            Assert.Equal((ulong)TimestampHelpers.ToUnixTimeNanoseconds(metricPoint.StartTime), dataPoint.StartTimeUnixNano);
+
+            Assert.Equal((ulong)TimestampHelpers.ToUnixTimeNanoseconds(metricPoint.EndTime), dataPoint.TimeUnixNano);
 
             AssertOtlpAttributes(tags[i], dataPoint.Attributes);
         }
