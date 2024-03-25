@@ -212,7 +212,7 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
     {
         var stream = sendRequest.ItemStream;
 
-        var cursor = stream.Position;
+        var currentPosition = stream.Position;
 
         try
         {
@@ -232,7 +232,7 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
         }
         finally
         {
-            stream.Position = cursor;
+            stream.Position = currentPosition;
         }
     }
 
