@@ -12,7 +12,7 @@ namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 internal sealed class HttpInMetricsListener : IDisposable
 {
     private readonly HttpRequestRouteHelper routeHelper = new();
-    private readonly RequestMethodHelper requestMethodHelper = new();
+    private readonly RequestDataHelper requestDataHelper = new();
     private readonly Histogram<double> httpServerDuration;
     private readonly AspNetMetricsInstrumentationOptions options;
 
@@ -31,18 +31,6 @@ internal sealed class HttpInMetricsListener : IDisposable
         TelemetryHttpModule.Options.OnRequestStoppedCallback -= this.OnStopActivity;
     }
 
-    private static string GetHttpProtocolVersion(HttpRequest request)
-    {
-        var protocol = request.ServerVariables["SERVER_PROTOCOL"];
-        return protocol switch
-        {
-            "HTTP/1.1" => "1.1",
-            "HTTP/2" => "2",
-            "HTTP/3" => "3",
-            _ => protocol,
-        };
-    }
-
     private void OnStopActivity(Activity activity, HttpContext context)
     {
         var request = context.Request;
@@ -59,10 +47,10 @@ internal sealed class HttpInMetricsListener : IDisposable
             tags.Add(SemanticConventions.AttributeServerPort, url.Port);
         }
 
-        var normalizedMethod = this.requestMethodHelper.GetNormalizedHttpMethod(request.HttpMethod);
+        var normalizedMethod = this.requestDataHelper.GetNormalizedHttpMethod(request.HttpMethod);
         tags.Add(SemanticConventions.AttributeHttpRequestMethod, normalizedMethod);
 
-        var protocolVersion = GetHttpProtocolVersion(request);
+        var protocolVersion = RequestDataHelper.GetHttpProtocolVersion(request);
         if (!string.IsNullOrEmpty(protocolVersion))
         {
             tags.Add(SemanticConventions.AttributeNetworkProtocolVersion, protocolVersion);
