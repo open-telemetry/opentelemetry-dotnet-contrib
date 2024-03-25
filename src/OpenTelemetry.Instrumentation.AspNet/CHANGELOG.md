@@ -9,7 +9,7 @@
   for `http.server.request.duration` metric.
   ([#1606](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1606))
 * **Breaking change** Spans names and attributes
-  based on [HTTP semantic convention v1.24.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/http/http-spans.md):
+ will be set as per [HTTP semantic convention v1.24.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/http/http-spans.md):
   * span names follows: `{HTTP method} [route name if available]` pattern
   * `error.type` added when exception occurred while processing request,
   * `http.request.method` replaces `http.method`,
