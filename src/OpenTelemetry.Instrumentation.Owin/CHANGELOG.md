@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* `ActivitySource.Version` is set to NuGet package version.
+* `ActivitySource.Version` and `Meter.Version` are set to NuGet package version.
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
 
 ## 1.0.0-rc.4

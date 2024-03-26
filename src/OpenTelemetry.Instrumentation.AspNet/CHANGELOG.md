@@ -23,6 +23,8 @@
   * `url.scheme` added with `http` or `https` value,
   * `user_agent.original` replaces `http.user_agent`.
   ([#1607](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1607))
+* `ActivitySource.Version` is set to NuGet package version.
+  ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
 
 ## 1.7.0-beta.2
 

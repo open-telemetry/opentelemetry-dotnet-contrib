@@ -10,6 +10,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Compile Include="$(RepoRoot)\src\Shared\ActivitySourceVersionHelper.cs" Link="Includes\ActivitySourceVersionHelper.cs" />
         <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
     </ItemGroup>
 </Project>
