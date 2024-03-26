@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using OpenTelemetry.Exporter.Geneva.Metrics;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
@@ -22,7 +23,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
     internal const string DimensionKeyForCustomMetricsNamespace = "_microsoft_metrics_namespace";
 
-    private readonly TlvMetricExporter exporter;
+    private readonly IDisposable exporter;
 
     private delegate ExportResult ExportMetricsFunc(in Batch<Metric> batch);
 
@@ -30,18 +31,33 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
     private bool isDisposed;
 
+    private Resource resource;
+
+    internal Resource Resource => this.resource ??= this.ParentProvider.GetResource();
+
     public GenevaMetricExporter(GenevaMetricExporterOptions options)
     {
         Guard.ThrowIfNull(options);
         Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
-        // TODO: parse connection string to check if otlp protobuf format is enabled.
-        // and then enable either TLV Exporter or Protobuf based exporter.
-        var tlvMetricsExporter = new TlvMetricExporter(options);
+        var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
 
-        this.exportMetrics = tlvMetricsExporter.Export;
+        if (connectionStringBuilder.PrivatePreviewOtlpProtobufMetricExporter != null && connectionStringBuilder.PrivatePreviewOtlpProtobufMetricExporter.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase))
+        {
+            var otlpProtobufExporter = new OtlpProtobufMetricExporter(() => { return this.Resource; });
 
-        this.exporter = tlvMetricsExporter;
+            this.exporter = otlpProtobufExporter;
+
+            this.exportMetrics = otlpProtobufExporter.Export;
+        }
+        else
+        {
+            var tlvMetricsExporter = new TlvMetricExporter(connectionStringBuilder, options.PrepopulatedMetricDimensions);
+
+            this.exportMetrics = tlvMetricsExporter.Export;
+
+            this.exporter = tlvMetricsExporter;
+        }
     }
 
     public override ExportResult Export(in Batch<Metric> batch)

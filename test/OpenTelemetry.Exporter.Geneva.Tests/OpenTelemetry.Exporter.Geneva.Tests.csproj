@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="$(RepoRoot)\src\OpenTelemetry.Exporter.Geneva\Common.GenevaExporter.props"/>
+  <Import Project="$(RepoRoot)\src\OpenTelemetry.Exporter.Geneva\Common.GenevaExporter.props" />
 
   <PropertyGroup>
     <Description>Unit test project for Geneva Exporters for OpenTelemetry</Description>
@@ -11,6 +11,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.25.3" />
+    <PackageReference Include="Grpc.Tools" Version="2.62.0" PrivateAssets="All" />
+    <PackageReference Include="Grpc" Version="2.46.6" />
     <PackageReference Include="KaitaiStruct.Runtime.CSharp" Version="0.10.0" />
     <PackageReference Include="MessagePack" Version="1.9.11" />
     <!--KaitaiStruct.Runtime.CSharp which is used to deserialize metrics data is not a strong-named assembly.
@@ -21,6 +24,12 @@
 
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Exporter.Geneva\OpenTelemetry.Exporter.Geneva.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="**/*.proto" Access="internal">
+      <ProtoRoot>Proto</ProtoRoot>
+    </Protobuf>
   </ItemGroup>
 
 </Project>

@@ -31,17 +31,16 @@ internal sealed class TlvMetricExporter : IDisposable
 
     private bool isDisposed;
 
-    internal TlvMetricExporter(GenevaMetricExporterOptions options)
+    internal TlvMetricExporter(ConnectionStringBuilder connectionStringBuilder, IReadOnlyDictionary<string, object> prepopulatedMetricDimensions)
     {
-        var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
         this.defaultMonitoringAccount = connectionStringBuilder.Account;
         this.defaultMetricNamespace = connectionStringBuilder.Namespace;
 
-        if (options.PrepopulatedMetricDimensions != null)
+        if (prepopulatedMetricDimensions != null)
         {
-            this.prepopulatedDimensionsCount = (ushort)options.PrepopulatedMetricDimensions.Count;
-            this.serializedPrepopulatedDimensionsKeys = this.SerializePrepopulatedDimensionsKeys(options.PrepopulatedMetricDimensions.Keys);
-            this.serializedPrepopulatedDimensionsValues = this.SerializePrepopulatedDimensionsValues(options.PrepopulatedMetricDimensions.Values);
+            this.prepopulatedDimensionsCount = (ushort)prepopulatedMetricDimensions.Count;
+            this.serializedPrepopulatedDimensionsKeys = this.SerializePrepopulatedDimensionsKeys(prepopulatedMetricDimensions.Keys);
+            this.serializedPrepopulatedDimensionsValues = this.SerializePrepopulatedDimensionsValues(prepopulatedMetricDimensions.Values);
         }
 
         switch (connectionStringBuilder.Protocol)
