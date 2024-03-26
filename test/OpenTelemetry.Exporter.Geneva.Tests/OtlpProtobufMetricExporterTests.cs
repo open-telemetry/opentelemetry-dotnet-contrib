@@ -19,9 +19,9 @@ namespace OpenTelemetry.Exporter.Geneva.Tests;
 public class OtlpProtobufMetricExporterTests
 {
     [Theory]
-    [InlineData("longcounter", 123, null)]
+    [InlineData("longcounter", 123L, null)]
     [InlineData("doublecounter", null, 123.45)]
-    [InlineData("longcounter", -123, null)]
+    [InlineData("longcounter", -123L, null)]
     [InlineData("doublecounter", null, -123.45)]
     public void CounterSerializationSingleMetricPoint(string instrumentName, long? longValue, double? doubleValue)
     {
