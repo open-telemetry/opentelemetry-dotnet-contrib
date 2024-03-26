@@ -18,7 +18,7 @@ namespace OpenTelemetry.Instrumentation.Runtime;
 internal sealed class RuntimeMetrics
 {
     internal static readonly AssemblyName AssemblyName = typeof(RuntimeMetrics).Assembly.GetName();
-    internal static readonly Meter MeterInstance = new(AssemblyName.Name!, ActivitySourceVersionHelper.GetVersion<RuntimeMetrics>());
+    internal static readonly Meter MeterInstance = new(AssemblyName.Name!, SignalVersionHelper.GetVersion<RuntimeMetrics>());
 
 #if NET6_0_OR_GREATER
     private const long NanosecondsPerTick = 100;

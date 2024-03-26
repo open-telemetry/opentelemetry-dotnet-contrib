@@ -12,7 +12,7 @@ internal static class OwinInstrumentationMetrics
 
     public static string MeterName => AssemblyName.Name;
 
-    public static Meter Instance => new(MeterName, ActivitySourceVersionHelper.GetVersion<OwinInstrumentationOptions>());
+    public static Meter Instance => new(MeterName, SignalVersionHelper.GetVersion<OwinInstrumentationOptions>());
 
     public static Histogram<double> HttpServerDuration => Instance.CreateHistogram<double>("http.server.request.duration", "s", "Duration of HTTP server requests.");
 }

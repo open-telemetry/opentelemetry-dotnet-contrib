@@ -19,7 +19,7 @@ internal static class WcfInstrumentationActivitySource
     internal static readonly string IncomingRequestActivityName = ActivitySourceName + ".IncomingRequest";
     internal static readonly string OutgoingRequestActivityName = ActivitySourceName + ".OutgoingRequest";
 
-    public static ActivitySource ActivitySource { get; } = new(ActivitySourceName, ActivitySourceVersionHelper.GetVersion<WcfInstrumentationOptions>());
+    public static ActivitySource ActivitySource { get; } = new(ActivitySourceName, SignalVersionHelper.GetVersion<WcfInstrumentationOptions>());
 
     public static WcfInstrumentationOptions? Options { get; set; }
 

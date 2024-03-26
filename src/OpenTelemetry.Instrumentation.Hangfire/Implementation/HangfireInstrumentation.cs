@@ -24,7 +24,7 @@ internal sealed class HangfireInstrumentation
     /// <summary>
     /// The activity source.
     /// </summary>
-    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, ActivitySourceVersionHelper.GetVersion<HangfireInstrumentationOptions>());
+    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, SignalVersionHelper.GetVersion<HangfireInstrumentationOptions>());
 
     /// <summary>
     /// The default display name delegate.

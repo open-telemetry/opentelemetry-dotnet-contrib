@@ -15,7 +15,7 @@ internal sealed class AspNetMetrics : IDisposable
 {
     internal static readonly AssemblyName AssemblyName = typeof(HttpInMetricsListener).Assembly.GetName();
     internal static readonly string InstrumentationName = AssemblyName.Name;
-    internal static readonly string InstrumentationVersion = ActivitySourceVersionHelper.GetVersion<AspNetMetrics>();
+    internal static readonly string InstrumentationVersion = SignalVersionHelper.GetVersion<AspNetMetrics>();
 
     private readonly Meter meter;
 

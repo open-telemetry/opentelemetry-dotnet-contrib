@@ -16,7 +16,7 @@ internal sealed class ProcessMetrics
     internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
     internal static readonly string MeterName = AssemblyName.Name;
 
-    private static readonly Meter MeterInstance = new(MeterName, ActivitySourceVersionHelper.GetVersion<ProcessMetrics>());
+    private static readonly Meter MeterInstance = new(MeterName, SignalVersionHelper.GetVersion<ProcessMetrics>());
 
     static ProcessMetrics()
     {

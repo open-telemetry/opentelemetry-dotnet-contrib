@@ -7,5 +7,5 @@ namespace OpenTelemetry.Instrumentation.Cassandra;
 
 internal static class CassandraMeter
 {
-    public static Meter Instance => new Meter(typeof(CassandraMeter).Assembly.GetName().Name, ActivitySourceVersionHelper.GetVersion<DriverTimer>());
+    public static Meter Instance => new Meter(typeof(CassandraMeter).Assembly.GetName().Name, SignalVersionHelper.GetVersion<DriverTimer>());
 }

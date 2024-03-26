@@ -24,5 +24,5 @@ internal static class GrpcCoreInstrumentation
     /// <summary>
     /// The activity source.
     /// </summary>
-    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, ActivitySourceVersionHelper.GetVersion<ServerTracingInterceptorOptions>());
+    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, SignalVersionHelper.GetVersion<ServerTracingInterceptorOptions>());
 }

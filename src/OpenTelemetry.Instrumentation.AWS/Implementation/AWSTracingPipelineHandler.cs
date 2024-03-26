@@ -23,7 +23,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 {
     internal const string ActivitySourceName = "Amazon.AWS.AWSClientInstrumentation";
 
-    private static readonly ActivitySource AWSSDKActivitySource = new(ActivitySourceName, ActivitySourceVersionHelper.GetVersion<AWSTracingPipelineHandler>());
+    private static readonly ActivitySource AWSSDKActivitySource = new(ActivitySourceName, SignalVersionHelper.GetVersion<AWSTracingPipelineHandler>());
 
     private readonly AWSClientInstrumentationOptions options;
 
