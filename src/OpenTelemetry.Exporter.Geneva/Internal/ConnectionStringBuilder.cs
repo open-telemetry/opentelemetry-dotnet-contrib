@@ -75,6 +75,12 @@ internal sealed class ConnectionStringBuilder
         set => this._parts[nameof(this.PrivatePreviewEnableTraceLoggingDynamic)] = value;
     }
 
+    public string PrivatePreviewOtlpProtobufMetricExporter
+    {
+        get => this._parts.TryGetValue(nameof(this.PrivatePreviewOtlpProtobufMetricExporter), out var value) ? value : null;
+        set => this._parts[nameof(this.PrivatePreviewOtlpProtobufMetricExporter)] = value;
+    }
+
     public string Endpoint
     {
         get => this.ThrowIfNotExists<string>(nameof(this.Endpoint));
