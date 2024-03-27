@@ -19,12 +19,14 @@ namespace OpenTelemetry.Exporter.Geneva.Tests;
 public class OtlpProtobufMetricExporterTests
 {
     [Theory]
-    [InlineData(123)]
-    [InlineData(-123)]
-    public void LongCounterSerializationSingleMetricPoint(long value)
+    [InlineData("longcounter", 123L, null)]
+    [InlineData("doublecounter", null, 123.45)]
+    [InlineData("longcounter", -123L, null)]
+    [InlineData("doublecounter", null, -123.45)]
+    public void CounterSerializationSingleMetricPoint(string instrumentName, long? longValue, double? doubleValue)
     {
-        using var meter = new Meter(nameof(this.LongCounterSerializationSingleMetricPoint), "0.0.1");
-        var longCounter = meter.CreateCounter<long>("longCounter");
+        using var meter = new Meter(nameof(this.CounterSerializationSingleMetricPoint), "0.0.1");
+
         var exportedItems = new List<Metric>();
         using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
         {
@@ -35,11 +37,20 @@ public class OtlpProtobufMetricExporterTests
             .AddAttributes(new[] { new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue") });
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .SetResourceBuilder(resourceBuilder)
-            .AddMeter(nameof(this.LongCounterSerializationSingleMetricPoint))
+            .AddMeter(nameof(this.CounterSerializationSingleMetricPoint))
             .AddReader(inMemoryReader)
-            .Build();
+        .Build();
 
-        longCounter.Add(value, new("tag1", "value1"), new("tag2", "value2"));
+        if (longValue != null)
+        {
+            var counter = meter.CreateCounter<long>(instrumentName);
+            counter.Add(longValue.Value, new("tag1", "value1"), new("tag2", "value2"));
+        }
+        else
+        {
+            var counter = meter.CreateCounter<double>(instrumentName);
+            counter.Add(doubleValue.Value, new("tag1", "value1"), new("tag2", "value2"));
+        }
 
         meterProvider.ForceFlush();
 
@@ -72,7 +83,7 @@ public class OtlpProtobufMetricExporterTests
 
         var metric = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0];
 
-        Assert.Equal(longCounter.Name, metric.Name);
+        Assert.Equal(instrumentName, metric.Name);
 
         Assert.NotNull(metric.Sum);
 
@@ -84,25 +95,35 @@ public class OtlpProtobufMetricExporterTests
 
         var dataPoint = metric.Sum.DataPoints[0];
 
-        Assert.Equal(value, dataPoint.AsInt);
+        if (longValue != null)
+        {
+            Assert.Equal(longValue, dataPoint.AsInt);
+        }
+        else
+        {
+            Assert.Equal(doubleValue, dataPoint.AsDouble);
+        }
 
         // Assert time
         var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
         metricPointsEnumerator.MoveNext();
         var metricPoint = metricPointsEnumerator.Current;
 
-        Assert.Equal((ulong)TimestampHelpers.ToUnixTimeNanoseconds(metricPoint.StartTime), dataPoint.StartTimeUnixNano);
+        Assert.Equal((ulong)metricPoint.StartTime.ToUnixTimeNanoseconds(), dataPoint.StartTimeUnixNano);
 
-        Assert.Equal((ulong)TimestampHelpers.ToUnixTimeNanoseconds(metricPoint.EndTime), dataPoint.TimeUnixNano);
+        Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
 
         AssertOtlpAttributes([new("tag1", "value1"), new("tag2", "value2")], dataPoint.Attributes);
     }
 
-    [Fact]
-    public void LongCounterSerializationMultipleMetricPoints()
+    [Theory]
+    [InlineData("longcounter", new long[] { 10, 20, 30 }, null)]
+    [InlineData("longcounter", new long[] { -10, 2, -30 }, null)]
+    [InlineData("doublecounter", null, new double[] { 10.20, 2, 30.65 })]
+    [InlineData("doublecounter", null, new double[] { -10.20, 2, -30.65 })]
+    public void CounterSerializationMultipleMetricPoints(string instrumentName, long[] longValues, double[] doubleValues)
     {
-        using var meter = new Meter(nameof(this.LongCounterSerializationMultipleMetricPoints), "0.0.1");
-        var longCounter = meter.CreateCounter<long>("longCounter");
+        using var meter = new Meter(nameof(this.CounterSerializationMultipleMetricPoints), "0.0.1");
         var exportedItems = new List<Metric>();
         using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
         {
@@ -110,31 +131,39 @@ public class OtlpProtobufMetricExporterTests
         };
 
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddMeter(nameof(this.LongCounterSerializationMultipleMetricPoints))
+            .AddMeter(nameof(this.CounterSerializationMultipleMetricPoints))
             .AddReader(inMemoryReader)
             .Build();
 
-        TagList[] tags = new TagList[3];
+        int expectedMetricPoints = longValues != null ? longValues.Length : doubleValues.Length;
+        TagList[] tags = new TagList[expectedMetricPoints];
 
-        tags[0].Add(new("tag1", "value1"));
-        tags[0].Add(new("tag2", "value2"));
+        for (int i = 0; i < tags.Length; i++)
+        {
+            for (int j = 1; j <= (i + 1); j++)
+            {
+                tags[i].Add(new("tag" + j, "value" + j));
+            }
+        }
 
-        tags[1].Add(new("tag1", "value1"));
-        tags[1].Add(new("tag2", "value2"));
-        tags[1].Add(new("tag3", "value3"));
+        if (longValues != null)
+        {
+            var counter = meter.CreateCounter<long>(instrumentName);
 
-        tags[2].Add(new("tag1", "value1"));
-        tags[2].Add(new("tag2", "value2"));
-        tags[2].Add(new("tag3", "value3"));
-        tags[2].Add(new("tag4", "value4"));
+            for (int i = 0; i < longValues.Length; i++)
+            {
+                counter.Add(longValues[i], tags[i]);
+            }
+        }
+        else
+        {
+            var counter = meter.CreateCounter<double>(instrumentName);
 
-        longCounter.Add(62, tags[0]);
-
-        longCounter.Add(62, tags[0]);
-
-        longCounter.Add(124, tags[1]);
-
-        longCounter.Add(124, tags[2]);
+            for (int i = 0; i < doubleValues.Length; i++)
+            {
+                counter.Add(doubleValues[i], tags[i]);
+            }
+        }
 
         meterProvider.ForceFlush();
 
@@ -145,14 +174,12 @@ public class OtlpProtobufMetricExporterTests
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
-        // 3 unique measurements.
-        var exportedItemsCount = testTransport.ExportedItems.Count;
-        Assert.Equal(3, exportedItemsCount);
+        Assert.Equal(expectedMetricPoints, testTransport.ExportedItems.Count);
 
         // For asserting time
         var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
 
-        for (int i = 0; i < exportedItemsCount; i++)
+        for (int i = 0; i < expectedMetricPoints; i++)
         {
             var request = new OtlpCollector.ExportMetricsServiceRequest();
 
@@ -170,7 +197,7 @@ public class OtlpProtobufMetricExporterTests
 
             var metric = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0];
 
-            Assert.Equal(longCounter.Name, metric.Name);
+            Assert.Equal(instrumentName, metric.Name);
 
             Assert.NotNull(metric.Sum);
 
@@ -182,14 +209,21 @@ public class OtlpProtobufMetricExporterTests
 
             var dataPoint = metric.Sum.DataPoints[0];
 
-            Assert.Equal(124, dataPoint.AsInt);
+            if (longValues != null)
+            {
+                Assert.Equal(longValues[i], dataPoint.AsInt);
+            }
+            else
+            {
+                Assert.Equal(doubleValues[i], dataPoint.AsDouble);
+            }
 
             metricPointsEnumerator.MoveNext();
             var metricPoint = metricPointsEnumerator.Current;
 
-            Assert.Equal((ulong)TimestampHelpers.ToUnixTimeNanoseconds(metricPoint.StartTime), dataPoint.StartTimeUnixNano);
+            Assert.Equal((ulong)metricPoint.StartTime.ToUnixTimeNanoseconds(), dataPoint.StartTimeUnixNano);
 
-            Assert.Equal((ulong)TimestampHelpers.ToUnixTimeNanoseconds(metricPoint.EndTime), dataPoint.TimeUnixNano);
+            Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
 
             AssertOtlpAttributes(tags[i], dataPoint.Attributes);
         }
