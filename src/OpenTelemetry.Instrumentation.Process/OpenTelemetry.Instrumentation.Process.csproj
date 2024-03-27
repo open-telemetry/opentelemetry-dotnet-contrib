@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Shared\SignalVersionHelper.cs" Link="Includes\SignalVersionHelper.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
   </ItemGroup>
 

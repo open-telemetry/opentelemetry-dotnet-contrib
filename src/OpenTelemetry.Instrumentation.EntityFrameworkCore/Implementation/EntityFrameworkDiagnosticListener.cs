@@ -25,9 +25,8 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     internal static readonly string ActivitySourceName = typeof(EntityFrameworkDiagnosticListener).Assembly.GetName().Name;
     internal static readonly string ActivityName = ActivitySourceName + ".Execute";
 
-    private static readonly Version Version = typeof(EntityFrameworkDiagnosticListener).Assembly.GetName().Version;
 #pragma warning disable SA1202 // Elements should be ordered by access <- In this case, Version MUST come before SqlClientActivitySource otherwise null ref exception is thrown.
-    internal static readonly ActivitySource SqlClientActivitySource = new(ActivitySourceName, Version.ToString());
+    internal static readonly ActivitySource SqlClientActivitySource = new(ActivitySourceName, SignalVersionHelper.GetVersion<EntityFrameworkDiagnosticListener>());
 #pragma warning restore SA1202 // Elements should be ordered by access
 
     private readonly PropertyFetcher<object> commandFetcher = new("Command");

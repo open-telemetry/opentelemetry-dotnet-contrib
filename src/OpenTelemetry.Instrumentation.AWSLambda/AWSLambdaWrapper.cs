@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
@@ -21,8 +20,7 @@ public static class AWSLambdaWrapper
 {
     internal const string ActivitySourceName = "OpenTelemetry.Instrumentation.AWSLambda";
 
-    private static readonly string Version = typeof(AWSLambdaWrapper).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion.Split('+')[0];
-    private static readonly ActivitySource AWSLambdaActivitySource = new(ActivitySourceName, Version);
+    private static readonly ActivitySource AWSLambdaActivitySource = new(ActivitySourceName, SignalVersionHelper.GetVersion<AWSLambdaInstrumentationOptions>());
 
     /// <summary>
     /// Gets or sets a value indicating whether AWS X-Ray propagation should be ignored. Default value is false.

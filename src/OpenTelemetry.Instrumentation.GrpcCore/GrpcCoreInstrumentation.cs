@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -23,12 +22,7 @@ internal static class GrpcCoreInstrumentation
     internal static readonly string ActivitySourceName = AssemblyName.Name;
 
     /// <summary>
-    /// The version.
-    /// </summary>
-    internal static readonly Version Version = AssemblyName.Version;
-
-    /// <summary>
     /// The activity source.
     /// </summary>
-    internal static readonly ActivitySource ActivitySource = new ActivitySource(ActivitySourceName, Version.ToString());
+    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, SignalVersionHelper.GetVersion<ServerTracingInterceptorOptions>());
 }

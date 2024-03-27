@@ -22,14 +22,9 @@ internal sealed class HangfireInstrumentation
     internal static readonly string ActivitySourceName = AssemblyName.Name;
 
     /// <summary>
-    /// The version.
-    /// </summary>
-    internal static readonly Version Version = AssemblyName.Version;
-
-    /// <summary>
     /// The activity source.
     /// </summary>
-    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version.ToString());
+    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, SignalVersionHelper.GetVersion<HangfireInstrumentationOptions>());
 
     /// <summary>
     /// The default display name delegate.

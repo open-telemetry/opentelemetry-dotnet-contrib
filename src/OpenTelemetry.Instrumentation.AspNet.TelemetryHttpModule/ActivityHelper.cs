@@ -26,7 +26,7 @@ internal static class ActivityHelper
     private static readonly Func<HttpRequest, string, IEnumerable<string>> HttpRequestHeaderValuesGetter = (request, name) => request.Headers.GetValues(name);
     private static readonly ActivitySource AspNetSource = new(
         TelemetryHttpModule.AspNetSourceName,
-        typeof(ActivityHelper).Assembly.GetName().Version.ToString());
+        SignalVersionHelper.GetVersion<AspNetTelemetryEventSource>());
 
     /// <summary>
     /// Try to get the started <see cref="Activity"/> for the running <see

@@ -20,8 +20,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
     internal const string RedisFlagsKeyName = "db.redis.flags";
     internal static readonly string ActivitySourceName = typeof(StackExchangeRedisConnectionInstrumentation).Assembly.GetName().Name!;
     internal static readonly string ActivityName = ActivitySourceName + ".Execute";
-    internal static readonly Version Version = typeof(StackExchangeRedisConnectionInstrumentation).Assembly.GetName().Version!;
-    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version.ToString());
+    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, SignalVersionHelper.GetVersion<StackExchangeRedisConnectionInstrumentation>());
     internal static readonly IEnumerable<KeyValuePair<string, object?>> CreationTags = new[]
     {
         new KeyValuePair<string, object?>(SemanticConventions.AttributeDbSystem, "redis"),
