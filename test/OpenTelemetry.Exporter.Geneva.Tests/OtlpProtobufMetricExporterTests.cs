@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Linq;
-using System.Reflection;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
 using OpenTelemetry.Metrics;
