@@ -269,7 +269,69 @@ internal sealed class OtlpProtobufSerializer
 
             case MetricType.Histogram:
                 {
-                    // TODO
+                    cursor = this.instrumentValueIndex;
+
+                    // Write aggregationTemporality tag
+                    ProtobufSerializerHelper.WriteEnumWithTag(buffer, ref cursor, FieldNumberConstants.Histogram_aggregation_temporality, metric.Temporality == AggregationTemporality.Cumulative ? 2 : 1);
+
+                    this.metricPointTagAndLengthIndex = cursor;
+                    this.metricPointValueIndex = cursor + TagAndLengthSize;
+                    foreach (var metricPoint in metric.GetMetricPoints())
+                    {
+                        try
+                        {
+                            // Reset cursor to write new metricPoint
+                            cursor = this.metricPointValueIndex;
+
+                            var startTime = (ulong)metricPoint.StartTime.ToUnixTimeNanoseconds();
+                            ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.HistogramDataPoint_start_time_unix_nano, startTime);
+
+                            var endTime = (ulong)metricPoint.EndTime.ToUnixTimeNanoseconds();
+                            ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.HistogramDataPoint_time_unix_nano, endTime);
+
+                            SerializeTags(buffer, ref cursor, metricPoint.Tags, FieldNumberConstants.HistogramDataPoint_attributes);
+
+                            var count = (ulong)metricPoint.GetHistogramCount();
+                            ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.HistogramDataPoint_count, count);
+
+                            var sum = metricPoint.GetHistogramSum();
+                            ProtobufSerializerHelper.WriteDoubleWithTag(buffer, ref cursor, FieldNumberConstants.HistogramDataPoint_sum, sum);
+
+                            if (metricPoint.TryGetHistogramMinMaxValues(out double min, out double max))
+                            {
+                                ProtobufSerializerHelper.WriteDoubleWithTag(buffer, ref cursor, FieldNumberConstants.HistogramDataPoint_min, min);
+                                ProtobufSerializerHelper.WriteDoubleWithTag(buffer, ref cursor, FieldNumberConstants.HistogramDataPoint_max, max);
+                            }
+
+                            foreach (var histogramMeasurement in metricPoint.GetHistogramBuckets())
+                            {
+                                var bucketCount = (ulong)histogramMeasurement.BucketCount;
+
+                                ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.HistogramDataPoint_bucket_counts, bucketCount);
+                                if (histogramMeasurement.ExplicitBound != double.PositiveInfinity)
+                                {
+                                    ProtobufSerializerHelper.WriteDoubleWithTag(buffer, ref cursor, FieldNumberConstants.HistogramDataPoint_explicit_bounds, histogramMeasurement.ExplicitBound);
+                                }
+                            }
+
+                            // TODO: exemplars.
+
+                            var metricPointStartPosition = this.metricPointTagAndLengthIndex;
+
+                            // Write numberdatapoint {Repeated field}
+                            ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref metricPointStartPosition, cursor - this.metricPointValueIndex, FieldNumberConstants.Histogram_data_points, WireType.LEN);
+
+                            // Finish writing current batch
+                            this.WriteIndividualMessageTagsAndLength(buffer, ref cursor, metric.MetricType);
+
+                            // Send metricPoint
+                            this.SendMetricPoint(buffer, ref cursor);
+                        }
+                        catch
+                        {
+                        }
+                    }
+
                     break;
                 }
 

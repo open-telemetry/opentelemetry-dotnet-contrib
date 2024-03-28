@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Linq;
+using System.Reflection;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
 using OpenTelemetry.Metrics;
@@ -227,6 +228,107 @@ public class OtlpProtobufMetricExporterTests
 
             AssertOtlpAttributes(tags[i], dataPoint.Attributes);
         }
+    }
+
+    [Theory]
+    [InlineData(123.45)]
+    [InlineData(-123.45)]
+    public void HistogramSerializationSingleMetricPoint(double doubleValue)
+    {
+        using var meter = new Meter(nameof(this.HistogramSerializationSingleMetricPoint), "0.0.1");
+
+        var exportedItems = new List<Metric>();
+        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+        {
+            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+        };
+
+        var resourceBuilder = ResourceBuilder.CreateDefault().Clear()
+            .AddAttributes(new[] { new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue") });
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .SetResourceBuilder(resourceBuilder)
+            .AddMeter(nameof(this.HistogramSerializationSingleMetricPoint))
+            .AddReader(inMemoryReader)
+        .Build();
+
+        var histogram = meter.CreateHistogram<double>("TestHistogram");
+        histogram.Record(doubleValue, new("tag1", "value1"), new("tag2", "value2"));
+
+        meterProvider.ForceFlush();
+
+        var buffer = new byte[65360];
+
+        var testTransport = new TestTransport();
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
+
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+
+        Assert.Single(testTransport.ExportedItems);
+
+        var request = new OtlpCollector.ExportMetricsServiceRequest();
+
+        request.MergeFrom(testTransport.ExportedItems[0]);
+
+        Assert.Single(request.ResourceMetrics);
+
+        Assert.NotNull(request.ResourceMetrics[0].Resource);
+
+        AssertOtlpAttributes([new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue")], request.ResourceMetrics[0].Resource.Attributes);
+
+        Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
+
+        var scope = request.ResourceMetrics[0].ScopeMetrics[0];
+
+        Assert.Equal(meter.Name, scope.Scope.Name);
+
+        Assert.Single(request.ResourceMetrics[0].ScopeMetrics[0].Metrics);
+
+        var metric = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0];
+
+        Assert.Equal("TestHistogram", metric.Name);
+
+        Assert.NotNull(metric.Histogram);
+
+        Assert.Equal(1, (int)metric.Histogram.AggregationTemporality);
+
+        Assert.Single(metric.Histogram.DataPoints);
+
+        var dataPoint = metric.Histogram.DataPoints[0];
+
+        Assert.Equal(doubleValue, dataPoint.Sum);
+
+        Assert.Equal(doubleValue, dataPoint.Max);
+
+        Assert.Equal(doubleValue, dataPoint.Min);
+
+        // Assert time
+        var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
+        metricPointsEnumerator.MoveNext();
+        var metricPoint = metricPointsEnumerator.Current;
+
+        int bucketCountIndex = 0;
+        int explicitBoundCountIndex = 0;
+
+        foreach (var histogramMeasurement in metricPoint.GetHistogramBuckets())
+        {
+            var bucketCount = (ulong)histogramMeasurement.BucketCount;
+
+            Assert.Equal(bucketCount, dataPoint.BucketCounts[bucketCountIndex]);
+
+            if (histogramMeasurement.ExplicitBound != double.PositiveInfinity)
+            {
+                Assert.Equal(histogramMeasurement.ExplicitBound, dataPoint.ExplicitBounds[explicitBoundCountIndex]);
+                explicitBoundCountIndex++;
+            }
+
+            bucketCountIndex++;
+        }
+
+        Assert.Equal((ulong)metricPoint.StartTime.ToUnixTimeNanoseconds(), dataPoint.StartTimeUnixNano);
+
+        Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
+
+        AssertOtlpAttributes([new("tag1", "value1"), new("tag2", "value2")], dataPoint.Attributes);
     }
 
     internal static void AssertOtlpAttributes(
