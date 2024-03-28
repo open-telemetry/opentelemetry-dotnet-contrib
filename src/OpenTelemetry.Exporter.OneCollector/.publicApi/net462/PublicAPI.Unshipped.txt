@@ -1,2 +1,1 @@
-OpenTelemetry.Exporter.OneCollector.OneCollectorExporter<T>.RegisterPayloadTransmittedCallback(OpenTelemetry.Exporter.OneCollector.OneCollectorExporterPayloadTransmittedCallbackAction! callback, bool includeFailures) -> System.IDisposable?
-OpenTelemetry.Exporter.OneCollector.OneCollectorExporterPayloadTransmittedCallbackArguments.Succeeded.get -> bool
+OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder.SetHttpClientFactory(System.Func<System.Net.Http.HttpClient!>! httpClientFactory) -> OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder!

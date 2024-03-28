@@ -168,7 +168,7 @@ public sealed class OneCollectorLogExportProcessorBuilder
     /// <returns>The supplied <see
     /// cref="OneCollectorLogExportProcessorBuilder"/> for call
     /// chaining.</returns>
-    internal OneCollectorLogExportProcessorBuilder SetHttpClientFactory(
+    public OneCollectorLogExportProcessorBuilder SetHttpClientFactory(
         Func<HttpClient> httpClientFactory)
     {
         Guard.ThrowIfNull(httpClientFactory);
