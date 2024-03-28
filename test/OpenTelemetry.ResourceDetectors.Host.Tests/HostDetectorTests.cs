@@ -16,8 +16,9 @@ public class HostDetectorTests
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 
-        Assert.Single(resourceAttributes);
+        Assert.Equal(2, resourceAttributes.Count);
 
         Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostName]);
+        Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
     }
 }
