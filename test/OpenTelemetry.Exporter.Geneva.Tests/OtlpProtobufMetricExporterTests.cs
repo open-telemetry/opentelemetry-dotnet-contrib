@@ -323,6 +323,10 @@ public class OtlpProtobufMetricExporterTests
             bucketCountIndex++;
         }
 
+        Assert.Equal(bucketCountIndex, dataPoint.BucketCounts.Count);
+
+        Assert.Equal(explicitBoundCountIndex, dataPoint.ExplicitBounds.Count);
+
         Assert.Equal((ulong)metricPoint.StartTime.ToUnixTimeNanoseconds(), dataPoint.StartTimeUnixNano);
 
         Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
