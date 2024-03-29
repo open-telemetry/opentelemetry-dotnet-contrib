@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System;
-using System.IO;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using OpenTelemetry.Resources;
@@ -12,6 +13,9 @@ namespace OpenTelemetry.ResourceDetectors.Host.Tests;
 
 public class HostDetectorTests
 {
+    private static readonly IEnumerable<string> ETC_MACHINEID = new[] { "Samples/etc_machineid" };
+    private static readonly IEnumerable<string> ETC_VAR_DBUS_MACHINEID = new[] { "Samples/etc_var_dbus_machineid" };
+ 
     [Fact]
     public void TestHostAttributes()
     {
@@ -26,15 +30,35 @@ public class HostDetectorTests
     }
 
     [Fact]
-    public void TestHostMachineId()
+    public void TestHostMachineIdLinux()
     {
-        var etcMachineIdStream = (string path) =>
+        var combos = new[]
         {
-            return path == "/etc/machine-id"
-                ? new MemoryStream(Encoding.UTF8.GetBytes("etc-machine-id"))
-                : null;
+            (Enumerable.Empty<string>(), string.Empty),
+            (ETC_MACHINEID, "etc_machineid"),
+            (ETC_VAR_DBUS_MACHINEID, "etc_var_dbus_machineid"),
+            (Enumerable.Concat(ETC_MACHINEID, ETC_VAR_DBUS_MACHINEID), "etc_machineid"),
         };
-        var varLibDbusMachineIdStream = new MemoryStream(Encoding.UTF8.GetBytes("var-lib-dbus-machine-id"));
+
+        foreach (var (path, expected) in combos)
+        {
+            var detector = new HostDetector(
+                PlatformID.Unix,
+                () => path,
+                () => throw new Exception("should not be called"),
+                () => throw new Exception("should not be called"));
+            var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
+            var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
+
+            if (string.IsNullOrEmpty(expected))
+            {
+                Assert.Empty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
+            } else
+            {
+                Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
+                Assert.Equal(expected, resourceAttributes[HostSemanticConventions.AttributeHostId]);
+            }
+        }
     }
 
     [Fact]
@@ -42,6 +66,7 @@ public class HostDetectorTests
     {
         var detector = new HostDetector(
             PlatformID.MacOSX,
+            () => Enumerable.Empty<string>(),
             () => "macos-machine-id",
             () => throw new Exception("should not be called"));
         var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
@@ -55,6 +80,7 @@ public class HostDetectorTests
     {
         var detector = new HostDetector(
             PlatformID.Win32NT,
+            () => Enumerable.Empty<string>(),
             () => throw new Exception("should not be called"),
             () => "windows-machine-id");
         var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();

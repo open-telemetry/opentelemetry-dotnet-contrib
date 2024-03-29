@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.Win32;
 using OpenTelemetry.Resources;
@@ -17,7 +16,10 @@ namespace OpenTelemetry.ResourceDetectors.Host;
 /// </summary>
 public sealed class HostDetector : IResourceDetector
 {
+    private const string ETC_MACHINEID = "/etc/machine-id";
+    private const string ETC_VAR_DBUS_MACHINEID = "/var/lib/dbus/machine-id";
     private readonly PlatformID platformId;
+    private readonly Func<IEnumerable<string>> getFilePaths;
     private readonly Func<string> getMacOsMachineId;
     private readonly Func<string> getWindowsMachineId;
 
@@ -27,6 +29,7 @@ public sealed class HostDetector : IResourceDetector
     public HostDetector()
         : this(
         Environment.OSVersion.Platform,
+        GetFilePaths,
         GetMachineIdMacOs,
         GetMachineIdWindows)
     {
@@ -38,9 +41,10 @@ public sealed class HostDetector : IResourceDetector
     /// <param name="platformId">Target platform ID.</param>
     /// <param name="getMacOsMachineId">Function to get MacOS machine ID.</param>
     /// <param name="getWindowsMachineId">Function to get Windows machine ID.</param>
-    internal HostDetector(PlatformID platformId, Func<string> getMacOsMachineId, Func<string> getWindowsMachineId)
+    internal HostDetector(PlatformID platformId, Func<IEnumerable<string>> getFilePaths, Func<string> getMacOsMachineId, Func<string> getWindowsMachineId)
     {
         this.platformId = platformId;
+        this.getFilePaths = getFilePaths ?? throw new ArgumentNullException(nameof(getFilePaths));
         this.getMacOsMachineId = getMacOsMachineId ?? throw new ArgumentNullException(nameof(getMacOsMachineId));
         this.getWindowsMachineId = getWindowsMachineId ?? throw new ArgumentNullException(nameof(getWindowsMachineId));
     }
@@ -66,6 +70,12 @@ public sealed class HostDetector : IResourceDetector
         }
 
         return Resource.Empty;
+    }
+
+    private static IEnumerable<string> GetFilePaths()
+    {
+        yield return ETC_MACHINEID;
+        yield return ETC_VAR_DBUS_MACHINEID;
     }
 
     private static string GetMachineIdMacOs()
@@ -108,7 +118,7 @@ public sealed class HostDetector : IResourceDetector
 
     private string GetMachineIdLinux()
     {
-        var paths = new[] { "/etc/machine-id", "/var/lib/dbus/machine-id" };
+        var paths = this.getFilePaths();
 
         foreach (var path in paths)
         {
