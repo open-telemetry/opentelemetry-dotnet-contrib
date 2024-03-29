@@ -80,20 +80,29 @@ public sealed class HostDetector : IResourceDetector
 
     private static string? GetMachineIdMacOs()
     {
-        var startInfo = new ProcessStartInfo
+        try
         {
-            FileName = "sh",
-            Arguments = "ioreg -rd1 -c IOPlatformExpertDevice | awk '/IOPlatformUUID/ { split($0, line, \"\\\"\"); printf(\"%s\\n\", line[4]); }'",
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            RedirectStandardOutput = true,
-        };
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "sh",
+                Arguments = "ioreg -rd1 -c IOPlatformExpertDevice | awk '/IOPlatformUUID/ { split($0, line, \"\\\"\"); printf(\"%s\\n\", line[4]); }'",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+            };
 
-        var sb = new StringBuilder();
-        using var process = Process.Start(startInfo);
-        process?.WaitForExit();
-        sb.Append(process?.StandardOutput.ReadToEnd());
-        return sb.ToString();
+            var sb = new StringBuilder();
+            using var process = Process.Start(startInfo);
+            process?.WaitForExit();
+            sb.Append(process?.StandardOutput.ReadToEnd());
+            return sb.ToString();
+        }
+        catch (Exception ex)
+        {
+            HostResourceEventSource.Log.ResourceAttributesExtractException(nameof(HostDetector), ex);
+        }
+
+        return null;
     }
 
 #pragma warning disable CA1416
@@ -101,7 +110,16 @@ public sealed class HostDetector : IResourceDetector
     // this type only exists in .NET 5+
     private static string? GetMachineIdWindows()
     {
-        return Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography", false)?.GetValue("MachineGuid") as string ?? null;
+        try
+        {
+            return Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography", false)?.GetValue("MachineGuid") as string ?? null;
+        }
+        catch (Exception ex)
+        {
+            HostResourceEventSource.Log.ResourceAttributesExtractException(nameof(HostDetector), ex);
+        }
+
+        return null;
     }
 #pragma warning restore CA1416
 
