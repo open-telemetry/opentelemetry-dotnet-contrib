@@ -57,11 +57,18 @@ public sealed class HostDetector : IResourceDetector
     {
         try
         {
-            return new Resource(new List<KeyValuePair<string, object>>(2)
+            var attributes = new List<KeyValuePair<string, object>>(2)
             {
                 new(HostSemanticConventions.AttributeHostName, Environment.MachineName),
-                new(HostSemanticConventions.AttributeHostId, this.GetMachineId()),
-            });
+            };
+            var machineId = this.GetMachineId();
+
+            if (!string.IsNullOrEmpty(machineId))
+            {
+                attributes.Add(new(HostSemanticConventions.AttributeHostId, machineId));
+            }
+
+            return new Resource(attributes);
         }
         catch (InvalidOperationException ex)
         {
