@@ -8,7 +8,6 @@ using System.Diagnostics.Metrics;
 using System.Linq;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
-using Google.Protobuf.WellKnownTypes;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using Xunit;
@@ -580,7 +579,7 @@ public class OtlpProtobufMetricExporterTests
             }
         }
 
-        for (int i= 0; i < expectedMetricPointCount; i++)
+        for (int i = 0; i < expectedMetricPointCount; i++)
         {
             histogram.Record(doubleValues[i], tags[i]);
         }
