@@ -78,7 +78,7 @@ public sealed class HostDetector : IResourceDetector
         yield return ETC_VAR_DBUS_MACHINEID;
     }
 
-    private static string GetMachineIdMacOs()
+    private static string? GetMachineIdMacOs()
     {
         var startInfo = new ProcessStartInfo
         {
@@ -99,20 +99,20 @@ public sealed class HostDetector : IResourceDetector
 #pragma warning disable CA1416
     // stylecop wants this protected by System.OperatingSystem.IsWindows
     // this type only exists in .NET 5+
-    private static string GetMachineIdWindows()
+    private static string? GetMachineIdWindows()
     {
-        return Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography", false)?.GetValue("MachineGuid") as string ?? string.Empty;
+        return Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography", false)?.GetValue("MachineGuid") as string ?? null;
     }
 #pragma warning restore CA1416
 
-    private string GetMachineId()
+    private string? GetMachineId()
     {
         return this.platformId switch
         {
             PlatformID.Unix => this.GetMachineIdLinux(),
             PlatformID.MacOSX => this.getMacOsMachineId(),
             PlatformID.Win32NT => this.getWindowsMachineId(),
-            _ => string.Empty,
+            _ => null,
         };
     }
 
@@ -135,6 +135,6 @@ public sealed class HostDetector : IResourceDetector
             }
         }
 
-        return string.Empty;
+        return null;
     }
 }
