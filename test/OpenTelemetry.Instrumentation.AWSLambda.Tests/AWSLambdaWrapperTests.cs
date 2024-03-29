@@ -234,8 +234,8 @@ public class AWSLambdaWrapperTests
         Assert.Equal("testfunction", activity.DisplayName);
         Assert.Equal("OpenTelemetry.Instrumentation.AWSLambda", activity.Source.Name);
 
-        // Version should consist of four decimals separated by dots.
-        Assert.Matches(@"^\d+(\.\d+){3}$", activity.Source.Version);
+        // Version should consist of 3 decimals separated by dots followed by optional pre-release suffix
+        Assert.Matches(@"^\d+(\.\d+){2}(-.+)?$", activity.Source.Version);
     }
 
     private void AssertResourceAttributes(Resource? resource)
