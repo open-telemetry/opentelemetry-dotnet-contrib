@@ -231,6 +231,217 @@ public class OtlpProtobufMetricExporterTests
     }
 
     [Theory]
+    [InlineData("updownlongcounter", 123L, null)]
+    [InlineData("updowndoublecounter", null, 123.45)]
+    [InlineData("updownlongcounter", -123L, null)]
+    [InlineData("updowndoublecounter", null, -123.45)]
+    public void UpdownCounterSerializationSingleMetricPoint(string instrumentName, long? longValue, double? doubleValue)
+    {
+        using var meter = new Meter(nameof(this.UpdownCounterSerializationSingleMetricPoint), "0.0.1");
+
+        var exportedItems = new List<Metric>();
+        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+        {
+            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+        };
+
+        var resourceBuilder = ResourceBuilder.CreateDefault().Clear()
+            .AddAttributes(new[] { new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue") });
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .SetResourceBuilder(resourceBuilder)
+            .AddMeter(nameof(this.UpdownCounterSerializationSingleMetricPoint))
+            .AddReader(inMemoryReader)
+        .Build();
+
+        if (longValue != null)
+        {
+            var counter = meter.CreateUpDownCounter<long>(instrumentName);
+            counter.Add(longValue.Value, new("tag1", "value1"), new("tag2", "value2"));
+        }
+        else
+        {
+            var counter = meter.CreateUpDownCounter<double>(instrumentName);
+            counter.Add(doubleValue.Value, new("tag1", "value1"), new("tag2", "value2"));
+        }
+
+        meterProvider.ForceFlush();
+
+        var buffer = new byte[65360];
+
+        var testTransport = new TestTransport();
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
+
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+
+        Assert.Single(testTransport.ExportedItems);
+
+        var request = new OtlpCollector.ExportMetricsServiceRequest();
+
+        request.MergeFrom(testTransport.ExportedItems[0]);
+
+        Assert.Single(request.ResourceMetrics);
+
+        Assert.NotNull(request.ResourceMetrics[0].Resource);
+
+        AssertOtlpAttributes([new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue")], request.ResourceMetrics[0].Resource.Attributes);
+
+        Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
+
+        var scope = request.ResourceMetrics[0].ScopeMetrics[0];
+
+        Assert.Equal(meter.Name, scope.Scope.Name);
+
+        Assert.Single(request.ResourceMetrics[0].ScopeMetrics[0].Metrics);
+
+        var metric = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0];
+
+        Assert.Equal(instrumentName, metric.Name);
+
+        Assert.NotNull(metric.Sum);
+
+        Assert.Equal(2, (int)metric.Sum.AggregationTemporality);
+
+        Assert.False(metric.Sum.IsMonotonic);
+
+        Assert.Single(metric.Sum.DataPoints);
+
+        var dataPoint = metric.Sum.DataPoints[0];
+
+        if (longValue != null)
+        {
+            Assert.Equal(longValue, dataPoint.AsInt);
+        }
+        else
+        {
+            Assert.Equal(doubleValue, dataPoint.AsDouble);
+        }
+
+        // Assert time
+        var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
+        metricPointsEnumerator.MoveNext();
+        var metricPoint = metricPointsEnumerator.Current;
+
+        Assert.Equal((ulong)metricPoint.StartTime.ToUnixTimeNanoseconds(), dataPoint.StartTimeUnixNano);
+
+        Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
+
+        AssertOtlpAttributes([new("tag1", "value1"), new("tag2", "value2")], dataPoint.Attributes);
+    }
+
+    [Theory]
+    [InlineData("updownlongcounter", new long[] { 10, 20, 30 }, null)]
+    [InlineData("updownlongcounter", new long[] { 10, -2, 30 }, null)]
+    [InlineData("updowndoublecounter", null, new double[] { 10.20, 2, 30.65 })]
+    [InlineData("updowndoublecounter", null, new double[] { -10.20, 2, -30.65 })]
+    public void UpdownCounterSerializationMultipleMetricPoints(string instrumentName, long[] longValues, double[] doubleValues)
+    {
+        using var meter = new Meter(nameof(this.UpdownCounterSerializationMultipleMetricPoints), "0.0.1");
+        var exportedItems = new List<Metric>();
+        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+        {
+            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+        };
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(nameof(this.UpdownCounterSerializationMultipleMetricPoints))
+            .AddReader(inMemoryReader)
+            .Build();
+
+        int expectedMetricPoints = longValues != null ? longValues.Length : doubleValues.Length;
+        TagList[] tags = new TagList[expectedMetricPoints];
+
+        for (int i = 0; i < tags.Length; i++)
+        {
+            for (int j = 1; j <= (i + 1); j++)
+            {
+                tags[i].Add(new("tag" + j, "value" + j));
+            }
+        }
+
+        if (longValues != null)
+        {
+            var counter = meter.CreateUpDownCounter<long>(instrumentName);
+
+            for (int i = 0; i < longValues.Length; i++)
+            {
+                counter.Add(longValues[i], tags[i]);
+            }
+        }
+        else
+        {
+            var counter = meter.CreateUpDownCounter<double>(instrumentName);
+
+            for (int i = 0; i < doubleValues.Length; i++)
+            {
+                counter.Add(doubleValues[i], tags[i]);
+            }
+        }
+
+        meterProvider.ForceFlush();
+
+        var buffer = new byte[65360];
+
+        var testTransport = new TestTransport();
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
+
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+
+        Assert.Equal(expectedMetricPoints, testTransport.ExportedItems.Count);
+
+        // For asserting time
+        var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
+
+        for (int i = 0; i < expectedMetricPoints; i++)
+        {
+            var request = new OtlpCollector.ExportMetricsServiceRequest();
+
+            request.MergeFrom(testTransport.ExportedItems[i]);
+
+            Assert.Single(request.ResourceMetrics);
+
+            Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
+
+            var scope = request.ResourceMetrics[0].ScopeMetrics[0];
+
+            Assert.Equal(meter.Name, scope.Scope.Name);
+
+            Assert.Single(request.ResourceMetrics[0].ScopeMetrics[0].Metrics);
+
+            var metric = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0];
+
+            Assert.Equal(instrumentName, metric.Name);
+
+            Assert.NotNull(metric.Sum);
+
+            Assert.Equal(2, (int)metric.Sum.AggregationTemporality);
+
+            Assert.False(metric.Sum.IsMonotonic);
+
+            Assert.Single(metric.Sum.DataPoints);
+
+            var dataPoint = metric.Sum.DataPoints[0];
+
+            if (longValues != null)
+            {
+                Assert.Equal(longValues[i], dataPoint.AsInt);
+            }
+            else
+            {
+                Assert.Equal(doubleValues[i], dataPoint.AsDouble);
+            }
+
+            metricPointsEnumerator.MoveNext();
+            var metricPoint = metricPointsEnumerator.Current;
+
+            Assert.Equal((ulong)metricPoint.StartTime.ToUnixTimeNanoseconds(), dataPoint.StartTimeUnixNano);
+
+            Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
+
+            AssertOtlpAttributes(tags[i], dataPoint.Attributes);
+        }
+    }
+
+    [Theory]
     [InlineData(123.45)]
     [InlineData(-123.45)]
     public void HistogramSerializationSingleMetricPoint(double doubleValue)
