@@ -57,7 +57,7 @@ public sealed class HostDetector : IResourceDetector
     {
         try
         {
-            return new Resource(new List<KeyValuePair<string, object>>(1)
+            return new Resource(new List<KeyValuePair<string, object>>(2)
             {
                 new(HostSemanticConventions.AttributeHostName, Environment.MachineName),
                 new(HostSemanticConventions.AttributeHostId, this.GetMachineId()),
