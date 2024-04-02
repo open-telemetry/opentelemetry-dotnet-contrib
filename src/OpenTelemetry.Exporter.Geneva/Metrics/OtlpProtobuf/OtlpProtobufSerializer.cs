@@ -165,26 +165,9 @@ internal sealed class OtlpProtobufSerializer
                             // Reset cursor to write new metricPoint
                             cursor = this.metricPointValueIndex;
 
-                            // Casting to ulong is ok here as the bit representation for long versus ulong will be the same
-                            // The difference would in the way the bit representation is interpreted on decoding side (signed versus unsigned)
-                            var sum = (ulong)metricPoint.GetSumLong();
+                            var sum = metricPoint.GetSumLong();
 
-                            ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.NumberDataPoint_as_int, sum);
-
-                            var startTime = (ulong)metricPoint.StartTime.ToUnixTimeNanoseconds();
-                            ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.NumberDataPoint_start_time_unix_nano, startTime);
-
-                            var endTime = (ulong)metricPoint.EndTime.ToUnixTimeNanoseconds();
-                            ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.NumberDataPoint_time_unix_nano, endTime);
-
-                            SerializeTags(buffer, ref cursor, metricPoint.Tags, FieldNumberConstants.NumberDataPoint_attributes);
-
-                            // TODO: exemplars.
-
-                            var metricPointStartPosition = this.metricPointTagAndLengthIndex;
-
-                            // Write numberdatapoint {Repeated field}
-                            ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref metricPointStartPosition, cursor - this.metricPointValueIndex, FieldNumberConstants.Sum_data_points, WireType.LEN);
+                            this.WriteNumberDataPoint(buffer, ref cursor, FieldNumberConstants.Sum_data_points, metricPoint, sum);
 
                             // Finish writing current batch
                             this.WriteIndividualMessageTagsAndLength(buffer, ref cursor, metric.MetricType);
@@ -223,22 +206,7 @@ internal sealed class OtlpProtobufSerializer
 
                             var sum = metricPoint.GetSumDouble();
 
-                            ProtobufSerializerHelper.WriteDoubleWithTag(buffer, ref cursor, FieldNumberConstants.NumberDataPoint_as_double, sum);
-
-                            var startTime = (ulong)metricPoint.StartTime.ToUnixTimeNanoseconds();
-                            ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.NumberDataPoint_start_time_unix_nano, startTime);
-
-                            var endTime = (ulong)metricPoint.EndTime.ToUnixTimeNanoseconds();
-                            ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.NumberDataPoint_time_unix_nano, endTime);
-
-                            SerializeTags(buffer, ref cursor, metricPoint.Tags, FieldNumberConstants.NumberDataPoint_attributes);
-
-                            // TODO: exemplars.
-
-                            var metricPointStartPosition = this.metricPointTagAndLengthIndex;
-
-                            // Write numberdatapoint {Repeated field}
-                            ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref metricPointStartPosition, cursor - this.metricPointValueIndex, FieldNumberConstants.Sum_data_points, WireType.LEN);
+                            this.WriteNumberDataPoint(buffer, ref cursor, FieldNumberConstants.Sum_data_points, metricPoint, sum);
 
                             // Finish writing current batch
                             this.WriteIndividualMessageTagsAndLength(buffer, ref cursor, metric.MetricType);
@@ -257,13 +225,65 @@ internal sealed class OtlpProtobufSerializer
 
             case MetricType.LongGauge:
                 {
-                    // TODO
+                    cursor = this.instrumentValueIndex;
+
+                    this.metricPointTagAndLengthIndex = cursor;
+                    this.metricPointValueIndex = cursor + TagAndLengthSize;
+                    foreach (var metricPoint in metric.GetMetricPoints())
+                    {
+                        try
+                        {
+                            // Reset cursor to write new metricPoint
+                            cursor = this.metricPointValueIndex;
+
+                            var lastValue = metricPoint.GetGaugeLastValueLong();
+
+                            this.WriteNumberDataPoint(buffer, ref cursor, FieldNumberConstants.Gauge_data_points, metricPoint, lastValue);
+
+                            // Finish writing current batch
+                            this.WriteIndividualMessageTagsAndLength(buffer, ref cursor, metric.MetricType);
+
+                            // Send metricPoint
+                            this.SendMetricPoint(buffer, ref cursor);
+                        }
+                        catch
+                        {
+                            // TODO: log exception.
+                        }
+                    }
+
                     break;
                 }
 
             case MetricType.DoubleGauge:
                 {
-                    // TODO
+                    cursor = this.instrumentValueIndex;
+
+                    this.metricPointTagAndLengthIndex = cursor;
+                    this.metricPointValueIndex = cursor + TagAndLengthSize;
+                    foreach (var metricPoint in metric.GetMetricPoints())
+                    {
+                        try
+                        {
+                            // Reset cursor to write new metricPoint
+                            cursor = this.metricPointValueIndex;
+
+                            var lastValue = metricPoint.GetGaugeLastValueDouble();
+
+                            this.WriteNumberDataPoint(buffer, ref cursor, FieldNumberConstants.Gauge_data_points, metricPoint, lastValue);
+
+                            // Finish writing current batch
+                            this.WriteIndividualMessageTagsAndLength(buffer, ref cursor, metric.MetricType);
+
+                            // Send metricPoint
+                            this.SendMetricPoint(buffer, ref cursor);
+                        }
+                        catch
+                        {
+                            // TODO: log exception.
+                        }
+                    }
+
                     break;
                 }
 
@@ -318,7 +338,7 @@ internal sealed class OtlpProtobufSerializer
 
                             var metricPointStartPosition = this.metricPointTagAndLengthIndex;
 
-                            // Write numberdatapoint {Repeated field}
+                            // Write histogramdatapoint {Repeated field}
                             ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref metricPointStartPosition, cursor - this.metricPointValueIndex, FieldNumberConstants.Histogram_data_points, WireType.LEN);
 
                             // Finish writing current batch
@@ -329,6 +349,7 @@ internal sealed class OtlpProtobufSerializer
                         }
                         catch
                         {
+                            // TODO: log exception.
                         }
                     }
 
@@ -341,6 +362,35 @@ internal sealed class OtlpProtobufSerializer
                     break;
                 }
         }
+    }
+
+    private void WriteNumberDataPoint<T>(byte[] buffer, ref int cursor, int fieldNumber, MetricPoint metricPoint, T value)
+    {
+        if (typeof(T) == typeof(long))
+        {
+            // Casting to ulong is ok here as the bit representation for long versus ulong will be the same
+            // The difference would in the way the bit representation is interpreted on decoding side (signed versus unsigned)
+            ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.NumberDataPoint_as_int, (ulong)(long)(object)value);
+        }
+        else if (typeof(T) == typeof(double))
+        {
+            ProtobufSerializerHelper.WriteDoubleWithTag(buffer, ref cursor, FieldNumberConstants.NumberDataPoint_as_double, (double)(object)value);
+        }
+
+        var startTime = (ulong)metricPoint.StartTime.ToUnixTimeNanoseconds();
+        ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.NumberDataPoint_start_time_unix_nano, startTime);
+
+        var endTime = (ulong)metricPoint.EndTime.ToUnixTimeNanoseconds();
+        ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.NumberDataPoint_time_unix_nano, endTime);
+
+        SerializeTags(buffer, ref cursor, metricPoint.Tags, FieldNumberConstants.NumberDataPoint_attributes);
+
+        // TODO: exemplars.
+
+        var metricPointStartPosition = this.metricPointTagAndLengthIndex;
+
+        // Write numberdatapoint {Repeated field}
+        ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref metricPointStartPosition, cursor - this.metricPointValueIndex, fieldNumber, WireType.LEN);
     }
 
     private void WriteIndividualMessageTagsAndLength(byte[] buffer, ref int cursor, MetricType metricType)
