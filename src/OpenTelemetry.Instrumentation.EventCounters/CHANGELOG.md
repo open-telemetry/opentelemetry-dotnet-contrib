@@ -4,6 +4,8 @@
 
 * Update `OpenTelemetry.Api` to `1.7.0`.
   ([#1486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1486))
+* `Meter.Version` is set to NuGet package version.
+  ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
 
 ## 1.5.1-alpha.1
 
