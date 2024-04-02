@@ -15,7 +15,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters;
 /// </summary>
 internal sealed class EventCountersMetrics : EventListener
 {
-    internal static readonly Meter MeterInstance = new(typeof(EventCountersMetrics).Assembly.GetName().Name, typeof(EventCountersMetrics).Assembly.GetName().Version.ToString());
+    internal static readonly Meter MeterInstance = new(typeof(EventCountersMetrics).Assembly.GetName().Name, SignalVersionHelper.GetVersion<EventCountersMetrics>());
 
     private const string Prefix = "ec";
     private const int MaxInstrumentNameLength = 63;
