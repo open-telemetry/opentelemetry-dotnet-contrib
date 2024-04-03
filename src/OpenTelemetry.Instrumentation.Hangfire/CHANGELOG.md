@@ -2,9 +2,9 @@
 
 ## Unreleased
 
-* Update `OpenTelemetry.Api.ProviderBuilderExtensions` to `1.7.0`.
-  * Update `OpenTelemetry.Api` to `1.7.0`.
-  ([#1508](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1508))
+* Update `OpenTelemetry.Api.ProviderBuilderExtensions` to `1.8.0`.
+  * Update `OpenTelemetry.Api` to `1.8.0`.
+  ([#1635](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1635))
 * `ActivitySource.Version` is set to NuGet package version.
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
 
