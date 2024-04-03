@@ -4,12 +4,10 @@
 
 * Make the context propagation extraction case insensitive.
   ([#483](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/483))
-* Update OpenTelemetry.Api to 1.6.0.
-  ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
 * Update minimal supported  version of `Google.Protobuf` to `3.15.0`.
   ([#1456](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1456))
-* Update `OpenTelemetry.Api` to `1.7.0`.
-  ([#1486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1486))
+* Update `OpenTelemetry.Api` to `1.8.0`.
+  ([#1635](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1635))
 * `ActivitySource.Version` is set to NuGet package version.
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
 

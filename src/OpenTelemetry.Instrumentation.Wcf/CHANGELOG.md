@@ -4,6 +4,8 @@
 
 * `ActivitySource.Version` is set to NuGet package version.
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
+* Update OpenTelemetry SDK version to `1.8.0`.
+  ([#1635](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1635))
 
 ## 1.0.0-rc.15
 
