@@ -11,6 +11,7 @@ using OpenTelemetry.Exporter.Geneva.Metrics;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 
+/*
 // * Summary *
 
 BenchmarkDotNet v0.13.12, Windows 11 (10.0.22631.3296/23H2/2023Update/SunValley3)
@@ -46,6 +47,7 @@ BenchmarkDotNet v0.13.12, Windows 11 (10.0.22631.3296/23H2/2023Update/SunValley3
 | SerializeHistogramMetricItemWith4Dimensions_Otlp         | 285.66 ns | 5.285 ns | 5.191 ns | 0.0038 |      48 B |
 | ExportHistogramMetricItemWith3Dimensions_Otlp            | 489.10 ns | 9.641 ns | 9.901 ns | 0.0038 |      48 B |
 | ExportHistogramMetricItemWith4Dimensions_Otlp            | 513.72 ns | 7.481 ns | 6.998 ns | 0.0038 |      48 B |
+*/
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark;
 
