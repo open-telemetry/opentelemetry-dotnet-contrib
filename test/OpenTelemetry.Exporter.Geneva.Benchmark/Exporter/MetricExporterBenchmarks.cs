@@ -112,6 +112,8 @@ public class MetricExporterBenchmarks
         var exporterOptions = new GenevaMetricExporterOptions() { ConnectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace" };
         var connectionStringBuilder = new ConnectionStringBuilder(exporterOptions.ConnectionString);
         this.tlvMetricsExporter = new TlvMetricExporter(connectionStringBuilder, exporterOptions.PrepopulatedMetricDimensions);
+
+        // Using test transport here with noop to benchmark just the serialization part.
         this.otlpProtobufSerializer = new OtlpProtobufSerializer(new TestTransport());
 
         var resourceBuilder = ResourceBuilder.CreateDefault().Clear()
