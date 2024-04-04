@@ -9,33 +9,44 @@ using System.Threading;
 using BenchmarkDotNet.Attributes;
 using OpenTelemetry.Exporter.Geneva.Metrics;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 
 /*
-BenchmarkDotNet v0.13.10, Windows 11 (10.0.23424.1000)
-Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
-.NET SDK 8.0.100
-  [Host]     : .NET 8.0.0 (8.0.23.53103), X64 RyuJIT AVX2
-  DefaultJob : .NET 8.0.0 (8.0.23.53103), X64 RyuJIT AVX2
+// * Summary *
+
+BenchmarkDotNet v0.13.12, Windows 11 (10.0.22631.3296/23H2/2023Update/SunValley3)
+13th Gen Intel Core i9-13900H, 1 CPU, 20 logical and 14 physical cores
+.NET SDK 8.0.202
+  [Host]     : .NET 8.0.3 (8.0.324.11423), X64 RyuJIT AVX2
+  DefaultJob : .NET 8.0.3 (8.0.324.11423), X64 RyuJIT AVX2
 
 
-| Method                                                   | Mean      | Error     | StdDev    | Allocated |
-|--------------------------------------------------------- |----------:|----------:|----------:|----------:|
-| InstrumentWithNoListener3Dimensions                      |  23.83 ns |  0.080 ns |  0.075 ns |         - |
-| InstrumentWithNoListener4Dimensions                      |  56.71 ns |  0.730 ns |  0.647 ns |         - |
-| InstrumentWithWithListener3Dimensions                    |  24.46 ns |  0.257 ns |  0.215 ns |         - |
-| InstrumentWithWithListener4Dimensions                    |  59.02 ns |  0.501 ns |  0.444 ns |         - |
-| InstrumentWithWithDummyReader3Dimensions                 | 139.70 ns |  1.189 ns |  1.113 ns |         - |
-| InstrumentWithWithDummyReader4Dimensions                 | 184.76 ns |  2.012 ns |  1.680 ns |         - |
-| InstrumentWithWithGenevaCounterMetricExporter3Dimensions | 135.76 ns |  0.995 ns |  0.831 ns |         - |
-| InstrumentWithWithGenevaCounterMetricExporter4Dimensions | 193.14 ns |  1.507 ns |  1.336 ns |         - |
-| SerializeCounterMetricItemWith3Dimensions                | 165.27 ns |  1.000 ns |  0.887 ns |         - |
-| SerializeCounterMetricItemWith4Dimensions                | 191.13 ns |  1.201 ns |  1.003 ns |         - |
-| ExportCounterMetricItemWith3Dimensions                   | 657.63 ns | 13.019 ns | 13.369 ns |         - |
-| ExportCounterMetricItemWith4Dimensions                   | 682.76 ns | 13.598 ns | 32.318 ns |         - |
-| SerializeHistogramMetricItemWith3Dimensions              | 285.39 ns |  4.195 ns |  3.503 ns |         - |
-| SerializeHistogramMetricItemWith4Dimensions              | 303.15 ns |  3.834 ns |  3.587 ns |         - |
-| ExportHistogramMetricItemWith3Dimensions                 | 803.90 ns | 14.753 ns | 36.465 ns |         - |
-| ExportHistogramMetricItemWith4Dimensions                 | 810.62 ns | 14.445 ns | 11.278 ns |         - |
+| Method                                                   | Mean      | Error    | StdDev   | Gen0   | Allocated |
+|--------------------------------------------------------- |----------:|---------:|---------:|-------:|----------:|
+| InstrumentWithNoListener3Dimensions                      |  13.22 ns | 0.035 ns | 0.033 ns |      - |         - |
+| InstrumentWithNoListener4Dimensions                      |  31.12 ns | 0.386 ns | 0.361 ns |      - |         - |
+| InstrumentWithWithListener3Dimensions                    |  13.69 ns | 0.036 ns | 0.034 ns |      - |         - |
+| InstrumentWithWithListener4Dimensions                    |  30.90 ns | 0.276 ns | 0.258 ns |      - |         - |
+| InstrumentWithWithDummyReader3Dimensions                 |  66.19 ns | 0.473 ns | 0.442 ns |      - |         - |
+| InstrumentWithWithDummyReader4Dimensions                 |  94.12 ns | 1.274 ns | 1.191 ns |      - |         - |
+| InstrumentWithWithGenevaCounterMetricExporter3Dimensions |  68.57 ns | 0.489 ns | 0.457 ns |      - |         - |
+| InstrumentWithWithGenevaCounterMetricExporter4Dimensions |  94.61 ns | 0.672 ns | 0.595 ns |      - |         - |
+| SerializeCounterMetricItemWith3Dimensions                |  84.15 ns | 0.660 ns | 0.585 ns |      - |         - |
+| SerializeCounterMetricItemWith4Dimensions                |  94.97 ns | 1.129 ns | 1.056 ns |      - |         - |
+| ExportCounterMetricItemWith3Dimensions                   | 236.62 ns | 2.071 ns | 1.836 ns |      - |         - |
+| ExportCounterMetricItemWith4Dimensions                   | 254.66 ns | 2.884 ns | 2.697 ns |      - |         - |
+| SerializeHistogramMetricItemWith3Dimensions              | 142.76 ns | 2.709 ns | 2.534 ns |      - |         - |
+| SerializeHistogramMetricItemWith4Dimensions              | 156.16 ns | 2.884 ns | 2.698 ns |      - |         - |
+| ExportHistogramMetricItemWith3Dimensions                 | 329.75 ns | 3.602 ns | 3.369 ns |      - |         - |
+| ExportHistogramMetricItemWith4Dimensions                 | 325.98 ns | 6.001 ns | 5.614 ns |      - |         - |
+| SerializeCounterMetricItemWith3Dimensions_Otlp           | 227.27 ns | 3.010 ns | 2.815 ns | 0.0038 |      48 B |
+| SerializeCounterMetricItemWith4Dimensions_Otlp           | 260.18 ns | 5.151 ns | 6.131 ns | 0.0038 |      48 B |
+| ExportCounterMetricItemWith3Dimensions_Otlp              | 407.64 ns | 4.364 ns | 3.868 ns | 0.0038 |      48 B |
+| ExportCounterMetricItemWith4Dimensions_Otlp              | 435.45 ns | 8.376 ns | 8.226 ns | 0.0038 |      48 B |
+| SerializeHistogramMetricItemWith3Dimensions_Otlp         | 261.77 ns | 5.108 ns | 5.883 ns | 0.0038 |      48 B |
+| SerializeHistogramMetricItemWith4Dimensions_Otlp         | 285.66 ns | 5.285 ns | 5.191 ns | 0.0038 |      48 B |
+| ExportHistogramMetricItemWith3Dimensions_Otlp            | 489.10 ns | 9.641 ns | 9.901 ns | 0.0038 |      48 B |
+| ExportHistogramMetricItemWith4Dimensions_Otlp            | 513.72 ns | 7.481 ns | 6.998 ns | 0.0038 |      48 B |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmark;
@@ -81,6 +92,10 @@ public class MetricExporterBenchmarks
     private MeterProvider meterProviderForHistogramBatchWith3Dimensions;
     private MeterProvider meterProviderForHistogramBatchWith4Dimensions;
     private TlvMetricExporter tlvMetricsExporter;
+    private OtlpProtobufMetricExporter otlpProtobufMetricExporter;
+    private OtlpProtobufSerializer otlpProtobufSerializer;
+    private Resource resource;
+    private byte[] buffer;
     private ThreadLocal<Random> random = new ThreadLocal<Random>(() => new Random());
 
     private static readonly Random randomForHistogram = new Random(); // Use the same seed for all the benchmarks to have the same data exported
@@ -97,6 +112,15 @@ public class MetricExporterBenchmarks
         var exporterOptions = new GenevaMetricExporterOptions() { ConnectionString = "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace" };
         var connectionStringBuilder = new ConnectionStringBuilder(exporterOptions.ConnectionString);
         this.tlvMetricsExporter = new TlvMetricExporter(connectionStringBuilder, exporterOptions.PrepopulatedMetricDimensions);
+
+        // Using test transport here with noop to benchmark just the serialization part.
+        this.otlpProtobufSerializer = new OtlpProtobufSerializer(new TestTransport());
+
+        var resourceBuilder = ResourceBuilder.CreateDefault().Clear()
+           .AddAttributes(new[] { new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue") });
+        this.resource = resourceBuilder.Build();
+        this.otlpProtobufMetricExporter = new OtlpProtobufMetricExporter(() => { return this.resource; });
+        this.buffer = new byte[GenevaMetricExporter.BufferSize];
 
         this.counterMetricPointWith3Dimensions = this.GenerateCounterMetricItemWith3Dimensions(out this.counterMetricDataWith3Dimensions);
         this.counterMetricPointWith4Dimensions = this.GenerateCounterMetricItemWith4Dimensions(out this.counterMetricDataWith4Dimensions);
@@ -448,6 +472,7 @@ public class MetricExporterBenchmarks
         this.meterProviderForHistogramBatchWith3Dimensions?.Dispose();
         this.meterProviderForHistogramBatchWith4Dimensions?.Dispose();
         this.tlvMetricsExporter?.Dispose();
+        this.otlpProtobufMetricExporter?.Dispose();
     }
 
     [Benchmark]
@@ -640,6 +665,54 @@ public class MetricExporterBenchmarks
         this.tlvMetricsExporter.Export(this.histogramMetricBatchWith4Dimensions);
     }
 
+    [Benchmark]
+    public void SerializeCounterMetricItemWith3Dimensions_Otlp()
+    {
+        this.otlpProtobufSerializer.SerializeAndSendMetrics(this.buffer, this.resource, this.counterMetricBatchWith3Dimensions);
+    }
+
+    [Benchmark]
+    public void SerializeCounterMetricItemWith4Dimensions_Otlp()
+    {
+        this.otlpProtobufSerializer.SerializeAndSendMetrics(this.buffer, this.resource, this.counterMetricBatchWith4Dimensions);
+    }
+
+    [Benchmark]
+    public void ExportCounterMetricItemWith3Dimensions_Otlp()
+    {
+        this.otlpProtobufMetricExporter.Export(this.counterMetricBatchWith3Dimensions);
+    }
+
+    [Benchmark]
+    public void ExportCounterMetricItemWith4Dimensions_Otlp()
+    {
+        this.otlpProtobufMetricExporter.Export(this.counterMetricBatchWith4Dimensions);
+    }
+
+    [Benchmark]
+    public void SerializeHistogramMetricItemWith3Dimensions_Otlp()
+    {
+        this.otlpProtobufSerializer.SerializeAndSendMetrics(this.buffer, this.resource, this.histogramMetricBatchWith3Dimensions);
+    }
+
+    [Benchmark]
+    public void SerializeHistogramMetricItemWith4Dimensions_Otlp()
+    {
+        this.otlpProtobufSerializer.SerializeAndSendMetrics(this.buffer, this.resource, this.histogramMetricBatchWith4Dimensions);
+    }
+
+    [Benchmark]
+    public void ExportHistogramMetricItemWith3Dimensions_Otlp()
+    {
+        this.otlpProtobufMetricExporter.Export(this.histogramMetricBatchWith3Dimensions);
+    }
+
+    [Benchmark]
+    public void ExportHistogramMetricItemWith4Dimensions_Otlp()
+    {
+        this.otlpProtobufMetricExporter.Export(this.histogramMetricBatchWith4Dimensions);
+    }
+
     private class DummyReader : BaseExportingMetricReader
     {
         public DummyReader(BaseExporter<Metric> exporter)
@@ -664,6 +737,23 @@ public class MetricExporterBenchmarks
         {
             this.Batch = batch;
             return ExportResult.Success;
+        }
+    }
+
+    private class TestTransport : IMetricDataTransport
+    {
+        public void SendOtlpProtobufEvent(byte[] body, int size)
+        {
+            // Drop
+        }
+
+        public void Send(MetricEventType eventType, byte[] body, int size)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Dispose()
+        {
         }
     }
 }
