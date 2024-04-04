@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.8.0-beta.1
+
+Released 2024-Apr-05
+
 * **Breaking Change**: Renamed `AspNetInstrumentationOptions` to
   `AspNetTraceInstrumentationOptions`.
   ([#1604](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1604))

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.8.0
+
+Released 2024-Apr-05
+
 * `Meter.Version` is set to NuGet package version.
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
 * Update `OpenTelemetry.Api` to `1.8.0`.
