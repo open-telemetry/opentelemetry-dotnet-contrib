@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-beta.11
+
+Released 2024-Apr-05
+
 * Update OpenTelemetry SDK version to `1.8.0`.
   ([#1635](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1635))
 

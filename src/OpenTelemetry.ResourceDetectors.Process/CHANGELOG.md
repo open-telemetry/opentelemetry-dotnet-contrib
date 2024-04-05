@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.3
+
+Released 2024-Apr-05
+
 * Added `process.owner` attribute.
   ([#1608](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1608))
 * Update OpenTelemetry SDK version to `1.8.0`.
