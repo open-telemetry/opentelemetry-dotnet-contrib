@@ -891,6 +891,82 @@ public class OtlpProtobufMetricExporterTests
         }
     }
 
+    [Fact]
+    public void CounterSerializationSingleMetricPoint_MultipleDataTypes()
+    {
+        using var meter = new Meter(nameof(this.CounterSerializationSingleMetricPoint_MultipleDataTypes), "0.0.1");
+
+        var exportedItems = new List<Metric>();
+        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+        {
+            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+        };
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(nameof(this.CounterSerializationSingleMetricPoint_MultipleDataTypes))
+            .AddReader(inMemoryReader)
+            .Build();
+
+        sbyte sByteValue = sbyte.MaxValue;
+        sbyte negativeSbyteValue = sbyte.MinValue;
+        int intValue = 29;
+        uint uintValue = uint.MaxValue;
+        int negativeIntValue = -29;
+        short shortValue = short.MaxValue;
+        ushort ushortValue = ushort.MaxValue;
+        short negativeShortValue = -12;
+        ulong ulongValue = 1234;
+
+        TagList tagList = default;
+
+        // Keep the keys in sorted order, Sdk outputs them in sorted order.
+        tagList.Add(new("intKey", intValue));
+        tagList.Add(new("negativeByteKey", negativeSbyteValue));
+        tagList.Add(new("negativeIntKey", negativeIntValue));
+        tagList.Add(new("negativeShortKey", negativeShortValue));
+        tagList.Add(new("sByteKey", sByteValue));
+        tagList.Add(new("shortKey", shortValue));
+        tagList.Add(new("uintKey", uintValue));
+        tagList.Add(new("ulongKey", ulongValue));
+        tagList.Add(new("ushortKey", ushortValue));
+
+        var counter = meter.CreateCounter<long>("LongCounter");
+        counter.Add(1, tagList);
+
+        meterProvider.ForceFlush();
+
+        var buffer = new byte[65360];
+
+        var testTransport = new TestTransport();
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
+
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+
+        Assert.Single(testTransport.ExportedItems);
+
+        var request = new OtlpCollector.ExportMetricsServiceRequest();
+
+        request.MergeFrom(testTransport.ExportedItems[0]);
+
+        Assert.Single(request.ResourceMetrics);
+
+        Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
+
+        Assert.Single(request.ResourceMetrics[0].ScopeMetrics[0].Metrics);
+
+        var metric = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0];
+
+        Assert.NotNull(metric.Sum);
+
+        Assert.Single(metric.Sum.DataPoints);
+
+        var dataPoint = metric.Sum.DataPoints[0];
+
+        Assert.Equal(1, dataPoint.AsInt);
+
+        AssertOtlpAttributes(tagList, dataPoint.Attributes);
+    }
+
     internal static void AssertOtlpAttributes(
         IEnumerable<KeyValuePair<string, object>> expected,
         RepeatedField<OtlpCommon.KeyValue> actual)
@@ -902,8 +978,6 @@ public class OtlpProtobufMetricExporterTests
         {
             var current = expectedAttributes[i].Value;
 
-            // This is a side effect of writing data in buffer from end to beginning
-            // Elements are in reverse order.
             Assert.Equal(expectedAttributes[i].Key, actual[i].Key);
             Assert.Equal(expectedAttributes[i].Key, actual[i].Key);
             AssertOtlpAttributeValue(current, actual[i].Value);
@@ -931,6 +1005,21 @@ public class OtlpProtobufMetricExporterTests
                 break;
             case int i:
                 Assert.Equal(i, actual.IntValue);
+                break;
+            case uint u:
+                Assert.Equal(u, actual.IntValue);
+                break;
+            case ushort us:
+                Assert.Equal(us, actual.IntValue);
+                break;
+            case short s:
+                Assert.Equal(s, actual.IntValue);
+                break;
+            case ulong ul:
+                Assert.Equal(ul, (ulong)actual.IntValue);
+                break;
+            case sbyte sb:
+                Assert.Equal(sb, actual.IntValue);
                 break;
             default:
                 Assert.Equal(expected.ToString(), actual.StringValue);
