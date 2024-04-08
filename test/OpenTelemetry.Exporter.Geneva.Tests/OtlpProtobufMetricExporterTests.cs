@@ -18,6 +18,42 @@ namespace OpenTelemetry.Exporter.Geneva.Tests;
 
 public class OtlpProtobufMetricExporterTests
 {
+    public TagList TagList;
+
+    public OtlpProtobufMetricExporterTests()
+    {
+        this.TagList = default;
+
+        double doubleValue = 23.45;
+        int intValue = 29;
+        long longValue = 345;
+        double negativeDoubleValue = -23.45;
+        int negativeIntValue = -29;
+        long negativeLongValue = -97;
+        sbyte negativeSbyteValue = sbyte.MinValue;
+        short negativeShortValue = -12;
+        sbyte sByteValue = sbyte.MaxValue;
+        short shortValue = short.MaxValue;
+        uint uintValue = uint.MaxValue;
+        ulong ulongValue = 1234;
+        ushort ushortValue = ushort.MaxValue;
+
+        // Keep the keys in sorted order, Sdk outputs them in sorted order.
+        this.TagList.Add(new("doubleKey", doubleValue));
+        this.TagList.Add(new("intKey", intValue));
+        this.TagList.Add(new("longKey", longValue));
+        this.TagList.Add(new("negativeDoubleKey", negativeDoubleValue));
+        this.TagList.Add(new("negativeIntKey", negativeIntValue));
+        this.TagList.Add(new("negativeLongKey", negativeLongValue));
+        this.TagList.Add(new("negativeSbyteKey", negativeSbyteValue));
+        this.TagList.Add(new("negativeShortKey", negativeShortValue));
+        this.TagList.Add(new("sByteKey", sByteValue));
+        this.TagList.Add(new("shortKey", shortValue));
+        this.TagList.Add(new("uintKey", uintValue));
+        this.TagList.Add(new("ulongKey", ulongValue));
+        this.TagList.Add(new("ushortKey", ushortValue));
+    }
+
     [Theory]
     [InlineData("longcounter", 123L, null)]
     [InlineData("doublecounter", null, 123.45)]
@@ -44,12 +80,12 @@ public class OtlpProtobufMetricExporterTests
         if (longValue != null)
         {
             var counter = meter.CreateCounter<long>(instrumentName);
-            counter.Add(longValue.Value, new("tag1", "value1"), new("tag2", "value2"));
+            counter.Add(longValue.Value, this.TagList);
         }
         else
         {
             var counter = meter.CreateCounter<double>(instrumentName);
-            counter.Add(doubleValue.Value, new("tag1", "value1"), new("tag2", "value2"));
+            counter.Add(doubleValue.Value, this.TagList);
         }
 
         meterProvider.ForceFlush();
@@ -113,7 +149,7 @@ public class OtlpProtobufMetricExporterTests
 
         Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
 
-        AssertOtlpAttributes([new("tag1", "value1"), new("tag2", "value2")], dataPoint.Attributes);
+        AssertOtlpAttributes(this.TagList, dataPoint.Attributes);
     }
 
     [Theory]
@@ -255,12 +291,12 @@ public class OtlpProtobufMetricExporterTests
         if (longValue != null)
         {
             var counter = meter.CreateUpDownCounter<long>(instrumentName);
-            counter.Add(longValue.Value, new("tag1", "value1"), new("tag2", "value2"));
+            counter.Add(longValue.Value, this.TagList);
         }
         else
         {
             var counter = meter.CreateUpDownCounter<double>(instrumentName);
-            counter.Add(doubleValue.Value, new("tag1", "value1"), new("tag2", "value2"));
+            counter.Add(doubleValue.Value, this.TagList);
         }
 
         meterProvider.ForceFlush();
@@ -324,7 +360,7 @@ public class OtlpProtobufMetricExporterTests
 
         Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
 
-        AssertOtlpAttributes([new("tag1", "value1"), new("tag2", "value2")], dataPoint.Attributes);
+        AssertOtlpAttributes(this.TagList, dataPoint.Attributes);
     }
 
     [Theory]
@@ -462,7 +498,7 @@ public class OtlpProtobufMetricExporterTests
         .Build();
 
         var histogram = meter.CreateHistogram<double>("TestHistogram");
-        histogram.Record(doubleValue, new("tag1", "value1"), new("tag2", "value2"));
+        histogram.Record(doubleValue, this.TagList);
 
         meterProvider.ForceFlush();
 
@@ -542,7 +578,7 @@ public class OtlpProtobufMetricExporterTests
 
         Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
 
-        AssertOtlpAttributes([new("tag1", "value1"), new("tag2", "value2")], dataPoint.Attributes);
+        AssertOtlpAttributes(this.TagList, dataPoint.Attributes);
     }
 
     [Theory]
@@ -695,7 +731,7 @@ public class OtlpProtobufMetricExporterTests
                 instrumentName,
                 () => new List<Measurement<long>>()
                 {
-                    new(longValue.Value, new("tag1", "value1"), new("tag2", "value2")),
+                    new(longValue.Value, this.TagList),
                 });
         }
         else
@@ -704,7 +740,7 @@ public class OtlpProtobufMetricExporterTests
                 instrumentName,
                 () => new List<Measurement<double>>()
                 {
-                new(doubleValue.Value, new("tag1", "value1"), new("tag2", "value2")),
+                new(doubleValue.Value, this.TagList),
                 });
         }
 
@@ -765,7 +801,7 @@ public class OtlpProtobufMetricExporterTests
 
         Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
 
-        AssertOtlpAttributes([new("tag1", "value1"), new("tag2", "value2")], dataPoint.Attributes);
+        AssertOtlpAttributes(this.TagList, dataPoint.Attributes);
     }
 
     [Theory]
@@ -889,82 +925,6 @@ public class OtlpProtobufMetricExporterTests
 
             AssertOtlpAttributes(tags[i], dataPoint.Attributes);
         }
-    }
-
-    [Fact]
-    public void CounterSerializationSingleMetricPoint_MultipleDataTypes()
-    {
-        using var meter = new Meter(nameof(this.CounterSerializationSingleMetricPoint_MultipleDataTypes), "0.0.1");
-
-        var exportedItems = new List<Metric>();
-        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
-        {
-            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
-        };
-
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddMeter(nameof(this.CounterSerializationSingleMetricPoint_MultipleDataTypes))
-            .AddReader(inMemoryReader)
-            .Build();
-
-        sbyte sByteValue = sbyte.MaxValue;
-        sbyte negativeSbyteValue = sbyte.MinValue;
-        int intValue = 29;
-        uint uintValue = uint.MaxValue;
-        int negativeIntValue = -29;
-        short shortValue = short.MaxValue;
-        ushort ushortValue = ushort.MaxValue;
-        short negativeShortValue = -12;
-        ulong ulongValue = 1234;
-
-        TagList tagList = default;
-
-        // Keep the keys in sorted order, Sdk outputs them in sorted order.
-        tagList.Add(new("intKey", intValue));
-        tagList.Add(new("negativeByteKey", negativeSbyteValue));
-        tagList.Add(new("negativeIntKey", negativeIntValue));
-        tagList.Add(new("negativeShortKey", negativeShortValue));
-        tagList.Add(new("sByteKey", sByteValue));
-        tagList.Add(new("shortKey", shortValue));
-        tagList.Add(new("uintKey", uintValue));
-        tagList.Add(new("ulongKey", ulongValue));
-        tagList.Add(new("ushortKey", ushortValue));
-
-        var counter = meter.CreateCounter<long>("LongCounter");
-        counter.Add(1, tagList);
-
-        meterProvider.ForceFlush();
-
-        var buffer = new byte[65360];
-
-        var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
-
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
-
-        Assert.Single(testTransport.ExportedItems);
-
-        var request = new OtlpCollector.ExportMetricsServiceRequest();
-
-        request.MergeFrom(testTransport.ExportedItems[0]);
-
-        Assert.Single(request.ResourceMetrics);
-
-        Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
-
-        Assert.Single(request.ResourceMetrics[0].ScopeMetrics[0].Metrics);
-
-        var metric = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0];
-
-        Assert.NotNull(metric.Sum);
-
-        Assert.Single(metric.Sum.DataPoints);
-
-        var dataPoint = metric.Sum.DataPoints[0];
-
-        Assert.Equal(1, dataPoint.AsInt);
-
-        AssertOtlpAttributes(tagList, dataPoint.Attributes);
     }
 
     internal static void AssertOtlpAttributes(
