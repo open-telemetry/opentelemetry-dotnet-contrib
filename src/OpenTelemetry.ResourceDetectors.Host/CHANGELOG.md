@@ -3,7 +3,7 @@
 ## Unreleased
 
 * Adds support for `host.id` resource attribute on non-containerized systems.
-`host.id` will be set per [semantic convention rules](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/resource/host.md)
+`host.id` will be set per [semantic convention rules](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/resource/host.md)
   ([#1631](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1631))
 
 ## 0.1.0-alpha.3
