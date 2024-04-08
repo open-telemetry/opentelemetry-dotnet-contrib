@@ -52,7 +52,8 @@ public class HostDetectorTests
             if (string.IsNullOrEmpty(expected))
             {
                 Assert.Empty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
-            } else
+            }
+            else
             {
                 Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
                 Assert.Equal(expected, resourceAttributes[HostSemanticConventions.AttributeHostId]);
