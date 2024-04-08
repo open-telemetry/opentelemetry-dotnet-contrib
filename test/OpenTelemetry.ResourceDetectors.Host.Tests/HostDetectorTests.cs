@@ -15,7 +15,7 @@ public class HostDetectorTests
 {
     private static readonly IEnumerable<string> ETC_MACHINEID = new[] { "Samples/etc_machineid" };
     private static readonly IEnumerable<string> ETC_VAR_DBUS_MACHINEID = new[] { "Samples/etc_var_dbus_machineid" };
- 
+
     [Fact]
     public void TestHostAttributes()
     {
