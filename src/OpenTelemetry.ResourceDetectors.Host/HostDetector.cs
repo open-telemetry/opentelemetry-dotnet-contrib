@@ -20,8 +20,8 @@ public sealed class HostDetector : IResourceDetector
     private const string ETCVARDBUSMACHINEID = "/var/lib/dbus/machine-id";
     private readonly PlatformID platformId;
     private readonly Func<IEnumerable<string>> getFilePaths;
-    private readonly Func<string> getMacOsMachineId;
-    private readonly Func<string> getWindowsMachineId;
+    private readonly Func<string?> getMacOsMachineId;
+    private readonly Func<string?> getWindowsMachineId;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="HostDetector"/> class.
@@ -42,7 +42,7 @@ public sealed class HostDetector : IResourceDetector
     /// <param name="getFilePaths">Function to get Linux file paths to probe.</param>
     /// <param name="getMacOsMachineId">Function to get MacOS machine ID.</param>
     /// <param name="getWindowsMachineId">Function to get Windows machine ID.</param>
-    internal HostDetector(PlatformID platformId, Func<IEnumerable<string>> getFilePaths, Func<string> getMacOsMachineId, Func<string> getWindowsMachineId)
+    internal HostDetector(PlatformID platformId, Func<IEnumerable<string>> getFilePaths, Func<string?> getMacOsMachineId, Func<string?> getWindowsMachineId)
     {
         this.platformId = platformId;
         this.getFilePaths = getFilePaths ?? throw new ArgumentNullException(nameof(getFilePaths));
@@ -64,7 +64,7 @@ public sealed class HostDetector : IResourceDetector
             };
             var machineId = this.GetMachineId();
 
-            if (!string.IsNullOrEmpty(machineId))
+            if (machineId != null && !string.IsNullOrEmpty(machineId))
             {
                 attributes.Add(new(HostSemanticConventions.AttributeHostId, machineId));
             }
@@ -142,7 +142,7 @@ public sealed class HostDetector : IResourceDetector
         };
     }
 
-    private string GetMachineIdLinux()
+    private string? GetMachineIdLinux()
     {
         var paths = this.getFilePaths();
 
