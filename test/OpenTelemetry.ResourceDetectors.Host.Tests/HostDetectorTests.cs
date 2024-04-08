@@ -13,8 +13,8 @@ namespace OpenTelemetry.ResourceDetectors.Host.Tests;
 
 public class HostDetectorTests
 {
-    private static readonly IEnumerable<string> ETC_MACHINEID = new[] { "Samples/etc_machineid" };
-    private static readonly IEnumerable<string> ETC_VAR_DBUS_MACHINEID = new[] { "Samples/etc_var_dbus_machineid" };
+    private static readonly IEnumerable<string> ETCMACHINEID = new[] { "Samples/etc_machineid" };
+    private static readonly IEnumerable<string> ETCVARDBUSMACHINEID = new[] { "Samples/etc_var_dbus_machineid" };
 
     [Fact]
     public void TestHostAttributes()
@@ -35,9 +35,9 @@ public class HostDetectorTests
         var combos = new[]
         {
             (Enumerable.Empty<string>(), string.Empty),
-            (ETC_MACHINEID, "etc_machineid"),
-            (ETC_VAR_DBUS_MACHINEID, "etc_var_dbus_machineid"),
-            (Enumerable.Concat(ETC_MACHINEID, ETC_VAR_DBUS_MACHINEID), "etc_machineid"),
+            (ETCMACHINEID, "etc_machineid"),
+            (ETCVARDBUSMACHINEID, "etc_var_dbus_machineid"),
+            (Enumerable.Concat(ETCMACHINEID, ETCVARDBUSMACHINEID), "etc_machineid"),
         };
 
         foreach (var (path, expected) in combos)
