@@ -26,6 +26,11 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     private readonly bool recordMessageEvents;
 
     /// <summary>
+    /// The record exceptions as activity events flag.
+    /// </summary>
+    private readonly bool recordExceptions;
+
+    /// <summary>
     /// The RPC activity.
     /// </summary>
     private Activity activity;
@@ -50,10 +55,12 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// </summary>
     /// <param name="fullServiceName">Full name of the service.</param>
     /// <param name="recordMessageEvents">if set to <c>true</c> [record message events].</param>
-    protected RpcScope(string fullServiceName, bool recordMessageEvents)
+    /// <param name="recordExceptions">If set to <c>true</c> [record exceptions].</param>
+    protected RpcScope(string fullServiceName, bool recordMessageEvents, bool recordExceptions)
     {
         this.FullServiceName = fullServiceName?.TrimStart('/') ?? "unknownservice/unknownmethod";
         this.recordMessageEvents = recordMessageEvents;
+        this.recordExceptions = recordExceptions;
     }
 
     /// <summary>
@@ -125,6 +132,11 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
         {
             grpcStatusCode = rpcException.StatusCode;
             description = rpcException.Message;
+        }
+
+        if (this.recordExceptions)
+        {
+            this.activity.RecordException(exception);
         }
 
         this.StopActivity((int)grpcStatusCode, description);

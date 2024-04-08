@@ -298,7 +298,7 @@ public class ClientTracingInterceptor : Interceptor
         /// <param name="context">The context.</param>
         /// <param name="options">The options.</param>
         public ClientRpcScope(ClientInterceptorContext<TRequest, TResponse> context, ClientTracingInterceptorOptions options)
-            : base(context.Method?.FullName, options.RecordMessageEvents)
+            : base(context.Method?.FullName, options.RecordMessageEvents, options.RecordExceptions)
         {
             this.context = context;
 
