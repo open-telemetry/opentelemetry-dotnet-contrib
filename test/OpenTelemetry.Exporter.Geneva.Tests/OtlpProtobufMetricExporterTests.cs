@@ -24,6 +24,7 @@ public class OtlpProtobufMetricExporterTests
     {
         this.TagList = default;
 
+        bool boolValue = true;
         double doubleValue = 23.45;
         int intValue = 29;
         long longValue = 345;
@@ -42,6 +43,7 @@ public class OtlpProtobufMetricExporterTests
         ushort ushortValue = ushort.MaxValue;
 
         // Keep the keys in sorted order, Sdk outputs them in sorted order.
+        this.TagList.Add(new("boolKey", boolValue));
         this.TagList.Add(new("doubleKey", doubleValue));
         this.TagList.Add(new("intKey", intValue));
         this.TagList.Add(new("longKey", longValue));
