@@ -39,6 +39,7 @@ public sealed class HostDetector : IResourceDetector
     /// Initializes a new instance of the <see cref="HostDetector"/> class for testing.
     /// </summary>
     /// <param name="platformId">Target platform ID.</param>
+    /// <param name="getFilePaths">Function to get Linux file paths to probe.</param>
     /// <param name="getMacOsMachineId">Function to get MacOS machine ID.</param>
     /// <param name="getWindowsMachineId">Function to get Windows machine ID.</param>
     internal HostDetector(PlatformID platformId, Func<IEnumerable<string>> getFilePaths, Func<string> getMacOsMachineId, Func<string> getWindowsMachineId)
