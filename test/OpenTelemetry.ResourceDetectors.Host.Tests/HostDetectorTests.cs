@@ -32,7 +32,7 @@ public class HostDetectorTests
     {
         var combos = new[]
         {
-            (Enumerable.Empty<string>(), string.Empty),
+            (Enumerable.Empty<string>(), null),
             (ETCMACHINEID, "etc_machineid"),
             (ETCVARDBUSMACHINEID, "etc_var_dbus_machineid"),
             (Enumerable.Concat(ETCMACHINEID, ETCVARDBUSMACHINEID), "etc_machineid"),
@@ -50,7 +50,7 @@ public class HostDetectorTests
 
             if (string.IsNullOrEmpty(expected))
             {
-                Assert.Empty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
+                Assert.False(resourceAttributes.ContainsKey(HostSemanticConventions.AttributeHostId));
             }
             else
             {
