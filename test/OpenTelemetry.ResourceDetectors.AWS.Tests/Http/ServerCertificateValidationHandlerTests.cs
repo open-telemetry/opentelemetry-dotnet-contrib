@@ -3,12 +3,11 @@
 
 #if !NETFRAMEWORK
 
-using OpenTelemetry.ResourceDetectors.AWS.Http;
 using Xunit;
 
 namespace OpenTelemetry.ResourceDetectors.AWS.Tests.Http;
 
-public class HandlerTests
+public class ServerCertificateValidationHandlerTests
 {
     private const string INVALIDCRTNAME = "invalidcert";
 
@@ -20,7 +19,7 @@ public class HandlerTests
             certificateUploader.Create();
 
             // Validates if the handler created.
-            Assert.NotNull(Handler.Create(certificateUploader.FilePath));
+            Assert.NotNull(ServerCertificateValidationHandler.Create(certificateUploader.FilePath, NoopServerCertificateValidationEventSource.Instance));
         }
     }
 
@@ -28,7 +27,7 @@ public class HandlerTests
     public void TestInValidHandler()
     {
         // Validates if the handler created if no certificate is loaded into the trusted collection
-        Assert.Null(Handler.Create(INVALIDCRTNAME));
+        Assert.Null(ServerCertificateValidationHandler.Create(INVALIDCRTNAME, NoopServerCertificateValidationEventSource.Instance));
     }
 }
 
