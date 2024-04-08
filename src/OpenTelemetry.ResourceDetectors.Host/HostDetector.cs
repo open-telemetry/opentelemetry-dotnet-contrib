@@ -16,8 +16,8 @@ namespace OpenTelemetry.ResourceDetectors.Host;
 /// </summary>
 public sealed class HostDetector : IResourceDetector
 {
-    private const string ETC_MACHINEID = "/etc/machine-id";
-    private const string ETC_VAR_DBUS_MACHINEID = "/var/lib/dbus/machine-id";
+    private const string ETCMACHINEID = "/etc/machine-id";
+    private const string ETCVARDBUSMACHINEID = "/var/lib/dbus/machine-id";
     private readonly PlatformID platformId;
     private readonly Func<IEnumerable<string>> getFilePaths;
     private readonly Func<string> getMacOsMachineId;
@@ -81,8 +81,8 @@ public sealed class HostDetector : IResourceDetector
 
     private static IEnumerable<string> GetFilePaths()
     {
-        yield return ETC_MACHINEID;
-        yield return ETC_VAR_DBUS_MACHINEID;
+        yield return ETCMACHINEID;
+        yield return ETCVARDBUSMACHINEID;
     }
 
     private static string? GetMachineIdMacOs()
