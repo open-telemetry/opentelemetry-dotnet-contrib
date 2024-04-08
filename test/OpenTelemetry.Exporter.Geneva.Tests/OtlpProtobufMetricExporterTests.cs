@@ -34,6 +34,9 @@ public class OtlpProtobufMetricExporterTests
         short negativeShortValue = -12;
         sbyte sByteValue = sbyte.MaxValue;
         short shortValue = short.MaxValue;
+        string stringValueAscii = "TestString";
+        string stringValueMixAsciiAndUnicode = "\u0418TestString";
+        string stringValueUnicode = "\u0418";
         uint uintValue = uint.MaxValue;
         ulong ulongValue = 1234;
         ushort ushortValue = ushort.MaxValue;
@@ -49,6 +52,9 @@ public class OtlpProtobufMetricExporterTests
         this.TagList.Add(new("negativeShortKey", negativeShortValue));
         this.TagList.Add(new("sByteKey", sByteValue));
         this.TagList.Add(new("shortKey", shortValue));
+        this.TagList.Add(new("stringValueAsciiKey", stringValueAscii));
+        this.TagList.Add(new("stringValueMixAsciiAndUnicodeKey", stringValueMixAsciiAndUnicode));
+        this.TagList.Add(new("stringValueUnicodeKey", stringValueUnicode));
         this.TagList.Add(new("uintKey", uintValue));
         this.TagList.Add(new("ulongKey", ulongValue));
         this.TagList.Add(new("ushortKey", ushortValue));
