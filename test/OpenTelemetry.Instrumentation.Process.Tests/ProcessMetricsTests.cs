@@ -133,7 +133,7 @@ public class ProcessMetricsTests
 
         Task.WaitAll(tasks.ToArray());
 
-        Assert.True(exportedItemsA.Count == 5);
+        Assert.Equal(5, exportedItemsA.Count);
         var physicalMemoryMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.usage");
         Assert.NotNull(physicalMemoryMetricA);
         var virtualMemoryMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.virtual");
@@ -145,7 +145,7 @@ public class ProcessMetricsTests
         var threadMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.thread.count");
         Assert.NotNull(threadMetricA);
 
-        Assert.True(exportedItemsB.Count == 5);
+        Assert.Equal(5, exportedItemsB.Count);
         var physicalMemoryMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.memory.usage");
         Assert.NotNull(physicalMemoryMetricB);
         var virtualMemoryMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.memory.virtual");
