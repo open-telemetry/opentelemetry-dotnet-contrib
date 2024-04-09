@@ -27,7 +27,7 @@ internal sealed class ProcessMetrics
                 return Diagnostics.Process.GetCurrentProcess().WorkingSet64;
             },
             unit: "By",
-            description: "The amount of physical memory allocated for this process.");
+            description: "The amount of physical memory in use.");
 
         MeterInstance.CreateObservableUpDownCounter(
             "process.memory.virtual",
@@ -36,7 +36,7 @@ internal sealed class ProcessMetrics
                 return Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64;
             },
             unit: "By",
-            description: "The amount of committed virtual memory for this process.");
+            description: "The amount of committed virtual memory.");
 
         MeterInstance.CreateObservableCounter(
             "process.cpu.time",
