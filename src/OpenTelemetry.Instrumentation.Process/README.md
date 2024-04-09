@@ -130,7 +130,7 @@ and not part of the [Process Metrics
 Spec](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md)
 at this time.
 
-### process.threads
+### process.thread.count
 
 Process threads count.
 

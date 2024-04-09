@@ -142,7 +142,7 @@ public class ProcessMetricsTests
         Assert.NotNull(cpuTimeMetricA);
         var processorCountMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.cpu.count");
         Assert.NotNull(processorCountMetricA);
-        var threadMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.threads");
+        var threadMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.thread.count");
         Assert.NotNull(threadMetricA);
 
         Assert.True(exportedItemsB.Count == 5);
@@ -154,7 +154,7 @@ public class ProcessMetricsTests
         Assert.NotNull(cpuTimeMetricB);
         var processorCountMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.cpu.count");
         Assert.NotNull(processorCountMetricB);
-        var threadMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.threads");
+        var threadMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.thread.count");
         Assert.NotNull(threadMetricB);
     }
 

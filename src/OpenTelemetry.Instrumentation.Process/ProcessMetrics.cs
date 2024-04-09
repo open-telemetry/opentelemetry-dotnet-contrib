@@ -62,7 +62,7 @@ internal sealed class ProcessMetrics
             description: "The number of processors (CPU cores) available to the current process.");
 
         MeterInstance.CreateObservableUpDownCounter(
-            "process.threads",
+            "process.thread.count",
             () =>
             {
                 return Diagnostics.Process.GetCurrentProcess().Threads.Count;
