@@ -145,7 +145,7 @@ public class GrpcCoreServerInterceptorTests
     private static async Task TestHandlerFailure(Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc, Metadata additionalMetadata = null)
     {
         // starts the server with the server interceptor
-        var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), ActivityIdentifierValue = Guid.NewGuid() };
+        var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), ActivityIdentifierValue = Guid.NewGuid(), RecordExceptions = true };
         using var server = FoobarService.Start(new ServerTracingInterceptor(interceptorOptions));
 
         using var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue);
@@ -161,7 +161,7 @@ public class GrpcCoreServerInterceptorTests
         await Assert.ThrowsAsync<RpcException>(async () => await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false));
 
         var activity = activityListener.Activity;
-        GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.ResourceExhausted, interceptorOptions.RecordMessageEvents);
+        GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.ResourceExhausted, interceptorOptions.RecordMessageEvents, interceptorOptions.RecordExceptions);
         Assert.Equal(FoobarService.DefaultParentFromTraceparentHeader.SpanId, activity.ParentSpanId);
     }
 }

@@ -22,5 +22,8 @@ internal static class SemanticConventions
 
     // Used for unit testing only.
     internal const string AttributeActivityIdentifier = "activityidentifier";
+
+    // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/exceptions/exceptions-spans.md
+    internal const string AttributeExceptionEventName = "exception";
 #pragma warning restore SA1600 // Elements should be documented
 }
