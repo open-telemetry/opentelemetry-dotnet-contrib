@@ -100,9 +100,9 @@ process.
 
 Total CPU seconds broken down by states.
 
-| Units | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|-------|-------------------|------------|------------------|------------------|
-|  `s`  | ObservableCounter | `Double`   | state            | user, system     |
+| Units | Instrument Type   | Value Type | Attribute Key(s)  | Attribute Values |
+|-------|-------------------|------------|-------------------|------------------|
+|  `s`  | ObservableCounter | `Double`   | process.cpu.state | user, system     |
 
 The APIs used to retrieve the values are:
 
