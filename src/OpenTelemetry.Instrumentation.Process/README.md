@@ -136,7 +136,7 @@ Process threads count.
 
 | Units      | Instrument Type         | Value Type |
 |------------|-------------------------|------------|
-| `{threads}`| ObservableUpDownCounter | `Int32`    |
+| `{thread}` | ObservableUpDownCounter | `Int32`    |
 
 The API used to retrieve the value is:
 

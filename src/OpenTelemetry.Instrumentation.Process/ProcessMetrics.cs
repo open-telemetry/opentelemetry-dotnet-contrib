@@ -67,7 +67,7 @@ internal sealed class ProcessMetrics
             {
                 return Diagnostics.Process.GetCurrentProcess().Threads.Count;
             },
-            unit: "{threads}",
+            unit: "{thread}",
             description: "Process threads count.");
     }
 
