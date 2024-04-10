@@ -80,6 +80,35 @@ public sealed class HostDetector : IResourceDetector
         return Resource.Empty;
     }
 
+    internal static string? ParseMacOsOutput(string? output)
+    {
+        if (output == null || string.IsNullOrEmpty(output))
+        {
+            return null;
+        }
+
+        var lines = output.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+
+        foreach (var line in lines)
+        {
+#if NETFRAMEWORK
+            if (line.IndexOf("IOPlatformUUID", StringComparison.OrdinalIgnoreCase) >= 0)
+#else
+            if (line.Contains("IOPlatformUUID", StringComparison.OrdinalIgnoreCase))
+#endif
+            {
+                var parts = line.Split('"');
+
+                if (parts.Length > 3)
+                {
+                    return parts[3];
+                }
+            }
+        }
+
+        return null;
+    }
+
     private static IEnumerable<string> GetFilePaths()
     {
         yield return ETCMACHINEID;
@@ -93,7 +122,7 @@ public sealed class HostDetector : IResourceDetector
             var startInfo = new ProcessStartInfo
             {
                 FileName = "sh",
-                Arguments = "ioreg -rd1 -c IOPlatformExpertDevice | awk '/IOPlatformUUID/ { split($0, line, \"\\\"\"); printf(\"%s\\n\", line[4]); }'",
+                Arguments = "ioreg -rd1 -c IOPlatformExpertDevice",
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
@@ -137,7 +166,7 @@ public sealed class HostDetector : IResourceDetector
         return this.platformId switch
         {
             PlatformID.Unix => this.GetMachineIdLinux(),
-            PlatformID.MacOSX => this.getMacOsMachineId(),
+            PlatformID.MacOSX => ParseMacOsOutput(this.getMacOsMachineId()),
             PlatformID.Win32NT => this.getWindowsMachineId(),
             _ => null,
         };
