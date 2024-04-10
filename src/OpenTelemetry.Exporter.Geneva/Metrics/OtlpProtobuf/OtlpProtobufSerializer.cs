@@ -15,6 +15,10 @@ internal sealed class OtlpProtobufSerializer
 
     private readonly Dictionary<string, List<Metric>> scopeMetrics = new();
 
+    private readonly string metricNamespace;
+
+    private readonly string metricAccount;
+
     private readonly byte[] prepopulatedNumberDataPointAttributes;
 
     private readonly int prepopulatedNumberDataPointAttributesLength;
@@ -69,6 +73,16 @@ internal sealed class OtlpProtobufSerializer
 
             // TODO: exponential histogram.
         }
+
+        if (connectionStringBuilder != null && connectionStringBuilder.Namespace != null)
+        {
+            this.metricNamespace = connectionStringBuilder.Namespace;
+        }
+
+        if (connectionStringBuilder != null && connectionStringBuilder.Account != null)
+        {
+            this.metricAccount = connectionStringBuilder.Account;
+        }
     }
 
     internal void SerializeAndSendMetrics(byte[] buffer, Resource resource, in Batch<Metric> metricBatch)
@@ -112,7 +126,7 @@ internal sealed class OtlpProtobufSerializer
 
         // Serialize Resource
         // TODO: Avoid serializing it multiple times.
-        SerializeResource(buffer, ref cursor, resource);
+        this.SerializeResource(buffer, ref cursor, resource);
 
         // TODO: Serialize schema_url field
 
@@ -510,7 +524,7 @@ internal sealed class OtlpProtobufSerializer
         }
     }
 
-    private static void SerializeResource(byte[] buffer, ref int cursor, Resource resource)
+    private void SerializeResource(byte[] buffer, ref int cursor, Resource resource)
     {
         if (resource != Resource.Empty)
         {
@@ -519,6 +533,18 @@ internal sealed class OtlpProtobufSerializer
             int valueIndex = cursor;
 
             SerializeTags(buffer, ref cursor, resource.Attributes, FieldNumberConstants.Resource_attributes);
+
+            // TODO: check to see if should de-dupe in case the values are also provided via resource attributes.
+            if (this.metricAccount != null)
+            {
+                SerializeTag(buffer, ref cursor, GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, this.metricAccount, FieldNumberConstants.Resource_attributes);
+            }
+
+            if (this.metricNamespace != null)
+            {
+                SerializeTag(buffer, ref cursor, GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, this.metricNamespace, FieldNumberConstants.Resource_attributes);
+            }
+
             ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref tagAndLengthIndex, cursor - valueIndex, FieldNumberConstants.ResourceMetrics_resource, WireType.LEN);
         }
     }

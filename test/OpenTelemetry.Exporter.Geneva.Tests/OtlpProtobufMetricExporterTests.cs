@@ -72,15 +72,23 @@ public class OtlpProtobufMetricExporterTests
     }
 
     [Theory]
-    [InlineData("longcounter", 123L, null, true)]
-    [InlineData("longcounter", 123L, null, false)]
-    [InlineData("doublecounter", null, 123.45, true)]
-    [InlineData("doublecounter", null, 123.45, false)]
-    [InlineData("longcounter", -123L, null, true)]
-    [InlineData("longcounter", -123L, null, false)]
-    [InlineData("doublecounter", null, -123.45, true)]
-    [InlineData("doublecounter", null, -123.45, false)]
-    public void CounterSerializationSingleMetricPoint(string instrumentName, long? longValue, double? doubleValue, bool addPrepopulatedDimensions)
+    [InlineData("longcounter", 123L, null, true, true)]
+    [InlineData("longcounter", 123L, null, true, false)]
+    [InlineData("longcounter", 123L, null, false, true)]
+    [InlineData("longcounter", 123L, null, false, false)]
+    [InlineData("doublecounter", null, 123.45, true, true)]
+    [InlineData("doublecounter", null, 123.45, true, false)]
+    [InlineData("doublecounter", null, 123.45, false, true)]
+    [InlineData("doublecounter", null, 123.45, false, false)]
+    [InlineData("longcounter", -123L, null, true, true)]
+    [InlineData("longcounter", -123L, null, true, false)]
+    [InlineData("longcounter", -123L, null, false, true)]
+    [InlineData("longcounter", -123L, null, false, false)]
+    [InlineData("doublecounter", null, -123.45, true, true)]
+    [InlineData("doublecounter", null, -123.45, true, false)]
+    [InlineData("doublecounter", null, -123.45, false, true)]
+    [InlineData("doublecounter", null, -123.45, false, false)]
+    public void CounterSerializationSingleMetricPoint(string instrumentName, long? longValue, double? doubleValue, bool addPrepopulatedDimensions, bool addAccountAndNamespace)
     {
         using var meter = new Meter(nameof(this.CounterSerializationSingleMetricPoint), "0.0.1");
 
@@ -90,8 +98,19 @@ public class OtlpProtobufMetricExporterTests
             TemporalityPreference = MetricReaderTemporalityPreference.Delta,
         };
 
+        Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+        {
+            { "TestResourceKey", "TestResourceValue" },
+        };
+
+        Dictionary<string, object> accountAndNamespace = new Dictionary<string, object>
+        {
+            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "TestAccount" },
+            { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "TestNamespace" },
+        };
+
         var resourceBuilder = ResourceBuilder.CreateDefault().Clear()
-            .AddAttributes(new[] { new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue") });
+            .AddAttributes(resourceAttributes);
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .SetResourceBuilder(resourceBuilder)
             .AddMeter(nameof(this.CounterSerializationSingleMetricPoint))
@@ -114,7 +133,10 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
+
+        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder("Account=TestAccount;Namespace=TestNamespace");
+
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, addAccountAndNamespace ? connectionStringBuilder : null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -128,7 +150,7 @@ public class OtlpProtobufMetricExporterTests
 
         Assert.NotNull(request.ResourceMetrics[0].Resource);
 
-        AssertOtlpAttributes([new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue")], request.ResourceMetrics[0].Resource.Attributes);
+        AssertOtlpAttributes(addAccountAndNamespace ? resourceAttributes.Concat(accountAndNamespace) : resourceAttributes, request.ResourceMetrics[0].Resource.Attributes);
 
         Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
 
@@ -294,15 +316,23 @@ public class OtlpProtobufMetricExporterTests
     }
 
     [Theory]
-    [InlineData("updownlongcounter", 123L, null, true)]
-    [InlineData("updownlongcounter", 123L, null, false)]
-    [InlineData("updowndoublecounter", null, 123.45, true)]
-    [InlineData("updowndoublecounter", null, 123.45, false)]
-    [InlineData("updownlongcounter", -123L, null, true)]
-    [InlineData("updownlongcounter", -123L, null, false)]
-    [InlineData("updowndoublecounter", null, -123.45, true)]
-    [InlineData("updowndoublecounter", null, -123.45, false)]
-    public void UpdownCounterSerializationSingleMetricPoint(string instrumentName, long? longValue, double? doubleValue, bool addPrepopulatedDimensions)
+    [InlineData("updownlongcounter", 123L, null, true, true)]
+    [InlineData("updownlongcounter", 123L, null, true, false)]
+    [InlineData("updownlongcounter", 123L, null, false, true)]
+    [InlineData("updownlongcounter", 123L, null, false, false)]
+    [InlineData("updowndoublecounter", null, 123.45, true, true)]
+    [InlineData("updowndoublecounter", null, 123.45, true, false)]
+    [InlineData("updowndoublecounter", null, 123.45, false, true)]
+    [InlineData("updowndoublecounter", null, 123.45, false, false)]
+    [InlineData("updownlongcounter", -123L, null, true, true)]
+    [InlineData("updownlongcounter", -123L, null, true, false)]
+    [InlineData("updownlongcounter", -123L, null, false, true)]
+    [InlineData("updownlongcounter", -123L, null, false, false)]
+    [InlineData("updowndoublecounter", null, -123.45, true, true)]
+    [InlineData("updowndoublecounter", null, -123.45, true, false)]
+    [InlineData("updowndoublecounter", null, -123.45, false, true)]
+    [InlineData("updowndoublecounter", null, -123.45, false, false)]
+    public void UpdownCounterSerializationSingleMetricPoint(string instrumentName, long? longValue, double? doubleValue, bool addPrepopulatedDimensions, bool addAccountAndNamespace)
     {
         using var meter = new Meter(nameof(this.UpdownCounterSerializationSingleMetricPoint), "0.0.1");
 
@@ -312,8 +342,19 @@ public class OtlpProtobufMetricExporterTests
             TemporalityPreference = MetricReaderTemporalityPreference.Delta,
         };
 
+        Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+        {
+            { "TestResourceKey", "TestResourceValue" },
+        };
+
+        Dictionary<string, object> accountAndNamespace = new Dictionary<string, object>
+        {
+            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "TestAccount" },
+            { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "TestNamespace" },
+        };
+
         var resourceBuilder = ResourceBuilder.CreateDefault().Clear()
-            .AddAttributes(new[] { new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue") });
+            .AddAttributes(resourceAttributes);
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .SetResourceBuilder(resourceBuilder)
             .AddMeter(nameof(this.UpdownCounterSerializationSingleMetricPoint))
@@ -336,7 +377,8 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
+        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder("Account=TestAccount;Namespace=TestNamespace");
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, addAccountAndNamespace ? connectionStringBuilder : null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -350,7 +392,7 @@ public class OtlpProtobufMetricExporterTests
 
         Assert.NotNull(request.ResourceMetrics[0].Resource);
 
-        AssertOtlpAttributes([new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue")], request.ResourceMetrics[0].Resource.Attributes);
+        AssertOtlpAttributes(addAccountAndNamespace ? resourceAttributes.Concat(accountAndNamespace) : resourceAttributes, request.ResourceMetrics[0].Resource.Attributes);
 
         Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
 
@@ -516,11 +558,15 @@ public class OtlpProtobufMetricExporterTests
     }
 
     [Theory]
-    [InlineData(123.45, true)]
-    [InlineData(123.45, false)]
-    [InlineData(-123.45, true)]
-    [InlineData(-123.45, false)]
-    public void HistogramSerializationSingleMetricPoint(double doubleValue, bool addPrepopulatedDimensions)
+    [InlineData(123.45, true, true)]
+    [InlineData(123.45, true, false)]
+    [InlineData(123.45, false, true)]
+    [InlineData(123.45, false, false)]
+    [InlineData(-123.45, true, true)]
+    [InlineData(-123.45, true, false)]
+    [InlineData(-123.45, false, true)]
+    [InlineData(-123.45, false, false)]
+    public void HistogramSerializationSingleMetricPoint(double doubleValue, bool addPrepopulatedDimensions, bool addAccountAndNamespace)
     {
         using var meter = new Meter(nameof(this.HistogramSerializationSingleMetricPoint), "0.0.1");
 
@@ -530,8 +576,19 @@ public class OtlpProtobufMetricExporterTests
             TemporalityPreference = MetricReaderTemporalityPreference.Delta,
         };
 
+        Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+        {
+            { "TestResourceKey", "TestResourceValue" },
+        };
+
+        Dictionary<string, object> accountAndNamespace = new Dictionary<string, object>
+        {
+            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "TestAccount" },
+            { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "TestNamespace" },
+        };
+
         var resourceBuilder = ResourceBuilder.CreateDefault().Clear()
-            .AddAttributes(new[] { new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue") });
+            .AddAttributes(resourceAttributes);
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .SetResourceBuilder(resourceBuilder)
             .AddMeter(nameof(this.HistogramSerializationSingleMetricPoint))
@@ -546,7 +603,8 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
+        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder("Account=TestAccount;Namespace=TestNamespace");
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, addAccountAndNamespace ? connectionStringBuilder : null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -560,7 +618,7 @@ public class OtlpProtobufMetricExporterTests
 
         Assert.NotNull(request.ResourceMetrics[0].Resource);
 
-        AssertOtlpAttributes([new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue")], request.ResourceMetrics[0].Resource.Attributes);
+        AssertOtlpAttributes(addAccountAndNamespace ? resourceAttributes.Concat(accountAndNamespace) : resourceAttributes, request.ResourceMetrics[0].Resource.Attributes);
 
         Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
 
@@ -751,15 +809,23 @@ public class OtlpProtobufMetricExporterTests
     }
 
     [Theory]
-    [InlineData("longGauge", 123L, null, true)]
-    [InlineData("longGauge", 123L, null, false)]
-    [InlineData("doubleGauge", null, 123.45, true)]
-    [InlineData("doubleGauge", null, 123.45, false)]
-    [InlineData("longGauge", -123L, null, true)]
-    [InlineData("longGauge", -123L, null, false)]
-    [InlineData("doubleGauge", null, -123.45, true)]
-    [InlineData("doubleGauge", null, -123.45, false)]
-    public void GaugeSerializationSingleMetricPoint(string instrumentName, long? longValue, double? doubleValue, bool addPrepopulatedDimensions)
+    [InlineData("longGuage", 123L, null, true, true)]
+    [InlineData("longGuage", 123L, null, true, false)]
+    [InlineData("longGuage", 123L, null, false, true)]
+    [InlineData("longGuage", 123L, null, false, false)]
+    [InlineData("doubleGuage", null, 123.45, true, true)]
+    [InlineData("doubleGuage", null, 123.45, true, false)]
+    [InlineData("doubleGuage", null, 123.45, false, true)]
+    [InlineData("doubleGuage", null, 123.45, false, false)]
+    [InlineData("longGuage", -123L, null, true, true)]
+    [InlineData("longGuage", -123L, null, true, false)]
+    [InlineData("longGuage", -123L, null, false, true)]
+    [InlineData("longGuage", -123L, null, false, false)]
+    [InlineData("doubleGuage", null, -123.45, true, true)]
+    [InlineData("doubleGuage", null, -123.45, true, false)]
+    [InlineData("doubleGuage", null, -123.45, false, true)]
+    [InlineData("doubleGuage", null, -123.45, false, false)]
+    public void GaugeSerializationSingleMetricPoint(string instrumentName, long? longValue, double? doubleValue, bool addPrepopulatedDimensions, bool addAccountAndNamespace)
     {
         using var meter = new Meter(nameof(this.GaugeSerializationSingleMetricPoint), "0.0.1");
 
@@ -769,8 +835,19 @@ public class OtlpProtobufMetricExporterTests
             TemporalityPreference = MetricReaderTemporalityPreference.Delta,
         };
 
+        Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+        {
+            { "TestResourceKey", "TestResourceValue" },
+        };
+
+        Dictionary<string, object> accountAndNamespace = new Dictionary<string, object>
+        {
+            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "TestAccount" },
+            { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "TestNamespace" },
+        };
+
         var resourceBuilder = ResourceBuilder.CreateDefault().Clear()
-            .AddAttributes(new[] { new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue") });
+            .AddAttributes(resourceAttributes);
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .SetResourceBuilder(resourceBuilder)
             .AddMeter(nameof(this.GaugeSerializationSingleMetricPoint))
@@ -801,7 +878,8 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
+        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder("Account=TestAccount;Namespace=TestNamespace");
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, addAccountAndNamespace ? connectionStringBuilder : null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -815,7 +893,7 @@ public class OtlpProtobufMetricExporterTests
 
         Assert.NotNull(request.ResourceMetrics[0].Resource);
 
-        AssertOtlpAttributes([new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue")], request.ResourceMetrics[0].Resource.Attributes);
+        AssertOtlpAttributes(addAccountAndNamespace ? resourceAttributes.Concat(accountAndNamespace) : resourceAttributes, request.ResourceMetrics[0].Resource.Attributes);
 
         Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
 
