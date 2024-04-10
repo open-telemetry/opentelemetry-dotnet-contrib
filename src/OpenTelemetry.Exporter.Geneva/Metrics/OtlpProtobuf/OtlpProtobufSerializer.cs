@@ -35,11 +35,51 @@ internal sealed class OtlpProtobufSerializer
 
     private int metricPointValueIndex;
 
+    private byte[] prepopulatedNumberDataPointAttributes;
+
+    private int prepopulatedNumberDataPointAttributesLength;
+
+    private byte[] prepopulatedHistogramDataPointAttributes;
+
+    private int prepopulatedHistogramDataPointAttributesLength;
+
+    private byte[] prepopulatedExponentialHistogramDataPointAttributes;
+
+    private int prepopulatedExponentialHistogramDataPointAttributesLength;
+
     internal IMetricDataTransport MetricDataTransport;
 
-    public OtlpProtobufSerializer(IMetricDataTransport metricDataTransport)
+    public OtlpProtobufSerializer(IMetricDataTransport metricDataTransport, ConnectionStringBuilder connectionStringBuilder, IReadOnlyDictionary<string, object> prepopulatedMetricDimensions)
     {
         this.MetricDataTransport = metricDataTransport;
+
+        // Taking a arbitrary number here for writing attributes.
+        byte[] temp = new byte[10000];
+        if (prepopulatedMetricDimensions != null)
+        {
+            // Initialize numberDataPoint attributes.
+            int cursor = 0;
+            SerializeTags(temp, ref cursor, prepopulatedMetricDimensions, FieldNumberConstants.NumberDataPoint_attributes);
+            this.prepopulatedNumberDataPointAttributes = new byte[cursor];
+            Array.Copy(temp, this.prepopulatedNumberDataPointAttributes, cursor);
+            this.prepopulatedNumberDataPointAttributesLength = cursor;
+
+            // Initialize histogramDataPoint attributes.
+            cursor = 0;
+            SerializeTags(temp, ref cursor, prepopulatedMetricDimensions, FieldNumberConstants.HistogramDataPoint_attributes);
+            this.prepopulatedHistogramDataPointAttributes = new byte[cursor];
+            Array.Copy(temp, this.prepopulatedHistogramDataPointAttributes, cursor);
+            this.prepopulatedHistogramDataPointAttributesLength = cursor;
+
+            // Initialize exponentialHistogramDataPoint attributes.
+            cursor = 0;
+            SerializeTags(temp, ref cursor, prepopulatedMetricDimensions, FieldNumberConstants.ExponentialHistogramDataPoint_attributes);
+            this.prepopulatedExponentialHistogramDataPointAttributes = new byte[cursor];
+            Array.Copy(temp, this.prepopulatedExponentialHistogramDataPointAttributes, cursor);
+            this.prepopulatedExponentialHistogramDataPointAttributesLength = cursor;
+        }
+
+        temp = null;
     }
 
     internal void SerializeAndSendMetrics(byte[] buffer, Resource resource, in Batch<Metric> metricBatch)
@@ -384,6 +424,12 @@ internal sealed class OtlpProtobufSerializer
         ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.NumberDataPoint_time_unix_nano, endTime);
 
         SerializeTags(buffer, ref cursor, metricPoint.Tags, FieldNumberConstants.NumberDataPoint_attributes);
+
+        if (this.prepopulatedNumberDataPointAttributes != null)
+        {
+            Array.Copy(this.prepopulatedNumberDataPointAttributes, 0, buffer, cursor, this.prepopulatedHistogramDataPointAttributesLength);
+            cursor += this.prepopulatedNumberDataPointAttributesLength;
+        }
 
         // TODO: exemplars.
 

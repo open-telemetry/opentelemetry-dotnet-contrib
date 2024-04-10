@@ -57,7 +57,7 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -170,7 +170,7 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -268,7 +268,7 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -381,7 +381,7 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -469,7 +469,7 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -589,7 +589,7 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -713,7 +713,7 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -836,7 +836,7 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport);
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
