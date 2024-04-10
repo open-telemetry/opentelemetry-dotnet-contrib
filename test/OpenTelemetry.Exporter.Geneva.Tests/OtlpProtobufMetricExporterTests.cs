@@ -20,6 +20,15 @@ public class OtlpProtobufMetricExporterTests
 {
     public TagList TagList;
 
+    public TagList TagListWithPrepopulatedDimensions;
+
+    private static readonly Dictionary<string, object> prepopulatedMetricDimensions = new Dictionary<string, object>
+    {
+        { "Dim1", 1 },
+        { "Dim2", 2 },
+        { "Dim3", 3 },
+    };
+
     public OtlpProtobufMetricExporterTests()
     {
         this.TagList = default;
@@ -63,11 +72,15 @@ public class OtlpProtobufMetricExporterTests
     }
 
     [Theory]
-    [InlineData("longcounter", 123L, null)]
-    [InlineData("doublecounter", null, 123.45)]
-    [InlineData("longcounter", -123L, null)]
-    [InlineData("doublecounter", null, -123.45)]
-    public void CounterSerializationSingleMetricPoint(string instrumentName, long? longValue, double? doubleValue)
+    [InlineData("longcounter", 123L, null, true)]
+    [InlineData("longcounter", 123L, null, false)]
+    [InlineData("doublecounter", null, 123.45, true)]
+    [InlineData("doublecounter", null, 123.45, false)]
+    [InlineData("longcounter", -123L, null, true)]
+    [InlineData("longcounter", -123L, null, false)]
+    [InlineData("doublecounter", null, -123.45, true)]
+    [InlineData("doublecounter", null, -123.45, false)]
+    public void CounterSerializationSingleMetricPoint(string instrumentName, long? longValue, double? doubleValue, bool addPrepopulatedDimensions)
     {
         using var meter = new Meter(nameof(this.CounterSerializationSingleMetricPoint), "0.0.1");
 
@@ -101,7 +114,7 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null);
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -157,7 +170,14 @@ public class OtlpProtobufMetricExporterTests
 
         Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
 
-        AssertOtlpAttributes(this.TagList, dataPoint.Attributes);
+        if (addPrepopulatedDimensions)
+        {
+            AssertOtlpAttributes(this.TagList.Concat(prepopulatedMetricDimensions), dataPoint.Attributes);
+        }
+        else
+        {
+            AssertOtlpAttributes(this.TagList, dataPoint.Attributes);
+        }
     }
 
     [Theory]
@@ -274,11 +294,15 @@ public class OtlpProtobufMetricExporterTests
     }
 
     [Theory]
-    [InlineData("updownlongcounter", 123L, null)]
-    [InlineData("updowndoublecounter", null, 123.45)]
-    [InlineData("updownlongcounter", -123L, null)]
-    [InlineData("updowndoublecounter", null, -123.45)]
-    public void UpdownCounterSerializationSingleMetricPoint(string instrumentName, long? longValue, double? doubleValue)
+    [InlineData("updownlongcounter", 123L, null, true)]
+    [InlineData("updownlongcounter", 123L, null, false)]
+    [InlineData("updowndoublecounter", null, 123.45, true)]
+    [InlineData("updowndoublecounter", null, 123.45, false)]
+    [InlineData("updownlongcounter", -123L, null, true)]
+    [InlineData("updownlongcounter", -123L, null, false)]
+    [InlineData("updowndoublecounter", null, -123.45, true)]
+    [InlineData("updowndoublecounter", null, -123.45, false)]
+    public void UpdownCounterSerializationSingleMetricPoint(string instrumentName, long? longValue, double? doubleValue, bool addPrepopulatedDimensions)
     {
         using var meter = new Meter(nameof(this.UpdownCounterSerializationSingleMetricPoint), "0.0.1");
 
@@ -312,7 +336,7 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null);
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -368,7 +392,14 @@ public class OtlpProtobufMetricExporterTests
 
         Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
 
-        AssertOtlpAttributes(this.TagList, dataPoint.Attributes);
+        if (addPrepopulatedDimensions)
+        {
+            AssertOtlpAttributes(this.TagList.Concat(prepopulatedMetricDimensions), dataPoint.Attributes);
+        }
+        else
+        {
+            AssertOtlpAttributes(this.TagList, dataPoint.Attributes);
+        }
     }
 
     [Theory]
@@ -485,9 +516,11 @@ public class OtlpProtobufMetricExporterTests
     }
 
     [Theory]
-    [InlineData(123.45)]
-    [InlineData(-123.45)]
-    public void HistogramSerializationSingleMetricPoint(double doubleValue)
+    [InlineData(123.45, true)]
+    [InlineData(123.45, false)]
+    [InlineData(-123.45, true)]
+    [InlineData(-123.45, false)]
+    public void HistogramSerializationSingleMetricPoint(double doubleValue, bool addPrepopulatedDimensions)
     {
         using var meter = new Meter(nameof(this.HistogramSerializationSingleMetricPoint), "0.0.1");
 
@@ -513,7 +546,7 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null);
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -586,7 +619,14 @@ public class OtlpProtobufMetricExporterTests
 
         Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
 
-        AssertOtlpAttributes(this.TagList, dataPoint.Attributes);
+        if (addPrepopulatedDimensions)
+        {
+            AssertOtlpAttributes(this.TagList.Concat(prepopulatedMetricDimensions), dataPoint.Attributes);
+        }
+        else
+        {
+            AssertOtlpAttributes(this.TagList, dataPoint.Attributes);
+        }
     }
 
     [Theory]
@@ -711,11 +751,15 @@ public class OtlpProtobufMetricExporterTests
     }
 
     [Theory]
-    [InlineData("longGauge", 123L, null)]
-    [InlineData("doubleGauge", null, 123.45)]
-    [InlineData("longGauge", -123L, null)]
-    [InlineData("doubleGauge", null, -123.45)]
-    public void GaugeSerializationSingleMetricPoint(string instrumentName, long? longValue, double? doubleValue)
+    [InlineData("longGauge", 123L, null, true)]
+    [InlineData("longGauge", 123L, null, false)]
+    [InlineData("doubleGauge", null, 123.45, true)]
+    [InlineData("doubleGauge", null, 123.45, false)]
+    [InlineData("longGauge", -123L, null, true)]
+    [InlineData("longGauge", -123L, null, false)]
+    [InlineData("doubleGauge", null, -123.45, true)]
+    [InlineData("doubleGauge", null, -123.45, false)]
+    public void GaugeSerializationSingleMetricPoint(string instrumentName, long? longValue, double? doubleValue, bool addPrepopulatedDimensions)
     {
         using var meter = new Meter(nameof(this.GaugeSerializationSingleMetricPoint), "0.0.1");
 
@@ -757,7 +801,7 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null);
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -809,7 +853,14 @@ public class OtlpProtobufMetricExporterTests
 
         Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
 
-        AssertOtlpAttributes(this.TagList, dataPoint.Attributes);
+        if (addPrepopulatedDimensions)
+        {
+            AssertOtlpAttributes(this.TagList.Concat(prepopulatedMetricDimensions), dataPoint.Attributes);
+        }
+        else
+        {
+            AssertOtlpAttributes(this.TagList, dataPoint.Attributes);
+        }
     }
 
     [Theory]

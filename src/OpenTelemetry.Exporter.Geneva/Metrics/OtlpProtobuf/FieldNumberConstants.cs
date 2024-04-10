@@ -76,9 +76,6 @@ internal static class FieldNumberConstants
     internal const int HistogramDataPoint_min = 11;
     internal const int HistogramDataPoint_max = 12;
 
-    // ExponentialHistogramDataPoint
-    internal const int ExponentialHistogramDataPoint_attributes = 1;
-
     // AnyValue
     internal const int AnyValue_string_value = 1;
     internal const int AnyValue_bool_value = 2;
