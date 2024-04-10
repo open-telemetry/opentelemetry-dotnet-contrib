@@ -18,6 +18,50 @@ namespace OpenTelemetry.Exporter.Geneva.Tests;
 
 public class OtlpProtobufMetricExporterTests
 {
+    public TagList TagList;
+
+    public OtlpProtobufMetricExporterTests()
+    {
+        this.TagList = default;
+
+        bool boolValue = true;
+        double doubleValue = 23.45;
+        int intValue = 29;
+        long longValue = 345;
+        double negativeDoubleValue = -23.45;
+        int negativeIntValue = -29;
+        long negativeLongValue = -97;
+        sbyte negativeSbyteValue = sbyte.MinValue;
+        short negativeShortValue = -12;
+        sbyte sByteValue = sbyte.MaxValue;
+        short shortValue = short.MaxValue;
+        string stringValueAscii = "TestString";
+        string stringValueMixAsciiAndUnicode = "\u0418TestString";
+        string stringValueUnicode = "\u0418";
+        uint uintValue = uint.MaxValue;
+        ulong ulongValue = 1234;
+        ushort ushortValue = ushort.MaxValue;
+
+        // Keep the keys in sorted order, Sdk outputs them in sorted order.
+        this.TagList.Add(new("boolKey", boolValue));
+        this.TagList.Add(new("doubleKey", doubleValue));
+        this.TagList.Add(new("intKey", intValue));
+        this.TagList.Add(new("longKey", longValue));
+        this.TagList.Add(new("negativeDoubleKey", negativeDoubleValue));
+        this.TagList.Add(new("negativeIntKey", negativeIntValue));
+        this.TagList.Add(new("negativeLongKey", negativeLongValue));
+        this.TagList.Add(new("negativeSbyteKey", negativeSbyteValue));
+        this.TagList.Add(new("negativeShortKey", negativeShortValue));
+        this.TagList.Add(new("sByteKey", sByteValue));
+        this.TagList.Add(new("shortKey", shortValue));
+        this.TagList.Add(new("stringValueAsciiKey", stringValueAscii));
+        this.TagList.Add(new("stringValueMixAsciiAndUnicodeKey", stringValueMixAsciiAndUnicode));
+        this.TagList.Add(new("stringValueUnicodeKey", stringValueUnicode));
+        this.TagList.Add(new("uintKey", uintValue));
+        this.TagList.Add(new("ulongKey", ulongValue));
+        this.TagList.Add(new("ushortKey", ushortValue));
+    }
+
     [Theory]
     [InlineData("longcounter", 123L, null)]
     [InlineData("doublecounter", null, 123.45)]
@@ -44,12 +88,12 @@ public class OtlpProtobufMetricExporterTests
         if (longValue != null)
         {
             var counter = meter.CreateCounter<long>(instrumentName);
-            counter.Add(longValue.Value, new("tag1", "value1"), new("tag2", "value2"));
+            counter.Add(longValue.Value, this.TagList);
         }
         else
         {
             var counter = meter.CreateCounter<double>(instrumentName);
-            counter.Add(doubleValue.Value, new("tag1", "value1"), new("tag2", "value2"));
+            counter.Add(doubleValue.Value, this.TagList);
         }
 
         meterProvider.ForceFlush();
@@ -113,7 +157,7 @@ public class OtlpProtobufMetricExporterTests
 
         Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
 
-        AssertOtlpAttributes([new("tag1", "value1"), new("tag2", "value2")], dataPoint.Attributes);
+        AssertOtlpAttributes(this.TagList, dataPoint.Attributes);
     }
 
     [Theory]
@@ -255,12 +299,12 @@ public class OtlpProtobufMetricExporterTests
         if (longValue != null)
         {
             var counter = meter.CreateUpDownCounter<long>(instrumentName);
-            counter.Add(longValue.Value, new("tag1", "value1"), new("tag2", "value2"));
+            counter.Add(longValue.Value, this.TagList);
         }
         else
         {
             var counter = meter.CreateUpDownCounter<double>(instrumentName);
-            counter.Add(doubleValue.Value, new("tag1", "value1"), new("tag2", "value2"));
+            counter.Add(doubleValue.Value, this.TagList);
         }
 
         meterProvider.ForceFlush();
@@ -324,7 +368,7 @@ public class OtlpProtobufMetricExporterTests
 
         Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
 
-        AssertOtlpAttributes([new("tag1", "value1"), new("tag2", "value2")], dataPoint.Attributes);
+        AssertOtlpAttributes(this.TagList, dataPoint.Attributes);
     }
 
     [Theory]
@@ -462,7 +506,7 @@ public class OtlpProtobufMetricExporterTests
         .Build();
 
         var histogram = meter.CreateHistogram<double>("TestHistogram");
-        histogram.Record(doubleValue, new("tag1", "value1"), new("tag2", "value2"));
+        histogram.Record(doubleValue, this.TagList);
 
         meterProvider.ForceFlush();
 
@@ -542,7 +586,7 @@ public class OtlpProtobufMetricExporterTests
 
         Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
 
-        AssertOtlpAttributes([new("tag1", "value1"), new("tag2", "value2")], dataPoint.Attributes);
+        AssertOtlpAttributes(this.TagList, dataPoint.Attributes);
     }
 
     [Theory]
@@ -695,7 +739,7 @@ public class OtlpProtobufMetricExporterTests
                 instrumentName,
                 () => new List<Measurement<long>>()
                 {
-                    new(longValue.Value, new("tag1", "value1"), new("tag2", "value2")),
+                    new(longValue.Value, this.TagList),
                 });
         }
         else
@@ -704,7 +748,7 @@ public class OtlpProtobufMetricExporterTests
                 instrumentName,
                 () => new List<Measurement<double>>()
                 {
-                new(doubleValue.Value, new("tag1", "value1"), new("tag2", "value2")),
+                new(doubleValue.Value, this.TagList),
                 });
         }
 
@@ -765,7 +809,7 @@ public class OtlpProtobufMetricExporterTests
 
         Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
 
-        AssertOtlpAttributes([new("tag1", "value1"), new("tag2", "value2")], dataPoint.Attributes);
+        AssertOtlpAttributes(this.TagList, dataPoint.Attributes);
     }
 
     [Theory]
@@ -902,8 +946,6 @@ public class OtlpProtobufMetricExporterTests
         {
             var current = expectedAttributes[i].Value;
 
-            // This is a side effect of writing data in buffer from end to beginning
-            // Elements are in reverse order.
             Assert.Equal(expectedAttributes[i].Key, actual[i].Key);
             Assert.Equal(expectedAttributes[i].Key, actual[i].Key);
             AssertOtlpAttributeValue(current, actual[i].Value);
@@ -931,6 +973,21 @@ public class OtlpProtobufMetricExporterTests
                 break;
             case int i:
                 Assert.Equal(i, actual.IntValue);
+                break;
+            case uint u:
+                Assert.Equal(u, actual.IntValue);
+                break;
+            case ushort us:
+                Assert.Equal(us, actual.IntValue);
+                break;
+            case short s:
+                Assert.Equal(s, actual.IntValue);
+                break;
+            case ulong ul:
+                Assert.Equal(ul, (ulong)actual.IntValue);
+                break;
+            case sbyte sb:
+                Assert.Equal(sb, actual.IntValue);
                 break;
             default:
                 Assert.Equal(expected.ToString(), actual.StringValue);
