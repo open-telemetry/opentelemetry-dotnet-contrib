@@ -6,7 +6,7 @@
   * `process.cpu.time` metric attribute renamed from `state` to `process.cpu.state`,
   * Metric descriptions fixed for `process.memory.usage` and `process.memory.virtual`,
   * Metric `process.threads` renamed to `process.thread.count`
-    (its unit changed from `{threads}` to `{thread}`.
+    (its unit changed from `{threads}` to `{thread}`).
   ([#1643](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1643))
 
 ## 0.5.0-beta.5
