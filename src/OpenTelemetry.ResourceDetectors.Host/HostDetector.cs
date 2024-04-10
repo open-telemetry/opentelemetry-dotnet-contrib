@@ -120,7 +120,8 @@ public sealed class HostDetector : IResourceDetector
     {
         try
         {
-            return Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography", false)?.GetValue("MachineGuid") as string ?? null;
+            using var subKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography", false);
+            return subKey?.GetValue("MachineGuid") as string ?? null;
         }
         catch (Exception ex)
         {
