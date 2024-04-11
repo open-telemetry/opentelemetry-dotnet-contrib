@@ -3,8 +3,11 @@
 
 #nullable enable
 
+#pragma warning disable IDE0005 // Using directive is unnecessary.
+using System;
 using System.Diagnostics;
 using System.Reflection;
+#pragma warning restore IDE0005 // Using directive is unnecessary.
 
 namespace OpenTelemetry.Internal;
 
@@ -24,7 +27,7 @@ internal static class AssemblyVersionExtensions
         Debug.Assert(!string.IsNullOrEmpty(informationalVersion), "AssemblyInformationalVersionAttribute was not found in assembly");
 
 #if NET6_0_OR_GREATER
-        var indexOfPlusSign = informationalVersion!.IndexOf('+', System.StringComparison.Ordinal);
+        var indexOfPlusSign = informationalVersion!.IndexOf('+', StringComparison.Ordinal);
 #else
         var indexOfPlusSign = informationalVersion!.IndexOf('+');
 #endif
