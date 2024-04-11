@@ -271,6 +271,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{1FCC8EEC-9E75-4FEA-AFCF-363DD33FF0B9}"
 	ProjectSection(SolutionItems) = preProject
 		src\Shared\ActivityInstrumentationHelper.cs = src\Shared\ActivityInstrumentationHelper.cs
+		src\Shared\AssemblyVersionExtensions.cs = src\Shared\AssemblyVersionExtensions.cs
 		src\Shared\DiagnosticSourceListener.cs = src\Shared\DiagnosticSourceListener.cs
 		src\Shared\DiagnosticSourceSubscriber.cs = src\Shared\DiagnosticSourceSubscriber.cs
 		src\Shared\ExceptionExtensions.cs = src\Shared\ExceptionExtensions.cs
@@ -283,7 +284,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{1FCC8E
 		src\Shared\PropertyFetcher.AOT.cs = src\Shared\PropertyFetcher.AOT.cs
 		src\Shared\ResourceSemanticConventions.cs = src\Shared\ResourceSemanticConventions.cs
 		src\Shared\SemanticConventions.cs = src\Shared\SemanticConventions.cs
-		src\Shared\AssemblyVersionExtensions.cs = src\Shared\AssemblyVersionExtensions.cs
 		src\Shared\SpanAttributeConstants.cs = src\Shared\SpanAttributeConstants.cs
 		src\Shared\SpanHelper.cs = src\Shared\SpanHelper.cs
 	EndProjectSection
