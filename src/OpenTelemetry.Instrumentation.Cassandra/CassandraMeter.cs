@@ -2,10 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics.Metrics;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Cassandra;
 
 internal static class CassandraMeter
 {
-    public static Meter Instance => new Meter(typeof(CassandraMeter).Assembly.GetName().Name, SignalVersionHelper.GetVersion<DriverTimer>());
+    static CassandraMeter()
+    {
+        var assembly = typeof(CassandraMeter).Assembly;
+        Instance = new Meter(assembly.GetName().Name, assembly.GetPackageVersion());
+    }
+
+    public static Meter Instance { get; }
 }

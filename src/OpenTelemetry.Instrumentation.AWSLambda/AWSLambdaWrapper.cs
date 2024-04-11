@@ -20,7 +20,7 @@ public static class AWSLambdaWrapper
 {
     internal const string ActivitySourceName = "OpenTelemetry.Instrumentation.AWSLambda";
 
-    private static readonly ActivitySource AWSLambdaActivitySource = new(ActivitySourceName, SignalVersionHelper.GetVersion<AWSLambdaInstrumentationOptions>());
+    private static readonly ActivitySource AWSLambdaActivitySource = new(ActivitySourceName, typeof(AWSLambdaWrapper).Assembly.GetPackageVersion());
 
     /// <summary>
     /// Gets or sets a value indicating whether AWS X-Ray propagation should be ignored. Default value is false.

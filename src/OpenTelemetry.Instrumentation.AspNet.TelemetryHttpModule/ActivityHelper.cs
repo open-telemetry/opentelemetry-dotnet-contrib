@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Web;
 using OpenTelemetry.Context;
 using OpenTelemetry.Context.Propagation;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.AspNet;
 
@@ -26,7 +27,7 @@ internal static class ActivityHelper
     private static readonly Func<HttpRequest, string, IEnumerable<string>> HttpRequestHeaderValuesGetter = (request, name) => request.Headers.GetValues(name);
     private static readonly ActivitySource AspNetSource = new(
         TelemetryHttpModule.AspNetSourceName,
-        SignalVersionHelper.GetVersion<AspNetTelemetryEventSource>());
+        typeof(ActivityHelper).Assembly.GetPackageVersion());
 
     /// <summary>
     /// Try to get the started <see cref="Activity"/> for the running <see
