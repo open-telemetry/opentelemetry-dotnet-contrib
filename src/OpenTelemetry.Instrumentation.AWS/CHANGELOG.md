@@ -1,5 +1,7 @@
 # Changelog - OpenTelemetry.Instrumentation.AWS
 
+## Unreleased
+
 ## 1.1.0-beta.4
 
 Released 2024-Apr-11
