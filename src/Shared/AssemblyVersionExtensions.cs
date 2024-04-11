@@ -23,7 +23,11 @@ internal static class AssemblyVersionExtensions
         var informationalVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
         Debug.Assert(!string.IsNullOrEmpty(informationalVersion), "AssemblyInformationalVersionAttribute was not found in assembly");
 
+#if NET6_0_OR_GREATER
+        var indexOfPlusSign = informationalVersion!.IndexOf('+', System.StringComparison.Ordinal);
+#else
         var indexOfPlusSign = informationalVersion!.IndexOf('+');
+#endif
         return indexOfPlusSign > 0
             ? informationalVersion.Substring(0, indexOfPlusSign)
             : informationalVersion;
