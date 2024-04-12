@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Diagnostics.Tracing;
 using System.Globalization;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.EventCounters;
 
@@ -15,8 +16,6 @@ namespace OpenTelemetry.Instrumentation.EventCounters;
 /// </summary>
 internal sealed class EventCountersMetrics : EventListener
 {
-    internal static readonly Meter MeterInstance = new(typeof(EventCountersMetrics).Assembly.GetName().Name, SignalVersionHelper.GetVersion<EventCountersMetrics>());
-
     private const string Prefix = "ec";
     private const int MaxInstrumentNameLength = 63;
 
@@ -33,6 +32,9 @@ internal sealed class EventCountersMetrics : EventListener
         // to prevent potential deadlock:
         // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1024.
         _ = EventCountersInstrumentationEventSource.Log;
+
+        var assembly = typeof(EventCountersMetrics).Assembly;
+        MeterInstance = new Meter(assembly.GetName().Name, assembly.GetPackageVersion());
     }
 
     /// <summary>
@@ -57,6 +59,8 @@ internal sealed class EventCountersMetrics : EventListener
             this.preInitEventSources.Clear();
         }
     }
+
+    internal static Meter MeterInstance { get; }
 
     /// <inheritdoc />
     public override void Dispose()
