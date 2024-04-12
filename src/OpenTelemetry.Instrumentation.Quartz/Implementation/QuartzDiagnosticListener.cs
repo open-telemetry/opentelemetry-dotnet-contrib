@@ -13,9 +13,10 @@ namespace OpenTelemetry.Instrumentation.Quartz.Implementation;
 
 internal sealed class QuartzDiagnosticListener : ListenerHandler
 {
-    internal static readonly AssemblyName AssemblyName = typeof(QuartzDiagnosticListener).Assembly.GetName();
+    internal static readonly Assembly Assembly = typeof(QuartzDiagnosticListener).Assembly;
+    internal static readonly AssemblyName AssemblyName = Assembly.GetName();
     internal static readonly string ActivitySourceName = AssemblyName.Name;
-    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, SignalVersionHelper.GetVersion<QuartzDiagnosticListener>());
+    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
     internal readonly PropertyFetcher<object> JobDetailsPropertyFetcher = new("JobDetail");
 
     private readonly QuartzInstrumentationOptions options;

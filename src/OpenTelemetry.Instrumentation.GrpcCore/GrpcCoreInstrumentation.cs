@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.Reflection;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.GrpcCore;
 
@@ -12,9 +13,14 @@ namespace OpenTelemetry.Instrumentation.GrpcCore;
 internal static class GrpcCoreInstrumentation
 {
     /// <summary>
+    /// The assembly.
+    /// </summary>
+    internal static readonly Assembly Assembly = typeof(GrpcCoreInstrumentation).Assembly;
+
+    /// <summary>
     /// The assembly name.
     /// </summary>
-    internal static readonly AssemblyName AssemblyName = typeof(GrpcCoreInstrumentation).Assembly.GetName();
+    internal static readonly AssemblyName AssemblyName = Assembly.GetName();
 
     /// <summary>
     /// The activity source name.
@@ -24,5 +30,5 @@ internal static class GrpcCoreInstrumentation
     /// <summary>
     /// The activity source.
     /// </summary>
-    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, SignalVersionHelper.GetVersion<ServerTracingInterceptorOptions>());
+    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
 }

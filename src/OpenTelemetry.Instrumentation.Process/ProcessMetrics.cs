@@ -7,16 +7,18 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
+using OpenTelemetry.Internal;
 using Diagnostics = System.Diagnostics;
 
 namespace OpenTelemetry.Instrumentation.Process;
 
 internal sealed class ProcessMetrics
 {
-    internal static readonly AssemblyName AssemblyName = typeof(ProcessMetrics).Assembly.GetName();
+    internal static readonly Assembly Assembly = typeof(ProcessMetrics).Assembly;
+    internal static readonly AssemblyName AssemblyName = Assembly.GetName();
     internal static readonly string MeterName = AssemblyName.Name;
 
-    private static readonly Meter MeterInstance = new(MeterName, SignalVersionHelper.GetVersion<ProcessMetrics>());
+    private static readonly Meter MeterInstance = new(MeterName, Assembly.GetPackageVersion());
 
     static ProcessMetrics()
     {
