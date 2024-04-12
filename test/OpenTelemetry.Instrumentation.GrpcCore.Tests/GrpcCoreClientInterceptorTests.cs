@@ -480,7 +480,7 @@ public class GrpcCoreClientInterceptorTests
         string serverUriString = null)
     {
         using var server = FoobarService.Start();
-        var interceptorOptions = new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator(), ActivityIdentifierValue = Guid.NewGuid(), RecordExceptions = true };
+        var interceptorOptions = new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator(), ActivityIdentifierValue = Guid.NewGuid(), RecordException = true };
         var client = FoobarService.ConstructRpcClient(
             serverUriString ?? server.UriString,
             new ClientTracingInterceptor(interceptorOptions),
@@ -494,7 +494,7 @@ public class GrpcCoreClientInterceptorTests
         await Assert.ThrowsAsync<RpcException>(async () => await clientRequestFunc(client, null).ConfigureAwait(false));
 
         var activity = activityListener.Activity;
-        ValidateCommonActivityTags(activity, statusCode, interceptorOptions.RecordMessageEvents, interceptorOptions.RecordExceptions);
+        ValidateCommonActivityTags(activity, statusCode, interceptorOptions.RecordMessageEvents, interceptorOptions.RecordException);
 
         if (validateErrorDescription)
         {

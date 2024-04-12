@@ -28,7 +28,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// <summary>
     /// The record exceptions as activity events flag.
     /// </summary>
-    private readonly bool recordExceptions;
+    private readonly bool recordException;
 
     /// <summary>
     /// The RPC activity.
@@ -55,12 +55,12 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// </summary>
     /// <param name="fullServiceName">Full name of the service.</param>
     /// <param name="recordMessageEvents">if set to <c>true</c> [record message events].</param>
-    /// <param name="recordExceptions">If set to <c>true</c> [record exceptions].</param>
-    protected RpcScope(string fullServiceName, bool recordMessageEvents, bool recordExceptions)
+    /// <param name="recordException">If set to <c>true</c> [record exceptions].</param>
+    protected RpcScope(string fullServiceName, bool recordMessageEvents, bool recordException)
     {
         this.FullServiceName = fullServiceName?.TrimStart('/') ?? "unknownservice/unknownmethod";
         this.recordMessageEvents = recordMessageEvents;
-        this.recordExceptions = recordExceptions;
+        this.recordException = recordException;
     }
 
     /// <summary>
@@ -125,21 +125,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
             return;
         }
 
-        var grpcStatusCode = Grpc.Core.StatusCode.Unknown;
-        var description = exception.Message;
-
-        if (exception is RpcException rpcException)
-        {
-            grpcStatusCode = rpcException.StatusCode;
-            description = rpcException.Message;
-        }
-
-        if (this.recordExceptions)
-        {
-            this.activity.RecordException(exception);
-        }
-
-        this.StopActivity((int)grpcStatusCode, description);
+        this.StopActivity(exception);
     }
 
     /// <inheritdoc/>
@@ -188,19 +174,53 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// Stops the activity.
     /// </summary>
     /// <param name="statusCode">The status code.</param>
-    /// <param name="statusDescription">The description, if any.</param>
-    private void StopActivity(int statusCode, string statusDescription = null)
+    private void StopActivity(int statusCode)
     {
         if (Interlocked.CompareExchange(ref this.complete, 1, 0) == 0)
         {
-            this.activity.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, statusCode);
-            if (statusDescription != null)
+            this.StopActivityCommon(statusCode);
+        }
+    }
+
+    /// <summary>
+    /// Stops the activity.
+    /// </summary>
+    /// <param name="exception">The exception.</param>
+    private void StopActivity(Exception exception)
+    {
+        if (Interlocked.CompareExchange(ref this.complete, 1, 0) == 0)
+        {
+            var grpcStatusCode = Grpc.Core.StatusCode.Unknown;
+            var description = exception.Message;
+
+            if (exception is RpcException rpcException)
             {
-                this.activity.SetStatus(Trace.Status.Error.WithDescription(statusDescription));
+                grpcStatusCode = rpcException.StatusCode;
+                description = rpcException.Message;
             }
 
-            this.activity.Stop();
+            if (!string.IsNullOrEmpty(description))
+            {
+                this.activity.SetStatus(Trace.Status.Error.WithDescription(description));
+            }
+
+            if (this.activity.IsAllDataRequested && this.recordException)
+            {
+                this.activity.RecordException(exception);
+            }
+
+            this.StopActivityCommon((int)grpcStatusCode);
         }
+    }
+
+    /// <summary>
+    /// Stops the activity.
+    /// </summary>
+    /// <param name="statusCode">The status code.</param>
+    private void StopActivityCommon(int statusCode)
+    {
+        this.activity.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, statusCode);
+        this.activity.Stop();
     }
 
     /// <summary>

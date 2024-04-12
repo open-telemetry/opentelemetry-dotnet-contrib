@@ -19,7 +19,7 @@ public class ClientTracingInterceptorOptions
     /// <summary>
     /// Gets or sets a value indicating whether the exception will be recorded as ActivityEvent or not.
     /// </summary>
-    public bool RecordExceptions { get; set; }
+    public bool RecordException { get; set; }
 
     /// <summary>
     /// Gets the propagator.
