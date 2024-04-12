@@ -55,7 +55,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// </summary>
     /// <param name="fullServiceName">Full name of the service.</param>
     /// <param name="recordMessageEvents">if set to <c>true</c> [record message events].</param>
-    /// <param name="recordException">If set to <c>true</c> [record exceptions].</param>
+    /// <param name="recordException">If set to <c>true</c> [record exception].</param>
     protected RpcScope(string fullServiceName, bool recordMessageEvents, bool recordException)
     {
         this.FullServiceName = fullServiceName?.TrimStart('/') ?? "unknownservice/unknownmethod";
@@ -174,12 +174,16 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// Stops the activity.
     /// </summary>
     /// <param name="statusCode">The status code.</param>
-    private void StopActivity(int statusCode)
+    /// <param name="markAsCompleted">If set to <c>true</c> [mark as completed].</param>
+    private void StopActivity(int statusCode, bool markAsCompleted = true)
     {
-        if (Interlocked.CompareExchange(ref this.complete, 1, 0) == 0)
+        if (markAsCompleted && !this.TryMarkAsCompleted())
         {
-            this.StopActivityCommon(statusCode);
+            return;
         }
+
+        this.activity.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, statusCode);
+        this.activity.Stop();
     }
 
     /// <summary>
@@ -188,39 +192,40 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// <param name="exception">The exception.</param>
     private void StopActivity(Exception exception)
     {
-        if (Interlocked.CompareExchange(ref this.complete, 1, 0) == 0)
+        if (!this.TryMarkAsCompleted())
         {
-            var grpcStatusCode = Grpc.Core.StatusCode.Unknown;
-            var description = exception.Message;
-
-            if (exception is RpcException rpcException)
-            {
-                grpcStatusCode = rpcException.StatusCode;
-                description = rpcException.Message;
-            }
-
-            if (!string.IsNullOrEmpty(description))
-            {
-                this.activity.SetStatus(Trace.Status.Error.WithDescription(description));
-            }
-
-            if (this.activity.IsAllDataRequested && this.recordException)
-            {
-                this.activity.RecordException(exception);
-            }
-
-            this.StopActivityCommon((int)grpcStatusCode);
+            return;
         }
+
+        var grpcStatusCode = Grpc.Core.StatusCode.Unknown;
+        var description = exception.Message;
+
+        if (exception is RpcException rpcException)
+        {
+            grpcStatusCode = rpcException.StatusCode;
+            description = rpcException.Message;
+        }
+
+        if (!string.IsNullOrEmpty(description))
+        {
+            this.activity.SetStatus(Trace.Status.Error.WithDescription(description));
+        }
+
+        if (this.activity.IsAllDataRequested && this.recordException)
+        {
+            this.activity.RecordException(exception);
+        }
+
+        this.StopActivity((int)grpcStatusCode, markAsCompleted: false);
     }
 
     /// <summary>
-    /// Stops the activity.
+    /// Tries to mark <see cref="RpcScope{TRequest, TResponse}"/> as completed.
     /// </summary>
-    /// <param name="statusCode">The status code.</param>
-    private void StopActivityCommon(int statusCode)
+    /// <returns>Returns <c>true</c> if marked as completed successfully.</returns>
+    private bool TryMarkAsCompleted()
     {
-        this.activity.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, statusCode);
-        this.activity.Stop();
+        return Interlocked.CompareExchange(ref this.complete, 1, 0) == 0;
     }
 
     /// <summary>
