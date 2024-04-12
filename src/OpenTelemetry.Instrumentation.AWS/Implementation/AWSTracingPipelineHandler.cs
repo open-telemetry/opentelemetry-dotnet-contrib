@@ -8,6 +8,7 @@ using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 using Amazon.Util;
 using OpenTelemetry.Context.Propagation;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation;
@@ -23,7 +24,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 {
     internal const string ActivitySourceName = "Amazon.AWS.AWSClientInstrumentation";
 
-    private static readonly ActivitySource AWSSDKActivitySource = new(ActivitySourceName, SignalVersionHelper.GetVersion<AWSTracingPipelineHandler>());
+    private static readonly ActivitySource AWSSDKActivitySource = new(ActivitySourceName, typeof(AWSTracingPipelineHandler).Assembly.GetPackageVersion());
 
     private readonly AWSClientInstrumentationOptions options;
 
