@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.1.0-beta.4
+
+Released 2024-Apr-12
+
 * BREAKING: Switched AWSServiceName tag to use ServiceId instead of ServiceName
   ([#1572](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1572))
 * `ActivitySource.Version` is set to NuGet package version.

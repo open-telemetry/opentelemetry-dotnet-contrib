@@ -27,7 +27,7 @@ internal sealed class ProcessMetrics
                 return Diagnostics.Process.GetCurrentProcess().WorkingSet64;
             },
             unit: "By",
-            description: "The amount of physical memory allocated for this process.");
+            description: "The amount of physical memory in use.");
 
         MeterInstance.CreateObservableUpDownCounter(
             "process.memory.virtual",
@@ -36,7 +36,7 @@ internal sealed class ProcessMetrics
                 return Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64;
             },
             unit: "By",
-            description: "The amount of committed virtual memory for this process.");
+            description: "The amount of committed virtual memory.");
 
         MeterInstance.CreateObservableCounter(
             "process.cpu.time",
@@ -45,8 +45,8 @@ internal sealed class ProcessMetrics
                 var process = Diagnostics.Process.GetCurrentProcess();
                 return new[]
                 {
-                    new Measurement<double>(process.UserProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("state", "user")),
-                    new Measurement<double>(process.PrivilegedProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("state", "system")),
+                    new Measurement<double>(process.UserProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("process.cpu.state", "user")),
+                    new Measurement<double>(process.PrivilegedProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("process.cpu.state", "system")),
                 };
             },
             unit: "s",
@@ -62,12 +62,12 @@ internal sealed class ProcessMetrics
             description: "The number of processors (CPU cores) available to the current process.");
 
         MeterInstance.CreateObservableUpDownCounter(
-            "process.threads",
+            "process.thread.count",
             () =>
             {
                 return Diagnostics.Process.GetCurrentProcess().Threads.Count;
             },
-            unit: "{threads}",
+            unit: "{thread}",
             description: "Process threads count.");
     }
 
