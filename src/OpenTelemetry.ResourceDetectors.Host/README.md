@@ -36,7 +36,7 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 The resource detectors will record the following metadata based on where
 your application is running:
 
-- **HostDetector**: `host.name`.
+- **HostDetector**: `host.id` (when running on non-containerized systems), `host.name`.
 
 ## References
 
