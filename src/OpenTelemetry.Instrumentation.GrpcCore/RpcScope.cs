@@ -26,7 +26,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     private readonly bool recordMessageEvents;
 
     /// <summary>
-    /// The record exceptions as activity events flag.
+    /// The record exception as ActivityEvent flag.
     /// </summary>
     private readonly bool recordException;
 
