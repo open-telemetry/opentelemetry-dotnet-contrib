@@ -5,7 +5,6 @@
 
 using System;
 using System.Net.Http;
-using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.ResourceDetectors;
 
@@ -19,8 +18,7 @@ internal static class ServerCertificateValidationHandler
 
             if (serverCertificateValidationProvider == null)
             {
-                log.FailedToValidateCertificate(nameof(ServerCertificateValidationHandler), "Failed to Load the certificate file into trusted collection");
-                return null;
+                return new HttpClientHandler();
             }
 
             var clientHandler = new HttpClientHandler
@@ -33,7 +31,7 @@ internal static class ServerCertificateValidationHandler
         }
         catch (Exception ex)
         {
-            log.FailedToExtractResourceAttributes($"{nameof(ServerCertificateValidationHandler)} : Failed to create HttpClientHandler", ex.ToInvariantString());
+            log.FailedToCreateHttpHandler(ex);
         }
 
         return null;

@@ -10,6 +10,12 @@ namespace OpenTelemetry.ResourceDetectors.AWS;
 [EventSource(Name = "OpenTelemetry-ResourceDetectors-AWS")]
 internal sealed class AWSResourcesEventSource : EventSource, IServerCertificateValidationEventSource
 {
+    private const int EVENT_ID_FAILED_TO_EXTRACT_ATTRIBUTES = 1;
+    private const int EVENT_ID_FAILED_TO_VALIDATE_CERTIFICATE = 2;
+    private const int EVENT_ID_FAILED_TO_CREATE_HTTP_HANDLER = 3;
+    private const int EVENT_ID_FAILED_CERTIFICATE_FILE_NOT_EXISTS = 4;
+    private const int EVENT_ID_FAILED_TO_LOAD_CERTIFICATE_IN_STORAGE = 5;
+
     public static AWSResourcesEventSource Log = new();
 
     [NonEvent]
@@ -21,15 +27,33 @@ internal sealed class AWSResourcesEventSource : EventSource, IServerCertificateV
         }
     }
 
-    [Event(1, Message = "Failed to extract resource attributes in '{0}'.", Level = EventLevel.Warning)]
+    [Event(EVENT_ID_FAILED_TO_EXTRACT_ATTRIBUTES, Message = "Failed to extract resource attributes in '{0}'.", Level = EventLevel.Warning)]
     public void FailedToExtractResourceAttributes(string format, string exception)
     {
-        this.WriteEvent(1, format, exception);
+        this.WriteEvent(EVENT_ID_FAILED_TO_EXTRACT_ATTRIBUTES, format, exception);
     }
 
-    [Event(2, Message = "Failed to validate certificate in format: '{0}', error: '{1}'.", Level = EventLevel.Warning)]
-    public void FailedToValidateCertificate(string format, string error)
+    [Event(EVENT_ID_FAILED_TO_VALIDATE_CERTIFICATE, Message = "Failed to validate certificate. Details: '{0}'", Level = EventLevel.Warning)]
+    public void FailedToValidateCertificate(string error)
     {
-        this.WriteEvent(2, format, error);
+        this.WriteEvent(EVENT_ID_FAILED_TO_VALIDATE_CERTIFICATE, error);
+    }
+
+    [Event(EVENT_ID_FAILED_TO_CREATE_HTTP_HANDLER, Message = "Failed to create HTTP handler. Exception: '{0}'", Level = EventLevel.Warning)]
+    public void FailedToCreateHttpHandler(Exception exception)
+    {
+        this.WriteEvent(EVENT_ID_FAILED_TO_CREATE_HTTP_HANDLER, exception.ToInvariantString());
+    }
+
+    [Event(EVENT_ID_FAILED_CERTIFICATE_FILE_NOT_EXISTS, Message = "Certificate file does not exist. File: '{0}'", Level = EventLevel.Warning)]
+    public void CertificateFileDoesNotExist(string filename)
+    {
+        this.WriteEvent(EVENT_ID_FAILED_CERTIFICATE_FILE_NOT_EXISTS, filename);
+    }
+
+    [Event(EVENT_ID_FAILED_TO_LOAD_CERTIFICATE_IN_STORAGE, Message = "Failed to load certificate in trusted storage. File: '{0}'", Level = EventLevel.Warning)]
+    public void FailedToLoadCertificateInTrustedStorage(string filename)
+    {
+        this.WriteEvent(EVENT_ID_FAILED_TO_LOAD_CERTIFICATE_IN_STORAGE, filename);
     }
 }

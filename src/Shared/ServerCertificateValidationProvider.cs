@@ -30,14 +30,14 @@ internal class ServerCertificateValidationProvider
     {
         if (!File.Exists(certificateFile))
         {
-            log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "Certificate File does not exist");
+            log.CertificateFileDoesNotExist(certificateFile);
             return null;
         }
 
         var trustedCertificates = new X509Certificate2Collection();
         if (!LoadCertificateToTrustedCollection(trustedCertificates, certificateFile))
         {
-            log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "Failed to load certificate in trusted collection");
+            log.FailedToLoadCertificateInTrustedStorage(certificateFile);
             return null;
         }
 
@@ -86,24 +86,24 @@ internal class ServerCertificateValidationProvider
         {
             if ((errors | SslPolicyErrors.RemoteCertificateNotAvailable) == errors)
             {
-                this.log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "SslPolicyError RemoteCertificateNotAvailable occurred");
+                this.log.FailedToValidateCertificate("SslPolicyError RemoteCertificateNotAvailable occurred");
             }
 
             if ((errors | SslPolicyErrors.RemoteCertificateNameMismatch) == errors)
             {
-                this.log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "SslPolicyError RemoteCertificateNameMismatch occurred");
+                this.log.FailedToValidateCertificate("SslPolicyError RemoteCertificateNameMismatch occurred");
             }
         }
 
         if (chain == null)
         {
-            this.log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "Certificate chain is null.");
+            this.log.FailedToValidateCertificate("Certificate chain is null.");
             return false;
         }
 
         if (cert == null)
         {
-            this.log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "Certificate is null.");
+            this.log.FailedToValidateCertificate("Certificate is null.");
             return false;
         }
 
@@ -125,7 +125,7 @@ internal class ServerCertificateValidationProvider
                 }
             }
 
-            this.log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), chainErrors);
+            this.log.FailedToValidateCertificate(chainErrors);
         }
 
         // check if at least one certificate in the chain is in our trust list
@@ -144,9 +144,7 @@ internal class ServerCertificateValidationProvider
                 trustCertificates += " " + trustCertificate.Subject;
             }
 
-            this.log.FailedToValidateCertificate(
-                nameof(ServerCertificateValidationProvider),
-                $"Server Certificates Chain cannot be trusted. The chain doesn't match with the Trusted Certificates provided. Server Certificates:{serverCertificates}. Trusted Certificates:{trustCertificates}");
+            this.log.FailedToValidateCertificate($"Server Certificates Chain cannot be trusted. The chain doesn't match with the Trusted Certificates provided. Server Certificates:{serverCertificates}. Trusted Certificates:{trustCertificates}");
         }
 
         return isSslPolicyPassed && isValidChain && isTrusted;
