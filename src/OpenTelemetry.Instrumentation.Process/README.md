@@ -100,9 +100,9 @@ process.
 
 Total CPU seconds broken down by states.
 
-| Units | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|-------|-------------------|------------|------------------|------------------|
-|  `s`  | ObservableCounter | `Double`   | state            | user, system     |
+| Units | Instrument Type   | Value Type | Attribute Key(s)  | Attribute Values |
+|-------|-------------------|------------|-------------------|------------------|
+|  `s`  | ObservableCounter | `Double`   | process.cpu.state | user, system     |
 
 The APIs used to retrieve the values are:
 
@@ -130,13 +130,13 @@ and not part of the [Process Metrics
 Spec](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md)
 at this time.
 
-### process.threads
+### process.thread.count
 
 Process threads count.
 
 | Units      | Instrument Type         | Value Type |
 |------------|-------------------------|------------|
-| `{threads}`| ObservableUpDownCounter | `Int32`    |
+| `{thread}` | ObservableUpDownCounter | `Int32`    |
 
 The API used to retrieve the value is:
 

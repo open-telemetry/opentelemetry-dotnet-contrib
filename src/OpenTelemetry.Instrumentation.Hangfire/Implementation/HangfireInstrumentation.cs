@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Reflection;
 using Hangfire;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
@@ -12,9 +13,14 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 internal sealed class HangfireInstrumentation
 {
     /// <summary>
+    /// The assembly.
+    /// </summary>
+    internal static readonly Assembly Assembly = typeof(HangfireInstrumentation).Assembly;
+
+    /// <summary>
     /// The assembly name.
     /// </summary>
-    internal static readonly AssemblyName AssemblyName = typeof(HangfireInstrumentation).Assembly.GetName();
+    internal static readonly AssemblyName AssemblyName = Assembly.GetName();
 
     /// <summary>
     /// The activity source name.
@@ -24,7 +30,7 @@ internal sealed class HangfireInstrumentation
     /// <summary>
     /// The activity source.
     /// </summary>
-    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, SignalVersionHelper.GetVersion<HangfireInstrumentationOptions>());
+    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
 
     /// <summary>
     /// The default display name delegate.
