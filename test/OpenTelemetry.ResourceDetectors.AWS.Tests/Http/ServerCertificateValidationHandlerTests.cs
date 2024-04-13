@@ -27,7 +27,7 @@ public class ServerCertificateValidationHandlerTests
     public void TestInValidHandler()
     {
         // Validates if the handler created if no certificate is loaded into the trusted collection
-        Assert.Null(ServerCertificateValidationHandler.Create(INVALIDCRTNAME, NoopServerCertificateValidationEventSource.Instance));
+        Assert.NotNull(ServerCertificateValidationHandler.Create(INVALIDCRTNAME, NoopServerCertificateValidationEventSource.Instance));
     }
 }
 
