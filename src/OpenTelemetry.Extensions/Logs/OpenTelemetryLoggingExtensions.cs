@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 
@@ -34,5 +35,40 @@ public static class OpenTelemetryLoggingExtensions
 #pragma warning disable CA2000 // Dispose objects before losing scope
         return loggerOptions.AddProcessor(new ActivityEventAttachingLogProcessor(options));
 #pragma warning restore CA2000 // Dispose objects before losing scope
+    }
+
+    /// <summary>
+    /// Add trace ids to logs.
+    /// </summary>
+    /// <param name="builder">The <see cref="ILoggingBuilder"/> to use.</param>
+    /// <returns>The instance of <see cref="OpenTelemetryLoggerOptions"/> to chain the calls.</returns>
+    public static ILoggingBuilder AddTraceId(this ILoggingBuilder builder)
+    {
+        var services = builder
+            .Services;
+
+        for (var i = 0; i < services.Count; i++)
+        {
+            if (services[i].ServiceType == typeof(ILoggerProvider))
+            {
+                var descriptor = services[i];
+
+                services[i] = ServiceDescriptor.Describe(
+                    typeof(ILoggerProvider),
+                    provider =>
+                    {
+                        var loggerInstance = descriptor.ImplementationInstance is { } implementationInstance
+                            ? implementationInstance
+                            : descriptor.ImplementationType is { } implementationType
+                                ? ActivatorUtilities.CreateInstance(provider, implementationType)
+                                : descriptor.ImplementationFactory!(provider);
+
+                        return new AddTraceIdLoggerProvider((ILoggerProvider)loggerInstance);
+                    },
+                    descriptor.Lifetime);
+            }
+        }
+
+        return builder;
     }
 }
