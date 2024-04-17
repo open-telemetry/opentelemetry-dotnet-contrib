@@ -23,9 +23,10 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
     internal const string ExceptionCustomPropertyName = "OTel.Elasticsearch.Exception";
     internal const string AttributeDbMethod = "db.method";
 
-    internal static readonly AssemblyName AssemblyName = typeof(ElasticsearchRequestPipelineDiagnosticListener).Assembly.GetName();
+    internal static readonly Assembly Assembly = typeof(ElasticsearchRequestPipelineDiagnosticListener).Assembly;
+    internal static readonly AssemblyName AssemblyName = Assembly.GetName();
     internal static readonly string ActivitySourceName = AssemblyName.Name;
-    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, SignalVersionHelper.GetVersion<ElasticsearchRequestPipelineDiagnosticListener>());
+    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
 
     private static readonly Regex ParseRequest = new Regex(@"\n# Request:\r?\n(\{.*)\n# Response", RegexOptions.Compiled | RegexOptions.Singleline);
     private static readonly ConcurrentDictionary<object, string> MethodNameCache = new ConcurrentDictionary<object, string>();

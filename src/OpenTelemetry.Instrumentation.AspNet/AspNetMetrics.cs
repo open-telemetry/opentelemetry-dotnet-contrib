@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using OpenTelemetry.Instrumentation.AspNet.Implementation;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.AspNet;
 
@@ -13,9 +14,10 @@ namespace OpenTelemetry.Instrumentation.AspNet;
 /// </summary>
 internal sealed class AspNetMetrics : IDisposable
 {
-    internal static readonly AssemblyName AssemblyName = typeof(HttpInMetricsListener).Assembly.GetName();
+    internal static readonly Assembly Assembly = typeof(HttpInMetricsListener).Assembly;
+    internal static readonly AssemblyName AssemblyName = Assembly.GetName();
     internal static readonly string InstrumentationName = AssemblyName.Name;
-    internal static readonly string InstrumentationVersion = SignalVersionHelper.GetVersion<AspNetMetrics>();
+    internal static readonly string InstrumentationVersion = Assembly.GetPackageVersion();
 
     private readonly Meter meter;
 

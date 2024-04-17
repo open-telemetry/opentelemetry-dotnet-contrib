@@ -3,6 +3,7 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Reflection;
 using OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
@@ -18,9 +19,10 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
 {
     internal const string RedisDatabaseIndexKeyName = "db.redis.database_index";
     internal const string RedisFlagsKeyName = "db.redis.flags";
-    internal static readonly string ActivitySourceName = typeof(StackExchangeRedisConnectionInstrumentation).Assembly.GetName().Name!;
+    internal static readonly Assembly Assembly = typeof(StackExchangeRedisConnectionInstrumentation).Assembly;
+    internal static readonly string ActivitySourceName = Assembly.GetName().Name!;
     internal static readonly string ActivityName = ActivitySourceName + ".Execute";
-    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, SignalVersionHelper.GetVersion<StackExchangeRedisConnectionInstrumentation>());
+    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
     internal static readonly IEnumerable<KeyValuePair<string, object?>> CreationTags = new[]
     {
         new KeyValuePair<string, object?>(SemanticConventions.AttributeDbSystem, "redis"),
