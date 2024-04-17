@@ -2,6 +2,8 @@
 
 ## 1.0.0-rc.5
 
+Released 2024-Apr-17
+
 * **Breaking Change**: Fixed tracing instrumentation so that by default any
   values detected in the query string component of requests are replaced with
   the text `Redacted` when building the `http.url` tag. For example,
