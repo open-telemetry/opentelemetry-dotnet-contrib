@@ -7,7 +7,7 @@ using System.Text;
 
 namespace OpenTelemetry.Internal;
 
-internal class RedactionHelper
+internal sealed class RedactionHelper
 {
     private const string RedactedText = "Redacted";
 
