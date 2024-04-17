@@ -91,14 +91,8 @@ internal sealed class HttpInListener : IDisposable
             var query = url.Query;
             if (!string.IsNullOrEmpty(query))
             {
-                if (query.StartsWith("?", StringComparison.InvariantCulture))
-                {
-                    activity.SetTag(SemanticConventions.AttributeUrlQuery, query.Substring(1));
-                }
-                else
-                {
-                    activity.SetTag(SemanticConventions.AttributeUrlQuery, query);
-                }
+                var queryString = query.StartsWith("?", StringComparison.InvariantCulture) ? query.Substring(1) : query;
+                activity.SetTag(SemanticConventions.AttributeUrlQuery, this.options.DisableUrlQueryRedaction ? queryString : RedactionHelper.GetRedactedQueryString(queryString));
             }
 
             var userAgent = request.UserAgent;

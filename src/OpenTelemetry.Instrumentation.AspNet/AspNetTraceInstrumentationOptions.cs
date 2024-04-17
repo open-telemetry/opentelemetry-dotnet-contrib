@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Web;
+using OpenTelemetry.Instrumentation.AspNet.Implementation;
 
 namespace OpenTelemetry.Instrumentation.AspNet;
 
@@ -12,6 +13,27 @@ namespace OpenTelemetry.Instrumentation.AspNet;
 /// </summary>
 public class AspNetTraceInstrumentationOptions
 {
+    private const string DisableQueryRedactionEnvVar = "OTEL_DOTNET_EXPERIMENTAL_ASPNET_DISABLE_URL_QUERY_REDACTION";
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AspNetTraceInstrumentationOptions"/> class.
+    /// </summary>
+    public AspNetTraceInstrumentationOptions()
+    {
+        try
+        {
+            var disableQueryRedaction = Environment.GetEnvironmentVariable(DisableQueryRedactionEnvVar);
+            if (disableQueryRedaction != null && disableQueryRedaction.Equals("true", StringComparison.OrdinalIgnoreCase))
+            {
+                this.DisableUrlQueryRedaction = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            AspNetInstrumentationEventSource.Log.FailedToReadEnvironmentVariable(DisableQueryRedactionEnvVar, ex);
+        }
+    }
+
     /// <summary>
     /// Gets or sets a filter callback function that determines on a per
     /// request basis whether or not to collect telemetry.
@@ -46,4 +68,14 @@ public class AspNetTraceInstrumentationOptions
     /// See: <see href="https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/exceptions.md"/>.
     /// </remarks>
     public bool RecordException { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the url query value should be redacted or not.
+    /// </summary>
+    /// <remarks>
+    /// The query parameter values are redacted with value set as Redacted.
+    /// e.g. `?key1=value1` is set as `?key1=Redacted`.
+    /// The redaction can be disabled by setting this property to <see langword="true" />.
+    /// </remarks>
+    internal bool DisableUrlQueryRedaction { get; set; }
 }

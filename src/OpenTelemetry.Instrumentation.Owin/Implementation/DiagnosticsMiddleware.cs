@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Owin;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Instrumentation.Owin.Implementation;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Owin;
@@ -114,7 +115,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
 
                 activity.SetTag(SemanticConventions.AttributeHttpMethod, request.Method);
                 activity.SetTag(SemanticConventions.AttributeHttpTarget, request.Uri.AbsolutePath);
-                activity.SetTag(SemanticConventions.AttributeHttpUrl, GetUriTagValueFromRequestUri(request.Uri));
+                activity.SetTag(SemanticConventions.AttributeHttpUrl, GetUriTagValueFromRequestUri(request.Uri, OwinInstrumentationActivitySource.Options.DisableUrlQueryRedaction));
 
                 if (request.Headers.TryGetValue("User-Agent", out string[] userAgent) && userAgent.Length > 0)
                 {
@@ -228,13 +229,15 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
     /// </summary>
     /// <param name="uri"><see cref="Uri"/>.</param>
     /// <returns>Span uri value.</returns>
-    private static string GetUriTagValueFromRequestUri(Uri uri)
+    private static string GetUriTagValueFromRequestUri(Uri uri, bool disableQueryRedaction)
     {
-        if (string.IsNullOrEmpty(uri.UserInfo))
+        if (string.IsNullOrEmpty(uri.UserInfo) && disableQueryRedaction)
         {
-            return uri.ToString();
+            return uri.OriginalString;
         }
 
-        return string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority, uri.PathAndQuery, uri.Fragment);
+        var query = disableQueryRedaction ? uri.Query : RedactionHelper.GetRedactedQueryString(uri.Query);
+
+        return string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority, uri.AbsolutePath, query, uri.Fragment);
     }
 }

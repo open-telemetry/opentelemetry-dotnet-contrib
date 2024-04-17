@@ -33,6 +33,15 @@ internal sealed class AspNetInstrumentationEventSource : EventSource
         }
     }
 
+    [NonEvent]
+    public void FailedToReadEnvironmentVariable(string envVarName, Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        {
+            this.EnrichmentException(envVarName, ex.ToInvariantString());
+        }
+    }
+
     [Event(1, Message = "Request is filtered out and will not be collected. Operation='{0}'", Level = EventLevel.Verbose)]
     public void RequestIsFilteredOut(string operationName)
     {
@@ -49,5 +58,11 @@ internal sealed class AspNetInstrumentationEventSource : EventSource
     public void EnrichmentException(string eventName, string exception)
     {
         this.WriteEvent(3, eventName, exception);
+    }
+
+    [Event(4, Message = "Failed to read environment variable='{0}': {1}", Level = EventLevel.Error)]
+    public void FailedToReadEnvironmentVariable(string envVarName, string exception)
+    {
+        this.WriteEvent(4, envVarName, exception);
     }
 }
