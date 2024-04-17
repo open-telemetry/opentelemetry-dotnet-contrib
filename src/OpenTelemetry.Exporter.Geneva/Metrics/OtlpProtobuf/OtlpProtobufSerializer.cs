@@ -74,14 +74,21 @@ internal sealed class OtlpProtobufSerializer
             // TODO: exponential histogram.
         }
 
-        if (connectionStringBuilder != null && connectionStringBuilder.Namespace != null)
+        try
         {
-            this.metricNamespace = connectionStringBuilder.Namespace;
-        }
+            if (connectionStringBuilder != null && connectionStringBuilder.Namespace != null)
+            {
+                this.metricNamespace = connectionStringBuilder.Namespace;
+            }
 
-        if (connectionStringBuilder != null && connectionStringBuilder.Account != null)
+            if (connectionStringBuilder != null && connectionStringBuilder.Account != null)
+            {
+                this.metricAccount = connectionStringBuilder.Account;
+            }
+        }
+        catch
         {
-            this.metricAccount = connectionStringBuilder.Account;
+            // TODO: add log.
         }
     }
 
