@@ -8,7 +8,7 @@
   `?key1=value1&key2=value2` becomes `?key1=Redacted&key2=Redacted`. You can
   disable this redaction by setting the environment variable
   `OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION` to `true`.
-  ([#]())
+  ([#1656](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1656))
 
 * `ActivitySource.Version` and `Meter.Version` are set to NuGet package version.
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
