@@ -103,10 +103,12 @@ public class OtlpProtobufMetricExporterTests
             { "TestResourceKey", "TestResourceValue" },
         };
 
+        string expectedAccount = "TestAccount";
+        string expectedNamespace = "TestNameSpace";
         Dictionary<string, object> accountAndNamespace = new Dictionary<string, object>
         {
-            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "TestAccount" },
-            { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "TestNamespace" },
+            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, expectedAccount },
+            { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, expectedNamespace },
         };
 
         var resourceBuilder = ResourceBuilder.CreateDefault().Clear()
@@ -134,7 +136,7 @@ public class OtlpProtobufMetricExporterTests
 
         var testTransport = new TestTransport();
 
-        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder("Account=TestAccount;Namespace=TestNamespace");
+        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder($"Account={expectedAccount};Namespace={expectedNamespace}");
 
         var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, addAccountAndNamespace ? connectionStringBuilder : null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
 
@@ -347,10 +349,12 @@ public class OtlpProtobufMetricExporterTests
             { "TestResourceKey", "TestResourceValue" },
         };
 
+        string expectedAccount = "TestAccount";
+        string expectedNamespace = "TestNameSpace";
         Dictionary<string, object> accountAndNamespace = new Dictionary<string, object>
         {
-            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "TestAccount" },
-            { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "TestNamespace" },
+            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, expectedAccount },
+            { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, expectedNamespace },
         };
 
         var resourceBuilder = ResourceBuilder.CreateDefault().Clear()
@@ -377,7 +381,7 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder("Account=TestAccount;Namespace=TestNamespace");
+        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder($"Account={expectedAccount};Namespace={expectedNamespace}");
         var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, addAccountAndNamespace ? connectionStringBuilder : null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
@@ -581,10 +585,12 @@ public class OtlpProtobufMetricExporterTests
             { "TestResourceKey", "TestResourceValue" },
         };
 
+        string expectedAccount = "TestAccount";
+        string expectedNamespace = "TestNameSpace";
         Dictionary<string, object> accountAndNamespace = new Dictionary<string, object>
         {
-            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "TestAccount" },
-            { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "TestNamespace" },
+            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, expectedAccount },
+            { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, expectedNamespace },
         };
 
         var resourceBuilder = ResourceBuilder.CreateDefault().Clear()
@@ -603,7 +609,7 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder("Account=TestAccount;Namespace=TestNamespace");
+        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder($"Account={expectedAccount};Namespace={expectedNamespace}");
         var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, addAccountAndNamespace ? connectionStringBuilder : null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
@@ -840,10 +846,12 @@ public class OtlpProtobufMetricExporterTests
             { "TestResourceKey", "TestResourceValue" },
         };
 
+        string expectedAccount = "TestAccount";
+        string expectedNamespace = "TestNameSpace";
         Dictionary<string, object> accountAndNamespace = new Dictionary<string, object>
         {
-            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "TestAccount" },
-            { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "TestNamespace" },
+            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, expectedAccount },
+            { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, expectedNamespace },
         };
 
         var resourceBuilder = ResourceBuilder.CreateDefault().Clear()
@@ -878,7 +886,7 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder("Account=TestAccount;Namespace=TestNamespace");
+        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder($"Account={expectedAccount};Namespace={expectedNamespace}");
         var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, addAccountAndNamespace ? connectionStringBuilder : null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
