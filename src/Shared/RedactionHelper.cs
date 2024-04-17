@@ -9,7 +9,7 @@ namespace OpenTelemetry.Internal;
 
 internal class RedactionHelper
 {
-    private static readonly string RedactedText = "Redacted";
+    private const string RedactedText = "Redacted";
 
     public static string? GetRedactedQueryString(string query)
     {
