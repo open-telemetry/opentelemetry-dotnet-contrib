@@ -342,7 +342,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetec
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.Host.Tests", "test\OpenTelemetry.ResourceDetectors.Host.Tests\OpenTelemetry.ResourceDetectors.Host.Tests.csproj", "{36271347-2055-438E-9659-B71542A17A73}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.PersistentStorage.Abstractions.Tests", "test\OpenTelemetry.PersistentStorage.Abstractions.Tests\OpenTelemetry.PersistentStorage.Abstractions.Tests.csproj", "{7AD707F9-DC6D-430A-8834-D5DCD517BF6E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.PersistentStorage.Abstractions.Tests", "test\OpenTelemetry.PersistentStorage.Abstractions.Tests\OpenTelemetry.PersistentStorage.Abstractions.Tests.csproj", "{7AD707F9-DC6D-430A-8834-D5DCD517BF6E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
