@@ -1,6 +1,14 @@
 # Changelog
 
-## Unreleased
+## 1.8.0-beta.2
+
+* **Breaking Change**: Fixed tracing instrumentation so that by default any
+  values detected in the query string component of requests are replaced with
+  the text `Redacted` when building the `url.query` attribute. For example,
+  `?key1=value1&key2=value2` becomes `?key1=Redacted&key2=Redacted`. You can
+  disable this redaction by setting the environment variable
+  `OTEL_DOTNET_EXPERIMENTAL_ASPNET_DISABLE_URL_QUERY_REDACTION` to `true`.
+  ([#]())
 
 ## 1.8.0-beta.1
 
