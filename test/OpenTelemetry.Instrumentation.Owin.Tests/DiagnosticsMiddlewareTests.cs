@@ -281,6 +281,63 @@ public class DiagnosticsMiddlewareTests : IDisposable
         }
     }
 
+    [Theory]
+    [InlineData("path?a=b&c=d", "path?a=Redacted&c=Redacted", false)]
+    [InlineData("path?a=b&c=d", "path?a=b&c=d", true)]
+    public async Task QueryParametersAreRedacted(string actualPath, string expectedPath, bool disableQueryRedaction)
+    {
+        try
+        {
+            if (disableQueryRedaction)
+            {
+                Environment.SetEnvironmentVariable("OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION", "true");
+            }
+
+            List<Activity> stoppedActivities = new List<Activity>();
+
+            var builder = Sdk.CreateTracerProviderBuilder()
+                .AddInMemoryExporter(stoppedActivities)
+                .AddOwinInstrumentation()
+                .Build();
+
+            using HttpClient client = new HttpClient();
+
+            Uri requestUri = new Uri($"{this.serviceBaseUri}{actualPath}");
+            Uri expectedRequestUri = new Uri($"{this.serviceBaseUri}{expectedPath}");
+
+            this.requestCompleteHandle.Reset();
+
+            try
+            {
+                using var response = await client.GetAsync(requestUri).ConfigureAwait(false);
+            }
+            catch
+            {
+            }
+
+            /* Note: This code will continue executing as soon as the response
+            is available but Owin could still be working. We need to wait until
+            Owin has finished to inspect the activity status. */
+
+            Assert.True(this.requestCompleteHandle.WaitOne(3000));
+
+            Assert.NotEmpty(stoppedActivities);
+            Assert.Single(stoppedActivities);
+
+            Activity activity = stoppedActivities[0];
+            Assert.Equal(OwinInstrumentationActivitySource.IncomingRequestActivityName, activity.OperationName);
+
+            Assert.Equal(requestUri.Host + ":" + requestUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpHost).Value);
+            Assert.Equal("GET", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpMethod).Value);
+            Assert.Equal(requestUri.AbsolutePath, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpTarget).Value);
+            Assert.Equal(expectedRequestUri.ToString(), activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpUrl).Value);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION", null);
+        }
+    }
+
     private List<MetricPoint> GetMetricPoints(Metric metric)
     {
         List<MetricPoint> metricPoints = new();
