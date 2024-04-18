@@ -15,6 +15,18 @@ internal sealed class OtlpProtobufSerializer
 
     private readonly Dictionary<string, List<Metric>> scopeMetrics = new();
 
+    private readonly string metricNamespace;
+
+    private readonly string metricAccount;
+
+    private readonly byte[] prepopulatedNumberDataPointAttributes;
+
+    private readonly int prepopulatedNumberDataPointAttributesLength;
+
+    private readonly byte[] prepopulatedHistogramDataPointAttributes;
+
+    private readonly int prepopulatedHistogramDataPointAttributesLength;
+
     private int resourceMetricTagAndLengthIndex;
 
     private int scopeMetricsTagAndLengthIndex;
@@ -37,9 +49,47 @@ internal sealed class OtlpProtobufSerializer
 
     internal IMetricDataTransport MetricDataTransport;
 
-    public OtlpProtobufSerializer(IMetricDataTransport metricDataTransport)
+    public OtlpProtobufSerializer(IMetricDataTransport metricDataTransport, ConnectionStringBuilder connectionStringBuilder, IReadOnlyDictionary<string, object> prepopulatedMetricDimensions)
     {
         this.MetricDataTransport = metricDataTransport;
+
+        // Taking a arbitrary number here for writing attributes.
+        byte[] temp = new byte[20000];
+        if (prepopulatedMetricDimensions != null)
+        {
+            // Initialize numberDataPoint attributes.
+            int cursor = 0;
+            SerializeTags(temp, ref cursor, prepopulatedMetricDimensions, FieldNumberConstants.NumberDataPoint_attributes);
+            this.prepopulatedNumberDataPointAttributes = new byte[cursor];
+            Array.Copy(temp, this.prepopulatedNumberDataPointAttributes, cursor);
+            this.prepopulatedNumberDataPointAttributesLength = cursor;
+
+            // Initialize histogramDataPoint attributes.
+            cursor = 0;
+            SerializeTags(temp, ref cursor, prepopulatedMetricDimensions, FieldNumberConstants.HistogramDataPoint_attributes);
+            this.prepopulatedHistogramDataPointAttributes = new byte[cursor];
+            Array.Copy(temp, this.prepopulatedHistogramDataPointAttributes, cursor);
+            this.prepopulatedHistogramDataPointAttributesLength = cursor;
+
+            // TODO: exponential histogram.
+        }
+
+        try
+        {
+            if (connectionStringBuilder != null && connectionStringBuilder.Namespace != null)
+            {
+                this.metricNamespace = connectionStringBuilder.Namespace;
+            }
+
+            if (connectionStringBuilder != null && connectionStringBuilder.Account != null)
+            {
+                this.metricAccount = connectionStringBuilder.Account;
+            }
+        }
+        catch
+        {
+            // TODO: add log.
+        }
     }
 
     internal void SerializeAndSendMetrics(byte[] buffer, Resource resource, in Batch<Metric> metricBatch)
@@ -83,7 +133,7 @@ internal sealed class OtlpProtobufSerializer
 
         // Serialize Resource
         // TODO: Avoid serializing it multiple times.
-        SerializeResource(buffer, ref cursor, resource);
+        this.SerializeResource(buffer, ref cursor, resource);
 
         // TODO: Serialize schema_url field
 
@@ -311,6 +361,12 @@ internal sealed class OtlpProtobufSerializer
 
                             SerializeTags(buffer, ref cursor, metricPoint.Tags, FieldNumberConstants.HistogramDataPoint_attributes);
 
+                            if (this.prepopulatedHistogramDataPointAttributes != null)
+                            {
+                                Array.Copy(this.prepopulatedHistogramDataPointAttributes, 0, buffer, cursor, this.prepopulatedHistogramDataPointAttributesLength);
+                                cursor += this.prepopulatedHistogramDataPointAttributesLength;
+                            }
+
                             var count = (ulong)metricPoint.GetHistogramCount();
                             ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.HistogramDataPoint_count, count);
 
@@ -384,6 +440,12 @@ internal sealed class OtlpProtobufSerializer
         ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.NumberDataPoint_time_unix_nano, endTime);
 
         SerializeTags(buffer, ref cursor, metricPoint.Tags, FieldNumberConstants.NumberDataPoint_attributes);
+
+        if (this.prepopulatedNumberDataPointAttributes != null)
+        {
+            Array.Copy(this.prepopulatedNumberDataPointAttributes, 0, buffer, cursor, this.prepopulatedHistogramDataPointAttributesLength);
+            cursor += this.prepopulatedNumberDataPointAttributesLength;
+        }
 
         // TODO: exemplars.
 
@@ -469,7 +531,7 @@ internal sealed class OtlpProtobufSerializer
         }
     }
 
-    private static void SerializeResource(byte[] buffer, ref int cursor, Resource resource)
+    private void SerializeResource(byte[] buffer, ref int cursor, Resource resource)
     {
         if (resource != Resource.Empty)
         {
@@ -478,6 +540,18 @@ internal sealed class OtlpProtobufSerializer
             int valueIndex = cursor;
 
             SerializeTags(buffer, ref cursor, resource.Attributes, FieldNumberConstants.Resource_attributes);
+
+            // TODO: check to see if should de-dupe in case the values are also provided via resource attributes.
+            if (this.metricAccount != null)
+            {
+                SerializeTag(buffer, ref cursor, GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, this.metricAccount, FieldNumberConstants.Resource_attributes);
+            }
+
+            if (this.metricNamespace != null)
+            {
+                SerializeTag(buffer, ref cursor, GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, this.metricNamespace, FieldNumberConstants.Resource_attributes);
+            }
+
             ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref tagAndLengthIndex, cursor - valueIndex, FieldNumberConstants.ResourceMetrics_resource, WireType.LEN);
         }
     }

@@ -114,12 +114,12 @@ public class MetricExporterBenchmarks
         this.tlvMetricsExporter = new TlvMetricExporter(connectionStringBuilder, exporterOptions.PrepopulatedMetricDimensions);
 
         // Using test transport here with noop to benchmark just the serialization part.
-        this.otlpProtobufSerializer = new OtlpProtobufSerializer(new TestTransport());
+        this.otlpProtobufSerializer = new OtlpProtobufSerializer(new TestTransport(), null, null);
 
         var resourceBuilder = ResourceBuilder.CreateDefault().Clear()
            .AddAttributes(new[] { new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue") });
         this.resource = resourceBuilder.Build();
-        this.otlpProtobufMetricExporter = new OtlpProtobufMetricExporter(() => { return this.resource; });
+        this.otlpProtobufMetricExporter = new OtlpProtobufMetricExporter(() => { return this.resource; }, null, null);
         this.buffer = new byte[GenevaMetricExporter.BufferSize];
 
         this.counterMetricPointWith3Dimensions = this.GenerateCounterMetricItemWith3Dimensions(out this.counterMetricDataWith3Dimensions);
