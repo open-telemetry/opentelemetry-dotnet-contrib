@@ -101,6 +101,8 @@ public class OtlpProtobufMetricExporterTests
         Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
         {
             { "TestResourceKey", "TestResourceValue" },
+            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount"},
+            { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "ResourceNamespace" },
         };
 
         string expectedAccount = "TestAccount";
@@ -347,6 +349,8 @@ public class OtlpProtobufMetricExporterTests
         Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
         {
             { "TestResourceKey", "TestResourceValue" },
+            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount"},
+            { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "ResourceNamespace" },
         };
 
         string expectedAccount = "TestAccount";
@@ -583,6 +587,8 @@ public class OtlpProtobufMetricExporterTests
         Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
         {
             { "TestResourceKey", "TestResourceValue" },
+            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount"},
+            { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "ResourceNamespace" },
         };
 
         string expectedAccount = "TestAccount";
@@ -844,6 +850,8 @@ public class OtlpProtobufMetricExporterTests
         Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
         {
             { "TestResourceKey", "TestResourceValue" },
+            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount"},
+            { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "ResourceNamespace" },
         };
 
         string expectedAccount = "TestAccount";
@@ -1077,7 +1085,6 @@ public class OtlpProtobufMetricExporterTests
         RepeatedField<OtlpCommon.KeyValue> actual)
     {
         var expectedAttributes = expected.ToList();
-        int expectedSize = 0;
         int expectedAttributesCount = expectedAttributes.Count;
         for (int i = 0; i < expectedAttributesCount; i++)
         {
@@ -1086,10 +1093,9 @@ public class OtlpProtobufMetricExporterTests
             Assert.Equal(expectedAttributes[i].Key, actual[i].Key);
             Assert.Equal(expectedAttributes[i].Key, actual[i].Key);
             AssertOtlpAttributeValue(current, actual[i].Value);
-            expectedSize++;
         }
 
-        Assert.Equal(expectedSize, actual.Count);
+        Assert.Equal(expectedAttributesCount, actual.Count);
     }
 
     private static void AssertOtlpAttributeValue(object expected, OtlpCommon.AnyValue actual)
