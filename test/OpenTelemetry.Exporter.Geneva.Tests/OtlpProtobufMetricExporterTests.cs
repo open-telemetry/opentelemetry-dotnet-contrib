@@ -1091,7 +1091,6 @@ public class OtlpProtobufMetricExporterTests
             var current = expectedAttributes[i].Value;
 
             Assert.Equal(expectedAttributes[i].Key, actual[i].Key);
-            Assert.Equal(expectedAttributes[i].Key, actual[i].Key);
             AssertOtlpAttributeValue(current, actual[i].Value);
         }
 

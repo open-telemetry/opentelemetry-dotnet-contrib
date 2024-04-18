@@ -32,8 +32,6 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
 
     public ExportResult Export(in Batch<Metric> batch)
     {
-        var result = ExportResult.Success;
-
         try
         {
             this.otlpProtobufSerializer.SerializeAndSendMetrics(this.buffer, this.getResource(), batch);
@@ -41,10 +39,10 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
         catch (Exception ex)
         {
             ExporterEventSource.Log.ExporterException("Failed to export metrics batch", ex);
-            result = ExportResult.Failure;
+            return ExportResult.Failure;
         }
 
-        return result;
+        return this.otlpProtobufSerializer.MetricExportResult;
     }
 
     public void Dispose()

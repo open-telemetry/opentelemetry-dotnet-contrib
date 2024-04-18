@@ -49,6 +49,8 @@ internal sealed class OtlpProtobufSerializer
 
     internal IMetricDataTransport MetricDataTransport;
 
+    internal ExportResult MetricExportResult;
+
     public OtlpProtobufSerializer(IMetricDataTransport metricDataTransport, ConnectionStringBuilder connectionStringBuilder, IReadOnlyDictionary<string, object> prepopulatedMetricDimensions)
     {
         this.MetricDataTransport = metricDataTransport;
@@ -94,6 +96,8 @@ internal sealed class OtlpProtobufSerializer
 
     internal void SerializeAndSendMetrics(byte[] buffer, Resource resource, in Batch<Metric> metricBatch)
     {
+        this.MetricExportResult = ExportResult.Success;
+
         foreach (var metric in metricBatch)
         {
             if (this.scopeMetrics.TryGetValue(metric.MeterName, out var metricList))
@@ -147,15 +151,8 @@ internal sealed class OtlpProtobufSerializer
                 // Reset cursor to write new scopeMetric
                 cursor = this.scopeMetricsValueIndex;
 
-                try
-                {
-                    // Serialize this meter/scope
-                    this.SerializeScopeMetrics(buffer, ref cursor, entry.Key, entry.Value);
-                }
-                catch
-                {
-                    // TODO: log exception.
-                }
+                // Serialize this meter/scope
+                this.SerializeScopeMetrics(buffer, ref cursor, entry.Key, entry.Value);
             }
         }
     }
@@ -174,14 +171,7 @@ internal sealed class OtlpProtobufSerializer
             cursor = this.metricValueIndex;
 
             // Serialize metrics for the meter/scope
-            try
-            {
-                this.SerializeMetric(buffer, ref cursor, metric);
-            }
-            catch
-            {
-                // TODO: log exception.
-            }
+            this.SerializeMetric(buffer, ref cursor, metric);
         }
 
         // TODO: Serialize schema_url field.
@@ -225,9 +215,10 @@ internal sealed class OtlpProtobufSerializer
                             // Send metricPoint
                             this.SendMetricPoint(buffer, ref cursor);
                         }
-                        catch
+                        catch (Exception ex)
                         {
-                            // TODO: log exception.
+                            this.MetricExportResult = ExportResult.Failure;
+                            ExporterEventSource.Log.FailedToSerializeMetric(metric.Name, ex);
                         }
                     }
 
@@ -264,9 +255,10 @@ internal sealed class OtlpProtobufSerializer
                             // Send metricPoint
                             this.SendMetricPoint(buffer, ref cursor);
                         }
-                        catch
+                        catch (Exception ex)
                         {
-                            // TODO: log exception.
+                            this.MetricExportResult = ExportResult.Failure;
+                            ExporterEventSource.Log.FailedToSerializeMetric(metric.Name, ex);
                         }
                     }
 
@@ -296,9 +288,10 @@ internal sealed class OtlpProtobufSerializer
                             // Send metricPoint
                             this.SendMetricPoint(buffer, ref cursor);
                         }
-                        catch
+                        catch (Exception ex)
                         {
-                            // TODO: log exception.
+                            this.MetricExportResult = ExportResult.Failure;
+                            ExporterEventSource.Log.FailedToSerializeMetric(metric.Name, ex);
                         }
                     }
 
@@ -328,9 +321,10 @@ internal sealed class OtlpProtobufSerializer
                             // Send metricPoint
                             this.SendMetricPoint(buffer, ref cursor);
                         }
-                        catch
+                        catch (Exception ex)
                         {
-                            // TODO: log exception.
+                            this.MetricExportResult = ExportResult.Failure;
+                            ExporterEventSource.Log.FailedToSerializeMetric(metric.Name, ex);
                         }
                     }
 
@@ -403,9 +397,10 @@ internal sealed class OtlpProtobufSerializer
                             // Send metricPoint
                             this.SendMetricPoint(buffer, ref cursor);
                         }
-                        catch
+                        catch (Exception ex)
                         {
-                            // TODO: log exception.
+                            this.MetricExportResult = ExportResult.Failure;
+                            ExporterEventSource.Log.FailedToSerializeMetric(metric.Name, ex);
                         }
                     }
 
