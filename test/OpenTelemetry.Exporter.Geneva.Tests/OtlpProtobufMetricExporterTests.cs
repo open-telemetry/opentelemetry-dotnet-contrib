@@ -101,7 +101,7 @@ public class OtlpProtobufMetricExporterTests
         Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
         {
             { "TestResourceKey", "TestResourceValue" },
-            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount"},
+            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount" },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "ResourceNamespace" },
         };
 
@@ -349,7 +349,7 @@ public class OtlpProtobufMetricExporterTests
         Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
         {
             { "TestResourceKey", "TestResourceValue" },
-            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount"},
+            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount" },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "ResourceNamespace" },
         };
 
@@ -587,7 +587,7 @@ public class OtlpProtobufMetricExporterTests
         Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
         {
             { "TestResourceKey", "TestResourceValue" },
-            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount"},
+            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount" },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "ResourceNamespace" },
         };
 
@@ -850,7 +850,7 @@ public class OtlpProtobufMetricExporterTests
         Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
         {
             { "TestResourceKey", "TestResourceValue" },
-            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount"},
+            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount" },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "ResourceNamespace" },
         };
 
