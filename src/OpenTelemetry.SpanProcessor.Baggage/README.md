@@ -3,8 +3,8 @@
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.SpanProcessor.Baggage)](https://www.nuget.org/packages/OpenTelemetry.SpanProcessor.Baggage)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.SpanProcessor.Baggage)](https://www.nuget.org/packages/OpenTelemetry.SpanProcessor.Baggage)
 
-The BaggageSpanProcessor reads entries stored in Baggage from the parent context and
-adds the baggage keys and values to the activity as attributes on start.
+The BaggageSpanProcessor reads entries stored in Baggage from the parent context
+and adds the baggage keys and values to the activity as attributes on start.
 
 Add this span processor to a tracer provider.
 
@@ -12,8 +12,8 @@ Warning!
 
 Do not put sensitive information in Baggage.
 
-To repeat: a consequence of adding data to Baggage is that the keys and values will
-appear in all outgoing HTTP headers from the application.
+To repeat: a consequence of adding data to Baggage is that the keys and values
+will appear in all outgoing HTTP headers from the application.
 
 ## Installation
 
@@ -38,5 +38,5 @@ For ASP.NET applications, this should be in `Global.aspx.cs`.
 
 ## Troubleshooting
 
-Before digging into a problem, check if you hit a known issue by looking at the [GitHub
-issues](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues).
+Before digging into a problem, check if you hit a known issue by looking at the
+[GitHub issues](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues).
