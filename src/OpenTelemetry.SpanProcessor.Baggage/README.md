@@ -8,7 +8,7 @@ adds the baggage keys and values to the activity as attributes on start.
 
 Add this span processor to a tracer provider.
 
-⚠ Warning ⚠
+Warning!
 
 Do not put sensitive information in Baggage.
 
