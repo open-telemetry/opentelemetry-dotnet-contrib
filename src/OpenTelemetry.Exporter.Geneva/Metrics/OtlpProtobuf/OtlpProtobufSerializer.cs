@@ -94,7 +94,7 @@ internal sealed class OtlpProtobufSerializer
         }
     }
 
-    internal void SerializeAndSendMetrics(byte[] buffer, Resource resource, in Batch<Metric> metricBatch)
+    internal ExportResult SerializeAndSendMetrics(byte[] buffer, Resource resource, in Batch<Metric> metricBatch)
     {
         this.MetricExportResult = ExportResult.Success;
 
@@ -115,6 +115,8 @@ internal sealed class OtlpProtobufSerializer
         this.SerializeResourceMetrics(buffer, resource);
 
         this.ClearScopeMetrics();
+
+        return this.MetricExportResult;
     }
 
     internal void ClearScopeMetrics()
