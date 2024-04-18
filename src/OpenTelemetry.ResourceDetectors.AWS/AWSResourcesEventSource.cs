@@ -12,11 +12,11 @@ internal sealed class AWSResourcesEventSource : EventSource, IServerCertificateV
 {
     public static AWSResourcesEventSource Log = new();
 
-    private const int EVENTIDFAILEDTOEXTRACTATTRIBUTES = 1;
-    private const int EVENTIDFAILEDTOVALIDATECERTIFICATE = 2;
-    private const int EVENTIDFAILEDTOCREATEHTTPHANDLER = 3;
-    private const int EVENTIDFAILEDCERTIFICATEFILENOTEXISTS = 4;
-    private const int EVENTIDFAILEDTOLOADCERTIFICATEINSTORAGE = 5;
+    private const int EventIdFailedToExtractAttributes = 1;
+    private const int EventIdFailedToValidateCertificate = 2;
+    private const int EventIdFailedToCreateHttpHandler = 3;
+    private const int EventIdFailedCertificateFileNotExists = 4;
+    private const int EventIdFailedToLoadCertificateInStorage = 5;
 
     [NonEvent]
     public void ResourceAttributesExtractException(string format, Exception ex)
@@ -27,33 +27,33 @@ internal sealed class AWSResourcesEventSource : EventSource, IServerCertificateV
         }
     }
 
-    [Event(EVENTIDFAILEDTOEXTRACTATTRIBUTES, Message = "Failed to extract resource attributes in '{0}'.", Level = EventLevel.Warning)]
+    [Event(EventIdFailedToExtractAttributes, Message = "Failed to extract resource attributes in '{0}'.", Level = EventLevel.Warning)]
     public void FailedToExtractResourceAttributes(string format, string exception)
     {
-        this.WriteEvent(EVENTIDFAILEDTOEXTRACTATTRIBUTES, format, exception);
+        this.WriteEvent(EventIdFailedToExtractAttributes, format, exception);
     }
 
-    [Event(EVENTIDFAILEDTOVALIDATECERTIFICATE, Message = "Failed to validate certificate. Details: '{0}'", Level = EventLevel.Warning)]
+    [Event(EventIdFailedToValidateCertificate, Message = "Failed to validate certificate. Details: '{0}'", Level = EventLevel.Warning)]
     public void FailedToValidateCertificate(string error)
     {
-        this.WriteEvent(EVENTIDFAILEDTOVALIDATECERTIFICATE, error);
+        this.WriteEvent(EventIdFailedToValidateCertificate, error);
     }
 
-    [Event(EVENTIDFAILEDTOCREATEHTTPHANDLER, Message = "Failed to create HTTP handler. Exception: '{0}'", Level = EventLevel.Warning)]
+    [Event(EventIdFailedToCreateHttpHandler, Message = "Failed to create HTTP handler. Exception: '{0}'", Level = EventLevel.Warning)]
     public void FailedToCreateHttpHandler(Exception exception)
     {
-        this.WriteEvent(EVENTIDFAILEDTOCREATEHTTPHANDLER, exception.ToInvariantString());
+        this.WriteEvent(EventIdFailedToCreateHttpHandler, exception.ToInvariantString());
     }
 
-    [Event(EVENTIDFAILEDCERTIFICATEFILENOTEXISTS, Message = "Certificate file does not exist. File: '{0}'", Level = EventLevel.Warning)]
+    [Event(EventIdFailedCertificateFileNotExists, Message = "Certificate file does not exist. File: '{0}'", Level = EventLevel.Warning)]
     public void CertificateFileDoesNotExist(string filename)
     {
-        this.WriteEvent(EVENTIDFAILEDCERTIFICATEFILENOTEXISTS, filename);
+        this.WriteEvent(EventIdFailedCertificateFileNotExists, filename);
     }
 
-    [Event(EVENTIDFAILEDTOLOADCERTIFICATEINSTORAGE, Message = "Failed to load certificate in trusted storage. File: '{0}'", Level = EventLevel.Warning)]
+    [Event(EventIdFailedToLoadCertificateInStorage, Message = "Failed to load certificate in trusted storage. File: '{0}'", Level = EventLevel.Warning)]
     public void FailedToLoadCertificateInTrustedStorage(string filename)
     {
-        this.WriteEvent(EVENTIDFAILEDTOLOADCERTIFICATEINSTORAGE, filename);
+        this.WriteEvent(EventIdFailedToLoadCertificateInStorage, filename);
     }
 }
