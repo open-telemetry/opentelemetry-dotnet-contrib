@@ -82,6 +82,8 @@ components:
     - srprash
     - atshaw43
     - ppittle
+  OpenTelemetry.SpanProcessor.Baggage:
+    - mikegoldsmith
   test/OpenTelemetry.Exporter.Geneva.Benchmark/:
     - cijothomas
     - codeblanch

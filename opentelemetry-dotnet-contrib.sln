@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31912.275
 MinimumVisualStudioVersion = 15.0.26124.0
@@ -342,6 +342,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.Host.Tests", "test\OpenTelemetry.ResourceDetectors.Host.Tests\OpenTelemetry.ResourceDetectors.Host.Tests.csproj", "{36271347-2055-438E-9659-B71542A17A73}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.PersistentStorage.Abstractions.Tests", "test\OpenTelemetry.PersistentStorage.Abstractions.Tests\OpenTelemetry.PersistentStorage.Abstractions.Tests.csproj", "{7AD707F9-DC6D-430A-8834-D5DCD517BF6E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.SpanProcessor.Baggage", "src\OpenTelemetry.SpanProcessor.Baggage\OpenTelemetry.SpanProcessor.Baggage.csproj", "{04150AB0-2FFF-479E-BBEA-E8F2A3B798F2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -689,6 +691,10 @@ Global
 		{7AD707F9-DC6D-430A-8834-D5DCD517BF6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7AD707F9-DC6D-430A-8834-D5DCD517BF6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7AD707F9-DC6D-430A-8834-D5DCD517BF6E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04150AB0-2FFF-479E-BBEA-E8F2A3B798F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04150AB0-2FFF-479E-BBEA-E8F2A3B798F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04150AB0-2FFF-479E-BBEA-E8F2A3B798F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04150AB0-2FFF-479E-BBEA-E8F2A3B798F2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -792,6 +798,7 @@ Global
 		{033CA8D4-1529-413A-B244-07958D5F9A48} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{36271347-2055-438E-9659-B71542A17A73} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{7AD707F9-DC6D-430A-8834-D5DCD517BF6E} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{04150AB0-2FFF-479E-BBEA-E8F2A3B798F2} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
