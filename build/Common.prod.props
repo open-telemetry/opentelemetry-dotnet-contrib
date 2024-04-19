@@ -52,12 +52,21 @@
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
-  <!--PublicApi Analyzer-->
   <ItemGroup Condition="'$(EnablePublicApi)'!='false'">
-    <AdditionalFiles Include=".publicApi\$(TargetFramework)\PublicAPI.Shipped.txt" />
-    <AdditionalFiles Include=".publicApi\$(TargetFramework)\PublicAPI.Unshipped.txt" />
-    <None Include=".publicApi\*\PublicAPI.Shipped.txt" />
-    <None Include=".publicApi\*\PublicAPI.Unshipped.txt" />
+    <!-- Note: This includes all the PublicApiAnalyzers files in projects to make editing easier in the IDE -->
+    <None Include=".publicApi\**\PublicAPI.*.txt" />
   </ItemGroup>
+
+  <Target Name="ResolvePublicApiFiles"
+          BeforeTargets="CoreCompile"
+          Condition="'$(EnablePublicApi)'!='false'">
+    <ItemGroup>
+      <!-- Note: This resolves all the PublicApiAnalyzers files which are actually used by the analyzer -->
+      <AdditionalFiles Include=".publicApi\Stable\PublicAPI.*.txt" />
+      <AdditionalFiles Include=".publicApi\Stable\$(TargetFramework)\PublicAPI.*.txt" />
+      <AdditionalFiles Include=".publicApi\PublicAPI.*.txt" />
+      <AdditionalFiles Include=".publicApi\$(TargetFramework)\PublicAPI.*.txt" />
+    </ItemGroup>
+  </Target>
 
 </Project>
