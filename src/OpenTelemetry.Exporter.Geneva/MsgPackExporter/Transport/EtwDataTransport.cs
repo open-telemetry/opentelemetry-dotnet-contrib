@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System;
+#if NET6_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using System.Diagnostics.Tracing;
 
 namespace OpenTelemetry.Exporter.Geneva;
@@ -24,6 +27,9 @@ internal sealed class EtwEventSource : EventSource
     }
 
     [NonEvent]
+#if NET6_0_OR_GREATER
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026:RequiresUnreferencedCode", Justification = "WriteEventCore is safe when eventData object is a primitive type which is in this case.")]
+#endif
     public unsafe void SendEvent(int eventId, byte[] data, int size)
     {
         EventData* dataDesc = stackalloc EventData[1];

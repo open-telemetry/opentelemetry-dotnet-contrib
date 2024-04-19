@@ -11,7 +11,10 @@ using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
-public class GenevaMetricExporter : BaseExporter<Metric>
+/// <summary>
+/// An exporter for Geneva metrics.
+/// </summary>
+public partial class GenevaMetricExporter : BaseExporter<Metric>
 {
     internal const int BufferSize = 65360; // the maximum ETW payload (inclusive)
 
@@ -22,6 +25,8 @@ public class GenevaMetricExporter : BaseExporter<Metric>
     internal const string DimensionKeyForCustomMonitoringAccount = "_microsoft_metrics_account";
 
     internal const string DimensionKeyForCustomMetricsNamespace = "_microsoft_metrics_namespace";
+
+    private const string DisableRegexPattern = ".*";
 
     private readonly IDisposable exporter;
 
@@ -86,7 +91,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
     internal static PropertyInfo GetOpenTelemetryInstrumentNameRegexProperty()
     {
-        var meterProviderBuilderSdkType = typeof(Sdk).Assembly.GetType("OpenTelemetry.Metrics.MeterProviderBuilderSdk", throwOnError: false)
+        var meterProviderBuilderSdkType = Type.GetType("OpenTelemetry.Metrics.MeterProviderBuilderSdk, OpenTelemetry", throwOnError: false)
             ?? throw new InvalidOperationException("OpenTelemetry.Metrics.MeterProviderBuilderSdk type could not be found reflectively.");
 
         var instrumentNameRegexProperty = meterProviderBuilderSdkType.GetProperty("InstrumentNameRegex", BindingFlags.Public | BindingFlags.Static)
@@ -97,6 +102,13 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
     internal static void DisableOpenTelemetrySdkMetricNameValidation()
     {
-        GetOpenTelemetryInstrumentNameRegexProperty().SetValue(null, new Regex(".*", RegexOptions.Compiled));
+        GetOpenTelemetryInstrumentNameRegexProperty().SetValue(null, GetDisableRegexPattern());
     }
+
+#if NET7_0_OR_GREATER
+    [GeneratedRegex(DisableRegexPattern)]
+    private static partial Regex GetDisableRegexPattern();
+#else
+    private static Regex GetDisableRegexPattern() => new(DisableRegexPattern, RegexOptions.Compiled);
+#endif
 }
