@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-rc.6
+
+Released 2024-Apr-19
+
 * Massive memory leak in OwinInstrumentationMetrics addressed.
   Made both Meter and Histogram singletons.
   ([#1655](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1655))
@@ -17,7 +21,6 @@ Released 2024-Apr-17
   disable this redaction by setting the environment variable
   `OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION` to `true`.
   ([#1656](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1656))
-
 * `ActivitySource.Version` and `Meter.Version` are set to NuGet package version.
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
 * Updated OpenTelemetry SDK to 1.8.0.
