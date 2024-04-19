@@ -7,7 +7,7 @@
   ([#1552](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1552))
 * Implement support for `cloud.resource_id` attribute in AWS ECS detector.
   ([#1576](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1576))
-* Update OpenTelemetry SDK version to `1.8.0`.
+* Update OpenTelemetry SDK version to `1.8.1`.
   ([#1635](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1635))
 
 ## 1.4.0-beta.1
