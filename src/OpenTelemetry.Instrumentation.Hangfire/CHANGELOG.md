@@ -6,7 +6,7 @@
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
 * Update `OpenTelemetry.Api.ProviderBuilderExtensions` to `1.8.1`.
   * Update `OpenTelemetry.Api` to `1.8.1`.
-  ([#1635](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1635))
+  ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
 
 ## 1.6.0-beta.1
 

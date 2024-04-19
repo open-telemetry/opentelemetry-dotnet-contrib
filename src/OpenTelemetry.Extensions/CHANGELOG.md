@@ -6,7 +6,7 @@
   ([#1059](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1059))
 
 * Update OpenTelemetry SDK version to `1.8.1`.
-  ([#1635](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1635))
+  ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
 
 ## 1.0.0-beta.4
 

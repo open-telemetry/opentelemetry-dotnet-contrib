@@ -10,7 +10,7 @@
   ([#1643](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1643))
 
 * Update `OpenTelemetry.Api` to `1.8.1`.
-  ([#1635](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1635))
+  ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
 
 ## 0.5.0-beta.5
 
