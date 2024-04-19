@@ -28,7 +28,7 @@ internal sealed class EtwEventSource : EventSource
 
     [NonEvent]
 #if NET6_0_OR_GREATER
-    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026:RequiresUnreferencedCode", Justification = "WriteEventCore is safe when eventData object is a primitive type which is in this case.")]
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026:RequiresUnreferencedCode", Justification = "WriteEventCore is safe when eventData object is a primitive type, which it is in this case.")]
 #endif
     public unsafe void SendEvent(int eventId, byte[] data, int size)
     {
