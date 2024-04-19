@@ -31,6 +31,7 @@
     -->
     <MinVerPkgVer>[5.0.0,6.0)</MinVerPkgVer>
     <MicrosoftExtensionsHostingAbstractionsPkgVer>[2.1.0,5.0)</MicrosoftExtensionsHostingAbstractionsPkgVer>
+    <MicrosoftExtensionsConfigurationBinderPkgVer>[8.0.1,)</MicrosoftExtensionsConfigurationBinderPkgVer>
     <MicrosoftExtensionsOptionsPkgVer>[3.1.0,)</MicrosoftExtensionsOptionsPkgVer>
     <MicrosoftNETFrameworkReferenceAssembliesPkgVer>[1.0.3,2.0)</MicrosoftNETFrameworkReferenceAssembliesPkgVer>
     <MicrosoftOwinPkgVer>[4.2.2,5.0)</MicrosoftOwinPkgVer>
