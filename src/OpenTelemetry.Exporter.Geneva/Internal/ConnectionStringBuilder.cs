@@ -77,7 +77,7 @@ internal sealed class ConnectionStringBuilder
 
     public string PrivatePreviewEnableOtlpProtobufEncoding
     {
-        get => this._parts.TryGetValue(nameof(this.PrivatePreviewEnableOtlpProtobufEncoding ), out var value) ? value : null;
+        get => this._parts.TryGetValue(nameof(this.PrivatePreviewEnableOtlpProtobufEncoding), out var value) ? value : null;
         set => this._parts[nameof(this.PrivatePreviewEnableOtlpProtobufEncoding)] = value;
     }
 
