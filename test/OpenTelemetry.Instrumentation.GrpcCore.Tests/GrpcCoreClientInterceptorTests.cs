@@ -362,6 +362,11 @@ public class GrpcCoreClientInterceptorTests
         {
             Assert.NotNull(activity.Events);
             Assert.Single(activity.Events, e => e.Name == SemanticConventions.AttributeExceptionEventName);
+
+            var exceptionEvent = activity.Events.First(e => e.Name == SemanticConventions.AttributeExceptionEventName);
+            Assert.Contains(exceptionEvent.Tags, t => t.Key == SemanticConventions.AttributeExceptionType && (string)t.Value == typeof(RpcException).FullName);
+            Assert.Contains(exceptionEvent.Tags, t => t.Key == SemanticConventions.AttributeExceptionMessage);
+            Assert.Contains(exceptionEvent.Tags, t => t.Key == SemanticConventions.AttributeExceptionStacktrace);
         }
     }
 
