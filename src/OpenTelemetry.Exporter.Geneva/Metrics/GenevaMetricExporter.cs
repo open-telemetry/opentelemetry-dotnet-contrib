@@ -42,7 +42,7 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
 
-        if (connectionStringBuilder.PrivatePreviewOtlpProtobufMetricExporter != null && connectionStringBuilder.PrivatePreviewOtlpProtobufMetricExporter.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase))
+        if (connectionStringBuilder.PrivatePreviewEnableOtlpProtobufEncoding  != null && connectionStringBuilder.PrivatePreviewEnableOtlpProtobufEncoding .Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase))
         {
             var otlpProtobufExporter = new OtlpProtobufMetricExporter(
                 () => { return this.Resource; },
