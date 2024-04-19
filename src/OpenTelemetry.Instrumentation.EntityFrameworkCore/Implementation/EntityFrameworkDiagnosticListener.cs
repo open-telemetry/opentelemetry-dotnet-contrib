@@ -50,8 +50,10 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
     public override bool SupportsNullActivity => true;
 
-    public override void OnCustom(string name, Activity? activity, object? payload)
+    public override void OnEventWritten(string name, object? payload)
     {
+        Activity? activity = Activity.Current;
+
         switch (name)
         {
             case EntityFrameworkCoreCommandCreated:

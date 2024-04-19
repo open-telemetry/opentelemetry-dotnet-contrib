@@ -16,9 +16,9 @@ internal sealed class DiagnosticSourceListener : IObserver<KeyValuePair<string, 
 {
     private readonly ListenerHandler handler;
 
-    private readonly Action<string, string, Exception> logUnknownException;
+    private readonly Action<string, string, Exception>? logUnknownException;
 
-    public DiagnosticSourceListener(ListenerHandler handler, Action<string, string, Exception> logUnknownException)
+    public DiagnosticSourceListener(ListenerHandler handler, Action<string, string, Exception>? logUnknownException)
     {
         Guard.ThrowIfNull(handler);
 
@@ -43,22 +43,7 @@ internal sealed class DiagnosticSourceListener : IObserver<KeyValuePair<string, 
 
         try
         {
-            if (value.Key.EndsWith("Start", StringComparison.Ordinal))
-            {
-                this.handler.OnStartActivity(Activity.Current, value.Value);
-            }
-            else if (value.Key.EndsWith("Stop", StringComparison.Ordinal))
-            {
-                this.handler.OnStopActivity(Activity.Current, value.Value);
-            }
-            else if (value.Key.EndsWith("Exception", StringComparison.Ordinal))
-            {
-                this.handler.OnException(Activity.Current, value.Value);
-            }
-            else
-            {
-                this.handler.OnCustom(value.Key, Activity.Current, value.Value);
-            }
+            this.handler.OnEventWritten(value.Key, value.Value);
         }
         catch (Exception ex)
         {
