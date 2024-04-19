@@ -47,6 +47,11 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
 
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
 
+        if (connectionStringBuilder.DisableMetricNameValidation)
+        {
+            DisableOpenTelemetrySdkMetricNameValidation();
+        }
+
         if (connectionStringBuilder.PrivatePreviewEnableOtlpProtobufEncoding != null && connectionStringBuilder.PrivatePreviewEnableOtlpProtobufEncoding.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase))
         {
             var otlpProtobufExporter = new OtlpProtobufMetricExporter(
