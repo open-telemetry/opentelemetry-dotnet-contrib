@@ -67,15 +67,12 @@ internal static class ActivityExtensions
         // Span Attributes
         if (activity.Tags != null)
         {
-            span.Attributes = new Span.Types.Attributes
+            span.Attributes = new Span.Types.Attributes();
+            var attrMap = span.Attributes.AttributeMap;
+            foreach (var att in activity.Tags)
             {
-                AttributeMap =
-                {
-                    activity.Tags.ToDictionary(
-                        s => s.Key,
-                        s => s.Value.ToAttributeValue()),
-                },
-            };
+                attrMap[att.Key] = att.Value.ToAttributeValue();
+            }
         }
 
         // StackDriver uses different labels that are used to categorize spans
@@ -102,15 +99,12 @@ internal static class ActivityExtensions
 
         if (link.Tags != null)
         {
-            ret.Attributes = new Span.Types.Attributes
+            ret.Attributes = new Span.Types.Attributes();
+            var attrMap = ret.Attributes.AttributeMap;
+            foreach (var att in link.Tags)
             {
-                AttributeMap =
-                {
-                    link.Tags.ToDictionary(
-                        att => att.Key,
-                        att => att.Value?.ToAttributeValue()),
-                },
-            };
+                attrMap[att.Key] = att.Value.ToAttributeValue();
+            }
         }
 
         return ret;

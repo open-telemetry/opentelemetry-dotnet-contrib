@@ -15,6 +15,7 @@ internal sealed class ExporterEventSource : EventSource
     private const int EVENT_ID_LOG = 2; // Failed to send Log
     private const int EVENT_ID_METRIC = 3; // Failed to send Metric
     private const int EVENT_ID_ERROR = 4; // Other common exporter exceptions
+    private const int EVENT_ID_OTLP_PROTOBUF_METRIC = 5; // Failed to serialize metric
 
     [NonEvent]
     public void FailedToSendTraceData(Exception ex)
@@ -63,6 +64,16 @@ internal sealed class ExporterEventSource : EventSource
         }
     }
 
+    [NonEvent]
+    public void FailedToSerializeMetric(string metricName, Exception ex)
+    {
+        if (Log.IsEnabled(EventLevel.Error, EventKeywords.All))
+        {
+            // TODO: Do not hit ETW size limit even for external library exception stack.
+            this.FailedToSerializeMetric(metricName, ex.ToInvariantString());
+        }
+    }
+
     [Event(EVENT_ID_TRACE, Message = "Exporter failed to send trace data. Exception: {0}", Level = EventLevel.Error)]
     public void FailedToSendTraceData(string error)
     {
@@ -85,5 +96,11 @@ internal sealed class ExporterEventSource : EventSource
     public void ExporterException(string message, string error)
     {
         this.WriteEvent(EVENT_ID_ERROR, message, error);
+    }
+
+    [Event(EVENT_ID_OTLP_PROTOBUF_METRIC, Message = "Failed to serialize '{0}' metric, Exception: {1}", Level = EventLevel.Error)]
+    public void FailedToSerializeMetric(string metricName, string error)
+    {
+        this.WriteEvent(EVENT_ID_OTLP_PROTOBUF_METRIC, metricName, error);
     }
 }

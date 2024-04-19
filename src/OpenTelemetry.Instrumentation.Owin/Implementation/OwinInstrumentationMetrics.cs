@@ -11,10 +11,7 @@ internal static class OwinInstrumentationMetrics
 {
     internal static readonly Assembly Assembly = typeof(OwinInstrumentationMetrics).Assembly;
     internal static readonly AssemblyName AssemblyName = Assembly.GetName();
-
-    public static string MeterName => AssemblyName.Name;
-
-    public static Meter Instance => new(MeterName, Assembly.GetPackageVersion());
-
-    public static Histogram<double> HttpServerDuration => Instance.CreateHistogram<double>("http.server.request.duration", "s", "Duration of HTTP server requests.");
+    internal static readonly string MeterName = AssemblyName.Name;
+    internal static readonly Meter Instance = new(MeterName, Assembly.GetPackageVersion());
+    internal static readonly Histogram<double> HttpServerDuration = Instance.CreateHistogram<double>("http.server.request.duration", "s", "Duration of HTTP server requests.");
 }
