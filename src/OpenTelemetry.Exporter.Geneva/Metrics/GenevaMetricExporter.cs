@@ -44,7 +44,10 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
         if (connectionStringBuilder.PrivatePreviewOtlpProtobufMetricExporter != null && connectionStringBuilder.PrivatePreviewOtlpProtobufMetricExporter.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase))
         {
-            var otlpProtobufExporter = new OtlpProtobufMetricExporter(() => { return this.Resource; });
+            var otlpProtobufExporter = new OtlpProtobufMetricExporter(
+                () => { return this.Resource; },
+                connectionStringBuilder,
+                options.PrepopulatedMetricDimensions);
 
             this.exporter = otlpProtobufExporter;
 
