@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NET6_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using System.Diagnostics.Tracing;
 using System.Runtime.CompilerServices;
 using OpenTelemetry.Internal;
@@ -76,12 +79,18 @@ internal sealed class OneCollectorExporterEventSource : EventSource
     }
 
     [Event(2, Message = "Sent '{0}' batch of {1} item(s) to '{2}' transport.", Level = EventLevel.Informational)]
+#if NET6_0_OR_GREATER
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Parameters passed to WriteEvent are all primitive values.")]
+#endif
     public void TransportDataSent(string itemType, int numberOfRecords, string transportDescription)
     {
         this.WriteEvent(2, itemType, numberOfRecords, transportDescription);
     }
 
     [Event(3, Message = "Wrote '{0}' batch of {1} item(s) to '{2}' sink.", Level = EventLevel.Informational)]
+#if NET6_0_OR_GREATER
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Parameters passed to WriteEvent are all primitive values.")]
+#endif
     public void SinkDataWritten(string itemType, int numberOfRecords, string sinkDescription)
     {
         this.WriteEvent(3, itemType, numberOfRecords, sinkDescription);
@@ -100,6 +109,9 @@ internal sealed class OneCollectorExporterEventSource : EventSource
     }
 
     [Event(6, Message = "Error response received by '{0}' transport. StatusCode: {1}, ErrorMessage: '{2}', ErrorDetails: '{3}'", Level = EventLevel.Error)]
+#if NET6_0_OR_GREATER
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Parameters passed to WriteEvent are all primitive values.")]
+#endif
     public void HttpTransportErrorResponseReceived(string transportType, int statusCode, string errorMessage, string errorDetails)
     {
         this.WriteEvent(6, transportType, statusCode, errorMessage, errorDetails);
