@@ -73,11 +73,6 @@ internal sealed class TlvMetricExporter : IDisposable
         {
             this.fixedPayloadStartIndex = sizeof(BinaryHeader);
         }
-
-        if (connectionStringBuilder.DisableMetricNameValidation)
-        {
-            GenevaMetricExporter.DisableOpenTelemetrySdkMetricNameValidation();
-        }
     }
 
     internal ExportResult Export(in Batch<Metric> batch)
