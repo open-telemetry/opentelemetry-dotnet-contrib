@@ -363,6 +363,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'aottestapp')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'geneva')
+      || contains(needs.detect-changes.outputs.changes, 'onecollector')
       || contains(needs.detect-changes.outputs.changes, 'redis')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/verifyaotcompat.yml
