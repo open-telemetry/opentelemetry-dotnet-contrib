@@ -12,7 +12,7 @@ dotnet add package OpenTelemetry.SemanticConventions
 ## Generating the files
 
 This project uses the
-[Semantic Convention Generator](https://github.com/open-telemetry/build-tools/blob/main/README.md).
+[Semantic Convention Generator](https://github.com/open-telemetry/build-tools/blob/main/semantic-conventions/README.md).
 The folder `scripts` at the top level of the project contains the template
 and the script files used in the process.
 
