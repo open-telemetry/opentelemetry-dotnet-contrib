@@ -19,7 +19,7 @@ git remote add origin https://github.com/open-telemetry/semantic-conventions.git
 git fetch origin "v$SPEC_VERSION"
 git reset --hard FETCH_HEAD
 cd ${SCRIPT_DIR}
-rm semantic-conventions/model/trace/cloudevents.yaml
+
 docker run --rm \
   -v ${SCRIPT_DIR}/semantic-conventions/model/trace:/source \
   -v ${SCRIPT_DIR}/templates:/templates \
