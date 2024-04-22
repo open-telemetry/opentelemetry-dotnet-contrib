@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-beta.6
+
+Released 2024-Apr-22
+
 * Fixes an issue when Activity/ActivityLink tags contain duplicate tag keys
   that lead to ArgumentException.
   ([#1660](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1660))
