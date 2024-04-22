@@ -5,7 +5,7 @@ using OpenTelemetry;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace OpenTelemetry.SpanProcessor.Baggage;
+namespace OpenTelemetry.Trace;
 
 /// <summary>
 /// Span processor that adds <see cref="Baggage"/> fields to every new span
