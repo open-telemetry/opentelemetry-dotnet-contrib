@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
+        <Description>OpenTelemetry Resource Detectors for Google Cloud Platform environments</Description>
+        <PackageTags>$(PackageTags);ResourceDetector</PackageTags>
+        <MinVerTagPrefix>ResourceDetectors.GCP-</MinVerTagPrefix>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Google.Api.Gax" Version="4.8.0" />
+        <PackageReference Include="Grpc.Core.Api" Version="2.62.0" />
+        <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
+        <PackageReference Include="System.Text.Json" Version="4.7.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
+        <Compile Include="$(RepoRoot)\src\Shared\ResourceSemanticConventions.cs" Link="Includes\ResourceSemanticConventions.cs" />
+    </ItemGroup>
+</Project>

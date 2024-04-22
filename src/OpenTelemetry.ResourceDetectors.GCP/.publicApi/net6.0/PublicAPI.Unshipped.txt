@@ -1,0 +1,3 @@
+OpenTelemetry.ResourceDetectors.GCP.GCPResourceDetector
+OpenTelemetry.ResourceDetectors.GCP.GCPResourceDetector.GCPResourceDetector() -> void
+OpenTelemetry.ResourceDetectors.GCP.GCPResourceDetector.Detect() -> OpenTelemetry.Resources.Resource!
