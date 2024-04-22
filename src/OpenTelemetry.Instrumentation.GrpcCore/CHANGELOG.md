@@ -6,10 +6,10 @@
   ([#483](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/483))
 * Update minimal supported  version of `Google.Protobuf` to `3.15.0`.
   ([#1456](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1456))
-* Update `OpenTelemetry.Api` to `1.8.0`.
-  ([#1635](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1635))
 * `ActivitySource.Version` is set to NuGet package version.
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
+* Update `OpenTelemetry.Api` to `1.8.1`.
+  ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
 * `RecordException` option for both client and server interceptors
   ([#1648](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1648))
 

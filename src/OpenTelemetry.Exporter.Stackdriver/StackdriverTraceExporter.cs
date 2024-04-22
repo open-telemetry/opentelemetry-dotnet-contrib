@@ -10,6 +10,7 @@ using Google.Api.Gax.Grpc;
 using Google.Cloud.Trace.V2;
 using Grpc.Core;
 using OpenTelemetry.Exporter.Stackdriver.Implementation;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Stackdriver;
 
@@ -93,12 +94,19 @@ public class StackdriverTraceExporter : BaseExporter<Activity>
             ProjectName = this.googleCloudProjectId,
         };
 
+        Resource? resource = this.ParentProvider?.GetResource();
         foreach (var activity in batch)
         {
             // It should never happen that the time has no correct kind, only if OpenTelemetry is used incorrectly.
             if (activity.StartTimeUtc.Kind == DateTimeKind.Utc)
             {
-                batchSpansRequest.Spans.Add(activity.ToSpan(this.googleCloudProjectId.ProjectId));
+                Span span = activity.ToSpan(this.googleCloudProjectId.ProjectId);
+                if (resource != null)
+                {
+                    span.AnnotateWith(resource);
+                }
+
+                batchSpansRequest.Spans.Add(span);
             }
         }
 

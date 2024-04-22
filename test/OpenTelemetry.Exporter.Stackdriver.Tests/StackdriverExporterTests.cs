@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using OpenTelemetry.Exporter.Stackdriver.Implementation;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -60,6 +61,28 @@ public class StackdriverExporterTests
 
         Assert.True(startCalled);
         Assert.True(endCalled);
+    }
+
+    [Fact]
+    public void StackdriverExporter_WithServiceNameMetadata()
+    {
+        const string ActivitySourceName = "stackdriver.test";
+
+        var traceClient = new TestTraceServiceClient(throwException: false);
+        var activityExporter = new StackdriverTraceExporter("test_project", traceClient);
+
+        var openTelemetrySdk = Sdk.CreateTracerProviderBuilder()
+            .AddSource(ActivitySourceName)
+            .ConfigureResource(r => r.AddService("test-service", "2.3.4"))
+            .AddProcessor(new BatchActivityExportProcessor(activityExporter))
+            .Build();
+
+        using var source = new ActivitySource(ActivitySourceName);
+        var activity = source.StartActivity("Test Activity");
+        activity?.Stop();
+        openTelemetrySdk.ForceFlush();
+        Assert.True(traceClient.Spans.Count > 0);
+        Assert.True(traceClient.Spans.All(s => s.Attributes.AttributeMap.ContainsKey(ResourceSemanticConventions.AttributeServiceName)));
     }
 
     [Fact]
