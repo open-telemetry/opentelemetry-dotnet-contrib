@@ -10,7 +10,7 @@
   ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
 
 * Add OTLP protobuf encoding support for metric exporter in Windows
-  environment. Use `"PrivatePreviewEnableOtlpProtobufEncoding=true"` in the
+  environment. Use `PrivatePreviewEnableOtlpProtobufEncoding=true` in the
   connection string to opt-in.
   ([#1596](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1596))
   ([#1626](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1626))
