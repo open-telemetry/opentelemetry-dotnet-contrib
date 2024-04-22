@@ -37,3 +37,33 @@ public static TracerProviderBuilder AddMyExporter(this TracerProviderBuilder bui
         .AddAutoFlushActivityProcessor(a => a.Parent == null && (a.Kind == ActivityKind.Server || a.Kind == ActivityKind.Consumer), 5000);
 }
 ```
+
+### BaggageSpanProcessor
+
+The BaggageSpanProcessor reads entries stored in Baggage from the parent context
+and adds the baggage keys and values to the activity as attributes on start.
+
+Add this span processor to a tracer provider.
+
+Warning!
+
+Do not put sensitive information in Baggage.
+
+To repeat: a consequence of adding data to Baggage is that the keys and values
+will appear in all outgoing HTTP headers from the application.
+
+Example of AddBaggageSpanProcessor:
+
+```cs
+public static TracerProviderBuilder AddMyExporter(this TracerProviderBuilder builder, MyExporterOptions options)
+{
+    return builder
+        .AddProcessor(new BatchActivityExportProcessor(
+                    new MyExporter(options),
+                    options.BatchExportProcessorOptions.MaxQueueSize,
+                    options.BatchExportProcessorOptions.ScheduledDelayMilliseconds,
+                    options.BatchExportProcessorOptions.ExporterTimeoutMilliseconds,
+                    options.BatchExportProcessorOptions.MaxExportBatchSize))
+        .AddBaggageSpanProcessor();
+}
+```
