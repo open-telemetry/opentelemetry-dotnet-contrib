@@ -286,7 +286,7 @@ public class GenevaMetricExporterTests
     [InlineData(false, false)]
     [InlineData(true, true)]
     [InlineData(false, true)]
-    public void DisableMetricNameValidationTest(bool disableMetricNameValidation, bool enableOtlpProtobufexporter)
+    public void DisableMetricNameValidationTest(bool disableMetricNameValidation, bool enableOtlpProtobufEncoding)
     {
         var instrumentNameRegexProperty = GenevaMetricExporter.GetOpenTelemetryInstrumentNameRegexProperty();
         var initialInstrumentNameRegexValue = instrumentNameRegexProperty.GetValue(null);
@@ -316,9 +316,9 @@ public class GenevaMetricExporterTests
                         server.Listen(1);
                     }
 
-                    if (enableOtlpProtobufexporter)
+                    if (enableOtlpProtobufEncoding)
                     {
-                        options.ConnectionString += $";PrivatePreviewOtlpProtobufMetricExporter={enableOtlpProtobufexporter}";
+                        options.ConnectionString += $";PrivatePreviewEnableOtlpProtobufEncoding={enableOtlpProtobufEncoding}";
                     }
                 })
                 .AddInMemoryExporter(exportedMetrics)
