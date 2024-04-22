@@ -12,10 +12,10 @@
 * Add OTLP protobuf encoding support for metric exporter in Windows
   environment. Use `PrivatePreviewEnableOtlpProtobufEncoding=true` in the
   connection string to opt-in.
-  ([#1596](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1596))
-  ([#1626](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1626))
-  ([#1629](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1629))
-  ([#1634](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1634))
+  ([#1596](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1596),
+   [#1626](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1626),
+   [#1629](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1629),
+   [#1634](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1634))
 
 * Native AOT compatibility.
   ([#1666](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1666))
