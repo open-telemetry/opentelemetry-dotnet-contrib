@@ -1,5 +1,7 @@
 # Changelog
 
+## Unreleased
+
 ## 1.0.0-beta.6
 
 Released 2024-Apr-22
