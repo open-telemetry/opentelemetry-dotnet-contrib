@@ -9,6 +9,13 @@
 * Update OpenTelemetry SDK version to `1.8.1`.
   ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
 
+* Add OTLP protobuf metric exporter for windows environment. Use
+  `"PrivatePreviewOtlpProtobufMetricExporter=true"` in the connection string to opt-in.
+  ([#1596](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1596))
+  ([#1626](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1626))
+  ([#1629](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1629))
+  ([#1634](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1634))
+
 ## 1.7.0
 
 Released 2023-Dec-11

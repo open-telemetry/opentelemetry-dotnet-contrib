@@ -303,17 +303,22 @@ public class GenevaMetricExporterTests
                 {
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
-                        options.ConnectionString = $"Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace;DisableMetricNameValidation={disableMetricNameValidation};PrivatePreviewOtlpProtobufMetricExporter={enableOtlpProtobufexporter}";
+                        options.ConnectionString = $"Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace;DisableMetricNameValidation={disableMetricNameValidation}";
                     }
                     else
                     {
                         var path = GenerateTempFilePath();
-                        options.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace;DisableMetricNameValidation={disableMetricNameValidation};PrivatePreviewOtlpProtobufMetricExporter={enableOtlpProtobufexporter}";
+                        options.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace;DisableMetricNameValidation={disableMetricNameValidation}";
 
                         var endpoint = new UnixDomainSocketEndPoint(path);
                         server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
                         server.Bind(endpoint);
                         server.Listen(1);
+                    }
+
+                    if (enableOtlpProtobufexporter)
+                    {
+                        options.ConnectionString += $";PrivatePreviewOtlpProtobufMetricExporter={enableOtlpProtobufexporter}";
                     }
                 })
                 .AddInMemoryExporter(exportedMetrics)
