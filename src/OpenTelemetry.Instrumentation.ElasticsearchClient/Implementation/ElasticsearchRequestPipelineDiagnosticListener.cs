@@ -46,148 +46,18 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         this.options = options;
     }
 
-    public override void OnStartActivity(Activity activity, object payload)
+    public override void OnEventWritten(string name, object payload)
     {
-        // By this time, samplers have already run and
-        // activity.IsAllDataRequested populated accordingly.
-
-        if (Sdk.SuppressInstrumentation)
-        {
-            return;
-        }
-
+        var activity = Activity.Current;
         Guard.ThrowIfNull(activity);
-        if (activity.IsAllDataRequested)
+        switch (name)
         {
-            var uri = this.uriFetcher.Fetch(payload);
-
-            if (uri == null)
-            {
-                ElasticsearchInstrumentationEventSource.Log.NullPayload(nameof(ElasticsearchRequestPipelineDiagnosticListener), nameof(this.OnStartActivity));
-                return;
-            }
-
-            ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
-            ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Client);
-
-            var method = this.methodFetcher.Fetch(payload);
-
-            if (this.options.SuppressDownstreamInstrumentation)
-            {
-                SuppressInstrumentationScope.Enter();
-            }
-
-            var elasticIndex = GetElasticIndex(uri);
-            activity.DisplayName = GetDisplayName(activity, method, elasticIndex);
-            activity.SetTag(SemanticConventions.AttributeDbSystem, DatabaseSystemName);
-
-            if (elasticIndex != null)
-            {
-                activity.SetTag(SemanticConventions.AttributeDbName, elasticIndex);
-            }
-
-            var uriHostNameType = Uri.CheckHostName(uri.Host);
-            if (uriHostNameType == UriHostNameType.IPv4 || uriHostNameType == UriHostNameType.IPv6)
-            {
-                activity.SetTag(SemanticConventions.AttributeNetPeerIp, uri.Host);
-            }
-            else
-            {
-                activity.SetTag(SemanticConventions.AttributeNetPeerName, uri.Host);
-            }
-
-            if (uri.Port > 0)
-            {
-                activity.SetTag(SemanticConventions.AttributeNetPeerPort, uri.Port);
-            }
-
-            if (method != null)
-            {
-                activity.SetTag(AttributeDbMethod, method.ToString());
-            }
-
-            activity.SetTag(SemanticConventions.AttributeDbUrl, uri.OriginalString);
-
-            try
-            {
-                this.options.Enrich?.Invoke(activity, "OnStartActivity", payload);
-            }
-            catch (Exception ex)
-            {
-                ElasticsearchInstrumentationEventSource.Log.EnrichmentException(ex);
-            }
-        }
-    }
-
-    public override void OnStopActivity(Activity activity, object payload)
-    {
-        if (activity.IsAllDataRequested)
-        {
-            var statusCode = this.httpStatusFetcher.Fetch(payload);
-            activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, statusCode.GetValueOrDefault()));
-
-            if (statusCode.HasValue)
-            {
-                activity.SetTag(SemanticConventions.AttributeHttpStatusCode, (int)statusCode);
-            }
-
-            var debugInformation = this.debugInformationFetcher.Fetch(payload);
-            if (debugInformation != null && this.options.SetDbStatementForRequest)
-            {
-                var dbStatement = this.ParseAndFormatRequest(debugInformation);
-                if (this.options.MaxDbStatementLength > 0 && dbStatement.Length > this.options.MaxDbStatementLength)
-                {
-                    dbStatement = dbStatement.Substring(0, this.options.MaxDbStatementLength);
-                }
-
-                activity.SetTag(SemanticConventions.AttributeDbStatement, dbStatement);
-            }
-
-            var originalException = this.originalExceptionFetcher.Fetch(payload);
-            if (originalException != null)
-            {
-                activity.SetCustomProperty(ExceptionCustomPropertyName, originalException);
-
-                var failureReason = this.failureReasonFetcher.Fetch(originalException);
-                if (failureReason != null)
-                {
-                    activity.SetStatus(Status.Error.WithDescription($"{failureReason} {originalException.Message}"));
-                }
-
-                var responseBody = this.responseBodyFetcher.Fetch(payload);
-                if (responseBody != null && responseBody.Length > 0)
-                {
-                    var response = Encoding.UTF8.GetString(responseBody);
-                    activity.SetStatus(Status.Error.WithDescription($"{failureReason} {originalException.Message}\r\n{response}"));
-                }
-
-                if (originalException is HttpRequestException)
-                {
-                    if (originalException.InnerException is SocketException exception)
-                    {
-                        switch (exception.SocketErrorCode)
-                        {
-                            case SocketError.HostNotFound:
-                                activity.SetStatus(Status.Error.WithDescription(originalException.Message));
-                                return;
-                        }
-                    }
-
-                    if (originalException.InnerException != null)
-                    {
-                        activity.SetStatus(Status.Error.WithDescription(originalException.Message));
-                    }
-                }
-            }
-
-            try
-            {
-                this.options.Enrich?.Invoke(activity, "OnStopActivity", payload);
-            }
-            catch (Exception ex)
-            {
-                ElasticsearchInstrumentationEventSource.Log.EnrichmentException(ex);
-            }
+            case "CallElasticsearch.Start":
+                this.OnStartActivity(activity, payload);
+                break;
+            case "CallElasticsearch.Stop":
+                this.OnStopActivity(activity, payload);
+                break;
         }
     }
 
@@ -278,5 +148,150 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         }
 
         return debugInformation;
+    }
+
+    private void OnStartActivity(Activity activity, object payload)
+    {
+        // By this time, samplers have already run and
+        // activity.IsAllDataRequested populated accordingly.
+
+        if (Sdk.SuppressInstrumentation)
+        {
+            return;
+        }
+
+        Guard.ThrowIfNull(activity);
+        if (activity.IsAllDataRequested)
+        {
+            var uri = this.uriFetcher.Fetch(payload);
+
+            if (uri == null)
+            {
+                ElasticsearchInstrumentationEventSource.Log.NullPayload(nameof(ElasticsearchRequestPipelineDiagnosticListener), nameof(this.OnStartActivity));
+                return;
+            }
+
+            ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
+            ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Client);
+
+            var method = this.methodFetcher.Fetch(payload);
+
+            if (this.options.SuppressDownstreamInstrumentation)
+            {
+                SuppressInstrumentationScope.Enter();
+            }
+
+            var elasticIndex = GetElasticIndex(uri);
+            activity.DisplayName = GetDisplayName(activity, method, elasticIndex);
+            activity.SetTag(SemanticConventions.AttributeDbSystem, DatabaseSystemName);
+
+            if (elasticIndex != null)
+            {
+                activity.SetTag(SemanticConventions.AttributeDbName, elasticIndex);
+            }
+
+            var uriHostNameType = Uri.CheckHostName(uri.Host);
+            if (uriHostNameType == UriHostNameType.IPv4 || uriHostNameType == UriHostNameType.IPv6)
+            {
+                activity.SetTag(SemanticConventions.AttributeNetPeerIp, uri.Host);
+            }
+            else
+            {
+                activity.SetTag(SemanticConventions.AttributeNetPeerName, uri.Host);
+            }
+
+            if (uri.Port > 0)
+            {
+                activity.SetTag(SemanticConventions.AttributeNetPeerPort, uri.Port);
+            }
+
+            if (method != null)
+            {
+                activity.SetTag(AttributeDbMethod, method.ToString());
+            }
+
+            activity.SetTag(SemanticConventions.AttributeDbUrl, uri.OriginalString);
+
+            try
+            {
+                this.options.Enrich?.Invoke(activity, "OnStartActivity", payload);
+            }
+            catch (Exception ex)
+            {
+                ElasticsearchInstrumentationEventSource.Log.EnrichmentException(ex);
+            }
+        }
+    }
+
+    private void OnStopActivity(Activity activity, object payload)
+    {
+        if (activity.IsAllDataRequested)
+        {
+            var statusCode = this.httpStatusFetcher.Fetch(payload);
+            activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, statusCode.GetValueOrDefault()));
+
+            if (statusCode.HasValue)
+            {
+                activity.SetTag(SemanticConventions.AttributeHttpStatusCode, (int)statusCode);
+            }
+
+            var debugInformation = this.debugInformationFetcher.Fetch(payload);
+            if (debugInformation != null && this.options.SetDbStatementForRequest)
+            {
+                var dbStatement = this.ParseAndFormatRequest(debugInformation);
+                if (this.options.MaxDbStatementLength > 0 && dbStatement.Length > this.options.MaxDbStatementLength)
+                {
+                    dbStatement = dbStatement.Substring(0, this.options.MaxDbStatementLength);
+                }
+
+                activity.SetTag(SemanticConventions.AttributeDbStatement, dbStatement);
+            }
+
+            var originalException = this.originalExceptionFetcher.Fetch(payload);
+            if (originalException != null)
+            {
+                activity.SetCustomProperty(ExceptionCustomPropertyName, originalException);
+
+                var failureReason = this.failureReasonFetcher.Fetch(originalException);
+                if (failureReason != null)
+                {
+                    activity.SetStatus(Status.Error.WithDescription($"{failureReason} {originalException.Message}"));
+                }
+
+                var responseBody = this.responseBodyFetcher.Fetch(payload);
+                if (responseBody != null && responseBody.Length > 0)
+                {
+                    var response = Encoding.UTF8.GetString(responseBody);
+                    activity.SetStatus(Status.Error.WithDescription($"{failureReason} {originalException.Message}\r\n{response}"));
+                }
+
+                if (originalException is HttpRequestException)
+                {
+                    if (originalException.InnerException is SocketException exception)
+                    {
+                        switch (exception.SocketErrorCode)
+                        {
+                            case SocketError.HostNotFound:
+                                activity.SetStatus(Status.Error.WithDescription(originalException.Message));
+                                return;
+                        }
+                    }
+
+                    if (originalException.InnerException != null)
+                    {
+                        activity.SetStatus(Status.Error.WithDescription(originalException.Message));
+                    }
+                }
+            }
+
+            try
+            {
+                this.options.Enrich?.Invoke(activity, "OnStopActivity", payload);
+            }
+            catch (Exception ex)
+            {
+                ElasticsearchInstrumentationEventSource.Log.EnrichmentException(ex);
+            }
+        }
     }
 }

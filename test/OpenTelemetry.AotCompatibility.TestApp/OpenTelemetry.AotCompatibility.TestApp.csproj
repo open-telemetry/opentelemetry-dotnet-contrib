@@ -13,6 +13,7 @@
       When adding projects here please also update the verify-aot-compat job in
       .github\workflows\ci.yml so that it runs for the project(s) being added.
     -->
+    <TrimmerRootAssembly Include="OpenTelemetry.Exporter.OneCollector" />
     <TrimmerRootAssembly Include="OpenTelemetry.Extensions" />
     <TrimmerRootAssembly Include="OpenTelemetry.Extensions.Enrichment" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.AWS" />

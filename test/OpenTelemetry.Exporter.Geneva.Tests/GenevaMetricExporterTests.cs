@@ -282,9 +282,11 @@ public class GenevaMetricExporterTests
     }
 
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void DisableMetricNameValidationTest(bool disableMetricNameValidation)
+    [InlineData(true, false)]
+    [InlineData(false, false)]
+    [InlineData(true, true)]
+    [InlineData(false, true)]
+    public void DisableMetricNameValidationTest(bool disableMetricNameValidation, bool enableOtlpProtobufexporter)
     {
         var instrumentNameRegexProperty = GenevaMetricExporter.GetOpenTelemetryInstrumentNameRegexProperty();
         var initialInstrumentNameRegexValue = instrumentNameRegexProperty.GetValue(null);
@@ -301,12 +303,12 @@ public class GenevaMetricExporterTests
                 {
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
-                        options.ConnectionString = $"Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace;DisableMetricNameValidation={disableMetricNameValidation}";
+                        options.ConnectionString = $"Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace;DisableMetricNameValidation={disableMetricNameValidation};PrivatePreviewOtlpProtobufMetricExporter={enableOtlpProtobufexporter}";
                     }
                     else
                     {
                         var path = GenerateTempFilePath();
-                        options.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace;DisableMetricNameValidation={disableMetricNameValidation}";
+                        options.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace;DisableMetricNameValidation={disableMetricNameValidation};PrivatePreviewOtlpProtobufMetricExporter={enableOtlpProtobufexporter}";
 
                         var endpoint = new UnixDomainSocketEndPoint(path);
                         server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
