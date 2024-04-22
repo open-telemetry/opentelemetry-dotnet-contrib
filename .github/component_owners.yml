@@ -20,6 +20,7 @@ components:
     - SergeyKanzhelev
   src/OpenTelemetry.Extensions/:
     - codeblanch
+    - mikegoldsmith
   src/OpenTelemetry.Extensions.AWS/:
     - srprash
     - atshaw43
@@ -82,8 +83,6 @@ components:
     - srprash
     - atshaw43
     - ppittle
-  OpenTelemetry.SpanProcessor.Baggage:
-    - mikegoldsmith
   test/OpenTelemetry.Exporter.Geneva.Benchmark/:
     - cijothomas
     - codeblanch
