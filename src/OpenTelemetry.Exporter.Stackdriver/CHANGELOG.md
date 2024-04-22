@@ -2,11 +2,11 @@
 
 ## Unreleased
 
-* Update OpenTelemetry SDK version to `1.8.0`.
-  ([#1635](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1635))
 * Fixes an issue when Activity/ActivityLink tags contain duplicate tag keys
   that lead to ArgumentException.
   ([#1660](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1660))
+* Update OpenTelemetry SDK version to `1.8.1`.
+  ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
 * Annotates trace information with `service.name` attribute
   if it's present in the resource tags. Please use
   `services.ConfigureResource(r => r.AddService("my-service", "1.0.0"))`
