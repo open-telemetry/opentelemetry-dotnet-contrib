@@ -81,8 +81,9 @@ public sealed class SqlClientIntegrationTests : IAsyncLifetime
         string dataSource = sqlConnection.DataSource;
 
         sqlConnection.ChangeDatabase("master");
-
+#pragma warning disable CA2100
         using SqlCommand sqlCommand = new SqlCommand(commandText, sqlConnection)
+#pragma warning restore CA2100
         {
             CommandType = commandType,
         };

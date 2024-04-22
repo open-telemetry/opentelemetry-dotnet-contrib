@@ -6,9 +6,7 @@ using System.Diagnostics;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
-#if !NETFRAMEWORK
 using OpenTelemetry.Tests;
-#endif
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -16,7 +14,9 @@ namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 
 public class SqlClientTests : IDisposable
 {
+#if !NETFRAMEWORK
     private const string TestConnectionString = "Data Source=(localdb)\\MSSQLLocalDB;Database=master";
+#endif
 
     private readonly FakeSqlClientDiagnosticSource fakeSqlClientDiagnosticSource;
 
@@ -99,7 +99,9 @@ public class SqlClientTests : IDisposable
         {
             var operationId = Guid.NewGuid();
             sqlCommand.CommandType = commandType;
+#pragma warning disable CA2100
             sqlCommand.CommandText = commandText;
+#pragma warning restore CA2100
 
             var beforeExecuteEventData = new
             {
