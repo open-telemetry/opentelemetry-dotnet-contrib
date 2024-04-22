@@ -47,4 +47,26 @@ public static class TracerProviderBuilderExtensions
         return builder.AddProcessor(new AutoFlushActivityProcessor(predicate, timeoutMilliseconds));
 #pragma warning restore CA2000 // Dispose objects before losing scope
     }
+
+    /// <summary>
+    /// Adds the <see cref="BaggageSpanProcessor"/> to the <see cref="TracerProviderBuilder"/>.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> to add the <see cref="BaggageSpanProcessor"/> to.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddBaggageSpanProcessor(
+        this TracerProviderBuilder builder)
+    {
+#if NET6_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(builder);
+#else
+        if (builder == null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+#endif
+
+#pragma warning disable CA2000 // Dispose objects before losing scope
+        return builder.AddProcessor(new BaggageSpanProcessor());
+#pragma warning restore CA2000 // Dispose objects before losing scope
+    }
 }
