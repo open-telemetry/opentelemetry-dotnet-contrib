@@ -12,6 +12,27 @@ namespace OpenTelemetry.Instrumentation.Owin;
 /// </summary>
 public class OwinInstrumentationOptions
 {
+    private const string DisableQueryRedactionEnvVar = "OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION";
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OwinInstrumentationOptions"/> class.
+    /// </summary>
+    public OwinInstrumentationOptions()
+    {
+        try
+        {
+            var disableQueryRedaction = Environment.GetEnvironmentVariable(DisableQueryRedactionEnvVar);
+            if (disableQueryRedaction != null && disableQueryRedaction.Equals("true", StringComparison.OrdinalIgnoreCase))
+            {
+                this.DisableUrlQueryRedaction = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            OwinInstrumentationEventSource.Log.FailedToReadEnvironmentVariable(DisableQueryRedactionEnvVar, ex);
+        }
+    }
+
     /// <summary>
     /// Gets or sets a Filter function that determines whether or not to collect telemetry about requests on a per request basis.
     /// The Filter gets the <see cref="IOwinContext"/>, and should return a boolean.
@@ -32,4 +53,14 @@ public class OwinInstrumentationOptions
     /// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/exceptions.md.
     /// </remarks>
     public bool RecordException { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the url query value should be redacted or not.
+    /// </summary>
+    /// <remarks>
+    /// The query parameter values are redacted with value set as Redacted.
+    /// e.g. `?key1=value1` is set as `?key1=Redacted`.
+    /// The redaction can be disabled by setting this property to <see langword="true" />.
+    /// </remarks>
+    internal bool DisableUrlQueryRedaction { get; set; }
 }

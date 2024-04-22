@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.ServiceModel.Channels;
 using OpenTelemetry.Instrumentation.Wcf.Implementation;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Wcf;
 
@@ -14,12 +15,13 @@ namespace OpenTelemetry.Instrumentation.Wcf;
 /// </summary>
 internal static class WcfInstrumentationActivitySource
 {
-    internal static readonly AssemblyName AssemblyName = typeof(WcfInstrumentationActivitySource).Assembly.GetName();
+    internal static readonly Assembly Assembly = typeof(WcfInstrumentationActivitySource).Assembly;
+    internal static readonly AssemblyName AssemblyName = Assembly.GetName();
     internal static readonly string ActivitySourceName = AssemblyName.Name;
     internal static readonly string IncomingRequestActivityName = ActivitySourceName + ".IncomingRequest";
     internal static readonly string OutgoingRequestActivityName = ActivitySourceName + ".OutgoingRequest";
 
-    public static ActivitySource ActivitySource { get; } = new(ActivitySourceName, SignalVersionHelper.GetVersion<WcfInstrumentationOptions>());
+    public static ActivitySource ActivitySource { get; } = new(ActivitySourceName, Assembly.GetPackageVersion());
 
     public static WcfInstrumentationOptions? Options { get; set; }
 

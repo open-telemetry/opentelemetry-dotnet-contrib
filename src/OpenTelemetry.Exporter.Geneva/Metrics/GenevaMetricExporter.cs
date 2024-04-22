@@ -42,9 +42,17 @@ public class GenevaMetricExporter : BaseExporter<Metric>
 
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
 
-        if (connectionStringBuilder.PrivatePreviewOtlpProtobufMetricExporter != null && connectionStringBuilder.PrivatePreviewOtlpProtobufMetricExporter.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase))
+        if (connectionStringBuilder.DisableMetricNameValidation)
         {
-            var otlpProtobufExporter = new OtlpProtobufMetricExporter(() => { return this.Resource; });
+            DisableOpenTelemetrySdkMetricNameValidation();
+        }
+
+        if (connectionStringBuilder.PrivatePreviewEnableOtlpProtobufEncoding != null && connectionStringBuilder.PrivatePreviewEnableOtlpProtobufEncoding.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase))
+        {
+            var otlpProtobufExporter = new OtlpProtobufMetricExporter(
+                () => { return this.Resource; },
+                connectionStringBuilder,
+                options.PrepopulatedMetricDimensions);
 
             this.exporter = otlpProtobufExporter;
 

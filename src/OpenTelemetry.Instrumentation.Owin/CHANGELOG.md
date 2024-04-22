@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry SDK to 1.8.1.
+  ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
+
+## 1.0.0-rc.6
+
+Released 2024-Apr-19
+
+* Massive memory leak in OwinInstrumentationMetrics addressed.
+  Made both Meter and Histogram singletons.
+  ([#1655](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1655))
+
+## 1.0.0-rc.5
+
+Released 2024-Apr-17
+
+* **Breaking Change**: Fixed tracing instrumentation so that by default any
+  values detected in the query string component of requests are replaced with
+  the text `Redacted` when building the `http.url` tag. For example,
+  `?key1=value1&key2=value2` becomes `?key1=Redacted&key2=Redacted`. You can
+  disable this redaction by setting the environment variable
+  `OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION` to `true`.
+  ([#1656](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1656))
 * `ActivitySource.Version` and `Meter.Version` are set to NuGet package version.
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
 * Updated OpenTelemetry SDK to 1.8.0.

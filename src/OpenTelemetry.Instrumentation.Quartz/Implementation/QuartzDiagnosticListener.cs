@@ -13,9 +13,10 @@ namespace OpenTelemetry.Instrumentation.Quartz.Implementation;
 
 internal sealed class QuartzDiagnosticListener : ListenerHandler
 {
-    internal static readonly AssemblyName AssemblyName = typeof(QuartzDiagnosticListener).Assembly.GetName();
+    internal static readonly Assembly Assembly = typeof(QuartzDiagnosticListener).Assembly;
+    internal static readonly AssemblyName AssemblyName = Assembly.GetName();
     internal static readonly string ActivitySourceName = AssemblyName.Name;
-    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, SignalVersionHelper.GetVersion<QuartzDiagnosticListener>());
+    internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
     internal readonly PropertyFetcher<object> JobDetailsPropertyFetcher = new("JobDetail");
 
     private readonly QuartzInstrumentationOptions options;
@@ -28,9 +29,55 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
         this.options = options;
     }
 
-    public override void OnStartActivity(Activity? activity, object? payload)
+    public override void OnEventWritten(string name, object? payload)
     {
+        Activity? activity = Activity.Current;
         Guard.ThrowIfNull(activity);
+        switch (name)
+        {
+            case "Quartz.Job.Execute.Start":
+            case "Quartz.Job.Veto.Start":
+                this.OnStartActivity(activity, payload);
+                break;
+            case "Quartz.Job.Execute.Stop":
+            case "Quartz.Job.Veto.Stop":
+                this.OnStopActivity(activity, payload);
+                break;
+            case "Quartz.Job.Execute.Exception":
+            case "Quartz.Job.Veto.Exception":
+                this.OnException(activity, payload);
+                break;
+        }
+    }
+
+    private static string GetDisplayName(Activity activity)
+    {
+        return activity.OperationName switch
+        {
+            OperationName.Job.Execute => $"execute {GetTag(activity.Tags, TagName.JobName)}",
+            OperationName.Job.Veto => $"veto {GetTag(activity.Tags, TagName.JobName)}",
+            _ => activity.DisplayName,
+        };
+    }
+
+    private static ActivityKind GetActivityKind(Activity activity)
+    {
+        return activity.OperationName switch
+        {
+            OperationName.Job.Execute => ActivityKind.Internal,
+            OperationName.Job.Veto => ActivityKind.Internal,
+            _ => activity.Kind,
+        };
+    }
+
+    private static string? GetTag(IEnumerable<KeyValuePair<string, string?>> tags, string tagName)
+    {
+        var tag = tags.SingleOrDefault(kv => kv.Key == tagName);
+        return tag.Value;
+    }
+
+    private void OnStartActivity(Activity activity, object? payload)
+    {
         if (activity.IsAllDataRequested)
         {
             if (!this.options.TracedOperations.Contains(activity.OperationName))
@@ -60,9 +107,8 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
         }
     }
 
-    public override void OnStopActivity(Activity? activity, object? payload)
+    private void OnStopActivity(Activity activity, object? payload)
     {
-        Guard.ThrowIfNull(activity);
         if (activity.IsAllDataRequested)
         {
             try
@@ -80,9 +126,8 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
         }
     }
 
-    public override void OnException(Activity? activity, object? payload)
+    private void OnException(Activity activity, object? payload)
     {
-        Guard.ThrowIfNull(activity);
         if (activity.IsAllDataRequested)
         {
             var exc = payload as Exception;
@@ -108,31 +153,5 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
                 QuartzInstrumentationEventSource.Log.EnrichmentException(ex);
             }
         }
-    }
-
-    private static string GetDisplayName(Activity activity)
-    {
-        return activity.OperationName switch
-        {
-            OperationName.Job.Execute => $"execute {GetTag(activity.Tags, TagName.JobName)}",
-            OperationName.Job.Veto => $"veto {GetTag(activity.Tags, TagName.JobName)}",
-            _ => activity.DisplayName,
-        };
-    }
-
-    private static ActivityKind GetActivityKind(Activity activity)
-    {
-        return activity.OperationName switch
-        {
-            OperationName.Job.Execute => ActivityKind.Internal,
-            OperationName.Job.Veto => ActivityKind.Internal,
-            _ => activity.Kind,
-        };
-    }
-
-    private static string? GetTag(IEnumerable<KeyValuePair<string, string?>> tags, string tagName)
-    {
-        var tag = tags.SingleOrDefault(kv => kv.Key == tagName);
-        return tag.Value;
     }
 }

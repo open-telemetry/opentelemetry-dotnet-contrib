@@ -45,10 +45,25 @@ internal sealed class OwinInstrumentationEventSource : EventSource
         }
     }
 
+    [NonEvent]
+    public void FailedToReadEnvironmentVariable(string envVarName, Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        {
+            this.FailedToReadEnvironmentVariable(envVarName, ex.ToInvariantString());
+        }
+    }
+
     [Event(EventIds.EnrichmentException, Message = "Enrichment threw exception. Exception {0}.", Level = EventLevel.Error)]
     public void EnrichmentException(string exception)
     {
         this.WriteEvent(EventIds.EnrichmentException, exception);
+    }
+
+    [Event(EventIds.FailedToReadEnvironmentVariable, Message = "Failed to read environment variable='{0}': {1}", Level = EventLevel.Error)]
+    public void FailedToReadEnvironmentVariable(string envVarName, string exception)
+    {
+        this.WriteEvent(4, envVarName, exception);
     }
 
     private class EventIds
@@ -56,5 +71,6 @@ internal sealed class OwinInstrumentationEventSource : EventSource
         public const int RequestIsFilteredOut = 1;
         public const int RequestFilterException = 2;
         public const int EnrichmentException = 3;
+        public const int FailedToReadEnvironmentVariable = 4;
     }
 }

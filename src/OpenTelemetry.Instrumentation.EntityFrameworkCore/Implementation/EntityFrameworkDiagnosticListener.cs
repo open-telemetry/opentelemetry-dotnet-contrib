@@ -4,6 +4,8 @@
 using System;
 using System.Data;
 using System.Diagnostics;
+using System.Reflection;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
@@ -22,12 +24,10 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     internal const string AttributeDbName = "db.name";
     internal const string AttributeDbStatement = "db.statement";
 
-    internal static readonly string ActivitySourceName = typeof(EntityFrameworkDiagnosticListener).Assembly.GetName().Name;
+    internal static readonly Assembly Assembly = typeof(EntityFrameworkDiagnosticListener).Assembly;
+    internal static readonly string ActivitySourceName = Assembly.GetName().Name;
     internal static readonly string ActivityName = ActivitySourceName + ".Execute";
-
-#pragma warning disable SA1202 // Elements should be ordered by access <- In this case, Version MUST come before SqlClientActivitySource otherwise null ref exception is thrown.
-    internal static readonly ActivitySource SqlClientActivitySource = new(ActivitySourceName, SignalVersionHelper.GetVersion<EntityFrameworkDiagnosticListener>());
-#pragma warning restore SA1202 // Elements should be ordered by access
+    internal static readonly ActivitySource SqlClientActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
 
     private readonly PropertyFetcher<object> commandFetcher = new("Command");
     private readonly PropertyFetcher<object> connectionFetcher = new("Connection");
@@ -50,8 +50,10 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
     public override bool SupportsNullActivity => true;
 
-    public override void OnCustom(string name, Activity? activity, object? payload)
+    public override void OnEventWritten(string name, object? payload)
     {
+        Activity? activity = Activity.Current;
+
         switch (name)
         {
             case EntityFrameworkCoreCommandCreated:

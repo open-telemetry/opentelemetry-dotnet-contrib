@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+* Following changes related to [Semantic Convention v1.25.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.25.0/docs/system/process-metrics.md)
+  * `process.cpu.time` metric attribute renamed from `state` to `process.cpu.state`,
+  * Metric descriptions fixed for `process.memory.usage` and `process.memory.virtual`,
+  * Metric `process.threads` renamed to `process.thread.count`
+    (its unit changed from `{threads}` to `{thread}`).
+  ([#1643](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1643))
+
+* Update `OpenTelemetry.Api` to `1.8.1`.
+  ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
+
 ## 0.5.0-beta.5
 
 Released 2024-Apr-05

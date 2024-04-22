@@ -83,11 +83,11 @@ public class ProcessMetricsTests
             {
                 Assert.NotNull(tag.Value);
 
-                if (tag.Key == "state" && tag.Value!.ToString() == "user")
+                if (tag.Key == "process.cpu.state" && tag.Value!.ToString() == "user")
                 {
                     userTimeCaptured = true;
                 }
-                else if (tag.Key == "state" && tag.Value!.ToString() == "system")
+                else if (tag.Key == "process.cpu.state" && tag.Value!.ToString() == "system")
                 {
                     systemTimeCaptured = true;
                 }
@@ -133,7 +133,7 @@ public class ProcessMetricsTests
 
         Task.WaitAll(tasks.ToArray());
 
-        Assert.True(exportedItemsA.Count == 5);
+        Assert.Equal(5, exportedItemsA.Count);
         var physicalMemoryMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.usage");
         Assert.NotNull(physicalMemoryMetricA);
         var virtualMemoryMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.virtual");
@@ -142,10 +142,10 @@ public class ProcessMetricsTests
         Assert.NotNull(cpuTimeMetricA);
         var processorCountMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.cpu.count");
         Assert.NotNull(processorCountMetricA);
-        var threadMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.threads");
+        var threadMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.thread.count");
         Assert.NotNull(threadMetricA);
 
-        Assert.True(exportedItemsB.Count == 5);
+        Assert.Equal(5, exportedItemsB.Count);
         var physicalMemoryMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.memory.usage");
         Assert.NotNull(physicalMemoryMetricB);
         var virtualMemoryMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.memory.virtual");
@@ -154,7 +154,7 @@ public class ProcessMetricsTests
         Assert.NotNull(cpuTimeMetricB);
         var processorCountMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.cpu.count");
         Assert.NotNull(processorCountMetricB);
-        var threadMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.threads");
+        var threadMetricB = exportedItemsB.FirstOrDefault(i => i.Name == "process.thread.count");
         Assert.NotNull(threadMetricB);
     }
 

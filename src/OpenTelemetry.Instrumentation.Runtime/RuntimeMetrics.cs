@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
+using OpenTelemetry.Internal;
 #if NET6_0_OR_GREATER
 using System.Threading;
 using JitInfo = System.Runtime.JitInfo;
@@ -17,8 +18,9 @@ namespace OpenTelemetry.Instrumentation.Runtime;
 /// </summary>
 internal sealed class RuntimeMetrics
 {
-    internal static readonly AssemblyName AssemblyName = typeof(RuntimeMetrics).Assembly.GetName();
-    internal static readonly Meter MeterInstance = new(AssemblyName.Name!, SignalVersionHelper.GetVersion<RuntimeMetrics>());
+    internal static readonly Assembly Assembly = typeof(RuntimeMetrics).Assembly;
+    internal static readonly AssemblyName AssemblyName = Assembly.GetName();
+    internal static readonly Meter MeterInstance = new(AssemblyName.Name!, Assembly.GetPackageVersion());
 
 #if NET6_0_OR_GREATER
     private const long NanosecondsPerTick = 100;

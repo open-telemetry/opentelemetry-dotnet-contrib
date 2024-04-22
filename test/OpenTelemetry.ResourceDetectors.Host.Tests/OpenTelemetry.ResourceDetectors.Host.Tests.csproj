@@ -11,4 +11,13 @@
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.ResourceDetectors.Host\OpenTelemetry.ResourceDetectors.Host.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Samples\etc_machineid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Samples\etc_var_dbus_machineid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

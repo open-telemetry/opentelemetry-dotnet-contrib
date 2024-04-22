@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -16,7 +17,7 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
 
     private readonly Func<Resource> getResource;
 
-    public OtlpProtobufMetricExporter(Func<Resource> getResource)
+    public OtlpProtobufMetricExporter(Func<Resource> getResource, ConnectionStringBuilder connectionStringBuilder, IReadOnlyDictionary<string, object> prepopulatedMetricDimensions)
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
@@ -25,24 +26,21 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
         }
 
         this.getResource = getResource;
-        this.otlpProtobufSerializer = new OtlpProtobufSerializer(MetricEtwDataTransport.Instance);
+
+        this.otlpProtobufSerializer = new OtlpProtobufSerializer(MetricEtwDataTransport.Instance, connectionStringBuilder, prepopulatedMetricDimensions);
     }
 
     public ExportResult Export(in Batch<Metric> batch)
     {
-        var result = ExportResult.Success;
-
         try
         {
-            this.otlpProtobufSerializer.SerializeAndSendMetrics(this.buffer, this.getResource(), batch);
+            return this.otlpProtobufSerializer.SerializeAndSendMetrics(this.buffer, this.getResource(), batch);
         }
         catch (Exception ex)
         {
             ExporterEventSource.Log.ExporterException("Failed to export metrics batch", ex);
-            result = ExportResult.Failure;
+            return ExportResult.Failure;
         }
-
-        return result;
     }
 
     public void Dispose()
