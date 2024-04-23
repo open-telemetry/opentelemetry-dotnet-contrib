@@ -255,13 +255,13 @@ On Linux provide an `Endpoint` in addition to the `Account` and `Namespace`.
 For example:
 `Endpoint=unix:{UDS Path};Account={MetricAccount};Namespace={MetricNamespace}`.
 
-Set `PrivatePreviewEnableOtlpProtobufEncoding=true` to change
-the underlying serialization format to binary protobuf following the schema
-defined in [OTLP
+Set `PrivatePreviewEnableOtlpProtobufEncoding=true` to opt-in to the
+experimental feature for changing the underlying serialization format to binary
+protobuf following the schema defined in [OTLP
 specification](https://github.com/open-telemetry/opentelemetry-proto/blob/v1.1.0/opentelemetry/proto/metrics/v1/metrics.proto).
 
 > [!NOTE]
- > `PrivatePreviewEnableOtlpProtobufEncoding` experimental feature is currently
+ > `PrivatePreviewEnableOtlpProtobufEncoding` is currently
  > only supported in Windows environment. Exporting
  > [Exemplar](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/sdk.md#exemplar)
  > and
