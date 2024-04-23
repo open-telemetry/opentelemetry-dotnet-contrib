@@ -1,7 +1,7 @@
 $SCRIPT_DIR = $PSScriptRoot
 $ROOT_DIR = "${SCRIPT_DIR}/../"
 
-# freeze the spec & generator tools versions to make SemanticAttributes generation reproducible
+# freeze the spec version to make SemanticAttributes generation reproducible
 $SPEC_VERSION = "1.25.0"
 $SCHEMA_URL = "https://opentelemetry.io/schemas/$SPEC_VERSION"
 $GENERATOR_VERSION = "latest"

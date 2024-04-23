@@ -4,6 +4,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Description>OpenTelemetry Semantic Conventions</Description>
     <PackageTags>$(PackageTags);semantic-conventions</PackageTags>
+    <MinVerTagPrefix>SemanticConventions-</MinVerTagPrefix>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
 </Project>

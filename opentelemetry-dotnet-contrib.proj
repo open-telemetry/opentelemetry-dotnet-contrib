@@ -4,9 +4,6 @@
     <SolutionProjects Include="**\*.csproj" />
     <TestProjects Include="test\**\*.csproj" />
     <PackProjects Include="src\**\*.csproj" />
-
-    <!-- Do not pack SemanticConventions project for now -->
-    <PackProjects Remove="src\OpenTelemetry.SemanticConventions\OpenTelemetry.SemanticConventions.csproj" />
   </ItemGroup>
 
   <Target Name="Build">

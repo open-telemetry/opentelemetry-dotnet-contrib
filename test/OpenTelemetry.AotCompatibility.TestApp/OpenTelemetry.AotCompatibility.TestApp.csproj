@@ -30,7 +30,6 @@
     <TrimmerRootAssembly Include="OpenTelemetry.ResourceDetectors.Process" />
     <TrimmerRootAssembly Include="OpenTelemetry.ResourceDetectors.ProcessRuntime" />
     <TrimmerRootAssembly Include="OpenTelemetry.Sampler.AWS" />
-    <TrimmerRootAssembly Include="OpenTelemetry.SemanticConventions" />
 
     <TrimmerRootAssembly Update="@(TrimmerRootAssembly)" Path="$(RepoRoot)\src\%(Identity)\%(Identity).csproj" />
     <ProjectReference Include="@(TrimmerRootAssembly->'%(Path)')" />
