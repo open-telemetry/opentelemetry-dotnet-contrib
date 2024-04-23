@@ -2,11 +2,15 @@
 
 ## Unreleased
 
+## 1.8.0
+
+Released 2024-Apr-22
+
 * Native AOT compatibility.
   ([#1670](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1670))
 
-* Update OpenTelemetry SDK version to `1.8.0`.
-  ([#1635](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1635))
+* Update OpenTelemetry SDK version to `1.8.1`.
+  ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
 
 ## 1.6.0
 
