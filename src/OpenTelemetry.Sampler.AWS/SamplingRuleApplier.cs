@@ -50,8 +50,8 @@ internal class SamplingRuleApplier
         Trace.Sampler fixedRateSampler,
         bool borrowing,
         Statistics statistics,
-        DateTime reservoirEndTime,
-        DateTime nextSnapshotTime)
+        DateTimeOffset reservoirEndTime,
+        DateTimeOffset nextSnapshotTime)
     {
         this.ClientId = clientId;
         this.Rule = rule;
@@ -81,9 +81,9 @@ internal class SamplingRuleApplier
 
     internal bool Borrowing { get; set; }
 
-    internal DateTime ReservoirEndTime { get; set; }
+    internal DateTimeOffset ReservoirEndTime { get; set; }
 
-    internal DateTime NextSnapshotTime { get; set; }
+    internal DateTimeOffset NextSnapshotTime { get; set; }
 
     // check if this rule applier matches the request
     public bool Matches(SamplingParameters samplingParameters, Resource resource)
@@ -179,7 +179,7 @@ internal class SamplingRuleApplier
     }
 
     // take the snapshot and reset the statistics.
-    public SamplingStatisticsDocument Snapshot(DateTime now)
+    public SamplingStatisticsDocument Snapshot(DateTimeOffset now)
     {
         double timestamp = this.Clock.ToDouble(now);
 
@@ -198,14 +198,14 @@ internal class SamplingRuleApplier
         return statiscticsDocument;
     }
 
-    public SamplingRuleApplier WithTarget(SamplingTargetDocument target, DateTime now)
+    public SamplingRuleApplier WithTarget(SamplingTargetDocument target, DateTimeOffset now)
     {
         Trace.Sampler newFixedRateSampler = target.FixedRate != null
             ? new ParentBasedSampler(new TraceIdRatioBasedSampler(target.FixedRate.Value))
             : this.FixedRateSampler;
 
         Trace.Sampler newReservoirSampler = new AlwaysOffSampler();
-        DateTime newReservoirEndTime = DateTime.MaxValue;
+        DateTimeOffset newReservoirEndTime = DateTimeOffset.MaxValue;
         if (target.ReservoirQuota != null && target.ReservoirQuotaTTL != null)
         {
             if (target.ReservoirQuota > 0)
@@ -220,7 +220,7 @@ internal class SamplingRuleApplier
             newReservoirEndTime = this.Clock.ToDateTime(target.ReservoirQuotaTTL.Value);
         }
 
-        DateTime newNextSnapshotTime = target.Interval != null
+        DateTimeOffset newNextSnapshotTime = target.Interval != null
             ? now.AddSeconds(target.Interval.Value)
             : now.Add(AWSXRayRemoteSampler.DefaultTargetInterval);
 
