@@ -171,6 +171,9 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
                 return;
             }
 
+            // remove sensitive information like user and password information
+            uri = UriHelper.ScrubUserInfo(uri);
+
             ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
             ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Client);
 
