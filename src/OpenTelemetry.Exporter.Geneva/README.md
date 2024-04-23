@@ -255,6 +255,17 @@ On Linux provide an `Endpoint` in addition to the `Account` and `Namespace`.
 For example:
 `Endpoint=unix:{UDS Path};Account={MetricAccount};Namespace={MetricNamespace}`.
 
+`PrivatePreviewEnableOtlpProtobufEncoding`: Set the key value to `true` to opt-in.
+
+`PrivatePreviewEnableOtlpProtobufEncoding` is a temporary key offered to change
+the underlying serialization format to OTLP binary protobuf following the schema
+defined in
+[specification](https://github.com/open-telemetry/opentelemetry-proto/blob/v1.1.0/opentelemetry/proto/metrics/v1/metrics.proto).
+
+> [!NOTE]
+ > Exporting [Exemplar](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/sdk.md#exemplar) and [ExponentialHistogram](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/data-model.md#exponentialhistogram) is not supported when enabling PrivatePreviewEnableOtlpProtobufEncoding.
+
+
 #### `MetricExportIntervalMilliseconds` (optional)
 
 Set the exporter's periodic time interval to export Metrics. The default value
