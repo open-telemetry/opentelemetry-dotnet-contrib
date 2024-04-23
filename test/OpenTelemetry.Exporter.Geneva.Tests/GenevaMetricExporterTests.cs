@@ -286,7 +286,7 @@ public class GenevaMetricExporterTests
     [InlineData(false, false)]
     [InlineData(true, true)]
     [InlineData(false, true)]
-    public void DisableMetricNameValidationTest(bool disableMetricNameValidation, bool enableOtlpProtobufexporter)
+    public void DisableMetricNameValidationTest(bool disableMetricNameValidation, bool enableOtlpProtobufEncoding)
     {
         var instrumentNameRegexProperty = GenevaMetricExporter.GetOpenTelemetryInstrumentNameRegexProperty();
         var initialInstrumentNameRegexValue = instrumentNameRegexProperty.GetValue(null);
@@ -303,12 +303,18 @@ public class GenevaMetricExporterTests
                 {
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
-                        options.ConnectionString = $"Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace;DisableMetricNameValidation={disableMetricNameValidation};PrivatePreviewOtlpProtobufMetricExporter={enableOtlpProtobufexporter}";
+                        options.ConnectionString = $"Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace;DisableMetricNameValidation={disableMetricNameValidation}";
+
+                        if (enableOtlpProtobufEncoding)
+                        {
+                            options.ConnectionString += $";PrivatePreviewEnableOtlpProtobufEncoding={enableOtlpProtobufEncoding}";
+                        }
                     }
                     else
                     {
+                        // TODO: extend test for enableOtlpProtobufEncoding to linux when the support is added.
                         var path = GenerateTempFilePath();
-                        options.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace;DisableMetricNameValidation={disableMetricNameValidation};PrivatePreviewOtlpProtobufMetricExporter={enableOtlpProtobufexporter}";
+                        options.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace;DisableMetricNameValidation={disableMetricNameValidation}";
 
                         var endpoint = new UnixDomainSocketEndPoint(path);
                         server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
