@@ -156,7 +156,7 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
 
             if (response.LastRuleModification > 0)
             {
-                DateTime lastRuleModificationTime = this.Clock.ToDateTime(response.LastRuleModification);
+                var lastRuleModificationTime = this.Clock.ToDateTime(response.LastRuleModification);
 
                 if (lastRuleModificationTime > this.RulesCache.GetUpdatedAt())
                 {
@@ -167,7 +167,7 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
         }
 
         // schedule next target poll
-        DateTime nextTargetFetchTime = this.RulesCache.NextTargetFetchTime();
+        var nextTargetFetchTime = this.RulesCache.NextTargetFetchTime();
         TimeSpan nextTargetFetchInterval = nextTargetFetchTime.Subtract(this.Clock.Now());
         if (nextTargetFetchInterval < TimeSpan.Zero)
         {
