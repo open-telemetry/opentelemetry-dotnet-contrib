@@ -9,37 +9,39 @@ using System.Linq;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 
-namespace OpenTelemetry.ResourceDetectors.AWS.Http;
+namespace OpenTelemetry.ResourceDetectors;
 
 internal class ServerCertificateValidationProvider
 {
     private readonly X509Certificate2Collection trustedCertificates;
+    private readonly IServerCertificateValidationEventSource log;
 
-    private ServerCertificateValidationProvider(X509Certificate2Collection trustedCertificates)
+    private ServerCertificateValidationProvider(X509Certificate2Collection trustedCertificates, IServerCertificateValidationEventSource log)
     {
         this.trustedCertificates = trustedCertificates;
         this.ValidationCallback = (_, cert, chain, errors) =>
             this.ValidateCertificate(cert != null ? new X509Certificate2(cert) : null, chain, errors);
+        this.log = log;
     }
 
     public RemoteCertificateValidationCallback ValidationCallback { get; }
 
-    public static ServerCertificateValidationProvider? FromCertificateFile(string certificateFile)
+    public static ServerCertificateValidationProvider? FromCertificateFile(string certificateFile, IServerCertificateValidationEventSource log)
     {
         if (!File.Exists(certificateFile))
         {
-            AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "Certificate File does not exist");
+            log.CertificateFileDoesNotExist(certificateFile);
             return null;
         }
 
         var trustedCertificates = new X509Certificate2Collection();
         if (!LoadCertificateToTrustedCollection(trustedCertificates, certificateFile))
         {
-            AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "Failed to load certificate in trusted collection");
+            log.FailedToLoadCertificateInTrustedStorage(certificateFile);
             return null;
         }
 
-        return new ServerCertificateValidationProvider(trustedCertificates);
+        return new ServerCertificateValidationProvider(trustedCertificates, log);
     }
 
     private static bool LoadCertificateToTrustedCollection(X509Certificate2Collection collection, string certFileName)
@@ -84,24 +86,24 @@ internal class ServerCertificateValidationProvider
         {
             if ((errors | SslPolicyErrors.RemoteCertificateNotAvailable) == errors)
             {
-                AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "SslPolicyError RemoteCertificateNotAvailable occurred");
+                this.log.FailedToValidateCertificate("SslPolicyError RemoteCertificateNotAvailable occurred");
             }
 
             if ((errors | SslPolicyErrors.RemoteCertificateNameMismatch) == errors)
             {
-                AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "SslPolicyError RemoteCertificateNameMismatch occurred");
+                this.log.FailedToValidateCertificate("SslPolicyError RemoteCertificateNameMismatch occurred");
             }
         }
 
         if (chain == null)
         {
-            AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "Certificate chain is null.");
+            this.log.FailedToValidateCertificate("Certificate chain is null.");
             return false;
         }
 
         if (cert == null)
         {
-            AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), "Certificate is null.");
+            this.log.FailedToValidateCertificate("Certificate is null.");
             return false;
         }
 
@@ -123,7 +125,7 @@ internal class ServerCertificateValidationProvider
                 }
             }
 
-            AWSResourcesEventSource.Log.FailedToValidateCertificate(nameof(ServerCertificateValidationProvider), chainErrors);
+            this.log.FailedToValidateCertificate(chainErrors);
         }
 
         // check if at least one certificate in the chain is in our trust list
@@ -142,12 +144,11 @@ internal class ServerCertificateValidationProvider
                 trustCertificates += " " + trustCertificate.Subject;
             }
 
-            AWSResourcesEventSource.Log.FailedToValidateCertificate(
-                nameof(ServerCertificateValidationProvider),
-                $"Server Certificates Chain cannot be trusted. The chain doesn't match with the Trusted Certificates provided. Server Certificates:{serverCertificates}. Trusted Certificates:{trustCertificates}");
+            this.log.FailedToValidateCertificate($"Server Certificates Chain cannot be trusted. The chain doesn't match with the Trusted Certificates provided. Server Certificates:{serverCertificates}. Trusted Certificates:{trustCertificates}");
         }
 
         return isSslPolicyPassed && isValidChain && isTrusted;
     }
 }
+
 #endif
