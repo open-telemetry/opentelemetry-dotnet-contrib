@@ -1,6 +1,6 @@
 # Semantic Conventions for OpenTelemetry .NET
 
-This project contains the generated code for the [Semantic Convention](https://github.com/open-telemetry/semantic-convention)
+This project contains the generated code for the [Semantic Conventions](https://github.com/open-telemetry/semantic-conventions)
 defined by the OpenTelemetry specification.
 
 ## Installation
