@@ -258,9 +258,9 @@ For example:
 `PrivatePreviewEnableOtlpProtobufEncoding`: Set the key value to `true` to opt-in.
 
 `PrivatePreviewEnableOtlpProtobufEncoding` is a temporary key offered to change
-the underlying serialization format to OTLP binary protobuf following the schema
-defined in
-[specification](https://github.com/open-telemetry/opentelemetry-proto/blob/v1.1.0/opentelemetry/proto/metrics/v1/metrics.proto).
+the underlying serialization format to binary protobuf following the schema
+defined in [OTLP
+specification](https://github.com/open-telemetry/opentelemetry-proto/blob/v1.1.0/opentelemetry/proto/metrics/v1/metrics.proto).
 
 > [!NOTE]
  > Exporting [Exemplar](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/sdk.md#exemplar) and [ExponentialHistogram](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/data-model.md#exponentialhistogram) is not supported when enabling PrivatePreviewEnableOtlpProtobufEncoding.
