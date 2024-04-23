@@ -265,8 +265,7 @@ specification](https://github.com/open-telemetry/opentelemetry-proto/blob/v1.1.0
  > [Exemplar](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/sdk.md#exemplar)
  > and
  > [ExponentialHistogram](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/data-model.md#exponentialhistogram)
- > is not supported when enabling PrivatePreviewEnableOtlpProtobufEncoding.
-
+ > is not supported when opting in `PrivatePreviewEnableOtlpProtobufEncoding`.
 
 #### `MetricExportIntervalMilliseconds` (optional)
 
