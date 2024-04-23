@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(TargetFrameworksForLibraries)</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <Description>OpenTelemetry Semantic Conventions</Description>
     <PackageTags>$(PackageTags);semantic-conventions</PackageTags>
   </PropertyGroup>
