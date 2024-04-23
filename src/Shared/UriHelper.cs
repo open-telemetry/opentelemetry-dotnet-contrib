@@ -1,3 +1,6 @@
+// Copyright The OpenTelemetry Authors
+// SPDX-License-Identifier: Apache-2.0
+
 using System;
 
 namespace OpenTelemetry.Trace;
@@ -13,6 +16,7 @@ internal static class UriHelper
         {
             uriBuilder.UserName = RedactedText;
         }
+
         if (!string.IsNullOrEmpty(uriBuilder.Password))
         {
             uriBuilder.Password = RedactedText;
