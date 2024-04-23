@@ -260,12 +260,12 @@ the underlying serialization format to binary protobuf following the schema
 defined in [OTLP
 specification](https://github.com/open-telemetry/opentelemetry-proto/blob/v1.1.0/opentelemetry/proto/metrics/v1/metrics.proto).
 
-> [!NOTE]
- > Exporting
+> [!NOTE] `PrivatePreviewEnableOtlpProtobufEncoding` opt-in setting is currently
+ > only supported on Windows environment. Exporting
  > [Exemplar](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/sdk.md#exemplar)
  > and
  > [ExponentialHistogram](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/data-model.md#exponentialhistogram)
- > is not supported when opting in `PrivatePreviewEnableOtlpProtobufEncoding`.
+ > is not supported.
 
 #### `MetricExportIntervalMilliseconds` (optional)
 
