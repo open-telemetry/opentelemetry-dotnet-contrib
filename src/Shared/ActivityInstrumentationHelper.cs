@@ -6,7 +6,6 @@
 #pragma warning disable IDE0005 // Using directive is unnecessary.
 using System;
 using System.Diagnostics;
-using System.Linq.Expressions;
 #pragma warning restore IDE0005 // Using directive is unnecessary.
 
 namespace OpenTelemetry.Instrumentation;
@@ -18,17 +17,13 @@ internal static class ActivityInstrumentationHelper
 
     private static Action<Activity, ActivitySource> CreateActivitySourceSetter()
     {
-        ParameterExpression instance = Expression.Parameter(typeof(Activity), "instance");
-        ParameterExpression propertyValue = Expression.Parameter(typeof(ActivitySource), "propertyValue");
-        var body = Expression.Assign(Expression.Property(instance, "Source"), propertyValue);
-        return Expression.Lambda<Action<Activity, ActivitySource>>(body, instance, propertyValue).Compile();
+        return (Action<Activity, ActivitySource>)typeof(Activity).GetProperty("Source")
+            .SetMethod.CreateDelegate(typeof(Action<Activity, ActivitySource>));
     }
 
     private static Action<Activity, ActivityKind> CreateActivityKindSetter()
     {
-        ParameterExpression instance = Expression.Parameter(typeof(Activity), "instance");
-        ParameterExpression propertyValue = Expression.Parameter(typeof(ActivityKind), "propertyValue");
-        var body = Expression.Assign(Expression.Property(instance, "Kind"), propertyValue);
-        return Expression.Lambda<Action<Activity, ActivityKind>>(body, instance, propertyValue).Compile();
+        return (Action<Activity, ActivityKind>)typeof(Activity).GetProperty("Kind")
+            .SetMethod.CreateDelegate(typeof(Action<Activity, ActivityKind>));
     }
 }
