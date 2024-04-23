@@ -2,12 +2,15 @@
 
 ## Unreleased
 
+* Native AOT compatibility.
+  ([#1666](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1666))
+
 * Fix a bug in `GenevaMetricExporter` where the `MetricEtwDataTransport` singleton
   is disposed.
   ([#1537](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1537))
 
-* Update OpenTelemetry SDK version to `1.8.0`.
-  ([#1635](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1635))
+* Update OpenTelemetry SDK version to `1.8.1`.
+  ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
 
 ## 1.7.0
 

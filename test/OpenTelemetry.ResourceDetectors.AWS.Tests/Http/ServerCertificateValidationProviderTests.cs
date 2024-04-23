@@ -4,7 +4,6 @@
 #if !NETFRAMEWORK
 
 using System.Security.Cryptography.X509Certificates;
-using OpenTelemetry.ResourceDetectors.AWS.Http;
 using Xunit;
 
 namespace OpenTelemetry.ResourceDetectors.AWS.Tests.Http;
@@ -20,7 +19,7 @@ public class ServerCertificateValidationProviderTests
         certificateUploader.Create();
 
         var serverCertificateValidationProvider =
-            ServerCertificateValidationProvider.FromCertificateFile(certificateUploader.FilePath);
+            ServerCertificateValidationProvider.FromCertificateFile(certificateUploader.FilePath, NoopServerCertificateValidationEventSource.Instance);
 
         Assert.NotNull(serverCertificateValidationProvider);
 
@@ -38,7 +37,7 @@ public class ServerCertificateValidationProviderTests
     public void TestInValidCertificate()
     {
         var serverCertificateValidationProvider =
-            ServerCertificateValidationProvider.FromCertificateFile(InvalidCertificateName);
+            ServerCertificateValidationProvider.FromCertificateFile(InvalidCertificateName, NoopServerCertificateValidationEventSource.Instance);
 
         Assert.Null(serverCertificateValidationProvider);
     }
@@ -50,7 +49,7 @@ public class ServerCertificateValidationProviderTests
         certificateUploader.Create();
 
         var serverCertificateValidationProvider =
-            ServerCertificateValidationProvider.FromCertificateFile(certificateUploader.FilePath);
+            ServerCertificateValidationProvider.FromCertificateFile(certificateUploader.FilePath, NoopServerCertificateValidationEventSource.Instance);
 
         Assert.NotNull(serverCertificateValidationProvider);
         Assert.False(serverCertificateValidationProvider.ValidationCallback(this, null, new X509Chain(), default));
@@ -63,7 +62,7 @@ public class ServerCertificateValidationProviderTests
         certificateUploader.Create();
 
         var serverCertificateValidationProvider =
-            ServerCertificateValidationProvider.FromCertificateFile(certificateUploader.FilePath);
+            ServerCertificateValidationProvider.FromCertificateFile(certificateUploader.FilePath, NoopServerCertificateValidationEventSource.Instance);
 
         Assert.NotNull(serverCertificateValidationProvider);
         Assert.False(serverCertificateValidationProvider.ValidationCallback(this, new X509Certificate2(certificateUploader.FilePath), null, default));
