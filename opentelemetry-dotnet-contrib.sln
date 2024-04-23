@@ -274,6 +274,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{1FCC8E
 		src\Shared\DiagnosticSourceSubscriber.cs = src\Shared\DiagnosticSourceSubscriber.cs
 		src\Shared\ExceptionExtensions.cs = src\Shared\ExceptionExtensions.cs
 		src\Shared\Guard.cs = src\Shared\Guard.cs
+		src\Shared\IServerCertificateValidationEventSource.cs = src\Shared\IServerCertificateValidationEventSource.cs
 		src\Shared\IsExternalInit.cs = src\Shared\IsExternalInit.cs
 		src\Shared\ListenerHandler.cs = src\Shared\ListenerHandler.cs
 		src\Shared\MultiTypePropertyFetcher.cs = src\Shared\MultiTypePropertyFetcher.cs
@@ -283,6 +284,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{1FCC8E
 		src\Shared\RedactionHelper.cs = src\Shared\RedactionHelper.cs
 		src\Shared\ResourceSemanticConventions.cs = src\Shared\ResourceSemanticConventions.cs
 		src\Shared\SemanticConventions.cs = src\Shared\SemanticConventions.cs
+		src\Shared\ServerCertificateValidationHandler.cs = src\Shared\ServerCertificateValidationHandler.cs
+		src\Shared\ServerCertificateValidationProvider.cs = src\Shared\ServerCertificateValidationProvider.cs
 		src\Shared\SpanAttributeConstants.cs = src\Shared\SpanAttributeConstants.cs
 		src\Shared\SpanHelper.cs = src\Shared\SpanHelper.cs
 	EndProjectSection
