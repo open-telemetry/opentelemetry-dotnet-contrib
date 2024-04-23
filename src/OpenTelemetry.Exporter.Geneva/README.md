@@ -261,12 +261,14 @@ defined in [OTLP
 specification](https://github.com/open-telemetry/opentelemetry-proto/blob/v1.1.0/opentelemetry/proto/metrics/v1/metrics.proto).
 
 > [!NOTE]
- > `PrivatePreviewEnableOtlpProtobufEncoding` opt-in setting is currently
- > only supported on Windows environment. Exporting
+ > `PrivatePreviewEnableOtlpProtobufEncoding` experimental feature is currently
+ > only supported in Windows environment. Exporting
  > [Exemplar](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/sdk.md#exemplar)
  > and
  > [ExponentialHistogram](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/data-model.md#exponentialhistogram)
- > is not supported.
+ > are not supported for now.
+ > ([#1685](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1685),
+ > [#1378](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1378)).
 
 #### `MetricExportIntervalMilliseconds` (optional)
 
