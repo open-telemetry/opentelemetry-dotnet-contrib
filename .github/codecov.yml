@@ -88,7 +88,7 @@ flags:
     paths:
       - src/OpenTelemetry.Instrumentation.StackExchangeRedis
 
- unittests-Instrumentation.Wcf:
+  unittests-Instrumentation.Wcf:
     carryforward: true
     paths:
       - src/OpenTelemetry.Instrumentation.Wcf
