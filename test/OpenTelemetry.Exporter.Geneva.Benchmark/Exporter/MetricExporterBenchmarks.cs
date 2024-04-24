@@ -581,7 +581,7 @@ public class MetricExporterBenchmarks
             this.counterMetricPointWith3Dimensions.Tags,
             this.counterMetricDataWith3Dimensions,
 #if EXPOSE_EXPERIMENTAL_FEATURES
-            Array.Empty<Exemplar>(),
+            default,
 #endif
             out _,
             out _);
@@ -597,7 +597,7 @@ public class MetricExporterBenchmarks
             this.counterMetricPointWith4Dimensions.Tags,
             this.counterMetricDataWith4Dimensions,
 #if EXPOSE_EXPERIMENTAL_FEATURES
-            Array.Empty<Exemplar>(),
+            default,
 #endif
             out _,
             out _);
@@ -628,7 +628,7 @@ public class MetricExporterBenchmarks
             this.histogramMinWith3Dimensions,
             this.histogramMaxWith3Dimensions,
 #if EXPOSE_EXPERIMENTAL_FEATURES
-            Array.Empty<Exemplar>(),
+            default,
 #endif
             out _,
             out _);
@@ -647,7 +647,7 @@ public class MetricExporterBenchmarks
             this.histogramMinWith4Dimensions,
             this.histogramMaxWith4Dimensions,
 #if EXPOSE_EXPERIMENTAL_FEATURES
-            Array.Empty<Exemplar>(),
+            default,
 #endif
             out _,
             out _);
