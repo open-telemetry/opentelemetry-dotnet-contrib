@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -813,5 +814,41 @@ public class ElasticsearchClientTests
 
         var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         Assert.NotNull(searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement));
+    }
+
+    [Fact]
+    public async Task ShouldRemoveSensitiveInformation()
+    {
+        var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
+        var exportedItems = new List<Activity>();
+
+        var sensitiveConnectionString = new Uri($"http://sensitiveUsername:sensitivePassword@localhost:9200");
+
+        var client = new ElasticClient(new ConnectionSettings(
+            new SingleNodeConnectionPool(sensitiveConnectionString), new InMemoryConnection()).DefaultIndex("customer"));
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddElasticsearchClientInstrumentation(o => o.SetDbStatementForRequest = false)
+                   .SetResourceBuilder(expectedResource)
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            var searchResponse = await client.SearchAsync<Customer>(s => s.Query(q => q.Bool(b => b.Must(m => m.Term(f => f.Id, "123")))));
+            Assert.NotNull(searchResponse);
+            Assert.True(searchResponse.ApiCall.Success);
+            Assert.NotEmpty(searchResponse.ApiCall.AuditTrail);
+
+            var failed = searchResponse.ApiCall.AuditTrail.Where(a => a.Event == AuditEvent.BadResponse);
+            Assert.Empty(failed);
+        }
+
+        Assert.Single(exportedItems);
+        var searchActivity = exportedItems[0];
+
+        string dbUrl = (string)searchActivity.GetTagValue(SemanticConventions.AttributeUrlFull);
+
+        Assert.DoesNotContain("sensitive", dbUrl);
+        Assert.Contains("REDACTED:REDACTED", dbUrl);
     }
 }
