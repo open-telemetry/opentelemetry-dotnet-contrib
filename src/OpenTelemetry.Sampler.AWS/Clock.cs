@@ -13,11 +13,11 @@ internal abstract class Clock
         return SystemClock.GetInstance();
     }
 
-    public abstract DateTime Now();
+    public abstract DateTimeOffset Now();
 
     public abstract long NowInMilliSeconds();
 
-    public abstract DateTime ToDateTime(double seconds);
+    public abstract DateTimeOffset ToDateTime(double seconds);
 
-    public abstract double ToDouble(DateTime dateTime);
+    public abstract double ToDouble(DateTimeOffset dateTime);
 }
