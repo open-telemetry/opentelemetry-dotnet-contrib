@@ -7,7 +7,7 @@
 
 ## 1.8.0-beta.1
 
-Released 2023-Apr-23
+Released 2024-Apr-23
 
 * Fix a bug in `GenevaMetricExporter` where the `MetricEtwDataTransport` singleton
   is disposed.
