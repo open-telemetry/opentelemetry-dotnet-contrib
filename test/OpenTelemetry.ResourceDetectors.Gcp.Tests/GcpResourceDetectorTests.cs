@@ -27,11 +27,12 @@ public class GcpResourceDetectorTests
         var platform = new Platform(details);
         var attrs = GcpResourceDetector.ExtractGkeResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
         Assert.NotNull(attrs);
-        Assert.Equal(7, attrs.Count);
+        Assert.Equal(8, attrs.Count);
         Assert.Equal(ResourceAttributeConstants.GcpCloudProviderValue, attrs[ResourceSemanticConventions.AttributeCloudProvider]);
         Assert.Equal("projectId", attrs[ResourceSemanticConventions.AttributeCloudAccount]);
         Assert.Equal(ResourceAttributeConstants.GcpGkePlatformValue, attrs[ResourceSemanticConventions.AttributeCloudPlatform]);
         Assert.Equal("us-central1-a", attrs[ResourceSemanticConventions.AttributeCloudZone]);
+        Assert.Equal("instanceId", attrs[ResourceSemanticConventions.AttributeHostId]);
         Assert.Equal("clusterName", attrs[ResourceSemanticConventions.AttributeK8sCluster]);
         Assert.Equal("namespaceId", attrs[ResourceSemanticConventions.AttributeK8sNamespace]);
         Assert.Equal("hostName", attrs[ResourceSemanticConventions.AttributeK8sPod]);

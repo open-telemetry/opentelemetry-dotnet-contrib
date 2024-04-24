@@ -43,6 +43,7 @@ public sealed class GcpResourceDetector : IResourceDetector
             new(ResourceSemanticConventions.AttributeCloudAccount, platform.ProjectId),
             new(ResourceSemanticConventions.AttributeCloudPlatform, ResourceAttributeConstants.GcpGkePlatformValue),
             new(ResourceSemanticConventions.AttributeCloudZone, platform.GkeDetails.Zone),
+            new(ResourceSemanticConventions.AttributeHostId, platform.GkeDetails.InstanceId),
             new(ResourceSemanticConventions.AttributeK8sCluster, platform.GkeDetails.ClusterName),
             new(ResourceSemanticConventions.AttributeK8sNamespace, platform.GkeDetails.NamespaceId),
             new(ResourceSemanticConventions.AttributeK8sPod, platform.GkeDetails.HostName),
