@@ -7,50 +7,49 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class MessageAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// Compressed size of the message in bytes.
     /// </summary>
-    public static class MessageAttributes
+    public const string AttributeMessageCompressedSize = "message.compressed_size";
+
+    /// <summary>
+    /// MUST be calculated as two different counters starting from <c>1</c> one for sent messages and one for received message.
+    /// </summary>
+    /// <remarks>
+    /// This way we guarantee that the values will be consistent between different implementations.
+    /// </remarks>
+    public const string AttributeMessageId = "message.id";
+
+    /// <summary>
+    /// Whether this is a received or sent message.
+    /// </summary>
+    public const string AttributeMessageType = "message.type";
+
+    /// <summary>
+    /// Uncompressed size of the message in bytes.
+    /// </summary>
+    public const string AttributeMessageUncompressedSize = "message.uncompressed_size";
+
+    /// <summary>
+    /// Whether this is a received or sent message.
+    /// </summary>
+    public static class MessageTypeValues
     {
         /// <summary>
-        /// Compressed size of the message in bytes.
+        /// sent.
         /// </summary>
-        public const string AttributeMessageCompressedSize = "message.compressed_size";
+        public const string Sent = "SENT";
 
         /// <summary>
-        /// MUST be calculated as two different counters starting from <c>1</c> one for sent messages and one for received message.
+        /// received.
         /// </summary>
-        /// <remarks>
-        /// This way we guarantee that the values will be consistent between different implementations.
-        /// </remarks>
-        public const string AttributeMessageId = "message.id";
-
-        /// <summary>
-        /// Whether this is a received or sent message.
-        /// </summary>
-        public const string AttributeMessageType = "message.type";
-
-        /// <summary>
-        /// Uncompressed size of the message in bytes.
-        /// </summary>
-        public const string AttributeMessageUncompressedSize = "message.uncompressed_size";
-
-        /// <summary>
-        /// Whether this is a received or sent message.
-        /// </summary>
-        public static class MessageTypeValues
-        {
-            /// <summary>
-            /// sent.
-            /// </summary>
-            public const string Sent = "SENT";
-
-            /// <summary>
-            /// received.
-            /// </summary>
-            public const string Received = "RECEIVED";
-        }
+        public const string Received = "RECEIVED";
     }
 }

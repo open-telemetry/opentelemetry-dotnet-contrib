@@ -7,114 +7,113 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class TelemetryAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// The name of the auto instrumentation agent or distribution, if used.
     /// </summary>
-    public static class TelemetryAttributes
-    {
-        /// <summary>
-        /// The name of the auto instrumentation agent or distribution, if used.
-        /// </summary>
-        /// <remarks>
-        /// Official auto instrumentation agents and distributions SHOULD set the <c>telemetry.distro.name</c> attribute to
+    /// <remarks>
+    /// Official auto instrumentation agents and distributions SHOULD set the <c>telemetry.distro.name</c> attribute to
         /// a string starting with <c>opentelemetry-</c>, e.g. <c>opentelemetry-java-instrumentation</c>.
-        /// </remarks>
-        public const string AttributeTelemetryDistroName = "telemetry.distro.name";
+    /// </remarks>
+    public const string AttributeTelemetryDistroName = "telemetry.distro.name";
 
-        /// <summary>
-        /// The version string of the auto instrumentation agent or distribution, if used.
-        /// </summary>
-        public const string AttributeTelemetryDistroVersion = "telemetry.distro.version";
+    /// <summary>
+    /// The version string of the auto instrumentation agent or distribution, if used.
+    /// </summary>
+    public const string AttributeTelemetryDistroVersion = "telemetry.distro.version";
 
-        /// <summary>
-        /// The language of the telemetry SDK.
-        /// </summary>
-        public const string AttributeTelemetrySdkLanguage = "telemetry.sdk.language";
+    /// <summary>
+    /// The language of the telemetry SDK.
+    /// </summary>
+    public const string AttributeTelemetrySdkLanguage = "telemetry.sdk.language";
 
-        /// <summary>
-        /// The name of the telemetry SDK as defined above.
-        /// </summary>
-        /// <remarks>
-        /// The OpenTelemetry SDK MUST set the <c>telemetry.sdk.name</c> attribute to <c>opentelemetry</c>.
+    /// <summary>
+    /// The name of the telemetry SDK as defined above.
+    /// </summary>
+    /// <remarks>
+    /// The OpenTelemetry SDK MUST set the <c>telemetry.sdk.name</c> attribute to <c>opentelemetry</c>.
         /// If another SDK, like a fork or a vendor-provided implementation, is used, this SDK MUST set the
         /// <c>telemetry.sdk.name</c> attribute to the fully-qualified class or module name of this SDK&amp;#39;s main entry point
         /// or another suitable identifier depending on the language.
         /// The identifier <c>opentelemetry</c> is reserved and MUST NOT be used in this case.
         /// All custom identifiers SHOULD be stable across different versions of an implementation.
-        /// </remarks>
-        public const string AttributeTelemetrySdkName = "telemetry.sdk.name";
+    /// </remarks>
+    public const string AttributeTelemetrySdkName = "telemetry.sdk.name";
+
+    /// <summary>
+    /// The version string of the telemetry SDK.
+    /// </summary>
+    public const string AttributeTelemetrySdkVersion = "telemetry.sdk.version";
+
+    /// <summary>
+    /// The language of the telemetry SDK.
+    /// </summary>
+    public static class TelemetrySdkLanguageValues
+    {
+        /// <summary>
+        /// cpp.
+        /// </summary>
+        public const string Cpp = "cpp";
 
         /// <summary>
-        /// The version string of the telemetry SDK.
+        /// dotnet.
         /// </summary>
-        public const string AttributeTelemetrySdkVersion = "telemetry.sdk.version";
+        public const string Dotnet = "dotnet";
 
         /// <summary>
-        /// The language of the telemetry SDK.
+        /// erlang.
         /// </summary>
-        public static class TelemetrySdkLanguageValues
-        {
-            /// <summary>
-            /// cpp.
-            /// </summary>
-            public const string Cpp = "cpp";
+        public const string Erlang = "erlang";
 
-            /// <summary>
-            /// dotnet.
-            /// </summary>
-            public const string Dotnet = "dotnet";
+        /// <summary>
+        /// go.
+        /// </summary>
+        public const string Go = "go";
 
-            /// <summary>
-            /// erlang.
-            /// </summary>
-            public const string Erlang = "erlang";
+        /// <summary>
+        /// java.
+        /// </summary>
+        public const string Java = "java";
 
-            /// <summary>
-            /// go.
-            /// </summary>
-            public const string Go = "go";
+        /// <summary>
+        /// nodejs.
+        /// </summary>
+        public const string Nodejs = "nodejs";
 
-            /// <summary>
-            /// java.
-            /// </summary>
-            public const string Java = "java";
+        /// <summary>
+        /// php.
+        /// </summary>
+        public const string Php = "php";
 
-            /// <summary>
-            /// nodejs.
-            /// </summary>
-            public const string Nodejs = "nodejs";
+        /// <summary>
+        /// python.
+        /// </summary>
+        public const string Python = "python";
 
-            /// <summary>
-            /// php.
-            /// </summary>
-            public const string Php = "php";
+        /// <summary>
+        /// ruby.
+        /// </summary>
+        public const string Ruby = "ruby";
 
-            /// <summary>
-            /// python.
-            /// </summary>
-            public const string Python = "python";
+        /// <summary>
+        /// rust.
+        /// </summary>
+        public const string Rust = "rust";
 
-            /// <summary>
-            /// ruby.
-            /// </summary>
-            public const string Ruby = "ruby";
+        /// <summary>
+        /// swift.
+        /// </summary>
+        public const string Swift = "swift";
 
-            /// <summary>
-            /// rust.
-            /// </summary>
-            public const string Rust = "rust";
-
-            /// <summary>
-            /// swift.
-            /// </summary>
-            public const string Swift = "swift";
-
-            /// <summary>
-            /// webjs.
-            /// </summary>
-            public const string Webjs = "webjs";
-        }
+        /// <summary>
+        /// webjs.
+        /// </summary>
+        public const string Webjs = "webjs";
     }
 }

@@ -7,59 +7,58 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class OtelAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// None.
     /// </summary>
-    public static class OtelAttributes
+    [Obsolete("use the `otel.scope.name` attribute")]
+    public const string AttributeOtelLibraryName = "otel.library.name";
+
+    /// <summary>
+    /// None.
+    /// </summary>
+    [Obsolete("use the `otel.scope.version` attribute")]
+    public const string AttributeOtelLibraryVersion = "otel.library.version";
+
+    /// <summary>
+    /// The name of the instrumentation scope - (<c>InstrumentationScope.Name</c> in OTLP).
+    /// </summary>
+    public const string AttributeOtelScopeName = "otel.scope.name";
+
+    /// <summary>
+    /// The version of the instrumentation scope - (<c>InstrumentationScope.Version</c> in OTLP).
+    /// </summary>
+    public const string AttributeOtelScopeVersion = "otel.scope.version";
+
+    /// <summary>
+    /// Name of the code, either &quot;OK&quot; or &quot;ERROR&quot;. MUST NOT be set if the status code is UNSET.
+    /// </summary>
+    public const string AttributeOtelStatusCode = "otel.status_code";
+
+    /// <summary>
+    /// Description of the Status if it has a value, otherwise not set.
+    /// </summary>
+    public const string AttributeOtelStatusDescription = "otel.status_description";
+
+    /// <summary>
+    /// Name of the code, either &quot;OK&quot; or &quot;ERROR&quot;. MUST NOT be set if the status code is UNSET.
+    /// </summary>
+    public static class OtelStatusCodeValues
     {
         /// <summary>
-        /// None.
+        /// The operation has been validated by an Application developer or Operator to have completed successfully.
         /// </summary>
-        [Obsolete("use the `otel.scope.name` attribute")]
-        public const string AttributeOtelLibraryName = "otel.library.name";
+        public const string Ok = "OK";
 
         /// <summary>
-        /// None.
+        /// The operation contains an error.
         /// </summary>
-        [Obsolete("use the `otel.scope.version` attribute")]
-        public const string AttributeOtelLibraryVersion = "otel.library.version";
-
-        /// <summary>
-        /// The name of the instrumentation scope - (<c>InstrumentationScope.Name</c> in OTLP).
-        /// </summary>
-        public const string AttributeOtelScopeName = "otel.scope.name";
-
-        /// <summary>
-        /// The version of the instrumentation scope - (<c>InstrumentationScope.Version</c> in OTLP).
-        /// </summary>
-        public const string AttributeOtelScopeVersion = "otel.scope.version";
-
-        /// <summary>
-        /// Name of the code, either &quot;OK&quot; or &quot;ERROR&quot;. MUST NOT be set if the status code is UNSET.
-        /// </summary>
-        public const string AttributeOtelStatusCode = "otel.status_code";
-
-        /// <summary>
-        /// Description of the Status if it has a value, otherwise not set.
-        /// </summary>
-        public const string AttributeOtelStatusDescription = "otel.status_description";
-
-        /// <summary>
-        /// Name of the code, either &quot;OK&quot; or &quot;ERROR&quot;. MUST NOT be set if the status code is UNSET.
-        /// </summary>
-        public static class OtelStatusCodeValues
-        {
-            /// <summary>
-            /// The operation has been validated by an Application developer or Operator to have completed successfully.
-            /// </summary>
-            public const string Ok = "OK";
-
-            /// <summary>
-            /// The operation contains an error.
-            /// </summary>
-            public const string Error = "ERROR";
-        }
+        public const string Error = "ERROR";
     }
 }

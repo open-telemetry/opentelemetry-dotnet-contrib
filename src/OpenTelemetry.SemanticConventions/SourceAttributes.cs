@@ -7,24 +7,23 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class SourceAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// Source address - domain name if available without reverse DNS lookup; otherwise, IP address or Unix domain socket name.
     /// </summary>
-    public static class SourceAttributes
-    {
-        /// <summary>
-        /// Source address - domain name if available without reverse DNS lookup; otherwise, IP address or Unix domain socket name.
-        /// </summary>
-        /// <remarks>
-        /// When observed from the destination side, and when communicating through an intermediary, <c>source.address</c> SHOULD represent the source address behind any intermediaries, for example proxies, if it&amp;#39;s available.
-        /// </remarks>
-        public const string AttributeSourceAddress = "source.address";
+    /// <remarks>
+    /// When observed from the destination side, and when communicating through an intermediary, <c>source.address</c> SHOULD represent the source address behind any intermediaries, for example proxies, if it&amp;#39;s available.
+    /// </remarks>
+    public const string AttributeSourceAddress = "source.address";
 
-        /// <summary>
-        /// Source port number.
-        /// </summary>
-        public const string AttributeSourcePort = "source.port";
-    }
+    /// <summary>
+    /// Source port number.
+    /// </summary>
+    public const string AttributeSourcePort = "source.port";
 }

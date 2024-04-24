@@ -7,141 +7,140 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class NetAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// Deprecated, use <c>server.address</c>.
     /// </summary>
-    public static class NetAttributes
+    [Obsolete("Replaced by `server.address`")]
+    public const string AttributeNetHostName = "net.host.name";
+
+    /// <summary>
+    /// Deprecated, use <c>server.port</c>.
+    /// </summary>
+    [Obsolete("Replaced by `server.port`")]
+    public const string AttributeNetHostPort = "net.host.port";
+
+    /// <summary>
+    /// Deprecated, use <c>server.address</c> on client spans and <c>client.address</c> on server spans.
+    /// </summary>
+    [Obsolete("Replaced by `server.address` on client spans and `client.address` on server spans")]
+    public const string AttributeNetPeerName = "net.peer.name";
+
+    /// <summary>
+    /// Deprecated, use <c>server.port</c> on client spans and <c>client.port</c> on server spans.
+    /// </summary>
+    [Obsolete("Replaced by `server.port` on client spans and `client.port` on server spans")]
+    public const string AttributeNetPeerPort = "net.peer.port";
+
+    /// <summary>
+    /// Deprecated, use <c>network.protocol.name</c>.
+    /// </summary>
+    [Obsolete("Replaced by `network.protocol.name`")]
+    public const string AttributeNetProtocolName = "net.protocol.name";
+
+    /// <summary>
+    /// Deprecated, use <c>network.protocol.version</c>.
+    /// </summary>
+    [Obsolete("Replaced by `network.protocol.version`")]
+    public const string AttributeNetProtocolVersion = "net.protocol.version";
+
+    /// <summary>
+    /// Deprecated, use <c>network.transport</c> and <c>network.type</c>.
+    /// </summary>
+    [Obsolete("Split to `network.transport` and `network.type`")]
+    public const string AttributeNetSockFamily = "net.sock.family";
+
+    /// <summary>
+    /// Deprecated, use <c>network.local.address</c>.
+    /// </summary>
+    [Obsolete("Replaced by `network.local.address`")]
+    public const string AttributeNetSockHostAddr = "net.sock.host.addr";
+
+    /// <summary>
+    /// Deprecated, use <c>network.local.port</c>.
+    /// </summary>
+    [Obsolete("Replaced by `network.local.port`")]
+    public const string AttributeNetSockHostPort = "net.sock.host.port";
+
+    /// <summary>
+    /// Deprecated, use <c>network.peer.address</c>.
+    /// </summary>
+    [Obsolete("Replaced by `network.peer.address`")]
+    public const string AttributeNetSockPeerAddr = "net.sock.peer.addr";
+
+    /// <summary>
+    /// Deprecated, no replacement at this time.
+    /// </summary>
+    [Obsolete("Removed")]
+    public const string AttributeNetSockPeerName = "net.sock.peer.name";
+
+    /// <summary>
+    /// Deprecated, use <c>network.peer.port</c>.
+    /// </summary>
+    [Obsolete("Replaced by `network.peer.port`")]
+    public const string AttributeNetSockPeerPort = "net.sock.peer.port";
+
+    /// <summary>
+    /// Deprecated, use <c>network.transport</c>.
+    /// </summary>
+    [Obsolete("Replaced by `network.transport`")]
+    public const string AttributeNetTransport = "net.transport";
+
+    /// <summary>
+    /// Deprecated, use <c>network.transport</c> and <c>network.type</c>.
+    /// </summary>
+    public static class NetSockFamilyValues
     {
         /// <summary>
-        /// Deprecated, use <c>server.address</c>.
+        /// IPv4 address.
         /// </summary>
-        [Obsolete("Replaced by `server.address`")]
-        public const string AttributeNetHostName = "net.host.name";
+        public const string Inet = "inet";
 
         /// <summary>
-        /// Deprecated, use <c>server.port</c>.
+        /// IPv6 address.
         /// </summary>
-        [Obsolete("Replaced by `server.port`")]
-        public const string AttributeNetHostPort = "net.host.port";
+        public const string Inet6 = "inet6";
 
         /// <summary>
-        /// Deprecated, use <c>server.address</c> on client spans and <c>client.address</c> on server spans.
+        /// Unix domain socket path.
         /// </summary>
-        [Obsolete("Replaced by `server.address` on client spans and `client.address` on server spans")]
-        public const string AttributeNetPeerName = "net.peer.name";
+        public const string Unix = "unix";
+    }
+
+    /// <summary>
+    /// Deprecated, use <c>network.transport</c>.
+    /// </summary>
+    public static class NetTransportValues
+    {
+        /// <summary>
+        /// ip_tcp.
+        /// </summary>
+        public const string IpTcp = "ip_tcp";
 
         /// <summary>
-        /// Deprecated, use <c>server.port</c> on client spans and <c>client.port</c> on server spans.
+        /// ip_udp.
         /// </summary>
-        [Obsolete("Replaced by `server.port` on client spans and `client.port` on server spans")]
-        public const string AttributeNetPeerPort = "net.peer.port";
+        public const string IpUdp = "ip_udp";
 
         /// <summary>
-        /// Deprecated, use <c>network.protocol.name</c>.
+        /// Named or anonymous pipe.
         /// </summary>
-        [Obsolete("Replaced by `network.protocol.name`")]
-        public const string AttributeNetProtocolName = "net.protocol.name";
+        public const string Pipe = "pipe";
 
         /// <summary>
-        /// Deprecated, use <c>network.protocol.version</c>.
+        /// In-process communication.
         /// </summary>
-        [Obsolete("Replaced by `network.protocol.version`")]
-        public const string AttributeNetProtocolVersion = "net.protocol.version";
+        public const string Inproc = "inproc";
 
         /// <summary>
-        /// Deprecated, use <c>network.transport</c> and <c>network.type</c>.
+        /// Something else (non IP-based).
         /// </summary>
-        [Obsolete("Split to `network.transport` and `network.type`")]
-        public const string AttributeNetSockFamily = "net.sock.family";
-
-        /// <summary>
-        /// Deprecated, use <c>network.local.address</c>.
-        /// </summary>
-        [Obsolete("Replaced by `network.local.address`")]
-        public const string AttributeNetSockHostAddr = "net.sock.host.addr";
-
-        /// <summary>
-        /// Deprecated, use <c>network.local.port</c>.
-        /// </summary>
-        [Obsolete("Replaced by `network.local.port`")]
-        public const string AttributeNetSockHostPort = "net.sock.host.port";
-
-        /// <summary>
-        /// Deprecated, use <c>network.peer.address</c>.
-        /// </summary>
-        [Obsolete("Replaced by `network.peer.address`")]
-        public const string AttributeNetSockPeerAddr = "net.sock.peer.addr";
-
-        /// <summary>
-        /// Deprecated, no replacement at this time.
-        /// </summary>
-        [Obsolete("Removed")]
-        public const string AttributeNetSockPeerName = "net.sock.peer.name";
-
-        /// <summary>
-        /// Deprecated, use <c>network.peer.port</c>.
-        /// </summary>
-        [Obsolete("Replaced by `network.peer.port`")]
-        public const string AttributeNetSockPeerPort = "net.sock.peer.port";
-
-        /// <summary>
-        /// Deprecated, use <c>network.transport</c>.
-        /// </summary>
-        [Obsolete("Replaced by `network.transport`")]
-        public const string AttributeNetTransport = "net.transport";
-
-        /// <summary>
-        /// Deprecated, use <c>network.transport</c> and <c>network.type</c>.
-        /// </summary>
-        public static class NetSockFamilyValues
-        {
-            /// <summary>
-            /// IPv4 address.
-            /// </summary>
-            public const string Inet = "inet";
-
-            /// <summary>
-            /// IPv6 address.
-            /// </summary>
-            public const string Inet6 = "inet6";
-
-            /// <summary>
-            /// Unix domain socket path.
-            /// </summary>
-            public const string Unix = "unix";
-        }
-
-        /// <summary>
-        /// Deprecated, use <c>network.transport</c>.
-        /// </summary>
-        public static class NetTransportValues
-        {
-            /// <summary>
-            /// ip_tcp.
-            /// </summary>
-            public const string IpTcp = "ip_tcp";
-
-            /// <summary>
-            /// ip_udp.
-            /// </summary>
-            public const string IpUdp = "ip_udp";
-
-            /// <summary>
-            /// Named or anonymous pipe.
-            /// </summary>
-            public const string Pipe = "pipe";
-
-            /// <summary>
-            /// In-process communication.
-            /// </summary>
-            public const string Inproc = "inproc";
-
-            /// <summary>
-            /// Something else (non IP-based).
-            /// </summary>
-            public const string Other = "other";
-        }
+        public const string Other = "other";
     }
 }

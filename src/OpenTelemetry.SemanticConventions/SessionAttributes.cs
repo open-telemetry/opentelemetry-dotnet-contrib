@@ -7,21 +7,20 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class SessionAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// A unique id to identify a session.
     /// </summary>
-    public static class SessionAttributes
-    {
-        /// <summary>
-        /// A unique id to identify a session.
-        /// </summary>
-        public const string AttributeSessionId = "session.id";
+    public const string AttributeSessionId = "session.id";
 
-        /// <summary>
-        /// The previous <c>session.id</c> for this user, when known.
-        /// </summary>
-        public const string AttributeSessionPreviousId = "session.previous_id";
-    }
+    /// <summary>
+    /// The previous <c>session.id</c> for this user, when known.
+    /// </summary>
+    public const string AttributeSessionPreviousId = "session.previous_id";
 }

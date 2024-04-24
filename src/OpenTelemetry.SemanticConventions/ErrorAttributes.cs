@@ -7,18 +7,18 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class ErrorAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// Describes a class of error the operation ended with.
     /// </summary>
-    public static class ErrorAttributes
-    {
-        /// <summary>
-        /// Describes a class of error the operation ended with.
-        /// </summary>
-        /// <remarks>
-        /// The <c>error.type</c> SHOULD be predictable and SHOULD have low cardinality.
+    /// <remarks>
+    /// The <c>error.type</c> SHOULD be predictable and SHOULD have low cardinality.
         /// Instrumentations SHOULD document the list of errors they report.The cardinality of <c>error.type</c> within one instrumentation library SHOULD be low.
         /// Telemetry consumers that aggregate data from multiple instrumentation libraries and applications
         /// should be prepared for <c>error.type</c> to have high cardinality at query time when no
@@ -27,18 +27,17 @@ namespace OpenTelemetry.SemanticConventions
         /// <li>Use a domain-specific attribute</li>
         /// <li>Set <c>error.type</c> to capture all errors, regardless of whether they are defined within the domain-specific set or not</li>
         /// </ul>.
-        /// </remarks>
-        public const string AttributeErrorType = "error.type";
+    /// </remarks>
+    public const string AttributeErrorType = "error.type";
 
+    /// <summary>
+    /// Describes a class of error the operation ended with.
+    /// </summary>
+    public static class ErrorTypeValues
+    {
         /// <summary>
-        /// Describes a class of error the operation ended with.
+        /// A fallback error value to be used when the instrumentation doesn't define a custom value.
         /// </summary>
-        public static class ErrorTypeValues
-        {
-            /// <summary>
-            /// A fallback error value to be used when the instrumentation doesn't define a custom value.
-            /// </summary>
-            public const string Other = "_OTHER";
-        }
+        public const string Other = "_OTHER";
     }
 }

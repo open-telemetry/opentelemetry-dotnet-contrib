@@ -7,26 +7,25 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class WebengineAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// Additional description of the web engine (e.g. detailed version and edition information).
     /// </summary>
-    public static class WebengineAttributes
-    {
-        /// <summary>
-        /// Additional description of the web engine (e.g. detailed version and edition information).
-        /// </summary>
-        public const string AttributeWebengineDescription = "webengine.description";
+    public const string AttributeWebengineDescription = "webengine.description";
 
-        /// <summary>
-        /// The name of the web engine.
-        /// </summary>
-        public const string AttributeWebengineName = "webengine.name";
+    /// <summary>
+    /// The name of the web engine.
+    /// </summary>
+    public const string AttributeWebengineName = "webengine.name";
 
-        /// <summary>
-        /// The version of the web engine.
-        /// </summary>
-        public const string AttributeWebengineVersion = "webengine.version";
-    }
+    /// <summary>
+    /// The version of the web engine.
+    /// </summary>
+    public const string AttributeWebengineVersion = "webengine.version";
 }

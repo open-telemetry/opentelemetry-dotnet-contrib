@@ -7,18 +7,18 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class ExceptionAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// SHOULD be set to true if the exception event is recorded at a point where it is known that the exception is escaping the scope of the span.
     /// </summary>
-    public static class ExceptionAttributes
-    {
-        /// <summary>
-        /// SHOULD be set to true if the exception event is recorded at a point where it is known that the exception is escaping the scope of the span.
-        /// </summary>
-        /// <remarks>
-        /// An exception is considered to have escaped (or left) the scope of a span,
+    /// <remarks>
+    /// An exception is considered to have escaped (or left) the scope of a span,
         /// if that span is ended while the exception is still logically &amp;#34;in flight&amp;#34;.
         /// This may be actually &amp;#34;in flight&amp;#34; in some languages (e.g. if the exception
         /// is passed to a Context manager&amp;#39;s <c>__exit__</c> method in Python) but will
@@ -30,22 +30,21 @@ namespace OpenTelemetry.SemanticConventions
         /// even if the <c>exception.escaped</c> attribute was not set or set to false,
         /// since the event might have been recorded at a time where it was not
         /// clear whether the exception will escape.
-        /// </remarks>
-        public const string AttributeExceptionEscaped = "exception.escaped";
+    /// </remarks>
+    public const string AttributeExceptionEscaped = "exception.escaped";
 
-        /// <summary>
-        /// The exception message.
-        /// </summary>
-        public const string AttributeExceptionMessage = "exception.message";
+    /// <summary>
+    /// The exception message.
+    /// </summary>
+    public const string AttributeExceptionMessage = "exception.message";
 
-        /// <summary>
-        /// A stacktrace as a string in the natural representation for the language runtime. The representation is to be determined and documented by each language SIG.
-        /// </summary>
-        public const string AttributeExceptionStacktrace = "exception.stacktrace";
+    /// <summary>
+    /// A stacktrace as a string in the natural representation for the language runtime. The representation is to be determined and documented by each language SIG.
+    /// </summary>
+    public const string AttributeExceptionStacktrace = "exception.stacktrace";
 
-        /// <summary>
-        /// The type of the exception (its fully-qualified class name, if applicable). The dynamic type of the exception should be preferred over the static type in languages that support it.
-        /// </summary>
-        public const string AttributeExceptionType = "exception.type";
-    }
+    /// <summary>
+    /// The type of the exception (its fully-qualified class name, if applicable). The dynamic type of the exception should be preferred over the static type in languages that support it.
+    /// </summary>
+    public const string AttributeExceptionType = "exception.type";
 }

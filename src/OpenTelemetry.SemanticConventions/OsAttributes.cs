@@ -7,97 +7,96 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class OsAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// Unique identifier for a particular build or compilation of the operating system.
     /// </summary>
-    public static class OsAttributes
+    public const string AttributeOsBuildId = "os.build_id";
+
+    /// <summary>
+    /// Human readable (not intended to be parsed) OS version information, like e.g. reported by <c>ver</c> or <c>lsb_release -a</c> commands.
+    /// </summary>
+    public const string AttributeOsDescription = "os.description";
+
+    /// <summary>
+    /// Human readable operating system name.
+    /// </summary>
+    public const string AttributeOsName = "os.name";
+
+    /// <summary>
+    /// The operating system type.
+    /// </summary>
+    public const string AttributeOsType = "os.type";
+
+    /// <summary>
+    /// The version string of the operating system as defined in <a href="/docs/resource/README.md#version-attributes">Version Attributes</a>.
+    /// </summary>
+    public const string AttributeOsVersion = "os.version";
+
+    /// <summary>
+    /// The operating system type.
+    /// </summary>
+    public static class OsTypeValues
     {
         /// <summary>
-        /// Unique identifier for a particular build or compilation of the operating system.
+        /// Microsoft Windows.
         /// </summary>
-        public const string AttributeOsBuildId = "os.build_id";
+        public const string Windows = "windows";
 
         /// <summary>
-        /// Human readable (not intended to be parsed) OS version information, like e.g. reported by <c>ver</c> or <c>lsb_release -a</c> commands.
+        /// Linux.
         /// </summary>
-        public const string AttributeOsDescription = "os.description";
+        public const string Linux = "linux";
 
         /// <summary>
-        /// Human readable operating system name.
+        /// Apple Darwin.
         /// </summary>
-        public const string AttributeOsName = "os.name";
+        public const string Darwin = "darwin";
 
         /// <summary>
-        /// The operating system type.
+        /// FreeBSD.
         /// </summary>
-        public const string AttributeOsType = "os.type";
+        public const string Freebsd = "freebsd";
 
         /// <summary>
-        /// The version string of the operating system as defined in <a href="/docs/resource/README.md#version-attributes">Version Attributes</a>.
+        /// NetBSD.
         /// </summary>
-        public const string AttributeOsVersion = "os.version";
+        public const string Netbsd = "netbsd";
 
         /// <summary>
-        /// The operating system type.
+        /// OpenBSD.
         /// </summary>
-        public static class OsTypeValues
-        {
-            /// <summary>
-            /// Microsoft Windows.
-            /// </summary>
-            public const string Windows = "windows";
+        public const string Openbsd = "openbsd";
 
-            /// <summary>
-            /// Linux.
-            /// </summary>
-            public const string Linux = "linux";
+        /// <summary>
+        /// DragonFly BSD.
+        /// </summary>
+        public const string Dragonflybsd = "dragonflybsd";
 
-            /// <summary>
-            /// Apple Darwin.
-            /// </summary>
-            public const string Darwin = "darwin";
+        /// <summary>
+        /// HP-UX (Hewlett Packard Unix).
+        /// </summary>
+        public const string Hpux = "hpux";
 
-            /// <summary>
-            /// FreeBSD.
-            /// </summary>
-            public const string Freebsd = "freebsd";
+        /// <summary>
+        /// AIX (Advanced Interactive eXecutive).
+        /// </summary>
+        public const string Aix = "aix";
 
-            /// <summary>
-            /// NetBSD.
-            /// </summary>
-            public const string Netbsd = "netbsd";
+        /// <summary>
+        /// SunOS, Oracle Solaris.
+        /// </summary>
+        public const string Solaris = "solaris";
 
-            /// <summary>
-            /// OpenBSD.
-            /// </summary>
-            public const string Openbsd = "openbsd";
-
-            /// <summary>
-            /// DragonFly BSD.
-            /// </summary>
-            public const string Dragonflybsd = "dragonflybsd";
-
-            /// <summary>
-            /// HP-UX (Hewlett Packard Unix).
-            /// </summary>
-            public const string Hpux = "hpux";
-
-            /// <summary>
-            /// AIX (Advanced Interactive eXecutive).
-            /// </summary>
-            public const string Aix = "aix";
-
-            /// <summary>
-            /// SunOS, Oracle Solaris.
-            /// </summary>
-            public const string Solaris = "solaris";
-
-            /// <summary>
-            /// IBM z/OS.
-            /// </summary>
-            public const string ZOs = "z_os";
-        }
+        /// <summary>
+        /// IBM z/OS.
+        /// </summary>
+        public const string ZOs = "z_os";
     }
 }

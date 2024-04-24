@@ -7,25 +7,24 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class DeploymentAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// Name of the <a href="https://wikipedia.org/wiki/Deployment_environment">deployment environment</a> (aka deployment tier).
     /// </summary>
-    public static class DeploymentAttributes
-    {
-        /// <summary>
-        /// Name of the <a href="https://wikipedia.org/wiki/Deployment_environment">deployment environment</a> (aka deployment tier).
-        /// </summary>
-        /// <remarks>
-        /// <c>deployment.environment</c> does not affect the uniqueness constraints defined through
+    /// <remarks>
+    /// <c>deployment.environment</c> does not affect the uniqueness constraints defined through
         /// the <c>service.namespace</c>, <c>service.name</c> and <c>service.instance.id</c> resource attributes.
         /// This implies that resources carrying the following attribute combinations MUST be
         /// considered to be identifying the same service:<ul>
         /// <li><c>service.name=frontend</c>, <c>deployment.environment=production</c></li>
         /// <li><c>service.name=frontend</c>, <c>deployment.environment=staging</c></li>
         /// </ul>.
-        /// </remarks>
-        public const string AttributeDeploymentEnvironment = "deployment.environment";
-    }
+    /// </remarks>
+    public const string AttributeDeploymentEnvironment = "deployment.environment";
 }

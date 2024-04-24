@@ -7,24 +7,23 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class DestinationAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// Destination address - domain name if available without reverse DNS lookup; otherwise, IP address or Unix domain socket name.
     /// </summary>
-    public static class DestinationAttributes
-    {
-        /// <summary>
-        /// Destination address - domain name if available without reverse DNS lookup; otherwise, IP address or Unix domain socket name.
-        /// </summary>
-        /// <remarks>
-        /// When observed from the source side, and when communicating through an intermediary, <c>destination.address</c> SHOULD represent the destination address behind any intermediaries, for example proxies, if it&amp;#39;s available.
-        /// </remarks>
-        public const string AttributeDestinationAddress = "destination.address";
+    /// <remarks>
+    /// When observed from the source side, and when communicating through an intermediary, <c>destination.address</c> SHOULD represent the destination address behind any intermediaries, for example proxies, if it&amp;#39;s available.
+    /// </remarks>
+    public const string AttributeDestinationAddress = "destination.address";
 
-        /// <summary>
-        /// Destination port number.
-        /// </summary>
-        public const string AttributeDestinationPort = "destination.port";
-    }
+    /// <summary>
+    /// Destination port number.
+    /// </summary>
+    public const string AttributeDestinationPort = "destination.port";
 }

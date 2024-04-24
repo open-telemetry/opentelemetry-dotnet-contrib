@@ -7,27 +7,26 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class ClientAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// Client address - domain name if available without reverse DNS lookup; otherwise, IP address or Unix domain socket name.
     /// </summary>
-    public static class ClientAttributes
-    {
-        /// <summary>
-        /// Client address - domain name if available without reverse DNS lookup; otherwise, IP address or Unix domain socket name.
-        /// </summary>
-        /// <remarks>
-        /// When observed from the server side, and when communicating through an intermediary, <c>client.address</c> SHOULD represent the client address behind any intermediaries,  for example proxies, if it&amp;#39;s available.
-        /// </remarks>
-        public const string AttributeClientAddress = "client.address";
+    /// <remarks>
+    /// When observed from the server side, and when communicating through an intermediary, <c>client.address</c> SHOULD represent the client address behind any intermediaries,  for example proxies, if it&amp;#39;s available.
+    /// </remarks>
+    public const string AttributeClientAddress = "client.address";
 
-        /// <summary>
-        /// Client port number.
-        /// </summary>
-        /// <remarks>
-        /// When observed from the server side, and when communicating through an intermediary, <c>client.port</c> SHOULD represent the client port behind any intermediaries,  for example proxies, if it&amp;#39;s available.
-        /// </remarks>
-        public const string AttributeClientPort = "client.port";
-    }
+    /// <summary>
+    /// Client port number.
+    /// </summary>
+    /// <remarks>
+    /// When observed from the server side, and when communicating through an intermediary, <c>client.port</c> SHOULD represent the client port behind any intermediaries,  for example proxies, if it&amp;#39;s available.
+    /// </remarks>
+    public const string AttributeClientPort = "client.port";
 }

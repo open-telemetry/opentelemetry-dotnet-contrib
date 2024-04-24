@@ -7,32 +7,31 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class DiskAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// The disk IO operation direction.
     /// </summary>
-    public static class DiskAttributes
+    public const string AttributeDiskIoDirection = "disk.io.direction";
+
+    /// <summary>
+    /// The disk IO operation direction.
+    /// </summary>
+    public static class DiskIoDirectionValues
     {
         /// <summary>
-        /// The disk IO operation direction.
+        /// read.
         /// </summary>
-        public const string AttributeDiskIoDirection = "disk.io.direction";
+        public const string Read = "read";
 
         /// <summary>
-        /// The disk IO operation direction.
+        /// write.
         /// </summary>
-        public static class DiskIoDirectionValues
-        {
-            /// <summary>
-            /// read.
-            /// </summary>
-            public const string Read = "read";
-
-            /// <summary>
-            /// write.
-            /// </summary>
-            public const string Write = "write";
-        }
+        public const string Write = "write";
     }
 }

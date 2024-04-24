@@ -7,16 +7,15 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class PoolAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// The name of the connection pool; unique within the instrumented application. In case the connection pool implementation doesn't provide a name, instrumentation should use a combination of <c>server.address</c> and <c>server.port</c> attributes formatted as <c>server.address:server.port</c>.
     /// </summary>
-    public static class PoolAttributes
-    {
-        /// <summary>
-        /// The name of the connection pool; unique within the instrumented application. In case the connection pool implementation doesn't provide a name, instrumentation should use a combination of <c>server.address</c> and <c>server.port</c> attributes formatted as <c>server.address:server.port</c>.
-        /// </summary>
-        public const string AttributePoolName = "pool.name";
-    }
+    public const string AttributePoolName = "pool.name";
 }

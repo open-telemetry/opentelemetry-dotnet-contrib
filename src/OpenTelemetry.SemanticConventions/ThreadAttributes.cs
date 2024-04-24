@@ -7,21 +7,20 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class ThreadAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// Current &quot;managed&quot; thread ID (as opposed to OS thread ID).
     /// </summary>
-    public static class ThreadAttributes
-    {
-        /// <summary>
-        /// Current &quot;managed&quot; thread ID (as opposed to OS thread ID).
-        /// </summary>
-        public const string AttributeThreadId = "thread.id";
+    public const string AttributeThreadId = "thread.id";
 
-        /// <summary>
-        /// Current thread name.
-        /// </summary>
-        public const string AttributeThreadName = "thread.name";
-    }
+    /// <summary>
+    /// Current thread name.
+    /// </summary>
+    public const string AttributeThreadName = "thread.name";
 }

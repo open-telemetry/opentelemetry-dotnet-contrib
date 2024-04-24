@@ -7,32 +7,31 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class UserAgentAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// Name of the user-agent extracted from original. Usually refers to the browser's name.
     /// </summary>
-    public static class UserAgentAttributes
-    {
-        /// <summary>
-        /// Name of the user-agent extracted from original. Usually refers to the browser's name.
-        /// </summary>
-        /// <remarks>
-        /// <a href="https://www.whatsmyua.info">Example</a> of extracting browser&amp;#39;s name from original string. In the case of using a user-agent for non-browser products, such as microservices with multiple names/versions inside the <c>user_agent.original</c>, the most significant name SHOULD be selected. In such a scenario it should align with <c>user_agent.version</c>.
-        /// </remarks>
-        public const string AttributeUserAgentName = "user_agent.name";
+    /// <remarks>
+    /// <a href="https://www.whatsmyua.info">Example</a> of extracting browser&amp;#39;s name from original string. In the case of using a user-agent for non-browser products, such as microservices with multiple names/versions inside the <c>user_agent.original</c>, the most significant name SHOULD be selected. In such a scenario it should align with <c>user_agent.version</c>.
+    /// </remarks>
+    public const string AttributeUserAgentName = "user_agent.name";
 
-        /// <summary>
-        /// Value of the <a href="https://www.rfc-editor.org/rfc/rfc9110.html#field.user-agent">HTTP User-Agent</a> header sent by the client.
-        /// </summary>
-        public const string AttributeUserAgentOriginal = "user_agent.original";
+    /// <summary>
+    /// Value of the <a href="https://www.rfc-editor.org/rfc/rfc9110.html#field.user-agent">HTTP User-Agent</a> header sent by the client.
+    /// </summary>
+    public const string AttributeUserAgentOriginal = "user_agent.original";
 
-        /// <summary>
-        /// Version of the user-agent extracted from original. Usually refers to the browser's version.
-        /// </summary>
-        /// <remarks>
-        /// <a href="https://www.whatsmyua.info">Example</a> of extracting browser&amp;#39;s version from original string. In the case of using a user-agent for non-browser products, such as microservices with multiple names/versions inside the <c>user_agent.original</c>, the most significant version SHOULD be selected. In such a scenario it should align with <c>user_agent.name</c>.
-        /// </remarks>
-        public const string AttributeUserAgentVersion = "user_agent.version";
-    }
+    /// <summary>
+    /// Version of the user-agent extracted from original. Usually refers to the browser's version.
+    /// </summary>
+    /// <remarks>
+    /// <a href="https://www.whatsmyua.info">Example</a> of extracting browser&amp;#39;s version from original string. In the case of using a user-agent for non-browser products, such as microservices with multiple names/versions inside the <c>user_agent.original</c>, the most significant version SHOULD be selected. In such a scenario it should align with <c>user_agent.name</c>.
+    /// </remarks>
+    public const string AttributeUserAgentVersion = "user_agent.version";
 }

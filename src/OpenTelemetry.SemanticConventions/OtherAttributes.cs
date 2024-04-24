@@ -7,32 +7,31 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class OtherAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// The state of a connection in the pool.
     /// </summary>
-    public static class OtherAttributes
+    public const string AttributeState = "state";
+
+    /// <summary>
+    /// The state of a connection in the pool.
+    /// </summary>
+    public static class StateValues
     {
         /// <summary>
-        /// The state of a connection in the pool.
+        /// idle.
         /// </summary>
-        public const string AttributeState = "state";
+        public const string Idle = "idle";
 
         /// <summary>
-        /// The state of a connection in the pool.
+        /// used.
         /// </summary>
-        public static class StateValues
-        {
-            /// <summary>
-            /// idle.
-            /// </summary>
-            public const string Idle = "idle";
-
-            /// <summary>
-            /// used.
-            /// </summary>
-            public const string Used = "used";
-        }
+        public const string Used = "used";
     }
 }

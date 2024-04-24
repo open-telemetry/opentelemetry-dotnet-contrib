@@ -7,35 +7,34 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class OpentracingAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// Parent-child Reference type.
     /// </summary>
-    public static class OpentracingAttributes
+    /// <remarks>
+    /// The causal relationship between a child Span and a parent Span.
+    /// </remarks>
+    public const string AttributeOpentracingRefType = "opentracing.ref_type";
+
+    /// <summary>
+    /// Parent-child Reference type.
+    /// </summary>
+    public static class OpentracingRefTypeValues
     {
         /// <summary>
-        /// Parent-child Reference type.
+        /// The parent Span depends on the child Span in some capacity.
         /// </summary>
-        /// <remarks>
-        /// The causal relationship between a child Span and a parent Span.
-        /// </remarks>
-        public const string AttributeOpentracingRefType = "opentracing.ref_type";
+        public const string ChildOf = "child_of";
 
         /// <summary>
-        /// Parent-child Reference type.
+        /// The parent Span doesn't depend in any way on the result of the child Span.
         /// </summary>
-        public static class OpentracingRefTypeValues
-        {
-            /// <summary>
-            /// The parent Span depends on the child Span in some capacity.
-            /// </summary>
-            public const string ChildOf = "child_of";
-
-            /// <summary>
-            /// The parent Span doesn't depend in any way on the result of the child Span.
-            /// </summary>
-            public const string FollowsFrom = "follows_from";
-        }
+        public const string FollowsFrom = "follows_from";
     }
 }

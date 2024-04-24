@@ -7,26 +7,25 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class HerokuAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// Unique identifier for the application.
     /// </summary>
-    public static class HerokuAttributes
-    {
-        /// <summary>
-        /// Unique identifier for the application.
-        /// </summary>
-        public const string AttributeHerokuAppId = "heroku.app.id";
+    public const string AttributeHerokuAppId = "heroku.app.id";
 
-        /// <summary>
-        /// Commit hash for the current release.
-        /// </summary>
-        public const string AttributeHerokuReleaseCommit = "heroku.release.commit";
+    /// <summary>
+    /// Commit hash for the current release.
+    /// </summary>
+    public const string AttributeHerokuReleaseCommit = "heroku.release.commit";
 
-        /// <summary>
-        /// Time and date the release was created.
-        /// </summary>
-        public const string AttributeHerokuReleaseCreationTimestamp = "heroku.release.creation_timestamp";
-    }
+    /// <summary>
+    /// Time and date the release was created.
+    /// </summary>
+    public const string AttributeHerokuReleaseCreationTimestamp = "heroku.release.creation_timestamp";
 }

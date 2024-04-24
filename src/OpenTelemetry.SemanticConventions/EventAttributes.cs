@@ -7,19 +7,18 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class EventAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// Identifies the class / type of event.
     /// </summary>
-    public static class EventAttributes
-    {
-        /// <summary>
-        /// Identifies the class / type of event.
-        /// </summary>
-        /// <remarks>
-        /// Event names are subject to the same rules as <a href="https://github.com/open-telemetry/opentelemetry-specification/tree/v1.31.0/specification/common/attribute-naming.md">attribute names</a>. Notably, event names are namespaced to avoid collisions and provide a clean separation of semantics for events in separate domains like browser, mobile, and kubernetes.
-        /// </remarks>
-        public const string AttributeEventName = "event.name";
-    }
+    /// <remarks>
+    /// Event names are subject to the same rules as <a href="https://github.com/open-telemetry/opentelemetry-specification/tree/v1.31.0/specification/common/attribute-naming.md">attribute names</a>. Notably, event names are namespaced to avoid collisions and provide a clean separation of semantics for events in separate domains like browser, mobile, and kubernetes.
+    /// </remarks>
+    public const string AttributeEventName = "event.name";
 }

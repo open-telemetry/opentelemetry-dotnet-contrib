@@ -7,50 +7,49 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class GraphqlAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// The GraphQL document being executed.
     /// </summary>
-    public static class GraphqlAttributes
+    /// <remarks>
+    /// The value may be sanitized to exclude sensitive information.
+    /// </remarks>
+    public const string AttributeGraphqlDocument = "graphql.document";
+
+    /// <summary>
+    /// The name of the operation being executed.
+    /// </summary>
+    public const string AttributeGraphqlOperationName = "graphql.operation.name";
+
+    /// <summary>
+    /// The type of the operation being executed.
+    /// </summary>
+    public const string AttributeGraphqlOperationType = "graphql.operation.type";
+
+    /// <summary>
+    /// The type of the operation being executed.
+    /// </summary>
+    public static class GraphqlOperationTypeValues
     {
         /// <summary>
-        /// The GraphQL document being executed.
+        /// GraphQL query.
         /// </summary>
-        /// <remarks>
-        /// The value may be sanitized to exclude sensitive information.
-        /// </remarks>
-        public const string AttributeGraphqlDocument = "graphql.document";
+        public const string Query = "query";
 
         /// <summary>
-        /// The name of the operation being executed.
+        /// GraphQL mutation.
         /// </summary>
-        public const string AttributeGraphqlOperationName = "graphql.operation.name";
+        public const string Mutation = "mutation";
 
         /// <summary>
-        /// The type of the operation being executed.
+        /// GraphQL subscription.
         /// </summary>
-        public const string AttributeGraphqlOperationType = "graphql.operation.type";
-
-        /// <summary>
-        /// The type of the operation being executed.
-        /// </summary>
-        public static class GraphqlOperationTypeValues
-        {
-            /// <summary>
-            /// GraphQL query.
-            /// </summary>
-            public const string Query = "query";
-
-            /// <summary>
-            /// GraphQL mutation.
-            /// </summary>
-            public const string Mutation = "mutation";
-
-            /// <summary>
-            /// GraphQL subscription.
-            /// </summary>
-            public const string Subscription = "subscription";
-        }
+        public const string Subscription = "subscription";
     }
 }

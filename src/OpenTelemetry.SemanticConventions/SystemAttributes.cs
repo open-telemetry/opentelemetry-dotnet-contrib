@@ -7,377 +7,376 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class SystemAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// The logical CPU number [0..n-1].
     /// </summary>
-    public static class SystemAttributes
+    public const string AttributeSystemCpuLogicalNumber = "system.cpu.logical_number";
+
+    /// <summary>
+    /// The CPU state for this data point. A system's CPU SHOULD be characterized <em>either</em> by data points with no <c>state</c> labels, <em>or only</em> data points with <c>state</c> labels.
+    /// </summary>
+    public const string AttributeSystemCpuState = "system.cpu.state";
+
+    /// <summary>
+    /// The device identifier.
+    /// </summary>
+    public const string AttributeSystemDevice = "system.device";
+
+    /// <summary>
+    /// The filesystem mode.
+    /// </summary>
+    public const string AttributeSystemFilesystemMode = "system.filesystem.mode";
+
+    /// <summary>
+    /// The filesystem mount path.
+    /// </summary>
+    public const string AttributeSystemFilesystemMountpoint = "system.filesystem.mountpoint";
+
+    /// <summary>
+    /// The filesystem state.
+    /// </summary>
+    public const string AttributeSystemFilesystemState = "system.filesystem.state";
+
+    /// <summary>
+    /// The filesystem type.
+    /// </summary>
+    public const string AttributeSystemFilesystemType = "system.filesystem.type";
+
+    /// <summary>
+    /// The memory state.
+    /// </summary>
+    public const string AttributeSystemMemoryState = "system.memory.state";
+
+    /// <summary>
+    /// A stateless protocol MUST NOT set this attribute.
+    /// </summary>
+    public const string AttributeSystemNetworkState = "system.network.state";
+
+    /// <summary>
+    /// The paging access direction.
+    /// </summary>
+    public const string AttributeSystemPagingDirection = "system.paging.direction";
+
+    /// <summary>
+    /// The memory paging state.
+    /// </summary>
+    public const string AttributeSystemPagingState = "system.paging.state";
+
+    /// <summary>
+    /// The memory paging type.
+    /// </summary>
+    public const string AttributeSystemPagingType = "system.paging.type";
+
+    /// <summary>
+    /// The process state, e.g., <a href="https://man7.org/linux/man-pages/man1/ps.1.html#PROCESS_STATE_CODES">Linux Process State Codes</a>.
+    /// </summary>
+    public const string AttributeSystemProcessStatus = "system.process.status";
+
+    /// <summary>
+    /// Deprecated, use <c>system.process.status</c> instead.
+    /// </summary>
+    [Obsolete("Replaced by `system.process.status`")]
+    public const string AttributeSystemProcessesStatus = "system.processes.status";
+
+    /// <summary>
+    /// The CPU state for this data point. A system's CPU SHOULD be characterized <em>either</em> by data points with no <c>state</c> labels, <em>or only</em> data points with <c>state</c> labels.
+    /// </summary>
+    public static class SystemCpuStateValues
     {
         /// <summary>
-        /// The logical CPU number [0..n-1].
+        /// user.
         /// </summary>
-        public const string AttributeSystemCpuLogicalNumber = "system.cpu.logical_number";
+        public const string User = "user";
 
         /// <summary>
-        /// The CPU state for this data point. A system's CPU SHOULD be characterized <em>either</em> by data points with no <c>state</c> labels, <em>or only</em> data points with <c>state</c> labels.
+        /// system.
         /// </summary>
-        public const string AttributeSystemCpuState = "system.cpu.state";
+        public const string System = "system";
 
         /// <summary>
-        /// The device identifier.
+        /// nice.
         /// </summary>
-        public const string AttributeSystemDevice = "system.device";
+        public const string Nice = "nice";
 
         /// <summary>
-        /// The filesystem mode.
+        /// idle.
         /// </summary>
-        public const string AttributeSystemFilesystemMode = "system.filesystem.mode";
+        public const string Idle = "idle";
 
         /// <summary>
-        /// The filesystem mount path.
+        /// iowait.
         /// </summary>
-        public const string AttributeSystemFilesystemMountpoint = "system.filesystem.mountpoint";
+        public const string Iowait = "iowait";
 
         /// <summary>
-        /// The filesystem state.
+        /// interrupt.
         /// </summary>
-        public const string AttributeSystemFilesystemState = "system.filesystem.state";
+        public const string Interrupt = "interrupt";
 
         /// <summary>
-        /// The filesystem type.
+        /// steal.
         /// </summary>
-        public const string AttributeSystemFilesystemType = "system.filesystem.type";
+        public const string Steal = "steal";
+    }
+
+    /// <summary>
+    /// The filesystem state.
+    /// </summary>
+    public static class SystemFilesystemStateValues
+    {
+        /// <summary>
+        /// used.
+        /// </summary>
+        public const string Used = "used";
 
         /// <summary>
-        /// The memory state.
+        /// free.
         /// </summary>
-        public const string AttributeSystemMemoryState = "system.memory.state";
+        public const string Free = "free";
 
         /// <summary>
-        /// A stateless protocol MUST NOT set this attribute.
+        /// reserved.
         /// </summary>
-        public const string AttributeSystemNetworkState = "system.network.state";
+        public const string Reserved = "reserved";
+    }
+
+    /// <summary>
+    /// The filesystem type.
+    /// </summary>
+    public static class SystemFilesystemTypeValues
+    {
+        /// <summary>
+        /// fat32.
+        /// </summary>
+        public const string Fat32 = "fat32";
 
         /// <summary>
-        /// The paging access direction.
+        /// exfat.
         /// </summary>
-        public const string AttributeSystemPagingDirection = "system.paging.direction";
+        public const string Exfat = "exfat";
 
         /// <summary>
-        /// The memory paging state.
+        /// ntfs.
         /// </summary>
-        public const string AttributeSystemPagingState = "system.paging.state";
+        public const string Ntfs = "ntfs";
 
         /// <summary>
-        /// The memory paging type.
+        /// refs.
         /// </summary>
-        public const string AttributeSystemPagingType = "system.paging.type";
+        public const string Refs = "refs";
 
         /// <summary>
-        /// The process state, e.g., <a href="https://man7.org/linux/man-pages/man1/ps.1.html#PROCESS_STATE_CODES">Linux Process State Codes</a>.
+        /// hfsplus.
         /// </summary>
-        public const string AttributeSystemProcessStatus = "system.process.status";
+        public const string Hfsplus = "hfsplus";
 
         /// <summary>
-        /// Deprecated, use <c>system.process.status</c> instead.
+        /// ext4.
         /// </summary>
-        [Obsolete("Replaced by `system.process.status`")]
-        public const string AttributeSystemProcessesStatus = "system.processes.status";
+        public const string Ext4 = "ext4";
+    }
+
+    /// <summary>
+    /// The memory state.
+    /// </summary>
+    public static class SystemMemoryStateValues
+    {
+        /// <summary>
+        /// used.
+        /// </summary>
+        public const string Used = "used";
 
         /// <summary>
-        /// The CPU state for this data point. A system's CPU SHOULD be characterized <em>either</em> by data points with no <c>state</c> labels, <em>or only</em> data points with <c>state</c> labels.
+        /// free.
         /// </summary>
-        public static class SystemCpuStateValues
-        {
-            /// <summary>
-            /// user.
-            /// </summary>
-            public const string User = "user";
-
-            /// <summary>
-            /// system.
-            /// </summary>
-            public const string System = "system";
-
-            /// <summary>
-            /// nice.
-            /// </summary>
-            public const string Nice = "nice";
-
-            /// <summary>
-            /// idle.
-            /// </summary>
-            public const string Idle = "idle";
-
-            /// <summary>
-            /// iowait.
-            /// </summary>
-            public const string Iowait = "iowait";
-
-            /// <summary>
-            /// interrupt.
-            /// </summary>
-            public const string Interrupt = "interrupt";
-
-            /// <summary>
-            /// steal.
-            /// </summary>
-            public const string Steal = "steal";
-        }
+        public const string Free = "free";
 
         /// <summary>
-        /// The filesystem state.
+        /// shared.
         /// </summary>
-        public static class SystemFilesystemStateValues
-        {
-            /// <summary>
-            /// used.
-            /// </summary>
-            public const string Used = "used";
-
-            /// <summary>
-            /// free.
-            /// </summary>
-            public const string Free = "free";
-
-            /// <summary>
-            /// reserved.
-            /// </summary>
-            public const string Reserved = "reserved";
-        }
+        public const string Shared = "shared";
 
         /// <summary>
-        /// The filesystem type.
+        /// buffers.
         /// </summary>
-        public static class SystemFilesystemTypeValues
-        {
-            /// <summary>
-            /// fat32.
-            /// </summary>
-            public const string Fat32 = "fat32";
-
-            /// <summary>
-            /// exfat.
-            /// </summary>
-            public const string Exfat = "exfat";
-
-            /// <summary>
-            /// ntfs.
-            /// </summary>
-            public const string Ntfs = "ntfs";
-
-            /// <summary>
-            /// refs.
-            /// </summary>
-            public const string Refs = "refs";
-
-            /// <summary>
-            /// hfsplus.
-            /// </summary>
-            public const string Hfsplus = "hfsplus";
-
-            /// <summary>
-            /// ext4.
-            /// </summary>
-            public const string Ext4 = "ext4";
-        }
+        public const string Buffers = "buffers";
 
         /// <summary>
-        /// The memory state.
+        /// cached.
         /// </summary>
-        public static class SystemMemoryStateValues
-        {
-            /// <summary>
-            /// used.
-            /// </summary>
-            public const string Used = "used";
+        public const string Cached = "cached";
+    }
 
-            /// <summary>
-            /// free.
-            /// </summary>
-            public const string Free = "free";
-
-            /// <summary>
-            /// shared.
-            /// </summary>
-            public const string Shared = "shared";
-
-            /// <summary>
-            /// buffers.
-            /// </summary>
-            public const string Buffers = "buffers";
-
-            /// <summary>
-            /// cached.
-            /// </summary>
-            public const string Cached = "cached";
-        }
+    /// <summary>
+    /// A stateless protocol MUST NOT set this attribute.
+    /// </summary>
+    public static class SystemNetworkStateValues
+    {
+        /// <summary>
+        /// close.
+        /// </summary>
+        public const string Close = "close";
 
         /// <summary>
-        /// A stateless protocol MUST NOT set this attribute.
+        /// close_wait.
         /// </summary>
-        public static class SystemNetworkStateValues
-        {
-            /// <summary>
-            /// close.
-            /// </summary>
-            public const string Close = "close";
-
-            /// <summary>
-            /// close_wait.
-            /// </summary>
-            public const string CloseWait = "close_wait";
-
-            /// <summary>
-            /// closing.
-            /// </summary>
-            public const string Closing = "closing";
-
-            /// <summary>
-            /// delete.
-            /// </summary>
-            public const string Delete = "delete";
-
-            /// <summary>
-            /// established.
-            /// </summary>
-            public const string Established = "established";
-
-            /// <summary>
-            /// fin_wait_1.
-            /// </summary>
-            public const string FinWait1 = "fin_wait_1";
-
-            /// <summary>
-            /// fin_wait_2.
-            /// </summary>
-            public const string FinWait2 = "fin_wait_2";
-
-            /// <summary>
-            /// last_ack.
-            /// </summary>
-            public const string LastAck = "last_ack";
-
-            /// <summary>
-            /// listen.
-            /// </summary>
-            public const string Listen = "listen";
-
-            /// <summary>
-            /// syn_recv.
-            /// </summary>
-            public const string SynRecv = "syn_recv";
-
-            /// <summary>
-            /// syn_sent.
-            /// </summary>
-            public const string SynSent = "syn_sent";
-
-            /// <summary>
-            /// time_wait.
-            /// </summary>
-            public const string TimeWait = "time_wait";
-        }
+        public const string CloseWait = "close_wait";
 
         /// <summary>
-        /// The paging access direction.
+        /// closing.
         /// </summary>
-        public static class SystemPagingDirectionValues
-        {
-            /// <summary>
-            /// in.
-            /// </summary>
-            public const string In = "in";
-
-            /// <summary>
-            /// out.
-            /// </summary>
-            public const string Out = "out";
-        }
+        public const string Closing = "closing";
 
         /// <summary>
-        /// The memory paging state.
+        /// delete.
         /// </summary>
-        public static class SystemPagingStateValues
-        {
-            /// <summary>
-            /// used.
-            /// </summary>
-            public const string Used = "used";
-
-            /// <summary>
-            /// free.
-            /// </summary>
-            public const string Free = "free";
-        }
+        public const string Delete = "delete";
 
         /// <summary>
-        /// The memory paging type.
+        /// established.
         /// </summary>
-        public static class SystemPagingTypeValues
-        {
-            /// <summary>
-            /// major.
-            /// </summary>
-            public const string Major = "major";
-
-            /// <summary>
-            /// minor.
-            /// </summary>
-            public const string Minor = "minor";
-        }
+        public const string Established = "established";
 
         /// <summary>
-        /// The process state, e.g., <a href="https://man7.org/linux/man-pages/man1/ps.1.html#PROCESS_STATE_CODES">Linux Process State Codes</a>.
+        /// fin_wait_1.
         /// </summary>
-        public static class SystemProcessStatusValues
-        {
-            /// <summary>
-            /// running.
-            /// </summary>
-            public const string Running = "running";
-
-            /// <summary>
-            /// sleeping.
-            /// </summary>
-            public const string Sleeping = "sleeping";
-
-            /// <summary>
-            /// stopped.
-            /// </summary>
-            public const string Stopped = "stopped";
-
-            /// <summary>
-            /// defunct.
-            /// </summary>
-            public const string Defunct = "defunct";
-        }
+        public const string FinWait1 = "fin_wait_1";
 
         /// <summary>
-        /// Deprecated, use <c>system.process.status</c> instead.
+        /// fin_wait_2.
         /// </summary>
-        public static class SystemProcessesStatusValues
-        {
-            /// <summary>
-            /// running.
-            /// </summary>
-            public const string Running = "running";
+        public const string FinWait2 = "fin_wait_2";
 
-            /// <summary>
-            /// sleeping.
-            /// </summary>
-            public const string Sleeping = "sleeping";
+        /// <summary>
+        /// last_ack.
+        /// </summary>
+        public const string LastAck = "last_ack";
 
-            /// <summary>
-            /// stopped.
-            /// </summary>
-            public const string Stopped = "stopped";
+        /// <summary>
+        /// listen.
+        /// </summary>
+        public const string Listen = "listen";
 
-            /// <summary>
-            /// defunct.
-            /// </summary>
-            public const string Defunct = "defunct";
-        }
+        /// <summary>
+        /// syn_recv.
+        /// </summary>
+        public const string SynRecv = "syn_recv";
+
+        /// <summary>
+        /// syn_sent.
+        /// </summary>
+        public const string SynSent = "syn_sent";
+
+        /// <summary>
+        /// time_wait.
+        /// </summary>
+        public const string TimeWait = "time_wait";
+    }
+
+    /// <summary>
+    /// The paging access direction.
+    /// </summary>
+    public static class SystemPagingDirectionValues
+    {
+        /// <summary>
+        /// in.
+        /// </summary>
+        public const string In = "in";
+
+        /// <summary>
+        /// out.
+        /// </summary>
+        public const string Out = "out";
+    }
+
+    /// <summary>
+    /// The memory paging state.
+    /// </summary>
+    public static class SystemPagingStateValues
+    {
+        /// <summary>
+        /// used.
+        /// </summary>
+        public const string Used = "used";
+
+        /// <summary>
+        /// free.
+        /// </summary>
+        public const string Free = "free";
+    }
+
+    /// <summary>
+    /// The memory paging type.
+    /// </summary>
+    public static class SystemPagingTypeValues
+    {
+        /// <summary>
+        /// major.
+        /// </summary>
+        public const string Major = "major";
+
+        /// <summary>
+        /// minor.
+        /// </summary>
+        public const string Minor = "minor";
+    }
+
+    /// <summary>
+    /// The process state, e.g., <a href="https://man7.org/linux/man-pages/man1/ps.1.html#PROCESS_STATE_CODES">Linux Process State Codes</a>.
+    /// </summary>
+    public static class SystemProcessStatusValues
+    {
+        /// <summary>
+        /// running.
+        /// </summary>
+        public const string Running = "running";
+
+        /// <summary>
+        /// sleeping.
+        /// </summary>
+        public const string Sleeping = "sleeping";
+
+        /// <summary>
+        /// stopped.
+        /// </summary>
+        public const string Stopped = "stopped";
+
+        /// <summary>
+        /// defunct.
+        /// </summary>
+        public const string Defunct = "defunct";
+    }
+
+    /// <summary>
+    /// Deprecated, use <c>system.process.status</c> instead.
+    /// </summary>
+    public static class SystemProcessesStatusValues
+    {
+        /// <summary>
+        /// running.
+        /// </summary>
+        public const string Running = "running";
+
+        /// <summary>
+        /// sleeping.
+        /// </summary>
+        public const string Sleeping = "sleeping";
+
+        /// <summary>
+        /// stopped.
+        /// </summary>
+        public const string Stopped = "stopped";
+
+        /// <summary>
+        /// defunct.
+        /// </summary>
+        public const string Defunct = "defunct";
     }
 }

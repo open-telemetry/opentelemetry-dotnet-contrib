@@ -7,63 +7,62 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class SignalrAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// SignalR HTTP connection closure status.
     /// </summary>
-    public static class SignalrAttributes
+    public const string AttributeSignalrConnectionStatus = "signalr.connection.status";
+
+    /// <summary>
+    /// <a href="https://github.com/dotnet/aspnetcore/blob/main/src/SignalR/docs/specs/TransportProtocols.md">SignalR transport type</a>.
+    /// </summary>
+    public const string AttributeSignalrTransport = "signalr.transport";
+
+    /// <summary>
+    /// SignalR HTTP connection closure status.
+    /// </summary>
+    public static class SignalrConnectionStatusValues
     {
         /// <summary>
-        /// SignalR HTTP connection closure status.
+        /// The connection was closed normally.
         /// </summary>
-        public const string AttributeSignalrConnectionStatus = "signalr.connection.status";
+        public const string NormalClosure = "normal_closure";
 
         /// <summary>
-        /// <a href="https://github.com/dotnet/aspnetcore/blob/main/src/SignalR/docs/specs/TransportProtocols.md">SignalR transport type</a>.
+        /// The connection was closed due to a timeout.
         /// </summary>
-        public const string AttributeSignalrTransport = "signalr.transport";
+        public const string Timeout = "timeout";
 
         /// <summary>
-        /// SignalR HTTP connection closure status.
+        /// The connection was closed because the app is shutting down.
         /// </summary>
-        public static class SignalrConnectionStatusValues
-        {
-            /// <summary>
-            /// The connection was closed normally.
-            /// </summary>
-            public const string NormalClosure = "normal_closure";
+        public const string AppShutdown = "app_shutdown";
+    }
 
-            /// <summary>
-            /// The connection was closed due to a timeout.
-            /// </summary>
-            public const string Timeout = "timeout";
-
-            /// <summary>
-            /// The connection was closed because the app is shutting down.
-            /// </summary>
-            public const string AppShutdown = "app_shutdown";
-        }
+    /// <summary>
+    /// <a href="https://github.com/dotnet/aspnetcore/blob/main/src/SignalR/docs/specs/TransportProtocols.md">SignalR transport type</a>.
+    /// </summary>
+    public static class SignalrTransportValues
+    {
+        /// <summary>
+        /// ServerSentEvents protocol.
+        /// </summary>
+        public const string ServerSentEvents = "server_sent_events";
 
         /// <summary>
-        /// <a href="https://github.com/dotnet/aspnetcore/blob/main/src/SignalR/docs/specs/TransportProtocols.md">SignalR transport type</a>.
+        /// LongPolling protocol.
         /// </summary>
-        public static class SignalrTransportValues
-        {
-            /// <summary>
-            /// ServerSentEvents protocol.
-            /// </summary>
-            public const string ServerSentEvents = "server_sent_events";
+        public const string LongPolling = "long_polling";
 
-            /// <summary>
-            /// LongPolling protocol.
-            /// </summary>
-            public const string LongPolling = "long_polling";
-
-            /// <summary>
-            /// WebSockets protocol.
-            /// </summary>
-            public const string WebSockets = "web_sockets";
-        }
+        /// <summary>
+        /// WebSockets protocol.
+        /// </summary>
+        public const string WebSockets = "web_sockets";
     }
 }

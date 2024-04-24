@@ -7,18 +7,18 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class ServiceAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// The string ID of the service instance.
     /// </summary>
-    public static class ServiceAttributes
-    {
-        /// <summary>
-        /// The string ID of the service instance.
-        /// </summary>
-        /// <remarks>
-        /// MUST be unique for each instance of the same <c>service.namespace,service.name</c> pair (in other words
+    /// <remarks>
+    /// MUST be unique for each instance of the same <c>service.namespace,service.name</c> pair (in other words
         /// <c>service.namespace,service.name,service.instance.id</c> triplet MUST be globally unique). The ID helps to
         /// distinguish instances of the same service that exist at the same time (e.g. instances of a horizontally scaled
         /// service).Implementations, such as SDKs, are recommended to generate a random Version 1 or Version 4 <a href="https://www.ietf.org/rfc/rfc4122.txt">RFC
@@ -36,28 +36,27 @@ namespace OpenTelemetry.SemanticConventions
         /// However, Collectors can set the <c>service.instance.id</c> if they can unambiguously determine the service instance
         /// for that telemetry. This is typically the case for scraping receivers, as they know the target address and
         /// port.
-        /// </remarks>
-        public const string AttributeServiceInstanceId = "service.instance.id";
+    /// </remarks>
+    public const string AttributeServiceInstanceId = "service.instance.id";
 
-        /// <summary>
-        /// Logical name of the service.
-        /// </summary>
-        /// <remarks>
-        /// MUST be the same for all instances of horizontally scaled services. If the value was not specified, SDKs MUST fallback to <c>unknown_service:</c> concatenated with <a href="process.md#process"><c>process.executable.name</c></a>, e.g. <c>unknown_service:bash</c>. If <c>process.executable.name</c> is not available, the value MUST be set to <c>unknown_service</c>.
-        /// </remarks>
-        public const string AttributeServiceName = "service.name";
+    /// <summary>
+    /// Logical name of the service.
+    /// </summary>
+    /// <remarks>
+    /// MUST be the same for all instances of horizontally scaled services. If the value was not specified, SDKs MUST fallback to <c>unknown_service:</c> concatenated with <a href="process.md#process"><c>process.executable.name</c></a>, e.g. <c>unknown_service:bash</c>. If <c>process.executable.name</c> is not available, the value MUST be set to <c>unknown_service</c>.
+    /// </remarks>
+    public const string AttributeServiceName = "service.name";
 
-        /// <summary>
-        /// A namespace for <c>service.name</c>.
-        /// </summary>
-        /// <remarks>
-        /// A string value having a meaning that helps to distinguish a group of services, for example the team name that owns a group of services. <c>service.name</c> is expected to be unique within the same namespace. If <c>service.namespace</c> is not specified in the Resource then <c>service.name</c> is expected to be unique for all services that have no explicit namespace defined (so the empty/unspecified namespace is simply one more valid namespace). Zero-length namespace string is assumed equal to unspecified namespace.
-        /// </remarks>
-        public const string AttributeServiceNamespace = "service.namespace";
+    /// <summary>
+    /// A namespace for <c>service.name</c>.
+    /// </summary>
+    /// <remarks>
+    /// A string value having a meaning that helps to distinguish a group of services, for example the team name that owns a group of services. <c>service.name</c> is expected to be unique within the same namespace. If <c>service.namespace</c> is not specified in the Resource then <c>service.name</c> is expected to be unique for all services that have no explicit namespace defined (so the empty/unspecified namespace is simply one more valid namespace). Zero-length namespace string is assumed equal to unspecified namespace.
+    /// </remarks>
+    public const string AttributeServiceNamespace = "service.namespace";
 
-        /// <summary>
-        /// The version string of the service API or implementation. The format is not defined by these conventions.
-        /// </summary>
-        public const string AttributeServiceVersion = "service.version";
-    }
+    /// <summary>
+    /// The version string of the service API or implementation. The format is not defined by these conventions.
+    /// </summary>
+    public const string AttributeServiceVersion = "service.version";
 }

@@ -7,45 +7,44 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class AndroidAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// Uniquely identifies the framework API revision offered by a version (<c>os.version</c>) of the android operating system. More information can be found <a href="https://developer.android.com/guide/topics/manifest/uses-sdk-element#ApiLevels">here</a>.
     /// </summary>
-    public static class AndroidAttributes
+    public const string AttributeAndroidOsApiLevel = "android.os.api_level";
+
+    /// <summary>
+    /// This attribute represents the state the application has transitioned into at the occurrence of the event.
+    /// </summary>
+    /// <remarks>
+    /// The Android lifecycle states are defined in <a href="https://developer.android.com/guide/components/activities/activity-lifecycle#lc">Activity lifecycle callbacks</a>, and from which the <c>OS identifiers</c> are derived.
+    /// </remarks>
+    public const string AttributeAndroidState = "android.state";
+
+    /// <summary>
+    /// This attribute represents the state the application has transitioned into at the occurrence of the event.
+    /// </summary>
+    public static class AndroidStateValues
     {
         /// <summary>
-        /// Uniquely identifies the framework API revision offered by a version (<c>os.version</c>) of the android operating system. More information can be found <a href="https://developer.android.com/guide/topics/manifest/uses-sdk-element#ApiLevels">here</a>.
+        /// Any time before Activity.onResume() or, if the app has no Activity, Context.startService() has been called in the app for the first time.
         /// </summary>
-        public const string AttributeAndroidOsApiLevel = "android.os.api_level";
+        public const string Created = "created";
 
         /// <summary>
-        /// This attribute represents the state the application has transitioned into at the occurrence of the event.
+        /// Any time after Activity.onPause() or, if the app has no Activity, Context.stopService() has been called when the app was in the foreground state.
         /// </summary>
-        /// <remarks>
-        /// The Android lifecycle states are defined in <a href="https://developer.android.com/guide/components/activities/activity-lifecycle#lc">Activity lifecycle callbacks</a>, and from which the <c>OS identifiers</c> are derived.
-        /// </remarks>
-        public const string AttributeAndroidState = "android.state";
+        public const string Background = "background";
 
         /// <summary>
-        /// This attribute represents the state the application has transitioned into at the occurrence of the event.
+        /// Any time after Activity.onResume() or, if the app has no Activity, Context.startService() has been called when the app was in either the created or background states.
         /// </summary>
-        public static class AndroidStateValues
-        {
-            /// <summary>
-            /// Any time before Activity.onResume() or, if the app has no Activity, Context.startService() has been called in the app for the first time.
-            /// </summary>
-            public const string Created = "created";
-
-            /// <summary>
-            /// Any time after Activity.onPause() or, if the app has no Activity, Context.stopService() has been called when the app was in the foreground state.
-            /// </summary>
-            public const string Background = "background";
-
-            /// <summary>
-            /// Any time after Activity.onResume() or, if the app has no Activity, Context.startService() has been called when the app was in either the created or background states.
-            /// </summary>
-            public const string Foreground = "foreground";
-        }
+        public const string Foreground = "foreground";
     }
 }

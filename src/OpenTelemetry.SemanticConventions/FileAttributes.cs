@@ -7,39 +7,38 @@
 
 using System;
 
-namespace OpenTelemetry.SemanticConventions
+namespace OpenTelemetry.SemanticConventions;
+
+/// <summary>
+/// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+/// </summary>
+public static class FileAttributes
 {
     /// <summary>
-    /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
+    /// Directory where the file is located. It should include the drive letter, when appropriate.
     /// </summary>
-    public static class FileAttributes
-    {
-        /// <summary>
-        /// Directory where the file is located. It should include the drive letter, when appropriate.
-        /// </summary>
-        public const string AttributeFileDirectory = "file.directory";
+    public const string AttributeFileDirectory = "file.directory";
 
-        /// <summary>
-        /// File extension, excluding the leading dot.
-        /// </summary>
-        /// <remarks>
-        /// When the file name has multiple extensions (example.tar.gz), only the last one should be captured (&amp;#34;gz&amp;#34;, not &amp;#34;tar.gz&amp;#34;).
-        /// </remarks>
-        public const string AttributeFileExtension = "file.extension";
+    /// <summary>
+    /// File extension, excluding the leading dot.
+    /// </summary>
+    /// <remarks>
+    /// When the file name has multiple extensions (example.tar.gz), only the last one should be captured (&amp;#34;gz&amp;#34;, not &amp;#34;tar.gz&amp;#34;).
+    /// </remarks>
+    public const string AttributeFileExtension = "file.extension";
 
-        /// <summary>
-        /// Name of the file including the extension, without the directory.
-        /// </summary>
-        public const string AttributeFileName = "file.name";
+    /// <summary>
+    /// Name of the file including the extension, without the directory.
+    /// </summary>
+    public const string AttributeFileName = "file.name";
 
-        /// <summary>
-        /// Full path to the file, including the file name. It should include the drive letter, when appropriate.
-        /// </summary>
-        public const string AttributeFilePath = "file.path";
+    /// <summary>
+    /// Full path to the file, including the file name. It should include the drive letter, when appropriate.
+    /// </summary>
+    public const string AttributeFilePath = "file.path";
 
-        /// <summary>
-        /// File size in bytes.
-        /// </summary>
-        public const string AttributeFileSize = "file.size";
-    }
+    /// <summary>
+    /// File size in bytes.
+    /// </summary>
+    public const string AttributeFileSize = "file.size";
 }
