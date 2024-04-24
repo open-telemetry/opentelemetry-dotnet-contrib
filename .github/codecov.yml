@@ -118,3 +118,8 @@ flags:
     carryforward: true
     paths:
       - src/OpenTelemetry.ResourceDetectors.ProcessRuntime
+
+  unittests-SemanticConventions:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.SemanticConventions
