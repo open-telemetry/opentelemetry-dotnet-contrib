@@ -52,7 +52,7 @@ Do not put sensitive information in Baggage.
 To repeat: a consequence of adding data to Baggage is that the keys and values
 will appear in all outgoing trace context headers from the application.
 
-Example of BaggageActivityProcessor:
+Example of adding BaggageActivityProcessor to `TracerProvider`:
 
 ```cs
 var tracerProvider = Sdk.CreateTracerProviderBuilder()
