@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Linq;
 using Google.Api.Gax;
 using OpenTelemetry.Trace;
 
