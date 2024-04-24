@@ -6,7 +6,7 @@ using System.Diagnostics;
 namespace OpenTelemetry.Trace;
 
 /// <summary>
-/// Span processor that adds <see cref="Baggage"/> fields to every new span.
+/// Activity processor that adds <see cref="Baggage"/> fields to every new span.
 /// </summary>
 internal sealed class BaggageActivityProcessor : BaseProcessor<Activity>
 {
