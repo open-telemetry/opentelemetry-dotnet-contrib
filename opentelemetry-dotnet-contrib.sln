@@ -69,6 +69,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\package-ResourceDetectors.Process.yml = .github\workflows\package-ResourceDetectors.Process.yml
 		.github\workflows\package-ResourceDetectors.ProcessRuntime.yml = .github\workflows\package-ResourceDetectors.ProcessRuntime.yml
 		.github\workflows\package-Sampler.AWS.yml = .github\workflows\package-Sampler.AWS.yml
+		.github\workflows\package-SemanticConventions.yml = .github\workflows\package-SemanticConventions.yml
 		.github\workflows\sanitycheck.yml = .github\workflows\sanitycheck.yml
 		.github\workflows\stale.yml = .github\workflows\stale.yml
 		.github\workflows\verifyaotcompat.yml = .github\workflows\verifyaotcompat.yml
@@ -330,6 +331,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projects", "Projects", "{04
 		build\Projects\OpenTelemetry.ResourceDetectors.Host.proj = build\Projects\OpenTelemetry.ResourceDetectors.Host.proj
 		build\Projects\OpenTelemetry.ResourceDetectors.Process.proj = build\Projects\OpenTelemetry.ResourceDetectors.Process.proj
 		build\Projects\OpenTelemetry.ResourceDetectors.ProcessRuntime.proj = build\Projects\OpenTelemetry.ResourceDetectors.ProcessRuntime.proj
+		build\Projects\OpenTelemetry.SemanticConventions.proj = build\Projects\OpenTelemetry.SemanticConventions.proj
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.ProcessRuntime", "src\OpenTelemetry.ResourceDetectors.ProcessRuntime\OpenTelemetry.ResourceDetectors.ProcessRuntime.csproj", "{95372E82-CA5B-4C61-BD6C-74E6AB1970D4}"
