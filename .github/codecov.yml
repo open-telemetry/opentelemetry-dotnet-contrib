@@ -78,12 +78,17 @@ flags:
     paths:
       - src/OpenTelemetry.Instrumentation.Runtime
 
+  unittests-Instrumentation.SqlClient:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.SqlClient
+
   unittests-Instrumentation.StackExchangeRedis:
     carryforward: true
     paths:
       - src/OpenTelemetry.Instrumentation.StackExchangeRedis
 
-  unittests-Instrumentation.Wcf:
+ unittests-Instrumentation.Wcf:
     carryforward: true
     paths:
       - src/OpenTelemetry.Instrumentation.Wcf
