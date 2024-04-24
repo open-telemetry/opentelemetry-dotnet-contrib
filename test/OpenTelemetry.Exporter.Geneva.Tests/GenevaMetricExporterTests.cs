@@ -1170,10 +1170,7 @@ public class GenevaMetricExporterTests
 
         foreach (var exemplar in exemplars)
         {
-            if (exemplar.Timestamp != default)
-            {
-                validExemplars.Add(exemplar);
-            }
+            validExemplars.Add(exemplar);
         }
 
         if (validExemplars.Count > 0)
