@@ -29,6 +29,7 @@ jobs:
           eventcounters: ['*/OpenTelemetry.Instrumentation.EventCounters*/**', 'examples/event-counters/**', '!**/*.md']
           extensions: ['*/OpenTelemetry.Extensions/**', '*/OpenTelemetry.Extensions.Tests/**', '!**/*.md']
           geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
+          gcp: ['*/OpenTelemetry.ResourceDetectors.Gcp*/**', '!**/*.md']
           host: ['*/OpenTelemetry.ResourceDetectors.Host*/**', '!**/*.md']
           onecollector: ['*/OpenTelemetry.Instrumentation.OneCollector*/**', '!**/*.md']
           owin: ['*/OpenTelemetry.Instrumentation.Owin*/**', 'examples/owin/**', '!**/*.md']
@@ -49,6 +50,7 @@ jobs:
             '!*/OpenTelemetry.Instrumentation.AspNet*/**',
             '!examples/AspNet/**',
             '!*/OpenTelemetry.ResourceDetectors.Azure*/**',
+            '!*/OpenTelemetry.ResourceDetectors.Gcp*/**',
             '!*/OpenTelemetry.ResourceDetectors.Host*/**',
             '!*/OpenTelemetry.ResourceDetectors.Process/**',
             '!*/OpenTelemetry.ResourceDetectors.Process.Tests/**',
@@ -146,6 +148,17 @@ jobs:
     with:
       project-name: OpenTelemetry.Exporter.Geneva
       code-cov-name: Exporter.Geneva
+
+  build-test-gcp:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'gcp')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.ResourceDetectors.Gcp
+      code-cov-name: ResourceDetectors.Gcp
 
   build-test-host:
     needs: detect-changes
@@ -321,6 +334,7 @@ jobs:
             OpenTelemetry.Instrumentation.Wcf.Tests.csproj,
             OpenTelemetry.PersistentStorage.FileSystem.Tests.csproj,
             OpenTelemetry.ResourceDetectors.Azure.Tests.csproj,
+            OpenTelemetry.ResourceDetectors.Gcp.Tests.csproj,
             OpenTelemetry.ResourceDetectors.Host.Tests.csproj,
             OpenTelemetry.ResourceDetectors.Process.Tests.csproj,
             OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests.csproj
@@ -369,6 +383,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'aws')
       || contains(needs.detect-changes.outputs.changes, 'azure')
       || contains(needs.detect-changes.outputs.changes, 'extensions')
+      || contains(needs.detect-changes.outputs.changes, 'gcp')
       || contains(needs.detect-changes.outputs.changes, 'host')
       || contains(needs.detect-changes.outputs.changes, 'processdetector')
       || contains(needs.detect-changes.outputs.changes, 'processruntime')
@@ -394,6 +409,7 @@ jobs:
       build-test-eventcounters,
       build-test-extensions,
       build-test-geneva,
+      build-test-gcp,
       build-test-host,
       build-test-onecollector,
       build-test-owin,

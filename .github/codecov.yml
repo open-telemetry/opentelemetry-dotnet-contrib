@@ -104,6 +104,11 @@ flags:
     paths:
       - src/OpenTelemetry.ResourceDetectors.Azure
 
+  unittests-ResourceDetectors.Gcp:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.ResourceDetectors.Gcp
+
   unittests-ResourceDetectors.Host:
     carryforward: true
     paths:
