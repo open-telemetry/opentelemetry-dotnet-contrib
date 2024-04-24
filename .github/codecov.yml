@@ -88,7 +88,7 @@ flags:
     paths:
       - src/OpenTelemetry.Instrumentation.StackExchangeRedis
 
- unittests-Instrumentation.Wcf:
+  unittests-Instrumentation.Wcf:
     carryforward: true
     paths:
       - src/OpenTelemetry.Instrumentation.Wcf
@@ -123,3 +123,8 @@ flags:
     carryforward: true
     paths:
       - src/OpenTelemetry.ResourceDetectors.ProcessRuntime
+
+  unittests-SemanticConventions:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.SemanticConventions

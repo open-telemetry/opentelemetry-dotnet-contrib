@@ -40,6 +40,7 @@ jobs:
           redis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**/*.md']
           resourcedetectors: ['*/OpenTelemetry.ResourceDetectors.*/**', '!**/*.md']
           runtime: ['*/OpenTelemetry.Instrumentation.Runtime*/**', 'examples/runtime-instrumentation/**', '!**/*.md']
+          semanticconventions: ['*/OpenTelemetry.SemanticConventions*/**', '!**/*.md']
           sqlclient: ['*/OpenTelemetry.Instrumentation.SqlClient*/**', '!**/*.md']
           wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**/*.md']
           solution: [
@@ -72,6 +73,7 @@ jobs:
             '!examples/redis/**',
             '!*/OpenTelemetry.Instrumentation.Runtime*/**',
             '!examples/runtime-instrumentation/**',
+            '!*/OpenTelemetry.SemanticConventions*/**',
             '!*/OpenTelemetry.Instrumentation.Wcf*/**',
             '!examples/wcf/**',
             '!**/*.md'
@@ -269,6 +271,17 @@ jobs:
       project-name: OpenTelemetry.Instrumentation.Runtime
       code-cov-name: Instrumentation.Runtime
 
+  build-test-semanticconventions:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'semanticconventions')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.SemanticConventions
+      code-cov-name: SemanticConventions
+
   build-test-sqlclient:
     needs: detect-changes
     if: |
@@ -420,6 +433,7 @@ jobs:
       build-test-redis,
       build-test-redis-integration,
       build-test-runtime,
+      build-test-semanticconventions,
       build-test-sqlclient,
       build-test-wcf,
       build-test-solution,
