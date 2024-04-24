@@ -97,12 +97,11 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         if (database != null)
                         {
                             activity.DisplayName = (string)database;
+                            activity.SetTag(SemanticConventions.AttributeDbName, database);
                         }
 
                         _ = this.dataSourceFetcher.TryFetch(connection, out var dataSource);
                         _ = this.commandTextFetcher.TryFetch(command, out var commandText);
-
-                        activity.SetTag(SemanticConventions.AttributeDbName, database);
 
                         if (dataSource != null)
                         {
