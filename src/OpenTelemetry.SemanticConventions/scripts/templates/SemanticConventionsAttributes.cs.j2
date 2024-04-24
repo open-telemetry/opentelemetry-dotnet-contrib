@@ -1,7 +1,3 @@
-{%- macro print_value(type, value) -%}
-  {{ "\"" if type == "string"}}{{value}}{{ "\"" if type == "string"}}
-{%- endmacro %}
-
 {%- macro format_remarks(text) -%}
 {%- set notes = '\n        /// '.join(text.splitlines()).encode('ascii', 'xmlcharrefreplace').decode() -%}
 {{notes}}
@@ -60,7 +56,7 @@ public static class {{ root_namespace | to_camelcase(True) }}Attributes
         /// <summary>
         /// {{format_xml_doc(member.brief | render_markdown(code="<c>{0}</c>", paragraph="{0}"))}}
         /// </summary>
-        public const {{ type }} {{ member.member_id | to_camelcase(True) }} = {{ print_value(type, member.value) }};
+        public const {{ type }} {{ member.member_id | to_camelcase(True) }} = {{ attribute | print_member_value(member) }};
         {% if not loop.last %}{{"\n"}}{% endif %}
         {% endfor %}
     }
