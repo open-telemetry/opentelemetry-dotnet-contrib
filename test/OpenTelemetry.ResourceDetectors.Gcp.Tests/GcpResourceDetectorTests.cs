@@ -5,9 +5,9 @@ using System.Linq;
 using Google.Api.Gax;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.ResourceDetectors.GCP.Tests;
+namespace OpenTelemetry.ResourceDetectors.Gcp.Tests;
 
-public class GCPResourceDetectorTests
+public class GcpResourceDetectorTests
 {
     [Fact]
     public void TestExtractGkeResourceAttributes()
@@ -25,7 +25,7 @@ public class GCPResourceDetectorTests
             containerName: "containerName",
             clusterLocation: "clusterLocation");
         var platform = new Platform(details);
-        var attrs = GCPResourceDetector.ExtractGkeResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
+        var attrs = GcpResourceDetector.ExtractGkeResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
         Assert.NotNull(attrs);
         Assert.Equal(7, attrs.Count);
         Assert.Equal(ResourceAttributeConstants.GcpCloudProviderValue, attrs[ResourceSemanticConventions.AttributeCloudProvider]);
@@ -48,7 +48,7 @@ public class GCPResourceDetectorTests
             revisionName: "revisionName",
             configurationName: "configurationName");
         var platform = new Platform(details);
-        var attrs = GCPResourceDetector.ExtractCloudRunResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
+        var attrs = GcpResourceDetector.ExtractCloudRunResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
         Assert.NotNull(attrs);
         Assert.Equal(4, attrs.Count);
         Assert.Equal(ResourceAttributeConstants.GcpCloudProviderValue, attrs[ResourceSemanticConventions.AttributeCloudProvider]);
@@ -66,7 +66,7 @@ public class GCPResourceDetectorTests
             gaeService: "gaeService",
             gaeVersion: "gaeVersion");
         var platform = new Platform(details);
-        var attrs = GCPResourceDetector.ExtractGaeResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
+        var attrs = GcpResourceDetector.ExtractGaeResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
         Assert.NotNull(attrs);
         Assert.Equal(3, attrs.Count);
         Assert.Equal(ResourceAttributeConstants.GcpCloudProviderValue, attrs[ResourceSemanticConventions.AttributeCloudProvider]);
@@ -83,7 +83,7 @@ public class GCPResourceDetectorTests
             instanceId: "instanceId",
             zoneName: "us-central1-a");
         var platform = new Platform(details);
-        var attrs = GCPResourceDetector.ExtractGceResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
+        var attrs = GcpResourceDetector.ExtractGceResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
         Assert.NotNull(attrs);
         Assert.Equal(4, attrs.Count);
         Assert.Equal(ResourceAttributeConstants.GcpCloudProviderValue, attrs[ResourceSemanticConventions.AttributeCloudProvider]);

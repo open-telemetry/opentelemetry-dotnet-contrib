@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.ResourceDetectors.GCP\OpenTelemetry.ResourceDetectors.GCP.csproj" />
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.ResourceDetectors.Gcp\OpenTelemetry.ResourceDetectors.Gcp.csproj" />
   </ItemGroup>
 
 </Project>
