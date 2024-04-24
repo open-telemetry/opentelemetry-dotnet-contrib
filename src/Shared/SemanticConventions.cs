@@ -103,12 +103,17 @@ internal static class SemanticConventions
     public const string AttributeHttpRequestMethodOriginal = "http.request.method_original";
     public const string AttributeHttpResponseStatusCode = "http.response.status_code"; // replaces: "http.status_code" (AttributeHttpStatusCode)
     public const string AttributeUrlScheme = "url.scheme"; // replaces: "http.scheme" (AttributeHttpScheme)
+    public const string AttributeUrlFull = "url.full"; // replaces: "http.url" (AttributeHttpUrl)
     public const string AttributeUrlPath = "url.path"; // replaces: "http.target" (AttributeHttpTarget)
     public const string AttributeUrlQuery = "url.query"; // replaces: "http.target" (AttributeHttpTarget)
+    public const string AttributeServerSocketAddress = "server.socket.address"; // replaces: "net.peer.ip" (AttributeNetPeerIp)
 
     // v1.23.0
     // https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-metrics.md#http-server
+    public const string AttributeClientAddress = "client.address";
+    public const string AttributeClientPort = "client.port";
     public const string AttributeNetworkProtocolVersion = "network.protocol.version"; // replaces: "http.flavor" (AttributeHttpFlavor)
+    public const string AttributeNetworkProtocolName = "network.protocol.name";
     public const string AttributeServerAddress = "server.address"; // replaces: "net.host.name" (AttributeNetHostName)
     public const string AttributeServerPort = "server.port"; // replaces: "net.host.port" (AttributeNetHostPort)
     public const string AttributeUserAgentOriginal = "user_agent.original"; // replaces: http.user_agent (AttributeHttpUserAgent)
