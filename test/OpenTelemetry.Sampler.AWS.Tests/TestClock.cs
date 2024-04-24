@@ -20,7 +20,7 @@ internal class TestClock : Clock
         this.nowTime = time;
     }
 
-    public override DateTime Now()
+    public override DateTimeOffset Now()
     {
         return this.nowTime;
     }
@@ -30,12 +30,12 @@ internal class TestClock : Clock
         return (long)this.nowTime.ToUniversalTime().Subtract(EpochStart).TotalMilliseconds;
     }
 
-    public override DateTime ToDateTime(double seconds)
+    public override DateTimeOffset ToDateTime(double seconds)
     {
         return EpochStart.AddSeconds(seconds);
     }
 
-    public override double ToDouble(DateTime dateTime)
+    public override double ToDouble(DateTimeOffset dateTime)
     {
         TimeSpan current = new TimeSpan(dateTime.ToUniversalTime().Ticks - EpochStart.Ticks);
         double timestamp = Math.Round(current.TotalMilliseconds, 0) / 1000.0;
