@@ -186,7 +186,7 @@ public class GenevaMetricExporterTests
                 var metricData = new MetricData { UInt64Value = metricDataValue };
 
 #if EXPOSE_EXPERIMENTAL_FEATURES
-                var exemplars = metricPoint.GetExemplars();
+                metricPoint.TryGetExemplars(out var exemplars);
 #endif
                 var bodyLength = exporter.SerializeMetricWithTLV(
                     MetricEventType.ULongMetric,
@@ -385,7 +385,7 @@ public class GenevaMetricExporterTests
         if (hasExemplars)
         {
 #if EXPOSE_EXPERIMENTAL_FEATURES
-            meterProviderBuilder.SetExemplarFilter(new AlwaysOnExemplarFilter());
+            meterProviderBuilder.SetExemplarFilter(ExemplarFilterType.AlwaysOn);
 #endif
         }
 
@@ -983,7 +983,7 @@ public class GenevaMetricExporterTests
         var metricPoint = metricPointsEnumerator.Current;
 
 #if EXPOSE_EXPERIMENTAL_FEATURES
-        var exemplars = metricPoint.GetExemplars();
+        metricPoint.TryGetExemplars(out var exemplars);
 #endif
 
         List<TlvField> fields = null;
@@ -1166,10 +1166,18 @@ public class GenevaMetricExporterTests
         }
 
 #if EXPOSE_EXPERIMENTAL_FEATURES
-        if (exemplars.Length > 0)
-        {
-            var validExemplars = exemplars.Where(exemplar => exemplar.Timestamp != default).ToList();
+        List<Exemplar> validExemplars = new List<Exemplar>();
 
+        foreach (var exemplar in exemplars)
+        {
+            if (exemplar.Timestamp != default)
+            {
+                validExemplars.Add(exemplar);
+            }
+        }
+
+        if (validExemplars.Count > 0)
+        {
             var exemplarsPayload = fields.FirstOrDefault(field => field.Type == PayloadTypes.Exemplars).Value as Exemplars;
             var singleExemplarList = exemplarsPayload.ExemplarList;
 
@@ -1278,37 +1286,41 @@ public class GenevaMetricExporterTests
 
         Assert.Equal((ulong)expectedUnixNanoSeconds, serializedExemplarBody.TimeUnixNano);
 
-        if (expectedExemplar.TraceId.HasValue)
+        if (expectedExemplar.TraceId != default)
         {
             var traceIdBytes = new byte[16];
-            expectedExemplar.TraceId.Value.CopyTo(traceIdBytes);
+            expectedExemplar.TraceId.CopyTo(traceIdBytes);
 
             Assert.Equal(16, serializedExemplarBody.TraceId.Length);
             Assert.True(traceIdBytes.SequenceEqual(serializedExemplarBody.TraceId));
         }
 
-        if (expectedExemplar.SpanId.HasValue)
+        if (expectedExemplar.SpanId != default)
         {
             var spanIdBytes = new byte[8];
-            expectedExemplar.SpanId.Value.CopyTo(spanIdBytes);
+            expectedExemplar.SpanId.CopyTo(spanIdBytes);
 
             Assert.Equal(8, serializedExemplarBody.SpanId.Length);
             Assert.True(spanIdBytes.SequenceEqual(serializedExemplarBody.SpanId));
         }
 
-        if (expectedExemplar.FilteredTags != null && expectedExemplar.FilteredTags.Count > 0)
+        int filteredTagsActualCount = serializedExemplarBody.NumberOfLabels;
+        int filteredTagsExpectedCount = 0;
+        int filteredTagsActualIndex = 0;
+
+        foreach (var tag in expectedExemplar.FilteredTags)
         {
-            Assert.Equal(expectedExemplar.FilteredTags.Count, serializedExemplarBody.NumberOfLabels);
+            var expectedFilteredTag = tag;
+            var serializedFilteredTag = serializedExemplarBody.Labels[filteredTagsActualIndex];
 
-            for (int i = 0; i < expectedExemplar.FilteredTags.Count; i++)
-            {
-                var expectedFilteredTag = expectedExemplar.FilteredTags[i];
-                var serializedFilteredTag = serializedExemplarBody.Labels[i];
+            Assert.Equal(expectedFilteredTag.Key, serializedFilteredTag.Name.Value);
+            Assert.Equal(expectedFilteredTag.Value, serializedFilteredTag.Value.Value);
 
-                Assert.Equal(expectedFilteredTag.Key, serializedFilteredTag.Name.Value);
-                Assert.Equal(expectedFilteredTag.Value, serializedFilteredTag.Value.Value);
-            }
+            filteredTagsActualIndex++;
+            filteredTagsExpectedCount++;
         }
+
+        Assert.Equal(filteredTagsExpectedCount, filteredTagsActualCount);
     }
 #endif
 
@@ -1320,7 +1332,7 @@ public class GenevaMetricExporterTests
         var metricPoint = metricPointsEnumerator.Current;
 
 #if EXPOSE_EXPERIMENTAL_FEATURES
-        var exemplars = metricPoint.GetExemplars();
+        metricPoint.TryGetExemplars(out var exemplars);
 #endif
 
         UserdataV2 result = null;

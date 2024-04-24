@@ -88,7 +88,7 @@ internal sealed class TlvMetricExporter : IDisposable
                 try
                 {
 #if EXPOSE_EXPERIMENTAL_FEATURES
-                    var exemplars = metricPoint.GetExemplars();
+                    metricPoint.TryGetExemplars(out var exemplars);
 #endif
 
                     switch (metric.MetricType)
@@ -266,7 +266,7 @@ internal sealed class TlvMetricExporter : IDisposable
         in ReadOnlyTagCollection tags,
         MetricData value,
 #if EXPOSE_EXPERIMENTAL_FEATURES
-        Exemplar[] exemplars,
+        ReadOnlyExemplarCollection exemplars,
 #endif
         out string monitoringAccount,
         out string metricNamespace)
@@ -330,7 +330,7 @@ internal sealed class TlvMetricExporter : IDisposable
         double min,
         double max,
 #if EXPOSE_EXPERIMENTAL_FEATURES
-        Exemplar[] exemplars,
+        ReadOnlyExemplarCollection exemplars,
 #endif
         out string monitoringAccount,
         out string metricNamespace)
@@ -407,9 +407,18 @@ internal sealed class TlvMetricExporter : IDisposable
 
 #if EXPOSE_EXPERIMENTAL_FEATURES
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SerializeExemplars(Exemplar[] exemplars, byte[] buffer, ref int bufferIndex)
+    private static void SerializeExemplars(ReadOnlyExemplarCollection exemplars, byte[] buffer, ref int bufferIndex)
     {
-        if (exemplars.Length > 0)
+        var exemplarsCount = 0;
+        foreach (ref readonly var exemplar in exemplars)
+        {
+            if (exemplar.Timestamp != default)
+            {
+                exemplarsCount++;
+            }
+        }
+
+        if (exemplarsCount > 0)
         {
             MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)PayloadType.Exemplars);
 
@@ -418,16 +427,6 @@ internal sealed class TlvMetricExporter : IDisposable
             bufferIndex += 2;
 
             MetricSerializer.SerializeByte(buffer, ref bufferIndex, 0); // version
-
-            // TODO: Avoid this additional enumeration
-            var exemplarsCount = 0;
-            foreach (var exemplar in exemplars)
-            {
-                if (exemplar.Timestamp != default)
-                {
-                    exemplarsCount++;
-                }
-            }
 
             MetricSerializer.SerializeInt32AsBase128(buffer, ref bufferIndex, exemplarsCount);
 
@@ -475,7 +474,6 @@ internal sealed class TlvMetricExporter : IDisposable
 
         var bufferIndexForNumberOfLabels = bufferIndex;
         MetricSerializer.SerializeByte(buffer, ref bufferIndex, 0); // serialize zero as the count of labels; this would be updated later if the exemplar has labels
-        byte numberOfLabels = 0;
 
         // Convert exemplar timestamp to unix nanoseconds
         var unixNanoSeconds = DateTime.FromFileTimeUtc(exemplar.Timestamp.ToFileTime())
@@ -485,34 +483,35 @@ internal sealed class TlvMetricExporter : IDisposable
 
         MetricSerializer.SerializeInt64(buffer, ref bufferIndex, (long)unixNanoSeconds); // serialize timestamp
 
-        if (exemplar.TraceId.HasValue)
+        if (exemplar.TraceId != default)
         {
             Span<byte> traceIdBytes = stackalloc byte[16];
-            exemplar.TraceId.Value.CopyTo(traceIdBytes);
+            exemplar.TraceId.CopyTo(traceIdBytes);
             MetricSerializer.SerializeSpanOfBytes(buffer, ref bufferIndex, traceIdBytes, traceIdBytes.Length); // serialize traceId
 
             flags |= ExemplarFlags.TraceIdExists;
         }
 
-        if (exemplar.SpanId.HasValue)
+        if (exemplar.SpanId != default)
         {
             Span<byte> spanIdBytes = stackalloc byte[8];
-            exemplar.SpanId.Value.CopyTo(spanIdBytes);
+            exemplar.SpanId.CopyTo(spanIdBytes);
             MetricSerializer.SerializeSpanOfBytes(buffer, ref bufferIndex, spanIdBytes, spanIdBytes.Length); // serialize spanId
 
             flags |= ExemplarFlags.SpanIdExists;
         }
 
-        bool hasLabels = exemplar.FilteredTags != null && exemplar.FilteredTags.Count > 0;
-        if (hasLabels)
-        {
-            foreach (var tag in exemplar.FilteredTags)
-            {
-                MetricSerializer.SerializeBase128String(buffer, ref bufferIndex, tag.Key);
-                MetricSerializer.SerializeBase128String(buffer, ref bufferIndex, Convert.ToString(tag.Value, CultureInfo.InvariantCulture));
-                numberOfLabels++;
-            }
+        byte numberOfLabels = 0;
 
+        foreach (var tag in exemplar.FilteredTags)
+        {
+            MetricSerializer.SerializeBase128String(buffer, ref bufferIndex, tag.Key);
+            MetricSerializer.SerializeBase128String(buffer, ref bufferIndex, Convert.ToString(tag.Value, CultureInfo.InvariantCulture));
+            numberOfLabels++;
+        }
+
+        if (numberOfLabels > 0)
+        {
             MetricSerializer.SerializeByte(buffer, ref bufferIndexForNumberOfLabels, numberOfLabels);
         }
 

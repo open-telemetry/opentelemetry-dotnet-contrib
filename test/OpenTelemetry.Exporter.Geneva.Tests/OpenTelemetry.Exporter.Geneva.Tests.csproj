@@ -6,7 +6,7 @@
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net48;net472;net471;net47;net462</TargetFrameworks>
-    <NoWarn>$(NoWarn),SA1311,SA1312,SA1313,SA1123,SA1202</NoWarn>
+    <NoWarn>$(NoWarn),SA1311,SA1312,SA1313,SA1123,SA1202,OTEL1002</NoWarn>
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
