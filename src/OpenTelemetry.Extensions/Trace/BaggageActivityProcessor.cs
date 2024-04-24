@@ -8,7 +8,7 @@ namespace OpenTelemetry.Trace;
 /// <summary>
 /// Span processor that adds <see cref="Baggage"/> fields to every new span.
 /// </summary>
-internal sealed class BaggageSpanProcessor : BaseProcessor<Activity>
+internal sealed class BaggageActivityProcessor : BaseProcessor<Activity>
 {
     /// <inheritdoc />
     public override void OnStart(Activity activity)

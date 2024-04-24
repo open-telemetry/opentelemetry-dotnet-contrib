@@ -49,11 +49,11 @@ public static class TracerProviderBuilderExtensions
     }
 
     /// <summary>
-    /// Adds the <see cref="BaggageSpanProcessor"/> to the <see cref="TracerProviderBuilder"/>.
+    /// Adds the <see cref="BaggageActivityProcessor"/> to the <see cref="TracerProviderBuilder"/>.
     /// </summary>
-    /// <param name="builder"><see cref="TracerProviderBuilder"/> to add the <see cref="BaggageSpanProcessor"/> to.</param>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> to add the <see cref="BaggageActivityProcessor"/> to.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-    public static TracerProviderBuilder AddBaggageSpanProcessor(
+    public static TracerProviderBuilder AddBaggageActivityProcessor(
         this TracerProviderBuilder builder)
     {
 #if NET6_0_OR_GREATER
@@ -66,7 +66,7 @@ public static class TracerProviderBuilderExtensions
 #endif
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-        return builder.AddProcessor(new BaggageSpanProcessor());
+        return builder.AddProcessor(new BaggageActivityProcessor());
 #pragma warning restore CA2000 // Dispose objects before losing scope
     }
 }

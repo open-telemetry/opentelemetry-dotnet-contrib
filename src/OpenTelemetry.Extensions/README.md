@@ -38,9 +38,9 @@ public static TracerProviderBuilder AddMyExporter(this TracerProviderBuilder bui
 }
 ```
 
-### BaggageSpanProcessor
+### BaggageActivityProcessor
 
-The BaggageSpanProcessor reads entries stored in Baggage from the parent context
+The BaggageActivityProcessor reads entries stored in Baggage from the parent context
 and adds the baggage keys and values to the activity as attributes on start.
 
 Add this span processor to a tracer provider.
@@ -52,7 +52,7 @@ Do not put sensitive information in Baggage.
 To repeat: a consequence of adding data to Baggage is that the keys and values
 will appear in all outgoing HTTP headers from the application.
 
-Example of AddBaggageSpanProcessor:
+Example of BaggageActivityProcessor:
 
 ```cs
 public static TracerProviderBuilder AddMyExporter(this TracerProviderBuilder builder, MyExporterOptions options)
@@ -64,6 +64,6 @@ public static TracerProviderBuilder AddMyExporter(this TracerProviderBuilder bui
                     options.BatchExportProcessorOptions.ScheduledDelayMilliseconds,
                     options.BatchExportProcessorOptions.ExporterTimeoutMilliseconds,
                     options.BatchExportProcessorOptions.MaxExportBatchSize))
-        .AddBaggageSpanProcessor();
+        .AddBaggageActivityProcessor();
 }
 ```
