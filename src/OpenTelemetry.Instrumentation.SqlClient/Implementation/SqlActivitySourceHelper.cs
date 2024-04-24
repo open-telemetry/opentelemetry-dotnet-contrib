@@ -19,7 +19,7 @@ internal sealed class SqlActivitySourceHelper
     public static readonly Assembly Assembly = typeof(SqlActivitySourceHelper).Assembly;
     public static readonly AssemblyName AssemblyName = Assembly.GetName();
     public static readonly string ActivitySourceName = AssemblyName.Name!;
-    public static readonly ActivitySource ActivitySource = new(ActivitySourceName!, Assembly.GetPackageVersion());
+    public static readonly ActivitySource ActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
     public static readonly string ActivityName = ActivitySourceName + ".Execute";
 
     public static readonly IEnumerable<KeyValuePair<string, object?>> CreationTags = new[]
