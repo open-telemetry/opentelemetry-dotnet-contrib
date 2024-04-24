@@ -55,7 +55,7 @@ jobs:
 
     - name: Merging test results
       if: ${{ hashFiles('./TestResults/**/*.coverage') != '' }}
-      run: dotnet-coverage merge -r -f cobertura -o ./TestResults/Cobertura.xml ./TestResults/*.coverage
+      run: dotnet-coverage merge -f cobertura -o ./TestResults/Cobertura.xml ./TestResults/**/*.coverage
 
     - name: Upload code coverage ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
       if: ${{ hashFiles('./TestResults/Cobertura.xml') != '' }}
