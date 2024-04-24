@@ -53,7 +53,6 @@ internal static class SemanticConventions
     public const string AttributeDbStatement = "db.statement";
     public const string AttributeDbOperation = "db.operation";
     public const string AttributeDbInstance = "db.instance";
-    public const string AttributeDbUrl = "db.url";
     public const string AttributeDbCassandraKeyspace = "db.cassandra.keyspace";
     public const string AttributeDbHBaseNamespace = "db.hbase.namespace";
     public const string AttributeDbRedisDatabaseIndex = "db.redis.database_index";
