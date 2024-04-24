@@ -213,7 +213,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
                 activity.SetTag(AttributeDbMethod, method.ToString());
             }
 
-            activity.SetTag(SemanticConventions.AttributeDbUrl, uri.OriginalString);
+            activity.SetTag(SemanticConventions.AttributeUrlFull, uri.OriginalString);
 
             try
             {

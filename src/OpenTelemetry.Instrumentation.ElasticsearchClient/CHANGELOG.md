@@ -8,6 +8,11 @@
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
 * Update OpenTelemetry SDK version to `1.8.1`.
   ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
+* Adjust semantic conventions, use `url.full` instead of `db.url`.
+* Fix sensitive data in `url.full` (former `db.url`) tag
+  ([#1684](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1684))
+  * Replace `db.url` attribute with `url.full` to comply with conventions.
+  * Fix instrumentation to replace username and password in `url.full` with `REDACTED:REDACTED`.
 
 ## 1.0.0-beta.5
 

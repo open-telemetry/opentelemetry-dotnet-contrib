@@ -846,7 +846,7 @@ public class ElasticsearchClientTests
         Assert.Single(exportedItems);
         var searchActivity = exportedItems[0];
 
-        string dbUrl = (string)searchActivity.GetTagValue(SemanticConventions.AttributeDbUrl);
+        string dbUrl = (string)searchActivity.GetTagValue(SemanticConventions.AttributeUrlFull);
 
         Assert.DoesNotContain("sensitive", dbUrl);
         Assert.Contains("REDACTED:REDACTED", dbUrl);
