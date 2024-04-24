@@ -54,9 +54,11 @@ jobs:
       run: dotnet tool install -g dotnet-coverage
 
     - name: Merging test results
+      if: ${{ hashFiles('./TestResults/Cobertura.xml') != '' }}
       run: dotnet-coverage merge -r -f cobertura -o ./TestResults/Cobertura.xml ./TestResults/*.coverage
 
     - name: Upload code coverage ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
+      if: ${{ hashFiles('./TestResults/*.coverage') != '' }}
       uses: codecov/codecov-action@v4
       continue-on-error: true # Note: Don't fail for upload failures
       env:
