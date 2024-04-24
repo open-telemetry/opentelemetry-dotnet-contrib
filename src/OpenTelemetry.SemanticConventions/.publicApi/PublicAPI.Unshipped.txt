@@ -813,9 +813,6 @@ const OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.TelemetryS
 const OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.TelemetrySdkLanguageValues.Webjs = "webjs" -> string
 const OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.TlsProtocolNameValues.Ssl = "ssl" -> string
 const OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.TlsProtocolNameValues.Tls = "tls" -> string
-OpenTelemetry.SemanticConventions.MyService
-OpenTelemetry.SemanticConventions.MyService.MyService() -> void
-OpenTelemetry.SemanticConventions.MyService.Process() -> void
 OpenTelemetry.SemanticConventions.SemanticConventionsAttributes
 OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.AndroidStateValues
 OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.AspnetcoreDiagnosticsExceptionResultValues
@@ -886,95 +883,3 @@ static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.
 static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.EventLogFeatureFlag -> string
 static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.EventRpcMessage -> string
 static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.EventTraceException -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixAndroidLifecycleEvents -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixAspnetcore -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixAttributesFaasCommon -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixAttributesHttpDeprecated -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixAttributesJvmBuffer -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixAttributesLog -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixAttributesLogFile -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixAttributesNetworkDeprecated -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixAttributesProcessCpu -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixAttributesSystem -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixAttributesSystemCpu -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixAttributesSystemFilesystem -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixAttributesSystemMemory -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixAttributesSystemNetwork -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixAttributesSystemPaging -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixAttributesSystemProcess -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixAws -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixAwsEcs -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixAwsEks -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixAwsLambda -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixAwsLog -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixAwsS3 -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixDbCosmosdb -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixEvent -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixFaasSpanDatasource -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixGraphql -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixHeroku -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixHostCpu -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixIosLifecycleEvents -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixK8sCluster -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixK8sContainer -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixK8sCronjob -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixK8sDaemonset -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixK8sDeployment -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixK8sJob -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixK8sNamespace -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixK8sNode -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixK8sPod -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixK8sReplicaset -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixK8sStatefulset -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixLogException -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixLogRecord -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixMessagingAttributesCommon -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixMessagingDestinationPublish -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixMetricJvmGcDuration -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixMetricJvmMemoryInit -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixMetricProcessDiskIo -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixNetworkCore -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixOpentracing -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixOtelLibrary -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixOtelScope -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixOtelSpan -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixPeer -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixProcessRuntime -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryAwsDynamodb -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryBrowser -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryClient -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryCloud -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryCloudevents -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryCode -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryContainer -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryDb -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryDeployment -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryDestination -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryDevice -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryDisk -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryDns -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryEnduser -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryError -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryFeatureFlag -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryFile -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryGcpCloudRun -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryGcpGce -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryHost -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryK8s -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryOciManifest -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryOs -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryProcess -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryRpc -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryServer -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryService -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistrySession -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistrySource -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryTelemetry -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryThread -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryTls -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryUrl -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRegistryUserAgent -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRpcJsonrpc -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixRpcMessage -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixSignalrCommonAttributes -> string
-static readonly OpenTelemetry.SemanticConventions.SemanticConventionsAttributes.PrefixWebengineResource -> string

@@ -48,15 +48,6 @@ namespace OpenTelemetry.SemanticConventions
   {% endif %}
         public const string Attribute{{attribute.fqn  | replace("-","_") | to_camelcase(True)}} = "{{attribute.fqn}}";
 {% endfor %}
-{% for semconv in semconvs.values() | unique(attribute="prefix") %}
-  {% if semconv.prefix %}
-
-        /// <summary>
-        /// Prefix for '{{semconv.semconv_id}}'.
-        /// </summary>
-        public static readonly string Prefix{{semconv.semconv_id | replace("-","_") | to_camelcase(True)}} = "{{semconv.prefix}}";
-  {% endif %}
-{% endfor %}
 {% for semconv in semconvs.values() %}
   {% if semconv.GROUP_TYPE_NAME == 'event' %}
 
