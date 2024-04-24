@@ -412,10 +412,7 @@ internal sealed class TlvMetricExporter : IDisposable
         var exemplarsCount = 0;
         foreach (ref readonly var exemplar in exemplars)
         {
-            if (exemplar.Timestamp != default)
-            {
-                exemplarsCount++;
-            }
+            exemplarsCount++;
         }
 
         if (exemplarsCount > 0)
@@ -430,11 +427,11 @@ internal sealed class TlvMetricExporter : IDisposable
 
             MetricSerializer.SerializeInt32AsBase128(buffer, ref bufferIndex, exemplarsCount);
 
-            foreach (var exemplar in exemplars)
+            foreach (ref readonly var exemplar in exemplars)
             {
                 if (exemplar.Timestamp != default)
                 {
-                    SerializeSingleExmeplar(exemplar, buffer, ref bufferIndex);
+                    SerializeSingleExemplar(exemplar, buffer, ref bufferIndex);
                 }
             }
 
@@ -444,7 +441,7 @@ internal sealed class TlvMetricExporter : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SerializeSingleExmeplar(Exemplar exemplar, byte[] buffer, ref int bufferIndex)
+    private static void SerializeSingleExemplar(Exemplar exemplar, byte[] buffer, ref int bufferIndex)
     {
         MetricSerializer.SerializeByte(buffer, ref bufferIndex, 0); // version
 
