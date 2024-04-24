@@ -13,6 +13,17 @@ for applications running in Google Cloud Platform environments.
 dotnet add package --prerelease OpenTelemetry.ResourceDetectors.Gcp
 ```
 
+```csharp
+using OpenTelemetry;
+using OpenTelemetry.ResourceDetectors.Gcp;
+using OpenTelemetry.Resources;
+
+var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    // other configurations
+    .ConfigureResource(resource => resource.AddDetector(new GcpResourceDetector()))
+    .Build();
+```
+
 ## Resource Attributes
 
 The following OpenTelemetry semantic conventions will be detected:
