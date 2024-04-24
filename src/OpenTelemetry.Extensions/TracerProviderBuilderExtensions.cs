@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Trace;
 
@@ -56,14 +57,7 @@ public static class TracerProviderBuilderExtensions
     public static TracerProviderBuilder AddBaggageActivityProcessor(
         this TracerProviderBuilder builder)
     {
-#if NET6_0_OR_GREATER
-        ArgumentNullException.ThrowIfNull(builder);
-#else
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-#endif
+        Guard.ThrowIfNull(builder);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
         return builder.AddProcessor(new BaggageActivityProcessor());
