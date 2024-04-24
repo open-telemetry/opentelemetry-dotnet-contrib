@@ -55,15 +55,7 @@ will appear in all outgoing HTTP headers from the application.
 Example of BaggageActivityProcessor:
 
 ```cs
-public static TracerProviderBuilder AddMyExporter(this TracerProviderBuilder builder, MyExporterOptions options)
-{
-    return builder
-        .AddProcessor(new BatchActivityExportProcessor(
-                    new MyExporter(options),
-                    options.BatchExportProcessorOptions.MaxQueueSize,
-                    options.BatchExportProcessorOptions.ScheduledDelayMilliseconds,
-                    options.BatchExportProcessorOptions.ExporterTimeoutMilliseconds,
-                    options.BatchExportProcessorOptions.MaxExportBatchSize))
-        .AddBaggageActivityProcessor();
-}
+var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .AddBaggageActivityProcessor()
+    .Build();
 ```
