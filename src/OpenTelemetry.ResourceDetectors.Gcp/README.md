@@ -28,13 +28,14 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 
 The following OpenTelemetry semantic conventions will be detected:
 
-|--------------------|------|------|------|------|
-| Resource Attribute | GKE  | GAE  | GCR  | GCE  |
-| cloud.provider     | gcp  | gcp  | gcp  | gcp  |
-| cloud.platform     | gcp_kubernetes_engine | gcp_app_engine | gcp_cloud_run | gcp_compute_engine |
-| cloud.account.id   | auto | auto | auto | auto |
-| cloud.zone         | auto |      | auto |      |
-| host.id            | auto |      |      | auto |
-| k8s.cluster.name   | auto |      |      |      |
-| k8s.namespace.name | auto |      |      |      |
-| k8s.pod.name       | auto |      |      |      |
+|-------------------------|------|------|------|------|
+| Resource Attribute      | GKE  | GAE  | GCR  | GCE  |
+| cloud.provider          | gcp  | gcp  | gcp  | gcp  |
+| cloud.platform          | gcp_kubernetes_engine | gcp_app_engine | gcp_cloud_run | gcp_compute_engine |
+| cloud.account.id        | auto | auto | auto | auto |
+| cloud.availability_zone | auto |      | auto | auto |
+| cloud.region            |      |      | auto |      |
+| host.id                 | auto |      |      | auto |
+| k8s.cluster.name        | auto |      |      |      |
+| k8s.namespace.name      | auto |      |      |      |
+| k8s.pod.name            | auto |      |      |      |

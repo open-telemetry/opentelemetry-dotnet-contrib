@@ -58,8 +58,9 @@ public sealed class GcpResourceDetector : IResourceDetector
         {
             new(ResourceSemanticConventions.AttributeCloudProvider, ResourceAttributeConstants.GcpCloudProviderValue),
             new(ResourceSemanticConventions.AttributeCloudAccount, platform.ProjectId),
+            new(ResourceSemanticConventions.AttributeCloudAvailabilityZone, platform.CloudRunDetails.Zone),
             new(ResourceSemanticConventions.AttributeCloudPlatform, ResourceAttributeConstants.GcpCloudRunPlatformValue),
-            new(ResourceSemanticConventions.AttributeCloudZone, platform.CloudRunDetails.Zone),
+            new(ResourceSemanticConventions.AttributeCloudRegion, platform.CloudRunDetails.Region),
         };
 
         return attributeList;
@@ -84,6 +85,7 @@ public sealed class GcpResourceDetector : IResourceDetector
             new(ResourceSemanticConventions.AttributeCloudAccount, platform.ProjectId),
             new(ResourceSemanticConventions.AttributeCloudPlatform, ResourceAttributeConstants.GcpGcePlatformValue),
             new(ResourceSemanticConventions.AttributeHostId, platform.GceDetails.InstanceId),
+            new(ResourceSemanticConventions.AttributeCloudAvailabilityZone, platform.GceDetails.Location),
         };
 
         return attributeList;

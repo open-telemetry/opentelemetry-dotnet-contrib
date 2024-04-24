@@ -51,11 +51,12 @@ public class GcpResourceDetectorTests
         var platform = new Platform(details);
         var attrs = GcpResourceDetector.ExtractCloudRunResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
         Assert.NotNull(attrs);
-        Assert.Equal(4, attrs.Count);
+        Assert.Equal(5, attrs.Count);
         Assert.Equal(ResourceAttributeConstants.GcpCloudProviderValue, attrs[ResourceSemanticConventions.AttributeCloudProvider]);
         Assert.Equal("projectId", attrs[ResourceSemanticConventions.AttributeCloudAccount]);
+        Assert.Equal("us-central1-a", attrs[ResourceSemanticConventions.AttributeCloudAvailabilityZone]);
         Assert.Equal(ResourceAttributeConstants.GcpCloudRunPlatformValue, attrs[ResourceSemanticConventions.AttributeCloudPlatform]);
-        Assert.Equal("us-central1-a", attrs[ResourceSemanticConventions.AttributeCloudZone]);
+        Assert.Equal("us-central1", attrs[ResourceSemanticConventions.AttributeCloudRegion]);
     }
 
     [Fact]
@@ -82,11 +83,11 @@ public class GcpResourceDetectorTests
             metadataJson: "json",
             projectId: "projectId",
             instanceId: "instanceId",
-            zoneName: "us-central1-a");
+            zoneName: "projects/12345/zones/us-central1-a");
         var platform = new Platform(details);
         var attrs = GcpResourceDetector.ExtractGceResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
         Assert.NotNull(attrs);
-        Assert.Equal(4, attrs.Count);
+        Assert.Equal(5, attrs.Count);
         Assert.Equal(ResourceAttributeConstants.GcpCloudProviderValue, attrs[ResourceSemanticConventions.AttributeCloudProvider]);
         Assert.Equal("projectId", attrs[ResourceSemanticConventions.AttributeCloudAccount]);
         Assert.Equal(ResourceAttributeConstants.GcpGcePlatformValue, attrs[ResourceSemanticConventions.AttributeCloudPlatform]);
