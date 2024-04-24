@@ -10,7 +10,7 @@ internal class SystemClock : Clock
 {
     private static readonly SystemClock Instance = new SystemClock();
 
-    private static readonly DateTime EpochStart = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTimeOffset EpochStart = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
     private SystemClock()
     {
@@ -21,9 +21,9 @@ internal class SystemClock : Clock
         return Instance;
     }
 
-    public override DateTime Now()
+    public override DateTimeOffset Now()
     {
-        return DateTime.UtcNow;
+        return DateTimeOffset.UtcNow;
     }
 
     public override long NowInMilliSeconds()
@@ -31,12 +31,12 @@ internal class SystemClock : Clock
         return (long)this.Now().ToUniversalTime().Subtract(EpochStart).TotalMilliseconds;
     }
 
-    public override DateTime ToDateTime(double seconds)
+    public override DateTimeOffset ToDateTime(double seconds)
     {
         return EpochStart.AddSeconds(seconds);
     }
 
-    public override double ToDouble(DateTime dateTime)
+    public override double ToDouble(DateTimeOffset dateTime)
     {
         var current = new TimeSpan(dateTime.ToUniversalTime().Ticks - EpochStart.Ticks);
         double timestamp = Math.Round(current.TotalMilliseconds, 0) / 1000.0;

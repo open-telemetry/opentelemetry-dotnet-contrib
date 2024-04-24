@@ -8,6 +8,9 @@
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
 * Update OpenTelemetry SDK version to `1.8.1`.
   ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
+* Replace `db.url` attribute with `url.full` to comply with [semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.25.0/docs/database/elasticsearch.md#attributes).
+  Redact `username` and `password` part of the `url.full`.
+  ([#1684](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1684))
 
 ## 1.0.0-beta.5
 
