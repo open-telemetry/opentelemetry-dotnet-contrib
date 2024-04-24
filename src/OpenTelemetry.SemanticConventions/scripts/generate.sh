@@ -23,7 +23,7 @@ cd ${SCRIPT_DIR}
 docker run --rm \
   -v ${SCRIPT_DIR}/semantic-conventions/model:/source \
   -v ${SCRIPT_DIR}/templates:/templates \
-  -v ${ROOT_DIR}:/output \
+  -v ${ROOT_DIR}/Attributes:/output \
   otel/semconvgen:$GENERATOR_VERSION \
   -f /source code \
   --template /templates/SemanticConventionsAttributes.cs.j2 \
