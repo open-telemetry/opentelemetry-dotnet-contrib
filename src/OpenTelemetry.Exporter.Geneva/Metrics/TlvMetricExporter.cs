@@ -429,10 +429,7 @@ internal sealed class TlvMetricExporter : IDisposable
 
             foreach (ref readonly var exemplar in exemplars)
             {
-                if (exemplar.Timestamp != default)
-                {
-                    SerializeSingleExemplar(exemplar, buffer, ref bufferIndex);
-                }
+                SerializeSingleExemplar(exemplar, buffer, ref bufferIndex);
             }
 
             var payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
