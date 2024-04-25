@@ -596,7 +596,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         {
             var ex = await Assert.ThrowsAnyAsync<Exception>(() =>
             {
-                // https://expired.badssl.com/ has an expired certificae.
+                // https://expired.badssl.com/ has an expired certificate.
                 return method == "GET"
                     ? client.GetAsync(url)
                     : client.PostAsync(url, new StringContent("hello world"));
