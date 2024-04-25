@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Unit test project for OpenTelemetry SqlClient instrumentations</Description>
+    <TargetFrameworks>net8.0;net7.0;net6.0</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs" />
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\EnabledOnDockerPlatformTheoryAttribute.cs" Link="Includes\EnabledOnDockerPlatformTheoryAttribute.cs" />
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\SkipUnlessEnvVarFoundTheoryAttribute.cs" Link="Includes\SkipUnlessEnvVarFoundTheoryAttribute.cs" />
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\EventSourceTestHelper.cs" Link="Includes\EventSourceTestHelper.cs" />
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestEventListener.cs" Link="Includes\TestEventListener.cs" />
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestSampler.cs" Link="Includes\TestSampler.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.3" />
+    <PackageReference Include="Testcontainers.MsSql" Version="3.6.0" />
+    <PackageReference Include="Testcontainers.SqlEdge" Version="3.6.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.SqlClient\OpenTelemetry.Instrumentation.SqlClient.csproj" />
+  </ItemGroup>
+
+</Project>

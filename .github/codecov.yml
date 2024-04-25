@@ -78,6 +78,11 @@ flags:
     paths:
       - src/OpenTelemetry.Instrumentation.Runtime
 
+  unittests-Instrumentation.SqlClient:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.SqlClient
+
   unittests-Instrumentation.StackExchangeRedis:
     carryforward: true
     paths:
@@ -113,3 +118,8 @@ flags:
     carryforward: true
     paths:
       - src/OpenTelemetry.ResourceDetectors.ProcessRuntime
+
+  unittests-SemanticConventions:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.SemanticConventions
