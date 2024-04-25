@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using System.Globalization;
 #if NETFRAMEWORK
 using System.Net.Http;
 #endif
 #if !NET8_0_OR_GREATER
+using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
 #endif
