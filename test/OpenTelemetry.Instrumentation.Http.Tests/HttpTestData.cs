@@ -8,11 +8,13 @@ namespace OpenTelemetry.Instrumentation.Http.Tests;
 
 public static class HttpTestData
 {
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
     public static IEnumerable<object[]> ReadTestCases()
     {
         var assembly = Assembly.GetExecutingAssembly();
         var input = JsonSerializer.Deserialize<HttpOutTestCase[]>(
-            assembly.GetManifestResourceStream("OpenTelemetry.Instrumentation.Http.Tests.http-out-test-cases.json"), new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            assembly.GetManifestResourceStream("OpenTelemetry.Instrumentation.Http.Tests.http-out-test-cases.json"), JsonSerializerOptions);
         return GetArgumentsFromTestCaseObject(input);
     }
 

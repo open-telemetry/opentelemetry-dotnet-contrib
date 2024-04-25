@@ -14,6 +14,8 @@ namespace OpenTelemetry.Instrumentation.Http.Tests;
 
 public partial class HttpWebRequestTests
 {
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
     public static IEnumerable<object[]> TestData => HttpTestData.ReadTestCases();
 
     [Theory]
@@ -175,7 +177,7 @@ public partial class HttpWebRequestTests
                 }
               }
             ",
-        new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        JsonSerializerOptions);
         this.HttpOutCallsAreCollectedSuccessfully(input);
     }
 
