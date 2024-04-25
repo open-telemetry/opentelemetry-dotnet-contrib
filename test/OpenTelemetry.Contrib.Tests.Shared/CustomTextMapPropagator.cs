@@ -12,8 +12,6 @@ namespace OpenTelemetry.Tests;
 
 internal sealed class CustomTextMapPropagator : TextMapPropagator
 {
-    private static readonly PropagationContext DefaultPropagationContext;
-
     public ActivityTraceId TraceId { get; set; }
 
     public ActivitySpanId SpanId { get; set; }
@@ -40,7 +38,7 @@ internal sealed class CustomTextMapPropagator : TextMapPropagator
                 default);
         }
 
-        return DefaultPropagationContext;
+        return default;
     }
 
     public override void Inject<T>(PropagationContext context, T carrier, Action<T, string, string> setter)
