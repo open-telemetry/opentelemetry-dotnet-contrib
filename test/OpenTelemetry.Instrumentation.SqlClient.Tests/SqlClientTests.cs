@@ -34,8 +34,8 @@ public class SqlClientTests : IDisposable
     [Fact]
     public void SqlClient_BadArgs()
     {
-        TracerProviderBuilder builder = null;
-        Assert.Throws<ArgumentNullException>(() => builder.AddSqlClientInstrumentation());
+        TracerProviderBuilder? builder = null;
+        Assert.Throws<ArgumentNullException>(() => builder!.AddSqlClientInstrumentation());
     }
 
     [Fact]
@@ -377,6 +377,7 @@ public class SqlClientTests : IDisposable
         Assert.Contains(
             samplingParameters.Tags,
             kvp => kvp.Key == SemanticConventions.AttributeDbSystem
+                   && kvp.Value != null
                    && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName);
     }
 

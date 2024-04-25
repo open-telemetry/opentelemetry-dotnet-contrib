@@ -24,7 +24,7 @@ public class SqlEventSourceTests
      */
 
     private const string SqlConnectionStringEnvVarName = "OTEL_SQLCONNECTIONSTRING";
-    private static readonly string SqlConnectionString = SkipUnlessEnvVarFoundTheoryAttribute.GetEnvironmentVariable(SqlConnectionStringEnvVarName);
+    private static readonly string? SqlConnectionString = SkipUnlessEnvVarFoundTheoryAttribute.GetEnvironmentVariable(SqlConnectionStringEnvVarName);
 
     [Trait("CategoryName", "SqlIntegrationTests")]
     [SkipUnlessEnvVarFoundTheory(SqlConnectionStringEnvVarName)]
@@ -43,6 +43,7 @@ public class SqlEventSourceTests
             })
             .Build();
 
+        Assert.NotNull(SqlConnectionString);
         using SqlConnection sqlConnection = new SqlConnection(SqlConnectionString);
 
         await sqlConnection.OpenAsync();
@@ -338,7 +339,7 @@ public class SqlEventSourceTests
         [Event(3)]
         public void WriteUnknownEventWithNullPayload()
         {
-            object[] args = null;
+            object[]? args = null;
 
             this.WriteEvent(3, args);
         }
@@ -362,7 +363,7 @@ public class SqlEventSourceTests
         [Event(3)]
         public void WriteUnknownEventWithNullPayload()
         {
-            object[] args = null;
+            object[]? args = null;
 
             this.WriteEvent(3, args);
         }

@@ -407,7 +407,7 @@ internal sealed class TlvMetricExporter : IDisposable
 
 #if EXPOSE_EXPERIMENTAL_FEATURES
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SerializeExemplars(ReadOnlyExemplarCollection exemplars, byte[] buffer, ref int bufferIndex)
+    private static void SerializeExemplars(in ReadOnlyExemplarCollection exemplars, byte[] buffer, ref int bufferIndex)
     {
         var exemplarsCount = 0;
         foreach (ref readonly var exemplar in exemplars)
