@@ -466,7 +466,7 @@ public partial class HttpClientTests
             .Build())
         {
             using var c = new HttpClient();
-            using var r = await c.GetAsync(url);
+            using var r = await c.GetAsync(new Uri(url));
         }
 
         if (enrichExpected)

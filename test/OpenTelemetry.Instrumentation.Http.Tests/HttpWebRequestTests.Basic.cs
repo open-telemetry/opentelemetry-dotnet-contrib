@@ -108,7 +108,7 @@ public partial class HttpWebRequestTests : IDisposable
                 })
             .Build();
 
-        var request = (HttpWebRequest)WebRequest.Create($"{this.url}?bypassHeaderCheck=true");
+        var request = (HttpWebRequest)WebRequest.Create(new Uri($"{this.url}?bypassHeaderCheck=true"));
 
         request.Method = "GET";
 
@@ -142,7 +142,7 @@ public partial class HttpWebRequestTests : IDisposable
 
         using (var inMemoryEventListener = new InMemoryEventListener(HttpInstrumentationEventSource.Log))
         {
-            var request = (HttpWebRequest)WebRequest.Create($"{this.url}?bypassHeaderCheck=true");
+            var request = (HttpWebRequest)WebRequest.Create(new Uri($"{this.url}?bypassHeaderCheck=true"));
 
             request.Method = "GET";
 
@@ -163,7 +163,7 @@ public partial class HttpWebRequestTests : IDisposable
             .AddHttpClientInstrumentation()
             .Build();
 
-        var request = (HttpWebRequest)WebRequest.Create(this.url);
+        var request = (HttpWebRequest)WebRequest.Create(new Uri(this.url));
 
         request.Method = "GET";
 
@@ -237,7 +237,7 @@ public partial class HttpWebRequestTests : IDisposable
                 parentContext = parent.Context;
             }
 
-            var request = (HttpWebRequest)WebRequest.Create(this.url);
+            var request = (HttpWebRequest)WebRequest.Create(new Uri(this.url));
 
             request.Method = "GET";
 
@@ -308,7 +308,7 @@ public partial class HttpWebRequestTests : IDisposable
 
         try
         {
-            var request = (HttpWebRequest)WebRequest.Create("https://sdlfaldfjalkdfjlkajdflkajlsdjf.sdlkjafsdjfalfadslkf.com/");
+            var request = (HttpWebRequest)WebRequest.Create(new Uri("https://sdlfaldfjalkdfjlkajdflkajlsdjf.sdlkjafsdjfalfadslkf.com/"));
 
             request.Method = "GET";
 
@@ -337,7 +337,7 @@ public partial class HttpWebRequestTests : IDisposable
 
         try
         {
-            var request = (HttpWebRequest)WebRequest.Create($"{this.url}500");
+            var request = (HttpWebRequest)WebRequest.Create(new Uri($"{this.url}500"));
 
             request.Method = "GET";
 

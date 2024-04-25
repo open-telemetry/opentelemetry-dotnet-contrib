@@ -503,7 +503,7 @@ public partial class HttpClientTests : IDisposable
             .Build())
         {
             using var c = new HttpClient();
-            await c.GetAsync($"{this.url}redirect");
+            await c.GetAsync(new Uri($"{this.url}redirect"));
         }
 
 #if NETFRAMEWORK
@@ -548,7 +548,7 @@ public partial class HttpClientTests : IDisposable
             .Build())
         {
             using var c = new HttpClient();
-            await c.GetAsync(this.url);
+            await c.GetAsync(new Uri(this.url));
         }
 
 #if NETFRAMEWORK
@@ -579,7 +579,7 @@ public partial class HttpClientTests : IDisposable
         {
             using var c = new HttpClient();
             using var inMemoryEventListener = new InMemoryEventListener(HttpInstrumentationEventSource.Log);
-            await c.GetAsync(this.url);
+            await c.GetAsync(new Uri(this.url));
             Assert.Single(inMemoryEventListener.Events.Where((e) => e.EventId == 4));
         }
 
@@ -600,7 +600,7 @@ public partial class HttpClientTests : IDisposable
         using var c = new HttpClient();
         try
         {
-            await c.GetAsync("https://sdlfaldfjalkdfjlkajdflkajlsdjf.sdlkjafsdjfalfadslkf.com/");
+            await c.GetAsync(new Uri("https://sdlfaldfjalkdfjlkajdflkajlsdjf.sdlkjafsdjfalfadslkf.com/"));
         }
         catch
         {
@@ -626,7 +626,7 @@ public partial class HttpClientTests : IDisposable
         using var c = new HttpClient();
         try
         {
-            await c.GetAsync($"{this.url}500");
+            await c.GetAsync(new Uri($"{this.url}500"));
         }
         catch
         {
@@ -657,7 +657,7 @@ public partial class HttpClientTests : IDisposable
         using var c = new HttpClient();
         try
         {
-            await c.GetStringAsync($"{this.url}500");
+            await c.GetStringAsync(new Uri($"{this.url}500"));
         }
         catch
         {
@@ -717,7 +717,7 @@ public partial class HttpClientTests : IDisposable
         using var c = new HttpClient();
         try
         {
-            await c.GetStringAsync($"{this.url}path{urlQuery}");
+            await c.GetStringAsync(new Uri($"{this.url}path{urlQuery}"));
         }
         catch
         {

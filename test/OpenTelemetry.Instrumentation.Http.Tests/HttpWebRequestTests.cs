@@ -53,7 +53,7 @@ public partial class HttpWebRequestTests
 
         try
         {
-            var request = (HttpWebRequest)WebRequest.Create(tc.Url);
+            var request = (HttpWebRequest)WebRequest.Create(new Uri(tc.Url));
 
             request.Method = tc.Method;
 

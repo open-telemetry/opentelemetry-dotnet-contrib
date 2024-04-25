@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
+using System.Security.Policy;
 using OpenTelemetry.Instrumentation.Http.Implementation;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
@@ -144,7 +145,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         // Send a random Http request to generate some events
         using (var client = new HttpClient())
         {
-            (await client.GetAsync(this.BuildRequestUrl())).Dispose();
+            (await client.GetAsync(new Uri(this.BuildRequestUrl()))).Dispose();
         }
 
         // Just make sure some events are written, to confirm we successfully subscribed to it.
@@ -169,8 +170,8 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         using (var client = new HttpClient())
         {
             (method == "GET"
-                ? await client.GetAsync(url)
-                : await client.PostAsync(url, new StringContent("hello world"))).Dispose();
+                ? await client.GetAsync(new Uri(url))
+                : await client.PostAsync(new Uri(url), new StringContent("hello world"))).Dispose();
         }
 
         // We should have exactly one Start and one Stop event
@@ -200,8 +201,8 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         using (var client = new HttpClient())
         {
             (method == "GET"
-                ? await client.GetAsync(this.BuildRequestUrl())
-                : await client.PostAsync(this.BuildRequestUrl(), new StringContent("hello world"))).Dispose();
+                ? await client.GetAsync(new Uri(this.BuildRequestUrl()))
+                : await client.PostAsync(new Uri(this.BuildRequestUrl()), new StringContent("hello world"))).Dispose();
         }
 
         // There should be no events because we turned off sampling.
@@ -224,7 +225,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         using var eventRecords = new ActivitySourceRecorder();
 
         // Send a random Http request to generate some events
-        var webRequest = (HttpWebRequest)WebRequest.Create(url);
+        var webRequest = (HttpWebRequest)WebRequest.Create(new Uri(url));
 
         if (method == "POST")
         {
@@ -386,7 +387,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
             // Send a random Http request to generate some events
             using (var client = new HttpClient())
             {
-                (await client.GetAsync(this.BuildRequestUrl())).Dispose();
+                (await client.GetAsync(new Uri(this.BuildRequestUrl()))).Dispose();
             }
 
             parent.Stop();
@@ -455,8 +456,8 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         using (var client = new HttpClient())
         {
             using HttpResponseMessage response = method == "GET"
-                ? await client.GetAsync(url)
-                : await client.PostAsync(url, new StringContent("hello world"));
+                ? await client.GetAsync(new Uri(url))
+                : await client.PostAsync(new Uri(url), new StringContent("hello world"));
         }
 
         // We should have exactly one Start and one Stop event
@@ -488,8 +489,8 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         using (var client = new HttpClient())
         {
             using HttpResponseMessage response = method == "GET"
-                ? await client.GetAsync(this.BuildRequestUrl(queryString: "redirects=10"))
-                : await client.PostAsync(this.BuildRequestUrl(queryString: "redirects=10"), new StringContent("hello world"));
+                ? await client.GetAsync(new Uri(this.BuildRequestUrl(queryString: "redirects=10")))
+                : await client.PostAsync(new Uri(this.BuildRequestUrl(queryString: "redirects=10")), new StringContent("hello world"));
         }
 
         // We should have exactly one Start and one Stop event
@@ -516,8 +517,8 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         var ex = await Assert.ThrowsAsync<HttpRequestException>(() =>
         {
             return method == "GET"
-                ? new HttpClient().GetAsync(url)
-                : new HttpClient().PostAsync(url, new StringContent("hello world"));
+                ? new HttpClient().GetAsync(new Uri(url))
+                : new HttpClient().PostAsync(new Uri(url), new StringContent("hello world"));
         });
 
         // check that request failed because of the wrong domain name and not because of reflection
@@ -559,8 +560,8 @@ public class HttpWebRequestActivitySourceTests : IDisposable
             var ex = await Assert.ThrowsAnyAsync<Exception>(() =>
             {
                 return method == "GET"
-                    ? client.GetAsync(url, cts.Token)
-                    : client.PostAsync(url, new StringContent("hello world"), cts.Token);
+                    ? client.GetAsync(new Uri(url), cts.Token)
+                    : client.PostAsync(new Uri(url), new StringContent("hello world"), cts.Token);
             });
             Assert.True(ex is TaskCanceledException || ex is WebException);
         }
@@ -598,8 +599,8 @@ public class HttpWebRequestActivitySourceTests : IDisposable
             {
                 // https://expired.badssl.com/ has an expired certificate.
                 return method == "GET"
-                    ? client.GetAsync(url)
-                    : client.PostAsync(url, new StringContent("hello world"));
+                    ? client.GetAsync(new Uri(url))
+                    : client.PostAsync(new Uri(url), new StringContent("hello world"));
             });
             Assert.True(ex is HttpRequestException);
         }
@@ -640,8 +641,8 @@ public class HttpWebRequestActivitySourceTests : IDisposable
             var ex = await Assert.ThrowsAnyAsync<Exception>(() =>
             {
                 return method == "GET"
-                    ? client.GetAsync(url)
-                    : client.PostAsync(url, new StringContent("hello world"));
+                    ? client.GetAsync(new Uri(url))
+                    : client.PostAsync(new Uri(url), new StringContent("hello world"));
             });
             Assert.True(ex is HttpRequestException);
         }
@@ -674,7 +675,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
 
         using (var client = new HttpClient())
         {
-            (await client.GetAsync(this.BuildRequestUrl())).Dispose();
+            (await client.GetAsync(new Uri(this.BuildRequestUrl()))).Dispose();
         }
 
         Assert.Equal(2, eventRecords.Records.Count());
