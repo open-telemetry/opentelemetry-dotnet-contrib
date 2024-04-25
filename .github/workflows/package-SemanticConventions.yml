@@ -1,0 +1,21 @@
+name: Pack OpenTelemetry.SemanticConventions
+
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+  push:
+    tags:
+      - 'SemanticConventions-*' # trigger when we create a tag with prefix "SemanticConventions-"
+
+jobs:
+  call-build-test-pack:
+    permissions:
+      contents: write
+    uses: ./.github/workflows/Component.Package.yml
+    with:
+      project-name: OpenTelemetry.SemanticConventions
+    secrets: inherit
