@@ -18,7 +18,7 @@ internal sealed class CustomTextMapPropagator : TextMapPropagator
 
     public ActivitySpanId SpanId { get; set; }
 
-    public Action<PropagationContext> Injected { get; set; }
+    public Action<PropagationContext>? Injected { get; set; }
 
     public override ISet<string>? Fields => null;
 
