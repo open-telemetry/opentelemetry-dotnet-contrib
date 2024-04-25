@@ -392,7 +392,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
 
             parent.Stop();
 
-            Assert.Equal(2, eventRecords.Records.Count());
+            Assert.Equal(2, eventRecords.Records.Count);
 
             // Check to make sure: The first record must be a request, the next record must be a response.
             _ = AssertFirstEventWasStart(eventRecords);
@@ -494,7 +494,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         }
 
         // We should have exactly one Start and one Stop event
-        Assert.Equal(2, eventRecords.Records.Count());
+        Assert.Equal(2, eventRecords.Records.Count);
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Start"));
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Stop"));
     }
@@ -527,7 +527,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.True(webException.Status == WebExceptionStatus.NameResolutionFailure);
 
         // We should have one Start event and one Stop event with an exception.
-        Assert.Equal(2, eventRecords.Records.Count());
+        Assert.Equal(2, eventRecords.Records.Count);
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Start"));
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Stop"));
 
@@ -567,7 +567,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         }
 
         // We should have one Start event and one Stop event with an exception.
-        Assert.Equal(2, eventRecords.Records.Count());
+        Assert.Equal(2, eventRecords.Records.Count);
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Start"));
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Stop"));
 
@@ -606,7 +606,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         }
 
         // We should have one Start event and one Stop event with an exception.
-        Assert.Equal(2, eventRecords.Records.Count());
+        Assert.Equal(2, eventRecords.Records.Count);
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Start"));
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Stop"));
 
@@ -648,7 +648,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         }
 
         // We should have one Start event and one Stop event with an exception.
-        Assert.Equal(2, eventRecords.Records.Count());
+        Assert.Equal(2, eventRecords.Records.Count);
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Start"));
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Stop"));
 
@@ -678,7 +678,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
             (await client.GetAsync(new Uri(this.BuildRequestUrl()))).Dispose();
         }
 
-        Assert.Equal(2, eventRecords.Records.Count());
+        Assert.Equal(2, eventRecords.Records.Count);
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Start"));
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Stop"));
 

@@ -156,12 +156,12 @@ public partial class HttpClientTests
 
         if (tc.ResponseExpected)
         {
-            Assert.Equal(6, requestMetrics.Count());
+            Assert.Equal(6, requestMetrics.Length);
         }
         else
         {
             // http.client.connection.duration and http.client.open_connections will not be emitted.
-            Assert.Equal(4, requestMetrics.Count());
+            Assert.Equal(4, requestMetrics.Length);
         }
     }
 #endif

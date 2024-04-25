@@ -67,7 +67,7 @@ public partial class HttpWebRequestTests : IDisposable
             .AddHttpClientInstrumentation()
             .Build();
 
-        var request = (HttpWebRequest)WebRequest.Create(this.url);
+        var request = (HttpWebRequest)WebRequest.Create(new Uri(this.url));
 
         request.Method = "GET";
 
