@@ -472,8 +472,10 @@ internal static class HttpWebRequestActivitySource
             connectionListField == null ||
             connectionType == null ||
             writeListField == null ||
+#pragma warning disable CA1508 // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1693
             writeAResultAccessor == null ||
             readAResultAccessor == null ||
+#pragma warning restore CA1508 // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1693
             !PrepareAsyncResultReflectionObjects(systemNetHttpAssembly) ||
             !PrepareHttpWebResponseReflectionObjects(systemNetHttpAssembly))
         {
@@ -545,6 +547,7 @@ internal static class HttpWebRequestActivitySource
         connectionGroupNameAccessor = CreateFieldGetter<HttpWebResponse, string>("m_ConnectionGroupName", BindingFlags.NonPublic | BindingFlags.Instance);
 
         return httpWebResponseCtor != null
+#pragma warning disable CA1508 // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1693
             && uriAccessor != null
             && verbAccessor != null
             && mediaTypeAccessor != null
@@ -552,6 +555,7 @@ internal static class HttpWebRequestActivitySource
             && coreResponseDataAccessor != null
             && isWebSocketResponseAccessor != null
             && connectionGroupNameAccessor != null;
+#pragma warning restore CA1508 // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1693
     }
 
     private static void PerformInjection()
