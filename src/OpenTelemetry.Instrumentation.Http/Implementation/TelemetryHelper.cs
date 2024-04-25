@@ -8,16 +8,7 @@ namespace OpenTelemetry.Instrumentation.Http.Implementation;
 
 internal static class TelemetryHelper
 {
-    public static readonly (object, string)[] BoxedStatusCodes;
-
-    static TelemetryHelper()
-    {
-        BoxedStatusCodes = new (object, string)[500];
-        for (int i = 0, c = 100; i < BoxedStatusCodes.Length; i++, c++)
-        {
-            BoxedStatusCodes[i] = (c, c.ToString(CultureInfo.InvariantCulture));
-        }
-    }
+    public static readonly (object, string)[] BoxedStatusCodes = InitializeBoxedStatusCodes();
 
     public static object GetBoxedStatusCode(HttpStatusCode statusCode)
     {
@@ -39,5 +30,16 @@ internal static class TelemetryHelper
         }
 
         return statusCode.ToString();
+    }
+
+    private static (object, string)[] InitializeBoxedStatusCodes()
+    {
+        var boxedStatusCodes = new (object, string)[500];
+        for (int i = 0, c = 100; i < boxedStatusCodes.Length; i++, c++)
+        {
+            boxedStatusCodes[i] = (c, c.ToString(CultureInfo.InvariantCulture));
+        }
+
+        return boxedStatusCodes;
     }
 }

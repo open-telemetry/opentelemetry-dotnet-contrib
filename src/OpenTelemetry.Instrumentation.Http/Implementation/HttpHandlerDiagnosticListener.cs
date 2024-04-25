@@ -22,7 +22,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 #endif
 
     internal static readonly AssemblyName AssemblyName = typeof(HttpHandlerDiagnosticListener).Assembly.GetName();
-    internal static readonly bool IsNet7OrGreater;
+    internal static readonly bool IsNet7OrGreater = InitializeIsNet7OrGreater();
 
     // https://github.com/dotnet/runtime/blob/7d034ddbbbe1f2f40c264b323b3ed3d6b3d45e9a/src/libraries/System.Net.Http/src/System/Net/Http/DiagnosticsHandler.cs#L19
     internal static readonly string ActivitySourceName = AssemblyName.Name + ".HttpClient";
@@ -38,18 +38,6 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
     private static readonly PropertyFetcher<Exception> StopExceptionFetcher = new("Exception");
     private static readonly PropertyFetcher<TaskStatus> StopRequestStatusFetcher = new("RequestTaskStatus");
     private readonly HttpClientTraceInstrumentationOptions options;
-
-    static HttpHandlerDiagnosticListener()
-    {
-        try
-        {
-            IsNet7OrGreater = typeof(HttpClient).Assembly.GetName().Version.Major >= 7;
-        }
-        catch (Exception)
-        {
-            IsNet7OrGreater = false;
-        }
-    }
 
     public HttpHandlerDiagnosticListener(HttpClientTraceInstrumentationOptions options)
         : base("HttpHandlerDiagnosticListener")
@@ -336,5 +324,17 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
         }
 #endif
         return exc.GetType().FullName;
+    }
+
+    private static bool InitializeIsNet7OrGreater()
+    {
+        try
+        {
+            return typeof(HttpClient).Assembly.GetName().Version.Major >= 7;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 }
