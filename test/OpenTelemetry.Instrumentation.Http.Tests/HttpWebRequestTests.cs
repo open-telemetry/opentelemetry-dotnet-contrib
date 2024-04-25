@@ -20,7 +20,7 @@ public partial class HttpWebRequestTests
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public void HttpOutCallsAreCollectedSuccessfully(HttpTestData.HttpOutTestCase tc)
+    public void HttpOutCallsAreCollectedSuccessfully(HttpOutTestCase tc)
     {
         using var serverLifeTime = TestHttpServer.RunServer(
             (ctx) =>
@@ -155,7 +155,7 @@ public partial class HttpWebRequestTests
     [Fact]
     public void DebugIndividualTest()
     {
-        var input = JsonSerializer.Deserialize<HttpTestData.HttpOutTestCase>(
+        var input = JsonSerializer.Deserialize<HttpOutTestCase>(
         @"
              {
                 ""name"": ""Http version attribute populated"",

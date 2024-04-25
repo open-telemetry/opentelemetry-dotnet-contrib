@@ -26,7 +26,7 @@ public partial class HttpClientTests
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task HttpOutCallsAreCollectedSuccessfullyTracesAndMetricsSemanticConventionsAsync(HttpTestData.HttpOutTestCase tc)
+    public async Task HttpOutCallsAreCollectedSuccessfullyTracesAndMetricsSemanticConventionsAsync(HttpOutTestCase tc)
     {
         await HttpOutCallsAreCollectedSuccessfullyBodyAsync(
             this.host,
@@ -38,7 +38,7 @@ public partial class HttpClientTests
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task HttpOutCallsAreCollectedSuccessfullyMetricsOnlyAsync(HttpTestData.HttpOutTestCase tc)
+    public async Task HttpOutCallsAreCollectedSuccessfullyMetricsOnlyAsync(HttpOutTestCase tc)
     {
         await HttpOutCallsAreCollectedSuccessfullyBodyAsync(
             this.host,
@@ -50,7 +50,7 @@ public partial class HttpClientTests
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task HttpOutCallsAreCollectedSuccessfullyTracesOnlyAsync(HttpTestData.HttpOutTestCase tc)
+    public async Task HttpOutCallsAreCollectedSuccessfullyTracesOnlyAsync(HttpOutTestCase tc)
     {
         await HttpOutCallsAreCollectedSuccessfullyBodyAsync(
             this.host,
@@ -62,7 +62,7 @@ public partial class HttpClientTests
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task HttpOutCallsAreCollectedSuccessfullyNoSignalsAsync(HttpTestData.HttpOutTestCase tc)
+    public async Task HttpOutCallsAreCollectedSuccessfullyNoSignalsAsync(HttpOutTestCase tc)
     {
         await HttpOutCallsAreCollectedSuccessfullyBodyAsync(
             this.host,
@@ -76,7 +76,7 @@ public partial class HttpClientTests
     [Fact]
     public async Task DebugIndividualTestAsync()
     {
-        var input = JsonSerializer.Deserialize<HttpTestData.HttpOutTestCase[]>(
+        var input = JsonSerializer.Deserialize<HttpOutTestCase[]>(
             @"
                 [
                   {
@@ -117,7 +117,7 @@ public partial class HttpClientTests
 #if NET8_0_OR_GREATER
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task ValidateNet8MetricsAsync(HttpTestData.HttpOutTestCase tc)
+    public async Task ValidateNet8MetricsAsync(HttpOutTestCase tc)
     {
         var metrics = new List<Metric>();
         var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -174,7 +174,7 @@ public partial class HttpClientTests
     private static async Task HttpOutCallsAreCollectedSuccessfullyBodyAsync(
         string host,
         int port,
-        HttpTestData.HttpOutTestCase tc,
+        HttpOutTestCase tc,
         bool enableTracing,
         bool enableMetrics)
     {

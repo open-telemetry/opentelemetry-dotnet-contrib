@@ -14,7 +14,8 @@ public static class HttpTestData
     {
         var assembly = Assembly.GetExecutingAssembly();
         var input = JsonSerializer.Deserialize<HttpOutTestCase[]>(
-            assembly.GetManifestResourceStream("OpenTelemetry.Instrumentation.Http.Tests.http-out-test-cases.json"), JsonSerializerOptions);
+            assembly.GetManifestResourceStream("OpenTelemetry.Instrumentation.Http.Tests.http-out-test-cases.json"),
+            JsonSerializerOptions);
         return GetArgumentsFromTestCaseObject(input);
     }
 
@@ -39,28 +40,5 @@ public static class HttpTestData
             .Replace("{host}", host)
             .Replace("{port}", port.ToString())
             .Replace("{flavor}", "1.1");
-    }
-
-    public class HttpOutTestCase
-    {
-        public string Name { get; set; }
-
-        public string Method { get; set; }
-
-        public string Url { get; set; }
-
-        public Dictionary<string, string> Headers { get; set; }
-
-        public int ResponseCode { get; set; }
-
-        public string SpanName { get; set; }
-
-        public bool ResponseExpected { get; set; }
-
-        public bool? RecordException { get; set; }
-
-        public string SpanStatus { get; set; }
-
-        public Dictionary<string, string> SpanAttributes { get; set; }
     }
 }
