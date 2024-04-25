@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Globalization;
 using System.Net;
 
 namespace OpenTelemetry.Instrumentation.Http.Implementation;
@@ -14,7 +15,7 @@ internal static class TelemetryHelper
         BoxedStatusCodes = new (object, string)[500];
         for (int i = 0, c = 100; i < BoxedStatusCodes.Length; i++, c++)
         {
-            BoxedStatusCodes[i] = (c, c.ToString());
+            BoxedStatusCodes[i] = (c, c.ToString(CultureInfo.InvariantCulture));
         }
     }
 
