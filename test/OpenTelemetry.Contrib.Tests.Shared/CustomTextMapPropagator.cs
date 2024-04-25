@@ -12,7 +12,7 @@ namespace OpenTelemetry.Tests;
 
 internal sealed class CustomTextMapPropagator : TextMapPropagator
 {
-    private static readonly PropagationContext DefaultPropagationContext = default;
+    private static readonly PropagationContext DefaultPropagationContext;
 
     public ActivityTraceId TraceId { get; set; }
 
