@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Web;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
@@ -50,7 +51,7 @@ internal sealed class HttpInMetricsListener : IDisposable
         var normalizedMethod = this.requestDataHelper.GetNormalizedHttpMethod(request.HttpMethod);
         tags.Add(SemanticConventions.AttributeHttpRequestMethod, normalizedMethod);
 
-        var protocolVersion = RequestDataHelper.GetHttpProtocolVersion(request);
+        var protocolVersion = RequestDataHelperExtensions.GetHttpProtocolVersion(request);
         if (!string.IsNullOrEmpty(protocolVersion))
         {
             tags.Add(SemanticConventions.AttributeNetworkProtocolVersion, protocolVersion);

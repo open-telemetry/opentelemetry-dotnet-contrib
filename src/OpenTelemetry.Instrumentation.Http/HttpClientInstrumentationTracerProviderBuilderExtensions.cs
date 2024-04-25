@@ -49,7 +49,7 @@ public static class HttpClientInstrumentationTracerProviderBuilderExtensions
 
         // Note: Warm-up the status code and method mapping.
         _ = TelemetryHelper.BoxedStatusCodes;
-        _ = RequestMethodHelper.KnownMethods;
+        _ = HttpTagHelper.RequestDataHelper;
 
         name ??= Options.DefaultName;
 

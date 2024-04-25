@@ -95,12 +95,12 @@ internal static class HttpWebRequestActivitySource
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void AddRequestTagsAndInstrumentRequest(HttpWebRequest request, Activity activity)
     {
-        RequestMethodHelper.SetActivityDisplayName(activity, request.Method);
+        HttpTagHelper.RequestDataHelper.SetActivityDisplayName(activity, request.Method);
 
         if (activity.IsAllDataRequested)
         {
             // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-spans.md
-            RequestMethodHelper.SetHttpMethodTag(activity, request.Method);
+            HttpTagHelper.RequestDataHelper.SetHttpMethodTag(activity, request.Method);
 
             activity.SetTag(SemanticConventions.AttributeServerAddress, request.RequestUri.Host);
             activity.SetTag(SemanticConventions.AttributeServerPort, request.RequestUri.Port);
@@ -125,7 +125,7 @@ internal static class HttpWebRequestActivitySource
 
         if (activity.IsAllDataRequested)
         {
-            activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, HttpTagHelper.GetProtocolVersionString(response.ProtocolVersion));
+            activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, RequestDataHelper.GetHttpProtocolVersion(response.ProtocolVersion));
             activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode));
 
             try
@@ -422,14 +422,14 @@ internal static class HttpWebRequestActivitySource
 
             TagList tags = default;
 
-            var httpMethod = RequestMethodHelper.GetNormalizedHttpMethod(request.Method);
+            var httpMethod = HttpTagHelper.RequestDataHelper.GetNormalizedHttpMethod(request.Method);
             tags.Add(new KeyValuePair<string, object>(SemanticConventions.AttributeHttpRequestMethod, httpMethod));
 
             tags.Add(SemanticConventions.AttributeServerAddress, request.RequestUri.Host);
             tags.Add(SemanticConventions.AttributeUrlScheme, request.RequestUri.Scheme);
             if (protocolVersion != null)
             {
-                tags.Add(SemanticConventions.AttributeNetworkProtocolVersion, HttpTagHelper.GetProtocolVersionString(protocolVersion));
+                tags.Add(SemanticConventions.AttributeNetworkProtocolVersion, RequestDataHelper.GetHttpProtocolVersion(protocolVersion));
             }
 
             if (!request.RequestUri.IsDefaultPort)

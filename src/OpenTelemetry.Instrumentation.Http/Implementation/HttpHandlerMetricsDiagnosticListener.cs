@@ -46,7 +46,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
             // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-metrics.md
             TagList tags = default;
 
-            var httpMethod = RequestMethodHelper.GetNormalizedHttpMethod(request.Method.Method);
+            var httpMethod = HttpTagHelper.RequestDataHelper.GetNormalizedHttpMethod(request.Method.Method);
             tags.Add(new KeyValuePair<string, object>(SemanticConventions.AttributeHttpRequestMethod, httpMethod));
 
             tags.Add(new KeyValuePair<string, object>(SemanticConventions.AttributeServerAddress, request.RequestUri.Host));
@@ -59,7 +59,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
 
             if (TryFetchResponse(payload, out HttpResponseMessage response))
             {
-                tags.Add(new KeyValuePair<string, object>(SemanticConventions.AttributeNetworkProtocolVersion, HttpTagHelper.GetProtocolVersionString(response.Version)));
+                tags.Add(new KeyValuePair<string, object>(SemanticConventions.AttributeNetworkProtocolVersion, RequestDataHelper.GetHttpProtocolVersion(response.Version)));
                 tags.Add(new KeyValuePair<string, object>(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode)));
 
                 // Set error.type to status code for failed requests

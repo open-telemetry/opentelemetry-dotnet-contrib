@@ -34,7 +34,7 @@ public static class HttpClientInstrumentationMeterProviderBuilderExtensions
 #else
         // Note: Warm-up the status code and method mapping.
         _ = TelemetryHelper.BoxedStatusCodes;
-        _ = RequestMethodHelper.KnownMethods;
+        _ = HttpTagHelper.RequestDataHelper;
 
 #if NETFRAMEWORK
         builder.AddMeter(HttpWebRequestActivitySource.MeterName);

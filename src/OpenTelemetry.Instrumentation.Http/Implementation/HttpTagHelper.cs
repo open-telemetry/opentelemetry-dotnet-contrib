@@ -10,6 +10,8 @@ namespace OpenTelemetry.Instrumentation.Http.Implementation;
 /// </summary>
 internal static class HttpTagHelper
 {
+    internal static readonly RequestDataHelper RequestDataHelper = new();
+
     /// <summary>
     /// Gets the OpenTelemetry standard uri tag value for a span based on its request <see cref="Uri"/>.
     /// </summary>
@@ -27,13 +29,4 @@ internal static class HttpTagHelper
 
         return string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority, uri.AbsolutePath, query, uri.Fragment);
     }
-
-    public static string GetProtocolVersionString(Version httpVersion) => (httpVersion.Major, httpVersion.Minor) switch
-    {
-        (1, 0) => "1.0",
-        (1, 1) => "1.1",
-        (2, 0) => "2",
-        (3, 0) => "3",
-        _ => httpVersion.ToString(),
-    };
 }

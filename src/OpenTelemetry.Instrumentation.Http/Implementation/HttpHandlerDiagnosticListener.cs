@@ -10,7 +10,6 @@ using System.Net.Http;
 #endif
 using System.Reflection;
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Http.Implementation;
@@ -136,7 +135,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
                 return;
             }
 
-            RequestMethodHelper.SetActivityDisplayName(activity, request.Method.Method);
+            HttpTagHelper.RequestDataHelper.SetActivityDisplayName(activity, request.Method.Method);
 
             if (!IsNet7OrGreater)
             {
@@ -145,7 +144,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
             }
 
             // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-spans.md
-            RequestMethodHelper.SetHttpMethodTag(activity, request.Method.Method);
+            HttpTagHelper.RequestDataHelper.SetHttpMethodTag(activity, request.Method.Method);
 
             activity.SetTag(SemanticConventions.AttributeServerAddress, request.RequestUri.Host);
             activity.SetTag(SemanticConventions.AttributeServerPort, request.RequestUri.Port);
