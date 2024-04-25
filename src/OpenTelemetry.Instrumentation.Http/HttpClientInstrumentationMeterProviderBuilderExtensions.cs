@@ -41,7 +41,9 @@ public static class HttpClientInstrumentationMeterProviderBuilderExtensions
 #else
         builder.AddMeter(HttpHandlerMetricsDiagnosticListener.MeterName);
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
         builder.AddInstrumentation(new HttpClientMetrics());
+#pragma warning restore CA2000 // Dispose objects before losing scope
 #endif
         return builder;
 #endif
