@@ -40,7 +40,7 @@ public static TracerProviderBuilder AddMyExporter(this TracerProviderBuilder bui
 
 ### BaggageActivityProcessor
 
-The BaggageActivityProcessor reads entries stored in Baggage from the parent context
+The BaggageActivityProcessor reads entries stored in Baggage from the current `Baggage`
 and adds the baggage keys and values to the `Activity` as tags(attributes) on start.
 
 Add this activity processor to a tracer provider.
