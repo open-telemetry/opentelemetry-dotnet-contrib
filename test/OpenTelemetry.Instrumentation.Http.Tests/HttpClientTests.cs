@@ -291,7 +291,7 @@ public partial class HttpClientTests
             Assert.Equal(tc.SpanStatus, activity.Status.ToString());
             Assert.Null(activity.StatusDescription);
 
-            var normalizedAttributes = activity.TagObjects.Where(kv => !kv.Key.StartsWith("otel.")).ToDictionary(x => x.Key, x => x.Value.ToString());
+            var normalizedAttributes = activity.TagObjects.Where(kv => !kv.Key.StartsWith("otel.", StringComparison.Ordinal)).ToDictionary(x => x.Key, x => x.Value.ToString());
 
             int numberOfTags = activity.Status == ActivityStatusCode.Error ? 5 : 4;
 
