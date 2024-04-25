@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 #pragma warning disable IDE0005 // Using directive is unnecessary.
 using System;
 using System.Collections.Generic;
@@ -18,7 +20,7 @@ internal sealed class CustomTextMapPropagator : TextMapPropagator
 
     public Action<PropagationContext> Injected { get; set; }
 
-    public override ISet<string> Fields => null;
+    public override ISet<string>? Fields => null;
 
 #pragma warning disable SA1201 // Elements should appear in the correct order
 #pragma warning disable SA1010 // Opening square brackets should be spaced correctly
