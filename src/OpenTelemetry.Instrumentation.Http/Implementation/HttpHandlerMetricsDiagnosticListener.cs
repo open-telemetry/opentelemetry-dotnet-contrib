@@ -64,7 +64,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
 
                 // Set error.type to status code for failed requests
                 // https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-spans.md#common-attributes
-                if (SpanHelper.ResolveSpanStatusForHttpStatusCode(ActivityKind.Client, (int)response.StatusCode) == ActivityStatusCode.Error)
+                if (SpanHelper.ResolveActivityStatusForHttpStatusCode(ActivityKind.Client, (int)response.StatusCode) == ActivityStatusCode.Error)
                 {
                     tags.Add(new KeyValuePair<string, object>(SemanticConventions.AttributeErrorType, TelemetryHelper.GetStatusCodeString(response.StatusCode)));
                 }

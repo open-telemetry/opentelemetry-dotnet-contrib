@@ -322,7 +322,7 @@ internal static class HttpWebRequestActivitySource
                 {
                     httpStatusCode = response.StatusCode;
                     protocolVersion = response.ProtocolVersion;
-                    activityStatus = SpanHelper.ResolveSpanStatusForHttpStatusCode(ActivityKind.Client, (int)response.StatusCode);
+                    activityStatus = SpanHelper.ResolveActivityStatusForHttpStatusCode(ActivityKind.Client, (int)response.StatusCode);
                     if (activityStatus == ActivityStatusCode.Error)
                     {
                         // override the errorType to statusCode for failures.
@@ -382,7 +382,7 @@ internal static class HttpWebRequestActivitySource
                     protocolVersion = response.ProtocolVersion;
                 }
 
-                activityStatus = SpanHelper.ResolveSpanStatusForHttpStatusCode(ActivityKind.Client, (int)httpStatusCode.Value);
+                activityStatus = SpanHelper.ResolveActivityStatusForHttpStatusCode(ActivityKind.Client, (int)httpStatusCode.Value);
 
                 if (activityStatus == ActivityStatusCode.Error)
                 {
