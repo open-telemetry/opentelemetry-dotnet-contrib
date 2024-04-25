@@ -10,13 +10,16 @@ using System.Net.Http;
 #endif
 using System.Reflection;
 using OpenTelemetry.Context.Propagation;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Http.Implementation;
 
 internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 {
+#if !NETFRAMEWORK
     internal const string HttpClientActivitySourceName = "System.Net.Http";
+#endif
 
     internal static readonly AssemblyName AssemblyName = typeof(HttpHandlerDiagnosticListener).Assembly.GetName();
     internal static readonly bool IsNet7OrGreater;
@@ -210,7 +213,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
                     activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, (int)response.StatusCode));
                 }
 
-                activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, HttpTagHelper.GetProtocolVersionString(response.Version));
+                activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, RequestDataHelper.GetHttpProtocolVersion(response.Version));
                 activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode));
                 if (activity.Status == ActivityStatusCode.Error)
                 {
