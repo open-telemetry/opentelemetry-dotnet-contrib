@@ -13,7 +13,9 @@ public class HttpOutTestCase
     public string Url { get; set; }
 #pragma warning restore CA1056
 
+#pragma warning disable CA2227
     public Dictionary<string, string> Headers { get; set; }
+#pragma warning restore CA2227
 
     public int ResponseCode { get; set; }
 
@@ -25,5 +27,7 @@ public class HttpOutTestCase
 
     public string SpanStatus { get; set; }
 
+#pragma warning disable CA2227
     public Dictionary<string, string> SpanAttributes { get; set; }
+#pragma warning restore CA2227
 }
