@@ -10,7 +10,7 @@ Released 2024-Apr-26
 ## 1.8.0-beta.1
 
 **(This version has been unlisted due to incorrect dependency on stable sdk
-verion 1.8.1 that prevents ability to use exemplars)**
+version 1.8.1 that prevents ability to use exemplars)**
 
 Released 2024-Apr-23
 
