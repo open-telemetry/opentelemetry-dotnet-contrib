@@ -1284,6 +1284,7 @@ public class GenevaMetricExporterTests
         // TODO: Test for exemplar values stored as long
         // Ideally we could assert the long on serializedExemplarBody.Value.ValueAsVlq
         // But the result returned by it is not correct so skipping the long check for now.
+        // TODO: follow up to see if this is a bug in KaitaiStruct.Runtime.CSharp.
         if (!serializedExemplarBody.Value.IsDoubleStoredAsLong)
         {
             Assert.Equal(expectedExemplar.DoubleValue, serializedExemplarBody.Value.ValueAsDouble);
