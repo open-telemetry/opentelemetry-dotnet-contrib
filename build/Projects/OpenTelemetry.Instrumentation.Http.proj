@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <SolutionProjects Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Http\OpenTelemetry.Instrumentation.Http.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.Http.Benchmark\OpenTelemetry.Instrumentation.Http.Benchmark.csproj" />
     <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.Http.Tests\OpenTelemetry.Instrumentation.Http.Tests.csproj" />
 
     <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Http\OpenTelemetry.Instrumentation.Http.csproj" />
