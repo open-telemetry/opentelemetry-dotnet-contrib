@@ -20,6 +20,7 @@ components:
     - SergeyKanzhelev
   src/OpenTelemetry.Extensions/:
     - codeblanch
+    - mikegoldsmith
   src/OpenTelemetry.Extensions.AWS/:
     - srprash
     - atshaw43
@@ -114,6 +115,7 @@ components:
     - SergeyKanzhelev
   test/OpenTelemetry.Extensions.Tests/:
     - codeblanch
+    - mikegoldsmith
   test/OpenTelemetry.Extensions.AWS.Tests/:
     - srprash
     - atshaw43
