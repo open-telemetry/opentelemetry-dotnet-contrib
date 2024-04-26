@@ -90,8 +90,8 @@ internal sealed class TlvMetricExporter : IDisposable
 #if EXPOSE_EXPERIMENTAL_FEATURES
                     metricPoint.TryGetExemplars(out var exemplars);
 #endif
-
-                    switch (metric.MetricType)
+                    var metricType = metric.MetricType;
+                    switch (metricType)
                     {
                         case MetricType.LongSum:
                             {
@@ -104,6 +104,7 @@ internal sealed class TlvMetricExporter : IDisposable
                                     metricPoint.Tags,
                                     metricData,
 #if EXPOSE_EXPERIMENTAL_FEATURES
+                                    metricType,
                                     exemplars,
 #endif
                                     out monitoringAccount,
@@ -126,6 +127,7 @@ internal sealed class TlvMetricExporter : IDisposable
                                     metricPoint.Tags,
                                     metricData,
 #if EXPOSE_EXPERIMENTAL_FEATURES
+                                    metricType,
                                     exemplars,
 #endif
                                     out monitoringAccount,
@@ -148,6 +150,7 @@ internal sealed class TlvMetricExporter : IDisposable
                                     metricPoint.Tags,
                                     metricData,
 #if EXPOSE_EXPERIMENTAL_FEATURES
+                                    metricType,
                                     exemplars,
 #endif
                                     out monitoringAccount,
@@ -168,6 +171,7 @@ internal sealed class TlvMetricExporter : IDisposable
                                     metricPoint.Tags,
                                     metricData,
 #if EXPOSE_EXPERIMENTAL_FEATURES
+                                    metricType,
                                     exemplars,
 #endif
                                     out monitoringAccount,
@@ -187,6 +191,7 @@ internal sealed class TlvMetricExporter : IDisposable
                                     metricPoint.Tags,
                                     metricData,
 #if EXPOSE_EXPERIMENTAL_FEATURES
+                                    metricType,
                                     exemplars,
 #endif
                                     out monitoringAccount,
@@ -215,6 +220,7 @@ internal sealed class TlvMetricExporter : IDisposable
                                     min,
                                     max,
 #if EXPOSE_EXPERIMENTAL_FEATURES
+                                    metricType,
                                     exemplars,
 #endif
                                     out monitoringAccount,
@@ -266,6 +272,7 @@ internal sealed class TlvMetricExporter : IDisposable
         in ReadOnlyTagCollection tags,
         MetricData value,
 #if EXPOSE_EXPERIMENTAL_FEATURES
+        MetricType metricType,
         ReadOnlyExemplarCollection exemplars,
 #endif
         out string monitoringAccount,
@@ -295,7 +302,7 @@ internal sealed class TlvMetricExporter : IDisposable
                 out metricNamespace);
 
 #if EXPOSE_EXPERIMENTAL_FEATURES
-            SerializeExemplars(exemplars, this.buffer, ref bufferIndex);
+            SerializeExemplars(exemplars, metricType, this.buffer, ref bufferIndex);
 #endif
 
             SerializeMonitoringAccount(monitoringAccount, this.buffer, ref bufferIndex);
@@ -330,6 +337,7 @@ internal sealed class TlvMetricExporter : IDisposable
         double min,
         double max,
 #if EXPOSE_EXPERIMENTAL_FEATURES
+        MetricType metricType,
         ReadOnlyExemplarCollection exemplars,
 #endif
         out string monitoringAccount,
@@ -359,7 +367,7 @@ internal sealed class TlvMetricExporter : IDisposable
                 out metricNamespace);
 
 #if EXPOSE_EXPERIMENTAL_FEATURES
-            SerializeExemplars(exemplars, this.buffer, ref bufferIndex);
+            SerializeExemplars(exemplars, metricType, this.buffer, ref bufferIndex);
 #endif
 
             SerializeMonitoringAccount(monitoringAccount, this.buffer, ref bufferIndex);
@@ -407,7 +415,7 @@ internal sealed class TlvMetricExporter : IDisposable
 
 #if EXPOSE_EXPERIMENTAL_FEATURES
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SerializeExemplars(in ReadOnlyExemplarCollection exemplars, byte[] buffer, ref int bufferIndex)
+    private static void SerializeExemplars(in ReadOnlyExemplarCollection exemplars, MetricType metricType, byte[] buffer, ref int bufferIndex)
     {
         var exemplarsCount = 0;
         foreach (ref readonly var exemplar in exemplars)
@@ -429,7 +437,7 @@ internal sealed class TlvMetricExporter : IDisposable
 
             foreach (ref readonly var exemplar in exemplars)
             {
-                SerializeSingleExemplar(exemplar, buffer, ref bufferIndex);
+                SerializeSingleExemplar(exemplar, metricType, buffer, ref bufferIndex);
             }
 
             var payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
@@ -438,7 +446,7 @@ internal sealed class TlvMetricExporter : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SerializeSingleExemplar(Exemplar exemplar, byte[] buffer, ref int bufferIndex)
+    private static void SerializeSingleExemplar(Exemplar exemplar, MetricType metricType, byte[] buffer, ref int bufferIndex)
     {
         MetricSerializer.SerializeByte(buffer, ref bufferIndex, 0); // version
 
@@ -450,20 +458,14 @@ internal sealed class TlvMetricExporter : IDisposable
 
         var flags = ExemplarFlags.IsTimestampAvailable; // we only serialize exemplars with Timestamp != default
 
-        // TODO: Update the code when Exemplars support long values
-        var value = exemplar.DoubleValue;
-
-        // Check if the double value is actually a whole number that can be serialized as a long instead
-        var valueAsLong = (long)value;
-        bool isWholeNumber = valueAsLong == value;
-        if (isWholeNumber)
+        if (metricType.IsLong())
         {
             flags |= ExemplarFlags.IsMetricValueDoubleStoredAsLong;
-            MetricSerializer.SerializeInt64AsBase128(buffer, ref bufferIndex, valueAsLong); // serialize long value
+            MetricSerializer.SerializeInt64AsBase128(buffer, ref bufferIndex, exemplar.LongValue); // serialize long value
         }
         else
         {
-            MetricSerializer.SerializeFloat64(buffer, ref bufferIndex, value); // serialize double value
+            MetricSerializer.SerializeFloat64(buffer, ref bufferIndex, exemplar.DoubleValue); // serialize double value
         }
 
         var bufferIndexForNumberOfLabels = bufferIndex;

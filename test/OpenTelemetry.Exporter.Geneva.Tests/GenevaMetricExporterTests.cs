@@ -195,6 +195,7 @@ public class GenevaMetricExporterTests
                     metricPoint.Tags,
                     metricData,
 #if EXPOSE_EXPERIMENTAL_FEATURES
+                    MetricType.LongSum,
                     exemplars,
 #endif
                     out _,
@@ -1000,6 +1001,7 @@ public class GenevaMetricExporterTests
                 metricPoint.Tags,
                 metricData,
 #if EXPOSE_EXPERIMENTAL_FEATURES
+                metricType,
                 exemplars,
 #endif
                 out _,
@@ -1028,6 +1030,7 @@ public class GenevaMetricExporterTests
                 metricPoint.Tags,
                 metricData,
 #if EXPOSE_EXPERIMENTAL_FEATURES
+                metricType,
                 exemplars,
 #endif
                 out _,
@@ -1058,6 +1061,7 @@ public class GenevaMetricExporterTests
                 metricPoint.Tags,
                 metricData,
 #if EXPOSE_EXPERIMENTAL_FEATURES
+                metricType,
                 exemplars,
 #endif
                 out _,
@@ -1088,6 +1092,7 @@ public class GenevaMetricExporterTests
                 metricPoint.Tags,
                 metricData,
 #if EXPOSE_EXPERIMENTAL_FEATURES
+                metricType,
                 exemplars,
 #endif
                 out _,
@@ -1125,6 +1130,7 @@ public class GenevaMetricExporterTests
                 min,
                 max,
 #if EXPOSE_EXPERIMENTAL_FEATURES
+                metricType,
                 exemplars,
 #endif
                 out _,
@@ -1276,6 +1282,8 @@ public class GenevaMetricExporterTests
                 .TotalMilliseconds * 1000000;
 
         // TODO: Test for exemplar values stored as long
+        // Ideally we could assert the long on serializedExemplarBody.Value.ValueAsVlq
+        // But the result returned by it is not correct so skipping the long check for now.
         if (!serializedExemplarBody.Value.IsDoubleStoredAsLong)
         {
             Assert.Equal(expectedExemplar.DoubleValue, serializedExemplarBody.Value.ValueAsDouble);
@@ -1345,6 +1353,7 @@ public class GenevaMetricExporterTests
                 metricPoint.Tags,
                 metricData,
 #if EXPOSE_EXPERIMENTAL_FEATURES
+                metricType,
                 exemplars,
 #endif
                 out _,
@@ -1366,6 +1375,7 @@ public class GenevaMetricExporterTests
                 metricPoint.Tags,
                 metricData,
 #if EXPOSE_EXPERIMENTAL_FEATURES
+                metricType,
                 exemplars,
 #endif
                 out _,
@@ -1389,6 +1399,7 @@ public class GenevaMetricExporterTests
                 metricPoint.Tags,
                 metricData,
 #if EXPOSE_EXPERIMENTAL_FEATURES
+                metricType,
                 exemplars,
 #endif
                 out _,
@@ -1412,6 +1423,7 @@ public class GenevaMetricExporterTests
                 metricPoint.Tags,
                 metricData,
 #if EXPOSE_EXPERIMENTAL_FEATURES
+                metricType,
                 exemplars,
 #endif
                 out _,
@@ -1442,6 +1454,7 @@ public class GenevaMetricExporterTests
                 min,
                 max,
 #if EXPOSE_EXPERIMENTAL_FEATURES
+                metricType,
                 exemplars,
 #endif
                 out _,
