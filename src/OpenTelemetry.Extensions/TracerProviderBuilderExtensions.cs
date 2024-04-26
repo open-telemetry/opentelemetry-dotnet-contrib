@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Trace;
 
@@ -45,6 +46,21 @@ public static class TracerProviderBuilderExtensions
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
         return builder.AddProcessor(new AutoFlushActivityProcessor(predicate, timeoutMilliseconds));
+#pragma warning restore CA2000 // Dispose objects before losing scope
+    }
+
+    /// <summary>
+    /// Adds the <see cref="BaggageActivityProcessor"/> to the <see cref="TracerProviderBuilder"/>.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> to add the <see cref="BaggageActivityProcessor"/> to.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddBaggageActivityProcessor(
+        this TracerProviderBuilder builder)
+    {
+        Guard.ThrowIfNull(builder);
+
+#pragma warning disable CA2000 // Dispose objects before losing scope
+        return builder.AddProcessor(new BaggageActivityProcessor());
 #pragma warning restore CA2000 // Dispose objects before losing scope
     }
 }

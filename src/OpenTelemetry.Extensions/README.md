@@ -37,3 +37,18 @@ public static TracerProviderBuilder AddMyExporter(this TracerProviderBuilder bui
         .AddAutoFlushActivityProcessor(a => a.Parent == null && (a.Kind == ActivityKind.Server || a.Kind == ActivityKind.Consumer), 5000);
 }
 ```
+
+### BaggageActivityProcessor
+
+The BaggageActivityProcessor reads entries stored in Baggage from the current `Baggage`
+and adds the baggage keys and values to the `Activity` as tags (attributes) on start.
+
+Add this activity processor to a tracer provider.
+
+Example of adding BaggageActivityProcessor to `TracerProvider`:
+
+```cs
+var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .AddBaggageActivityProcessor()
+    .Build();
+```
