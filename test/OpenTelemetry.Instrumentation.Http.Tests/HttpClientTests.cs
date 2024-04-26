@@ -16,6 +16,7 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Http.Tests;
 
+[Collection("Http")]
 public partial class HttpClientTests
 {
     public static readonly IEnumerable<object[]> TestData = HttpTestData.ReadTestCases();

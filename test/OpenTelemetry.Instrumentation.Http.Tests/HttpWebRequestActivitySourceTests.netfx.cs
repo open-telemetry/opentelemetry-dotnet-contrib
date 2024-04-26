@@ -13,6 +13,7 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Http.Tests;
 
+[Collection("Http")]
 public class HttpWebRequestActivitySourceTests : IDisposable
 {
     private static bool validateBaggage;

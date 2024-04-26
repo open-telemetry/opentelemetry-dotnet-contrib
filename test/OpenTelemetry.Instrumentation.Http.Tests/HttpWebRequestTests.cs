@@ -12,6 +12,7 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Http.Tests;
 
+[Collection("Http")]
 public partial class HttpWebRequestTests
 {
     private static readonly JsonSerializerOptions JsonSerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
