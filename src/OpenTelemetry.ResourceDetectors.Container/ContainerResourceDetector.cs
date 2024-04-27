@@ -171,7 +171,6 @@ public class ContainerResourceDetector : IResourceDetector
             using var httpClientHandler = ServerCertificateValidationHandler.Create(K8sCertificatePath, ContainerResourceEventSource.Log);
             var response = ResourceDetectorUtils.SendOutRequest(url, "GET", new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler).GetAwaiter().GetResult();
             var pod = DeserializeK8sResponse(response);
-
             if (pod == null || pod.Status == null || pod.Status.ContainerStatuses == null)
             {
                 return string.Empty;
