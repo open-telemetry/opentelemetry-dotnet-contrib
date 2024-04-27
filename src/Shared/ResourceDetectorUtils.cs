@@ -12,7 +12,7 @@ using System.Text.Json.Serialization.Metadata;
 #endif
 using System.Threading.Tasks;
 
-namespace OpenTelemetry.ResourceDetectors.AWS;
+namespace OpenTelemetry.ResourceDetectors;
 
 /// <summary>
 /// Class for resource detector utils.
