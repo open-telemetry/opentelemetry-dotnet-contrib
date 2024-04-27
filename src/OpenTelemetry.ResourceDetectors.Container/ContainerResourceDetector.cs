@@ -178,7 +178,7 @@ public class ContainerResourceDetector : IResourceDetector
             }
 
             var container = pod.Status.ContainerStatuses.SingleOrDefault(p => p.Name == containerName);
-            if (container is null)
+            if (container is null || string.IsNullOrEmpty(container.Id))
             {
                 return string.Empty;
             }
