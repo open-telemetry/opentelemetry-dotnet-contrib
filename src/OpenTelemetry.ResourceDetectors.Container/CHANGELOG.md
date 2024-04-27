@@ -5,6 +5,9 @@
 * Update OpenTelemetry SDK version to `1.8.1`.
   ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
 
+* Add Kubernetes support in Container Resource Detector.
+  ([#1699](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1699))
+
 ## 1.0.0-beta.7
 
 Released 2024-Apr-05
