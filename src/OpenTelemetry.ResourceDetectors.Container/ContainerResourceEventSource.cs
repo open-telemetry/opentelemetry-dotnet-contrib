@@ -10,13 +10,13 @@ namespace OpenTelemetry.ResourceDetectors.Container;
 [EventSource(Name = "OpenTelemetry-ResourceDetectors-Container")]
 internal class ContainerResourceEventSource : EventSource, IServerCertificateValidationEventSource
 {
+    public static ContainerResourceEventSource Log = new();
+
     private const int EventIdFailedToExtractResourceAttributes = 1;
     private const int EventIdFailedToValidateCertificate = 2;
     private const int EventIdFailedToCreateHttpHandler = 3;
     private const int EventIdFailedCertificateFileNotExists = 4;
     private const int EventIdFailedToLoadCertificateInStorage = 5;
-
-    public static ContainerResourceEventSource Log = new();
 
     [NonEvent]
     public void ExtractResourceAttributesException(string format, Exception ex)

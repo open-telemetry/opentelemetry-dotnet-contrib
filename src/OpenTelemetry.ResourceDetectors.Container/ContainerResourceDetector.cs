@@ -163,6 +163,11 @@ public class ContainerResourceDetector : IResourceDetector
             var containerName = Environment.GetEnvironmentVariable(K8sContainerNameKey);
             var url = $"https://{host}:{port}/api/v1/namespaces/{@namespace}/pods/{hostname}";
             var credentials = GetK8sCredentials(K8sCredentialPath);
+            if (string.IsNullOrEmpty(credentials))
+            {
+                return string.Empty;
+            }
+
             using var httpClientHandler = ServerCertificateValidationHandler.Create(K8sCertificatePath, ContainerResourceEventSource.Log);
             var response = ResourceDetectorUtils.SendOutRequest(url, "GET", new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler).GetAwaiter().GetResult();
             var pod = DeserializeK8sResponse(response);
