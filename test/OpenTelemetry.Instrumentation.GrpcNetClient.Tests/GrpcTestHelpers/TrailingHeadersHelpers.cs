@@ -10,7 +10,7 @@ namespace OpenTelemetry.Instrumentation.Grpc.Tests.GrpcTestHelpers;
 
 internal static class TrailingHeadersHelpers
 {
-    public static readonly string ResponseTrailersKey = "__ResponseTrailers";
+    public const string ResponseTrailersKey = "__ResponseTrailers";
 
     public static HttpHeaders TrailingHeaders(this HttpResponseMessage responseMessage)
     {
