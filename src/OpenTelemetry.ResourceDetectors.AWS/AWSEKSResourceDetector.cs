@@ -67,7 +67,7 @@ public sealed class AWSEKSResourceDetector : IResourceDetector
     {
         try
         {
-            var stringBuilder = new StringBuilder();
+            var stringBuilder = new StringBuilder("Bearer ");
 
             using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
             {
@@ -76,8 +76,6 @@ public sealed class AWSEKSResourceDetector : IResourceDetector
                     stringBuilder.Append(streamReader.ReadLine()?.Trim());
                 }
             }
-
-            stringBuilder.Insert(0, "Bearer ");
 
             return stringBuilder.ToString();
         }

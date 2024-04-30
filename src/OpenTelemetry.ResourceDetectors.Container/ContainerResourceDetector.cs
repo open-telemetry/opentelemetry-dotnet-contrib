@@ -171,7 +171,7 @@ public class ContainerResourceDetector : IResourceDetector
             using var httpClientHandler = ServerCertificateValidationHandler.Create(K8sCertificatePath, ContainerResourceEventSource.Log);
             var response = ResourceDetectorUtils.SendOutRequest(url, "GET", new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler).GetAwaiter().GetResult();
             var pod = DeserializeK8sResponse(response);
-            if (pod == null || pod.Status == null || pod.Status.ContainerStatuses == null)
+            if (pod?.Status?.ContainerStatuses == null)
             {
                 return string.Empty;
             }
@@ -197,7 +197,7 @@ public class ContainerResourceDetector : IResourceDetector
         {
             try
             {
-                var stringBuilder = new StringBuilder();
+                var stringBuilder = new StringBuilder("Bearer ");
 
                 using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
                 {
@@ -206,8 +206,6 @@ public class ContainerResourceDetector : IResourceDetector
                         stringBuilder.Append(streamReader.ReadLine()?.Trim());
                     }
                 }
-
-                stringBuilder.Insert(0, "Bearer ");
 
                 return stringBuilder.ToString();
             }
