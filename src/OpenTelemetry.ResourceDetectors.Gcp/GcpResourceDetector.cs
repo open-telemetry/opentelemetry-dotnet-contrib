@@ -78,7 +78,7 @@ public sealed class GcpResourceDetector : IResourceDetector
     }
 
     internal static List<KeyValuePair<string, object>> ExtractGceResourceAttributes(Platform platform)
-{
+    {
         List<KeyValuePair<string, object>> attributeList = new()
         {
             new(ResourceSemanticConventions.AttributeCloudProvider, ResourceAttributeConstants.GcpCloudProviderValue),
